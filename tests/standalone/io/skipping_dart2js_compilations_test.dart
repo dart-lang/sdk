@@ -7,7 +7,7 @@
  * already up to date" feature does work as it should.
  * Therefore this test ensures that compilations are only skipped if the last
  * modified date of the output of a dart2js compilation is newer than
- *   - the the dart application to compile (including it's dependencies)
+ *   - the dart application to compile (including it's dependencies)
  *   - the dart2js snapshot
  * Furtheremore it ensure that a compilations is not skipped if any of the
  * necessary files could not be found (dart2js snapshots, previous dart2js

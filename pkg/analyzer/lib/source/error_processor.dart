@@ -10,6 +10,13 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:yaml/yaml.dart';
 
+/// String identifiers mapped to associated severities.
+const Map<String, ErrorSeverity> severityMap = const {
+  'error': ErrorSeverity.ERROR,
+  'info': ErrorSeverity.INFO,
+  'warning': ErrorSeverity.WARNING
+};
+
 /// Error processor configuration derived from analysis (or embedder) options.
 class ErrorConfig {
   /// The processors in this config.
@@ -57,13 +64,6 @@ class ErrorConfig {
   ErrorSeverity _toSeverity(String severity) => severityMap[severity];
 }
 
-/// String identifiers mapped to associated severities.
-const Map<String, ErrorSeverity> severityMap = const {
-  'error': ErrorSeverity.ERROR,
-  'info': ErrorSeverity.INFO,
-  'warning': ErrorSeverity.WARNING
-};
-
 /// Process errors by filtering or changing associated [ErrorSeverity].
 class ErrorProcessor {
   /// The code name of the associated error.
@@ -93,9 +93,42 @@ class ErrorProcessor {
     if (context == null) {
       return null;
     }
+
+    // Let the user configure how specific errors are processed.
     List<ErrorProcessor> processors =
         context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+
+    // Give strong mode a chance to upgrade it.
+    if (context.analysisOptions.strongMode) {
+      processors = processors.toList();
+      processors.add(_StrongModeTypeErrorProcessor.instance);
+    }
     return processors.firstWhere((ErrorProcessor p) => p.appliesTo(error),
         orElse: () => null);
+  }
+}
+
+/// In strong mode, this upgrades static type warnings to errors.
+class _StrongModeTypeErrorProcessor implements ErrorProcessor {
+  static final instance = new _StrongModeTypeErrorProcessor();
+
+  // TODO(rnystrom): As far as I know, this is only used to implement
+  // appliesTo(). Consider making it private in ErrorProcessor if possible.
+  String get code => throw new UnsupportedError(
+      "_StrongModeTypeErrorProcessor is not specific to an error code.");
+
+  /// In strong mode, type warnings are upgraded to errors.
+  ErrorSeverity get severity => ErrorSeverity.ERROR;
+
+  /// Check if this processor applies to the given [error].
+  bool appliesTo(AnalysisError error) {
+    ErrorCode errorCode = error.errorCode;
+    if (errorCode is StaticTypeWarningCode) {
+      return true;
+    }
+    if (errorCode is StaticWarningCode) {
+      return errorCode.isStrongModeError;
+    }
+    return false;
   }
 }

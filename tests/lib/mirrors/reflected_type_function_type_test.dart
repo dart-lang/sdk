@@ -18,5 +18,5 @@ main() {
       (reflectType(Predicate) as TypedefMirror).referent;
 
   expectReflectedType(numToBool1, somePredicate.runtimeType);
-  expectReflectedType(numToBool2, somePredicate.runtimeType);
+  expectReflectedType(numToBool2, Predicate);
 }

@@ -13,4 +13,4 @@ if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseX64
 
 set arguments=%*
 
-"%SCRIPTPATH%\..\..\build\%DART_CONFIGURATION%\dart.exe" %arguments%
+"%SCRIPTPATH%\..\..\out\%DART_CONFIGURATION%\dart.exe" %arguments%

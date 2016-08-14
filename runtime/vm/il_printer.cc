@@ -13,6 +13,8 @@ namespace dart {
 
 #ifndef PRODUCT
 
+DEFINE_FLAG(bool, display_sorted_ic_data, false,
+    "Calls display a unary, sorted-by count form of ICData");
 DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
 DEFINE_FLAG(charp, print_flow_graph_filter, NULL,
     "Print only IR of functions with matching names");
@@ -191,21 +193,17 @@ const char* CompileType::ToCString() const {
 }
 
 
-static void PrintICDataHelper(BufferFormatter* f, const ICData& ic_data) {
+static void PrintICDataHelper(BufferFormatter* f,
+                              const ICData& ic_data,
+                              intptr_t num_checks_to_print) {
   f->Print(" IC[");
-  if (ic_data.HasRangeFeedback()) {
-    f->Print("{%s",
-        ICData::RangeFeedbackToString(ic_data.DecodeRangeFeedbackAt(0)));
-    if (ic_data.NumArgsTested() == 2) {
-      f->Print(" x %s",
-          ICData::RangeFeedbackToString(ic_data.DecodeRangeFeedbackAt(1)));
-    }
-    f->Print("->%s} ",
-        ICData::RangeFeedbackToString(ic_data.DecodeRangeFeedbackAt(2)));
-  }
   f->Print("%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+  if ((num_checks_to_print == FlowGraphPrinter::kPrintAll) ||
+      (num_checks_to_print > ic_data.NumberOfChecks())) {
+    num_checks_to_print = ic_data.NumberOfChecks();
+  }
+  for (intptr_t i = 0; i < num_checks_to_print; i++) {
     GrowableArray<intptr_t> class_ids;
     ic_data.GetCheckAt(i, &class_ids, &target);
     const intptr_t count = ic_data.GetCountAt(i);
@@ -222,14 +220,35 @@ static void PrintICDataHelper(BufferFormatter* f, const ICData& ic_data) {
     }
     f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
   }
+  if (num_checks_to_print < ic_data.NumberOfChecks()) {
+    f->Print("...");
+  }
   f->Print("]");
 }
 
 
-void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
+static void PrintICDataSortedHelper(BufferFormatter* f,
+                                    const ICData& ic_data_orig) {
+  const ICData& ic_data =
+      ICData::Handle(ic_data_orig.AsUnaryClassChecksSortedByCount());
+  f->Print(" IC[n:%" Pd"; ", ic_data.NumberOfChecks());
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    const intptr_t count = ic_data.GetCountAt(i);
+    const intptr_t cid = ic_data.GetReceiverClassIdAt(i);
+    const Class& cls =
+        Class::Handle(Isolate::Current()->class_table()->At(cid));
+    f->Print("%s : %" Pd ", ",
+        String::Handle(cls.Name()).ToCString(), count);
+  }
+  f->Print("]");
+}
+
+
+void FlowGraphPrinter::PrintICData(const ICData& ic_data,
+                                   intptr_t num_checks_to_print) {
   char buffer[1024];
   BufferFormatter f(buffer, sizeof(buffer));
-  PrintICDataHelper(&f, ic_data);
+  PrintICDataHelper(&f, ic_data, num_checks_to_print);
   THR_Print("%s ", buffer);
   const Array& a = Array::Handle(ic_data.arguments_descriptor());
   THR_Print(" arg-desc %" Pd "\n", a.Length());
@@ -435,7 +454,11 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     PushArgumentAt(i)->value()->PrintTo(f);
   }
   if (HasICData()) {
-    PrintICDataHelper(f, *ic_data());
+    if (FLAG_display_sorted_ic_data) {
+      PrintICDataSortedHelper(f, *ic_data());
+    } else {
+      PrintICDataHelper(f, *ic_data(), FlowGraphPrinter::kPrintAll);
+    }
   }
 }
 
@@ -446,9 +469,16 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
   }
-  PrintICDataHelper(f, ic_data());
+  if (FLAG_display_sorted_ic_data) {
+    PrintICDataSortedHelper(f, ic_data());
+  } else {
+    PrintICDataHelper(f, ic_data(), FlowGraphPrinter::kPrintAll);
+  }
   if (with_checks()) {
-    f->Print(" WITH CHECKS");
+    f->Print(" WITH-CHECKS");
+  }
+  if (complete()) {
+    f->Print(" COMPLETE");
   }
 }
 
@@ -944,7 +974,11 @@ void CheckClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  PrintICDataHelper(f, unary_checks());
+  if (FLAG_display_sorted_ic_data) {
+    PrintICDataSortedHelper(f, unary_checks());
+  } else {
+    PrintICDataHelper(f, unary_checks(), FlowGraphPrinter::kPrintAll);
+  }
   if (IsNullCheck()) {
     f->Print(" nullcheck");
   }
@@ -1231,7 +1265,14 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
+
 #else  // PRODUCT
+
+
+const char* Instruction::ToCString() const {
+  return DebugName();
+}
+
 
 void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
                                            bool print_locations) {
@@ -1260,7 +1301,8 @@ void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
 }
 
 
-void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
+void FlowGraphPrinter::PrintICData(const ICData& ic_data,
+                                   intptr_t num_checks_to_print) {
   UNREACHABLE();
 }
 

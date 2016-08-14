@@ -5,7 +5,6 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_LINUX)
 
-#include "bin/file.h"
 #include "bin/platform.h"
 
 #include <signal.h>  // NOLINT
@@ -13,10 +12,15 @@
 #include <unistd.h>  // NOLINT
 
 #include "bin/fdutils.h"
-
+#include "bin/file.h"
 
 namespace dart {
 namespace bin {
+
+const char* Platform::executable_name_ = NULL;
+char* Platform::resolved_executable_name_ = NULL;
+int Platform::script_index_ = 1;
+char** Platform::argv_ = NULL;
 
 bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
@@ -43,6 +47,11 @@ const char* Platform::OperatingSystem() {
 }
 
 
+const char* Platform::LibraryPrefix() {
+  return "lib";
+}
+
+
 const char* Platform::LibraryExtension() {
   return "so";
 }
@@ -58,9 +67,12 @@ char** Platform::Environment(intptr_t* count) {
   // provide access to modifying environment variables.
   intptr_t i = 0;
   char** tmp = environ;
-  while (*(tmp++) != NULL) i++;
+  while (*(tmp++) != NULL) {
+    i++;
+  }
   *count = i;
-  char** result = new char*[i];
+  char** result;
+  result = reinterpret_cast<char**>(Dart_ScopeAllocate(i * sizeof(*result)));
   for (intptr_t current = 0; current < i; current++) {
     result[current] = environ[current];
   }
@@ -68,14 +80,10 @@ char** Platform::Environment(intptr_t* count) {
 }
 
 
-void Platform::FreeEnvironment(char** env, intptr_t count) {
-  delete[] env;
-}
-
-
-char* Platform::ResolveExecutablePath() {
+const char* Platform::ResolveExecutablePath() {
   return File::LinkTarget("/proc/self/exe");
 }
+
 
 void Platform::Exit(int exit_code) {
   exit(exit_code);

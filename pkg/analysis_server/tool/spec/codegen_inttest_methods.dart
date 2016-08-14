@@ -45,8 +45,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   List<String> notificationSwitchContents = <String>[];
 
   CodegenInttestMethodsVisitor(Api api)
-      : super(api),
-        toHtmlVisitor = new ToHtmlVisitor(api) {
+      : toHtmlVisitor = new ToHtmlVisitor(api),
+        super(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.languageName = 'dart';
   }
@@ -225,7 +225,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
           doCapitalize: true);
       futureClass = 'Future<$resultClass>';
     }
-    writeln('$futureClass $methodName(${args.join(', ')}) {');
+    writeln('$futureClass $methodName(${args.join(', ')}) async {');
     indent(() {
       String requestClass = camelJoin(
           [request.domainName, request.method, 'params'],
@@ -245,24 +245,19 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         args.addAll(optionalArgs);
         writeln('var params = new $requestClass(${args.join(', ')}).toJson();');
       }
-      writeln(
-          'return server.send(${JSON.encode(request.longMethod)}, $paramsVar)');
-      indent(() {
-        writeln('  .then((result) {');
-        if (request.result != null) {
-          String kind = 'null';
-          if (requestClass == 'EditGetRefactoringParams') {
-            kind = 'kind';
-          }
-          writeln('ResponseDecoder decoder = new ResponseDecoder($kind);');
-          writeln(
-              "return new $resultClass.fromJson(decoder, 'result', result);");
-        } else {
-          writeln('expect(result, isNull);');
-          writeln('return null;');
+      String methodJson = JSON.encode(request.longMethod);
+      writeln('var result = await server.send($methodJson, $paramsVar);');
+      if (request.result != null) {
+        String kind = 'null';
+        if (requestClass == 'EditGetRefactoringParams') {
+          kind = 'kind';
         }
-      });
-      writeln('});');
+        writeln('ResponseDecoder decoder = new ResponseDecoder($kind);');
+        writeln("return new $resultClass.fromJson(decoder, 'result', result);");
+      } else {
+        writeln('expect(result, isNull);');
+        writeln('return null;');
+      }
     });
     writeln('}');
   }

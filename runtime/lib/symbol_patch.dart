@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class Symbol {
-  /* patch */ const Symbol(String name)
+@patch class Symbol {
+  @patch const Symbol(String name)
       : this._name = name;
 
-  /* patch */ toString() => 'Symbol("${getUnmangledName(this)}")';
+  @patch toString() => 'Symbol("${getUnmangledName(this)}")';
 
   static getUnmangledName(Symbol symbol) {
     String string = Symbol.getName(symbol);
@@ -50,5 +50,10 @@ patch class Symbol {
       result.write('=');
     }
     return result.toString();
+  }
+
+  @patch int get hashCode {
+    const arbitraryPrime = 664597;
+    return 0x1fffffff & (arbitraryPrime * _name.hashCode);
   }
 }

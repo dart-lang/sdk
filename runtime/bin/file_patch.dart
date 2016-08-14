@@ -2,44 +2,54 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _File {
-  /* patch */ static _exists(String path) native "File_Exists";
-  /* patch */ static _create(String path) native "File_Create";
-  /* patch */ static _createLink(String path, String target)
+@patch class _File {
+  @patch static _exists(String path) native "File_Exists";
+  @patch static _create(String path) native "File_Create";
+  @patch static _createLink(String path, String target)
       native "File_CreateLink";
-  /* patch */ static _linkTarget(String path) native "File_LinkTarget";
-  /* patch */ static _deleteNative(String path) native "File_Delete";
-  /* patch */ static _deleteLinkNative(String path) native "File_DeleteLink";
-  /* patch */ static _rename(String oldPath, String newPath)
+  @patch static _linkTarget(String path) native "File_LinkTarget";
+  @patch static _deleteNative(String path) native "File_Delete";
+  @patch static _deleteLinkNative(String path) native "File_DeleteLink";
+  @patch static _rename(String oldPath, String newPath)
       native "File_Rename";
-  /* patch */ static _renameLink(String oldPath, String newPath)
+  @patch static _renameLink(String oldPath, String newPath)
       native "File_RenameLink";
-  /* patch */ static _copy(String oldPath, String newPath) native "File_Copy";
-  /* patch */ static _lengthFromPath(String path) native "File_LengthFromPath";
-  /* patch */ static _lastModified(String path) native "File_LastModified";
-  /* patch */ static _open(String path, int mode) native "File_Open";
-  /* patch */ static int _openStdio(int fd) native "File_OpenStdio";
+  @patch static _copy(String oldPath, String newPath) native "File_Copy";
+  @patch static _lengthFromPath(String path) native "File_LengthFromPath";
+  @patch static _lastModified(String path) native "File_LastModified";
+  @patch static _open(String path, int mode) native "File_Open";
+  @patch static int _openStdio(int fd) native "File_OpenStdio";
 }
 
 
-patch class _RandomAccessFile {
-  /* patch */ static int _close(int id) native "File_Close";
-  /* patch */ static int _getFD(int id) native "File_GetFD";
-  /* patch */ static _readByte(int id) native "File_ReadByte";
-  /* patch */ static _read(int id, int bytes) native "File_Read";
-  /* patch */ static _readInto(int id, List<int> buffer, int start, int end)
-      native "File_ReadInto";
-  /* patch */ static _writeByte(int id, int value) native "File_WriteByte";
-  /* patch */ static _writeFrom(int id, List<int> buffer, int start, int end)
-      native "File_WriteFrom";
-  /* patch */ static _position(int id) native "File_Position";
-  /* patch */ static _setPosition(int id, int position)
-      native "File_SetPosition";
-  /* patch */ static _truncate(int id, int length) native "File_Truncate";
-  /* patch */ static _length(int id) native "File_Length";
-  /* patch */ static _flush(int id) native "File_Flush";
-  /* patch */ static _lock(int id, int lock, int start, int end)
-      native "File_Lock";
+@patch class _RandomAccessFileOps {
+  @patch factory _RandomAccessFileOps(int pointer)
+      => new _RandomAccessFileOpsImpl(pointer);
+}
+
+
+class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
+                               implements _RandomAccessFileOps {
+  _RandomAccessFileOpsImpl._();
+
+  factory _RandomAccessFileOpsImpl(int pointer)
+      => new _RandomAccessFileOpsImpl._().._setPointer(pointer);
+
+  void _setPointer(int pointer) native "File_SetPointer";
+
+  int getPointer() native "File_GetPointer";
+  int close() native "File_Close";
+  readByte() native "File_ReadByte";
+  read(int bytes) native "File_Read";
+  readInto(List<int> buffer, int start, int end) native "File_ReadInto";
+  writeByte(int value) native "File_WriteByte";
+  writeFrom(List<int> buffer, int start, int end) native "File_WriteFrom";
+  position() native "File_Position";
+  setPosition(int position) native "File_SetPosition";
+  truncate(int length) native "File_Truncate";
+  length() native "File_Length";
+  flush() native "File_Flush";
+  lock(int lock, int start, int end) native "File_Lock";
 }
 
 
@@ -52,7 +62,7 @@ class _WatcherPath {
 }
 
 
-patch class _FileSystemWatcher {
+@patch class _FileSystemWatcher {
   static int _id;
   static final Map<int, _WatcherPath> _idMap = {};
 
@@ -64,7 +74,7 @@ patch class _FileSystemWatcher {
 
   StreamController _broadcastController;
 
-  /* patch */ static Stream<FileSystemEvent> _watch(
+  @patch static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive) {
     if (Platform.isLinux) {
       return new _InotifyFileSystemWatcher(path, events, recursive).stream;
@@ -252,7 +262,7 @@ patch class _FileSystemWatcher {
     });
   }
 
-  /* patch */ static bool get isSupported
+  @patch static bool get isSupported
       native "FileSystemWatcher_IsSupported";
 
   static int _initWatcher() native "FileSystemWatcher_InitWatcher";

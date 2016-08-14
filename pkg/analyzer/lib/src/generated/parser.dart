@@ -15,8 +15,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisEngine, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/generated/shared_messages.dart'
     as shared_messages;
@@ -128,7 +127,9 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'expectKeyword_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._expectKeyword(arg0)),
   'findRange_2': new MethodTrampoline(
-      2, (Parser target, arg0, arg1) => target._findRange(arg0, arg1)),
+      2,
+      (Parser target, List<List<int>> arg0, int arg1) =>
+          target._findRange(arg0, arg1)),
   'getCodeBlockRanges_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._getCodeBlockRanges(arg0)),
   'getEndToken_1': new MethodTrampoline(
@@ -202,7 +203,9 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'parseCommentReference_2': new MethodTrampoline(2,
       (Parser target, arg0, arg1) => target._parseCommentReference(arg0, arg1)),
   'parseCommentReferences_1': new MethodTrampoline(
-      1, (Parser target, arg0) => target._parseCommentReferences(arg0)),
+      1,
+      (Parser target, List<DocumentationCommentToken> arg0) =>
+          target._parseCommentReferences(arg0)),
   'parseCompilationUnitMember_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._parseCompilationUnitMember(arg0)),
   'parseConfiguration_0':
@@ -213,16 +216,19 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
       8,
       (Parser target, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) => target
           ._parseConstructor(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)),
-  'parseConstructorFieldInitializer_0': new MethodTrampoline(
-      0, (Parser target) => target._parseConstructorFieldInitializer()),
+  'parseConstructorFieldInitializer_1': new MethodTrampoline(1,
+      (Parser target, arg0) => target._parseConstructorFieldInitializer(arg0)),
   'parseContinueStatement_0': new MethodTrampoline(
       0, (Parser target) => target._parseContinueStatement()),
   'parseDirective_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._parseDirective(arg0)),
   'parseDirectives_0':
       new MethodTrampoline(0, (Parser target) => target._parseDirectives()),
-  'parseDocumentationComment_0': new MethodTrampoline(
-      0, (Parser target) => target._parseDocumentationComment()),
+  'parseDocumentationComment_0': new MethodTrampoline(0, (Parser target) {
+    List<DocumentationCommentToken> tokens =
+        target._parseDocumentationCommentTokens();
+    return target._parseDocumentationComment(tokens);
+  }),
   'parseDoStatement_0':
       new MethodTrampoline(0, (Parser target) => target._parseDoStatement()),
   'parseDottedName_0':
@@ -317,13 +323,15 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'parseOptionalReturnType_0': new MethodTrampoline(
       0, (Parser target) => target._parseOptionalReturnType()),
   'parsePartDirective_1': new MethodTrampoline(
-      1, (Parser target, arg0) => target._parsePartDirective(arg0)),
+      1, (Parser target, arg0) => target._parsePartOrPartOfDirective(arg0)),
   'parsePostfixExpression_0': new MethodTrampoline(
       0, (Parser target) => target._parsePostfixExpression()),
   'parsePrimaryExpression_0': new MethodTrampoline(
       0, (Parser target) => target._parsePrimaryExpression()),
-  'parseRedirectingConstructorInvocation_0': new MethodTrampoline(
-      0, (Parser target) => target._parseRedirectingConstructorInvocation()),
+  'parseRedirectingConstructorInvocation_1': new MethodTrampoline(
+      1,
+      (Parser target, arg0) =>
+          target._parseRedirectingConstructorInvocation(arg0)),
   'parseRelationalExpression_0': new MethodTrampoline(
       0, (Parser target) => target._parseRelationalExpression()),
   'parseRethrowExpression_0': new MethodTrampoline(
@@ -490,7 +498,7 @@ class CommentAndMetadata {
   final Comment comment;
 
   /**
-   * The metadata that was parsed.
+   * The metadata that was parsed, or `null` if none was given.
    */
   final List<Annotation> metadata;
 
@@ -498,6 +506,11 @@ class CommentAndMetadata {
    * Initialize a newly created holder with the given [comment] and [metadata].
    */
   CommentAndMetadata(this.comment, this.metadata);
+
+  /**
+   * Return `true` if some metadata was parsed.
+   */
+  bool get hasMetadata => metadata != null && metadata.isNotEmpty;
 }
 
 /**
@@ -674,9 +687,9 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     if (identical(_oldNode, node.exceptionType)) {
       return _parser.parseTypeName();
     } else if (identical(_oldNode, node.exceptionParameter)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.stackTraceParameter)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.body)) {
       return _parser.parseBlock();
     }
@@ -718,7 +731,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.typeParameters)) {
       return _parser.parseTypeParameterList();
     } else if (identical(_oldNode, node.superclass)) {
@@ -881,7 +894,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     }
     return _notAChild(node);
   }
@@ -893,7 +906,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (node.constants.contains(_oldNode)) {
       throw new InsufficientContextException();
     }
@@ -973,7 +986,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       throw new InsufficientContextException();
       //return parser.parseDeclaredIdentifier();
     } else if (identical(_oldNode, node.identifier)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.body)) {
       return _parser.parseStatement2();
     }
@@ -1011,7 +1024,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.returnType)) {
       return _parser.parseReturnType();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.functionExpression)) {
       throw new InsufficientContextException();
     }
@@ -1055,7 +1068,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.returnType)) {
       return _parser.parseReturnType();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.typeParameters)) {
       return _parser.parseTypeParameterList();
     } else if (identical(_oldNode, node.parameters)) {
@@ -1073,7 +1086,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.returnType)) {
       return _parser.parseReturnType();
     } else if (identical(_oldNode, node.identifier)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.parameters)) {
       return _parser.parseFormalParameterList();
     }
@@ -1117,7 +1130,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.uri)) {
       return _parser.parseStringLiteral();
     } else if (identical(_oldNode, node.prefix)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (node.combinators.contains(_oldNode)) {
       return _parser.parseCombinator();
     }
@@ -1177,7 +1190,8 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   @override
   AstNode visitLabel(Label node) {
     if (identical(_oldNode, node.label)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(
+          isDeclaration: node.parent is LabeledStatement);
     }
     return _notAChild(node);
   }
@@ -1185,7 +1199,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   @override
   AstNode visitLabeledStatement(LabeledStatement node) {
     if (node.labels.contains(_oldNode)) {
-      return _parser.parseLabel();
+      return _parser.parseLabel(isDeclaration: true);
     } else if (identical(_oldNode, node.statement)) {
       return _parser.parseStatement2();
     }
@@ -1256,7 +1270,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       if (node.operatorKeyword != null) {
         throw new InsufficientContextException();
       }
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.body)) {
       //return parser.parseFunctionBody();
       throw new InsufficientContextException();
@@ -1551,7 +1565,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.bound)) {
       return _parser.parseTypeName();
     }
@@ -1828,7 +1842,7 @@ class IncrementalParser {
     ResolutionCopier.copyResolutionData(oldNode, newNode);
     IncrementalAstCloner cloner =
         new IncrementalAstCloner(oldNode, newNode, _tokenMap);
-    return originalStructure.accept(cloner) as AstNode;
+    return originalStructure.accept(cloner);
   }
 
   /**
@@ -2116,7 +2130,7 @@ class Parser {
   final AnalysisErrorListener _errorListener;
 
   /**
-   * An [errorListener] lock, if more than `0`, then errors are not reported.
+   * An [_errorListener] lock, if more than `0`, then errors are not reported.
    */
   int _errorListenerLock = 0;
 
@@ -2143,7 +2157,7 @@ class Parser {
 
   /**
    * A flag indicating whether the parser is currently in a function body marked
-   * as being 'async'.
+   * (by a star) as being a generator.
    */
   bool _inGenerator = false;
 
@@ -2159,15 +2173,9 @@ class Parser {
 
   /**
    * A flag indicating whether the parser is currently in a constructor field
-   * initializer, with no intervening parens, braces, or brackets.
+   * initializer, with no intervening parentheses, braces, or brackets.
    */
   bool _inInitializer = false;
-
-  /**
-   * A flag indicating whether the parser is to parse conditional directives
-   * syntax.
-   */
-  bool parseConditionalDirectives = false;
 
   /**
    * A flag indicating whether the parser is to parse generic method syntax.
@@ -2181,14 +2189,16 @@ class Parser {
   bool parseGenericMethodComments = false;
 
   /**
-   * Initialize a newly created parser to parse the content of the given
-   * [_source] and to report any errors that are found to the given
-   * [_errorListener].
+   * Initialize a newly created parser to parse tokens in the given [_source]
+   * and to report any errors that are found to the given [_errorListener].
    */
   Parser(this._source, this._errorListener);
 
-  void set currentToken(Token currentToken) {
-    this._currentToken = currentToken;
+  /**
+   * Set the token with which the parse is to begin to the given [token].
+   */
+  void set currentToken(Token token) {
+    this._currentToken = token;
   }
 
   /**
@@ -2197,6 +2207,7 @@ class Parser {
    * parameters, followed by a left-parenthesis. This is used by
    * [_parseTypeAlias] to determine whether or not to parse a return type.
    */
+  @deprecated
   bool get hasReturnTypeInTypeAlias {
     Token next = _skipReturnType(_currentToken);
     if (next == null) {
@@ -2212,6 +2223,12 @@ class Parser {
     this._parseAsync = parseAsync;
   }
 
+  @deprecated
+  bool get parseConditionalDirectives => true;
+
+  @deprecated
+  void set parseConditionalDirectives(bool value) {}
+
   /**
    * Set whether parser is to parse function bodies.
    */
@@ -2225,19 +2242,20 @@ class Parser {
    */
   Token getAndAdvance() {
     Token token = _currentToken;
-    _advance();
+    _currentToken = _currentToken.next;
     return token;
   }
 
   /**
    * Parse an annotation. Return the annotation that was parsed.
    *
+   * This method assumes that the current token matches [TokenType.AT].
+   *
    *     annotation ::=
    *         '@' qualified ('.' identifier)? arguments?
-   *
    */
   Annotation parseAnnotation() {
-    Token atSign = _expect(TokenType.AT);
+    Token atSign = getAndAdvance();
     Identifier name = parsePrefixedIdentifier();
     Token period = null;
     SimpleIdentifier constructorName = null;
@@ -2263,6 +2281,9 @@ class Parser {
    *         label expression
    */
   Expression parseArgument() {
+    // TODO(brianwilkerson) Consider returning a wrapper indicating whether the
+    // expression is a named expression in order to remove the 'is' check in
+    // 'parseArgumentList'.
     //
     // Both namedArgument and expression can start with an identifier, but only
     // namedArgument can have an identifier followed by a colon.
@@ -2277,6 +2298,8 @@ class Parser {
   /**
    * Parse a list of arguments. Return the argument list that was parsed.
    *
+   * This method assumes that the current token matches [TokenType.OPEN_PAREN].
+   *
    *     arguments ::=
    *         '(' argumentList? ')'
    *
@@ -2285,10 +2308,9 @@ class Parser {
    *       | expressionList (',' namedArgument)*
    */
   ArgumentList parseArgumentList() {
-    Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
-    List<Expression> arguments = new List<Expression>();
+    Token leftParenthesis = getAndAdvance();
     if (_matches(TokenType.CLOSE_PAREN)) {
-      return new ArgumentList(leftParenthesis, arguments, getAndAdvance());
+      return new ArgumentList(leftParenthesis, null, getAndAdvance());
     }
     //
     // Even though unnamed arguments must all appear before any named arguments,
@@ -2298,30 +2320,33 @@ class Parser {
     _inInitializer = false;
     try {
       Expression argument = parseArgument();
-      arguments.add(argument);
+      List<Expression> arguments = <Expression>[argument];
       bool foundNamedArgument = argument is NamedExpression;
       bool generatedError = false;
       while (_optional(TokenType.COMMA)) {
+        if (_matches(TokenType.CLOSE_PAREN)) {
+          break;
+        }
         argument = parseArgument();
         arguments.add(argument);
-        if (foundNamedArgument) {
-          bool blankArgument =
-              argument is SimpleIdentifier && argument.name.isEmpty;
-          if (!generatedError &&
-              !(argument is NamedExpression && !blankArgument)) {
-            // Report the error, once, but allow the arguments to be in any
-            // order in the AST.
-            _reportErrorForCurrentToken(
-                ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
-            generatedError = true;
-          }
-        } else if (argument is NamedExpression) {
+        if (argument is NamedExpression) {
           foundNamedArgument = true;
+        } else if (foundNamedArgument) {
+          if (!generatedError) {
+            if (!argument.isSynthetic) {
+              // Report the error, once, but allow the arguments to be in any
+              // order in the AST.
+              _reportErrorForCurrentToken(
+                  ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
+              generatedError = true;
+            }
+          }
         }
       }
-      // TODO(brianwilkerson) Recovery: Look at the left parenthesis to see
-      // whether there is a matching right parenthesis. If there is, then we're
-      // more likely missing a comma and should go back to parsing arguments.
+      // Recovery: If the next token is not a right parenthesis, look at the
+      // left parenthesis to see whether there is a matching right parenthesis.
+      // If there is, then we're more likely missing a comma and should go back
+      // to parsing arguments.
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
     } finally {
@@ -2339,16 +2364,15 @@ class Parser {
    */
   Expression parseBitwiseOrExpression() {
     Expression expression;
-    if (_matchesKeyword(Keyword.SUPER) &&
-        _tokenMatches(_peek(), TokenType.BAR)) {
+    if (_currentToken.keyword == Keyword.SUPER &&
+        _currentToken.next.type == TokenType.BAR) {
       expression = new SuperExpression(getAndAdvance());
     } else {
       expression = _parseBitwiseXorExpression();
     }
-    while (_matches(TokenType.BAR)) {
-      Token operator = getAndAdvance();
+    while (_currentToken.type == TokenType.BAR) {
       expression = new BinaryExpression(
-          expression, operator, _parseBitwiseXorExpression());
+          expression, getAndAdvance(), _parseBitwiseXorExpression());
     }
     return expression;
   }
@@ -2356,27 +2380,37 @@ class Parser {
   /**
    * Parse a block. Return the block that was parsed.
    *
+   * This method assumes that the current token matches
+   * [TokenType.OPEN_CURLY_BRACKET].
+   *
    *     block ::=
    *         '{' statements '}'
    */
   Block parseBlock() {
-    Token leftBracket = _expect(TokenType.OPEN_CURLY_BRACKET);
-    List<Statement> statements = new List<Statement>();
+    bool isEndOfBlock() {
+      TokenType type = _currentToken.type;
+      return type == TokenType.EOF || type == TokenType.CLOSE_CURLY_BRACKET;
+    }
+
+    Token leftBracket = getAndAdvance();
+    List<Statement> statements = <Statement>[];
     Token statementStart = _currentToken;
-    while (
-        !_matches(TokenType.EOF) && !_matches(TokenType.CLOSE_CURLY_BRACKET)) {
+    while (!isEndOfBlock()) {
       Statement statement = parseStatement2();
-      if (statement != null) {
-        statements.add(statement);
-      }
       if (identical(_currentToken, statementStart)) {
         // Ensure that we are making progress and report an error if we're not.
         _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken,
             [_currentToken.lexeme]);
         _advance();
+      } else if (statement != null) {
+        statements.add(statement);
       }
       statementStart = _currentToken;
     }
+    // Recovery: If the next token is not a right curly bracket, look at the
+    // left curly bracket to see whether there is a matching right bracket. If
+    // there is, then we're more likely missing a semi-colon and should go back
+    // to parsing statements.
     Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
     return new Block(leftBracket, statements, rightBracket);
   }
@@ -2393,23 +2427,27 @@ class Parser {
   ClassMember parseClassMember(String className) {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
     Modifiers modifiers = _parseModifiers();
-    if (_matchesKeyword(Keyword.VOID)) {
-      TypeName returnType = parseReturnType();
-      if (_matchesKeyword(Keyword.GET) && _tokenMatchesIdentifier(_peek())) {
+    Keyword keyword = _currentToken.keyword;
+    if (keyword == Keyword.VOID) {
+      TypeName returnType =
+          new TypeName(new SimpleIdentifier(getAndAdvance()), null);
+      keyword = _currentToken.keyword;
+      Token next = _peek();
+      bool isFollowedByIdentifier = _tokenMatchesIdentifier(next);
+      if (keyword == Keyword.GET && isFollowedByIdentifier) {
         _validateModifiersForGetterOrSetterOrMethod(modifiers);
         return _parseGetter(commentAndMetadata, modifiers.externalKeyword,
             modifiers.staticKeyword, returnType);
-      } else if (_matchesKeyword(Keyword.SET) &&
-          _tokenMatchesIdentifier(_peek())) {
+      } else if (keyword == Keyword.SET && isFollowedByIdentifier) {
         _validateModifiersForGetterOrSetterOrMethod(modifiers);
         return _parseSetter(commentAndMetadata, modifiers.externalKeyword,
             modifiers.staticKeyword, returnType);
-      } else if (_matchesKeyword(Keyword.OPERATOR) && _isOperator(_peek())) {
+      } else if (keyword == Keyword.OPERATOR && _isOperator(next)) {
         _validateModifiersForOperator(modifiers);
-        return _parseOperator(
-            commentAndMetadata, modifiers.externalKeyword, returnType);
+        return _parseOperatorAfterKeyword(commentAndMetadata,
+            modifiers.externalKeyword, returnType, getAndAdvance());
       } else if (_matchesIdentifier() &&
-          _peek().matchesAny([
+          _peek().matchesAny(const <TokenType>[
             TokenType.OPEN_PAREN,
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.FUNCTION,
@@ -2423,8 +2461,11 @@ class Parser {
         // We have found an error of some kind. Try to recover.
         //
         if (_matchesIdentifier()) {
-          if (_peek().matchesAny(
-              [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+          if (_peek().matchesAny(const <TokenType>[
+            TokenType.EQ,
+            TokenType.COMMA,
+            TokenType.SEMICOLON
+          ])) {
             //
             // We appear to have a variable declaration with a type of "void".
             //
@@ -2449,20 +2490,21 @@ class Parser {
             ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken);
         return null;
       }
-    } else if (_matchesKeyword(Keyword.GET) &&
-        _tokenMatchesIdentifier(_peek())) {
+    }
+    Token next = _peek();
+    bool isFollowedByIdentifier = _tokenMatchesIdentifier(next);
+    if (keyword == Keyword.GET && isFollowedByIdentifier) {
       _validateModifiersForGetterOrSetterOrMethod(modifiers);
       return _parseGetter(commentAndMetadata, modifiers.externalKeyword,
           modifiers.staticKeyword, null);
-    } else if (_matchesKeyword(Keyword.SET) &&
-        _tokenMatchesIdentifier(_peek())) {
+    } else if (keyword == Keyword.SET && isFollowedByIdentifier) {
       _validateModifiersForGetterOrSetterOrMethod(modifiers);
       return _parseSetter(commentAndMetadata, modifiers.externalKeyword,
           modifiers.staticKeyword, null);
-    } else if (_matchesKeyword(Keyword.OPERATOR) && _isOperator(_peek())) {
+    } else if (keyword == Keyword.OPERATOR && _isOperator(next)) {
       _validateModifiersForOperator(modifiers);
-      return _parseOperator(
-          commentAndMetadata, modifiers.externalKeyword, null);
+      return _parseOperatorAfterKeyword(
+          commentAndMetadata, modifiers.externalKeyword, null, getAndAdvance());
     } else if (!_matchesIdentifier()) {
       //
       // Recover from an error.
@@ -2507,9 +2549,9 @@ class Parser {
         // We appear to have found an incomplete field declaration.
         //
         _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
-        List<VariableDeclaration> variables = new List<VariableDeclaration>();
-        variables.add(
-            new VariableDeclaration(_createSyntheticIdentifier(), null, null));
+        VariableDeclaration variable =
+            new VariableDeclaration(_createSyntheticIdentifier(), null, null);
+        List<VariableDeclaration> variables = <VariableDeclaration>[variable];
         return new FieldDeclaration(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
@@ -2520,7 +2562,7 @@ class Parser {
       _reportErrorForToken(
           ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken);
       if (commentAndMetadata.comment != null ||
-          !commentAndMetadata.metadata.isEmpty) {
+          commentAndMetadata.hasMetadata) {
         //
         // We appear to have found an incomplete declaration at the end of the
         // class. At this point it consists of a metadata, which we don't want
@@ -2535,14 +2577,14 @@ class Parser {
             null,
             null,
             null,
-            _createSyntheticIdentifier(),
+            _createSyntheticIdentifier(isDeclaration: true),
             null,
             new FormalParameterList(
-                null, new List<FormalParameter>(), null, null, null),
+                null, <FormalParameter>[], null, null, null),
             new EmptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON)));
       }
       return null;
-    } else if (_tokenMatches(_peek(), TokenType.PERIOD) &&
+    } else if (_tokenMatches(next, TokenType.PERIOD) &&
         _tokenMatchesIdentifier(_peekAt(2)) &&
         _tokenMatches(_peekAt(3), TokenType.OPEN_PAREN)) {
       return _parseConstructor(
@@ -2552,11 +2594,11 @@ class Parser {
           modifiers.factoryKeyword,
           parseSimpleIdentifier(),
           getAndAdvance(),
-          parseSimpleIdentifier(),
+          parseSimpleIdentifier(isDeclaration: true),
           parseFormalParameterList());
-    } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+    } else if (_tokenMatches(next, TokenType.OPEN_PAREN)) {
       TypeName returnType = _parseOptionalTypeNameComment();
-      SimpleIdentifier methodName = parseSimpleIdentifier();
+      SimpleIdentifier methodName = parseSimpleIdentifier(isDeclaration: true);
       TypeParameterList typeParameters = _parseGenericCommentTypeParameters();
       FormalParameterList parameters = parseFormalParameterList();
       if (_matches(TokenType.COLON) ||
@@ -2567,7 +2609,7 @@ class Parser {
             modifiers.externalKeyword,
             _validateModifiersForConstructor(modifiers),
             modifiers.factoryKeyword,
-            methodName,
+            new SimpleIdentifier(methodName.token, isDeclaration: false),
             null,
             null,
             parameters);
@@ -2582,8 +2624,11 @@ class Parser {
           methodName,
           typeParameters,
           parameters);
-    } else if (_peek()
-        .matchesAny([TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+    } else if (next.matchesAny(const <TokenType>[
+      TokenType.EQ,
+      TokenType.COMMA,
+      TokenType.SEMICOLON
+    ])) {
       if (modifiers.constKeyword == null &&
           modifiers.finalKeyword == null &&
           modifiers.varKeyword == null) {
@@ -2592,7 +2637,7 @@ class Parser {
       }
       return _parseInitializedIdentifierList(commentAndMetadata,
           modifiers.staticKeyword, _validateModifiersForField(modifiers), null);
-    } else if (_matchesKeyword(Keyword.TYPEDEF)) {
+    } else if (keyword == Keyword.TYPEDEF) {
       _reportErrorForCurrentToken(ParserErrorCode.TYPEDEF_IN_CLASS);
       // TODO(brianwilkerson) We don't currently have any way to capture the
       // function type alias that was parsed.
@@ -2605,20 +2650,22 @@ class Parser {
             modifiers.externalKeyword, modifiers.staticKeyword, null);
       }
     }
-    TypeName type = parseTypeName();
-    if (_matchesKeyword(Keyword.GET) && _tokenMatchesIdentifier(_peek())) {
+    TypeName type = _parseTypeNameAfterIdentifier();
+    keyword = _currentToken.keyword;
+    next = _peek();
+    isFollowedByIdentifier = _tokenMatchesIdentifier(next);
+    if (keyword == Keyword.GET && isFollowedByIdentifier) {
       _validateModifiersForGetterOrSetterOrMethod(modifiers);
       return _parseGetter(commentAndMetadata, modifiers.externalKeyword,
           modifiers.staticKeyword, type);
-    } else if (_matchesKeyword(Keyword.SET) &&
-        _tokenMatchesIdentifier(_peek())) {
+    } else if (keyword == Keyword.SET && isFollowedByIdentifier) {
       _validateModifiersForGetterOrSetterOrMethod(modifiers);
       return _parseSetter(commentAndMetadata, modifiers.externalKeyword,
           modifiers.staticKeyword, type);
-    } else if (_matchesKeyword(Keyword.OPERATOR) && _isOperator(_peek())) {
+    } else if (keyword == Keyword.OPERATOR && _isOperator(next)) {
       _validateModifiersForOperator(modifiers);
-      return _parseOperator(
-          commentAndMetadata, modifiers.externalKeyword, type);
+      return _parseOperatorAfterKeyword(
+          commentAndMetadata, modifiers.externalKeyword, type, getAndAdvance());
     } else if (!_matchesIdentifier()) {
       if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
         //
@@ -2658,8 +2705,9 @@ class Parser {
       } finally {
         _unlockErrorListener();
       }
-    } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
-      SimpleIdentifier methodName = parseSimpleIdentifier();
+    } else if (_tokenMatches(next, TokenType.OPEN_PAREN)) {
+      SimpleIdentifier methodName =
+          _parseSimpleIdentifierUnchecked(isDeclaration: true);
       TypeParameterList typeParameters = _parseGenericCommentTypeParameters();
       FormalParameterList parameters = parseFormalParameterList();
       if (methodName.name == className) {
@@ -2669,7 +2717,7 @@ class Parser {
             modifiers.externalKeyword,
             _validateModifiersForConstructor(modifiers),
             modifiers.factoryKeyword,
-            methodName,
+            new SimpleIdentifier(methodName.token, isDeclaration: true),
             null,
             null,
             parameters);
@@ -2684,10 +2732,10 @@ class Parser {
           methodName,
           typeParameters,
           parameters);
-    } else if (parseGenericMethods && _tokenMatches(_peek(), TokenType.LT)) {
+    } else if (parseGenericMethods && _tokenMatches(next, TokenType.LT)) {
       return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
           modifiers.externalKeyword, modifiers.staticKeyword, type);
-    } else if (_tokenMatches(_peek(), TokenType.OPEN_CURLY_BRACKET)) {
+    } else if (_tokenMatches(next, TokenType.OPEN_CURLY_BRACKET)) {
       // We have found "TypeName identifier {", and are guessing that this is a
       // getter without the keyword 'get'.
       _validateModifiersForGetterOrSetterOrMethod(modifiers);
@@ -2710,14 +2758,10 @@ class Parser {
    *       | 'hide' identifier (',' identifier)*
    */
   Combinator parseCombinator() {
-    if (_matchesString(_SHOW) || _matchesString(_HIDE)) {
-      Token keyword = getAndAdvance();
-      List<SimpleIdentifier> names = _parseIdentifierList();
-      if (keyword.lexeme == _SHOW) {
-        return new ShowCombinator(keyword, names);
-      } else {
-        return new HideCombinator(keyword, names);
-      }
+    if (_matchesString(_SHOW)) {
+      return new ShowCombinator(getAndAdvance(), _parseIdentifierList());
+    } else if (_matchesString(_HIDE)) {
+      return new HideCombinator(getAndAdvance(), _parseIdentifierList());
     }
     return null;
   }
@@ -2763,70 +2807,72 @@ class Parser {
     bool partOfDirectiveFound = false;
     bool partDirectiveFound = false;
     bool directiveFoundAfterDeclaration = false;
-    List<Directive> directives = new List<Directive>();
-    List<CompilationUnitMember> declarations =
-        new List<CompilationUnitMember>();
+    List<Directive> directives = <Directive>[];
+    List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
     Token memberStart = _currentToken;
-    while (!_matches(TokenType.EOF)) {
+    TokenType type = _currentToken.type;
+    while (type != TokenType.EOF) {
       CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
-      if ((_matchesKeyword(Keyword.IMPORT) ||
-              _matchesKeyword(Keyword.EXPORT) ||
-              _matchesKeyword(Keyword.LIBRARY) ||
-              _matchesKeyword(Keyword.PART)) &&
-          !_tokenMatches(_peek(), TokenType.PERIOD) &&
-          !_tokenMatches(_peek(), TokenType.LT) &&
-          !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
-        Directive directive = _parseDirective(commentAndMetadata);
+      Keyword keyword = _currentToken.keyword;
+      TokenType nextType = _currentToken.next.type;
+      if ((keyword == Keyword.IMPORT ||
+              keyword == Keyword.EXPORT ||
+              keyword == Keyword.LIBRARY ||
+              keyword == Keyword.PART) &&
+          nextType != TokenType.PERIOD &&
+          nextType != TokenType.LT &&
+          nextType != TokenType.OPEN_PAREN) {
+        Directive parseDirective() {
+          if (keyword == Keyword.IMPORT) {
+            if (partDirectiveFound) {
+              _reportErrorForCurrentToken(
+                  ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
+            }
+            return _parseImportDirective(commentAndMetadata);
+          } else if (keyword == Keyword.EXPORT) {
+            if (partDirectiveFound) {
+              _reportErrorForCurrentToken(
+                  ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
+            }
+            return _parseExportDirective(commentAndMetadata);
+          } else if (keyword == Keyword.LIBRARY) {
+            if (libraryDirectiveFound) {
+              _reportErrorForCurrentToken(
+                  ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
+            } else {
+              if (directives.length > 0) {
+                _reportErrorForCurrentToken(
+                    ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
+              }
+              libraryDirectiveFound = true;
+            }
+            return _parseLibraryDirective(commentAndMetadata);
+          } else if (keyword == Keyword.PART) {
+            if (_tokenMatchesString(_peek(), _OF)) {
+              partOfDirectiveFound = true;
+              return _parsePartOfDirective(commentAndMetadata);
+            } else {
+              partDirectiveFound = true;
+              return _parsePartDirective(commentAndMetadata);
+            }
+          } else {
+            // Internal error: this method should not have been invoked if the
+            // current token was something other than one of the above.
+            throw new IllegalStateException(
+                "parseDirective invoked in an invalid state (currentToken = $_currentToken)");
+          }
+        }
+        Directive directive = parseDirective();
         if (declarations.length > 0 && !directiveFoundAfterDeclaration) {
           _reportErrorForToken(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION,
               directive.beginToken);
           directiveFoundAfterDeclaration = true;
         }
-        if (directive is LibraryDirective) {
-          if (libraryDirectiveFound) {
-            _reportErrorForCurrentToken(
-                ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
-          } else {
-            if (directives.length > 0) {
-              _reportErrorForToken(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST,
-                  directive.libraryKeyword);
-            }
-            libraryDirectiveFound = true;
-          }
-        } else if (directive is PartDirective) {
-          partDirectiveFound = true;
-        } else if (partDirectiveFound) {
-          if (directive is ExportDirective) {
-            _reportErrorForToken(
-                ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-                directive.keyword);
-          } else if (directive is ImportDirective) {
-            _reportErrorForToken(
-                ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-                directive.keyword);
-          }
-        }
-        if (directive is PartOfDirective) {
-          if (partOfDirectiveFound) {
-            _reportErrorForCurrentToken(
-                ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
-          } else {
-            int directiveCount = directives.length;
-            for (int i = 0; i < directiveCount; i++) {
-              _reportErrorForToken(
-                  ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
-                  directives[i].keyword);
-            }
-            partOfDirectiveFound = true;
-          }
-        } else {
-          if (partOfDirectiveFound) {
-            _reportErrorForToken(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
-                directive.keyword);
-          }
-        }
         directives.add(directive);
-      } else if (_matches(TokenType.SEMICOLON)) {
+      } else if (type == TokenType.SEMICOLON) {
+        // TODO(brianwilkerson) Consider moving this error detection into
+        // _parseCompilationUnitMember (in the places where EXPECTED_EXECUTABLE
+        // is being generated).
         _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken,
             [_currentToken.lexeme]);
         _advance();
@@ -2847,6 +2893,38 @@ class Parser {
         }
       }
       memberStart = _currentToken;
+      type = _currentToken.type;
+    }
+    if (partOfDirectiveFound && directives.length > 1) {
+      // TODO(brianwilkerson) Improve error reporting when both a library and
+      // part-of directive are found.
+//      if (libraryDirectiveFound) {
+//        int directiveCount = directives.length;
+//        for (int i = 0; i < directiveCount; i++) {
+//          Directive directive = directives[i];
+//          if (directive is PartOfDirective) {
+//            _reportErrorForToken(
+//                ParserErrorCode.PART_OF_IN_LIBRARY, directive.partKeyword);
+//          }
+//        }
+//      } else {
+      bool firstPartOf = true;
+      int directiveCount = directives.length;
+      for (int i = 0; i < directiveCount; i++) {
+        Directive directive = directives[i];
+        if (directive is PartOfDirective) {
+          if (firstPartOf) {
+            firstPartOf = false;
+          } else {
+            _reportErrorForToken(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES,
+                directive.partKeyword);
+          }
+        } else {
+          _reportErrorForToken(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
+              directives[i].keyword);
+        }
+//        }
+      }
     }
     return new CompilationUnit(
         firstToken, scriptTag, directives, declarations, _currentToken);
@@ -2861,7 +2939,7 @@ class Parser {
    */
   Expression parseConditionalExpression() {
     Expression condition = parseIfNullExpression();
-    if (!_matches(TokenType.QUESTION)) {
+    if (_currentToken.type != TokenType.QUESTION) {
       return condition;
     }
     Token question = getAndAdvance();
@@ -2922,9 +3000,10 @@ class Parser {
    *       | throwExpression
    */
   Expression parseExpression2() {
-    if (_matchesKeyword(Keyword.THROW)) {
+    Keyword keyword = _currentToken.keyword;
+    if (keyword == Keyword.THROW) {
       return _parseThrowExpression();
-    } else if (_matchesKeyword(Keyword.RETHROW)) {
+    } else if (keyword == Keyword.RETHROW) {
       // TODO(brianwilkerson) Rethrow is a statement again.
       return _parseRethrowExpression();
     }
@@ -2935,18 +3014,17 @@ class Parser {
     // grammar after making that determination.
     //
     Expression expression = parseConditionalExpression();
-    TokenType tokenType = _currentToken.type;
-    if (tokenType == TokenType.PERIOD_PERIOD) {
-      List<Expression> cascadeSections = new List<Expression>();
-      while (tokenType == TokenType.PERIOD_PERIOD) {
+    TokenType type = _currentToken.type;
+    if (type == TokenType.PERIOD_PERIOD) {
+      List<Expression> cascadeSections = <Expression>[];
+      do {
         Expression section = _parseCascadeSection();
         if (section != null) {
           cascadeSections.add(section);
         }
-        tokenType = _currentToken.type;
-      }
+      } while (_currentToken.type == TokenType.PERIOD_PERIOD);
       return new CascadeExpression(expression, cascadeSections);
-    } else if (tokenType.isAssignmentOperator) {
+    } else if (type.isAssignmentOperator) {
       Token operator = getAndAdvance();
       _ensureAssignable(expression);
       return new AssignmentExpression(expression, operator, parseExpression2());
@@ -2989,11 +3067,13 @@ class Parser {
    * Parse a class extends clause. Return the class extends clause that was
    * parsed.
    *
+   * This method assumes that the current token matches `Keyword.EXTENDS`.
+   *
    *     classExtendsClause ::=
    *         'extends' type
    */
   ExtendsClause parseExtendsClause() {
-    Token keyword = _expectKeyword(Keyword.EXTENDS);
+    Token keyword = getAndAdvance();
     TypeName superclass = parseTypeName();
     return new ExtendsClause(keyword, superclass);
   }
@@ -3021,154 +3101,16 @@ class Parser {
    *         '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    */
   FormalParameterList parseFormalParameterList() {
-    Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
-    if (_matches(TokenType.CLOSE_PAREN)) {
-      return new FormalParameterList(
-          leftParenthesis, null, null, null, getAndAdvance());
+    if (_matches(TokenType.OPEN_PAREN)) {
+      return _parseFormalParameterListUnchecked();
     }
-    //
-    // Even though it is invalid to have default parameters outside of brackets,
-    // required parameters inside of brackets, or multiple groups of default and
-    // named parameters, we allow all of these cases so that we can recover
-    // better.
-    //
-    List<FormalParameter> parameters = new List<FormalParameter>();
-    List<FormalParameter> normalParameters = new List<FormalParameter>();
-    List<FormalParameter> positionalParameters = new List<FormalParameter>();
-    List<FormalParameter> namedParameters = new List<FormalParameter>();
-    List<FormalParameter> currentParameters = normalParameters;
-    Token leftSquareBracket = null;
-    Token rightSquareBracket = null;
-    Token leftCurlyBracket = null;
-    Token rightCurlyBracket = null;
-    ParameterKind kind = ParameterKind.REQUIRED;
-    bool firstParameter = true;
-    bool reportedMuliplePositionalGroups = false;
-    bool reportedMulipleNamedGroups = false;
-    bool reportedMixedGroups = false;
-    bool wasOptionalParameter = false;
-    Token initialToken = null;
-    do {
-      if (firstParameter) {
-        firstParameter = false;
-      } else if (!_optional(TokenType.COMMA)) {
-        // TODO(brianwilkerson) The token is wrong, we need to recover from this
-        // case.
-        if (_getEndToken(leftParenthesis) != null) {
-          _reportErrorForCurrentToken(
-              ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
-        } else {
-          _reportErrorForToken(ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
-              _currentToken.previous);
-          break;
-        }
-      }
-      initialToken = _currentToken;
-      //
-      // Handle the beginning of parameter groups.
-      //
-      if (_matches(TokenType.OPEN_SQUARE_BRACKET)) {
-        wasOptionalParameter = true;
-        if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
-          _reportErrorForCurrentToken(
-              ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS);
-          reportedMuliplePositionalGroups = true;
-        }
-        if (leftCurlyBracket != null && !reportedMixedGroups) {
-          _reportErrorForCurrentToken(ParserErrorCode.MIXED_PARAMETER_GROUPS);
-          reportedMixedGroups = true;
-        }
-        leftSquareBracket = getAndAdvance();
-        currentParameters = positionalParameters;
-        kind = ParameterKind.POSITIONAL;
-      } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
-        wasOptionalParameter = true;
-        if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
-          _reportErrorForCurrentToken(
-              ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
-          reportedMulipleNamedGroups = true;
-        }
-        if (leftSquareBracket != null && !reportedMixedGroups) {
-          _reportErrorForCurrentToken(ParserErrorCode.MIXED_PARAMETER_GROUPS);
-          reportedMixedGroups = true;
-        }
-        leftCurlyBracket = getAndAdvance();
-        currentParameters = namedParameters;
-        kind = ParameterKind.NAMED;
-      }
-      //
-      // Parse and record the parameter.
-      //
-      FormalParameter parameter = _parseFormalParameter(kind);
-      parameters.add(parameter);
-      currentParameters.add(parameter);
-      if (kind == ParameterKind.REQUIRED && wasOptionalParameter) {
-        _reportErrorForNode(
-            ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter);
-      }
-      //
-      // Handle the end of parameter groups.
-      //
-      // TODO(brianwilkerson) Improve the detection and reporting of missing and
-      // mismatched delimiters.
-      if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
-        rightSquareBracket = getAndAdvance();
-        currentParameters = normalParameters;
-        if (leftSquareBracket == null) {
-          if (leftCurlyBracket != null) {
-            _reportErrorForCurrentToken(
-                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
-            rightCurlyBracket = rightSquareBracket;
-            rightSquareBracket = null;
-          } else {
-            _reportErrorForCurrentToken(
-                ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
-                ["["]);
-          }
-        }
-        kind = ParameterKind.REQUIRED;
-      } else if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-        rightCurlyBracket = getAndAdvance();
-        currentParameters = normalParameters;
-        if (leftCurlyBracket == null) {
-          if (leftSquareBracket != null) {
-            _reportErrorForCurrentToken(
-                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
-            rightSquareBracket = rightCurlyBracket;
-            rightCurlyBracket = null;
-          } else {
-            _reportErrorForCurrentToken(
-                ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
-                ["{"]);
-          }
-        }
-        kind = ParameterKind.REQUIRED;
-      }
-    } while (!_matches(TokenType.CLOSE_PAREN) &&
-        !identical(initialToken, _currentToken));
-    Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
-    //
-    // Check that the groups were closed correctly.
-    //
-    if (leftSquareBracket != null && rightSquareBracket == null) {
-      _reportErrorForCurrentToken(
-          ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
-    }
-    if (leftCurlyBracket != null && rightCurlyBracket == null) {
-      _reportErrorForCurrentToken(
-          ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
-    }
-    //
-    // Build the parameter list.
-    //
-    if (leftSquareBracket == null) {
-      leftSquareBracket = leftCurlyBracket;
-    }
-    if (rightSquareBracket == null) {
-      rightSquareBracket = rightCurlyBracket;
-    }
-    return new FormalParameterList(leftParenthesis, parameters,
-        leftSquareBracket, rightSquareBracket, rightParenthesis);
+    // TODO(brianwilkerson) Improve the error message.
+    _reportErrorForCurrentToken(
+        ParserErrorCode.EXPECTED_TOKEN, [TokenType.OPEN_PAREN.lexeme]);
+    // Recovery: Check for an unmatched closing paren and parse parameters until
+    // it is reached.
+    return _parseFormalParameterListAfterParen(
+        _createSyntheticToken(TokenType.OPEN_PAREN));
   }
 
   /**
@@ -3195,10 +3137,9 @@ class Parser {
    */
   Expression parseIfNullExpression() {
     Expression expression = parseLogicalOrExpression();
-    while (_matches(TokenType.QUESTION_QUESTION)) {
-      Token operator = getAndAdvance();
+    while (_currentToken.type == TokenType.QUESTION_QUESTION) {
       expression = new BinaryExpression(
-          expression, operator, parseLogicalOrExpression());
+          expression, getAndAdvance(), parseLogicalOrExpression());
     }
     return expression;
   }
@@ -3206,12 +3147,14 @@ class Parser {
   /**
    * Parse an implements clause. Return the implements clause that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.IMPLEMENTS`.
+   *
    *     implementsClause ::=
    *         'implements' type (',' type)*
    */
   ImplementsClause parseImplementsClause() {
-    Token keyword = _expectKeyword(Keyword.IMPLEMENTS);
-    List<TypeName> interfaces = new List<TypeName>();
+    Token keyword = getAndAdvance();
+    List<TypeName> interfaces = <TypeName>[];
     interfaces.add(parseTypeName());
     while (_optional(TokenType.COMMA)) {
       interfaces.add(parseTypeName());
@@ -3222,12 +3165,16 @@ class Parser {
   /**
    * Parse a label. Return the label that was parsed.
    *
+   * This method assumes that the current token matches an identifier and that
+   * the following token matches `TokenType.COLON`.
+   *
    *     label ::=
    *         identifier ':'
    */
-  Label parseLabel() {
-    SimpleIdentifier label = parseSimpleIdentifier();
-    Token colon = _expect(TokenType.COLON);
+  Label parseLabel({bool isDeclaration: false}) {
+    SimpleIdentifier label =
+        _parseSimpleIdentifierUnchecked(isDeclaration: isDeclaration);
+    Token colon = getAndAdvance();
     return new Label(label, colon);
   }
 
@@ -3238,10 +3185,9 @@ class Parser {
    *         identifier ('.' identifier)*
    */
   LibraryIdentifier parseLibraryIdentifier() {
-    List<SimpleIdentifier> components = new List<SimpleIdentifier>();
+    List<SimpleIdentifier> components = <SimpleIdentifier>[];
     components.add(parseSimpleIdentifier());
-    while (_matches(TokenType.PERIOD)) {
-      _advance();
+    while (_optional(TokenType.PERIOD)) {
       components.add(parseSimpleIdentifier());
     }
     return new LibraryIdentifier(components);
@@ -3256,10 +3202,9 @@ class Parser {
    */
   Expression parseLogicalOrExpression() {
     Expression expression = _parseLogicalAndExpression();
-    while (_matches(TokenType.BAR_BAR)) {
-      Token operator = getAndAdvance();
+    while (_currentToken.type == TokenType.BAR_BAR) {
       expression = new BinaryExpression(
-          expression, operator, _parseLogicalAndExpression());
+          expression, getAndAdvance(), _parseLogicalAndExpression());
     }
     return expression;
   }
@@ -3308,7 +3253,7 @@ class Parser {
     SimpleIdentifier identifier = parseSimpleIdentifier();
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     if (_matches(TokenType.OPEN_PAREN)) {
-      FormalParameterList parameters = parseFormalParameterList();
+      FormalParameterList parameters = _parseFormalParameterListUnchecked();
       if (thisKeyword == null) {
         if (holder.keyword != null) {
           _reportErrorForToken(
@@ -3318,7 +3263,7 @@ class Parser {
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             holder.type,
-            identifier,
+            new SimpleIdentifier(identifier.token, isDeclaration: true),
             typeParameters,
             parameters);
       } else {
@@ -3363,8 +3308,12 @@ class Parser {
           null,
           null);
     }
-    return new SimpleFormalParameter(commentAndMetadata.comment,
-        commentAndMetadata.metadata, holder.keyword, holder.type, identifier);
+    return new SimpleFormalParameter(
+        commentAndMetadata.comment,
+        commentAndMetadata.metadata,
+        holder.keyword,
+        holder.type,
+        new SimpleIdentifier(identifier.token, isDeclaration: true));
   }
 
   /**
@@ -3375,13 +3324,7 @@ class Parser {
    *         identifier ('.' identifier)?
    */
   Identifier parsePrefixedIdentifier() {
-    SimpleIdentifier qualifier = parseSimpleIdentifier();
-    if (!_matches(TokenType.PERIOD)) {
-      return qualifier;
-    }
-    Token period = getAndAdvance();
-    SimpleIdentifier qualified = parseSimpleIdentifier();
-    return new PrefixedIdentifier(qualifier, period, qualified);
+    return _parsePrefixedIdentifierAfterIdentifier(parseSimpleIdentifier());
   }
 
   /**
@@ -3392,7 +3335,7 @@ class Parser {
    *       | type
    */
   TypeName parseReturnType() {
-    if (_matchesKeyword(Keyword.VOID)) {
+    if (_currentToken.keyword == Keyword.VOID) {
       return new TypeName(new SimpleIdentifier(getAndAdvance()), null);
     } else {
       return parseTypeName();
@@ -3405,18 +3348,12 @@ class Parser {
    *     identifier ::=
    *         IDENTIFIER
    */
-  SimpleIdentifier parseSimpleIdentifier() {
+  SimpleIdentifier parseSimpleIdentifier({bool isDeclaration: false}) {
     if (_matchesIdentifier()) {
-      String lexeme = _currentToken.lexeme;
-      if ((_inAsync || _inGenerator) &&
-          (lexeme == 'async' || lexeme == 'await' || lexeme == 'yield')) {
-        _reportErrorForCurrentToken(
-            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER);
-      }
-      return new SimpleIdentifier(getAndAdvance());
+      return _parseSimpleIdentifierUnchecked(isDeclaration: isDeclaration);
     }
     _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
-    return _createSyntheticIdentifier();
+    return _createSyntheticIdentifier(isDeclaration: isDeclaration);
   }
 
   /**
@@ -3436,12 +3373,17 @@ class Parser {
    *         label* nonLabeledStatement
    */
   Statement parseStatement2() {
-    List<Label> labels = new List<Label>();
-    while (_matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-      labels.add(parseLabel());
+    List<Label> labels = null;
+    while (_matchesIdentifier() && _currentToken.next.type == TokenType.COLON) {
+      Label label = parseLabel(isDeclaration: true);
+      if (labels == null) {
+        labels = <Label>[label];
+      } else {
+        labels.add(label);
+      }
     }
     Statement statement = _parseNonLabeledStatement();
-    if (labels.isEmpty) {
+    if (labels == null) {
       return statement;
     }
     return new LabeledStatement(labels, statement);
@@ -3465,30 +3407,18 @@ class Parser {
    *       | SINGLE_LINE_STRING+
    */
   StringLiteral parseStringLiteral() {
-    List<StringLiteral> strings = new List<StringLiteral>();
-    while (_matches(TokenType.STRING)) {
-      Token string = getAndAdvance();
-      if (_matches(TokenType.STRING_INTERPOLATION_EXPRESSION) ||
-          _matches(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
-        strings.add(_parseStringInterpolation(string));
-      } else {
-        strings.add(new SimpleStringLiteral(
-            string, _computeStringValue(string.lexeme, true, true)));
-      }
+    if (_matches(TokenType.STRING)) {
+      return _parseStringLiteralUnchecked();
     }
-    if (strings.length < 1) {
-      _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_STRING_LITERAL);
-      return _createSyntheticStringLiteral();
-    } else if (strings.length == 1) {
-      return strings[0];
-    } else {
-      return new AdjacentStrings(strings);
-    }
+    _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_STRING_LITERAL);
+    return _createSyntheticStringLiteral();
   }
 
   /**
    * Parse a list of type arguments. Return the type argument list that was
    * parsed.
+   *
+   * This method assumes that the current token matches `TokenType.LT`.
    *
    *     typeArguments ::=
    *         '<' typeList '>'
@@ -3497,9 +3427,8 @@ class Parser {
    *         type (',' type)*
    */
   TypeArgumentList parseTypeArgumentList() {
-    Token leftBracket = _expect(TokenType.LT);
-    List<TypeName> arguments = new List<TypeName>();
-    arguments.add(parseTypeName());
+    Token leftBracket = getAndAdvance();
+    List<TypeName> arguments = <TypeName>[parseTypeName()];
     while (_optional(TokenType.COMMA)) {
       arguments.add(parseTypeName());
     }
@@ -3519,8 +3448,8 @@ class Parser {
     // type to replace the real type name.
     // TODO(jmesserly): this feels like a big hammer. Can we restrict it to
     // only work inside generic methods?
-    TypeName typeComment = _parseOptionalTypeNameComment();
-    return typeComment ?? realType;
+    TypeName typeFromComment = _parseOptionalTypeNameComment();
+    return typeFromComment ?? realType;
   }
 
   /**
@@ -3531,7 +3460,7 @@ class Parser {
    */
   TypeParameter parseTypeParameter() {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     if (_matchesKeyword(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
       TypeName bound = parseTypeName();
@@ -3546,13 +3475,14 @@ class Parser {
    * Parse a list of type parameters. Return the list of type parameters that
    * were parsed.
    *
+   * This method assumes that the current token matches `TokenType.LT`.
+   *
    *     typeParameterList ::=
    *         '<' typeParameter (',' typeParameter)* '>'
    */
   TypeParameterList parseTypeParameterList() {
-    Token leftBracket = _expect(TokenType.LT);
-    List<TypeParameter> typeParameters = new List<TypeParameter>();
-    typeParameters.add(parseTypeParameter());
+    Token leftBracket = getAndAdvance();
+    List<TypeParameter> typeParameters = <TypeParameter>[parseTypeParameter()];
     while (_optional(TokenType.COMMA)) {
       typeParameters.add(parseTypeParameter());
     }
@@ -3563,17 +3493,18 @@ class Parser {
   /**
    * Parse a with clause. Return the with clause that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.WITH`.
+   *
    *     withClause ::=
    *         'with' typeName (',' typeName)*
    */
   WithClause parseWithClause() {
-    Token with2 = _expectKeyword(Keyword.WITH);
-    List<TypeName> types = new List<TypeName>();
-    types.add(parseTypeName());
+    Token withKeyword = getAndAdvance();
+    List<TypeName> types = <TypeName>[parseTypeName()];
     while (_optional(TokenType.COMMA)) {
       types.add(parseTypeName());
     }
-    return new WithClause(with2, types);
+    return new WithClause(withKeyword, types);
   }
 
   /**
@@ -3657,30 +3588,33 @@ class Parser {
    * member.
    */
   bool _couldBeStartOfCompilationUnitMember() {
-    if ((_matchesKeyword(Keyword.IMPORT) ||
-            _matchesKeyword(Keyword.EXPORT) ||
-            _matchesKeyword(Keyword.LIBRARY) ||
-            _matchesKeyword(Keyword.PART)) &&
-        !_tokenMatches(_peek(), TokenType.PERIOD) &&
-        !_tokenMatches(_peek(), TokenType.LT)) {
+    Keyword keyword = _currentToken.keyword;
+    Token next = _currentToken.next;
+    TokenType nextType = next.type;
+    if ((keyword == Keyword.IMPORT ||
+            keyword == Keyword.EXPORT ||
+            keyword == Keyword.LIBRARY ||
+            keyword == Keyword.PART) &&
+        nextType != TokenType.PERIOD &&
+        nextType != TokenType.LT) {
       // This looks like the start of a directive
       return true;
-    } else if (_matchesKeyword(Keyword.CLASS)) {
+    } else if (keyword == Keyword.CLASS) {
       // This looks like the start of a class definition
       return true;
-    } else if (_matchesKeyword(Keyword.TYPEDEF) &&
-        !_tokenMatches(_peek(), TokenType.PERIOD) &&
-        !_tokenMatches(_peek(), TokenType.LT)) {
+    } else if (keyword == Keyword.TYPEDEF &&
+        nextType != TokenType.PERIOD &&
+        nextType != TokenType.LT) {
       // This looks like the start of a typedef
       return true;
-    } else if (_matchesKeyword(Keyword.VOID) ||
-        ((_matchesKeyword(Keyword.GET) || _matchesKeyword(Keyword.SET)) &&
-            _tokenMatchesIdentifier(_peek())) ||
-        (_matchesKeyword(Keyword.OPERATOR) && _isOperator(_peek()))) {
+    } else if (keyword == Keyword.VOID ||
+        ((keyword == Keyword.GET || keyword == Keyword.SET) &&
+            _tokenMatchesIdentifier(next)) ||
+        (keyword == Keyword.OPERATOR && _isOperator(next))) {
       // This looks like the start of a function
       return true;
     } else if (_matchesIdentifier()) {
-      if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+      if (nextType == TokenType.OPEN_PAREN) {
         // This looks like the start of a function
         return true;
       }
@@ -3688,9 +3622,10 @@ class Parser {
       if (token == null) {
         return false;
       }
-      if (_matchesKeyword(Keyword.GET) ||
-          _matchesKeyword(Keyword.SET) ||
-          (_matchesKeyword(Keyword.OPERATOR) && _isOperator(_peek())) ||
+      // TODO(brianwilkerson) This looks wrong; should we be checking 'token'?
+      if (keyword == Keyword.GET ||
+          keyword == Keyword.SET ||
+          (keyword == Keyword.OPERATOR && _isOperator(next)) ||
           _matchesIdentifier()) {
         return true;
       }
@@ -3701,7 +3636,7 @@ class Parser {
   /**
    * Return a synthetic identifier.
    */
-  SimpleIdentifier _createSyntheticIdentifier() {
+  SimpleIdentifier _createSyntheticIdentifier({bool isDeclaration: false}) {
     Token syntheticToken;
     if (_currentToken.type == TokenType.KEYWORD) {
       // Consider current keyword token as an identifier.
@@ -3714,7 +3649,7 @@ class Parser {
     } else {
       syntheticToken = _createSyntheticToken(TokenType.IDENTIFIER);
     }
-    return new SimpleIdentifier(syntheticToken);
+    return new SimpleIdentifier(syntheticToken, isDeclaration: isDeclaration);
   }
 
   /**
@@ -3805,7 +3740,7 @@ class Parser {
       return _createSyntheticToken(TokenType.SEMICOLON);
     }
     _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
-    return _currentToken;
+    return _createSyntheticToken(type);
   }
 
   /**
@@ -3860,7 +3795,7 @@ class Parser {
    * should be treated as code blocks.
    */
   List<List<int>> _getCodeBlockRanges(String comment) {
-    List<List<int>> ranges = new List<List<int>>();
+    List<List<int>> ranges = <List<int>>[];
     int length = comment.length;
     if (length < 3) {
       return ranges;
@@ -4003,7 +3938,8 @@ class Parser {
    * function declaration.
    */
   bool _isFunctionDeclaration() {
-    if (_matchesKeyword(Keyword.VOID)) {
+    Keyword keyword = _currentToken.keyword;
+    if (keyword == Keyword.VOID) {
       return true;
     }
     Token afterReturnType = _skipTypeName(_currentToken);
@@ -4026,20 +3962,20 @@ class Parser {
     }
     // It's possible that we have found a getter. While this isn't valid at this
     // point we test for it in order to recover better.
-    if (_matchesKeyword(Keyword.GET)) {
+    if (keyword == Keyword.GET) {
       Token afterName = _skipSimpleIdentifier(_currentToken.next);
       if (afterName == null) {
         return false;
       }
-      return _tokenMatches(afterName, TokenType.FUNCTION) ||
-          _tokenMatches(afterName, TokenType.OPEN_CURLY_BRACKET);
+      TokenType type = afterName.type;
+      return type == TokenType.FUNCTION || type == TokenType.OPEN_CURLY_BRACKET;
     } else if (_tokenMatchesKeyword(afterReturnType, Keyword.GET)) {
       Token afterName = _skipSimpleIdentifier(afterReturnType.next);
       if (afterName == null) {
         return false;
       }
-      return _tokenMatches(afterName, TokenType.FUNCTION) ||
-          _tokenMatches(afterName, TokenType.OPEN_CURLY_BRACKET);
+      TokenType type = afterName.type;
+      return type == TokenType.FUNCTION || type == TokenType.OPEN_CURLY_BRACKET;
     }
     return false;
   }
@@ -4061,8 +3997,8 @@ class Parser {
     if (afterParameters == null) {
       return false;
     }
-    if (afterParameters
-        .matchesAny([TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
+    if (afterParameters.matchesAny(
+        const <TokenType>[TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
       return true;
     }
     String lexeme = afterParameters.lexeme;
@@ -4102,15 +4038,16 @@ class Parser {
    *         identifier ('=' expression)?
    */
   bool _isInitializedVariableDeclaration() {
-    if (_matchesKeyword(Keyword.FINAL) || _matchesKeyword(Keyword.VAR)) {
+    Keyword keyword = _currentToken.keyword;
+    if (keyword == Keyword.FINAL || keyword == Keyword.VAR) {
       // An expression cannot start with a keyword other than 'const',
       // 'rethrow', or 'throw'.
       return true;
     }
-    if (_matchesKeyword(Keyword.CONST)) {
+    if (keyword == Keyword.CONST) {
       // Look to see whether we might be at the start of a list or map literal,
       // otherwise this should be the start of a variable declaration.
-      return !_peek().matchesAny([
+      return !_peek().matchesAny(const <TokenType>[
         TokenType.LT,
         TokenType.OPEN_CURLY_BRACKET,
         TokenType.OPEN_SQUARE_BRACKET,
@@ -4144,7 +4081,7 @@ class Parser {
     if (type == TokenType.EQ ||
         type == TokenType.COMMA ||
         type == TokenType.SEMICOLON ||
-        _tokenMatchesKeyword(token, Keyword.IN)) {
+        token.keyword == Keyword.IN) {
       return true;
     }
     // It is OK to parse as a variable declaration in these cases:
@@ -4166,6 +4103,8 @@ class Parser {
   }
 
   bool _isLikelyArgumentList() {
+    // Try to reduce the amount of lookahead required here before enabling
+    // generic methods.
     if (_matches(TokenType.OPEN_PAREN)) {
       return true;
     }
@@ -4216,7 +4155,7 @@ class Parser {
     if (!startToken.isOperator) {
       return false;
     }
-    // Token "=" means that it is actually field initializer.
+    // Token "=" means that it is actually a field initializer.
     if (startToken.type == TokenType.EQ) {
       return false;
     }
@@ -4247,11 +4186,8 @@ class Parser {
         _tokenMatches(token.next, TokenType.COLON)) {
       token = token.next.next;
     }
-    if (token.type == TokenType.KEYWORD) {
-      Keyword keyword = (token as KeywordToken).keyword;
-      return keyword == Keyword.CASE || keyword == Keyword.DEFAULT;
-    }
-    return false;
+    Keyword keyword = token.keyword;
+    return keyword == Keyword.CASE || keyword == Keyword.DEFAULT;
   }
 
   /**
@@ -4363,7 +4299,7 @@ class Parser {
    * should not be invoked with an argument value of [TokenType.GT].
    */
   bool _optional(TokenType type) {
-    if (_matches(type)) {
+    if (_currentToken.type == type) {
       _advance();
       return true;
     }
@@ -4380,43 +4316,47 @@ class Parser {
    */
   Expression _parseAdditiveExpression() {
     Expression expression;
-    if (_matchesKeyword(Keyword.SUPER) &&
+    if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type.isAdditiveOperator) {
       expression = new SuperExpression(getAndAdvance());
     } else {
       expression = _parseMultiplicativeExpression();
     }
     while (_currentToken.type.isAdditiveOperator) {
-      Token operator = getAndAdvance();
       expression = new BinaryExpression(
-          expression, operator, _parseMultiplicativeExpression());
+          expression, getAndAdvance(), _parseMultiplicativeExpression());
     }
     return expression;
   }
 
   /**
+   * Parse an argument list when we need to check for an open paren and recover
+   * when there isn't one. Return the argument list that was parsed.
+   */
+  ArgumentList _parseArgumentListChecked() {
+    if (_matches(TokenType.OPEN_PAREN)) {
+      return parseArgumentList();
+    }
+    _reportErrorForCurrentToken(
+        ParserErrorCode.EXPECTED_TOKEN, [TokenType.OPEN_PAREN.lexeme]);
+    // Recovery: Look to see whether there is a close paren that isn't matched
+    // to an open paren and if so parse the list of arguments as normal.
+    return new ArgumentList(_createSyntheticToken(TokenType.OPEN_PAREN), null,
+        _createSyntheticToken(TokenType.CLOSE_PAREN));
+  }
+
+  /**
    * Parse an assert statement. Return the assert statement.
    *
+   * This method assumes that the current token matches `Keyword.ASSERT`.
+   *
    *     assertStatement ::=
-   *         'assert' '(' conditionalExpression ')' ';'
+   *         'assert' '(' expression [',' expression] ')' ';'
    */
   AssertStatement _parseAssertStatement() {
-    Token keyword = _expectKeyword(Keyword.ASSERT);
+    Token keyword = getAndAdvance();
     Token leftParen = _expect(TokenType.OPEN_PAREN);
     Expression expression = parseExpression2();
-    if (expression is AssignmentExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT, expression);
-    } else if (expression is CascadeExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE, expression);
-    } else if (expression is ThrowExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW, expression);
-    } else if (expression is RethrowExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression);
-    }
     Token comma;
     Expression message;
     if (_matches(TokenType.COMMA)) {
@@ -4445,6 +4385,17 @@ class Parser {
           new SuperExpression(getAndAdvance()), false,
           allowConditional: false);
     }
+    return _parseAssignableExpressionNotStartingWithSuper(primaryAllowed);
+  }
+
+  /**
+   * Parse an assignable expression given that the current token is not 'super'.
+   * The [primaryAllowed] is `true` if the expression is allowed to be a primary
+   * without any assignable selector. Return the assignable expression that was
+   * parsed.
+   */
+  Expression _parseAssignableExpressionNotStartingWithSuper(
+      bool primaryAllowed) {
     //
     // A primary expression can start with an identifier. We resolve the
     // ambiguity by determining whether the primary consists of anything other
@@ -4456,21 +4407,24 @@ class Parser {
       while (_isLikelyArgumentList()) {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         ArgumentList argumentList = parseArgumentList();
-        if (expression is SimpleIdentifier) {
-          expression = new MethodInvocation(null, null,
-              expression as SimpleIdentifier, typeArguments, argumentList);
-        } else if (expression is PrefixedIdentifier) {
-          PrefixedIdentifier identifier = expression as PrefixedIdentifier;
+        Expression currentExpression = expression;
+        if (currentExpression is SimpleIdentifier) {
           expression = new MethodInvocation(
-              identifier.prefix,
-              identifier.period,
-              identifier.identifier,
+              null, null, currentExpression, typeArguments, argumentList);
+        } else if (currentExpression is PrefixedIdentifier) {
+          expression = new MethodInvocation(
+              currentExpression.prefix,
+              currentExpression.period,
+              currentExpression.identifier,
               typeArguments,
               argumentList);
-        } else if (expression is PropertyAccess) {
-          PropertyAccess access = expression as PropertyAccess;
-          expression = new MethodInvocation(access.target, access.operator,
-              access.propertyName, typeArguments, argumentList);
+        } else if (currentExpression is PropertyAccess) {
+          expression = new MethodInvocation(
+              currentExpression.target,
+              currentExpression.operator,
+              currentExpression.propertyName,
+              typeArguments,
+              argumentList);
         } else {
           expression = new FunctionExpressionInvocation(
               expression, typeArguments, argumentList);
@@ -4511,7 +4465,8 @@ class Parser {
    */
   Expression _parseAssignableSelector(Expression prefix, bool optional,
       {bool allowConditional: true}) {
-    if (_matches(TokenType.OPEN_SQUARE_BRACKET)) {
+    TokenType type = _currentToken.type;
+    if (type == TokenType.OPEN_SQUARE_BRACKET) {
       Token leftBracket = getAndAdvance();
       bool wasInInitializer = _inInitializer;
       _inInitializer = false;
@@ -4523,26 +4478,31 @@ class Parser {
       } finally {
         _inInitializer = wasInInitializer;
       }
-    } else if (_matches(TokenType.PERIOD) ||
-        _matches(TokenType.QUESTION_PERIOD)) {
-      if (_matches(TokenType.QUESTION_PERIOD) && !allowConditional) {
-        _reportErrorForCurrentToken(
-            ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [_currentToken.lexeme]);
-      }
-      Token operator = getAndAdvance();
-      return new PropertyAccess(prefix, operator, parseSimpleIdentifier());
     } else {
-      if (!optional) {
-        // Report the missing selector.
-        _reportErrorForCurrentToken(
-            ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+      bool isQuestionPeriod = type == TokenType.QUESTION_PERIOD;
+      if (type == TokenType.PERIOD || isQuestionPeriod) {
+        if (isQuestionPeriod && !allowConditional) {
+          _reportErrorForCurrentToken(
+              ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+              [_currentToken.lexeme]);
+        }
+        Token operator = getAndAdvance();
+        return new PropertyAccess(prefix, operator, parseSimpleIdentifier());
+      } else {
+        if (!optional) {
+          // Report the missing selector.
+          _reportErrorForCurrentToken(
+              ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+        }
+        return prefix;
       }
-      return prefix;
     }
   }
 
   /**
    * Parse a await expression. Return the await expression that was parsed.
+   *
+   * This method assumes that the current token matches `_AWAIT`.
    *
    *     awaitExpression ::=
    *         'await' unaryExpression
@@ -4563,16 +4523,15 @@ class Parser {
    */
   Expression _parseBitwiseAndExpression() {
     Expression expression;
-    if (_matchesKeyword(Keyword.SUPER) &&
-        _tokenMatches(_peek(), TokenType.AMPERSAND)) {
+    if (_currentToken.keyword == Keyword.SUPER &&
+        _currentToken.next.type == TokenType.AMPERSAND) {
       expression = new SuperExpression(getAndAdvance());
     } else {
       expression = _parseShiftExpression();
     }
-    while (_matches(TokenType.AMPERSAND)) {
-      Token operator = getAndAdvance();
-      expression =
-          new BinaryExpression(expression, operator, _parseShiftExpression());
+    while (_currentToken.type == TokenType.AMPERSAND) {
+      expression = new BinaryExpression(
+          expression, getAndAdvance(), _parseShiftExpression());
     }
     return expression;
   }
@@ -4587,31 +4546,52 @@ class Parser {
    */
   Expression _parseBitwiseXorExpression() {
     Expression expression;
-    if (_matchesKeyword(Keyword.SUPER) &&
-        _tokenMatches(_peek(), TokenType.CARET)) {
+    if (_currentToken.keyword == Keyword.SUPER &&
+        _currentToken.next.type == TokenType.CARET) {
       expression = new SuperExpression(getAndAdvance());
     } else {
       expression = _parseBitwiseAndExpression();
     }
-    while (_matches(TokenType.CARET)) {
-      Token operator = getAndAdvance();
+    while (_currentToken.type == TokenType.CARET) {
       expression = new BinaryExpression(
-          expression, operator, _parseBitwiseAndExpression());
+          expression, getAndAdvance(), _parseBitwiseAndExpression());
     }
     return expression;
   }
 
   /**
+   * Parse a block when we need to check for an open curly brace and recover
+   * when there isn't one. Return the block that was parsed.
+   *
+   *     block ::=
+   *         '{' statements '}'
+   */
+  Block _parseBlockChecked() {
+    if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
+      return parseBlock();
+    }
+    // TODO(brianwilkerson) Improve the error message.
+    _reportErrorForCurrentToken(
+        ParserErrorCode.EXPECTED_TOKEN, [TokenType.OPEN_CURLY_BRACKET.lexeme]);
+    // Recovery: Check for an unmatched closing curly bracket and parse
+    // statements until it is reached.
+    return new Block(_createSyntheticToken(TokenType.OPEN_CURLY_BRACKET), null,
+        _createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET));
+  }
+
+  /**
    * Parse a break statement. Return the break statement that was parsed.
+   *
+   * This method assumes that the current token matches `Keyword.BREAK`.
    *
    *     breakStatement ::=
    *         'break' identifier? ';'
    */
   Statement _parseBreakStatement() {
-    Token breakKeyword = _expectKeyword(Keyword.BREAK);
+    Token breakKeyword = getAndAdvance();
     SimpleIdentifier label = null;
     if (_matchesIdentifier()) {
-      label = parseSimpleIdentifier();
+      label = _parseSimpleIdentifierUnchecked();
     }
     if (!_inLoop && !_inSwitch && label == null) {
       _reportErrorForToken(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword);
@@ -4623,6 +4603,9 @@ class Parser {
   /**
    * Parse a cascade section. Return the expression representing the cascaded
    * method invocation.
+   *
+   * This method assumes that the current token matches
+   * `TokenType.PERIOD_PERIOD`.
    *
    *     cascadeSection ::=
    *         '..' (cascadeSelector typeArguments? arguments*)
@@ -4636,11 +4619,11 @@ class Parser {
    *         assignmentOperator expressionWithoutCascade
    */
   Expression _parseCascadeSection() {
-    Token period = _expect(TokenType.PERIOD_PERIOD);
+    Token period = getAndAdvance();
     Expression expression = null;
     SimpleIdentifier functionName = null;
     if (_matchesIdentifier()) {
-      functionName = parseSimpleIdentifier();
+      functionName = _parseSimpleIdentifierUnchecked();
     } else if (_currentToken.type == TokenType.OPEN_SQUARE_BRACKET) {
       Token leftBracket = getAndAdvance();
       bool wasInInitializer = _inInitializer;
@@ -4662,7 +4645,7 @@ class Parser {
     assert((expression == null && functionName != null) ||
         (expression != null && functionName == null));
     if (_isLikelyArgumentList()) {
-      while (_isLikelyArgumentList()) {
+      do {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         if (functionName != null) {
           expression = new MethodInvocation(expression, period, functionName,
@@ -4677,7 +4660,7 @@ class Parser {
           expression = new FunctionExpressionInvocation(
               expression, typeArguments, parseArgumentList());
         }
-      }
+      } while (_isLikelyArgumentList());
     } else if (functionName != null) {
       expression = new PropertyAccess(expression, period, functionName);
       period = null;
@@ -4692,12 +4675,12 @@ class Parser {
         progress = true;
         while (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
-          if (expression is PropertyAccess) {
-            PropertyAccess propertyAccess = expression as PropertyAccess;
+          Expression currentExpression = expression;
+          if (currentExpression is PropertyAccess) {
             expression = new MethodInvocation(
-                propertyAccess.target,
-                propertyAccess.operator,
-                propertyAccess.propertyName,
+                currentExpression.target,
+                currentExpression.operator,
+                currentExpression.propertyName,
                 typeArguments,
                 parseArgumentList());
           } else {
@@ -4722,31 +4705,33 @@ class Parser {
    * keyword 'abstract', or `null` if the keyword was not given. Return the
    * class declaration that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.CLASS`.
+   *
    *     classDeclaration ::=
    *         metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}' |
    *         metadata 'abstract'? 'class' mixinApplicationClass
    */
   CompilationUnitMember _parseClassDeclaration(
       CommentAndMetadata commentAndMetadata, Token abstractKeyword) {
-    Token keyword = _expectKeyword(Keyword.CLASS);
-    if (_matchesIdentifier()) {
-      Token next = _peek();
-      if (_tokenMatches(next, TokenType.LT)) {
-        next = _skipTypeParameterList(next);
-        if (next != null && _tokenMatches(next, TokenType.EQ)) {
-          return _parseClassTypeAlias(
-              commentAndMetadata, abstractKeyword, keyword);
-        }
-      } else if (_tokenMatches(next, TokenType.EQ)) {
-        return _parseClassTypeAlias(
-            commentAndMetadata, abstractKeyword, keyword);
-      }
-    }
-    SimpleIdentifier name = parseSimpleIdentifier();
+    //
+    // Parse the name and type parameters.
+    //
+    Token keyword = getAndAdvance();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     String className = name.name;
     TypeParameterList typeParameters = null;
-    if (_matches(TokenType.LT)) {
+    TokenType type = _currentToken.type;
+    if (type == TokenType.LT) {
       typeParameters = parseTypeParameterList();
+      type = _currentToken.type;
+    }
+    //
+    // Check to see whether this might be a class type alias rather than a class
+    // declaration.
+    //
+    if (type == TokenType.EQ) {
+      return _parseClassTypeAliasAfterName(
+          commentAndMetadata, abstractKeyword, keyword, name, typeParameters);
     }
     //
     // Parse the clauses. The parser accepts clauses in any order, but will
@@ -4758,7 +4743,8 @@ class Parser {
     ImplementsClause implementsClause = null;
     bool foundClause = true;
     while (foundClause) {
-      if (_matchesKeyword(Keyword.EXTENDS)) {
+      Keyword keyword = _currentToken.keyword;
+      if (keyword == Keyword.EXTENDS) {
         if (extendsClause == null) {
           extendsClause = parseExtendsClause();
           if (withClause != null) {
@@ -4773,7 +4759,7 @@ class Parser {
               extendsClause.extendsKeyword);
           parseExtendsClause();
         }
-      } else if (_matchesKeyword(Keyword.WITH)) {
+      } else if (keyword == Keyword.WITH) {
         if (withClause == null) {
           withClause = parseWithClause();
           if (implementsClause != null) {
@@ -4787,7 +4773,7 @@ class Parser {
           // TODO(brianwilkerson) Should we merge the list of applied mixins
           // into a single list?
         }
-      } else if (_matchesKeyword(Keyword.IMPLEMENTS)) {
+      } else if (keyword == Keyword.IMPLEMENTS) {
         if (implementsClause == null) {
           implementsClause = parseImplementsClause();
         } else {
@@ -4819,10 +4805,12 @@ class Parser {
     List<ClassMember> members = null;
     Token rightBracket = null;
     if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
-      leftBracket = _expect(TokenType.OPEN_CURLY_BRACKET);
+      leftBracket = getAndAdvance();
       members = _parseClassMembers(className, _getEndToken(leftBracket));
       rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
     } else {
+      // Recovery: Check for an unmatched closing curly bracket and parse
+      // members until it is reached.
       leftBracket = _createSyntheticToken(TokenType.OPEN_CURLY_BRACKET);
       rightBracket = _createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_CLASS_BODY);
@@ -4854,14 +4842,15 @@ class Parser {
    *         (metadata memberDefinition)*
    */
   List<ClassMember> _parseClassMembers(String className, Token closingBracket) {
-    List<ClassMember> members = new List<ClassMember>();
+    List<ClassMember> members = <ClassMember>[];
     Token memberStart = _currentToken;
-    while (!_matches(TokenType.EOF) &&
-        !_matches(TokenType.CLOSE_CURLY_BRACKET) &&
+    TokenType type = _currentToken.type;
+    Keyword keyword = _currentToken.keyword;
+    while (type != TokenType.EOF &&
+        type != TokenType.CLOSE_CURLY_BRACKET &&
         (closingBracket != null ||
-            (!_matchesKeyword(Keyword.CLASS) &&
-                !_matchesKeyword(Keyword.TYPEDEF)))) {
-      if (_matches(TokenType.SEMICOLON)) {
+            (keyword != Keyword.CLASS && keyword != Keyword.TYPEDEF))) {
+      if (type == TokenType.SEMICOLON) {
         _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken,
             [_currentToken.lexeme]);
         _advance();
@@ -4877,6 +4866,8 @@ class Parser {
         _advance();
       }
       memberStart = _currentToken;
+      type = _currentToken.type;
+      keyword = _currentToken.keyword;
     }
     return members;
   }
@@ -4887,6 +4878,8 @@ class Parser {
    * the 'abstract' keyword. The [classKeyword] is the token representing the
    * 'class' keyword. Return the class type alias that was parsed.
    *
+   * This method assumes that the current token matches an identifier.
+   *
    *     classTypeAlias ::=
    *         identifier typeParameters? '=' 'abstract'? mixinApplication
    *
@@ -4895,11 +4888,36 @@ class Parser {
    */
   ClassTypeAlias _parseClassTypeAlias(CommentAndMetadata commentAndMetadata,
       Token abstractKeyword, Token classKeyword) {
-    SimpleIdentifier className = parseSimpleIdentifier();
+    SimpleIdentifier className =
+        _parseSimpleIdentifierUnchecked(isDeclaration: true);
     TypeParameterList typeParameters = null;
     if (_matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
+    return _parseClassTypeAliasAfterName(commentAndMetadata, abstractKeyword,
+        classKeyword, className, typeParameters);
+  }
+
+  /**
+   * Parse a class type alias. The [commentAndMetadata] is the metadata to be
+   * associated with the member. The [abstractKeyword] is the token representing
+   * the 'abstract' keyword. The [classKeyword] is the token representing the
+   * 'class' keyword. The [className] is the name of the alias, and the
+   * [typeParameters] are the type parameters following the name. Return the
+   * class type alias that was parsed.
+   *
+   *     classTypeAlias ::=
+   *         identifier typeParameters? '=' 'abstract'? mixinApplication
+   *
+   *     mixinApplication ::=
+   *         type withClause implementsClause? ';'
+   */
+  ClassTypeAlias _parseClassTypeAliasAfterName(
+      CommentAndMetadata commentAndMetadata,
+      Token abstractKeyword,
+      Token classKeyword,
+      SimpleIdentifier className,
+      TypeParameterList typeParameters) {
     Token equals = _expect(TokenType.EQ);
     TypeName superclass = parseTypeName();
     WithClause withClause = null;
@@ -4945,19 +4963,20 @@ class Parser {
 
   /**
    * Parse a list of combinators in a directive. Return the combinators that
-   * were parsed.
+   * were parsed, or `null` if there are no combinators.
    *
    *     combinator ::=
    *         'show' identifier (',' identifier)*
    *       | 'hide' identifier (',' identifier)*
    */
   List<Combinator> _parseCombinators() {
-    List<Combinator> combinators = new List<Combinator>();
+    List<Combinator> combinators = null;
     while (true) {
       Combinator combinator = parseCombinator();
       if (combinator == null) {
         break;
       }
+      combinators ??= <Combinator>[];
       combinators.add(combinator);
     }
     return combinators;
@@ -4974,16 +4993,20 @@ class Parser {
    *         annotation*
    */
   CommentAndMetadata _parseCommentAndMetadata() {
-    Comment comment = _parseDocumentationComment();
-    List<Annotation> metadata = new List<Annotation>();
+    // TODO(brianwilkerson) Consider making the creation of documentation
+    // comments be lazy.
+    List<DocumentationCommentToken> tokens = _parseDocumentationCommentTokens();
+    List<Annotation> metadata = null;
     while (_matches(TokenType.AT)) {
+      metadata ??= <Annotation>[];
       metadata.add(parseAnnotation());
-      Comment optionalComment = _parseDocumentationComment();
-      if (optionalComment != null) {
-        comment = optionalComment;
+      List<DocumentationCommentToken> optionalTokens =
+          _parseDocumentationCommentTokens();
+      if (optionalTokens != null) {
+        tokens = optionalTokens;
       }
     }
-    return new CommentAndMetadata(comment, metadata);
+    return new CommentAndMetadata(_parseDocumentationComment(tokens), metadata);
   }
 
   /**
@@ -5000,11 +5023,6 @@ class Parser {
       String referenceSource, int sourceOffset) {
     // TODO(brianwilkerson) The errors are not getting the right offset/length
     // and are being duplicated.
-    if (referenceSource.length == 0) {
-      Token syntheticToken =
-          new SyntheticStringToken(TokenType.IDENTIFIER, "", sourceOffset);
-      return new CommentReference(null, new SimpleIdentifier(syntheticToken));
-    }
     try {
       BooleanErrorListener listener = new BooleanErrorListener();
       Scanner scanner = new Scanner(
@@ -5014,21 +5032,63 @@ class Parser {
       if (listener.errorReported) {
         return null;
       }
+      if (firstToken.type == TokenType.EOF) {
+        Token syntheticToken =
+            new SyntheticStringToken(TokenType.IDENTIFIER, "", sourceOffset);
+        syntheticToken.setNext(firstToken);
+        return new CommentReference(null, new SimpleIdentifier(syntheticToken));
+      }
       Token newKeyword = null;
       if (_tokenMatchesKeyword(firstToken, Keyword.NEW)) {
         newKeyword = firstToken;
         firstToken = firstToken.next;
       }
-      if (_tokenMatchesIdentifier(firstToken)) {
+      if (firstToken.isUserDefinableOperator) {
+        if (firstToken.next.type != TokenType.EOF) {
+          return null;
+        }
+        Identifier identifier = new SimpleIdentifier(firstToken);
+        return new CommentReference(null, identifier);
+      } else if (_tokenMatchesKeyword(firstToken, Keyword.OPERATOR)) {
+        Token secondToken = firstToken.next;
+        if (secondToken.isUserDefinableOperator) {
+          if (secondToken.next.type != TokenType.EOF) {
+            return null;
+          }
+          Identifier identifier = new SimpleIdentifier(secondToken);
+          return new CommentReference(null, identifier);
+        }
+        return null;
+      } else if (_tokenMatchesIdentifier(firstToken)) {
         Token secondToken = firstToken.next;
         Token thirdToken = secondToken.next;
         Token nextToken;
         Identifier identifier;
-        if (_tokenMatches(secondToken, TokenType.PERIOD) &&
-            _tokenMatchesIdentifier(thirdToken)) {
-          identifier = new PrefixedIdentifier(new SimpleIdentifier(firstToken),
-              secondToken, new SimpleIdentifier(thirdToken));
-          nextToken = thirdToken.next;
+        if (_tokenMatches(secondToken, TokenType.PERIOD)) {
+          if (thirdToken.isUserDefinableOperator) {
+            identifier = new PrefixedIdentifier(
+                new SimpleIdentifier(firstToken),
+                secondToken,
+                new SimpleIdentifier(thirdToken));
+            nextToken = thirdToken.next;
+          } else if (_tokenMatchesKeyword(thirdToken, Keyword.OPERATOR)) {
+            Token fourthToken = thirdToken.next;
+            if (fourthToken.isUserDefinableOperator) {
+              identifier = new PrefixedIdentifier(
+                  new SimpleIdentifier(firstToken),
+                  secondToken,
+                  new SimpleIdentifier(fourthToken));
+              nextToken = fourthToken.next;
+            } else {
+              return null;
+            }
+          } else if (_tokenMatchesIdentifier(thirdToken)) {
+            identifier = new PrefixedIdentifier(
+                new SimpleIdentifier(firstToken),
+                secondToken,
+                new SimpleIdentifier(thirdToken));
+            nextToken = thirdToken.next;
+          }
         } else {
           identifier = new SimpleIdentifier(firstToken);
           nextToken = firstToken.next;
@@ -5037,16 +5097,19 @@ class Parser {
           return null;
         }
         return new CommentReference(newKeyword, identifier);
-      } else if (_tokenMatchesKeyword(firstToken, Keyword.THIS) ||
-          _tokenMatchesKeyword(firstToken, Keyword.NULL) ||
-          _tokenMatchesKeyword(firstToken, Keyword.TRUE) ||
-          _tokenMatchesKeyword(firstToken, Keyword.FALSE)) {
-        // TODO(brianwilkerson) If we want to support this we will need to
-        // extend the definition of CommentReference to take an expression
-        // rather than an identifier. For now we just ignore it to reduce the
-        // number of errors produced, but that's probably not a valid long term
-        // approach.
-        return null;
+      } else {
+        Keyword keyword = firstToken.keyword;
+        if (keyword == Keyword.THIS ||
+            keyword == Keyword.NULL ||
+            keyword == Keyword.TRUE ||
+            keyword == Keyword.FALSE) {
+          // TODO(brianwilkerson) If we want to support this we will need to
+          // extend the definition of CommentReference to take an expression
+          // rather than an identifier. For now we just ignore it to reduce the
+          // number of errors produced, but that's probably not a valid long term
+          // approach.
+          return null;
+        }
       }
     } catch (exception) {
       // Ignored because we assume that it wasn't a real comment reference.
@@ -5068,7 +5131,7 @@ class Parser {
    */
   List<CommentReference> _parseCommentReferences(
       List<DocumentationCommentToken> tokens) {
-    List<CommentReference> references = new List<CommentReference>();
+    List<CommentReference> references = <CommentReference>[];
     for (DocumentationCommentToken token in tokens) {
       String comment = token.lexeme;
       comment = _removeCodeBlocksGitHub(comment);
@@ -5098,20 +5161,21 @@ class Parser {
           } else {
             // terminating ']' is not typed yet
             int charAfterLeft = comment.codeUnitAt(leftIndex + 1);
+            Token nameToken;
             if (Character.isLetterOrDigit(charAfterLeft)) {
               int nameEnd = StringUtilities.indexOfFirstNotLetterDigit(
                   comment, leftIndex + 1);
               String name = comment.substring(leftIndex + 1, nameEnd);
-              Token nameToken =
+              nameToken =
                   new StringToken(TokenType.IDENTIFIER, name, nameOffset);
-              references.add(
-                  new CommentReference(null, new SimpleIdentifier(nameToken)));
             } else {
-              Token nameToken = new SyntheticStringToken(
-                  TokenType.IDENTIFIER, "", nameOffset);
-              references.add(
-                  new CommentReference(null, new SimpleIdentifier(nameToken)));
+              nameToken = new SyntheticStringToken(
+                  TokenType.IDENTIFIER, '', nameOffset);
             }
+            nameToken.setNext(new SimpleToken(TokenType.EOF, nameToken.end));
+            references.add(
+                new CommentReference(null, new SimpleIdentifier(nameToken)));
+            token.references.add(nameToken);
             // next character
             rightIndex = leftIndex + 1;
           }
@@ -5144,32 +5208,41 @@ class Parser {
   CompilationUnitMember _parseCompilationUnitMember(
       CommentAndMetadata commentAndMetadata) {
     Modifiers modifiers = _parseModifiers();
-    if (_matchesKeyword(Keyword.CLASS)) {
+    Keyword keyword = _currentToken.keyword;
+    if (keyword == Keyword.CLASS) {
       return _parseClassDeclaration(
           commentAndMetadata, _validateModifiersForClass(modifiers));
-    } else if (_matchesKeyword(Keyword.TYPEDEF) &&
-        !_tokenMatches(_peek(), TokenType.PERIOD) &&
-        !_tokenMatches(_peek(), TokenType.LT) &&
-        !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+    }
+    Token next = _peek();
+    TokenType nextType = next.type;
+    if (keyword == Keyword.TYPEDEF &&
+        nextType != TokenType.PERIOD &&
+        nextType != TokenType.LT &&
+        nextType != TokenType.OPEN_PAREN) {
       _validateModifiersForTypedef(modifiers);
       return _parseTypeAlias(commentAndMetadata);
-    } else if (_matchesKeyword(Keyword.ENUM)) {
+    } else if (keyword == Keyword.ENUM) {
       _validateModifiersForEnum(modifiers);
       return _parseEnumDeclaration(commentAndMetadata);
-    }
-    if (_matchesKeyword(Keyword.VOID)) {
-      TypeName returnType = parseReturnType();
-      if ((_matchesKeyword(Keyword.GET) || _matchesKeyword(Keyword.SET)) &&
-          _tokenMatchesIdentifier(_peek())) {
+    } else if (keyword == Keyword.VOID) {
+      TypeName returnType =
+          new TypeName(new SimpleIdentifier(getAndAdvance()), null);
+      keyword = _currentToken.keyword;
+      next = _peek();
+      if ((keyword == Keyword.GET || keyword == Keyword.SET) &&
+          _tokenMatchesIdentifier(next)) {
         _validateModifiersForTopLevelFunction(modifiers);
         return _parseFunctionDeclaration(
             commentAndMetadata, modifiers.externalKeyword, returnType);
-      } else if (_matchesKeyword(Keyword.OPERATOR) && _isOperator(_peek())) {
+      } else if (keyword == Keyword.OPERATOR && _isOperator(next)) {
         _reportErrorForToken(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken);
-        return _convertToFunctionDeclaration(_parseOperator(
-            commentAndMetadata, modifiers.externalKeyword, returnType));
+        return _convertToFunctionDeclaration(_parseOperatorAfterKeyword(
+            commentAndMetadata,
+            modifiers.externalKeyword,
+            returnType,
+            getAndAdvance()));
       } else if (_matchesIdentifier() &&
-          _peek().matchesAny([
+          next.matchesAny(const <TokenType>[
             TokenType.OPEN_PAREN,
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.FUNCTION,
@@ -5183,8 +5256,11 @@ class Parser {
         // We have found an error of some kind. Try to recover.
         //
         if (_matchesIdentifier()) {
-          if (_peek().matchesAny(
-              [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+          if (next.matchesAny(const <TokenType>[
+            TokenType.EQ,
+            TokenType.COMMA,
+            TokenType.SEMICOLON
+          ])) {
             //
             // We appear to have a variable declaration with a type of "void".
             //
@@ -5201,15 +5277,18 @@ class Parser {
             ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken);
         return null;
       }
-    } else if ((_matchesKeyword(Keyword.GET) || _matchesKeyword(Keyword.SET)) &&
-        _tokenMatchesIdentifier(_peek())) {
+    } else if ((keyword == Keyword.GET || keyword == Keyword.SET) &&
+        _tokenMatchesIdentifier(next)) {
       _validateModifiersForTopLevelFunction(modifiers);
       return _parseFunctionDeclaration(
           commentAndMetadata, modifiers.externalKeyword, null);
-    } else if (_matchesKeyword(Keyword.OPERATOR) && _isOperator(_peek())) {
+    } else if (keyword == Keyword.OPERATOR && _isOperator(next)) {
       _reportErrorForToken(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken);
-      return _convertToFunctionDeclaration(
-          _parseOperator(commentAndMetadata, modifiers.externalKeyword, null));
+      return _convertToFunctionDeclaration(_parseOperatorAfterKeyword(
+          commentAndMetadata,
+          modifiers.externalKeyword,
+          null,
+          getAndAdvance()));
     } else if (!_matchesIdentifier()) {
       Token keyword = modifiers.varKeyword;
       if (keyword == null) {
@@ -5223,9 +5302,9 @@ class Parser {
         // We appear to have found an incomplete top-level variable declaration.
         //
         _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
-        List<VariableDeclaration> variables = new List<VariableDeclaration>();
-        variables.add(
-            new VariableDeclaration(_createSyntheticIdentifier(), null, null));
+        VariableDeclaration variable =
+            new VariableDeclaration(_createSyntheticIdentifier(), null, null);
+        List<VariableDeclaration> variables = <VariableDeclaration>[variable];
         return new TopLevelVariableDeclaration(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
@@ -5237,13 +5316,16 @@ class Parser {
     } else if (_isPeekGenericTypeParametersAndOpenParen()) {
       return _parseFunctionDeclaration(
           commentAndMetadata, modifiers.externalKeyword, null);
-    } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+    } else if (_tokenMatches(next, TokenType.OPEN_PAREN)) {
       TypeName returnType = _parseOptionalTypeNameComment();
       _validateModifiersForTopLevelFunction(modifiers);
       return _parseFunctionDeclaration(
           commentAndMetadata, modifiers.externalKeyword, returnType);
-    } else if (_peek()
-        .matchesAny([TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+    } else if (next.matchesAny(const <TokenType>[
+      TokenType.EQ,
+      TokenType.COMMA,
+      TokenType.SEMICOLON
+    ])) {
       if (modifiers.constKeyword == null &&
           modifiers.finalKeyword == null &&
           modifiers.varKeyword == null) {
@@ -5258,15 +5340,20 @@ class Parser {
           _expect(TokenType.SEMICOLON));
     }
     TypeName returnType = parseReturnType();
-    if ((_matchesKeyword(Keyword.GET) || _matchesKeyword(Keyword.SET)) &&
-        _tokenMatchesIdentifier(_peek())) {
+    keyword = _currentToken.keyword;
+    next = _peek();
+    if ((keyword == Keyword.GET || keyword == Keyword.SET) &&
+        _tokenMatchesIdentifier(next)) {
       _validateModifiersForTopLevelFunction(modifiers);
       return _parseFunctionDeclaration(
           commentAndMetadata, modifiers.externalKeyword, returnType);
-    } else if (_matchesKeyword(Keyword.OPERATOR) && _isOperator(_peek())) {
+    } else if (keyword == Keyword.OPERATOR && _isOperator(next)) {
       _reportErrorForToken(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken);
-      return _convertToFunctionDeclaration(_parseOperator(
-          commentAndMetadata, modifiers.externalKeyword, returnType));
+      return _convertToFunctionDeclaration(_parseOperatorAfterKeyword(
+          commentAndMetadata,
+          modifiers.externalKeyword,
+          returnType,
+          getAndAdvance()));
     } else if (_matches(TokenType.AT)) {
       return new TopLevelVariableDeclaration(
           commentAndMetadata.comment,
@@ -5284,16 +5371,15 @@ class Parser {
       } else {
         semicolon = _createSyntheticToken(TokenType.SEMICOLON);
       }
-      List<VariableDeclaration> variables = new List<VariableDeclaration>();
-      variables.add(
-          new VariableDeclaration(_createSyntheticIdentifier(), null, null));
+      VariableDeclaration variable =
+          new VariableDeclaration(_createSyntheticIdentifier(), null, null);
+      List<VariableDeclaration> variables = <VariableDeclaration>[variable];
       return new TopLevelVariableDeclaration(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
           new VariableDeclarationList(null, null, null, returnType, variables),
           semicolon);
-    }
-    if (_peek().matchesAny([
+    } else if (next.matchesAny(const <TokenType>[
       TokenType.OPEN_PAREN,
       TokenType.FUNCTION,
       TokenType.OPEN_CURLY_BRACKET,
@@ -5314,6 +5400,8 @@ class Parser {
   /**
    * Parse a configuration in either an import or export directive.
    *
+   * This method assumes that the current token matches `Keyword.IF`.
+   *
    *     configuration ::=
    *         'if' '(' test ')' uri
    *
@@ -5324,7 +5412,7 @@ class Parser {
    *         identifier ('.' identifier)*
    */
   Configuration _parseConfiguration() {
-    Token ifKeyword = _expectKeyword(Keyword.IF);
+    Token ifKeyword = getAndAdvance();
     Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
     DottedName name = _parseDottedName();
     Token equalToken = null;
@@ -5344,15 +5432,14 @@ class Parser {
   }
 
   /**
-   * Parse a list of configurations. If conditional directives are not
-   * supported, return an empty list without attempting to parse anything.
+   * Parse a list of configurations. Return the configurations that were parsed,
+   * or `null` if there are no configurations.
    */
   List<Configuration> _parseConfigurations() {
-    List<Configuration> configurations = <Configuration>[];
-    if (parseConditionalDirectives) {
-      while (_matchesKeyword(Keyword.IF)) {
-        configurations.add(_parseConfiguration());
-      }
+    List<Configuration> configurations = null;
+    while (_matchesKeyword(Keyword.IF)) {
+      configurations ??= <Configuration>[];
+      configurations.add(_parseConfiguration());
     }
     return configurations;
   }
@@ -5360,19 +5447,22 @@ class Parser {
   /**
    * Parse a const expression. Return the const expression that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.CONST`.
+   *
    *     constExpression ::=
    *         instanceCreationExpression
    *       | listLiteral
    *       | mapLiteral
    */
   Expression _parseConstExpression() {
-    Token keyword = _expectKeyword(Keyword.CONST);
-    if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
+    Token keyword = getAndAdvance();
+    TokenType type = _currentToken.type;
+    if (type == TokenType.LT || _injectGenericCommentTypeList()) {
       return _parseListOrMapLiteral(keyword);
-    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
-        _matches(TokenType.INDEX)) {
+    } else if (type == TokenType.OPEN_SQUARE_BRACKET ||
+        type == TokenType.INDEX) {
       return _parseListLiteral(keyword, null);
-    } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
+    } else if (type == TokenType.OPEN_CURLY_BRACKET) {
       return _parseMapLiteral(keyword, null);
     }
     return _parseInstanceCreationExpression(keyword);
@@ -5392,26 +5482,28 @@ class Parser {
     List<ConstructorInitializer> initializers = null;
     if (_matches(TokenType.COLON)) {
       separator = getAndAdvance();
-      initializers = new List<ConstructorInitializer>();
+      initializers = <ConstructorInitializer>[];
       do {
-        if (_matchesKeyword(Keyword.THIS)) {
-          if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+        Keyword keyword = _currentToken.keyword;
+        if (keyword == Keyword.THIS) {
+          TokenType nextType = _peek().type;
+          if (nextType == TokenType.OPEN_PAREN) {
             bodyAllowed = false;
-            initializers.add(_parseRedirectingConstructorInvocation());
-          } else if (_tokenMatches(_peek(), TokenType.PERIOD) &&
+            initializers.add(_parseRedirectingConstructorInvocation(false));
+          } else if (nextType == TokenType.PERIOD &&
               _tokenMatches(_peekAt(3), TokenType.OPEN_PAREN)) {
             bodyAllowed = false;
-            initializers.add(_parseRedirectingConstructorInvocation());
+            initializers.add(_parseRedirectingConstructorInvocation(true));
           } else {
-            initializers.add(_parseConstructorFieldInitializer());
+            initializers.add(_parseConstructorFieldInitializer(true));
           }
-        } else if (_matchesKeyword(Keyword.SUPER)) {
+        } else if (keyword == Keyword.SUPER) {
           initializers.add(_parseSuperConstructorInvocation());
         } else if (_matches(TokenType.OPEN_CURLY_BRACKET) ||
             _matches(TokenType.FUNCTION)) {
           _reportErrorForCurrentToken(ParserErrorCode.MISSING_INITIALIZER);
         } else {
-          initializers.add(_parseConstructorFieldInitializer());
+          initializers.add(_parseConstructorFieldInitializer(false));
         }
       } while (_optional(TokenType.COMMA));
       if (factoryKeyword != null) {
@@ -5474,54 +5566,55 @@ class Parser {
   }
 
   /**
-   * Parse a field initializer within a constructor. Return the field
-   * initializer that was parsed.
+   * Parse a field initializer within a constructor. The flag [hasThis] should
+   * be true if the current token is `this`. Return the field initializer that
+   * was parsed.
    *
    *     fieldInitializer:
    *         ('this' '.')? identifier '=' conditionalExpression cascadeSection*
    */
-  ConstructorFieldInitializer _parseConstructorFieldInitializer() {
-    Token keyword = null;
+  ConstructorFieldInitializer _parseConstructorFieldInitializer(bool hasThis) {
+    Token keywordToken = null;
     Token period = null;
-    if (_matchesKeyword(Keyword.THIS)) {
-      keyword = getAndAdvance();
+    if (hasThis) {
+      keywordToken = getAndAdvance();
       period = _expect(TokenType.PERIOD);
     }
     SimpleIdentifier fieldName = parseSimpleIdentifier();
     Token equals = null;
-    if (_matches(TokenType.EQ)) {
+    TokenType type = _currentToken.type;
+    if (type == TokenType.EQ) {
       equals = getAndAdvance();
-    } else if (!_matchesKeyword(Keyword.THIS) &&
-        !_matchesKeyword(Keyword.SUPER) &&
-        !_matches(TokenType.OPEN_CURLY_BRACKET) &&
-        !_matches(TokenType.FUNCTION)) {
-      _reportErrorForCurrentToken(
-          ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER);
-      equals = _createSyntheticToken(TokenType.EQ);
     } else {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER);
-      return new ConstructorFieldInitializer(keyword, period, fieldName,
-          _createSyntheticToken(TokenType.EQ), _createSyntheticIdentifier());
+      Keyword keyword = _currentToken.keyword;
+      if (keyword != Keyword.THIS &&
+          keyword != Keyword.SUPER &&
+          type != TokenType.OPEN_CURLY_BRACKET &&
+          type != TokenType.FUNCTION) {
+        equals = _createSyntheticToken(TokenType.EQ);
+      } else {
+        return new ConstructorFieldInitializer(keywordToken, period, fieldName,
+            _createSyntheticToken(TokenType.EQ), _createSyntheticIdentifier());
+      }
     }
     bool wasInInitializer = _inInitializer;
     _inInitializer = true;
     try {
       Expression expression = parseConditionalExpression();
-      TokenType tokenType = _currentToken.type;
-      if (tokenType == TokenType.PERIOD_PERIOD) {
-        List<Expression> cascadeSections = new List<Expression>();
-        while (tokenType == TokenType.PERIOD_PERIOD) {
+      if (_matches(TokenType.PERIOD_PERIOD)) {
+        List<Expression> cascadeSections = <Expression>[];
+        do {
           Expression section = _parseCascadeSection();
           if (section != null) {
             cascadeSections.add(section);
           }
-          tokenType = _currentToken.type;
-        }
+        } while (_matches(TokenType.PERIOD_PERIOD));
         expression = new CascadeExpression(expression, cascadeSections);
       }
       return new ConstructorFieldInitializer(
-          keyword, period, fieldName, equals, expression);
+          keywordToken, period, fieldName, equals, expression);
     } finally {
       _inInitializer = wasInInitializer;
     }
@@ -5530,18 +5623,20 @@ class Parser {
   /**
    * Parse a continue statement. Return the continue statement that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.CONTINUE`.
+   *
    *     continueStatement ::=
    *         'continue' identifier? ';'
    */
   Statement _parseContinueStatement() {
-    Token continueKeyword = _expectKeyword(Keyword.CONTINUE);
+    Token continueKeyword = getAndAdvance();
     if (!_inLoop && !_inSwitch) {
       _reportErrorForToken(
           ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword);
     }
     SimpleIdentifier label = null;
     if (_matchesIdentifier()) {
-      label = parseSimpleIdentifier();
+      label = _parseSimpleIdentifierUnchecked();
     }
     if (_inSwitch && !_inLoop && label == null) {
       _reportErrorForToken(
@@ -5569,7 +5664,7 @@ class Parser {
     } else if (_matchesKeyword(Keyword.LIBRARY)) {
       return _parseLibraryDirective(commentAndMetadata);
     } else if (_matchesKeyword(Keyword.PART)) {
-      return _parsePartDirective(commentAndMetadata);
+      return _parsePartOrPartOfDirective(commentAndMetadata);
     } else {
       // Internal error: this method should not have been invoked if the current
       // token was something other than one of the above.
@@ -5591,16 +5686,18 @@ class Parser {
     if (_matches(TokenType.SCRIPT_TAG)) {
       scriptTag = new ScriptTag(getAndAdvance());
     }
-    List<Directive> directives = new List<Directive>();
+    List<Directive> directives = <Directive>[];
     while (!_matches(TokenType.EOF)) {
       CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
-      if ((_matchesKeyword(Keyword.IMPORT) ||
-              _matchesKeyword(Keyword.EXPORT) ||
-              _matchesKeyword(Keyword.LIBRARY) ||
-              _matchesKeyword(Keyword.PART)) &&
-          !_tokenMatches(_peek(), TokenType.PERIOD) &&
-          !_tokenMatches(_peek(), TokenType.LT) &&
-          !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+      Keyword keyword = _currentToken.keyword;
+      TokenType type = _peek().type;
+      if ((keyword == Keyword.IMPORT ||
+              keyword == Keyword.EXPORT ||
+              keyword == Keyword.LIBRARY ||
+              keyword == Keyword.PART) &&
+          type != TokenType.PERIOD &&
+          type != TokenType.LT &&
+          type != TokenType.OPEN_PAREN) {
         directives.add(_parseDirective(commentAndMetadata));
       } else if (_matches(TokenType.SEMICOLON)) {
         _advance();
@@ -5608,12 +5705,29 @@ class Parser {
         while (!_matches(TokenType.EOF)) {
           _advance();
         }
-        return new CompilationUnit(firstToken, scriptTag, directives,
-            new List<CompilationUnitMember>(), _currentToken);
+        return new CompilationUnit(
+            firstToken, scriptTag, directives, null, _currentToken);
       }
     }
-    return new CompilationUnit(firstToken, scriptTag, directives,
-        new List<CompilationUnitMember>(), _currentToken);
+    return new CompilationUnit(
+        firstToken, scriptTag, directives, null, _currentToken);
+  }
+
+  /**
+   * Parse a documentation comment based on the given list of documentation
+   * comment tokens. Return the documentation comment that was parsed, or `null`
+   * if there was no comment.
+   *
+   *     documentationComment ::=
+   *         multiLineComment?
+   *       | singleLineComment*
+   */
+  Comment _parseDocumentationComment(List<DocumentationCommentToken> tokens) {
+    if (tokens == null) {
+      return null;
+    }
+    List<CommentReference> references = _parseCommentReferences(tokens);
+    return Comment.createDocumentationCommentWithReferences(tokens, references);
   }
 
   /**
@@ -5624,36 +5738,31 @@ class Parser {
    *         multiLineComment?
    *       | singleLineComment*
    */
-  Comment _parseDocumentationComment() {
-    List<DocumentationCommentToken> documentationTokens =
-        <DocumentationCommentToken>[];
+  List<DocumentationCommentToken> _parseDocumentationCommentTokens() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[];
     CommentToken commentToken = _currentToken.precedingComments;
     while (commentToken != null) {
       if (commentToken is DocumentationCommentToken) {
-        if (documentationTokens.isNotEmpty) {
+        if (tokens.isNotEmpty) {
           if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
-            if (documentationTokens[0].type != TokenType.SINGLE_LINE_COMMENT) {
-              documentationTokens.clear();
+            if (tokens[0].type != TokenType.SINGLE_LINE_COMMENT) {
+              tokens.clear();
             }
           } else {
-            documentationTokens.clear();
+            tokens.clear();
           }
         }
-        documentationTokens.add(commentToken);
+        tokens.add(commentToken);
       }
       commentToken = commentToken.next;
     }
-    if (documentationTokens.isEmpty) {
-      return null;
-    }
-    List<CommentReference> references =
-        _parseCommentReferences(documentationTokens);
-    return Comment.createDocumentationCommentWithReferences(
-        documentationTokens, references);
+    return tokens.isEmpty ? null : tokens;
   }
 
   /**
    * Parse a do statement. Return the do statement that was parsed.
+   *
+   * This method assumes that the current token matches `Keyword.DO`.
    *
    *     doStatement ::=
    *         'do' statement 'while' '(' expression ')' ';'
@@ -5662,7 +5771,7 @@ class Parser {
     bool wasInLoop = _inLoop;
     _inLoop = true;
     try {
-      Token doKeyword = _expectKeyword(Keyword.DO);
+      Token doKeyword = getAndAdvance();
       Statement body = parseStatement2();
       Token whileKeyword = _expectKeyword(Keyword.WHILE);
       Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
@@ -5683,10 +5792,10 @@ class Parser {
    *         identifier ('.' identifier)*
    */
   DottedName _parseDottedName() {
-    List<SimpleIdentifier> components = new List<SimpleIdentifier>();
-    components.add(parseSimpleIdentifier());
-    while (_matches(TokenType.PERIOD)) {
-      _advance();
+    List<SimpleIdentifier> components = <SimpleIdentifier>[
+      parseSimpleIdentifier()
+    ];
+    while (_optional(TokenType.PERIOD)) {
       components.add(parseSimpleIdentifier());
     }
     return new DottedName(components);
@@ -5695,20 +5804,36 @@ class Parser {
   /**
    * Parse an empty statement. Return the empty statement that was parsed.
    *
+   * This method assumes that the current token matches `TokenType.SEMICOLON`.
+   *
    *     emptyStatement ::=
    *         ';'
    */
   Statement _parseEmptyStatement() => new EmptyStatement(getAndAdvance());
 
+  /**
+   * Parse an enum constant declaration. Return the enum constant declaration
+   * that was parsed.
+   *
+   * Specified:
+   *
+   *     enumConstant ::=
+   *         id
+   *
+   * Actual:
+   *
+   *     enumConstant ::=
+   *         metadata id
+   */
   EnumConstantDeclaration _parseEnumConstantDeclaration() {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
     SimpleIdentifier name;
     if (_matchesIdentifier()) {
-      name = parseSimpleIdentifier();
+      name = _parseSimpleIdentifierUnchecked(isDeclaration: true);
     } else {
       name = _createSyntheticIdentifier();
     }
-    if (commentAndMetadata.metadata.isNotEmpty) {
+    if (commentAndMetadata.hasMetadata) {
       _reportErrorForNode(ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT,
           commentAndMetadata.metadata[0]);
     }
@@ -5720,18 +5845,19 @@ class Parser {
    * Parse an enum declaration. The [commentAndMetadata] is the metadata to be
    * associated with the member. Return the enum declaration that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.ENUM`.
+   *
    *     enumType ::=
    *         metadata 'enum' id '{' id (',' id)* (',')? '}'
    */
   EnumDeclaration _parseEnumDeclaration(CommentAndMetadata commentAndMetadata) {
-    Token keyword = _expectKeyword(Keyword.ENUM);
-    SimpleIdentifier name = parseSimpleIdentifier();
+    Token keyword = getAndAdvance();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     Token leftBracket = null;
-    List<EnumConstantDeclaration> constants =
-        new List<EnumConstantDeclaration>();
+    List<EnumConstantDeclaration> constants = <EnumConstantDeclaration>[];
     Token rightBracket = null;
     if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
-      leftBracket = _expect(TokenType.OPEN_CURLY_BRACKET);
+      leftBracket = getAndAdvance();
       if (_matchesIdentifier() || _matches(TokenType.AT)) {
         constants.add(_parseEnumConstantDeclaration());
       } else if (_matches(TokenType.COMMA) &&
@@ -5774,7 +5900,7 @@ class Parser {
    */
   Expression _parseEqualityExpression() {
     Expression expression;
-    if (_matchesKeyword(Keyword.SUPER) &&
+    if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type.isEqualityOperator) {
       expression = new SuperExpression(getAndAdvance());
     } else {
@@ -5782,13 +5908,12 @@ class Parser {
     }
     bool leftEqualityExpression = false;
     while (_currentToken.type.isEqualityOperator) {
-      Token operator = getAndAdvance();
       if (leftEqualityExpression) {
         _reportErrorForNode(
             ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, expression);
       }
       expression = new BinaryExpression(
-          expression, operator, _parseRelationalExpression());
+          expression, getAndAdvance(), _parseRelationalExpression());
       leftEqualityExpression = true;
     }
     return expression;
@@ -5798,11 +5923,13 @@ class Parser {
    * Parse an export directive. The [commentAndMetadata] is the metadata to be
    * associated with the directive. Return the export directive that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.EXPORT`.
+   *
    *     exportDirective ::=
    *         metadata 'export' stringLiteral configuration* combinator*';'
    */
   ExportDirective _parseExportDirective(CommentAndMetadata commentAndMetadata) {
-    Token exportKeyword = _expectKeyword(Keyword.EXPORT);
+    Token exportKeyword = getAndAdvance();
     StringLiteral libraryUri = _parseUri();
     List<Configuration> configurations = _parseConfigurations();
     List<Combinator> combinators = _parseCombinators();
@@ -5824,8 +5951,7 @@ class Parser {
    *         expression (',' expression)*
    */
   List<Expression> _parseExpressionList() {
-    List<Expression> expressions = new List<Expression>();
-    expressions.add(parseExpression2());
+    List<Expression> expressions = <Expression>[parseExpression2()];
     while (_optional(TokenType.COMMA)) {
       expressions.add(parseExpression2());
     }
@@ -5844,23 +5970,24 @@ class Parser {
    *       | type
    */
   FinalConstVarOrType _parseFinalConstVarOrType(bool optional) {
-    Token keyword = null;
+    Token keywordToken = null;
     TypeName type = null;
-    if (_matchesKeyword(Keyword.FINAL) || _matchesKeyword(Keyword.CONST)) {
-      keyword = getAndAdvance();
+    Keyword keyword = _currentToken.keyword;
+    if (keyword == Keyword.FINAL || keyword == Keyword.CONST) {
+      keywordToken = getAndAdvance();
       if (_isTypedIdentifier(_currentToken)) {
         type = parseTypeName();
       } else {
         // Support `final/*=T*/ x;`
         type = _parseOptionalTypeNameComment();
       }
-    } else if (_matchesKeyword(Keyword.VAR)) {
-      keyword = getAndAdvance();
+    } else if (keyword == Keyword.VAR) {
+      keywordToken = getAndAdvance();
       // Support `var/*=T*/ x;`
       type = _parseOptionalTypeNameComment();
       if (type != null) {
         // Clear the keyword to prevent an error.
-        keyword = null;
+        keywordToken = null;
       }
     } else if (_isTypedIdentifier(_currentToken)) {
       type = parseReturnType();
@@ -5872,7 +5999,7 @@ class Parser {
       // This is not supported if the type is required.
       type = _parseOptionalTypeNameComment();
     }
-    return new FinalConstVarOrType(keyword, type);
+    return new FinalConstVarOrType(keywordToken, type);
   }
 
   /**
@@ -5889,35 +6016,205 @@ class Parser {
    */
   FormalParameter _parseFormalParameter(ParameterKind kind) {
     NormalFormalParameter parameter = parseNormalFormalParameter();
-    if (_matches(TokenType.EQ)) {
-      Token seperator = getAndAdvance();
+    TokenType type = _currentToken.type;
+    if (type == TokenType.EQ) {
+      Token separator = getAndAdvance();
       Expression defaultValue = parseExpression2();
       if (kind == ParameterKind.NAMED) {
         _reportErrorForToken(
-            ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator);
+            ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, separator);
       } else if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter);
       }
       return new DefaultFormalParameter(
-          parameter, kind, seperator, defaultValue);
-    } else if (_matches(TokenType.COLON)) {
-      Token seperator = getAndAdvance();
+          parameter, kind, separator, defaultValue);
+    } else if (type == TokenType.COLON) {
+      Token separator = getAndAdvance();
       Expression defaultValue = parseExpression2();
       if (kind == ParameterKind.POSITIONAL) {
         _reportErrorForToken(
             ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
-            seperator);
+            separator);
       } else if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter);
       }
       return new DefaultFormalParameter(
-          parameter, kind, seperator, defaultValue);
+          parameter, kind, separator, defaultValue);
     } else if (kind != ParameterKind.REQUIRED) {
       return new DefaultFormalParameter(parameter, kind, null, null);
     }
     return parameter;
+  }
+
+  /**
+   * Parse a list of formal parameters given that the list starts with the given
+   * [leftParenthesis]. Return the formal parameters that were parsed.
+   */
+  FormalParameterList _parseFormalParameterListAfterParen(
+      Token leftParenthesis) {
+    if (_matches(TokenType.CLOSE_PAREN)) {
+      return new FormalParameterList(
+          leftParenthesis, null, null, null, getAndAdvance());
+    }
+    //
+    // Even though it is invalid to have default parameters outside of brackets,
+    // required parameters inside of brackets, or multiple groups of default and
+    // named parameters, we allow all of these cases so that we can recover
+    // better.
+    //
+    List<FormalParameter> parameters = <FormalParameter>[];
+    Token leftSquareBracket = null;
+    Token rightSquareBracket = null;
+    Token leftCurlyBracket = null;
+    Token rightCurlyBracket = null;
+    ParameterKind kind = ParameterKind.REQUIRED;
+    bool firstParameter = true;
+    bool reportedMultiplePositionalGroups = false;
+    bool reportedMultipleNamedGroups = false;
+    bool reportedMixedGroups = false;
+    bool wasOptionalParameter = false;
+    Token initialToken = null;
+    do {
+      if (firstParameter) {
+        firstParameter = false;
+      } else if (!_optional(TokenType.COMMA)) {
+        // TODO(brianwilkerson) The token is wrong, we need to recover from this
+        // case.
+        if (_getEndToken(leftParenthesis) != null) {
+          _reportErrorForCurrentToken(
+              ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
+        } else {
+          _reportErrorForToken(ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
+              _currentToken.previous);
+          break;
+        }
+      }
+      initialToken = _currentToken;
+      //
+      // Handle the beginning of parameter groups.
+      //
+      TokenType type = _currentToken.type;
+      if (type == TokenType.OPEN_SQUARE_BRACKET) {
+        wasOptionalParameter = true;
+        if (leftSquareBracket != null && !reportedMultiplePositionalGroups) {
+          _reportErrorForCurrentToken(
+              ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS);
+          reportedMultiplePositionalGroups = true;
+        }
+        if (leftCurlyBracket != null && !reportedMixedGroups) {
+          _reportErrorForCurrentToken(ParserErrorCode.MIXED_PARAMETER_GROUPS);
+          reportedMixedGroups = true;
+        }
+        leftSquareBracket = getAndAdvance();
+        kind = ParameterKind.POSITIONAL;
+      } else if (type == TokenType.OPEN_CURLY_BRACKET) {
+        wasOptionalParameter = true;
+        if (leftCurlyBracket != null && !reportedMultipleNamedGroups) {
+          _reportErrorForCurrentToken(
+              ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
+          reportedMultipleNamedGroups = true;
+        }
+        if (leftSquareBracket != null && !reportedMixedGroups) {
+          _reportErrorForCurrentToken(ParserErrorCode.MIXED_PARAMETER_GROUPS);
+          reportedMixedGroups = true;
+        }
+        leftCurlyBracket = getAndAdvance();
+        kind = ParameterKind.NAMED;
+      }
+      //
+      // Parse and record the parameter.
+      //
+      FormalParameter parameter = _parseFormalParameter(kind);
+      parameters.add(parameter);
+      if (kind == ParameterKind.REQUIRED && wasOptionalParameter) {
+        _reportErrorForNode(
+            ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter);
+      }
+      //
+      // Handle the end of parameter groups.
+      //
+      // TODO(brianwilkerson) Improve the detection and reporting of missing and
+      // mismatched delimiters.
+      type = _currentToken.type;
+
+      // Advance past trailing commas as appropriate.
+      if (type == TokenType.COMMA) {
+        // Only parse commas trailing normal (non-positional/named) params.
+        if (rightSquareBracket == null && rightCurlyBracket == null) {
+          Token next = _peek();
+          if (next.type == TokenType.CLOSE_PAREN ||
+              next.type == TokenType.CLOSE_CURLY_BRACKET ||
+              next.type == TokenType.CLOSE_SQUARE_BRACKET) {
+            _advance();
+            type = _currentToken.type;
+          }
+        }
+      }
+
+      if (type == TokenType.CLOSE_SQUARE_BRACKET) {
+        rightSquareBracket = getAndAdvance();
+        if (leftSquareBracket == null) {
+          if (leftCurlyBracket != null) {
+            _reportErrorForCurrentToken(
+                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+            rightCurlyBracket = rightSquareBracket;
+            rightSquareBracket = null;
+          } else {
+            _reportErrorForCurrentToken(
+                ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
+                ["["]);
+          }
+        }
+        kind = ParameterKind.REQUIRED;
+      } else if (type == TokenType.CLOSE_CURLY_BRACKET) {
+        rightCurlyBracket = getAndAdvance();
+        if (leftCurlyBracket == null) {
+          if (leftSquareBracket != null) {
+            _reportErrorForCurrentToken(
+                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+            rightSquareBracket = rightCurlyBracket;
+            rightCurlyBracket = null;
+          } else {
+            _reportErrorForCurrentToken(
+                ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
+                ["{"]);
+          }
+        }
+        kind = ParameterKind.REQUIRED;
+      }
+    } while (!_matches(TokenType.CLOSE_PAREN) &&
+        !identical(initialToken, _currentToken));
+    Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
+    //
+    // Check that the groups were closed correctly.
+    //
+    if (leftSquareBracket != null && rightSquareBracket == null) {
+      _reportErrorForCurrentToken(
+          ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+    }
+    if (leftCurlyBracket != null && rightCurlyBracket == null) {
+      _reportErrorForCurrentToken(
+          ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+    }
+    //
+    // Build the parameter list.
+    //
+    leftSquareBracket ??= leftCurlyBracket;
+    rightSquareBracket ??= rightCurlyBracket;
+    return new FormalParameterList(leftParenthesis, parameters,
+        leftSquareBracket, rightSquareBracket, rightParenthesis);
+  }
+
+  /**
+   * Parse a list of formal parameters. Return the formal parameters that were
+   * parsed.
+   *
+   * This method assumes that the current token matches `TokenType.OPEN_PAREN`.
+   */
+  FormalParameterList _parseFormalParameterListUnchecked() {
+    return _parseFormalParameterListAfterParen(getAndAdvance());
   }
 
   /**
@@ -5952,19 +6249,20 @@ class Parser {
         if (_matchesIdentifier() &&
             (_tokenMatchesKeyword(_peek(), Keyword.IN) ||
                 _tokenMatches(_peek(), TokenType.COLON))) {
-          List<VariableDeclaration> variables = new List<VariableDeclaration>();
-          SimpleIdentifier variableName = parseSimpleIdentifier();
-          variables.add(new VariableDeclaration(variableName, null, null));
+          SimpleIdentifier variableName = _parseSimpleIdentifierUnchecked();
           variableList = new VariableDeclarationList(commentAndMetadata.comment,
-              commentAndMetadata.metadata, null, null, variables);
+              commentAndMetadata.metadata, null, null, <VariableDeclaration>[
+            new VariableDeclaration(variableName, null, null)
+          ]);
         } else if (_isInitializedVariableDeclaration()) {
           variableList =
               _parseVariableDeclarationListAfterMetadata(commentAndMetadata);
         } else {
           initialization = parseExpression2();
         }
-        if (_matchesKeyword(Keyword.IN) || _matches(TokenType.COLON)) {
-          if (_matches(TokenType.COLON)) {
+        TokenType type = _currentToken.type;
+        if (_matchesKeyword(Keyword.IN) || type == TokenType.COLON) {
+          if (type == TokenType.COLON) {
             _reportErrorForCurrentToken(ParserErrorCode.COLON_IN_PLACE_OF_IN);
           }
           DeclaredIdentifier loopVariable = null;
@@ -5988,10 +6286,15 @@ class Parser {
             Token keyword = variableList.keyword;
             TypeName type = variableList.type;
             if (keyword != null || type != null) {
-              loopVariable = new DeclaredIdentifier(commentAndMetadata.comment,
-                  commentAndMetadata.metadata, keyword, type, variable.name);
+              loopVariable = new DeclaredIdentifier(
+                  commentAndMetadata.comment,
+                  commentAndMetadata.metadata,
+                  keyword,
+                  type,
+                  new SimpleIdentifier(variable.name.token,
+                      isDeclaration: true));
             } else {
-              if (!commentAndMetadata.metadata.isEmpty) {
+              if (commentAndMetadata.hasMetadata) {
                 // TODO(jwren) metadata isn't allowed before the identifier in
                 // "identifier in expression", add warning if commentAndMetadata
                 // has content
@@ -6083,45 +6386,47 @@ class Parser {
     _inLoop = false;
     _inSwitch = false;
     try {
-      if (_matches(TokenType.SEMICOLON)) {
+      TokenType type = _currentToken.type;
+      if (type == TokenType.SEMICOLON) {
         if (!mayBeEmpty) {
           _reportErrorForCurrentToken(emptyErrorCode);
         }
         return new EmptyFunctionBody(getAndAdvance());
-      } else if (_matchesString(_NATIVE)) {
-        Token nativeToken = getAndAdvance();
-        StringLiteral stringLiteral = null;
-        if (_matches(TokenType.STRING)) {
-          stringLiteral = parseStringLiteral();
-        }
-        return new NativeFunctionBody(
-            nativeToken, stringLiteral, _expect(TokenType.SEMICOLON));
       }
       Token keyword = null;
       Token star = null;
-      if (_matchesString(ASYNC)) {
-        keyword = getAndAdvance();
-        if (!_parseAsync) {
-          _reportErrorForToken(ParserErrorCode.ASYNC_NOT_SUPPORTED, keyword);
-        }
-        if (_matches(TokenType.STAR)) {
-          star = getAndAdvance();
-          _inGenerator = true;
-        }
-        _inAsync = true;
-      } else if (_matchesString(SYNC)) {
-        keyword = getAndAdvance();
-        if (!_parseAsync) {
-          _reportErrorForToken(ParserErrorCode.ASYNC_NOT_SUPPORTED, keyword);
-        }
-        if (_matches(TokenType.STAR)) {
-          star = getAndAdvance();
-          _inGenerator = true;
+      bool foundAsync = false;
+      bool foundSync = false;
+      if (type == TokenType.IDENTIFIER) {
+        String lexeme = _currentToken.lexeme;
+        if (lexeme == ASYNC) {
+          foundAsync = true;
+          keyword = getAndAdvance();
+          if (!_parseAsync) {
+            _reportErrorForToken(ParserErrorCode.ASYNC_NOT_SUPPORTED, keyword);
+          }
+          if (_matches(TokenType.STAR)) {
+            star = getAndAdvance();
+            _inGenerator = true;
+          }
+          type = _currentToken.type;
+          _inAsync = true;
+        } else if (lexeme == SYNC) {
+          foundSync = true;
+          keyword = getAndAdvance();
+          if (!_parseAsync) {
+            _reportErrorForToken(ParserErrorCode.ASYNC_NOT_SUPPORTED, keyword);
+          }
+          if (_matches(TokenType.STAR)) {
+            star = getAndAdvance();
+            _inGenerator = true;
+          }
+          type = _currentToken.type;
         }
       }
-      if (_matches(TokenType.FUNCTION)) {
+      if (type == TokenType.FUNCTION) {
         if (keyword != null) {
-          if (!_tokenMatchesString(keyword, ASYNC)) {
+          if (!foundAsync) {
             _reportErrorForToken(ParserErrorCode.INVALID_SYNC, keyword);
             keyword = null;
           } else if (star != null) {
@@ -6146,9 +6451,9 @@ class Parser {
         }
         return new ExpressionFunctionBody(
             keyword, functionDefinition, expression, semicolon);
-      } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
+      } else if (type == TokenType.OPEN_CURLY_BRACKET) {
         if (keyword != null) {
-          if (_tokenMatchesString(keyword, SYNC) && star == null) {
+          if (foundSync && star == null) {
             _reportErrorForToken(
                 ParserErrorCode.MISSING_STAR_AFTER_SYNC, keyword);
           }
@@ -6159,6 +6464,14 @@ class Parser {
               _createSyntheticToken(TokenType.SEMICOLON));
         }
         return new BlockFunctionBody(keyword, star, parseBlock());
+      } else if (_matchesString(_NATIVE)) {
+        Token nativeToken = getAndAdvance();
+        StringLiteral stringLiteral = null;
+        if (_matches(TokenType.STRING)) {
+          stringLiteral = _parseStringLiteralUnchecked();
+        }
+        return new NativeFunctionBody(
+            nativeToken, stringLiteral, _expect(TokenType.SEMICOLON));
       } else {
         // Invalid function body
         _reportErrorForCurrentToken(emptyErrorCode);
@@ -6190,22 +6503,28 @@ class Parser {
       CommentAndMetadata commentAndMetadata,
       Token externalKeyword,
       TypeName returnType) {
-    Token keyword = null;
+    Token keywordToken = null;
     bool isGetter = false;
-    if (_matchesKeyword(Keyword.GET) &&
-        !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
-      keyword = getAndAdvance();
+    Keyword keyword = _currentToken.keyword;
+    SimpleIdentifier name = null;
+    if (keyword == Keyword.GET) {
+      keywordToken = getAndAdvance();
       isGetter = true;
-    } else if (_matchesKeyword(Keyword.SET) &&
-        !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
-      keyword = getAndAdvance();
+    } else if (keyword == Keyword.SET) {
+      keywordToken = getAndAdvance();
     }
-    SimpleIdentifier name = parseSimpleIdentifier();
+    if (keywordToken != null && _matches(TokenType.OPEN_PAREN)) {
+      name = new SimpleIdentifier(keywordToken, isDeclaration: true);
+      keywordToken = null;
+      isGetter = false;
+    } else {
+      name = parseSimpleIdentifier(isDeclaration: true);
+    }
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     FormalParameterList parameters = null;
     if (!isGetter) {
       if (_matches(TokenType.OPEN_PAREN)) {
-        parameters = parseFormalParameterList();
+        parameters = _parseFormalParameterListUnchecked();
         _validateFormalParameterList(parameters);
       } else {
         _reportErrorForCurrentToken(
@@ -6219,7 +6538,7 @@ class Parser {
       }
     } else if (_matches(TokenType.OPEN_PAREN)) {
       _reportErrorForCurrentToken(ParserErrorCode.GETTER_WITH_PARAMETERS);
-      parseFormalParameterList();
+      _parseFormalParameterListUnchecked();
     }
     FunctionBody body;
     if (externalKeyword == null) {
@@ -6238,7 +6557,7 @@ class Parser {
         commentAndMetadata.metadata,
         externalKeyword,
         returnType,
-        keyword,
+        keywordToken,
         name,
         new FunctionExpression(typeParameters, parameters, body));
   }
@@ -6272,7 +6591,7 @@ class Parser {
         _parseFunctionDeclaration(commentAndMetadata, null, returnType);
     Token propertyKeyword = declaration.propertyKeyword;
     if (propertyKeyword != null) {
-      if ((propertyKeyword as KeywordToken).keyword == Keyword.GET) {
+      if (propertyKeyword.keyword == Keyword.GET) {
         _reportErrorForToken(
             ParserErrorCode.GETTER_IN_FUNCTION, propertyKeyword);
       } else {
@@ -6300,12 +6619,13 @@ class Parser {
     if (hasReturnTypeInTypeAlias) {
       returnType = parseReturnType();
     }
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = null;
     if (_matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
-    if (_matches(TokenType.SEMICOLON) || _matches(TokenType.EOF)) {
+    TokenType type = _currentToken.type;
+    if (type == TokenType.SEMICOLON || type == TokenType.EOF) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
       FormalParameterList parameters = new FormalParameterList(
           _createSyntheticToken(TokenType.OPEN_PAREN),
@@ -6323,12 +6643,24 @@ class Parser {
           typeParameters,
           parameters,
           semicolon);
-    } else if (!_matches(TokenType.OPEN_PAREN)) {
+    } else if (type == TokenType.OPEN_PAREN) {
+      FormalParameterList parameters = _parseFormalParameterListUnchecked();
+      _validateFormalParameterList(parameters);
+      Token semicolon = _expect(TokenType.SEMICOLON);
+      return new FunctionTypeAlias(
+          commentAndMetadata.comment,
+          commentAndMetadata.metadata,
+          keyword,
+          returnType,
+          name,
+          typeParameters,
+          parameters,
+          semicolon);
+    } else {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
-      // TODO(brianwilkerson) Recover from this error. At the very least we
-      // should skip to the start of the next valid compilation unit member,
-      // allowing for the possibility of finding the typedef parameters before
-      // that point.
+      // Recovery: At the very least we should skip to the start of the next
+      // valid compilation unit member, allowing for the possibility of finding
+      // the typedef parameters before that point.
       return new FunctionTypeAlias(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
@@ -6340,18 +6672,6 @@ class Parser {
               null, null, null, _createSyntheticToken(TokenType.CLOSE_PAREN)),
           _createSyntheticToken(TokenType.SEMICOLON));
     }
-    FormalParameterList parameters = parseFormalParameterList();
-    _validateFormalParameterList(parameters);
-    Token semicolon = _expect(TokenType.SEMICOLON);
-    return new FunctionTypeAlias(
-        commentAndMetadata.comment,
-        commentAndMetadata.metadata,
-        keyword,
-        returnType,
-        name,
-        typeParameters,
-        parameters,
-        semicolon);
   }
 
   /**
@@ -6393,6 +6713,8 @@ class Parser {
    * been parsed, or `null` if there was no return type. Return the getter that
    * was parsed.
    *
+   * This method assumes that the current token matches `Keyword.GET`.
+   *
    *     getter ::=
    *         getterSignature functionBody?
    *
@@ -6401,8 +6723,8 @@ class Parser {
    */
   MethodDeclaration _parseGetter(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType) {
-    Token propertyKeyword = _expectKeyword(Keyword.GET);
-    SimpleIdentifier name = parseSimpleIdentifier();
+    Token propertyKeyword = getAndAdvance();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     if (_matches(TokenType.OPEN_PAREN) &&
         _tokenMatches(_peek(), TokenType.CLOSE_PAREN)) {
       _reportErrorForCurrentToken(ParserErrorCode.GETTER_WITH_PARAMETERS);
@@ -6438,10 +6760,10 @@ class Parser {
    *         identifier (',' identifier)*
    */
   List<SimpleIdentifier> _parseIdentifierList() {
-    List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
-    identifiers.add(parseSimpleIdentifier());
-    while (_matches(TokenType.COMMA)) {
-      _advance();
+    List<SimpleIdentifier> identifiers = <SimpleIdentifier>[
+      parseSimpleIdentifier()
+    ];
+    while (_optional(TokenType.COMMA)) {
       identifiers.add(parseSimpleIdentifier());
     }
     return identifiers;
@@ -6450,11 +6772,13 @@ class Parser {
   /**
    * Parse an if statement. Return the if statement that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.IF`.
+   *
    *     ifStatement ::=
    *         'if' '(' expression ')' statement ('else' statement)?
    */
   Statement _parseIfStatement() {
-    Token ifKeyword = _expectKeyword(Keyword.IF);
+    Token ifKeyword = getAndAdvance();
     Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
     Expression condition = parseExpression2();
     Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
@@ -6473,11 +6797,13 @@ class Parser {
    * Parse an import directive. The [commentAndMetadata] is the metadata to be
    * associated with the directive. Return the import directive that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.IMPORT`.
+   *
    *     importDirective ::=
    *         metadata 'import' stringLiteral configuration* (deferred)? ('as' identifier)? combinator*';'
    */
   ImportDirective _parseImportDirective(CommentAndMetadata commentAndMetadata) {
-    Token importKeyword = _expectKeyword(Keyword.IMPORT);
+    Token importKeyword = getAndAdvance();
     StringLiteral libraryUri = _parseUri();
     List<Configuration> configurations = _parseConfigurations();
     Token deferredToken = null;
@@ -6488,7 +6814,7 @@ class Parser {
     }
     if (_matchesKeyword(Keyword.AS)) {
       asToken = getAndAdvance();
-      prefix = parseSimpleIdentifier();
+      prefix = parseSimpleIdentifier(isDeclaration: true);
     } else if (deferredToken != null) {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
@@ -6504,7 +6830,7 @@ class Parser {
         _advance();
         if (_matchesKeyword(Keyword.AS)) {
           asToken = getAndAdvance();
-          prefix = parseSimpleIdentifier();
+          prefix = parseSimpleIdentifier(isDeclaration: true);
         }
       }
     }
@@ -6567,7 +6893,7 @@ class Parser {
    */
   InstanceCreationExpression _parseInstanceCreationExpression(Token keyword) {
     ConstructorName constructorName = parseConstructorName();
-    ArgumentList argumentList = parseArgumentList();
+    ArgumentList argumentList = _parseArgumentListChecked();
     return new InstanceCreationExpression(
         keyword, constructorName, argumentList);
   }
@@ -6577,12 +6903,14 @@ class Parser {
    * associated with the directive. Return the library directive that was
    * parsed.
    *
+   * This method assumes that the current token matches `Keyword.LIBRARY`.
+   *
    *     libraryDirective ::=
    *         metadata 'library' identifier ';'
    */
   LibraryDirective _parseLibraryDirective(
       CommentAndMetadata commentAndMetadata) {
-    Token keyword = _expectKeyword(Keyword.LIBRARY);
+    Token keyword = getAndAdvance();
     LibraryIdentifier libraryName = _parseLibraryName(
         ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE, keyword);
     Token semicolon = _expect(TokenType.SEMICOLON);
@@ -6604,17 +6932,15 @@ class Parser {
     if (_matchesIdentifier()) {
       return parseLibraryIdentifier();
     } else if (_matches(TokenType.STRING)) {
-      // TODO(brianwilkerson) Recovery: This should be extended to handle
-      // arbitrary tokens until we can find a token that can start a compilation
-      // unit member.
+      // Recovery: This should be extended to handle arbitrary tokens until we
+      // can find a token that can start a compilation unit member.
       StringLiteral string = parseStringLiteral();
       _reportErrorForNode(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, string);
     } else {
       _reportErrorForToken(missingNameError, missingNameToken);
     }
-    List<SimpleIdentifier> components = new List<SimpleIdentifier>();
-    components.add(_createSyntheticIdentifier());
-    return new LibraryIdentifier(components);
+    return new LibraryIdentifier(
+        <SimpleIdentifier>[_createSyntheticIdentifier()]);
   }
 
   /**
@@ -6623,13 +6949,16 @@ class Parser {
    * is the type arguments appearing before the literal, or `null` if there are
    * no type arguments. Return the list literal that was parsed.
    *
+   * This method assumes that the current token matches either
+   * `TokenType.OPEN_SQUARE_BRACKET` or `TokenType.INDEX`.
+   *
    *     listLiteral ::=
    *         'const'? typeArguments? '[' (expressionList ','?)? ']'
    */
   ListLiteral _parseListLiteral(
       Token modifier, TypeArgumentList typeArguments) {
-    // may be empty list literal
     if (_matches(TokenType.INDEX)) {
+      // Split the token into two separate tokens.
       BeginToken leftBracket = _createToken(
           _currentToken, TokenType.OPEN_SQUARE_BRACKET,
           isBegin: true);
@@ -6643,8 +6972,7 @@ class Parser {
       return new ListLiteral(
           modifier, typeArguments, leftBracket, null, rightBracket);
     }
-    // open
-    Token leftBracket = _expect(TokenType.OPEN_SQUARE_BRACKET);
+    Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
       return new ListLiteral(
           modifier, typeArguments, leftBracket, null, getAndAdvance());
@@ -6652,8 +6980,7 @@ class Parser {
     bool wasInInitializer = _inInitializer;
     _inInitializer = false;
     try {
-      List<Expression> elements = new List<Expression>();
-      elements.add(parseExpression2());
+      List<Expression> elements = <Expression>[parseExpression2()];
       while (_optional(TokenType.COMMA)) {
         if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
           return new ListLiteral(
@@ -6704,10 +7031,9 @@ class Parser {
    */
   Expression _parseLogicalAndExpression() {
     Expression expression = _parseEqualityExpression();
-    while (_matches(TokenType.AMPERSAND_AMPERSAND)) {
-      Token operator = getAndAdvance();
+    while (_currentToken.type == TokenType.AMPERSAND_AMPERSAND) {
       expression = new BinaryExpression(
-          expression, operator, _parseEqualityExpression());
+          expression, getAndAdvance(), _parseEqualityExpression());
     }
     return expression;
   }
@@ -6718,20 +7044,22 @@ class Parser {
    * is the type arguments that were declared, or `null` if there are no type
    * arguments. Return the map literal that was parsed.
    *
+   * This method assumes that the current token matches
+   * `TokenType.OPEN_CURLY_BRACKET`.
+   *
    *     mapLiteral ::=
    *         'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
    */
   MapLiteral _parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
-    Token leftBracket = _expect(TokenType.OPEN_CURLY_BRACKET);
-    List<MapLiteralEntry> entries = new List<MapLiteralEntry>();
+    Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
       return new MapLiteral(
-          modifier, typeArguments, leftBracket, entries, getAndAdvance());
+          modifier, typeArguments, leftBracket, null, getAndAdvance());
     }
     bool wasInInitializer = _inInitializer;
     _inInitializer = false;
     try {
-      entries.add(parseMapLiteralEntry());
+      List<MapLiteralEntry> entries = <MapLiteralEntry>[parseMapLiteralEntry()];
       while (_optional(TokenType.COMMA)) {
         if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
           return new MapLiteral(
@@ -6812,12 +7140,14 @@ class Parser {
       Token externalKeyword,
       Token staticKeyword,
       TypeName returnType) {
-    SimpleIdentifier methodName = parseSimpleIdentifier();
+    SimpleIdentifier methodName = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     FormalParameterList parameters;
-    if (!_matches(TokenType.OPEN_PAREN) &&
-        (_matches(TokenType.OPEN_CURLY_BRACKET) ||
-            _matches(TokenType.FUNCTION))) {
+    TokenType type = _currentToken.type;
+    // TODO(brianwilkerson) Figure out why we care what the current token is if
+    // it isn't a paren.
+    if (type != TokenType.OPEN_PAREN &&
+        (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.FUNCTION)) {
       _reportErrorForToken(
           ParserErrorCode.MISSING_METHOD_PARAMETERS, _currentToken.previous);
       parameters = new FormalParameterList(
@@ -6855,12 +7185,14 @@ class Parser {
     Modifiers modifiers = new Modifiers();
     bool progress = true;
     while (progress) {
-      if (_tokenMatches(_peek(), TokenType.PERIOD) ||
-          _tokenMatches(_peek(), TokenType.LT) ||
-          _tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+      TokenType nextType = _peek().type;
+      if (nextType == TokenType.PERIOD ||
+          nextType == TokenType.LT ||
+          nextType == TokenType.OPEN_PAREN) {
         return modifiers;
       }
-      if (_matchesKeyword(Keyword.ABSTRACT)) {
+      Keyword keyword = _currentToken.keyword;
+      if (keyword == Keyword.ABSTRACT) {
         if (modifiers.abstractKeyword != null) {
           _reportErrorForCurrentToken(
               ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
@@ -6868,7 +7200,7 @@ class Parser {
         } else {
           modifiers.abstractKeyword = getAndAdvance();
         }
-      } else if (_matchesKeyword(Keyword.CONST)) {
+      } else if (keyword == Keyword.CONST) {
         if (modifiers.constKeyword != null) {
           _reportErrorForCurrentToken(
               ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
@@ -6876,9 +7208,7 @@ class Parser {
         } else {
           modifiers.constKeyword = getAndAdvance();
         }
-      } else if (_matchesKeyword(Keyword.EXTERNAL) &&
-          !_tokenMatches(_peek(), TokenType.PERIOD) &&
-          !_tokenMatches(_peek(), TokenType.LT)) {
+      } else if (keyword == Keyword.EXTERNAL) {
         if (modifiers.externalKeyword != null) {
           _reportErrorForCurrentToken(
               ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
@@ -6886,9 +7216,7 @@ class Parser {
         } else {
           modifiers.externalKeyword = getAndAdvance();
         }
-      } else if (_matchesKeyword(Keyword.FACTORY) &&
-          !_tokenMatches(_peek(), TokenType.PERIOD) &&
-          !_tokenMatches(_peek(), TokenType.LT)) {
+      } else if (keyword == Keyword.FACTORY) {
         if (modifiers.factoryKeyword != null) {
           _reportErrorForCurrentToken(
               ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
@@ -6896,7 +7224,7 @@ class Parser {
         } else {
           modifiers.factoryKeyword = getAndAdvance();
         }
-      } else if (_matchesKeyword(Keyword.FINAL)) {
+      } else if (keyword == Keyword.FINAL) {
         if (modifiers.finalKeyword != null) {
           _reportErrorForCurrentToken(
               ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
@@ -6904,9 +7232,7 @@ class Parser {
         } else {
           modifiers.finalKeyword = getAndAdvance();
         }
-      } else if (_matchesKeyword(Keyword.STATIC) &&
-          !_tokenMatches(_peek(), TokenType.PERIOD) &&
-          !_tokenMatches(_peek(), TokenType.LT)) {
+      } else if (keyword == Keyword.STATIC) {
         if (modifiers.staticKeyword != null) {
           _reportErrorForCurrentToken(
               ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
@@ -6914,7 +7240,7 @@ class Parser {
         } else {
           modifiers.staticKeyword = getAndAdvance();
         }
-      } else if (_matchesKeyword(Keyword.VAR)) {
+      } else if (keyword == Keyword.VAR) {
         if (modifiers.varKeyword != null) {
           _reportErrorForCurrentToken(
               ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
@@ -6939,22 +7265,23 @@ class Parser {
    */
   Expression _parseMultiplicativeExpression() {
     Expression expression;
-    if (_matchesKeyword(Keyword.SUPER) &&
+    if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type.isMultiplicativeOperator) {
       expression = new SuperExpression(getAndAdvance());
     } else {
       expression = _parseUnaryExpression();
     }
     while (_currentToken.type.isMultiplicativeOperator) {
-      Token operator = getAndAdvance();
-      expression =
-          new BinaryExpression(expression, operator, _parseUnaryExpression());
+      expression = new BinaryExpression(
+          expression, getAndAdvance(), _parseUnaryExpression());
     }
     return expression;
   }
 
   /**
    * Parse a class native clause. Return the native clause that was parsed.
+   *
+   * This method assumes that the current token matches `_NATIVE`.
    *
    *     classNativeClause ::=
    *         'native' name
@@ -6968,11 +7295,13 @@ class Parser {
   /**
    * Parse a new expression. Return the new expression that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.NEW`.
+   *
    *     newExpression ::=
    *         instanceCreationExpression
    */
   InstanceCreationExpression _parseNewExpression() =>
-      _parseInstanceCreationExpression(_expectKeyword(Keyword.NEW));
+      _parseInstanceCreationExpression(getAndAdvance());
 
   /**
    * Parse a non-labeled statement. Return the non-labeled statement that was
@@ -6997,7 +7326,8 @@ class Parser {
   Statement _parseNonLabeledStatement() {
     // TODO(brianwilkerson) Pass the comment and metadata on where appropriate.
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
-    if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
+    TokenType type = _currentToken.type;
+    if (type == TokenType.OPEN_CURLY_BRACKET) {
       if (_tokenMatches(_peek(), TokenType.STRING)) {
         Token afterString = _skipStringLiteral(_currentToken.next);
         if (afterString != null && afterString.type == TokenType.COLON) {
@@ -7006,9 +7336,9 @@ class Parser {
         }
       }
       return parseBlock();
-    } else if (_matches(TokenType.KEYWORD) &&
-        !(_currentToken as KeywordToken).keyword.isPseudoKeyword) {
-      Keyword keyword = (_currentToken as KeywordToken).keyword;
+    } else if (type == TokenType.KEYWORD &&
+        !_currentToken.keyword.isPseudoKeyword) {
+      Keyword keyword = _currentToken.keyword;
       // TODO(jwren) compute some metrics to figure out a better order for this
       // if-then sequence to optimize performance
       if (keyword == Keyword.ASSERT) {
@@ -7041,9 +7371,11 @@ class Parser {
         return _parseVariableDeclarationStatementAfterMetadata(
             commentAndMetadata);
       } else if (keyword == Keyword.VOID) {
-        TypeName returnType = parseReturnType();
+        TypeName returnType =
+            new TypeName(new SimpleIdentifier(getAndAdvance()), null);
+        Token next = _currentToken.next;
         if (_matchesIdentifier() &&
-            _peek().matchesAny([
+            next.matchesAny(const <TokenType>[
               TokenType.OPEN_PAREN,
               TokenType.OPEN_CURLY_BRACKET,
               TokenType.FUNCTION,
@@ -7056,8 +7388,11 @@ class Parser {
           // We have found an error of some kind. Try to recover.
           //
           if (_matchesIdentifier()) {
-            if (_peek().matchesAny(
-                [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+            if (next.matchesAny(const <TokenType>[
+              TokenType.EQ,
+              TokenType.COMMA,
+              TokenType.SEMICOLON
+            ])) {
               //
               // We appear to have a variable declaration with a type of "void".
               //
@@ -7078,7 +7413,8 @@ class Parser {
           return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
         }
       } else if (keyword == Keyword.CONST) {
-        if (_peek().matchesAny([
+        Token next = _currentToken.next;
+        if (next.matchesAny(const <TokenType>[
           TokenType.LT,
           TokenType.OPEN_CURLY_BRACKET,
           TokenType.OPEN_SQUARE_BRACKET,
@@ -7086,8 +7422,8 @@ class Parser {
         ])) {
           return new ExpressionStatement(
               parseExpression2(), _expect(TokenType.SEMICOLON));
-        } else if (_tokenMatches(_peek(), TokenType.IDENTIFIER)) {
-          Token afterType = _skipTypeName(_peek());
+        } else if (_tokenMatches(next, TokenType.IDENTIFIER)) {
+          Token afterType = _skipTypeName(next);
           if (afterType != null) {
             if (_tokenMatches(afterType, TokenType.OPEN_PAREN) ||
                 (_tokenMatches(afterType, TokenType.PERIOD) &&
@@ -7132,14 +7468,14 @@ class Parser {
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, awaitToken);
       }
       return statement;
-    } else if (_matches(TokenType.SEMICOLON)) {
+    } else if (type == TokenType.SEMICOLON) {
       return _parseEmptyStatement();
     } else if (_isInitializedVariableDeclaration()) {
       return _parseVariableDeclarationStatementAfterMetadata(
           commentAndMetadata);
     } else if (_isFunctionDeclaration()) {
       return _parseFunctionDeclarationStatement();
-    } else if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
+    } else if (type == TokenType.CLOSE_CURLY_BRACKET) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
       return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
     } else {
@@ -7171,11 +7507,35 @@ class Parser {
           ParserErrorCode.MISSING_KEYWORD_OPERATOR, _currentToken);
       operatorKeyword = _createSyntheticKeyword(Keyword.OPERATOR);
     }
+    return _parseOperatorAfterKeyword(
+        commentAndMetadata, externalKeyword, returnType, operatorKeyword);
+  }
+
+  /**
+   * Parse an operator declaration starting after the 'operator' keyword. The
+   * [commentAndMetadata] is the documentation comment and metadata to be
+   * associated with the declaration. The [externalKeyword] is the 'external'
+   * token. The [returnType] is the return type that has already been parsed, or
+   * `null` if there was no return type. The [operatorKeyword] is the 'operator'
+   * keyword. Return the operator declaration that was parsed.
+   *
+   *     operatorDeclaration ::=
+   *         operatorSignature (';' | functionBody)
+   *
+   *     operatorSignature ::=
+   *         'external'? returnType? 'operator' operator formalParameterList
+   */
+  MethodDeclaration _parseOperatorAfterKeyword(
+      CommentAndMetadata commentAndMetadata,
+      Token externalKeyword,
+      TypeName returnType,
+      Token operatorKeyword) {
     if (!_currentToken.isUserDefinableOperator) {
       _reportErrorForCurrentToken(
           ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
-    SimpleIdentifier name = new SimpleIdentifier(getAndAdvance());
+    SimpleIdentifier name =
+        new SimpleIdentifier(getAndAdvance(), isDeclaration: true);
     if (_matches(TokenType.EQ)) {
       Token previous = _currentToken.previous;
       if ((_tokenMatches(previous, TokenType.EQ_EQ) ||
@@ -7215,21 +7575,27 @@ class Parser {
     TypeName typeComment = _parseOptionalTypeNameComment();
     if (typeComment != null) {
       return typeComment;
-    } else if (_matchesKeyword(Keyword.VOID)) {
-      return parseReturnType();
-    } else if (_matchesIdentifier() &&
-        !_matchesKeyword(Keyword.GET) &&
-        !_matchesKeyword(Keyword.SET) &&
-        !_matchesKeyword(Keyword.OPERATOR) &&
-        (_tokenMatchesIdentifier(_peek()) ||
-            _tokenMatches(_peek(), TokenType.LT))) {
-      return parseReturnType();
-    } else if (_matchesIdentifier() &&
-        _tokenMatches(_peek(), TokenType.PERIOD) &&
-        _tokenMatchesIdentifier(_peekAt(2)) &&
-        (_tokenMatchesIdentifier(_peekAt(3)) ||
-            _tokenMatches(_peekAt(3), TokenType.LT))) {
-      return parseReturnType();
+    }
+    Keyword keyword = _currentToken.keyword;
+    if (keyword == Keyword.VOID) {
+      return new TypeName(new SimpleIdentifier(getAndAdvance()), null);
+    } else if (_matchesIdentifier()) {
+      Token next = _peek();
+      if (keyword != Keyword.GET &&
+          keyword != Keyword.SET &&
+          keyword != Keyword.OPERATOR &&
+          (_tokenMatchesIdentifier(next) ||
+              _tokenMatches(next, TokenType.LT))) {
+        return parseReturnType();
+      }
+      Token next2 = next.next;
+      Token next3 = next2.next;
+      if (_tokenMatches(next, TokenType.PERIOD) &&
+          _tokenMatchesIdentifier(next2) &&
+          (_tokenMatchesIdentifier(next3) ||
+              _tokenMatches(next3, TokenType.LT))) {
+        return parseReturnType();
+      }
     }
     return null;
   }
@@ -7253,9 +7619,55 @@ class Parser {
   }
 
   /**
+   * Parse a part directive. The [commentAndMetadata] is the metadata to be
+   * associated with the directive. Return the part or part-of directive that
+   * was parsed.
+   *
+   * This method assumes that the current token matches `Keyword.PART`.
+   *
+   *     partDirective ::=
+   *         metadata 'part' stringLiteral ';'
+   */
+  Directive _parsePartDirective(CommentAndMetadata commentAndMetadata) {
+    Token partKeyword = getAndAdvance();
+    StringLiteral partUri = _parseUri();
+    Token semicolon = _expect(TokenType.SEMICOLON);
+    return new PartDirective(commentAndMetadata.comment,
+        commentAndMetadata.metadata, partKeyword, partUri, semicolon);
+  }
+
+  /**
+   * Parse a part-of directive. The [commentAndMetadata] is the metadata to be
+   * associated with the directive. Return the part or part-of directive that
+   * was parsed.
+   *
+   * This method assumes that the current token matches [Keyword.PART] and that
+   * the following token matches the identifier 'of'.
+   *
+   *     partOfDirective ::=
+   *         metadata 'part' 'of' identifier ';'
+   */
+  Directive _parsePartOfDirective(CommentAndMetadata commentAndMetadata) {
+    Token partKeyword = getAndAdvance();
+    Token ofKeyword = getAndAdvance();
+    LibraryIdentifier libraryName = _parseLibraryName(
+        ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE, ofKeyword);
+    Token semicolon = _expect(TokenType.SEMICOLON);
+    return new PartOfDirective(
+        commentAndMetadata.comment,
+        commentAndMetadata.metadata,
+        partKeyword,
+        ofKeyword,
+        libraryName,
+        semicolon);
+  }
+
+  /**
    * Parse a part or part-of directive. The [commentAndMetadata] is the metadata
    * to be associated with the directive. Return the part or part-of directive
    * that was parsed.
+   *
+   * This method assumes that the current token matches `Keyword.PART`.
    *
    *     partDirective ::=
    *         metadata 'part' stringLiteral ';'
@@ -7263,25 +7675,11 @@ class Parser {
    *     partOfDirective ::=
    *         metadata 'part' 'of' identifier ';'
    */
-  Directive _parsePartDirective(CommentAndMetadata commentAndMetadata) {
-    Token partKeyword = _expectKeyword(Keyword.PART);
-    if (_matchesString(_OF)) {
-      Token ofKeyword = getAndAdvance();
-      LibraryIdentifier libraryName = _parseLibraryName(
-          ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE, ofKeyword);
-      Token semicolon = _expect(TokenType.SEMICOLON);
-      return new PartOfDirective(
-          commentAndMetadata.comment,
-          commentAndMetadata.metadata,
-          partKeyword,
-          ofKeyword,
-          libraryName,
-          semicolon);
+  Directive _parsePartOrPartOfDirective(CommentAndMetadata commentAndMetadata) {
+    if (_tokenMatchesString(_peek(), _OF)) {
+      return _parsePartOfDirective(commentAndMetadata);
     }
-    StringLiteral partUri = _parseUri();
-    Token semicolon = _expect(TokenType.SEMICOLON);
-    return new PartDirective(commentAndMetadata.comment,
-        commentAndMetadata.metadata, partKeyword, partUri, semicolon);
+    return _parsePartDirective(commentAndMetadata);
   }
 
   /**
@@ -7297,19 +7695,24 @@ class Parser {
    */
   Expression _parsePostfixExpression() {
     Expression operand = _parseAssignableExpression(true);
-    if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
-        _matches(TokenType.PERIOD) ||
-        _matches(TokenType.QUESTION_PERIOD) ||
-        _matches(TokenType.OPEN_PAREN) ||
-        (parseGenericMethods && _matches(TokenType.LT))) {
+    TokenType type = _currentToken.type;
+    if (type == TokenType.OPEN_SQUARE_BRACKET ||
+        type == TokenType.PERIOD ||
+        type == TokenType.QUESTION_PERIOD ||
+        type == TokenType.OPEN_PAREN ||
+        (parseGenericMethods && type == TokenType.LT)) {
       do {
         if (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           ArgumentList argumentList = parseArgumentList();
-          if (operand is PropertyAccess) {
-            PropertyAccess access = operand as PropertyAccess;
-            operand = new MethodInvocation(access.target, access.operator,
-                access.propertyName, typeArguments, argumentList);
+          Expression currentOperand = operand;
+          if (currentOperand is PropertyAccess) {
+            operand = new MethodInvocation(
+                currentOperand.target,
+                currentOperand.operator,
+                currentOperand.propertyName,
+                typeArguments,
+                argumentList);
           } else {
             operand = new FunctionExpressionInvocation(
                 operand, typeArguments, argumentList);
@@ -7317,10 +7720,11 @@ class Parser {
         } else {
           operand = _parseAssignableSelector(operand, true);
         }
-      } while (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
-          _matches(TokenType.PERIOD) ||
-          _matches(TokenType.QUESTION_PERIOD) ||
-          _matches(TokenType.OPEN_PAREN));
+        type = _currentToken.type;
+      } while (type == TokenType.OPEN_SQUARE_BRACKET ||
+          type == TokenType.PERIOD ||
+          type == TokenType.QUESTION_PERIOD ||
+          type == TokenType.OPEN_PAREN);
       return operand;
     }
     if (!_currentToken.type.isIncrementOperator) {
@@ -7329,6 +7733,37 @@ class Parser {
     _ensureAssignable(operand);
     Token operator = getAndAdvance();
     return new PostfixExpression(operand, operator);
+  }
+
+  /**
+   * Parse a prefixed identifier given that the given [qualifier] was already
+   * parsed. Return the prefixed identifier that was parsed.
+   *
+   *     prefixedIdentifier ::=
+   *         identifier ('.' identifier)?
+   */
+  Identifier _parsePrefixedIdentifierAfterIdentifier(
+      SimpleIdentifier qualifier) {
+    if (!_matches(TokenType.PERIOD) || _injectGenericCommentTypeList()) {
+      return qualifier;
+    }
+    Token period = getAndAdvance();
+    SimpleIdentifier qualified = parseSimpleIdentifier();
+    return new PrefixedIdentifier(qualifier, period, qualified);
+  }
+
+  /**
+   * Parse a prefixed identifier. Return the prefixed identifier that was
+   * parsed.
+   *
+   * This method assumes that the current token matches an identifier.
+   *
+   *     prefixedIdentifier ::=
+   *         identifier ('.' identifier)?
+   */
+  Identifier _parsePrefixedIdentifierUnchecked() {
+    return _parsePrefixedIdentifierAfterIdentifier(
+        _parseSimpleIdentifierUnchecked());
   }
 
   /**
@@ -7355,39 +7790,24 @@ class Parser {
    *       | listLiteral
    */
   Expression _parsePrimaryExpression() {
-    if (_matchesKeyword(Keyword.THIS)) {
-      return new ThisExpression(getAndAdvance());
-    } else if (_matchesKeyword(Keyword.SUPER)) {
-      // TODO(paulberry): verify with Gilad that "super" must be followed by
-      // unconditionalAssignableSelector in this case.
-      return _parseAssignableSelector(
-          new SuperExpression(getAndAdvance()), false,
-          allowConditional: false);
-    } else if (_matchesKeyword(Keyword.NULL)) {
-      return new NullLiteral(getAndAdvance());
-    } else if (_matchesKeyword(Keyword.FALSE)) {
-      return new BooleanLiteral(getAndAdvance(), false);
-    } else if (_matchesKeyword(Keyword.TRUE)) {
-      return new BooleanLiteral(getAndAdvance(), true);
-    } else if (_matches(TokenType.DOUBLE)) {
-      Token token = getAndAdvance();
-      double value = 0.0;
-      try {
-        value = double.parse(token.lexeme);
-      } on FormatException {
-        // The invalid format should have been reported by the scanner.
-      }
-      return new DoubleLiteral(token, value);
-    } else if (_matches(TokenType.HEXADECIMAL)) {
-      Token token = getAndAdvance();
-      int value = null;
-      try {
-        value = int.parse(token.lexeme.substring(2), radix: 16);
-      } on FormatException {
-        // The invalid format should have been reported by the scanner.
-      }
-      return new IntegerLiteral(token, value);
-    } else if (_matches(TokenType.INT)) {
+    if (_matchesIdentifier()) {
+      // TODO(brianwilkerson) The code below was an attempt to recover from an
+      // error case, but it needs to be applied as a recovery only after we
+      // know that parsing it as an identifier doesn't work. Leaving the code as
+      // a reminder of how to recover.
+//      if (isFunctionExpression(_peek())) {
+//        //
+//        // Function expressions were allowed to have names at one point, but this is now illegal.
+//        //
+//        reportError(ParserErrorCode.NAMED_FUNCTION_EXPRESSION, getAndAdvance());
+//        return parseFunctionExpression();
+//      }
+      return _parsePrefixedIdentifierUnchecked();
+    }
+    TokenType type = _currentToken.type;
+    if (type == TokenType.STRING) {
+      return parseStringLiteral();
+    } else if (type == TokenType.INT) {
       Token token = getAndAdvance();
       int value = null;
       try {
@@ -7396,26 +7816,46 @@ class Parser {
         // The invalid format should have been reported by the scanner.
       }
       return new IntegerLiteral(token, value);
-    } else if (_matches(TokenType.STRING)) {
-      return parseStringLiteral();
-    } else if (_matchesIdentifier()) {
-      // TODO(brianwilkerson) The code below was an attempt to recover from an
-      // error case, but it needs to be applied as a recovery only after we
-      // know that parsing it as an identifier doesn't work. Leaving the code as
-      // a reminder of how to recover.
-//            if (isFunctionExpression(peek())) {
-//              //
-//              // Function expressions were allowed to have names at one point, but this is now illegal.
-//              //
-//              reportError(ParserErrorCode.NAMED_FUNCTION_EXPRESSION, getAndAdvance());
-//              return parseFunctionExpression();
-//            }
-      return parsePrefixedIdentifier();
-    } else if (_matchesKeyword(Keyword.NEW)) {
+    }
+    Keyword keyword = _currentToken.keyword;
+    if (keyword == Keyword.NULL) {
+      return new NullLiteral(getAndAdvance());
+    } else if (keyword == Keyword.NEW) {
       return _parseNewExpression();
-    } else if (_matchesKeyword(Keyword.CONST)) {
+    } else if (keyword == Keyword.THIS) {
+      return new ThisExpression(getAndAdvance());
+    } else if (keyword == Keyword.SUPER) {
+      // TODO(paulberry): verify with Gilad that "super" must be followed by
+      // unconditionalAssignableSelector in this case.
+      return _parseAssignableSelector(
+          new SuperExpression(getAndAdvance()), false,
+          allowConditional: false);
+    } else if (keyword == Keyword.FALSE) {
+      return new BooleanLiteral(getAndAdvance(), false);
+    } else if (keyword == Keyword.TRUE) {
+      return new BooleanLiteral(getAndAdvance(), true);
+    }
+    if (type == TokenType.DOUBLE) {
+      Token token = getAndAdvance();
+      double value = 0.0;
+      try {
+        value = double.parse(token.lexeme);
+      } on FormatException {
+        // The invalid format should have been reported by the scanner.
+      }
+      return new DoubleLiteral(token, value);
+    } else if (type == TokenType.HEXADECIMAL) {
+      Token token = getAndAdvance();
+      int value = null;
+      try {
+        value = int.parse(token.lexeme.substring(2), radix: 16);
+      } on FormatException {
+        // The invalid format should have been reported by the scanner.
+      }
+      return new IntegerLiteral(token, value);
+    } else if (keyword == Keyword.CONST) {
       return _parseConstExpression();
-    } else if (_matches(TokenType.OPEN_PAREN)) {
+    } else if (type == TokenType.OPEN_PAREN) {
       if (_isFunctionExpression(_currentToken)) {
         return parseFunctionExpression();
       }
@@ -7430,20 +7870,20 @@ class Parser {
       } finally {
         _inInitializer = wasInInitializer;
       }
-    } else if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
+    } else if (type == TokenType.LT || _injectGenericCommentTypeList()) {
       return _parseListOrMapLiteral(null);
-    } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
+    } else if (type == TokenType.OPEN_CURLY_BRACKET) {
       return _parseMapLiteral(null, null);
-    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
-        _matches(TokenType.INDEX)) {
+    } else if (type == TokenType.OPEN_SQUARE_BRACKET ||
+        type == TokenType.INDEX) {
       return _parseListLiteral(null, null);
-    } else if (_matches(TokenType.QUESTION) &&
+    } else if (type == TokenType.QUESTION &&
         _tokenMatches(_peek(), TokenType.IDENTIFIER)) {
       _reportErrorForCurrentToken(
           ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
       _advance();
       return _parsePrimaryExpression();
-    } else if (_matchesKeyword(Keyword.VOID)) {
+    } else if (keyword == Keyword.VOID) {
       //
       // Recover from having a return type of "void" where a return type is not
       // expected.
@@ -7453,7 +7893,7 @@ class Parser {
           ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
       _advance();
       return _parsePrimaryExpression();
-    } else if (_matches(TokenType.HASH)) {
+    } else if (type == TokenType.HASH) {
       return _parseSymbolLiteral();
     } else {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
@@ -7462,21 +7902,31 @@ class Parser {
   }
 
   /**
-   * Parse a redirecting constructor invocation. Return the redirecting
+   * Parse a redirecting constructor invocation. The flag [hasPeriod] should be
+   * `true` if the `this` is followed by a period. Return the redirecting
    * constructor invocation that was parsed.
+   *
+   * This method assumes that the current token matches `Keyword.THIS`.
    *
    *     redirectingConstructorInvocation ::=
    *         'this' ('.' identifier)? arguments
    */
-  RedirectingConstructorInvocation _parseRedirectingConstructorInvocation() {
-    Token keyword = _expectKeyword(Keyword.THIS);
+  RedirectingConstructorInvocation _parseRedirectingConstructorInvocation(
+      bool hasPeriod) {
+    Token keyword = getAndAdvance();
     Token period = null;
     SimpleIdentifier constructorName = null;
-    if (_matches(TokenType.PERIOD)) {
+    if (hasPeriod) {
       period = getAndAdvance();
-      constructorName = parseSimpleIdentifier();
+      if (_matchesIdentifier()) {
+        constructorName = _parseSimpleIdentifierUnchecked(isDeclaration: false);
+      } else {
+        _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
+        constructorName = _createSyntheticIdentifier(isDeclaration: false);
+        _advance();
+      }
     }
-    ArgumentList argumentList = parseArgumentList();
+    ArgumentList argumentList = _parseArgumentListChecked();
     return new RedirectingConstructorInvocation(
         keyword, period, constructorName, argumentList);
   }
@@ -7490,29 +7940,29 @@ class Parser {
    *       | 'super' relationalOperator bitwiseOrExpression
    */
   Expression _parseRelationalExpression() {
-    if (_matchesKeyword(Keyword.SUPER) &&
+    if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type.isRelationalOperator) {
       Expression expression = new SuperExpression(getAndAdvance());
       Token operator = getAndAdvance();
-      expression = new BinaryExpression(
+      return new BinaryExpression(
           expression, operator, parseBitwiseOrExpression());
-      return expression;
     }
     Expression expression = parseBitwiseOrExpression();
-    if (_matchesKeyword(Keyword.AS)) {
+    Keyword keyword = _currentToken.keyword;
+    if (keyword == Keyword.AS) {
       Token asOperator = getAndAdvance();
-      expression = new AsExpression(expression, asOperator, parseTypeName());
-    } else if (_matchesKeyword(Keyword.IS)) {
+      return new AsExpression(expression, asOperator, parseTypeName());
+    } else if (keyword == Keyword.IS) {
       Token isOperator = getAndAdvance();
       Token notOperator = null;
       if (_matches(TokenType.BANG)) {
         notOperator = getAndAdvance();
       }
-      expression = new IsExpression(
+      return new IsExpression(
           expression, isOperator, notOperator, parseTypeName());
     } else if (_currentToken.type.isRelationalOperator) {
       Token operator = getAndAdvance();
-      expression = new BinaryExpression(
+      return new BinaryExpression(
           expression, operator, parseBitwiseOrExpression());
     }
     return expression;
@@ -7521,20 +7971,24 @@ class Parser {
   /**
    * Parse a rethrow expression. Return the rethrow expression that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.RETHROW`.
+   *
    *     rethrowExpression ::=
    *         'rethrow'
    */
   Expression _parseRethrowExpression() =>
-      new RethrowExpression(_expectKeyword(Keyword.RETHROW));
+      new RethrowExpression(getAndAdvance());
 
   /**
    * Parse a return statement. Return the return statement that was parsed.
+   *
+   * This method assumes that the current token matches `Keyword.RETURN`.
    *
    *     returnStatement ::=
    *         'return' expression? ';'
    */
   Statement _parseReturnStatement() {
-    Token returnKeyword = _expectKeyword(Keyword.RETURN);
+    Token returnKeyword = getAndAdvance();
     if (_matches(TokenType.SEMICOLON)) {
       return new ReturnStatement(returnKeyword, null, getAndAdvance());
     }
@@ -7551,6 +8005,8 @@ class Parser {
    * already been parsed, or `null` if there was no return type. Return the
    * setter that was parsed.
    *
+   * This method assumes that the current token matches `Keyword.SET`.
+   *
    *     setter ::=
    *         setterSignature functionBody?
    *
@@ -7559,8 +8015,8 @@ class Parser {
    */
   MethodDeclaration _parseSetter(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType) {
-    Token propertyKeyword = _expectKeyword(Keyword.SET);
-    SimpleIdentifier name = parseSimpleIdentifier();
+    Token propertyKeyword = getAndAdvance();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     FormalParameterList parameters = parseFormalParameterList();
     _validateFormalParameterList(parameters);
     FunctionBody body = _parseFunctionBody(
@@ -7593,18 +8049,36 @@ class Parser {
    */
   Expression _parseShiftExpression() {
     Expression expression;
-    if (_matchesKeyword(Keyword.SUPER) &&
+    if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type.isShiftOperator) {
       expression = new SuperExpression(getAndAdvance());
     } else {
       expression = _parseAdditiveExpression();
     }
     while (_currentToken.type.isShiftOperator) {
-      Token operator = getAndAdvance();
       expression = new BinaryExpression(
-          expression, operator, _parseAdditiveExpression());
+          expression, getAndAdvance(), _parseAdditiveExpression());
     }
     return expression;
+  }
+
+  /**
+   * Parse a simple identifier. Return the simple identifier that was parsed.
+   *
+   * This method assumes that the current token matches an identifier.
+   *
+   *     identifier ::=
+   *         IDENTIFIER
+   */
+  SimpleIdentifier _parseSimpleIdentifierUnchecked(
+      {bool isDeclaration: false}) {
+    String lexeme = _currentToken.lexeme;
+    if ((_inAsync || _inGenerator) &&
+        (lexeme == ASYNC || lexeme == _AWAIT || lexeme == _YIELD)) {
+      _reportErrorForCurrentToken(
+          ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER);
+    }
+    return new SimpleIdentifier(getAndAdvance(), isDeclaration: isDeclaration);
   }
 
   /**
@@ -7615,10 +8089,11 @@ class Parser {
    *         statement*
    */
   List<Statement> _parseStatementList() {
-    List<Statement> statements = new List<Statement>();
+    List<Statement> statements = <Statement>[];
     Token statementStart = _currentToken;
-    while (!_matches(TokenType.EOF) &&
-        !_matches(TokenType.CLOSE_CURLY_BRACKET) &&
+    TokenType type = _currentToken.type;
+    while (type != TokenType.EOF &&
+        type != TokenType.CLOSE_CURLY_BRACKET &&
         !_isSwitchMember()) {
       statements.add(parseStatement2());
       if (identical(_currentToken, statementStart)) {
@@ -7627,6 +8102,7 @@ class Parser {
         _advance();
       }
       statementStart = _currentToken;
+      type = _currentToken.type;
     }
     return statements;
   }
@@ -7634,15 +8110,20 @@ class Parser {
   /**
    * Parse a string literal that contains interpolations. Return the string
    * literal that was parsed.
+   *
+   * This method assumes that the current token matches either
+   * [TokenType.STRING_INTERPOLATION_EXPRESSION] or
+   * [TokenType.STRING_INTERPOLATION_IDENTIFIER].
    */
   StringInterpolation _parseStringInterpolation(Token string) {
-    List<InterpolationElement> elements = new List<InterpolationElement>();
-    bool hasMore = _matches(TokenType.STRING_INTERPOLATION_EXPRESSION) ||
-        _matches(TokenType.STRING_INTERPOLATION_IDENTIFIER);
-    elements.add(new InterpolationString(
-        string, _computeStringValue(string.lexeme, true, !hasMore)));
+    List<InterpolationElement> elements = <InterpolationElement>[
+      new InterpolationString(
+          string, _computeStringValue(string.lexeme, true, false))
+    ];
+    bool hasMore = true;
+    bool isExpression = _matches(TokenType.STRING_INTERPOLATION_EXPRESSION);
     while (hasMore) {
-      if (_matches(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+      if (isExpression) {
         Token openToken = getAndAdvance();
         bool wasInInitializer = _inInitializer;
         _inInitializer = false;
@@ -7666,8 +8147,9 @@ class Parser {
       }
       if (_matches(TokenType.STRING)) {
         string = getAndAdvance();
-        hasMore = _matches(TokenType.STRING_INTERPOLATION_EXPRESSION) ||
-            _matches(TokenType.STRING_INTERPOLATION_IDENTIFIER);
+        isExpression = _matches(TokenType.STRING_INTERPOLATION_EXPRESSION);
+        hasMore =
+            isExpression || _matches(TokenType.STRING_INTERPOLATION_IDENTIFIER);
         elements.add(new InterpolationString(
             string, _computeStringValue(string.lexeme, false, !hasMore)));
       } else {
@@ -7678,21 +8160,47 @@ class Parser {
   }
 
   /**
+   * Parse a string literal. Return the string literal that was parsed.
+   *
+   * This method assumes that the current token matches `TokenType.STRING`.
+   *
+   *     stringLiteral ::=
+   *         MULTI_LINE_STRING+
+   *       | SINGLE_LINE_STRING+
+   */
+  StringLiteral _parseStringLiteralUnchecked() {
+    List<StringLiteral> strings = <StringLiteral>[];
+    do {
+      Token string = getAndAdvance();
+      if (_matches(TokenType.STRING_INTERPOLATION_EXPRESSION) ||
+          _matches(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+        strings.add(_parseStringInterpolation(string));
+      } else {
+        strings.add(new SimpleStringLiteral(
+            string, _computeStringValue(string.lexeme, true, true)));
+      }
+    } while (_matches(TokenType.STRING));
+    return strings.length == 1 ? strings[0] : new AdjacentStrings(strings);
+  }
+
+  /**
    * Parse a super constructor invocation. Return the super constructor
    * invocation that was parsed.
+   *
+   * This method assumes that the current token matches [Keyword.SUPER].
    *
    *     superConstructorInvocation ::=
    *         'super' ('.' identifier)? arguments
    */
   SuperConstructorInvocation _parseSuperConstructorInvocation() {
-    Token keyword = _expectKeyword(Keyword.SUPER);
+    Token keyword = getAndAdvance();
     Token period = null;
     SimpleIdentifier constructorName = null;
     if (_matches(TokenType.PERIOD)) {
       period = getAndAdvance();
       constructorName = parseSimpleIdentifier();
     }
-    ArgumentList argumentList = parseArgumentList();
+    ArgumentList argumentList = _parseArgumentListChecked();
     return new SuperConstructorInvocation(
         keyword, period, constructorName, argumentList);
   }
@@ -7720,13 +8228,14 @@ class Parser {
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       Token leftBracket = _expect(TokenType.OPEN_CURLY_BRACKET);
       Token defaultKeyword = null;
-      List<SwitchMember> members = new List<SwitchMember>();
-      while (!_matches(TokenType.EOF) &&
-          !_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-        List<Label> labels = new List<Label>();
+      List<SwitchMember> members = <SwitchMember>[];
+      TokenType type = _currentToken.type;
+      while (type != TokenType.EOF && type != TokenType.CLOSE_CURLY_BRACKET) {
+        List<Label> labels = <Label>[];
         while (
             _matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-          SimpleIdentifier identifier = parseSimpleIdentifier();
+          SimpleIdentifier identifier =
+              _parseSimpleIdentifierUnchecked(isDeclaration: true);
           String label = identifier.token.lexeme;
           if (definedLabels.contains(label)) {
             _reportErrorForToken(
@@ -7736,10 +8245,11 @@ class Parser {
           } else {
             definedLabels.add(label);
           }
-          Token colon = _expect(TokenType.COLON);
+          Token colon = getAndAdvance();
           labels.add(new Label(identifier, colon));
         }
-        if (_matchesKeyword(Keyword.CASE)) {
+        Keyword keyword = _currentToken.keyword;
+        if (keyword == Keyword.CASE) {
           Token caseKeyword = getAndAdvance();
           Expression caseExpression = parseExpression2();
           Token colon = _expect(TokenType.COLON);
@@ -7750,7 +8260,7 @@ class Parser {
                 ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
                 caseKeyword);
           }
-        } else if (_matchesKeyword(Keyword.DEFAULT)) {
+        } else if (keyword == Keyword.DEFAULT) {
           if (defaultKeyword != null) {
             _reportErrorForToken(
                 ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, _peek());
@@ -7763,13 +8273,20 @@ class Parser {
           // We need to advance, otherwise we could end up in an infinite loop,
           // but this could be a lot smarter about recovering from the error.
           _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
-          while (!_matches(TokenType.EOF) &&
-              !_matches(TokenType.CLOSE_CURLY_BRACKET) &&
-              !_matchesKeyword(Keyword.CASE) &&
-              !_matchesKeyword(Keyword.DEFAULT)) {
+          bool atEndOrNextMember() {
+            TokenType type = _currentToken.type;
+            if (type == TokenType.EOF ||
+                type == TokenType.CLOSE_CURLY_BRACKET) {
+              return true;
+            }
+            Keyword keyword = _currentToken.keyword;
+            return keyword == Keyword.CASE || keyword == Keyword.DEFAULT;
+          }
+          while (!atEndOrNextMember()) {
             _advance();
           }
         }
+        type = _currentToken.type;
       }
       Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
       return new SwitchStatement(keyword, leftParenthesis, expression,
@@ -7782,16 +8299,17 @@ class Parser {
   /**
    * Parse a symbol literal. Return the symbol literal that was parsed.
    *
+   * This method assumes that the current token matches [TokenType.HASH].
+   *
    *     symbolLiteral ::=
    *         '#' identifier ('.' identifier)*
    */
   SymbolLiteral _parseSymbolLiteral() {
     Token poundSign = getAndAdvance();
-    List<Token> components = new List<Token>();
+    List<Token> components = <Token>[];
     if (_matchesIdentifier()) {
       components.add(getAndAdvance());
-      while (_matches(TokenType.PERIOD)) {
-        _advance();
+      while (_optional(TokenType.PERIOD)) {
         if (_matchesIdentifier()) {
           components.add(getAndAdvance());
         } else {
@@ -7802,7 +8320,7 @@ class Parser {
       }
     } else if (_currentToken.isOperator) {
       components.add(getAndAdvance());
-    } else if (_tokenMatchesKeyword(_currentToken, Keyword.VOID)) {
+    } else if (_matchesKeyword(Keyword.VOID)) {
       components.add(getAndAdvance());
     } else {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
@@ -7814,12 +8332,15 @@ class Parser {
   /**
    * Parse a throw expression. Return the throw expression that was parsed.
    *
+   * This method assumes that the current token matches [Keyword.THROW].
+   *
    *     throwExpression ::=
    *         'throw' expression
    */
   Expression _parseThrowExpression() {
-    Token keyword = _expectKeyword(Keyword.THROW);
-    if (_matches(TokenType.SEMICOLON) || _matches(TokenType.CLOSE_PAREN)) {
+    Token keyword = getAndAdvance();
+    TokenType type = _currentToken.type;
+    if (type == TokenType.SEMICOLON || type == TokenType.CLOSE_PAREN) {
       _reportErrorForToken(
           ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken);
       return new ThrowExpression(keyword, _createSyntheticIdentifier());
@@ -7831,12 +8352,15 @@ class Parser {
   /**
    * Parse a throw expression. Return the throw expression that was parsed.
    *
+   * This method assumes that the current token matches [Keyword.THROW].
+   *
    *     throwExpressionWithoutCascade ::=
    *         'throw' expressionWithoutCascade
    */
   Expression _parseThrowExpressionWithoutCascade() {
-    Token keyword = _expectKeyword(Keyword.THROW);
-    if (_matches(TokenType.SEMICOLON) || _matches(TokenType.CLOSE_PAREN)) {
+    Token keyword = getAndAdvance();
+    TokenType type = _currentToken.type;
+    if (type == TokenType.SEMICOLON || type == TokenType.CLOSE_PAREN) {
       _reportErrorForToken(
           ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken);
       return new ThrowExpression(keyword, _createSyntheticIdentifier());
@@ -7847,6 +8371,8 @@ class Parser {
 
   /**
    * Parse a try statement. Return the try statement that was parsed.
+   *
+   * This method assumes that the current token matches [Keyword.TRY].
    *
    *     tryStatement ::=
    *         'try' block (onPart+ finallyPart? | finallyPart)
@@ -7862,9 +8388,9 @@ class Parser {
    *         'finally' block
    */
   Statement _parseTryStatement() {
-    Token tryKeyword = _expectKeyword(Keyword.TRY);
-    Block body = parseBlock();
-    List<CatchClause> catchClauses = new List<CatchClause>();
+    Token tryKeyword = getAndAdvance();
+    Block body = _parseBlockChecked();
+    List<CatchClause> catchClauses = <CatchClause>[];
     Block finallyClause = null;
     while (_matchesString(_ON) || _matchesKeyword(Keyword.CATCH)) {
       Token onKeyword = null;
@@ -7882,14 +8408,14 @@ class Parser {
       if (_matchesKeyword(Keyword.CATCH)) {
         catchKeyword = getAndAdvance();
         leftParenthesis = _expect(TokenType.OPEN_PAREN);
-        exceptionParameter = parseSimpleIdentifier();
+        exceptionParameter = parseSimpleIdentifier(isDeclaration: true);
         if (_matches(TokenType.COMMA)) {
           comma = getAndAdvance();
-          stackTraceParameter = parseSimpleIdentifier();
+          stackTraceParameter = parseSimpleIdentifier(isDeclaration: true);
         }
         rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       }
-      Block catchBody = parseBlock();
+      Block catchBody = _parseBlockChecked();
       catchClauses.add(new CatchClause(
           onKeyword,
           exceptionType,
@@ -7904,11 +8430,9 @@ class Parser {
     Token finallyKeyword = null;
     if (_matchesKeyword(Keyword.FINALLY)) {
       finallyKeyword = getAndAdvance();
-      finallyClause = parseBlock();
-    } else {
-      if (catchClauses.isEmpty) {
-        _reportErrorForCurrentToken(ParserErrorCode.MISSING_CATCH_OR_FINALLY);
-      }
+      finallyClause = _parseBlockChecked();
+    } else if (catchClauses.isEmpty) {
+      _reportErrorForCurrentToken(ParserErrorCode.MISSING_CATCH_OR_FINALLY);
     }
     return new TryStatement(
         tryKeyword, body, catchClauses, finallyKeyword, finallyClause);
@@ -7917,6 +8441,8 @@ class Parser {
   /**
    * Parse a type alias. The [commentAndMetadata] is the metadata to be
    * associated with the member. Return the type alias that was parsed.
+   *
+   * This method assumes that the current token matches [Keyword.TYPEDEF].
    *
    *     typeAlias ::=
    *         'typedef' typeAliasBody
@@ -7938,7 +8464,7 @@ class Parser {
    *         returnType? name
    */
   TypeAlias _parseTypeAlias(CommentAndMetadata commentAndMetadata) {
-    Token keyword = _expectKeyword(Keyword.TYPEDEF);
+    Token keyword = getAndAdvance();
     if (_matchesIdentifier()) {
       Token next = _peek();
       if (_tokenMatches(next, TokenType.LT)) {
@@ -7963,17 +8489,36 @@ class Parser {
 
   TypeName _parseTypeName() {
     Identifier typeName;
-    if (_matchesKeyword(Keyword.VAR)) {
+    if (_matchesIdentifier()) {
+      typeName = _parsePrefixedIdentifierUnchecked();
+    } else if (_matchesKeyword(Keyword.VAR)) {
       _reportErrorForCurrentToken(ParserErrorCode.VAR_AS_TYPE_NAME);
       typeName = new SimpleIdentifier(getAndAdvance());
-    } else if (_matchesIdentifier()) {
-      typeName = parsePrefixedIdentifier();
     } else {
       typeName = _createSyntheticIdentifier();
       _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TYPE_NAME);
     }
     TypeArgumentList typeArguments = _parseOptionalTypeArguments();
     return new TypeName(typeName, typeArguments);
+  }
+
+  /**
+   * Parse a type name. Return the type name that was parsed.
+   *
+   * This method assumes that the current token is an identifier.
+   *
+   *     type ::=
+   *         qualified typeArguments?
+   */
+  TypeName _parseTypeNameAfterIdentifier() {
+    Identifier typeName = _parsePrefixedIdentifierUnchecked();
+    TypeArgumentList typeArguments = _parseOptionalTypeArguments();
+    // If this is followed by a generic method type comment, allow the comment
+    // type to replace the real type name.
+    // TODO(jmesserly): this feels like a big hammer. Can we restrict it to
+    // only work inside generic methods?
+    TypeName typeFromComment = _parseOptionalTypeNameComment();
+    return typeFromComment ?? new TypeName(typeName, typeArguments);
   }
 
   /**
@@ -7988,13 +8533,15 @@ class Parser {
    *       | incrementOperator assignableExpression
    */
   Expression _parseUnaryExpression() {
-    if (_matches(TokenType.MINUS) ||
-        _matches(TokenType.BANG) ||
-        _matches(TokenType.TILDE)) {
+    TokenType type = _currentToken.type;
+    if (type == TokenType.MINUS ||
+        type == TokenType.BANG ||
+        type == TokenType.TILDE) {
       Token operator = getAndAdvance();
       if (_matchesKeyword(Keyword.SUPER)) {
-        if (_tokenMatches(_peek(), TokenType.OPEN_SQUARE_BRACKET) ||
-            _tokenMatches(_peek(), TokenType.PERIOD)) {
+        TokenType nextType = _peek().type;
+        if (nextType == TokenType.OPEN_SQUARE_BRACKET ||
+            nextType == TokenType.PERIOD) {
           //     "prefixOperator unaryExpression"
           // --> "prefixOperator postfixExpression"
           // --> "prefixOperator primary                    selector*"
@@ -8008,8 +8555,9 @@ class Parser {
     } else if (_currentToken.type.isIncrementOperator) {
       Token operator = getAndAdvance();
       if (_matchesKeyword(Keyword.SUPER)) {
-        if (_tokenMatches(_peek(), TokenType.OPEN_SQUARE_BRACKET) ||
-            _tokenMatches(_peek(), TokenType.PERIOD)) {
+        TokenType nextType = _peek().type;
+        if (nextType == TokenType.OPEN_SQUARE_BRACKET ||
+            nextType == TokenType.PERIOD) {
           // --> "prefixOperator 'super' assignableSelector selector*"
           return new PrefixExpression(operator, _parseUnaryExpression());
         }
@@ -8020,7 +8568,7 @@ class Parser {
         // we cannot do the same for "++super" because "+super" is also not
         // valid.
         //
-        if (operator.type == TokenType.MINUS_MINUS) {
+        if (type == TokenType.MINUS_MINUS) {
           Token firstOperator = _createToken(operator, TokenType.MINUS);
           Token secondOperator =
               new Token(TokenType.MINUS, operator.offset + 1);
@@ -8031,16 +8579,16 @@ class Parser {
               firstOperator,
               new PrefixExpression(
                   secondOperator, new SuperExpression(getAndAdvance())));
-        } else {
-          // Invalid operator before 'super'
-          _reportErrorForCurrentToken(
-              ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
-          return new PrefixExpression(
-              operator, new SuperExpression(getAndAdvance()));
         }
+        // Invalid operator before 'super'
+        _reportErrorForCurrentToken(
+            ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
+        return new PrefixExpression(
+            operator, new SuperExpression(getAndAdvance()));
       }
-      return new PrefixExpression(operator, _parseAssignableExpression(false));
-    } else if (_matches(TokenType.PLUS)) {
+      return new PrefixExpression(
+          operator, _parseAssignableExpressionNotStartingWithSuper(false));
+    } else if (type == TokenType.PLUS) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       return _createSyntheticIdentifier();
     } else if (_inAsync && _matchesString(_AWAIT)) {
@@ -8054,28 +8602,35 @@ class Parser {
    * was parsed.
    */
   StringLiteral _parseUri() {
-    bool iskeywordAfterUri(Token token) =>
+    // TODO(brianwilkerson) Should this function also return true for valid
+    // top-level keywords?
+    bool isKeywordAfterUri(Token token) =>
         token.lexeme == Keyword.AS.syntax ||
         token.lexeme == _HIDE ||
         token.lexeme == _SHOW;
-    if (!_matches(TokenType.STRING) &&
-        !_matches(TokenType.SEMICOLON) &&
-        !iskeywordAfterUri(_currentToken)) {
+    TokenType type = _currentToken.type;
+    if (type != TokenType.STRING &&
+        type != TokenType.SEMICOLON &&
+        !isKeywordAfterUri(_currentToken)) {
       // Attempt to recover in the case where the URI was not enclosed in
       // quotes.
       Token token = _currentToken;
-      while ((_tokenMatchesIdentifier(token) && !iskeywordAfterUri(token)) ||
-          _tokenMatches(token, TokenType.COLON) ||
-          _tokenMatches(token, TokenType.SLASH) ||
-          _tokenMatches(token, TokenType.PERIOD) ||
-          _tokenMatches(token, TokenType.PERIOD_PERIOD) ||
-          _tokenMatches(token, TokenType.PERIOD_PERIOD_PERIOD) ||
-          _tokenMatches(token, TokenType.INT) ||
-          _tokenMatches(token, TokenType.DOUBLE)) {
+      bool isValidInUri(Token token) {
+        TokenType type = token.type;
+        return type == TokenType.COLON ||
+            type == TokenType.SLASH ||
+            type == TokenType.PERIOD ||
+            type == TokenType.PERIOD_PERIOD ||
+            type == TokenType.PERIOD_PERIOD_PERIOD ||
+            type == TokenType.INT ||
+            type == TokenType.DOUBLE;
+      }
+      while ((_tokenMatchesIdentifier(token) && !isKeywordAfterUri(token)) ||
+          isValidInUri(token)) {
         token = token.next;
       }
       if (_tokenMatches(token, TokenType.SEMICOLON) ||
-          iskeywordAfterUri(token)) {
+          isKeywordAfterUri(token)) {
         Token endToken = token.previous;
         token = _currentToken;
         int endOffset = token.end;
@@ -8118,7 +8673,7 @@ class Parser {
     // of a construct like "class C { int @deprecated foo() {} }" (i.e. the
     // user is in the middle of inserting "int bar;" prior to
     // "@deprecated foo() {}").
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     Token equals = null;
     Expression initializer = null;
     if (_matches(TokenType.EQ)) {
@@ -8161,18 +8716,14 @@ class Parser {
         _tokenMatchesKeyword(keyword, Keyword.VAR)) {
       _reportErrorForToken(ParserErrorCode.VAR_AND_TYPE, keyword);
     }
-    List<VariableDeclaration> variables = new List<VariableDeclaration>();
-    variables.add(_parseVariableDeclaration());
-    while (_matches(TokenType.COMMA)) {
-      _advance();
+    List<VariableDeclaration> variables = <VariableDeclaration>[
+      _parseVariableDeclaration()
+    ];
+    while (_optional(TokenType.COMMA)) {
       variables.add(_parseVariableDeclaration());
     }
-    return new VariableDeclarationList(
-        commentAndMetadata != null ? commentAndMetadata.comment : null,
-        commentAndMetadata != null ? commentAndMetadata.metadata : null,
-        keyword,
-        type,
-        variables);
+    return new VariableDeclarationList(commentAndMetadata?.comment,
+        commentAndMetadata?.metadata, keyword, type, variables);
   }
 
   /**
@@ -8222,6 +8773,8 @@ class Parser {
   /**
    * Parse a while statement. Return the while statement that was parsed.
    *
+   * This method assumes that the current token matches [Keyword.WHILE].
+   *
    *     whileStatement ::=
    *         'while' '(' expression ')' statement
    */
@@ -8229,7 +8782,7 @@ class Parser {
     bool wasInLoop = _inLoop;
     _inLoop = true;
     try {
-      Token keyword = _expectKeyword(Keyword.WHILE);
+      Token keyword = getAndAdvance();
       Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
       Expression condition = parseExpression2();
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
@@ -8243,6 +8796,8 @@ class Parser {
 
   /**
    * Parse a yield statement. Return the yield statement that was parsed.
+   *
+   * This method assumes that the current token matches [Keyword.YIELD].
    *
    *     yieldStatement ::=
    *         'yield' '*'? expression ';'
@@ -8387,8 +8942,8 @@ class Parser {
    *   | type
    */
   Token _skipFinalConstVarOrType(Token startToken) {
-    if (_tokenMatchesKeyword(startToken, Keyword.FINAL) ||
-        _tokenMatchesKeyword(startToken, Keyword.CONST)) {
+    Keyword keyword = startToken.keyword;
+    if (keyword == Keyword.FINAL || keyword == Keyword.CONST) {
       Token next = startToken.next;
       if (_tokenMatchesIdentifier(next)) {
         Token next2 = next.next;
@@ -8401,7 +8956,7 @@ class Parser {
         // "parameter"
         return next;
       }
-    } else if (_tokenMatchesKeyword(startToken, Keyword.VAR)) {
+    } else if (keyword == Keyword.VAR) {
       return startToken.next;
     } else if (_tokenMatchesIdentifier(startToken)) {
       Token next = startToken.next;
@@ -8465,14 +9020,15 @@ class Parser {
     // Look to see whether the token after the open parenthesis is something
     // that should only occur at the beginning of a parameter list.
     //
-    if (next.matchesAny([
+    if (next.matchesAny(const <TokenType>[
           TokenType.AT,
           TokenType.OPEN_SQUARE_BRACKET,
           TokenType.OPEN_CURLY_BRACKET
         ]) ||
         _tokenMatchesKeyword(next, Keyword.VOID) ||
         (_tokenMatchesIdentifier(next) &&
-            (next.next.matchesAny([TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
+            (next.next.matchesAny(
+                const <TokenType>[TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
       return _skipPastMatchingToken(startToken);
     }
     //
@@ -8483,8 +9039,8 @@ class Parser {
         _tokenMatches(next.next, TokenType.OPEN_PAREN)) {
       Token afterParameters = _skipFormalParameterList(next.next);
       if (afterParameters != null &&
-          (afterParameters
-              .matchesAny([TokenType.COMMA, TokenType.CLOSE_PAREN]))) {
+          afterParameters.matchesAny(
+              const <TokenType>[TokenType.COMMA, TokenType.CLOSE_PAREN])) {
         return _skipPastMatchingToken(startToken);
       }
     }
@@ -8616,8 +9172,10 @@ class Parser {
             return null;
           } else if (type == TokenType.OPEN_CURLY_BRACKET) {
             bracketNestingLevel++;
+            token = token.next;
           } else if (type == TokenType.CLOSE_CURLY_BRACKET) {
             bracketNestingLevel--;
+            token = token.next;
           } else if (type == TokenType.STRING) {
             token = _skipStringLiteral(token);
             if (token == null) {
@@ -8813,15 +9371,13 @@ class Parser {
    * Return `true` if the given [token] matches the given [keyword].
    */
   bool _tokenMatchesKeyword(Token token, Keyword keyword) =>
-      token.type == TokenType.KEYWORD &&
-      (token as KeywordToken).keyword == keyword;
+      token.keyword == keyword;
 
   /**
    * Return `true` if the given [token] matches a pseudo keyword.
    */
   bool _tokenMatchesPseudoKeyword(Token token) =>
-      _tokenMatches(token, TokenType.KEYWORD) &&
-      (token as KeywordToken).keyword.isPseudoKeyword;
+      token.keyword?.isPseudoKeyword ?? false;
 
   /**
    * Return `true` if the given [token] matches the given [identifier].
@@ -9356,22 +9912,6 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ANNOTATION_ON_ENUM_CONSTANT =
       const ParserErrorCode('ANNOTATION_ON_ENUM_CONSTANT',
           "Enum constants cannot have annotations");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_ASSIGNMENT =
-      const ParserErrorCode('ASSERT_DOES_NOT_TAKE_ASSIGNMENT',
-          "Assert cannot be called on an assignment");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_CASCADE =
-      const ParserErrorCode(
-          'ASSERT_DOES_NOT_TAKE_CASCADE', "Assert cannot be called on cascade");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_THROW =
-      const ParserErrorCode(
-          'ASSERT_DOES_NOT_TAKE_THROW', "Assert cannot be called on throws");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_RETHROW =
-      const ParserErrorCode('ASSERT_DOES_NOT_TAKE_RETHROW',
-          "Assert cannot be called on rethrows");
 
   /**
    * 16.32 Identifier Reference: It is a compile-time error if any of the

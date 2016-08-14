@@ -19,13 +19,11 @@ import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
@@ -245,6 +243,16 @@ class Driver implements ServerStarter {
       "incremental-resolution-validation";
 
   /**
+   * The name of the option used to enable using pub summary manager.
+   */
+  static const String ENABLE_PUB_SUMMARY_MANAGER = 'enable-pub-summary-manager';
+
+  /**
+   * The name of the option used to enable fined grained invalidation.
+   */
+  static const String FINER_GRAINED_INVALIDATION = 'finer-grained-invalidation';
+
+  /**
    * The name of the option used to cause instrumentation to also be written to
    * a local file.
    */
@@ -298,16 +306,24 @@ class Driver implements ServerStarter {
   InstrumentationServer instrumentationServer;
 
   /**
-   * The embedded library URI resolver provider used to override the way
-   * embedded library URI's are resolved in some contexts.
+   * The file resolver provider used to override the way file URI's are
+   * resolved in some contexts.
    */
-  EmbeddedResolverProvider embeddedUriResolverProvider;
+  ResolverProvider fileResolverProvider;
 
   /**
    * The package resolver provider used to override the way package URI's are
    * resolved in some contexts.
    */
   ResolverProvider packageResolverProvider;
+
+  /**
+   * If this flag is `true`, then single analysis context should be used for
+   * analysis of multiple analysis roots, special files that could otherwise
+   * cause creating additional contexts, such as `pubspec.yaml`, or `.packages`,
+   * or analysis options are ignored.
+   */
+  bool useSingleContextManager = false;
 
   /**
    * The plugins that are defined outside the analysis_server package.
@@ -326,7 +342,7 @@ class Driver implements ServerStarter {
    * Set the [plugins] that are defined outside the analysis_server package.
    */
   void set userDefinedPlugins(List<Plugin> plugins) {
-    _userDefinedPlugins = plugins == null ? <Plugin>[] : plugins;
+    _userDefinedPlugins = plugins ?? <Plugin>[];
   }
 
   /**
@@ -367,6 +383,10 @@ class Driver implements ServerStarter {
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
+    analysisServerOptions.enablePubSummaryManager =
+        results[ENABLE_PUB_SUMMARY_MANAGER];
+    analysisServerOptions.finerGrainedInvalidation =
+        results[FINER_GRAINED_INVALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
@@ -375,20 +395,46 @@ class Driver implements ServerStarter {
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
-    JavaFile defaultSdkDirectory;
+    //
+    // Process all of the plugins so that extensions are registered.
+    //
+    ServerPlugin serverPlugin = new ServerPlugin();
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    plugins.add(serverPlugin);
+    plugins.add(linterPlugin);
+    plugins.add(linterServerPlugin);
+    plugins.add(dartCompletionPlugin);
+    plugins.addAll(_userDefinedPlugins);
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+
+    String defaultSdkPath;
     if (results[SDK_OPTION] != null) {
-      defaultSdkDirectory = new JavaFile(results[SDK_OPTION]);
+      defaultSdkPath = results[SDK_OPTION];
     } else {
       // No path to the SDK was provided.
       // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
-      defaultSdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
+      defaultSdkPath = FolderBasedDartSdk
+          .defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
+          .path;
     }
-    SdkCreator defaultSdkCreator =
-        () => new DirectoryBasedDartSdk(defaultSdkDirectory);
+    bool useSummaries = analysisServerOptions.fileReadMode == 'as-is';
+    SdkCreator defaultSdkCreator = (AnalysisOptions options) {
+      PhysicalResourceProvider resourceProvider =
+          PhysicalResourceProvider.INSTANCE;
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
+          FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
+      sdk.analysisOptions = options;
+      sdk.useSummary = useSummaries;
+      return sdk;
+    };
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator();
+    DartSdk defaultSdk = defaultSdkCreator(null);
     //
     // Initialize the instrumentation service.
     //
@@ -408,32 +454,17 @@ class Driver implements ServerStarter {
         results[CLIENT_VERSION], AnalysisServer.VERSION, defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = service;
     //
-    // Process all of the plugins so that extensions are registered.
-    //
-    ServerPlugin serverPlugin = new ServerPlugin();
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
-    plugins.add(serverPlugin);
-    plugins.add(linterPlugin);
-    plugins.add(linterServerPlugin);
-    plugins.add(dartCompletionPlugin);
-    plugins.addAll(_userDefinedPlugins);
-
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
-    //
     // Create the sockets and start listening for requests.
     //
     socketServer = new SocketServer(
         analysisServerOptions,
-        defaultSdkCreator,
+        new DartSdkManager(defaultSdkPath, useSummaries, defaultSdkCreator),
         defaultSdk,
         service,
         serverPlugin,
+        fileResolverProvider,
         packageResolverProvider,
-        embeddedUriResolverProvider);
+        useSingleContextManager);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
     socketServer.userDefinedPlugins = _userDefinedPlugins;
@@ -463,7 +494,7 @@ class Driver implements ServerStarter {
    */
   dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
       {void print(String line)}) {
-    Function errorFunction = (Zone self, ZoneDelegate parent, Zone zone,
+    var errorFunction = (Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
       service.logPriorityException(exception, stackTrace);
       AnalysisServer analysisServer = socketServer.analysisServer;
@@ -471,11 +502,11 @@ class Driver implements ServerStarter {
           'Captured exception', exception, stackTrace);
       throw exception;
     };
-    Function printFunction = print == null
+    var printFunction = print == null
         ? null
         : (Zone self, ZoneDelegate parent, Zone zone, String line) {
-            // Note: we don't pass the line on to stdout, because that is reserved
-            // for communication to the client.
+            // Note: we don't pass the line on to stdout, because that is
+            // reserved for communication to the client.
             print(line);
           };
     ZoneSpecification zoneSpecification = new ZoneSpecification(
@@ -508,6 +539,14 @@ class Driver implements ServerStarter {
         help: "set a destination for the incremental resolver's log");
     parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
         help: "enable validation of incremental resolution results (slow)",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(ENABLE_PUB_SUMMARY_MANAGER,
+        help: "enable using summaries for pub cache packages",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(FINER_GRAINED_INVALIDATION,
+        help: "enable finer grained invalidation",
         defaultsTo: false,
         negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,

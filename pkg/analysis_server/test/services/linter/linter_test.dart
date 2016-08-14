@@ -74,7 +74,7 @@ linter:
         [UNDEFINED_LINT_WARNING]);
   }
 
-  validate(String source, List<AnalysisOptionsErrorCode> expected) {
+  validate(String source, List<ErrorCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
     validator.validate(reporter, options);
     expect(errors.map((AnalysisError e) => e.errorCode),

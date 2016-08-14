@@ -2,20 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "bin/platform.h"
+#if !defined(DART_IO_DISABLED)
 
-#include "include/dart_api.h"
+#include "bin/platform.h"
 
 #include "bin/file.h"
 #include "bin/utils.h"
+#include "include/dart_api.h"
 
 namespace dart {
 namespace bin {
-
-const char* Platform::executable_name_ = NULL;
-const char* Platform::resolved_executable_name_ = NULL;
-int Platform::script_index_ = 1;
-char** Platform::argv_ = NULL;
 
 void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(Platform::NumberOfProcessors()));
@@ -44,7 +40,6 @@ void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
-  ASSERT(Platform::GetExecutableName() != NULL);
   if (Dart_IsRunningPrecompiledCode()) {
     // This is a work-around to be able to use most of the existing test suite
     // for precompilation. Many tests do something like Process.run(
@@ -55,8 +50,12 @@ void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
         "Platform.executable not supported under precompilation"));
     UNREACHABLE();
   }
-  Dart_SetReturnValue(
-      args, Dart_NewStringFromCString(Platform::GetExecutableName()));
+  if (Platform::GetExecutableName() != NULL) {
+    Dart_SetReturnValue(
+        args, Dart_NewStringFromCString(Platform::GetExecutableName()));
+  } else {
+    Dart_SetReturnValue(args, Dart_Null());
+  }
 }
 
 
@@ -102,22 +101,18 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   } else {
     Dart_Handle result = Dart_NewList(count);
     if (Dart_IsError(result)) {
-      Platform::FreeEnvironment(env, count);
       Dart_PropagateError(result);
     }
     for (intptr_t i = 0; i < count; i++) {
       Dart_Handle str = DartUtils::NewString(env[i]);
       if (Dart_IsError(str)) {
-        Platform::FreeEnvironment(env, count);
         Dart_PropagateError(str);
       }
       Dart_Handle error = Dart_ListSetAt(result, i, str);
       if (Dart_IsError(error)) {
-        Platform::FreeEnvironment(env, count);
         Dart_PropagateError(error);
       }
     }
-    Platform::FreeEnvironment(env, count);
     Dart_SetReturnValue(args, result);
   }
 }
@@ -129,3 +124,5 @@ void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
 
 }  // namespace bin
 }  // namespace dart
+
+#endif  // !defined(DART_IO_DISABLED)

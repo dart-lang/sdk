@@ -26,59 +26,6 @@ main() {
 
 @reflectiveTest
 class SimpleResolverTest extends ResolverTestCase {
-  void fail_getter_and_setter_fromMixins_property_access() {
-    // TODO(paulberry): it appears that auxiliaryElements isn't properly set on
-    // a SimpleIdentifier that's inside a property access.  This bug should be
-    // fixed.
-    Source source = addSource('''
-class B {}
-class M1 {
-  get x => null;
-  set x(value) {}
-}
-class M2 {
-  get x => null;
-  set x(value) {}
-}
-class C extends B with M1, M2 {}
-void main() {
-  new C().x += 1;
-}
-''');
-    LibraryElement library = resolve2(source);
-    assertNoErrors(source);
-    verify([source]);
-    // Verify that both the getter and setter for "x" in "new C().x" refer to
-    // the accessors defined in M2.
-    FunctionDeclaration main =
-    library.definingCompilationUnit.functions[0].computeNode();
-    BlockFunctionBody body = main.functionExpression.body;
-    ExpressionStatement stmt = body.block.statements[0];
-    AssignmentExpression assignment = stmt.expression;
-    PropertyAccess propertyAccess = assignment.leftHandSide;
-    expect(
-        propertyAccess.propertyName.staticElement.enclosingElement.name, 'M2');
-    expect(
-        propertyAccess
-            .propertyName.auxiliaryElements.staticElement.enclosingElement.name,
-        'M2');
-  }
-
-  void fail_staticInvocation() {
-    Source source = addSource(r'''
-class A {
-  static int get g => (a,b) => 0;
-}
-class B {
-  f() {
-    A.g(1,0);
-  }
-}''');
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_argumentResolution_required_matching() {
     Source source = addSource(r'''
 class A {
@@ -196,7 +143,7 @@ class A {
       FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
-      statement as ExpressionStatement;
+          statement as ExpressionStatement;
       assignment = expressionStatement.expression as AssignmentExpression;
     }
     // get parameter
@@ -232,7 +179,7 @@ class B {
       FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
-      statement as ExpressionStatement;
+          statement as ExpressionStatement;
       assignment = expressionStatement.expression as AssignmentExpression;
     }
     // get parameter
@@ -265,7 +212,7 @@ class A {
       FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
-      statement as ExpressionStatement;
+          statement as ExpressionStatement;
       assignment = expressionStatement.expression as AssignmentExpression;
     }
     // get parameter
@@ -300,7 +247,7 @@ class B {
       FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
-      statement as ExpressionStatement;
+          statement as ExpressionStatement;
       assignment = expressionStatement.expression as AssignmentExpression;
     }
     // get parameter
@@ -331,7 +278,7 @@ void f() {
     WhileStatement whileStatement = EngineTestCase.findNode(
         unit, text, 'while (true)', (n) => n is WhileStatement);
     ForStatement forStatement =
-    EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
+        EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     BreakStatement break1 = EngineTestCase.findNode(
         unit, text, 'break loop1', (n) => n is BreakStatement);
     BreakStatement break2 = EngineTestCase.findNode(
@@ -350,7 +297,7 @@ void f() {
 ''';
     CompilationUnit unit = resolveSource(text);
     DoStatement doStatement =
-    EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
+        EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
     BreakStatement breakStatement = EngineTestCase.findNode(
         unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, same(doStatement));
@@ -366,7 +313,7 @@ void f() {
 ''';
     CompilationUnit unit = resolveSource(text);
     ForStatement forStatement =
-    EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
+        EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     BreakStatement breakStatement = EngineTestCase.findNode(
         unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, same(forStatement));
@@ -517,7 +464,7 @@ void f() {
     WhileStatement whileStatement = EngineTestCase.findNode(
         unit, text, 'while (true)', (n) => n is WhileStatement);
     ForStatement forStatement =
-    EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
+        EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     ContinueStatement continue1 = EngineTestCase.findNode(
         unit, text, 'continue loop1', (n) => n is ContinueStatement);
     ContinueStatement continue2 = EngineTestCase.findNode(
@@ -536,7 +483,7 @@ void f() {
 ''';
     CompilationUnit unit = resolveSource(text);
     DoStatement doStatement =
-    EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
+        EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
     ContinueStatement continueStatement = EngineTestCase.findNode(
         unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, same(doStatement));
@@ -552,7 +499,7 @@ void f() {
 ''';
     CompilationUnit unit = resolveSource(text);
     ForStatement forStatement =
-    EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
+        EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     ContinueStatement continueStatement = EngineTestCase.findNode(
         unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, same(forStatement));
@@ -791,6 +738,45 @@ class C extends B with M1, M2 {
         'M2');
   }
 
+  @failingTest
+  void test_getter_and_setter_fromMixins_property_access() {
+    // TODO(paulberry): it appears that auxiliaryElements isn't properly set on
+    // a SimpleIdentifier that's inside a property access.  This bug should be
+    // fixed.
+    Source source = addSource('''
+class B {}
+class M1 {
+  get x => null;
+  set x(value) {}
+}
+class M2 {
+  get x => null;
+  set x(value) {}
+}
+class C extends B with M1, M2 {}
+void main() {
+  new C().x += 1;
+}
+''');
+    LibraryElement library = resolve2(source);
+    assertNoErrors(source);
+    verify([source]);
+    // Verify that both the getter and setter for "x" in "new C().x" refer to
+    // the accessors defined in M2.
+    FunctionDeclaration main =
+        library.definingCompilationUnit.functions[0].computeNode();
+    BlockFunctionBody body = main.functionExpression.body;
+    ExpressionStatement stmt = body.block.statements[0];
+    AssignmentExpression assignment = stmt.expression;
+    PropertyAccess propertyAccess = assignment.leftHandSide;
+    expect(
+        propertyAccess.propertyName.staticElement.enclosingElement.name, 'M2');
+    expect(
+        propertyAccess
+            .propertyName.auxiliaryElements.staticElement.enclosingElement.name,
+        'M2');
+  }
+
   void test_getter_fromMixins_bare_identifier() {
     Source source = addSource('''
 class B {}
@@ -839,7 +825,7 @@ void main() {
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
     FunctionDeclaration main =
-    library.definingCompilationUnit.functions[0].computeNode();
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     VariableDeclarationStatement stmt = body.block.statements[0];
     PropertyAccess propertyAccess = stmt.variables.variables[0].initializer;
@@ -923,6 +909,66 @@ main() {
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_import_prefix_doesNotExist() {
+    //
+    // The primary purpose of this test is to ensure that we are only getting a
+    // single error generated when the only problem is that an imported file
+    // does not exist.
+    //
+    Source source = addNamedSource(
+        "/a.dart",
+        r'''
+import 'missing.dart' as p;
+int a = p.q + p.r.s;
+String b = p.t(a) + p.u(v: 0);
+p.T c = new p.T();
+class D<E> extends p.T {
+  D(int i) : super(i);
+  p.U f = new p.V();
+}
+class F implements p.T {
+  p.T m(p.U u) => null;
+}
+class G extends Object with p.V {}
+class H extends D<p.W> {
+  H(int i) : super(i);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    verify([source]);
+  }
+
+  void test_import_show_doesNotExist() {
+    //
+    // The primary purpose of this test is to ensure that we are only getting a
+    // single error generated when the only problem is that an imported file
+    // does not exist.
+    //
+    Source source = addNamedSource(
+        "/a.dart",
+        r'''
+import 'missing.dart' show q, r, t, u, T, U, V, W;
+int a = q + r.s;
+String b = t(a) + u(v: 0);
+T c = new T();
+class D<E> extends T {
+  D(int i) : super(i);
+  U f = new V();
+}
+class F implements T {
+  T m(U u) => null;
+}
+class G extends Object with V {}
+class H extends D<W> {
+  H(int i) : super(i);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
     verify([source]);
   }
 
@@ -1197,7 +1243,7 @@ main() {
     LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnit unit =
-    analysisContext.resolveCompilationUnit(source, library);
+        analysisContext.resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
     List<bool> found = [false];
     List<CaughtException> thrownException = new List<CaughtException>(1);
@@ -1470,7 +1516,7 @@ void main() {
     verify([source]);
     // Verify that the "f" in "new C().f()" refers to the "f" defined in M2.
     FunctionDeclaration main =
-    library.definingCompilationUnit.functions[0].computeNode();
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     MethodInvocation expr = stmt.expression;
@@ -1525,7 +1571,7 @@ void main() {
     // Verify that the call to f() in "new C().f()" refers to the method
     // defined in M2.
     FunctionDeclaration main =
-    library.definingCompilationUnit.functions[0].computeNode();
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     MethodInvocation invocation = stmt.expression;
@@ -1642,7 +1688,7 @@ void main() {
     // Verify that the setter for "x" in "new C().x" refers to the setter
     // defined in M2.
     FunctionDeclaration main =
-    library.definingCompilationUnit.functions[0].computeNode();
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     AssignmentExpression assignment = stmt.expression;
@@ -1679,6 +1725,22 @@ main() {
     verify([source]);
   }
 
+  @failingTest
+  void test_staticInvocation() {
+    Source source = addSource(r'''
+class A {
+  static int get g => (a,b) => 0;
+}
+class B {
+  f() {
+    A.g(1,0);
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   /**
    * Resolve the given source and verify that the arguments in a specific method invocation were
    * correctly resolved.
@@ -1708,9 +1770,9 @@ main() {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
     ClassDeclaration classDeclaration =
-    unit.declarations[0] as ClassDeclaration;
+        unit.declarations[0] as ClassDeclaration;
     MethodDeclaration methodDeclaration =
-    classDeclaration.members[0] as MethodDeclaration;
+        classDeclaration.members[0] as MethodDeclaration;
     Block block = (methodDeclaration.body as BlockFunctionBody).block;
     ExpressionStatement statement = block.statements[0] as ExpressionStatement;
     MethodInvocation invocation = statement.expression as MethodInvocation;

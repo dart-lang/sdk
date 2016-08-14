@@ -32,10 +32,33 @@ abstract class File implements Resource {
   Source createSource([Uri uri]);
 
   /**
+   * Synchronously read the entire file contents as a list of bytes.
+   * Throws a [FileSystemException] if the operation fails.
+   */
+  List<int> readAsBytesSync();
+
+  /**
    * Synchronously read the entire file contents as a [String].
    * Throws [FileSystemException] if the file does not exist.
    */
   String readAsStringSync();
+
+  /**
+   * Synchronously rename this file.
+   * Return a [File] instance for the renamed file.
+   *
+   * If [newPath] identifies an existing file, that file is replaced.
+   * If [newPath] identifies an existing resource the operation might fail and
+   * an exception is thrown.
+   */
+  File renameSync(String newPath);
+
+  /**
+   * Synchronously write a list of bytes to the file.
+   *
+   * Throws a [FileSystemException] if the operation fails.
+   */
+  void writeAsBytesSync(List<int> bytes);
 }
 
 /**
@@ -63,7 +86,7 @@ abstract class Folder implements Resource {
 
   /**
    * If the path [path] is a relative path, convert it to an absolute path
-   * by interpreting it relative to this folder.  If it is already an aboslute
+   * by interpreting it relative to this folder.  If it is already an absolute
    * path, then don't change it.
    *
    * However, regardless of whether [path] is relative or absolute, normalize
@@ -81,6 +104,14 @@ abstract class Folder implements Resource {
    * Return a not existing [File] if no such child exist.
    */
   Resource getChild(String relPath);
+
+  /**
+   * Return a [File] representing a child [Resource] with the given
+   * [relPath].  This call does not check whether a file with the given name
+   * exists on the filesystem - client must call the [File]'s `exists` getter
+   * to determine whether the folder actually exists.
+   */
+  File getChildAssumingFile(String relPath);
 
   /**
    * Return a [Folder] representing a child [Resource] with the given
@@ -124,10 +155,22 @@ abstract class Resource {
   String get shortName;
 
   /**
+   * Synchronously deletes this resource and its children.
+   *
+   * Throws an exception if the resource cannot be deleted.
+   */
+  void delete();
+
+  /**
    * Return `true` if absolute [path] references this resource or a resource in
    * this folder.
    */
   bool isOrContains(String path);
+
+  /**
+   * Return a Uri representing this resource.
+   */
+  Uri toUri();
 }
 
 /**
@@ -160,6 +203,14 @@ abstract class ResourceProvider {
   Folder getFolder(String path);
 
   /**
+   * Complete with a list of modification times for the given [sources].
+   *
+   * If the file of a source is not managed by this provider, return `null`.
+   * If the file a source does not exist, return `-1`.
+   */
+  Future<List<int>> getModificationTimes(List<Source> sources);
+
+  /**
    * Return the [Resource] that corresponds to the given [path].
    */
   Resource getResource(String path);
@@ -181,21 +232,23 @@ class ResourceUriResolver extends UriResolver {
   /**
    * The name of the `file` scheme.
    */
-  static String _FILE_SCHEME = "file";
+  static final String FILE_SCHEME = "file";
 
   final ResourceProvider _provider;
 
   ResourceUriResolver(this._provider);
 
+  ResourceProvider get provider => _provider;
+
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    if (!_isFileUri(uri)) {
+    if (!isFileUri(uri)) {
       return null;
     }
     Resource resource =
         _provider.getResource(_provider.pathContext.fromUri(uri));
     if (resource is File) {
-      return resource.createSource(actualUri != null ? actualUri : uri);
+      return resource.createSource(actualUri ?? uri);
     }
     return null;
   }
@@ -207,5 +260,5 @@ class ResourceUriResolver extends UriResolver {
   /**
    * Return `true` if the given [uri] is a `file` URI.
    */
-  static bool _isFileUri(Uri uri) => uri.scheme == _FILE_SCHEME;
+  static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 }

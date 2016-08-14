@@ -4,8 +4,7 @@
 
 library dart2js.tokens.token_map;
 
-import 'token.dart' show
-    Token;
+import 'token.dart' show Token;
 
 /**
  * Key class used in [TokenMap] in which the hash code for a token is based
@@ -15,7 +14,7 @@ class TokenKey {
   final Token token;
   TokenKey(this.token);
   int get hashCode => token.charOffset;
-  operator==(other) => other is TokenKey && token == other.token;
+  operator ==(other) => other is TokenKey && token == other.token;
 }
 
 /// Map of tokens and the first associated comment.
@@ -33,14 +32,14 @@ class TokenKey {
  * 6) Storing token/comments pairs in a linked list: ~5400 msec
  */
 class TokenMap {
-  Map<TokenKey,Token> comments = new Map<TokenKey,Token>();
+  Map<TokenKey, Token> comments = new Map<TokenKey, Token>();
 
-  Token operator[] (Token key) {
+  Token operator [](Token key) {
     if (key == null) return null;
     return comments[new TokenKey(key)];
   }
 
-  void operator[]= (Token key, Token value) {
+  void operator []=(Token key, Token value) {
     if (key == null) return;
     comments[new TokenKey(key)] = value;
   }

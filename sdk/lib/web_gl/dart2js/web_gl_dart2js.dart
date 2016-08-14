@@ -354,7 +354,7 @@ class ActiveInfo extends Interceptor {
 @DocsEditable()
 @DomName('ANGLEInstancedArrays')
 @Experimental() // untriaged
-@Native("ANGLEInstancedArrays")
+@Native("ANGLEInstancedArrays,ANGLE_instanced_arrays")
 class AngleInstancedArrays extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory AngleInstancedArrays._() { throw new UnsupportedError("Not supported"); }
@@ -469,7 +469,7 @@ class ChromiumSubscribeUniform extends Interceptor {
 @DomName('WebGLCompressedTextureATC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_atc/
 @Experimental()
-@Native("WebGLCompressedTextureATC")
+@Native("WebGLCompressedTextureATC,WEBGL_compressed_texture_atc")
 class CompressedTextureAtc extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureAtc._() { throw new UnsupportedError("Not supported"); }
@@ -494,7 +494,7 @@ class CompressedTextureAtc extends Interceptor {
 @DocsEditable()
 @DomName('WebGLCompressedTextureETC1')
 @Experimental() // untriaged
-@Native("WebGLCompressedTextureETC1")
+@Native("WebGLCompressedTextureETC1,WEBGL_compressed_texture_etc1")
 class CompressedTextureETC1 extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureETC1._() { throw new UnsupportedError("Not supported"); }
@@ -513,7 +513,7 @@ class CompressedTextureETC1 extends Interceptor {
 @DomName('WebGLCompressedTexturePVRTC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_pvrtc/
 @Experimental() // experimental
-@Native("WebGLCompressedTexturePVRTC")
+@Native("WebGLCompressedTexturePVRTC,WEBGL_compressed_texture_pvrtc")
 class CompressedTexturePvrtc extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTexturePvrtc._() { throw new UnsupportedError("Not supported"); }
@@ -543,7 +543,7 @@ class CompressedTexturePvrtc extends Interceptor {
 @DomName('WebGLCompressedTextureS3TC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_s3tc/
 @Experimental() // experimental
-@Native("WebGLCompressedTextureS3TC")
+@Native("WebGLCompressedTextureS3TC,WEBGL_compressed_texture_s3tc")
 class CompressedTextureS3TC extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureS3TC._() { throw new UnsupportedError("Not supported"); }
@@ -602,7 +602,7 @@ class ContextEvent extends Event {
 @DomName('WebGLDebugRendererInfo')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_renderer_info/
 @Experimental() // experimental
-@Native("WebGLDebugRendererInfo")
+@Native("WebGLDebugRendererInfo,WEBGL_debug_renderer_info")
 class DebugRendererInfo extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DebugRendererInfo._() { throw new UnsupportedError("Not supported"); }
@@ -624,7 +624,7 @@ class DebugRendererInfo extends Interceptor {
 @DomName('WebGLDebugShaders')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_shaders/
 @Experimental() // experimental
-@Native("WebGLDebugShaders")
+@Native("WebGLDebugShaders,WEBGL_debug_shaders")
 class DebugShaders extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DebugShaders._() { throw new UnsupportedError("Not supported"); }
@@ -642,7 +642,7 @@ class DebugShaders extends Interceptor {
 @DomName('WebGLDepthTexture')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/
 @Experimental() // experimental
-@Native("WebGLDepthTexture")
+@Native("WebGLDepthTexture,WEBGL_depth_texture")
 class DepthTexture extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DepthTexture._() { throw new UnsupportedError("Not supported"); }
@@ -660,7 +660,7 @@ class DepthTexture extends Interceptor {
 @DomName('WebGLDrawBuffers')
 // http://www.khronos.org/registry/webgl/specs/latest/
 @Experimental() // stable
-@Native("WebGLDrawBuffers")
+@Native("WebGLDrawBuffers,WEBGL_draw_buffers")
 class DrawBuffers extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DrawBuffers._() { throw new UnsupportedError("Not supported"); }
@@ -814,7 +814,7 @@ class DrawBuffers extends Interceptor {
 @DocsEditable()
 @DomName('EXTsRGB')
 @Experimental() // untriaged
-@Native("EXTsRGB")
+@Native("EXTsRGB,EXT_sRGB")
 class EXTsRgb extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory EXTsRgb._() { throw new UnsupportedError("Not supported"); }
@@ -847,7 +847,7 @@ class EXTsRgb extends Interceptor {
 @DocsEditable()
 @DomName('EXTBlendMinMax')
 @Experimental() // untriaged
-@Native("EXTBlendMinMax")
+@Native("EXTBlendMinMax,EXT_blend_minmax")
 class ExtBlendMinMax extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtBlendMinMax._() { throw new UnsupportedError("Not supported"); }
@@ -871,7 +871,7 @@ class ExtBlendMinMax extends Interceptor {
 @DomName('EXTFragDepth')
 // http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/
 @Experimental()
-@Native("EXTFragDepth")
+@Native("EXTFragDepth,EXT_frag_depth")
 class ExtFragDepth extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtFragDepth._() { throw new UnsupportedError("Not supported"); }
@@ -884,7 +884,7 @@ class ExtFragDepth extends Interceptor {
 @DocsEditable()
 @DomName('EXTShaderTextureLOD')
 @Experimental() // untriaged
-@Native("EXTShaderTextureLOD")
+@Native("EXTShaderTextureLOD,EXT_shader_texture_lod")
 class ExtShaderTextureLod extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtShaderTextureLod._() { throw new UnsupportedError("Not supported"); }
@@ -898,7 +898,7 @@ class ExtShaderTextureLod extends Interceptor {
 @DomName('EXTTextureFilterAnisotropic')
 // http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/
 @Experimental()
-@Native("EXTTextureFilterAnisotropic")
+@Native("EXTTextureFilterAnisotropic,EXT_texture_filter_anisotropic")
 class ExtTextureFilterAnisotropic extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtTextureFilterAnisotropic._() { throw new UnsupportedError("Not supported"); }
@@ -933,7 +933,7 @@ class Framebuffer extends Interceptor {
 @DomName('WebGLLoseContext')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
 @Experimental()
-@Native("WebGLLoseContext,WebGLExtensionLoseContext")
+@Native("WebGLLoseContext,WebGLExtensionLoseContext,WEBGL_lose_context")
 class LoseContext extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory LoseContext._() { throw new UnsupportedError("Not supported"); }
@@ -955,7 +955,7 @@ class LoseContext extends Interceptor {
 @DomName('OESElementIndexUint')
 // http://www.khronos.org/registry/webgl/extensions/OES_element_index_uint/
 @Experimental() // experimental
-@Native("OESElementIndexUint")
+@Native("OESElementIndexUint,OES_element_index_uint")
 class OesElementIndexUint extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesElementIndexUint._() { throw new UnsupportedError("Not supported"); }
@@ -969,7 +969,7 @@ class OesElementIndexUint extends Interceptor {
 @DomName('OESStandardDerivatives')
 // http://www.khronos.org/registry/webgl/extensions/OES_standard_derivatives/
 @Experimental() // experimental
-@Native("OESStandardDerivatives")
+@Native("OESStandardDerivatives,OES_standard_derivatives")
 class OesStandardDerivatives extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesStandardDerivatives._() { throw new UnsupportedError("Not supported"); }
@@ -987,7 +987,7 @@ class OesStandardDerivatives extends Interceptor {
 @DomName('OESTextureFloat')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float/
 @Experimental() // experimental
-@Native("OESTextureFloat")
+@Native("OESTextureFloat,OES_texture_float")
 class OesTextureFloat extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloat._() { throw new UnsupportedError("Not supported"); }
@@ -1001,7 +1001,7 @@ class OesTextureFloat extends Interceptor {
 @DomName('OESTextureFloatLinear')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float_linear/
 @Experimental()
-@Native("OESTextureFloatLinear")
+@Native("OESTextureFloatLinear,OES_texture_float_linear")
 class OesTextureFloatLinear extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloatLinear._() { throw new UnsupportedError("Not supported"); }
@@ -1015,7 +1015,7 @@ class OesTextureFloatLinear extends Interceptor {
 @DomName('OESTextureHalfFloat')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float/
 @Experimental() // experimental
-@Native("OESTextureHalfFloat")
+@Native("OESTextureHalfFloat,OES_texture_half_float")
 class OesTextureHalfFloat extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloat._() { throw new UnsupportedError("Not supported"); }
@@ -1033,7 +1033,7 @@ class OesTextureHalfFloat extends Interceptor {
 @DomName('OESTextureHalfFloatLinear')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float_linear/
 @Experimental()
-@Native("OESTextureHalfFloatLinear")
+@Native("OESTextureHalfFloatLinear,OES_texture_half_float_linear")
 class OesTextureHalfFloatLinear extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloatLinear._() { throw new UnsupportedError("Not supported"); }
@@ -1047,7 +1047,7 @@ class OesTextureHalfFloatLinear extends Interceptor {
 @DomName('OESVertexArrayObject')
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
 @Experimental() // experimental
-@Native("OESVertexArrayObject")
+@Native("OESVertexArrayObject,OES_vertex_array_object")
 class OesVertexArrayObject extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesVertexArrayObject._() { throw new UnsupportedError("Not supported"); }
@@ -2386,24 +2386,10 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DocsEditable()
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
-  /**
-   * Buffers the specified data.
-   *
-   * The [bufferData] method is provided for WebGL API compatibility reasons, but
-   * it is highly recommended that you use [bufferDataTyped] or [bufferByteData]
-   * depending on your purposes.
-   */
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
   void bufferData(int target, data_OR_size, int usage) native;
 
-  /**
-   * Buffers the specified subset of data.
-   *
-   * The [bufferSubData] method is provided for WebGL API compatibility reasons, but
-   * it is highly recommended that you use [bufferSubDataTyped] or [bufferSubByteData]
-   * depending on your purposes.
-   */
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable()
   void bufferSubData(int target, int offset, data) native;
@@ -2782,18 +2768,10 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DocsEditable()
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
-    if (pixels != null && type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
@@ -2817,62 +2795,22 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, TypedData pixels) native;
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_2(target, level, internalformat, format, type, pixels) native;
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_3(target, level, internalformat, format, type, ImageElement image) native;
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native;
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_5(target, level, internalformat, format, type, VideoElement video) native;
@@ -2885,18 +2823,10 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DocsEditable()
   void texParameteri(int target, int pname, int param) native;
 
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
-    if (pixels != null && type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
@@ -2920,62 +2850,22 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, TypedData pixels) native;
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native;
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, ImageElement image) native;
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native;
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, VideoElement video) native;
@@ -3109,43 +2999,68 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    * Sets the currently bound texture to [data].
    *
    * [data] can be either an [ImageElement], a
-   * [CanvasElement], a [VideoElement], or an [ImageData] object.
+   * [CanvasElement], a [VideoElement], [TypedData] or an [ImageData] object.
    *
-   * To use [texImage2d] with a TypedData object, use [texImage2dTyped].
-   *
+   * This is deprecated in favor of [texImage2D].
    */
-  @JSName('texImage2D')
-  void texImage2DUntyped(int targetTexture, int levelOfDetail, 
-      int internalFormat, int format, int type, data) native;
+  @Deprecated("Use texImage2D")
+  void texImage2DUntyped(int targetTexture, int levelOfDetail,
+      int internalFormat, int format, int type, data) {
+    texImage2D(targetTexture, levelOfDetail, internalFormat, format, type, data);
+  }
 
   /**
    * Sets the currently bound texture to [data].
+   *
+   * This is deprecated in favour of [texImage2D].
    */
-  @JSName('texImage2D')
-  void texImage2DTyped(int targetTexture, int levelOfDetail,
-      int internalFormat, int width, int height, int border, int format,
-      int type, TypedData data) native;
+  @Deprecated("Use texImage2D")
+  void texImage2DTyped(int targetTexture, int levelOfDetail, int internalFormat,
+      int width, int height, int border, int format, int type, TypedData data) {
+    texImage2D(targetTexture, levelOfDetail, internalFormat,
+        width, height, border, format, type, data);
+  }
 
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
    * [data] can be either an [ImageElement], a
-   * [CanvasElement], a [VideoElement], or an [ImageData] object.
-   *
-   * To use [texSubImage2d] with a TypedData object, use [texSubImage2dTyped].
+   * [CanvasElement], a [VideoElement], [TypedData] or an [ImageData] object.
    *
    */
-  @JSName('texSubImage2D')
+  @Deprecated("Use texSubImage2D")
   void texSubImage2DUntyped(int targetTexture, int levelOfDetail,
-      int xOffset, int yOffset, int format, int type, data) native;
+      int xOffset, int yOffset, int format, int type, data) {
+    texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset,
+        format, type, data);
+  }
 
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    */
-  @JSName('texSubImage2D')
+  @Deprecated("Use texSubImage2D")
   void texSubImage2DTyped(int targetTexture, int levelOfDetail,
       int xOffset, int yOffset, int width, int height, int border, int format,
-      int type, TypedData data) native;
+      int type, TypedData data) {
+    texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset,
+        width, height, format, type, data);
+  }
+
+  /**
+   * Set the bufferData to [data].
+   */
+  @Deprecated("Use bufferData")
+  void bufferDataTyped(int target, TypedData data, int usage) {
+    bufferData(target, data, usage);
+  }
+
+  /**
+   * Set the bufferSubData to [data].
+   */
+  @Deprecated("Use bufferSubData")
+  void bufferSubDataTyped(int target, int offset, TypedData data) {
+    bufferSubData(target, offset, data);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4979,7 +4894,7 @@ class RenderingContext2 extends Interceptor implements _WebGL2RenderingContextBa
   @DocsEditable()
   @Experimental() // untriaged
   void texSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int format_OR_width, int height_OR_type, canvas_OR_data_OR_depth_OR_image_OR_video, [int format, int type, TypedData pixels]) {
-    if (pixels != null && type != null && format != null && (canvas_OR_data_OR_depth_OR_image_OR_video is int)) {
+    if (type != null && format != null && (canvas_OR_data_OR_depth_OR_image_OR_video is int)) {
       _texSubImage3D_1(target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, canvas_OR_data_OR_depth_OR_image_OR_video, format, type, pixels);
       return;
     }
@@ -5685,7 +5600,7 @@ class RenderingContext2 extends Interceptor implements _WebGL2RenderingContextBa
   @DocsEditable()
   @Experimental() // untriaged
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
-    if (pixels != null && type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
@@ -5748,7 +5663,7 @@ class RenderingContext2 extends Interceptor implements _WebGL2RenderingContextBa
   @DocsEditable()
   @Experimental() // untriaged
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
-    if (pixels != null && type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }

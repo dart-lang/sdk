@@ -104,12 +104,6 @@ class _GrowableList<T> extends ListBase<T> {
     return new _GrowableList<T>.withData(data);
   }
 
-  factory _GrowableList.from(Iterable<T> other) {
-    List<T> result = new _GrowableList<T>();
-    result.addAll(other);
-    return result;
-  }
-
   factory _GrowableList.withData(_List data)
     native "GrowableList_allocate";
 
@@ -118,8 +112,19 @@ class _GrowableList<T> extends ListBase<T> {
   int get length native "GrowableList_getLength";
 
   void set length(int new_length) {
-    int new_capacity = (new_length == 0) ? _kDefaultCapacity : new_length;
-    if (new_capacity > _capacity) {
+    int old_capacity = _capacity;
+    int new_capacity = new_length;
+    if (new_length == 0) {
+      // Ensure that we use _kDefaultCapacity only when the old_capacity
+      // is greater than _kDefaultCapacity otherwise we end up growing the
+      // the array.
+      if (old_capacity < _kDefaultCapacity) {
+        new_capacity = old_capacity;
+      } else {
+        new_capacity = _kDefaultCapacity;
+      }
+    }
+    if (new_capacity > old_capacity) {
       _grow(new_capacity);
       _setLength(new_length);
       return;
@@ -209,8 +214,7 @@ class _GrowableList<T> extends ListBase<T> {
   T removeLast() {
     var len = length - 1;
     var elem = this[len];
-    this[len] = null;
-    _setLength(len);
+    this.length = len;
     return elem;
   }
 

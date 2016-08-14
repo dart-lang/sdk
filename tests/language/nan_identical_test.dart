@@ -8,15 +8,14 @@ import 'dart:typed_data';
 
 import "package:expect/expect.dart";
 
-double uint64toDouble(int i) {
+double createOtherNAN() {
   var buffer = new Uint8List(8).buffer;
   var bdata = new ByteData.view(buffer);
-  bdata.setUint64(0, i);
-  return bdata.getFloat64(0);
-}
-
-double createOtherNAN() {
-  return uint64toDouble((1 << 64) - 2);
+  bdata.setFloat64(0, double.NAN);
+  bdata.setInt8(7, bdata.getInt8(7) ^ 1);  // Flip bit 0, big endian.
+  double result = bdata.getFloat64(0);
+  Expect.isTrue(result.isNaN);
+  return result;
 }
 
 main() {

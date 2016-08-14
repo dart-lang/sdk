@@ -9,7 +9,6 @@ part of types;
  * implementation methods to it.
  */
 abstract class ForwardingTypeMask implements TypeMask {
-
   TypeMask get forwardTo;
 
   ForwardingTypeMask();
@@ -102,9 +101,8 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.canHit(element, selector, classWorld);
   }
 
-  Element locateSingleElement(Selector selector,
-                              TypeMask mask,
-                              Compiler compiler) {
+  Element locateSingleElement(
+      Selector selector, TypeMask mask, Compiler compiler) {
     return forwardTo.locateSingleElement(selector, mask, compiler);
   }
 
@@ -117,7 +115,7 @@ abstract class ForwardingTypeMask implements TypeMask {
     }
   }
 
-  bool operator==(other) {
+  bool operator ==(other) {
     return equalsDisregardNull(other) && isNullable == other.isNullable;
   }
 

@@ -8,9 +8,10 @@
 library compiler.api.legacy;
 
 import 'dart:async' show EventSink, Future;
-import 'null_compiler_output.dart' show NullSink;
+
 import '../compiler.dart';
 import '../compiler_new.dart';
+import 'null_compiler_output.dart' show NullSink;
 
 /// Implementation of [CompilerInput] using a [CompilerInputProvider].
 class LegacyCompilerInput implements CompilerInput {
@@ -31,8 +32,8 @@ class LegacyCompilerDiagnostics implements CompilerDiagnostics {
   LegacyCompilerDiagnostics(this._handler);
 
   @override
-  void report(var code, Uri uri, int begin, int end,
-              String message, Diagnostic kind) {
+  void report(
+      var code, Uri uri, int begin, int end, String message, Diagnostic kind) {
     _handler(uri, begin, end, message, kind);
   }
 }

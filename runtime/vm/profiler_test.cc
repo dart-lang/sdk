@@ -9,6 +9,7 @@
 #include "vm/globals.h"
 #include "vm/profiler.h"
 #include "vm/profiler_service.h"
+#include "vm/source_report.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -19,24 +20,6 @@ DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(int, optimization_counter_threshold);
-
-template<typename T>
-class SetFlagScope : public ValueObject {
- public:
-  SetFlagScope(T* flag, T value)
-      : flag_(flag),
-        original_value_(*flag) {
-    *flag_ = value;
-  }
-
-  ~SetFlagScope() {
-    *flag_ = original_value_;
-  }
-
- private:
-  T* flag_;
-  T original_value_;
-};
 
 // Some tests are written assuming native stack trace profiling is disabled.
 class DisableNativeProfileScope : public ValueObject {
@@ -179,15 +162,16 @@ TEST_CASE(Profiler_AllocationSampleTest) {
 
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
-      lib.LookupClassAllowPrivate(String::Handle(Symbols::New(name))));
+      lib.LookupClassAllowPrivate(String::Handle(Symbols::New(Thread::Current(),
+                                                              name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
 
 
 static RawFunction* GetFunction(const Library& lib, const char* name) {
-  const Function& func = Function::Handle(
-      lib.LookupFunctionAllowPrivate(String::Handle(Symbols::New(name))));
+  const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
+      String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!func.IsNull());  // No ambiguity error expected.
   return func.raw();
 }
@@ -200,6 +184,7 @@ class AllocationFilter : public SampleFilter {
                    int64_t time_origin_micros = -1,
                    int64_t time_extent_micros = -1)
       : SampleFilter(isolate,
+                     Thread::kMutatorTask,
                      time_origin_micros,
                      time_extent_micros),
         cid_(cid),
@@ -278,6 +263,8 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     walker.Reset(Profile::kExclusiveCode);
     // Move down from the root.
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
@@ -290,11 +277,15 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     EXPECT_STREQ("main", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
 
     // Exclusive function: B.boo -> main.
     walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
@@ -308,6 +299,8 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     EXPECT_STREQ("main", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -392,6 +385,8 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
     walker.Reset(Profile::kExclusiveCode);
     // Move down from the root.
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
@@ -404,11 +399,15 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
     EXPECT_STREQ("main", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
 
     // Exclusive function: boo -> main.
     walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
@@ -422,6 +421,8 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
     EXPECT_STREQ("main", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -511,6 +512,8 @@ TEST_CASE(Profiler_CodeTicks) {
     walker.Reset(Profile::kExclusiveCode);
     // Move down from the root.
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
@@ -535,6 +538,8 @@ TEST_CASE(Profiler_CodeTicks) {
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT_EQ(3, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }
@@ -606,6 +611,8 @@ TEST_CASE(Profiler_FunctionTicks) {
     walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
@@ -630,6 +637,8 @@ TEST_CASE(Profiler_FunctionTicks) {
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT_EQ(3, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }
@@ -678,6 +687,8 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
     ProfileTrieWalker walker(&profile);
 
     walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("Double_add", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("_Double._add", walker.CurrentName());
     EXPECT(walker.Down());
@@ -747,6 +758,8 @@ TEST_CASE(Profiler_ArrayAllocation) {
 
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateArray", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("_List._List", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("List.List", walker.CurrentName());
@@ -794,6 +807,8 @@ TEST_CASE(Profiler_ArrayAllocation) {
     ProfileTrieWalker walker(&profile);
 
     walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateArray", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("_List._List", walker.CurrentName());
     EXPECT(walker.Down());
@@ -853,6 +868,8 @@ TEST_CASE(Profiler_ContextAllocation) {
     ProfileTrieWalker walker(&profile);
 
     walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateContext", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -918,6 +935,8 @@ TEST_CASE(Profiler_ClosureAllocation) {
 
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
+    EXPECT_SUBSTRING("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_SUBSTRING("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
@@ -957,7 +976,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
       Library::Handle(isolate->object_store()->typed_data_library());
 
   const Class& float32_list_class =
-      Class::Handle(GetClass(typed_data_library, "_Float32Array"));
+      Class::Handle(GetClass(typed_data_library, "Float32List"));
   EXPECT(!float32_list_class.IsNull());
 
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
@@ -989,7 +1008,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
 
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
-    EXPECT_STREQ("_Float32Array._Float32Array", walker.CurrentName());
+    EXPECT_STREQ("TypedData_Float32Array_new", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("Float32List.Float32List", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1071,6 +1090,8 @@ TEST_CASE(Profiler_StringAllocation) {
 
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
+    EXPECT_STREQ("String_concat", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("_StringBase.+", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
@@ -1109,6 +1130,7 @@ TEST_CASE(Profiler_StringAllocation) {
 
 TEST_CASE(Profiler_StringInterpolation) {
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => '$a | $b';";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
@@ -1150,6 +1172,8 @@ TEST_CASE(Profiler_StringInterpolation) {
     ProfileTrieWalker walker(&profile);
 
     walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("OneByteString_allocate", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("_OneByteString._allocate", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1270,6 +1294,8 @@ TEST_CASE(Profiler_FunctionInline) {
     // We have two code objects: mainA and B.boo.
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
@@ -1296,11 +1322,15 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
     EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
 
     // Inline expansion should show us the complete call chain:
     // mainA -> B.boo -> B.foo -> B.choo.
     walker.Reset(Profile::kExclusiveFunction);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.choo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
@@ -1354,6 +1384,8 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
     EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1375,6 +1407,8 @@ TEST_CASE(Profiler_FunctionInline) {
     // We have two code objects: mainA and B.boo.
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
@@ -1393,11 +1427,15 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
 
     // Inline expansion should show us the complete call chain:
     // mainA -> B.boo -> B.foo -> B.choo.
     walker.Reset(Profile::kExclusiveFunction);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Inline End]", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1435,6 +1473,8 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("B.choo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Inline End]", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }
@@ -1543,6 +1583,8 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
     // Inline expansion should show us the complete call chain:
     walker.Reset(Profile::kExclusiveFunction);
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("maybeAlloc", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("right", walker.CurrentName());
@@ -1562,6 +1604,8 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
     EXPECT_STREQ("right", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("maybeAlloc", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }
@@ -1632,6 +1676,8 @@ TEST_CASE(Profiler_ChainedSamples) {
 
     walker.Reset(Profile::kExclusiveCode);
     // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1732,6 +1778,8 @@ TEST_CASE(Profiler_BasicSourcePosition) {
     walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
@@ -1822,6 +1870,8 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
     walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
@@ -1904,6 +1954,8 @@ TEST_CASE(Profiler_SourcePosition) {
     // Exclusive function: B.boo -> main.
     walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
@@ -2026,6 +2078,8 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
     walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
@@ -2129,6 +2183,8 @@ TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
     // Exclusive function: B.boo -> main.
     walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
@@ -2260,6 +2316,8 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
     walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
     EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
@@ -2297,6 +2355,207 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
     EXPECT_STREQ("bacon", walker.CurrentToken());
     EXPECT(!walker.Down());
   }
+}
+
+
+static void InsertFakeSample(SampleBuffer* sample_buffer,
+                             uword* pc_offsets) {
+  ASSERT(sample_buffer != NULL);
+  Isolate* isolate = Isolate::Current();
+  Sample* sample = sample_buffer->ReserveSample();
+  ASSERT(sample != NULL);
+  sample->Init(isolate,
+               OS::GetCurrentMonotonicMicros(),
+               OSThread::Current()->trace_id());
+  sample->set_thread_task(Thread::kMutatorTask);
+
+  intptr_t i = 0;
+  while (pc_offsets[i] != 0) {
+    // When we collect a real stack trace, all PCs collected aside from the
+    // executing one (i == 0) are actually return addresses. Return addresses
+    // are one byte beyond the call instruction that is executing. The profiler
+    // accounts for this and subtracts one from these addresses when querying
+    // inline and token position ranges. To be consistent with real stack
+    // traces, we add one byte to all PCs except the executing one.
+    // See OffsetForPC in profiler_service.cc for more context.
+    const intptr_t return_address_offset = i > 0 ? 1 : 0;
+    sample->SetAt(i, pc_offsets[i] + return_address_offset);
+    i++;
+  }
+  sample->SetAt(i, 0);
+}
+
+
+static uword FindPCForTokenPosition(const Code& code,
+                                    const CodeSourceMap& code_source_map,
+                                    TokenPosition tp) {
+  CodeSourceMap::Iterator it(code_source_map);
+
+  while (it.MoveNext()) {
+    if (it.TokenPos() == tp) {
+      return it.PcOffset() + code.PayloadStart();
+    }
+  }
+
+  return 0;
+}
+
+
+TEST_CASE(Profiler_GetSourceReport) {
+  const char* kScript =
+      "doWork(i) => i * i;\n"
+      "main() {\n"
+      "  var sum = 0;\n"
+      "  for (var i = 0; i < 100; i++) {\n"
+      "     sum += doWork(i);\n"
+      "  }\n"
+      "  return sum;\n"
+      "}\n";
+
+  // Token position of * in `i * i`.
+  const TokenPosition squarePosition = TokenPosition(6);
+
+  // Token position of the call to `doWork`.
+  const TokenPosition callPosition = TokenPosition(39);
+
+  DisableNativeProfileScope dnps;
+  // Disable profiling for this thread.
+  DisableThreadInterruptsScope dtis(Thread::Current());
+
+  DisableBackgroundCompilationScope dbcs;
+
+  SampleBuffer* sample_buffer = Profiler::sample_buffer();
+  EXPECT(sample_buffer != NULL);
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  // Invoke main so that it gets compiled.
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    // Clear the profile for this isolate.
+    ClearProfileVisitor cpv(Isolate::Current());
+    sample_buffer->VisitSamples(&cpv);
+  }
+
+  // Query the code object for main and determine the PC at some token
+  // positions.
+  const Function& main = Function::Handle(GetFunction(root_library, "main"));
+  EXPECT(!main.IsNull());
+
+  const Function& do_work =
+      Function::Handle(GetFunction(root_library, "doWork"));
+  EXPECT(!do_work.IsNull());
+
+  const Script& script = Script::Handle(main.script());
+  EXPECT(!script.IsNull());
+
+  const Code& main_code = Code::Handle(main.CurrentCode());
+  EXPECT(!main_code.IsNull());
+
+  const Code& do_work_code = Code::Handle(do_work.CurrentCode());
+  EXPECT(!do_work_code.IsNull());
+
+  const CodeSourceMap& main_code_source_map =
+      CodeSourceMap::Handle(main_code.code_source_map());
+  EXPECT(!main_code_source_map.IsNull());
+
+  const CodeSourceMap& do_work_code_source_map =
+      CodeSourceMap::Handle(do_work_code.code_source_map());
+  EXPECT(!do_work_code_source_map.IsNull());
+
+  // Dump code source map.
+  CodeSourceMap::Dump(do_work_code_source_map, do_work_code, main);
+  CodeSourceMap::Dump(main_code_source_map, main_code, main);
+
+  // Look up some source token position's pc.
+  uword squarePositionPc =
+      FindPCForTokenPosition(do_work_code,
+                             do_work_code_source_map,
+                             squarePosition);
+  EXPECT(squarePositionPc != 0);
+
+  uword callPositionPc =
+      FindPCForTokenPosition(main_code, main_code_source_map, callPosition);
+  EXPECT(callPositionPc != 0);
+
+  // Look up some classifying token position's pc.
+  uword controlFlowPc =
+      FindPCForTokenPosition(do_work_code,
+                             do_work_code_source_map,
+                             TokenPosition::kControlFlow);
+  EXPECT(controlFlowPc != 0);
+
+  uword tempMovePc =
+      FindPCForTokenPosition(main_code,
+                             main_code_source_map,
+                             TokenPosition::kTempMove);
+  EXPECT(tempMovePc != 0);
+
+  // Insert fake samples.
+
+  // Sample 1:
+  // squarePositionPc exclusive.
+  // callPositionPc inclusive.
+  uword sample1[] = {
+    squarePositionPc,  // doWork.
+    callPositionPc,    // main.
+    0
+  };
+
+  // Sample 2:
+  // squarePositionPc exclusive.
+  uword sample2[] = {
+    squarePositionPc,  // doWork.
+    0,
+  };
+
+  // Sample 3:
+  // controlFlowPc exclusive.
+  // callPositionPc inclusive.
+  uword sample3[] = {
+    controlFlowPc,   // doWork.
+    callPositionPc,  // main.
+    0
+  };
+
+  // Sample 4:
+  // tempMovePc exclusive.
+  uword sample4[] = {
+    tempMovePc,  // main.
+    0
+  };
+
+  InsertFakeSample(sample_buffer, &sample1[0]);
+  InsertFakeSample(sample_buffer, &sample2[0]);
+  InsertFakeSample(sample_buffer, &sample3[0]);
+  InsertFakeSample(sample_buffer, &sample4[0]);
+
+  // Generate source report for main.
+  SourceReport sourceReport(SourceReport::kProfile);
+  JSONStream js;
+  sourceReport.PrintJSON(&js,
+                         script,
+                         do_work.token_pos(),
+                         main.end_token_pos());
+
+  // Verify positions in do_work.
+  EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",6]", js.ToCString());
+  // Verify exclusive ticks in do_work.
+  EXPECT_SUBSTRING("\"exclusiveTicks\":[1,2]", js.ToCString());
+  // Verify inclusive ticks in do_work.
+  EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
+
+  // Verify positions in main.
+  EXPECT_SUBSTRING("\"positions\":[\"TempMove\",39]", js.ToCString());
+  // Verify exclusive ticks in main.
+  EXPECT_SUBSTRING("\"exclusiveTicks\":[1,0]", js.ToCString());
+  // Verify inclusive ticks in main.
+  EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
 }
 
 #endif  // !PRODUCT

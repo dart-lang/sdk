@@ -175,6 +175,8 @@ class AssemblerBuffer : public ValueObject {
   // Returns the position in the instruction stream.
   intptr_t GetPosition() const { return cursor_ - contents_; }
 
+  void Reset() { cursor_ = contents_; }
+
  private:
   // The limit is set to kMinimumGap bytes before the end of the data area.
   // This leaves enough space for the longest possible instruction and allows
@@ -247,16 +249,8 @@ class ObjIndexPair {
   ObjIndexPair(Key key, Value value) : value_(value) {
     key_.type_ = key.type_;
     if (key.type_ == ObjectPool::kTaggedObject) {
-      if (key.obj_->IsNotTemporaryScopedHandle()) {
-        key_.obj_ = key.obj_;
-      } else {
-        key_.obj_ = &Object::ZoneHandle(key.obj_->raw());
-      }
-      if (key.equivalence_->IsNotTemporaryScopedHandle()) {
-        key_.equivalence_ = key.equivalence_;
-      } else {
-        key_.equivalence_ = &Object::ZoneHandle(key.equivalence_->raw());
-      }
+      key_.obj_ = key.obj_;
+      key_.equivalence_ = key.equivalence_;
     } else {
       key_.raw_value_ = key.raw_value_;
     }
@@ -273,20 +267,12 @@ class ObjIndexPair {
     if (key.obj_->IsSmi()) {
       return Smi::Cast(*key.obj_).Value();
     }
-    if (key.obj_->IsDouble()) {
-      return static_cast<intptr_t>(
-          bit_cast<int32_t, float>(
-              static_cast<float>(Double::Cast(*key.obj_).value())));
-    }
-    if (key.obj_->IsMint()) {
-      return static_cast<intptr_t>(Mint::Cast(*key.obj_).value());
-    }
-    if (key.obj_->IsString()) {
-      return String::Cast(*key.obj_).Hash();
-    }
-    // TODO(fschneider): Add hash function for other classes commonly used as
-    // compile-time constants.
-    return key.obj_->GetClassId();
+    // TODO(asiva) For now we assert that the object is from Old space
+    // and use the address of the raw object, once the weak_entry_table code
+    // in heap allows for multiple thread access we should switch this code
+    // to create a temporary raw obj => id mapping and use that.
+    ASSERT(key.obj_->IsOld());
+    return reinterpret_cast<intptr_t>(key.obj_->raw());
   }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
@@ -356,6 +342,8 @@ enum RestorePP {
 #include "vm/assembler_arm64.h"
 #elif defined(TARGET_ARCH_MIPS)
 #include "vm/assembler_mips.h"
+#elif defined(TARGET_ARCH_DBC)
+#include "vm/assembler_dbc.h"
 #else
 #error Unknown architecture.
 #endif

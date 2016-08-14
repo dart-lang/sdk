@@ -323,8 +323,8 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ jmp(&loop_condition, Assembler::kNearJump);
   __ Bind(&loop);
   __ movl(EDI, Address(EBX, 0));
-  // No generational barrier needed, since array is in new space.
-  __ InitializeFieldNoBarrier(EAX, Address(ECX, 0), EDI);
+  // Generational barrier is needed, array is not necessarily in new space.
+  __ StoreIntoObject(EAX, Address(ECX, 0), EDI);
   __ AddImmediate(ECX, Immediate(kWordSize));
   __ AddImmediate(EBX, Immediate(-kWordSize));
   __ Bind(&loop_condition);
@@ -561,11 +561,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ cmpl(EDX, max_len);
   __ j(GREATER, &slow_case);
 
-  __ MaybeTraceAllocation(kArrayCid,
-                          EAX,
-                          &slow_case,
-                          Assembler::kFarJump,
-                          /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid,
+                                         EAX,
+                                         &slow_case,
+                                         Assembler::kFarJump));
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leal(EBX, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
@@ -577,7 +576,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // EBX: allocation size.
 
   const intptr_t cid = kArrayCid;
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ movl(EDI, Address(THR, Thread::heap_offset()));
   __ movl(EAX, Address(EDI, Heap::TopOffset(space)));
   __ addl(EBX, EAX);
@@ -597,8 +596,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ movl(Address(EDI, Heap::TopOffset(space)), EBX);
   __ subl(EBX, EAX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, EBX, EDI, space,
-                                   /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI, space));
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -626,12 +624,13 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // ECX: array element type.
   // EDX: Array length as Smi (preserved).
   // Store the type argument field.
-  __ InitializeFieldNoBarrier(EAX,
+  // No generetional barrier needed, since we store into a new object.
+  __ StoreIntoObjectNoBarrier(EAX,
                               FieldAddress(EAX, Array::type_arguments_offset()),
                               ECX);
 
   // Set the length field.
-  __ InitializeFieldNoBarrier(EAX,
+  __ StoreIntoObjectNoBarrier(EAX,
                               FieldAddress(EAX, Array::length_offset()),
                               EDX);
 
@@ -650,7 +649,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ cmpl(EDI, EBX);
   __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
   // No generational barrier needed, since we are storing null.
-  __ InitializeFieldNoBarrier(EAX, Address(EDI, 0), Object::null_object());
+  __ StoreIntoObjectNoBarrier(EAX, Address(EDI, 0), Object::null_object());
   __ addl(EDI, Immediate(kWordSize));
   __ jmp(&init_loop, Assembler::kNearJump);
   __ Bind(&done);
@@ -800,16 +799,15 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ leal(EBX, Address(EDX, TIMES_4, fixed_size));
     __ andl(EBX, Immediate(-kObjectAlignment));
 
-    __ MaybeTraceAllocation(kContextCid,
-                            EAX,
-                            &slow_case,
-                            Assembler::kFarJump,
-                            /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid,
+                                           EAX,
+                                           &slow_case,
+                                           Assembler::kFarJump));
 
     // Now allocate the object.
     // EDX: number of context variables.
     const intptr_t cid = kContextCid;
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    Heap::Space space = Heap::kNew;
     __ movl(ECX, Address(THR, Thread::heap_offset()));
     __ movl(EAX, Address(ECX, Heap::TopOffset(space)));
     __ addl(EBX, EAX);
@@ -839,8 +837,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ subl(EBX, EAX);
     __ addl(EAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
-    __ UpdateAllocationStatsWithSize(cid, EBX, EDI, space,
-                                     /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI, space));
 
     // Calculate the size tag.
     // EAX: new object.
@@ -876,7 +873,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EAX: new object.
     // EDX: number of context variables.
     // No generational barrier needed, since we are storing null.
-    __ InitializeFieldNoBarrier(EAX,
+    __ StoreIntoObjectNoBarrier(EAX,
                                 FieldAddress(EAX, Context::parent_offset()),
                                 Object::null_object());
 
@@ -891,7 +888,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       __ Bind(&loop);
       __ decl(EDX);
       // No generational barrier needed, since we are storing null.
-      __ InitializeFieldNoBarrier(EAX,
+      __ StoreIntoObjectNoBarrier(EAX,
                                   Address(EBX, EDX, TIMES_4, 0),
                                   Object::null_object());
       __ Bind(&entry);
@@ -1022,7 +1019,7 @@ void StubCode::GenerateAllocationStubForClass(
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // EDX: instantiated type arguments (if is_cls_parameterized).
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     __ movl(EDI, Address(THR, Thread::heap_offset()));
     __ movl(EAX, Address(EDI, Heap::TopOffset(space)));
     __ leal(EBX, Address(EAX, instance_size));
@@ -1037,8 +1034,7 @@ void StubCode::GenerateAllocationStubForClass(
       __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movl(Address(EDI, Heap::TopOffset(space)), EBX);
-    __ UpdateAllocationStats(cls.id(), ECX, space,
-                             /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), ECX, space));
 
     // EAX: new object start (untagged).
     // EBX: next object start.
@@ -1063,7 +1059,7 @@ void StubCode::GenerateAllocationStubForClass(
       for (intptr_t current_offset = Instance::NextFieldOffset();
            current_offset < instance_size;
            current_offset += kWordSize) {
-        __ InitializeFieldNoBarrier(EAX,
+        __ StoreIntoObjectNoBarrier(EAX,
                                     FieldAddress(EAX, current_offset),
                                     Object::null_object());
       }
@@ -1079,7 +1075,7 @@ void StubCode::GenerateAllocationStubForClass(
       __ Bind(&init_loop);
       __ cmpl(ECX, EBX);
       __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-      __ InitializeFieldNoBarrier(EAX,
+      __ StoreIntoObjectNoBarrier(EAX,
                                   Address(ECX, 0),
                                   Object::null_object());
       __ addl(ECX, Immediate(kWordSize));
@@ -1087,11 +1083,11 @@ void StubCode::GenerateAllocationStubForClass(
       __ Bind(&done);
     }
     if (is_cls_parameterized) {
+      // EAX: new object (tagged).
       // EDX: new object type arguments.
       // Set the type arguments in the new object.
       intptr_t offset = cls.type_arguments_field_offset();
-      // TODO(koda): Figure out why previous content is sometimes null here.
-      __ InitializeFieldNoBarrier(EAX, FieldAddress(EAX, offset), EDX);
+      __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, offset), EDX);
     }
     // Done allocating and initializing the instance.
     // EAX: new object (tagged).
@@ -1282,7 +1278,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    RangeCollectionMode range_collection_mode,
     bool optimized) {
   ASSERT(num_args > 0);
 #if defined(DEBUG)
@@ -1307,19 +1302,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ j(NOT_EQUAL, &stepping);
     __ Bind(&done_stepping);
   }
-  __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
-  if (range_collection_mode == kCollectRanges) {
-    ASSERT((num_args == 1) || (num_args == 2));
-    if (num_args == 2) {
-      __ movl(EAX, Address(ESP, + 2 * kWordSize));
-      __ UpdateRangeFeedback(EAX, 0, ECX, EBX, EDI, EDX, &not_smi_or_overflow);
-    }
-
-    __ movl(EAX, Address(ESP, + 1 * kWordSize));
-    __ UpdateRangeFeedback(EAX, (num_args - 1), ECX, EBX, EDI, EDX,
-                           &not_smi_or_overflow);
-  }
   if (kind != Token::kILLEGAL) {
     EmitFastSmiOp(assembler, kind, num_args, &not_smi_or_overflow);
   }
@@ -1438,27 +1421,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Comment("Call target");
   // EAX: Target function.
   __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
-  if (range_collection_mode == kCollectRanges) {
-    __ EnterStubFrame();
-    __ pushl(ECX);
-    const intptr_t arg_offset_words = num_args +
-                                      Assembler::kEnterStubFramePushedWords +
-                                      1;  // ECX
-    for (intptr_t i = 0; i < num_args; i++) {
-      __ movl(EDI, Address(ESP, arg_offset_words * kWordSize));
-      __ pushl(EDI);
-    }
-    __ call(EBX);
-
-    __ movl(ECX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
-    Label done;
-    __ UpdateRangeFeedback(EAX, 2, ECX, EBX, EDI, EDX, &done);
-    __ Bind(&done);
-    __ LeaveFrame();
-    __ ret();
-  } else {
-    __ jmp(EBX);
-  }
+  __ jmp(EBX);
 
   if (FLAG_support_debugger && !optimized) {
     __ Bind(&stepping);
@@ -1486,8 +1449,7 @@ void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
       kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
+      Token::kILLEGAL);
 }
 
 
@@ -1495,8 +1457,7 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
+      Token::kILLEGAL);
 }
 
 
@@ -1504,8 +1465,7 @@ void StubCode::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kADD,
-      kCollectRanges);
+      Token::kADD);
 }
 
 
@@ -1513,8 +1473,7 @@ void StubCode::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kSUB,
-      kCollectRanges);
+      Token::kSUB);
 }
 
 
@@ -1522,28 +1481,7 @@ void StubCode::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kEQ,
-      kIgnoreRanges);
-}
-
-
-void StubCode::GenerateUnaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL,
-      kCollectRanges);
-}
-
-
-void StubCode::GenerateBinaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kCollectRanges);
+      Token::kEQ);
 }
 
 
@@ -1564,7 +1502,6 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
       kInlineCacheMissHandlerOneArgRuntimeEntry,
       Token::kILLEGAL,
-      kIgnoreRanges,
       true /* optimized */);
 }
 
@@ -1575,7 +1512,6 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
      Token::kILLEGAL,
-     kIgnoreRanges,
      true /* optimized */);
 }
 
@@ -1649,8 +1585,7 @@ void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
+      Token::kILLEGAL);
 }
 
 
@@ -1658,8 +1593,7 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kStaticCallMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
+      Token::kILLEGAL);
 }
 
 
@@ -2025,47 +1959,6 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
-  __ LoadTaggedClassIdMayBeSmi(EAX, EBX);
-  // EAX: class ID of the receiver (smi).
-  __ movl(EDI, FieldAddress(ECX, MegamorphicCache::buckets_offset()));
-  __ movl(EBX, FieldAddress(ECX, MegamorphicCache::mask_offset()));
-  // EDI: cache buckets array.
-  // EBX: mask.
-  __ pushl(ECX);  // Spill MegamorphicCache.
-  __ movl(ECX, EAX);
-  // ECX: probe.
-
-  Label loop, update, load_target_function;
-  __ jmp(&loop);
-
-  __ Bind(&update);
-  __ addl(ECX, Immediate(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ andl(ECX, EBX);
-  const intptr_t base = Array::data_offset();
-  // ECX is smi tagged, but table entries are two words, so TIMES_4.
-  __ movl(EDX, FieldAddress(EDI, ECX, TIMES_4, base));
-
-  ASSERT(kIllegalCid == 0);
-  __ testl(EDX, EDX);
-  __ j(ZERO, &load_target_function, Assembler::kNearJump);
-  __ cmpl(EDX, EAX);
-  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
-
-  __ Bind(&load_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
-  __ popl(ECX);  // Restore MegamorphicCache.
-  __ movl(EDX,
-          FieldAddress(ECX, MegamorphicCache::arguments_descriptor_offset()));
-  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
-}
-
-
 // Called from megamorphic calls.
 //  EBX: receiver
 //  ECX: MegamorphicCache (preserved)
@@ -2073,18 +1966,90 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
 //  EBX: target entry point
 //  EDX: argument descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler);
-  __ ret();
-}
+  // Jump if receiver is a smi.
+  Label smi_case;
+  // Check if object (in tmp) is a Smi.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  // Jump out of line for smi case.
+  __ j(ZERO, &smi_case, Assembler::kNearJump);
 
+  // Loads the cid of the instance.
+  __ LoadClassId(EAX, EBX);
+
+  Label cid_loaded;
+  __ Bind(&cid_loaded);
+  __ movl(EBX, FieldAddress(ECX, MegamorphicCache::mask_offset()));
+  __ movl(EDI, FieldAddress(ECX, MegamorphicCache::buckets_offset()));
+  // EDI: cache buckets array.
+  // EBX: mask.
+
+  // Tag cid as a smi.
+  __ addl(EAX, EAX);
+
+  // Compute the table index.
+  ASSERT(MegamorphicCache::kSpreadFactor == 7);
+  // Use leal and subl multiply with 7 == 8 - 1.
+  __ leal(EDX, Address(EAX, TIMES_8, 0));
+  __ subl(EDX, EAX);
+
+  Label loop;
+  __ Bind(&loop);
+  __ andl(EDX, EBX);
+
+  const intptr_t base = Array::data_offset();
+  Label probe_failed;
+  // EDX is smi tagged, but table entries are two words, so TIMES_4.
+  __ cmpl(EAX, FieldAddress(EDI, EDX, TIMES_4, base));
+  __ j(NOT_EQUAL, &probe_failed, Assembler::kNearJump);
+
+  Label load_target;
+  __ Bind(&load_target);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, base + kWordSize));
+  __ movl(EDX,
+          FieldAddress(ECX, MegamorphicCache::arguments_descriptor_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
+  __ ret();
+
+  __ Bind(&probe_failed);
+  // Probe failed, check if it is a miss.
+  __ cmpl(FieldAddress(EDI, EDX, TIMES_4, base), Immediate(kIllegalCid));
+  __ j(ZERO, &load_target, Assembler::kNearJump);
+
+  // Try next extry in the table.
+  __ AddImmediate(EDX, Immediate(Smi::RawValue(1)));
+  __ jmp(&loop);
+
+  // Load cid for the Smi case.
+  __ Bind(&smi_case);
+  __ movl(EAX, Immediate(kSmiCid));
+  __ jmp(&cid_loaded);
+}
 
 // Called from switchable IC calls.
 //  EBX: receiver
 //  ECX: ICData (preserved)
 // Result:
-//  EBX: target entry point
 //  EDX: arguments descriptor
-void StubCode::GenerateICLookupStub(Assembler* assembler) {
+void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
+  __ int3();
+}
+
+
+void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+  __ int3();
+}
+
+
+void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
+  __ int3();
+}
+
+
+void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
   __ int3();
 }
 

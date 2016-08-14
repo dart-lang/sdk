@@ -6,6 +6,7 @@ library test.services.refactoring.rename_class_member;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -88,6 +89,22 @@ class A {
         expectedMessage:
             "Class 'A' already declares method with name 'newName'.",
         expectedContextSearch: 'newName() {} // existing');
+  }
+
+  test_checkFinalConditions_OK_dropSuffix() async {
+    indexTestUnit(r'''
+abstract class A {
+  void testOld();
+}
+class B implements A {
+  void testOld() {}
+}
+''');
+    createRenameRefactoringAtString('testOld() {}');
+    // check status
+    refactoring.newName = 'test';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
   }
 
   test_checkFinalConditions_OK_noShadow() async {
@@ -249,15 +266,15 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  test_checkFinalConditions_shadowed_inSubClass() async {
+  test_checkFinalConditions_shadowedBySub_MethodElement() async {
     indexTestUnit('''
 class A {
-  newName() {} // marker
+  test() {}
 }
 class B extends A {
-  test() {}
+  newName() {} // marker
   main() {
-    newName();
+    test();
   }
 }
 ''');
@@ -266,11 +283,12 @@ class B extends A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Renamed method will shadow method 'A.newName'.",
+        expectedMessage:
+            "Renamed method will be shadowed by method 'B.newName'.",
         expectedContextSearch: 'newName() {} // marker');
   }
 
-  test_checkFinalConditions_shadowsSuper_inSubClass_FieldElement() async {
+  test_checkFinalConditions_shadowsSuper_FieldElement() async {
     indexTestUnit('''
 class A {
   int newName; // marker
@@ -296,13 +314,10 @@ class C extends B {
   test_checkFinalConditions_shadowsSuper_MethodElement() async {
     indexTestUnit('''
 class A {
-  test() {}
+  newName() {} // marker
 }
 class B extends A {
-  newName() {} // marker
-  main() {
-    test();
-  }
+  test() {}
 }
 ''');
     createRenameRefactoringAtString('test() {}');
@@ -310,9 +325,31 @@ class B extends A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Renamed method will be shadowed by method 'B.newName'.",
+        expectedMessage: "Renamed method will shadow method 'A.newName'.",
         expectedContextSearch: 'newName() {} // marker');
+  }
+
+  test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
+    var libCode = r'''
+class A {
+  newName() {} // marker
+}
+''';
+    indexUnit('/lib.dart', libCode);
+    indexTestUnit('''
+import 'lib.dart';
+class B extends A {
+  test() {}
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Renamed method will shadow method 'A.newName'.",
+        expectedContextRange: new SourceRange(
+            libCode.indexOf('newName() {} // marker'), 'newName'.length));
   }
 
   test_checkInitialConditions_inSDK() async {

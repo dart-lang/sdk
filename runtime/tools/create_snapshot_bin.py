@@ -45,6 +45,9 @@ def BuildOptions():
   result.add_option("--package_root",
       action="store", type="string",
       help="path used to resolve package: imports.")
+  result.add_option("--packages",
+      action="store", type="string",
+      help="package config file used to reasolve package: imports.")
   result.add_option("--url_mapping",
       default=[],
       action="append",
@@ -111,6 +114,10 @@ def Main():
   # Pass along the package_root if there is one.
   if options.package_root:
     script_args.append(''.join([ "--package_root=", options.package_root]))
+
+  # Pass along the packages if there is one.
+  if options.packages:
+    script_args.append(''.join([ "--packages=", options.packages]))
 
   # First setup the vm isolate and regular isolate snapshot output filename.
   script_args.append(''.join([ "--vm_isolate_snapshot=",

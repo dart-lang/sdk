@@ -26,57 +26,76 @@ import 'memory_compiler.dart';
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
-  // Several tests import mirrors; any of these might trigger the warning.
-  ".dart": const [
-      MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
-  ],
   "/test/src/util/": const [
       "Library 'package:async/async.dart' doesn't export a "
       "'ForkableStream' declaration.",
-  ],
-  "mirrors_test.dart": const [
-      MessageKind.INVALID_SYMBOL,
-      MessageKind.PRIVATE_IDENTIFIER,
   ],
 };
 
 const List<String> SKIP_LIST = const <String>[
   // Helper files:
-  "dart2js_batch2_run.dart",
-  "http_launch_data/",
+  "/data/",
+  "quarantined/http_launch_data/",
   "mirrors_helper.dart",
   "path%20with%20spaces/",
-  "one_line_dart_program.dart",
-  "sourcemaps/invokes_test_file.dart",
-  "cps_ir/input/",
-  // No longer maintained:
-  "backend_dart/",
   // Broken tests:
-  "http_test.dart",
+  "quarantined/http_test.dart",
+  // Package directory
+  "packages/",
 ];
 
 main(List<String> arguments) {
-  bool verbose = arguments.contains('-v');
-
-  List<String> options = <String>[
-    Flags.analyzeOnly,
-    Flags.analyzeMain,
-    '--categories=Client,Server'];
-  if (verbose) {
-    options.add(Flags.verbose);
+  List<String> options = <String>[];
+  List<Uri> uriList = <Uri>[];
+  String filter;
+  bool first = true;
+  for (String argument in arguments) {
+    if (argument.startsWith('-')) {
+      options.add(argument == '-v' ? Flags.verbose : argument);
+    } else if (first) {
+      File file = new File(argument);
+      if (file.existsSync()) {
+        // Read test files from [file].
+        for (String line in file.readAsLinesSync()) {
+          line = line.trim();
+          if (line.startsWith('Analyzing uri: ')) {
+            int filenameOffset = line.indexOf('tests/compiler/dart2js/');
+            if (filenameOffset != -1) {
+              uriList.add(Uri.base.resolve(
+                  nativeToUriPath(line.substring(filenameOffset))));
+            }
+          }
+        }
+      } else {
+        // Use argument as filter on test files.
+        filter = argument;
+      }
+    } else {
+      throw new ArgumentError("Extra argument $argument in $arguments.");
+    }
+    first = false;
   }
+
   asyncTest(() async {
-    List<Uri> uriList = <Uri>[];
-    Directory dir =
-        new Directory.fromUri(Uri.base.resolve('tests/compiler/dart2js/'));
-    for (FileSystemEntity entity in dir.listSync(recursive: true)) {
-      if (entity is File && entity.path.endsWith('.dart')) {
-        Uri file = Uri.base.resolve(nativeToUriPath(entity.path));
-        if (!SKIP_LIST.any((skip) => file.path.contains(skip))) {
-          uriList.add(file);
+    if (uriList.isEmpty) {
+      Directory dir =
+          new Directory.fromUri(Uri.base.resolve('tests/compiler/dart2js/'));
+      for (FileSystemEntity entity in dir.listSync(recursive: true)) {
+        if (entity is File && entity.path.endsWith('.dart')) {
+          Uri file = Uri.base.resolve(nativeToUriPath(entity.path));
+          if (filter != null && !'$file'.contains(filter)) {
+            continue;
+          }
+          if (!SKIP_LIST.any((skip) => file.path.contains(skip))) {
+            uriList.add(file);
+          }
         }
       }
     }
-    await analyze(uriList, WHITE_LIST, mode: AnalysisMode.URI);
+    await analyze(
+        uriList,
+        WHITE_LIST,
+        mode: AnalysisMode.URI,
+        options: options);
   });
 }

@@ -9,7 +9,6 @@ part of dart2js.js_emitter.full_emitter;
 /// Initially, it is just a placeholder for code that is moved from
 /// [CodeEmitterTask].
 class ContainerBuilder extends CodeEmitterHelper {
-
   void addMemberMethod(DartMethod method, ClassBuilder builder) {
     MethodElement member = method.element;
     jsAst.Name name = method.name;
@@ -31,8 +30,8 @@ class ContainerBuilder extends CodeEmitterHelper {
     emitter.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
 
     if (!needStructuredInfo) {
-      compiler.dumpInfoTask.registerElementAst(member,
-          builder.addProperty(name, code));
+      compiler.dumpInfoTask
+          .registerElementAst(member, builder.addProperty(name, code));
 
       for (ParameterStubMethod stub in method.parameterStubs) {
         assert(stub.callName == null);
@@ -87,9 +86,9 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     if (onlyNeedsSuperAlias) {
       jsAst.ArrayInitializer arrayInit =
-            new jsAst.ArrayInitializer(expressions);
-          compiler.dumpInfoTask.registerElementAst(member,
-              builder.addProperty(name, arrayInit));
+          new jsAst.ArrayInitializer(expressions);
+      compiler.dumpInfoTask
+          .registerElementAst(member, builder.addProperty(name, arrayInit));
       return;
     }
 
@@ -126,13 +125,14 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
 
     expressions
-        ..addAll(tearOffInfo)
-        ..add((tearOffName == null || member.isAccessor)
-              ? js("null") : js.quoteName(tearOffName))
-        ..add(js.number(requiredParameterCount))
-        ..add(js.number(optionalParameterCount))
-        ..add(memberTypeExpression == null ? js("null") : memberTypeExpression)
-        ..addAll(task.metadataCollector.reifyDefaultArguments(member));
+      ..addAll(tearOffInfo)
+      ..add((tearOffName == null || member.isAccessor)
+          ? js("null")
+          : js.quoteName(tearOffName))
+      ..add(js.number(requiredParameterCount))
+      ..add(js.number(optionalParameterCount))
+      ..add(memberTypeExpression == null ? js("null") : memberTypeExpression)
+      ..addAll(task.metadataCollector.reifyDefaultArguments(member));
 
     if (canBeReflected || canBeApplied) {
       parameters.forEachParameter((Element parameter) {
@@ -155,24 +155,22 @@ class ContainerBuilder extends CodeEmitterHelper {
         // TODO(herhut): This registers name as a mangled name. Do we need this
         //               given that we use a different name below?
         emitter.getReflectionName(member, name);
-        reflectionName =
-            new jsAst.LiteralString(
-                '"new ${Elements.reconstructConstructorName(member)}"');
+        reflectionName = new jsAst.LiteralString(
+            '"new ${Elements.reconstructConstructorName(member)}"');
       } else {
-        reflectionName =
-            js.string(namer.privateName(member.memberName));
+        reflectionName = js.string(namer.privateName(member.memberName));
       }
       expressions
-          ..add(reflectionName)
-          ..addAll(task.metadataCollector.computeMetadata(member));
+        ..add(reflectionName)
+        ..addAll(task.metadataCollector.computeMetadata(member));
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(namer.privateName(member.memberName)));
     }
 
     jsAst.ArrayInitializer arrayInit =
-      new jsAst.ArrayInitializer(expressions.toList());
-    compiler.dumpInfoTask.registerElementAst(member,
-        builder.addProperty(name, arrayInit));
+        new jsAst.ArrayInitializer(expressions.toList());
+    compiler.dumpInfoTask
+        .registerElementAst(member, builder.addProperty(name, arrayInit));
   }
 
   void addMemberField(Field field, ClassBuilder builder) {

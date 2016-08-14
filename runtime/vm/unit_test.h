@@ -201,7 +201,7 @@
       bit_cast<int32_t, uword>(entry),                                         \
       bit_cast<int32_t, intptr_t>(pointer_arg),                                \
       0, 0, 0))
-#endif
+#endif  // defined(ARCH_IS_64_BIT)
 #define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
   static_cast<int64_t>(Simulator::Current()->Call(                             \
       bit_cast<int32_t, uword>(entry),                                         \
@@ -224,7 +224,7 @@
       Utils::High32Bits(bit_cast<int64_t, double>(double_arg)),                \
       0, 0, false, true))
 #endif  // defined(HOST_ARCH_ARM) || defined(HOST_ARCH_MIPS)
-#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+#endif  // defined(TARGET_ARCH_{ARM, ARM64, MIPS})
 
 
 inline Dart_Handle NewString(const char* str) {
@@ -286,7 +286,6 @@ class TestCase : TestCaseBase {
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
                                     bool finalize = true);
-
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
   static Dart_Handle lib();
@@ -304,6 +303,19 @@ class TestCase : TestCaseBase {
   static char* BigintToHexValue(Dart_CObject* bigint);
 
   virtual void Run();
+
+  // Sets |script| to be the source used at next reload.
+  static void SetReloadTestScript(const char* script);
+  // Initiates the reload.
+  static Dart_Handle TriggerReload();
+  // Gets the result of a reload.
+  static Dart_Handle GetReloadErrorOrRootLibrary();
+
+  // Helper function which reloads the current isolate using |script|.
+  static Dart_Handle ReloadTestScript(const char* script);
+
+  static void AddTestLib(const char* url, const char* source);
+  static const char* GetTestLib(const char* url);
 
  private:
   static Dart_Isolate CreateIsolate(const uint8_t* buffer, const char* name);
@@ -368,13 +380,14 @@ class AssemblerTest {
 
   const Code& code() const { return code_; }
 
-  uword entry() const { return code_.EntryPoint(); }
+  uword payload_start() const { return code_.PayloadStart(); }
+  uword entry() const { return code_.UncheckedEntryPoint(); }
 
   // Invoke/InvokeWithCodeAndThread is used to call assembler test functions
   // using the ABI calling convention.
   // ResultType is the return type of the assembler test function.
   // ArgNType is the type of the Nth argument.
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
 
 #if defined(ARCH_IS_64_BIT)
   // TODO(fschneider): Make InvokeWithCodeAndThread<> more general and work on
@@ -430,6 +443,29 @@ class AssemblerTest {
         reinterpret_cast<intptr_t>(arg3),
         0, fp_return, fp_args);
   }
+#elif defined(USING_SIMULATOR) && defined(TARGET_ARCH_DBC)
+  template<typename ResultType,
+           typename Arg1Type,
+           typename Arg2Type,
+           typename Arg3Type>
+  ResultType Invoke(Arg1Type arg1, Arg2Type arg2, Arg3Type arg3) {
+    // TODO(fschneider): Support double arguments for simulator calls.
+    COMPILE_ASSERT(is_void<ResultType>::value);
+    COMPILE_ASSERT(!is_double<Arg1Type>::value);
+    COMPILE_ASSERT(!is_double<Arg2Type>::value);
+    COMPILE_ASSERT(!is_double<Arg3Type>::value);
+    const Object& arg1obj = Object::Handle(reinterpret_cast<RawObject*>(arg1));
+    const Object& arg2obj = Object::Handle(reinterpret_cast<RawObject*>(arg2));
+    const Array& argdesc = Array::Handle(ArgumentsDescriptor::New(2));
+    const Array& arguments = Array::Handle(Array::New(2));
+    arguments.SetAt(0, arg1obj);
+    arguments.SetAt(1, arg2obj);
+    Simulator::Current()->Call(
+        code(),
+        argdesc,
+        arguments,
+        reinterpret_cast<Thread*>(arg3));
+  }
 #else
   template<typename ResultType> ResultType InvokeWithCodeAndThread() {
     Thread* thread = Thread::Current();
@@ -454,7 +490,7 @@ class AssemblerTest {
     typedef ResultType (*FunctionType) (Arg1Type, Arg2Type, Arg3Type);
     return reinterpret_cast<FunctionType>(entry())(arg1, arg2, arg3);
   }
-#endif  // USING_SIMULATOR
+#endif  // defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
 
   // Assemble test and set code_.
   void Assemble();
@@ -562,6 +598,24 @@ class CompilerTest : public AllStatic {
 //
 void ElideJSONSubstring(const char* prefix, const char* in, char* out);
 
+
+template<typename T>
+class SetFlagScope : public ValueObject {
+ public:
+  SetFlagScope(T* flag, T value)
+      : flag_(flag),
+        original_value_(*flag) {
+    *flag_ = value;
+  }
+
+  ~SetFlagScope() {
+    *flag_ = original_value_;
+  }
+
+ private:
+  T* flag_;
+  T original_value_;
+};
 
 }  // namespace dart
 

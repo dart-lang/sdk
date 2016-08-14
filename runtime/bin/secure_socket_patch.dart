@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class SecureSocket {
-  /* patch */ factory SecureSocket._(RawSecureSocket rawSocket) =>
+@patch class SecureSocket {
+  @patch factory SecureSocket._(RawSecureSocket rawSocket) =>
       new _SecureSocket(rawSocket);
 }
 
 
-patch class _SecureFilter {
-  /* patch */ factory _SecureFilter() => new _SecureFilterImpl();
+@patch class _SecureFilter {
+  @patch factory _SecureFilter() => new _SecureFilterImpl();
 }
 
-patch class X509Certificate {
-  /* patch */ factory X509Certificate._() => new _X509CertificateImpl();
+@patch class X509Certificate {
+  @patch factory X509Certificate._() => new _X509CertificateImpl();
 }
 
 class _SecureSocket extends _Socket implements SecureSocket {
@@ -115,13 +115,17 @@ class _SecureFilterImpl
   List<_ExternalBuffer> buffers;
 }
 
-patch class SecurityContext {
-  /* patch */ factory SecurityContext() {
+@patch class SecurityContext {
+  @patch factory SecurityContext() {
     return new _SecurityContext();
   }
 
-  /* patch */ static SecurityContext get defaultContext {
+  @patch static SecurityContext get defaultContext {
     return _SecurityContext.defaultContext;
+  }
+
+  @patch static bool get alpnSupported {
+    return _SecurityContext.alpnSupported;
   }
 }
 
@@ -165,6 +169,8 @@ class _SecurityContext
   void setClientAuthoritiesBytes(List<int> authCertBytes, {String password})
       native "SecurityContext_SetClientAuthoritiesBytes";
 
+  static bool get alpnSupported => _alpnSupported();
+  static bool _alpnSupported() native "SecurityContext_AlpnSupported";
   void setAlpnProtocols(List<String> protocols, bool isServer) {
     Uint8List encodedProtocols =
         SecurityContext._protocolsToLengthEncoding(protocols);

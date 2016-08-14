@@ -4,11 +4,11 @@
 
 library analyzer.src.services.lint;
 
+import 'dart:collection';
+
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 
@@ -18,6 +18,9 @@ const List<Linter> _noLints = const <Linter>[];
 /// configuration data.
 final ResultDescriptor<List<Linter>> CONFIGURED_LINTS_KEY =
     new ResultDescriptorImpl('configured.lints', _noLints);
+
+/// Shared lint registry.
+LintRegistry lintRegistry = new LintRegistry();
 
 /// Return lints associated with this [context], or an empty list if there are
 /// none.
@@ -35,41 +38,22 @@ abstract class Linter {
   /// NOTE: this is set by the framework before visit begins.
   ErrorReporter reporter;
 
+  /// Linter name.
+  String get name;
+
   /// Return a visitor to be passed to compilation units to perform lint
   /// analysis.
   /// Lint errors are reported via this [Linter]'s error [reporter].
   AstVisitor getVisitor();
 }
 
-/// Traverses a library's worth of dart code at a time to generate lint warnings
-/// over the set of sources.
-///
-/// See [LintCode].
-class LintGenerator {
-  static const List<Linter> _noLints = const <Linter>[];
+/// Manages lint timing.
+class LintRegistry {
+  /// Dictionary mapping lints (by name) to timers.
+  final Map<String, Stopwatch> timers = new HashMap<String, Stopwatch>();
 
-  final Iterable<CompilationUnit> _compilationUnits;
-  final AnalysisErrorListener _errorListener;
-  final Iterable<Linter> _linters;
-
-  LintGenerator(this._compilationUnits, this._errorListener,
-      [Iterable<Linter> linters])
-      : _linters = linters ?? _noLints;
-
-  void generate() {
-    PerformanceStatistics.lint.makeCurrentWhile(() {
-      _compilationUnits.forEach((cu) {
-        if (cu.element != null) {
-          _generate(cu, cu.element.source);
-        }
-      });
-    });
-  }
-
-  void _generate(CompilationUnit unit, Source source) {
-    ErrorReporter errorReporter = new ErrorReporter(_errorListener, source);
-    _linters.forEach((l) => l.reporter = errorReporter);
-    Iterable<AstVisitor> visitors = _linters.map((l) => l.getVisitor());
-    unit.accept(new DelegatingAstVisitor(visitors.where((v) => v != null)));
-  }
+  /// Get a timer associated with the given lint rule (or create one if none
+  /// exists).
+  Stopwatch getTimer(Linter linter) =>
+      timers.putIfAbsent(linter.name, () => new Stopwatch());
 }

@@ -5,54 +5,44 @@
 library dart2js.resolution.compute_members;
 
 import '../common.dart';
-import '../common/names.dart' show
-    Identifiers,
-    Names;
-import '../common/resolution.dart' show
-    Resolution;
-import '../compiler.dart' show
-    Compiler;
+import '../common/names.dart' show Identifiers, Names;
+import '../common/resolution.dart' show Resolution;
 import '../dart_types.dart';
-import '../elements/elements.dart' show
-    ClassElement,
-    Element,
-    LibraryElement,
-    Member,
-    MemberElement,
-    MemberSignature,
-    MixinApplicationElement,
-    Name,
-    PublicName;
+import '../elements/elements.dart'
+    show
+        ClassElement,
+        Element,
+        LibraryElement,
+        Member,
+        MemberElement,
+        MemberSignature,
+        MixinApplicationElement,
+        Name;
 import '../util/util.dart';
 
 part 'member_impl.dart';
 
 abstract class MembersCreator {
   final ClassElement cls;
-  final Compiler compiler;
+  final Resolution resolution;
 
   final Iterable<String> computedMemberNames;
   final Map<Name, Member> classMembers;
 
-  Map<dynamic/* Member | Element */, Set<MessageKind>> reportedMessages =
+  Map<dynamic /* Member | Element */, Set<MessageKind>> reportedMessages =
       new Map<dynamic, Set<MessageKind>>();
 
-  MembersCreator(Compiler this.compiler,
-                 ClassElement this.cls,
-                 Iterable<String> this.computedMemberNames,
-                 Map<Name, Member> this.classMembers) {
+  MembersCreator(
+      this.resolution, this.cls, this.computedMemberNames, this.classMembers) {
     assert(invariant(cls, cls.isDeclaration,
         message: "Members may only be computed on declarations."));
   }
 
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  Resolution get resolution => compiler.resolution;
+  DiagnosticReporter get reporter => resolution.reporter;
 
   void reportMessage(var marker, MessageKind kind, report()) {
     Set<MessageKind> messages =
-        reportedMessages.putIfAbsent(marker,
-            () => new Set<MessageKind>());
+        reportedMessages.putIfAbsent(marker, () => new Set<MessageKind>());
     if (messages.add(kind)) {
       report();
     }
@@ -60,13 +50,12 @@ abstract class MembersCreator {
 
   bool shouldSkipMember(MemberSignature member) {
     return member == null || shouldSkipName(member.name.text);
-
   }
 
   bool shouldSkipName(String name) {
     return computedMemberNames != null &&
-           // 'call' is implicitly contained in [computedMemberNames].
-           (name == Identifiers.call || computedMemberNames.contains(name));
+        // 'call' is implicitly contained in [computedMemberNames].
+        (name == Identifiers.call || computedMemberNames.contains(name));
   }
 
   /// Compute all members of [cls] with the given names.
@@ -123,12 +112,12 @@ abstract class MembersCreator {
     }
 
     if (names != null) {
-      _computeClassMember(compiler, superclass, name, names);
+      _computeClassMember(resolution, superclass, name, names);
       for (Name memberName in names) {
         inheritClassMember(superclass.lookupClassMember(memberName));
       }
     } else {
-      computeAllClassMembers(compiler, superclass);
+      computeAllClassMembers(resolution, superclass);
       superclass.forEachClassMember(inheritClassMember);
     }
   }
@@ -159,14 +148,14 @@ abstract class MembersCreator {
         }
 
         if (names != null) {
-          _computeClassMember(compiler, mixinApplication.mixin,
-                              nameText, names);
+          _computeClassMember(
+              resolution, mixinApplication.mixin, nameText, names);
           for (Name memberName in names) {
             inheritMixinMember(
                 mixinApplication.mixin.lookupClassMember(memberName));
           }
         } else {
-          computeAllClassMembers(compiler, mixinApplication.mixin);
+          computeAllClassMembers(resolution, mixinApplication.mixin);
           mixinApplication.mixin.forEachClassMember(inheritMixinMember);
         }
       }
@@ -180,14 +169,13 @@ abstract class MembersCreator {
         if (shouldSkipName(elementName)) return;
         if (nameText != null && elementName != nameText) return;
 
-        void addDeclaredMember(Name name,
-                               DartType type, FunctionType functionType) {
+        void addDeclaredMember(
+            Name name, DartType type, FunctionType functionType) {
           DeclaredMember inherited = classMembers[name];
           DeclaredMember declared;
           if (element.isAbstract) {
             declared = new DeclaredAbstractMember(
-                name, element, thisType, type, functionType,
-                inherited);
+                name, element, thisType, type, functionType, inherited);
           } else {
             declared =
                 new DeclaredMember(name, element, thisType, type, functionType);
@@ -202,10 +190,11 @@ abstract class MembersCreator {
           DartType type = element.computeType(resolution);
           addDeclaredMember(name, type, new FunctionType.synthesized(type));
           if (!element.isConst && !element.isFinal) {
-            addDeclaredMember(name.setter, type,
+            addDeclaredMember(
+                name.setter,
+                type,
                 new FunctionType.synthesized(
-                                 const VoidType(),
-                                 <DartType>[type]));
+                    const VoidType(), <DartType>[type]));
           }
         } else if (element.isGetter) {
           FunctionType functionType = element.computeType(resolution);
@@ -242,9 +231,8 @@ abstract class MembersCreator {
   }
 
   /// Checks that [classMember] is a valid implementation for [interfaceMember].
-  void checkInterfaceMember(Name name,
-                            MemberSignature interfaceMember,
-                            Member classMember) {
+  void checkInterfaceMember(
+      Name name, MemberSignature interfaceMember, Member classMember) {
     if (classMember != null) {
       // TODO(johnniwinther): Check that the class member is a valid override
       // of the interface member.
@@ -259,54 +247,57 @@ abstract class MembersCreator {
       } else if (interfaceMember.isGetter) {
         kind = MessageKind.ABSTRACT_GETTER;
       }
-      reportMessage(
-          interfaceMember.element, MessageKind.ABSTRACT_METHOD, () {
-        reporter.reportWarningMessage(
-            interfaceMember.element, kind,
+      reportMessage(interfaceMember.element, MessageKind.ABSTRACT_METHOD, () {
+        reporter.reportWarningMessage(interfaceMember.element, kind,
             {'class': cls.name, 'name': name.text});
       });
     } else {
-       reportWarning(MessageKind singleKind,
-                     MessageKind multipleKind,
-                     MessageKind explicitlyDeclaredKind,
-                     [MessageKind implicitlyDeclaredKind]) {
+      reportWarning(MessageKind singleKind, MessageKind multipleKind,
+          MessageKind explicitlyDeclaredKind,
+          [MessageKind implicitlyDeclaredKind]) {
         Member inherited = interfaceMember.declarations.first;
-        reportMessage(
-            interfaceMember, MessageKind.UNIMPLEMENTED_METHOD, () {
+        reportMessage(interfaceMember, MessageKind.UNIMPLEMENTED_METHOD, () {
           DiagnosticMessage warning = reporter.createMessage(
               cls,
               interfaceMember.declarations.length == 1
-                  ? singleKind : multipleKind,
-              {'class': cls.name,
-               'name': name.text,
-               'method': interfaceMember,
-               'declarer': inherited.declarer});
+                  ? singleKind
+                  : multipleKind,
+              {
+                'class': cls.name,
+                'name': name.text,
+                'method': interfaceMember,
+                'declarer': inherited.declarer
+              });
           List<DiagnosticMessage> infos = <DiagnosticMessage>[];
           for (Member inherited in interfaceMember.declarations) {
             infos.add(reporter.createMessage(
                 inherited.element,
-                inherited.isDeclaredByField ?
-                    implicitlyDeclaredKind : explicitlyDeclaredKind,
-                {'class': inherited.declarer.name,
-                 'name': name.text}));
+                inherited.isDeclaredByField
+                    ? implicitlyDeclaredKind
+                    : explicitlyDeclaredKind,
+                {'class': inherited.declarer.name, 'name': name.text}));
           }
           reporter.reportWarning(warning, infos);
         });
       }
+
       if (interfaceMember.isSetter) {
-        reportWarning(MessageKind.UNIMPLEMENTED_SETTER_ONE,
-                      MessageKind.UNIMPLEMENTED_SETTER,
-                      MessageKind.UNIMPLEMENTED_EXPLICIT_SETTER,
-                      MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER);
+        reportWarning(
+            MessageKind.UNIMPLEMENTED_SETTER_ONE,
+            MessageKind.UNIMPLEMENTED_SETTER,
+            MessageKind.UNIMPLEMENTED_EXPLICIT_SETTER,
+            MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER);
       } else if (interfaceMember.isGetter) {
-        reportWarning(MessageKind.UNIMPLEMENTED_GETTER_ONE,
-                      MessageKind.UNIMPLEMENTED_GETTER,
-                      MessageKind.UNIMPLEMENTED_EXPLICIT_GETTER,
-                      MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER);
+        reportWarning(
+            MessageKind.UNIMPLEMENTED_GETTER_ONE,
+            MessageKind.UNIMPLEMENTED_GETTER,
+            MessageKind.UNIMPLEMENTED_EXPLICIT_GETTER,
+            MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER);
       } else if (interfaceMember.isMethod) {
-        reportWarning(MessageKind.UNIMPLEMENTED_METHOD_ONE,
-                      MessageKind.UNIMPLEMENTED_METHOD,
-                      MessageKind.UNIMPLEMENTED_METHOD_CONT);
+        reportWarning(
+            MessageKind.UNIMPLEMENTED_METHOD_ONE,
+            MessageKind.UNIMPLEMENTED_METHOD,
+            MessageKind.UNIMPLEMENTED_METHOD_CONT);
       }
     }
     // TODO(johnniwinther): If [cls] is not abstract, check that for all
@@ -318,21 +309,20 @@ abstract class MembersCreator {
   void checkImplementsFunctionWithCall() {
     assert(!cls.isAbstract);
 
-    ClassElement functionClass = compiler.coreClasses.functionClass;
+    ClassElement functionClass = resolution.coreClasses.functionClass;
     if (cls.asInstanceOf(functionClass) == null) return;
     if (cls.lookupMember(Identifiers.call) != null) return;
     // TODO(johnniwinther): Make separate methods for backend exceptions.
     // Avoid warnings on backend implementation classes for closures.
-    if (compiler.backend.isBackendLibrary(cls.library)) return;
+    if (resolution.target.isTargetSpecificLibrary(cls.library)) return;
 
     reportMessage(functionClass, MessageKind.UNIMPLEMENTED_METHOD, () {
-      reporter.reportWarningMessage(
-          cls,
-          MessageKind.UNIMPLEMENTED_METHOD_ONE,
-          {'class': cls.name,
-           'name': Identifiers.call,
-           'method': Identifiers.call,
-           'declarer': functionClass.name});
+      reporter.reportWarningMessage(cls, MessageKind.UNIMPLEMENTED_METHOD_ONE, {
+        'class': cls.name,
+        'name': Identifiers.call,
+        'method': Identifiers.call,
+        'declarer': functionClass.name
+      });
     });
   }
 
@@ -346,23 +336,20 @@ abstract class MembersCreator {
       if (!declared.isStatic) {
         ClassElement superclass = cls.superclass;
         while (superclass != null) {
-          Member superMember =
-              superclass.lookupClassMember(declared.name);
+          Member superMember = superclass.lookupClassMember(declared.name);
           if (superMember != null && superMember.isStatic) {
             reportMessage(superMember, MessageKind.INSTANCE_STATIC_SAME_NAME,
                 () {
               reporter.reportWarning(
                   reporter.createMessage(
-                      declared.element,
-                      MessageKind.INSTANCE_STATIC_SAME_NAME,
-                      {'memberName': declared.name,
-                       'className': superclass.name}),
+                      declared.element, MessageKind.INSTANCE_STATIC_SAME_NAME, {
+                    'memberName': declared.name,
+                    'className': superclass.name
+                  }),
                   <DiagnosticMessage>[
-                      reporter.createMessage(
-                          superMember.element,
-                          MessageKind.INSTANCE_STATIC_SAME_NAME_CONT),
+                    reporter.createMessage(superMember.element,
+                        MessageKind.INSTANCE_STATIC_SAME_NAME_CONT),
                   ]);
-
             });
             break;
           }
@@ -376,15 +363,17 @@ abstract class MembersCreator {
         for (Member inherited in superMember.declarations) {
           if (cls == inherited.declarer.element) {
             // An error should already have been reported.
-            assert(invariant(declared.element, compiler.compilationFailed));
+            assert(invariant(
+                declared.element, resolution.reporter.hasReportedError));
             continue;
           }
 
-          reportMessage(
-              inherited.element, MessageKind.NO_STATIC_OVERRIDE, () {
+          reportMessage(inherited.element, MessageKind.NO_STATIC_OVERRIDE, () {
             reportErrorWithContext(
-                declared.element, MessageKind.NO_STATIC_OVERRIDE,
-                inherited.element, MessageKind.NO_STATIC_OVERRIDE_CONT);
+                declared.element,
+                MessageKind.NO_STATIC_OVERRIDE,
+                inherited.element,
+                MessageKind.NO_STATIC_OVERRIDE_CONT);
           });
         }
       }
@@ -396,107 +385,106 @@ abstract class MembersCreator {
           // superMember.declarations. Investigate why.
         } else if (cls == inherited.declarer.element) {
           // An error should already have been reported.
-          assert(invariant(declared.element, compiler.compilationFailed,
-              message: "Member $inherited inherited from its "
-                       "declaring class: ${cls}."));
+          assert(
+              invariant(declared.element, resolution.reporter.hasReportedError,
+                  message: "Member $inherited inherited from its "
+                      "declaring class: ${cls}."));
           continue;
         }
 
         void reportError(MessageKind errorKind, MessageKind infoKind) {
-          reportMessage(
-              inherited.element, MessageKind.INVALID_OVERRIDE_METHOD, () {
+          reportMessage(inherited.element, MessageKind.INVALID_OVERRIDE_METHOD,
+              () {
             reporter.reportError(
-                reporter.createMessage(
-                    declared.element,
-                    errorKind,
-                    {'name': declared.name.text,
-                     'class': cls.thisType,
-                     'inheritedClass': inherited.declarer}),
+                reporter.createMessage(declared.element, errorKind, {
+                  'name': declared.name.text,
+                  'class': cls.thisType,
+                  'inheritedClass': inherited.declarer
+                }),
                 <DiagnosticMessage>[
-                    reporter.createMessage(
-                        inherited.element,
-                        infoKind,
-                        {'name': declared.name.text,
-                         'class': inherited.declarer}),
+                  reporter.createMessage(inherited.element, infoKind, {
+                    'name': declared.name.text,
+                    'class': inherited.declarer
+                  }),
                 ]);
           });
         }
 
         if (declared.isDeclaredByField && inherited.isMethod) {
           reportError(MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD,
-                      MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT);
+              MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT);
         } else if (declared.isMethod && inherited.isDeclaredByField) {
           reportError(MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD,
-                      MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT);
+              MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT);
         } else if (declared.isGetter && inherited.isMethod) {
           reportError(MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER,
-                      MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT);
+              MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT);
         } else if (declared.isMethod && inherited.isGetter) {
           reportError(MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD,
-                      MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT);
+              MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT);
         } else {
           DartType inheritedType = inherited.functionType;
-          if (!compiler.types.isSubtype(declaredType, inheritedType)) {
-            void reportWarning(var marker,
-                               MessageKind warningKind,
-                               MessageKind infoKind) {
+          if (!resolution.types.isSubtype(declaredType, inheritedType)) {
+            void reportWarning(
+                var marker, MessageKind warningKind, MessageKind infoKind) {
               reportMessage(marker, MessageKind.INVALID_OVERRIDE_METHOD, () {
                 reporter.reportWarning(
-                    reporter.createMessage(
-                        declared.element,
-                        warningKind,
-                        {'declaredType': declared.type,
-                         'name': declared.name.text,
-                         'class': cls.thisType,
-                         'inheritedType': inherited.type,
-                         'inheritedClass': inherited.declarer}),
+                    reporter.createMessage(declared.element, warningKind, {
+                      'declaredType': declared.type,
+                      'name': declared.name.text,
+                      'class': cls.thisType,
+                      'inheritedType': inherited.type,
+                      'inheritedClass': inherited.declarer
+                    }),
                     <DiagnosticMessage>[
-                        reporter.createMessage(
-                            inherited.element,
-                            infoKind,
-                            {'name': declared.name.text,
-                             'class': inherited.declarer}),
+                      reporter.createMessage(inherited.element, infoKind, {
+                        'name': declared.name.text,
+                        'class': inherited.declarer
+                      }),
                     ]);
               });
             }
+
             if (declared.isDeclaredByField) {
               if (inherited.isDeclaredByField) {
-                reportWarning(inherited.element,
-                              MessageKind.INVALID_OVERRIDE_FIELD,
-                              MessageKind.INVALID_OVERRIDDEN_FIELD);
+                reportWarning(
+                    inherited.element,
+                    MessageKind.INVALID_OVERRIDE_FIELD,
+                    MessageKind.INVALID_OVERRIDDEN_FIELD);
               } else if (inherited.isGetter) {
-                reportWarning(inherited,
-                              MessageKind.INVALID_OVERRIDE_GETTER_WITH_FIELD,
-                              MessageKind.INVALID_OVERRIDDEN_GETTER);
+                reportWarning(
+                    inherited,
+                    MessageKind.INVALID_OVERRIDE_GETTER_WITH_FIELD,
+                    MessageKind.INVALID_OVERRIDDEN_GETTER);
               } else if (inherited.isSetter) {
-                reportWarning(inherited,
-                              MessageKind.INVALID_OVERRIDE_SETTER_WITH_FIELD,
-                              MessageKind.INVALID_OVERRIDDEN_SETTER);
+                reportWarning(
+                    inherited,
+                    MessageKind.INVALID_OVERRIDE_SETTER_WITH_FIELD,
+                    MessageKind.INVALID_OVERRIDDEN_SETTER);
               }
             } else if (declared.isGetter) {
               if (inherited.isDeclaredByField) {
-                reportWarning(inherited,
-                              MessageKind.INVALID_OVERRIDE_FIELD_WITH_GETTER,
-                              MessageKind.INVALID_OVERRIDDEN_FIELD);
+                reportWarning(
+                    inherited,
+                    MessageKind.INVALID_OVERRIDE_FIELD_WITH_GETTER,
+                    MessageKind.INVALID_OVERRIDDEN_FIELD);
               } else {
-                reportWarning(inherited,
-                              MessageKind.INVALID_OVERRIDE_GETTER,
-                              MessageKind.INVALID_OVERRIDDEN_GETTER);
+                reportWarning(inherited, MessageKind.INVALID_OVERRIDE_GETTER,
+                    MessageKind.INVALID_OVERRIDDEN_GETTER);
               }
             } else if (declared.isSetter) {
               if (inherited.isDeclaredByField) {
-                reportWarning(inherited,
-                              MessageKind.INVALID_OVERRIDE_FIELD_WITH_SETTER,
-                              MessageKind.INVALID_OVERRIDDEN_FIELD);
+                reportWarning(
+                    inherited,
+                    MessageKind.INVALID_OVERRIDE_FIELD_WITH_SETTER,
+                    MessageKind.INVALID_OVERRIDDEN_FIELD);
               } else {
-                reportWarning(inherited,
-                              MessageKind.INVALID_OVERRIDE_SETTER,
-                              MessageKind.INVALID_OVERRIDDEN_SETTER);
+                reportWarning(inherited, MessageKind.INVALID_OVERRIDE_SETTER,
+                    MessageKind.INVALID_OVERRIDDEN_SETTER);
               }
             } else {
-              reportWarning(inherited,
-                            MessageKind.INVALID_OVERRIDE_METHOD,
-                            MessageKind.INVALID_OVERRIDDEN_METHOD);
+              reportWarning(inherited, MessageKind.INVALID_OVERRIDE_METHOD,
+                  MessageKind.INVALID_OVERRIDDEN_METHOD);
             }
           }
         }
@@ -504,53 +492,53 @@ abstract class MembersCreator {
     }
   }
 
-  void reportErrorWithContext(Element errorneousElement,
-                              MessageKind errorMessage,
-                              Element contextElement,
-                              MessageKind contextMessage) {
+  void reportErrorWithContext(
+      Element errorneousElement,
+      MessageKind errorMessage,
+      Element contextElement,
+      MessageKind contextMessage) {
     reporter.reportError(
-        reporter.createMessage(
-            errorneousElement,
-            errorMessage,
-            {'memberName': contextElement.name,
-             'className': contextElement.enclosingClass.name}),
+        reporter.createMessage(errorneousElement, errorMessage, {
+          'memberName': contextElement.name,
+          'className': contextElement.enclosingClass.name
+        }),
         <DiagnosticMessage>[
-            reporter.createMessage(contextElement, contextMessage),
+          reporter.createMessage(contextElement, contextMessage),
         ]);
   }
 
   /// Compute all class and interface names by the [name] in [cls].
-  static void computeClassMembersByName(Compiler compiler,
-                                        ClassMemberMixin cls,
-                                        String name) {
+  static void computeClassMembersByName(
+      Resolution resolution, ClassMemberMixin cls, String name) {
     if (cls.isMemberComputed(name)) return;
     LibraryElement library = cls.library;
-    _computeClassMember(compiler, cls, name,
-        new Setlet<Name>()..add(new Name(name, library))
-                          ..add(new Name(name, library, isSetter: true)));
+    _computeClassMember(
+        resolution,
+        cls,
+        name,
+        new Setlet<Name>()
+          ..add(new Name(name, library))
+          ..add(new Name(name, library, isSetter: true)));
   }
 
-  static void _computeClassMember(Compiler compiler,
-                                  ClassMemberMixin cls,
-                                  String name,
-                                  Setlet<Name> names) {
-    cls.computeClassMember(compiler, name, names);
+  static void _computeClassMember(Resolution resolution, ClassMemberMixin cls,
+      String name, Setlet<Name> names) {
+    cls.computeClassMember(resolution, name, names);
   }
 
   /// Compute all class and interface names in [cls].
-  static void computeAllClassMembers(Compiler compiler, ClassMemberMixin cls) {
-    cls.computeAllClassMembers(compiler);
+  static void computeAllClassMembers(
+      Resolution resolution, ClassMemberMixin cls) {
+    cls.computeAllClassMembers(resolution);
   }
 }
 
 /// Class member creator for classes where the interface members are known to
 /// be a subset of the class members.
 class ClassMembersCreator extends MembersCreator {
-  ClassMembersCreator(Compiler compiler,
-                      ClassElement cls,
-                      Iterable<String> computedMemberNames,
-                      Map<Name, Member> classMembers)
-      : super(compiler, cls, computedMemberNames, classMembers);
+  ClassMembersCreator(Resolution resolution, ClassElement cls,
+      Iterable<String> computedMemberNames, Map<Name, Member> classMembers)
+      : super(resolution, cls, computedMemberNames, classMembers);
 
   Map<Name, Member> computeMembers(String name, Setlet<Name> names) {
     computeSuperMembers(name, names);
@@ -565,7 +553,7 @@ class ClassMembersCreator extends MembersCreator {
     LibraryElement library = cls.library;
     classMembers.forEach((Name name, Member classMember) {
       if (!name.isAccessibleFrom(library)) return;
-     checkInterfaceMember(name, classMember, classMember.implementation);
+      checkInterfaceMember(name, classMember, classMember.implementation);
     });
   }
 }
@@ -575,12 +563,13 @@ class ClassMembersCreator extends MembersCreator {
 class InterfaceMembersCreator extends MembersCreator {
   final Map<Name, MemberSignature> interfaceMembers;
 
-  InterfaceMembersCreator(Compiler compiler,
-                          ClassElement cls,
-                          Iterable<String> computedMemberNames,
-                          Map<Name, Member> classMembers,
-                          Map<Name, MemberSignature> this.interfaceMembers)
-      : super(compiler, cls, computedMemberNames, classMembers);
+  InterfaceMembersCreator(
+      Resolution resolution,
+      ClassElement cls,
+      Iterable<String> computedMemberNames,
+      Map<Name, Member> classMembers,
+      Map<Name, MemberSignature> this.interfaceMembers)
+      : super(resolution, cls, computedMemberNames, classMembers);
 
   Map<Name, Member> computeMembers(String name, Setlet<Name> names) {
     Map<Name, Setlet<Member>> inheritedInterfaceMembers =
@@ -596,16 +585,14 @@ class InterfaceMembersCreator extends MembersCreator {
   ///
   /// If [name] and [names] are not null, the computation is restricted to
   /// members with these names.
-  Map<Name, Setlet<Member>> computeSuperMembers(String name,
-                                                Setlet<Name> names) {
+  Map<Name, Setlet<Member>> computeSuperMembers(
+      String name, Setlet<Name> names) {
     computeSuperClassMembers(name, names);
     return computeSuperInterfaceMembers(name, names);
   }
 
-  Map<Name, Setlet<Member>> computeSuperInterfaceMembers(String name,
-                                                         Setlet<Name> names) {
-
-
+  Map<Name, Setlet<Member>> computeSuperInterfaceMembers(
+      String name, Setlet<Name> names) {
     InterfaceType supertype = cls.supertype;
     assert(invariant(cls, supertype != null,
         message: "Interface members computed for $cls."));
@@ -614,12 +601,11 @@ class InterfaceMembersCreator extends MembersCreator {
     Map<Name, Setlet<Member>> inheritedInterfaceMembers =
         new Map<Name, Setlet<Member>>();
 
-    void inheritInterfaceMember(InterfaceType supertype,
-                                MemberSignature member) {
+    void inheritInterfaceMember(
+        InterfaceType supertype, MemberSignature member) {
       if (shouldSkipMember(member)) return;
-      Setlet<Member> members =
-          inheritedInterfaceMembers.putIfAbsent(
-              member.name, () => new Setlet<Member>());
+      Setlet<Member> members = inheritedInterfaceMembers.putIfAbsent(
+          member.name, () => new Setlet<Member>());
       for (DeclaredMember declaredMember in member.declarations) {
         members.add(declaredMember.inheritFrom(supertype));
       }
@@ -633,8 +619,8 @@ class InterfaceMembersCreator extends MembersCreator {
 
     if (names != null) {
       for (Name memberName in names) {
-        inheritInterfaceMember(supertype,
-            superclass.lookupInterfaceMember(memberName));
+        inheritInterfaceMember(
+            supertype, superclass.lookupInterfaceMember(memberName));
       }
     } else {
       inheritInterfaceMembers(supertype);
@@ -642,18 +628,19 @@ class InterfaceMembersCreator extends MembersCreator {
 
     // Inherit interface members from superinterfaces.
     for (Link<DartType> link = cls.interfaces;
-         !link.isEmpty;
-         link = link.tail) {
+        !link.isEmpty;
+        link = link.tail) {
       InterfaceType superinterface = link.head;
       if (names != null) {
         MembersCreator._computeClassMember(
-            compiler, superinterface.element, name, names);
+            resolution, superinterface.element, name, names);
         for (Name memberName in names) {
           inheritInterfaceMember(superinterface,
               superinterface.element.lookupInterfaceMember(memberName));
         }
       } else {
-        MembersCreator.computeAllClassMembers(compiler, superinterface.element);
+        MembersCreator.computeAllClassMembers(
+            resolution, superinterface.element);
         inheritInterfaceMembers(superinterface);
       }
     }
@@ -677,14 +664,14 @@ class InterfaceMembersCreator extends MembersCreator {
   /// interface members [inheritedInterfaceMembers] and declared members
   /// [declaredMembers]. The computed members are stored in [interfaceMembers].
   void computeInterfaceMembers(
-        Map<Name, Setlet<Member>> inheritedInterfaceMembers,
-        Map<Name, Member> declaredMembers) {
+      Map<Name, Setlet<Member>> inheritedInterfaceMembers,
+      Map<Name, Member> declaredMembers) {
     InterfaceType thisType = cls.thisType;
     // Compute the interface members by overriding the inherited members with
     // a declared member or by computing a single, possibly synthesized,
     // inherited member.
-    inheritedInterfaceMembers.forEach(
-        (Name name, Setlet<Member> inheritedMembers) {
+    inheritedInterfaceMembers
+        .forEach((Name name, Setlet<Member> inheritedMembers) {
       Member declared = declaredMembers[name];
       if (declared != null) {
         // Check that [declaredMember] is a valid override
@@ -701,7 +688,8 @@ class InterfaceMembersCreator extends MembersCreator {
         bool allAreGetters = true;
         Map<DartType, Setlet<Member>> subtypesOfAllInherited =
             new Map<DartType, Setlet<Member>>();
-        outer: for (Member inherited in inheritedMembers) {
+        outer:
+        for (Member inherited in inheritedMembers) {
           if (inherited.isGetter) {
             someAreGetters = true;
             if (!allAreGetters) break outer;
@@ -710,19 +698,20 @@ class InterfaceMembersCreator extends MembersCreator {
             if (someAreGetters) break outer;
           }
           for (MemberSignature other in inheritedMembers) {
-            if (!compiler.types.isSubtype(inherited.functionType,
-                                          other.functionType)) {
+            if (!resolution.types
+                .isSubtype(inherited.functionType, other.functionType)) {
               continue outer;
             }
           }
-          subtypesOfAllInherited.putIfAbsent(inherited.functionType,
-              () => new Setlet<Member>()).add(inherited);
+          subtypesOfAllInherited
+              .putIfAbsent(inherited.functionType, () => new Setlet<Member>())
+              .add(inherited);
         }
         if (someAreGetters && !allAreGetters) {
           DiagnosticMessage warning = reporter.createMessage(
               cls,
               MessageKind.INHERIT_GETTER_AND_METHOD,
-              {'class': thisType, 'name': name.text });
+              {'class': thisType, 'name': name.text});
           List<DiagnosticMessage> infos = <DiagnosticMessage>[];
           for (Member inherited in inheritedMembers) {
             MessageKind kind;
@@ -731,16 +720,14 @@ class InterfaceMembersCreator extends MembersCreator {
             } else {
               assert(invariant(cls, inherited.isGetter,
                   message: 'Conflicting member is neither a method nor a '
-                           'getter.'));
+                      'getter.'));
               if (inherited.isDeclaredByField) {
                 kind = MessageKind.INHERITED_IMPLICIT_GETTER;
               } else {
                 kind = MessageKind.INHERITED_EXPLICIT_GETTER;
               }
             }
-            infos.add(reporter.createMessage(
-                inherited.element,
-                kind,
+            infos.add(reporter.createMessage(inherited.element, kind,
                 {'class': inherited.declarer, 'name': name.text}));
           }
           reporter.reportWarning(warning, infos);
@@ -771,8 +758,7 @@ class InterfaceMembersCreator extends MembersCreator {
   }
 
   /// Create and inherit a synthesized member for [inheritedMembers].
-  void _inheritedSynthesizedMember(Name name,
-                                   Setlet<Member> inheritedMembers) {
+  void _inheritedSynthesizedMember(Name name, Setlet<Member> inheritedMembers) {
     // Multiple signatures with different types => create the synthesized
     // version.
     int minRequiredParameters;
@@ -786,8 +772,7 @@ class InterfaceMembersCreator extends MembersCreator {
       }
       if (member.type.isFunctionType) {
         FunctionType type = member.type;
-        type.namedParameters.forEach(
-            (String name) => names.add(name));
+        type.namedParameters.forEach((String name) => names.add(name));
         requiredParameters = type.parameterTypes.length;
         optionalParameters = type.optionalParameterTypes.length;
       }
@@ -801,8 +786,7 @@ class InterfaceMembersCreator extends MembersCreator {
         maxPositionalParameters = positionalParameters;
       }
     }
-    int optionalParameters =
-        maxPositionalParameters - minRequiredParameters;
+    int optionalParameters = maxPositionalParameters - minRequiredParameters;
     // TODO(johnniwinther): Support function types with both optional
     // and named parameters?
     if (optionalParameters == 0 || names.isEmpty) {
@@ -811,18 +795,18 @@ class InterfaceMembersCreator extends MembersCreator {
           new List.filled(minRequiredParameters, dynamic);
       List<DartType> optionalParameterTypes =
           new List.filled(optionalParameters, dynamic);
-      List<String> namedParameters =
-          names.toList()..sort((a, b) => a.compareTo(b));
+      List<String> namedParameters = names.toList()
+        ..sort((a, b) => a.compareTo(b));
       List<DartType> namedParameterTypes =
           new List.filled(namedParameters.length, dynamic);
       FunctionType memberType = new FunctionType.synthesized(
           const DynamicType(),
           requiredParameterTypes,
           optionalParameterTypes,
-          namedParameters, namedParameterTypes);
+          namedParameters,
+          namedParameterTypes);
       DartType type = memberType;
-      if (inheritedMembers.first.isGetter ||
-          inheritedMembers.first.isSetter) {
+      if (inheritedMembers.first.isGetter || inheritedMembers.first.isSetter) {
         type = const DynamicType();
       }
       interfaceMembers[name] =
@@ -842,37 +826,49 @@ abstract class ClassMemberMixin implements ClassElement {
   /// includes `call`.
   Iterable<String> computedMemberNames;
 
+  bool _interfaceMembersAreClassMembers;
+
+  /// Compute value of the [_interfaceMembersAreClassMembers] for this class
+  /// and its superclasses.
+  void _computeInterfaceMembersAreClassMembers(Resolution resolution) {
+    if (_interfaceMembersAreClassMembers == null) {
+      ensureResolved(resolution);
+      ClassMemberMixin superclass = this.superclass;
+      if (superclass != null) {
+        superclass._computeInterfaceMembersAreClassMembers(resolution);
+      }
+      if ((superclass != null &&
+              (!superclass.interfaceMembersAreClassMembers ||
+                  superclass.isMixinApplication)) ||
+          !interfaces.isEmpty) {
+        _interfaceMembersAreClassMembers = false;
+      } else {
+        _interfaceMembersAreClassMembers = true;
+      }
+    }
+  }
+
   /// If `true` interface members are the non-static class member.
-  bool interfaceMembersAreClassMembers = true;
+  bool get interfaceMembersAreClassMembers => _interfaceMembersAreClassMembers;
 
   Map<Name, Member> classMembers;
   Map<Name, MemberSignature> interfaceMembers;
 
   /// Creates the necessary maps and [MembersCreator] for compute members of
   /// this class.
-  MembersCreator _prepareCreator(Compiler compiler) {
+  MembersCreator _prepareCreator(Resolution resolution) {
     if (classMembers == null) {
-      ensureResolved(compiler.resolution);
+      _computeInterfaceMembersAreClassMembers(resolution);
       classMembers = new Map<Name, Member>();
-
-      if (interfaceMembersAreClassMembers) {
-        ClassMemberMixin superclass = this.superclass;
-        if ((superclass != null &&
-             (!superclass.interfaceMembersAreClassMembers ||
-              superclass.isMixinApplication)) ||
-             !interfaces.isEmpty) {
-          interfaceMembersAreClassMembers = false;
-        }
-      }
       if (!interfaceMembersAreClassMembers) {
         interfaceMembers = new Map<Name, MemberSignature>();
       }
     }
     return interfaceMembersAreClassMembers
-        ? new ClassMembersCreator(compiler, this,
-            computedMemberNames, classMembers)
-        : new InterfaceMembersCreator(compiler, this,
-            computedMemberNames, classMembers, interfaceMembers);
+        ? new ClassMembersCreator(
+            resolution, this, computedMemberNames, classMembers)
+        : new InterfaceMembersCreator(resolution, this, computedMemberNames,
+            classMembers, interfaceMembers);
   }
 
   static Iterable<String> _EMPTY_MEMBERS_NAMES = const <String>[];
@@ -880,13 +876,18 @@ abstract class ClassMemberMixin implements ClassElement {
   /// Compute the members by the name [name] for this class. [names] collects
   /// the set of possible variations of [name], including getter, setter and
   /// and private names.
-  void computeClassMember(Compiler compiler, String name, Setlet<Name> names) {
+  void computeClassMember(
+      Resolution resolution, String name, Setlet<Name> names) {
+    // TODO(johnniwinther): Should we assert that the class has been resolved
+    // instead?
+    ensureResolved(resolution);
     if (isMemberComputed(name)) return;
     if (Name.isPrivateName(name)) {
-      names..add(new Name(name, library))
-           ..add(new Name(name, library, isSetter: true));
+      names
+        ..add(new Name(name, library))
+        ..add(new Name(name, library, isSetter: true));
     }
-    MembersCreator creator = _prepareCreator(compiler);
+    MembersCreator creator = _prepareCreator(resolution);
     creator.computeMembersByName(name, names);
     if (computedMemberNames == null) {
       computedMemberNames = _EMPTY_MEMBERS_NAMES;
@@ -902,9 +903,12 @@ abstract class ClassMemberMixin implements ClassElement {
     }
   }
 
-  void computeAllClassMembers(Compiler compiler) {
+  void computeAllClassMembers(Resolution resolution) {
+    // TODO(johnniwinther): Should we assert that the class has been resolved
+    // instead?
+    ensureResolved(resolution);
     if (areAllMembersComputed()) return;
-    MembersCreator creator = _prepareCreator(compiler);
+    MembersCreator creator = _prepareCreator(resolution);
     creator.computeAllMembers();
     computedMemberNames = null;
     assert(invariant(this, areAllMembersComputed()));
@@ -918,14 +922,12 @@ abstract class ClassMemberMixin implements ClassElement {
     if (computedMemberNames == null) {
       return classMembers != null;
     } else {
-      return name == Identifiers.call ||
-             computedMemberNames.contains(name);
+      return name == Identifiers.call || computedMemberNames.contains(name);
     }
   }
 
   Member lookupClassMember(Name name) {
-    assert(invariant(this,
-        isMemberComputed(name.text),
+    assert(invariant(this, isMemberComputed(name.text),
         message: "Member ${name} has not been computed for $this."));
     return classMembers[name];
   }

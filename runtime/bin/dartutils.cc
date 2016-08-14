@@ -4,21 +4,20 @@
 
 #include "bin/dartutils.h"
 
-#include "include/dart_api.h"
-#include "include/dart_tools_api.h"
-#include "include/dart_native_api.h"
-
-#include "platform/assert.h"
-#include "platform/globals.h"
-
 #include "bin/crypto.h"
 #include "bin/directory.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
 #include "bin/platform.h"
-#include "bin/socket.h"
 #include "bin/utils.h"
+
+#include "include/dart_api.h"
+#include "include/dart_native_api.h"
+#include "include/dart_tools_api.h"
+
+#include "platform/assert.h"
+#include "platform/globals.h"
 
 // Return the error from the containing function if handle is in error handle.
 #define RETURN_IF_ERROR(handle)                                                \
@@ -33,6 +32,7 @@ namespace dart {
 namespace bin {
 
 const char* DartUtils::original_working_directory = NULL;
+CommandLineOptions* DartUtils::url_mapping = NULL;
 const char* const DartUtils::kDartScheme = "dart:";
 const char* const DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* const DartUtils::kAsyncLibURL = "dart:async";
@@ -48,6 +48,7 @@ const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 
 const uint8_t DartUtils::magic_number[] = { 0xf5, 0xf5, 0xdc, 0xdc };
 
+
 static bool IsWindowsHost() {
 #if defined(TARGET_OS_WINDOWS)
   return true;
@@ -57,8 +58,7 @@ static bool IsWindowsHost() {
 }
 
 
-const char* DartUtils::MapLibraryUrl(CommandLineOptions* url_mapping,
-                                     const char* url_string) {
+const char* DartUtils::MapLibraryUrl(const char* url_string) {
   ASSERT(url_mapping != NULL);
   // We need to check if the passed in url is found in the url_mapping array,
   // in that case use the mapped entry.
@@ -181,6 +181,27 @@ bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
 }
 
 
+const char* DartUtils::RemoveScheme(const char* url) {
+  const char* colon = strchr(url, ':');
+  if (colon == NULL) {
+    return url;
+  } else {
+    return colon + 1;
+  }
+}
+
+
+void* DartUtils::MapExecutable(const char* name, intptr_t* len) {
+  File* file = File::Open(name, File::kRead);
+  if (file == NULL) {
+    return NULL;
+  }
+  void* addr = file->MapExecutable(len);
+  file->Release();
+  return addr;
+}
+
+
 void* DartUtils::OpenFile(const char* name, bool write) {
   File* file = File::Open(name, write ? File::kWriteTruncate : File::kRead);
   return reinterpret_cast<void*>(file);
@@ -223,7 +244,8 @@ void DartUtils::WriteFile(const void* buffer,
 
 
 void DartUtils::CloseFile(void* stream) {
-  delete reinterpret_cast<File*>(stream);
+  File* file = reinterpret_cast<File*>(stream);
+  file->Release();
 }
 
 
@@ -324,35 +346,23 @@ Dart_Handle DartUtils::ResolveUriInWorkingDirectory(Dart_Handle script_uri) {
 }
 
 
-Dart_Handle DartUtils::FilePathFromUri(Dart_Handle script_uri) {
+Dart_Handle DartUtils::LibraryFilePath(Dart_Handle library_uri) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = script_uri;
+  dart_args[0] = library_uri;
   return Dart_Invoke(DartUtils::BuiltinLib(),
-                     NewString("_filePathFromUri"),
+                     NewString("_libraryFilePath"),
                      kNumArgs,
                      dart_args);
 }
 
 
-Dart_Handle DartUtils::ExtensionPathFromUri(Dart_Handle extension_uri) {
+Dart_Handle DartUtils::ResolveScript(Dart_Handle url) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = extension_uri;
+  dart_args[0] = url;
   return Dart_Invoke(DartUtils::BuiltinLib(),
-                     NewString("_extensionPathFromUri"),
-                     kNumArgs,
-                     dart_args);
-}
-
-
-Dart_Handle DartUtils::ResolveUri(Dart_Handle library_url, Dart_Handle url) {
-  const int kNumArgs = 2;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = library_url;
-  dart_args[1] = url;
-  return Dart_Invoke(DartUtils::BuiltinLib(),
-                     NewString("_resolveUri"),
+                     NewString("_resolveScriptUri"),
                      kNumArgs,
                      dart_args);
 }
@@ -376,8 +386,12 @@ static Dart_Handle LoadDataAsync_Invoke(Dart_Handle tag,
 Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
                                          Dart_Handle library,
                                          Dart_Handle url) {
-  if (!Dart_IsLibrary(library)) {
-    return Dart_NewApiError("not a library");
+  Dart_Handle library_url = Dart_LibraryUrl(library);
+  if (Dart_IsError(library_url)) {
+    return library_url;
+  }
+  if (tag == Dart_kCanonicalizeUrl) {
+    return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
   if (!Dart_IsString(url)) {
     return Dart_NewApiError("url is not a string");
@@ -387,7 +401,6 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(result)) {
     return result;
   }
-  Dart_Handle library_url = Dart_LibraryUrl(library);
   const char* library_url_string = NULL;
   result = Dart_StringToCString(library_url, &library_url_string);
   if (Dart_IsError(result)) {
@@ -395,51 +408,37 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   }
 
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
-  bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
+  bool is_dart_library = DartUtils::IsDartSchemeURL(library_url_string);
 
-  // Handle URI canonicalization requests.
-  if (tag == Dart_kCanonicalizeUrl) {
-    // If this is a Dart Scheme URL or 'part' of a io library
-    // then it is not modified as it will be handled internally.
-    if (is_dart_scheme_url || is_io_library) {
-      return url;
-    }
-    // Resolve the url within the context of the library's URL.
-    return ResolveUri(library_url, url);
-  }
-
-  // Handle 'import' of dart scheme URIs (i.e they start with 'dart:').
-  if (is_dart_scheme_url) {
+  // Handle canonicalization, 'import' and 'part' of 'dart:' libraries.
+  if (is_dart_scheme_url || is_dart_library) {
     if (tag == Dart_kImportTag) {
-      // Handle imports of other built-in libraries present in the SDK.
-      if (DartUtils::IsDartIOLibURL(url_string)) {
-        return Builtin::LoadLibrary(url, Builtin::kIOLibrary);
+      Builtin::BuiltinLibraryId id = Builtin::FindId(url_string);
+      if (id == Builtin::kInvalidLibrary) {
+        return NewError("The built-in library '%s' is not available"
+                        " on the stand-alone VM.\n", url_string);
       }
-      return NewError("The built-in library '%s' is not available"
-                      " on the stand-alone VM.\n", url_string);
+      return Builtin::LoadLibrary(url, id);
     } else {
       ASSERT(tag == Dart_kSourceTag);
-      return NewError("Unable to load source '%s' ", url_string);
-    }
-  }
-
-  // Handle 'part' of IO library.
-  if (is_io_library) {
-    if (tag == Dart_kSourceTag) {
+      Builtin::BuiltinLibraryId id = Builtin::FindId(library_url_string);
+      if (id == Builtin::kInvalidLibrary) {
+        return NewError("The built-in library '%s' is not available"
+                        " on the stand-alone VM. Trying to load"
+                        " '%s'.\n", library_url_string, url_string);
+      }
       // Prepend the library URI to form a unique script URI for the part.
       intptr_t len = snprintf(NULL, 0, "%s/%s", library_url_string, url_string);
       char* part_uri = reinterpret_cast<char*>(malloc(len + 1));
       snprintf(part_uri, len + 1, "%s/%s", library_url_string, url_string);
       Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
       free(part_uri);
-      return Dart_LoadSource(
-          library,
-          part_uri_obj,
-          Builtin::PartSource(Builtin::kIOLibrary, url_string), 0, 0);
-    } else {
-      ASSERT(tag == Dart_kImportTag);
-      return NewError("Unable to import '%s' ", url_string);
+      return Dart_LoadSource(library,
+                             part_uri_obj, Dart_Null(),
+                             Builtin::PartSource(id, url_string), 0, 0);
     }
+    // All cases should have been handled above.
+    UNREACHABLE();
   }
 
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
@@ -447,20 +446,18 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     if (tag != Dart_kImportTag) {
       return NewError("Dart extensions must use import: '%s'", url_string);
     }
-    Dart_Handle path_parts = DartUtils::ExtensionPathFromUri(url);
-    if (Dart_IsError(path_parts)) {
-      return path_parts;
+    Dart_Handle library_file_path = DartUtils::LibraryFilePath(library_url);
+    const char* lib_path_str = NULL;
+    Dart_StringToCString(library_file_path, &lib_path_str);
+    const char* extension_path = DartUtils::RemoveScheme(url_string);
+    if (strchr(extension_path, '/') != NULL ||
+        (IsWindowsHost() && strchr(extension_path, '\\') != NULL)) {
+      return NewError(
+          "Relative paths for dart extensions are not supported: '%s'",
+          extension_path);
     }
-    const char* extension_directory = NULL;
-    Dart_StringToCString(Dart_ListGetAt(path_parts, 0), &extension_directory);
-    const char* extension_filename = NULL;
-    Dart_StringToCString(Dart_ListGetAt(path_parts, 1), &extension_filename);
-    const char* extension_name = NULL;
-    Dart_StringToCString(Dart_ListGetAt(path_parts, 2), &extension_name);
-
-    return Extensions::LoadExtension(extension_directory,
-                                     extension_filename,
-                                     extension_name,
+    return Extensions::LoadExtension(lib_path_str,
+                                     extension_path,
                                      library);
   }
 
@@ -499,10 +496,12 @@ void DartUtils::WriteMagicNumber(File* file) {
 
 
 Dart_Handle DartUtils::LoadScript(const char* script_uri) {
+  Dart_TimelineEvent("LoadScript",
+                     Dart_TimelineGetMicros(),
+                     Dart_GetMainPortId(),
+                     Dart_Timeline_Event_Async_Begin,
+                     0, NULL, NULL);
   Dart_Handle uri = Dart_NewStringFromCString(script_uri);
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  Dart_TimelineAsyncBegin("LoadScript", &(isolate_data->load_async_id));
   return LoadDataAsync_Invoke(Dart_Null(), uri, Dart_Null());
 }
 
@@ -571,7 +570,8 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
         result = DartUtils::NewError("%s is not a valid UTF-8 script",
                                      resolved_script_uri);
       } else {
-        result = Dart_LoadScript(resolved_script_uri, source, 0, 0);
+        result = Dart_LoadScript(resolved_script_uri, Dart_Null(),
+                                 source, 0, 0);
       }
     }
   } else {
@@ -583,14 +583,16 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
                                    resolved_script_uri);
     } else {
       if (tag == Dart_kImportTag) {
-        result = Dart_LoadLibrary(resolved_script_uri, source, 0, 0);
+        result = Dart_LoadLibrary(resolved_script_uri, Dart_Null(),
+                                  source, 0, 0);
       } else {
         ASSERT(tag == Dart_kSourceTag);
         Dart_Handle library = Dart_LookupLibrary(library_uri);
         if (Dart_IsError(library)) {
           Dart_PropagateError(library);
         }
-        result = Dart_LoadSource(library, resolved_script_uri, source, 0, 0);
+        result = Dart_LoadSource(library, resolved_script_uri, Dart_Null(),
+                                 source, 0, 0);
       }
     }
   }
@@ -618,22 +620,10 @@ void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(Builtin_NativeLibraryExtension)(Dart_NativeArguments args) {
-  const char* suffix = Platform::LibraryExtension();
-  ASSERT(suffix != NULL);
-  Dart_Handle res = Dart_NewStringFromCString(suffix);
-  if (Dart_IsError(res)) {
-    Dart_PropagateError(res);
-  }
-  Dart_SetReturnValue(args, res);
-}
-
-
 void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {
-  char* current = Directory::Current();
+  const char* current = Directory::Current();
   if (current != NULL) {
     Dart_SetReturnValue(args, DartUtils::NewString(current));
-    free(current);
   } else {
     Dart_Handle err = DartUtils::NewError("Failed to get current directory.");
     Dart_PropagateError(err);
@@ -744,7 +734,7 @@ Dart_Handle DartUtils::SetupPackageRoot(const char* package_root,
     Dart_Handle dart_args[kNumArgs];
     dart_args[0] = result;
     result = Dart_Invoke(DartUtils::BuiltinLib(),
-                         NewString("_loadPackagesMap"),
+                         NewString("_setPackagesMap"),
                          kNumArgs,
                          dart_args);
     RETURN_IF_ERROR(result);
@@ -952,8 +942,20 @@ Dart_Handle DartUtils::NewInternalError(const char* message) {
 
 
 bool DartUtils::SetOriginalWorkingDirectory() {
-  original_working_directory = Directory::Current();
+  original_working_directory = Directory::CurrentNoScope();
   return original_working_directory != NULL;
+}
+
+
+Dart_Handle DartUtils::GetCanonicalizableWorkingDirectory() {
+  const char* str = DartUtils::original_working_directory;
+  intptr_t len = strlen(str);
+  if ((str[len] == '/') || (IsWindowsHost() && str[len] == '\\')) {
+    return Dart_NewStringFromCString(str);
+  }
+  char* new_str = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 2));
+  snprintf(new_str, (len + 2), "%s%s", str, File::PathSeparator());
+  return Dart_NewStringFromCString(new_str);
 }
 
 

@@ -7,6 +7,7 @@ library analysis.server;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core' hide Resource;
+import 'dart:io' as io;
 import 'dart:math' show max;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
@@ -20,18 +21,18 @@ import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -39,10 +40,13 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
+import 'package:yaml/yaml.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 
@@ -110,11 +114,6 @@ class AnalysisServer {
   final Index index;
 
   /**
-   * The [Index2] for this server, may be `null` if indexing is disabled.
-   */
-  final Index2 index2;
-
-  /**
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
    */
   final SearchEngine searchEngine;
@@ -154,11 +153,6 @@ class AnalysisServer {
    * server.
    */
   List<RequestHandler> handlers;
-
-  /**
-   * The function used to create a new SDK using the default SDK.
-   */
-  final SdkCreator defaultSdkCreator;
 
   /**
    * The object used to manage the SDK's known to this server.
@@ -301,6 +295,17 @@ class AnalysisServer {
       new StreamController<ContextsChangedEvent>.broadcast();
 
   /**
+   * The file resolver provider used to override the way file URI's are
+   * resolved in some contexts.
+   */
+  ResolverProvider fileResolverProvider;
+
+  /**
+   * The manager of pub package summaries.
+   */
+  PubSummaryManager pubSummaryManager;
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -314,35 +319,40 @@ class AnalysisServer {
       this.resourceProvider,
       PubPackageMapProvider packageMapProvider,
       Index _index,
-      Index2 _index2,
       this.serverPlugin,
       this.options,
-      this.defaultSdkCreator,
+      this.sdkManager,
       this.instrumentationService,
-      {ResolverProvider packageResolverProvider: null,
-      EmbeddedResolverProvider embeddedResolverProvider: null,
+      {ResolverProvider fileResolverProvider: null,
+      ResolverProvider packageResolverProvider: null,
+      bool useSingleContextManager: false,
       this.rethrowExceptions: true})
       : index = _index,
-        index2 = _index2,
-        searchEngine = _index != null ? new SearchEngineImpl2(_index2) : null {
+        searchEngine = _index != null ? new SearchEngineImpl(_index) : null {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =
         options.enableIncrementalResolutionApi;
     defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
+    defaultContextOptions.finerGrainedInvalidation =
+        options.finerGrainedInvalidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
-    sdkManager = new DartSdkManager(defaultSdkCreator);
-    contextManager = new ContextManagerImpl(
-        resourceProvider,
-        sdkManager,
-        packageResolverProvider,
-        embeddedResolverProvider,
-        packageMapProvider,
-        analyzedFilesGlobs,
-        instrumentationService,
-        defaultContextOptions);
+    if (useSingleContextManager) {
+      contextManager = new SingleContextManager(resourceProvider, sdkManager,
+          packageResolverProvider, analyzedFilesGlobs, defaultContextOptions);
+    } else {
+      contextManager = new ContextManagerImpl(
+          resourceProvider,
+          sdkManager,
+          packageResolverProvider,
+          packageMapProvider,
+          analyzedFilesGlobs,
+          instrumentationService,
+          defaultContextOptions);
+    }
+    this.fileResolverProvider = fileResolverProvider;
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
@@ -360,8 +370,10 @@ class AnalysisServer {
       });
     });
     _setupIndexInvalidation();
+    pubSummaryManager =
+        new PubSummaryManager(resourceProvider, '${io.pid}.temp');
     Notification notification =
-        new ServerConnectedParams(VERSION).toNotification();
+        new ServerConnectedParams(VERSION, io.pid).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
@@ -697,23 +709,6 @@ class AnalysisServer {
     return nodes;
   }
 
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
-
   /**
    * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
    *
@@ -742,6 +737,23 @@ class AnalysisServer {
     // done
     return units;
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Handle a [request] that was read from the communication channel.
@@ -924,6 +936,32 @@ class AnalysisServer {
     // Instruct the contextDirectoryManager to rebuild all contexts from
     // scratch.
     contextManager.refresh(roots);
+  }
+
+  /**
+   * Schedule cache consistency validation in [context].
+   * The most of the validation must be done asynchronously.
+   */
+  void scheduleCacheConsistencyValidation(AnalysisContext context) {
+    if (context is InternalAnalysisContext) {
+      CacheConsistencyValidator validator = context.cacheConsistencyValidator;
+      List<Source> sources = validator.getSourcesToComputeModificationTimes();
+      // Compute modification times and notify the validator asynchronously.
+      new Future(() async {
+        try {
+          List<int> modificationTimes =
+              await resourceProvider.getModificationTimes(sources);
+          bool cacheInconsistencyFixed = validator
+              .sourceModificationTimesComputed(sources, modificationTimes);
+          if (cacheInconsistencyFixed) {
+            scheduleOperation(new PerformAnalysisOperation(context, false));
+          }
+        } catch (exception, stackTrace) {
+          sendServerErrorNotification(
+              'Failed to check cache consistency', exception, stackTrace);
+        }
+      });
+    }
   }
 
   /**
@@ -1214,7 +1252,6 @@ class AnalysisServer {
   void shutdown() {
     running = false;
     if (index != null) {
-      index.clear();
       index.stop();
     }
     // Defer closing the channel and shutting down the instrumentation server so
@@ -1422,7 +1459,7 @@ class AnalysisServer {
     }
     // if library has not been resolved yet, the unit will be resolved later
     Source librarySource = librarySources[0];
-    if (context.getResult(librarySource, LIBRARY_ELEMENT5) == null) {
+    if (context.getResult(librarySource, LIBRARY_ELEMENT6) == null) {
       return null;
     }
     // if library has been already resolved, resolve unit
@@ -1439,7 +1476,7 @@ class AnalysisServer {
   }
 
   /**
-   * Schedules [performOperation] exection.
+   * Schedules [performOperation] execution.
    */
   void _schedulePerformOperation() {
     if (performOperationPending) {
@@ -1453,7 +1490,7 @@ class AnalysisServer {
      * every 25 milliseconds.
      *
      * To disable this workaround and see the underlying problem,
-     * set performOperationDelayFreqency to zero
+     * set performOperationDelayFrequency to zero
      */
     int now = new DateTime.now().millisecondsSinceEpoch;
     if (now > _nextPerformOperationDelayTime &&
@@ -1474,22 +1511,32 @@ class AnalysisServer {
    * but for now we only invalidate project specific index information.
    */
   void _setupIndexInvalidation() {
-    if (index2 == null) {
+    if (index == null) {
       return;
     }
     onContextsChanged.listen((ContextsChangedEvent event) {
       for (AnalysisContext context in event.added) {
         context
+            .onResultChanged(RESOLVED_UNIT3)
+            .listen((ResultChangedEvent event) {
+          if (event.wasComputed) {
+            Object value = event.value;
+            if (value is CompilationUnit) {
+              index.indexDeclarations(value);
+            }
+          }
+        });
+        context
             .onResultChanged(RESOLVED_UNIT)
             .listen((ResultChangedEvent event) {
           if (event.wasInvalidated) {
             LibrarySpecificUnit target = event.target;
-            index2.removeUnit(event.context, target.library, target.unit);
+            index.removeUnit(event.context, target.library, target.unit);
           }
         });
       }
       for (AnalysisContext context in event.removed) {
-        index2.removeContext(context);
+        index.removeContext(context);
       }
     });
   }
@@ -1498,6 +1545,8 @@ class AnalysisServer {
 class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
+  bool enablePubSummaryManager = false;
+  bool finerGrainedInvalidation = false;
   bool noErrorNotification = false;
   bool noIndex = false;
   bool useAnalysisHighlight2 = false;
@@ -1551,13 +1600,29 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
-    _locateEmbedderYamls(context, disposition);
+    context.fileResolverProvider = analysisServer.fileResolverProvider;
     context.sourceFactory =
         _createSourceFactory(context, options, disposition, folder);
     context.analysisOptions = options;
+
+    if (analysisServer.options.enablePubSummaryManager) {
+      List<LinkedPubPackage> linkedBundles =
+          analysisServer.pubSummaryManager.getLinkedBundles(context);
+      if (linkedBundles.isNotEmpty) {
+        SummaryDataStore store = new SummaryDataStore([]);
+        for (LinkedPubPackage package in linkedBundles) {
+          store.addBundle(null, package.unlinked);
+          store.addBundle(null, package.linked);
+        }
+        context.resultProvider =
+            new InputPackagesResultProvider(context, store);
+      }
+    }
+
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
+
     return context;
   }
 
@@ -1582,13 +1647,17 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer._computingPackageMap(computing);
 
   @override
+  void moveContext(Folder from, Folder to) {
+    // There is nothing to do.
+    // This method is mostly for tests.
+    // Context managers manage folders and contexts themselves.
+  }
+
+  @override
   void removeContext(Folder folder, List<String> flushedFiles) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
 
-    if (analysisServer.index != null) {
-      analysisServer.index.removeContext(context);
-    }
     analysisServer.operationQueue.contextRemoved(context);
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(removed: [context]));
@@ -1614,48 +1683,42 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     List<UriResolver> packageUriResolvers =
         disposition.createPackageUriResolvers(resourceProvider);
 
-    EmbedderUriResolver embedderUriResolver;
-
-    // First check for a resolver provider.
-    ContextManager contextManager = analysisServer.contextManager;
-    if (contextManager is ContextManagerImpl) {
-      EmbeddedResolverProvider resolverProvider =
-          contextManager.embeddedUriResolverProvider;
-      if (resolverProvider != null) {
-        embedderUriResolver = resolverProvider(folder);
-      }
-    }
-
     // If no embedded URI resolver was provided, defer to a locator-backed one.
-    embedderUriResolver ??=
-        new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
-    if (embedderUriResolver.length == 0) {
-      // The embedder uri resolver has no mappings. Use the default Dart SDK
-      // uri resolver.
+    EmbedderYamlLocator locator =
+        disposition.getEmbedderLocator(resourceProvider);
+    Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
+    EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderYamls);
+    if (embedderSdk.libraryMap.size() == 0) {
+      // There was no embedder file, or the file was empty, so used the default
+      // SDK.
       resolvers.add(new DartUriResolver(
           analysisServer.sdkManager.getSdkForOptions(options)));
     } else {
-      // The embedder uri resolver has mappings, use it instead of the default
-      // Dart SDK uri resolver.
-      resolvers.add(embedderUriResolver);
+      // The embedder file defines an alternate SDK, so use it.
+      List<String> paths = <String>[];
+      for (Folder folder in embedderYamls.keys) {
+        paths.add(folder
+            .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
+            .path);
+      }
+      DartSdk dartSdk = analysisServer.sdkManager
+          .getSdk(new SdkDescription(paths, options), () {
+        embedderSdk.analysisOptions = options;
+        // TODO(brianwilkerson) Enable summary use after we have decided where
+        // summary files for embedder files will live.
+        embedderSdk.useSummary = false;
+        return embedderSdk;
+      });
+      resolvers.add(new DartUriResolver(dartSdk));
     }
 
     resolvers.addAll(packageUriResolvers);
-    resolvers.add(new ResourceUriResolver(resourceProvider));
-    return new SourceFactory(resolvers, disposition.packages);
-  }
-
-  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
-  /// files.
-  void _locateEmbedderYamls(
-      InternalAnalysisContext context, FolderDisposition disposition) {
-    Map<String, List<Folder>> packageMap;
-    if (disposition is PackageMapDisposition) {
-      packageMap = disposition.packageMap;
-    } else if (disposition is PackagesFileDisposition) {
-      packageMap = disposition.buildPackageMap(resourceProvider);
+    if (context.fileResolverProvider == null) {
+      resolvers.add(new ResourceUriResolver(resourceProvider));
+    } else {
+      resolvers.add(context.fileResolverProvider(folder));
     }
-    context.embedderYamlLocator.refresh(packageMap);
+    return new SourceFactory(resolvers, disposition.packages);
   }
 }
 
@@ -1746,7 +1809,7 @@ class ServerPerformanceStatistics {
   static PerformanceTag pub = new PerformanceTag('pub');
 
   /**
-   * The [PerformanceTag] for time spent in server comminication channels.
+   * The [PerformanceTag] for time spent in server communication channels.
    */
   static PerformanceTag serverChannel = new PerformanceTag('serverChannel');
 

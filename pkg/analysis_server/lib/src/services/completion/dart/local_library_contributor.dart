@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show createSuggestion, ElementSuggestionBuilder;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -44,10 +45,19 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   void visitClassElement(ClassElement element) {
     if (optype.includeTypeNameSuggestions) {
-      addSuggestion(element, prefix: prefix, relevance: DART_RELEVANCE_DEFAULT);
+      // if includeTypeNameSuggestions, then use the filter
+      int relevance = optype.typeNameSuggestionsFilter(
+          element.type, DART_RELEVANCE_DEFAULT);
+      if (relevance != null) {
+        addSuggestion(element, prefix: prefix, relevance: relevance);
+      }
     }
     if (optype.includeConstructorSuggestions) {
-      _addConstructorSuggestions(element, DART_RELEVANCE_DEFAULT);
+      int relevance = optype.constructorSuggestionsFilter(
+          element.type, DART_RELEVANCE_DEFAULT);
+      if (relevance != null) {
+        _addConstructorSuggestions(element, relevance);
+      }
     }
   }
 
@@ -102,17 +112,19 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
-    int relevance;
-    if (element.library == containingLibrary) {
-      if (element.enclosingElement is ClassElement) {
-        relevance = DART_RELEVANCE_LOCAL_FIELD;
+    if (optype.includeReturnValueSuggestions) {
+      int relevance;
+      if (element.library == containingLibrary) {
+        if (element.enclosingElement is ClassElement) {
+          relevance = DART_RELEVANCE_LOCAL_FIELD;
+        } else {
+          relevance = DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE;
+        }
       } else {
-        relevance = DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE;
+        relevance = DART_RELEVANCE_DEFAULT;
       }
-    } else {
-      relevance = DART_RELEVANCE_DEFAULT;
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
-    addSuggestion(element, prefix: prefix, relevance: relevance);
   }
 
   @override
@@ -166,6 +178,16 @@ class LocalLibraryContributor extends DartCompletionContributor {
     if (libraryUnits == null) {
       return EMPTY_LIST;
     }
+
+    AstNode node = request.target.containingNode;
+
+    // If the target is in an expression
+    // then resolve the outermost/entire expression
+    await request.resolveContainingExpression(node);
+
+    // Discard any cached target information
+    // because it may have changed as a result of the resolution
+    node = request.target.containingNode;
 
     OpType optype = (request as DartCompletionRequestImpl).opType;
     LibraryElementSuggestionBuilder visitor =

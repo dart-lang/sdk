@@ -9,8 +9,8 @@ import 'package:unittest/unittest.dart';
 import '../../../utils.dart';
 import 'arglist_contributor_test.dart' as arglist_test;
 import 'combinator_contributor_test.dart' as combinator_test;
-import 'completion_manager_test.dart' as completion_manager;
 import 'common_usage_sorter_test.dart' as common_usage_test;
+import 'completion_manager_test.dart' as completion_manager;
 import 'field_formal_contributor_test.dart' as field_formal_contributor_test;
 import 'imported_reference_contributor_test.dart' as imported_ref_test;
 import 'inherited_reference_contributor_test.dart' as inherited_ref_test;
@@ -28,6 +28,7 @@ import 'override_contributor_test.dart' as override_contributor_test;
 import 'static_member_contributor_test.dart' as static_contributor_test;
 import 'type_member_contributor_test.dart' as type_member_contributor_test;
 import 'uri_contributor_test.dart' as uri_contributor_test;
+import 'variable_name_contributor_test.dart' as variable_name_contributor_test;
 
 /// Utility for manually running all tests.
 main() {
@@ -35,8 +36,8 @@ main() {
   group('dart/completion', () {
     arglist_test.main();
     combinator_test.main();
-    completion_manager.main();
     common_usage_test.main();
+    completion_manager.main();
     field_formal_contributor_test.main();
     imported_ref_test.main();
     inherited_ref_test.main();
@@ -54,5 +55,6 @@ main() {
     static_contributor_test.main();
     type_member_contributor_test.main();
     uri_contributor_test.main();
+    variable_name_contributor_test.main();
   });
 }

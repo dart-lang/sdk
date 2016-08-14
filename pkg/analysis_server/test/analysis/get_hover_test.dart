@@ -259,7 +259,7 @@ main(A a) {
     expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
     expect(hover.elementKind, 'method');
     // types
-    expect(hover.staticType, isNull);
+    expect(hover.staticType, '(int, String) → List<String>');
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);

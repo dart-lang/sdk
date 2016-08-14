@@ -9,14 +9,16 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptions;
-import 'package:analyzer/src/generated/source.dart'
-    show ContentCache, Source, UriKind;
+    show AnalysisContext, AnalysisOptions, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 
 /**
- * A function used to create a new DartSdk
+ * A function used to create a new DartSdk with the given [options]. If the
+ * passed [options] are `null`, then default options are used.
  */
-typedef DartSdk SdkCreator();
+typedef DartSdk SdkCreator(AnalysisOptions options);
 
 /**
  * A Dart SDK installed in a specified location.
@@ -36,6 +38,11 @@ abstract class DartSdk {
    * The short name of the dart SDK 'html' library.
    */
   static const String DART_HTML = "dart:html";
+
+  /**
+   * The prefix shared by all dart library URIs.
+   */
+  static const String DART_LIBRARY_PREFIX = "dart:";
 
   /**
    * The version number that is returned when the real version number could not
@@ -72,6 +79,14 @@ abstract class DartSdk {
   Source fromFileUri(Uri uri);
 
   /**
+   * Return the linked [PackageBundle] for this SDK, if it can be provided, or
+   * `null` otherwise.
+   *
+   * This is a temporary API, don't use it.
+   */
+  PackageBundle getLinkedBundle();
+
+  /**
    * Return the library representing the library with the given 'dart:' [uri],
    * or `null` if the given URI does not denote a library in this SDK.
    */
@@ -91,20 +106,32 @@ abstract class DartSdk {
  */
 class DartSdkManager {
   /**
+   * The absolute path to the directory containing the default SDK.
+   */
+  final String defaultSdkDirectory;
+
+  /**
+   * A flag indicating whether it is acceptable to use summaries when they are
+   * available.
+   */
+  final bool canUseSummaries;
+
+  /**
    * The function used to create new SDK's.
    */
   final SdkCreator sdkCreator;
 
   /**
-   * A table mapping (an encoding of) analysis options to the SDK that has been
-   * configured with those options.
+   * A table mapping (an encoding of) analysis options and SDK locations to the
+   * DartSdk from that location that has been configured with those options.
    */
-  Map<int, DartSdk> sdkMap = new HashMap<int, DartSdk>();
+  Map<SdkDescription, DartSdk> sdkMap = new HashMap<SdkDescription, DartSdk>();
 
   /**
    * Initialize a newly created manager.
    */
-  DartSdkManager(this.sdkCreator);
+  DartSdkManager(
+      this.defaultSdkDirectory, this.canUseSummaries, this.sdkCreator);
 
   /**
    * Return any SDK that has been created, or `null` if no SDKs have been
@@ -118,19 +145,30 @@ class DartSdkManager {
   }
 
   /**
+   * Return a list of the descriptors of the SDKs that are currently being
+   * managed.
+   */
+  List<SdkDescription> get sdkDescriptors => sdkMap.keys.toList();
+
+  /**
+   * Return the Dart SDK that is appropriate for the given analysis [options].
+   * If such an SDK has not yet been created, then the [sdkCreator] will be
+   * invoked to create it.
+   */
+  DartSdk getSdk(SdkDescription description, DartSdk ifAbsent()) {
+    return sdkMap.putIfAbsent(description, ifAbsent);
+  }
+
+  /**
    * Return the Dart SDK that is appropriate for the given analysis [options].
    * If such an SDK has not yet been created, then the [sdkCreator] will be
    * invoked to create it.
    */
   DartSdk getSdkForOptions(AnalysisOptions options) {
-    int encoding = options.encodeCrossContextOptions();
-    DartSdk sdk = sdkMap[encoding];
-    if (sdk == null) {
-      sdk = sdkCreator();
-      sdkMap[encoding] = sdk;
-      sdk.context.analysisOptions.setCrossContextOptionsFrom(options);
-    }
-    return sdk;
+    // TODO(brianwilkerson) Remove this method and the field sdkCreator.
+    SdkDescription description =
+        new SdkDescription(<String>[defaultSdkDirectory], options);
+    return getSdk(description, () => sdkCreator(options));
   }
 }
 
@@ -172,6 +210,82 @@ class LibraryMap {
    * Return the number of library URI's for which a mapping is available.
    */
   int size() => _libraryMap.length;
+}
+
+/**
+ * A description of a [DartSdk].
+ */
+class SdkDescription {
+  /**
+   * The paths to the files or directories that define the SDK.
+   */
+  final List<String> paths;
+
+  /**
+   * The analysis options that will be used by the SDK's context.
+   */
+  final AnalysisOptions options;
+
+  /**
+   * Initialize a newly created SDK description to describe an SDK based on the
+   * files or directories at the given [paths] that is analyzed using the given
+   * [options].
+   */
+  SdkDescription(this.paths, this.options);
+
+  @override
+  int get hashCode {
+    int hashCode = options.encodeCrossContextOptions();
+    for (String path in paths) {
+      hashCode = JenkinsSmiHash.combine(hashCode, path.hashCode);
+    }
+    return JenkinsSmiHash.finish(hashCode);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is SdkDescription) {
+      if (options.encodeCrossContextOptions() !=
+          other.options.encodeCrossContextOptions()) {
+        return false;
+      }
+      int length = paths.length;
+      if (other.paths.length != length) {
+        return false;
+      }
+      for (int i = 0; i < length; i++) {
+        if (other.paths[i] != paths[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    bool needsSeparator = false;
+    void add(String optionName) {
+      if (needsSeparator) {
+        buffer.write(', ');
+      }
+      buffer.write(optionName);
+      needsSeparator = true;
+    }
+    for (String path in paths) {
+      add(path);
+    }
+    if (needsSeparator) {
+      buffer.write(' ');
+    }
+    buffer.write('(');
+    buffer.write(AnalysisOptionsImpl
+        .decodeCrossContextOptions(options.encodeCrossContextOptions()));
+    buffer.write(')');
+    return buffer.toString();
+  }
 }
 
 class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
@@ -373,10 +487,6 @@ class SdkLibraryImpl implements SdkLibrary {
    */
   static int VM_PLATFORM = 2;
 
-  /**
-   * The short name of the library. This is the name used after 'dart:' in a
-   * URI.
-   */
   @override
   final String shortName;
 

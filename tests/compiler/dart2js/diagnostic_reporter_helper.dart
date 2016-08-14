@@ -9,6 +9,7 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'options_helper.dart';
 
 abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   DiagnosticReporter get reporter;
@@ -72,4 +73,7 @@ abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   withCurrentElement(Element element, f()) {
     return reporter.withCurrentElement(element, f);
   }
+
+  @override
+  bool get hasReportedError => reporter.hasReportedError;
 }

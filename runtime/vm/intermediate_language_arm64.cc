@@ -639,8 +639,11 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   const Register val_reg = locs()->in(0).reg();
   const Register cid_reg = locs()->temp(0).reg();
 
-  Label* deopt = CanDeoptimize() ?
-      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids) : NULL;
+  Label* deopt = CanDeoptimize()
+      ? compiler->AddDeoptStub(deopt_id(),
+                               ICData::kDeoptTestCids,
+                               licm_hoisted_ ? ICData::kHoisted : 0)
+      : NULL;
 
   const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
   const ZoneGrowableArray<intptr_t>& data = cid_results();
@@ -822,8 +825,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StringFromCharCodeInstr::MakeLocationSummary(Zone* zone,
-                                                              bool opt) const {
+LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
+    Zone* zone, bool opt) const {
   const intptr_t kNumInputs = 1;
   // TODO(fschneider): Allow immediate operands for the char code.
   return LocationSummary::Make(zone,
@@ -833,7 +836,8 @@ LocationSummary* StringFromCharCodeInstr::MakeLocationSummary(Zone* zone,
 }
 
 
-void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void OneByteStringFromCharCodeInstr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
   const Register char_code = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
@@ -932,8 +936,14 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-
-  __ LoadTaggedClassIdMayBeSmi(result, object);
+  const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
+  if (CompileType::Smi().IsAssignableTo(value_type) ||
+      value_type.IsTypeParameter()) {
+    __ LoadTaggedClassIdMayBeSmi(result, object);
+  } else {
+    __ LoadClassId(result, object);
+    __ SmiTag(result);
+  }
 }
 
 
@@ -962,6 +972,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
       return CompileType::FromCid(kSmiCid);
@@ -986,6 +998,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
       return kTagged;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
@@ -1119,6 +1133,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
+    case kExternalOneByteStringCid:
       ASSERT(index_scale() == 1);
       __ ldr(result, element_address, kUnsignedByte);
       __ SmiTag(result);
@@ -1129,6 +1144,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
+    case kExternalTwoByteStringCid:
       __ ldr(result, element_address, kUnsignedHalfword);
       __ SmiTag(result);
       break;
@@ -1438,7 +1454,8 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (field_cid == kDynamicCid) {
     if (Compiler::IsBackgroundCompilation()) {
       // Field state changed while compiling.
-      Compiler::AbortBackgroundCompilation(deopt_id());
+      Compiler::AbortBackgroundCompilation(deopt_id(),
+          "GuardFieldClassInstr: field state changed while compiling");
     }
     ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
@@ -1593,7 +1610,8 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (field().guarded_list_length() == Field::kNoFixedLength) {
     if (Compiler::IsBackgroundCompilation()) {
       // Field state changed while compiling.
-      Compiler::AbortBackgroundCompilation(deopt_id());
+      Compiler::AbortBackgroundCompilation(deopt_id(),
+          "GuardFieldLengthInstr: field state changed while compiling");
     }
     ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
@@ -1743,7 +1761,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
           ((IsPotentialUnboxedStore()) ? 2 : 0);
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
-          ((IsUnboxedStore() && opt && is_potential_unboxed_initialization_) ||
+          ((IsUnboxedStore() && opt && is_initialization()) ||
            IsPotentialUnboxedStore())
           ? LocationSummary::kCallOnSlowPath
           : LocationSummary::kNoCall);
@@ -1780,7 +1798,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register temp2 = locs()->temp(1).reg();
     const intptr_t cid = field().UnboxedFieldCid();
 
-    if (is_potential_unboxed_initialization_) {
+    if (is_initialization()) {
       const Class* cls = NULL;
       switch (cid) {
         case kDoubleCid:
@@ -2584,19 +2602,11 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
-      uword flags_address = Isolate::Current()->stack_overflow_flags_address();
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      if (FLAG_allow_absolute_addresses) {
-        __ LoadImmediate(TMP, flags_address);
-        __ LoadImmediate(value, Isolate::kOsrRequest);
-        __ str(value, Address(TMP));
-      } else {
-        __ LoadIsolate(TMP);
-        __ LoadImmediate(value, Isolate::kOsrRequest);
-        __ str(value, Address(TMP, Isolate::stack_overflow_flags_offset()));
-      }
+      __ LoadImmediate(value, Thread::kOsrRequest);
+      __ str(value, Address(THR, Thread::stack_overflow_flags_offset()));
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
@@ -2638,14 +2648,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
-    __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
-    __ ldr(TMP, Address(TMP));
-  } else {
-    __ LoadIsolate(TMP);
-    __ ldr(TMP, Address(TMP, Isolate::stack_limit_offset()));
-  }
-  __ CompareRegisters(SP, TMP);
+  __ ldr(TMP, Address(THR, Thread::stack_limit_offset()));
+  // Compare to CSP not SP because CSP is closer to the stack limit. See
+  // Assembler::EnterFrame.
+  __ CompareRegisters(CSP, TMP);
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {
     const Register temp = locs()->temp(0).reg();
@@ -2823,8 +2829,21 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
   Register result = locs()->out(0).reg();
-  __ orr(result, left, Operand(right));
-  __ tsti(result, Immediate(kSmiTagMask));
+  intptr_t left_cid = this->left()->Type()->ToCid();
+  intptr_t right_cid = this->right()->Type()->ToCid();
+  bool combined_smi_check = false;
+  if (this->left()->definition() == this->right()->definition()) {
+    __ tsti(left, Immediate(kSmiTagMask));
+  } else if (left_cid == kSmiCid) {
+    __ tsti(right, Immediate(kSmiTagMask));
+  } else if (right_cid == kSmiCid) {
+    __ tsti(left, Immediate(kSmiTagMask));
+  } else {
+    combined_smi_check = true;
+    __ orr(result, left, Operand(right));
+    __ tsti(result, Immediate(kSmiTagMask));
+  }
+
   __ b(slow_path->entry_label(), NE);
   switch (op_kind()) {
     case Token::kADD:
@@ -2835,8 +2854,19 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ subs(result, left, Operand(right));
       __ b(slow_path->entry_label(), VS);
       break;
+    case Token::kMUL:
+      __ SmiUntag(TMP, left);
+      __ mul(result, TMP, right);
+      __ smulh(TMP, TMP, right);
+      // TMP: result bits 64..127.
+      __ cmp(TMP, Operand(result, ASR, 63));
+      __ b(slow_path->entry_label(), NE);
+      break;
     case Token::kBIT_OR:
-      // Operation part of combined smi check.
+      // Operation may be part of combined smi check.
+      if (!combined_smi_check) {
+        __ orr(result, left, Operand(right));
+      }
       break;
     case Token::kBIT_AND:
       __ and_(result, left, Operand(right));
@@ -3169,7 +3199,9 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t right_cid = right()->Type()->ToCid();
   const Register left = locs()->in(0).reg();
   const Register right = locs()->in(1).reg();
-  if (left_cid == kSmiCid) {
+  if (this->left()->definition() == this->right()->definition()) {
+    __ tsti(left, Immediate(kSmiTagMask));
+  } else if (left_cid == kSmiCid) {
     __ tsti(right, Immediate(kSmiTagMask));
   } else if (right_cid == kSmiCid) {
     __ tsti(left, Immediate(kSmiTagMask));
@@ -5222,8 +5254,68 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         ICData::kDeoptCheckSmi,
                                         licm_hoisted_ ? ICData::kHoisted : 0);
-  __ tsti(value, Immediate(kSmiTagMask));
-  __ b(deopt, NE);
+  __ BranchIfNotSmi(value, deopt);
+}
+
+
+
+LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  locs->set_in(kLengthPos, Location::RequiresRegister());
+  locs->set_in(kIndexPos, Location::RequiresRegister());
+  return locs;
+}
+
+
+class RangeErrorSlowPath : public SlowPathCode {
+ public:
+  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
+      : instruction_(instruction), try_index_(try_index) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (Assembler::EmittingComments()) {
+      __ Comment("slow path check bound operation");
+    }
+    __ Bind(entry_label());
+    LocationSummary* locs = instruction_->locs();
+    __ Push(locs->in(0).reg());
+    __ Push(locs->in(1).reg());
+    __ CallRuntime(kRangeErrorRuntimeEntry, 2);
+    compiler->pc_descriptors_list()->AddDescriptor(
+        RawPcDescriptors::kOther,
+        compiler->assembler()->CodeSize(),
+        instruction_->deopt_id(),
+        instruction_->token_pos(),
+        try_index_);
+    compiler->RecordSafepoint(locs, 2);
+    __ brk(0);
+  }
+
+ private:
+  GenericCheckBoundInstr* instruction_;
+  intptr_t try_index_;
+};
+
+
+void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  RangeErrorSlowPath* slow_path =
+      new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+
+  Location length_loc = locs()->in(kLengthPos);
+  Location index_loc = locs()->in(kIndexPos);
+  Register length = length_loc.reg();
+  Register index = index_loc.reg();
+  const intptr_t index_cid = this->index()->Type()->ToCid();
+  if (index_cid != kSmiCid) {
+    __ BranchIfNotSmi(index, slow_path->entry_label());
+  }
+  __ cmp(index, Operand(length));
+  __ b(slow_path->entry_label(), CS);
 }
 
 
@@ -5250,6 +5342,7 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Location length_loc = locs()->in(kLengthPos);
   Location index_loc = locs()->in(kIndexPos);
 
+  const intptr_t index_cid = index()->Type()->ToCid();
   if (length_loc.IsConstant() && index_loc.IsConstant()) {
     // TODO(srdjan): remove this code once failures are fixed.
     if ((Smi::Cast(length_loc.constant()).Value() >
@@ -5275,6 +5368,9 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else if (length_loc.IsConstant()) {
     const Smi& length = Smi::Cast(length_loc.constant());
     const Register index = index_loc.reg();
+    if (index_cid != kSmiCid) {
+      __ BranchIfNotSmi(index, deopt);
+    }
     if (length.Value() == Smi::kMaxValue) {
       __ tst(index, Operand(index));
       __ b(deopt, MI);
@@ -5285,6 +5381,9 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     const Register length = length_loc.reg();
     const Register index = index_loc.reg();
+    if (index_cid != kSmiCid) {
+      __ BranchIfNotSmi(index, deopt);
+    }
     __ CompareRegisters(index, length);
     __ b(deopt, CS);
   }

@@ -116,9 +116,6 @@ void testUsePrivateKeyArguments() {
     Expect.throws(() => c.setClientAuthorities(
         localFile('certificates/client_authority_malformed.pem')),
         tlsException);
-
-    c.usePrivateKey(
-        localFile('certificates/server_key.pem'), password: "dartdart");
 }
 
 void main() {

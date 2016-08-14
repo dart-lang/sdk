@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _StdIOUtils {
+@patch class _StdIOUtils {
   static Stdin _getStdioInputStream() {
     switch (_getStdioHandleType(0)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
@@ -29,10 +29,16 @@ patch class _StdIOUtils {
     }
   }
 
-  static int _socketType(nativeSocket) {
+  static int _socketType(Socket socket) {
+    if (socket is _Socket) return _nativeSocketType(socket._nativeSocket);
+    return null;
+  }
+
+  static int _nativeSocketType(_NativeSocket nativeSocket) {
     var result = _getSocketType(nativeSocket);
     if (result is OSError) {
-      throw new FileSystemException("Error retrieving socket type", "", result);
+      throw new FileSystemException(
+          "Error retrieving socket type", "", result);
     }
     return result;
   }
@@ -40,14 +46,14 @@ patch class _StdIOUtils {
   static _getStdioHandleType(int fd) native "File_GetStdioHandleType";
 }
 
-patch class Stdin {
-  /* patch */ int readByteSync() native "Stdin_ReadByte";
+@patch class Stdin {
+  @patch int readByteSync() native "Stdin_ReadByte";
 
-  /* patch */ bool get echoMode => _echoMode;
-  /* patch */ void set echoMode(bool enabled) { _echoMode = enabled; }
+  @patch bool get echoMode => _echoMode;
+  @patch void set echoMode(bool enabled) { _echoMode = enabled; }
 
-  /* patch */ bool get lineMode => _lineMode;
-  /* patch */ void set lineMode(bool enabled) { _lineMode = enabled; }
+  @patch bool get lineMode => _lineMode;
+  @patch void set lineMode(bool enabled) { _lineMode = enabled; }
 
   static bool get _echoMode native "Stdin_GetEchoMode";
   static void set _echoMode(bool enabled) native "Stdin_SetEchoMode";
@@ -55,8 +61,8 @@ patch class Stdin {
   static void set _lineMode(bool enabled) native "Stdin_SetLineMode";
 }
 
-patch class Stdout {
-  /* patch */ bool _hasTerminal(int fd) {
+@patch class Stdout {
+  @patch bool _hasTerminal(int fd) {
     try {
       _terminalSize(fd);
       return true;
@@ -65,8 +71,8 @@ patch class Stdout {
     }
   }
 
-  /* patch */ int _terminalColumns(int fd) => _terminalSize(fd)[0];
-  /* patch */ int _terminalLines(int fd) => _terminalSize(fd)[1];
+  @patch int _terminalColumns(int fd) => _terminalSize(fd)[0];
+  @patch int _terminalLines(int fd) => _terminalSize(fd)[1];
 
   static List _terminalSize(int fd) {
     var size = _getTerminalSize(fd);

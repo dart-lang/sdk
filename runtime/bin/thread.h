@@ -18,6 +18,8 @@ class Monitor;
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/thread_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "bin/thread_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "bin/thread_linux.h"
 #elif defined(TARGET_OS_MACOS)
@@ -51,12 +53,15 @@ class Thread {
   static void SetThreadLocal(ThreadLocalKey key, uword value);
   static intptr_t GetMaxStackSize();
   static ThreadId GetCurrentThreadId();
-  static bool Join(ThreadId id);
   static intptr_t ThreadIdToIntPtr(ThreadId id);
   static bool Compare(ThreadId a, ThreadId b);
   static void GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage);
 
   static void InitOnce();
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Thread);
 };
 
 
@@ -104,7 +109,6 @@ class Monitor {
 
   DISALLOW_COPY_AND_ASSIGN(Monitor);
 };
-
 
 }  // namespace bin
 }  // namespace dart

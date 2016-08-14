@@ -250,6 +250,11 @@ abstract class Token {
   bool get isUserDefinableOperator;
 
   /**
+   * Return the keyword, if a keyword token, or `null` otherwise.
+   */
+  Keyword get keyword;
+
+  /**
    * Return the number of characters in the node's source range.
    */
   int get length;
@@ -355,7 +360,9 @@ abstract class Token {
   static Token lexicallyFirst(List<Token> tokens) {
     Token first = null;
     int offset = -1;
-    for (Token token in tokens) {
+    int length = tokens.length;
+    for (int i = 0; i < length; i++) {
+      Token token = tokens[i];
       if (token != null && (offset < 0 || token.offset < offset)) {
         first = token;
         offset = token.offset;
@@ -402,6 +409,9 @@ class TokenType {
   static const TokenType AMPERSAND_AMPERSAND = const TokenType._(
       'AMPERSAND_AMPERSAND', TokenClass.LOGICAL_AND_OPERATOR, '&&');
 
+  static const TokenType AMPERSAND_AMPERSAND_EQ = const TokenType._(
+      'AMPERSAND_AMPERSAND_EQ', TokenClass.ASSIGNMENT_OPERATOR, '&&=');
+
   static const TokenType AMPERSAND_EQ =
       const TokenType._('AMPERSAND_EQ', TokenClass.ASSIGNMENT_OPERATOR, '&=');
 
@@ -418,6 +428,9 @@ class TokenType {
 
   static const TokenType BAR_BAR =
       const TokenType._('BAR_BAR', TokenClass.LOGICAL_OR_OPERATOR, '||');
+
+  static const TokenType BAR_BAR_EQ =
+      const TokenType._('BAR_BAR_EQ', TokenClass.ASSIGNMENT_OPERATOR, '||=');
 
   static const TokenType BAR_EQ =
       const TokenType._('BAR_EQ', TokenClass.ASSIGNMENT_OPERATOR, '|=');

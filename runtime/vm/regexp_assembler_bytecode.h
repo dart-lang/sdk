@@ -105,7 +105,7 @@ class BytecodeRegExpMacroAssembler: public RegExpMacroAssembler {
   virtual void PrintBlocks() { UNIMPLEMENTED(); }
   /////
 
-  static RawInstance* Interpret(const JSRegExp& regexp,
+  static RawInstance* Interpret(const RegExp& regexp,
                                 const String& str,
                                 const Smi& start_index,
                                 Zone* zone);

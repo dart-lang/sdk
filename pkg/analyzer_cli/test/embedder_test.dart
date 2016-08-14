@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_cli/src/driver.dart' show Driver, errorSink, outSink;
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
@@ -40,6 +42,20 @@ main() {
 
       expect(exitCode, 0);
       expect(outSink.toString(), contains('No issues found'));
+    }));
+
+    test('sdk setup', wrap(() {
+      var testDir = path.join(testDirectory, 'data', 'embedder_client');
+      Driver driver = new Driver();
+      driver.start([
+        '--packages',
+        path.join(testDir, '_packages'),
+        path.join(testDir, 'embedder_yaml_user.dart')
+      ]);
+
+      DartSdk sdk = driver.sdk;
+      expect(sdk, new isInstanceOf<FolderBasedDartSdk>());
+      expect((sdk as FolderBasedDartSdk).useSummary, isFalse);
     }));
   });
 }

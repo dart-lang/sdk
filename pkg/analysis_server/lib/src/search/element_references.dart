@@ -46,31 +46,28 @@ class ElementReferencesComputer {
    * Returns a [Future] completing with a [List] of references to [element] or
    * to the corresponding hierarchy [Element]s.
    */
-  Future<List<SearchResult>> _findElementsReferences(Element element) {
-    return _getRefElements(element).then((Iterable<Element> refElements) {
-      var futureGroup = new _ConcatFutureGroup<SearchResult>();
-      for (Element refElement in refElements) {
-        // add declaration
-        if (_isDeclarationInteresting(refElement)) {
-          SearchResult searchResult = _newDeclarationResult(refElement);
-          futureGroup.add(searchResult);
-        }
-        // do search
-        futureGroup.add(_findSingleElementReferences(refElement));
+  Future<List<SearchResult>> _findElementsReferences(Element element) async {
+    Iterable<Element> refElements = await _getRefElements(element);
+    var futureGroup = new _ConcatFutureGroup<SearchResult>();
+    for (Element refElement in refElements) {
+      // add declaration
+      if (_isDeclarationInteresting(refElement)) {
+        SearchResult searchResult = _newDeclarationResult(refElement);
+        futureGroup.add(searchResult);
       }
-      return futureGroup.future;
-    });
+      // do search
+      futureGroup.add(_findSingleElementReferences(refElement));
+    }
+    return futureGroup.future;
   }
 
   /**
    * Returns a [Future] completing with a [List] of references to [element].
    */
-  Future<List<SearchResult>> _findSingleElementReferences(Element element) {
-    Future<List<SearchMatch>> matchesFuture =
-        searchEngine.searchReferences(element);
-    return matchesFuture.then((List<SearchMatch> matches) {
-      return matches.map(toResult).toList();
-    });
+  Future<List<SearchResult>> _findSingleElementReferences(
+      Element element) async {
+    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    return matches.map(toResult).toList();
   }
 
   /**
@@ -149,9 +146,9 @@ class _ConcatFutureGroup<E> {
    */
   void add(value) {
     if (value is Future) {
-      _futures.add(value);
+      _futures.add(value as Future<List<E>>);
     } else {
-      _futures.add(new Future.value(<E>[value]));
+      _futures.add(new Future.value(<E>[value as E]));
     }
   }
 }

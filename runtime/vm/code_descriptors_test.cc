@@ -218,10 +218,10 @@ TEST_CASE(StackmapGC) {
 
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& lib = Library::Handle(Library::LookupLibrary(name));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!lib.IsNull());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());
 
   // Now compile the two functions 'A.foo' and 'A.moo'

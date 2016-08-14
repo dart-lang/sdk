@@ -118,8 +118,11 @@ class NativeEntry : public AllStatic {
   static void NativeCallWrapper(Dart_NativeArguments args,
                                 Dart_NativeFunction func);
 
+  // DBC does not support lazy native call linking.
+#if !defined(TARGET_ARCH_DBC)
   static uword LinkNativeCallEntry();
   static void LinkNativeCall(Dart_NativeArguments args);
+#endif
 
  private:
   static void NativeCallWrapperNoStackCheck(Dart_NativeArguments args,

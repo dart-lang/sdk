@@ -5,6 +5,7 @@
 library dart2js.serialization.json;
 
 import 'dart:convert';
+
 import 'keys.dart';
 import 'serialization.dart';
 import 'values.dart';
@@ -14,8 +15,8 @@ class JsonSerializationEncoder implements SerializationEncoder {
   const JsonSerializationEncoder();
 
   String encode(ObjectValue objectValue) {
-    return new JsonEncoder.withIndent(' ').convert(
-        const JsonValueEncoder().convert(objectValue));
+    return new JsonEncoder.withIndent(' ')
+        .convert(const JsonValueEncoder().convert(objectValue));
   }
 }
 
@@ -113,13 +114,14 @@ class PrettyPrintEncoder implements ValueVisitor {
 
   @override
   void visitConstant(ConstantValue value, String indentation) {
-    buffer.write('Constant(${value.id}):${value.constant.getText()}');
+    buffer.write('Constant(${value.id}):${value.constant.toDartText()}');
   }
 
   @override
   void visitDouble(DoubleValue value, String indentation) {
     buffer.write(value.value);
   }
+
   @override
   void visitElement(ElementValue value, String indentation) {
     buffer.write('Element(${value.id}):${value.element}');

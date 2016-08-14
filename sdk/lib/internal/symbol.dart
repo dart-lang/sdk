@@ -112,10 +112,7 @@ class Symbol implements core.Symbol {
 
   bool operator ==(other) => other is Symbol && _name == other._name;
 
-  int get hashCode {
-    const arbitraryPrime = 664597;
-    return 0x1fffffff & (arbitraryPrime * _name.hashCode);
-  }
+  external int get hashCode;
 
   toString() => 'Symbol("$_name")';
 

@@ -73,9 +73,11 @@ class ProfileFunction : public ZoneAllocated {
 
   const char* Name() const;
 
-  RawFunction* function() const {
-    return function_.raw();
+  const Function* function() const {
+    return &function_;
   }
+
+  bool is_visible() const;
 
   intptr_t table_index() const {
     return table_index_;
@@ -104,6 +106,14 @@ class ProfileFunction : public ZoneAllocated {
   bool GetSinglePosition(ProfileFunctionSourcePosition* pfsp);
 
   void TickSourcePosition(TokenPosition token_position, bool exclusive);
+
+  intptr_t NumSourcePositions() const {
+    return source_position_ticks_.length();
+  }
+
+  const ProfileFunctionSourcePosition& GetSourcePosition(intptr_t i) const {
+    return source_position_ticks_.At(i);
+  }
 
  private:
   const Kind kind_;
@@ -347,12 +357,16 @@ class Profile : public ValueObject {
   }
   intptr_t sample_count() const { return sample_count_; }
 
+  intptr_t NumFunctions() const;
+
   ProfileFunction* GetFunction(intptr_t index);
   ProfileCode* GetCode(intptr_t index);
   ProfileTrieNode* GetTrieRoot(TrieKind trie_kind);
 
   void PrintProfileJSON(JSONStream* stream);
   void PrintTimelineJSON(JSONStream* stream);
+
+  ProfileFunction* FindFunction(const Function& function);
 
  private:
   void PrintHeaderJSON(JSONObject* obj);

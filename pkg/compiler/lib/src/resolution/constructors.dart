@@ -5,40 +5,32 @@
 library dart2js.resolution.constructors;
 
 import '../common.dart';
-import '../common/resolution.dart' show
-    Feature;
-import '../compiler.dart' show
-    Compiler;
-import '../constants/constructors.dart' show
-    GenerativeConstantConstructor,
-    RedirectingGenerativeConstantConstructor;
+import '../common/resolution.dart' show Feature, Resolution;
+import '../constants/constructors.dart'
+    show
+        GenerativeConstantConstructor,
+        RedirectingGenerativeConstantConstructor;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show
-    ConstructorElementX,
-    ErroneousConstructorElementX,
-    ErroneousElementX,
-    ErroneousFieldElementX,
-    FieldElementX,
-    InitializingFormalElementX,
-    ParameterElementX;
+import '../elements/modelx.dart'
+    show
+        ConstructorElementX,
+        ErroneousConstructorElementX,
+        ErroneousElementX,
+        ErroneousFieldElementX,
+        FieldElementX,
+        InitializingFormalElementX,
+        ParameterElementX;
 import '../tree/tree.dart';
-import '../util/util.dart' show
-    Link;
-import '../universe/call_structure.dart' show
-    CallStructure;
-import '../universe/use.dart' show
-    StaticUse;
-
-import 'members.dart' show
-    lookupInScope,
-    ResolverVisitor;
-import 'registry.dart' show
-    ResolutionRegistry;
-import 'resolution_common.dart' show
-    CommonResolverVisitor;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/use.dart' show StaticUse;
+import '../util/util.dart' show Link;
+import 'members.dart' show lookupInScope, ResolverVisitor;
+import 'registry.dart' show ResolutionRegistry;
+import 'resolution_common.dart' show CommonResolverVisitor;
 import 'resolution_result.dart';
+import 'scope.dart' show Scope, ExtensionScope;
 
 class InitializerResolver {
   final ResolverVisitor visitor;
@@ -66,19 +58,14 @@ class InitializerResolver {
     return node.receiver.asIdentifier().isThis();
   }
 
-  reportDuplicateInitializerError(Element field,
-                                  Node init,
-                                  Spannable existing) {
+  reportDuplicateInitializerError(
+      Element field, Node init, Spannable existing) {
     reporter.reportError(
         reporter.createMessage(
-            init,
-            MessageKind.DUPLICATE_INITIALIZER,
-            {'fieldName': field.name}),
+            init, MessageKind.DUPLICATE_INITIALIZER, {'fieldName': field.name}),
         <DiagnosticMessage>[
-            reporter.createMessage(
-                existing,
-                MessageKind.ALREADY_INITIALIZED,
-                {'fieldName': field.name}),
+          reporter.createMessage(existing, MessageKind.ALREADY_INITIALIZED,
+              {'fieldName': field.name}),
         ]);
     isValidAsConstant = false;
   }
@@ -89,12 +76,14 @@ class InitializerResolver {
     if (initialized.containsKey(field)) {
       reportDuplicateInitializerError(field, init, initialized[field]);
     } else if (field.isFinal) {
-      field.parseNode(visitor.resolution.parsing);
+      field.parseNode(visitor.resolution.parsingContext);
       Expression initializer = field.initializer;
       if (initializer != null) {
-        reportDuplicateInitializerError(field, init,
-            reporter.withCurrentElement(field,
-                () => reporter.spanFromSpannable(initializer)));
+        reportDuplicateInitializerError(
+            field,
+            init,
+            reporter.withCurrentElement(
+                field, () => reporter.spanFromSpannable(initializer)));
       }
     }
     initialized[field] = init;
@@ -137,8 +126,7 @@ class InitializerResolver {
       registry.registerStaticUse(new StaticUse.fieldInit(field));
     }
     // Resolve initializing value.
-    ResolutionResult result = visitor.visitInStaticContext(
-        init.arguments.head,
+    ResolutionResult result = visitor.visitInStaticContext(init.arguments.head,
         inConstantInitializer: isConst);
     if (isConst) {
       if (result.isConstant && field != null) {
@@ -151,7 +139,7 @@ class InitializerResolver {
   }
 
   InterfaceType getSuperOrThisLookupTarget(Node diagnosticNode,
-                                           {bool isSuperCall}) {
+      {bool isSuperCall}) {
     if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
       if (constructor.enclosingClass.isObject) {
@@ -179,17 +167,13 @@ class InitializerResolver {
     ClassElement lookupTarget = targetType.element;
     String constructorName =
         visitor.getRedirectingThisOrSuperConstructorName(node).text;
-    ConstructorElement foundConstructor = findConstructor(
-        constructor.library, lookupTarget, constructorName);
+    ConstructorElement foundConstructor =
+        findConstructor(constructor.library, lookupTarget, constructorName);
 
-    final bool isImplicitSuperCall = false;
     final String className = lookupTarget.name;
     CallStructure callStructure = argumentsResult.callStructure;
     ConstructorElement calledConstructor = verifyThatConstructorMatchesCall(
-        node,
-        foundConstructor,
-        callStructure,
-        className,
+        node, foundConstructor, callStructure, className,
         constructorName: constructorName,
         isThisCall: !isSuperCall,
         isImplicitSuperCall: false);
@@ -197,9 +181,8 @@ class InitializerResolver {
     // [InitializerStructure].
     registry.useElement(node, calledConstructor);
     if (!calledConstructor.isError) {
-      registry.registerStaticUse(
-          new StaticUse.superConstructorInvoke(
-              calledConstructor, callStructure));
+      registry.registerStaticUse(new StaticUse.superConstructorInvoke(
+          calledConstructor, callStructure));
     }
     if (isConst) {
       if (isValidAsConstant &&
@@ -209,10 +192,7 @@ class InitializerResolver {
         return new ConstantResult(
             node,
             new ConstructedConstantExpression(
-                targetType,
-                calledConstructor,
-                callStructure,
-                arguments),
+                targetType, calledConstructor, callStructure, arguments),
             element: calledConstructor);
       } else {
         isValidAsConstant = false;
@@ -238,10 +218,7 @@ class InitializerResolver {
       final String className = lookupTarget.name;
       CallStructure callStructure = CallStructure.NO_ARGS;
       ConstructorElement result = verifyThatConstructorMatchesCall(
-          functionNode,
-          calledConstructor,
-          callStructure,
-          className,
+          functionNode, calledConstructor, callStructure, className,
           isImplicitSuperCall: true);
       if (!result.isError) {
         registry.registerStaticUse(
@@ -249,24 +226,17 @@ class InitializerResolver {
       }
 
       if (isConst && isValidAsConstant) {
-        return new ConstructedConstantExpression(
-            targetType,
-            result,
-            CallStructure.NO_ARGS,
-            const <ConstantExpression>[]);
+        return new ConstructedConstantExpression(targetType, result,
+            CallStructure.NO_ARGS, const <ConstantExpression>[]);
       }
     }
     return null;
   }
 
   ConstructorElement reportAndCreateErroneousConstructor(
-      Spannable diagnosticNode,
-      String name,
-      MessageKind kind,
-      Map arguments) {
+      Spannable diagnosticNode, String name, MessageKind kind, Map arguments) {
     isValidAsConstant = false;
-    reporter.reportErrorMessage(
-        diagnosticNode, kind, arguments);
+    reporter.reportErrorMessage(diagnosticNode, kind, arguments);
     return new ErroneousConstructorElementX(
         kind, arguments, name, visitor.currentClass);
   }
@@ -278,12 +248,12 @@ class InitializerResolver {
   /// reported and an [ErroneousConstructorElement] is returned.
   ConstructorElement verifyThatConstructorMatchesCall(
       Node node,
-      ConstructorElementX lookedupConstructor,
+      ConstructorElement lookedupConstructor,
       CallStructure callStructure,
       String className,
       {String constructorName: '',
-       bool isImplicitSuperCall: false,
-       bool isThisCall: false}) {
+      bool isImplicitSuperCall: false,
+      bool isThisCall: false}) {
     Element result = lookedupConstructor;
     if (lookedupConstructor == null) {
       String fullConstructorName =
@@ -291,19 +261,18 @@ class InitializerResolver {
       MessageKind kind = isImplicitSuperCall
           ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
           : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
-      result = reportAndCreateErroneousConstructor(
-          node, constructorName,
-          kind, {'constructorName': fullConstructorName});
+      result = reportAndCreateErroneousConstructor(node, constructorName, kind,
+          {'constructorName': fullConstructorName});
     } else if (!lookedupConstructor.isGenerativeConstructor) {
       MessageKind kind = isThisCall
           ? MessageKind.THIS_CALL_TO_FACTORY
           : MessageKind.SUPER_CALL_TO_FACTORY;
-      result = reportAndCreateErroneousConstructor(
-          node, constructorName, kind, {});
+      result =
+          reportAndCreateErroneousConstructor(node, constructorName, kind, {});
     } else {
       lookedupConstructor.computeType(visitor.resolution);
-      if (!callStructure.signatureApplies(
-               lookedupConstructor.functionSignature)) {
+      if (!callStructure
+          .signatureApplies(lookedupConstructor.functionSignature)) {
         MessageKind kind = isImplicitSuperCall
             ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
             : MessageKind.NO_MATCHING_CONSTRUCTOR;
@@ -324,14 +293,30 @@ class InitializerResolver {
    * Resolve all initializers of this constructor. In the case of a redirecting
    * constructor, the resolved constructor's function element is returned.
    */
-  ConstructorElement resolveInitializers() {
-    Map<dynamic/*String|int*/, ConstantExpression> defaultValues =
-        <dynamic/*String|int*/, ConstantExpression>{};
+  ConstructorElement resolveInitializers(
+      {bool enableInitializingFormalAccess: false}) {
+    Map<dynamic /*String|int*/, ConstantExpression> defaultValues =
+        <dynamic /*String|int*/, ConstantExpression>{};
     ConstructedConstantExpression constructorInvocation;
     // Keep track of all "this.param" parameters specified for constructor so
     // that we can ensure that fields are initialized only once.
     FunctionSignature functionParameters = constructor.functionSignature;
+    Scope oldScope = visitor.scope;
+    if (enableInitializingFormalAccess) {
+      // In order to get the correct detection of name clashes between all
+      // parameters (regular ones and initializing formals) we must extend
+      // the parameter scope rather than adding a new nested scope.
+      visitor.scope = new ExtensionScope(visitor.scope);
+    }
+    Link<Node> parameterNodes = (functionNode.parameters == null)
+        ? const Link<Node>()
+        : functionNode.parameters.nodes;
     functionParameters.forEachParameter((ParameterElementX element) {
+      List<Element> optionals = functionParameters.optionalParameters;
+      if (!optionals.isEmpty && element == optionals.first) {
+        NodeList nodes = parameterNodes.head;
+        parameterNodes = nodes.nodes;
+      }
       if (isConst) {
         if (element.isOptional) {
           if (element.constantCache == null) {
@@ -355,9 +340,15 @@ class InitializerResolver {
         }
       }
       if (element.isInitializingFormal) {
+        VariableDefinitions variableDefinitions = parameterNodes.head;
+        Node parameterNode = variableDefinitions.definitions.nodes.head;
         InitializingFormalElementX initializingFormal = element;
         FieldElement field = initializingFormal.fieldElement;
         checkForDuplicateInitializers(field, element.initializer);
+        if (enableInitializingFormalAccess) {
+          visitor.defineLocalVariable(parameterNode, initializingFormal);
+          visitor.addToScope(initializingFormal);
+        }
         if (isConst) {
           if (element.isNamed) {
             fieldInitializers[field] = new NamedArgumentReference(element.name);
@@ -369,6 +360,7 @@ class InitializerResolver {
           isValidAsConstant = false;
         }
       }
+      parameterNodes = parameterNodes.tail;
     });
 
     if (functionNode.initializers == null) {
@@ -437,8 +429,7 @@ class InitializerResolver {
             if (isConst && isValidAsConstant) {
               constructor.constantConstructor =
                   new RedirectingGenerativeConstantConstructor(
-                      defaultValues,
-                      constructorInvocation);
+                      defaultValues, constructorInvocation);
             }
           }
           return result.element;
@@ -448,21 +439,34 @@ class InitializerResolver {
           return null;
         }
       } else {
-        reporter.reportErrorMessage(
-            link.head, MessageKind.INVALID_INITIALIZER);
+        reporter.reportErrorMessage(link.head, MessageKind.INVALID_INITIALIZER);
       }
     }
     if (!resolvedSuper) {
       constructorInvocation = resolveImplicitSuperConstructorSend();
     }
     if (isConst && isValidAsConstant) {
-      constructor.constantConstructor = new GenerativeConstantConstructor(
-          constructor.enclosingClass.thisType,
-          defaultValues,
-          fieldInitializers,
-          constructorInvocation);
+      constructor.enclosingClass.forEachInstanceField((_, FieldElement field) {
+        if (!fieldInitializers.containsKey(field)) {
+          visitor.resolution.ensureResolved(field);
+          // TODO(johnniwinther): Report error if `field.constant` is `null`.
+          if (field.constant != null) {
+            fieldInitializers[field] = field.constant;
+          } else {
+            isValidAsConstant = false;
+          }
+        }
+      });
+      if (isValidAsConstant) {
+        constructor.constantConstructor = new GenerativeConstantConstructor(
+            constructor.enclosingClass.thisType,
+            defaultValues,
+            fieldInitializers,
+            constructorInvocation);
+      }
     }
-    return null;  // If there was no redirection always return null.
+    visitor.scope = oldScope;
+    return null; // If there was no redirection always return null.
   }
 }
 
@@ -470,9 +474,9 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   final ResolverVisitor resolver;
   final bool inConstContext;
 
-  ConstructorResolver(Compiler compiler, this.resolver,
-                      {bool this.inConstContext: false})
-      : super(compiler);
+  ConstructorResolver(Resolution resolution, this.resolver,
+      {bool this.inConstContext: false})
+      : super(resolution);
 
   ResolutionRegistry get registry => resolver.registry;
 
@@ -489,8 +493,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       MessageKind kind,
       Map arguments,
       {bool isError: false,
-       bool missingConstructor: false,
-       List<DiagnosticMessage> infos: const <DiagnosticMessage>[]}) {
+      bool missingConstructor: false,
+      List<DiagnosticMessage> infos: const <DiagnosticMessage>[]}) {
     if (missingConstructor) {
       registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     } else {
@@ -503,19 +507,16 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     } else {
       reporter.reportWarning(message, infos);
     }
-    ErroneousElement error = new ErroneousConstructorElementX(
-        kind, arguments, name, enclosing);
+    ErroneousElement error =
+        new ErroneousConstructorElementX(kind, arguments, name, enclosing);
     if (type == null) {
       type = new MalformedType(error, null);
     }
     return new ConstructorResult.forError(resultKind, error, type);
   }
 
-  ConstructorResult resolveConstructor(
-      PrefixElement prefix,
-      InterfaceType type,
-      Node diagnosticNode,
-      String constructorName) {
+  ConstructorResult resolveConstructor(PrefixElement prefix, InterfaceType type,
+      Node diagnosticNode, String constructorName) {
     ClassElement cls = type.element;
     cls.ensureResolved(resolution);
     ConstructorElement constructor = findConstructor(
@@ -526,8 +527,11 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           : MessageKind.CANNOT_FIND_CONSTRUCTOR;
       return reportAndCreateErroneousConstructorElement(
           diagnosticNode,
-          ConstructorResultKind.UNRESOLVED_CONSTRUCTOR, type,
-          cls, constructorName, kind,
+          ConstructorResultKind.UNRESOLVED_CONSTRUCTOR,
+          type,
+          cls,
+          constructorName,
+          kind,
           {'className': cls.name, 'constructorName': constructorName},
           missingConstructor: true);
     } else if (inConstContext && !constructor.isConst) {
@@ -539,8 +543,10 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       if (cls.isEnumClass && resolver.currentClass != cls) {
         return reportAndCreateErroneousConstructorElement(
             diagnosticNode,
-            ConstructorResultKind.INVALID_TYPE, type,
-            cls, constructorName,
+            ConstructorResultKind.INVALID_TYPE,
+            type,
+            cls,
+            constructorName,
             MessageKind.CANNOT_INSTANTIATE_ENUM,
             {'enumName': cls.name},
             isError: true);
@@ -576,9 +582,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   /// Finishes resolution of a constructor reference and records the
   /// type of the constructed instance on [expression].
   ConstructorResult finishConstructorReference(
-      ConstructorResult result,
-      Node diagnosticNode,
-      Node expression) {
+      ConstructorResult result, Node diagnosticNode, Node expression) {
     assert(invariant(diagnosticNode, result != null,
         message: 'No result returned for $diagnosticNode.'));
 
@@ -591,8 +595,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     // class.
     if (result.type != null) {
       // The unnamed constructor may not exist, so [e] may become unresolved.
-      result = resolveConstructor(
-          result.prefix, result.type, diagnosticNode, '');
+      result =
+          resolveConstructor(result.prefix, result.type, diagnosticNode, '');
     } else {
       Element element = result.element;
       if (element.isMalformed) {
@@ -600,9 +604,12 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       } else {
         result = reportAndCreateErroneousConstructorElement(
             diagnosticNode,
-            ConstructorResultKind.INVALID_TYPE, null,
-            element, element.name,
-            MessageKind.NOT_A_TYPE, {'node': diagnosticNode});
+            ConstructorResultKind.INVALID_TYPE,
+            null,
+            element,
+            element.name,
+            MessageKind.NOT_A_TYPE,
+            {'node': diagnosticNode});
       }
     }
     resolver.registry.setType(expression, result.type);
@@ -612,10 +619,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   ConstructorResult visitTypeAnnotation(TypeAnnotation node) {
     // This is not really resolving a type-annotation, but the name of the
     // constructor. Therefore we allow deferred types.
-    DartType type = resolver.resolveTypeAnnotation(
-        node,
-        malformedIsError: inConstContext,
-        deferredIsMalformed: false);
+    DartType type = resolver.resolveTypeAnnotation(node,
+        malformedIsError: inConstContext, deferredIsMalformed: false);
     Send send = node.typeName.asSend();
     PrefixElement prefix;
     if (send != null) {
@@ -653,15 +658,18 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
         // TODO(johnniwinther): Update the message for the different types.
         return reportAndCreateErroneousConstructorElement(
             name,
-            ConstructorResultKind.INVALID_TYPE, null,
-            resolver.enclosingElement, name.source,
-            MessageKind.NOT_A_TYPE, {'node': name});
+            ConstructorResultKind.INVALID_TYPE,
+            null,
+            resolver.enclosingElement,
+            name.source,
+            MessageKind.NOT_A_TYPE,
+            {'node': name});
       }
     } else if (receiver.element.isPrefix) {
       PrefixElement prefix = receiver.element;
       Element member = prefix.lookupLocalMember(name.source);
-      return constructorResultForElement(
-          node, name.source, member, prefix: prefix);
+      return constructorResultForElement(node, name.source, member,
+          prefix: prefix);
     } else {
       return reporter.internalError(
           node.receiver, 'unexpected receiver $receiver');
@@ -678,8 +686,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   /// Assumed to be called by [resolveRedirectingFactory].
   ConstructorResult visitRedirectingFactoryBody(RedirectingFactoryBody node) {
     Node constructorReference = node.constructorReference;
-    return finishConstructorReference(visit(constructorReference),
-        constructorReference, node);
+    return finishConstructorReference(
+        visit(constructorReference), constructorReference, node);
   }
 
   ConstructorResult constructorResultForElement(
@@ -689,16 +697,20 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     if (element == null) {
       return reportAndCreateErroneousConstructorElement(
           node,
-          ConstructorResultKind.INVALID_TYPE, null,
-          resolver.enclosingElement, name,
+          ConstructorResultKind.INVALID_TYPE,
+          null,
+          resolver.enclosingElement,
+          name,
           MessageKind.CANNOT_RESOLVE,
           {'name': name});
     } else if (element.isAmbiguous) {
       AmbiguousElement ambiguous = element;
       return reportAndCreateErroneousConstructorElement(
           node,
-          ConstructorResultKind.INVALID_TYPE, null,
-          resolver.enclosingElement, name,
+          ConstructorResultKind.INVALID_TYPE,
+          null,
+          resolver.enclosingElement,
+          name,
           ambiguous.messageKind,
           ambiguous.messageArguments,
           infos: ambiguous.computeInfos(resolver.enclosingElement, reporter));
@@ -720,33 +732,40 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     } else {
       return reportAndCreateErroneousConstructorElement(
           node,
-          ConstructorResultKind.INVALID_TYPE, null,
-          resolver.enclosingElement, name,
-          MessageKind.NOT_A_TYPE, {'node': name});
+          ConstructorResultKind.INVALID_TYPE,
+          null,
+          resolver.enclosingElement,
+          name,
+          MessageKind.NOT_A_TYPE,
+          {'node': name});
     }
   }
 
-  ConstructorResult constructorResultForErroneous(
-      Node node, Element error) {
+  ConstructorResult constructorResultForErroneous(Node node, Element error) {
     if (error is! ErroneousElementX) {
       // Parser error. The error has already been reported.
       error = new ErroneousConstructorElementX(
-          MessageKind.NOT_A_TYPE, {'node': node},
-          error.name, error);
+          MessageKind.NOT_A_TYPE, {'node': node}, error.name, error);
       registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
     }
-    return new ConstructorResult.forError(
-        ConstructorResultKind.INVALID_TYPE,
-        error,
-        new MalformedType(error, null));
+    return new ConstructorResult.forError(ConstructorResultKind.INVALID_TYPE,
+        error, new MalformedType(error, null));
   }
 
-  ConstructorResult constructorResultForType(
-      Node node,
-      DartType type,
+  ConstructorResult constructorResultForType(Node node, DartType type,
       {PrefixElement prefix}) {
     String name = type.name;
-    if (type.isMalformed) {
+    if (type.isTypeVariable) {
+      return reportAndCreateErroneousConstructorElement(
+          node,
+          ConstructorResultKind.INVALID_TYPE,
+          type,
+          resolver.enclosingElement,
+          name,
+          MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
+          {'typeVariableName': name});
+    } else if (type.isMalformed) {
+      // `type is MalformedType`: `MethodTypeVariableType` is handled above.
       return new ConstructorResult.forError(
           ConstructorResultKind.INVALID_TYPE, type.element, type);
     } else if (type.isInterfaceType) {
@@ -754,35 +773,35 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     } else if (type.isTypedef) {
       return reportAndCreateErroneousConstructorElement(
           node,
-          ConstructorResultKind.INVALID_TYPE, type,
-          resolver.enclosingElement, name,
-          MessageKind.CANNOT_INSTANTIATE_TYPEDEF, {'typedefName': name});
-    } else if (type.isTypeVariable) {
-      return reportAndCreateErroneousConstructorElement(
-          node,
-          ConstructorResultKind.INVALID_TYPE, type,
-          resolver.enclosingElement, name,
-          MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
-          {'typeVariableName': name});
+          ConstructorResultKind.INVALID_TYPE,
+          type,
+          resolver.enclosingElement,
+          name,
+          MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
+          {'typedefName': name});
     }
     return reporter.internalError(node, "Unexpected constructor type $type");
   }
-
 }
 
 /// The kind of constructor found by the [ConstructorResolver].
 enum ConstructorResultKind {
   /// A generative or redirecting generative constructor.
   GENERATIVE,
+
   /// A factory or redirecting factory constructor.
   FACTORY,
+
   /// A generative or redirecting generative constructor on an abstract class.
   ABSTRACT,
+
   /// No constructor was found because the type was invalid, for instance
   /// unresolved, an enum class, a type variable, a typedef or a non-type.
   INVALID_TYPE,
+
   /// No constructor of the sought name was found on the class.
   UNRESOLVED_CONSTRUCTOR,
+
   /// A non-constant constructor was found for a const constructor invocation.
   NON_CONSTANT,
 }
@@ -808,10 +827,8 @@ class ConstructorResult {
 
   /// Creates a fully resolved constructor access where [element] is resolved
   /// to a constructor and [type] to an interface type.
-  ConstructorResult(this.kind,
-                    this.prefix,
-                    ConstructorElement this.element,
-                    InterfaceType this.type);
+  ConstructorResult(this.kind, this.prefix, ConstructorElement this.element,
+      InterfaceType this.type);
 
   /// Creates a fully resolved constructor access where [element] is an
   /// [ErroneousElement].
@@ -862,9 +879,7 @@ class ConstructorResult {
 /// Lookup the [constructorName] constructor in [cls] and normalize the result
 /// with respect to privacy and patching.
 ConstructorElement findConstructor(
-    LibraryElement currentLibrary,
-    ClassElement cls,
-    String constructorName) {
+    LibraryElement currentLibrary, ClassElement cls, String constructorName) {
   if (Name.isPrivateName(constructorName) &&
       currentLibrary.library != cls.library) {
     // TODO(johnniwinther): Report a special error on unaccessible private

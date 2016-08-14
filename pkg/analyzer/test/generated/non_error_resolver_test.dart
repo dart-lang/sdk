@@ -167,7 +167,7 @@ library lib2;
 class N {}
 class N2 {}''');
     computeLibrarySourceErrors(source);
-    assertNoErrors(source);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
   }
 
   void test_annotated_partOfDeclaration() {
@@ -1472,6 +1472,26 @@ class A {
 main() {
   const int x = 0;
 }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_constRedirectSkipsSupertype() {
+    // Since C redirects to C.named, it doesn't implicitly refer to B's
+    // unnamed constructor.  Therefore there is no cycle.
+    Source source = addSource('''
+class B {
+  final x;
+  const B() : x = y;
+  const B.named() : x = null;
+}
+class C extends B {
+  const C() : this.named();
+  const C.named() : super.named();
+}
+const y = const C();
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -2807,7 +2827,7 @@ f() {
   void test_invalidFactoryNameNotAClass() {
     Source source = addSource(r'''
 class A {
-  factory A() {}
+  factory A() => null;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -3471,7 +3491,7 @@ class B extends Object with A {}''');
   void test_mixinDeclaresConstructor_factory() {
     Source source = addSource(r'''
 class A {
-  factory A() {}
+  factory A() => null;
 }
 class B extends Object with A {}''');
     computeLibrarySourceErrors(source);
@@ -4255,7 +4275,7 @@ class A {
     Source source = addSource(r'''
 class A {
   A.named() {}
-  factory A() {}
+  factory A() => null;
 }
 class B extends A {
   B() : super.named();
@@ -4673,7 +4693,7 @@ class B implements A {
   factory B() = C;
 }
 class C implements B {
-  factory C() {}
+  factory C() => null;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -5087,6 +5107,43 @@ class A {}
 class B extends A {}
 class G<E extends A> {}
 f() { return new G<B>(); }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {}
+typedef F<T extends A>();
+F<A> fa;
+F<B> fb;
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound2() {
+    Source source = addSource(r'''
+class MyClass<T> {}
+typedef MyFunction<T, P extends MyClass<T>>();
+class A<T, P extends MyClass<T>> {
+  MyFunction<T, P> f;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_noBound() {
+    Source source = addSource(r'''
+typedef F<T>();
+F<int> f1;
+F<String> f2;
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -5561,26 +5618,6 @@ class B extends A<List> {
     verify([source]);
   }
 
-  void test_undefinedIdentifier_hide() {
-    Source source = addSource(r'''
-library L;
-export 'lib1.dart' hide a;''');
-    addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_undefinedIdentifier_show() {
-    Source source = addSource(r'''
-library L;
-export 'lib1.dart' show a;''');
-    addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_undefinedIdentifier_synthetic_whenExpression() {
     Source source = addSource(r'''
 print(x) {}
@@ -5731,6 +5768,17 @@ main() {
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
+  }
+
+  void test_unusedShownName_unresolved() {
+    Source source = addSource(r'''
+import 'dart:math' show max, FooBar;
+main() {
+  print(max(1, 2));
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNDEFINED_SHOWN_NAME]);
   }
 
   void test_uriDoesNotExist_dll() {

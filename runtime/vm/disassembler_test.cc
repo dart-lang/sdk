@@ -9,7 +9,9 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+// TODO(vegorov) this test is disabled on DBC because there is no PopRegister
+// method on DBC assembler.
+#if !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
 
 TEST_CASE(Disassembler) {
   Assembler assembler;

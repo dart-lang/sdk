@@ -1039,7 +1039,7 @@ class Primitives {
     return JS('String', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
   }
 
-  static String getTimeZoneName(receiver) {
+  static String getTimeZoneName(DateTime receiver) {
     // Firefox and Chrome emit the timezone in parenthesis.
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
     // We extract this name using a regexp.
@@ -1073,7 +1073,7 @@ class Primitives {
     return "";
   }
 
-  static int getTimeZoneOffsetInMinutes(receiver) {
+  static int getTimeZoneOffsetInMinutes(DateTime receiver) {
     // Note that JS and Dart disagree on the sign of the offset.
     return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
@@ -1118,7 +1118,7 @@ class Primitives {
   }
 
   // Lazily keep a JS Date stored in the JS object.
-  static lazyAsJsDate(receiver) {
+  static lazyAsJsDate(DateTime receiver) {
     if (JS('bool', r'#.date === (void 0)', receiver)) {
       JS('void', r'#.date = new Date(#)', receiver,
          receiver.millisecondsSinceEpoch);
@@ -1130,49 +1130,49 @@ class Primitives {
   // that the result is really an integer, because the JavaScript implementation
   // may return -0.0 instead of 0.
 
-  static getYear(receiver) {
+  static getYear(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
       : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMonth(receiver) {
+  static getMonth(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('JSUInt31', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
       : JS('JSUInt31', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
-  static getDay(receiver) {
+  static getDay(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('JSUInt31', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
       : JS('JSUInt31', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getHours(receiver) {
+  static getHours(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('JSUInt31', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
       : JS('JSUInt31', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMinutes(receiver) {
+  static getMinutes(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('JSUInt31', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
       : JS('JSUInt31', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getSeconds(receiver) {
+  static getSeconds(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('JSUInt31', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
       : JS('JSUInt31', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMilliseconds(receiver) {
+  static getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('JSUInt31', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
       : JS('JSUInt31', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getWeekday(receiver) {
+  static getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
       ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
       : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
@@ -1299,6 +1299,19 @@ class Primitives {
           return JS('', '#[#](#[0],#[1],#[2])', function, selectorName,
           arguments, arguments, arguments);
         }
+      } else if (argumentCount == 4) {
+        String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX4);
+        if (JS('bool', '!!#[#]', function, selectorName)) {
+          return JS('', '#[#](#[0],#[1],#[2],#[3])', function, selectorName,
+          arguments, arguments, arguments, arguments);
+        }
+      } else if (argumentCount == 5) {
+        String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX5);
+        if (JS('bool', '!!#[#]', function, selectorName)) {
+          return JS('', '#[#](#[0],#[1],#[2],#[3],#[4])',
+          function, selectorName,
+          arguments, arguments, arguments, arguments, arguments);
+        }
       }
       String selectorName =
           '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount';
@@ -1356,6 +1369,11 @@ class Primitives {
     }
 
     if (!acceptsOptionalArguments) {
+      if (namedArguments != null && namedArguments.isNotEmpty) {
+        // Tried to invoke a function that takes a fixed number of arguments
+        // with named (optional) arguments.
+        return functionNoSuchMethod(function, arguments, namedArguments);
+      }
       if (argumentCount == requiredParameterCount) {
         return JS('var', r'#.apply(#, #)', jsFunction, function, arguments);
       }
@@ -1464,6 +1482,18 @@ class Primitives {
       if (JS('bool', '!!#[#]', function, selectorName)) {
         return JS('', '#[#](#[0],#[1],#[2])', function, selectorName,
             arguments, arguments, arguments);
+      }
+    } else if (arguments.length == 4) {
+      String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX4);
+      if (JS('bool', '!!#[#]', function, selectorName)) {
+        return JS('', '#[#](#[0],#[1],#[2],#[3])', function, selectorName,
+            arguments, arguments, arguments, arguments);
+      }
+    } else if (arguments.length == 5) {
+      String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX5);
+      if (JS('bool', '!!#[#]', function, selectorName)) {
+        return JS('', '#[#](#[0],#[1],#[2],#[3],#[4])', function, selectorName,
+            arguments, arguments, arguments, arguments, arguments);
       }
     }
     return _genericApplyFunctionWithPositionalArguments(function, arguments);
@@ -1953,13 +1983,17 @@ class TypeErrorDecoder {
     // Replace the patterns with a regular expression wildcard.
     // Note: in a perfect world, one would use "(.*)", but not in
     // JavaScript, "." does not match newlines.
-    String pattern = JS('String',
-                        r"#.replace('\\$arguments\\$', '((?:x|[^x])*)')"
-                        r".replace('\\$argumentsExpr\\$',  '((?:x|[^x])*)')"
-                        r".replace('\\$expr\\$',  '((?:x|[^x])*)')"
-                        r".replace('\\$method\\$',  '((?:x|[^x])*)')"
-                        r".replace('\\$receiver\\$',  '((?:x|[^x])*)')",
-                        message);
+    String pattern = JS(
+        'String',
+        r"#.replace(new RegExp('\\\\\\$arguments\\\\\\$', 'g'), "
+            r"'((?:x|[^x])*)')"
+        r".replace(new RegExp('\\\\\\$argumentsExpr\\\\\\$', 'g'),  "
+            r"'((?:x|[^x])*)')"
+        r".replace(new RegExp('\\\\\\$expr\\\\\\$', 'g'),  '((?:x|[^x])*)')"
+        r".replace(new RegExp('\\\\\\$method\\\\\\$', 'g'),  '((?:x|[^x])*)')"
+        r".replace(new RegExp('\\\\\\$receiver\\\\\\$', 'g'),  "
+            r"'((?:x|[^x])*)')",
+        message);
 
     return new TypeErrorDecoder(arguments,
                                 argumentsExpr,
@@ -2427,8 +2461,9 @@ abstract class Closure implements Function {
    *
    * V8 will share the underlying function code objects when the same string is
    * passed to "new Function".  Shared function code objects can lead to
-   * sub-optimal performance due to polymorhism, and can be prevented by
-   * ensuring the strings are different.
+   * sub-optimal performance due to polymorphism, and can be prevented by
+   * ensuring the strings are different, for example, by generating a local
+   * variable with a name dependent on [functionCounter].
    */
   static int functionCounter = 0;
 
@@ -2530,8 +2565,9 @@ abstract class Closure implements Function {
         : isCsp
             ? JS('', 'function(a,b,c,d) {this.\$initialize(a,b,c,d)}')
             : JS('',
-                 'new Function("a,b,c,d", "this.\$initialize(a,b,c,d);" + #)',
-                 functionCounter++);
+                 'new Function("a,b,c,d" + #,'
+                 ' "this.\$initialize(a,b,c,d" + # + ")")',
+                 functionCounter, functionCounter++);
 
     // It is necessary to set the constructor property, otherwise it will be
     // "Object".
@@ -2693,12 +2729,14 @@ abstract class Closure implements Function {
     }
 
     if (arity == 0) {
+      // Incorporate functionCounter into a local.
+      String selfName = 'self${functionCounter++}';
       return JS(
           '',
           '(new Function(#))()',
           'return function(){'
-            'return this.${BoundClosure.selfFieldName()}.$stubName();'
-            '${functionCounter++}'
+            'var $selfName = this.${BoundClosure.selfFieldName()};'
+            'return $selfName.$stubName();'
           '}');
     }
     assert (1 <= arity && arity < 27);
@@ -2706,12 +2744,12 @@ abstract class Closure implements Function {
         'String',
         '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
         arity);
+    arguments += '${functionCounter++}';
     return JS(
         '',
         '(new Function(#))()',
         'return function($arguments){'
           'return this.${BoundClosure.selfFieldName()}.$stubName($arguments);'
-          '${functionCounter++}'
         '}');
   }
 
@@ -3324,7 +3362,7 @@ void checkDeferredIsLoaded(String loadId, String uri) {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-abstract class JavaScriptIndexingBehavior extends JSMutableIndexable {
+abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {
 }
 
 // TODO(lrn): These exceptions should be implemented in core.

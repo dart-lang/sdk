@@ -488,7 +488,6 @@ class Assembler : public ValueObject {
   }
 
   void set_use_far_branches(bool b) {
-    ASSERT(buffer_.Size() == 0);
     use_far_branches_ = b;
   }
 
@@ -1219,6 +1218,11 @@ class Assembler : public ValueObject {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
+  void BranchIfNotSmi(Register reg, Label* label) {
+    tsti(reg, Immediate(kSmiTagMask));
+    b(label, NE);
+  }
+
   void Branch(const StubEntry& stub_entry,
               Register pp,
               Patchability patchable = kNotPatchable);
@@ -1337,29 +1341,11 @@ class Assembler : public ValueObject {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
-  void ComputeRange(Register result,
-                    Register value,
-                    Register scratch,
-                    Label* miss);
-
-  void UpdateRangeFeedback(Register value,
-                           intptr_t idx,
-                           Register ic_data,
-                           Register scratch1,
-                           Register scratch2,
-                           Label* miss);
+  void SetupDartSP();
+  void RestoreCSP();
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
-
-  // When entering Dart code from C++, we copy the system stack pointer (CSP)
-  // to the Dart stack pointer (SP), and reserve a little space for the stack
-  // to grow.
-  void SetupDartSP(intptr_t reserved_space) {
-    ASSERT(Utils::IsAligned(reserved_space, 16));
-    mov(SP, CSP);
-    sub(CSP, CSP, Operand(reserved_space));
-  }
 
   void CheckCodePointer();
   void RestoreCodePointer();
@@ -1377,21 +1363,21 @@ class Assembler : public ValueObject {
   void EnterStubFrame();
   void LeaveStubFrame();
 
+  void NoMonomorphicCheckedEntry();
+  void MonomorphicCheckedEntry();
+
   void UpdateAllocationStats(intptr_t cid,
-                             Heap::Space space,
-                             bool inline_isolate = true);
+                             Heap::Space space);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
-                                     Heap::Space space,
-                                     bool inline_isolate = true);
+                                     Heap::Space space);
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid,
                             Register temp_reg,
-                            Label* trace,
-                            bool inline_isolate = true);
+                            Label* trace);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

@@ -682,6 +682,8 @@ final Map<String, Message> MESSAGES = {
       template: "The setter '#{memberName}' is not defined for the "
           "class '#{className}'.",
       usedBy: [dart2js, analyzer],
+      // TODO(eernst): When this.x access is available, add examples here,
+      // e.g., "class A { var x; A(this.x) : x = 3; } main() => new A(2);"
       examples: const ["class A {} main() { new A().x = 499; }",]),
 
   'NO_SUCH_SUPER_MEMBER': new Message(

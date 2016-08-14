@@ -4,6 +4,7 @@
 
 #include "bin/embedded_dart_io.h"
 
+#include "bin/directory.h"
 #include "bin/eventhandler.h"
 #include "bin/utils.h"
 #include "bin/thread.h"
@@ -16,6 +17,11 @@ void BootstrapDartIo() {
   Thread::InitOnce();
   TimerUtils::InitOnce();
   EventHandler::Start();
+}
+
+
+void SetSystemTempDirectory(const char* system_temp) {
+  Directory::SetSystemTemp(system_temp);
 }
 
 }  // namespace bin

@@ -42,7 +42,7 @@ var tests = [
   Class fooClass = lib.classes.first;
   fooId = fooClass.vmCid;
 
-  HeapSnapshot snapshot = await isolate.fetchHeapSnapshot().last;
+  HeapSnapshot snapshot = await isolate.fetchHeapSnapshot(false).last;
   ObjectGraph graph = snapshot.graph;
 
   expect(fooId, isNotNull);

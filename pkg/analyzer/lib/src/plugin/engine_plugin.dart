@@ -66,31 +66,33 @@ class EnginePlugin implements Plugin {
    * The extension point that allows plugins to register new analysis error
    * results for a Dart source.
    */
-  ExtensionPoint dartErrorsForSourceExtensionPoint;
+  ExtensionPoint<ListResultDescriptor<AnalysisError>>
+      dartErrorsForSourceExtensionPoint;
 
   /**
    * The extension point that allows plugins to register new analysis error
    * results for a Dart library specific unit.
    */
-  ExtensionPoint dartErrorsForUnitExtensionPoint;
+  ExtensionPoint<ListResultDescriptor<AnalysisError>>
+      dartErrorsForUnitExtensionPoint;
 
   /**
    * The extension point that allows plugins to register new analysis error
    * results for an HTML source.
    */
-  ExtensionPoint htmlErrorsExtensionPoint;
+  ExtensionPoint<ListResultDescriptor<AnalysisError>> htmlErrorsExtensionPoint;
 
   /**
    * The extension point that allows plugins to register new analysis tasks with
    * the analysis engine.
    */
-  ExtensionPoint taskExtensionPoint;
+  ExtensionPoint<TaskDescriptor> taskExtensionPoint;
 
   /**
    * The extension point that allows plugins to register new work manager
    * factories with the analysis engine.
    */
-  ExtensionPoint workManagerFactoryExtensionPoint;
+  ExtensionPoint<WorkManagerFactory> workManagerFactoryExtensionPoint;
 
   /**
    * Initialize a newly created plugin.
@@ -137,20 +139,24 @@ class EnginePlugin implements Plugin {
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
-    dartErrorsForSourceExtensionPoint = registerExtensionPoint(
-        DART_ERRORS_FOR_SOURCE_EXTENSION_POINT,
-        _validateAnalysisErrorListResultDescriptor);
-    dartErrorsForUnitExtensionPoint = registerExtensionPoint(
-        DART_ERRORS_FOR_UNIT_EXTENSION_POINT,
-        _validateAnalysisErrorListResultDescriptor);
-    htmlErrorsExtensionPoint = registerExtensionPoint(
-        HTML_ERRORS_EXTENSION_POINT,
-        _validateAnalysisErrorListResultDescriptor);
+    dartErrorsForSourceExtensionPoint =
+        new ExtensionPoint<ListResultDescriptor<AnalysisError>>(
+            this, DART_ERRORS_FOR_SOURCE_EXTENSION_POINT, null);
+    registerExtensionPoint(dartErrorsForSourceExtensionPoint);
+    dartErrorsForUnitExtensionPoint =
+        new ExtensionPoint<ListResultDescriptor<AnalysisError>>(
+            this, DART_ERRORS_FOR_UNIT_EXTENSION_POINT, null);
+    registerExtensionPoint(dartErrorsForUnitExtensionPoint);
+    htmlErrorsExtensionPoint =
+        new ExtensionPoint<ListResultDescriptor<AnalysisError>>(
+            this, HTML_ERRORS_EXTENSION_POINT, null);
+    registerExtensionPoint(htmlErrorsExtensionPoint);
     taskExtensionPoint =
-        registerExtensionPoint(TASK_EXTENSION_POINT, _validateTaskExtension);
-    workManagerFactoryExtensionPoint = registerExtensionPoint(
-        WORK_MANAGER_FACTORY_EXTENSION_POINT,
-        _validateWorkManagerFactoryExtension);
+        new ExtensionPoint<TaskDescriptor>(this, TASK_EXTENSION_POINT, null);
+    registerExtensionPoint(taskExtensionPoint);
+    workManagerFactoryExtensionPoint = new ExtensionPoint<WorkManagerFactory>(
+        this, WORK_MANAGER_FACTORY_EXTENSION_POINT, null);
+    registerExtensionPoint(workManagerFactoryExtensionPoint);
   }
 
   @override
@@ -198,6 +204,7 @@ class EnginePlugin implements Plugin {
     registerExtension(
         taskId, ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR);
     registerExtension(taskId, ComputeLibraryCycleTask.DESCRIPTOR);
+    registerExtension(taskId, ComputeRequiredConstantsTask.DESCRIPTOR);
     registerExtension(
         taskId, ComputePropagableVariableDependenciesTask.DESCRIPTOR);
     registerExtension(taskId, ContainingLibrariesTask.DESCRIPTOR);
@@ -224,10 +231,13 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, ReadyLibraryElement6Task.DESCRIPTOR);
     registerExtension(taskId, ReadyResolvedUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveConstantExpressionTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveDirectiveElementsTask.DESCRIPTOR);
     registerExtension(taskId, ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryReferencesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryTypeNamesTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveTopLevelLibraryTypeBoundsTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveTopLevelUnitTypeBoundsTask.DESCRIPTOR);
     registerExtension(taskId, ResolveUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveUnitTypeNamesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveVariableReferencesTask.DESCRIPTOR);
@@ -255,41 +265,6 @@ class EnginePlugin implements Plugin {
         (InternalAnalysisContext context) => new HtmlWorkManager(context));
     registerExtension(taskId,
         (InternalAnalysisContext context) => new OptionsWorkManager(context));
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not
-   * a [ListResultDescriptor] of [AnalysisError]s.
-   */
-  void _validateAnalysisErrorListResultDescriptor(Object extension) {
-    if (extension is! ListResultDescriptor<AnalysisError>) {
-      String id = taskExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be a ListResultDescriptor<AnalysisError>');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not
-   * a [TaskDescriptor].
-   */
-  void _validateTaskExtension(Object extension) {
-    if (extension is! TaskDescriptor) {
-      String id = taskExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must be a TaskDescriptor');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not
-   * a [WorkManagerFactory].
-   */
-  void _validateWorkManagerFactoryExtension(Object extension) {
-    if (extension is! WorkManagerFactory) {
-      String id = taskExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be a WorkManagerFactory');
-    }
   }
 }
 

@@ -19,14 +19,13 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
-#include "vm/verified_memory.h"
 
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
-DECLARE_FLAG(bool, use_megamorphic_stub);
+
 
 void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
   Assembler* assembler = compiler->assembler();
@@ -118,7 +117,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   Zone* zone = compiler->zone();
 
   builder->AddPp(current->function(), slot_ix++);
-  builder->AddPcMarker(Function::Handle(zone), slot_ix++);
+  builder->AddPcMarker(Function::ZoneHandle(zone), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
@@ -442,8 +441,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   // R10: instance class.
   // Check immediate superclass equality.
   __ movq(R13, FieldAddress(R10, Class::super_type_offset()));
-  __ movq(R13, FieldAddress(R13, Type::type_class_offset()));
-  __ CompareObject(R13, type_class);
+  __ movq(R13, FieldAddress(R13, Type::type_class_id_offset()));
+  __ CompareImmediate(R13, Immediate(Smi::RawValue(type_class.id())));
   __ j(EQUAL, is_instance_lbl);
 
   const Register kTypeArgumentsReg = kNoRegister;
@@ -515,7 +514,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
-  if (type.IsType() || type.IsFunctionType()) {
+  if (type.IsType()) {
     const Register kInstanceReg = RAX;
     const Register kTypeArgumentsReg = RDX;
     __ testq(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
@@ -1058,13 +1057,8 @@ void FlowGraphCompiler::CompileGraph() {
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are in debug mode or unless we are compiling a closure.
   if (num_copied_params == 0) {
-#ifdef DEBUG
-    ASSERT(!parsed_function().function().HasOptionalParameters());
-    const bool check_arguments = !flow_graph().IsCompiledForOsr();
-#else
     const bool check_arguments =
         function.IsClosureFunction() && !flow_graph().IsCompiledForOsr();
-#endif
     if (check_arguments) {
       __ Comment("Check argument count");
       // Check that exactly num_fixed arguments are passed in.
@@ -1078,13 +1072,9 @@ void FlowGraphCompiler::CompileGraph() {
       __ j(EQUAL, &correct_num_arguments, Assembler::kNearJump);
 
       __ Bind(&wrong_num_arguments);
-      if (function.IsClosureFunction()) {
-        __ LeaveDartFrame(kKeepCalleePP);  // Leave arguments on the stack.
-        __ Jmp(*StubCode::CallClosureNoSuchMethod_entry());
-        // The noSuchMethod call may return to the caller, but not here.
-      } else {
-        __ Stop("Wrong number of arguments");
-      }
+      __ LeaveDartFrame(kKeepCalleePP);  // Leave arguments on the stack.
+      __ Jmp(*StubCode::CallClosureNoSuchMethod_entry());
+      // The noSuchMethod call may return to the caller, but not here.
       __ Bind(&correct_num_arguments);
     }
   } else if (!flow_graph().IsCompiledForOsr()) {
@@ -1328,17 +1318,30 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-
   __ Comment("MegamorphicCall");
+  // Load receiver into RDI.
   __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
-  __ LoadObject(RBX, cache);
-  if (FLAG_use_megamorphic_stub) {
-    __ Call(*StubCode::MegamorphicLookup_entry());
-  } else  {
-    StubCode::EmitMegamorphicLookup(assembler());
-  }
-  __ call(RCX);
+  Label done;
+  if (ShouldInlineSmiStringHashCode(ic_data)) {
+    Label megamorphic_call;
+    __ Comment("Inlined get:hashCode for Smi and OneByteString");
+    __ movq(RAX, RDI);  // Move Smi hashcode to RAX.
+    __ testq(RDI, Immediate(kSmiTagMask));
+    __ j(ZERO, &done, Assembler::kNearJump);  // It is Smi, we are done.
 
+    __ CompareClassId(RDI, kOneByteStringCid);
+    __ j(NOT_EQUAL, &megamorphic_call, Assembler::kNearJump);
+    __ movq(RAX, FieldAddress(RDI, String::hash_offset()));
+    __ cmpq(RAX, Immediate(0));
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+
+    __ Bind(&megamorphic_call);
+    __ Comment("Slow case: megamorphic call");
+  }
+  __ LoadObject(RBX, cache);
+  __ call(Address(THR, Thread::megamorphic_lookup_checked_entry_offset()));
+
+  __ Bind(&done);
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
@@ -1373,23 +1376,15 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs) {
+  ASSERT(ic_data.NumArgsTested() == 1);
+  const Code& initial_stub = Code::ZoneHandle(
+      StubCode::ICLookupThroughFunction_entry()->code());
+
   __ Comment("SwitchableCall");
   __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
-  if (ic_data.NumArgsTested() == 1) {
-    __ LoadUniqueObject(RBX, ic_data);
-    __ CallPatchable(*StubCode::ICLookup_entry());
-  } else {
-    const String& name = String::Handle(zone(), ic_data.target_name());
-    const Array& arguments_descriptor =
-        Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
-    ASSERT(!arguments_descriptor.IsNull() &&
-           (arguments_descriptor.Length() > 0));
-    const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
-        MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-
-    __ LoadUniqueObject(RBX, cache);
-    __ CallPatchable(*StubCode::MegamorphicLookup_entry());
-  }
+  __ LoadUniqueObject(RBX, ic_data);
+  __ LoadUniqueObject(CODE_REG, initial_stub);
+  __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
   __ call(RCX);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther,
@@ -1414,7 +1409,12 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs) {
-  __ LoadObject(R10, arguments_descriptor);
+  ASSERT(!function.IsClosureFunction());
+  if (function.HasOptionalParameters()) {
+    __ LoadObject(R10, arguments_descriptor);
+  } else {
+    __ xorq(R10, R10);  // GC safe smi zero because of stub.
+  }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
   GenerateStaticDartCall(deopt_id,
@@ -1534,7 +1534,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Label* match_found,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
-                                        LocationSummary* locs) {
+                                        LocationSummary* locs,
+                                        bool complete) {
   ASSERT(is_optimizing());
 
   __ Comment("EmitTestAndCall");
@@ -1552,8 +1553,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   ASSERT(!ic_data.IsNull() && (kNumChecks > 0));
 
   Label after_smi_test;
-  __ testq(RAX, Immediate(kSmiTagMask));
   if (kFirstCheckIsSmi) {
+    __ testq(RAX, Immediate(kSmiTagMask));
     // Jump if receiver is not Smi.
     if (kNumChecks == 1) {
       __ j(NOT_ZERO, failed);
@@ -1577,7 +1578,10 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   } else {
     // Receiver is Smi, but Smi is not a valid class therefore fail.
     // (Smi class must be first in the list).
-    __ j(ZERO, failed);
+    if (!complete) {
+      __ testq(RAX, Immediate(kSmiTagMask));
+      __ j(ZERO, failed);
+    }
   }
   __ Bind(&after_smi_test);
 
@@ -1596,11 +1600,18 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     const bool kIsLastCheck = (i == (kSortedLen - 1));
     ASSERT(sorted[i].cid != kSmiCid);
     Label next_test;
-    __ cmpl(RDI, Immediate(sorted[i].cid));
-    if (kIsLastCheck) {
-      __ j(NOT_EQUAL, failed);
+    if (!complete) {
+      __ cmpl(RDI, Immediate(sorted[i].cid));
+      if (kIsLastCheck) {
+        __ j(NOT_EQUAL, failed);
+      } else {
+        __ j(NOT_EQUAL, &next_test);
+      }
     } else {
-      __ j(NOT_EQUAL, &next_test);
+      if (!kIsLastCheck) {
+        __ cmpl(RDI, Immediate(sorted[i].cid));
+        __ j(NOT_EQUAL, &next_test);
+      }
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.

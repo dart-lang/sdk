@@ -5,15 +5,16 @@
 #ifndef BIN_SOCKET_H_
 #define BIN_SOCKET_H_
 
-#include <map>
+#if defined(DART_IO_DISABLED)
+#error "socket.h can only be included on builds with IO enabled"
+#endif
 
 #include "platform/globals.h"
-
-#include "bin/builtin.h"
-#include "bin/dartutils.h"
 // Declare the OS-specific types ahead of defining the generic class.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/socket_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "bin/socket_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "bin/socket_linux.h"
 #elif defined(TARGET_OS_MACOS)
@@ -23,9 +24,12 @@
 #else
 #error Unknown target os.
 #endif
+
+#include "bin/builtin.h"
+#include "bin/dartutils.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
-
+#include "platform/hashmap.h"
 
 namespace dart {
 namespace bin {
@@ -59,7 +63,9 @@ class SocketAddress {
   ~SocketAddress() {}
 
   int GetType() {
-    if (addr_.ss.ss_family == AF_INET6) return TYPE_IPV6;
+    if (addr_.ss.ss_family == AF_INET6) {
+      return TYPE_IPV6;
+    }
     return TYPE_IPV4;
   }
 
@@ -67,23 +73,27 @@ class SocketAddress {
   const RawAddr& addr() const { return addr_; }
 
   static intptr_t GetAddrLength(const RawAddr& addr) {
-    ASSERT(addr.ss.ss_family == AF_INET || addr.ss.ss_family == AF_INET6);
-    return addr.ss.ss_family == AF_INET6 ?
+    ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
+    return (addr.ss.ss_family == AF_INET6) ?
         sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
   }
 
   static intptr_t GetInAddrLength(const RawAddr& addr) {
-    ASSERT(addr.ss.ss_family == AF_INET || addr.ss.ss_family == AF_INET6);
-    return addr.ss.ss_family == AF_INET6 ?
+    ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
+    return (addr.ss.ss_family == AF_INET6) ?
         sizeof(struct in6_addr) : sizeof(struct in_addr);
   }
 
   static bool AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
     if (a.ss.ss_family == AF_INET) {
-      if (b.ss.ss_family != AF_INET) return false;
+      if (b.ss.ss_family != AF_INET) {
+        return false;
+      }
       return memcmp(&a.in.sin_addr, &b.in.sin_addr, sizeof(a.in.sin_addr)) == 0;
     } else if (a.ss.ss_family == AF_INET6) {
-      if (b.ss.ss_family != AF_INET6) return false;
+      if (b.ss.ss_family != AF_INET6) {
+        return false;
+      }
       return memcmp(&a.in6.sin6_addr,
                     &b.in6.sin6_addr,
                     sizeof(a.in6.sin6_addr)) == 0;
@@ -99,9 +109,11 @@ class SocketAddress {
     intptr_t len;
     Dart_Handle result = Dart_TypedDataAcquireData(
         obj, &data_type, reinterpret_cast<void**>(&data), &len);
-    if (Dart_IsError(result)) Dart_PropagateError(result);
-    if (data_type != Dart_TypedData_kUint8 ||
-        (len != sizeof(in_addr) && len != sizeof(in6_addr))) {
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
+    if ((data_type != Dart_TypedData_kUint8) ||
+        ((len != sizeof(in_addr)) && (len != sizeof(in6_addr)))) {
       Dart_PropagateError(
           Dart_NewApiError("Unexpected type for socket address"));
     }
@@ -118,9 +130,13 @@ class SocketAddress {
   }
 
   static int16_t FromType(int type) {
-    if (type == TYPE_ANY) return AF_UNSPEC;
-    if (type == TYPE_IPV4) return AF_INET;
-    ASSERT(type == TYPE_IPV6 && "Invalid type");
+    if (type == TYPE_ANY) {
+      return AF_UNSPEC;
+    }
+    if (type == TYPE_IPV4) {
+      return AF_INET;
+    }
+    ASSERT((type == TYPE_IPV6) && "Invalid type");
     return AF_INET6;
   }
 
@@ -143,7 +159,9 @@ class SocketAddress {
   static Dart_Handle ToTypedData(const RawAddr& addr) {
     int len = GetInAddrLength(addr);
     Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
-    if (Dart_IsError(result)) Dart_PropagateError(result);
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
     Dart_Handle err;
     if (addr.addr.sa_family == AF_INET6) {
       err = Dart_ListSetAsBytes(
@@ -153,7 +171,9 @@ class SocketAddress {
       err = Dart_ListSetAsBytes(
           result, 0, reinterpret_cast<const uint8_t*>(&addr.in.sin_addr), len);
     }
-    if (Dart_IsError(err)) Dart_PropagateError(err);
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
     return result;
   }
 
@@ -178,18 +198,18 @@ class SocketAddress {
   DISALLOW_COPY_AND_ASSIGN(SocketAddress);
 };
 
+
 class InterfaceSocketAddress {
  public:
-  explicit InterfaceSocketAddress(struct sockaddr* sa,
-                                  const char* interface_name,
-                                  intptr_t interface_index)
+  InterfaceSocketAddress(struct sockaddr* sa,
+                         const char* interface_name,
+                         intptr_t interface_index)
       : socket_address_(new SocketAddress(sa)),
         interface_name_(interface_name),
         interface_index_(interface_index) {}
 
   ~InterfaceSocketAddress() {
     delete socket_address_;
-    free(const_cast<char*>(interface_name_));
   }
 
   SocketAddress* socket_address() const { return socket_address_; }
@@ -203,6 +223,7 @@ class InterfaceSocketAddress {
 
   DISALLOW_COPY_AND_ASSIGN(InterfaceSocketAddress);
 };
+
 
 template<typename T>
 class AddressList {
@@ -228,6 +249,7 @@ class AddressList {
 
   DISALLOW_COPY_AND_ASSIGN(AddressList);
 };
+
 
 class Socket {
  public:
@@ -255,6 +277,9 @@ class Socket {
   // specified as the port component of the passed RawAddr structure.
   static intptr_t CreateBindConnect(const RawAddr& addr,
                                     const RawAddr& source_addr);
+  // Returns true if the given error-number is because the system was not able
+  // to bind the socket to a specific IP.
+  static bool IsBindError(intptr_t error_number);
   // Creates a datagram socket which is bound. The port to bind
   // to is specified as the port component of the RawAddr structure.
   static intptr_t CreateBindDatagram(const RawAddr& addr, bool reuseAddress);
@@ -293,6 +318,9 @@ class Socket {
 
   static bool ParseAddress(int type, const char* address, RawAddr* addr);
   static bool FormatNumericAddress(const RawAddr& addr, char* address, int len);
+
+  // Whether ListInterfaces is supported.
+  static bool ListInterfacesSupported();
 
   // List interfaces. Returns a AddressList of InterfaceSocketAddress's.
   static AddressList<InterfaceSocketAddress>* ListInterfaces(
@@ -341,40 +369,25 @@ class ServerSocket {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ServerSocket);
 };
 
+
 class ListeningSocketRegistry {
- private:
-  struct OSSocket {
-    RawAddr address;
-    int port;
-    bool v6_only;
-    bool shared;
-    int ref_count;
-    intptr_t socketfd;
-
-    // Singly linked lists of OSSocket instances which listen on the same port
-    // but on different addresses.
-    OSSocket *next;
-
-    OSSocket(RawAddr address, int port, bool v6_only, bool shared,
-             intptr_t socketfd)
-        : address(address), port(port), v6_only(v6_only), shared(shared),
-          ref_count(0), socketfd(socketfd), next(NULL) {}
-  };
-
  public:
+  ListeningSocketRegistry() :
+      sockets_by_port_(SameIntptrValue, kInitialSocketsCount),
+      sockets_by_fd_(SameIntptrValue, kInitialSocketsCount),
+      mutex_(new Mutex()) {}
+
+  ~ListeningSocketRegistry() {
+    CloseAllSafe();
+    delete mutex_;
+    mutex_ = NULL;
+  }
+
   static void Initialize();
 
   static ListeningSocketRegistry *Instance();
 
   static void Cleanup();
-
-
-  ListeningSocketRegistry() : mutex_(new Mutex()) {}
-
-  ~ListeningSocketRegistry() {
-    delete mutex_;
-    mutex_ = NULL;
-  }
 
   // This function should be called from a dart runtime call in order to create
   // a new (potentially shared) socket.
@@ -397,6 +410,26 @@ class ListeningSocketRegistry {
   Mutex *mutex() { return mutex_; }
 
  private:
+  struct OSSocket {
+    RawAddr address;
+    int port;
+    bool v6_only;
+    bool shared;
+    int ref_count;
+    intptr_t socketfd;
+
+    // Singly linked lists of OSSocket instances which listen on the same port
+    // but on different addresses.
+    OSSocket *next;
+
+    OSSocket(RawAddr address, int port, bool v6_only, bool shared,
+             intptr_t socketfd)
+        : address(address), port(port), v6_only(v6_only), shared(shared),
+          ref_count(0), socketfd(socketfd), next(NULL) {}
+  };
+
+  static const intptr_t kInitialSocketsCount = 8;
+
   OSSocket *findOSSocketWithAddress(OSSocket *current, const RawAddr& addr) {
     while (current != NULL) {
       if (SocketAddress::AreAddressesEqual(current->address, addr)) {
@@ -407,16 +440,37 @@ class ListeningSocketRegistry {
     return NULL;
   }
 
-  std::map<intptr_t, OSSocket*> sockets_by_port_;
-  std::map<intptr_t, OSSocket*> sockets_by_fd_;
+  static bool SameIntptrValue(void* key1, void* key2) {
+    return reinterpret_cast<intptr_t>(key1) == reinterpret_cast<intptr_t>(key2);
+  }
+
+  static uint32_t GetHashmapHashFromIntptr(intptr_t i) {
+    return static_cast<uint32_t>((i + 1) & 0xFFFFFFFF);
+  }
+
+
+  static void* GetHashmapKeyFromIntptr(intptr_t i) {
+    return reinterpret_cast<void*>(i + 1);
+  }
+
+  OSSocket* LookupByPort(intptr_t port);
+  void InsertByPort(intptr_t port, OSSocket* socket);
+  void RemoveByPort(intptr_t port);
+
+  OSSocket* LookupByFd(intptr_t fd);
+  void InsertByFd(intptr_t fd, OSSocket* socket);
+  void RemoveByFd(intptr_t fd);
+
+  bool CloseOneSafe(OSSocket* os_socket);
+  void CloseAllSafe();
+
+  HashMap sockets_by_port_;
+  HashMap sockets_by_fd_;
+
   Mutex *mutex_;
 
-  typedef std::map<intptr_t, OSSocket*>::iterator SocketsIterator;
-
- private:
   DISALLOW_COPY_AND_ASSIGN(ListeningSocketRegistry);
 };
-
 
 }  // namespace bin
 }  // namespace dart

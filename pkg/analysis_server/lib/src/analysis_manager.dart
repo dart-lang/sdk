@@ -36,11 +36,12 @@ class AnalysisManager {
    * Otherwise there was no attached process or the signal could not be sent,
    * usually meaning that the process is already dead.
    */
-  Future<bool> stop() {
+  Future<bool> stop() async {
     if (process == null) {
-      return channel.close().then((_) => false);
+      await channel.close();
+      return false;
     }
-    return channel
+    int result = await channel
         .sendRequest(new ServerShutdownParams().toRequest('0'))
         .timeout(new Duration(seconds: 2), onTimeout: () {
       print('Expected shutdown response');
@@ -49,30 +50,32 @@ class AnalysisManager {
     }).timeout(new Duration(seconds: 2), onTimeout: () {
       print('Expected server to shutdown');
       process.kill();
-    }).then((int result) {
-      if (result != null && result != 0) {
-        exitCode = result;
-      }
-      return true;
     });
+    if (result != null && result != 0) {
+      exitCode = result;
+    }
+    return true;
   }
 
   /**
    * Launch an analysis server and open a connection to that server.
    */
-  Future<AnalysisManager> _launchServer(String pathToServer) {
-    // TODO dynamically allocate port and/or allow client to specify port
-    List<String> serverArgs = [pathToServer, '--port', PORT.toString()];
-    return Process.start(Platform.executable, serverArgs).catchError((error) {
+  Future<AnalysisManager> _launchServer(String pathToServer) async {
+    try {
+      // TODO dynamically allocate port and/or allow client to specify port
+      List<String> serverArgs = [pathToServer, '--port', PORT.toString()];
+      Process process = await Process.start(Platform.executable, serverArgs);
+      return _listenForPort(process);
+    } catch (error) {
       exitCode = 1;
       throw 'Failed to launch analysis server: $error';
-    }).then(_listenForPort);
+    }
   }
 
   /**
    * Listen for a port from the given analysis server process.
    */
-  Future<AnalysisManager> _listenForPort(Process process) {
+  Future<AnalysisManager> _listenForPort(Process process) async {
     this.process = process;
 
     // Echo stdout and stderr
@@ -82,24 +85,24 @@ class AnalysisManager {
 
     // Listen for port from server
     const String pattern = 'Listening on port ';
-    return out
-        .firstWhere((String line) => line.startsWith(pattern))
-        .timeout(new Duration(seconds: 10))
-        .catchError((error) {
-      exitCode = 1;
-      process.kill();
-      throw 'Expected port from analysis server';
-    }).then((String line) {
+    try {
+      String line = await out
+          .firstWhere((String line) => line.startsWith(pattern))
+          .timeout(new Duration(seconds: 10));
       String port = line.substring(pattern.length).trim();
       String url = 'ws://${InternetAddress.LOOPBACK_IP_V4.address}:$port/';
       return _openConnection(url);
-    });
+    } catch (error) {
+      exitCode = 1;
+      process.kill();
+      throw 'Expected port from analysis server';
+    }
   }
 
   /**
    * Open a connection to the analysis server using the given URL.
    */
-  Future<AnalysisManager> _openConnection(String serverUrl) {
+  Future<AnalysisManager> _openConnection(String serverUrl) async {
     Function onError = (error) {
       exitCode = 1;
       if (process != null) {
@@ -108,16 +111,13 @@ class AnalysisManager {
       throw 'Failed to connect to analysis server at $serverUrl\n  $error';
     };
     try {
-      return WebSocket
-          .connect(serverUrl)
-          .catchError(onError)
-          .then((WebSocket socket) {
-        this.channel = new WebSocketClientChannel(socket);
-        return this;
-      });
+      WebSocket socket = await WebSocket.connect(serverUrl).catchError(onError);
+      this.channel = new WebSocketClientChannel(socket);
+      return this;
     } catch (error) {
       onError(error);
     }
+    return null;
   }
 
   /**

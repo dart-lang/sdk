@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis.notification.analysis_options;
+library test.analysis.notification_analysis_options_test;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -18,11 +18,12 @@ import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(AnalysisOptionsFileNotificationTest);
+  defineReflectiveTests(NewAnalysisOptionsFileNotificationTest);
+  defineReflectiveTests(OldAnalysisOptionsFileNotificationTest);
 }
 
-@reflectiveTest
-class AnalysisOptionsFileNotificationTest extends AbstractAnalysisTest {
+abstract class AnalysisOptionsFileNotificationTest
+    extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
   final testSource = '''
@@ -36,7 +37,7 @@ main() {
 
   List<AnalysisError> get optionsFileErrors => filesErrors[optionsFilePath];
 
-  String get optionsFilePath => '$projectPath/.analysis_options';
+  String get optionsFilePath;
 
   AnalysisContext get testContext => server.getContainingContext(testFile);
 
@@ -296,17 +297,25 @@ linter:
     expect(testContext.analysisOptions.strongMode, enabled);
 
     if (enabled) {
-      // Should produce a warning and an error.
-      expect(
-          errors.map((error) => error.type),
-          unorderedEquals([
-            AnalysisErrorType.STATIC_TYPE_WARNING,
-            AnalysisErrorType.COMPILE_TIME_ERROR
-          ]));
+      // Should produce a type warning.
+      expect(errors.map((error) => error.type),
+          unorderedEquals([AnalysisErrorType.STATIC_TYPE_WARNING]));
     } else {
       // Should only produce a hint.
       expect(errors.map((error) => error.type),
           unorderedEquals([AnalysisErrorType.HINT]));
     }
   }
+}
+
+@reflectiveTest
+class NewAnalysisOptionsFileNotificationTest
+    extends AnalysisOptionsFileNotificationTest {
+  String get optionsFilePath => '$projectPath/analysis_options.yaml';
+}
+
+@reflectiveTest
+class OldAnalysisOptionsFileNotificationTest
+    extends AnalysisOptionsFileNotificationTest {
+  String get optionsFilePath => '$projectPath/.analysis_options';
 }

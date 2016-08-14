@@ -19,6 +19,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -70,7 +71,7 @@ import "../foo/foo.dart";
 ''');
     Source barSource = bar.createSource();
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    return pumpEventQueue(40).then((_) {
+    return server.onAnalysisComplete.then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returns the proper context for each.
       AnalysisContext fooContext =
@@ -110,7 +111,7 @@ import "../foo/foo.dart";
     AnalysisContext barContext = server.getAnalysisContextForSource(barSource);
     expect(barContext, isNotNull);
     expect(fooContext, isNot(same(barContext)));
-    return pumpEventQueue(40).then((_) {
+    return server.onAnalysisComplete.then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returned the proper context for each.
       expect(fooContext.getKindOf(fooSource), SourceKind.LIBRARY);
@@ -142,10 +143,9 @@ import "../foo/foo.dart";
         resourceProvider,
         packageMapProvider,
         null,
-        null,
         plugin,
         new AnalysisServerOptions(),
-        () => new MockSdk(),
+        new DartSdkManager('', false, (_) => new MockSdk()),
         InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
     processRequiredPlugins();
@@ -237,7 +237,7 @@ import "../foo/foo.dart";
     File bar = resourceProvider.newFile('/bar/bar.dart', 'library lib;');
     Source barSource = bar.createSource();
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    return pumpEventQueue(500).then((_) {
+    return server.onAnalysisComplete.then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returns the proper context for each.
       AnalysisContext fooContext =
@@ -339,12 +339,12 @@ import "../foo/foo.dart";
       subscriptions[service] = <String>[bar.path].toSet();
     }
     server.setAnalysisSubscriptions(subscriptions);
-    await pumpEventQueue(1000);
+    await server.onAnalysisComplete;
     expect(server.statusAnalyzing, isFalse);
     channel.notificationsReceived.clear();
     server.updateContent(
         '0', {bar.path: new AddContentOverlay('library bar; void f() {}')});
-    await pumpEventQueue(1000);
+    await server.onAnalysisComplete;
     expect(server.statusAnalyzing, isFalse);
     expect(channel.notificationsReceived, isNotEmpty);
     Set<String> notificationTypesReceived = new Set<String>();
@@ -447,7 +447,6 @@ import "../foo/foo.dart";
     AnalysisResult firstResult = new AnalysisResult([notice], 0, '', 0);
     AnalysisResult lastResult = new AnalysisResult(null, 1, '', 1);
     when(context.analysisOptions).thenReturn(new AnalysisOptionsImpl());
-    when(context.validateCacheConsistency()).thenReturn(false);
     when(context.performAnalysisTask)
         .thenReturnList([firstResult, firstResult, firstResult, lastResult]);
     server.serverServices.add(ServerService.STATUS);
@@ -472,7 +471,28 @@ import "../foo/foo.dart";
     });
   }
 
-  test_setAnalysisSubscriptions_fileInIgnoredFolder() async {
+  test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
+    String path = '/project/samples/sample.dart';
+    resourceProvider.newFile(path, '');
+    resourceProvider.newFile(
+        '/project/analysis_options.yaml',
+        r'''
+analyzer:
+  exclude:
+    - 'samples/**'
+''');
+    server.setAnalysisRoots('0', ['/project'], [], {});
+    server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
+      AnalysisService.NAVIGATION: new Set<String>.from([path])
+    });
+    // the file is excluded, so no navigation notification
+    await server.onAnalysisComplete;
+    expect(channel.notificationsReceived.any((notification) {
+      return notification.event == ANALYSIS_NAVIGATION;
+    }), isFalse);
+  }
+
+  test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
     String path = '/project/samples/sample.dart';
     resourceProvider.newFile(path, '');
     resourceProvider.newFile(

@@ -6,9 +6,28 @@ library analyzer.src.util.yaml;
 
 import 'dart:collection';
 
+import 'package:yaml/yaml.dart';
+
+/// If all of the elements of [list] are strings, return a list of strings
+/// containing the same elements. Otherwise, return `null`.
+List<String> toStringList(YamlList list) {
+  if (list == null) {
+    return null;
+  }
+  List<String> stringList = <String>[];
+  for (var element in list) {
+    if (element is String) {
+      stringList.add(element);
+    } else {
+      return null;
+    }
+  }
+  return stringList;
+}
+
 /// Merges two maps (of yaml) with simple override semantics, suitable for
 /// merging two maps where one map defines default values that are added to
-/// (and possibly overriden) by an overriding map.
+/// (and possibly overridden) by an overriding map.
 class Merger {
   /// Merges a default [o1] with an overriding object [o2].
   ///

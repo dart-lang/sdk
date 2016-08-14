@@ -10,7 +10,7 @@ part of html;
  */
 class _ContentCssRect extends CssRect {
 
-  _ContentCssRect(element) : super(element);
+  _ContentCssRect(Element element) : super(element);
 
   num get height => _element.offsetHeight +
       _addOrSubtractToBoxModel(_HEIGHT, _CONTENT);
@@ -31,9 +31,11 @@ class _ContentCssRect extends CssRect {
     if (newHeight is Dimension) {
       if (newHeight.value < 0) newHeight = new Dimension.px(0);
       _element.style.height = newHeight.toString();
-    } else {
+    } else if (newHeight is num) {
       if (newHeight < 0) newHeight = 0;
       _element.style.height = '${newHeight}px';
+    } else {
+      throw new ArgumentError("newHeight is not a Dimension or num");
     }
   }
 
@@ -49,9 +51,11 @@ class _ContentCssRect extends CssRect {
     if (newWidth is Dimension) {
       if (newWidth.value < 0) newWidth = new Dimension.px(0);
       _element.style.width = newWidth.toString();
-    } else {
+    } else if (newWidth is num) {
       if (newWidth < 0) newWidth = 0;
       _element.style.width = '${newWidth}px';
+    } else {
+      throw new ArgumentError("newWidth is not a Dimension or num");
     }
   }
 
@@ -68,7 +72,7 @@ class _ContentCssRect extends CssRect {
 class _ContentCssListRect extends _ContentCssRect {
   List<Element> _elementList;
 
-  _ContentCssListRect(elementList) : super(elementList.first) {
+  _ContentCssListRect(List<Element> elementList) : super(elementList.first) {
     _elementList = elementList;
   }
 
@@ -157,10 +161,10 @@ class _MarginCssRect extends CssRect {
  * animation frame is discouraged. See also:
  * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
  */
-abstract class CssRect extends MutableRectangle<num> {
+abstract class CssRect implements Rectangle<num> {
   Element _element;
 
-  CssRect(this._element) : super(0, 0, 0, 0);
+  CssRect(this._element);
 
   num get left;
 
@@ -253,6 +257,102 @@ abstract class CssRect extends MutableRectangle<num> {
     }
     return val;
   }
+
+  // TODO(jacobr): these methods are duplicated from _RectangleBase in dart:math
+  // Ideally we would provide a RectangleMixin class that provides this implementation.
+  // In an ideal world we would exp
+  /** The x-coordinate of the right edge. */
+  num get right => left + width;
+  /** The y-coordinate of the bottom edge. */
+  num get bottom => top + height;
+
+  String toString() {
+    return 'Rectangle ($left, $top) $width x $height';
+  }
+
+  bool operator ==(other) {
+    if (other is !Rectangle) return false;
+    return left == other.left && top == other.top && right == other.right &&
+        bottom == other.bottom;
+  }
+
+  int get hashCode => _JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
+      right.hashCode, bottom.hashCode);
+
+  /**
+   * Computes the intersection of `this` and [other].
+   *
+   * The intersection of two axis-aligned rectangles, if any, is always another
+   * axis-aligned rectangle.
+   *
+   * Returns the intersection of this and `other`, or `null` if they don't
+   * intersect.
+   */
+  Rectangle<num> intersection(Rectangle<num> other) {
+    var x0 = max(left, other.left);
+    var x1 = min(left + width, other.left + other.width);
+
+    if (x0 <= x1) {
+      var y0 = max(top, other.top);
+      var y1 = min(top + height, other.top + other.height);
+
+      if (y0 <= y1) {
+        return new Rectangle<num>(x0, y0, x1 - x0, y1 - y0);
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Returns true if `this` intersects [other].
+   */
+  bool intersects(Rectangle<num> other) {
+    return (left <= other.left + other.width &&
+        other.left <= left + width &&
+        top <= other.top + other.height &&
+        other.top <= top + height);
+  }
+
+  /**
+   * Returns a new rectangle which completely contains `this` and [other].
+   */
+  Rectangle<num> boundingBox(Rectangle<num> other) {
+    var right = max(this.left + this.width, other.left + other.width);
+    var bottom = max(this.top + this.height, other.top + other.height);
+
+    var left = min(this.left, other.left);
+    var top = min(this.top, other.top);
+
+    return new Rectangle<num>(left, top, right - left, bottom - top);
+  }
+
+  /**
+   * Tests whether `this` entirely contains [another].
+   */
+  bool containsRectangle(Rectangle<num> another) {
+    return left <= another.left &&
+           left + width >= another.left + another.width &&
+           top <= another.top &&
+           top + height >= another.top + another.height;
+  }
+
+  /**
+   * Tests whether [another] is inside or along the edges of `this`.
+   */
+  bool containsPoint(Point<num> another) {
+    return another.x >= left &&
+           another.x <= left + width &&
+           another.y >= top &&
+           another.y <= top + height;
+  }
+
+  Point<num> get topLeft => new Point<num>(this.left, this.top);
+  Point<num> get topRight => new Point<num>(this.left + this.width, this.top);
+  Point<num> get bottomRight => new Point<num>(this.left + this.width,
+      this.top + this.height);
+  Point<num> get bottomLeft => new Point<num>(this.left,
+      this.top + this.height);
 }
 
 final _HEIGHT = ['top', 'bottom'];

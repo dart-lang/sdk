@@ -112,7 +112,7 @@ abstract class Future<T> {
    * with that value.
    */
   factory Future(computation()) {
-    _Future result = new _Future<T>();
+    _Future<T> result = new _Future<T>();
     Timer.run(() {
       try {
         result._complete(computation());
@@ -138,7 +138,7 @@ abstract class Future<T> {
    * the returned future is completed with that value.
    */
   factory Future.microtask(computation()) {
-    _Future result = new _Future<T>();
+    _Future<T> result = new _Future<T>();
     scheduleMicrotask(() {
       try {
         result._complete(computation());
@@ -222,7 +222,7 @@ abstract class Future<T> {
    * later time that isn't necessarily after a known fixed duration.
    */
   factory Future.delayed(Duration duration, [computation()]) {
-    _Future result = new _Future<T>();
+    _Future<T> result = new _Future<T>();
     new Timer(duration, () {
       try {
         result._complete(computation?.call());
@@ -257,8 +257,8 @@ abstract class Future<T> {
   static Future<List/*<T>*/> wait/*<T>*/(Iterable<Future/*<T>*/> futures,
                            {bool eagerError: false,
                             void cleanUp(/*=T*/ successValue)}) {
-    final _Future<List> result = new _Future<List>();
-    List values;  // Collects the values. Set to null on error.
+    final _Future<List/*<T>*/> result = new _Future<List/*<T>*/>();
+    List/*<T>*/ values;  // Collects the values. Set to null on error.
     int remaining = 0;  // How many futures are we waiting for.
     var error;   // The first error from a future.
     StackTrace stackTrace;  // The stackTrace that came with the error.
@@ -291,7 +291,7 @@ abstract class Future<T> {
     // position in the list of values.
     for (Future future in futures) {
       int pos = remaining++;
-      future.then((Object value) {
+      future.then((Object/*=T*/ value) {
         remaining--;
         if (values != null) {
           values[pos] = value;
@@ -312,7 +312,7 @@ abstract class Future<T> {
     if (remaining == 0) {
       return new Future.value(const []);
     }
-    values = new List(remaining);
+    values = new List/*<T>*/(remaining);
     return result;
   }
 
@@ -327,8 +327,8 @@ abstract class Future<T> {
    * the returned future never completes.
    */
   static Future/*<T>*/ any/*<T>*/(Iterable<Future/*<T>*/> futures) {
-    var completer = new Completer.sync();
-    var onValue = (value) {
+    var completer = new Completer/*<T>*/.sync();
+    var onValue = (/*=T*/ value) {
       if (!completer.isCompleted) completer.complete(value);
     };
     var onError = (error, stack) {
@@ -363,18 +363,19 @@ abstract class Future<T> {
   }
 
   /**
-   * Perform an async operation repeatedly until it returns `false`.
+   * Performs an async operation repeatedly until it returns `false`.
    *
-   * Runs [f] repeatedly, starting the next iteration only when the [Future]
-   * returned by [f] completes to `true`. Returns a [Future] that completes once
-   * [f] returns `false`.
+   * The function [f] is called repeatedly while it returns either the [bool]
+   * value `true` or a [Future] which completes with the value `true`.
    *
-   * The return values of all [Future]s are discarded. Any errors will cause the
-   * iteration to stop and will be piped through the returned [Future].
+   * If a call to [f] returns `false` or a [Future] that completes to `false`,
+   * iteration ends and the future returned by [doWhile] is completed.
    *
-   * The function [f] may return either a [bool] or a [Future] that completes to
-   * a [bool]. If it returns a non-[Future], iteration continues immediately.
-   * Otherwise it waits for the returned [Future] to complete.
+   * If a future returned by [f] completes with an error, iteration ends and
+   * the future returned by [doWhile] completes with the same error.
+   *
+   * The [f] function must return either a `bool` value or a [Future] completing
+   * with a `bool` value.
    */
   static Future doWhile(f()) {
     _Future doneSignal = new _Future();
@@ -432,7 +433,7 @@ abstract class Future<T> {
    * with a `test` parameter, instead of handling both value and error in a
    * single [then] call.
    */
-  Future/*<S>*/ then/*<S>*/(/*=S*/ onValue(T value), { Function onError });
+  Future/*<S>*/ then/*<S>*/(onValue(T value), { Function onError });
 
   /**
    * Handles errors emitted by this [Future].
@@ -459,7 +460,7 @@ abstract class Future<T> {
    *
    * If `test` is omitted, it defaults to a function that always returns true.
    * The `test` function should not throw, but if it does, it is handled as
-   * if the the `onError` function had thrown.
+   * if the `onError` function had thrown.
    *
    * Example:
    *
@@ -486,8 +487,17 @@ abstract class Future<T> {
    *     }
    *
    */
-  Future catchError(Function onError,
-                    {bool test(Object error)});
+  // The `Function` below can stand for several types:
+  // - (dynamic) -> T
+  // - (dynamic, StackTrace) -> T
+  // - (dynamic) -> Future<T>
+  // - (dynamic, StackTrace) -> Future<T>
+  // Given that there is a `test` function that is usually used to do an
+  // `isCheck` we should also expect functions that take a specific argument.
+  // Note: making `catchError` return a `Future<T>` in non-strong mode could be
+  // a breaking change.
+  Future/*<T>*/ catchError(Function onError,
+                           {bool test(Object error)});
 
   /**
    * Register a function to be called when this future completes.

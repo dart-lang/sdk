@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ library parser_helper;
 import "package:expect/expect.dart";
 
 import "package:compiler/src/elements/elements.dart";
+import 'package:compiler/src/id_generator.dart';
 import "package:compiler/src/tree/tree.dart";
 import "package:compiler/src/parser/element_listener.dart";
 import "package:compiler/src/parser/node_listener.dart";
@@ -22,11 +23,14 @@ import "package:compiler/src/elements/modelx.dart"
     show CompilationUnitElementX, ElementX, LibraryElementX;
 
 import "package:compiler/src/compiler.dart";
+import 'package:compiler/src/options.dart';
 import "package:compiler/src/diagnostics/source_span.dart";
 import "package:compiler/src/diagnostics/spannable.dart";
 import "package:compiler/src/diagnostics/diagnostic_listener.dart";
 import "package:compiler/src/diagnostics/messages.dart";
 import "package:compiler/src/script.dart";
+
+import "options_helper.dart";
 
 export "package:compiler/src/diagnostics/diagnostic_listener.dart";
 export 'package:compiler/src/parser/listener.dart';
@@ -38,6 +42,8 @@ export "package:compiler/src/tokens/token.dart";
 export "package:compiler/src/tokens/token_constants.dart";
 
 class LoggerCanceler extends DiagnosticReporter {
+  DiagnosticOptions get options => const MockDiagnosticOptions();
+
   void log(message) {
     print(message);
   }
@@ -64,7 +70,8 @@ class LoggerCanceler extends DiagnosticReporter {
     infos.forEach(log);
   }
 
-  void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]) {
+  void reportInfo(Spannable node, MessageKind errorCode,
+      [Map arguments = const {}]) {
     log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
   }
 
@@ -86,6 +93,9 @@ class LoggerCanceler extends DiagnosticReporter {
         null, spannable,
         new Message(MessageTemplate.TEMPLATES[messageKind], arguments, false));
   }
+
+  @override
+  bool get hasReportedError => false;
 }
 
 Token scan(String text) =>
@@ -102,7 +112,7 @@ Node parseBodyCode(String text, Function parseMethod,
   NodeListener listener = new NodeListener(
       new ScannerOptions(canUseNative: true),
       reporter, library.entryCompilationUnit);
-  Parser parser = new Parser(listener, enableConditionalDirectives: true);
+  Parser parser = new Parser(listener, new MockParserOptions());
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
   Node node = listener.popNode();
@@ -118,7 +128,7 @@ Node parseFunction(String text, Compiler compiler) {
   ElementX element = parseUnit(text, compiler, compiler.mainApp).head;
   Expect.isNotNull(element);
   Expect.equals(ElementKind.FUNCTION, element.kind);
-  return element.parseNode(compiler.parsing);
+  return element.parseNode(compiler.parsingContext);
 }
 
 Node parseMember(String text, {DiagnosticReporter reporter}) {
@@ -145,12 +155,11 @@ Link<Element> parseUnit(String text, Compiler compiler,
   }
   var script = new Script(uri, uri, new MockFile(text));
   var unit = new CompilationUnitElementX(script, library);
-  int id = 0;
   DiagnosticReporter reporter = compiler.reporter;
   ElementListener listener = new ElementListener(
-      compiler.parsing.getScannerOptionsFor(library),
-      reporter, unit, () => id++);
-  PartialParser parser = new PartialParser(listener);
+      compiler.parsingContext.getScannerOptionsFor(library),
+      reporter, unit, new IdGenerator());
+  PartialParser parser = new PartialParser(listener, new MockParserOptions());
   reporter.withCurrentElement(unit, () => parser.parseUnit(tokens));
   return unit.localMembers;
 }

@@ -29,19 +29,17 @@ void checkInstantiated(Compiler compiler, ClassElement cls, bool expected) {
   bool isProcessed = enqueuer.isClassProcessed(cls);
   Expect.equals(expected, isInstantiated,
       'Unexpected instantiation state of class $cls.');
-  Expect.equals(expected, isProcessed,
-      'Unexpected processing state of class $cls.');
+  Expect.equals(
+      expected, isProcessed, 'Unexpected processing state of class $cls.');
 }
 
 analyze(String code,
-        {bool proxyConstant: false,
-         bool deprecatedClass: false}) async {
+    {bool proxyConstant: false, bool deprecatedClass: false}) async {
   CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': code},
-      options: ['--analyze-only']);
+      memorySourceFiles: {'main.dart': code}, options: ['--analyze-only']);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  Expect.equals(proxyConstant, compiler.proxyConstant != null,
+  Expect.equals(proxyConstant, compiler.resolution.proxyConstant != null,
       "Unexpected computation of proxy constant.");
 
   checkInstantiated(

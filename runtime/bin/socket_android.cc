@@ -2,23 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_ANDROID)
 
+#include "bin/socket.h"
+#include "bin/socket_android.h"
+
 #include <errno.h>  // NOLINT
+#include <netinet/tcp.h>  // NOLINT
 #include <stdio.h>  // NOLINT
 #include <stdlib.h>  // NOLINT
 #include <string.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
-#include <netinet/tcp.h>  // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
-#include "bin/socket.h"
-
 #include "platform/signal_blocker.h"
-
 
 namespace dart {
 namespace bin {
@@ -36,16 +38,8 @@ SocketAddress::SocketAddress(struct sockaddr* sa) {
 
 bool Socket::FormatNumericAddress(const RawAddr& addr, char* address, int len) {
   socklen_t salen = SocketAddress::GetAddrLength(addr);
-  if (NO_RETRY_EXPECTED(getnameinfo(&addr.addr,
-                                    salen,
-                                    address,
-                                    len,
-                                    NULL,
-                                    0,
-                                    NI_NUMERICHOST)) != 0) {
-    return false;
-  }
-  return true;
+  return (NO_RETRY_EXPECTED(getnameinfo(
+      &addr.addr, salen, address, len, NULL, 0, NI_NUMERICHOST)) == 0);
 }
 
 
@@ -69,7 +63,7 @@ static intptr_t Create(const RawAddr& addr) {
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   intptr_t result = TEMP_FAILURE_RETRY(
       connect(fd, &addr.addr, SocketAddress::GetAddrLength(addr)));
-  if (result == 0 || errno == EINPROGRESS) {
+  if ((result == 0) || (errno == EINPROGRESS)) {
     return fd;
   }
   VOID_TEMP_FAILURE_RETRY(close(fd));
@@ -98,12 +92,18 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 
   intptr_t result = TEMP_FAILURE_RETRY(
       bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
-  if (result != 0 && errno != EINPROGRESS) {
+  if ((result != 0) && (errno != EINPROGRESS)) {
     VOID_TEMP_FAILURE_RETRY(close(fd));
     return -1;
   }
 
   return Connect(fd, addr);
+}
+
+
+bool Socket::IsBindError(intptr_t error_number) {
+  return error_number == EADDRINUSE || error_number == EADDRNOTAVAIL ||
+      error_number == EINVAL;
 }
 
 
@@ -116,7 +116,7 @@ intptr_t Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
   ssize_t read_bytes = TEMP_FAILURE_RETRY(read(fd, buffer, num_bytes));
   ASSERT(EAGAIN == EWOULDBLOCK);
-  if (read_bytes == -1 && errno == EWOULDBLOCK) {
+  if ((read_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the read would block we need to retry and therefore return 0
     // as the number of bytes written.
     read_bytes = 0;
@@ -131,7 +131,7 @@ intptr_t Socket::RecvFrom(
   socklen_t addr_len = sizeof(addr->ss);
   ssize_t read_bytes = TEMP_FAILURE_RETRY(
       recvfrom(fd, buffer, num_bytes, 0, &addr->addr, &addr_len));
-  if (read_bytes == -1 && errno == EWOULDBLOCK) {
+  if ((read_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the read would block we need to retry and therefore return 0
     // as the number of bytes written.
     read_bytes = 0;
@@ -144,7 +144,7 @@ intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
   ssize_t written_bytes = TEMP_FAILURE_RETRY(write(fd, buffer, num_bytes));
   ASSERT(EAGAIN == EWOULDBLOCK);
-  if (written_bytes == -1 && errno == EWOULDBLOCK) {
+  if ((written_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the would block we need to retry and therefore return 0 as
     // the number of bytes written.
     written_bytes = 0;
@@ -160,7 +160,7 @@ intptr_t Socket::SendTo(
       sendto(fd, buffer, num_bytes, 0,
              &addr.addr, SocketAddress::GetAddrLength(addr)));
   ASSERT(EAGAIN == EWOULDBLOCK);
-  if (written_bytes == -1 && errno == EWOULDBLOCK) {
+  if ((written_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the would block we need to retry and therefore return 0 as
     // the number of bytes written.
     written_bytes = 0;
@@ -207,10 +207,18 @@ void Socket::GetError(intptr_t fd, OSError* os_error) {
 int Socket::GetType(intptr_t fd) {
   struct stat buf;
   int result = fstat(fd, &buf);
-  if (result == -1) return -1;
-  if (S_ISCHR(buf.st_mode)) return File::kTerminal;
-  if (S_ISFIFO(buf.st_mode)) return File::kPipe;
-  if (S_ISREG(buf.st_mode)) return File::kFile;
+  if (result == -1) {
+    return -1;
+  }
+  if (S_ISCHR(buf.st_mode)) {
+    return File::kTerminal;
+  }
+  if (S_ISFIFO(buf.st_mode)) {
+    return File::kPipe;
+  }
+  if (S_ISREG(buf.st_mode)) {
+    return File::kFile;
+  }
   return File::kOther;
 }
 
@@ -247,12 +255,14 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
   }
   intptr_t count = 0;
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
-    if (c->ai_family == AF_INET || c->ai_family == AF_INET6) count++;
+    if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
+      count++;
+    }
   }
   intptr_t i = 0;
   AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
-    if (c->ai_family == AF_INET || c->ai_family == AF_INET6) {
+    if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
       addresses->SetAt(i, new SocketAddress(c->ai_addr));
       i++;
     }
@@ -294,7 +304,7 @@ bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
     ASSERT(type == SocketAddress::TYPE_IPV6);
     result = inet_pton(AF_INET6, address, &addr->in6.sin6_addr);
   }
-  return result == 1;
+  return (result == 1);
 }
 
 
@@ -302,7 +312,9 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
   intptr_t fd;
 
   fd = NO_RETRY_EXPECTED(socket(addr.addr.sa_family, SOCK_DGRAM, IPPROTO_UDP));
-  if (fd < 0) return -1;
+  if (fd < 0) {
+    return -1;
+  }
 
   FDUtils::SetCloseOnExec(fd);
 
@@ -325,11 +337,21 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
 }
 
 
+bool Socket::ListInterfacesSupported() {
+  return false;
+}
+
+
 AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
     int type,
     OSError** os_error) {
   // The ifaddrs.h header is not provided on Android.  An Android
   // implementation would have to use IOCTL or netlink.
+  ASSERT(*os_error == NULL);
+  *os_error = new OSError(-1,
+                          "Listing interfaces is not supported "
+                          "on this platform",
+                          OSError::kSystem);
   return NULL;
 }
 
@@ -340,7 +362,9 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   intptr_t fd;
 
   fd = NO_RETRY_EXPECTED(socket(addr.ss.ss_family, SOCK_STREAM, 0));
-  if (fd < 0) return -1;
+  if (fd < 0) {
+    return -1;
+  }
 
   FDUtils::SetCloseOnExec(fd);
 
@@ -363,7 +387,8 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   }
 
   // Test for invalid socket port 65535 (some browsers disallow it).
-  if (SocketAddress::GetAddrPort(addr) == 0 && Socket::GetPort(fd) == 65535) {
+  if ((SocketAddress::GetAddrPort(addr)) == 0 &&
+      (Socket::GetPort(fd) == 65535)) {
     // Don't close the socket until we have created a new socket, ensuring
     // that we do not get the bad port number again.
     intptr_t new_fd = CreateBindListen(addr, backlog, v6_only);
@@ -435,9 +460,9 @@ bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
                                          reinterpret_cast<void *>(&on),
                                          &len));
   if (err == 0) {
-    *enabled = on == 1;
+    *enabled = (on == 1);
   }
-  return err == 0;
+  return (err == 0);
 }
 
 
@@ -521,9 +546,9 @@ bool Socket::GetBroadcast(intptr_t fd, bool* enabled) {
                                          reinterpret_cast<char *>(&on),
                                          &len));
   if (err == 0) {
-    *enabled = on == 1;
+    *enabled = (on == 1);
   }
-  return err == 0;
+  return (err == 0);
 }
 
 
@@ -539,7 +564,7 @@ bool Socket::SetBroadcast(intptr_t fd, bool enabled) {
 
 bool Socket::JoinMulticast(
     intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
-  int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+  int proto = (addr.addr.sa_family == AF_INET) ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
   memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
@@ -550,7 +575,7 @@ bool Socket::JoinMulticast(
 
 bool Socket::LeaveMulticast(
     intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
-  int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+  int proto = (addr.addr.sa_family == AF_INET) ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
   memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
@@ -562,3 +587,5 @@ bool Socket::LeaveMulticast(
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)
+
+#endif  // !defined(DART_IO_DISABLED)

@@ -11,13 +11,6 @@
 
 namespace dart {
 
-static bool ContainsCid(const GrowableArray<Class*>& classes, intptr_t cid) {
-  for (intptr_t i = 0; i < classes.length(); ++i) {
-    if (classes[i]->id() == cid) return true;
-  }
-  return false;
-}
-
 
 TEST_CASE(ClassHierarchyAnalysis) {
   const char* kScriptChars =
@@ -38,23 +31,23 @@ TEST_CASE(ClassHierarchyAnalysis) {
   TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& lib = Library::Handle(Library::LookupLibrary(name));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!lib.IsNull());
 
   const Class& class_a = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!class_a.IsNull());
 
   const Class& class_b = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("B"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "B"))));
   EXPECT(!class_b.IsNull());
 
   const Class& class_c = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("C"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "C"))));
   EXPECT(!class_c.IsNull());
 
   const Class& class_d = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("D"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "D"))));
   EXPECT(!class_d.IsNull());
 
   const String& function_foo_name = String::Handle(String::New("foo"));
@@ -89,14 +82,14 @@ TEST_CASE(ClassHierarchyAnalysis) {
   EXPECT(CHA::HasSubclasses(class_a));
   EXPECT(CHA::HasSubclasses(class_b));
   EXPECT(!CHA::HasSubclasses(class_c));
-  cha.AddToLeafClasses(class_c);
+  cha.AddToGuardedClasses(class_c, /*subclass_count=*/0);
   EXPECT(!CHA::HasSubclasses(class_d));
-  cha.AddToLeafClasses(class_d);
+  cha.AddToGuardedClasses(class_d, /*subclass_count=*/0);
 
-  EXPECT(!ContainsCid(cha.leaf_classes(), class_a.id()));
-  EXPECT(!ContainsCid(cha.leaf_classes(), class_b.id()));
-  EXPECT(ContainsCid(cha.leaf_classes(), class_c.id()));
-  EXPECT(ContainsCid(cha.leaf_classes(), class_d.id()));
+  EXPECT(!cha.IsGuardedClass(class_a.id()));
+  EXPECT(!cha.IsGuardedClass(class_b.id()));
+  EXPECT(cha.IsGuardedClass(class_c.id()));
+  EXPECT(cha.IsGuardedClass(class_d.id()));
 
   const Class& closure_class =
       Class::Handle(Isolate::Current()->object_store()->closure_class());

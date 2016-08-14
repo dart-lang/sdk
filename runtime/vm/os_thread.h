@@ -12,6 +12,8 @@
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_ANDROID)
 #include "vm/os_thread_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "vm/os_thread_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "vm/os_thread_linux.h"
 #elif defined(TARGET_OS_MACOS)
@@ -61,19 +63,18 @@ class OSThread : public BaseThread {
     return id_;
   }
 
-  ThreadJoinId join_id() const {
-    ASSERT(join_id_ != OSThread::kInvalidThreadJoinId);
-    return join_id_;
-  }
-
+#ifndef PRODUCT
   ThreadId trace_id() const {
-    ASSERT(trace_id_ != OSThread::kInvalidThreadJoinId);
+    ASSERT(trace_id_ != OSThread::kInvalidThreadId);
     return trace_id_;
   }
+#endif
 
   const char* name() const {
     return name_;
   }
+
+  void SetName(const char* name);
 
   void set_name(const char* name) {
     ASSERT(OSThread::Current() == this);
@@ -171,12 +172,15 @@ class OSThread : public BaseThread {
   static intptr_t ThreadIdToIntPtr(ThreadId id);
   static ThreadId ThreadIdFromIntPtr(intptr_t id);
   static bool Compare(ThreadId a, ThreadId b);
-  static void GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage);
+
+  // This function can be called only once per OSThread, and should only be
+  // called when the retunred id will eventually be passed to OSThread::Join().
+  static ThreadJoinId GetCurrentThreadJoinId(OSThread* thread);
 
   // Called at VM startup and shutdown.
   static void InitOnce();
 
-  static bool IsThreadInList(ThreadJoinId join_id);
+  static bool IsThreadInList(ThreadId id);
 
   static void DisableOSThreadCreation();
   static void EnableOSThreadCreation();
@@ -203,8 +207,9 @@ class OSThread : public BaseThread {
   }
 
   static void Cleanup();
+#ifndef PRODUCT
   static ThreadId GetCurrentThreadTraceId();
-  static ThreadJoinId GetCurrentThreadJoinId();
+#endif  // PRODUCT
   static OSThread* GetOSThreadFromThread(Thread* thread);
   static void AddThreadToListLocked(OSThread* thread);
   static void RemoveThreadFromList(OSThread* thread);
@@ -213,8 +218,14 @@ class OSThread : public BaseThread {
   static ThreadLocalKey thread_key_;
 
   const ThreadId id_;
-  const ThreadJoinId join_id_;
+#if defined(DEBUG)
+  // In DEBUG mode we use this field to ensure that GetCurrentThreadJoinId is
+  // only called once per OSThread.
+  ThreadJoinId join_id_;
+#endif
+#ifndef PRODUCT
   const ThreadId trace_id_;  // Used to interface with tracing tools.
+#endif
   char* name_;  // A name for this thread.
 
   Mutex* timeline_block_lock_;

@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -27,7 +26,7 @@ class GetTypeHierarchyTest extends AbstractAnalysisTest {
 
   @override
   Index createIndex() {
-    return createLocalMemoryIndex();
+    return createMemoryIndex();
   }
 
   @override
@@ -143,6 +142,18 @@ class CCC extends BBB implements AAA {}
       {
         'classElement': {
           'kind': 'CLASS',
+          'name': 'BBB',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [3]
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
           'name': 'CCC',
           'location': anything,
           'flags': 0
@@ -152,18 +163,6 @@ class CCC extends BBB implements AAA {}
         'mixins': [],
         'subclasses': []
       },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'BBB',
-          'location': anything,
-          'flags': 0
-        },
-        'superclass': 0,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': [2]
-      }
     ]);
   }
 

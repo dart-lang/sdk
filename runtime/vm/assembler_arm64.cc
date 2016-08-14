@@ -13,12 +13,6 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
-// An extra check since we are assuming the existence of /proc/cpuinfo below.
-#if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) && \
-    !TARGET_OS_IOS
-#error ARM64 cross-compile only supported on Linux
-#endif
-
 namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
@@ -33,6 +27,7 @@ Assembler::Assembler(bool use_far_branches)
       use_far_branches_(use_far_branches),
       comments_(),
       constant_pool_allowed_(false) {
+  MonomorphicCheckedEntry();
 }
 
 
@@ -413,8 +408,7 @@ void Assembler::LoadObjectHelper(Register dst,
                   : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(dst, offset);
   } else {
-    ASSERT(object.IsSmi() || object.InVMHeap());
-    ASSERT(object.IsSmi() || FLAG_allow_absolute_addresses);
+    ASSERT(object.IsSmi());
     LoadDecodableImmediate(dst, reinterpret_cast<int64_t>(object.raw()));
   }
 }
@@ -452,7 +446,7 @@ void Assembler::CompareObject(Register reg, const Object& object) {
     LoadObject(TMP, object);
     CompareRegisters(reg, TMP);
   } else {
-    ASSERT(object.IsSmi() || FLAG_allow_absolute_addresses);
+    ASSERT(object.IsSmi());
     CompareImmediate(reg, reinterpret_cast<int64_t>(object.raw()));
   }
 }
@@ -583,7 +577,7 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
 void Assembler::Branch(const StubEntry& stub_entry,
                        Register pp,
                        Patchability patchable) {
-  const Code& target = Code::Handle(stub_entry.code());
+  const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset, pp);
@@ -598,7 +592,7 @@ void Assembler::BranchPatchable(const StubEntry& stub_entry) {
 
 void Assembler::BranchLink(const StubEntry& stub_entry,
                            Patchability patchable) {
-  const Code& target = Code::Handle(stub_entry.code());
+  const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset);
@@ -621,7 +615,7 @@ void Assembler::BranchLinkToRuntime() {
 
 void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
                                           const Object& equivalence) {
-  const Code& target = Code::Handle(stub_entry.code());
+  const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target, equivalence));
   LoadWordFromPoolOffset(CODE_REG, offset);
@@ -1037,51 +1031,6 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 }
 
 
-void Assembler::ComputeRange(Register result,
-                             Register value,
-                             Register scratch,
-                             Label* not_mint) {
-  Label done, not_smi;
-  tsti(value, Immediate(kSmiTagMask));
-  b(&not_smi, NE);
-
-  AsrImmediate(scratch, value, 32);
-  LoadImmediate(result, ICData::kUint32RangeBit);
-  cmp(scratch, Operand(1));
-  b(&done, EQ);
-
-  neg(scratch, scratch);
-  add(result, scratch, Operand(ICData::kInt32RangeBit));
-  cmp(scratch, Operand(1));
-  LoadImmediate(TMP, ICData::kSignedRangeBit);
-  csel(result, result, TMP, LS);
-  b(&done);
-
-  Bind(&not_smi);
-  CompareClassId(value, kMintCid);
-  b(not_mint, NE);
-
-  LoadImmediate(result, ICData::kInt64RangeBit);
-  Bind(&done);
-}
-
-
-void Assembler::UpdateRangeFeedback(Register value,
-                                    intptr_t index,
-                                    Register ic_data,
-                                    Register scratch1,
-                                    Register scratch2,
-                                    Label* miss) {
-  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
-  ComputeRange(scratch1, value, scratch2, miss);
-  ldr(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()), kWord);
-  orrw(scratch2,
-       scratch2,
-       Operand(scratch1, LSL, ICData::RangeFeedbackShift(index)));
-  str(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()), kWord);
-}
-
-
 // Frame entry and exit.
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
@@ -1127,7 +1076,33 @@ void Assembler::CheckCodePointer() {
 }
 
 
+void Assembler::SetupDartSP() {
+  mov(SP, CSP);
+}
+
+
+void Assembler::RestoreCSP() {
+  mov(CSP, SP);
+}
+
+
 void Assembler::EnterFrame(intptr_t frame_size) {
+  // The ARM64 ABI requires at all times
+  //   - stack limit < CSP <= stack base
+  //   - CSP mod 16 = 0
+  //   - we do not access stack memory below CSP
+  // Pratically, this means we need to keep the C stack pointer ahead of the
+  // Dart stack pointer and 16-byte aligned for signal handlers. If we knew the
+  // real stack limit, we could just set CSP to a value near it during
+  // SetupDartSP, but we do not know the real stack limit for the initial
+  // thread or threads created by the embedder.
+  // TODO(26472): It would be safer to use CSP as the Dart stack pointer, but
+  // this requires adjustments to stack handling to maintain the 16-byte
+  // alignment.
+  const intptr_t kMaxDartFrameSize = 4096;
+  sub(TMP, SP, Operand(kMaxDartFrameSize));
+  andi(CSP, TMP, Immediate(~15));
+
   PushPair(LR, FP);
   mov(FP, SP);
 
@@ -1263,31 +1238,80 @@ void Assembler::LeaveStubFrame() {
 }
 
 
+void Assembler::NoMonomorphicCheckedEntry() {
+  buffer_.Reset();
+  brk(0);
+  brk(0);
+  brk(0);
+  brk(0);
+  brk(0);
+  brk(0);
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+}
+
+
+// R0 receiver, R5 guarded cid as Smi
+void Assembler::MonomorphicCheckedEntry() {
+  bool saved_use_far_branches = use_far_branches();
+  set_use_far_branches(false);
+
+  Label immediate, have_cid, miss;
+  Bind(&miss);
+  ldr(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
+  ldr(IP0, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  br(IP0);
+  brk(0);
+
+  Bind(&immediate);
+  movz(R4, Immediate(kSmiCid), 0);
+  b(&have_cid);
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  tsti(R0, Immediate(kSmiTagMask));
+  SmiUntag(R5);
+  b(&immediate, EQ);
+
+  LoadClassId(R4, R0);
+
+  Bind(&have_cid);
+  cmp(R4, Operand(R5));
+  b(&miss, NE);
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+
+  set_use_far_branches(saved_use_far_branches);
+}
+
+
+#ifndef PRODUCT
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace) {
+  ASSERT(cid > 0);
+  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
+  LoadIsolate(temp_reg);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  ldr(temp_reg, Address(temp_reg, table_offset));
+  AddImmediate(temp_reg, temp_reg, state_offset);
+  ldr(temp_reg, Address(temp_reg, 0));
+  tsti(temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
+  b(trace, NE);
+}
+
+
 void Assembler::UpdateAllocationStats(intptr_t cid,
-                                      Heap::Space space,
-                                      bool inline_isolate) {
+                                      Heap::Space space) {
   ASSERT(cid > 0);
   intptr_t counter_offset =
       ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
-  if (inline_isolate) {
-    ASSERT(FLAG_allow_absolute_addresses);
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    if (cid < kNumPredefinedCids) {
-      LoadImmediate(
-          TMP2, reinterpret_cast<uword>(*table_ptr) + counter_offset);
-    } else {
-      LoadImmediate(TMP2, reinterpret_cast<uword>(table_ptr));
-      ldr(TMP, Address(TMP2));
-      AddImmediate(TMP2, TMP, counter_offset);
-    }
-  } else {
-    LoadIsolate(TMP2);
-    intptr_t table_offset =
-        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-    ldr(TMP, Address(TMP2, table_offset));
-    AddImmediate(TMP2, TMP, counter_offset);
-  }
+  LoadIsolate(TMP2);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  ldr(TMP, Address(TMP2, table_offset));
+  AddImmediate(TMP2, TMP, counter_offset);
   ldr(TMP, Address(TMP2, 0));
   AddImmediate(TMP, TMP, 1);
   str(TMP, Address(TMP2, 0));
@@ -1296,8 +1320,7 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
 
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               Register size_reg,
-                                              Heap::Space space,
-                                              bool inline_isolate) {
+                                              Heap::Space space) {
   ASSERT(cid > 0);
   const uword class_offset = ClassTable::ClassOffsetFor(cid);
   const uword count_field_offset = (space == Heap::kNew) ?
@@ -1306,24 +1329,11 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   const uword size_field_offset = (space == Heap::kNew) ?
     ClassHeapStats::allocated_size_since_gc_new_space_offset() :
     ClassHeapStats::allocated_size_since_gc_old_space_offset();
-  if (inline_isolate) {
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    if (cid < kNumPredefinedCids) {
-      LoadImmediate(TMP2,
-                    reinterpret_cast<uword>(*table_ptr) + class_offset);
-    } else {
-      LoadImmediate(TMP2, reinterpret_cast<uword>(table_ptr));
-      ldr(TMP, Address(TMP2));
-      AddImmediate(TMP2, TMP, class_offset);
-    }
-  } else {
-    LoadIsolate(TMP2);
-    intptr_t table_offset =
-        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-    ldr(TMP, Address(TMP2, table_offset));
-    AddImmediate(TMP2, TMP, class_offset);
-  }
+  LoadIsolate(TMP2);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  ldr(TMP, Address(TMP2, table_offset));
+  AddImmediate(TMP2, TMP, class_offset);
   ldr(TMP, Address(TMP2, count_field_offset));
   AddImmediate(TMP, TMP, 1);
   str(TMP, Address(TMP2, count_field_offset));
@@ -1331,37 +1341,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   add(TMP, TMP, Operand(size_reg));
   str(TMP, Address(TMP2, size_field_offset));
 }
-
-
-void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
-                                     Label* trace,
-                                     bool inline_isolate) {
-  ASSERT(cid > 0);
-  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
-  if (inline_isolate) {
-    ASSERT(FLAG_allow_absolute_addresses);
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    if (cid < kNumPredefinedCids) {
-      LoadImmediate(
-          temp_reg, reinterpret_cast<uword>(*table_ptr) + state_offset);
-    } else {
-      LoadImmediate(temp_reg, reinterpret_cast<uword>(table_ptr));
-      ldr(temp_reg, Address(temp_reg, 0));
-      AddImmediate(temp_reg, temp_reg, state_offset);
-    }
-  } else {
-    LoadIsolate(temp_reg);
-    intptr_t table_offset =
-        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-    ldr(temp_reg, Address(temp_reg, table_offset));
-    AddImmediate(temp_reg, temp_reg, state_offset);
-  }
-  ldr(temp_reg, Address(temp_reg, 0));
-  tsti(temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
-  b(trace, NE);
-}
+#endif  // !PRODUCT
 
 
 void Assembler::TryAllocate(const Class& cls,
@@ -1373,10 +1353,9 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure,
-                         /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), temp_reg, failure));
     const intptr_t instance_size = cls.instance_size();
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     ldr(temp_reg, Address(THR, Thread::heap_offset()));
     ldr(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
     // TODO(koda): Protect against unsigned overflow here.
@@ -1395,7 +1374,7 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(
         instance_reg, instance_reg, -instance_size + kHeapObjectTag);
-    UpdateAllocationStats(cls.id(), space, /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), space));
 
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -1420,8 +1399,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure, /* inline_isolate = */ false);
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
+    Heap::Space space = Heap::kNew;
     ldr(temp1, Address(THR, Thread::heap_offset()));
     // Potential new object start.
     ldr(instance, Address(temp1, Heap::TopOffset(space)));
@@ -1440,8 +1419,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     str(end_address, Address(temp1, Heap::TopOffset(space)));
     add(instance, instance, Operand(kHeapObjectTag));
     LoadImmediate(temp2, instance_size);
-    UpdateAllocationStatsWithSize(cid, temp2, space,
-                                  /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, temp2, space));
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.

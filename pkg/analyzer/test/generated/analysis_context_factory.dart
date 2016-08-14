@@ -10,15 +10,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -39,46 +40,60 @@ class AnalysisContextFactory {
   static String _DART_JS_HELPER = "dart:_js_helper";
 
   /**
-   * Create an analysis context that has a fake core library already resolved.
-   * Return the context that was created.
+   * Create and return an analysis context that has a fake core library already
+   * resolved. The given [resourceProvider] will be used when accessing the file
+   * system.
    */
-  static InternalAnalysisContext contextWithCore() {
+  static InternalAnalysisContext contextWithCore(
+      {ResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
-    return initContextWithCore(context);
+    return initContextWithCore(context, null, resourceProvider);
   }
 
   /**
-   * Create an analysis context that uses the given [options] and has a fake
-   * core library already resolved. Return the context that was created.
+   * Create and return an analysis context that uses the given [options] and has
+   * a fake core library already resolved. The given [resourceProvider] will be
+   * used when accessing the file system.
    */
   static InternalAnalysisContext contextWithCoreAndOptions(
-      AnalysisOptions options) {
+      AnalysisOptions options,
+      {ResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
     context._internalSetAnalysisOptions(options);
-    return initContextWithCore(context);
-  }
-
-  static InternalAnalysisContext contextWithCoreAndPackages(
-      Map<String, String> packages) {
-    AnalysisContextForTests context = new AnalysisContextForTests();
-    return initContextWithCore(context, new TestPackageUriResolver(packages));
+    return initContextWithCore(context, null, resourceProvider);
   }
 
   /**
-   * Initialize the given analysis context with a fake core library already resolved.
-   *
-   * @param context the context to be initialized (not `null`)
-   * @return the analysis context that was created
+   * Create and return an analysis context that has a fake core library already
+   * resolved. If not `null`, the given [packages] map will be used to create a
+   * package URI resolver. The given [resourceProvider] will be used when
+   * accessing the file system.
+   */
+  static InternalAnalysisContext contextWithCoreAndPackages(
+      Map<String, String> packages,
+      {ResourceProvider resourceProvider}) {
+    AnalysisContextForTests context = new AnalysisContextForTests();
+    return initContextWithCore(
+        context, new TestPackageUriResolver(packages), resourceProvider);
+  }
+
+  /**
+   * Initialize the given analysis [context] with a fake core library that has
+   * already been resolved. If not `null`, the given [contributedResolver] will
+   * be added to the context's source factory. The given [resourceProvider] will
+   * be used when accessing the file system.
    */
   static InternalAnalysisContext initContextWithCore(
       InternalAnalysisContext context,
-      [UriResolver contributedResolver]) {
-    DirectoryBasedDartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
-        new JavaFile("/fake/sdk"),
+      [UriResolver contributedResolver,
+      ResourceProvider resourceProvider]) {
+    resourceProvider ??= PhysicalResourceProvider.INSTANCE;
+    DartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
+        resourceProvider, '/fake/sdk',
         enableAsync: context.analysisOptions.enableAsync);
     List<UriResolver> resolvers = <UriResolver>[
       new DartUriResolver(sdk),
-      new FileUriResolver()
+      new ResourceUriResolver(resourceProvider)
     ];
     if (contributedResolver != null) {
       resolvers.add(contributedResolver);
@@ -93,10 +108,12 @@ class AnalysisContextFactory {
     //
     TestTypeProvider provider = new TestTypeProvider();
     CompilationUnitElementImpl coreUnit =
-    new CompilationUnitElementImpl("core.dart");
+        new CompilationUnitElementImpl("core.dart");
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     coreContext.setContents(coreSource, "");
     coreUnit.librarySource = coreUnit.source = coreSource;
+    ClassElementImpl overrideClassElement =
+        ElementFactory.classElement2("_Override");
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
     proxyClassElement.constructors = <ConstructorElement>[
       ElementFactory.constructorElement(proxyClassElement, '', true)
@@ -117,6 +134,7 @@ class AnalysisContextFactory {
       provider.nullType.element,
       provider.numType.element,
       objectClassElement,
+      overrideClassElement,
       proxyClassElement,
       provider.stackTraceType.element,
       provider.stringType.element,
@@ -132,27 +150,32 @@ class AnalysisContextFactory {
     TopLevelVariableElement proxyTopLevelVariableElt = ElementFactory
         .topLevelVariableElement3("proxy", true, false, proxyClassElement.type);
     ConstTopLevelVariableElementImpl deprecatedTopLevelVariableElt =
-    ElementFactory.topLevelVariableElement3(
-        "deprecated", true, false, provider.deprecatedType);
+        ElementFactory.topLevelVariableElement3(
+            "deprecated", true, false, provider.deprecatedType);
+    TopLevelVariableElement overrideTopLevelVariableElt =
+        ElementFactory.topLevelVariableElement3(
+            "override", true, false, overrideClassElement.type);
     {
       ClassElement deprecatedElement = provider.deprecatedType.element;
       InstanceCreationExpression initializer = AstFactory
           .instanceCreationExpression2(
-          Keyword.CONST,
-          AstFactory.typeName(deprecatedElement),
-          [AstFactory.string2('next release')]);
+              Keyword.CONST,
+              AstFactory.typeName(deprecatedElement),
+              [AstFactory.string2('next release')]);
       ConstructorElement constructor = deprecatedElement.constructors.single;
       initializer.staticElement = constructor;
       initializer.constructorName.staticElement = constructor;
       deprecatedTopLevelVariableElt.constantInitializer = initializer;
     }
     coreUnit.accessors = <PropertyAccessorElement>[
-      proxyTopLevelVariableElt.getter,
-      deprecatedTopLevelVariableElt.getter
+      deprecatedTopLevelVariableElt.getter,
+      overrideTopLevelVariableElt.getter,
+      proxyTopLevelVariableElt.getter
     ];
     coreUnit.topLevelVariables = <TopLevelVariableElement>[
-      proxyTopLevelVariableElt,
-      deprecatedTopLevelVariableElt
+      deprecatedTopLevelVariableElt,
+      overrideTopLevelVariableElt,
+      proxyTopLevelVariableElt
     ];
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
         coreContext, AstFactory.libraryIdentifier2(["dart", "core"]));
@@ -166,18 +189,18 @@ class AnalysisContextFactory {
       asyncLibrary = new LibraryElementImpl.forNode(
           coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
       CompilationUnitElementImpl asyncUnit =
-      new CompilationUnitElementImpl("async.dart");
+          new CompilationUnitElementImpl("async.dart");
       asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
       coreContext.setContents(asyncSource, "");
       asyncUnit.librarySource = asyncUnit.source = asyncSource;
       asyncLibrary.definingCompilationUnit = asyncUnit;
       // Future
       ClassElementImpl futureElement =
-      ElementFactory.classElement2("Future", ["T"]);
+          ElementFactory.classElement2("Future", ["T"]);
       futureElement.enclosingElement = asyncUnit;
       //   factory Future.value([value])
       ConstructorElementImpl futureConstructor =
-      ElementFactory.constructorElement2(futureElement, "value");
+          ElementFactory.constructorElement2(futureElement, "value");
       futureConstructor.parameters = <ParameterElement>[
         ElementFactory.positionalParameter2("value", provider.dynamicType)
       ];
@@ -210,18 +233,18 @@ class AnalysisContextFactory {
       futureElement.methods = <MethodElement>[thenMethod];
       // Completer
       ClassElementImpl completerElement =
-      ElementFactory.classElement2("Completer", ["T"]);
+          ElementFactory.classElement2("Completer", ["T"]);
       ConstructorElementImpl completerConstructor =
-      ElementFactory.constructorElement2(completerElement, null);
+          ElementFactory.constructorElement2(completerElement, null);
       completerElement.constructors = <ConstructorElement>[
         completerConstructor
       ];
       // StreamSubscription
       ClassElementImpl streamSubscriptionElement =
-      ElementFactory.classElement2("StreamSubscription", ["T"]);
+          ElementFactory.classElement2("StreamSubscription", ["T"]);
       // Stream
       ClassElementImpl streamElement =
-      ElementFactory.classElement2("Stream", ["T"]);
+          ElementFactory.classElement2("Stream", ["T"]);
       streamElement.constructors = <ConstructorElement>[
         ElementFactory.constructorElement2(streamElement, null)
       ];
@@ -233,10 +256,12 @@ class AnalysisContextFactory {
           <TypeDefiningElement>[streamElement.typeParameters[0]],
           null);
       listenOnData.synthetic = true;
-      List<DartType> parameterTypes = <DartType>[listenOnData.type,];
+      List<DartType> parameterTypes = <DartType>[
+        listenOnData.type,
+      ];
       // TODO(brianwilkerson) This is missing the optional parameters.
       MethodElementImpl listenMethod =
-      ElementFactory.methodElement('listen', returnType, parameterTypes);
+          ElementFactory.methodElement('listen', returnType, parameterTypes);
       streamElement.methods = <MethodElement>[listenMethod];
       listenMethod.type = new FunctionTypeImpl(listenMethod);
 
@@ -257,16 +282,16 @@ class AnalysisContextFactory {
     // dart:html
     //
     CompilationUnitElementImpl htmlUnit =
-    new CompilationUnitElementImpl("html_dartium.dart");
+        new CompilationUnitElementImpl("html_dartium.dart");
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     coreContext.setContents(htmlSource, "");
     htmlUnit.librarySource = htmlUnit.source = htmlSource;
     ClassElementImpl elementElement = ElementFactory.classElement2("Element");
     InterfaceType elementType = elementElement.type;
     ClassElementImpl canvasElement =
-    ElementFactory.classElement("CanvasElement", elementType);
+        ElementFactory.classElement("CanvasElement", elementType);
     ClassElementImpl contextElement =
-    ElementFactory.classElement2("CanvasRenderingContext");
+        ElementFactory.classElement2("CanvasRenderingContext");
     InterfaceType contextElementType = contextElement.type;
     ClassElementImpl context2dElement = ElementFactory.classElement(
         "CanvasRenderingContext2D", contextElementType);
@@ -281,9 +306,9 @@ class AnalysisContextFactory {
         .map((PropertyAccessorElement accessor) => accessor.variable)
         .toList();
     ClassElementImpl documentElement =
-    ElementFactory.classElement("Document", elementType);
+        ElementFactory.classElement("Document", elementType);
     ClassElementImpl htmlDocumentElement =
-    ElementFactory.classElement("HtmlDocument", documentElement.type);
+        ElementFactory.classElement("HtmlDocument", documentElement.type);
     htmlDocumentElement.methods = <MethodElement>[
       ElementFactory
           .methodElement("query", elementType, <DartType>[provider.stringType])
@@ -307,8 +332,8 @@ class AnalysisContextFactory {
           <ClassElement>[provider.stringType.element], ClassElement.EMPTY_LIST)
     ];
     TopLevelVariableElementImpl document =
-    ElementFactory.topLevelVariableElement3(
-        "document", false, true, htmlDocumentElement.type);
+        ElementFactory.topLevelVariableElement3(
+            "document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
     htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
     LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(
@@ -318,7 +343,7 @@ class AnalysisContextFactory {
     // dart:math
     //
     CompilationUnitElementImpl mathUnit =
-    new CompilationUnitElementImpl("math.dart");
+        new CompilationUnitElementImpl("math.dart");
     Source mathSource = sourceFactory.forUri(_DART_MATH);
     coreContext.setContents(mathSource, "");
     mathUnit.librarySource = mathUnit.source = mathSource;
@@ -330,7 +355,7 @@ class AnalysisContextFactory {
     TopLevelVariableElement ln10Element = ElementFactory
         .topLevelVariableElement3("LN10", true, false, provider.doubleType);
     TypeParameterElement maxT =
-    ElementFactory.typeParameterWithType('T', provider.numType);
+        ElementFactory.typeParameterWithType('T', provider.numType);
     FunctionElementImpl maxElement = ElementFactory.functionElement3(
         "max", maxT, [maxT, maxT], ClassElement.EMPTY_LIST);
     maxElement.typeParameters = [maxT];
@@ -340,7 +365,7 @@ class AnalysisContextFactory {
     ClassElementImpl randomElement = ElementFactory.classElement2("Random");
     randomElement.abstract = true;
     ConstructorElementImpl randomConstructor =
-    ElementFactory.constructorElement2(randomElement, null);
+        ElementFactory.constructorElement2(randomElement, null);
     randomConstructor.factory = true;
     ParameterElementImpl seedParam = new ParameterElementImpl("seed", 0);
     seedParam.parameterKind = ParameterKind.POSITIONAL;
@@ -386,7 +411,7 @@ class AnalysisContextFactory {
     // Record the elements.
     //
     HashMap<Source, LibraryElement> elementMap =
-    new HashMap<Source, LibraryElement>();
+        new HashMap<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
     if (asyncSource != null) {
       elementMap[asyncSource] = asyncLibrary;
@@ -399,7 +424,7 @@ class AnalysisContextFactory {
     //
     for (LibraryElementImpl library in elementMap.values) {
       Namespace namespace =
-      new NamespaceBuilder().createPublicNamespaceForLibrary(library);
+          new NamespaceBuilder().createPublicNamespaceForLibrary(library);
       library.exportNamespace = namespace;
       library.publicNamespace = namespace;
     }
@@ -421,7 +446,7 @@ class AnalysisContextForTests extends AnalysisContextImpl {
   void set analysisOptions(AnalysisOptions options) {
     AnalysisOptions currentOptions = analysisOptions;
     bool needsRecompute = currentOptions.analyzeFunctionBodiesPredicate !=
-        options.analyzeFunctionBodiesPredicate ||
+            options.analyzeFunctionBodiesPredicate ||
         currentOptions.generateImplicitErrors !=
             options.generateImplicitErrors ||
         currentOptions.generateSdkErrors != options.generateSdkErrors ||
@@ -512,28 +537,30 @@ class AnalysisContextHelper {
 }
 
 class TestPackageUriResolver extends UriResolver {
-  Map<Uri, Source> sourceMap = new HashMap<Uri, Source>();
+  Map<String, Source> sourceMap = new HashMap<String, Source>();
 
   TestPackageUriResolver(Map<String, String> map) {
     map.forEach((String uri, String contents) {
-      sourceMap[Uri.parse(uri)] =
-      new StringSource(contents, '/test_pkg_source.dart');
+      sourceMap[uri] = new StringSource(contents, '/test_pkg_source.dart');
     });
   }
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) => sourceMap[uri];
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    String uriString = uri.toString();
+    return sourceMap[uriString];
+  }
 
   @override
   Uri restoreAbsolute(Source source) => throw new UnimplementedError();
 }
 
-class _AnalysisContextFactory_initContextWithCore
-    extends DirectoryBasedDartSdk {
+class _AnalysisContextFactory_initContextWithCore extends FolderBasedDartSdk {
   final bool enableAsync;
-  _AnalysisContextFactory_initContextWithCore(JavaFile arg0,
+  _AnalysisContextFactory_initContextWithCore(
+      ResourceProvider resourceProvider, String sdkPath,
       {this.enableAsync: true})
-      : super(arg0);
+      : super(resourceProvider, resourceProvider.getFolder(sdkPath));
 
   @override
   LibraryMap initialLibraryMap(bool useDart2jsPaths) {

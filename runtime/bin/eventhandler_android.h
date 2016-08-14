@@ -18,7 +18,6 @@
 #include "platform/hashmap.h"
 #include "platform/signal_blocker.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -34,6 +33,9 @@ class DescriptorInfo : public DescriptorInfoBase {
     VOID_TEMP_FAILURE_RETRY(close(fd_));
     fd_ = -1;
   }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfo);
 };
 
 
@@ -43,6 +45,9 @@ class DescriptorInfoSingle
   explicit DescriptorInfoSingle(intptr_t fd)
       : DescriptorInfoSingleMixin(fd, false) {}
   virtual ~DescriptorInfoSingle() {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfoSingle);
 };
 
 
@@ -52,6 +57,9 @@ class DescriptorInfoMultiple
   explicit DescriptorInfoMultiple(intptr_t fd)
       : DescriptorInfoMultipleMixin(fd, false) {}
   virtual ~DescriptorInfoMultiple() {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfoMultiple);
 };
 
 
@@ -86,6 +94,8 @@ class EventHandlerImplementation {
   bool shutdown_;
   int interrupt_fds_[2];
   int epoll_fd_;
+
+  DISALLOW_COPY_AND_ASSIGN(EventHandlerImplementation);
 };
 
 }  // namespace bin

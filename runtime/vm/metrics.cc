@@ -67,6 +67,7 @@ Metric::~Metric() {
 }
 
 
+#ifndef PRODUCT
 static const char* UnitString(intptr_t unit) {
   switch (unit) {
     case Metric::kCounter: return "counter";
@@ -97,6 +98,7 @@ void Metric::PrintJSON(JSONStream* stream) {
   double value_as_double = static_cast<double>(Value());
   obj.AddProperty("value", value_as_double);
 }
+#endif  // !PRODUCT
 
 
 char* Metric::ValueToString(int64_t value, Unit unit) {
@@ -306,13 +308,13 @@ void Metric::Cleanup() {
   if (FLAG_print_metrics) {
     // Create a zone to allocate temporary strings in.
     StackZone sz(Thread::Current());
-    OS::Print("Printing metrics for VM\n");
+    OS::PrintErr("Printing metrics for VM\n");
     Metric* current = Metric::vm_head();
     while (current != NULL) {
-      OS::Print("%s\n", current->ToString());
+      OS::PrintErr("%s\n", current->ToString());
       current = current->next();
     }
-    OS::Print("\n");
+    OS::PrintErr("\n");
   }
 }
 

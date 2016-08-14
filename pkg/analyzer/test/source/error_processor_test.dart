@@ -39,13 +39,18 @@ main() {
     ['x']
   ]);
 
+  AnalysisError non_bool_operand = new AnalysisError(
+      new TestSource(), 0, 1, StaticTypeWarningCode.NON_BOOL_OPERAND, [
+    ['x']
+  ]);
+
   oneTimeSetup();
 
   setUp(() {
     context = new TestContext();
   });
 
-  group('ErrorProcessorTest', () {
+  group('ErrorProcessor', () {
     test('configureOptions', () {
       configureOptions('''
 analyzer:
@@ -60,9 +65,25 @@ analyzer:
       expect(getProcessor(unused_local_variable), isNull);
       expect(getProcessor(use_of_void_result), isNull);
     });
+
+    test('upgrades static type warnings to errors in strong mode', () {
+      configureOptions('''
+analyzer:
+  strong-mode: true
+''');
+      expect(getProcessor(non_bool_operand).severity, ErrorSeverity.ERROR);
+    });
+
+    test('does not upgrade other warnings to errors in strong mode', () {
+      configureOptions('''
+analyzer:
+  strong-mode: true
+''');
+      expect(getProcessor(unused_local_variable), isNull);
+    });
   });
 
-  group('ErrorConfigTest', () {
+  group('ErrorConfig', () {
     var config = '''
 analyzer:
   errors:
@@ -74,7 +95,8 @@ analyzer:
     group('processing', () {
       test('yaml map', () {
         var options = optionsProvider.getOptionsFromString(config);
-        var errorConfig = new ErrorConfig(options['analyzer']['errors']);
+        var errorConfig =
+            new ErrorConfig((options['analyzer'] as YamlMap)['errors']);
         expect(errorConfig.processors, hasLength(2));
 
         // ignore

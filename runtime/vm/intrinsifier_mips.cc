@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -29,6 +30,28 @@ namespace dart {
 
 
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
+
+
+static bool IsABIPreservedRegister(Register reg) {
+  return ((1 << reg) & kAbiPreservedCpuRegs) != 0;
+}
+
+void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  ASSERT(IsABIPreservedRegister(CODE_REG));
+  ASSERT(IsABIPreservedRegister(ARGS_DESC_REG));
+  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP));
+  ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
+  ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+
+  assembler->Comment("IntrinsicCallPrologue");
+  assembler->mov(CALLEE_SAVED_TEMP, LRREG);
+}
+
+
+void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallEpilogue");
+  assembler->mov(LRREG, CALLEE_SAVED_TEMP);
+}
 
 
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
@@ -138,8 +161,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, T2, &fall_through,                              \
-                          /* inline_isolate = */ false);                       \
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, T2, &fall_through));             \
   __ lw(T2, Address(SP, kArrayLengthStackOffset));  /* Array length. */        \
   /* Check that length is a positive Smi. */                                   \
   /* T2: requested array length argument. */                                   \
@@ -155,7 +177,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ AddImmediate(T2, fixed_size);                                             \
   __ LoadImmediate(TMP, -kObjectAlignment);                                    \
   __ and_(T2, T2, TMP);                                                        \
-  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  Heap::Space space = Heap::kNew;                                              \
   __ lw(T3, Address(THR, Thread::heap_offset()));                              \
   __ lw(V0, Address(T3, Heap::TopOffset(space)));                              \
                                                                                \
@@ -176,8 +198,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* next object start and initialize the object. */                           \
   __ sw(T1, Address(T3, Heap::TopOffset(space)));                              \
   __ AddImmediate(V0, kHeapObjectTag);                                         \
-  __ UpdateAllocationStatsWithSize(cid, T2, T4, space,                         \
-                                   /* inline_isolate = */ false);              \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, T2, T4, space));        \
   /* Initialize the tags. */                                                   \
   /* V0: new object start as a tagged pointer. */                              \
   /* T1: new object end address. */                                            \
@@ -752,6 +773,11 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   __ subu(V0, T0, V0);
   __ Ret();
   __ delay_slot()->SmiTag(V0);
+}
+
+
+void Intrinsifier::Smi_bitAndFromSmi(Assembler* assembler) {
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -1347,8 +1373,9 @@ static void CompareDoubles(Assembler* assembler, RelationOperator rel_op) {
   __ Bind(&is_smi);
   __ SmiUntag(T0);
   __ mtc1(T0, STMP1);
-  __ cvtdw(D1, STMP1);
   __ b(&double_op);
+  __ delay_slot()->cvtdw(D1, STMP1);
+
 
   __ Bind(&fall_through);
 }
@@ -1382,12 +1409,13 @@ void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
-  Label fall_through;
+  Label fall_through, is_smi, double_op;
 
-  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in T0.
   __ lwc1(F2, FieldAddress(T0, Double::value_offset()));
   __ lwc1(F3, FieldAddress(T0, Double::value_offset() + kWordSize));
+  __ Bind(&double_op);
   __ lw(T0, Address(SP, 1 * kWordSize));  // Left argument.
   __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
   __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
@@ -1405,6 +1433,13 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ Ret();
   __ delay_slot()->swc1(F1,
                         FieldAddress(V0, Double::value_offset() + kWordSize));
+
+  __ Bind(&is_smi);
+  __ SmiUntag(T0);
+  __ mtc1(T0, STMP1);
+  __ b(&double_op);
+  __ delay_slot()->cvtdw(D1, STMP1);
+
   __ Bind(&fall_through);
 }
 
@@ -1581,10 +1616,10 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       math_lib.LookupClassAllowPrivate(Symbols::_Random()));
   ASSERT(!random_class.IsNull());
   const Field& state_field = Field::ZoneHandle(
-      random_class.LookupInstanceField(Symbols::_state()));
+      random_class.LookupInstanceFieldAllowPrivate(Symbols::_state()));
   ASSERT(!state_field.IsNull());
   const Field& random_A_field = Field::ZoneHandle(
-      random_class.LookupStaticField(Symbols::_A()));
+      random_class.LookupStaticFieldAllowPrivate(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
   const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
@@ -1645,7 +1680,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ lhu(T1, FieldAddress(T2, Class::num_type_arguments_offset()));
   __ BranchNotEqual(T1, Immediate(0), &fall_through);
 
-  __ lw(V0, FieldAddress(T2, Class::canonical_types_offset()));
+  __ lw(V0, FieldAddress(T2, Class::canonical_type_offset()));
   __ BranchEqual(V0, Object::null_object(), &fall_through);
   __ Ret();
 
@@ -1660,41 +1695,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ beq(V0, ZR, &fall_through);
   __ Ret();
   __ Bind(&fall_through);  // Hash not yet computed.
-}
-
-
-void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
-  Label fall_through, try_two_byte_string;
-
-  __ lw(T1, Address(SP, 0 * kWordSize));  // Index.
-  __ lw(T0, Address(SP, 1 * kWordSize));  // String.
-
-  // Checks.
-  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &fall_through);  // Index is not a Smi.
-  __ lw(T2, FieldAddress(T0, String::length_offset()));  // Range check.
-  // Runtime throws exception.
-  __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
-  __ LoadClassId(CMPRES1, T0);  // Class ID check.
-  __ BranchNotEqual(
-      CMPRES1, Immediate(kOneByteStringCid), &try_two_byte_string);
-
-  // Grab byte and return.
-  __ SmiUntag(T1);
-  __ addu(T2, T0, T1);
-  __ lbu(V0, FieldAddress(T2, OneByteString::data_offset()));
-  __ Ret();
-  __ delay_slot()->SmiTag(V0);
-
-  __ Bind(&try_two_byte_string);
-  __ BranchNotEqual(CMPRES1, Immediate(kTwoByteStringCid), &fall_through);
-  ASSERT(kSmiTagShift == 1);
-  __ addu(T2, T0, T1);
-  __ lhu(V0, FieldAddress(T2, TwoByteString::data_offset()));
-  __ Ret();
-  __ delay_slot()->SmiTag(V0);
-
-  __ Bind(&fall_through);
 }
 
 
@@ -1946,8 +1946,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure) {
   const Register length_reg = T2;
-  __ MaybeTraceAllocation(kOneByteStringCid, V0, failure,
-                          /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, V0, failure));
   __ mov(T6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -1957,7 +1956,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ and_(length_reg, length_reg, TMP);
 
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ lw(T3, Address(THR, Thread::heap_offset()));
   __ lw(V0, Address(T3, Heap::TopOffset(space)));
 
@@ -1978,8 +1977,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ sw(T1, Address(T3, Heap::TopOffset(space)));
   __ AddImmediate(V0, kHeapObjectTag);
 
-  __ UpdateAllocationStatsWithSize(cid, T2, T3, space,
-                                   /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, T2, T3, space));
 
   // Initialize the tags.
   // V0: new object start as a tagged pointer.
@@ -2161,7 +2159,7 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
@@ -2181,7 +2179,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ AddImmediate(T2, -kOneByteStringCid);
   __ sll(T2, T2, kWordSizeLog2);
   __ addu(T2, T2, T1);
-  __ lw(T0, FieldAddress(T2, JSRegExp::function_offset(kOneByteStringCid)));
+  __ lw(T0, FieldAddress(T2, RegExp::function_offset(kOneByteStringCid)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in T0, the argument descriptor in S4, and IC-Data in S5.
@@ -2224,6 +2222,23 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ LoadIsolate(V0);
   __ Ret();
   __ delay_slot()->lw(V0, Address(V0, Isolate::current_tag_offset()));
+}
+
+
+void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
+  if (!FLAG_support_timeline) {
+    __ LoadObject(V0, Bool::False());
+    __ Ret();
+    return;
+  }
+  // Load TimelineStream*.
+  __ lw(V0, Address(THR, Thread::dart_stream_offset()));
+  // Load uintptr_t from TimelineStream*.
+  __ lw(T0, Address(V0, TimelineStream::enabled_offset()));
+  __ LoadObject(V0, Bool::True());
+  __ LoadObject(V1, Bool::False());
+  __ Ret();
+  __ delay_slot()->movz(V0, V1, T0);  // V0 = (T0 == 0) ? V1 : V0.
 }
 
 }  // namespace dart

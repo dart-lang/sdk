@@ -21,15 +21,11 @@ namespace dart {
 
 DECLARE_FLAG(bool, write_protect_code);
 
-static RawLibrary* CreateDummyLibrary(const String& library_name) {
-  return Library::New(library_name);
-}
-
 
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
-  const Class& cls = Class::Handle(
-      Class::New(class_name, script, TokenPosition::kNoSource));
+  const Class& cls = Class::Handle(Class::New(
+      Library::Handle(), class_name, script, TokenPosition::kNoSource));
   cls.set_is_synthesized_class();  // Dummy class for testing.
   return cls.raw();
 }
@@ -37,7 +33,7 @@ static RawClass* CreateDummyClass(const String& class_name,
 
 VM_TEST_CASE(Class) {
   // Allocate the class first.
-  const String& class_name = String::Handle(Symbols::New("MyClass"));
+  const String& class_name = String::Handle(Symbols::New(thread, "MyClass"));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
 
@@ -49,10 +45,10 @@ VM_TEST_CASE(Class) {
   const Array& interfaces = Array::Handle(Array::New(2));
   Class& interface = Class::Handle();
   String& interface_name = String::Handle();
-  interface_name = Symbols::New("Harley");
+  interface_name = Symbols::New(thread, "Harley");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
-  interface_name = Symbols::New("Norton");
+  interface_name = Symbols::New(thread, "Norton");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
   cls.set_interfaces(interfaces);
@@ -65,12 +61,12 @@ VM_TEST_CASE(Class) {
   const Array& functions = Array::Handle(Array::New(6));
   Function& function = Function::Handle();
   String& function_name = String::Handle();
-  function_name = Symbols::New("foo");
+  function_name = Symbols::New(thread, "foo");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
       false, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, function);
-  function_name = Symbols::New("bar");
+  function_name = Symbols::New(thread, "bar");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
       false, false, false, false, false, cls, TokenPosition::kMinSource);
@@ -83,24 +79,24 @@ VM_TEST_CASE(Class) {
                                     kAreOptionalPositional);
   functions.SetAt(1, function);
 
-  function_name = Symbols::New("baz");
+  function_name = Symbols::New(thread, "baz");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
       false, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(2, function);
 
-  function_name = Symbols::New("Foo");
+  function_name = Symbols::New(thread, "Foo");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
       true, false, false, false, false, cls, TokenPosition::kMinSource);
 
   functions.SetAt(3, function);
-  function_name = Symbols::New("Bar");
+  function_name = Symbols::New(thread, "Bar");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
       true, false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(4, function);
-  function_name = Symbols::New("BaZ");
+  function_name = Symbols::New(thread, "BaZ");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
       true, false, false, false, false, cls, TokenPosition::kMinSource);
@@ -166,16 +162,12 @@ VM_TEST_CASE(TypeArguments) {
 
 
 VM_TEST_CASE(TokenStream) {
-  String& source = String::Handle(String::New("= ( 9 , ."));
-  String& private_key = String::Handle(String::New(""));
-  Scanner scanner(source, private_key);
-  const Scanner::GrowableTokenStream& ts = scanner.GetStream();
-  EXPECT_EQ(6, ts.length());
-  EXPECT_EQ(Token::kLPAREN, ts[1].kind);
+  Zone* zone = Thread::Current()->zone();
+  String& source = String::Handle(zone, String::New("= ( 9 , ."));
+  String& private_key = String::Handle(zone, String::New(""));
   const TokenStream& token_stream = TokenStream::Handle(
-      TokenStream::New(ts, private_key, false));
-  TokenStream::Iterator iterator(token_stream, TokenPosition::kMinSource);
-  // EXPECT_EQ(6, token_stream.Length());
+      zone, TokenStream::New(source, private_key, false));
+  TokenStream::Iterator iterator(zone, token_stream, TokenPosition::kMinSource);
   iterator.Advance();  // Advance to '(' token.
   EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
   iterator.Advance();
@@ -258,7 +250,7 @@ TEST_CASE(Class_ComputeEndTokenPos) {
 
 VM_TEST_CASE(InstanceClass) {
   // Allocate the class first.
-  String& class_name = String::Handle(Symbols::New("EmptyClass"));
+  String& class_name = String::Handle(Symbols::New(thread, "EmptyClass"));
   Script& script = Script::Handle();
   const Class& empty_class =
       Class::Handle(CreateDummyClass(class_name, script));
@@ -274,7 +266,7 @@ VM_TEST_CASE(InstanceClass) {
   Instance& instance = Instance::Handle(Instance::New(empty_class));
   EXPECT_EQ(empty_class.raw(), instance.clazz());
 
-  class_name = Symbols::New("OneFieldClass");
+  class_name = Symbols::New(thread, "OneFieldClass");
   const Class& one_field_class =
       Class::Handle(CreateDummyClass(class_name, script));
 
@@ -285,7 +277,7 @@ VM_TEST_CASE(InstanceClass) {
   ClassFinalizer::FinalizeTypesInClass(one_field_class);
 
   const Array& one_fields = Array::Handle(Array::New(1));
-  const String& field_name = String::Handle(Symbols::New("the_field"));
+  const String& field_name = String::Handle(Symbols::New(thread, "the_field"));
   const Field& field = Field::Handle(
       Field::New(field_name, false, false, false, true, one_field_class,
                  Object::dynamic_type(), TokenPosition::kMinSource));
@@ -1826,84 +1818,85 @@ VM_TEST_CASE(ExternalTwoByteString) {
 
 
 VM_TEST_CASE(Symbol) {
-  const String& one = String::Handle(Symbols::New("Eins"));
+  const String& one = String::Handle(Symbols::New(thread, "Eins"));
   EXPECT(one.IsSymbol());
-  const String& two = String::Handle(Symbols::New("Zwei"));
-  const String& three = String::Handle(Symbols::New("Drei"));
-  const String& four = String::Handle(Symbols::New("Vier"));
-  const String& five = String::Handle(Symbols::New("Fuenf"));
-  const String& six = String::Handle(Symbols::New("Sechs"));
-  const String& seven = String::Handle(Symbols::New("Sieben"));
-  const String& eight = String::Handle(Symbols::New("Acht"));
-  const String& nine = String::Handle(Symbols::New("Neun"));
-  const String& ten = String::Handle(Symbols::New("Zehn"));
-  String& eins = String::Handle(Symbols::New("Eins"));
+  const String& two = String::Handle(Symbols::New(thread, "Zwei"));
+  const String& three = String::Handle(Symbols::New(thread, "Drei"));
+  const String& four = String::Handle(Symbols::New(thread, "Vier"));
+  const String& five = String::Handle(Symbols::New(thread, "Fuenf"));
+  const String& six = String::Handle(Symbols::New(thread, "Sechs"));
+  const String& seven = String::Handle(Symbols::New(thread, "Sieben"));
+  const String& eight = String::Handle(Symbols::New(thread, "Acht"));
+  const String& nine = String::Handle(Symbols::New(thread, "Neun"));
+  const String& ten = String::Handle(Symbols::New(thread, "Zehn"));
+  String& eins = String::Handle(Symbols::New(thread, "Eins"));
   EXPECT_EQ(one.raw(), eins.raw());
   EXPECT(one.raw() != two.raw());
   EXPECT(two.Equals(String::Handle(String::New("Zwei"))));
-  EXPECT_EQ(two.raw(), Symbols::New("Zwei"));
-  EXPECT_EQ(three.raw(), Symbols::New("Drei"));
-  EXPECT_EQ(four.raw(), Symbols::New("Vier"));
-  EXPECT_EQ(five.raw(), Symbols::New("Fuenf"));
-  EXPECT_EQ(six.raw(), Symbols::New("Sechs"));
-  EXPECT_EQ(seven.raw(), Symbols::New("Sieben"));
-  EXPECT_EQ(eight.raw(), Symbols::New("Acht"));
-  EXPECT_EQ(nine.raw(), Symbols::New("Neun"));
-  EXPECT_EQ(ten.raw(), Symbols::New("Zehn"));
+  EXPECT_EQ(two.raw(), Symbols::New(thread, "Zwei"));
+  EXPECT_EQ(three.raw(), Symbols::New(thread, "Drei"));
+  EXPECT_EQ(four.raw(), Symbols::New(thread, "Vier"));
+  EXPECT_EQ(five.raw(), Symbols::New(thread, "Fuenf"));
+  EXPECT_EQ(six.raw(), Symbols::New(thread, "Sechs"));
+  EXPECT_EQ(seven.raw(), Symbols::New(thread, "Sieben"));
+  EXPECT_EQ(eight.raw(), Symbols::New(thread, "Acht"));
+  EXPECT_EQ(nine.raw(), Symbols::New(thread, "Neun"));
+  EXPECT_EQ(ten.raw(), Symbols::New(thread, "Zehn"));
 
   // Make sure to cause symbol table overflow.
   for (int i = 0; i < 1024; i++) {
     char buf[256];
     OS::SNPrint(buf, sizeof(buf), "%d", i);
-    Symbols::New(buf);
+    Symbols::New(thread, buf);
   }
-  eins = Symbols::New("Eins");
+  eins = Symbols::New(thread, "Eins");
   EXPECT_EQ(one.raw(), eins.raw());
-  EXPECT_EQ(two.raw(), Symbols::New("Zwei"));
-  EXPECT_EQ(three.raw(), Symbols::New("Drei"));
-  EXPECT_EQ(four.raw(), Symbols::New("Vier"));
-  EXPECT_EQ(five.raw(), Symbols::New("Fuenf"));
-  EXPECT_EQ(six.raw(), Symbols::New("Sechs"));
-  EXPECT_EQ(seven.raw(), Symbols::New("Sieben"));
-  EXPECT_EQ(eight.raw(), Symbols::New("Acht"));
-  EXPECT_EQ(nine.raw(), Symbols::New("Neun"));
-  EXPECT_EQ(ten.raw(), Symbols::New("Zehn"));
+  EXPECT_EQ(two.raw(), Symbols::New(thread, "Zwei"));
+  EXPECT_EQ(three.raw(), Symbols::New(thread, "Drei"));
+  EXPECT_EQ(four.raw(), Symbols::New(thread, "Vier"));
+  EXPECT_EQ(five.raw(), Symbols::New(thread, "Fuenf"));
+  EXPECT_EQ(six.raw(), Symbols::New(thread, "Sechs"));
+  EXPECT_EQ(seven.raw(), Symbols::New(thread, "Sieben"));
+  EXPECT_EQ(eight.raw(), Symbols::New(thread, "Acht"));
+  EXPECT_EQ(nine.raw(), Symbols::New(thread, "Neun"));
+  EXPECT_EQ(ten.raw(), Symbols::New(thread, "Zehn"));
 
   // Symbols from Strings.
   eins = String::New("Eins");
   EXPECT(!eins.IsSymbol());
-  String& ein_symbol = String::Handle(Symbols::New(eins));
+  String& ein_symbol = String::Handle(Symbols::New(thread, eins));
   EXPECT_EQ(one.raw(), ein_symbol.raw());
   EXPECT(one.raw() != eins.raw());
 
   uint16_t char16[] = { 'E', 'l', 'f' };
-  String& elf1 = String::Handle(Symbols::FromUTF16(char16, 3));
+  String& elf1 = String::Handle(Symbols::FromUTF16(thread, char16, 3));
   int32_t char32[] = { 'E', 'l', 'f' };
-  String& elf2 = String::Handle(Symbols::FromUTF32(char32, 3));
+  String& elf2 = String::Handle(Symbols::FromUTF32(thread, char32, 3));
   EXPECT(elf1.IsSymbol());
   EXPECT(elf2.IsSymbol());
-  EXPECT_EQ(elf1.raw(), Symbols::New("Elf"));
-  EXPECT_EQ(elf2.raw(), Symbols::New("Elf"));
+  EXPECT_EQ(elf1.raw(), Symbols::New(thread, "Elf"));
+  EXPECT_EQ(elf2.raw(), Symbols::New(thread, "Elf"));
 }
 
 
 VM_TEST_CASE(SymbolUnicode) {
   uint16_t monkey_utf16[] = { 0xd83d, 0xdc35 };  // Unicode Monkey Face.
-  String& monkey = String::Handle(Symbols::FromUTF16(monkey_utf16, 2));
+  String& monkey = String::Handle(Symbols::FromUTF16(thread, monkey_utf16, 2));
   EXPECT(monkey.IsSymbol());
   const char monkey_utf8[] = {'\xf0', '\x9f', '\x90', '\xb5', 0};
-  EXPECT_EQ(monkey.raw(), Symbols::New(monkey_utf8));
+  EXPECT_EQ(monkey.raw(), Symbols::New(thread, monkey_utf8));
 
   int32_t kMonkeyFace = 0x1f435;
-  String& monkey2 = String::Handle(Symbols::FromCharCode(kMonkeyFace));
+  String& monkey2 = String::Handle(Symbols::FromCharCode(thread, kMonkeyFace));
   EXPECT_EQ(monkey.raw(), monkey2.raw());
 
   // Unicode cat face with tears of joy.
   int32_t kCatFaceWithTearsOfJoy = 0x1f639;
-  String& cat = String::Handle(Symbols::FromCharCode(kCatFaceWithTearsOfJoy));
+  String& cat = String::Handle(Symbols::FromCharCode(thread,
+                                                     kCatFaceWithTearsOfJoy));
 
   uint16_t cat_utf16[] = { 0xd83d, 0xde39 };
-  String& cat2 = String::Handle(Symbols::FromUTF16(cat_utf16, 2));
+  String& cat2 = String::Handle(Symbols::FromUTF16(thread, cat_utf16, 2));
   EXPECT(cat2.IsSymbol());
   EXPECT_EQ(cat2.raw(), cat.raw());
 }
@@ -2541,17 +2534,17 @@ VM_TEST_CASE(ContextScope) {
       new LocalScope(parent_scope, local_scope_function_level, 0);
 
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
-  const String& a = String::ZoneHandle(Symbols::New("a"));
+  const String& a = String::ZoneHandle(Symbols::New(thread, "a"));
   LocalVariable* var_a =
       new LocalVariable(TokenPosition::kNoSource, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
-  const String& b = String::ZoneHandle(Symbols::New("b"));
+  const String& b = String::ZoneHandle(Symbols::New(thread, "b"));
   LocalVariable* var_b =
       new LocalVariable(TokenPosition::kNoSource, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
-  const String& c = String::ZoneHandle(Symbols::New("c"));
+  const String& c = String::ZoneHandle(Symbols::New(thread, "c"));
   LocalVariable* var_c =
       new LocalVariable(TokenPosition::kNoSource, c, dynamic_type);
   parent_scope->AddVariable(var_c);
@@ -2620,14 +2613,14 @@ VM_TEST_CASE(ContextScope) {
 
 VM_TEST_CASE(Closure) {
   // Allocate the class first.
-  const String& class_name = String::Handle(Symbols::New("MyClass"));
+  const String& class_name = String::Handle(Symbols::New(thread, "MyClass"));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
   const Array& functions = Array::Handle(Array::New(1));
 
   const Context& context = Context::Handle(Context::New(0));
   Function& parent = Function::Handle();
-  const String& parent_name = String::Handle(Symbols::New("foo_papa"));
+  const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
                          false, false, false, false, false, cls,
                          TokenPosition::kMinSource);
@@ -2635,7 +2628,7 @@ VM_TEST_CASE(Closure) {
   cls.SetFunctions(functions);
 
   Function& function = Function::Handle();
-  const String& function_name = String::Handle(Symbols::New("foo"));
+  const String& function_name = String::Handle(Symbols::New(thread, "foo"));
   function = Function::NewClosureFunction(
       function_name, parent, TokenPosition::kMinSource);
   const Closure& closure = Closure::Handle(Closure::New(function, context));
@@ -2689,16 +2682,22 @@ VM_TEST_CASE(CheckedHandle) {
 }
 
 
+static RawLibrary* CreateDummyLibrary(const String& library_name) {
+  return Library::New(library_name);
+}
+
+
 static RawFunction* CreateFunction(const char* name) {
-  const String& class_name = String::Handle(Symbols::New("ownerClass"));
-  const String& lib_name = String::Handle(Symbols::New("ownerLibrary"));
+  Thread* thread = Thread::Current();
+  const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
+  const String& lib_name = String::Handle(Symbols::New(thread, "ownerLibrary"));
   const Script& script = Script::Handle();
   const Class& owner_class =
       Class::Handle(CreateDummyClass(class_name, script));
   const Library& owner_library =
       Library::Handle(CreateDummyLibrary(lib_name));
   owner_class.set_library(owner_library);
-  const String& function_name = String::ZoneHandle(Symbols::New(name));
+  const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
   return Function::New(function_name, RawFunction::kRegularFunction,
                        true, false, false, false, false, owner_class,
                        TokenPosition::kMinSource);
@@ -2714,8 +2713,9 @@ VM_TEST_CASE(Code) {
   Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
   function.AttachCode(code);
   const Instructions& instructions = Instructions::Handle(code.instructions());
-  uword entry_point = instructions.EntryPoint();
-  EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
+  uword entry_point = instructions.UncheckedEntryPoint();
+  EXPECT_EQ(instructions.raw(),
+            Instructions::FromUncheckedEntryPoint(entry_point));
   const Object& result = Object::Handle(
       DartEntry::InvokeFunction(function, Array::empty_array()));
   EXPECT_EQ(1, Smi::Cast(result).Value());
@@ -2732,8 +2732,9 @@ VM_TEST_CASE(CodeImmutability) {
   Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
   function.AttachCode(code);
   Instructions& instructions = Instructions::Handle(code.instructions());
-  uword entry_point = instructions.EntryPoint();
-  EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
+  uword entry_point = instructions.UncheckedEntryPoint();
+  EXPECT_EQ(instructions.raw(),
+            Instructions::FromUncheckedEntryPoint(entry_point));
   // Try writing into the generated code, expected to crash.
   *(reinterpret_cast<char*>(entry_point) + 1) = 1;
   if (!FLAG_write_protect_code) {
@@ -2967,7 +2968,8 @@ VM_TEST_CASE(PcDescriptorsLargeDeltas) {
 
 
 static RawClass* CreateTestClass(const char* name) {
-  const String& class_name = String::Handle(Symbols::New(name));
+  const String& class_name = String::Handle(Symbols::New(Thread::Current(),
+                                                         name));
   const Class& cls = Class::Handle(
       CreateDummyClass(class_name, Script::Handle()));
   return cls.raw();
@@ -2976,7 +2978,8 @@ static RawClass* CreateTestClass(const char* name) {
 
 static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
-  const String& field_name = String::Handle(Symbols::New(name));
+  const String& field_name = String::Handle(Symbols::New(Thread::Current(),
+                                                         name));
   const Field& field =
       Field::Handle(Field::New(field_name, true, false, false, true, cls,
           Object::dynamic_type(), TokenPosition::kMinSource));
@@ -3008,7 +3011,8 @@ VM_TEST_CASE(ClassDictionaryIterator) {
 
 
 static RawFunction* GetDummyTarget(const char* name) {
-  const String& function_name = String::Handle(Symbols::New(name));
+  const String& function_name = String::Handle(Symbols::New(Thread::Current(),
+                                                            name));
   const Class& cls = Class::Handle(
        CreateDummyClass(function_name, Script::Handle()));
   const bool is_static = false;
@@ -3032,11 +3036,12 @@ VM_TEST_CASE(ICData) {
   Function& function = Function::Handle(GetDummyTarget("Bern"));
   const intptr_t id = 12;
   const intptr_t num_args_tested = 1;
-  const String& target_name = String::Handle(Symbols::New("Thun"));
+  const String& target_name = String::Handle(Symbols::New(thread, "Thun"));
   const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(1, Object::null_array()));
   ICData& o1 = ICData::Handle();
-  o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested);
+  o1 = ICData::New(function, target_name, args_descriptor, id,
+                   num_args_tested, false);
   EXPECT_EQ(1, o1.NumArgsTested());
   EXPECT_EQ(id, o1.deopt_id());
   EXPECT_EQ(function.raw(), o1.Owner());
@@ -3075,7 +3080,7 @@ VM_TEST_CASE(ICData) {
   EXPECT_EQ(2, o1.NumberOfUsedChecks());
 
   ICData& o2 = ICData::Handle();
-  o2 = ICData::New(function, target_name, args_descriptor, 57, 2);
+  o2 = ICData::New(function, target_name, args_descriptor, 57, 2, false);
   EXPECT_EQ(2, o2.NumArgsTested());
   EXPECT_EQ(57, o2.deopt_id());
   EXPECT_EQ(function.raw(), o2.Owner());
@@ -3094,14 +3099,15 @@ VM_TEST_CASE(ICData) {
   // Check ICData for unoptimized static calls.
   const intptr_t kNumArgsChecked = 0;
   const ICData& scall_icdata = ICData::Handle(
-      ICData::New(function, target_name, args_descriptor, 57, kNumArgsChecked));
+      ICData::New(function, target_name, args_descriptor, 57,
+                  kNumArgsChecked, false));
   scall_icdata.AddTarget(target1);
   EXPECT_EQ(target1.raw(), scall_icdata.GetTargetAt(0));
 }
 
 
 VM_TEST_CASE(SubtypeTestCache) {
-  String& class_name = String::Handle(Symbols::New("EmptyClass"));
+  String& class_name = String::Handle(Symbols::New(thread, "EmptyClass"));
   Script& script = Script::Handle();
   const Class& empty_class =
       Class::Handle(CreateDummyClass(class_name, script));
@@ -3781,7 +3787,7 @@ static RawField* GetField(const Class& cls, const char* name) {
 
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(name))));
+      lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
@@ -3789,14 +3795,14 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 
 VM_TEST_CASE(FindClosureIndex) {
   // Allocate the class first.
-  const String& class_name = String::Handle(Symbols::New("MyClass"));
+  const String& class_name = String::Handle(Symbols::New(thread, "MyClass"));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
   const Array& functions = Array::Handle(Array::New(1));
   const Isolate* iso = Isolate::Current();
 
   Function& parent = Function::Handle();
-  const String& parent_name = String::Handle(Symbols::New("foo_papa"));
+  const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
                          false, false, false, false, false, cls,
                          TokenPosition::kMinSource);
@@ -3804,7 +3810,7 @@ VM_TEST_CASE(FindClosureIndex) {
   cls.SetFunctions(functions);
 
   Function& function = Function::Handle();
-  const String& function_name = String::Handle(Symbols::New("foo"));
+  const String& function_name = String::Handle(Symbols::New(thread, "foo"));
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
   // Add closure function to class.
@@ -3826,14 +3832,14 @@ VM_TEST_CASE(FindClosureIndex) {
 
 
 VM_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
-  const String& class_name = String::Handle(Symbols::New("MyClass"));
+  const String& class_name = String::Handle(Symbols::New(thread, "MyClass"));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
   ClassFinalizer::FinalizeTypesInClass(cls);
 
   const Array& functions = Array::Handle(Array::New(1));
   Function& parent = Function::Handle();
-  const String& parent_name = String::Handle(Symbols::New("foo_papa"));
+  const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
                          false, false, false, false, false, cls,
                          TokenPosition::kMinSource);
@@ -3843,7 +3849,7 @@ VM_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
 
   // Add invocation dispatcher.
   const String& invocation_dispatcher_name =
-      String::Handle(Symbols::New("myMethod"));
+      String::Handle(Symbols::New(thread, "myMethod"));
   const Array& args_desc = Array::Handle(ArgumentsDescriptor::New(1));
   Function& invocation_dispatcher = Function::Handle();
   invocation_dispatcher ^=
@@ -3944,17 +3950,18 @@ TEST_CASE(Metadata) {
   res = lib.GetMetadata(func);
   PrintMetadata("A.aFunc", res);
 
-  func = lib.LookupLocalFunction(String::Handle(Symbols::New("main")));
+  func = lib.LookupLocalFunction(String::Handle(Symbols::New(thread, "main")));
   EXPECT(!func.IsNull());
   res = lib.GetMetadata(func);
   PrintMetadata("main", res);
 
-  func = lib.LookupLocalFunction(String::Handle(Symbols::New("get:tlGetter")));
+  func = lib.LookupLocalFunction(String::Handle(Symbols::New(thread,
+                                                             "get:tlGetter")));
   EXPECT(!func.IsNull());
   res = lib.GetMetadata(func);
   PrintMetadata("tlGetter", res);
 
-  field = lib.LookupLocalField(String::Handle(Symbols::New("gVar")));
+  field = lib.LookupLocalField(String::Handle(Symbols::New(thread, "gVar")));
   EXPECT(!field.IsNull());
   res = lib.GetMetadata(field);
   PrintMetadata("gVar", res);
@@ -4002,13 +4009,13 @@ TEST_CASE(FunctionSourceFingerprint) {
   TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& lib = Library::Handle(Library::LookupLibrary(name));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!lib.IsNull());
 
   const Class& class_a = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   const Class& class_b = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("B"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "B"))));
   const Function& a_test1 =
       Function::Handle(GetStaticFunction(class_a, "test1"));
   const Function& b_test1 =
@@ -4067,19 +4074,17 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
 
   // With no breakpoint, function A.b is inlineable.
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& vmlib = Library::Handle(Library::LookupLibrary(name));
+  const Library& vmlib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!vmlib.IsNull());
   const Class& class_a = Class::Handle(
-      vmlib.LookupClass(String::Handle(Symbols::New("A"))));
+      vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   const Function& func_b =
       Function::Handle(GetFunction(class_a, "b"));
   EXPECT(func_b.CanBeInlined());
 
   // After setting a breakpoint in a function A.b, it is no longer inlineable.
-  Breakpoint* bpt =
-      Isolate::Current()->debugger()->SetBreakpointAtLine(name,
-                                                          kBreakpointLine);
-  ASSERT(bpt != NULL);
+  result = Dart_SetBreakpoint(NewString(TestCase::url()), kBreakpointLine);
+  EXPECT_VALID(result);
   EXPECT(!func_b.CanBeInlined());
 }
 
@@ -4121,12 +4126,11 @@ VM_TEST_CASE(SpecialClassesHaveEmptyArrays) {
 class ObjectAccumulator : public ObjectVisitor {
  public:
   explicit ObjectAccumulator(GrowableArray<Object*>* objects)
-      : ObjectVisitor(Isolate::Current()), objects_(objects) {}
+      : objects_(objects) { }
   virtual ~ObjectAccumulator() { }
   virtual void VisitObject(RawObject* obj) {
-    // Free-list elements cannot even be wrapped in handles.
-    if (obj->IsFreeListElement()) {
-      return;
+    if (obj->IsPseudoObject()) {
+      return;  // Cannot be wrapped in handles.
     }
     Object& handle = Object::Handle(obj);
     // Skip some common simple objects to run in reasonable time.
@@ -4611,14 +4615,16 @@ TEST_CASE(LinkedHashMap_iteration) {
 
 
 static void CheckConcatAll(const String* data[], intptr_t n) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, n);
   const Array& array = Array::Handle(zone, Array::New(n));
   for (int i = 0; i < n; i++) {
     pieces.Add(*data[i]);
     array.SetAt(i, *data[i]);
   }
-  const String& res1 = String::Handle(zone, Symbols::FromConcatAll(pieces));
+  const String& res1 = String::Handle(zone, Symbols::FromConcatAll(thread,
+                                                                   pieces));
   const String& res2 = String::Handle(zone, String::ConcatAll(array));
   EXPECT(res1.Equals(res2));
 }

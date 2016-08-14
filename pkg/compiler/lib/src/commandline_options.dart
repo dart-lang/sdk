@@ -12,6 +12,7 @@ class Flags {
   static const String analyzeMain = '--analyze-main';
   static const String analyzeOnly = '--analyze-only';
   static const String analyzeSignaturesOnly = '--analyze-signatures-only';
+  static const String disableInlining = '--disable-inlining';
   static const String disableDiagnosticColors = '--disable-diagnostic-colors';
   static const String disableNativeLiveTypeAnalysis =
       '--disable-native-live-type-analysis';
@@ -43,16 +44,33 @@ class Flags {
   static const String trustJSInteropTypeAnnotations =
       '--experimental-trust-js-interop-type-annotations';
   static const String useContentSecurityPolicy = '--csp';
-  static const String useCpsIr = '--use-cps-ir';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String verbose = '--verbose';
   static const String version = '--version';
 
-  // Experimental flags.
   static const String conditionalDirectives = '--conditional-directives';
+
+  // Experimental flags.
+
+  // Considerations about this feature (esp. locations where generalizations
+  // or changes are required for full support of generic methods) are marked
+  // with 'GENERIC_METHODS'. The approach taken is to parse generic methods,
+  // introduce AST nodes for them, generate corresponding types (such that
+  // front end treatment is consistent with the code that programmers wrote),
+  // but considering all method type variables to have bound `dynamic` no
+  // matter which bound they have syntactically (such that their value as types
+  // is unchecked), and then replacing method type variables by a `DynamicType`
+  // (such that the backend does not need to take method type arguments into
+  // account).
+  static const String genericMethodSyntax = '--generic-method-syntax';
+  static const String resolveOnly = '--resolve-only';
+  static const String initializingFormalAccess = '--initializing-formal-access';
 }
 
 class Option {
   static const String showPackageWarnings =
       '${Flags.showPackageWarnings}|${Flags.showPackageWarnings}=.*';
+
+  // Experimental options.
+  static const String resolutionInput = '--resolution-input=.+';
 }

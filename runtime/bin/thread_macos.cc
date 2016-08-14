@@ -6,17 +6,18 @@
 #if defined(TARGET_OS_MACOS)
 
 #include "bin/thread.h"
+#include "bin/thread_macos.h"
 
-#include <sys/errno.h>  // NOLINT
-#include <sys/types.h>  // NOLINT
-#include <sys/sysctl.h>  // NOLINT
-#include <mach/mach_init.h>  // NOLINT
 #include <mach/mach_host.h>  // NOLINT
+#include <mach/mach_init.h>  // NOLINT
 #include <mach/mach_port.h>  // NOLINT
 #include <mach/mach_traps.h>  // NOLINT
 #include <mach/task_info.h>  // NOLINT
-#include <mach/thread_info.h>  // NOLINT
 #include <mach/thread_act.h>  // NOLINT
+#include <mach/thread_info.h>  // NOLINT
+#include <sys/errno.h>  // NOLINT
+#include <sys/sysctl.h>  // NOLINT
+#include <sys/types.h>  // NOLINT
 
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -45,7 +46,9 @@ namespace bin {
   }
 #else
 #define RETURN_ON_PTHREAD_FAILURE(result) \
-  if (result != 0) return result;
+  if (result != 0) { \
+    return result; \
+  }
 #endif
 
 
@@ -145,11 +148,6 @@ ThreadId Thread::GetCurrentThreadId() {
 }
 
 
-bool Thread::Join(ThreadId id) {
-  return false;
-}
-
-
 intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) == sizeof(intptr_t));
   return reinterpret_cast<intptr_t>(id);
@@ -157,7 +155,7 @@ intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
 
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
-  return pthread_equal(a, b) != 0;
+  return (pthread_equal(a, b) != 0);
 }
 
 

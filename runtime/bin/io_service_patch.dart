@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _IOService {
+@patch class _IOService {
   // Lazy initialize service ports, 32 per isolate.
   static const int _SERVICE_PORT_COUNT = 32;
   static List<SendPort> _servicePort = new List(_SERVICE_PORT_COUNT);
@@ -11,7 +11,7 @@ patch class _IOService {
   static Map<int, Completer> _messageMap = {};
   static int _id = 0;
 
-  /* patch */ static Future _dispatch(int request, List data) {
+  @patch static Future _dispatch(int request, List data) {
     int id;
     do {
       id = _getNextId();

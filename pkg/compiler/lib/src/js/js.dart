@@ -5,29 +5,22 @@
 library js;
 
 import 'package:js_ast/js_ast.dart';
-export 'package:js_ast/js_ast.dart';
 
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
-import '../dump_info.dart' show
-    DumpInfoTask;
-import '../io/code_output.dart' show
-    CodeBuffer,
-    CodeOutput;
-import '../js_emitter/js_emitter.dart' show
-    USE_LAZY_EMITTER;
-
+import '../compiler.dart' show Compiler;
+import '../dump_info.dart' show DumpInfoTask;
+import '../io/code_output.dart' show CodeBuffer;
+import '../js_emitter/js_emitter.dart' show USE_LAZY_EMITTER;
 import 'js_source_mapping.dart';
 
-String prettyPrint(
-    Node node,
-    Compiler compiler,
+export 'package:js_ast/js_ast.dart';
+
+String prettyPrint(Node node, Compiler compiler,
     {bool allowVariableMinification: true,
-     Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
+    Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
   // TODO(johnniwinther): Do we need all the options here?
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
-      shouldCompressOutput: compiler.enableMinification,
+      shouldCompressOutput: compiler.options.enableMinification,
       minifyLocalVariables: allowVariableMinification,
       preferSemicolonToNewlineInMinifiedOutput: USE_LAZY_EMITTER,
       renamerForNames: renamerForNames);
@@ -38,23 +31,21 @@ String prettyPrint(
   return context.getText();
 }
 
-CodeBuffer createCodeBuffer(
-    Node node,
-    Compiler compiler,
+CodeBuffer createCodeBuffer(Node node, Compiler compiler,
     {DumpInfoTask monitor,
-     bool allowVariableMinification: true,
-     Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
+    bool allowVariableMinification: true,
+    Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
   JavaScriptSourceInformationStrategy sourceInformationFactory =
       compiler.backend.sourceInformationStrategy;
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
-      shouldCompressOutput: compiler.enableMinification,
+      shouldCompressOutput: compiler.options.enableMinification,
       minifyLocalVariables: allowVariableMinification,
       preferSemicolonToNewlineInMinifiedOutput: USE_LAZY_EMITTER,
       renamerForNames: renamerForNames);
   CodeBuffer outBuffer = new CodeBuffer();
   SourceInformationProcessor sourceInformationProcessor =
-        sourceInformationFactory.createProcessor(
-            new SourceLocationsMapper(outBuffer));
+      sourceInformationFactory
+          .createProcessor(new SourceLocationsMapper(outBuffer));
   Dart2JSJavaScriptPrintingContext context =
       new Dart2JSJavaScriptPrintingContext(
           compiler.reporter, monitor, outBuffer, sourceInformationProcessor);
@@ -71,10 +62,7 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
   final CodePositionListener codePositionListener;
 
   Dart2JSJavaScriptPrintingContext(
-      this.reporter,
-      this.monitor,
-      this.outBuffer,
-      this.codePositionListener);
+      this.reporter, this.monitor, this.outBuffer, this.codePositionListener);
 
   @override
   void error(String message) {
@@ -90,10 +78,8 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
   void enterNode(Node, int startPosition) {}
 
   @override
-  void exitNode(Node node,
-                int startPosition,
-                int endPosition,
-                int closingPosition) {
+  void exitNode(
+      Node node, int startPosition, int endPosition, int closingPosition) {
     if (monitor != null) {
       monitor.recordAstSize(node, endPosition - startPosition);
     }
@@ -142,8 +128,7 @@ abstract class ReferenceCountedAstNode implements Node {
 ///
 /// This is used when generated code needs to be represented as a string,
 /// for example by the lazy emitter or when generating code generators.
-class UnparsedNode extends DeferredString
-                   implements AstContainer {
+class UnparsedNode extends DeferredString implements AstContainer {
   @override
   final Node tree;
   final Compiler _compiler;
@@ -167,8 +152,7 @@ class UnparsedNode extends DeferredString
         if (tree is LiteralExpression) {
           LiteralExpression literalExpression = tree;
           String template = literalExpression.template;
-          if (template.startsWith("function ") ||
-          template.startsWith("{")) {
+          if (template.startsWith("function ") || template.startsWith("{")) {
             text = '($text)';
           }
         }

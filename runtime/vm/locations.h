@@ -341,8 +341,11 @@ class Location : public ValueObject {
     return IsStackSlot() || IsDoubleStackSlot() || IsQuadStackSlot();
   }
 
+  // DBC does not have an notion of 'address' in its instruction set.
+#if !defined(TARGET_ARCH_DBC)
   // Return a memory operand for stack slot locations.
   Address ToStackSlotAddress() const;
+#endif
 
   // Returns the offset from the frame pointer for stack slot locations.
   intptr_t ToStackSlotOffset() const;
@@ -650,9 +653,13 @@ class LocationSummary : public ZoneAllocated {
 
   void set_out(intptr_t index, Location loc) {
     ASSERT(index == 0);
+    // DBC calls are different from call on other architectures so this
+    // assert doesn't make sense.
+#if !defined(TARGET_ARCH_DBC)
     ASSERT(!always_calls() ||
            (loc.IsMachineRegister() || loc.IsInvalid() ||
             loc.IsPairLocation()));
+#endif
     output_location_ = loc;
   }
 

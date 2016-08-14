@@ -4,24 +4,55 @@
 
 part of cpu_profiler;
 
-class CodeCallTreeNode {
-  final ProfileCode profileCode;
+abstract class CallTreeNode<NodeT extends M.CallTreeNode>
+    implements M.CallTreeNode {
+  final List<NodeT> children;
   final int count;
   double get percentage => _percentage;
   double _percentage = 0.0;
-  final children;
   final Set<String> attributes = new Set<String>();
-  CodeCallTreeNode(this.profileCode, this.count, int childCount)
-      : children = new List<CodeCallTreeNode>(childCount) {
+
+  // Either a ProfileCode or a ProfileFunction.
+  Object get profileData;
+  String get name;
+
+  CallTreeNode(this.children, this.count);
+}
+
+class CodeCallTreeNode extends CallTreeNode<CodeCallTreeNode>
+    implements M.CodeCallTreeNode {
+  final ProfileCode profileCode;
+
+  Object get profileData => profileCode;
+
+  String get name => profileCode.code.name;
+
+  final Set<String> attributes = new Set<String>();
+  CodeCallTreeNode(this.profileCode, int count)
+      : super(new List<CodeCallTreeNode>(), count) {
     attributes.addAll(profileCode.attributes);
   }
 }
 
-class CodeCallTree {
+class CallTree<NodeT extends CallTreeNode> {
   final bool inclusive;
-  final CodeCallTreeNode root;
-  CodeCallTree(this.inclusive, this.root) {
+  final NodeT root;
+
+  CallTree(this.inclusive, this.root);
+}
+
+class CodeCallTree extends CallTree<CodeCallTreeNode>
+    implements M.CodeCallTree {
+  CodeCallTree(bool inclusive, CodeCallTreeNode root)
+      : super(inclusive, root) {
     _setCodePercentage(null, root);
+  }
+
+  CodeCallTree filtered(CallTreeNodeFilter filter) {
+    var treeFilter = new _FilteredCodeCallTreeBuilder(filter, this);
+    treeFilter.build();
+    _setCodePercentage(null, treeFilter.filtered.root);
+    return treeFilter.filtered;
   }
 
   _setCodePercentage(CodeCallTreeNode parent, CodeCallTreeNode node) {
@@ -67,18 +98,17 @@ class FunctionCallTreeNodeCode {
   FunctionCallTreeNodeCode(this.code, this.ticks);
 }
 
-class FunctionCallTreeNode {
+class FunctionCallTreeNode extends CallTreeNode {
   final ProfileFunction profileFunction;
-  final int count;
-  double get percentage => _percentage;
-  double _percentage = 0.0;
-  final children = new List<FunctionCallTreeNode>();
-  final Set<String> attributes = new Set<String>();
   final codes = new List<FunctionCallTreeNodeCode>();
   int _totalCodeTicks = 0;
   int get totalCodesTicks => _totalCodeTicks;
 
-  FunctionCallTreeNode(this.profileFunction, this.count){
+  String get name => profileFunction.function.name;
+  Object get profileData => profileFunction;
+
+  FunctionCallTreeNode(this.profileFunction, int count)
+      : super(new List<FunctionCallTreeNode>(), count) {
     profileFunction._addKindBasedAttributes(attributes);
   }
 
@@ -106,7 +136,7 @@ class FunctionCallTreeNode {
       if (!profileCode.code.isDartCode) {
         continue;
       }
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       if (!profileCode.code.isOptimized) {
@@ -123,7 +153,7 @@ class FunctionCallTreeNode {
       if (!profileCode.code.isDartCode) {
         continue;
       }
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       // If the code's function isn't this function.
@@ -140,27 +170,21 @@ class FunctionCallTreeNode {
 
 /// Predicate filter function. Returns true if path from root to [node] and all
 /// of [node]'s children should be added to the filtered tree.
-typedef bool FunctionCallTreeNodeFilter(FunctionCallTreeNode node);
+typedef bool CallTreeNodeFilter(CallTreeNode node);
 
 /// Build a filter version of a FunctionCallTree.
-class _FilteredFunctionCallTreeBuilder {
+abstract class _FilteredCallTreeBuilder {
   /// The filter.
-  final FunctionCallTreeNodeFilter filter;
+  final CallTreeNodeFilter filter;
   /// The unfiltered tree.
-  final FunctionCallTree _unfilteredTree;
+  final CallTree _unfilteredTree;
   /// The filtered tree (construct by [build]).
-  final FunctionCallTree filtered;
+  final CallTree filtered;
   final List _currentPath = [];
 
   /// Construct a filtered tree builder using [filter] and [tree].
-  _FilteredFunctionCallTreeBuilder(this.filter, FunctionCallTree tree)
-      : _unfilteredTree = tree,
-        filtered =
-          new FunctionCallTree(
-              tree.inclusive,
-              new FunctionCallTreeNode(
-                  tree.root.profileFunction,
-                  tree.root.count));
+  _FilteredCallTreeBuilder(this.filter, CallTree tree, this.filtered)
+      : _unfilteredTree = tree;
 
   /// Build the filtered tree.
   build() {
@@ -170,15 +194,17 @@ class _FilteredFunctionCallTreeBuilder {
     _descend(_unfilteredTree.root);
   }
 
-  FunctionCallTreeNode _findFunctionInChildren(FunctionCallTreeNode current,
-                                               FunctionCallTreeNode needle) {
+  CallTreeNode _findInChildren(CallTreeNode current,
+                               CallTreeNode needle) {
     for (var child in current.children) {
-      if (child.profileFunction == needle.profileFunction) {
+      if (child.profileData == needle.profileData) {
         return child;
       }
     }
     return null;
   }
+
+  CallTreeNode _copyNode(CallTreeNode node);
 
   /// Add all nodes in [_currentPath].
   FunctionCallTreeNode _addCurrentPath() {
@@ -191,10 +217,10 @@ class _FilteredFunctionCallTreeBuilder {
       // toAdd is from the unfiltered tree.
       var toAdd = _currentPath[i];
       // See if we already have a node for toAdd in the filtered tree.
-      var child = _findFunctionInChildren(current, toAdd);
+      var child = _findInChildren(current, toAdd);
       if (child == null) {
         // New node.
-        child = new FunctionCallTreeNode(toAdd.profileFunction, toAdd.count);
+        child = _copyNode(toAdd);
         current.children.add(child);
       }
       current = child;
@@ -204,13 +230,13 @@ class _FilteredFunctionCallTreeBuilder {
   }
 
   /// Starting at [current] append [next] and all of [next]'s sub-trees
-  _appendTree(FunctionCallTreeNode current, FunctionCallTreeNode next) {
+  _appendTree(CallTreeNode current, CallTreeNode next) {
     if (next == null) {
       return;
     }
-    var child = _findFunctionInChildren(current, next);
+    var child = _findInChildren(current, next);
     if (child == null) {
-      child = new FunctionCallTreeNode(next.profileFunction, next.count);
+      child = _copyNode(next);
       current.children.add(child);
     }
     current = child;
@@ -221,13 +247,13 @@ class _FilteredFunctionCallTreeBuilder {
 
   /// Add path from root to [child], [child], and all of [child]'s sub-trees
   /// to filtered tree.
-  _addTree(FunctionCallTreeNode child) {
+  _addTree(CallTreeNode child) {
     var current = _addCurrentPath();
     _appendTree(current, child);
   }
 
   /// Descend further into the tree. [current] is from the unfiltered tree.
-  _descend(FunctionCallTreeNode current) {
+  _descend(CallTreeNode current) {
     if (current == null) {
       return;
     }
@@ -256,14 +282,39 @@ class _FilteredFunctionCallTreeBuilder {
   }
 }
 
-class FunctionCallTree {
-  final bool inclusive;
-  final FunctionCallTreeNode root;
-  FunctionCallTree(this.inclusive, this.root) {
+class _FilteredFunctionCallTreeBuilder extends _FilteredCallTreeBuilder {
+  _FilteredFunctionCallTreeBuilder(CallTreeNodeFilter filter,
+                                   FunctionCallTree tree)
+    : super(filter, tree,
+            new FunctionCallTree(tree.inclusive,
+                new FunctionCallTreeNode(tree.root.profileData,
+                                         tree.root.count)));
+
+  _copyNode(FunctionCallTreeNode node) {
+    return new FunctionCallTreeNode(node.profileData, node.count);
+  }
+}
+
+class _FilteredCodeCallTreeBuilder extends _FilteredCallTreeBuilder {
+  _FilteredCodeCallTreeBuilder(CallTreeNodeFilter filter,
+                               CodeCallTree tree)
+    : super(filter, tree,
+            new CodeCallTree(tree.inclusive,
+                new CodeCallTreeNode(tree.root.profileData,
+                                     tree.root.count)));
+
+  _copyNode(CodeCallTreeNode node) {
+    return new CodeCallTreeNode(node.profileData, node.count);
+  }
+}
+
+class FunctionCallTree extends CallTree implements M.FunctionCallTree {
+  FunctionCallTree(bool inclusive, FunctionCallTreeNode root)
+      : super(inclusive, root) {
     _setFunctionPercentage(null, root);
   }
 
-  FunctionCallTree filtered(FunctionCallTreeNodeFilter filter) {
+  FunctionCallTree filtered(CallTreeNodeFilter filter) {
     var treeFilter = new _FilteredFunctionCallTreeBuilder(filter, this);
     treeFilter.build();
     _setFunctionPercentage(null, treeFilter.filtered.root);
@@ -322,7 +373,7 @@ class InlineIntervalTick {
   InlineIntervalTick(this.startAddress);
 }
 
-class ProfileCode {
+class ProfileCode implements M.ProfileCode {
   final CpuProfile profile;
   final Code code;
   int exclusiveTicks;
@@ -370,9 +421,9 @@ class ProfileCode {
 
     code.profile = this;
 
-    if (code.kind == CodeKind.Stub) {
+    if (code.kind == M.CodeKind.stub) {
       attributes.add('stub');
-    } else if (code.kind == CodeKind.Dart) {
+    } else if (code.kind == M.CodeKind.dart) {
       if (code.isNative) {
         attributes.add('ffi');  // Not to be confused with a C function.
       } else {
@@ -386,9 +437,9 @@ class ProfileCode {
       } else {
         attributes.add('unoptimized');
       }
-    } else if (code.kind == CodeKind.Tag) {
+    } else if (code.kind == M.CodeKind.tag) {
       attributes.add('tag');
-    } else if (code.kind == CodeKind.Native) {
+    } else if (code.kind == M.CodeKind.native) {
       attributes.add('native');
     }
     inclusiveTicks = int.parse(data['inclusiveTicks']);
@@ -440,7 +491,7 @@ class ProfileCode {
   }
 }
 
-class ProfileFunction {
+class ProfileFunction implements M.ProfileFunction {
   final CpuProfile profile;
   final ServiceFunction function;
   // List of compiled code objects containing this function.
@@ -489,7 +540,7 @@ class ProfileFunction {
   // Does this function have an unoptimized version of itself?
   bool hasUnoptimizedCode() {
     for (var profileCode in profileCodes) {
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       if (!profileCode.code.isDartCode) {
@@ -505,7 +556,7 @@ class ProfileFunction {
   // Has this function been inlined in another function?
   bool isInlined() {
     for (var profileCode in profileCodes) {
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       if (!profileCode.code.isDartCode) {
@@ -520,13 +571,13 @@ class ProfileFunction {
   }
 
   void _addKindBasedAttributes(Set<String> attribs) {
-    if (function.kind == FunctionKind.kTag) {
+    if (function.kind == M.FunctionKind.tag) {
       attribs.add('tag');
-    } else if (function.kind == FunctionKind.kStub) {
+    } else if (function.kind == M.FunctionKind.stub) {
       attribs.add('stub');
-    } else if (function.kind == FunctionKind.kNative) {
+    } else if (function.kind == M.FunctionKind.native) {
       attribs.add('native');
-    } else if (function.kind.isSynthetic()) {
+    } else if (M.isSyntheticFunction(function.kind)) {
       attribs.add('synthetic');
     } else if (function.isNative) {
       attribs.add('ffi');  // Not to be confused with a C function.
@@ -592,9 +643,7 @@ class ProfileFunction {
 
 
 // TODO(johnmccutchan): Rename to SampleProfile
-class CpuProfile {
-  final double MICROSECONDS_PER_SECOND = 1000000.0;
-  final double displayThreshold = 0.0002; // 0.02%.
+class CpuProfile extends M.SampleProfile {
 
   Isolate isolate;
 
@@ -612,20 +661,24 @@ class CpuProfile {
   final List<ProfileFunction> functions = new List<ProfileFunction>();
   bool _builtFunctionCalls = false;
 
-  CodeCallTree loadCodeTree(String name) {
-    if (name == 'inclusive') {
-      return _loadCodeTree(true, tries['inclusiveCodeTrie']);
-    } else {
-      return _loadCodeTree(false, tries['exclusiveCodeTrie']);
+  CodeCallTree loadCodeTree(M.ProfileTreeDirection direction) {
+    switch (direction) {
+      case M.ProfileTreeDirection.inclusive:
+        return _loadCodeTree(true, tries['inclusiveCodeTrie']);
+      case M.ProfileTreeDirection.exclusive:
+        return _loadCodeTree(false, tries['exclusiveCodeTrie']);
     }
+    throw new Exception('Unknown ProfileTreeDirection');
   }
 
-  FunctionCallTree loadFunctionTree(String name) {
-    if (name == 'inclusive') {
-      return _loadFunctionTree(true, tries['inclusiveFunctionTrie']);
-    } else {
-      return _loadFunctionTree(false, tries['exclusiveFunctionTrie']);
+  FunctionCallTree loadFunctionTree(M.ProfileTreeDirection direction) {
+    switch (direction) {
+      case M.ProfileTreeDirection.inclusive:
+        return _loadFunctionTree(true, tries['inclusiveFunctionTrie']);
+      case M.ProfileTreeDirection.exclusive:
+        return _loadFunctionTree(false, tries['exclusiveFunctionTrie']);
     }
+    throw new Exception('Unknown ProfileTreeDirection');
   }
 
   buildCodeCallerAndCallees() {
@@ -633,7 +686,7 @@ class CpuProfile {
       return;
     }
     _builtCodeCalls = true;
-    var tree = loadCodeTree('inclusive');
+    var tree = loadCodeTree(M.ProfileTreeDirection.inclusive);
     tree._recordCallerAndCallees();
   }
 
@@ -642,7 +695,7 @@ class CpuProfile {
       return;
     }
     _builtFunctionCalls = true;
-    var tree = loadFunctionTree('inclusive');
+    var tree = loadFunctionTree(M.ProfileTreeDirection.inclusive);
     tree._markFunctionCalls();
   }
 
@@ -659,44 +712,87 @@ class CpuProfile {
     _builtFunctionCalls = false;
   }
 
-  load(Isolate isolate, ServiceMap profile) {
-    clear();
-    if ((isolate == null) || (profile == null)) {
-      return;
-    }
+  Future load(Isolate isolate, ServiceMap profile) async {
+    await loadProgress(isolate, profile).last;
+  }
 
-    this.isolate = isolate;
-    isolate.resetCachedProfileData();
+  static Future sleep([Duration duration = const Duration(microseconds: 0)]) {
+    final Completer completer = new Completer();
+    new Timer(duration, () => completer.complete() );
+    return completer.future;
+  }
 
-    sampleCount = profile['sampleCount'];
-    samplePeriod = profile['samplePeriod'];
-    sampleRate = (MICROSECONDS_PER_SECOND / samplePeriod);
-    stackDepth = profile['stackDepth'];
-    timeSpan = profile['timeSpan'];
+  Stream<double> loadProgress(Isolate isolate, ServiceMap profile) {
+    var progress = new StreamController<double>.broadcast();
 
-    // Process code table.
-    for (var codeRegion in profile['codes']) {
-      Code code = codeRegion['code'];
-      assert(code != null);
-      codes.add(new ProfileCode.fromMap(this, code, codeRegion));
-    }
+    (() async {
+      final Stopwatch watch = new Stopwatch();
+      watch.start();
+      int count = 0;
+      var needToUpdate = () {
+        count++;
+        if (((count % 256) == 0) && (watch.elapsedMilliseconds > 16)) {
+          watch.reset();
+          return true;
+        }
+        return false;
+      };
+      var signal = (double p) {
+        progress.add(p);
+        return sleep();
+      };
+      try {
+        clear();
+        progress.add(0.0);
+        if ((isolate == null) || (profile == null)) {
+          return;
+        }
 
-    // Process function table.
-    for (var profileFunction in profile['functions']) {
-      ServiceFunction function = profileFunction['function'];
-      assert(function != null);
-      functions.add(
-          new ProfileFunction.fromMap(this, function, profileFunction));
-    }
+        this.isolate = isolate;
+        isolate.resetCachedProfileData();
 
-    tries['exclusiveCodeTrie'] =
-        new Uint32List.fromList(profile['exclusiveCodeTrie']);
-    tries['inclusiveCodeTrie'] =
-        new Uint32List.fromList(profile['inclusiveCodeTrie']);
-    tries['exclusiveFunctionTrie'] =
-        new Uint32List.fromList(profile['exclusiveFunctionTrie']);
-    tries['inclusiveFunctionTrie'] =
-        new Uint32List.fromList(profile['inclusiveFunctionTrie']);
+        sampleCount = profile['sampleCount'];
+        samplePeriod = profile['samplePeriod'];
+        sampleRate = (Duration.MICROSECONDS_PER_SECOND / samplePeriod);
+        stackDepth = profile['stackDepth'];
+        timeSpan = profile['timeSpan'];
+
+        num length = profile['codes'].length +
+                        profile['functions'].length;
+
+        // Process code table.
+        for (var codeRegion in profile['codes']) {
+          if (needToUpdate()) {
+            await signal(count * 100.0 / length);
+          }
+          Code code = codeRegion['code'];
+          assert(code != null);
+          codes.add(new ProfileCode.fromMap(this, code, codeRegion));
+        }
+        // Process function table.
+        for (var profileFunction in profile['functions']) {
+          if (needToUpdate()) {
+            await signal(count * 100 / length);
+          }
+          ServiceFunction function = profileFunction['function'];
+          assert(function != null);
+          functions.add(
+              new ProfileFunction.fromMap(this, function, profileFunction));
+        }
+
+        tries['exclusiveCodeTrie'] =
+            new Uint32List.fromList(profile['exclusiveCodeTrie']);
+        tries['inclusiveCodeTrie'] =
+            new Uint32List.fromList(profile['inclusiveCodeTrie']);
+        tries['exclusiveFunctionTrie'] =
+            new Uint32List.fromList(profile['exclusiveFunctionTrie']);
+        tries['inclusiveFunctionTrie'] =
+            new Uint32List.fromList(profile['inclusiveFunctionTrie']);
+      } finally {
+        progress.close();
+      }
+    }());
+    return progress.stream;
   }
 
   // Data shared across calls to _read*TrieNode.
@@ -732,7 +828,8 @@ class CpuProfile {
     // Child node count.
     var children = data[_dataCursor++];
     // Create node.
-    var node = new CodeCallTreeNode(code, count, children);
+    var node = new CodeCallTreeNode(code, count);
+    node.children.length = children;
     return node;
   }
 
@@ -869,12 +966,10 @@ class CpuProfile {
   }
 
   int approximateMillisecondsForCount(count) {
-    var MICROSECONDS_PER_MILLISECOND = 1000.0;
-    return (count * samplePeriod) ~/ MICROSECONDS_PER_MILLISECOND;
+    return (count * samplePeriod) ~/ Duration.MICROSECONDS_PER_MILLISECOND;
   }
 
   double approximateSecondsForCount(count) {
-    var MICROSECONDS_PER_SECOND = 1000000.0;
-    return (count * samplePeriod) / MICROSECONDS_PER_SECOND;
+    return (count * samplePeriod) / Duration.MICROSECONDS_PER_SECOND;
   }
 }

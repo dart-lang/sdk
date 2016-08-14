@@ -65,7 +65,8 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   ASSERT(Dart_IsServiceIsolate(isolate));
   if (!VmService::Setup(DEFAULT_VM_SERVICE_SERVER_IP,
                         DEFAULT_VM_SERVICE_SERVER_PORT,
-                        false /* running_precompiled */)) {
+                        false /* running_precompiled */,
+                        false /* disable origin checks */)) {
     fprintf(stderr,
             "Vmservice::Setup failed: %s\n", VmService::GetErrorMessage());
     isolate = NULL;
@@ -147,6 +148,7 @@ void VmServiceServer::DecompressAssets(const uint8_t* input,
 
   inflateEnd(&strm);
 }
+
 
 /* DISALLOW_ALLOCATION */
 void VmServiceServer::operator delete(void* pointer)  {

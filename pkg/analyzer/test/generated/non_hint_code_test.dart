@@ -18,6 +18,25 @@ main() {
 
 @reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
+  void test_deadCode_afterTryCatch() {
+    Source source = addSource('''
+main() {
+  try {
+    return f();
+  } catch (e) {
+    print(e);
+  }
+  print('not dead');
+}
+f() {
+  throw 'foo';
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deadCode_deadBlock_conditionalElse_debugConst() {
     Source source = addSource(r'''
 const bool DEBUG = true;
@@ -136,6 +155,26 @@ f() {
     verify([source]);
   }
 
+  void test_deadCode_deadFinalBreakInCase() {
+    Source source = addSource(r'''
+f() {
+  switch (true) {
+  case true:
+    try {
+      int a = 1;
+    } finally {
+      return;
+    }
+    break;
+  default:
+    break;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deadCode_deadOperandLHS_and_debugConst() {
     Source source = addSource(r'''
 const bool DEBUG = false;
@@ -152,6 +191,19 @@ f() {
 const bool DEBUG = true;
 f() {
   bool b = DEBUG || true;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_deadCode_statementAfterIfWithoutElse() {
+    Source source = addSource(r'''
+f() {
+  if (1 < 0) {
+    return;
+  }
+  int a = 1;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -434,10 +486,48 @@ class A {
     verify([source]);
   }
 
+  void test_overrideOnNonOverridingField_inInterface() {
+    Source source = addSource(r'''
+class A {
+  int get a => 0;
+  void set b(_) {}
+  int c;
+}
+class B implements A {
+  @override
+  final int a = 1;
+  @override
+  int b;
+  @override
+  int c;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingField_inSuperclass() {
+    Source source = addSource(r'''
+class A {
+  int get a => 0;
+  void set b(_) {}
+  int c;
+}
+class B extends A {
+  @override
+  final int a = 1;
+  @override
+  int b;
+  @override
+  int c;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_overrideOnNonOverridingGetter_inInterface() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   int get m => 0;
 }
@@ -452,8 +542,6 @@ class B implements A {
 
   void test_overrideOnNonOverridingGetter_inSuperclass() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   int get m => 0;
 }
@@ -468,8 +556,6 @@ class B extends A {
 
   void test_overrideOnNonOverridingMethod_inInterface() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   int m() => 0;
 }
@@ -484,8 +570,6 @@ class B implements A {
 
   void test_overrideOnNonOverridingMethod_inSuperclass() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   int m() => 0;
 }
@@ -498,10 +582,22 @@ class B extends A {
     verify([source]);
   }
 
+  void test_overrideOnNonOverridingMethod_inSuperclass_abstract() {
+    Source source = addSource(r'''
+abstract class A {
+  int m();
+}
+class B extends A {
+  @override
+  int m() => 1;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_overrideOnNonOverridingSetter_inInterface() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   set m(int x) {}
 }
@@ -516,8 +612,6 @@ class B implements A {
 
   void test_overrideOnNonOverridingSetter_inSuperclass() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
   set m(int x) {}
 }
@@ -1083,6 +1177,30 @@ class A {
   static void x() {
     One o;
     one.topLevelFunction();
+  }
+}''');
+    addNamedSource(
+        "/lib1.dart",
+        r'''
+library lib1;
+class One {}
+topLevelFunction() {}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedImport_prefix_topLevelFunction2() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' hide topLevelFunction;
+import 'lib1.dart' as one show topLevelFunction;
+import 'lib1.dart' as two show topLevelFunction;
+class A {
+  static void x() {
+    One o;
+    one.topLevelFunction();
+    two.topLevelFunction();
   }
 }''');
     addNamedSource(

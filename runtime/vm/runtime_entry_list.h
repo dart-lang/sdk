@@ -33,6 +33,7 @@ namespace dart {
   V(OptimizeInvokedFunction)                                                   \
   V(TraceICCall)                                                               \
   V(PatchStaticCall)                                                           \
+  V(RangeError)                                                                \
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
   V(Throw)                                                                     \
@@ -43,6 +44,7 @@ namespace dart {
   V(InitStaticField)                                                           \
   V(GrowRegExpStack)                                                           \
   V(CompileFunction)                                                           \
+  V(MonomorphicMiss)                                                           \
 
 #define LEAF_RUNTIME_ENTRY_LIST(V)                                             \
   V(void, PrintStopMessage, const char*)                                       \

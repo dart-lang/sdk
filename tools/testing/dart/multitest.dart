@@ -61,27 +61,28 @@ import "utils.dart";
 //   ddd /// 07: static type warning, dynamic type error
 //   fff
 
-void ExtractTestsFromMultitest(Path filePath,
-                               Map<String, String> tests,
-                               Map<String, Set<String>> outcomes) {
+void ExtractTestsFromMultitest(Path filePath, Map<String, String> tests,
+    Map<String, Set<String>> outcomes) {
   // Read the entire file into a byte buffer and transform it to a
   // String. This will treat the file as ascii but the only parts
   // we are interested in will be ascii in any case.
   List bytes = new File(filePath.toNativePath()).readAsBytesSync();
   String contents = decodeUtf8(bytes);
   int first_newline = contents.indexOf('\n');
-  final String line_separator =
-      (first_newline == 0 || contents[first_newline - 1] != '\r')
-      ? '\n'
-      : '\r\n';
+  final String line_separator = (first_newline == 0 ||
+      contents[first_newline - 1] != '\r') ? '\n' : '\r\n';
   List<String> lines = contents.split(line_separator);
   if (lines.last == '') lines.removeLast();
   bytes = null;
   contents = null;
-  Set<String> validMultitestOutcomes = new Set<String>.from(
-      ['ok', 'compile-time error', 'runtime error',
-       'static type warning', 'dynamic type error',
-       'checked mode compile-time error']);
+  Set<String> validMultitestOutcomes = new Set<String>.from([
+    'ok',
+    'compile-time error',
+    'runtime error',
+    'static type warning',
+    'dynamic type error',
+    'checked mode compile-time error'
+  ]);
 
   // Create the set of multitests, which will have a new test added each
   // time we see a multitest line with a new key.
@@ -96,8 +97,8 @@ void ExtractTestsFromMultitest(Path filePath,
     lineCount++;
     var annotation = new _Annotation.from(line);
     if (annotation != null) {
-      testsAsLines.putIfAbsent(annotation.key,
-          () => new List<String>.from(testsAsLines["none"]));
+      testsAsLines.putIfAbsent(
+          annotation.key, () => new List<String>.from(testsAsLines["none"]));
       // Add line to test with annotation.key as key, empty line to the rest.
       for (var key in testsAsLines.keys) {
         testsAsLines[key].add(annotation.key == key ? line : "");
@@ -172,8 +173,8 @@ class _Annotation {
     var annotation = new _Annotation();
     annotation.key = parts[0];
     annotation.rest = parts[1];
-    annotation.outcomesList = annotation.rest.split(',')
-        .map((s) => s.trim()).toList();
+    annotation.outcomesList =
+        annotation.rest.split(',').map((s) => s.trim()).toList();
     return annotation;
   }
 }
@@ -219,8 +220,12 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
   return foundImports;
 }
 
-Future doMultitest(Path filePath, String outputDir, Path suiteDir,
-                   CreateTest doTest) {
+Future doMultitest(
+    Path filePath,
+    String outputDir,
+    Path suiteDir,
+    CreateTest doTest,
+    bool hotReload) {
   void writeFile(String filepath, String content) {
     final File file = new File(filepath);
 
@@ -254,8 +259,8 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
       TestUtils.mkdirRecursive(targetDir, importDir);
     }
     // Copy file.
-    futureCopies.add(TestUtils.copyFile(sourceDir.join(importPath),
-                                        targetDir.join(importPath)));
+    futureCopies.add(TestUtils.copyFile(
+        sourceDir.join(importPath), targetDir.join(importPath)));
   }
 
   // Wait until all imports are copied before scheduling test cases.
@@ -272,20 +277,23 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
       bool isNegativeIfChecked = outcome.contains('dynamic type error');
       bool hasCompileErrorIfChecked =
           outcome.contains('checked mode compile-time error');
-      doTest(multitestFilename,
-             filePath,
-             hasCompileError,
-             hasRuntimeErrors,
-             isNegativeIfChecked: isNegativeIfChecked,
-             hasCompileErrorIfChecked: hasCompileErrorIfChecked,
-             hasStaticWarning: hasStaticWarning,
-             multitestKey: key);
+      if (hotReload) {
+        if (hasCompileError || hasCompileErrorIfChecked) {
+          // Running a test that expects a compilation error with hot reloading
+          // is redundant with a regular run of the test.
+          continue;
+        }
+      }
+      doTest(multitestFilename, filePath, hasCompileError, hasRuntimeErrors,
+          isNegativeIfChecked: isNegativeIfChecked,
+          hasCompileErrorIfChecked: hasCompileErrorIfChecked,
+          hasStaticWarning: hasStaticWarning,
+          multitestKey: key);
     }
 
     return null;
   });
 }
-
 
 Path CreateMultitestDirectory(String outputDir, Path suiteDir) {
   Directory generatedTestDir = new Directory('$outputDir/generated_tests');

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _IntegerImplementation extends _Num {
+abstract class _IntegerImplementation {
   // The Dart class _Bigint extending _IntegerImplementation requires a
   // default constructor.
 
@@ -63,6 +63,7 @@ class _IntegerImplementation extends _Num {
   num remainder(num other) {
     return other._remainderFromInteger(this);
   }
+  int _bitAndFromSmi(int other) native "Integer_bitAndFromInteger";
   int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
   int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
   int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
@@ -174,22 +175,21 @@ class _IntegerImplementation extends _Num {
 
   num clamp(num lowerLimit, num upperLimit) {
     if (lowerLimit is! num) {
-      throw new ArgumentError.value(lowerLimit, "lowerLimit");
+      throw new ArgumentError.value(lowerLimit, "lowerLimit", "not a number");
     }
     if (upperLimit is! num) {
-      throw new ArgumentError.value(upperLimit, "upperLimit");
+      throw new ArgumentError.value(upperLimit, "upperLimit", "not a number");
     }
 
     // Special case for integers.
-    if (lowerLimit is int && upperLimit is int &&
-        lowerLimit <= upperLimit) {
+    if (lowerLimit is int && upperLimit is int && lowerLimit <= upperLimit) {
       if (this < lowerLimit) return lowerLimit;
       if (this > upperLimit) return upperLimit;
       return this;
     }
     // Generic case involving doubles, and invalid integer ranges.
     if (lowerLimit.compareTo(upperLimit) > 0) {
-      throw new RangeError.range(upperLimit, lowerLimit, null, "upperLimit");
+      throw new ArgumentError(lowerLimit);
     }
     if (lowerLimit.isNaN) return lowerLimit;
     // Note that we don't need to care for -0.0 for the lower limit.
@@ -262,8 +262,6 @@ class _IntegerImplementation extends _Num {
     } while (value > 0);
     return string;
   }
-
-  _leftShiftWithMask32(count, mask)  native "Integer_leftShiftWithMask32";
 
   // Returns pow(this, e) % m.
   int modPow(int e, int m) {
@@ -410,12 +408,14 @@ class _Smi extends _IntegerImplementation implements int {
     throw new UnsupportedError(
         "_Smi can only be allocated by the VM");
   }
-  int get _identityHashCode {
-    return this;
-  }
+  int get hashCode => this;
+  int get _identityHashCode => this;
   int operator ~() native "Smi_bitNegate";
   int get bitLength native "Smi_bitLength";
 
+  int operator &(int other) => other._bitAndFromSmi(this);
+
+  int _bitAndFromSmi(int other) native "Smi_bitAndFromSmi";
   int _shrFromInt(int other) native "Smi_shrFromInt";
   int _shlFromInt(int other) native "Smi_shlFromInt";
 
@@ -608,11 +608,12 @@ class _Mint extends _IntegerImplementation implements int {
     throw new UnsupportedError(
         "_Mint can only be allocated by the VM");
   }
-  int get _identityHashCode {
-    return this;
-  }
+  int get hashCode => this;
+  int get _identityHashCode => this;
   int operator ~() native "Mint_bitNegate";
   int get bitLength native "Mint_bitLength";
+
+  int _bitAndFromSmi(int other) => _bitAndFromInteger(other);
 
   // Shift by mint exceeds range that can be handled by the VM.
   int _shrFromInt(int other) {

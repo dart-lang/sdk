@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class Resource {
-  /* patch */ const factory Resource(String uri) = _Resource;
+@patch class Resource {
+  @patch const factory Resource(String uri) = _Resource;
 }
 
 class _Resource implements Resource {

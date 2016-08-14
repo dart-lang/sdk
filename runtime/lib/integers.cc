@@ -146,7 +146,7 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
   const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left_int, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right_int));
-  ASSERT(CheckInteger(right_int));
+  ASSERT(CheckInteger(left_int));
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Integer_moduloFromInteger %s mod %s\n",
         left_int.ToCString(), right_int.ToCString());
@@ -206,14 +206,9 @@ static RawInteger* ParseInteger(const String& value) {
     }
   }
 
-  Scanner scanner(value, Symbols::Empty());
-  const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
   const String* int_string;
   bool is_positive;
-  if (Scanner::IsValidLiteral(tokens,
-                             Token::kINTEGER,
-                             &is_positive,
-                             &int_string)) {
+  if (Scanner::IsValidInteger(value, &is_positive, &int_string)) {
     if (is_positive) {
       return Integer::New(*int_string);
     }
@@ -244,7 +239,7 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
       if (result.IsSmi()) {
         return result.raw();
       }
-      return result.CheckAndCanonicalize(NULL);
+      return result.CheckAndCanonicalize(thread, NULL);
     }
   }
   return default_value.raw();
@@ -290,25 +285,16 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
 }
 
 
-DEFINE_NATIVE_ENTRY(Integer_leftShiftWithMask32, 3) {
-  const Integer& value = Integer::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, shift_count, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(2));
-  ASSERT(CheckInteger(value));
-  ASSERT(CheckInteger(shift_count));
-  ASSERT(CheckInteger(mask));
-  if (!shift_count.IsSmi()) {
-    // Shift count is too large..
-    const Instance& exception =
-        Instance::Handle(isolate->object_store()->out_of_memory());
-    Exceptions::Throw(thread, exception);
+DEFINE_NATIVE_ENTRY(Smi_bitAndFromSmi, 2) {
+  const Smi& left = Smi::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, right, arguments->NativeArgAt(1));
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Smi_bitAndFromSmi %s & %s\n",
+        left.ToCString(), right.ToCString());
   }
-  const Smi& smi_shift_count = Smi::Cast(shift_count);
-  const Integer& shift_result = Integer::Handle(
-      ShiftOperationHelper(Token::kSHL, value, smi_shift_count));
-  const Integer& result =
-      Integer::Handle(shift_result.BitOp(Token::kBIT_AND, mask));
-  return result.AsValidInteger();
+  const Smi& left_value = Smi::Cast(left);
+  const Smi& right_value = Smi::Cast(right);
+  return Smi::New(left_value.Value() & right_value.Value());
 }
 
 

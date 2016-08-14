@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.helpers;
-
 /**
  * The expensive map is a data structure useful for tracking down
  * excessive memory usage due to large maps. It acts as an ordinary
  * hash map, but it uses 10 times more memory (by default).
  */
 class ExpensiveMap<K, V> implements Map<K, V> {
-
   final List _maps;
 
   ExpensiveMap([int copies = 10]) : _maps = new List(copies) {
@@ -30,13 +27,13 @@ class ExpensiveMap<K, V> implements Map<K, V> {
   bool containsKey(K key) => _maps[0].containsKey(key);
   bool containsValue(V value) => _maps[0].containsValue(value);
 
-  V operator[](K key) => _maps[0][key];
+  V operator [](K key) => _maps[0][key];
 
   void forEach(void action(K key, V value)) {
     _maps[0].forEach(action);
   }
 
-  void operator[]=(K key, V value) {
+  void operator []=(K key, V value) {
     for (int i = 0; i < _maps.length; i++) {
       _maps[i][key] = value;
     }

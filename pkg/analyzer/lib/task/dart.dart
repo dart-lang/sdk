@@ -167,6 +167,9 @@ class LibrarySpecificUnit implements AnalysisTarget {
   }
 
   @override
+  Source get librarySource => library;
+
+  @override
   Source get source => unit;
 
   @override

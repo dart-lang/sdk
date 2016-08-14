@@ -15,8 +15,6 @@ from htmlrenamer import custom_html_constructors, html_interface_renames, \
     typed_array_renames
 
 _pure_interfaces = monitored.Set('generator._pure_interfaces', [
-    # TODO(sra): DOMStringMap should be a class implementing Map<String,String>.
-    'DOMStringMap',
     'AbstractWorker',
     'CanvasPathMethods',
     'ChildNode',
@@ -56,8 +54,154 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'WindowTimers',
     ])
 
-def IsPureInterface(interface_name):
-  return interface_name in _pure_interfaces
+_safe_interfaces = monitored.Set('generator._safe_interfaces', [
+    'double',
+    'Float32Array',
+    'Float64Array',
+    'Int8Array',
+    'Int16Array',
+    'Int32Array',
+    'Uint8Array',
+    'Uint8ClampedArray',
+    'Uint16Array',
+    'Uint32Array',
+    'ArrayBufferView',
+    'ArrayBuffer',
+    'SourceBuffer', # IDL lies about this class being a pure interface.
+    'Console', # this one is a bit of a hack as our console implementation
+              # in dart:html is non-standard for legacy reasons.
+    'AudioContext',
+    'AudioSourceNode',
+    'WebGLVertexArrayObjectOES', # Added a polyfill for this.
+    # Types where we can get access to the prototype easily enough.
+    # We might consider in the future treating these are regular interface types.
+    'StereoPannerNode',
+    'PannerNode',
+    'AudioNode',
+    'FontFaceSet',
+    'MemoryInfo',
+    'ConsoleBase',
+    'Geolocation',
+    'Animation',
+    'SourceBufferList',
+    'GamepadList',
+
+    # The following classes are enabled just to get the build to go.
+    # SpeechRecognitionResultList isn't really allowed but the codegen creates
+    # invalid output otherwise.
+
+    'SpeechRecognitionResultList',
+    'SQLResultSetRowList',
+    ])
+
+# These are interfaces that we have to treat as safe for dart2js and dartium
+# but going in dev compiler we should not treat as safe as these classes
+# really aren't guaranteed to have a stable interface name.
+_safe_interfaces_legacy = monitored.Set('generator._safe_interfaces_legacy', [
+    'ANGLEInstancedArrays',
+    'Bluetooth',
+    'Body',
+    'NonDocumentTypeChildNode',
+    'CHROMIUMSubscribeUniform',
+    'CHROMIUMValuebuffer',
+    'GeofencingRegion',
+    'Coordinates',
+    'DOMFileSystem',
+    'DirectoryEntry',
+    'DOMFileSystemSync',
+    'Entry',
+    'Database',
+    'DeprecatedStorageInfo',
+    'DeprecatedStorageQuota',
+    'DeviceAcceleration',
+    'DeviceRotationRate',
+    'DirectoryReader',
+    'EntrySync',
+    'DirectoryEntrySync',
+    'DirectoryReaderSync',
+    'NonElementParentNode',
+    'EXTBlendMinMax',
+    'EXTFragDepth',
+    'EXTShaderTextureLOD',
+    'EXTTextureFilterAnisotropic',
+    'EXTsRGB',
+    'EffectModel',
+    'FileEntry',
+    'FileEntrySync',
+    'FileWriter',
+    'FileWriterSync',
+    'FontFaceSetLoadEvent',
+    'Geofencing',
+    'Geoposition',
+    'Iterator',
+    'MediaDeviceInfo',
+    'MediaStreamTrackEvent',
+    'Metadata',
+    'NavigatorStorageUtils',
+    'StorageQuota',
+    'NavigatorUserMediaError',
+    'OESElementIndexUint',
+    'OESStandardDerivatives',
+    'OESTextureFloat',
+    'OESTextureFloatLinear',
+    'OESTextureHalfFloat',
+    'OESTextureHalfFloatLinear',
+    'OESVertexArrayObject',
+    'PagePopupController',
+    'PluginPlaceholderElement',
+    'PositionError',
+    'RTCDTMFSender',
+    'RTCDataChannel',
+    'RTCDataChannelEvent',
+    'RTCIceCandidateEvent',
+    'RTCStatsReport',
+    'RTCStatsResponse',
+    'ReadableByteStreamReader',
+    'ReadableStreamReader',
+    'ResourceProgressEvent',
+    'SQLError',
+    'SQLResultSet',
+    'SQLTransaction',
+    'SharedArrayBuffer',
+    'SourceInfo',
+    'SpeechRecognitionAlternative',
+    'SpeechRecognitionResult',
+    'SpeechSynthesis',
+    'SpeechSynthesisVoice',
+    'StorageInfo',
+    'StyleMedia',
+    'WebGL2RenderingContextBase',
+    'WebGLCompressedTextureATC',
+    'WebGLCompressedTextureETC1',
+    'WebGLCompressedTexturePVRTC',
+    'WebGLCompressedTextureS3TC',
+    'WebGLDebugRendererInfo',
+    'WebGLDebugShaders',
+    'WebGLDepthTexture',
+    'WebGLDrawBuffers',
+    'WebGLLoseContext',
+    'WorkerConsole',
+    'WorkerPerformance',
+    'XPathNSResolver',
+])
+
+# Classes we should just suppress?
+# SpeechGrammarList and friends
+
+def IsPureInterface(interface_name, database):
+  if (interface_name in _pure_interfaces):
+    return True
+  if (interface_name in _safe_interfaces or
+      interface_name in _safe_interfaces_legacy or
+      database.HasInterface(interface_name)):
+    return False
+
+  interface = database.GetInterface(interface_name)
+
+  if 'Constructor' in interface.ext_attrs:
+    return False
+
+  return interface.is_no_interface_object
 
 #
 # Classes which have native constructors but which we are suppressing because
@@ -163,7 +307,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'PannerNode': 'PannerNode,AudioPannerNode,webkitAudioPannerNode',
 
-    'RTCPeerConnection': 'RTCPeerConnection,mozRTCPeerConnection',
+    'RTCPeerConnection': 'RTCPeerConnection,webkitRTCPeerConnection,mozRTCPeerConnection',
 
     'RTCIceCandidate': 'RTCIceCandidate,mozRTCIceCandidate',
 
@@ -177,13 +321,46 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'TransitionEvent': 'TransitionEvent,WebKitTransitionEvent',
 
-    'WebGLLoseContext': 'WebGLLoseContext,WebGLExtensionLoseContext',
-
     'CSSKeyframeRule':
         'CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule',
 
     'CSSKeyframesRule':
         'CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule',
+
+    # webgl extensions are sometimes named directly after the getExtension
+    # parameter (e.g on Firefox).
+
+    'ANGLEInstancedArrays': 'ANGLEInstancedArrays,ANGLE_instanced_arrays',
+    'EXTsRGB': 'EXTsRGB,EXT_sRGB',
+    'EXTBlendMinMax': 'EXTBlendMinMax,EXT_blend_minmax',
+    'EXTFragDepth': 'EXTFragDepth,EXT_frag_depth',
+    'EXTShaderTextureLOD': 'EXTShaderTextureLOD,EXT_shader_texture_lod',
+    'EXTTextureFilterAnisotropic':
+        'EXTTextureFilterAnisotropic,EXT_texture_filter_anisotropic',
+    'OESElementIndexUint': 'OESElementIndexUint,OES_element_index_uint',
+    'OESStandardDerivatives': 'OESStandardDerivatives,OES_standard_derivatives',
+    'OESTextureFloat': 'OESTextureFloat,OES_texture_float',
+    'OESTextureFloatLinear': 'OESTextureFloatLinear,OES_texture_float_linear',
+    'OESTextureHalfFloat': 'OESTextureHalfFloat,OES_texture_half_float',
+    'OESTextureHalfFloatLinear':
+        'OESTextureHalfFloatLinear,OES_texture_half_float_linear',
+    'OESVertexArrayObject':
+        'OESVertexArrayObject,OES_vertex_array_object',
+    'WebGLCompressedTextureATC':
+        'WebGLCompressedTextureATC,WEBGL_compressed_texture_atc',
+    'WebGLCompressedTextureETC1':
+        'WebGLCompressedTextureETC1,WEBGL_compressed_texture_etc1',
+    'WebGLCompressedTexturePVRTC':
+        'WebGLCompressedTexturePVRTC,WEBGL_compressed_texture_pvrtc',
+    'WebGLCompressedTextureS3TC':
+        'WebGLCompressedTextureS3TC,WEBGL_compressed_texture_s3tc',
+    'WebGLDebugRendererInfo': 'WebGLDebugRendererInfo,WEBGL_debug_renderer_info',
+    'WebGLDebugShaders': 'WebGLDebugShaders,WEBGL_debug_shaders',
+    'WebGLDepthTexture': 'WebGLDepthTexture,WEBGL_depth_texture',
+    'WebGLDrawBuffers': 'WebGLDrawBuffers,WEBGL_draw_buffers',
+    'WebGLLoseContext':
+        'WebGLLoseContext,WebGLExtensionLoseContext,WEBGL_lose_context',
+
 
 }, dart2jsOnly=True)
 
@@ -543,29 +720,28 @@ class OperationInfo(object):
         type_id = p.type_id
         # Unwrap the type to get the JsObject if Type is:
         #
-        #    - known IDL type
         #    - type_id is None then it's probably a union type or overloaded
         #      it's a dynamic/any type
         #    - type is Object
         #
-        # JsObject maybe stored in the Dart class.
         if (wrap_unwrap_type_blink(type_id, type_registry)):
           type_is_callback = self.isCallback(type_registry, type_id)
           if (dart_js_interop and type_id == 'EventListener' and
               self.name in ['addEventListener', 'removeEventListener']):
-              # Events fired need use a JsFunction not a anonymous closure to
+              # Events fired need use a JSFunction not a anonymous closure to
               # insure the event can really be removed.
-              parameters.append('unwrap_jso(js.allowInterop(%s))' % p.name)
-          elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
+              parameters.append('js.allowInterop(%s)' % p.name)
+# These commented out cases don't actually generate any code.
+#          elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
               # forEach is supported in the DOM for FontFaceSet as it iterates
               # over the Javascript Object the callback parameters are also
               # Javascript objects and must be wrapped.
-              parameters.append('unwrap_jso((fontFace, fontFaceAgain, set) => %s(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set)))' % p.name)
-          elif dart_js_interop and type_id == 'HeadersForEachCallback':
+ #             parameters.append('(fontFace, fontFaceAgain, set) => %s(fontFace, fontFaceAgain, wrap_jso(set))' % p.name)
+#          elif dart_js_interop and type_id == 'HeadersForEachCallback':
               # forEach is supported in the DOM for Headers as it iterates
               # over the Javascript Object the callback parameters are also
               # Javascript objects and must be wrapped.
-              parameters.append('unwrap_jso((String value, String key, map) => %s(value, key, wrap_jso(map)))' % p.name)
+#              parameters.append('(String value, String key, map) => %s(value, key, wrap_jso(map))' % p.name)
           elif dart_js_interop and type_is_callback and not(isRemoveOperation):
             # Any remove operation that has a a callback doesn't need wrapping.
             # TODO(terry): Kind of hacky but handles all the cases we care about
@@ -579,15 +755,15 @@ class OperationInfo(object):
                 dart_type = type_registry.DartType(callback_arg.type.id) + ' '
               callback_args_decl.append('%s%s' % (dart_type, callback_arg.id))
               if wrap_unwrap_type_blink(callback_arg.type.id, type_registry):
-                callback_args_call.append('wrap_jso(%s)' % callback_arg.id)
+                callback_args_call.append(callback_arg.id)
               else:
                 callback_args_call.append(callback_arg.id)
-            parameters.append('unwrap_jso((%s) => %s(%s))' %
+            parameters.append('(%s) => %s(%s)' %
                               (", ".join(callback_args_decl),
-                               p.name,
-                               ", ".join(callback_args_call)))
+                              p.name,
+                              ", ".join(callback_args_call)))
           else:
-            parameters.append('unwrap_jso(%s)' % p.name)
+            parameters.append(p.name)
         else:
           if dart_js_interop:
             conversion = backend._InputConversion(p.type_id, self.declared_name)
@@ -930,7 +1106,7 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     # dart_type.
     if self._data.dart_type != None:
       return self.dart_type()
-    if IsPureInterface(self.idl_type()):
+    if IsPureInterface(self.idl_type(), self._type_registry._database):
       return self.idl_type()
     return self.interface_name()
 
@@ -1495,6 +1671,8 @@ def get_list_type(return_type):
   # Get the list type NNNN inside of List<NNNN>
   return return_type[5:-1] if isList(return_type) else return_type
 
+# TODO(jacobr): remove these obsolete methods as we don't actually
+# perform any wrapping.
 def wrap_unwrap_list_blink(return_type, type_registry):
   """Return True if the type is the list type is a blink know
      type e.g., List<Node>, List<FontFace>, etc."""
@@ -1508,14 +1686,9 @@ def wrap_unwrap_type_blink(return_type, type_registry):
     unwrap_jso"""
     if return_type and return_type.startswith('Html'):
         return_type = return_type.replace('Html', 'HTML', 1)
-    return (type_registry.HasInterface(return_type) or not(return_type) or
+    return (not(return_type) or
             return_type == 'Object' or
-            return_type == 'dynamic' or
-            return_type == 'Future' or
-            return_type == 'SqlDatabase' or # renamed to Database
-            return_type == 'HTMLElement' or
-            return_type == 'MutationObserver' or
-            (return_type.endswith('[]') and return_type != 'DOMString[]'))
+            return_type == 'dynamic')
 
 def wrap_type_blink(return_type, type_registry):
     """Returns True if the type is a blink type that requires wrap_jso but

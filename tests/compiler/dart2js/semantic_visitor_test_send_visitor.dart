@@ -244,7 +244,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_GET,
-        constant: constant.getText()));
+        constant: constant.toDartText()));
   }
 
   @override
@@ -255,7 +255,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_INVOKE,
-        constant: constant.getText(), arguments: arguments));
+        constant: constant.toDartText(), arguments: arguments));
     apply(arguments, arg);
   }
 
@@ -266,7 +266,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_SET,
-        constant: constant.getText(), rhs: rhs));
+        constant: constant.toDartText(), rhs: rhs));
     super.visitClassTypeLiteralSet(node, constant, rhs, arg);
   }
 
@@ -347,7 +347,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_GET,
-        constant: constant.getText()));
+        constant: constant.toDartText()));
   }
 
   @override
@@ -358,7 +358,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_INVOKE,
-        constant: constant.getText(), arguments: arguments));
+        constant: constant.toDartText(), arguments: arguments));
   }
 
   @override
@@ -368,7 +368,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET,
-        constant: constant.getText(), rhs: rhs));
+        constant: constant.toDartText(), rhs: rhs));
     super.visitDynamicTypeLiteralSet(node, constant, rhs, arg);
   }
 
@@ -1009,7 +1009,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_GET,
-        constant: constant.getText()));
+        constant: constant.toDartText()));
   }
 
   @override
@@ -1020,7 +1020,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_INVOKE,
-        constant: constant.getText(), arguments: arguments));
+        constant: constant.toDartText(), arguments: arguments));
     apply(arguments, arg);
   }
 
@@ -1031,7 +1031,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET,
-        constant: constant.getText(), rhs: rhs));
+        constant: constant.toDartText(), rhs: rhs));
     super.visitTypedefTypeLiteralSet(node, constant, rhs, arg);
   }
 
@@ -1767,7 +1767,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_COMPOUND,
-        constant: constant.getText(), operator: operator, rhs: rhs));
+        constant: constant.toDartText(), operator: operator, rhs: rhs));
     apply(rhs, arg);
   }
 
@@ -1779,7 +1779,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_COMPOUND,
-        constant: constant.getText(), operator: operator, rhs: rhs));
+        constant: constant.toDartText(), operator: operator, rhs: rhs));
     apply(rhs, arg);
   }
 
@@ -1803,7 +1803,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_COMPOUND,
-        constant: constant.getText(), operator: operator, rhs: rhs));
+        constant: constant.toDartText(), operator: operator, rhs: rhs));
     apply(rhs, arg);
   }
 
@@ -1824,7 +1824,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_PREFIX,
-        constant: constant.getText(), operator: operator));
+        constant: constant.toDartText(), operator: operator));
   }
 
   @override
@@ -1834,7 +1834,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_PREFIX,
-        constant: constant.getText(), operator: operator));
+        constant: constant.toDartText(), operator: operator));
   }
 
   @override
@@ -2037,7 +2037,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_PREFIX,
-        constant: constant.getText(), operator: operator));
+        constant: constant.toDartText(), operator: operator));
   }
 
   @override
@@ -2057,7 +2057,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_POSTFIX,
-        constant: constant.getText(), operator: operator));
+        constant: constant.toDartText(), operator: operator));
   }
 
   @override
@@ -2067,7 +2067,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_POSTFIX,
-        constant: constant.getText(), operator: operator));
+        constant: constant.toDartText(), operator: operator));
   }
 
   @override
@@ -2257,7 +2257,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       IncDecOperator operator,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_POSTFIX,
-        constant: constant.getText(), operator: operator));
+        constant: constant.toDartText(), operator: operator));
   }
 
   @override
@@ -2549,7 +2549,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructedConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CONST_CONSTRUCTOR_INVOKE,
-                         constant: constant.getText()));
+                         constant: constant.toDartText()));
     super.visitConstConstructorInvoke(node, constant, arg);
   }
 
@@ -2560,7 +2560,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
-        constant: constant.getText()));
+        constant: constant.toDartText()));
     super.visitBoolFromEnvironmentConstructorInvoke(node, constant, arg);
   }
 
@@ -2571,7 +2571,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_INT_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
-        constant: constant.getText()));
+        constant: constant.toDartText()));
     super.visitIntFromEnvironmentConstructorInvoke(node, constant, arg);
   }
 
@@ -2582,7 +2582,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_STRING_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
-        constant: constant.getText()));
+        constant: constant.toDartText()));
     super.visitStringFromEnvironmentConstructorInvoke(node, constant, arg);
   }
 
@@ -3086,7 +3086,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CONSTANT_GET,
-        constant: constant.getText()));
+        constant: constant.toDartText()));
     super.visitConstantGet(node, constant, arg);
   }
 
@@ -3098,7 +3098,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CONSTANT_INVOKE,
-        constant: constant.getText()));
+        constant: constant.toDartText()));
     super.visitConstantInvoke(node, constant, arguments, callStructure, arg);
   }
 
@@ -3117,7 +3117,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_SET_IF_NULL,
-        constant: constant.getText(), rhs: rhs));
+        constant: constant.toDartText(), rhs: rhs));
     super.visitClassTypeLiteralSetIfNull(node, constant, rhs, arg);
   }
 
@@ -3140,7 +3140,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET_IF_NULL,
-        constant: constant.getText(), rhs: rhs));
+        constant: constant.toDartText(), rhs: rhs));
     super.visitDynamicTypeLiteralSetIfNull(node, constant, rhs, arg);
   }
 
@@ -3450,7 +3450,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET_IF_NULL,
-        constant: constant.getText(), rhs: rhs));
+        constant: constant.toDartText(), rhs: rhs));
     super.visitTypedefTypeLiteralSetIfNull(node, constant, rhs, arg);
   }
 
@@ -3550,5 +3550,88 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
         getter: getter, rhs: rhs));
     super.visitUnresolvedTopLevelSetterSetIfNull(
         node, getter, element, rhs, arg);
+  }
+
+  @override
+  visitIndexSetIfNull(
+      SendSet node,
+      Node receiver,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_INDEX_SET_IF_NULL,
+        receiver: receiver, index: index, rhs: rhs));
+    super.visitIndexSetIfNull(node, receiver, index, rhs, arg);
+  }
+
+  @override
+  visitSuperIndexSetIfNull(
+      SendSet node,
+      MethodElement getter,
+      MethodElement setter,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_SUPER_INDEX_SET_IF_NULL,
+        getter: getter, setter: setter, index: index, rhs: rhs));
+    super.visitSuperIndexSetIfNull(node, getter, setter, index, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperGetterIndexSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_SET_IF_NULL,
+        setter: setter, index: index, rhs: rhs));
+    super.visitUnresolvedSuperGetterIndexSetIfNull(
+        node, element, setter, index, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperSetterIndexSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_SET_IF_NULL,
+        getter: getter, index: index, rhs: rhs));
+    super.visitUnresolvedSuperSetterIndexSetIfNull(
+        node, getter, element, index, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperIndexSetIfNull(
+      Send node,
+      Element element,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_SET_IF_NULL,
+        index: index, rhs: rhs));
+    super.visitUnresolvedSuperIndexSetIfNull(node, element, index, rhs, arg);
+  }
+
+  @override
+  errorInvalidIndexSetIfNull(
+      SendSet node,
+      ErroneousElement error,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.ERROR_INVALID_SET_IF_NULL,
+        index: index, rhs: rhs));
+    super.visitUnresolvedSuperIndexSetIfNull(node, error, index, rhs, arg);
   }
 }

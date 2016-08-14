@@ -13,6 +13,7 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -45,10 +46,9 @@ main() {
         resourceProvider,
         new MockPackageMapProvider(),
         null,
-        null,
         serverPlugin,
         new AnalysisServerOptions(),
-        () => new MockSdk(),
+        new DartSdkManager('', false, (_) => new MockSdk()),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
   });
@@ -71,7 +71,7 @@ main() {
             new AnalysisGetReachableSourcesParams(fileA).toRequest('0');
         var response = handler.handleRequest(request);
 
-        var json = response.toJson()[Response.RESULT];
+        Map json = response.toJson()[Response.RESULT];
 
         // Sanity checks.
         expect(json['sources'], hasLength(6));
@@ -473,10 +473,9 @@ class AnalysisTestHelper {
         resourceProvider,
         new MockPackageMapProvider(),
         null,
-        null,
         serverPlugin,
         new AnalysisServerOptions(),
-        () => new MockSdk(),
+        new DartSdkManager('', false, (_) => new MockSdk()),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications

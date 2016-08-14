@@ -319,7 +319,8 @@ class Collector extends DiagnosticReporter {
   }
 
   @override
-  DiagnosticMessage createMessage(spannable, messageKind, [arguments]) {
+  DiagnosticMessage createMessage(
+      spannable, messageKind, [arguments = const {}]) {
     return new DiagnosticMessage(null, spannable, null);
   }
 }

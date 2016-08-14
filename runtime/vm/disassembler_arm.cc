@@ -6,9 +6,9 @@
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
 #if defined(TARGET_ARCH_ARM)
-
 #include "platform/assert.h"
 #include "vm/cpu.h"
+#include "vm/instructions.h"
 
 namespace dart {
 
@@ -114,12 +114,14 @@ void ARMDecoder::PrintCondition(Instr* instr) {
 // formatting, except for register alias pp (r5).
 // See for example the command "objdump -d <binary file>".
 static const char* reg_names[kNumberOfCpuRegisters] = {
-#if defined(TARGET_OS_MACOS)
+#if defined(TARGET_ABI_IOS)
   "r0", "r1", "r2", "r3", "r4", "pp", "r6", "fp",
   "r8", "r9", "r10", "r11", "ip", "sp", "lr", "pc",
-#else
+#elif defined(TARGET_ABI_EABI)
   "r0", "r1", "r2", "r3", "r4", "pp", "r6", "r7",
   "r8", "r9", "r10", "fp", "ip", "sp", "lr", "pc",
+#else
+#error Unknown ABI
 #endif
 };
 
@@ -1532,13 +1534,22 @@ void ARMDecoder::InstructionDecode(uword pc) {
 
 void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                      char* human_buffer, intptr_t human_size,
-                                     int* out_instr_size, uword pc) {
+                                     int* out_instr_size, const Code& code,
+                                     Object** object, uword pc) {
   ARMDecoder decoder(human_buffer, human_size);
   decoder.InstructionDecode(pc);
   int32_t instruction_bits = Instr::At(pc)->InstructionBits();
   OS::SNPrint(hex_buffer, hex_size, "%08x", instruction_bits);
   if (out_instr_size) {
     *out_instr_size = Instr::kInstrSize;
+  }
+
+  *object = NULL;
+  if (!code.IsNull()) {
+    *object = &Object::Handle();
+    if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
+      *object = NULL;
+    }
   }
 }
 

@@ -17,7 +17,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -34,38 +33,91 @@ void addLibraryImports(SourceChange change, LibraryElement targetLibrary,
     Set<LibraryElement> libraries) {
   CompilationUnitElement libUnitElement = targetLibrary.definingCompilationUnit;
   CompilationUnit libUnit = getParsedUnit(libUnitElement);
-  // prepare new import location
-  int offset = 0;
-  String prefix;
-  String suffix;
-  {
-    // if no directives
-    prefix = '';
-    CorrectionUtils libraryUtils = new CorrectionUtils(libUnit);
-    String eol = libraryUtils.endOfLine;
-    suffix = eol;
-    // after last directive in library
-    for (Directive directive in libUnit.directives) {
-      if (directive is LibraryDirective || directive is ImportDirective) {
-        offset = directive.end;
-        prefix = eol;
-        suffix = '';
-      }
-    }
-    // if still at the beginning of the file, skip shebang and line comments
-    if (offset == 0) {
-      CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
-      offset = desc.offset;
-      prefix = desc.prefix;
-      suffix = desc.suffix + eol;
+  CorrectionUtils libUtils = new CorrectionUtils(libUnit);
+  String eol = libUtils.endOfLine;
+  // Prepare information about existing imports.
+  LibraryDirective libraryDirective;
+  List<_ImportDirectiveInfo> importDirectives = <_ImportDirectiveInfo>[];
+  for (Directive directive in libUnit.directives) {
+    if (directive is LibraryDirective) {
+      libraryDirective = directive;
+    } else if (directive is ImportDirective) {
+      importDirectives.add(new _ImportDirectiveInfo(
+          directive.uriContent, directive.offset, directive.end));
     }
   }
-  // insert imports
-  for (LibraryElement library in libraries) {
-    String importPath = getLibrarySourceUri(targetLibrary, library.source);
-    String importCode = "${prefix}import '$importPath';$suffix";
-    doSourceChange_addElementEdit(
-        change, targetLibrary, new SourceEdit(offset, 0, importCode));
+
+  // Prepare all URIs to import.
+  List<String> uriList = libraries
+      .map((library) => getLibrarySourceUri(targetLibrary, library.source))
+      .toList();
+  uriList.sort((a, b) => a.compareTo(b));
+
+  // Insert imports: between existing imports.
+  if (importDirectives.isNotEmpty) {
+    bool isFirstPackage = true;
+    for (String importUri in uriList) {
+      bool inserted = false;
+      bool isPackage = importUri.startsWith('package:');
+      bool isAfterDart = false;
+      for (_ImportDirectiveInfo existingImport in importDirectives) {
+        if (existingImport.uri.startsWith('dart:')) {
+          isAfterDart = true;
+        }
+        if (existingImport.uri.startsWith('package:')) {
+          isFirstPackage = false;
+        }
+        if (importUri.compareTo(existingImport.uri) < 0) {
+          String importCode = "import '$importUri';$eol";
+          doSourceChange_addElementEdit(change, targetLibrary,
+              new SourceEdit(existingImport.offset, 0, importCode));
+          inserted = true;
+          break;
+        }
+      }
+      if (!inserted) {
+        String importCode = "${eol}import '$importUri';";
+        if (isPackage && isFirstPackage && isAfterDart) {
+          importCode = eol + importCode;
+        }
+        doSourceChange_addElementEdit(change, targetLibrary,
+            new SourceEdit(importDirectives.last.end, 0, importCode));
+      }
+      if (isPackage) {
+        isFirstPackage = false;
+      }
+    }
+    return;
+  }
+
+  // Insert imports: after the library directive.
+  if (libraryDirective != null) {
+    String prefix = eol + eol;
+    for (String importUri in uriList) {
+      String importCode = "${prefix}import '$importUri';";
+      prefix = eol;
+      doSourceChange_addElementEdit(change, targetLibrary,
+          new SourceEdit(libraryDirective.end, 0, importCode));
+    }
+    return;
+  }
+
+  // If still at the beginning of the file, skip shebang and line comments.
+  {
+    CorrectionUtils_InsertDesc desc = libUtils.getInsertDescTop();
+    int offset = desc.offset;
+    for (int i = 0; i < uriList.length; i++) {
+      String importUri = uriList[i];
+      String importCode = "import '$importUri';$eol";
+      if (i == 0) {
+        importCode = desc.prefix + importCode;
+      }
+      if (i == uriList.length - 1) {
+        importCode = importCode + desc.suffix;
+      }
+      doSourceChange_addElementEdit(
+          change, targetLibrary, new SourceEdit(offset, 0, importCode));
+    }
   }
 }
 
@@ -1285,18 +1337,15 @@ class CorrectionUtils {
    */
   _InvertedCondition _invertCondition0(Expression expression) {
     if (expression is BooleanLiteral) {
-      BooleanLiteral literal = expression;
-      if (literal.value) {
+      if (expression.value) {
         return _InvertedCondition._simple("false");
       } else {
         return _InvertedCondition._simple("true");
       }
-    }
-    if (expression is BinaryExpression) {
-      BinaryExpression binary = expression;
-      TokenType operator = binary.operator.type;
-      Expression le = binary.leftOperand;
-      Expression re = binary.rightOperand;
+    } else if (expression is BinaryExpression) {
+      TokenType operator = expression.operator.type;
+      Expression le = expression.leftOperand;
+      Expression re = expression.rightOperand;
       _InvertedCondition ls = _invertCondition0(le);
       _InvertedCondition rs = _invertCondition0(re);
       if (operator == TokenType.LT) {
@@ -1325,37 +1374,22 @@ class CorrectionUtils {
         return _InvertedCondition._binary(
             TokenType.AMPERSAND_AMPERSAND.precedence, ls, " && ", rs);
       }
-    }
-    if (expression is IsExpression) {
-      IsExpression isExpression = expression;
-      String expressionSource = getNodeText(isExpression.expression);
-      String typeSource = getNodeText(isExpression.type);
-      if (isExpression.notOperator == null) {
+    } else if (expression is IsExpression) {
+      String expressionSource = getNodeText(expression.expression);
+      String typeSource = getNodeText(expression.type);
+      if (expression.notOperator == null) {
         return _InvertedCondition._simple("$expressionSource is! $typeSource");
       } else {
         return _InvertedCondition._simple("$expressionSource is $typeSource");
       }
-    }
-    if (expression is PrefixExpression) {
-      PrefixExpression prefixExpression = expression;
-      TokenType operator = prefixExpression.operator.type;
+    } else if (expression is PrefixExpression) {
+      TokenType operator = expression.operator.type;
       if (operator == TokenType.BANG) {
-        Expression operand = prefixExpression.operand;
-        while (operand is ParenthesizedExpression) {
-          ParenthesizedExpression pe = operand as ParenthesizedExpression;
-          operand = pe.expression;
-        }
+        Expression operand = expression.operand.unParenthesized;
         return _InvertedCondition._simple(getNodeText(operand));
       }
-    }
-    if (expression is ParenthesizedExpression) {
-      ParenthesizedExpression pe = expression;
-      Expression innerExpression = pe.expression;
-      while (innerExpression is ParenthesizedExpression) {
-        innerExpression =
-            (innerExpression as ParenthesizedExpression).expression;
-      }
-      return _invertCondition0(innerExpression);
+    } else if (expression is ParenthesizedExpression) {
+      return _invertCondition0(expression.unParenthesized);
     }
     DartType type = expression.bestType;
     if (type.displayName == "bool") {
@@ -1413,16 +1447,13 @@ class CorrectionUtils_InsertDesc {
  */
 class TokenUtils {
   /**
-   * @return the first [KeywordToken] with given [Keyword], may be <code>null</code> if
-   *         not found.
+   * Return the first token in the list of [tokens] representing the given
+   * [keyword], or `null` if there is no such token.
    */
-  static KeywordToken findKeywordToken(List<Token> tokens, Keyword keyword) {
+  static Token findKeywordToken(List<Token> tokens, Keyword keyword) {
     for (Token token in tokens) {
-      if (token is KeywordToken) {
-        KeywordToken keywordToken = token;
-        if (keywordToken.keyword == keyword) {
-          return keywordToken;
-        }
+      if (token.keyword == keyword) {
+        return token;
       }
     }
     return null;
@@ -1486,6 +1517,14 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
         parent is PrefixedIdentifier && parent.identifier == node ||
         parent is PropertyAccess && parent.target == node;
   }
+}
+
+class _ImportDirectiveInfo {
+  final String uri;
+  final int offset;
+  final int end;
+
+  _ImportDirectiveInfo(this.uri, this.offset, this.end);
 }
 
 /**

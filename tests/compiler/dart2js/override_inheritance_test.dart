@@ -30,7 +30,7 @@ Future check(String source, {errors, warnings, hints, infos}) {
     compiler.parseScript(source);
     var cls = compiler.mainApp.find('Class');
     cls.ensureResolved(compiler.resolution);
-    MembersCreator.computeAllClassMembers(compiler, cls);
+    MembersCreator.computeAllClassMembers(compiler.resolution, cls);
 
     toList(o) => o == null ? [] : o is List ? o : [o];
 

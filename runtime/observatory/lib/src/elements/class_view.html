@@ -1,20 +1,12 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="action_link.html">
-<link rel="import" href="cpu_profile.html">
-<link rel="import" href="curly_block.html">
 <link rel="import" href="eval_box.html">
 <link rel="import" href="eval_link.html">
 <link rel="import" href="field_ref.html">
-<link rel="import" href="function_ref.html">
 <link rel="import" href="instance_ref.html">
-<link rel="import" href="library_ref.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
 <link rel="import" href="script_inset.html">
-<link rel="import" href="script_ref.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="class-view" extends="observatory-element">
+<polymer-element name="class-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
@@ -25,6 +17,7 @@
       <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
       <nav-refresh callback="{{ refreshAllocationProfile }}" label="Refresh Allocation Profile"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -34,6 +27,9 @@
         </template>
         <template if="{{ cls.isPatch }}">
           patch
+        </template>
+        <template if="{{ cls.mixin != null }}">
+          mixin
         </template>
         class {{ cls.name }}
       </h1>
@@ -59,9 +55,25 @@
 
         <template if="{{ cls.superclass != null }}">
           <div class="memberItem">
-            <div class="memberName">extends</div>
+            <div class="memberName">superclass</div>
             <div class="memberValue">
               <class-ref ref="{{ cls.superclass }}"></class-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ cls.superType != null }}">
+          <div class="memberItem">
+            <div class="memberName">supertype</div>
+            <div class="memberValue">
+              <instance-ref ref="{{ cls.superType }}"></instance-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ cls.mixin != null }}">
+          <div class="memberItem">
+            <div class="memberName">mixin</div>
+            <div class="memberValue">
+              <instance-ref ref="{{ cls.mixin }}"></instance-ref>
             </div>
           </div>
         </template>
@@ -245,15 +257,11 @@
           </div>
         </template>
       </div>
-      <sample-buffer-control id="sampleBufferControl"></sample-buffer-control>
+      <div id="sampleBufferControl"></div>
       <br>
-      <stack-trace-tree-config id="stackTraceTreeConfig"></stack-trace-tree-config>
+      <div id="stackTraceTreeConfig"></div>
       <br>
-      <div class="flex-row centered">
-        <div class="flex-item-90-percent outlined" style="margin: 16px; margin-left: 8px; margin-right: 8px">
-          <cpu-profile-tree id="cpuProfileTree"></cpu-profile-tree>
-        </div>
-      </div>
+      <div id="cpuProfileTree"></div>
     </div>
 
     <div class="content-centered-big">

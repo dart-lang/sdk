@@ -8,13 +8,7 @@ import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisEngine,
-        AnalysisErrorInfo,
-        AnalysisErrorInfoImpl,
-        AnalysisOptions,
-        CacheState,
-        InternalAnalysisContext;
+    show AnalysisEngine, AnalysisErrorInfo, CacheState, InternalAnalysisContext;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -30,7 +24,8 @@ class DartWorkManager implements WorkManager {
   /**
    * The list of errors that are reported for raw Dart [Source]s.
    */
-  static final List<ResultDescriptor> _SOURCE_ERRORS = <ResultDescriptor>[
+  static final List<ResultDescriptor<List<AnalysisError>>> _SOURCE_ERRORS =
+      <ResultDescriptor<List<AnalysisError>>>[
     BUILD_DIRECTIVES_ERRORS,
     BUILD_LIBRARY_ERRORS,
     PARSE_ERRORS,
@@ -40,11 +35,13 @@ class DartWorkManager implements WorkManager {
   /**
    * The list of errors that are reported for raw Dart [LibrarySpecificUnit]s.
    */
-  static final List<ResultDescriptor> _UNIT_ERRORS = <ResultDescriptor>[
+  static final List<ResultDescriptor<List<AnalysisError>>> _UNIT_ERRORS =
+      <ResultDescriptor<List<AnalysisError>>>[
     HINTS,
     LINTS,
     LIBRARY_UNIT_ERRORS,
     RESOLVE_TYPE_NAMES_ERRORS,
+    RESOLVE_TYPE_BOUNDS_ERRORS,
     RESOLVE_UNIT_ERRORS,
     STRONG_MODE_ERRORS,
     VARIABLE_REFERENCE_ERRORS,
@@ -85,7 +82,7 @@ class DartWorkManager implements WorkManager {
    * Initialize a newly created manager.
    */
   DartWorkManager(this.context) {
-    analysisCache.onResultInvalidated.listen((InvalidatedResult event) {
+    context.onResultInvalidated.listen((InvalidatedResult event) {
       if (event.descriptor == LIBRARY_ERRORS_READY) {
         CacheEntry entry = event.entry;
         if (entry.explicitlyAdded &&
@@ -120,7 +117,10 @@ class DartWorkManager implements WorkManager {
   void applyChange(List<Source> addedSources, List<Source> changedSources,
       List<Source> removedSources) {
     addedSources = addedSources.where(_isDartSource).toList();
-    changedSources = changedSources.where(_isDartSource).toList();
+    changedSources = changedSources
+        .where(_isDartSource)
+        .where((source) => _needsComputing(source, SOURCE_KIND))
+        .toList();
     removedSources = removedSources.where(_isDartSource).toList();
     // unknown queue
     unknownSourceQueue.addAll(addedSources);
@@ -178,12 +178,12 @@ class DartWorkManager implements WorkManager {
     }
     // If analysis is in progress, combine all known partial results.
     List<AnalysisError> errors = <AnalysisError>[];
-    for (ResultDescriptor descriptor in _SOURCE_ERRORS) {
+    for (ResultDescriptor<List<AnalysisError>> descriptor in _SOURCE_ERRORS) {
       errors.addAll(analysisCache.getValue(source, descriptor));
     }
     for (Source library in context.getLibrariesContaining(source)) {
       LibrarySpecificUnit unit = new LibrarySpecificUnit(library, source);
-      for (ResultDescriptor descriptor in _UNIT_ERRORS) {
+      for (ResultDescriptor<List<AnalysisError>> descriptor in _UNIT_ERRORS) {
         errors.addAll(analysisCache.getValue(unit, descriptor));
       }
     }
@@ -202,7 +202,8 @@ class DartWorkManager implements WorkManager {
       }
     }
     List<Source> libraries = partLibrariesMap[part];
-    return libraries != null ? libraries : Source.EMPTY_LIST;
+    libraries ??= _getLibrariesContainingPartFromResultProvider(part);
+    return libraries?.toList() ?? Source.EMPTY_LIST;
   }
 
   @override
@@ -304,7 +305,7 @@ class DartWorkManager implements WorkManager {
     // Update parts in libraries.
     if (isDartLibrarySource) {
       Source library = target;
-      List<Source> includedParts = outputs[INCLUDED_PARTS];
+      List<Source> includedParts = outputs[INCLUDED_PARTS] as List<Source>;
       if (includedParts != null) {
         libraryPartsMap[library] = includedParts;
         for (Source part in includedParts) {
@@ -350,8 +351,25 @@ class DartWorkManager implements WorkManager {
     }
   }
 
+  /**
+   * The given unit was incrementally resolved. Some of its error results might
+   * have been invalidated, so we schedule it for computing errors.
+   */
   void unitIncrementallyResolved(Source librarySource, Source unitSource) {
     librarySourceQueue.add(librarySource);
+  }
+
+  /**
+   * Ask the [context]'s result provider for [CONTAINING_LIBRARIES].
+   * Return the list of containing libraries, or `null` if unknown.
+   */
+  List<Source> _getLibrariesContainingPartFromResultProvider(Source part) {
+    CacheEntry cacheEntry = context.getCacheEntry(part);
+    bool knows = context.aboutToComputeResult(cacheEntry, CONTAINING_LIBRARIES);
+    if (knows) {
+      return cacheEntry.getValue(CONTAINING_LIBRARIES);
+    }
+    return null;
   }
 
   /**

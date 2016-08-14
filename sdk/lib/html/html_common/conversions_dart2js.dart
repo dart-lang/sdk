@@ -92,8 +92,13 @@ Future convertNativePromiseToDartFuture(promise) {
   return completer.future;
 }
 
-/// Wrap a JS object with an instance of the matching dart:html class. Used only in Dartium.
-wrap_jso(jsObject) => jsObject;
-
-/// Find the underlying JS object for a dart:html Dart object.
-unwrap_jso(dartClass_instance) => dartClass_instance;
+const String _serializedScriptValue =
+    'num|String|bool|'
+    'JSExtendableArray|=Object|'
+    'Blob|File|NativeByteBuffer|NativeTypedData'
+    // TODO(sra): Add Date, RegExp.
+    ;
+const annotation_Creates_SerializedScriptValue =
+    const Creates(_serializedScriptValue);
+const annotation_Returns_SerializedScriptValue =
+    const Returns(_serializedScriptValue);

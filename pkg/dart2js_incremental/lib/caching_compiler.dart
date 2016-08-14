@@ -36,11 +36,11 @@ Future<CompilerImpl> reuseCompiler(
   CompilerImpl compiler = cachedCompiler;
   if (compiler == null ||
       compiler.libraryRoot != libraryRoot ||
-      !compiler.hasIncrementalSupport ||
+      !compiler.options.hasIncrementalSupport ||
       compiler.hasCrashed ||
       compiler.enqueuer.resolution.hasEnqueuedReflectiveElements ||
       compiler.deferredLoadTask.isProgramSplit) {
-    if (compiler != null && compiler.hasIncrementalSupport) {
+    if (compiler != null && compiler.options.hasIncrementalSupport) {
       print('***FLUSH***');
       if (compiler.hasCrashed) {
         print('Unable to reuse compiler due to crash.');
@@ -57,12 +57,11 @@ Future<CompilerImpl> reuseCompiler(
         inputProvider,
         outputProvider,
         diagnosticHandler,
-        libraryRoot,
-        packageRoot,
-        options,
-        environment,
-        null,
-        null);
+        new CompilerOptions.parse(
+            libraryRoot: libraryRoot,
+            packageRoot: packageRoot,
+            options: options,
+            environment: environment));
     JavaScriptBackend backend = compiler.backend;
 
     full.Emitter emitter = backend.emitter.emitter;
@@ -88,11 +87,7 @@ Future<CompilerImpl> reuseCompiler(
       });
     });
   } else {
-    for (final task in compiler.tasks) {
-      if (task.watch != null) {
-        task.watch.reset();
-      }
-    }
+    compiler.tasks.forEach((t) => t.clearMeasurements());
     compiler
         ..userOutputProvider = outputProvider
         ..provider = inputProvider

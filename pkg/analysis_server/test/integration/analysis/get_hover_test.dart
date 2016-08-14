@@ -173,13 +173,14 @@ main() {
           isLocal: true,
           docRegexp: 'Documentation for func',
           parameterRegexps: ['.*']));
-      tests.add(checkHover('add(', 3, ['List', 'add'], 'method', null,
+      tests.add(checkHover(
+          'add(', 3, ['List', 'add'], 'method', ['dynamic', 'void'],
           isCore: true, docRegexp: '.*'));
       tests.add(checkHover(
           'localVar)', 8, ['num', 'localVar'], 'local variable', ['num'],
           isLocal: true, parameterRegexps: ['.*'], propagatedType: 'int'));
       tests.add(checkHover(
-          'func(35', 4, ['func', 'int', 'param'], 'function', null,
+          'func(35', 4, ['func', 'int', 'param'], 'function', ['int', 'void'],
           docRegexp: 'Documentation for func'));
       tests.add(checkHover('35', 2, null, null, ['int'],
           isLiteral: true, parameterRegexps: ['int', 'param']));

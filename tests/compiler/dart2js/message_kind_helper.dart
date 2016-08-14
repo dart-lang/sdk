@@ -10,8 +10,6 @@ import 'dart:async';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart' show
     Compiler;
-import 'package:compiler/src/dart_backend/dart_backend.dart' show
-    DartBackend;
 import 'package:compiler/src/diagnostics/messages.dart' show
     MessageKind,
     MessageTemplate;
@@ -35,6 +33,7 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
     MessageKind.CANNOT_MIXIN_MALFORMED,
     MessageKind.CANNOT_INSTANTIATE_ENUM,
     MessageKind.CYCLIC_TYPEDEF_ONE,
+    MessageKind.DUPLICATE_DEFINITION,
     MessageKind.EQUAL_MAP_ENTRY_KEY,
     MessageKind.FINAL_FUNCTION_TYPE_PARAMETER,
     MessageKind.FORMAL_DECLARED_CONST,
@@ -70,21 +69,12 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
     }
     DiagnosticCollector collector = new DiagnosticCollector();
 
-    bool oldBackendIsDart;
-    if (cachedCompiler != null) {
-      oldBackendIsDart = cachedCompiler.backend is DartBackend;
-    }
-    bool newBackendIsDart = template.options.contains('--output-type=dart');
-
     Compiler compiler = compilerFor(
         memorySourceFiles: example,
         diagnosticHandler: collector,
         options: [Flags.analyzeOnly,
                   Flags.enableExperimentalMirrors]..addAll(template.options),
-        cachedCompiler:
-             // TODO(johnniwinther): Remove this restriction when constant
-             // values can be computed directly from the expressions.
-             oldBackendIsDart == newBackendIsDart ? cachedCompiler : null);
+        cachedCompiler: cachedCompiler);
 
     return compiler.run(Uri.parse('memory:main.dart')).then((_) {
       Iterable<CollectedMessage> messages = collector.filterMessagesByKinds(

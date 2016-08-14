@@ -1,10 +1,9 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 library mock_compiler;
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:collection';
 
@@ -12,35 +11,41 @@ import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/common/names.dart' show
     Uris;
 import 'package:compiler/src/constants/expressions.dart';
+import 'package:compiler/src/dart_types.dart' show DartType;
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/js_backend/backend_helpers.dart'
-    show BackendHelpers;
-import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
-    show LookupMapAnalysis;
+import 'package:compiler/src/elements/visitor.dart';
+import 'package:compiler/src/js_backend/backend_helpers.dart' show
+    BackendHelpers;
+import 'package:compiler/src/js_backend/lookup_map_analysis.dart' show
+    LookupMapAnalysis;
 import 'package:compiler/src/io/source_file.dart';
+import 'package:compiler/src/options.dart' show
+    CompilerOptions;
 import 'package:compiler/src/resolution/members.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/scope.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
+import 'package:compiler/src/resolved_uri_translator.dart';
 import 'package:compiler/src/script.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/old_to_new_api.dart';
 import 'parser_helper.dart';
 
-import 'package:compiler/src/elements/modelx.dart'
-    show ElementX,
-         LibraryElementX,
-         ErroneousElementX,
-         FunctionElementX;
+import 'package:compiler/src/elements/modelx.dart' show
+    ElementX,
+    LibraryElementX,
+    ErroneousElementX,
+    FunctionElementX;
 
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/common/tasks.dart' show Measurer;
 
-import 'package:compiler/src/deferred_load.dart'
-    show DeferredLoadTask,
-         OutputUnit;
+import 'package:compiler/src/deferred_load.dart' show
+    DeferredLoadTask,
+    OutputUnit;
 
 import 'mock_libraries.dart';
 import 'diagnostic_helper.dart';
@@ -63,17 +68,18 @@ class MockCompiler extends Compiler {
   final String testedPatchVersion;
   final LibrarySourceProvider librariesOverride;
   final DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+  final ResolvedUriTranslator resolvedUriTranslator =
+      new MockResolvedUriTranslator();
+  final Measurer measurer = new Measurer();
 
   MockCompiler.internal(
       {Map<String, String> coreSource,
        bool enableTypeAssertions: false,
        bool enableUserAssertions: false,
        bool enableMinification: false,
-       int maxConcreteTypeSize: 5,
        bool disableTypeInference: false,
        bool analyzeAll: false,
        bool analyzeOnly: false,
-       bool emitJavaScript: true,
        bool preserveComments: false,
        // Our unit tests check code generation output that is
        // affected by inlining support.
@@ -88,22 +94,22 @@ class MockCompiler extends Compiler {
        LibrarySourceProvider this.librariesOverride})
       : sourceFiles = new Map<String, SourceFile>(),
         testedPatchVersion = patchVersion,
-        super(enableTypeAssertions: enableTypeAssertions,
+        super(options: new CompilerOptions(
+              entryPoint: new Uri(scheme: 'mock'),
+              libraryRoot: Uri.parse('placeholder_library_root_for_mock/'),
+              enableTypeAssertions: enableTypeAssertions,
               enableUserAssertions: enableUserAssertions,
+              disableInlining: disableInlining,
               enableAssertMessage: true,
               enableMinification: enableMinification,
-              maxConcreteTypeSize: maxConcreteTypeSize,
-              disableTypeInferenceFlag: disableTypeInference,
-              analyzeAllFlag: analyzeAll,
+              disableTypeInference: disableTypeInference,
+              analyzeAll: analyzeAll,
               analyzeOnly: analyzeOnly,
-              emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
-              diagnosticOptions:
-                  new DiagnosticOptions(shownPackageWarnings: const []),
+              shownPackageWarnings: const []),
               outputProvider: new LegacyCompilerOutput(outputProvider)) {
-    this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
 
@@ -219,10 +225,15 @@ class MockCompiler extends Compiler {
   TreeElementMapping resolveNodeStatement(Node tree,
                                           ExecutableElement element) {
     ResolverVisitor visitor =
-        new ResolverVisitor(this, element,
-            new ResolutionRegistry(this,
-                new CollectingTreeElements(element)));
-    if (visitor.scope is LibraryScope) {
+        new ResolverVisitor(
+            this.resolution,
+            element,
+            new ResolutionRegistry(this.backend,
+                new CollectingTreeElements(element)),
+            scope: new MockTypeVariablesScope(
+                element.enclosingElement.buildScope()));
+    if (visitor.scope is LibraryScope ||
+        visitor.scope is MockTypeVariablesScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
     }
     visitor.visit(tree);
@@ -233,9 +244,12 @@ class MockCompiler extends Compiler {
   resolverVisitor() {
     Element mockElement = new MockElement(mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
-        new ResolverVisitor(this, mockElement,
-          new ResolutionRegistry(this,
-              new CollectingTreeElements(mockElement)));
+        new ResolverVisitor(
+            this.resolution,
+            mockElement,
+            new ResolutionRegistry(
+                this.backend, new CollectingTreeElements(mockElement)),
+            scope: mockElement.enclosingElement.buildScope());
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;
   }
@@ -255,9 +269,6 @@ class MockCompiler extends Compiler {
     return new Future.value();
   }
 
-  Uri translateResolvedUri(LibraryElement importingLibrary,
-                           Uri resolvedUri, Spannable spannable) => resolvedUri;
-
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) {
     if (dartLibraryName == 'core') {
@@ -266,7 +277,7 @@ class MockCompiler extends Compiler {
     return null;
   }
 
-  Future<Script> readScript(Spannable node, Uri uri) {
+  Future<Script> readScript(Uri uri, [Spannable spannable]) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
     if (sourceFile == null) throw new ArgumentError(uri);
     return new Future.value(new Script(uri, uri, sourceFile));
@@ -284,6 +295,17 @@ class MockCompiler extends Compiler {
     MockCompiler compiler = new MockCompiler.internal();
     return compiler.init().then((_) => f(compiler));
   }
+}
+
+class MockResolvedUriTranslator implements ResolvedUriTranslator {
+  static final _emptySet = new Set();
+
+  Uri translate(LibraryElement importingLibrary, Uri resolvedUri,
+          [Spannable spannable]) =>
+      resolvedUri;
+  Set<Uri> get disallowedLibraryUris => _emptySet;
+  bool get mockableLibraryUsed => false;
+  Map<String, Uri> get sdkLibraries => const <String, Uri>{};
 }
 
 class CollectingTreeElements extends TreeElementMapping {
@@ -306,6 +328,13 @@ class CollectingTreeElements extends TreeElementMapping {
     forEachConstantNode((_, c) => list.add(c));
     return list;
   }
+}
+
+class MockTypeVariablesScope extends TypeVariablesScope {
+  @override
+  List<DartType> get typeVariables => <DartType>[];
+  MockTypeVariablesScope(Scope parent) : super(parent);
+  String toString() => 'MockTypeVariablesScope($parent)';
 }
 
 // The mock compiler does not split the program in output units.
@@ -345,6 +374,10 @@ class MockElement extends FunctionElementX {
   parseNode(_) => null;
 
   bool get hasNode => false;
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitMethodElement(this, arg);
+  }
 }
 
 // TODO(herhut): Disallow warnings and errors during compilation by default.

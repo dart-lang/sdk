@@ -17,7 +17,7 @@ namespace dart {
 // Generate a simple dart code sequence.
 // This is used to test Code and Instruction object creation.
 void GenerateIncrement(Assembler* assembler) {
-  __ mov(SP, CSP);
+  __ EnterFrame(1 * kWordSize);
   __ movz(R0, Immediate(0), 0);
   __ Push(R0);
   __ add(R0, R0, Operand(1));
@@ -26,6 +26,7 @@ void GenerateIncrement(Assembler* assembler) {
   __ add(R1, R1, Operand(1));
   __ Pop(R0);
   __ mov(R0, R1);
+  __ LeaveFrame();
   __ ret();
 }
 

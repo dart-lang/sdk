@@ -8,6 +8,8 @@ import 'dart:convert';
 import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_provider.dart'
+    show PackageMapProvider;
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
@@ -29,6 +31,12 @@ class SdkExtUriResolver extends UriResolver {
 
   final Map<String, String> _urlMappings = <String, String>{};
 
+  /**
+   * The absolute paths of the extension files that contributed to the
+   * [_urlMappings].
+   */
+  final List<String> extensionFilePaths = <String>[];
+
   /// Construct a [SdkExtUriResolver] from a package map
   /// (see [PackageMapProvider]).
   SdkExtUriResolver(Map<String, List<Folder>> packageMap) {
@@ -40,6 +48,13 @@ class SdkExtUriResolver extends UriResolver {
 
   /// Number of sdk extensions.
   int get length => _urlMappings.length;
+
+  /**
+   * Return a table mapping the names of extensions to the paths where those
+   * extensions can be found.
+   */
+  Map<String, String> get urlMappings =>
+      new Map<String, String>.from(_urlMappings);
 
   /// Return the path mapping for [libName] or null if there is none.
   String operator [](String libName) => _urlMappings[libName];
@@ -138,24 +153,33 @@ class SdkExtUriResolver extends UriResolver {
     if ((sdkExt == null) || (sdkExt is! Map)) {
       return;
     }
-    sdkExt.forEach((k, v) => _processSdkExtension(k, v, libDir));
+    bool contributed = false;
+    sdkExt.forEach((k, v) {
+      if (_processSdkExtension(k, v, libDir)) {
+        contributed = true;
+      }
+    });
+    if (contributed) {
+      extensionFilePaths.add(libDir.getChild(SDK_EXT_NAME).path);
+    }
   }
 
   /// Install the mapping from [name] to [libDir]/[file].
-  void _processSdkExtension(String name, String file, Folder libDir) {
+  bool _processSdkExtension(String name, String file, Folder libDir) {
     if (!name.startsWith(DART_COLON_PREFIX)) {
       // SDK extensions must begin with 'dart:'.
-      return;
+      return false;
     }
     var key = name;
     var value = libDir.canonicalizePath(file);
     _urlMappings[key] = value;
+    return true;
   }
 
   /// Read the contents of [libDir]/[SDK_EXT_NAME] as a string.
   /// Returns null if the file doesn't exist.
   String _readDotSdkExt(Folder libDir) {
-    var file = libDir.getChild(SDK_EXT_NAME);
+    File file = libDir.getChild(SDK_EXT_NAME);
     try {
       return file.readAsStringSync();
     } on FileSystemException {

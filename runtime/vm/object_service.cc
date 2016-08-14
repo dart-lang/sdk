@@ -8,6 +8,7 @@
 #include "vm/object_store.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/type_table.h"
 
 namespace dart {
 
@@ -101,9 +102,18 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", is_patch());
   jsobj.AddProperty("_traceAllocations", TraceAllocation(isolate));
+
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {
     jsobj.AddProperty("super", superClass);
+  }
+  const AbstractType& superType = AbstractType::Handle(super_type());
+  if (!superType.IsNull()) {
+    jsobj.AddProperty("superType", superType);
+  }
+  const Type& mix = Type::Handle(mixin());
+  if (!mix.IsNull()) {
+    jsobj.AddProperty("mixin", mix);
   }
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
@@ -178,9 +188,15 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // The index in the canonical_type_arguments table cannot be used as part of
   // the object id (as in typearguments/id), because the indices are not
   // preserved when the table grows and the entries get rehashed. Use the ring.
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
-  const Array& table = Array::Handle(object_store->canonical_type_arguments());
+  CanonicalTypeArgumentsSet typeargs_table(
+      zone, object_store->canonical_type_arguments());
+  const Array& table =
+      Array::Handle(HashTables::ToArray(typeargs_table, false));
+  typeargs_table.Release();
   ASSERT(table.Length() > 0);
   AddCommonObjectProperties(&jsobj, "TypeArguments", ref);
   jsobj.AddServiceId(*this);
@@ -421,18 +437,19 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& encoded_uri = String::Handle(String::EncodeIRI(uri));
   ASSERT(!encoded_uri.IsNull());
   const Library& lib = Library::Handle(FindLibrary());
-  if (kind() == RawScript::kEvaluateTag) {
+  if (lib.IsNull()) {
     jsobj.AddServiceId(*this);
   } else {
-    ASSERT(!lib.IsNull());
-    jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
-        lib.index(), encoded_uri.ToCString());
+    jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s/%" Px64 "",
+                            lib.index(), encoded_uri.ToCString(),
+                            load_timestamp());
   }
   jsobj.AddPropertyStr("uri", uri);
   jsobj.AddProperty("_kind", GetKindAsCString());
   if (ref) {
     return;
   }
+  jsobj.AddPropertyTimeMillis("_loadTime", load_timestamp());
   if (!lib.IsNull()) {
     jsobj.AddProperty("library", lib);
   }
@@ -817,7 +834,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   AddCommonObjectProperties(&jsobj, "Code", ref);
   jsobj.AddFixedServiceId("code/%" Px64"-%" Px "",
                           compile_timestamp(),
-                          EntryPoint());
+                          PayloadStart());
   const String& qualified_name = String::Handle(QualifiedName());
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, qualified_name, vm_name);
@@ -851,8 +868,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     func.AddProperty("name", vm_name.ToCString());
     AddNameProperties(&func, vm_name, vm_name);
   }
-  jsobj.AddPropertyF("_startAddress", "%" Px "", EntryPoint());
-  jsobj.AddPropertyF("_endAddress", "%" Px "", EntryPoint() + Size());
+  jsobj.AddPropertyF("_startAddress", "%" Px "", PayloadStart());
+  jsobj.AddPropertyF("_endAddress", "%" Px "", PayloadStart() + Size());
   jsobj.AddProperty("_alive", is_alive());
   const ObjectPool& object_pool = ObjectPool::Handle(GetObjectPool());
   jsobj.AddProperty("_objectPool", object_pool);
@@ -1025,27 +1042,33 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
     return;
   }
 
-  // Walk the superclass chain, adding all instance fields.
+  // Add all fields in layout order, from superclass to subclass.
+  GrowableArray<Class*> classes;
   Class& cls = Class::Handle(this->clazz());
+  do {
+    classes.Add(&Class::Handle(cls.raw()));
+    cls = cls.SuperClass();
+  } while (!cls.IsNull());
+
+  Array& field_array = Array::Handle();
+  Field& field = Field::Handle();
+  Instance& field_value = Instance::Handle();
   {
-    Instance& fieldValue = Instance::Handle();
     JSONArray jsarr(jsobj, "fields");
-    while (!cls.IsNull()) {
-      const Array& field_array = Array::Handle(cls.fields());
-      Field& field = Field::Handle();
+    for (intptr_t i = classes.length() - 1; i >= 0; i--) {
+      field_array = classes[i]->fields();
       if (!field_array.IsNull()) {
-        for (intptr_t i = 0; i < field_array.Length(); i++) {
-          field ^= field_array.At(i);
+        for (intptr_t j = 0; j < field_array.Length(); j++) {
+          field ^= field_array.At(j);
           if (!field.is_static()) {
-            fieldValue ^= GetField(field);
+            field_value ^= GetField(field);
             JSONObject jsfield(&jsarr);
             jsfield.AddProperty("type", "BoundField");
             jsfield.AddProperty("decl", field);
-            jsfield.AddProperty("value", fieldValue);
+            jsfield.AddProperty("value", field_value);
           }
         }
       }
-      cls = cls.SuperClass();
     }
   }
 
@@ -1112,40 +1135,15 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Type");
-  if (IsCanonical()) {
+  if (HasResolvedTypeClass()) {
     const Class& type_cls = Class::Handle(type_class());
-    intptr_t id = type_cls.FindCanonicalTypeIndex(*this);
-    ASSERT(id >= 0);
-    intptr_t cid = type_cls.id();
-    jsobj.AddFixedServiceId("classes/%" Pd "/types/%" Pd "", cid, id);
+    if (type_cls.CanonicalType() == raw()) {
+      intptr_t cid = type_cls.id();
+      jsobj.AddFixedServiceId("classes/%" Pd "/types/%d", cid, 0);
+    } else {
+      jsobj.AddServiceId(*this);
+    }
     jsobj.AddProperty("typeClass", type_cls);
-  } else {
-    jsobj.AddServiceId(*this);
-  }
-  const String& user_name = String::Handle(UserVisibleName());
-  const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name, vm_name);
-  if (ref) {
-    return;
-  }
-  const TypeArguments& typeArgs = TypeArguments::Handle(arguments());
-  if (!typeArgs.IsNull()) {
-    jsobj.AddProperty("typeArguments", typeArgs);
-  }
-}
-
-
-void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "FunctionType");
-  if (IsCanonical()) {
-    const Class& scope_cls = Class::Handle(scope_class());
-    intptr_t id = scope_cls.FindCanonicalTypeIndex(*this);
-    ASSERT(id >= 0);
-    intptr_t cid = scope_cls.id();
-    jsobj.AddFixedServiceId("classes/%" Pd "/types/%" Pd "", cid, id);
-    jsobj.AddProperty("scopeClass", scope_cls);
   } else {
     jsobj.AddServiceId(*this);
   }
@@ -1536,7 +1534,7 @@ void Stacktrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void JSRegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "RegExp");
@@ -1560,6 +1558,12 @@ void JSRegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_externalOneByteFunction", func);
   func = function(kExternalTwoByteStringCid);
   jsobj.AddProperty("_externalTwoByteFunction", func);
+
+  TypedData& bc = TypedData::Handle();
+  bc = bytecode(true);
+  jsobj.AddProperty("_oneByteBytecode", bc);
+  bc = bytecode(false);
+  jsobj.AddProperty("_twoByteBytecode", bc);
 }
 
 

@@ -14,6 +14,8 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer/file_system/file_system.dart' hide File;
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:path/path.dart' as pathos;
 
 export 'package:analyzer/dart/ast/ast.dart';
@@ -50,7 +52,8 @@ CompilationUnit parseCompilationUnit(String contents,
 CompilationUnit parseDartFile(String path,
     {bool suppressErrors: false, bool parseFunctionBodies: true}) {
   String contents = new File(path).readAsStringSync();
-  var sourceFactory = new SourceFactory([new FileUriResolver()]);
+  var sourceFactory = new SourceFactory(
+      [new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)]);
 
   var absolutePath = pathos.absolute(path);
   var source = sourceFactory.forUri(pathos.toUri(absolutePath).toString());
@@ -77,7 +80,6 @@ CompilationUnit parseDartFile(String path,
 /// [suppressErrors] is `true`, in which case any errors are discarded.
 CompilationUnit parseDirectives(String contents,
     {String name, bool suppressErrors: false}) {
-  if (name == null) name = '<unknown source>';
   var source = new StringSource(contents, name);
   var errorCollector = new _ErrorCollector();
   var reader = new CharSequenceReader(contents);
@@ -113,7 +115,7 @@ CompilationUnit _parseSource(String contents, Source source,
   return unit;
 }
 
-/// A simple error listener that collects errors into an [AnalysisErrorGroup].
+/// A simple error listener that collects errors into an [AnalyzerErrorGroup].
 class _ErrorCollector extends AnalysisErrorListener {
   final _errors = <AnalysisError>[];
 

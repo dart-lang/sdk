@@ -24,7 +24,6 @@ namespace dart {
   V(Type)                                                                      \
   V(Assignable)                                                                \
   V(BinaryOp)                                                                  \
-  V(BinaryOpWithMask32)                                                        \
   V(Comparison)                                                                \
   V(UnaryOp)                                                                   \
   V(ConditionalExpr)                                                           \
@@ -541,15 +540,16 @@ class ClosureNode : public AstNode {
   ClosureNode(TokenPosition token_pos,
               const Function& function,
               AstNode* receiver,  // Non-null for implicit instance closures.
-              LocalScope* scope)  // Null for implicit closures.
+              LocalScope* scope)  // Null for implicit closures or functions
+                                  // that already have a ContextScope because
+                                  // they were compiled before.
       : AstNode(token_pos),
         function_(function),
         receiver_(receiver),
         scope_(scope),
         is_deferred_reference_(false) {
     ASSERT(function_.IsZoneHandle());
-    ASSERT((function_.IsNonImplicitClosureFunction() &&
-            (receiver_ == NULL) && (scope_ != NULL)) ||
+    ASSERT((function_.IsNonImplicitClosureFunction() && (receiver_ == NULL)) ||
            (function_.IsImplicitInstanceClosureFunction() &&
             (receiver_ != NULL) && (scope_ == NULL)) ||
            (function_.IsImplicitStaticClosureFunction() &&
@@ -617,7 +617,7 @@ class PrimaryNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(PrimaryNode);
 };
 
-// In asynchronous code that gets suspeded and resumed, return nodes
+// In asynchronous code that gets suspended and resumed, return nodes
 // can be of different types:
 // * A regular return node that in the case of async functions
 //    gets replaced with appropriate completer calls. (kRegular)
@@ -766,36 +766,6 @@ class BinaryOpNode : public AstNode {
   bool IsKindValid() const;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BinaryOpNode);
-};
-
-
-class BinaryOpWithMask32Node : public BinaryOpNode {
- public:
-  BinaryOpWithMask32Node(TokenPosition token_pos,
-                         Token::Kind kind_value,
-                         AstNode* left,
-                         AstNode* right,
-                         int64_t mask32)
-      : BinaryOpNode(token_pos, kind_value, left, right), mask32_(mask32) {
-    ASSERT(mask32 >= 0 && Utils::IsUint(32, mask32));
-    ASSERT((kind_value != Token::kAND) && (kind_value != Token::kOR));
-  }
-
-  // The optional 32-bit mask must be a an unsigned 32-bit value.
-  virtual bool has_mask32() const { return true; }
-  virtual int64_t mask32() const {
-    ASSERT(has_mask32());
-    return mask32_;
-  }
-
-  const char* TokenName() const;
-  DECLARE_COMMON_NODE_FUNCTIONS(BinaryOpWithMask32Node);
-
- private:
-  // Optional unsigned 32 bit mask applied on result. No mask: -1.
-  const int64_t mask32_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(BinaryOpWithMask32Node);
 };
 
 
@@ -1273,11 +1243,13 @@ class StoreInstanceFieldNode : public AstNode {
   StoreInstanceFieldNode(TokenPosition token_pos,
                          AstNode* instance,
                          const Field& field,
-                         AstNode* value)
+                         AstNode* value,
+                         bool is_initializer)
       : AstNode(token_pos),
         instance_(instance),
         field_(*MayCloneField(field)),
-        value_(value) {
+        value_(value),
+        is_initializer_(is_initializer) {
     ASSERT(instance_ != NULL);
     ASSERT(field_.IsZoneHandle());
     ASSERT(value_ != NULL);
@@ -1286,6 +1258,7 @@ class StoreInstanceFieldNode : public AstNode {
   AstNode* instance() const { return instance_; }
   const Field& field() const { return field_; }
   AstNode* value() const { return value_; }
+  bool is_initializer() const { return is_initializer_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     instance()->Visit(visitor);
@@ -1298,6 +1271,7 @@ class StoreInstanceFieldNode : public AstNode {
   AstNode* instance_;
   const Field& field_;
   AstNode* value_;
+  const bool is_initializer_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StoreInstanceFieldNode);
 };

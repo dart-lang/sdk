@@ -7,7 +7,6 @@ dummy_compiler_test: Slow, Pass
 
 [ $compiler == dart2js ]
 recursive_import_test: Slow, Pass
-source_mirrors_test: Slow, Pass
 
 [ $compiler == dart2js && $browser ]
 *: Skip
@@ -18,10 +17,10 @@ dart2js_test: SkipByDesign # Uses dart:io.
 [ $compiler == dart2js && $mode == debug ]
 dummy_compiler_test: Slow, Pass
 
-[ $noopt || $compiler == precompiler || $mode == product ]
-source_mirrors_test: SkipByDesign # Imports dart:mirrors
-
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 dummy_compiler_test: Crash # Issue 24485
 recursive_import_test: Crash # Issue 24485
-source_mirrors_test: Crash # Issue 24485
+
+[ $hot_reload || $hot_reload_rollback ]
+recursive_import_test: Skip # Running dart2js under frequent reloads is slow.
+dummy_compiler_test: Skip # Running dart2js under frequent reloads is slow.

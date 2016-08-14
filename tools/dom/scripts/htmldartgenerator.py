@@ -177,7 +177,7 @@ class HtmlDartGenerator(object):
 
     # Never remove operations that are added as a result of an implements they
     # are pure interfaces (mixins to this interface).
-    if (IsPureInterface(parent_name)):
+    if (IsPureInterface(parent_name, self._database)):
       return
 
     for operation in parent.operations:
@@ -420,7 +420,7 @@ class HtmlDartGenerator(object):
           else:
             checks.append('(%s is %s)' % (
                 parameter_name, test_type))
-        elif i >= number_of_required_in_dart:
+        elif i >= number_of_required_in_dart and not argument.type.nullable:
           checks.append('%s != null' % parameter_name)
 
       # There can be multiple presence checks.  We need them all since a later
@@ -587,7 +587,7 @@ class HtmlDartGenerator(object):
         inits = self._members_emitter.Emit(
             '\n  $(METADATA)'
             'factory $CONSTRUCTOR($PARAMS) {\n'
-            '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+            '    $CONSTRUCTOR e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
             '$!INITS'
             '    return e;\n'
             '  }\n',
@@ -626,7 +626,7 @@ class HtmlDartGenerator(object):
             (factory_params, converted_arguments) = self._ConvertArgumentTypes(
                 stmts_emitter, arguments, argument_count, constructor_info)
             args = ', '.join(converted_arguments)
-            call_template = 'wrap_jso($FACTORY_NAME($FACTORY_PARAMS))'
+            call_template = '$FACTORY_NAME($FACTORY_PARAMS)'
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',

@@ -97,6 +97,8 @@ class AssistProcessor {
     _addProposal_addTypeAnnotation_SimpleFormalParameter();
     _addProposal_addTypeAnnotation_VariableDeclaration();
     _addProposal_assignToLocalVariable();
+    _addProposal_convertIntoFinalField();
+    _addProposal_convertIntoGetter();
     _addProposal_convertDocumentationIntoBlock();
     _addProposal_convertDocumentationIntoLine();
     _addProposal_convertToBlockFunctionBody();
@@ -234,7 +236,7 @@ class AssistProcessor {
     }
     // add edit
     Token keyword = declaredIdentifier.keyword;
-    if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
+    if (keyword.keyword == Keyword.VAR) {
       SourceRange range = rangeToken(keyword);
       _addReplaceEdit(range, typeSource);
     } else {
@@ -338,7 +340,7 @@ class AssistProcessor {
     }
     // add edit
     Token keyword = declarationList.keyword;
-    if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
+    if (keyword?.keyword == Keyword.VAR) {
       SourceRange range = rangeToken(keyword);
       _addReplaceEdit(range, typeSource);
     } else {
@@ -479,6 +481,113 @@ class AssistProcessor {
     }
     // add proposal
     _addAssist(DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE, []);
+  }
+
+  void _addProposal_convertIntoFinalField() {
+    // Find the enclosing getter.
+    MethodDeclaration getter;
+    for (AstNode n = node; n != null; n = n.parent) {
+      if (n is MethodDeclaration) {
+        getter = n;
+        break;
+      }
+      if (n is SimpleIdentifier || n is TypeName || n is TypeArgumentList) {
+        continue;
+      }
+      break;
+    }
+    if (getter == null || !getter.isGetter) {
+      return;
+    }
+    // Check that there is no corresponding setter.
+    {
+      ExecutableElement element = getter.element;
+      if (element == null) {
+        return;
+      }
+      Element enclosing = element.enclosingElement;
+      if (enclosing is ClassElement) {
+        if (enclosing.getSetter(element.name) != null) {
+          return;
+        }
+      }
+    }
+    // Try to find the returned expression.
+    Expression expression;
+    {
+      FunctionBody body = getter.body;
+      if (body is ExpressionFunctionBody) {
+        expression = body.expression;
+      } else if (body is BlockFunctionBody) {
+        List<Statement> statements = body.block.statements;
+        if (statements.length == 1) {
+          Statement statement = statements.first;
+          if (statement is ReturnStatement) {
+            expression = statement.expression;
+          }
+        }
+      }
+    }
+    // Use the returned expression as the field initializer.
+    if (expression != null) {
+      AstNode beginNodeToReplace = getter.name;
+      String code = 'final';
+      if (getter.returnType != null) {
+        beginNodeToReplace = getter.returnType;
+        code += ' ' + _getNodeText(getter.returnType);
+      }
+      code += ' ' + _getNodeText(getter.name);
+      if (expression is! NullLiteral) {
+        code += ' = ' + _getNodeText(expression);
+      }
+      code += ';';
+      _addReplaceEdit(rangeStartEnd(beginNodeToReplace, getter), code);
+      _addAssist(DartAssistKind.CONVERT_INTO_FINAL_FIELD, []);
+    }
+  }
+
+  void _addProposal_convertIntoGetter() {
+    // Find the enclosing field declaration.
+    FieldDeclaration fieldDeclaration;
+    for (AstNode n = node; n != null; n = n.parent) {
+      if (n is FieldDeclaration) {
+        fieldDeclaration = n;
+        break;
+      }
+      if (n is SimpleIdentifier ||
+          n is VariableDeclaration ||
+          n is VariableDeclarationList ||
+          n is TypeName ||
+          n is TypeArgumentList) {
+        continue;
+      }
+      break;
+    }
+    if (fieldDeclaration == null) {
+      return;
+    }
+    // The field must be final and has only one variable.
+    VariableDeclarationList fieldList = fieldDeclaration.fields;
+    if (!fieldList.isFinal || fieldList.variables.length != 1) {
+      return;
+    }
+    VariableDeclaration field = fieldList.variables.first;
+    // Prepare the initializer.
+    Expression initializer = field.initializer;
+    if (initializer == null) {
+      return;
+    }
+    // Add proposal.
+    String code = '';
+    if (fieldList.type != null) {
+      code += _getNodeText(fieldList.type) + ' ';
+    }
+    code += 'get';
+    code += ' ' + _getNodeText(field.name);
+    code += ' => ' + _getNodeText(initializer);
+    code += ';';
+    _addReplaceEdit(rangeStartEnd(fieldList.keyword, fieldDeclaration), code);
+    _addAssist(DartAssistKind.CONVERT_INTO_GETTER, []);
   }
 
   void _addProposal_convertToBlockFunctionBody() {

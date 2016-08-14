@@ -4,31 +4,59 @@
 
 library code_ref_element;
 
-import 'package:polymer/polymer.dart';
-import 'service_ref.dart';
-import 'package:observatory/service.dart';
+import 'dart:html';
+import 'dart:async';
+import 'package:observatory/models.dart' as M
+  show IsolateRef, CodeRef, isSyntheticCode;
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 
-@CustomTag('code-ref')
-class CodeRefElement extends ServiceRefElement {
-  CodeRefElement.created() : super.created();
+class CodeRefElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<CodeRefElement>('code-ref-wrapped');
 
-  Code get code => ref;
+  RenderingScheduler<CodeRefElement> _r;
 
-  refChanged(oldValue) {
-    super.refChanged(oldValue);
-    _updateShadowDom();
+  Stream<RenderedEvent<CodeRefElement>> get onRendered => _r.onRendered;
+
+  M.IsolateRef _isolate;
+  M.CodeRef _code;
+
+  M.IsolateRef get isolate => _isolate;
+  M.CodeRef get code => _code;
+
+  factory CodeRefElement(M.IsolateRef isolate, M.CodeRef code,
+      {RenderingQueue queue}) {
+    assert(isolate != null);
+    assert(code != null);
+    CodeRefElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._isolate = isolate;
+    e._code = code;
+    return e;
   }
 
-  void _updateShadowDom() {
-    clearShadowRoot();
-    if (code == null) {
-      return;
-    }
-    var name = (code.isOptimized ? '*' : '') + code.name;
-    if (code.isDartCode) {
-      insertLinkIntoShadowRoot(name, url, hoverText);
-    } else {
-      insertTextSpanIntoShadowRoot(name);
-    }
+  CodeRefElement.created() : super.created();
+
+  @override
+  void attached() {
+    super.attached();
+    _r.enable();
+  }
+
+  @override
+  void detached() {
+    super.detached();
+    children = [];
+    _r.disable(notify: true);
+  }
+
+  void render() {
+    final name = (_code.isOptimized ? '*' : '') + _code.name;
+    children = [
+      new AnchorElement(href: M.isSyntheticCode(_code.kind) ? null
+          : Uris.inspect(_isolate, object: _code))
+        ..text = name
+    ];
   }
 }

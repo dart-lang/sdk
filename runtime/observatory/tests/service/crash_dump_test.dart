@@ -18,9 +18,11 @@ Future warmup() async {
 var tests = [
   (VM vm) async {
     HttpClient client = new HttpClient();
+    print('Requesting uri ${serviceHttpAddress}/_getCrashDump');
     var request =
         await client.getUrl(Uri.parse('$serviceHttpAddress/_getCrashDump'));
     var response = await request.close();
+    print('Received response');
     Completer completer = new Completer();
     StringBuffer sb = new StringBuffer();
     response.transform(UTF8.decoder).listen((chunk) {

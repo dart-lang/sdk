@@ -22,14 +22,14 @@ Future cancelFutureSubscription(
 
 /// An RpcException represents an exceptional event that happened
 /// while invoking an rpc.
-abstract class RpcException implements Exception {
+abstract class RpcException implements Exception, M.BasicException {
   RpcException(this.message);
 
   String message;
 }
 
 /// A ServerRpcException represents an error returned by the VM.
-class ServerRpcException extends RpcException {
+class ServerRpcException extends RpcException implements M.RequestException {
   /// A list of well-known server error codes.
   static const kParseError     = -32700;
   static const kInvalidRequest = -32600;
@@ -37,11 +37,16 @@ class ServerRpcException extends RpcException {
   static const kInvalidParams  = -32602;
   static const kInternalError  = -32603;
   static const kFeatureDisabled         = 100;
-  static const kVMMustBePaused          = 101;
   static const kCannotAddBreakpoint     = 102;
   static const kStreamAlreadySubscribed = 103;
   static const kStreamNotSubscribed     = 104;
   static const kIsolateMustBeRunnable   = 105;
+  static const kIsolateMustBePaused     = 106;
+  static const kIsolateIsReloading      = 1000;
+  static const kFileSystemAlreadyExists = 1001;
+  static const kFileSystemDoesNotExist  = 1002;
+  static const kFileDoesNotExist        = 1003;
+  static const kIsolateReloadFailed     = 1004;
 
   int code;
   Map data;
@@ -65,7 +70,8 @@ class ServerRpcException extends RpcException {
 
 /// A NetworkRpcException is used to indicate that an rpc has
 /// been canceled due to network error.
-class NetworkRpcException extends RpcException {
+class NetworkRpcException extends RpcException
+                          implements M.ConnectionException {
   NetworkRpcException(String message) : super(message);
 
   String toString() => 'NetworkRpcException(${message})';
@@ -287,17 +293,17 @@ abstract class ServiceObject extends Observable {
 
   Future<ServiceObject> _inProgressReload;
 
-  Future<ObservableMap> _fetchDirect() {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) {
     Map params = {
       'objectId': id,
-      'count': kDefaultFieldLimit,
+      'count': count,
     };
     return isolate.invokeRpcNoUpgrade('getObject', params);
   }
 
   /// Reload [this]. Returns a future which completes to [this] or
   /// an exception.
-  Future<ServiceObject> reload() {
+  Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
     // TODO(turnidge): Checking for a null id should be part of the
     // "immmutable" check.
     bool hasId = (id != null) && (id != '');
@@ -312,7 +318,7 @@ abstract class ServiceObject extends Observable {
     if (_inProgressReload == null) {
       var completer = new Completer<ServiceObject>();
       _inProgressReload = completer.future;
-      _fetchDirect().then((ObservableMap map) {
+      _fetchDirect(count: count).then((ObservableMap map) {
         var mapType = _stripRef(map['type']);
         if (mapType == 'Sentinel') {
           // An object may have been collected, etc.
@@ -419,7 +425,8 @@ abstract class Location  {
 }
 
 /// A [SourceLocation] represents a location or range in the source code.
-class SourceLocation extends ServiceObject implements Location {
+class SourceLocation extends ServiceObject implements Location,
+                                                      M.SourceLocation {
   Script script;
   int tokenPos;
   int endTokenPos;
@@ -598,7 +605,7 @@ class _EventStreamState {
 }
 
 /// State for a VM being inspected.
-abstract class VM extends ServiceObjectOwner {
+abstract class VM extends ServiceObjectOwner implements M.VM {
   @reflectable VM get vm => this;
   @reflectable Isolate get isolate => null;
 
@@ -617,11 +624,13 @@ abstract class VM extends ServiceObjectOwner {
   final ObservableList<Isolate> isolates = new ObservableList<Isolate>();
 
   @observable String version = 'unknown';
+  @observable String hostCPU;
   @observable String targetCPU;
   @observable int architectureBits;
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
   @observable int pid = 0;
+  @observable bool profileVM = false;
   @observable DateTime startTime;
   @observable DateTime refreshTime;
   @observable Duration get upTime {
@@ -805,7 +814,7 @@ abstract class VM extends ServiceObjectOwner {
     return invokeRpc('_restartVM', {});
   }
 
-  Future<ObservableMap> _fetchDirect() async {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
       // Isolate types up to date.
@@ -890,6 +899,7 @@ abstract class VM extends ServiceObjectOwner {
 
     _loaded = true;
     version = map['version'];
+    hostCPU = map['hostCPU'];
     targetCPU = map['targetCPU'];
     architectureBits = map['architectureBits'];
     int startTimeMillis = map['startTime'];
@@ -897,6 +907,7 @@ abstract class VM extends ServiceObjectOwner {
     refreshTime = new DateTime.now();
     notifyPropertyChange(#upTime, 0, 1);
     pid = map['pid'];
+    profileVM = map['_profilerMode'] == 'VM';
     assertsEnabled = map['_assertsEnabled'];
     typeChecksEnabled = map['_typeChecksEnabled'];
     _removeDeadIsolates(map['isolates']);
@@ -916,6 +927,8 @@ abstract class VM extends ServiceObjectOwner {
 }
 
 class FakeVM extends VM {
+  String get displayName => name;
+
   final Map _responses = {};
   FakeVM(Map responses) {
     if (responses == null) {
@@ -1064,7 +1077,7 @@ class TagProfile {
   }
 }
 
-class HeapSpace extends Observable {
+class HeapSpace extends Observable implements M.HeapSpace {
   @observable int used = 0;
   @observable int capacity = 0;
   @observable int external = 0;
@@ -1110,7 +1123,7 @@ class HeapSnapshot {
 }
 
 /// State for a running isolate.
-class Isolate extends ServiceObjectOwner {
+class Isolate extends ServiceObjectOwner implements M.Isolate {
   static const kLoggingStream = '_Logging';
   static const kExtensionStream = 'Extension';
 
@@ -1126,7 +1139,7 @@ class Isolate extends ServiceObjectOwner {
     return (new DateTime.now().difference(startTime));
   }
 
-  @observable ObservableMap counters = new ObservableMap();
+  @observable Map counters = {};
 
   void _updateRunState() {
     topFrame = (pauseEvent != null ? pauseEvent.topFrame : null);
@@ -1147,6 +1160,7 @@ class Isolate extends ServiceObjectOwner {
   @observable bool loading = true;
   @observable bool runnable = false;
   @observable bool ioEnabled = false;
+  @observable bool reloading = false;
 
   final List<String> extensionRPCs = new List<String>();
 
@@ -1171,6 +1185,7 @@ class Isolate extends ServiceObjectOwner {
 
   static const kCallSitesReport = '_CallSites';
   static const kPossibleBreakpointsReport = 'PossibleBreakpoints';
+  static const kProfileReport = '_Profile';
 
   Future<ServiceMap> getSourceReport(List<String> report_kinds,
                                      [Script script,
@@ -1187,6 +1202,22 @@ class Isolate extends ServiceObjectOwner {
       params['endTokenPos'] = endPos;
     }
     return invokeRpc('getSourceReport', params);
+  }
+
+  Future<ServiceMap> reloadSources() {
+    return invokeRpc('_reloadSources', {}).then((_) {
+      reloading = true;
+    });
+  }
+
+  void _handleIsolateReloadEvent(ServiceEvent event) {
+    reloading = false;
+    if (event.reloadError != null) {
+      // Failure.
+      print('Reload failed: ${event.reloadError}');
+    } else {
+      _cache.clear();
+    }
   }
 
   /// Fetches and builds the class hierarchy for this isolate. Returns the
@@ -1285,24 +1316,26 @@ class Isolate extends ServiceObjectOwner {
     });
   }
 
-  Future<ServiceObject> getObject(String objectId, {bool reload: true}) {
+  Future<ServiceObject> getObject(String objectId,
+                                  {bool reload: true,
+                                   int count: kDefaultFieldLimit}) {
     assert(objectId != null && objectId != '');
     var obj = _cache[objectId];
     if (obj != null) {
       if (reload) {
-        return obj.reload();
+        return obj.reload(count: count);
       }
       // Returned cached object.
       return new Future.value(obj);
     }
     Map params = {
       'objectId': objectId,
-      'count': kDefaultFieldLimit,
+      'count': count,
     };
     return isolate.invokeRpc('getObject', params);
   }
 
-  Future<ObservableMap> _fetchDirect() {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) async {
     return invokeRpcNoUpgrade('getIsolate', {});
   }
 
@@ -1364,11 +1397,12 @@ class Isolate extends ServiceObjectOwner {
     }
   }
 
-  Stream fetchHeapSnapshot() {
+  Stream fetchHeapSnapshot(collectGarbage) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       _snapshotFetch = new StreamController();
       // isolate.vm.streamListen('_Graph');
-      isolate.invokeRpcNoUpgrade('_requestHeapSnapshot', {});
+      isolate.invokeRpcNoUpgrade('_requestHeapSnapshot',
+                                 {'collectGarbage': collectGarbage});
     }
     return _snapshotFetch.stream;
   }
@@ -1407,23 +1441,27 @@ class Isolate extends ServiceObjectOwner {
       for (var i = 0; i < counts.length; i++) {
         sum += counts[i];
       }
-      // TODO: Why does this not work without this?
-      counters = toObservable({});
+      var _counters = {};
       if (sum == 0) {
         for (var i = 0; i < names.length; i++) {
-          counters[names[i]] = '0.0%';
+          _counters[names[i]] = '0.0%';
         }
       } else {
         for (var i = 0; i < names.length; i++) {
-          counters[names[i]] =
+          _counters[names[i]] =
               (counts[i] / sum * 100.0).toStringAsFixed(2) + '%';
         }
       }
+      counters = _counters;
     }
 
     updateHeapsFromMap(map['_heaps']);
     _updateBreakpoints(map['breakpoints']);
-    exceptionsPauseInfo = map['_debuggerSettings']['_exceptions'];
+    if (map['_debuggerSettings'] != null) {
+      exceptionsPauseInfo = map['_debuggerSettings']['_exceptions'];
+    } else {
+      exceptionsPauseInfo = "none";
+    }
 
     var newPauseEvent = map['pauseEvent'];
     assert((pauseEvent == null) ||
@@ -1493,7 +1531,9 @@ class Isolate extends ServiceObjectOwner {
       case ServiceEvent.kInspect:
         // Handled elsewhere.
         break;
-
+      case ServiceEvent.kIsolateReload:
+        _handleIsolateReloadEvent(event);
+        break;
       case ServiceEvent.kBreakpointAdded:
         _addBreakpoint(event.breakpoint);
         break;
@@ -1610,6 +1650,14 @@ class Isolate extends ServiceObjectOwner {
     return invokeRpc('getStack', {});
   }
 
+  Future<ObjectStore> getObjectStore() {
+    return invokeRpcNoUpgrade('_getObjectStore', {}).then((map) {
+      ObjectStore objectStore = new ObjectStore._empty(this);
+      objectStore._update(map, false);
+      return objectStore;
+    });
+  }
+
   Future<ServiceObject> _eval(ServiceObject target,
                               String expression) {
     Map params = {
@@ -1718,17 +1766,41 @@ class Isolate extends ServiceObjectOwner {
   String toString() => "Isolate($name)";
 }
 
+
+class NamedField {
+  final String name;
+  final ServiceObject value;
+  NamedField(this.name, this.value);
+}
+
+
+class ObjectStore extends ServiceObject {
+  @observable List<NamedField> fields = new List<NamedField>();
+
+  ObjectStore._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    // Extract full properties.
+    _upgradeCollection(map, isolate);
+
+    if (mapIsRef) {
+      return;
+    }
+
+    fields.clear();
+    map['fields'].forEach((key, value) {
+      fields.add(new NamedField(key, value));
+    });
+    _loaded = true;
+  }
+}
+
+
 /// A [ServiceObject] which implements [ObservableMap].
 class ServiceMap extends ServiceObject implements ObservableMap {
   final ObservableMap _map = new ObservableMap();
   static String objectIdRingPrefix = 'objects/';
 
-  bool get canCache {
-    return (_type == 'Class' ||
-            _type == 'Function' ||
-            _type == 'Field') &&
-           !_id.startsWith(objectIdRingPrefix);
-  }
   bool get immutable => false;
 
   ServiceMap._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -1781,16 +1853,29 @@ class ServiceMap extends ServiceObject implements ObservableMap {
   String toString() => "ServiceMap($_map)";
 }
 
+M.ErrorKind stringToErrorKind(String value) {
+  switch(value) {
+    case 'UnhandledException': return M.ErrorKind.unhandledException;
+    case 'LanguageError': return M.ErrorKind.unhandledException;
+    case 'InternalError': return M.ErrorKind.internalError;
+    case 'TerminationError': return M.ErrorKind.terminationError;
+  }
+  Logger.root.severe('Unrecognized error kind: $value');
+  throw new FallThroughError();
+}
+
 /// A [DartError] is peered to a Dart Error object.
-class DartError extends ServiceObject {
+class DartError extends ServiceObject implements M.Error {
   DartError._empty(ServiceObject owner) : super._empty(owner);
 
+  M.ErrorKind kind;
   @observable String message;
   @observable Instance exception;
   @observable Instance stacktrace;
 
   void _update(ObservableMap map, bool mapIsRef) {
     message = map['message'];
+    kind = stringToErrorKind(map['kind']);
     exception = new ServiceObject._fromMap(owner, map['exception']);
     stacktrace = new ServiceObject._fromMap(owner, map['stacktrace']);
     name = 'DartError($message)';
@@ -1817,6 +1902,8 @@ class ServiceEvent extends ServiceObject {
   static const kIsolateRunnable        = 'IsolateRunnable';
   static const kIsolateExit            = 'IsolateExit';
   static const kIsolateUpdate          = 'IsolateUpdate';
+  static const kIsolateReload          = 'IsolateReload';
+  static const kIsolateSpawn           = 'IsolateSpawn';
   static const kServiceExtensionAdded  = 'ServiceExtensionAdded';
   static const kPauseStart             = 'PauseStart';
   static const kPauseExit              = 'PauseExit';
@@ -1844,12 +1931,15 @@ class ServiceEvent extends ServiceObject {
 
   @observable String kind;
   @observable DateTime timestamp;
+  List<M.Breakpoint> pauseBreakpoints;
   @observable Breakpoint breakpoint;
   @observable Frame topFrame;
+  @observable DartError error;
   @observable String extensionRPC;
   @observable Instance exception;
+  @observable Instance reloadError;
   @observable bool atAsyncSuspension;
-  @observable ServiceObject inspectee;
+  @observable Instance inspectee;
   @observable ByteData data;
   @observable int count;
   @observable String reason;
@@ -1859,6 +1949,8 @@ class ServiceEvent extends ServiceObject {
   @observable String extensionKind;
   @observable Map extensionData;
   @observable List timelineEvents;
+  @observable String spawnToken;
+  @observable String spawnError;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -1885,13 +1977,16 @@ class ServiceEvent extends ServiceObject {
     if (map['breakpoint'] != null) {
       breakpoint = map['breakpoint'];
     }
-    // TODO(turnidge): Expose the full list of breakpoints.  For now
-    // we just pretend like there is only one active breakpoint.
     if (map['pauseBreakpoints'] != null) {
-      var pauseBpts = map['pauseBreakpoints'];
-      if (pauseBpts.length > 0) {
-        breakpoint = pauseBpts[0];
+      pauseBreakpoints = map['pauseBreakpoints'];
+      if (pauseBreakpoints.length > 0) {
+        breakpoint = pauseBreakpoints[0];
       }
+    } else {
+      pauseBreakpoints = const [];
+    }
+    if (map['error'] != null) {
+      error = map['error'];
     }
     if (map['extensionRPC'] != null) {
       extensionRPC = map['extensionRPC'];
@@ -1919,6 +2014,7 @@ class ServiceEvent extends ServiceObject {
     if (map['count'] != null) {
       count = map['count'];
     }
+    reloadError = map['reloadError'];
     if (map['_debuggerSettings'] != null &&
         map['_debuggerSettings']['_exceptions'] != null) {
       exceptions = map['_debuggerSettings']['_exceptions'];
@@ -1940,6 +2036,12 @@ class ServiceEvent extends ServiceObject {
     if (map['timelineEvents'] != null) {
       timelineEvents = map['timelineEvents'];
     }
+    if (map['spawnToken'] != null) {
+      spawnToken = map['spawnToken'];
+    }
+    if (map['spawnError'] != null) {
+      spawnError = map['spawnError'];
+    }
   }
 
   String toString() {
@@ -1954,12 +2056,11 @@ class ServiceEvent extends ServiceObject {
   }
 }
 
-class Breakpoint extends ServiceObject {
+class Breakpoint extends ServiceObject implements M.Breakpoint {
   Breakpoint._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   // TODO(turnidge): Add state to track if a breakpoint has been
   // removed from the program.  Remove from the cache when deleted.
-  bool get canCache => true;
   bool get immutable => false;
 
   // A unique integer identifier for this breakpoint.
@@ -2050,7 +2151,7 @@ class LibraryDependency {
 }
 
 
-class Library extends HeapObject {
+class Library extends HeapObject implements M.LibraryRef {
   @observable String uri;
   @reflectable final dependencies = new ObservableList<LibraryDependency>();
   @reflectable final scripts = new ObservableList<Script>();
@@ -2058,7 +2159,6 @@ class Library extends HeapObject {
   @reflectable final variables = new ObservableList<Field>();
   @reflectable final functions = new ObservableList<ServiceFunction>();
 
-  bool get canCache => true;
   bool get immutable => false;
 
   bool isDart(String libraryName) {
@@ -2152,7 +2252,7 @@ class Allocations {
   bool get empty => accumulated.empty && current.empty;
 }
 
-class Class extends HeapObject {
+class Class extends HeapObject implements M.Class {
   @observable Library library;
 
   @observable bool isAbstract;
@@ -2163,7 +2263,7 @@ class Class extends HeapObject {
 
   @observable SourceLocation location;
 
-  @observable ServiceMap error;
+  @observable DartError error;
   @observable int vmCid;
 
   final Allocations newSpace = new Allocations();
@@ -2179,7 +2279,9 @@ class Class extends HeapObject {
   @reflectable final interfaces = new ObservableList<Instance>();
   @reflectable final subclasses = new ObservableList<Class>();
 
-  bool get canCache => true;
+  @observable Instance superType;
+  @observable Instance mixin;
+
   bool get immutable => false;
 
   Class._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -2242,6 +2344,9 @@ class Class extends HeapObject {
     if (superclass != null && superclass.name == "Object") {
       superclass._addSubclass(this);
     }
+    superType = map['superType'];
+    mixin = map['mixin'];
+
     error = map['error'];
 
     traceAllocations =
@@ -2285,17 +2390,23 @@ class Class extends HeapObject {
   String toString() => 'Class($vmName)';
 }
 
-class Instance extends HeapObject {
+class Instance extends HeapObject implements M.Instance {
   @observable String kind;
   @observable String valueAsString;  // If primitive.
   @observable bool valueAsStringIsTruncated;
   @observable ServiceFunction function;  // If a closure.
   @observable Context context;  // If a closure.
-  @observable String name;  // If a Type.
   @observable int length; // If a List, Map or TypedData.
   @observable Instance pattern;  // If a RegExp.
 
-  @observable var typeClass;
+  @observable String name;
+  @observable Class typeClass;
+  @observable Class parameterizedClass;
+  @observable ServiceObject typeArguments;
+  @observable int parameterIndex;
+  @observable Instance targetType;
+  @observable Instance bound;
+
   @observable var fields;
   @observable var nativeFields;
   @observable var elements;  // If a List.
@@ -2305,10 +2416,12 @@ class Instance extends HeapObject {
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
   @observable Breakpoint activationBreakpoint;  // If a Closure.
-  @observable Function oneByteFunction;  // If a RegExp.
-  @observable Function twoByteFunction;  // If a RegExp.
-  @observable Function externalOneByteFunction;  // If a RegExp.
-  @observable Function externalTwoByteFunction;  // If a RegExp.
+  @observable ServiceFunction oneByteFunction;  // If a RegExp.
+  @observable ServiceFunction twoByteFunction;  // If a RegExp.
+  @observable ServiceFunction externalOneByteFunction;  // If a RegExp.
+  @observable ServiceFunction externalTwoByteFunction;  // If a RegExp.
+  @observable Instance oneByteBytecode;  // If a RegExp.
+  @observable Instance twoByteBytecode;  // If a RegExp.
   @observable bool isCaseSensitive;  // If a RegExp.
   @observable bool isMultiLine;  // If a RegExp.
 
@@ -2376,7 +2489,7 @@ class Instance extends HeapObject {
   Instance._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   void _update(ObservableMap map, bool mapIsRef) {
-    // Extract full properties.
+    // Extract full properties.1
     _upgradeCollection(map, isolate);
     super._update(map, mapIsRef);
 
@@ -2389,6 +2502,7 @@ class Instance extends HeapObject {
     name = map['name'];
     length = map['length'];
     pattern = map['pattern'];
+    typeClass = map['typeClass'];
 
     if (mapIsRef) {
       return;
@@ -2396,10 +2510,13 @@ class Instance extends HeapObject {
 
     isCaseSensitive = map['isCaseSensitive'];
     isMultiLine = map['isMultiLine'];
-    oneByteFunction = map['_oneByteFunction'];
-    twoByteFunction = map['_twoByteFunction'];
-    externalOneByteFunction = map['_externalOneByteFunction'];
-    externalTwoByteFunction = map['_externalTwoByteFunction'];
+    bool isCompiled = map['_oneByteFunction'] is ServiceFunction;
+    oneByteFunction = isCompiled ? map['_oneByteFunction'] : null;
+    twoByteFunction = isCompiled ? map['_twoByteFunction'] : null;
+    externalOneByteFunction = isCompiled ? map['_externalOneByteFunction'] : null;
+    externalTwoByteFunction = isCompiled ? map['_externalTwoByteFunction'] : null;
+    oneByteBytecode = map['_oneByteBytecode'];
+    twoByteBytecode = map['_twoByteBytecode'];
 
     nativeFields = map['_nativeFields'];
     fields = map['fields'];
@@ -2438,7 +2555,12 @@ class Instance extends HeapObject {
           typedElements = bytes.buffer.asFloat64x2List(); break;
       }
     }
-    typeClass = map['typeClass'];
+    parameterizedClass = map['parameterizedClass'];
+    typeArguments = map['typeArguments'];
+    parameterIndex = map['parameterIndex'];
+    targetType = map['targetType'];
+    bound = map['bound'];
+
     referent = map['mirrorReferent'];
     key = map['propertyKey'];
     value = map['propertyValue'];
@@ -2494,65 +2616,35 @@ class Context extends HeapObject {
   String toString() => 'Context($length)';
 }
 
-
-// TODO(koda): Sync this with VM.
-class FunctionKind {
-  final String _strValue;
-  FunctionKind._internal(this._strValue);
-  toString() => _strValue;
-  bool isSynthetic() => [kCollected, kNative, kStub, kTag].contains(this);
-  bool isDart() => !isSynthetic();
-  bool isStub() => (this == kStub);
-  bool hasDartCode() => isDart() || isStub();
-  static FunctionKind fromJSON(String value) {
-    switch(value) {
-      case 'RegularFunction': return kRegularFunction;
-      case 'ClosureFunction': return kClosureFunction;
-      case 'GetterFunction': return kGetterFunction;
-      case 'SetterFunction': return kSetterFunction;
-      case 'Constructor': return kConstructor;
-      case 'ImplicitGetter': return kImplicitGetterFunction;
-      case 'ImplicitSetter': return kImplicitSetterFunction;
-      case 'ImplicitStaticFinalGetter': return kImplicitStaticFinalGetter;
-      case 'IrregexpFunction': return kIrregexpFunction;
-      case 'StaticInitializer': return kStaticInitializer;
-      case 'MethodExtractor': return kMethodExtractor;
-      case 'NoSuchMethodDispatcher': return kNoSuchMethodDispatcher;
-      case 'InvokeFieldDispatcher': return kInvokeFieldDispatcher;
-      case 'Collected': return kCollected;
-      case 'Native': return kNative;
-      case 'Stub': return kStub;
-      case 'Tag': return kTag;
-      case 'SignatureFunction': return kSignatureFunction;
-    }
-    Logger.root.severe('Unrecognized function kind: $value');
-    throw new FallThroughError();
+M.FunctionKind stringToFunctionKind(String value) {
+  switch(value) {
+    case 'RegularFunction': return M.FunctionKind.regular;
+    case 'ClosureFunction': return M.FunctionKind.closure;
+    case 'GetterFunction': return M.FunctionKind.getter;
+    case 'SetterFunction': return M.FunctionKind.setter;
+    case 'Constructor': return M.FunctionKind.constructor;
+    case 'ImplicitGetter': return M.FunctionKind.implicitGetter;
+    case 'ImplicitSetter': return M.FunctionKind.implicitSetter;
+    case 'ImplicitStaticFinalGetter':
+      return M.FunctionKind.implicitStaticFinalGetter;
+    case 'IrregexpFunction': return M.FunctionKind.irregexpFunction;
+    case 'StaticInitializer': return M.FunctionKind.staticInitializer;
+    case 'MethodExtractor': return M.FunctionKind.methodExtractor;
+    case 'NoSuchMethodDispatcher': return M.FunctionKind.noSuchMethodDispatcher;
+    case 'InvokeFieldDispatcher': return M.FunctionKind.invokeFieldDispatcher;
+    case 'Collected': return M.FunctionKind.collected;
+    case 'Native': return M.FunctionKind.native;
+    case 'Stub': return M.FunctionKind.stub;
+    case 'Tag': return M.FunctionKind.tag;
+    case 'SignatureFunction': return M.FunctionKind.signatureFunction;
   }
-
-  static FunctionKind kRegularFunction = new FunctionKind._internal('function');
-  static FunctionKind kClosureFunction = new FunctionKind._internal('closure function');
-  static FunctionKind kGetterFunction = new FunctionKind._internal('getter function');
-  static FunctionKind kSetterFunction = new FunctionKind._internal('setter function');
-  static FunctionKind kConstructor = new FunctionKind._internal('constructor');
-  static FunctionKind kImplicitGetterFunction = new FunctionKind._internal('implicit getter function');
-  static FunctionKind kImplicitSetterFunction = new FunctionKind._internal('implicit setter function');
-  static FunctionKind kImplicitStaticFinalGetter = new FunctionKind._internal('implicit static final getter');
-  static FunctionKind kIrregexpFunction = new FunctionKind._internal('ir regexp function');
-  static FunctionKind kStaticInitializer = new FunctionKind._internal('static initializer');
-  static FunctionKind kMethodExtractor = new FunctionKind._internal('method extractor');
-  static FunctionKind kNoSuchMethodDispatcher = new FunctionKind._internal('noSuchMethod dispatcher');
-  static FunctionKind kInvokeFieldDispatcher = new FunctionKind._internal('invoke field dispatcher');
-  static FunctionKind kCollected = new FunctionKind._internal('Collected');
-  static FunctionKind kNative = new FunctionKind._internal('Native');
-  static FunctionKind kTag = new FunctionKind._internal('Tag');
-  static FunctionKind kStub = new FunctionKind._internal('Stub');
-  static FunctionKind kSignatureFunction = new FunctionKind._internal('SignatureFunction');
-  static FunctionKind kUNKNOWN = new FunctionKind._internal('UNKNOWN');
+  Logger.root.severe('Unrecognized function kind: $value');
+  throw new FallThroughError();
 }
 
-class ServiceFunction extends HeapObject {
+class ServiceFunction extends HeapObject implements M.Function {
   // owner is a Library, Class, or ServiceFunction.
-  @observable ServiceObject dartOwner;
+  @observable M.ObjectRef dartOwner;
   @observable Library library;
   @observable bool isStatic;
   @observable bool isConst;
@@ -2564,7 +2656,7 @@ class ServiceFunction extends HeapObject {
   @observable bool hasIntrinsic;
   @observable bool isRecognized;
   @observable bool isNative;
-  @observable FunctionKind kind;
+  @observable M.FunctionKind kind;
   @observable int deoptimizations;
   @observable String qualifiedName;
   @observable int usageCounter;
@@ -2573,7 +2665,6 @@ class ServiceFunction extends HeapObject {
   @observable Instance icDataArray;
   @observable Field field;
 
-  bool get canCache => true;
   bool get immutable => false;
 
   ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
@@ -2586,8 +2677,8 @@ class ServiceFunction extends HeapObject {
     vmName = (map.containsKey('_vmName') ? map['_vmName'] : name);
 
     dartOwner = map['owner'];
-    kind = FunctionKind.fromJSON(map['_kind']);
-    isDart = kind.isDart();
+    kind = stringToFunctionKind(map['_kind']);
+    isDart = M.isDartFunction(kind);
 
     if (dartOwner is ServiceFunction) {
       ServiceFunction ownerFunction = dartOwner;
@@ -2825,15 +2916,18 @@ class LocalVarLocation {
   LocalVarLocation(this.line, this.column, this.endColumn);
 }
 
-class Script extends HeapObject {
+class Script extends HeapObject implements M.Script {
   final lines = new ObservableList<ScriptLine>();
   @observable String uri;
   @observable String kind;
+  @observable DateTime loadTime;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
   @observable int lineOffset;
   @observable int columnOffset;
   @observable Library library;
+
+  String source;
 
   bool get immutable => true;
 
@@ -2931,9 +3025,12 @@ class Script extends HeapObject {
       return;
     }
     _loaded = true;
+    int loadTimeMillis = map['_loadTime'];
+    loadTime = new DateTime.fromMillisecondsSinceEpoch(loadTimeMillis);
     lineOffset = map['lineOffset'];
     columnOffset = map['columnOffset'];
     _parseTokenPosTable(map['tokenPosTable']);
+    source = map['source'];
     _processSource(map['source']);
     library = map['library'];
   }
@@ -3188,7 +3285,6 @@ class PcDescriptor extends Observable {
 class PcDescriptors extends ServiceObject {
   @observable Class clazz;
   @observable int size;
-  bool get canCache => false;
   bool get immutable => true;
   @reflectable final List<PcDescriptor> descriptors =
       new ObservableList<PcDescriptor>();
@@ -3231,7 +3327,6 @@ class LocalVarDescriptor extends Observable {
 class LocalVarDescriptors extends ServiceObject {
   @observable Class clazz;
   @observable int size;
-  bool get canCache => false;
   bool get immutable => true;
   @reflectable final List<LocalVarDescriptor> descriptors =
         new ObservableList<LocalVarDescriptor>();
@@ -3259,7 +3354,6 @@ class LocalVarDescriptors extends ServiceObject {
 }
 
 class ObjectPool extends HeapObject {
-  bool get canCache => false;
   bool get immutable => false;
 
   @observable int length;
@@ -3285,7 +3379,6 @@ class ICData extends HeapObject {
   @observable Instance argumentsDescriptor;
   @observable Instance entries;
 
-  bool get canCache => false;
   bool get immutable => false;
 
   ICData._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -3310,7 +3403,6 @@ class MegamorphicCache extends HeapObject {
   @observable String selector;
   @observable Instance argumentsDescriptor;
 
-  bool get canCache => false;
   bool get immutable => false;
 
   MegamorphicCache._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -3331,7 +3423,6 @@ class MegamorphicCache extends HeapObject {
 }
 
 class Instructions extends HeapObject {
-  bool get canCache => false;
   bool get immutable => true;
 
   @observable Code code;
@@ -3352,7 +3443,6 @@ class Instructions extends HeapObject {
 }
 
 class TokenStream extends HeapObject {
-  bool get canCache => false;
   bool get immutable => true;
 
   @observable String privateKey;
@@ -3434,32 +3524,20 @@ class CodeInstruction extends Observable {
   }
 }
 
-class CodeKind {
-  final _value;
-  const CodeKind._internal(this._value);
-  String toString() => '$_value';
-  bool isSynthetic() => [Collected, Native, Tag].contains(this);
-  bool isDart() => !isSynthetic();
-  static CodeKind fromString(String s) {
-    if (s == 'Native') {
-      return Native;
-    } else if (s == 'Dart') {
-      return Dart;
-    } else if (s == 'Collected') {
-      return Collected;
-    } else if (s == 'Tag') {
-      return Tag;
-    } else if (s == 'Stub') {
-      return Stub;
-    }
-    Logger.root.severe("Unrecognized code kind: '$s'");
-    throw new FallThroughError();
+M.CodeKind stringToCodeKind(String s) {
+  if (s == 'Native') {
+    return M.CodeKind.native;
+  } else if (s == 'Dart') {
+    return M.CodeKind.dart;
+  } else if (s == 'Collected') {
+    return M.CodeKind.collected;
+  } else if (s == 'Tag') {
+    return M.CodeKind.tag;
+  } else if (s == 'Stub') {
+    return M.CodeKind.stub;
   }
-  static const Collected = const CodeKind._internal('Collected');
-  static const Dart = const CodeKind._internal('Dart');
-  static const Native = const CodeKind._internal('Native');
-  static const Stub = const CodeKind._internal('Stub');
-  static const Tag = const CodeKind._internal('Tag');
+  Logger.root.severe("Unrecognized code kind: '$s'");
+  throw new FallThroughError();
 }
 
 class CodeInlineInterval {
@@ -3470,8 +3548,8 @@ class CodeInlineInterval {
   CodeInlineInterval(this.start, this.end);
 }
 
-class Code extends HeapObject {
-  @observable CodeKind kind;
+class Code extends HeapObject implements M.Code {
+  @observable M.CodeKind kind;
   @observable ServiceObject objectPool;
   @observable ServiceFunction function;
   @observable Script script;
@@ -3508,7 +3586,7 @@ class Code extends HeapObject {
       // Already done.
       return;
     }
-    if (kind != CodeKind.Dart){
+    if (kind != M.CodeKind.dart){
       return;
     }
     if (function == null) {
@@ -3534,11 +3612,11 @@ class Code extends HeapObject {
 
   /// Reload [this]. Returns a future which completes to [this] or an
   /// exception.
-  Future<ServiceObject> reload() {
+  Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
     assert(kind != null);
     if (isDartCode) {
       // We only reload Dart code.
-      return super.reload();
+      return super.reload(count: count);
     }
     return new Future.value(this);
   }
@@ -3547,7 +3625,7 @@ class Code extends HeapObject {
     name = m['name'];
     vmName = (m.containsKey('_vmName') ? m['_vmName'] : name);
     isOptimized = m['_optimized'];
-    kind = CodeKind.fromString(m['kind']);
+    kind = stringToCodeKind(m['kind']);
     hasIntrinsic = m['_intrinsic'];
     isNative = m['_native'];
     if (mapIsRef) {
@@ -3567,7 +3645,7 @@ class Code extends HeapObject {
       descriptors = descriptors['members'];
       _processDescriptors(descriptors);
     }
-    hasDisassembly = (instructions.length != 0) && (kind == CodeKind.Dart);
+    hasDisassembly = (instructions.length != 0) && (kind == M.CodeKind.dart);
     inlinedFunctions.clear();
     var inlinedFunctionsTable = m['_inlinedFunctions'];
     var inlinedIntervals = m['_inlinedIntervals'];
@@ -3685,8 +3763,8 @@ class Code extends HeapObject {
     return (address >= startAddress) && (address < endAddress);
   }
 
-  @reflectable bool get isDartCode => (kind == CodeKind.Dart) ||
-                                      (kind == CodeKind.Stub);
+  @reflectable bool get isDartCode => (kind == M.CodeKind.dart) ||
+                                      (kind == M.CodeKind.stub);
 
   String toString() => 'Code($kind, $name)';
 }
@@ -3734,8 +3812,6 @@ class SocketStats {
 /// a process or an HTTP server.
 class Socket extends ServiceObject {
   Socket._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  bool get canCache => true;
 
   ServiceObject socketOwner;
 
@@ -3804,7 +3880,6 @@ class ServiceMetric extends ServiceObject {
   ServiceMetric._empty(ServiceObjectOwner owner) : super._empty(owner) {
   }
 
-  bool get canCache => true;
   bool get immutable => false;
 
   @observable bool recording = false;
@@ -3819,7 +3894,7 @@ class ServiceMetric extends ServiceObject {
     _removeOld();
   }
 
-  Future<ObservableMap> _fetchDirect() {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) {
     assert(owner is Isolate);
     return isolate.invokeRpcNoUpgrade('_getIsolateMetric', { 'metricId': id });
   }
@@ -3891,7 +3966,7 @@ class MetricPoller {
   }
 }
 
-class Frame extends ServiceObject {
+class Frame extends ServiceObject implements M.Frame {
   @observable int index;
   @observable ServiceFunction function;
   @observable SourceLocation location;

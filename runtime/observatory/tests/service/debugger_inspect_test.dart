@@ -26,7 +26,7 @@ var tests = [
   var subscription;
   subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kInspect) {
-      expect((event.inspectee as Instance).clazz.name, equals('Point'));
+      expect(event.inspectee.clazz.name, equals('Point'));
       subscription.cancel();
       completer.complete();
     }

@@ -40,7 +40,7 @@ $endif
 
   set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
-    List copy = new List.from(value);
+    var copy = value.toList();
     var children = this.children;
     children.clear();
     children.addAll(copy);
@@ -57,8 +57,9 @@ $endif
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element> querySelectorAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
+    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
+
 
   String get innerHtml {
     final e = new Element.tag("div");
@@ -115,8 +116,7 @@ $endif
   @deprecated
   @Experimental()
   @DomName('DocumentFragment.querySelectorAll')
-  ElementList<Element> queryAll(String relativeSelectors) {
-    return querySelectorAll(relativeSelectors);
-  }
+  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
+    querySelectorAll(relativeSelectors);
 $!MEMBERS
 }

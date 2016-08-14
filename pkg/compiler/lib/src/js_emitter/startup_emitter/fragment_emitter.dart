@@ -64,13 +64,9 @@ function copyProperties(from, to) {
   }
 }
 
-var supportsDirectProtoAccess = (function () {
-  var cls = function () {};
-  cls.prototype = {'p': {}};
-  var object = new cls();
-  return object.__proto__ &&
-         object.__proto__.p === cls.prototype.p;
-})();
+// Only use direct proto access to construct the prototype chain (instead of
+// copying properties) on platforms where we know it works well (Chrome / d8).
+var supportsDirectProtoAccess = #directAccessTestExpression;
 
 var functionsHaveName = (function() {
   function t() {};
@@ -233,6 +229,7 @@ function installTearOff(
     reflectionInfo = reflectionInfo + typesOffset;
   }
   var name = funsOrNames[0];
+  fun.#stubName = name;
   var getterFunction =
       tearOff(funs, reflectionInfo, isStatic, name, isIntercepted);
   container[getterName] = getterFunction;
@@ -353,6 +350,36 @@ var #staticStateDeclaration = {};
 })()
 ''';
 
+/// An expression that returns `true` if `__proto__` can be assigned to stitch
+/// together a prototype chain, and the performance is good.
+const String directAccessTestExpression = r'''
+  (function () {
+    var cls = function () {};
+    cls.prototype = {'p': {}};
+    var object = new cls();
+    if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
+      return false;
+    
+    try {
+      // Are we running on a platform where the performance is good?
+      // (i.e. Chrome or d8).
+
+      // Chrome userAgent?
+      if (typeof navigator != "undefined" &&
+          typeof navigator.userAgent == "string" &&
+          navigator.userAgent.indexOf("Chrome/") >= 0) return true;
+      // d8 version() looks like "N.N.N.N", jsshell version() like "N".
+      if (typeof version == "function" &&
+          version.length == 0) {
+        var v = version();
+        if (/^\d+\.\d+\.\d+\.\d+$/.test(v)) return true;
+      }
+    } catch(_) {}
+
+    return false;
+  })()
+''';
+
 /// Deferred fragments (aka 'hunks') are built similarly to the main fragment.
 ///
 /// However, at specific moments they need to contribute their data.
@@ -427,54 +454,55 @@ class FragmentEmitter {
     return js.js('#.#', [cls.holder.name, cls.name]);
   }
 
-  js.Statement emitMainFragment(
-      Program program,
+  js.Statement emitMainFragment(Program program,
       Map<DeferredFragment, _DeferredFragmentHash> deferredLoadHashes) {
     MainFragment fragment = program.fragments.first;
 
-    Iterable<Holder> nonStaticStateHolders = program.holders
-        .where((Holder holder) => !holder.isStaticStateHolder);
+    Iterable<Holder> nonStaticStateHolders =
+        program.holders.where((Holder holder) => !holder.isStaticStateHolder);
 
-    return js.js.statement(mainBoilerplate,
-        {'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
-         'cyclicThrow': backend.emitter.staticFunctionAccess(
-                 backend.helpers.cyclicThrowHelper),
-         'operatorIsPrefix': js.string(namer.operatorIsPrefix),
-         'tearOffCode': new js.Block(buildTearOffCode(backend)),
-         'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
-         'embeddedInterceptorTags':
-             generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),
-         'embeddedLeafTags': generateEmbeddedGlobalAccess(LEAF_TAGS),
-         'embeddedGlobalsObject': js.js("init"),
-         'holdersList': new js.ArrayInitializer(nonStaticStateHolders
-             .map((holder) => js.js("#", holder.name))
-             .toList(growable: false)),
-         'staticStateDeclaration': new js.VariableDeclaration(
-             namer.staticStateHolder, allowRename: false),
-         'staticState': js.js('#', namer.staticStateHolder),
-         'constantHolderReference': buildConstantHolderReference(program),
-         'holders': emitHolders(program.holders, fragment),
-         'callName': js.string(namer.callNameField),
-         'argumentCount': js.string(namer.requiredParameterField),
-         'defaultArgumentValues': js.string(namer.defaultValuesField),
-         'prototypes': emitPrototypes(fragment),
-         'inheritance': emitInheritance(fragment),
-         'aliases': emitInstanceMethodAliases(fragment),
-         'tearOffs': emitInstallTearOffs(fragment),
-         'constants': emitConstants(fragment),
-         'staticNonFinalFields': emitStaticNonFinalFields(fragment),
-         'lazyStatics': emitLazilyInitializedStatics(fragment),
-         'embeddedGlobals': emitEmbeddedGlobals(program, deferredLoadHashes),
-         'nativeSupport': program.needsNativeSupport
-              ? emitNativeSupport(fragment)
-              : new js.EmptyStatement(),
-         'invokeMain': fragment.invokeMain,
-         });
+    return js.js.statement(mainBoilerplate, {
+      'directAccessTestExpression': js.js(directAccessTestExpression),
+      'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
+      'cyclicThrow': backend.emitter
+          .staticFunctionAccess(backend.helpers.cyclicThrowHelper),
+      'operatorIsPrefix': js.string(namer.operatorIsPrefix),
+      'tearOffCode': new js.Block(buildTearOffCode(backend)),
+      'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
+      'embeddedInterceptorTags':
+          generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),
+      'embeddedLeafTags': generateEmbeddedGlobalAccess(LEAF_TAGS),
+      'embeddedGlobalsObject': js.js("init"),
+      'holdersList': new js.ArrayInitializer(nonStaticStateHolders
+          .map((holder) => js.js("#", holder.name))
+          .toList(growable: false)),
+      'staticStateDeclaration': new js.VariableDeclaration(
+          namer.staticStateHolder,
+          allowRename: false),
+      'staticState': js.js('#', namer.staticStateHolder),
+      'constantHolderReference': buildConstantHolderReference(program),
+      'holders': emitHolders(program.holders, fragment),
+      'callName': js.string(namer.callNameField),
+      'stubName': js.string(namer.stubNameField),
+      'argumentCount': js.string(namer.requiredParameterField),
+      'defaultArgumentValues': js.string(namer.defaultValuesField),
+      'prototypes': emitPrototypes(fragment),
+      'inheritance': emitInheritance(fragment),
+      'aliases': emitInstanceMethodAliases(fragment),
+      'tearOffs': emitInstallTearOffs(fragment),
+      'constants': emitConstants(fragment),
+      'staticNonFinalFields': emitStaticNonFinalFields(fragment),
+      'lazyStatics': emitLazilyInitializedStatics(fragment),
+      'embeddedGlobals': emitEmbeddedGlobals(program, deferredLoadHashes),
+      'nativeSupport': program.needsNativeSupport
+          ? emitNativeSupport(fragment)
+          : new js.EmptyStatement(),
+      'invokeMain': fragment.invokeMain,
+    });
   }
 
   js.Expression emitDeferredFragment(DeferredFragment fragment,
-                                     js.Expression deferredTypes,
-                                     List<Holder> holders) {
+      js.Expression deferredTypes, List<Holder> holders) {
     List<Holder> nonStaticStateHolders = holders
         .where((Holder holder) => !holder.isStaticStateHolder)
         .toList(growable: false);
@@ -484,29 +512,28 @@ class FragmentEmitter {
       Holder holder = nonStaticStateHolders[i];
       updateHolderAssignments.add(js.js.statement(
           '#holder = updateHolder(holdersList[#index], #holder)',
-          {'index': js.number(i),
-           'holder': new js.VariableUse(holder.name)}));
+          {'index': js.number(i), 'holder': new js.VariableUse(holder.name)}));
     }
 
     // TODO(floitsch): don't just reference 'init'.
-    return js.js(deferredBoilerplate,
-    {'embeddedGlobalsObject': new js.Parameter('init'),
-     'staticState': new js.Parameter(namer.staticStateHolder),
-     'holders': emitHolders(holders, fragment),
-     'deferredHoldersList': new js.ArrayInitializer(nonStaticStateHolders
-         .map((holder) => js.js("#", holder.name))
-         .toList(growable: false)),
-     'updateHolders': new js.Block(updateHolderAssignments),
-     'prototypes': emitPrototypes(fragment),
-     'inheritance': emitInheritance(fragment),
-     'aliases': emitInstanceMethodAliases(fragment),
-     'tearOffs': emitInstallTearOffs(fragment),
-     'constants': emitConstants(fragment),
-     'staticNonFinalFields': emitStaticNonFinalFields(fragment),
-     'lazyStatics': emitLazilyInitializedStatics(fragment),
-     'types': deferredTypes,
-     // TODO(floitsch): only call emitNativeSupport if we need native.
-     'nativeSupport': emitNativeSupport(fragment),
+    return js.js(deferredBoilerplate, {
+      'embeddedGlobalsObject': new js.Parameter('init'),
+      'staticState': new js.Parameter(namer.staticStateHolder),
+      'holders': emitHolders(holders, fragment),
+      'deferredHoldersList': new js.ArrayInitializer(nonStaticStateHolders
+          .map((holder) => js.js("#", holder.name))
+          .toList(growable: false)),
+      'updateHolders': new js.Block(updateHolderAssignments),
+      'prototypes': emitPrototypes(fragment),
+      'inheritance': emitInheritance(fragment),
+      'aliases': emitInstanceMethodAliases(fragment),
+      'tearOffs': emitInstallTearOffs(fragment),
+      'constants': emitConstants(fragment),
+      'staticNonFinalFields': emitStaticNonFinalFields(fragment),
+      'lazyStatics': emitLazilyInitializedStatics(fragment),
+      'types': deferredTypes,
+      // TODO(floitsch): only call emitNativeSupport if we need native.
+      'nativeSupport': emitNativeSupport(fragment),
     });
   }
 
@@ -557,22 +584,22 @@ class FragmentEmitter {
     //    }
 
     List<js.Statement> statements = [
-      new js.ExpressionStatement(
-          new js.VariableDeclarationList(holders
-              .map(emitHolderInitialization)
-              .toList())),
-      js.js.statement('var holders = #', new js.ArrayInitializer(
-          holders
+      new js.ExpressionStatement(new js.VariableDeclarationList(
+          holders.map(emitHolderInitialization).toList())),
+      js.js.statement(
+          'var holders = #',
+          new js.ArrayInitializer(holders
               .map((holder) => new js.VariableUse(holder.name))
-              .toList(growable: false)))];
+              .toList(growable: false)))
+    ];
     return new js.Block(statements);
   }
 
   /// Returns a reference to the constant holder, or the JS-literal `null`.
   js.Expression buildConstantHolderReference(Program program) {
-    Holder constantHolder = program.holders
-        .firstWhere((Holder holder) => holder.isConstantsHolder,
-                    orElse: () => null);
+    Holder constantHolder = program.holders.firstWhere(
+        (Holder holder) => holder.isConstantsHolder,
+        orElse: () => null);
     if (constantHolder == null) return new js.LiteralNull();
     return new js.VariableUse(constantHolder.name);
   }
@@ -626,8 +653,7 @@ class FragmentEmitter {
     List<js.Statement> assignments = fragment.libraries
         .expand((Library library) => library.classes)
         .map((Class cls) => js.js.statement(
-            '#.prototype = #;',
-            [classReference(cls), emitPrototype(cls)]))
+            '#.prototype = #;', [classReference(cls), emitPrototype(cls)]))
         .toList(growable: false);
 
     return new js.Block(assignments);
@@ -648,17 +674,23 @@ class FragmentEmitter {
     Iterable<Method> typeVariableReaderStubs = cls.typeVariableReaderStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = generateGettersSetters(cls);
-    Iterable<Method> allMethods =
-        [methods, checkedSetters, isChecks, callStubs, typeVariableReaderStubs,
-         noSuchMethodStubs, gettersSetters].expand((x) => x);
+    Iterable<Method> allMethods = [
+      methods,
+      checkedSetters,
+      isChecks,
+      callStubs,
+      typeVariableReaderStubs,
+      noSuchMethodStubs,
+      gettersSetters
+    ].expand((x) => x);
 
     List<js.Property> properties = <js.Property>[];
 
     if (cls.superclass == null) {
-      properties.add(new js.Property(js.string("constructor"),
-      classReference(cls)));
-      properties.add(new js.Property(namer.operatorIs(cls.element),
-      js.number(1)));
+      properties
+          .add(new js.Property(js.string("constructor"), classReference(cls)));
+      properties
+          .add(new js.Property(namer.operatorIs(cls.element), js.number(1)));
     }
 
     allMethods.forEach((Method method) {
@@ -747,7 +779,7 @@ class FragmentEmitter {
         properties[js.string(namer.requiredParameterField)] =
             js.number(method.requiredParameterCount);
         properties[js.string(namer.defaultValuesField)] =
-             _encodeOptionalParameterDefaultValues(method);
+            _encodeOptionalParameterDefaultValues(method);
       }
     }
 
@@ -774,8 +806,8 @@ class FragmentEmitter {
           ? new js.LiteralNull()
           : classReference(superclass);
 
-      inheritCalls.add(js.js('inherit(#, #)',
-          [classReference(cls), superclassReference]));
+      inheritCalls.add(
+          js.js('inherit(#, #)', [classReference(cls), superclassReference]));
 
       emittedClasses.add(cls);
     }
@@ -809,11 +841,12 @@ class FragmentEmitter {
       for (Class cls in library.classes) {
         for (InstanceMethod method in cls.methods) {
           if (method.aliasName != null) {
-            assignments.add(js.js.statement(
-                '#.prototype.# = #.prototype.#',
-                [classReference(cls), js.quoteName(method.aliasName),
-                 classReference(cls), js.quoteName(method.name)]));
-
+            assignments.add(js.js.statement('#.prototype.# = #.prototype.#', [
+              classReference(cls),
+              js.quoteName(method.aliasName),
+              classReference(cls),
+              js.quoteName(method.name)
+            ]));
           }
         }
       }
@@ -827,6 +860,9 @@ class FragmentEmitter {
     // TODO(herhut): Replace [js.LiteralNull] with [js.ArrayHole].
     if (method.optionalParameterDefaultValues is List) {
       List<ConstantValue> defaultValues = method.optionalParameterDefaultValues;
+      if (defaultValues.isEmpty) {
+        return new js.LiteralNull();
+      }
       Iterable<js.Expression> elements =
           defaultValues.map(generateConstantReference);
       return js.js('function() { return #; }',
@@ -842,11 +878,11 @@ class FragmentEmitter {
 
       for (String name in names) {
         ConstantValue value = defaultValues[name];
-        properties.add(new js.Property(js.string(name),
-        generateConstantReference(value)));
+        properties.add(
+            new js.Property(js.string(name), generateConstantReference(value)));
       }
-      return js.js('function() { return #; }',
-          new js.ObjectInitializer(properties));
+      return js.js(
+          'function() { return #; }', new js.ObjectInitializer(properties));
     }
   }
 
@@ -899,7 +935,8 @@ class FragmentEmitter {
           _encodeOptionalParameterDefaultValues(method);
     }
 
-    return js.js.statement('''
+    return js.js.statement(
+        '''
         installTearOff(#container, #getterName, #isStatic, #isIntercepted,
                        #requiredParameterCount, #optionalParameterDefaultValues,
                        #callNames, #funsOrNames, #funType)''',
@@ -951,14 +988,14 @@ class FragmentEmitter {
       // find the constants that don't have any dependency on other constants
       // and create an object-literal with them (and assign it to the
       // constant-holder variable).
-      assignments.add(js.js.statement('#.# = #',
-          [constant.holder.name,
-           constant.name,
-           constantEmitter.generate(constant.value)]));
+      assignments.add(js.js.statement('#.# = #', [
+        constant.holder.name,
+        constant.name,
+        constantEmitter.generate(constant.value)
+      ]));
     }
     return new js.Block(assignments);
   }
-
 
   /// Emits the static non-final fields section.
   ///
@@ -973,8 +1010,8 @@ class FragmentEmitter {
     //    `$.x = $.y = $.z = null;`.
     Iterable<js.Statement> statements = fields.map((StaticField field) {
       assert(field.holder.isStaticStateHolder);
-      return js.js.statement("#.# = #;",
-          [field.holder.name, field.name, field.code]);
+      return js.js
+          .statement("#.# = #;", [field.holder.name, field.name, field.code]);
     });
     return new js.Block(statements.toList());
   }
@@ -987,11 +1024,12 @@ class FragmentEmitter {
     List<StaticField> fields = fragment.staticLazilyInitializedFields;
     Iterable<js.Statement> statements = fields.map((StaticField field) {
       assert(field.holder.isStaticStateHolder);
-      return js.js.statement("lazy(#, #, #, #);",
-          [field.holder.name,
-           js.quoteName(field.name),
-           js.quoteName(namer.deriveLazyInitializerName(field.name)),
-           field.code]);
+      return js.js.statement("lazy(#, #, #, #);", [
+        field.holder.name,
+        js.quoteName(field.name),
+        js.quoteName(namer.deriveLazyInitializerName(field.name)),
+        field.code
+      ]);
     });
 
     return new js.Block(statements.toList());
@@ -1016,10 +1054,9 @@ class FragmentEmitter {
           "${fragment.outputFileName}.${ModelEmitter.deferredExtension}"));
     }
     js.ArrayInitializer fragmentHashes(List<Fragment> fragments) {
-      return new js.ArrayInitializer(
-          fragments
-              .map((fragment) => deferredLoadHashes[fragment])
-              .toList(growable: false));
+      return new js.ArrayInitializer(fragments
+          .map((fragment) => deferredLoadHashes[fragment])
+          .toList(growable: false));
     }
 
     List<js.Property> uris = new List<js.Property>(loadMap.length);
@@ -1033,38 +1070,41 @@ class FragmentEmitter {
       count++;
     });
 
-    globals.add(new js.Property(js.string(DEFERRED_LIBRARY_URIS),
-        new js.ObjectInitializer(uris)));
-    globals.add(new js.Property(js.string(DEFERRED_LIBRARY_HASHES),
-        new js.ObjectInitializer(hashes)));
-    globals.add(new js.Property(js.string(DEFERRED_INITIALIZED),
-        js.js("Object.create(null)")));
+    globals.add(new js.Property(
+        js.string(DEFERRED_LIBRARY_URIS), new js.ObjectInitializer(uris)));
+    globals.add(new js.Property(
+        js.string(DEFERRED_LIBRARY_HASHES), new js.ObjectInitializer(hashes)));
+    globals.add(new js.Property(
+        js.string(DEFERRED_INITIALIZED), js.js("Object.create(null)")));
 
     String deferredGlobal = ModelEmitter.deferredInitializersGlobal;
     js.Expression isHunkLoadedFunction =
         js.js("function(hash) { return !!$deferredGlobal[hash]; }");
-    globals.add(new js.Property(js.string(IS_HUNK_LOADED),
-        isHunkLoadedFunction));
+    globals
+        .add(new js.Property(js.string(IS_HUNK_LOADED), isHunkLoadedFunction));
 
-    js.Expression isHunkInitializedFunction =
-        js.js("function(hash) { return !!#deferredInitialized[hash]; }",
-            {'deferredInitialized':
-                generateEmbeddedGlobalAccess(DEFERRED_INITIALIZED)});
-    globals.add(new js.Property(js.string(IS_HUNK_INITIALIZED),
-        isHunkInitializedFunction));
+    js.Expression isHunkInitializedFunction = js.js(
+        "function(hash) { return !!#deferredInitialized[hash]; }", {
+      'deferredInitialized': generateEmbeddedGlobalAccess(DEFERRED_INITIALIZED)
+    });
+    globals.add(new js.Property(
+        js.string(IS_HUNK_INITIALIZED), isHunkInitializedFunction));
 
     /// See [emitEmbeddedGlobalsForDeferredLoading] for the format of the
     /// deferred hunk.
-    js.Expression initializeLoadedHunkFunction =
-    js.js("""
+    js.Expression initializeLoadedHunkFunction = js.js(
+        """
             function(hash) {
               initializeDeferredHunk($deferredGlobal[hash]);
               #deferredInitialized[hash] = true;
-            }""", {'deferredInitialized':
-                    generateEmbeddedGlobalAccess(DEFERRED_INITIALIZED)});
+            }""",
+        {
+          'deferredInitialized':
+              generateEmbeddedGlobalAccess(DEFERRED_INITIALIZED)
+        });
 
-    globals.add(new js.Property(js.string(INITIALIZE_LOADED_HUNK),
-                                initializeLoadedHunkFunction));
+    globals.add(new js.Property(
+        js.string(INITIALIZE_LOADED_HUNK), initializeLoadedHunkFunction));
 
     return globals;
   }
@@ -1079,18 +1119,23 @@ class FragmentEmitter {
     CoreClasses coreClasses = compiler.coreClasses;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
-    List<ClassElement> nativeClassesNeedingUnmangledName =
-        [coreClasses.intClass, coreClasses.doubleClass, coreClasses.numClass,
-          coreClasses.stringClass, coreClasses.boolClass, coreClasses.nullClass,
-          coreClasses.listClass];
+    List<ClassElement> nativeClassesNeedingUnmangledName = [
+      coreClasses.intClass,
+      coreClasses.doubleClass,
+      coreClasses.numClass,
+      coreClasses.stringClass,
+      coreClasses.boolClass,
+      coreClasses.nullClass,
+      coreClasses.listClass
+    ];
     // TODO(floitsch): this should probably be on a per-fragment basis.
     nativeClassesNeedingUnmangledName.forEach((element) {
-      names.add(new js.Property(js.quoteName(namer.className(element)),
-                                js.string(element.name)));
+      names.add(new js.Property(
+          js.quoteName(namer.className(element)), js.string(element.name)));
     });
 
-    return new js.Property(js.string(MANGLED_GLOBAL_NAMES),
-                           new js.ObjectInitializer(names));
+    return new js.Property(
+        js.string(MANGLED_GLOBAL_NAMES), new js.ObjectInitializer(names));
   }
 
   /// Emits the [GET_TYPE_FROM_NAME] embedded global.
@@ -1122,8 +1167,7 @@ class FragmentEmitter {
   }
 
   /// Emits all embedded globals.
-  js.Statement emitEmbeddedGlobals(
-      Program program,
+  js.Statement emitEmbeddedGlobals(Program program,
       Map<DeferredFragment, _DeferredFragmentHash> deferredLoadHashes) {
     List<js.Property> globals = <js.Property>[];
 
@@ -1133,8 +1177,8 @@ class FragmentEmitter {
     }
 
     if (program.typeToInterceptorMap != null) {
-      globals.add(new js.Property(js.string(TYPE_TO_INTERCEPTOR_MAP),
-      program.typeToInterceptorMap));
+      globals.add(new js.Property(
+          js.string(TYPE_TO_INTERCEPTOR_MAP), program.typeToInterceptorMap));
     }
 
     if (program.hasIsolateSupport) {
@@ -1143,9 +1187,8 @@ class FragmentEmitter {
       // the current static state. Since we don't run multiple isolates in the
       // same JavaScript context (except for testing) this shouldn't have any
       // impact on real-world programs, though.
-      globals.add(
-          new js.Property(js.string(CREATE_NEW_ISOLATE),
-                          js.js('function () { return $staticStateName; }')));
+      globals.add(new js.Property(js.string(CREATE_NEW_ISOLATE),
+          js.js('function () { return $staticStateName; }')));
 
       js.Expression nameToClosureFunction = js.js('''
         // First fetch the static function. From there we can execute its
@@ -1155,12 +1198,11 @@ class FragmentEmitter {
            var getterFunction = staticFunction.$tearOffPropertyName;
            return getterFunction();
          }''');
-      globals.add(new js.Property(js.string(STATIC_FUNCTION_NAME_TO_CLOSURE),
-                                  nameToClosureFunction));
+      globals.add(new js.Property(
+          js.string(STATIC_FUNCTION_NAME_TO_CLOSURE), nameToClosureFunction));
 
-      globals.add(
-          new js.Property(js.string(CLASS_ID_EXTRACTOR),
-                          js.js('function(o) { return o.constructor.name; }')));
+      globals.add(new js.Property(js.string(CLASS_ID_EXTRACTOR),
+          js.js('function(o) { return o.constructor.name; }')));
 
       js.Expression extractFieldsFunction = js.js('''
       function(o) {
@@ -1178,8 +1220,8 @@ class FragmentEmitter {
         }
         return result;
       }''');
-      globals.add(new js.Property(js.string(CLASS_FIELDS_EXTRACTOR),
-                                  extractFieldsFunction));
+      globals.add(new js.Property(
+          js.string(CLASS_FIELDS_EXTRACTOR), extractFieldsFunction));
 
       js.Expression createInstanceFromClassIdFunction = js.js('''
         function(name) {
@@ -1188,7 +1230,7 @@ class FragmentEmitter {
         }
       ''');
       globals.add(new js.Property(js.string(INSTANCE_FROM_CLASS_ID),
-                                  createInstanceFromClassIdFunction));
+          createInstanceFromClassIdFunction));
 
       js.Expression initializeEmptyInstanceFunction = js.js('''
       function(name, o, fields) {
@@ -1205,7 +1247,7 @@ class FragmentEmitter {
         return o;
       }''');
       globals.add(new js.Property(js.string(INITIALIZE_EMPTY_INSTANCE),
-                                  initializeEmptyInstanceFunction));
+          initializeEmptyInstanceFunction));
     }
 
     globals.add(emitMangledGlobalNames());
@@ -1215,11 +1257,10 @@ class FragmentEmitter {
     // therefore unused in this emitter.
     List<js.Property> mangledNamesProperties = <js.Property>[];
     program.symbolsMap.forEach((js.Name mangledName, String unmangledName) {
-      mangledNamesProperties.add(
-          new js.Property(mangledName, js.string(unmangledName)));
+      mangledNamesProperties
+          .add(new js.Property(mangledName, js.string(unmangledName)));
     });
-    globals.add(new js.Property(
-        js.string(MANGLED_NAMES),
+    globals.add(new js.Property(js.string(MANGLED_NAMES),
         new js.ObjectInitializer(mangledNamesProperties)));
 
     globals.add(emitGetTypeFromName());
@@ -1227,10 +1268,9 @@ class FragmentEmitter {
     globals.addAll(emitMetadata(program));
 
     if (program.needsNativeSupport) {
-      globals.add(new js.Property(js.string(INTERCEPTORS_BY_TAG),
-          new js.LiteralNull()));
-      globals.add(new js.Property(js.string(LEAF_TAGS),
-          new js.LiteralNull()));
+      globals.add(new js.Property(
+          js.string(INTERCEPTORS_BY_TAG), new js.LiteralNull()));
+      globals.add(new js.Property(js.string(LEAF_TAGS), new js.LiteralNull()));
     }
 
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
@@ -1253,16 +1293,18 @@ class FragmentEmitter {
     if (fragment.isMainFragment &&
         NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
       statements.add(NativeGenerator.generateIsolateAffinityTagInitialization(
-              backend,
-              generateEmbeddedGlobalAccess,
-              js.js("""
+          backend,
+          generateEmbeddedGlobalAccess,
+          js.js(
+              """
         // On V8, the 'intern' function converts a string to a symbol, which
         // makes property access much faster.
         function (s) {
           var o = {};
           o[s] = 1;
           return Object.keys(convertToFastObject(o))[0];
-        }""", [])));
+        }""",
+              [])));
     }
 
     Map<String, js.Expression> interceptorsByTag = <String, js.Expression>{};
@@ -1286,10 +1328,11 @@ class FragmentEmitter {
             List<Class> subclasses = cls.nativeExtensions;
             js.Expression value = js.string(cls.nativeNonLeafTags[0]);
             for (Class subclass in subclasses) {
-              value = js.js('#.# = #',
-                  [classReference(subclass),
-                   NATIVE_SUPERCLASS_TAG_NAME,
-                   js.string(cls.nativeNonLeafTags[0])]);
+              value = js.js('#.# = #', [
+                classReference(subclass),
+                NATIVE_SUPERCLASS_TAG_NAME,
+                js.string(cls.nativeNonLeafTags[0])
+              ]);
             }
             subclassAssignment = new js.ExpressionStatement(value);
           }
@@ -1298,8 +1341,8 @@ class FragmentEmitter {
     }
     statements.add(js.js.statement("setOrUpdateInterceptorsByTag(#);",
         js.objectLiteral(interceptorsByTag)));
-    statements.add(js.js.statement("setOrUpdateLeafTags(#);",
-        js.objectLiteral(leafTags)));
+    statements.add(
+        js.js.statement("setOrUpdateLeafTags(#);", js.objectLiteral(leafTags)));
     statements.add(subclassAssignment);
 
     return new js.Block(statements);

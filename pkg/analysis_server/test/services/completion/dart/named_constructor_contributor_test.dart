@@ -7,12 +7,12 @@ library test.services.completion.contributor.dart.named_constructor;
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../utils.dart';
 import 'completion_contributor_util.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 main() {
   initializeTestEnvironment();

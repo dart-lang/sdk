@@ -45,7 +45,7 @@ Future<Compiler> applyPatch(String script, String patch,
 }
 
 void expectHasBody(compiler, ElementX element) {
-    var node = element.parseNode(compiler.parsing);
+    var node = element.parseNode(compiler.parsingContext);
     Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
     Expect.isNotNull(node.body);
     // If the element has a body it is either a Block or a Return statement,
@@ -55,7 +55,7 @@ void expectHasBody(compiler, ElementX element) {
 }
 
 void expectHasNoBody(compiler, ElementX element) {
-    var node = element.parseNode(compiler.parsing);
+    var node = element.parseNode(compiler.parsingContext);
     Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
     Expect.isFalse(node.hasBody);
 }
@@ -206,7 +206,7 @@ Future testPatchVersioned() async {
         }
 
         compiler.analyzeElement(origin);
-        compiler.enqueuer.resolution.emptyDeferredTaskQueue();
+        compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
 
         DiagnosticCollector collector = compiler.diagnosticCollector;
         Expect.isTrue(collector.warnings.isEmpty,
@@ -336,7 +336,7 @@ Future testPatchMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -366,7 +366,7 @@ Future testPatchGetter() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   ensure(compiler,
          "field",
          container.lookupLocalMember,
@@ -400,7 +400,7 @@ Future testRegularMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -429,7 +429,7 @@ Future testInjectedMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -458,7 +458,7 @@ Future testInjectedPublicMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -555,7 +555,7 @@ Future testPatchSignatureCheck() async {
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
   container.ensureResolved(compiler.resolution);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   DiagnosticCollector collector = compiler.diagnosticCollector;
 
   void expect(String methodName, List infos, List errors) {
@@ -635,7 +635,7 @@ Future testExternalWithoutImplementationMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
   compiler.resolver.resolveMethodElement(
@@ -696,7 +696,7 @@ Future testPatchNonExistingMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   DiagnosticCollector collector = compiler.diagnosticCollector;
 
   Expect.isTrue(collector.warnings.isEmpty,
@@ -784,7 +784,7 @@ Future testPatchNonExternalMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
 
   DiagnosticCollector collector = compiler.diagnosticCollector;
   print('testPatchNonExternalMember.errors:${collector.errors}');
@@ -1023,13 +1023,17 @@ Future testEffectiveTarget() async {
     class A {
       A() : super();
       factory A.forward() = B.patchTarget;
+      factory A.forwardOne() = B.patchFactory;
       factory A.forwardTwo() = B.reflectBack;
+      factory A.forwardThree() = B.patchInjected;
     }
     class B extends A {
       B() : super();
       external B.patchTarget();
+      external factory B.patchFactory();
       external factory B.reflectBack();
       B.originTarget() : super();
+      external factory B.patchInjected();
     }
     """;
   String patch = """
@@ -1037,7 +1041,14 @@ Future testEffectiveTarget() async {
       @patch
       B.patchTarget() : super();
       @patch
+      factory B.patchFactory() => new B.patchTarget();
+      @patch
       factory B.reflectBack() = B.originTarget;
+      @patch
+      factory B.patchInjected() = _C.injected;
+    }
+    class _C extends B {
+      _C.injected() : super.patchTarget();
     }
     """;
 
@@ -1048,14 +1059,28 @@ Future testEffectiveTarget() async {
 
   ConstructorElement forward = clsA.lookupConstructor("forward");
   ConstructorElement target = forward.effectiveTarget;
-  Expect.isTrue(target.isPatch);
+  Expect.isTrue(target.isPatched, "Unexpected target $target for $forward");
+  Expect.isFalse(target.isPatch, "Unexpected target $target for $forward");
   Expect.equals("patchTarget", target.name);
+
+  ConstructorElement forwardOne = clsA.lookupConstructor("forwardOne");
+  target = forwardOne.effectiveTarget;
+  Expect.isFalse(forwardOne.isMalformed);
+  Expect.isFalse(target.isPatch, "Unexpected target $target for $forwardOne");
+  Expect.equals("patchFactory", target.name);
 
   ConstructorElement forwardTwo = clsA.lookupConstructor("forwardTwo");
   target = forwardTwo.effectiveTarget;
   Expect.isFalse(forwardTwo.isMalformed);
-  Expect.isFalse(target.isPatch);
+  Expect.isFalse(target.isPatch, "Unexpected target $target for $forwardTwo");
   Expect.equals("originTarget", target.name);
+
+  ConstructorElement forwardThree = clsA.lookupConstructor("forwardThree");
+  target = forwardThree.effectiveTarget;
+  Expect.isFalse(forwardThree.isMalformed);
+  Expect.isTrue(target.isInjected,
+      "Unexpected target $target for $forwardThree");
+  Expect.equals("injected", target.name);
 }
 
 Future testTypecheckPatchedMembers() async {

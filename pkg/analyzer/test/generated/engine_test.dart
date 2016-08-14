@@ -8,7 +8,9 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/source/embedder.dart';
+import 'package:analyzer/plugin/resolver_provider.dart';
+import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -189,10 +191,14 @@ class SourcesChangedListener {
 }
 
 /**
- * Instances of the class `TestAnalysisContext` implement an analysis context in which every
- * method will cause a test to fail when invoked.
+ * An analysis context in which almost every method will cause a test to fail
+ * when invoked.
  */
 class TestAnalysisContext implements InternalAnalysisContext {
+  @override
+  final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =
+      new ReentrantSynchronousStream<InvalidatedResult>();
+
   @override
   ResultProvider resultProvider;
 
@@ -219,6 +225,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  CacheConsistencyValidator get cacheConsistencyValidator {
+    fail("Unexpected invocation of cacheConsistencyValidator");
+    return null;
+  }
+
+  @override
   set contentCache(ContentCache value) {
     fail("Unexpected invocation of setContentCache");
   }
@@ -229,6 +241,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
 
+  @deprecated
   @override
   EmbedderYamlLocator get embedderYamlLocator {
     fail("Unexpected invocation of get embedderYamlLocator");
@@ -239,6 +252,17 @@ class TestAnalysisContext implements InternalAnalysisContext {
   List<AnalysisTarget> get explicitTargets {
     fail("Unexpected invocation of visitCacheItems");
     return null;
+  }
+
+  @override
+  ResolverProvider get fileResolverProvider {
+    fail("Unexpected invocation of fileResolverProvider");
+    return null;
+  }
+
+  @override
+  void set fileResolverProvider(ResolverProvider resolverProvider) {
+    fail("Unexpected invocation of fileResolverProvider");
   }
 
   @override
@@ -417,14 +441,15 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Future<CompilationUnit> computeResolvedCompilationUnitAsync(
+  CancelableFuture<CompilationUnit> computeResolvedCompilationUnitAsync(
       Source source, Source librarySource) {
     fail("Unexpected invocation of getResolvedCompilationUnitFuture");
     return null;
   }
 
   @override
-  Object computeResult(AnalysisTarget target, ResultDescriptor result) {
+  Object/*=V*/ computeResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
     fail("Unexpected invocation of computeResult");
     return null;
   }
@@ -460,7 +485,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object getConfigurationData(ResultDescriptor key) {
+  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) {
     fail("Unexpected invocation of getConfigurationData");
     return null;
   }
@@ -564,7 +589,8 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object getResult(AnalysisTarget target, ResultDescriptor result) {
+  Object/*=V*/ getResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
     fail("Unexpected invocation of getResult");
     return null;
   }
@@ -605,6 +631,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
 
+  @deprecated
   @override
   Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
     fail("Unexpected invocation of onResultComputed");
@@ -678,12 +705,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   void test_flushAstStructures(Source source) {
     fail("Unexpected invocation of test_flushAstStructures");
-  }
-
-  @override
-  bool validateCacheConsistency() {
-    fail("Unexpected invocation of validateCacheConsistency");
-    return false;
   }
 
   @override

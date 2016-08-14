@@ -14,7 +14,7 @@ part of dart.core;
  * the iterator has now moved to the next element,
  * which is then available as [Iterator.current].
  * If the call returns `false`, there are no more elements,
- * and `iterator.currrent` returns `null`.
+ * and `iterator.current` returns `null`.
  *
  * You can create more than one iterator from the same `Iterable`.
  * Each time `iterator` is read, it returns a new iterator,
@@ -83,15 +83,16 @@ abstract class Iterable<E> {
   const Iterable();
 
   /**
-   * Creates an `Iterable` that generates its elements dynamically.
+   * Creates an `Iterable` which generates its elements dynamically.
    *
-   * An `Iterator` created by [iterator] will count from
-   * zero to [:count - 1:], and call [generator]
-   * with each index in turn to create the next value.
+   * The generated iterable has [count] elements,
+   * and the element at index `n` is computed by calling `generator(n)`.
+   * Values are not cached, so each iteration computes the values again.
    *
    * If [generator] is omitted, it defaults to an identity function
-   * on integers `(int x) => x`, so it should only be omitted if the type
-   * parameter allows integer values.
+   * on integers `(int x) => x`, so it may only be omitted if the type
+   * parameter allows integer values. That is, if [E] is one of
+   * `int`, `num`, `Object` or `dynamic`.
    *
    * As an `Iterable`, `new Iterable.generate(n, generator))` is equivalent to
    * `const [0, ..., n - 1].map(generator)`.
@@ -106,9 +107,6 @@ abstract class Iterable<E> {
    *
    * The empty iterable has no elements, and iterating it always stops
    * immediately.
-   *
-   * An empty iterable can be used in places where you always that
-   * the iterable you would otherwise create is empty.
    */
   const factory Iterable.empty() = EmptyIterable<E>;
 
@@ -149,7 +147,7 @@ abstract class Iterable<E> {
    * This method returns a view of the mapped elements. As long as the
    * returned [Iterable] is not iterated over, the supplied function [f] will
    * not be invoked. The transformed elements will not be cached. Iterating
-   * multiple times over the the returned [Iterable] will invoke the supplied
+   * multiple times over the returned [Iterable] will invoke the supplied
    * function [f] multiple times on the same element.
    *
    * Methods on the returned iterable are allowed to omit calling `f`
@@ -166,13 +164,14 @@ abstract class Iterable<E> {
    * The matching elements have the same order in the returned iterable
    * as they have in [iterator].
    *
-   * This method returns a view of the mapped elements. As long as the
-   * returned [Iterable] is not iterated over, the supplied function [test] will
-   * not be invoked. Iterating will not cache results, and thus iterating
-   * multiple times over the returned [Iterable] will invoke the supplied
+   * This method returns a view of the mapped elements.
+   * As long as the returned [Iterable] is not iterated over,
+   * the supplied function [test] will not be invoked.
+   * Iterating will not cache results, and thus iterating multiple times over
+   * the returned [Iterable] may invoke the supplied
    * function [test] multiple times on the same element.
    */
-  Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
+  Iterable<E> where(bool test(E element)) => new WhereIterable<E>(this, test);
 
   /**
    * Expands each element of this [Iterable] into zero or more elements.
@@ -182,6 +181,17 @@ abstract class Iterable<E> {
    *
    * The returned [Iterable] is lazy, and calls [f] for each element
    * of this every time it's iterated.
+   *
+   * Example:
+   *
+   *     var pairs = [[1, 2], [3, 4]];
+   *     var flattened = pairs.expand((pair) => pair).toList();
+   *     print(flattened); // => [1, 2, 3, 4];
+   *
+   *     var input = [1, 2, 3];
+   *     var duplicated = input.expand((i) => [i, i]).toList();
+   *     print(duplicated); // => [1, 1, 2, 2, 3, 3]
+   *
    */
   Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) =>
       new ExpandIterable<E, dynamic/*=T*/>(this, f);
@@ -208,7 +218,6 @@ abstract class Iterable<E> {
     }
     return false;
   }
-
 
   /**
    * Applies the function [f] to each element of this collection in iteration
@@ -317,7 +326,6 @@ abstract class Iterable<E> {
     return buffer.toString();
   }
 
-
   /**
    * Checks whether any element of this iterable satisfies [test].
    *
@@ -337,8 +345,9 @@ abstract class Iterable<E> {
    * The elements are in iteration order.
    * The list is fixed-length if [growable] is false.
    */
-  List<E> toList({ bool growable: true }) =>
-      new List<E>.from(this, growable: growable);
+  List<E> toList({bool growable: true}) {
+    return new List<E>.from(this, growable: growable);
+  }
 
   /**
    * Creates a [Set] containing the same elements as this iterable.
@@ -382,7 +391,7 @@ abstract class Iterable<E> {
    */
   bool get isNotEmpty => !isEmpty;
 
-   /**
+  /**
    * Returns a lazy iterable of the [count] first elements of this iterable.
    *
    * The returned `Iterable` may contain fewer than `count` elements, if `this`
@@ -412,7 +421,7 @@ abstract class Iterable<E> {
   }
 
   /**
-   * Returns an Iterable that provides all but the first [count] elements.
+   * Returns an [Iterable] that provides all but the first [count] elements.
    *
    * When the returned iterable is iterated, it starts iterating over `this`,
    * first skipping past the initial [count] elements.
@@ -421,23 +430,27 @@ abstract class Iterable<E> {
    * After that, the remaining elements are iterated in the same order as
    * in this iterable.
    *
-   * The `count` must not be negative.
+   * Some iterables may be able to find later elements without first iterating
+   * through earlier elements, for example when iterating a [List].
+   * Such iterables are allowed to ignore the initial skipped elements.
+   *
+   * The [count] must not be negative.
    */
   Iterable<E> skip(int count) {
     return new SkipIterable<E>(this, count);
   }
 
   /**
-   * Returns an Iterable that skips leading elements while [test] is satisfied.
+   * Returns an `Iterable` that skips leading elements while [test] is satisfied.
    *
-   * The filtering happens lazily. Every new Iterator of the returned
-   * Iterable iterates over all elements of `this`.
+   * The filtering happens lazily. Every new [Iterator] of the returned
+   * iterable iterates over all elements of `this`.
    *
    * The returned iterable provides elements by iterating this iterable,
    * but skipping over all initial elements where `test(element)` returns
    * true. If all elements satisfy `test` the resulting iterable is empty,
    * otherwise it iterates the remaining elements in their original order,
-   * starting with the first element for which `test(element)` returns false,
+   * starting with the first element for which `test(element)` returns `false`.
    */
   Iterable<E> skipWhile(bool test(E value)) {
     return new SkipWhileIterable<E>(this, test);
@@ -447,11 +460,11 @@ abstract class Iterable<E> {
    * Returns the first element.
    *
    * Throws a [StateError] if `this` is empty.
-   * Otherwise returs the first element in the iteration order,
-   * equivalent to `(iterator..moveNext())..current`.
+   * Otherwise returns the first element in the iteration order,
+   * equivalent to `this.elementAt(0)`.
    */
   E get first {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }
@@ -469,14 +482,14 @@ abstract class Iterable<E> {
    * without iterating through the previous ones).
    */
   E get last {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }
     E result;
     do {
       result = it.current;
-    } while(it.moveNext());
+    } while (it.moveNext());
     return result;
   }
 
@@ -486,7 +499,7 @@ abstract class Iterable<E> {
    * Throws a [StateError] if `this` is empty or has more than one element.
    */
   E get single {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) throw IterableElementError.noElement();
     E result = it.current;
     if (it.moveNext()) throw IterableElementError.tooMany();
@@ -496,13 +509,13 @@ abstract class Iterable<E> {
   /**
    * Returns the first element that satisfies the given predicate [test].
    *
-   * Iterates through elements and returns the first to satsify [test].
+   * Iterates through elements and returns the first to satisfy [test].
    *
    * If no element satisfies [test], the result of invoking the [orElse]
    * function is returned.
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
-  E firstWhere(bool test(E element), { E orElse() }) {
+  E firstWhere(bool test(E element), {E orElse()}) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -520,7 +533,7 @@ abstract class Iterable<E> {
    * checks `test(element)` for each,
    * and finally returns that last one that matched.
    *
-   * If no element satsfies [test], the result of invoking the [orElse]
+   * If no element satisfies [test], the result of invoking the [orElse]
    * function is returned.
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
@@ -605,60 +618,28 @@ abstract class Iterable<E> {
 
 typedef E _Generator<E>(int index);
 
-class _GeneratorIterable<E> extends Iterable<E>
-                            implements EfficientLength {
-  final int _start;
-  final int _end;
+class _GeneratorIterable<E> extends ListIterable<E> {
+  /// The length of the generated iterable.
+  final int length;
+
+  /// The function mapping indices to values.
   final _Generator<E> _generator;
-  _GeneratorIterable(this._end, E generator(int n))
-      : _start = 0,
-        _generator = (generator != null) ? generator : _id;
 
-  _GeneratorIterable.slice(this._start, this._end, this._generator);
+  /// Creates the generated iterable.
+  ///
+  /// If [generator] is `null`, it is checked that `int` is assignable to [E].
+  _GeneratorIterable(this.length, E generator(int index))
+      : // The `as` below is used as check to make sure that `int` is assignable
+        // to [E].
+        _generator = (generator != null) ? generator : _id as _Generator<E>;
 
-  Iterator<E> get iterator =>
-      new _GeneratorIterator<E>(_start, _end, _generator);
-  int get length => _end - _start;
-
-  Iterable<E> skip(int count) {
-    RangeError.checkNotNegative(count, "count");
-    if (count == 0) return this;
-    int newStart = _start + count;
-    if (newStart >= _end) return new EmptyIterable<E>();
-    return new _GeneratorIterable<E>.slice(newStart, _end, _generator);
+  E elementAt(int index) {
+    RangeError.checkValidIndex(index, this);
+    return _generator(index);
   }
 
-  Iterable<E> take(int count) {
-    RangeError.checkNotNegative(count, "count");
-    if (count == 0) return new EmptyIterable<E>();
-    int newEnd = _start + count;
-    if (newEnd >= _end) return this;
-    return new _GeneratorIterable<E>.slice(_start, newEnd, _generator);
-  }
-
+  /// Helper function used as default _generator function.
   static int _id(int n) => n;
-}
-
-class _GeneratorIterator<E> implements Iterator<E> {
-  final int _end;
-  final _Generator<E> _generator;
-  int _index;
-  E _current;
-
-  _GeneratorIterator(this._index, this._end, this._generator);
-
-  bool moveNext() {
-    if (_index < _end) {
-      _current = _generator(_index);
-      _index++;
-      return true;
-    } else {
-      _current = null;
-      return false;
-    }
-  }
-
-  E get current => _current;
 }
 
 /**

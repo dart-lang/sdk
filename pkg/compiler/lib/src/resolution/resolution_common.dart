@@ -5,34 +5,23 @@
 library dart2js.resolution.common;
 
 import '../common.dart';
-import '../common/resolution.dart' show
-    Resolution;
-import '../common/tasks.dart' show
-    DeferredAction;
-import '../compiler.dart' show
-    Compiler;
+import '../common/resolution.dart' show Resolution;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-
-import 'registry.dart' show
-    ResolutionRegistry;
-import 'scope.dart' show
-    Scope;
-import 'type_resolver.dart' show
-    TypeResolver;
+import 'registry.dart' show ResolutionRegistry;
+import 'scope.dart' show Scope;
+import 'type_resolver.dart' show TypeResolver;
 
 class CommonResolverVisitor<R> extends Visitor<R> {
-  final Compiler compiler;
+  final Resolution resolution;
 
-  CommonResolverVisitor(Compiler this.compiler);
+  CommonResolverVisitor(this.resolution);
 
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  Resolution get resolution => compiler.resolution;
+  DiagnosticReporter get reporter => resolution.reporter;
 
   R visitNode(Node node) {
-    return reporter.internalError(node,
-        'internal error: Unhandled node: ${node.getObjectDescription()}');
+    return reporter.internalError(
+        node, 'internal error: Unhandled node: ${node.getObjectDescription()}');
   }
 
   R visitEmptyStatement(Node node) => null;
@@ -40,8 +29,8 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   /** Convenience method for visiting nodes that may be null. */
   R visit(Node node) => (node == null) ? null : node.accept(this);
 
-  void addDeferredAction(Element element, DeferredAction action) {
-    compiler.enqueuer.resolution.addDeferredAction(element, action);
+  void addDeferredAction(Element element, void action()) {
+    resolution.enqueuer.addDeferredAction(element, action);
   }
 }
 
@@ -52,14 +41,16 @@ class CommonResolverVisitor<R> extends Visitor<R> {
 abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
   final ResolutionRegistry registry;
   final TypeResolver typeResolver;
+
   /// The current enclosing element for the visited AST nodes.
   Element get enclosingElement;
+
   /// The current scope of the visitor.
   Scope get scope;
 
-  MappingVisitor(Compiler compiler, ResolutionRegistry this.registry)
-      : typeResolver = new TypeResolver(compiler),
-        super(compiler);
+  MappingVisitor(Resolution resolution, this.registry)
+      : typeResolver = new TypeResolver(resolution),
+        super(resolution);
 
   AsyncMarker get currentAsyncMarker => AsyncMarker.SYNC;
 
@@ -77,9 +68,9 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
           element.name == 'async' ||
           element.name == 'await') {
         reporter.reportErrorMessage(
-            node, MessageKind.ASYNC_KEYWORD_AS_IDENTIFIER,
-            {'keyword': element.name,
-             'modifier': currentAsyncMarker});
+            node,
+            MessageKind.ASYNC_KEYWORD_AS_IDENTIFIER,
+            {'keyword': element.name, 'modifier': currentAsyncMarker});
       }
     }
   }
@@ -93,19 +84,14 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
     registry.defineElement(node, element);
   }
 
-  void reportDuplicateDefinition(String name,
-                                 Spannable definition,
-                                 Spannable existing) {
+  void reportDuplicateDefinition(
+      String name, Spannable definition, Spannable existing) {
     reporter.reportError(
         reporter.createMessage(
-            definition,
-            MessageKind.DUPLICATE_DEFINITION,
-            {'name': name}),
+            definition, MessageKind.DUPLICATE_DEFINITION, {'name': name}),
         <DiagnosticMessage>[
-            reporter.createMessage(
-                existing,
-                MessageKind.EXISTING_DEFINITION,
-                {'name': name}),
+          reporter.createMessage(
+              existing, MessageKind.EXISTING_DEFINITION, {'name': name}),
         ]);
   }
 }

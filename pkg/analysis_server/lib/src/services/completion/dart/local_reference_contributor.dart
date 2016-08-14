@@ -17,6 +17,8 @@ import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
@@ -155,9 +157,17 @@ class LocalReferenceContributor extends DartCompletionContributor {
       if (optype.includeReturnValueSuggestions ||
           optype.includeTypeNameSuggestions ||
           optype.includeVoidReturnSuggestions) {
-        _LocalVisitor visitor =
-            new _LocalVisitor(request, request.offset, optype);
+        // If the target is in an expression
+        // then resolve the outermost/entire expression
         AstNode node = request.target.containingNode;
+
+        if (node is Expression) {
+          await request.resolveContainingExpression(node);
+
+          // Discard any cached target information
+          // because it may have changed as a result of the resolution
+          node = request.target.containingNode;
+        }
 
         // Do not suggest local vars within the current expression
         while (node is Expression) {
@@ -170,6 +180,8 @@ class LocalReferenceContributor extends DartCompletionContributor {
           node = node.parent;
         }
 
+        _LocalVisitor visitor =
+            new _LocalVisitor(request, request.offset, optype);
         visitor.visit(node);
         return visitor.suggestions;
       }
@@ -222,7 +234,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredClass(ClassDeclaration declaration) {
     if (optype.includeTypeNameSuggestions) {
-      _addLocalSuggestion(
+      _addLocalSuggestion_includeTypeNameSuggestions(
           declaration.name, NO_RETURN_TYPE, protocol.ElementKind.CLASS,
           isAbstract: declaration.isAbstract,
           isDeprecated: _isDeprecated(declaration));
@@ -232,8 +244,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
     if (optype.includeTypeNameSuggestions) {
-      _addLocalSuggestion(declaration.name, NO_RETURN_TYPE,
-          protocol.ElementKind.CLASS_TYPE_ALIAS,
+      _addLocalSuggestion_includeTypeNameSuggestions(declaration.name,
+          NO_RETURN_TYPE, protocol.ElementKind.CLASS_TYPE_ALIAS,
           isAbstract: true, isDeprecated: _isDeprecated(declaration));
     }
   }
@@ -241,9 +253,16 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredEnum(EnumDeclaration declaration) {
     if (optype.includeTypeNameSuggestions) {
-      _addLocalSuggestion(
+      _addLocalSuggestion_includeTypeNameSuggestions(
           declaration.name, NO_RETURN_TYPE, protocol.ElementKind.ENUM,
           isDeprecated: _isDeprecated(declaration));
+      for (EnumConstantDeclaration enumConstant in declaration.constants) {
+        if (!enumConstant.isSynthetic) {
+          _addLocalSuggestion_includeReturnValueSuggestions_enumConstant(
+              enumConstant, declaration,
+              isDeprecated: _isDeprecated(declaration));
+        }
+      }
     }
   }
 
@@ -253,7 +272,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         (!optype.inStaticMethodBody || fieldDecl.isStatic)) {
       bool deprecated = _isDeprecated(fieldDecl) || _isDeprecated(varDecl);
       TypeName typeName = fieldDecl.fields.type;
-      _addLocalSuggestion(varDecl.name, typeName, protocol.ElementKind.FIELD,
+      _addLocalSuggestion_includeReturnValueSuggestions(
+          varDecl.name, typeName, protocol.ElementKind.FIELD,
           isDeprecated: deprecated,
           relevance: DART_RELEVANCE_LOCAL_FIELD,
           classDecl: fieldDecl.parent);
@@ -284,7 +304,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         elemKind = protocol.ElementKind.FUNCTION;
         relevance = DART_RELEVANCE_LOCAL_FUNCTION;
       }
-      _addLocalSuggestion(declaration.name, typeName, elemKind,
+      _addLocalSuggestion_includeReturnValueSuggestions(
+          declaration.name, typeName, elemKind,
           isDeprecated: _isDeprecated(declaration),
           param: declaration.functionExpression.parameters,
           relevance: relevance);
@@ -295,8 +316,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (optype.includeTypeNameSuggestions) {
       // TODO (danrubel) determine parameters and return type
-      _addLocalSuggestion(declaration.name, declaration.returnType,
-          protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+      _addLocalSuggestion_includeTypeNameSuggestions(declaration.name,
+          declaration.returnType, protocol.ElementKind.FUNCTION_TYPE_ALIAS,
           isAbstract: true, isDeprecated: _isDeprecated(declaration));
     }
   }
@@ -309,7 +330,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredLocalVar(SimpleIdentifier id, TypeName typeName) {
     if (optype.includeReturnValueSuggestions) {
-      _addLocalSuggestion(id, typeName, protocol.ElementKind.LOCAL_VARIABLE,
+      _addLocalSuggestion_includeReturnValueSuggestions(
+          id, typeName, protocol.ElementKind.LOCAL_VARIABLE,
           relevance: DART_RELEVANCE_LOCAL_VARIABLE);
     }
   }
@@ -342,7 +364,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         param = declaration.parameters;
         relevance = DART_RELEVANCE_LOCAL_METHOD;
       }
-      _addLocalSuggestion(declaration.name, typeName, elemKind,
+      _addLocalSuggestion_includeReturnValueSuggestions(
+          declaration.name, typeName, elemKind,
           isAbstract: declaration.isAbstract,
           isDeprecated: _isDeprecated(declaration),
           classDecl: declaration.parent,
@@ -354,7 +377,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredParam(SimpleIdentifier id, TypeName typeName) {
     if (optype.includeReturnValueSuggestions) {
-      _addLocalSuggestion(id, typeName, protocol.ElementKind.PARAMETER,
+      _addLocalSuggestion_includeReturnValueSuggestions(
+          id, typeName, protocol.ElementKind.PARAMETER,
           relevance: DART_RELEVANCE_PARAMETER);
     }
   }
@@ -363,7 +387,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {
     if (optype.includeReturnValueSuggestions) {
-      _addLocalSuggestion(
+      _addLocalSuggestion_includeReturnValueSuggestions(
           varDecl.name, varList.type, protocol.ElementKind.TOP_LEVEL_VARIABLE,
           isDeprecated: _isDeprecated(varList) || _isDeprecated(varDecl),
           relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
@@ -392,13 +416,103 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       suggestion.element = _createLocalElement(request.source, elemKind, id,
           isAbstract: isAbstract,
           isDeprecated: isDeprecated,
-          parameters: param != null ? param.toSource() : null,
+          parameters: param?.toSource(),
           returnType: typeName);
       if ((elemKind == protocol.ElementKind.METHOD ||
               elemKind == protocol.ElementKind.FUNCTION) &&
           param != null) {
         _addParameterInfo(suggestion, param);
       }
+    }
+  }
+
+  void _addLocalSuggestion_enumConstant(
+      EnumConstantDeclaration constantDeclaration,
+      EnumDeclaration enumDeclaration,
+      {bool isAbstract: false,
+      bool isDeprecated: false,
+      ClassDeclaration classDecl,
+      int relevance: DART_RELEVANCE_DEFAULT}) {
+    String completion =
+        '${enumDeclaration.name.name}.${constantDeclaration.name.name}';
+    CompletionSuggestion suggestion = new CompletionSuggestion(
+        CompletionSuggestionKind.INVOCATION,
+        isDeprecated ? DART_RELEVANCE_LOW : relevance,
+        completion,
+        completion.length,
+        0,
+        isDeprecated,
+        false,
+        returnType: enumDeclaration.name.name);
+
+    suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
+    int flags = protocol.Element.makeFlags(
+        isAbstract: isAbstract,
+        isDeprecated: isDeprecated,
+        isPrivate: Identifier.isPrivateName(constantDeclaration.name.name));
+    suggestion.element = new protocol.Element(
+        protocol.ElementKind.ENUM_CONSTANT,
+        constantDeclaration.name.name,
+        flags,
+        location: new Location(
+            request.source.fullName,
+            constantDeclaration.name.offset,
+            constantDeclaration.name.length,
+            0,
+            0));
+  }
+
+  void _addLocalSuggestion_includeReturnValueSuggestions(
+      SimpleIdentifier id, TypeName typeName, protocol.ElementKind elemKind,
+      {bool isAbstract: false,
+      bool isDeprecated: false,
+      ClassDeclaration classDecl,
+      FormalParameterList param,
+      int relevance: DART_RELEVANCE_DEFAULT}) {
+    relevance = optype.returnValueSuggestionsFilter(
+        _staticTypeOfIdentifier(id), relevance);
+    if (relevance != null) {
+      _addLocalSuggestion(id, typeName, elemKind,
+          isAbstract: isAbstract,
+          isDeprecated: isDeprecated,
+          classDecl: classDecl,
+          param: param,
+          relevance: relevance);
+    }
+  }
+
+  void _addLocalSuggestion_includeReturnValueSuggestions_enumConstant(
+      EnumConstantDeclaration constantDeclaration,
+      EnumDeclaration enumDeclaration,
+      {bool isAbstract: false,
+      bool isDeprecated: false,
+      int relevance: DART_RELEVANCE_DEFAULT}) {
+    relevance = optype.returnValueSuggestionsFilter(
+        enumDeclaration.element.type, relevance);
+    if (relevance != null) {
+      _addLocalSuggestion_enumConstant(constantDeclaration, enumDeclaration,
+          isAbstract: isAbstract,
+          isDeprecated: isDeprecated,
+          relevance: relevance);
+    }
+  }
+
+  void _addLocalSuggestion_includeTypeNameSuggestions(
+      SimpleIdentifier id, TypeName typeName, protocol.ElementKind elemKind,
+      {bool isAbstract: false,
+      bool isDeprecated: false,
+      ClassDeclaration classDecl,
+      FormalParameterList param,
+      int relevance: DART_RELEVANCE_DEFAULT}) {
+    relevance = optype.typeNameSuggestionsFilter(
+        _staticTypeOfIdentifier(id), relevance);
+    if (relevance != null) {
+      _addLocalSuggestion(id, typeName, elemKind,
+          isAbstract: isAbstract,
+          isDeprecated: isDeprecated,
+          classDecl: classDecl,
+          param: param,
+          relevance: relevance);
     }
   }
 
@@ -447,5 +561,13 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       }
     }
     return false;
+  }
+
+  DartType _staticTypeOfIdentifier(Identifier id) {
+    if (id.staticElement is ClassElement) {
+      return (id.staticElement as ClassElement).type;
+    } else {
+      return id.staticType;
+    }
   }
 }

@@ -11,7 +11,9 @@
 // hash listing file name as the third argument. From docs/language a
 // typical usage would be as follows:
 //
-//   dart ../../tools/addlatexhash.dart dartLangSpec.tex out.tex hash.txt
+//   dart
+//     --package-root=<build dir>/packages \ 
+//     ../../tools/addlatexhash.dart dartLangSpec.tex out.tex hash.txt
 //
 // This will produce a normalized variant out.tex of the language
 // specification with hash values filled in, and a listing hash.txt of
@@ -24,8 +26,10 @@
 
 import 'dart:io';
 import 'dart:convert';
-import '../third_party/pkg/utf/lib/utf.dart';
-import '../third_party/pkg/crypto/lib/crypto.dart';
+
+import 'package:crypto/crypto.dart';
+import 'package:convert/convert.dart';
+import 'package:utf/utf.dart';
 
 // ----------------------------------------------------------------------
 // Normalization of the text: removal or normalization of parts that
@@ -484,16 +488,15 @@ gatherLines(lines, startIndex, nextIndex) =>
 /// in [lines], stopping just before [nextIndex].  SIDE EFFECT:
 /// Outputs the simplified text and its hash value to [listSink].
 computeHashValue(lines, startIndex, nextIndex, listSink) {
-  final hashEncoder = new SHA1();
   final gatheredLine = gatherLines(lines, startIndex, nextIndex);
   final simplifiedLine = simplifyLine(gatheredLine);
   listSink.write("  % $simplifiedLine\n");
-  hashEncoder.add(encodeUtf8(simplifiedLine));
-  return hashEncoder.close();
+  var digest = sha1.convert(encodeUtf8(simplifiedLine));
+  return digest.bytes;
 }
 
 computeHashString(lines, startIndex, nextIndex, listSink) =>
-    CryptoUtils.bytesToHex(computeHashValue(lines,
+    hex.encode(computeHashValue(lines,
                                             startIndex,
                                             nextIndex,
                                             listSink));

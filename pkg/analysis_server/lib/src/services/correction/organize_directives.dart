@@ -7,8 +7,8 @@ library services.src.refactoring.organize_directives;
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError, Element;
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/error.dart';
 
 /**
@@ -47,7 +47,9 @@ class DirectiveOrganizer {
 
   bool _isUnresolvedUri(UriBasedDirective directive) {
     for (AnalysisError error in errors) {
-      if (error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST &&
+      ErrorCode errorCode = error.errorCode;
+      if ((errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
+              errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED) &&
           directive.uri.offset == error.offset) {
         return true;
       }

@@ -11,10 +11,23 @@ import "path.dart";
 import "compiler_configuration.dart" show CompilerConfiguration;
 import "runtime_configuration.dart" show RuntimeConfiguration;
 
-const List<String> defaultTestSelectors =
-    const ['samples', 'standalone', 'corelib', 'co19', 'language',
-           'isolate', 'vm', 'html', 'benchmark_smoke',
-           'utils', 'lib', 'pkg', 'analyze_library', 'service'];
+const List<String> defaultTestSelectors = const [
+  'samples',
+  'standalone',
+  'corelib',
+  'co19',
+  'language',
+  'isolate',
+  'vm',
+  'html',
+  'benchmark_smoke',
+  'utils',
+  'lib',
+  'pkg',
+  'analyze_library',
+  'service',
+  'observatory_ui'
+];
 
 /**
  * Specification of a single test option.
@@ -23,12 +36,9 @@ const List<String> defaultTestSelectors =
  * the Map returned from the [TestOptionParser] parse method.
  */
 class _TestOptionSpecification {
-  _TestOptionSpecification(this.name,
-                           this.description,
-                           this.keys,
-                           this.values,
-                           this.defaultValue,
-                           {this.type : 'string'});
+  _TestOptionSpecification(
+      this.name, this.description, this.keys, this.values, this.defaultValue,
+      {this.type: 'string'});
   String name;
   String description;
   List<String> keys;
@@ -45,16 +55,12 @@ class TestOptionsParser {
    * Creates a test options parser initialized with the known options.
    */
   TestOptionsParser() {
-    _options =
-        [ new _TestOptionSpecification(
-              'mode',
-              'Mode in which to run the tests',
-              ['-m', '--mode'],
-              ['all', 'debug', 'release', 'product'],
-              'debug'),
-          new _TestOptionSpecification(
-              'compiler',
-              '''Specify any compilation step (if needed).
+    _options = [
+      new _TestOptionSpecification('mode', 'Mode in which to run the tests',
+          ['-m', '--mode'], ['all', 'debug', 'release', 'product'], 'debug'),
+      new _TestOptionSpecification(
+          'compiler',
+          '''Specify any compilation step (if needed).
 
    none: Do not compile the Dart code (run native Dart code on the VM).
          (only valid with the following runtimes: vm, drt)
@@ -68,21 +74,20 @@ class TestOptionsParser {
           (only valid with the following runtimes: none)
 
    dart2app: Compile the Dart code into an app snapshot before running the test
-          (only valid with the following runtimes: dart_product)''',
-              ['-c', '--compiler'],
-              ['none', 'precompiler', 'dart2js', 'dart2analyzer',
-               'dart2app'],
-              'none'),
-          // TODO(antonm): fix the option drt.
-          new _TestOptionSpecification(
-              'runtime',
-              '''Where the tests should be run.
+          (only valid with the following runtimes: dart_app)''',
+          ['-c', '--compiler'],
+          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app', 'dart2appjit'],
+          'none'),
+      // TODO(antonm): fix the option drt.
+      new _TestOptionSpecification(
+          'runtime',
+          '''Where the tests should be run.
     vm: Run Dart code on the standalone dart vm.
 
     dart_precompiled: Run a precompiled snapshot on a variant of the standalone
                       dart vm lacking a JIT.
 
-    dart_product: Run a full app snapshot in product mode.
+    dart_app: Run a full app snapshot, with or without cached unoptimized code.
 
     d8: Run JavaScript from the command line using v8.
 
@@ -103,371 +108,349 @@ class TestOptionsParser {
 
     none: No runtime, compile only (for example, used for dart2analyzer static
           analysis tests).''',
-              ['-r', '--runtime'],
-              ['vm', 'dart_precompiled', 'dart_product',
-               'd8', 'jsshell', 'drt', 'dartium',
-               'ff', 'firefox',
-               'chrome', 'safari', 'ie9', 'ie10', 'ie11', 'opera',
-               'chromeOnAndroid', 'safarimobilesim',
-               'ContentShellOnAndroid', 'DartiumOnAndroid', 'none'],
-              'vm'),
-          new _TestOptionSpecification(
-              'arch',
-              'The architecture to run tests for',
-              ['-a', '--arch'],
-              ['all', 'ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'mips',
-               'simarm', 'simarmv6', 'simarmv5te', 'simarm64', 'simmips'],
-              'x64'),
-          new _TestOptionSpecification(
-              'system',
-              'The operating system to run tests on',
-              ['-s', '--system'],
-              ['linux', 'macos', 'windows'],
-              Platform.operatingSystem),
-          new _TestOptionSpecification(
-              'checked',
-              'Run tests in checked mode',
-              ['--checked'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'host_checked',
-              'Run compiler in checked mode',
-              ['--host-checked'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'minified',
-              'Enable minification in the compiler',
-              ['--minified'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'csp',
-              'Run tests under Content Security Policy restrictions',
-              ['--csp'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'cps_ir',
-              'Run the compiler with the cps based backend',
-              ['--cps-ir'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'noopt',
-              'Run an in-place precompilation',
-              ['--noopt'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'timeout',
-              'Timeout in seconds',
-              ['-t', '--timeout'],
-              [],
-              -1,
-              type: 'int'),
-          new _TestOptionSpecification(
-              'progress',
-              'Progress indication mode',
-              ['-p', '--progress'],
-              ['compact', 'color', 'line', 'verbose',
-               'silent', 'status', 'buildbot', 'diff'],
-              'compact'),
-          new _TestOptionSpecification(
-              'failure-summary',
-              'Print failure summary at the end',
-              ['--failure-summary'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'step_name',
-              'Step name for use by -pbuildbot',
-              ['--step_name'],
-              [],
-              null),
-          new _TestOptionSpecification(
-              'report',
-              'Print a summary report of the number of tests, by expectation',
-              ['--report'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'tasks',
-              'The number of parallel tasks to run',
-              ['-j', '--tasks'],
-              [],
-              Platform.numberOfProcessors,
-              type: 'int'),
-          new _TestOptionSpecification(
-              'shards',
-              'The number of instances that the tests will be sharded over',
-              ['--shards'],
-              [],
-              1,
-              type: 'int'),
-          new _TestOptionSpecification(
-              'shard',
-              'The index of this instance when running in sharded mode',
-              ['--shard'],
-              [],
-              1,
-              type: 'int'),
-          new _TestOptionSpecification(
-              'help',
-              'Print list of options',
-              ['-h', '--help'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'verbose',
-              'Verbose output',
-              ['-v', '--verbose'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'list',
-              'List tests only, do not run them',
-              ['--list'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'report_in_json',
-              'When doing list, output result summary in json only.',
-              ['--report-in-json'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'time',
-              'Print timing information after running tests',
-              ['--time'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'dart',
-              'Path to dart executable',
-              ['--dart'],
-              [],
-              ''),
-          new _TestOptionSpecification(
-              'drt', // TODO(antonm): fix the option name.
-              'Path to content shell executable',
-              ['--drt'],
-              [],
-              ''),
-          new _TestOptionSpecification(
-              'dartium',
-              'Path to Dartium Chrome executable',
-              ['--dartium'],
-              [],
-              ''),
-          new _TestOptionSpecification(
-              'firefox',
-              'Path to firefox browser executable',
-              ['--firefox'],
-              [],
-              ''),
-          new _TestOptionSpecification(
-              'chrome',
-              'Path to chrome browser executable',
-              ['--chrome'],
-              [],
-              ''),
-          new _TestOptionSpecification(
-              'safari',
-              'Path to safari browser executable',
-              ['--safari'],
-              [],
-              ''),
-          new _TestOptionSpecification(
-              'use_sdk',
-              '''Use compiler or runtime from the SDK.
+          ['-r', '--runtime'],
+          [
+            'vm',
+            'dart_precompiled',
+            'dart_app',
+            'd8',
+            'jsshell',
+            'drt',
+            'dartium',
+            'ff',
+            'firefox',
+            'chrome',
+            'safari',
+            'ie9',
+            'ie10',
+            'ie11',
+            'opera',
+            'chromeOnAndroid',
+            'safarimobilesim',
+            'ContentShellOnAndroid',
+            'DartiumOnAndroid',
+            'none'
+          ],
+          'vm'),
+      new _TestOptionSpecification(
+          'arch',
+          'The architecture to run tests for',
+          ['-a', '--arch'],
+          [
+            'all',
+            'ia32',
+            'x64',
+            'arm',
+            'armv6',
+            'armv5te',
+            'arm64',
+            'mips',
+            'simarm',
+            'simarmv6',
+            'simarmv5te',
+            'simarm64',
+            'simmips',
+            'simdbc',
+            'simdbc64',
+          ],
+          'x64'),
+      new _TestOptionSpecification(
+          'system',
+          'The operating system to run tests on',
+          ['-s', '--system'],
+          ['linux', 'macos', 'windows', 'android'],
+          Platform.operatingSystem),
+      new _TestOptionSpecification(
+          'checked', 'Run tests in checked mode', ['--checked'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'strong', 'Run tests in strong mode', ['--strong'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification('host_checked',
+          'Run compiler in checked mode', ['--host-checked'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification('minified',
+          'Enable minification in the compiler', ['--minified'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'csp',
+          'Run tests under Content Security Policy restrictions',
+          ['--csp'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'cps_ir',
+          'Run the compiler with the cps based backend',
+          ['--cps-ir'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'noopt', 'Run an in-place precompilation', ['--noopt'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'hot_reload', 'Run hot reload stress tests', ['--hot-reload'], [],
+          false, type: 'bool'),
+      new _TestOptionSpecification(
+          'hot_reload_rollback',
+          'Run hot reload rollback stress tests', ['--hot-reload-rollback'],
+          [],
+          false, type: 'bool'),
+      new _TestOptionSpecification(
+          'use_blobs',
+          'Use mmap instead of shared libraries for precompilation',
+          ['--use-blobs'], [], false, type: 'bool'),
+      new _TestOptionSpecification(
+          'timeout', 'Timeout in seconds', ['-t', '--timeout'], [], -1,
+          type: 'int'),
+      new _TestOptionSpecification(
+          'progress',
+          'Progress indication mode',
+          ['-p', '--progress'],
+          [
+            'compact',
+            'color',
+            'line',
+            'verbose',
+            'silent',
+            'status',
+            'buildbot',
+            'diff'
+          ],
+          'compact'),
+      new _TestOptionSpecification('failure-summary',
+          'Print failure summary at the end', ['--failure-summary'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification('step_name',
+          'Step name for use by -pbuildbot', ['--step_name'], [], null),
+      new _TestOptionSpecification(
+          'report',
+          'Print a summary report of the number of tests, by expectation',
+          ['--report'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'tasks',
+          'The number of parallel tasks to run',
+          ['-j', '--tasks'],
+          [],
+          Platform.numberOfProcessors,
+          type: 'int'),
+      new _TestOptionSpecification(
+          'shards',
+          'The number of instances that the tests will be sharded over',
+          ['--shards'],
+          [],
+          1,
+          type: 'int'),
+      new _TestOptionSpecification(
+          'shard',
+          'The index of this instance when running in sharded mode',
+          ['--shard'],
+          [],
+          1,
+          type: 'int'),
+      new _TestOptionSpecification(
+          'help', 'Print list of options', ['-h', '--help'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'verbose', 'Verbose output', ['-v', '--verbose'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'list', 'List tests only, do not run them', ['--list'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'report_in_json',
+          'When doing list, output result summary in json only.',
+          ['--report-in-json'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification('time',
+          'Print timing information after running tests', ['--time'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'dart', 'Path to dart executable', ['--dart'], [], ''),
+      new _TestOptionSpecification(
+          'drt', // TODO(antonm): fix the option name.
+          'Path to content shell executable',
+          ['--drt'],
+          [],
+          ''),
+      new _TestOptionSpecification('dartium',
+          'Path to Dartium Chrome executable', ['--dartium'], [], ''),
+      new _TestOptionSpecification('firefox',
+          'Path to firefox browser executable', ['--firefox'], [], ''),
+      new _TestOptionSpecification(
+          'chrome', 'Path to chrome browser executable', ['--chrome'], [], ''),
+      new _TestOptionSpecification(
+          'safari', 'Path to safari browser executable', ['--safari'], [], ''),
+      new _TestOptionSpecification(
+          'use_sdk',
+          '''Use compiler or runtime from the SDK.
 
 Normally, the compiler or runtimes in PRODUCT_DIR is tested, with this
 option, the compiler or runtime in PRODUCT_DIR/dart-sdk/bin is tested.
 
 Note: currently only implemented for dart2js.''',
-              ['--use-sdk'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'use_public_packages',
-              'For tests using packages: Use pub.dartlang.org packages '
-              'instead the ones in the repository.',
-              ['--use-public-packages'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'use_repository_packages',
-              'For tests using packages: Use pub.dartlang.org packages '
-              'but use overrides for the packages available in the '
-              'repository.',
-              ['--use-repository-packages'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'build_directory',
-              'The name of the build directory, where products are placed.',
-              ['--build-directory'],
-              [],
-              ''),
-          new _TestOptionSpecification(
-              'noBatch',
-              'Do not run tests in batch mode',
-              ['-n', '--nobatch'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'dart2js_batch',
-              'Run dart2js tests in batch mode',
-              ['--dart2js-batch'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'append_logs',
-              'Do not delete old logs but rather append to them.',
-              ['--append_logs'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'write_debug_log',
-              'Don\'t write debug messages to stdout but rather to a logfile.',
-              ['--write-debug-log'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'write_test_outcome_log',
-              'Write the outcome of all tests executed to a '
-              '"${TestUtils.flakyFileName()}" file.',
-              ['--write-test-outcome-log'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'clear_browser_cache',
-              'Browser specific clearing of caches(i.e., delete it).',
-              ['--clear_browser_cache'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'copy_coredumps',
-              'If we see a crash that we did not expect, copy the core dumps. '
-              'to /tmp',
-              ['--copy-coredumps'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'local_ip',
-              'IP address the http servers should listen on.'
-              'This address is also used for browsers to connect.',
-              ['--local_ip'],
-              [],
-              '127.0.0.1'),
-          new _TestOptionSpecification(
-              'test_server_port',
-              'Port for test http server.',
-              ['--test_server_port'],
-              [],
-              0,
-              type: 'int'),
-          new _TestOptionSpecification(
-              'test_server_cross_origin_port',
-              'Port for test http server cross origin.',
-              ['--test_server_cross_origin_port'],
-              [],
-              0,
-              type: 'int'),
-          new _TestOptionSpecification(
-              'test_driver_port',
-              'Port for http test driver server.',
-              ['--test_driver_port'],
-              [],
-              0,
-              type: 'int'),
-          new _TestOptionSpecification(
-              'test_driver_error_port',
-              'Port for http test driver server errors.',
-              ['--test_driver_error_port'],
-              [],
-              0,
-              type: 'int'),
-          new _TestOptionSpecification(
-              'record_to_file',
-              'Records all the commands that need to be executed and writes it '
-              'out to a file.',
-              ['--record_to_file'],
-              [],
-              null),
-          new _TestOptionSpecification(
-              'replay_from_file',
-              'Records all the commands that need to be executed and writes it '
-              'out to a file.',
-              ['--replay_from_file'],
-              [],
-              null),
-          new _TestOptionSpecification(
-              'builder_tag',
-              'Machine specific options that is not captured by the regular '
-              'test options. Used to be able to make sane updates to the '
-              'status files.',
-              ['--builder-tag'],
-              [],
-              ''),
-          new _TestOptionSpecification(
-              'vm_options',
-              'Extra options to send to the vm when running',
-              ['--vm-options'],
-              [],
-              null),
-          new _TestOptionSpecification(
-              'dart2js_options',
-              'Extra options for dart2js compilation step',
-              ['--dart2js-options'],
-              [],
-              null),
-          new _TestOptionSpecification(
-              'suite_dir',
-              'Additional directory to add to the testing matrix',
-              ['--suite-dir'],
-              [],
-              null),
-          new _TestOptionSpecification(
-              'package_root',
-              'The package root to use for testing.',
-              ['--package-root'],
-              [],
-              null),
-          new _TestOptionSpecification(
-              'exclude_suite',
-              'Exclude suites from default selector, only works when no'
-              ' selector has been specified on the command line',
-              ['--exclude-suite'],
-              defaultTestSelectors,
-              null),];
+          ['--use-sdk'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'use_public_packages',
+          'For tests using packages: Use pub.dartlang.org packages '
+          'instead the ones in the repository.',
+          ['--use-public-packages'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'use_repository_packages',
+          'For tests using packages: Use pub.dartlang.org packages '
+          'but use overrides for the packages available in the '
+          'repository.',
+          ['--use-repository-packages'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'build_directory',
+          'The name of the build directory, where products are placed.',
+          ['--build-directory'],
+          [],
+          ''),
+      new _TestOptionSpecification('noBatch', 'Do not run tests in batch mode',
+          ['-n', '--nobatch'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification('dart2js_batch',
+          'Run dart2js tests in batch mode', ['--dart2js-batch'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'append_logs',
+          'Do not delete old logs but rather append to them.',
+          ['--append_logs'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'write_debug_log',
+          'Don\'t write debug messages to stdout but rather to a logfile.',
+          ['--write-debug-log'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'write_test_outcome_log',
+          'Write the outcome of all tests executed to a '
+          '"${TestUtils.flakyFileName()}" file.',
+          ['--write-test-outcome-log'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'reset_browser_configuration',
+          'Browser specific reset of configuration. '
+          'WARNING: Using this option may remove your bookmarks and '
+          'other settings.',
+          ['--reset-browser-configuration'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'copy_coredumps',
+          'If we see a crash that we did not expect, copy the core dumps. '
+          'to /tmp',
+          ['--copy-coredumps'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'local_ip',
+          'IP address the http servers should listen on.'
+          'This address is also used for browsers to connect.',
+          ['--local_ip'],
+          [],
+          '127.0.0.1'),
+      new _TestOptionSpecification('test_server_port',
+          'Port for test http server.', ['--test_server_port'], [], 0,
+          type: 'int'),
+      new _TestOptionSpecification(
+          'test_server_cross_origin_port',
+          'Port for test http server cross origin.',
+          ['--test_server_cross_origin_port'],
+          [],
+          0,
+          type: 'int'),
+      new _TestOptionSpecification('test_driver_port',
+          'Port for http test driver server.', ['--test_driver_port'], [], 0,
+          type: 'int'),
+      new _TestOptionSpecification(
+          'test_driver_error_port',
+          'Port for http test driver server errors.',
+          ['--test_driver_error_port'],
+          [],
+          0,
+          type: 'int'),
+      new _TestOptionSpecification(
+          'record_to_file',
+          'Records all the commands that need to be executed and writes it '
+          'out to a file.',
+          ['--record_to_file'],
+          [],
+          null),
+      new _TestOptionSpecification(
+          'replay_from_file',
+          'Records all the commands that need to be executed and writes it '
+          'out to a file.',
+          ['--replay_from_file'],
+          [],
+          null),
+      new _TestOptionSpecification(
+          'builder_tag',
+          'Machine specific options that is not captured by the regular '
+          'test options. Used to be able to make sane updates to the '
+          'status files.',
+          ['--builder-tag'],
+          [],
+          ''),
+      new _TestOptionSpecification(
+          'vm_options',
+          'Extra options to send to the vm when running',
+          ['--vm-options'],
+          [],
+          null),
+      new _TestOptionSpecification(
+          'dart2js_options',
+          'Extra options for dart2js compilation step',
+          ['--dart2js-options'],
+          [],
+          null),
+      new _TestOptionSpecification(
+          'suite_dir',
+          'Additional directory to add to the testing matrix',
+          ['--suite-dir'],
+          [],
+          null),
+      new _TestOptionSpecification('package_root',
+          'The package root to use for testing.', ['--package-root'], [], null),
+      new _TestOptionSpecification(
+          'packages',
+          'The package spec file to use for testing.',
+          ['--packages'],
+          [],
+          null),
+      new _TestOptionSpecification(
+          'exclude_suite',
+          'Exclude suites from default selector, only works when no'
+          ' selector has been specified on the command line',
+          ['--exclude-suite'],
+          defaultTestSelectors,
+          null),
+    ];
   }
-
 
   /**
    * Parse a list of strings as test options.
@@ -541,7 +524,6 @@ Note: currently only implemented for dart2js.''',
         continue;
       }
 
-
       // Multiple uses of a flag are an error, because there is no
       // naturally correct way to handle conflicting options.
       if (configuration.containsKey(spec.name)) {
@@ -586,18 +568,33 @@ Note: currently only implemented for dart2js.''',
     List<Map> expandedConfigs = _expandConfigurations(configuration);
     List<Map> result = expandedConfigs.where(_isValidConfig).toList();
     for (var config in result) {
-     config['_reproducing_arguments_'] =
-         _constructReproducingCommandArguments(config);
+      config['_reproducing_arguments_'] =
+          _constructReproducingCommandArguments(config);
     }
     return result.isEmpty ? null : result;
   }
 
   // For printing out reproducing command lines, we don't want to add these
   // options.
-  Set<String>  _blacklistedOptions = new Set<String>.from([
-    'progress', 'failure-summary', 'step_name', 'report', 'tasks', 'verbose',
-    'time', 'dart', 'drt', 'dartium', 'firefox', 'chrome', 'safari',
-    'build_directory', 'append_logs', 'local_ip', 'shard', 'shards',
+  Set<String> _blacklistedOptions = new Set<String>.from([
+    'progress',
+    'failure-summary',
+    'step_name',
+    'report',
+    'tasks',
+    'verbose',
+    'time',
+    'dart',
+    'drt',
+    'dartium',
+    'firefox',
+    'chrome',
+    'safari',
+    'build_directory',
+    'append_logs',
+    'local_ip',
+    'shard',
+    'shards',
   ]);
 
   List<String> _constructReproducingCommandArguments(Map config) {
@@ -648,22 +645,43 @@ Note: currently only implemented for dart2js.''',
         // runs test.py -c dart2js -r drt,none the dart2js_none and
         // dart2js_drt will be duplicating work. If later we don't need 'none'
         // with dart2js, we should remove it from here.
-        validRuntimes = const ['d8', 'jsshell', 'drt', 'none', 'dartium',
-                               'ff', 'chrome', 'safari', 'ie9', 'ie10', 'ie11',
-                               'opera', 'chromeOnAndroid', 'safarimobilesim'];
+        validRuntimes = const [
+          'd8',
+          'jsshell',
+          'drt',
+          'none',
+          'dartium',
+          'ff',
+          'chrome',
+          'safari',
+          'ie9',
+          'ie10',
+          'ie11',
+          'opera',
+          'chromeOnAndroid',
+          'safarimobilesim'
+        ];
         break;
       case 'dart2analyzer':
         validRuntimes = const ['none'];
         break;
       case 'dart2app':
-        validRuntimes = const ['dart_product'];
+        validRuntimes = const ['dart_app'];
+        break;
+      case 'dart2appjit':
+        validRuntimes = const ['dart_app'];
         break;
       case 'precompiler':
         validRuntimes = const ['dart_precompiled'];
         break;
       case 'none':
-        validRuntimes = const ['vm', 'drt', 'dartium',
-                               'ContentShellOnAndroid', 'DartiumOnAndroid'];
+        validRuntimes = const [
+          'vm',
+          'drt',
+          'dartium',
+          'ContentShellOnAndroid',
+          'DartiumOnAndroid'
+        ];
         break;
     }
     if (!validRuntimes.contains(config['runtime'])) {
@@ -680,13 +698,13 @@ Note: currently only implemented for dart2js.''',
     if (config['shard'] < 1 || config['shard'] > config['shards']) {
       isValid = false;
       print("Error: shard index is ${config['shard']} out of "
-            "${config['shards']} shards");
+          "${config['shards']} shards");
     }
 
     if (config['use_repository_packages'] && config['use_public_packages']) {
       isValid = false;
       print("Cannot have both --use-repository-packages and "
-            "--use-public-packages");
+          "--use-public-packages");
     }
 
     return isValid;
@@ -699,7 +717,7 @@ Note: currently only implemented for dart2js.''',
   List<Map> _expandConfigurations(Map configuration) {
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
-      configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips';
+      configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips,simdbc64';
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release,product';
@@ -743,7 +761,7 @@ Note: currently only implemented for dart2js.''',
     // in that test suite. If no selectors are explicitly given use
     // the default suite patterns.
     var selectors = configuration['selectors'];
-    if (selectors is !Map) {
+    if (selectors is! Map) {
       if (selectors == null) {
         if (configuration['suite_dir'] != null) {
           var suite_path = new Path(configuration['suite_dir']);
@@ -752,8 +770,9 @@ Note: currently only implemented for dart2js.''',
           selectors = new List.from(defaultTestSelectors);
         }
 
-        var exclude_suites = configuration['exclude_suite'] != null ?
-              configuration['exclude_suite'].split(',') : [];
+        var exclude_suites = configuration['exclude_suite'] != null
+            ? configuration['exclude_suite'].split(',')
+            : [];
         for (var exclude in exclude_suites) {
           if (selectors.contains(exclude)) {
             selectors.remove(exclude);
@@ -777,7 +796,7 @@ Note: currently only implemented for dart2js.''',
         }
         if (selectorMap.containsKey(suite)) {
           print("Error: '$suite/$pattern'.  Only one test selection"
-                " pattern is allowed to start with '$suite/'");
+              " pattern is allowed to start with '$suite/'");
           exit(1);
         }
         selectorMap[suite] = new RegExp(pattern);
@@ -814,12 +833,15 @@ Note: currently only implemented for dart2js.''',
 
     // Adjust default timeout based on mode, compiler, and sometimes runtime.
     if (configuration['timeout'] == -1) {
+      var isReload = configuration['hot_reload'] ||
+                     configuration['hot_reload_rollback'];
       int compilerMulitiplier =
           new CompilerConfiguration(configuration).computeTimeoutMultiplier();
-      int runtimeMultiplier =
-          new RuntimeConfiguration(configuration).computeTimeoutMultiplier(
+      int runtimeMultiplier = new RuntimeConfiguration(configuration)
+          .computeTimeoutMultiplier(
               mode: configuration['mode'],
               isChecked: configuration['checked'],
+              isReload: isReload,
               arch: configuration['arch']);
       configuration['timeout'] = 60 * compilerMulitiplier * runtimeMultiplier;
     }
@@ -847,7 +869,6 @@ Note: currently only implemented for dart2js.''',
     return result;
   }
 
-
   /**
    * Print out usage information.
    */
@@ -864,7 +885,8 @@ Note: currently only implemented for dart2js.''',
       print('${option.name}: ${option.description}.');
       for (var name in option.keys) {
         assert(name.startsWith('-'));
-        var buffer = new StringBuffer();;
+        var buffer = new StringBuffer();
+        ;
         buffer.write(name);
         if (option.type == 'bool') {
           assert(option.values.isEmpty);
@@ -891,7 +913,6 @@ Note: currently only implemented for dart2js.''',
     }
   }
 
-
   /**
    * Find the test option specification for a given option key.
    */
@@ -904,7 +925,6 @@ Note: currently only implemented for dart2js.''',
     print('Unknown test option $name');
     exit(1);
   }
-
 
   List<_TestOptionSpecification> _options;
 }

@@ -15,6 +15,7 @@
         'utils/dartdoc/dartdoc.gyp:dartdoc',
         'utils/analysis_server/analysis_server.gyp:analysis_server',
         'utils/dartanalyzer/dartanalyzer.gyp:dartanalyzer',
+        'utils/dartdevc/dartdevc.gyp:dartdevc',
       ],
       'actions': [
         {
@@ -25,7 +26,6 @@
             '<!@(["python", "tools/list_files.py",'
                 '"dart$",'
                 '"sdk/lib"])',
-            'sdk/lib/dart2dart.platform',
             'sdk/lib/dart_client.platform',
             'sdk/lib/dart_server.platform',
             'sdk/lib/dart_shared.platform',
@@ -38,6 +38,7 @@
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/dartanalyzer.dart.snapshot',
+            '<(SHARED_INTERMEDIATE_DIR)/dartdevc.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/dartfmt.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/analysis_server.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/dartdoc.dart.snapshot',

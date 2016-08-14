@@ -61,9 +61,13 @@ void BlockScheduler::AssignEdgeWeights() const {
       flow_graph()->parsed_function().function().ic_data_array());
   if (Compiler::IsBackgroundCompilation() && ic_data_array.IsNull()) {
     // Deferred loading cleared ic_data_array.
-    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+        "BlockScheduler: ICData array cleared");
   }
-  ASSERT(!ic_data_array.IsNull());
+  if (ic_data_array.IsNull()) {
+    ASSERT(Isolate::Current()->HasAttemptedReload());
+    return;
+  }
   Array& edge_counters = Array::Handle();
   edge_counters ^= ic_data_array.At(0);
 

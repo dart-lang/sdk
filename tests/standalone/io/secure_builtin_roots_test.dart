@@ -13,7 +13,7 @@ Future testGoogleUrl(SecurityContext context, String outcome) async {
   // We need to use an external server that is backed by a
   // built-in root certificate authority.
   try {
-  // First, check if the lookup works.
+    // First, check if the lookup works.
     await InternetAddress.lookup('www.google.com');
     var request = await client.getUrl(Uri.parse('https://www.google.com'));
     request.followRedirects = false;

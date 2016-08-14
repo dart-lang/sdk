@@ -1,8 +1,6 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
 
-<polymer-element name="persistent-handles-page" extends="observatory-element">
+<polymer-element name="persistent-handles-page">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -56,6 +54,7 @@
       <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/persistent-handles', isolate) }}" anchor="persistent handles" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <div class="content-centered-big">
       <template if="{{ persistentHandles.isEmpty }}">

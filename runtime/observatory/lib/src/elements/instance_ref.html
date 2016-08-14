@@ -1,9 +1,8 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="curly_block.html">
-<link rel="import" href="observatory_element.html">
+
 <link rel="import" href="service_ref.html">
 
-<polymer-element name="instance-ref" extends="service-ref">
+<polymer-element name="instance-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -88,7 +87,11 @@
               </any-service-ref><br>
             </template>
             <template if="{{ ref.length != ref.elements.length }}">
-              <div><em>{{ ref.length - ref.elements.length }} omitted elements</em></div>
+              <div>
+                <action-link callback="{{ showMore }}"
+                             label="show next {{ref.elements.length}}">
+                </action-link>
+              </div>
             </template>
           </div>
         </curly-block>
@@ -107,7 +110,9 @@
               </any-service-ref><br>
             </template>
             <template if="{{ ref.length != ref.associations.length }}">
-              <div><em>{{ ref.length - ref.associations.length }} omitted associations</em></div>
+              <action-link callback="{{ showMore }}"
+                           label="show next {{ref.associations.length}}">
+              </action-link>
             </template>
           </div>
         </curly-block>
@@ -122,7 +127,9 @@
               {{ ref.typedElements[index].toString() }}<br>
             </template>
             <template if="{{ ref.length != ref.typedElements.length }}">
-              <div><em>{{ ref.length - ref.typedElements.length }} omitted elements</em></div>
+              <action-link callback="{{ showMore }}"
+                           label="show next {{ref.typedElements.length}}">
+              </action-link>
             </template>
           </div>
         </curly-block>

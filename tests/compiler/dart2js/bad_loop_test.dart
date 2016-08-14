@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,7 @@ import "package:async_helper/async_helper.dart";
 
 import 'package:compiler/compiler.dart'
        show Diagnostic;
-import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/old_to_new_api.dart';
 
 main() {
@@ -37,10 +37,9 @@ main() {
       new LegacyCompilerInput(provider.readStringFromUri),
       new LegacyCompilerOutput(),
       new LegacyCompilerDiagnostics(diagnosticHandler),
-      libraryRoot,
-      packageRoot,
-      [Flags.analyzeOnly],
-      {});
+      new CompilerOptions(
+        libraryRoot: libraryRoot,
+        packageRoot: packageRoot));
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     Expect.isTrue(compiler.compilationFailed);
     Expect.equals(5, errorCount);

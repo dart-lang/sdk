@@ -102,7 +102,7 @@ part of dart.core;
  * the [intl](http://pub.dartlang.org/packages/intl) package.
  *
  */
-class DateTime implements Comparable {
+class DateTime implements Comparable<DateTime> {
   // Weekday constants that are returned by [weekday] method:
   static const int MONDAY = 1;
   static const int TUESDAY = 2;
@@ -664,8 +664,10 @@ class DateTime implements Comparable {
   external int get microsecondsSinceEpoch;
 
   /**
-   * The abbreviated time zone name&mdash;for example,
-   * [:"CET":] or [:"CEST":].
+   * The time zone name provided by the platform.
+   *
+   * On Unix-like systems this will probably be an abbreviation. On Windows
+   * this will probably be the full-name, e.g. "Pacific Standard Time".
    */
   external String get timeZoneName;
 

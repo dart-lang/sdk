@@ -19,22 +19,20 @@ class NsmEmitter extends CodeEmitterHelper {
   static const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
 
   void emitNoSuchMethodHandlers(AddPropertyFunction addProperty) {
-
     ClassStubGenerator generator =
         new ClassStubGenerator(compiler, namer, backend);
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
-    Map<jsAst.Name, Selector> addedJsNames
-        = generator.computeSelectorsForNsmHandlers();
+    Map<jsAst.Name, Selector> addedJsNames =
+        generator.computeSelectorsForNsmHandlers();
 
     // Set flag used by generateMethod helper below.  If we have very few
     // handlers we use addProperty for them all, rather than try to generate
     // them at runtime.
     bool haveVeryFewNoSuchMemberHandlers =
         (addedJsNames.length < VERY_FEW_NO_SUCH_METHOD_HANDLERS);
-    List<jsAst.Name> names = addedJsNames.keys.toList()
-        ..sort();
+    List<jsAst.Name> names = addedJsNames.keys.toList()..sort();
     for (jsAst.Name jsName in names) {
       Selector selector = addedJsNames[jsName];
       String reflectionName = emitter.getReflectionName(selector, jsName);
@@ -43,9 +41,10 @@ class NsmEmitter extends CodeEmitterHelper {
         emitter.mangledFieldNames[jsName] = reflectionName;
       }
 
-      List<jsAst.Expression> argNames =
-          selector.callStructure.getOrderedNamedArguments().map((String name) =>
-              js.string(name)).toList();
+      List<jsAst.Expression> argNames = selector.callStructure
+          .getOrderedNamedArguments()
+          .map((String name) => js.string(name))
+          .toList();
       int type = selector.invocationMirrorKind;
       if (!haveVeryFewNoSuchMemberHandlers &&
           isTrivialNsmHandler(type, argNames, selector, jsName) &&
@@ -56,11 +55,11 @@ class NsmEmitter extends CodeEmitterHelper {
             generator.generateStubForNoSuchMethod(jsName, selector);
         addProperty(method.name, method.code);
         if (reflectionName != null) {
-          bool accessible =
-              compiler.world.allFunctions.filter(selector, null).any(
-              (Element e) => backend.isAccessibleByReflection(e));
-          addProperty(namer.asName('+$reflectionName'),
-                      js(accessible ? '2' : '0'));
+          bool accessible = compiler.world.allFunctions
+              .filter(selector, null)
+              .any((Element e) => backend.isAccessibleByReflection(e));
+          addProperty(
+              namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
         }
       }
     }
@@ -122,15 +121,15 @@ class NsmEmitter extends CodeEmitterHelper {
     List<jsAst.Statement> statements = <jsAst.Statement>[];
     if (trivialNsmHandlers.length == 0) return statements;
 
-    bool minify = compiler.enableMinification;
+    bool minify = compiler.options.enableMinification;
     bool useDiffEncoding = minify && trivialNsmHandlers.length > 30;
 
     // Find out how many selectors there are with the special calling
     // convention.
-    Iterable<Selector> interceptedSelectors = trivialNsmHandlers.where(
-            (Selector s) => backend.isInterceptedName(s.name));
-    Iterable<Selector> ordinarySelectors = trivialNsmHandlers.where(
-            (Selector s) => !backend.isInterceptedName(s.name));
+    Iterable<Selector> interceptedSelectors = trivialNsmHandlers
+        .where((Selector s) => backend.isInterceptedName(s.name));
+    Iterable<Selector> ordinarySelectors = trivialNsmHandlers
+        .where((Selector s) => !backend.isInterceptedName(s.name));
 
     // Get the short names (JS names, perhaps minified).
     Iterable<jsAst.Name> interceptedShorts =
@@ -142,20 +141,19 @@ class NsmEmitter extends CodeEmitterHelper {
     Iterable<String> sortedLongs;
     if (useDiffEncoding) {
       assert(minify);
-      sortedShorts = new _DiffEncodedListOfNames(
-          [interceptedShorts, ordinaryShorts]);
+      sortedShorts =
+          new _DiffEncodedListOfNames([interceptedShorts, ordinaryShorts]);
     } else {
       Iterable<Selector> sorted =
           [interceptedSelectors, ordinarySelectors].expand((e) => (e));
       sortedShorts = js.concatenateStrings(
-          js.joinLiterals(
-              sorted.map(namer.invocationMirrorInternalName),
+          js.joinLiterals(sorted.map(namer.invocationMirrorInternalName),
               js.stringPart(",")),
           addQuotes: true);
 
       if (!minify) {
-        sortedLongs = sorted.map((selector) =>
-            selector.invocationMirrorMemberName);
+        sortedLongs =
+            sorted.map((selector) => selector.invocationMirrorMemberName);
       }
     }
     // Startup code that loops over the method names and puts handlers on the
@@ -164,7 +162,8 @@ class NsmEmitter extends CodeEmitterHelper {
     jsAst.Expression createInvocationMirror = backend.emitter
         .staticFunctionAccess(backend.helpers.createInvocationMirror);
     if (useDiffEncoding) {
-      statements.add(js.statement('''{
+      statements.add(js.statement(
+          '''{
           var objectClassObject = processedClasses.collected[#objectClass],
               nameSequences = #diffEncoding.split("."),
               shortNames = [];
@@ -204,32 +203,37 @@ class NsmEmitter extends CodeEmitterHelper {
               Array.prototype.push.apply(shortNames, sequence.shift());
             }
           }
-        }''', {'objectClass': js.quoteName(namer.className(objectClass)),
-               'diffEncoding': sortedShorts}));
+        }''',
+          {
+            'objectClass': js.quoteName(namer.className(objectClass)),
+            'diffEncoding': sortedShorts
+          }));
     } else {
       // No useDiffEncoding version.
       statements.add(js.statement(
           'var objectClassObject = processedClasses.collected[#objectClass],'
           '    shortNames = #diffEncoding.split(",")',
-          {'objectClass': js.quoteName(namer.className(objectClass)),
-           'diffEncoding': sortedShorts}));
+          {
+            'objectClass': js.quoteName(namer.className(objectClass)),
+            'diffEncoding': sortedShorts
+          }));
       if (!minify) {
         statements.add(js.statement('var longNames = #longs.split(",")',
-                {'longs': js.string(sortedLongs.join(','))}));
+            {'longs': js.string(sortedLongs.join(','))}));
       }
-      statements.add(js.statement(
-          'if (objectClassObject instanceof Array)'
+      statements.add(js.statement('if (objectClassObject instanceof Array)'
           '  objectClassObject = objectClassObject[1];'));
     }
 
-    dynamic isIntercepted =  // jsAst.Expression or bool.
+    dynamic isIntercepted = // jsAst.Expression or bool.
         interceptedSelectors.isEmpty
         ? false
         : ordinarySelectors.isEmpty
             ? true
             : js('j < #', js.number(interceptedSelectors.length));
 
-    statements.add(js.statement('''
+    statements.add(js.statement(
+        '''
       // If we are loading a deferred library the object class will not be in
       // the collectedClasses so objectClassObject is undefined, and we skip
       // setting up the names.
@@ -276,11 +280,13 @@ class NsmEmitter extends CodeEmitterHelper {
                  })(#names[j], shortName, type);
           }
         }
-      }''', {
+      }''',
+        {
           'noSuchMethodName': namer.noSuchMethodName,
           'createInvocationMirror': createInvocationMirror,
           'names': minify ? 'shortNames' : 'longNames',
-          'isIntercepted': isIntercepted}));
+          'isIntercepted': isIntercepted
+        }));
 
     return statements;
   }
@@ -291,7 +297,7 @@ class NsmEmitter extends CodeEmitterHelper {
 ///
 /// See [buildTrivialNsmHandlers].
 class _DiffEncodedListOfNames extends jsAst.DeferredString
-                              implements jsAst.AstContainer {
+    implements jsAst.AstContainer {
   String _cachedValue;
   List<jsAst.ArrayInitializer> ast;
 
@@ -300,12 +306,13 @@ class _DiffEncodedListOfNames extends jsAst.DeferredString
   _DiffEncodedListOfNames(Iterable<Iterable<jsAst.Name>> names) {
     // Store the names in ArrayInitializer nodes to make them discoverable
     // by traversals of the ast.
-    ast = names.map((Iterable i) => new jsAst.ArrayInitializer(i.toList()))
-               .toList();
+    ast = names
+        .map((Iterable i) => new jsAst.ArrayInitializer(i.toList()))
+        .toList();
   }
 
-  void _computeDiffEncodingForList(Iterable<jsAst.Name> names,
-                                   StringBuffer diffEncoding) {
+  void _computeDiffEncodingForList(
+      Iterable<jsAst.Name> names, StringBuffer diffEncoding) {
     // Treat string as a number in base 88 with digits in ASCII order from # to
     // z.  The short name sorting is based on length, and uses ASCII order for
     // equal length strings so this means that names are ascending.  The hash
@@ -344,10 +351,8 @@ class _DiffEncodedListOfNames extends jsAst.DeferredString
       return a.compareTo(b);
     }
 
-    List<String> shorts =
-        names.map((jsAst.Name name) => name.name)
-        .toList()
-        ..sort(compare);
+    List<String> shorts = names.map((jsAst.Name name) => name.name).toList()
+      ..sort(compare);
 
     int previous = 0;
     for (String short in shorts) {

@@ -25,7 +25,7 @@ static void IterateFrames(const GrowableObjectArray& code_list,
         skip_frames--;
       } else {
         code = frame->LookupDartCode();
-        offset = Smi::New(frame->pc() - code.EntryPoint());
+        offset = Smi::New(frame->pc() - code.PayloadStart());
         code_list.Add(code);
         pc_offset_list.Add(offset);
       }
@@ -59,6 +59,16 @@ const Stacktrace& GetCurrentStacktrace(int skip_frames) {
 void _printCurrentStacktrace() {
   const Stacktrace& stacktrace = GetCurrentStacktrace(0);
   OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
+}
+
+// Like _printCurrentStacktrace, but works in a NoSafepointScope.
+void _printCurrentStacktraceNoSafepoint() {
+  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
+  StackFrame* frame = frames.NextFrame();
+  while (frame != NULL) {
+    OS::Print("%s\n", frame->ToCString());
+    frame = frames.NextFrame();
+  }
 }
 
 DEFINE_NATIVE_ENTRY(StackTrace_current, 0) {

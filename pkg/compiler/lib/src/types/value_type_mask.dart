@@ -11,9 +11,7 @@ class ValueTypeMask extends ForwardingTypeMask {
   ValueTypeMask(this.forwardTo, this.value);
 
   TypeMask nullable() {
-    return isNullable
-        ? this
-        : new ValueTypeMask(forwardTo.nullable(), value);
+    return isNullable ? this : new ValueTypeMask(forwardTo.nullable(), value);
   }
 
   TypeMask nonNullable() {
@@ -32,18 +30,16 @@ class ValueTypeMask extends ForwardingTypeMask {
   TypeMask intersection(TypeMask other, ClassWorld classWorld) {
     TypeMask forwardIntersection = forwardTo.intersection(other, classWorld);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
-    return forwardIntersection.isNullable
-        ? nullable()
-        : nonNullable();
+    return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
-  bool operator==(other) => super == other;
+  bool operator ==(other) => super == other;
 
   int get hashCode {
     return computeHashCode(value, isNullable, forwardTo);
   }
 
   String toString() {
-    return 'Value mask: [${value.unparse()}] type: $forwardTo';
+    return 'Value mask: [${value.toDartText()}] type: $forwardTo';
   }
 }

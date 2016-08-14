@@ -21,11 +21,13 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
-  const String& class_name = String::Handle(Symbols::New("ownerClass"));
+  Thread* thread = Thread::Current();
+  const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
   const Script& script = Script::Handle();
-  const Class& owner_class = Class::Handle(
-      Class::New(class_name, script, TokenPosition::kNoSource));
-  const String& function_name = String::Handle(Symbols::New("callerFunction"));
+  const Class& owner_class = Class::Handle(Class::New(
+      Library::Handle(), class_name, script, TokenPosition::kNoSource));
+  const String& function_name = String::Handle(Symbols::New(thread,
+                                                            "callerFunction"));
   const Function& function = Function::Handle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, false, false, false, owner_class,
@@ -38,7 +40,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
                                                          target_name,
                                                          args_descriptor,
                                                          15,
-                                                         1));
+                                                         1,
+                                                         false));
 
   // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
   __ set_constant_pool_allowed(true);
@@ -50,8 +53,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
 
 
 ASSEMBLER_TEST_RUN(IcDataAccess, test) {
-  uword return_address =
-      test->entry() + test->code().Size() - Instr::kInstrSize;
+  uword end = test->payload_start() + test->code().Size();
+  uword return_address = end - Instr::kInstrSize;
   ICData& ic_data = ICData::Handle();
   CodePatcher::GetInstanceCallAt(return_address, test->code(), &ic_data);
   EXPECT_STREQ("targetFunction",

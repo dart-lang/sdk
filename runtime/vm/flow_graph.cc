@@ -5,6 +5,7 @@
 #include "vm/flow_graph.h"
 
 #include "vm/bit_vector.h"
+#include "vm/cha.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_range_analysis.h"
@@ -119,7 +120,7 @@ GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
 
 
 ConstantInstr* FlowGraph::GetConstant(const Object& object) {
-  ConstantInstr* constant = constant_instr_pool_.Lookup(object);
+  ConstantInstr* constant = constant_instr_pool_.LookupValue(object);
   if (constant == NULL) {
     // Otherwise, allocate and add it to the pool.
     constant = new(zone()) ConstantInstr(
@@ -370,6 +371,93 @@ static void VerifyUseListsInInstruction(Instruction* instr) {
     }
   }
 }
+
+void FlowGraph::ComputeIsReceiverRecursive(
+    PhiInstr* phi, GrowableArray<PhiInstr*>* unmark) const {
+  if (phi->is_receiver() != PhiInstr::kUnknownReceiver) return;
+  phi->set_is_receiver(PhiInstr::kReceiver);
+  for (intptr_t i = 0; i < phi->InputCount(); ++i) {
+    Definition* def = phi->InputAt(i)->definition();
+    if (def->IsParameter() && (def->AsParameter()->index() == 0)) continue;
+    if (!def->IsPhi()) {
+      phi->set_is_receiver(PhiInstr::kNotReceiver);
+      break;
+    }
+    ComputeIsReceiverRecursive(def->AsPhi(), unmark);
+    if (def->AsPhi()->is_receiver() == PhiInstr::kNotReceiver) {
+      phi->set_is_receiver(PhiInstr::kNotReceiver);
+      break;
+    }
+  }
+
+  if (phi->is_receiver() == PhiInstr::kNotReceiver) {
+    unmark->Add(phi);
+  }
+}
+
+
+void FlowGraph::ComputeIsReceiver(PhiInstr* phi) const {
+  GrowableArray<PhiInstr*> unmark;
+  ComputeIsReceiverRecursive(phi, &unmark);
+
+  // Now drain unmark.
+  while (!unmark.is_empty()) {
+    PhiInstr* phi = unmark.RemoveLast();
+    for (Value::Iterator it(phi->input_use_list()); !it.Done(); it.Advance()) {
+      PhiInstr* use = it.Current()->instruction()->AsPhi();
+      if ((use != NULL) && (use->is_receiver() == PhiInstr::kReceiver)) {
+        use->set_is_receiver(PhiInstr::kNotReceiver);
+        unmark.Add(use);
+      }
+    }
+  }
+}
+
+
+bool FlowGraph::IsReceiver(Definition* def) const {
+  if (def->IsParameter()) return (def->AsParameter()->index() == 0);
+  if (!def->IsPhi() || graph_entry()->catch_entries().is_empty()) return false;
+  PhiInstr* phi = def->AsPhi();
+  if (phi->is_receiver() != PhiInstr::kUnknownReceiver) {
+    return (phi->is_receiver() == PhiInstr::kReceiver);
+  }
+  // Not known if this phi is the receiver yet. Compute it now.
+  ComputeIsReceiver(phi);
+  return (phi->is_receiver() == PhiInstr::kReceiver);
+}
+
+
+// Use CHA to determine if the call needs a class check: if the callee's
+// receiver is the same as the caller's receiver and there are no overriden
+// callee functions, then no class check is needed.
+bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
+                                            RawFunction::Kind kind) const {
+  if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
+    // Even if class or function are private, lazy class finalization
+    // may later add overriding methods.
+    return true;
+  }
+  Definition* callee_receiver = call->ArgumentAt(0);
+  ASSERT(callee_receiver != NULL);
+  if (function().IsDynamicFunction() && IsReceiver(callee_receiver)) {
+    const String& name = (kind == RawFunction::kMethodExtractor)
+        ? String::Handle(zone(), Field::NameFromGetter(call->function_name()))
+        : call->function_name();
+    const Class& cls = Class::Handle(zone(), function().Owner());
+    intptr_t subclass_count = 0;
+    if (!thread()->cha()->HasOverride(cls, name, &subclass_count)) {
+      if (FLAG_trace_cha) {
+        THR_Print("  **(CHA) Instance call needs no check, "
+            "no overrides of '%s' '%s'\n",
+            name.ToCString(), cls.ToCString());
+      }
+      thread()->cha()->AddToGuardedClasses(cls, subclass_count);
+      return false;
+    }
+  }
+  return true;
+}
+
 
 
 bool FlowGraph::VerifyUseLists() {
@@ -993,8 +1081,8 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // 2a. Handle uses:
     // Update the expression stack renaming environment for each use by
     // removing the renamed value.
-    // For each use of a LoadLocal, StoreLocal, or Constant: Replace it with
-    // the renamed value.
+    // For each use of a LoadLocal, StoreLocal, DropTemps or Constant: Replace
+    // it with the renamed value.
     for (intptr_t i = current->InputCount() - 1; i >= 0; --i) {
       Value* v = current->InputAt(i);
       // Update expression stack.
@@ -1002,13 +1090,11 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 
       Definition* reaching_defn = env->RemoveLast();
       Definition* input_defn = v->definition();
-      if (input_defn->IsLoadLocal() ||
-          input_defn->IsStoreLocal() ||
-          input_defn->IsPushTemp() ||
-          input_defn->IsDropTemps() ||
-          input_defn->IsConstant()) {
-        // Remove the load/store from the graph.
-        input_defn->RemoveFromGraph();
+      if (input_defn != reaching_defn) {
+        ASSERT(input_defn->IsLoadLocal() ||
+               input_defn->IsStoreLocal() ||
+               input_defn->IsDropTemps() ||
+               input_defn->IsConstant());
         // Assert we are not referencing nulls in the initial environment.
         ASSERT(reaching_defn->ssa_temp_index() != -1);
         v->set_definition(reaching_defn);
@@ -1022,17 +1108,15 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       env->RemoveLast();
     }
 
-    // 2b. Handle LoadLocal, StoreLocal, and Constant.
+    // 2b. Handle LoadLocal, StoreLocal, DropTemps and Constant.
     Definition* definition = current->AsDefinition();
     if (definition != NULL) {
       LoadLocalInstr* load = definition->AsLoadLocal();
       StoreLocalInstr* store = definition->AsStoreLocal();
-      PushTempInstr* push = definition->AsPushTemp();
       DropTempsInstr* drop = definition->AsDropTemps();
       ConstantInstr* constant = definition->AsConstant();
       if ((load != NULL) ||
           (store != NULL) ||
-          (push != NULL) ||
           (drop != NULL) ||
           (constant != NULL)) {
         Definition* result = NULL;
@@ -1071,12 +1155,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
             intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
             captured_parameters_->Add(index);
           }
-
-        } else if (push != NULL) {
-          result = push->value()->definition();
-          env->Add(result);
-          it.RemoveCurrentFromGraph();
-          continue;
         } else if (drop != NULL) {
           // Drop temps from the environment.
           for (intptr_t j = 0; j < drop->num_temps(); j++) {
@@ -1094,13 +1172,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         if (definition->HasTemp()) {
           ASSERT(result != NULL);
           env->Add(result);
-          // We remove load/store/constant instructions when we find their
-          // use in 2a.
-        } else {
-          it.RemoveCurrentFromGraph();
         }
+        it.RemoveCurrentFromGraph();
       } else {
-        // Not a load, store, or constant.
+        // Not a load, store, drop or constant.
         if (definition->HasTemp()) {
           // Assign fresh SSA temporary and update expression stack.
           AllocateSSAIndexes(definition);

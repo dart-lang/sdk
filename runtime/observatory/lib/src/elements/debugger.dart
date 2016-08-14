@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:math';
 import 'observatory_element.dart';
-import 'nav_bar.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
@@ -902,6 +901,7 @@ class IsolateCommand extends DebuggerCommand {
   IsolateCommand(Debugger debugger) : super(debugger, 'isolate', [
     new IsolateListCommand(debugger),
     new IsolateNameCommand(debugger),
+    new IsolateReloadCommand(debugger),
   ]) {
     alias = 'i';
   }
@@ -962,10 +962,10 @@ class IsolateCommand extends DebuggerCommand {
     }
     return new Future.value(result);
   }
-  String helpShort = 'Switch the current isolate';
+  String helpShort = 'Switch, list, rename, or reload isolates';
 
   String helpLong =
-      'Switch, list, or rename isolates.\n'
+      'Switch the current isolate.\n'
       '\n'
       'Syntax: isolate <number>\n'
       '        isolate <name>\n';
@@ -1042,12 +1042,34 @@ class IsolateNameCommand extends DebuggerCommand {
     return debugger.isolate.setName(args[0]);
   }
 
-  String helpShort = 'Rename an isolate';
+  String helpShort = 'Rename the current isolate';
 
   String helpLong =
-      'Rename an isolate.\n'
+      'Rename the current isolate.\n'
       '\n'
       'Syntax: isolate name <name>\n';
+}
+
+class IsolateReloadCommand extends DebuggerCommand {
+  IsolateReloadCommand(Debugger debugger) : super(debugger, 'reload', []);
+
+  Future run(List<String> args) async {
+    if (debugger.isolate == null) {
+      debugger.console.print('There is no current vm');
+      return;
+    }
+
+    await debugger.isolate.reloadSources();
+
+    debugger.console.print('Isolate reloading....');
+  }
+
+  String helpShort = 'Reload the sources for the current isolate.';
+
+  String helpLong =
+      'Reload the sources for the current isolate.\n'
+      '\n'
+      'Syntax: reload\n';
 }
 
 class InfoCommand extends DebuggerCommand {
@@ -1650,6 +1672,15 @@ class ObservatoryDebugger extends Debugger {
         console.print("Isolate ${iso.number} renamed to '${iso.name}'");
         break;
 
+      case ServiceEvent.kIsolateReload:
+        var reloadError = event.reloadError;
+        if (reloadError != null) {
+          console.print('Isolate reload failed: ${event.reloadError}');
+        } else {
+          console.print('Isolate reloaded.');
+        }
+        break;
+
       case ServiceEvent.kPauseStart:
       case ServiceEvent.kPauseExit:
       case ServiceEvent.kPauseBreakpoint:
@@ -1973,7 +2004,8 @@ class DebuggerPageElement extends ObservatoryElement {
     var cmdDiv = $['commandDiv'];
 
     // For now, force navbar height to 40px in the debugger.
-    int navbarHeight = NavBarElement.height;
+    // TODO (cbernaschina) check if this is needed.
+    const navbarHeight = 40;
     int splitterHeight = splitterDiv.clientHeight;
     int cmdHeight = cmdDiv.clientHeight;
 
@@ -2223,7 +2255,8 @@ class DebuggerFrameElement extends ObservatoryElement {
     if (varsDiv == null) {
       return minTop;
     }
-    const navbarHeight = NavBarElement.height;
+    // TODO (cbernaschina) check if this is needed.
+    const navbarHeight = 40;
     const bottomPad = 6;
     var parent = varsDiv.parent.getBoundingClientRect();
     var varsHeight = varsDiv.clientHeight;

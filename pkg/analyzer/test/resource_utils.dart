@@ -4,14 +4,15 @@
 
 library analyzer.test.resource_utils;
 
+import 'dart:async';
 import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
-
 
 bool get isWindows => path.Style.platform == path.Style.windows;
 
@@ -32,6 +33,15 @@ void expectPosixPath(String posixPath) {
 }
 
 /**
+ * Translate the given posixPath to a file URI appropriate for the
+ * platform on which the tests are executing.
+ */
+String posixToOSFileUri(String posixPath) {
+  expectPosixPath(posixPath);
+  return isWindows ? 'file:///C:$posixPath' : 'file://$posixPath';
+}
+
+/**
  * Translate the given posixPath to a path appropriate for the
  * platform on which the tests are executing.
  */
@@ -45,15 +55,6 @@ String posixToOSPath(String posixPath) {
     return windowsPath;
   }
   return posixPath;
-}
-
-/**
- * Translate the given posixPath to a file URI appropriate for the
- * platform on which the tests are executing.
- */
-String posixToOSFileUri(String posixPath) {
-  expectPosixPath(posixPath);
-  return isWindows ? 'file:///C:$posixPath' : 'file://$posixPath';
 }
 
 /**
@@ -96,10 +97,18 @@ class TestResourceProvider implements ResourceProvider {
   AbsolutePathContext get absolutePathContext => _provider.absolutePathContext;
 
   @override
+  path.Context get pathContext => _provider.pathContext;
+
+  @override
   File getFile(String path) => _provider.getFile(_assertPath(path));
 
   @override
   Folder getFolder(String path) => _provider.getFolder(_assertPath(path));
+
+  @override
+  Future<List<int>> getModificationTimes(List<Source> sources) async {
+    return sources.map((source) => 0).toList();
+  }
 
   @override
   Resource getResource(String path) => _provider.getResource(_assertPath(path));
@@ -107,9 +116,6 @@ class TestResourceProvider implements ResourceProvider {
   @override
   Folder getStateLocation(String pluginId) =>
       _provider.getStateLocation(pluginId);
-
-  @override
-  path.Context get pathContext => _provider.pathContext;
 
   /**
    * Assert that the given path is valid for the OS platform on which the

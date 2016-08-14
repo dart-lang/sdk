@@ -4,14 +4,23 @@
 // Dart test to catch error reporting bugs in class fields declarations.
 // Should be an error because we have a setter overriding a function name.
 
+import 'package:expect/expect.dart';
+
 class A {
+  int i;
   int a() {
     return 1;
   }
   void set a(var val) {
-    int i = val;
+    i = val;
   }
 }
 
 main() {
+  var a = new A();
+  Expect.isNull(a.i);
+  Expect.equals(a.a(), 1);
+  a.a = 2;
+  Expect.equals(a.a(), 1);
+  Expect.equals(a.i, 2);
 }

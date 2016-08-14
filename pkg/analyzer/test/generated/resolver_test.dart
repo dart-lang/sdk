@@ -42,7 +42,7 @@ main() {
   runReflectiveTests(ErrorResolverTest);
   runReflectiveTests(LibraryImportScopeTest);
   runReflectiveTests(LibraryScopeTest);
-  runReflectiveTests(MemberMapTest);
+  runReflectiveTests(PrefixedNamespaceTest);
   runReflectiveTests(ScopeTest);
   runReflectiveTests(StrictModeTest);
   runReflectiveTests(SubtypeManagerTest);
@@ -537,48 +537,31 @@ class LibraryScopeTest extends ResolverTestCase {
 }
 
 @reflectiveTest
-class MemberMapTest {
-  /**
-   * The null type.
-   */
-  InterfaceType _nullType;
-
-  void setUp() {
-    _nullType = new TestTypeProvider().nullType;
+class PrefixedNamespaceTest extends ResolverTestCase {
+  void test_lookup_missing() {
+    ClassElement element = ElementFactory.classElement2('A');
+    PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
+    expect(namespace.get('p.B'), isNull);
   }
 
-  void test_MemberMap_copyConstructor() {
-    MethodElement m1 = ElementFactory.methodElement("m1", _nullType);
-    MethodElement m2 = ElementFactory.methodElement("m2", _nullType);
-    MethodElement m3 = ElementFactory.methodElement("m3", _nullType);
-    MemberMap map = new MemberMap();
-    map.put(m1.name, m1);
-    map.put(m2.name, m2);
-    map.put(m3.name, m3);
-    MemberMap copy = new MemberMap.from(map);
-    expect(copy.size, map.size);
-    expect(copy.get(m1.name), m1);
-    expect(copy.get(m2.name), m2);
-    expect(copy.get(m3.name), m3);
+  void test_lookup_missing_matchesPrefix() {
+    ClassElement element = ElementFactory.classElement2('A');
+    PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
+    expect(namespace.get('p'), isNull);
   }
 
-  void test_MemberMap_override() {
-    MethodElement m1 = ElementFactory.methodElement("m", _nullType);
-    MethodElement m2 = ElementFactory.methodElement("m", _nullType);
-    MemberMap map = new MemberMap();
-    map.put(m1.name, m1);
-    map.put(m2.name, m2);
-    expect(map.size, 1);
-    expect(map.get("m"), m2);
+  void test_lookup_valid() {
+    ClassElement element = ElementFactory.classElement2('A');
+    PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
+    expect(namespace.get('p.A'), same(element));
   }
 
-  void test_MemberMap_put() {
-    MethodElement m1 = ElementFactory.methodElement("m1", _nullType);
-    MemberMap map = new MemberMap();
-    expect(map.size, 0);
-    map.put(m1.name, m1);
-    expect(map.size, 1);
-    expect(map.get("m1"), m1);
+  HashMap<String, Element> _toMap(List<Element> elements) {
+    HashMap<String, Element> map = new HashMap<String, Element>();
+    for (Element element in elements) {
+      map[element.name] = element;
+    }
+    return map;
   }
 }
 
@@ -2937,8 +2920,12 @@ class TypeProviderImplTest extends EngineTestCase {
         context, AstFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
 
-    LibraryElementImpl mockAsyncLib =
-        (context as AnalysisContextImpl).createMockAsyncLib(coreLibrary);
+    Source asyncSource = new NonExistingSource(
+        'async.dart', Uri.parse('dart:async'), UriKind.DART_URI);
+    LibraryElementImpl mockAsyncLib = (context as AnalysisContextImpl)
+        .createMockAsyncLib(coreLibrary, asyncSource);
+    expect(mockAsyncLib.source, same(asyncSource));
+    expect(mockAsyncLib.definingCompilationUnit.source, same(asyncSource));
     expect(mockAsyncLib.publicNamespace, isNotNull);
 
     //
@@ -2969,8 +2956,6 @@ class TypeProviderImplTest extends EngineTestCase {
     ClassElementImpl element =
         new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
     element.supertype = superclassType;
-    InterfaceTypeImpl type = new InterfaceTypeImpl(element);
-    element.type = type;
     if (parameterNames != null) {
       int count = parameterNames.length;
       if (count > 0) {
@@ -2987,7 +2972,6 @@ class TypeProviderImplTest extends EngineTestCase {
           typeParameter.type = typeArguments[i];
         }
         element.typeParameters = typeParameters;
-        type.typeArguments = typeArguments;
       }
     }
     return element;

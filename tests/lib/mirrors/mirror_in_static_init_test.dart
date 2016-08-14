@@ -19,7 +19,7 @@ abstract class C {
 
 final int staticField = () {
   var lib = currentMirrorSystem().findLibrary(#mirror_in_static_init_test);
-  var lst = new List.from(lib.declarations.values);
+  var lst = new List.from(lib.declarations[#C].declarations.values);
   return 42;
 }();
 

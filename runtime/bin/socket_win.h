@@ -5,9 +5,13 @@
 #ifndef BIN_SOCKET_WIN_H_
 #define BIN_SOCKET_WIN_H_
 
-#include <winsock2.h>
+#if !defined(BIN_SOCKET_H_)
+#error Do not include socket_win.h directly. Use socket.h.
+#endif
+
 #include <iphlpapi.h>
-#include <ws2tcpip.h>
 #include <mswsock.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 
 #endif  // BIN_SOCKET_WIN_H_

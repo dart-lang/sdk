@@ -11,9 +11,8 @@ class DeclaredMember implements Member {
   final DartType type;
   final FunctionType functionType;
 
-  DeclaredMember(this.name, this.element,
-                 this.declarer,
-                 this.type, this.functionType);
+  DeclaredMember(
+      this.name, this.element, this.declarer, this.type, this.functionType);
 
   bool get isStatic => !element.isInstanceMember;
 
@@ -55,8 +54,7 @@ class DeclaredMember implements Member {
 
   bool operator ==(other) {
     if (other is! Member) return false;
-    return element == other.element &&
-           isSetter == other.isSetter;
+    return element == other.element && isSetter == other.isSetter;
   }
 
   String toString() {
@@ -91,10 +89,8 @@ class DeclaredMember implements Member {
 class DeclaredAbstractMember extends DeclaredMember {
   final DeclaredMember implementation;
 
-  DeclaredAbstractMember(Name name, Element element,
-                         InterfaceType declarer,
-                         DartType type, FunctionType functionType,
-                         this.implementation)
+  DeclaredAbstractMember(Name name, Element element, InterfaceType declarer,
+      DartType type, FunctionType functionType, this.implementation)
       : super(name, element, declarer, type, functionType);
 
   bool get isAbstract => true;
@@ -109,8 +105,8 @@ class InheritedMember implements DeclaredMember {
   final DeclaredMember declaration;
   final InterfaceType instance;
 
-  InheritedMember(DeclaredMember this.declaration,
-                  InterfaceType this.instance) {
+  InheritedMember(
+      DeclaredMember this.declaration, InterfaceType this.instance) {
     assert(instance.isGeneric);
     assert(!declaration.isStatic);
   }
@@ -142,19 +138,23 @@ class InheritedMember implements DeclaredMember {
   }
 
   DeclaredMember inheritFrom(InterfaceType newInstance) {
-    assert(() {
+    assert(invariant(declaration.element, () {
       // Assert that if [instance] contains type variables, then these are
       // defined in the declaration of [newInstance] and will therefore be
       // substituted into the context of [newInstance] in the created member.
       ClassElement contextClass = Types.getClassContext(instance);
       return contextClass == null || contextClass == newInstance.element;
-    });
+    }, message: () {
+      return "Context mismatch: Context class "
+          "${Types.getClassContext(instance)} from $instance does match "
+          "the new instance $newInstance.";
+    }));
     return _newInheritedMember(newInstance);
   }
 
   InheritedMember _newInheritedMember(InterfaceType newInstance) {
-    return new InheritedMember(declaration,
-                               instance.substByContext(newInstance));
+    return new InheritedMember(
+        declaration, instance.substByContext(newInstance));
   }
 
   Iterable<Member> get declarations => <Member>[this];
@@ -163,8 +163,7 @@ class InheritedMember implements DeclaredMember {
 
   bool operator ==(other) {
     if (other is! InheritedMember) return false;
-    return declaration == other.declaration &&
-           instance == other.instance;
+    return declaration == other.declaration && instance == other.instance;
   }
 
   void printOn(StringBuffer sb, DartType type) {
@@ -174,7 +173,7 @@ class InheritedMember implements DeclaredMember {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    printOn(sb, instance);
+    printOn(sb, type);
     return sb.toString();
   }
 }
@@ -182,9 +181,8 @@ class InheritedMember implements DeclaredMember {
 class InheritedAbstractMember extends InheritedMember {
   final DeclaredMember implementation;
 
-  InheritedAbstractMember(DeclaredMember declaration,
-                          InterfaceType instance,
-                          this.implementation)
+  InheritedAbstractMember(
+      DeclaredMember declaration, InterfaceType instance, this.implementation)
       : super(declaration, instance);
 
   bool get isAbstract => true;
@@ -194,10 +192,10 @@ class InheritedAbstractMember extends InheritedMember {
         declaration,
         instance.substByContext(newInstance),
         implementation != null
-            ? implementation.inheritFrom(newInstance) : null);
+            ? implementation.inheritFrom(newInstance)
+            : null);
   }
 }
-
 
 abstract class AbstractSyntheticMember implements MemberSignature {
   final Setlet<Member> inheritedMembers;
@@ -211,14 +209,11 @@ abstract class AbstractSyntheticMember implements MemberSignature {
   Name get name => member.name;
 }
 
-
 class SyntheticMember extends AbstractSyntheticMember {
   final DartType type;
   final FunctionType functionType;
 
-  SyntheticMember(Setlet<Member> inheritedMembers,
-                  this.type,
-                  this.functionType)
+  SyntheticMember(Setlet<Member> inheritedMembers, this.type, this.functionType)
       : super(inheritedMembers);
 
   bool get isSetter => member.isSetter;
@@ -230,7 +225,7 @@ class SyntheticMember extends AbstractSyntheticMember {
   bool get isMalformed => false;
 
   String toString() => '${type.getStringAsDeclared('$name')} synthesized '
-                       'from ${inheritedMembers}';
+      'from ${inheritedMembers}';
 }
 
 class ErroneousMember extends AbstractSyntheticMember {
@@ -251,6 +246,5 @@ class ErroneousMember extends AbstractSyntheticMember {
   bool get isMalformed => true;
 
   String toString() => "erroneous member '$name' synthesized "
-                       "from ${inheritedMembers}";
+      "from ${inheritedMembers}";
 }
-

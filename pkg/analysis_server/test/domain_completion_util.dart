@@ -10,8 +10,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/index/index.dart' show Index;
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
+import 'package:analysis_server/src/services/index/index.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
@@ -24,7 +23,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   int replacementLength;
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
-  Map<String,List<CompletionSuggestion>> allSuggestions = {};
+  Map<String, List<CompletionSuggestion>> allSuggestions = {};
 
   String addTestFile(String content, {int offset}) {
     completionOffset = content.indexOf('^');
@@ -80,7 +79,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
 
   @override
   Index createIndex() {
-    return createLocalMemoryIndex();
+    return createMemoryIndex();
   }
 
   Future getSuggestions() {

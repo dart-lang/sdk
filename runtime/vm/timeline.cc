@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#ifndef PRODUCT
+
 #include <cstdlib>
 
 #include "vm/atomic.h"
@@ -16,9 +18,8 @@
 
 namespace dart {
 
-#ifndef PRODUCT
-
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
+DEFINE_FLAG(bool, startup_timeline, false, "Record the startup timeline");
 DEFINE_FLAG(bool, trace_timeline, false,
             "Trace timeline backend");
 DEFINE_FLAG(bool, trace_timeline_analysis, false,
@@ -32,6 +33,9 @@ DEFINE_FLAG(charp, timeline_streams, NULL,
             "Comma separated list of timeline streams to record. "
             "Valid values: all, API, Compiler, Dart, Debugger, Embedder, "
             "GC, Isolate, and VM.");
+DEFINE_FLAG(charp, timeline_recorder, "ring",
+            "Select the timeline recorder used. "
+            "Valid values: ring, endless, and startup.")
 
 // Implementation notes:
 //
@@ -76,6 +80,42 @@ DEFINE_FLAG(charp, timeline_streams, NULL,
 //
 
 
+static TimelineEventRecorder* CreateTimelineRecorder() {
+  // Some flags require that we use the endless recorder.
+  const bool use_endless_recorder =
+      (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
+
+  const bool use_startup_recorder = FLAG_startup_timeline;
+
+  const char* flag = FLAG_timeline_recorder;
+
+  if (use_endless_recorder || (flag != NULL)) {
+    if (use_endless_recorder || (strcmp("endless", flag) == 0)) {
+      if (FLAG_trace_timeline) {
+        THR_Print("Using the endless timeline recorder.\n");
+      }
+      return new TimelineEventEndlessRecorder();
+    }
+  }
+
+  if (use_startup_recorder || (flag != NULL)) {
+    if (use_startup_recorder || (strcmp("startup", flag) == 0)) {
+      if (FLAG_trace_timeline) {
+        THR_Print("Using the startup recorder.\n");
+      }
+      return new TimelineEventStartupRecorder();
+    }
+  }
+
+  if (FLAG_trace_timeline) {
+    THR_Print("Using the ring timeline recorder.\n");
+  }
+
+  // Always fall back to the ring recorder.
+  return new TimelineEventRingRecorder();
+}
+
+
 // Returns a caller freed array of stream names in FLAG_timeline_streams.
 static MallocGrowableArray<char*>* GetEnabledByDefaultTimelineStreams() {
   MallocGrowableArray<char*>* result = new MallocGrowableArray<char*>();
@@ -111,7 +151,8 @@ static void FreeEnabledByDefaultTimelineStreams(
 
 // Returns true if |streams| contains |stream| or "all". Not case sensitive.
 static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
-  if ((FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline) {
+  if ((FLAG_timeline_dir != NULL) ||
+      FLAG_timing || FLAG_complete_timeline || FLAG_startup_timeline) {
     return true;
   }
   for (intptr_t i = 0; i < streams->length(); i++) {
@@ -127,31 +168,20 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
 
 void Timeline::InitOnce() {
   ASSERT(recorder_ == NULL);
-  // Default to ring recorder being enabled.
-  const bool use_ring_recorder = true;
-  // Some flags require that we use the endless recorder.
-  const bool use_endless_recorder =
-      (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
-  if (use_endless_recorder) {
-    recorder_ = new TimelineEventEndlessRecorder();
-  } else if (use_ring_recorder) {
-    recorder_ = new TimelineEventRingRecorder();
-  }
+  recorder_ = CreateTimelineRecorder();
+  ASSERT(recorder_ != NULL);
   enabled_streams_ = GetEnabledByDefaultTimelineStreams();
-  vm_stream_.Init("VM", HasStream(enabled_streams_, "VM"), NULL);
-  vm_api_stream_.Init("API",
-                      HasStream(enabled_streams_, "API"),
-                      &stream_API_enabled_);
   // Global overrides.
-#define ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                   \
-  stream_##name##_enabled_ = HasStream(enabled_streams_, #name);
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT)
-#undef ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT
-}
+#define TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                           \
+  stream_##name##_.Init(#name,                                                 \
+                        HasStream(enabled_streams_, #name));
+  TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
+#undef TIMELINE_STREAM_FLAG_DEFAULT
 
-
-void Timeline::SetVMStreamEnabled(bool enabled) {
-  vm_stream_.set_enabled(enabled);
+  if (Timeline::stream_Embedder_.enabled() &&
+      (Timeline::get_start_recording_cb() != NULL)) {
+    Timeline::get_start_recording_cb()();
+  }
 }
 
 
@@ -173,16 +203,21 @@ void Timeline::StreamStateChange(const char* stream_name,
 
 void Timeline::Shutdown() {
   ASSERT(recorder_ != NULL);
+
+  if (Timeline::stream_Embedder_.enabled() &&
+      (Timeline::get_stop_recording_cb() != NULL)) {
+    Timeline::get_stop_recording_cb()();
+  }
+
   if (FLAG_timeline_dir != NULL) {
     recorder_->WriteTo(FLAG_timeline_dir);
   }
+
   // Disable global streams.
-  vm_stream_.set_enabled(false);
-  vm_api_stream_.set_enabled(false);
-#define ISOLATE_TIMELINE_STREAM_DISABLE(name, not_used)                   \
-  stream_##name##_enabled_ = false;
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DISABLE)
-#undef ISOLATE_TIMELINE_STREAM_DISABLE
+#define TIMELINE_STREAM_DISABLE(name, not_used)                                \
+  Timeline::stream_##name##_.set_enabled(false);
+  TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
+#undef TIMELINE_STREAM_DISABLE
   delete recorder_;
   recorder_ = NULL;
   if (enabled_streams_ != NULL) {
@@ -194,30 +229,6 @@ void Timeline::Shutdown() {
 
 TimelineEventRecorder* Timeline::recorder() {
   return recorder_;
-}
-
-
-void Timeline::SetupIsolateStreams(Isolate* isolate) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-#define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
-  isolate->Get##name##Stream()->Init(                                          \
-      #name,                                                                   \
-      (enabled_by_default || HasStream(enabled_streams_, #name)),              \
-      Timeline::Stream##name##EnabledFlag());
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
-#undef ISOLATE_TIMELINE_STREAM_INIT
-}
-
-
-TimelineStream* Timeline::GetVMStream() {
-  return &vm_stream_;
-}
-
-
-TimelineStream* Timeline::GetVMApiStream() {
-  return &vm_api_stream_;
 }
 
 
@@ -256,21 +267,17 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
     JSONArray availableStreams(&obj, "availableStreams");
 #define ADD_STREAM_NAME(name, not_used)                                        \
     availableStreams.AddValue(#name);
-ISOLATE_TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
+TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
 #undef ADD_STREAM_NAME
-    availableStreams.AddValue("VM");
   }
   {
     JSONArray recordedStreams(&obj, "recordedStreams");
 #define ADD_RECORDED_STREAM_NAME(name, not_used)                               \
-    if (stream_##name##_enabled_) {                                            \
+    if (stream_##name##_.enabled()) {                                          \
       recordedStreams.AddValue(#name);                                         \
     }
-ISOLATE_TIMELINE_STREAM_LIST(ADD_RECORDED_STREAM_NAME);
+TIMELINE_STREAM_LIST(ADD_RECORDED_STREAM_NAME);
 #undef ADD_RECORDED_STREAM_NAME
-    if (vm_stream_.enabled()) {
-      recordedStreams.AddValue("VM");
-    }
   }
 }
 
@@ -286,21 +293,20 @@ void Timeline::Clear() {
 
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
-TimelineStream Timeline::vm_stream_;
-TimelineStream Timeline::vm_api_stream_;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
 Dart_EmbedderTimelineStartRecording Timeline::start_recording_cb_ = NULL;
 Dart_EmbedderTimelineStopRecording Timeline::stop_recording_cb_ = NULL;
-Dart_EmbedderTimelineGetTimeline Timeline::get_timeline_cb_ = NULL;
 
-#define ISOLATE_TIMELINE_STREAM_DEFINE_FLAG(name, enabled_by_default)          \
-  bool Timeline::stream_##name##_enabled_ = enabled_by_default;
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DEFINE_FLAG)
-#undef ISOLATE_TIMELINE_STREAM_DEFINE_FLAG
+#define TIMELINE_STREAM_DEFINE(name, enabled_by_default)                       \
+  TimelineStream Timeline::stream_##name##_;
+  TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
+#undef TIMELINE_STREAM_DEFINE
 
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
       timestamp1_(0),
+      thread_timestamp0_(-1),
+      thread_timestamp1_(-1),
       arguments_(NULL),
       arguments_length_(0),
       state_(0),
@@ -317,6 +323,9 @@ TimelineEvent::~TimelineEvent() {
 
 
 void TimelineEvent::Reset() {
+  if (owns_label() && label_ != NULL) {
+    free(const_cast<char*>(label_));
+  }
   state_ = 0;
   thread_ = OSThread::kInvalidThreadId;
   isolate_id_ = ILLEGAL_PORT;
@@ -325,6 +334,7 @@ void TimelineEvent::Reset() {
   FreeArguments();
   set_pre_serialized_json(false);
   set_event_type(kNone);
+  set_owns_label(false);
 }
 
 
@@ -359,15 +369,19 @@ void TimelineEvent::AsyncEnd(const char* label,
 
 
 void TimelineEvent::DurationBegin(const char* label,
-                                  int64_t micros) {
+                                  int64_t micros,
+                                  int64_t thread_micros) {
   Init(kDuration, label);
   set_timestamp0(micros);
+  set_thread_timestamp0(thread_micros);
 }
 
 
-void TimelineEvent::DurationEnd(int64_t micros) {
+void TimelineEvent::DurationEnd(int64_t micros,
+                                int64_t thread_micros) {
   ASSERT(timestamp1_ == 0);
   set_timestamp1(micros);
+  set_thread_timestamp1(thread_micros);
 }
 
 
@@ -380,23 +394,43 @@ void TimelineEvent::Instant(const char* label,
 
 void TimelineEvent::Duration(const char* label,
                              int64_t start_micros,
-                             int64_t end_micros) {
+                             int64_t end_micros,
+                             int64_t thread_start_micros,
+                             int64_t thread_end_micros) {
   Init(kDuration, label);
   set_timestamp0(start_micros);
   set_timestamp1(end_micros);
+  set_thread_timestamp0(thread_start_micros);
+  set_thread_timestamp1(thread_end_micros);
 }
 
 
 void TimelineEvent::Begin(const char* label,
-                          int64_t micros) {
+                          int64_t micros,
+                          int64_t thread_micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
+  set_thread_timestamp0(thread_micros);
 }
 
 
 void TimelineEvent::End(const char* label,
-                        int64_t micros) {
+                        int64_t micros,
+                        int64_t thread_micros) {
   Init(kEnd, label);
+  set_timestamp0(micros);
+  set_thread_timestamp0(thread_micros);
+}
+
+
+void TimelineEvent::Counter(const char* label, int64_t micros) {
+  Init(kCounter, label);
+  set_timestamp0(micros);
+}
+
+
+void TimelineEvent::Metadata(const char* label, int64_t micros) {
+  Init(kMetadata, label);
   set_timestamp0(micros);
 }
 
@@ -499,6 +533,8 @@ void TimelineEvent::Init(EventType event_type,
   state_ = 0;
   timestamp0_ = 0;
   timestamp1_ = 0;
+  thread_timestamp0_ = -1;
+  thread_timestamp1_ = -1;
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   thread_ = os_thread->trace_id();
@@ -512,6 +548,7 @@ void TimelineEvent::Init(EventType event_type,
   FreeArguments();
   set_pre_serialized_json(false);
   set_event_type(event_type);
+  set_owns_label(false);
 }
 
 
@@ -564,7 +601,9 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
   obj.AddProperty64("tid", tid);
   obj.AddProperty64("pid", pid);
   obj.AddPropertyTimeMicros("ts", TimeOrigin());
-
+  if (HasThreadCPUTime()) {
+    obj.AddPropertyTimeMicros("tts", ThreadCPUTimeOrigin());
+  }
   switch (event_type()) {
     case kBegin: {
       obj.AddProperty("ph", "B");
@@ -577,6 +616,9 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     case kDuration: {
       obj.AddProperty("ph", "X");
       obj.AddPropertyTimeMicros("dur", TimeDuration());
+      if (HasThreadCPUTime()) {
+        obj.AddPropertyTimeMicros("tdur", ThreadCPUTimeDuration());
+      }
     }
     break;
     case kInstant: {
@@ -597,6 +639,14 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     case kAsyncEnd: {
       obj.AddProperty("ph", "e");
       obj.AddPropertyF("id", "%" Px64 "", AsyncId());
+    }
+    break;
+    case kMetadata: {
+      obj.AddProperty("ph", "M");
+    }
+    break;
+    case kCounter: {
+      obj.AddProperty("ph", "C");
     }
     break;
     default:
@@ -627,6 +677,20 @@ int64_t TimelineEvent::AsyncId() const {
 }
 
 
+int64_t TimelineEvent::LowTime() const {
+  return timestamp0_;
+}
+
+
+int64_t TimelineEvent::HighTime() const {
+  if (event_type() == kDuration) {
+    return timestamp1_;
+  } else {
+    return timestamp0_;
+  }
+}
+
+
 int64_t TimelineEvent::TimeDuration() const {
   if (timestamp1_ == 0) {
     // This duration is still open, use current time as end.
@@ -636,25 +700,44 @@ int64_t TimelineEvent::TimeDuration() const {
 }
 
 
+bool TimelineEvent::HasThreadCPUTime() const {
+  return (thread_timestamp0_ != -1);
+}
+
+
+
+int64_t TimelineEvent::ThreadCPUTimeOrigin() const {
+  ASSERT(HasThreadCPUTime());
+  return thread_timestamp0_;
+}
+
+
+int64_t TimelineEvent::ThreadCPUTimeDuration() const {
+  ASSERT(HasThreadCPUTime());
+  if (thread_timestamp1_ == -1) {
+    // This duration is still open, use current time as end.
+    return OS::GetCurrentThreadCPUMicros() - thread_timestamp0_;
+  }
+  return thread_timestamp1_ - thread_timestamp0_;
+}
+
+
 TimelineStream::TimelineStream()
     : name_(NULL),
-      enabled_(false),
-      globally_enabled_(NULL) {
+      enabled_(false) {
 }
 
 
 void TimelineStream::Init(const char* name,
-                          bool enabled,
-                          const bool* globally_enabled) {
+                          bool enabled) {
   name_ = name;
   enabled_ = enabled;
-  globally_enabled_ = globally_enabled;
 }
 
 
 TimelineEvent* TimelineStream::StartEvent() {
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (!Enabled() || (recorder == NULL)) {
+  if (!enabled() || (recorder == NULL)) {
     return NULL;
   }
   ASSERT(name_ != NULL);
@@ -700,7 +783,7 @@ void TimelineEventScope::Init() {
   ASSERT(enabled_ == false);
   ASSERT(label_ != NULL);
   ASSERT(stream_ != NULL);
-  if (!stream_->Enabled()) {
+  if (!stream_->enabled()) {
     // Stream is not enabled, do nothing.
     return;
   }
@@ -795,10 +878,11 @@ void TimelineEventScope::StealArguments(TimelineEvent* event) {
 TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(stream, label) {
-  if (!FLAG_support_timeline) {
+  if (!FLAG_support_timeline || !enabled()) {
     return;
   }
   timestamp_ = OS::GetCurrentMonotonicMicros();
+  thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
 }
 
 
@@ -806,10 +890,11 @@ TimelineDurationScope::TimelineDurationScope(Thread* thread,
                                              TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(thread, stream, label) {
-  if (!FLAG_support_timeline) {
+  if (!FLAG_support_timeline || !enabled()) {
     return;
   }
   timestamp_ = OS::GetCurrentMonotonicMicros();
+  thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
 }
 
 
@@ -827,7 +912,11 @@ TimelineDurationScope::~TimelineDurationScope() {
   }
   ASSERT(event != NULL);
   // Emit a duration event.
-  event->Duration(label(), timestamp_, OS::GetCurrentMonotonicMicros());
+  event->Duration(label(),
+                  timestamp_,
+                  OS::GetCurrentMonotonicMicros(),
+                  thread_timestamp_,
+                  OS::GetCurrentThreadCPUMicros());
   StealArguments(event);
   event->Complete();
 }
@@ -927,7 +1016,9 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(
 
 
 TimelineEventRecorder::TimelineEventRecorder()
-    : async_id_(0) {
+    : async_id_(0),
+      time_low_micros_(0),
+      time_high_micros_(0) {
 }
 
 
@@ -1007,6 +1098,38 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
 }
 
 
+void TimelineEventRecorder::ResetTimeTracking() {
+  time_high_micros_ = 0;
+  time_low_micros_ = kMaxInt64;
+}
+
+
+void TimelineEventRecorder::ReportTime(int64_t micros) {
+  if (time_high_micros_ < micros) {
+    time_high_micros_ = micros;
+  }
+  if (time_low_micros_ > micros) {
+    time_low_micros_ = micros;
+  }
+}
+
+
+int64_t TimelineEventRecorder::TimeOriginMicros() const {
+  if (time_high_micros_ == 0) {
+    return 0;
+  }
+  return time_low_micros_;
+}
+
+
+int64_t TimelineEventRecorder::TimeExtentMicros() const {
+  if (time_high_micros_ == 0) {
+    return 0;
+  }
+  return time_high_micros_ - time_low_micros_;
+}
+
+
 void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
   if (event == NULL) {
     return;
@@ -1031,14 +1154,12 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   if (!FLAG_support_service) {
     return;
   }
-  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-  Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
   if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
     return;
   }
-  Thread* T = Thread::Current();
-  StackZone zone(T);
 
   Timeline::ReclaimCachedBlocksFromThreads();
 
@@ -1092,7 +1213,8 @@ TimelineEventBlock* TimelineEventRecorder::GetNewBlock() {
 }
 
 
-TimelineEventRingRecorder::TimelineEventRingRecorder(intptr_t capacity)
+TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
+    intptr_t capacity)
     : blocks_(NULL),
       capacity_(capacity),
       num_blocks_(0),
@@ -1115,7 +1237,7 @@ TimelineEventRingRecorder::TimelineEventRingRecorder(intptr_t capacity)
 }
 
 
-TimelineEventRingRecorder::~TimelineEventRingRecorder() {
+TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
   // Delete all blocks.
   for (intptr_t i = 0; i < num_blocks_; i++) {
     TimelineEventBlock* block = blocks_[i];
@@ -1125,13 +1247,14 @@ TimelineEventRingRecorder::~TimelineEventRingRecorder() {
 }
 
 
-void TimelineEventRingRecorder::PrintJSONEvents(
+void TimelineEventFixedBufferRecorder::PrintJSONEvents(
     JSONArray* events,
     TimelineEventFilter* filter) {
   if (!FLAG_support_service) {
     return;
   }
   MutexLocker ml(&lock_);
+  ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
   if (block_offset == -1) {
     // All blocks are empty.
@@ -1148,6 +1271,8 @@ void TimelineEventRingRecorder::PrintJSONEvents(
       if (filter->IncludeEvent(event) &&
           event->Within(filter->time_origin_micros(),
                         filter->time_extent_micros())) {
+        ReportTime(event->LowTime());
+        ReportTime(event->HighTime());
         events->AddValue(event);
       }
     }
@@ -1155,8 +1280,8 @@ void TimelineEventRingRecorder::PrintJSONEvents(
 }
 
 
-void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
-                                          TimelineEventFilter* filter) {
+void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
+                                                 TimelineEventFilter* filter) {
   if (!FLAG_support_service) {
     return;
   }
@@ -1167,38 +1292,29 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
   }
+  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
+  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
 
-void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
-                                                TimelineEventFilter* filter) {
+void TimelineEventFixedBufferRecorder::PrintTraceEvent(
+    JSONStream* js,
+    TimelineEventFilter* filter) {
   if (!FLAG_support_service) {
     return;
   }
   JSONArray events(js);
+  PrintJSONMeta(&events);
   PrintJSONEvents(&events, filter);
 }
 
 
-TimelineEventBlock* TimelineEventRingRecorder::GetHeadBlockLocked() {
+TimelineEventBlock* TimelineEventFixedBufferRecorder::GetHeadBlockLocked() {
   return blocks_[0];
 }
 
 
-TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
-  // TODO(johnmccutchan): This function should only hand out blocks
-  // which have been marked as finished.
-  if (block_cursor_ == num_blocks_) {
-    block_cursor_ = 0;
-  }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
-  block->Reset();
-  block->Open();
-  return block;
-}
-
-
-void TimelineEventRingRecorder::Clear() {
+void TimelineEventFixedBufferRecorder::Clear() {
   MutexLocker ml(&lock_);
   for (intptr_t i = 0; i < num_blocks_; i++) {
     TimelineEventBlock* block = blocks_[i];
@@ -1207,7 +1323,7 @@ void TimelineEventRingRecorder::Clear() {
 }
 
 
-intptr_t TimelineEventRingRecorder::FindOldestBlockIndex() const {
+intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndex() const {
   int64_t earliest_time = kMaxInt64;
   intptr_t earliest_index = -1;
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
@@ -1225,16 +1341,40 @@ intptr_t TimelineEventRingRecorder::FindOldestBlockIndex() const {
 }
 
 
-TimelineEvent* TimelineEventRingRecorder::StartEvent() {
+TimelineEvent* TimelineEventFixedBufferRecorder::StartEvent() {
   return ThreadBlockStartEvent();
 }
 
 
-void TimelineEventRingRecorder::CompleteEvent(TimelineEvent* event) {
+void TimelineEventFixedBufferRecorder::CompleteEvent(TimelineEvent* event) {
   if (event == NULL) {
     return;
   }
   ThreadBlockCompleteEvent(event);
+}
+
+
+TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
+  // TODO(johnmccutchan): This function should only hand out blocks
+  // which have been marked as finished.
+  if (block_cursor_ == num_blocks_) {
+    block_cursor_ = 0;
+  }
+  TimelineEventBlock* block = blocks_[block_cursor_++];
+  block->Reset();
+  block->Open();
+  return block;
+}
+
+
+TimelineEventBlock* TimelineEventStartupRecorder::GetNewBlockLocked() {
+  if (block_cursor_ == num_blocks_) {
+    return NULL;
+  }
+  TimelineEventBlock* block = blocks_[block_cursor_++];
+  block->Reset();
+  block->Open();
+  return block;
 }
 
 
@@ -1300,6 +1440,8 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
   }
+  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
+  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
 
@@ -1310,6 +1452,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
     return;
   }
   JSONArray events(js);
+  PrintJSONMeta(&events);
   PrintJSONEvents(&events, filter);
 }
 
@@ -1356,6 +1499,7 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
     return;
   }
   MutexLocker ml(&lock_);
+  ResetTimeTracking();
   // Collect all interesting blocks.
   MallocGrowableArray<TimelineEventBlock*> blocks(8);
   TimelineEventBlock* current = head_;
@@ -1381,6 +1525,8 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
       if (filter->IncludeEvent(event) &&
           event->Within(filter->time_origin_micros(),
                         filter->time_extent_micros())) {
+        ReportTime(event->LowTime());
+        ReportTime(event->HighTime());
         events->AddValue(event);
       }
     }
@@ -1546,6 +1692,6 @@ TimelineEventBlock* TimelineEventBlockIterator::Next() {
   return r;
 }
 
-#endif  // !PRODUCT
-
 }  // namespace dart
+
+#endif  // !PRODUCT

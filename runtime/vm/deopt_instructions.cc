@@ -7,6 +7,7 @@
 #include "vm/assembler.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
+#include "vm/disassembler.h"
 #include "vm/intermediate_language.h"
 #include "vm/locations.h"
 #include "vm/parser.h"
@@ -52,6 +53,13 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       deoptimizing_code_(deoptimizing_code) {
   const TypedData& deopt_info = TypedData::Handle(
       code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason_, &deopt_flags_));
+#if defined(DEBUG)
+  if (deopt_info.IsNull()) {
+    OS::PrintErr("Missing deopt info for pc %" Px "\n", frame->pc());
+    DisassembleToStdout formatter;
+    code.Disassemble(&formatter);
+  }
+#endif
   ASSERT(!deopt_info.IsNull());
   deopt_info_ = deopt_info.raw();
 
@@ -66,14 +74,23 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   // optimized function contains FP, PP (ARM and MIPS only), PC-marker and
   // return-address. This section is copied as well, so that its contained
   // values can be updated before returning to the deoptimized function.
+  // Note: on DBC stack grows upwards unlike on all other architectures.
+#if defined(TARGET_ARCH_DBC)
+  ASSERT(frame->sp() >= frame->fp());
+  const intptr_t frame_size = (frame->sp() - frame->fp()) / kWordSize;
+#else
+  ASSERT(frame->fp() >= frame->sp());
+  const intptr_t frame_size = (frame->fp() - frame->sp()) / kWordSize;
+#endif
+
   source_frame_size_ =
       + kDartFrameFixedSize  // For saved values below sp.
-      + ((frame->fp() - frame->sp()) / kWordSize)  // For frame size incl. sp.
+      + frame_size  // For frame size incl. sp.
       + 1  // For fp.
       + kParamEndSlotFromFp  // For saved values above fp.
       + num_args_;  // For arguments.
-  source_frame_ = reinterpret_cast<intptr_t*>(
-      frame->sp() - (kDartFrameFixedSize * kWordSize));
+
+  source_frame_ = FrameBase(frame);
 
   if (dest_options == kDestIsOriginalFrame) {
     // Work from a copy of the source frame.
@@ -138,11 +155,11 @@ DeoptContext::~DeoptContext() {
   delete[] deferred_objects_;
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
+#ifndef PRODUCT
   if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
-    Isolate* isolate = Isolate::Current();
-    TimelineStream* compiler_stream = isolate->GetCompilerStream();
+    TimelineStream* compiler_stream = Timeline::GetCompilerStream();
     ASSERT(compiler_stream != NULL);
-    if (compiler_stream->Enabled()) {
+    if (compiler_stream->enabled()) {
       // Allocate all Dart objects needed before calling StartEvent,
       // which blocks safe points until Complete is called.
       const Code& code = Code::Handle(zone(), code_);
@@ -164,6 +181,7 @@ DeoptContext::~DeoptContext() {
       }
     }
   }
+#endif  // !PRODUCT
 }
 
 
@@ -183,29 +201,46 @@ void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 intptr_t DeoptContext::DestStackAdjustment() const {
-  return (dest_frame_size_
-          - kDartFrameFixedSize
-          - num_args_
-          - kParamEndSlotFromFp
-          - 1);  // For fp.
+  return dest_frame_size_
+         - kDartFrameFixedSize
+         - num_args_
+#if !defined(TARGET_ARCH_DBC)
+         - 1  // For fp.
+#endif
+         - kParamEndSlotFromFp;
 }
 
 
 intptr_t DeoptContext::GetSourceFp() const {
+#if !defined(TARGET_ARCH_DBC)
   return source_frame_[source_frame_size_ - 1 - num_args_ -
                        kParamEndSlotFromFp];
+#else
+  return source_frame_[num_args_ + kDartFrameFixedSize +
+      kSavedCallerFpSlotFromFp];
+#endif
 }
 
 
 intptr_t DeoptContext::GetSourcePp() const {
+#if !defined(TARGET_ARCH_DBC)
   return source_frame_[source_frame_size_ - 1 - num_args_ -
                        kParamEndSlotFromFp +
                        StackFrame::SavedCallerPpSlotFromFp()];
+#else
+  UNREACHABLE();
+  return 0;
+#endif
 }
 
 
 intptr_t DeoptContext::GetSourcePc() const {
+#if !defined(TARGET_ARCH_DBC)
   return source_frame_[source_frame_size_ - num_args_ + kSavedPcSlotFromSp];
+#else
+  return source_frame_[num_args_ + kDartFrameFixedSize +
+      kSavedCallerPcSlotFromFp];
+#endif
 }
 
 
@@ -306,12 +341,12 @@ void DeoptContext::FillDestFrame() {
   }
 
   if (FLAG_trace_deoptimization_verbose) {
-    intptr_t* start = dest_frame_;
     for (intptr_t i = 0; i < frame_size; i++) {
-      OS::PrintErr("*%" Pd ". [0x%" Px "] 0x%" Px " [%s]\n",
+      intptr_t* to_addr = GetDestFrameAddressAt(i);
+      OS::PrintErr("*%" Pd ". [%p] 0x%" Px " [%s]\n",
                    i,
-                   reinterpret_cast<uword>(&start[i]),
-                   start[i],
+                   to_addr,
+                   *to_addr,
                    deopt_instructions[i + (len - frame_size)]->ToCString());
     }
   }
@@ -667,9 +702,14 @@ class DeoptPcMarkerInstr : public DeoptInstr {
       return;
     }
 
-    *dest_addr = reinterpret_cast<intptr_t>(Object::null());
-    deopt_context->DeferPcMarkerMaterialization(
-        object_table_index_, dest_addr);
+    // We don't always have the Code object for the frame's corresponding
+    // unoptimized code as it may have been collected. Use a stub as the pc
+    // marker until we can recreate that Code object during deferred
+    // materialization to maintain the invariant that Dart frames always have
+    // a pc marker.
+    *reinterpret_cast<RawObject**>(dest_addr) =
+        StubCode::FrameAwaitingMaterialization_entry()->code();
+    deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 
  private:
@@ -720,7 +760,7 @@ class DeoptCallerFpInstr : public DeoptInstr {
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     *dest_addr = deopt_context->GetCallerFp();
     deopt_context->SetCallerFp(reinterpret_cast<intptr_t>(
-        dest_addr - (kSavedCallerFpSlotFromFp * kWordSize)));
+        dest_addr - kSavedCallerFpSlotFromFp));
   }
 
  private:
@@ -1015,6 +1055,10 @@ FpuRegisterSource DeoptInfoBuilder::ToFpuRegisterSource(
   Location::Kind stack_slot_kind) {
   if (loc.IsFpuRegister()) {
     return FpuRegisterSource(FpuRegisterSource::kRegister, loc.fpu_reg());
+#if defined(TARGET_ARCH_DBC)
+  } else if (loc.IsRegister()) {
+    return FpuRegisterSource(FpuRegisterSource::kRegister, loc.reg());
+#endif
   } else {
     ASSERT((stack_slot_kind == Location::kQuadStackSlot) ||
            (stack_slot_kind == Location::kDoubleStackSlot));
@@ -1179,11 +1223,11 @@ intptr_t DeoptInfoBuilder::EmitMaterializationArguments(intptr_t dest_index) {
     MaterializeObjectInstr* mat = materializations_[i];
     // Class of the instance to allocate.
     AddConstant(mat->cls(), dest_index++);
-    AddConstant(Smi::Handle(Smi::New(mat->num_variables())), dest_index++);
+    AddConstant(Smi::ZoneHandle(Smi::New(mat->num_variables())), dest_index++);
     for (intptr_t i = 0; i < mat->InputCount(); i++) {
       if (!mat->InputAt(i)->BindsToConstantNull()) {
         // Emit offset-value pair.
-        AddConstant(Smi::Handle(Smi::New(mat->FieldOffsetAt(i))),
+        AddConstant(Smi::ZoneHandle(Smi::New(mat->FieldOffsetAt(i))),
                     dest_index++);
         AddCopy(mat->InputAt(i), mat->LocationAt(i), dest_index++);
       }

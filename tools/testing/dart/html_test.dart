@@ -31,15 +31,15 @@ HtmlTestInformation getInformation(String filename) {
   var match = htmlAnnotation.firstMatch(contents);
   if (match == null) return null;
   var annotation = JSON.decode(match[1]);
-  if (annotation is! Map || annotation['expectedMessages'] is! List ||
+  if (annotation is! Map ||
+      annotation['expectedMessages'] is! List ||
       annotation['scripts'] is! List) {
     DebugLogger.warning("File $filename does not have expected annotation."
         " Should have {'scripts':[...], 'expectedMessages':[...]}");
     return null;
   }
   return new HtmlTestInformation(new Path(filename),
-                                 annotation['expectedMessages'],
-                                 annotation['scripts']);
+      annotation['expectedMessages'], annotation['scripts']);
 }
 
 String getContents(HtmlTestInformation info, bool compileToJS) {

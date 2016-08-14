@@ -7,9 +7,9 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/reference_counting.h"
 #include "bin/thread.h"
 #include "platform/globals.h"
-
 
 namespace dart {
 namespace bin {
@@ -25,9 +25,7 @@ enum ListType {
 class PathBuffer {
  public:
   PathBuffer();
-  ~PathBuffer() {
-    free(data_);
-  }
+  ~PathBuffer();
 
   bool Add(const char* name);
   bool AddW(const wchar_t* name);
@@ -35,15 +33,18 @@ class PathBuffer {
   char* AsString() const;
   wchar_t* AsStringW() const;
 
-  void Reset(int new_length);
+  // Makes a scope allocated copy of the string.
+  const char* AsScopedString() const;
 
-  int length() const {
+  void Reset(intptr_t new_length);
+
+  intptr_t length() const {
     return length_;
   }
 
  private:
   void* data_;
-  int length_;
+  intptr_t length_;
 
   DISALLOW_COPY_AND_ASSIGN(PathBuffer);
 };
@@ -107,15 +108,13 @@ class DirectoryListing {
   }
 
   virtual ~DirectoryListing() {
-    while (!IsEmpty()) {
-      Pop();
-    }
+    PopAll();
   }
 
-  virtual bool HandleDirectory(char* dir_name) = 0;
-  virtual bool HandleFile(char* file_name) = 0;
-  virtual bool HandleLink(char* link_name) = 0;
-  virtual bool HandleError(const char* dir_name) = 0;
+  virtual bool HandleDirectory(const char* dir_name) = 0;
+  virtual bool HandleFile(const char* file_name) = 0;
+  virtual bool HandleLink(const char* link_name) = 0;
+  virtual bool HandleError() = 0;
   virtual void HandleDone() {}
 
   void Push(DirectoryListingEntry* directory) {
@@ -133,6 +132,12 @@ class DirectoryListing {
     return top_ == NULL;
   }
 
+  void PopAll() {
+    while (!IsEmpty()) {
+      Pop();
+    }
+  }
+
   DirectoryListingEntry* top() const {
     return top_;
   }
@@ -145,8 +150,8 @@ class DirectoryListing {
     return follow_links_;
   }
 
-  char* CurrentPath() {
-    return path_buffer_.AsString();
+  const char* CurrentPath() {
+    return path_buffer_.AsScopedString();
   }
 
   PathBuffer& path_buffer() {
@@ -166,7 +171,8 @@ class DirectoryListing {
 };
 
 
-class AsyncDirectoryListing : public DirectoryListing {
+class AsyncDirectoryListing : public ReferenceCounted<AsyncDirectoryListing>,
+                              public DirectoryListing {
  public:
   enum Response {
     kListFile = 0,
@@ -179,13 +185,16 @@ class AsyncDirectoryListing : public DirectoryListing {
   AsyncDirectoryListing(const char* dir_name,
                         bool recursive,
                         bool follow_links)
-      : DirectoryListing(dir_name, recursive, follow_links) {}
+      : ReferenceCounted(),
+        DirectoryListing(dir_name, recursive, follow_links),
+        array_(NULL),
+        index_(0),
+        length_(0) {}
 
-  virtual ~AsyncDirectoryListing() {}
-  virtual bool HandleDirectory(char* dir_name);
-  virtual bool HandleFile(char* file_name);
-  virtual bool HandleLink(char* file_name);
-  virtual bool HandleError(const char* dir_name);
+  virtual bool HandleDirectory(const char* dir_name);
+  virtual bool HandleFile(const char* file_name);
+  virtual bool HandleLink(const char* file_name);
+  virtual bool HandleError();
   virtual void HandleDone();
 
   void SetArray(CObjectArray* array, intptr_t length) {
@@ -200,11 +209,13 @@ class AsyncDirectoryListing : public DirectoryListing {
   }
 
  private:
-  bool AddFileSystemEntityToResponse(Response response, char* arg);
+  virtual ~AsyncDirectoryListing() {}
+  bool AddFileSystemEntityToResponse(Response response, const char* arg);
   CObjectArray* array_;
   intptr_t index_;
   intptr_t length_;
 
+  friend class ReferenceCounted<AsyncDirectoryListing>;
   DISALLOW_IMPLICIT_CONSTRUCTORS(AsyncDirectoryListing);
 };
 
@@ -226,10 +237,10 @@ class SyncDirectoryListing: public DirectoryListing {
         DartUtils::GetDartType(DartUtils::kIOLibURL, "Link");
   }
   virtual ~SyncDirectoryListing() {}
-  virtual bool HandleDirectory(char* dir_name);
-  virtual bool HandleFile(char* file_name);
-  virtual bool HandleLink(char* file_name);
-  virtual bool HandleError(const char* dir_name);
+  virtual bool HandleDirectory(const char* dir_name);
+  virtual bool HandleFile(const char* file_name);
+  virtual bool HandleLink(const char* file_name);
+  virtual bool HandleError();
 
  private:
   Dart_Handle results_;
@@ -238,6 +249,7 @@ class SyncDirectoryListing: public DirectoryListing {
   Dart_Handle file_type_;
   Dart_Handle link_type_;
 
+  DISALLOW_ALLOCATION()
   DISALLOW_IMPLICIT_CONSTRUCTORS(SyncDirectoryListing);
 };
 
@@ -252,11 +264,20 @@ class Directory {
 
   static void List(DirectoryListing* listing);
   static ExistsResult Exists(const char* path);
-  static char* Current();
+
+  // Returns the current working directory. The caller must call
+  // free() on the result.
+  static char* CurrentNoScope();
+
+  // Returns the current working directory. The returned string is allocated
+  // with Dart_ScopeAllocate(). It lasts only as long as the current API scope.
+  static const char* Current();
+  static const char* SystemTemp();
+  static const char* CreateTemp(const char* path);
+  // Set the system temporary directory.
+  static void SetSystemTemp(const char* path);
   static bool SetCurrent(const char* path);
   static bool Create(const char* path);
-  static char* SystemTemp();
-  static char* CreateTemp(const char* path);
   static bool Delete(const char* path, bool recursive);
   static bool Rename(const char* path, const char* new_path);
 
@@ -271,6 +292,7 @@ class Directory {
   static CObject* RenameRequest(const CObjectArray& request);
 
  private:
+  static char* system_temp_path_override_;
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Directory);
 };

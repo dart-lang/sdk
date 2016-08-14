@@ -121,7 +121,7 @@ class BlockStack {
   // Adds and transfers ownership of the block to the buffer.
   void PushBlockImpl(Block* block);
 
-  // If needed, trims the the global cache of empty blocks.
+  // If needed, trims the global cache of empty blocks.
   static void TrimGlobalEmpty();
 
   List full_;

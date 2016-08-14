@@ -23,9 +23,6 @@ const Map<String, List<String>> WHITE_LIST = const {
       "The method 'asAssert' is never called.",
       "The method 'asLiteralBool' is never called."],
 
-  // Some things in dart_printer are not yet used
-  "lib/src/dart_backend/backend_ast_nodes.dart": const [" is never "],
-
   // Uncalled methods in SemanticSendVisitor and subclasses.
   "lib/src/resolution/semantic_visitor.dart": const [
       "The method 'error"],
@@ -43,29 +40,9 @@ const Map<String, List<String>> WHITE_LIST = const {
   "lib/src/serialization/": const [
       "is never"],
 
-  // Nested functions are currently kept alive in the IR.
-  "lib/src/tree_ir/": const [
-    "accept", "FunctionExpression", "CreateFunction"
-  ],
-
   "lib/src/universe/universe.dart": const [
       "The method 'getterInvocationsByName' is never called.",
       "The method 'setterInvocationsByName' is never called."],
-
-  "lib/src/cps_ir/": const [
-    "accept", "CreateFunction",
-  ],
-
-  "lib/src/dart_backend/backend_ast_to_frontend_ast.dart": const [
-    " is never "
-  ],
-
-  // Useful utility functions that are not currently used.
-  "lib/src/cps_ir/cps_fragment.dart": const [
-    "The method 'beginLoop' is never called.",
-    "The method 'continueLoop' is never called.",
-    "The method 'invokeMethod' is never called.",
-  ],
 };
 
 void main() {

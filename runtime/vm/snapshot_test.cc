@@ -7,6 +7,7 @@
 #include "include/dart_tools_api.h"
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
+#include "vm/clustered_snapshot.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
@@ -17,8 +18,6 @@
 #include "vm/unit_test.h"
 
 namespace dart {
-
-DECLARE_FLAG(bool, concurrent_sweep);
 
 // Check if serialized and deserialized objects are equal.
 static bool Equals(const Object& expected, const Object& actual) {
@@ -828,16 +827,13 @@ class TestSnapshotWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
   TestSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kScript,
-                       Thread::Current(),
+      : SnapshotWriter(Thread::Current(),
+                       Snapshot::kScript,
                        buffer,
                        alloc,
                        kInitialSize,
                        &forward_list_,
-                       NULL, /* test_writer */
-                       true, /* can_send_any_object */
-                       false, /* snapshot_code */
-                       true /* vm_isolate_is_symbolic */),
+                       true /* can_send_any_object */),
         forward_list_(thread(), kMaxPredefinedObjectIds) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
@@ -860,27 +856,31 @@ static void GenerateSourceAndCheck(const Script& script) {
   // Check if we are able to generate the source from the token stream.
   // Rescan this source and compare the token stream to see if they are
   // the same.
-  const TokenStream& expected_tokens = TokenStream::Handle(script.tokens());
+  Zone* zone = Thread::Current()->zone();
+  const TokenStream& expected_tokens =
+      TokenStream::Handle(zone, script.tokens());
   TokenStream::Iterator expected_iterator(
+      zone,
       expected_tokens,
       TokenPosition::kMinSource,
       TokenStream::Iterator::kAllTokens);
-  const String& str = String::Handle(expected_tokens.GenerateSource());
-  const String& private_key = String::Handle(expected_tokens.PrivateKey());
-  Scanner scanner(str, private_key);
+  const String& str = String::Handle(zone, expected_tokens.GenerateSource());
+  const String& private_key =
+      String::Handle(zone, expected_tokens.PrivateKey());
   const TokenStream& reconstructed_tokens =
-      TokenStream::Handle(TokenStream::New(scanner.GetStream(),
-                                           private_key,
-                                           false));
+      TokenStream::Handle(zone, TokenStream::New(str,
+                                                 private_key,
+                                                 false));
   expected_iterator.SetCurrentPosition(TokenPosition::kMinSource);
   TokenStream::Iterator reconstructed_iterator(
+      zone,
       reconstructed_tokens,
       TokenPosition::kMinSource,
       TokenStream::Iterator::kAllTokens);
   Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
   Token::Kind reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
-  String& expected_literal = String::Handle();
-  String& actual_literal = String::Handle();
+  String& expected_literal = String::Handle(zone);
+  String& actual_literal = String::Handle(zone);
   while (expected_kind != Token::kEOS && reconstructed_kind != Token::kEOS) {
     EXPECT_EQ(expected_kind, reconstructed_kind);
     expected_literal ^= expected_iterator.CurrentLiteral();
@@ -938,14 +938,15 @@ TEST_CASE(SerializeScript) {
       "  }\n"
       "}\n";
 
-  String& url = String::Handle(String::New("dart-test:SerializeScript"));
-  String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
-  const String& lib_url = String::Handle(Symbols::New("TestLib"));
-  Library& lib = Library::Handle(Library::New(lib_url));
-  lib.Register();
+  Zone* zone = thread->zone();
+  String& url = String::Handle(zone, String::New("dart-test:SerializeScript"));
+  String& source = String::Handle(zone, String::New(kScriptChars));
+  Script& script = Script::Handle(zone, Script::New(url,
+                                                    source,
+                                                    RawScript::kScriptTag));
+  const String& lib_url = String::Handle(zone, Symbols::New(thread, "TestLib"));
+  Library& lib = Library::Handle(zone, Library::New(lib_url));
+  lib.Register(thread);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
 
   // Write snapshot with script content.
@@ -955,27 +956,30 @@ TEST_CASE(SerializeScript) {
 
   // Read object back from the snapshot.
   ScriptSnapshotReader reader(buffer, writer.BytesWritten(), thread);
-  Script& serialized_script = Script::Handle(thread->zone());
+  Script& serialized_script = Script::Handle(zone);
   serialized_script ^= reader.ReadObject();
 
   // Check if the serialized script object matches the original script.
-  String& expected_literal = String::Handle();
-  String& actual_literal = String::Handle();
-  String& str = String::Handle();
+  String& expected_literal = String::Handle(zone);
+  String& actual_literal = String::Handle(zone);
+  String& str = String::Handle(zone);
   str ^= serialized_script.url();
   EXPECT(url.Equals(str));
 
-  const TokenStream& expected_tokens = TokenStream::Handle(script.tokens());
+  const TokenStream& expected_tokens =
+      TokenStream::Handle(zone, script.tokens());
   const TokenStream& serialized_tokens =
-      TokenStream::Handle(serialized_script.tokens());
+      TokenStream::Handle(zone, serialized_script.tokens());
   const ExternalTypedData& expected_data =
-      ExternalTypedData::Handle(expected_tokens.GetStream());
+      ExternalTypedData::Handle(zone, expected_tokens.GetStream());
   const ExternalTypedData& serialized_data =
-      ExternalTypedData::Handle(serialized_tokens.GetStream());
+      ExternalTypedData::Handle(zone, serialized_tokens.GetStream());
   EXPECT_EQ(expected_data.Length(), serialized_data.Length());
-  TokenStream::Iterator expected_iterator(expected_tokens,
+  TokenStream::Iterator expected_iterator(zone,
+                                          expected_tokens,
                                           TokenPosition::kMinSource);
-  TokenStream::Iterator serialized_iterator(serialized_tokens,
+  TokenStream::Iterator serialized_iterator(zone,
+                                            serialized_tokens,
                                             TokenPosition::kMinSource);
   Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
   Token::Kind serialized_kind = serialized_iterator.CurrentTokenKind();
@@ -1184,12 +1188,11 @@ UNIT_TEST_CASE(FullSnapshot) {
 
     // Write snapshot with object content.
     {
-      FullSnapshotWriter writer(NULL,
+      FullSnapshotWriter writer(Snapshot::kCore,
+                                NULL,
                                 &isolate_snapshot_buffer,
-                                NULL, /* instructions_snapshot_buffer */
                                 &malloc_allocator,
-                                false, /* snapshot_code */
-                                true);
+                                NULL /* instructions_writer */);
       writer.WriteFullSnapshot();
     }
   }
@@ -1245,12 +1248,11 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
     // Write snapshot with object content.
     {
-      FullSnapshotWriter writer(NULL,
+      FullSnapshotWriter writer(Snapshot::kCore,
+                                NULL,
                                 &isolate_snapshot_buffer,
-                                NULL, /* instructions_snapshot_buffer */
                                 &malloc_allocator,
-                                false, /* snapshot_code */
-                                true /* vm_isolate_is_symbolic */);
+                                NULL /* instructions_writer */);
       writer.WriteFullSnapshot();
     }
 
@@ -1371,6 +1373,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
     // Load the library.
     Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart_import_lib"),
+                                              Dart_Null(),
                                               NewString(kLibScriptChars),
                                               0, 0);
     EXPECT_VALID(import_lib);
@@ -1433,6 +1436,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
     // Load the library.
     Dart_Handle lib = Dart_LoadLibrary(NewString("dart_lib"),
+                                       Dart_Null(),
                                        NewString(kScriptChars),
                                        0, 0);
     EXPECT_VALID(lib);
@@ -1608,6 +1612,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 
     // Load the library.
     Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart_import_lib"),
+                                              Dart_Null(),
                                               NewString(kLibScriptChars),
                                               0, 0);
     EXPECT_VALID(import_lib);

@@ -21,6 +21,7 @@
 #include "vm/os.h"
 #include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -37,6 +38,20 @@ namespace dart {
 
 
 intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
+
+
+void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+
+  assembler->Comment("IntrinsicCallPrologue");
+  assembler->movl(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
+}
+
+
+void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallEpilogue");
+  assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
+}
 
 
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
@@ -121,17 +136,12 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Try allocating in new space.
   const Class& cls = Class::Handle(
       Isolate::Current()->object_store()->growable_object_array_class());
-#if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
-#else
-  static const bool kJumpLength = Assembler::kNearJump;
-#endif  // DEBUG
-  __ TryAllocate(cls, &fall_through, kJumpLength, EAX, EBX);
+  __ TryAllocate(cls, &fall_through, Assembler::kNearJump, EAX, EBX);
 
   // Store backing array object in growable array object.
   __ movl(EBX, Address(ESP, kArrayOffset));  // data argument.
   // EAX is new, no barrier needed.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       EAX,
       FieldAddress(EAX, GrowableObjectArray::data_offset()),
       EBX);
@@ -139,7 +149,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // EAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ movl(EBX, Address(ESP, kTypeArgumentsOffset));  // type argument.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       EAX,
       FieldAddress(EAX, GrowableObjectArray::type_arguments_offset()),
       EBX);
@@ -185,8 +195,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, EDI, &fall_through, false,                      \
-                          /* inline_isolate = */ false);                       \
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, EDI, &fall_through, false));     \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* EDI: requested array length argument. */                                  \
@@ -209,7 +218,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ leal(EDI, Address(EDI, scale_factor, fixed_size));                        \
   __ andl(EDI, Immediate(-kObjectAlignment));                                  \
-  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  Heap::Space space = Heap::kNew;                                              \
   __ movl(ECX, Address(THR, Thread::heap_offset()));                           \
   __ movl(EAX, Address(ECX, Heap::TopOffset(space)));                          \
   __ movl(EBX, EAX);                                                           \
@@ -230,8 +239,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* next object start and initialize the object. */                           \
   __ movl(Address(ECX, Heap::TopOffset(space)), EBX);                          \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space,                       \
-                                   /* inline_isolate = */ false);              \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));      \
                                                                                \
   /* Initialize the tags. */                                                   \
   /* EAX: new object start as a tagged pointer. */                             \
@@ -256,7 +264,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* EAX: new object start as a tagged pointer. */                             \
   /* EBX: new object end address. */                                           \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset));  /* Array length. */    \
-  __ InitializeFieldNoBarrier(EAX,                                             \
+  __ StoreIntoObjectNoBarrier(EAX,                                             \
                               FieldAddress(EAX, type_name::length_offset()),   \
                               EDI);                                            \
   /* Initialize all array elements to 0. */                                    \
@@ -806,6 +814,11 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   __ bsrl(EAX, EAX);
   __ SmiTag(EAX);
   __ ret();
+}
+
+
+void Intrinsifier::Smi_bitAndFromSmi(Assembler* assembler) {
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -1441,10 +1454,11 @@ void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
-  Label fall_through;
-  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+  Label fall_through, is_smi, double_op;
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in EAX.
   __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
+  __ Bind(&double_op);
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument.
   __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
   switch (kind) {
@@ -1463,6 +1477,10 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
                  EBX);
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
+  __ Bind(&is_smi);
+  __ SmiUntag(EAX);
+  __ cvtsi2sd(XMM1, EAX);
+  __ jmp(&double_op);
   __ Bind(&fall_through);
 }
 
@@ -1622,10 +1640,10 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       math_lib.LookupClassAllowPrivate(Symbols::_Random()));
   ASSERT(!random_class.IsNull());
   const Field& state_field = Field::ZoneHandle(
-      random_class.LookupInstanceField(Symbols::_state()));
+      random_class.LookupInstanceFieldAllowPrivate(Symbols::_state()));
   ASSERT(!state_field.IsNull());
   const Field& random_A_field = Field::ZoneHandle(
-      random_class.LookupStaticField(Symbols::_A()));
+      random_class.LookupStaticFieldAllowPrivate(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
   const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
@@ -1680,7 +1698,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ movzxw(EDI, FieldAddress(EBX, Class::num_type_arguments_offset()));
   __ cmpl(EDI, Immediate(0));
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  __ movl(EAX, FieldAddress(EBX, Class::canonical_types_offset()));
+  __ movl(EAX, FieldAddress(EBX, Class::canonical_type_offset()));
   __ CompareObject(EAX, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
   __ ret();
@@ -1698,35 +1716,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ ret();
   __ Bind(&fall_through);
   // Hash not yet computed.
-}
-
-
-void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
-  Label fall_through, try_two_byte_string;
-  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // String.
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpl(EBX, FieldAddress(EAX, String::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  __ CompareClassId(EAX, kOneByteStringCid, EDI);
-  __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
-  __ SmiUntag(EBX);
-  __ movzxb(EAX, FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()));
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(&try_two_byte_string);
-  __ CompareClassId(EAX, kTwoByteStringCid, EDI);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  ASSERT(kSmiTagShift == 1);
-  __ movzxw(EAX, FieldAddress(EAX, EBX, TIMES_1, TwoByteString::data_offset()));
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(&fall_through);
 }
 
 
@@ -1870,8 +1859,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
-  __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false,
-                          /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(
+    __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false));
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }
@@ -1883,7 +1872,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andl(EDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ movl(ECX, Address(THR, Thread::heap_offset()));
   __ movl(EAX, Address(ECX, Heap::TopOffset(space)));
   __ movl(EBX, EAX);
@@ -1905,8 +1894,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ movl(Address(ECX, Heap::TopOffset(space)), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
-  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space,
-                                   /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -1930,7 +1918,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Set the length field.
   __ popl(EDI);
-  __ InitializeFieldNoBarrier(EAX,
+  __ StoreIntoObjectNoBarrier(EAX,
                               FieldAddress(EAX, String::length_offset()),
                               EDI);
   // Clear hash.
@@ -2083,7 +2071,7 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 3 * kWordSize;
@@ -2102,7 +2090,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ LoadClassId(EDI, EDI);
   __ SubImmediate(EDI, Immediate(kOneByteStringCid));
   __ movl(EAX, FieldAddress(EBX, EDI, TIMES_4,
-                            JSRegExp::function_offset(kOneByteStringCid)));
+                            RegExp::function_offset(kOneByteStringCid)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
@@ -2145,7 +2133,31 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ ret();
 }
 
+
+void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
+  if (!FLAG_support_timeline) {
+    __ LoadObject(EAX, Bool::False());
+    __ ret();
+    return;
+  }
+  Label true_label;
+  // Load TimelineStream*.
+  __ movl(EAX, Address(THR, Thread::dart_stream_offset()));
+  // Load uintptr_t from TimelineStream*.
+  __ movl(EAX, Address(EAX, TimelineStream::enabled_offset()));
+  __ cmpl(EAX, Immediate(0));
+  __ j(NOT_ZERO, &true_label, Assembler::kNearJump);
+  // Not enabled.
+  __ LoadObject(EAX, Bool::False());
+  __ ret();
+  // Enabled.
+  __ Bind(&true_label);
+  __ LoadObject(EAX, Bool::True());
+  __ ret();
+}
+
 #undef __
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

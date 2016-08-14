@@ -1,12 +1,7 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="function_ref.html">
 <link rel="import" href="instance_ref.html">
-<link rel="import" href="observatory_element.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="script_ref.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="code-view" extends="observatory-element">
+<polymer-element name="code-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -34,6 +29,7 @@
         overflow: visible;
         white-space: pre;
         padding-right: 1em;
+        width: 1px;
       }
 
       th:nth-of-type(5), td:nth-of-type(5) {
@@ -45,6 +41,11 @@
         background-color: #F4C7C3;
       }
 
+      .code-comment {
+        color: grey;
+        font-style: italic;
+      }
+
     </style>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
@@ -53,6 +54,7 @@
       <nav-menu link="{{ makeLink('/inspect', code) }}" anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-refresh callback="{{ refreshTicks }}" label="Refresh Ticks"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <div class="content">
       <template if="{{ code.isDartCode && code.isOptimized }}">

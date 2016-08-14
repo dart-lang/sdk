@@ -55,10 +55,11 @@ class WebSocketClientChannel implements ClientCommunicationChannel {
   }
 
   @override
-  Future<Response> sendRequest(Request request) {
+  Future<Response> sendRequest(Request request) async {
     String id = request.id;
     socket.add(JSON.encode(request.toJson()));
-    return responseStream.firstWhere((Response response) => response.id == id);
+    return await responseStream
+        .firstWhere((Response response) => response.id == id);
   }
 }
 
@@ -90,7 +91,7 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
 
   @override
   void listen(void onRequest(Request request),
-      {void onError(), void onDone()}) {
+      {Function onError, void onDone()}) {
     socket.listen((data) => readRequest(data, onRequest),
         onError: onError, onDone: onDone);
   }

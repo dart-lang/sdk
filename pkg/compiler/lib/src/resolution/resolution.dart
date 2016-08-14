@@ -7,86 +7,77 @@ library dart2js.resolution;
 import 'dart:collection' show Queue;
 
 import '../common.dart';
-import '../common/names.dart' show
-    Identifiers;
-import '../common/resolution.dart' show
-    Feature,
-    Parsing,
-    Resolution,
-    ResolutionImpact;
-import '../common/tasks.dart' show
-    CompilerTask,
-    DeferredAction;
-import '../compiler.dart' show
-    Compiler;
-import '../compile_time_constants.dart' show
-    ConstantCompiler;
-import '../constants/expressions.dart' show
-    ConstantExpression,
-    ConstantExpressionKind,
-    ConstructedConstantExpression,
-    ErroneousConstantExpression;
-import '../constants/values.dart' show
-    ConstantValue;
-import '../core_types.dart' show
-    CoreClasses,
-    CoreTypes;
+import '../common/names.dart' show Identifiers;
+import '../common/resolution.dart'
+    show Feature, ParsingContext, Resolution, ResolutionImpact, Target;
+import '../common/tasks.dart' show CompilerTask, Measurer;
+import '../compile_time_constants.dart' show ConstantCompiler;
+import '../constants/expressions.dart'
+    show
+        ConstantExpression,
+        ConstantExpressionKind,
+        ConstructedConstantExpression,
+        ErroneousConstantExpression;
+import '../constants/values.dart' show ConstantValue;
+import '../core_types.dart' show CoreClasses, CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show
-    BaseClassElementX,
-    BaseFunctionElementX,
-    ConstructorElementX,
-    FieldElementX,
-    FunctionElementX,
-    GetterElementX,
-    MetadataAnnotationX,
-    MixinApplicationElementX,
-    ParameterMetadataAnnotation,
-    SetterElementX,
-    TypedefElementX;
-import '../tokens/token.dart' show
-    isBinaryOperator,
-    isMinusOperator,
-    isTernaryOperator,
-    isUnaryOperator,
-    isUserDefinableOperator;
+import '../elements/modelx.dart'
+    show
+        BaseClassElementX,
+        BaseFunctionElementX,
+        ConstructorElementX,
+        FieldElementX,
+        FunctionElementX,
+        GetterElementX,
+        MetadataAnnotationX,
+        MixinApplicationElementX,
+        ParameterMetadataAnnotation,
+        SetterElementX,
+        TypedefElementX;
+import '../enqueue.dart';
+import '../options.dart';
+import '../tokens/token.dart'
+    show
+        isBinaryOperator,
+        isMinusOperator,
+        isTernaryOperator,
+        isUnaryOperator,
+        isUserDefinableOperator;
 import '../tree/tree.dart';
-import '../universe/call_structure.dart' show
-    CallStructure;
-import '../universe/use.dart' show
-    StaticUse,
-    TypeUse;
-import '../universe/world_impact.dart' show
-    WorldImpact;
-import '../util/util.dart' show
-    Link,
-    LinkBuilder,
-    Setlet;
-
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/use.dart' show StaticUse, TypeUse;
+import '../universe/world_impact.dart' show WorldImpact;
+import '../util/util.dart' show Link, Setlet;
+import '../world.dart';
 import 'class_hierarchy.dart';
 import 'class_members.dart' show MembersCreator;
 import 'constructors.dart';
 import 'members.dart';
 import 'registry.dart';
+import 'resolution_result.dart';
 import 'signatures.dart';
 import 'tree_elements.dart';
 import 'typedefs.dart';
 
 class ResolverTask extends CompilerTask {
   final ConstantCompiler constantCompiler;
+  final Resolution resolution;
+  final World world;
 
-  ResolverTask(Compiler compiler, this.constantCompiler) : super(compiler);
+  ResolverTask(
+      this.resolution, this.constantCompiler, this.world, Measurer measurer)
+      : super(measurer);
 
   String get name => 'Resolver';
 
-  Resolution get resolution => compiler.resolution;
-
-  Parsing get parsing => compiler.parsing;
-
-  CoreClasses get coreClasses => compiler.coreClasses;
-
-  CoreTypes get coreTypes => compiler.coreTypes;
+  DiagnosticReporter get reporter => resolution.reporter;
+  Target get target => resolution.target;
+  CoreTypes get coreTypes => resolution.coreTypes;
+  CoreClasses get coreClasses => resolution.coreClasses;
+  ParsingContext get parsingContext => resolution.parsingContext;
+  CompilerOptions get options => resolution.options;
+  ResolutionEnqueuer get enqueuer => resolution.enqueuer;
 
   ResolutionImpact resolve(Element element) {
     return measure(() {
@@ -124,17 +115,15 @@ class ResolverTask extends CompilerTask {
         return processMetadata(resolveTypedef(typdef));
       }
 
-      compiler.unimplemented(element, "resolve($element)");
+      reporter.internalError(element, "resolve($element) not implemented.");
     });
   }
 
-  void resolveRedirectingConstructor(InitializerResolver resolver,
-                                     Node node,
-                                     FunctionElement constructor,
-                                     FunctionElement redirection) {
+  void resolveRedirectingConstructor(InitializerResolver resolver, Node node,
+      FunctionElement constructor, FunctionElement redirection) {
     assert(invariant(node, constructor.isImplementation,
         message: 'Redirecting constructors must be resolved on implementation '
-                 'elements.'));
+            'elements.'));
     Setlet<FunctionElement> seen = new Setlet<FunctionElement>();
     seen.add(constructor);
     while (redirection != null) {
@@ -153,61 +142,63 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  static void processAsyncMarker(Compiler compiler,
-                                 BaseFunctionElementX element,
-                                 ResolutionRegistry registry) {
-    DiagnosticReporter reporter = compiler.reporter;
-    Resolution resolution = compiler.resolution;
-    CoreClasses coreClasses = compiler.coreClasses;
+  static void processAsyncMarker(Resolution resolution,
+      BaseFunctionElementX element, ResolutionRegistry registry) {
+    DiagnosticReporter reporter = resolution.reporter;
+    CoreClasses coreClasses = resolution.coreClasses;
     FunctionExpression functionExpression = element.node;
     AsyncModifier asyncModifier = functionExpression.asyncModifier;
     if (asyncModifier != null) {
-
-      if (asyncModifier.isAsynchronous) {
-        element.asyncMarker = asyncModifier.isYielding
-            ? AsyncMarker.ASYNC_STAR : AsyncMarker.ASYNC;
+      if (!resolution.target.supportsAsyncAwait) {
+        reporter.reportErrorMessage(functionExpression.asyncModifier,
+            MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
       } else {
-        element.asyncMarker = AsyncMarker.SYNC_STAR;
-      }
-      if (element.isAbstract) {
-        reporter.reportErrorMessage(
-            asyncModifier,
-            MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
-            {'modifier': element.asyncMarker});
-      } else if (element.isConstructor) {
-        reporter.reportErrorMessage(
-            asyncModifier,
-            MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
-            {'modifier': element.asyncMarker});
-      } else {
-        if (element.isSetter) {
+        if (asyncModifier.isAsynchronous) {
+          element.asyncMarker = asyncModifier.isYielding
+              ? AsyncMarker.ASYNC_STAR
+              : AsyncMarker.ASYNC;
+        } else {
+          element.asyncMarker = AsyncMarker.SYNC_STAR;
+        }
+        if (element.isAbstract) {
           reporter.reportErrorMessage(
               asyncModifier,
-              MessageKind.ASYNC_MODIFIER_ON_SETTER,
+              MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
               {'modifier': element.asyncMarker});
-
-        }
-        if (functionExpression.body.asReturn() != null &&
-            element.asyncMarker.isYielding) {
+        } else if (element.isConstructor) {
           reporter.reportErrorMessage(
               asyncModifier,
-              MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
+              MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
               {'modifier': element.asyncMarker});
+        } else {
+          if (element.isSetter) {
+            reporter.reportErrorMessage(
+                asyncModifier,
+                MessageKind.ASYNC_MODIFIER_ON_SETTER,
+                {'modifier': element.asyncMarker});
+          }
+          if (functionExpression.body.asReturn() != null &&
+              element.asyncMarker.isYielding) {
+            reporter.reportErrorMessage(
+                asyncModifier,
+                MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
+                {'modifier': element.asyncMarker});
+          }
         }
-      }
-      switch (element.asyncMarker) {
-      case AsyncMarker.ASYNC:
-        registry.registerFeature(Feature.ASYNC);
-        coreClasses.futureClass.ensureResolved(resolution);
-        break;
-      case AsyncMarker.ASYNC_STAR:
-        registry.registerFeature(Feature.ASYNC_STAR);
-        coreClasses.streamClass.ensureResolved(resolution);
-        break;
-      case AsyncMarker.SYNC_STAR:
-        registry.registerFeature(Feature.SYNC_STAR);
-        coreClasses.iterableClass.ensureResolved(resolution);
-        break;
+        switch (element.asyncMarker) {
+          case AsyncMarker.ASYNC:
+            registry.registerFeature(Feature.ASYNC);
+            coreClasses.futureClass.ensureResolved(resolution);
+            break;
+          case AsyncMarker.ASYNC_STAR:
+            registry.registerFeature(Feature.ASYNC_STAR);
+            coreClasses.streamClass.ensureResolved(resolution);
+            break;
+          case AsyncMarker.SYNC_STAR:
+            registry.registerFeature(Feature.SYNC_STAR);
+            coreClasses.iterableClass.ensureResolved(resolution);
+            break;
+        }
       }
     }
   }
@@ -215,7 +206,7 @@ class ResolverTask extends CompilerTask {
   bool _isNativeClassOrExtendsNativeClass(ClassElement classElement) {
     assert(classElement != null);
     while (classElement != null) {
-      if (compiler.backend.isNative(classElement)) return true;
+      if (target.isNative(classElement)) return true;
       classElement = classElement.superclass;
     }
     return false;
@@ -225,9 +216,7 @@ class ResolverTask extends CompilerTask {
       FunctionElement element, FunctionExpression tree) {
     return reporter.withCurrentElement(element, () {
       if (element.isExternal && tree.hasBody) {
-        reporter.reportErrorMessage(
-            element,
-            MessageKind.EXTERNAL_WITH_BODY,
+        reporter.reportErrorMessage(element, MessageKind.EXTERNAL_WITH_BODY,
             {'functionName': element.name});
       }
       if (element.isConstructor) {
@@ -240,8 +229,7 @@ class ResolverTask extends CompilerTask {
             reporter.reportErrorMessage(
                 tree, MessageKind.CONST_CONSTRUCTOR_WITH_BODY);
           } else if (!tree.isRedirectingFactory) {
-            reporter.reportErrorMessage(
-                tree, MessageKind.CONST_FACTORY);
+            reporter.reportErrorMessage(tree, MessageKind.CONST_FACTORY);
           }
         }
       }
@@ -249,15 +237,17 @@ class ResolverTask extends CompilerTask {
       ResolverVisitor visitor = visitorFor(element);
       ResolutionRegistry registry = visitor.registry;
       registry.defineFunction(tree, element);
-      visitor.setupFunction(tree, element);
-      processAsyncMarker(compiler, element, registry);
+      visitor.setupFunction(tree, element); // Modifies the scope.
+      processAsyncMarker(resolution, element, registry);
 
       if (element.isGenerativeConstructor) {
         // Even if there is no initializer list we still have to do the
         // resolution in case there is an implicit super constructor call.
         InitializerResolver resolver =
             new InitializerResolver(visitor, element, tree);
-        FunctionElement redirection = resolver.resolveInitializers();
+        FunctionElement redirection = resolver.resolveInitializers(
+            enableInitializingFormalAccess:
+                options.enableInitializingFormalAccess);
         if (redirection != null) {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }
@@ -266,7 +256,7 @@ class ResolverTask extends CompilerTask {
             tree, MessageKind.FUNCTION_WITH_INITIALIZER);
       }
 
-      if (!compiler.analyzeSignaturesOnly || tree.isRedirectingFactory) {
+      if (!options.analyzeSignaturesOnly || tree.isRedirectingFactory) {
         // We need to analyze the redirecting factory bodies to ensure that
         // we can analyze compile-time constants.
         visitor.visit(tree.body);
@@ -282,7 +272,7 @@ class ResolverTask extends CompilerTask {
       if (enclosingClass != null) {
         // TODO(johnniwinther): Find another way to obtain mixin uses.
         Iterable<MixinApplicationElement> mixinUses =
-            compiler.world.allMixinUsesOf(enclosingClass);
+            world.allMixinUsesOf(enclosingClass);
         ClassElement mixin = enclosingClass;
         for (MixinApplicationElement mixinApplication in mixinUses) {
           checkMixinSuperUses(resolutionTree, mixinApplication, mixin);
@@ -294,30 +284,30 @@ class ResolverTask extends CompilerTask {
           element.isInstanceMember &&
           element.name == Identifiers.noSuchMethod_ &&
           _isNativeClassOrExtendsNativeClass(enclosingClass)) {
-        reporter.reportErrorMessage(
-            tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
+        reporter.reportErrorMessage(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
       }
+
+      resolution.target.resolveNativeElement(element, registry.worldImpact);
 
       return registry.worldImpact;
     });
-
   }
 
   WorldImpact resolveMethodElement(FunctionElementX element) {
     assert(invariant(element, element.isDeclaration));
     return reporter.withCurrentElement(element, () {
-      if (compiler.enqueuer.resolution.hasBeenProcessed(element)) {
+      if (enqueuer.hasBeenProcessed(element)) {
         // TODO(karlklose): Remove the check for [isConstructor]. [elememts]
         // should never be non-null, not even for constructors.
         assert(invariant(element, element.isConstructor,
             message: 'Non-constructor element $element '
-                     'has already been analyzed.'));
+                'has already been analyzed.'));
         return const ResolutionImpact();
       }
       if (element.isSynthesized) {
         if (element.isGenerativeConstructor) {
           ResolutionRegistry registry =
-              new ResolutionRegistry(compiler, _ensureTreeElements(element));
+              new ResolutionRegistry(this.target, _ensureTreeElements(element));
           ConstructorElement constructor = element.asFunctionElement();
           ConstructorElement target = constructor.definingConstructor;
           // Ensure the signature of the synthesized element is
@@ -325,9 +315,8 @@ class ResolverTask extends CompilerTask {
           // seeing this element.
           element.computeType(resolution);
           if (!target.isMalformed) {
-            registry.registerStaticUse(
-                new StaticUse.superConstructorInvoke(
-                    target, CallStructure.NO_ARGS));
+            registry.registerStaticUse(new StaticUse.superConstructorInvoke(
+                target, CallStructure.NO_ARGS));
           }
           return registry.worldImpact;
         } else {
@@ -336,11 +325,11 @@ class ResolverTask extends CompilerTask {
           return const ResolutionImpact();
         }
       } else {
-        element.parseNode(resolution.parsing);
+        element.parseNode(resolution.parsingContext);
         element.computeType(resolution);
         FunctionElementX implementation = element;
         if (element.isExternal) {
-          implementation = compiler.backend.resolveExternalFunction(element);
+          implementation = target.resolveExternalFunction(element);
         }
         return resolveMethodElementImplementation(
             implementation, implementation.node);
@@ -355,76 +344,94 @@ class ResolverTask extends CompilerTask {
   /// This method should only be used by this library (or tests of
   /// this library).
   ResolverVisitor visitorFor(Element element, {bool useEnclosingScope: false}) {
-    return new ResolverVisitor(compiler, element,
-        new ResolutionRegistry(compiler, _ensureTreeElements(element)),
+    return new ResolverVisitor(resolution, element,
+        new ResolutionRegistry(target, _ensureTreeElements(element)),
         useEnclosingScope: useEnclosingScope);
   }
 
   WorldImpact resolveField(FieldElementX element) {
-    VariableDefinitions tree = element.parseNode(parsing);
-    if(element.modifiers.isStatic && element.isTopLevel) {
-      reporter.reportErrorMessage(
-          element.modifiers.getStatic(),
-          MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
-    }
-    ResolverVisitor visitor = visitorFor(element);
-    ResolutionRegistry registry = visitor.registry;
-    // TODO(johnniwinther): Maybe remove this when placeholderCollector migrates
-    // to the backend ast.
-    registry.defineElement(tree.definitions.nodes.head, element);
-    // TODO(johnniwinther): Share the resolved type between all variables
-    // declared in the same declaration.
-    if (tree.type != null) {
-      element.variables.type = visitor.resolveTypeAnnotation(tree.type);
-    } else {
-      element.variables.type = const DynamicType();
-    }
+    return reporter.withCurrentElement(element, () {
+      VariableDefinitions tree = element.parseNode(parsingContext);
+      if (element.modifiers.isStatic && element.isTopLevel) {
+        reporter.reportErrorMessage(element.modifiers.getStatic(),
+            MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
+      }
+      ResolverVisitor visitor = visitorFor(element);
+      ResolutionRegistry registry = visitor.registry;
+      // TODO(johnniwinther): Maybe remove this when placeholderCollector migrates
+      // to the backend ast.
+      registry.defineElement(tree.definitions.nodes.head, element);
+      // TODO(johnniwinther): Share the resolved type between all variables
+      // declared in the same declaration.
+      if (tree.type != null) {
+        DartType type = visitor.resolveTypeAnnotation(tree.type);
+        assert(invariant(
+            element,
+            element.variables.type == null ||
+                // Crude check but we have no equivalence relation that
+                // equates malformed types, like matching creations of type
+                // `Foo<Unresolved>`.
+                element.variables.type.toString() == type.toString(),
+            message: "Unexpected type computed for $element. "
+                "Was ${element.variables.type}, computed $type."));
+        element.variables.type = type;
+      } else if (element.variables.type == null) {
+        // Only assign the dynamic type if the element has no known type. This
+        // happens for enum fields where the type is known but is not in the
+        // synthesized AST.
+        element.variables.type = const DynamicType();
+      }
 
-    Expression initializer = element.initializer;
-    Modifiers modifiers = element.modifiers;
-    if (initializer != null) {
-      // TODO(johnniwinther): Avoid analyzing initializers if
-      // [Compiler.analyzeSignaturesOnly] is set.
-      visitor.visit(initializer);
-    } else if (modifiers.isConst) {
-      reporter.reportErrorMessage(
-          element, MessageKind.CONST_WITHOUT_INITIALIZER);
-    } else if (modifiers.isFinal && !element.isInstanceMember) {
-      reporter.reportErrorMessage(
-          element, MessageKind.FINAL_WITHOUT_INITIALIZER);
-    } else {
-      // TODO(johnniwinther): Register a feature instead.
-      registry.registerTypeUse(new TypeUse.instantiation(coreTypes.nullType));
-    }
-
-    if (Elements.isStaticOrTopLevelField(element)) {
-      visitor.addDeferredAction(element, () {
-        if (element.modifiers.isConst) {
-          element.constant = constantCompiler.compileConstant(element);
-        } else {
-          constantCompiler.compileVariable(element);
-        }
-      });
+      Expression initializer = element.initializer;
+      Modifiers modifiers = element.modifiers;
       if (initializer != null) {
-        if (!element.modifiers.isConst) {
-          // TODO(johnniwinther): Determine the const-ness eagerly to avoid
-          // unnecessary registrations.
-          registry.registerFeature(Feature.LAZY_FIELD);
+        // TODO(johnniwinther): Avoid analyzing initializers if
+        // [Compiler.analyzeSignaturesOnly] is set.
+        ResolutionResult result = visitor.visit(initializer);
+        if (result.isConstant) {
+          element.constant = result.constant;
+        }
+      } else if (modifiers.isConst) {
+        reporter.reportErrorMessage(
+            element, MessageKind.CONST_WITHOUT_INITIALIZER);
+      } else if (modifiers.isFinal && !element.isInstanceMember) {
+        reporter.reportErrorMessage(
+            element, MessageKind.FINAL_WITHOUT_INITIALIZER);
+      } else {
+        // TODO(johnniwinther): Register a feature instead.
+        registry.registerTypeUse(new TypeUse.instantiation(coreTypes.nullType));
+      }
+
+      if (Elements.isStaticOrTopLevelField(element)) {
+        visitor.addDeferredAction(element, () {
+          if (element.modifiers.isConst) {
+            element.constant = constantCompiler.compileConstant(element);
+          } else {
+            element.constant = constantCompiler.compileVariable(element);
+          }
+        });
+        if (initializer != null) {
+          if (!element.modifiers.isConst) {
+            // TODO(johnniwinther): Determine the const-ness eagerly to avoid
+            // unnecessary registrations.
+            registry.registerFeature(Feature.LAZY_FIELD);
+          }
         }
       }
-    }
 
-    // Perform various checks as side effect of "computing" the type.
-    element.computeType(resolution);
+      // Perform various checks as side effect of "computing" the type.
+      element.computeType(resolution);
 
-    return registry.worldImpact;
+      resolution.target.resolveNativeElement(element, registry.worldImpact);
+
+      return registry.worldImpact;
+    });
   }
 
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
     DartType type = resolveReturnType(element, annotation);
     if (type.isVoid) {
-      reporter.reportErrorMessage(
-          annotation, MessageKind.VOID_NOT_ALLOWED);
+      reporter.reportErrorMessage(annotation, MessageKind.VOID_NOT_ALLOWED);
     }
     return type;
   }
@@ -439,30 +446,27 @@ class ResolverTask extends CompilerTask {
     return result;
   }
 
-  void resolveRedirectionChain(ConstructorElementX constructor,
-                               Spannable node) {
-    ConstructorElementX target = constructor;
-    InterfaceType targetType;
-    List<Element> seen = new List<Element>();
+  void resolveRedirectionChain(ConstructorElement constructor, Spannable node) {
+    ConstructorElement target = constructor;
+    DartType targetType;
+    List<ConstructorElement> seen = new List<ConstructorElement>();
     bool isMalformed = false;
     // Follow the chain of redirections and check for cycles.
-    while (target.isRedirectingFactory || target.isPatched) {
-      if (target.effectiveTargetInternal != null) {
+    while (target.isRedirectingFactory) {
+      if (target.hasEffectiveTarget) {
         // We found a constructor that already has been processed.
-        targetType = target.effectiveTargetType;
+        // TODO(johnniwinther): Should `effectiveTargetType` be part of the
+        // interface?
+        targetType =
+            target.computeEffectiveTargetType(target.enclosingClass.thisType);
         assert(invariant(target, targetType != null,
             message: 'Redirection target type has not been computed for '
-                     '$target'));
-        target = target.effectiveTargetInternal;
+                '$target'));
+        target = target.effectiveTarget;
         break;
       }
 
-      Element nextTarget;
-      if (target.isPatched) {
-        nextTarget = target.patch;
-      } else {
-        nextTarget = target.immediateRedirectionTarget;
-      }
+      Element nextTarget = target.immediateRedirectionTarget;
 
       if (seen.contains(nextTarget)) {
         reporter.reportErrorMessage(
@@ -494,16 +498,14 @@ class ResolverTask extends CompilerTask {
     // substitution of the target type with respect to the factory type.
     while (!seen.isEmpty) {
       ConstructorElementX factory = seen.removeLast();
-      TreeElements treeElements = factory.treeElements;
-      assert(invariant(node, treeElements != null,
-          message: 'No TreeElements cached for $factory.'));
-      if (!factory.isPatched) {
-        FunctionExpression functionNode = factory.node;
-        RedirectingFactoryBody redirectionNode = functionNode.body;
-        DartType factoryType = treeElements.getType(redirectionNode);
-        if (!factoryType.isDynamic) {
-          targetType = targetType.substByContext(factoryType);
-        }
+      ResolvedAst resolvedAst = factory.resolvedAst;
+      assert(invariant(node, resolvedAst != null,
+          message: 'No ResolvedAst for $factory.'));
+      FunctionExpression functionNode = resolvedAst.node;
+      RedirectingFactoryBody redirectionNode = resolvedAst.body;
+      DartType factoryType = resolvedAst.elements.getType(redirectionNode);
+      if (!factoryType.isDynamic) {
+        targetType = targetType.substByContext(factoryType);
       }
       factory.setEffectiveTarget(target, targetType, isMalformed: isMalformed);
     }
@@ -520,14 +522,11 @@ class ResolverTask extends CompilerTask {
       if (cls.supertypeLoadState == STATE_DONE) return;
       if (cls.supertypeLoadState == STATE_STARTED) {
         reporter.reportErrorMessage(
-            from,
-            MessageKind.CYCLIC_CLASS_HIERARCHY,
-            {'className': cls.name});
+            from, MessageKind.CYCLIC_CLASS_HIERARCHY, {'className': cls.name});
         cls.supertypeLoadState = STATE_DONE;
         cls.hasIncompleteHierarchy = true;
-        cls.allSupertypesAndSelf =
-            coreClasses.objectClass.allSupertypesAndSelf.extendClass(
-                cls.computeType(resolution));
+        cls.allSupertypesAndSelf = coreClasses.objectClass.allSupertypesAndSelf
+            .extendClass(cls.computeType(resolution));
         cls.supertype = cls.allSupertypes.head;
         assert(invariant(from, cls.supertype != null,
             message: 'Missing supertype on cyclic class $cls.'));
@@ -537,8 +536,9 @@ class ResolverTask extends CompilerTask {
       cls.supertypeLoadState = STATE_STARTED;
       reporter.withCurrentElement(cls, () {
         // TODO(ahe): Cache the node in cls.
-        cls.parseNode(parsing).accept(
-            new ClassSupertypeResolver(compiler, cls));
+        cls
+            .parseNode(parsingContext)
+            .accept(new ClassSupertypeResolver(resolution, cls));
         if (cls.supertypeLoadState != STATE_DONE) {
           cls.supertypeLoadState = STATE_DONE;
         }
@@ -560,8 +560,8 @@ class ResolverTask extends CompilerTask {
   /// [element] has been resolved.
   // TODO(johnniwinther): Encapsulate this functionality in a
   // 'TypeDeclarationResolver'.
-  _resolveTypeDeclaration(TypeDeclarationElement element,
-                          resolveTypeDeclaration()) {
+  _resolveTypeDeclaration(
+      TypeDeclarationElement element, resolveTypeDeclaration()) {
     return reporter.withCurrentElement(element, () {
       return measure(() {
         TypeDeclarationElement previousResolvedTypeDeclaration =
@@ -571,7 +571,8 @@ class ResolverTask extends CompilerTask {
         if (previousResolvedTypeDeclaration == null) {
           do {
             while (!pendingClassesToBeResolved.isEmpty) {
-              pendingClassesToBeResolved.removeFirst()
+              pendingClassesToBeResolved
+                  .removeFirst()
                   .ensureResolved(resolution);
             }
             while (!pendingClassesToBePostProcessed.isEmpty) {
@@ -602,8 +603,8 @@ class ResolverTask extends CompilerTask {
   TreeElements resolveClass(BaseClassElementX element) {
     return _resolveTypeDeclaration(element, () {
       // TODO(johnniwinther): Store the mapping in the resolution enqueuer.
-      ResolutionRegistry registry =
-          new ResolutionRegistry(compiler, _ensureTreeElements(element));
+      ResolutionRegistry registry = new ResolutionRegistry(
+          resolution.target, _ensureTreeElements(element));
       resolveClassInternal(element, registry);
       return element.treeElements;
     });
@@ -617,27 +618,30 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  void resolveClassInternal(BaseClassElementX element,
-                            ResolutionRegistry registry) {
+  void resolveClassInternal(
+      BaseClassElementX element, ResolutionRegistry registry) {
     if (!element.isPatch) {
-      reporter.withCurrentElement(element, () => measure(() {
-        assert(element.resolutionState == STATE_NOT_STARTED);
-        element.resolutionState = STATE_STARTED;
-        Node tree = element.parseNode(parsing);
-        loadSupertypes(element, tree);
+      reporter.withCurrentElement(
+          element,
+          () => measure(() {
+                assert(element.resolutionState == STATE_NOT_STARTED);
+                element.resolutionState = STATE_STARTED;
+                Node tree = element.parseNode(parsingContext);
+                loadSupertypes(element, tree);
 
-        ClassResolverVisitor visitor =
-            new ClassResolverVisitor(compiler, element, registry);
-        visitor.visit(tree);
-        element.resolutionState = STATE_DONE;
-        compiler.onClassResolved(element);
-        pendingClassesToBePostProcessed.add(element);
-      }));
+                ClassResolverVisitor visitor =
+                    new ClassResolverVisitor(resolution, element, registry);
+                visitor.visit(tree);
+                element.resolutionState = STATE_DONE;
+                resolution.onClassResolved(element);
+                pendingClassesToBePostProcessed.add(element);
+              }));
       if (element.isPatched) {
         // Ensure handling patch after origin.
         element.patch.ensureResolved(resolution);
       }
-    } else { // Handle patch classes:
+    } else {
+      // Handle patch classes:
       element.resolutionState = STATE_STARTED;
       // Ensure handling origin before patch.
       element.origin.ensureResolved(resolution);
@@ -660,8 +664,8 @@ class ResolverTask extends CompilerTask {
     for (MetadataAnnotation metadata in element.implementation.metadata) {
       metadata.ensureResolved(resolution);
       ConstantValue value =
-          compiler.constants.getConstantValue(metadata.constant);
-      if (!element.isProxy && compiler.isProxyConstant(value)) {
+          resolution.constants.getConstantValue(metadata.constant);
+      if (!element.isProxy && resolution.isProxyConstant(value)) {
         element.isProxy = true;
       }
     }
@@ -685,11 +689,11 @@ class ResolverTask extends CompilerTask {
   }
 
   void computeClassMembers(ClassElement element) {
-    MembersCreator.computeAllClassMembers(compiler, element);
+    MembersCreator.computeAllClassMembers(resolution, element);
   }
 
   void computeClassMember(ClassElement element, String name) {
-    MembersCreator.computeClassMembersByName(compiler, element, name);
+    MembersCreator.computeClassMembersByName(resolution, element, name);
   }
 
   void checkClass(ClassElement element) {
@@ -721,8 +725,7 @@ class ResolverTask extends CompilerTask {
     // Check that we're not trying to use Object as a mixin.
     if (mixin.superclass == null) {
       reporter.reportErrorMessage(
-          mixinApplication,
-          MessageKind.ILLEGAL_MIXIN_OBJECT);
+          mixinApplication, MessageKind.ILLEGAL_MIXIN_OBJECT);
       // Avoid reporting additional errors for the Object class.
       return;
     }
@@ -734,8 +737,7 @@ class ResolverTask extends CompilerTask {
 
     // Check that the mixed in class has Object as its superclass.
     if (!mixin.superclass.isObject) {
-      reporter.reportErrorMessage(
-          mixin, MessageKind.ILLEGAL_MIXIN_SUPERCLASS);
+      reporter.reportErrorMessage(mixin, MessageKind.ILLEGAL_MIXIN_SUPERCLASS);
     }
 
     // Check that the mixed in class doesn't have any constructors and
@@ -751,33 +753,28 @@ class ResolverTask extends CompilerTask {
         // mixin application has been performed.
         // TODO(johnniwinther): Obtain the [TreeElements] for [member]
         // differently.
-        if (compiler.enqueuer.resolution.hasBeenProcessed(member)) {
-          checkMixinSuperUses(
-              member.resolvedAst.elements,
-              mixinApplication,
-              mixin);
+        if (resolution.enqueuer.hasBeenProcessed(member)) {
+          if (member.resolvedAst.kind == ResolvedAstKind.PARSED) {
+            checkMixinSuperUses(
+                member.resolvedAst.elements, mixinApplication, mixin);
+          }
         }
       }
     });
   }
 
-  void checkMixinSuperUses(TreeElements resolutionTree,
-                           MixinApplicationElement mixinApplication,
-                           ClassElement mixin) {
+  void checkMixinSuperUses(TreeElements elements,
+      MixinApplicationElement mixinApplication, ClassElement mixin) {
     // TODO(johnniwinther): Avoid the use of [TreeElements] here.
-    if (resolutionTree == null) return;
-    Iterable<SourceSpan> superUses = resolutionTree.superUses;
+    Iterable<SourceSpan> superUses = elements.superUses;
     if (superUses.isEmpty) return;
-    DiagnosticMessage error = reporter.createMessage(
-        mixinApplication,
-        MessageKind.ILLEGAL_MIXIN_WITH_SUPER,
-        {'className': mixin.name});
+    DiagnosticMessage error = reporter.createMessage(mixinApplication,
+        MessageKind.ILLEGAL_MIXIN_WITH_SUPER, {'className': mixin.name});
     // Show the user the problematic uses of 'super' in the mixin.
     List<DiagnosticMessage> infos = <DiagnosticMessage>[];
     for (SourceSpan use in superUses) {
-      infos.add(reporter.createMessage(
-          use,
-          MessageKind.ILLEGAL_MIXIN_SUPER_USE));
+      infos.add(
+          reporter.createMessage(use, MessageKind.ILLEGAL_MIXIN_SUPER_USE));
     }
     reporter.reportError(error, infos);
   }
@@ -800,8 +797,7 @@ class ResolverTask extends CompilerTask {
               member, MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER);
         }
         if (member.isConstructor) {
-          final mismatchedFlagsBits =
-              member.modifiers.flags &
+          final mismatchedFlagsBits = member.modifiers.flags &
               (Modifiers.FLAG_STATIC | Modifiers.FLAG_ABSTRACT);
           if (mismatchedFlagsBits != 0) {
             final mismatchedFlags =
@@ -829,8 +825,8 @@ class ResolverTask extends CompilerTask {
       });
     });
     if (!constConstructors.isEmpty && !nonFinalInstanceFields.isEmpty) {
-      Spannable span = constConstructors.length > 1
-          ? cls : constConstructors[0];
+      Spannable span =
+          constConstructors.length > 1 ? cls : constConstructors[0];
       DiagnosticMessage error = reporter.createMessage(
           span,
           MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
@@ -838,15 +834,13 @@ class ResolverTask extends CompilerTask {
       List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       if (constConstructors.length > 1) {
         for (Element constructor in constConstructors) {
-          infos.add(reporter.createMessage(
-              constructor,
+          infos.add(reporter.createMessage(constructor,
               MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR));
         }
       }
       for (Element field in nonFinalInstanceFields) {
         infos.add(reporter.createMessage(
-            field,
-            MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD));
+            field, MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD));
       }
       reporter.reportError(error, infos);
     }
@@ -862,12 +856,11 @@ class ResolverTask extends CompilerTask {
     ClassElement classElement = member.enclosingClass;
     Element lookupElement = classElement.lookupLocalMember(member.name);
     if (lookupElement == null) {
-      reporter.internalError(member,
-          "No abstract field for accessor");
+      reporter.internalError(member, "No abstract field for accessor");
     } else if (!lookupElement.isAbstractField) {
       if (lookupElement.isMalformed || lookupElement.isAmbiguous) return;
-      reporter.internalError(member,
-          "Inaccessible abstract field for accessor");
+      reporter.internalError(
+          member, "Inaccessible abstract field for accessor");
     }
     AbstractFieldElement field = lookupElement;
 
@@ -879,14 +872,10 @@ class ResolverTask extends CompilerTask {
     int setterFlags = setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
     if (getterFlags != setterFlags) {
       final mismatchedFlags =
-        new Modifiers.withFlags(null, getterFlags ^ setterFlags);
-      reporter.reportWarningMessage(
-          field.getter,
-          MessageKind.GETTER_MISMATCH,
+          new Modifiers.withFlags(null, getterFlags ^ setterFlags);
+      reporter.reportWarningMessage(field.getter, MessageKind.GETTER_MISMATCH,
           {'modifiers': mismatchedFlags});
-      reporter.reportWarningMessage(
-          field.setter,
-          MessageKind.SETTER_MISMATCH,
+      reporter.reportWarningMessage(field.setter, MessageKind.SETTER_MISMATCH,
           {'modifiers': mismatchedFlags});
     }
   }
@@ -920,8 +909,8 @@ class ResolverTask extends CompilerTask {
       messageKind = MessageKind.TERNARY_OPERATOR_BAD_ARITY;
       requiredParameterCount = 2;
     } else {
-      reporter.internalError(function,
-          'Unexpected user defined operator $value');
+      reporter.internalError(
+          function, 'Unexpected user defined operator $value');
     }
     checkArity(function, requiredParameterCount, messageKind, isMinus);
   }
@@ -929,17 +918,14 @@ class ResolverTask extends CompilerTask {
   void checkOverrideHashCode(FunctionElement operatorEquals) {
     if (operatorEquals.isAbstract) return;
     ClassElement cls = operatorEquals.enclosingClass;
-    Element hashCodeImplementation =
-        cls.lookupLocalMember('hashCode');
+    Element hashCodeImplementation = cls.lookupLocalMember('hashCode');
     if (hashCodeImplementation != null) return;
-    reporter.reportHintMessage(
-        operatorEquals, MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
-        {'class': cls.name});
+    reporter.reportHintMessage(operatorEquals,
+        MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE, {'class': cls.name});
   }
 
-  void checkArity(FunctionElement function,
-                  int requiredParameterCount, MessageKind messageKind,
-                  bool isMinus) {
+  void checkArity(FunctionElement function, int requiredParameterCount,
+      MessageKind messageKind, bool isMinus) {
     FunctionExpression node = function.node;
     FunctionSignature signature = function.functionSignature;
     if (signature.requiredParameterCount != requiredParameterCount) {
@@ -993,35 +979,37 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  reportErrorWithContext(Element errorneousElement,
-                         MessageKind errorMessage,
-                         Element contextElement,
-                         MessageKind contextMessage) {
+  reportErrorWithContext(Element errorneousElement, MessageKind errorMessage,
+      Element contextElement, MessageKind contextMessage) {
     reporter.reportError(
-        reporter.createMessage(
-            errorneousElement,
-            errorMessage,
-            {'memberName': contextElement.name,
-             'className': contextElement.enclosingClass.name}),
+        reporter.createMessage(errorneousElement, errorMessage, {
+          'memberName': contextElement.name,
+          'className': contextElement.enclosingClass.name
+        }),
         <DiagnosticMessage>[
-            reporter.createMessage(contextElement, contextMessage),
+          reporter.createMessage(contextElement, contextMessage),
         ]);
   }
-
 
   FunctionSignature resolveSignature(FunctionElementX element) {
     MessageKind defaultValuesError = null;
     if (element.isFactoryConstructor) {
-      FunctionExpression body = element.parseNode(parsing);
+      FunctionExpression body = element.parseNode(parsingContext);
       if (body.isRedirectingFactory) {
         defaultValuesError = MessageKind.REDIRECTING_FACTORY_WITH_DEFAULT;
       }
     }
     return reporter.withCurrentElement(element, () {
-      FunctionExpression node = element.parseNode(parsing);
+      FunctionExpression node = element.parseNode(parsingContext);
       return measure(() => SignatureResolver.analyze(
-          compiler, node.parameters, node.returnType, element,
-          new ResolutionRegistry(compiler, _ensureTreeElements(element)),
+          resolution,
+          element.enclosingElement.buildScope(),
+          node.typeVariables,
+          node.parameters,
+          node.returnType,
+          element,
+          new ResolutionRegistry(
+              resolution.target, _ensureTreeElements(element)),
           defaultValuesError: defaultValuesError,
           createRealParameters: true));
     });
@@ -1029,17 +1017,17 @@ class ResolverTask extends CompilerTask {
 
   WorldImpact resolveTypedef(TypedefElementX element) {
     if (element.isResolved) return const ResolutionImpact();
-    compiler.world.allTypedefs.add(element);
+    world.allTypedefs.add(element);
     return _resolveTypeDeclaration(element, () {
       ResolutionRegistry registry = new ResolutionRegistry(
-          compiler, _ensureTreeElements(element));
+          resolution.target, _ensureTreeElements(element));
       return reporter.withCurrentElement(element, () {
         return measure(() {
           assert(element.resolutionState == STATE_NOT_STARTED);
           element.resolutionState = STATE_STARTED;
-          Typedef node = element.parseNode(parsing);
+          Typedef node = element.parseNode(parsingContext);
           TypedefResolverVisitor visitor =
-            new TypedefResolverVisitor(compiler, element, registry);
+              new TypedefResolverVisitor(resolution, element, registry);
           visitor.visit(node);
           element.resolutionState = STATE_DONE;
           return registry.worldImpact;
@@ -1049,61 +1037,64 @@ class ResolverTask extends CompilerTask {
   }
 
   void resolveMetadataAnnotation(MetadataAnnotationX annotation) {
-    reporter.withCurrentElement(annotation.annotatedElement, () => measure(() {
-      assert(annotation.resolutionState == STATE_NOT_STARTED);
-      annotation.resolutionState = STATE_STARTED;
+    reporter.withCurrentElement(
+        annotation.annotatedElement,
+        () => measure(() {
+              assert(annotation.resolutionState == STATE_NOT_STARTED);
+              annotation.resolutionState = STATE_STARTED;
 
-      Node node = annotation.parseNode(parsing);
-      Element annotatedElement = annotation.annotatedElement;
-      AnalyzableElement context = annotatedElement.analyzableElement;
-      ClassElement classElement = annotatedElement.enclosingClass;
-      if (classElement != null) {
-        // The annotation is resolved in the scope of [classElement].
-        classElement.ensureResolved(resolution);
-      }
-      assert(invariant(node, context != null,
-          message: "No context found for metadata annotation "
-                   "on $annotatedElement."));
-      ResolverVisitor visitor = visitorFor(context, useEnclosingScope: true);
-      ResolutionRegistry registry = visitor.registry;
-      node.accept(visitor);
-      // TODO(johnniwinther): Avoid passing the [TreeElements] to
-      // [compileMetadata].
-      ConstantExpression constant = constantCompiler.compileMetadata(
-          annotation, node, registry.mapping);
-      switch (constant.kind) {
-        case ConstantExpressionKind.CONSTRUCTED:
-          ConstructedConstantExpression constructedConstant = constant;
-          if (constructedConstant.type.isGeneric) {
-            // Const constructor calls cannot have type arguments.
-            // TODO(24312): Remove this.
-            reporter.reportErrorMessage(
-                node, MessageKind.INVALID_METADATA_GENERIC);
-            constant = new ErroneousConstantExpression();
-          }
-          break;
-        case ConstantExpressionKind.VARIABLE:
-        case ConstantExpressionKind.ERRONEOUS:
-          break;
-        default:
-          reporter.reportErrorMessage(node, MessageKind.INVALID_METADATA);
-          constant = new ErroneousConstantExpression();
-          break;
-      }
-      annotation.constant = constant;
+              Node node = annotation.parseNode(parsingContext);
+              Element annotatedElement = annotation.annotatedElement;
+              AnalyzableElement context = annotatedElement.analyzableElement;
+              ClassElement classElement = annotatedElement.enclosingClass;
+              if (classElement != null) {
+                // The annotation is resolved in the scope of [classElement].
+                classElement.ensureResolved(resolution);
+              }
+              assert(invariant(node, context != null,
+                  message: "No context found for metadata annotation "
+                      "on $annotatedElement."));
+              ResolverVisitor visitor =
+                  visitorFor(context, useEnclosingScope: true);
+              ResolutionRegistry registry = visitor.registry;
+              node.accept(visitor);
+              // TODO(johnniwinther): Avoid passing the [TreeElements] to
+              // [compileMetadata].
+              ConstantExpression constant = constantCompiler.compileMetadata(
+                  annotation, node, registry.mapping);
+              switch (constant.kind) {
+                case ConstantExpressionKind.CONSTRUCTED:
+                  ConstructedConstantExpression constructedConstant = constant;
+                  if (constructedConstant.type.isGeneric) {
+                    // Const constructor calls cannot have type arguments.
+                    // TODO(24312): Remove this.
+                    reporter.reportErrorMessage(
+                        node, MessageKind.INVALID_METADATA_GENERIC);
+                    constant = new ErroneousConstantExpression();
+                  }
+                  break;
+                case ConstantExpressionKind.VARIABLE:
+                case ConstantExpressionKind.ERRONEOUS:
+                  break;
+                default:
+                  reporter.reportErrorMessage(
+                      node, MessageKind.INVALID_METADATA);
+                  constant = new ErroneousConstantExpression();
+                  break;
+              }
+              annotation.constant = constant;
 
-      constantCompiler.evaluate(annotation.constant);
-      // TODO(johnniwinther): Register the relation between the annotation
-      // and the annotated element instead. This will allow the backend to
-      // retrieve the backend constant and only register metadata on the
-      // elements for which it is needed. (Issue 17732).
-      registry.registerMetadataConstant(annotation);
-      annotation.resolutionState = STATE_DONE;
-    }));
+              constantCompiler.evaluate(annotation.constant);
+              // TODO(johnniwinther): Register the relation between the annotation
+              // and the annotated element instead. This will allow the backend to
+              // retrieve the backend constant and only register metadata on the
+              // elements for which it is needed. (Issue 17732).
+              annotation.resolutionState = STATE_DONE;
+            }));
   }
 
-  List<MetadataAnnotation> resolveMetadata(Element element,
-                                           VariableDefinitions node) {
+  List<MetadataAnnotation> resolveMetadata(
+      Element element, VariableDefinitions node) {
     List<MetadataAnnotation> metadata = <MetadataAnnotation>[];
     for (Metadata annotation in node.metadata.nodes) {
       ParameterMetadataAnnotation metadataAnnotation =
@@ -1128,7 +1119,7 @@ abstract class AnalyzableElementX implements AnalyzableElement {
   bool get hasTreeElements => _treeElements != null;
 
   TreeElements get treeElements {
-    assert(invariant(this, _treeElements !=null,
+    assert(invariant(this, _treeElements != null,
         message: "TreeElements have not been computed for $this."));
     return _treeElements;
   }

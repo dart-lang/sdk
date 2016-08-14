@@ -63,7 +63,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
-    return new Future.value(result);
+    return new Future<RefactoringStatus>.value(result);
   }
 
   @override

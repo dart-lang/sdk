@@ -64,12 +64,12 @@ class ElementComparator {
   void compareElements(Element expected, Element actual) {
     if (expected == null) {
       if (actual != null) {
-        _writeMismatch(expected, actual, (Element element) {
+        _writeMismatch(expected, actual, (Object element) {
           return element == null ? 'null' : 'non null ${element.runtimeType}';
         });
       }
     } else if (actual == null) {
-      _writeMismatch(expected, actual, (Element element) {
+      _writeMismatch(expected, actual, (Object element) {
         return element == null ? 'null' : 'non null ${element.runtimeType}';
       });
     } else if (expected is ClassElement && actual is ClassElement) {
@@ -135,7 +135,7 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ClassElement element) => element.hasReferenceToSuper
+          (Object element) => (element as ClassElement).hasReferenceToSuper
               ? 'a class that references super'
               : 'a class that does not reference super');
     }
@@ -143,25 +143,26 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ClassElement element) =>
-              element.isAbstract ? 'an abstract class' : 'a concrete class');
+          (Object element) => (element as ClassElement).isAbstract
+              ? 'an abstract class'
+              : 'a concrete class');
     }
     if (expected.isEnum != actual.isEnum ||
         expected.isMixinApplication != actual.isMixinApplication) {
-      _writeMismatch(
-          expected,
-          actual,
-          (ClassElement element) => element.isEnum
-              ? 'an enum'
-              : (element.isMixinApplication
-                  ? 'a mixin application'
-                  : 'a class'));
+      _writeMismatch(expected, actual, (Object element) {
+        ClassElement classElement = element as ClassElement;
+        return classElement.isEnum
+            ? 'an enum'
+            : (classElement.isMixinApplication
+                ? 'a mixin application'
+                : 'a class');
+      });
     }
     if (expected.isOrInheritsProxy != actual.isOrInheritsProxy) {
       _writeMismatch(
           expected,
           actual,
-          (ClassElement element) => element.isOrInheritsProxy
+          (Object element) => (element as ClassElement).isOrInheritsProxy
               ? 'a class that is marked as a proxy'
               : 'a class that is not marked as a proxy');
     }
@@ -169,8 +170,9 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ClassElement element) =>
-              element.isValidMixin ? 'a valid mixin' : 'an invalid mixin');
+          (Object element) => (element as ClassElement).isValidMixin
+              ? 'a valid mixin'
+              : 'an invalid mixin');
     }
     _compareTypes('supertype', expected.supertype, actual.supertype);
     _compareTypeLists('mixin', expected.mixins, actual.mixins);
@@ -210,7 +212,7 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ConstructorElement element) => element.isConst
+          (Object element) => (element as ConstructorElement).isConst
               ? 'a const constructor'
               : 'a non-const constructor');
     }
@@ -218,7 +220,7 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ConstructorElement element) => element.isFactory
+          (Object element) => (element as ConstructorElement).isFactory
               ? 'a factory constructor'
               : 'a non-factory constructor');
     }
@@ -233,9 +235,10 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ConstructorElement element) => element.redirectedConstructor == null
-              ? 'a redirecting constructor'
-              : 'a non-redirecting constructor');
+          (Object element) =>
+              (element as ConstructorElement).redirectedConstructor == null
+                  ? 'a redirecting constructor'
+                  : 'a non-redirecting constructor');
     }
   }
 
@@ -292,22 +295,24 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ExecutableElement element) => element.hasImplicitReturnType
-              ? 'an implicit return type'
-              : 'an explicit return type');
+          (Object element) =>
+              (element as ExecutableElement).hasImplicitReturnType
+                  ? 'an implicit return type'
+                  : 'an explicit return type');
     }
     if (expected.isAbstract != actual.isAbstract) {
       _writeMismatch(
           expected,
           actual,
-          (ExecutableElement element) =>
-              element.isAbstract ? 'an abstract $kind' : 'a concrete $kind');
+          (Object element) => (element as ExecutableElement).isAbstract
+              ? 'an abstract $kind'
+              : 'a concrete $kind');
     }
     if (expected.isAsynchronous != actual.isAsynchronous) {
       _writeMismatch(
           expected,
           actual,
-          (ExecutableElement element) => element.isAsynchronous
+          (Object element) => (element as ExecutableElement).isAsynchronous
               ? 'an asynchronous $kind'
               : 'a synchronous $kind');
     }
@@ -315,7 +320,7 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ExecutableElement element) => element.isExternal
+          (Object element) => (element as ExecutableElement).isExternal
               ? 'an external $kind'
               : 'a non-external $kind');
     }
@@ -323,7 +328,7 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ExecutableElement element) => element.isGenerator
+          (Object element) => (element as ExecutableElement).isGenerator
               ? 'a generator $kind'
               : 'a non-generator $kind');
     }
@@ -331,21 +336,23 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ExecutableElement element) =>
-              element.isOperator ? 'an operator' : 'a non-operator $kind');
+          (Object element) => (element as ExecutableElement).isOperator
+              ? 'an operator'
+              : 'a non-operator $kind');
     }
     if (expected.isStatic != actual.isStatic) {
       _writeMismatch(
           expected,
           actual,
-          (ExecutableElement element) =>
-              element.isStatic ? 'a static $kind' : 'an instance $kind');
+          (Object element) => (element as ExecutableElement).isStatic
+              ? 'a static $kind'
+              : 'an instance $kind');
     }
     if ((expected.returnType == null) != (actual.returnType == null)) {
       _writeMismatch(
           expected,
           actual,
-          (ExecutableElement element) => element.returnType == null
+          (Object element) => (element as ExecutableElement).returnType == null
               ? 'a $kind with no return type'
               : 'a $kind with a return type');
     } else {
@@ -369,12 +376,12 @@ class ElementComparator {
     if ((expected.exportedLibrary == null) !=
         (actual.exportedLibrary == null)) {
       // TODO(brianwilkerson) Check for more than existence?
-      _writeMismatch(
-          expected,
-          actual,
-          (ExportElement element) => element.exportedLibrary == null
-              ? 'unresolved uri'
-              : 'uri resolved to ${element.exportedLibrary.source.fullName}');
+      _writeMismatch(expected, actual, (Object element) {
+        ExportElement exportElement = element as ExportElement;
+        return exportElement.exportedLibrary == null
+            ? 'unresolved uri'
+            : 'uri resolved to ${exportElement.exportedLibrary.source.fullName}';
+      });
     }
     //
     // Compare children.
@@ -391,8 +398,9 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (FieldElement element) =>
-              element.isEnumConstant ? 'an enum constant' : 'a normal field');
+          (Object element) => (element as FieldElement).isEnumConstant
+              ? 'an enum constant'
+              : 'a normal field');
     }
   }
 
@@ -443,26 +451,26 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (ImportElement element) => element.isDeferred
+          (Object element) => (element as ImportElement).isDeferred
               ? 'a deferred import'
               : 'a non-deferred import');
     }
     if ((expected.importedLibrary == null) !=
         (actual.importedLibrary == null)) {
-      _writeMismatch(
-          expected,
-          actual,
-          (ImportElement element) => element.importedLibrary == null
-              ? 'unresolved uri'
-              : 'uri resolved to ${element.importedLibrary.source.fullName}');
+      _writeMismatch(expected, actual, (Object element) {
+        ImportElement importElement = element as ImportElement;
+        return importElement.importedLibrary == null
+            ? 'unresolved uri'
+            : 'uri resolved to ${importElement.importedLibrary.source.fullName}';
+      });
     }
     if ((expected.prefix == null) != (actual.prefix == null)) {
-      _writeMismatch(
-          expected,
-          actual,
-          (ImportElement element) => element.prefix == null
-              ? 'no prefix'
-              : 'a prefix named ${element.prefix.name}');
+      _writeMismatch(expected, actual, (Object element) {
+        ImportElement importElement = element as ImportElement;
+        return importElement.prefix == null
+            ? 'no prefix'
+            : 'a prefix named ${importElement.prefix.name}';
+      });
     }
     if (expected.prefixOffset != actual.prefixOffset) {
       _write('Expected a prefix offset of ');
@@ -519,8 +527,9 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (FieldElement element) =>
-              element.isStatic ? 'a static field' : 'an instance field');
+          (Object element) => (element as FieldElement).isStatic
+              ? 'a static field'
+              : 'an instance field');
     }
   }
 
@@ -683,7 +692,7 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (VariableElement element) => element.constantValue == null
+          (Object element) => (element as VariableElement).constantValue == null
               ? 'a $kind with no constant value'
               : 'a $kind with a constant value');
     }
@@ -691,7 +700,7 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (VariableElement element) => element.hasImplicitType
+          (Object element) => (element as VariableElement).hasImplicitType
               ? 'a $kind with an implicit type'
               : 'a $kind with an explicit type');
     }
@@ -699,22 +708,25 @@ class ElementComparator {
       _writeMismatch(
           expected,
           actual,
-          (VariableElement element) =>
-              element.isConst ? 'a const $kind' : 'a non-const $kind');
+          (Object element) => (element as VariableElement).isConst
+              ? 'a const $kind'
+              : 'a non-const $kind');
     }
     if (expected.isFinal != actual.isFinal) {
       _writeMismatch(
           expected,
           actual,
-          (VariableElement element) =>
-              element.isFinal ? 'a final $kind' : 'a non-final $kind');
+          (Object element) => (element as VariableElement).isFinal
+              ? 'a final $kind'
+              : 'a non-final $kind');
     }
     if (expected.isStatic != actual.isStatic) {
       _writeMismatch(
           expected,
           actual,
-          (VariableElement element) =>
-              element.isStatic ? 'a static $kind' : 'an instance $kind');
+          (Object element) => (element as VariableElement).isStatic
+              ? 'a static $kind'
+              : 'an instance $kind');
     }
     //
     // Compare children.

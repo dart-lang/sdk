@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+import '../compile_time_constants.dart';
+import '../compiler.dart' show Compiler;
+import '../constants/constant_system.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart';
+import '../elements/elements.dart';
+import '../elements/visitor.dart' show BaseElementVisitor;
+import '../resolution/tree_elements.dart' show TreeElements;
+import '../tree/tree.dart';
+import 'constant_system_javascript.dart';
 
 /// [ConstantCompilerTask] for compilation of constants for the JavaScript
 /// backend.
@@ -17,14 +26,18 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
 
   JavaScriptConstantTask(Compiler compiler)
       : this.dartConstantCompiler = new DartConstantCompiler(compiler),
-        this.jsConstantCompiler =
-            new JavaScriptConstantCompiler(compiler),
-        super(compiler);
+        this.jsConstantCompiler = new JavaScriptConstantCompiler(compiler),
+        super(compiler.measurer);
 
   String get name => 'ConstantHandler';
 
   @override
   ConstantSystem get constantSystem => dartConstantCompiler.constantSystem;
+
+  @override
+  bool hasConstantValue(ConstantExpression expression) {
+    return dartConstantCompiler.hasConstantValue(expression);
+  }
 
   @override
   ConstantValue getConstantValue(ConstantExpression expression) {
@@ -34,11 +47,6 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   @override
   ConstantValue getConstantValueForVariable(VariableElement element) {
     return dartConstantCompiler.getConstantValueForVariable(element);
-  }
-
-  @override
-  ConstantExpression getConstantForVariable(VariableElement element) {
-    return dartConstantCompiler.getConstantForVariable(element);
   }
 
   @override
@@ -59,27 +67,26 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
     });
   }
 
-  void compileVariable(VariableElement element) {
-    measure(() {
-      jsConstantCompiler.compileVariable(element);
+  @override
+  ConstantExpression compileVariable(VariableElement element) {
+    return measure(() {
+      return jsConstantCompiler.compileVariable(element);
     });
   }
 
   ConstantExpression compileNode(Node node, TreeElements elements,
-                                 {bool enforceConst: true}) {
+      {bool enforceConst: true}) {
     return measure(() {
-      ConstantExpression result =
-          dartConstantCompiler.compileNode(node, elements,
-                                           enforceConst: enforceConst);
+      ConstantExpression result = dartConstantCompiler
+          .compileNode(node, elements, enforceConst: enforceConst);
       jsConstantCompiler.compileNode(node, elements,
           enforceConst: enforceConst);
       return result;
     });
   }
 
-  ConstantExpression compileMetadata(MetadataAnnotation metadata,
-                           Node node,
-                           TreeElements elements) {
+  ConstantExpression compileMetadata(
+      MetadataAnnotation metadata, Node node, TreeElements elements) {
     return measure(() {
       ConstantExpression constant =
           dartConstantCompiler.compileMetadata(metadata, node, elements);
@@ -92,10 +99,10 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   // expressions.
   @override
   void copyConstantValues(JavaScriptConstantTask task) {
-    jsConstantCompiler.constantValueMap.addAll(
-        task.jsConstantCompiler.constantValueMap);
-    dartConstantCompiler.constantValueMap.addAll(
-        task.dartConstantCompiler.constantValueMap);
+    jsConstantCompiler.constantValueMap
+        .addAll(task.jsConstantCompiler.constantValueMap);
+    dartConstantCompiler.constantValueMap
+        .addAll(task.dartConstantCompiler.constantValueMap);
   }
 }
 
@@ -106,7 +113,6 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
  */
 class JavaScriptConstantCompiler extends ConstantCompilerBase
     implements BackendConstantEnvironment {
-
   /** Set of all registered compiled constants. */
   final Set<ConstantValue> compiledConstants = new Set<ConstantValue>();
 
@@ -119,44 +125,36 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
       new Map<Node, ConstantExpression>();
 
   // Constants computed for metadata.
+  // TODO(johnniwinther): Remove this when no longer used by
+  // poi/forget_element_test.
   final Map<MetadataAnnotation, ConstantExpression> metadataConstantMap =
       new Map<MetadataAnnotation, ConstantExpression>();
 
   JavaScriptConstantCompiler(Compiler compiler)
       : super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM);
 
-  ConstantExpression compileVariableWithDefinitions(VariableElement element,
-                                          TreeElements definitions,
-                                          {bool isConst: false,
-                                           bool checkType: true}) {
+  ConstantExpression compileVariableWithDefinitions(
+      VariableElement element, TreeElements definitions,
+      {bool isConst: false, bool checkType: true}) {
     if (!isConst && lazyStatics.contains(element)) {
       return null;
     }
     ConstantExpression value = super.compileVariableWithDefinitions(
-        element, definitions, isConst: isConst, checkType: checkType);
+        element, definitions,
+        isConst: isConst, checkType: checkType);
     if (!isConst && value == null) {
-      lazyStatics.add(element);
+      registerLazyStatic(element);
     }
     return value;
   }
 
-  void addCompileTimeConstantForEmission(ConstantValue constant) {
-    compiledConstants.add(constant);
+  @override
+  void registerLazyStatic(FieldElement element) {
+    lazyStatics.add(element);
   }
 
-  /**
-   * Returns an [Iterable] of static non final fields that need to be
-   * initialized. The fields list must be evaluated in order since they might
-   * depend on each other.
-   */
-  Iterable<VariableElement> getStaticNonFinalFieldsForEmission() {
-    return initialVariableValues.keys.where((element) {
-      return element.kind == ElementKind.FIELD &&
-             !element.isInstanceMember &&
-             !element.modifiers.isFinal &&
-             // The const fields are all either emitted elsewhere or inlined.
-             !element.modifiers.isConst;
-    });
+  void addCompileTimeConstantForEmission(ConstantValue constant) {
+    compiledConstants.add(constant);
   }
 
   List<VariableElement> getLazilyInitializedFieldsForEmission() {
@@ -192,23 +190,14 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return result;
   }
 
-  ConstantValue getInitialValueFor(VariableElement element) {
-    ConstantExpression initialValue =
-        initialVariableValues[element.declaration];
-    if (initialValue == null) {
-      reporter.internalError(element, "No initial value for given element.");
-    }
-    return getConstantValue(initialValue);
-  }
-
   ConstantExpression compileNode(Node node, TreeElements elements,
-                                 {bool enforceConst: true}) {
+      {bool enforceConst: true}) {
     return compileNodeWithDefinitions(node, elements, isConst: enforceConst);
   }
 
-  ConstantExpression compileNodeWithDefinitions(Node node,
-                                      TreeElements definitions,
-                                      {bool isConst: true}) {
+  ConstantExpression compileNodeWithDefinitions(
+      Node node, TreeElements definitions,
+      {bool isConst: true}) {
     ConstantExpression constant = nodeConstantMap[node];
     if (constant != null && getConstantValue(constant) != null) {
       return constant;
@@ -234,13 +223,12 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   }
 
   ConstantValue getConstantValueForMetadata(MetadataAnnotation metadata) {
-    return getConstantValue(metadataConstantMap[metadata]);
+    return getConstantValue(metadata.constant);
   }
 
+  @override
   ConstantExpression compileMetadata(
-      MetadataAnnotation metadata,
-      Node node,
-      TreeElements elements) {
+      MetadataAnnotation metadata, Node node, TreeElements elements) {
     ConstantExpression constant =
         super.compileMetadata(metadata, node, elements);
     metadataConstantMap[metadata] = constant;
@@ -269,8 +257,8 @@ class ForgetConstantElementVisitor
     }
   }
 
-  void visitFunctionElement(FunctionElement e,
-                            JavaScriptConstantCompiler constants) {
+  void visitFunctionElement(
+      FunctionElement e, JavaScriptConstantCompiler constants) {
     super.visitFunctionElement(e, constants);
     if (e.hasFunctionSignature) {
       e.functionSignature.forEachParameter((p) => visit(p, constants));
@@ -288,12 +276,12 @@ class ForgetConstantNodeVisitor extends Visitor {
     constants.nodeConstantMap.remove(node);
 
     // TODO(ahe): This doesn't belong here. Rename this class and generalize.
-    var closureClassMap =
-        constants.compiler.closureToClassMapper.closureMappingCache
+    var closureClassMap = constants
+        .compiler.closureToClassMapper.closureMappingCache
         .remove(node);
     if (closureClassMap != null) {
-      closureClassMap.removeMyselfFrom(
-          constants.compiler.enqueuer.codegen.universe);
+      closureClassMap
+          .removeMyselfFrom(constants.compiler.enqueuer.codegen.universe);
     }
   }
 }

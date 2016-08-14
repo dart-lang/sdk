@@ -234,6 +234,25 @@ def UpdateCssProperties():
   _logger.info('Updating Css Properties.')
   css_code_generator.GenerateCssTemplateFile()
 
+CACHED_PATCHES = """
+// START_OF_CACHED_PATCHES
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// DO NOT EDIT GENERATED FILE.
+
+library cached_patches;
+
+var cached_patches = {
+    /********************************************************
+     *****                                              *****
+     *****  MUST RUN tools/dartium/generate_patches.sh  *****
+     *****                                              *****
+     ********************************************************/
+};
+"""
+
 def main():
   parser = optparse.OptionParser()
   parser.add_option('--parallel', dest='parallel',
@@ -268,6 +287,9 @@ def main():
   parser.add_option('--gen-interop', dest='dart_js_interop',
                     action='store_true', default=False,
                     help='Use Javascript objects (dart:js) accessing the DOM in _blink')
+  parser.add_option('--no-cached-patches', dest='no_cached_patches',
+                    action='store_true', default=False,
+                    help='Do not generate the sdk/lib/js/cached_patches.dart file')
 
   (options, args) = parser.parse_args()
 
@@ -326,6 +348,15 @@ def main():
       GenerateSingleFile(
           os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
           os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dartium'))
+
+    if (not(options.no_cached_patches)):
+      # Blow away the cached_patches.dart needs to be re-generated for Dartium
+      # see tools/dartium/generate_patches.sh
+      cached_patches_filename = os.path.join('..', '..', '..', 'sdk', 'lib', 'js', 'dartium',
+                                             'cached_patches.dart')
+      cached_patches = open(cached_patches_filename, 'w')
+      cached_patches.write(CACHED_PATCHES);
+      cached_patches.close()
 
   if '_blink' in systems:
     _logger.info('Generating dartium _blink file.')

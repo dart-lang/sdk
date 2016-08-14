@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_MACOS)
 
@@ -9,12 +11,12 @@
 #include "bin/eventhandler_macos.h"
 
 #include <errno.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
 #include <pthread.h>  // NOLINT
 #include <stdio.h>  // NOLINT
 #include <string.h>  // NOLINT
 #include <sys/event.h>  // NOLINT
 #include <unistd.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -26,10 +28,8 @@
 #include "platform/hashmap.h"
 #include "platform/utils.h"
 
-
 namespace dart {
 namespace bin {
-
 
 bool DescriptorInfo::HasReadEvent() {
   return (Mask() & (1 << kInEvent)) != 0;
@@ -43,7 +43,9 @@ bool DescriptorInfo::HasWriteEvent() {
 
 // Unregister the file descriptor for a SocketData structure with kqueue.
 static void RemoveFromKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
-  if (!di->tracked_by_kqueue()) return;
+  if (!di->tracked_by_kqueue()) {
+    return;
+  }
   static const intptr_t kMaxChanges = 2;
   struct kevent events[kMaxChanges];
   EV_SET(events, di->fd(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
@@ -138,7 +140,15 @@ EventHandlerImplementation::EventHandlerImplementation()
 }
 
 
+static void DeleteDescriptorInfo(void* info) {
+  DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(info);
+  di->Close();
+  delete di;
+}
+
+
 EventHandlerImplementation::~EventHandlerImplementation() {
+  socket_map_.Clear(DeleteDescriptorInfo);
   VOID_TEMP_FAILURE_RETRY(close(kqueue_fd_));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
@@ -150,9 +160,9 @@ void EventHandlerImplementation::UpdateKQueueInstance(intptr_t old_mask,
   intptr_t new_mask = di->Mask();
   if (old_mask != 0 && new_mask == 0) {
     RemoveFromKqueue(kqueue_fd_, di);
-  } else if (old_mask == 0 && new_mask != 0) {
+  } else if ((old_mask == 0) && (new_mask != 0)) {
     AddToKqueue(kqueue_fd_, di);
-  } else if (old_mask != 0 && new_mask != 0 && old_mask != new_mask) {
+  } else if ((old_mask != 0) && (new_mask != 0) && (old_mask != new_mask)) {
     ASSERT(!di->IsListeningSocket());
     RemoveFromKqueue(kqueue_fd_, di);
     AddToKqueue(kqueue_fd_, di);
@@ -281,22 +291,39 @@ void EventHandlerImplementation::HandleInterruptFd() {
   }
 }
 
+
 #ifdef DEBUG_KQUEUE
 static void PrintEventMask(intptr_t fd, struct kevent* event) {
   Log::Print("%d ", static_cast<int>(fd));
+
   Log::Print("filter=0x%x:", event->filter);
-  if (event->filter == EVFILT_READ) Log::Print("EVFILT_READ ");
-  if (event->filter == EVFILT_WRITE) Log::Print("EVFILT_WRITE ");
+  if (event->filter == EVFILT_READ) {
+    Log::Print("EVFILT_READ ");
+  }
+  if (event->filter == EVFILT_WRITE) {
+    Log::Print("EVFILT_WRITE ");
+  }
+
   Log::Print("flags: %x: ", event->flags);
-  if ((event->flags & EV_EOF) != 0) Log::Print("EV_EOF ");
-  if ((event->flags & EV_ERROR) != 0) Log::Print("EV_ERROR ");
-  if ((event->flags & EV_CLEAR) != 0) Log::Print("EV_CLEAR ");
-  if ((event->flags & EV_ADD) != 0) Log::Print("EV_ADD ");
-  if ((event->flags & EV_DELETE) != 0) Log::Print("EV_DELETE ");
+  if ((event->flags & EV_EOF) != 0) {
+    Log::Print("EV_EOF ");
+  }
+  if ((event->flags & EV_ERROR) != 0) {
+    Log::Print("EV_ERROR ");
+  }
+  if ((event->flags & EV_CLEAR) != 0) {
+    Log::Print("EV_CLEAR ");
+  }
+  if ((event->flags & EV_ADD) != 0) {
+    Log::Print("EV_ADD ");
+  }
+  if ((event->flags & EV_DELETE) != 0) {
+    Log::Print("EV_DELETE ");
+  }
+
   Log::Print("- fflags: %d ", event->fflags);
   Log::Print("- data: %ld ", event->data);
-  Log::Print("(available %d) ",
-      static_cast<int>(FDUtils::AvailableBytes(fd)));
+  Log::Print("(available %d) ", static_cast<int>(FDUtils::AvailableBytes(fd)));
   Log::Print("\n");
 }
 #endif
@@ -319,7 +346,9 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
           event_mask |= (1 << kCloseEvent);
         }
       }
-      if (event_mask == 0) event_mask |= (1 << kInEvent);
+      if (event_mask == 0) {
+        event_mask |= (1 << kInEvent);
+      }
     } else {
       UNREACHABLE();
     }
@@ -421,7 +450,9 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   while (!handler_impl->shutdown_) {
     int64_t millis = handler_impl->GetTimeout();
     ASSERT(millis == kInfinityTimeout || millis >= 0);
-    if (millis > kMaxInt32) millis = kMaxInt32;
+    if (millis > kMaxInt32) {
+      millis = kMaxInt32;
+    }
     // NULL pointer timespec for infinite timeout.
     ASSERT(kInfinityTimeout < 0);
     struct timespec* timeout = NULL;
@@ -488,3 +519,5 @@ uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)
+
+#endif  // !defined(DART_IO_DISABLED)

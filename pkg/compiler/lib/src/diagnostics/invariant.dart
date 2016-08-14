@@ -46,7 +46,7 @@ bool invariant(Spannable spannable, var condition, {var message: null}) {
     throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
         "Spannable was null for invariant. Use CURRENT_ELEMENT_SPANNABLE.");
   }
-  if (condition is Function){
+  if (condition is Function) {
     condition = condition();
     if (condition is String) {
       message = condition;

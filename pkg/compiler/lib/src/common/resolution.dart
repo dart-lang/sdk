@@ -1,4 +1,3 @@
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6,47 +5,46 @@
 library dart2js.common.resolution;
 
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
-import '../constants/expressions.dart' show
-    ConstantExpression;
-import '../core_types.dart' show
-    CoreTypes;
-import '../dart_types.dart' show
-    DartType,
-    InterfaceType;
-import '../elements/elements.dart' show
-    AstElement,
-    ClassElement,
-    Element,
-    ErroneousElement,
-    FunctionElement,
-    FunctionSignature,
-    LocalFunctionElement,
-    MetadataAnnotation,
-    MethodElement,
-    TypedefElement,
-    TypeVariableElement;
-import '../enqueue.dart' show
-    ResolutionEnqueuer;
-import '../parser/element_listener.dart' show
-    ScannerOptions;
-import '../tree/tree.dart' show
-    AsyncForIn,
-    Send,
-    TypeAnnotation;
-import '../universe/world_impact.dart' show
-    WorldImpact;
-import 'work.dart' show
-    ItemCompilationContext,
-    WorkItem;
+import '../compile_time_constants.dart';
+import '../compiler.dart' show Compiler;
+import '../constants/expressions.dart' show ConstantExpression;
+import '../constants/values.dart' show ConstantValue;
+import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../dart_types.dart' show DartType, InterfaceType, Types;
+import '../elements/elements.dart'
+    show
+        AstElement,
+        ClassElement,
+        ConstructorElement,
+        Element,
+        ExecutableElement,
+        FunctionElement,
+        FunctionSignature,
+        LibraryElement,
+        MetadataAnnotation,
+        MethodElement,
+        ResolvedAst,
+        TypedefElement;
+import '../enqueue.dart' show ResolutionEnqueuer;
+import '../id_generator.dart';
+import '../mirrors_used.dart';
+import '../options.dart' show CompilerOptions, ParserOptions;
+import '../parser/element_listener.dart' show ScannerOptions;
+import '../parser/parser_task.dart';
+import '../patch_parser.dart';
+import '../resolution/resolution.dart';
+import '../tree/tree.dart' show Send, TypeAnnotation;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/world_impact.dart' show WorldImpact;
+import 'backend_api.dart';
+import 'work.dart' show ItemCompilationContext, WorkItem;
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 class ResolutionWorkItem extends WorkItem {
   bool _isAnalyzed = false;
 
-  ResolutionWorkItem(AstElement element,
-                     ItemCompilationContext compilationContext)
+  ResolutionWorkItem(
+      AstElement element, ItemCompilationContext compilationContext)
       : super(element, compilationContext);
 
   WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
@@ -65,9 +63,10 @@ class ResolutionImpact extends WorldImpact {
   Iterable<MapLiteralUse> get mapLiterals => const <MapLiteralUse>[];
   Iterable<ListLiteralUse> get listLiterals => const <ListLiteralUse>[];
   Iterable<String> get constSymbolNames => const <String>[];
-  Iterable<ConstantExpression> get constantLiterals {
-    return const <ConstantExpression>[];
-  }
+  Iterable<ConstantExpression> get constantLiterals =>
+      const <ConstantExpression>[];
+
+  Iterable<dynamic> get nativeData => const <dynamic>[];
 }
 
 /// A language feature seen during resolution.
@@ -75,48 +74,69 @@ class ResolutionImpact extends WorldImpact {
 enum Feature {
   /// Invocation of a generative construction on an abstract class.
   ABSTRACT_CLASS_INSTANTIATION,
+
   /// An assert statement with no message.
   ASSERT,
+
   /// An assert statement with a message.
   ASSERT_WITH_MESSAGE,
+
   /// A method with an `async` body modifier.
   ASYNC,
+
   /// An asynchronous for in statement like `await for (var e in i) {}`.
   ASYNC_FOR_IN,
+
   /// A method with an `async*` body modifier.
   ASYNC_STAR,
+
   /// A catch statement.
   CATCH_STATEMENT,
+
   /// A compile time error.
   COMPILE_TIME_ERROR,
+
   /// A fall through in a switch case.
   FALL_THROUGH_ERROR,
+
   /// A ++/-- operation.
   INC_DEC_OPERATION,
+
   /// A field whose initialization is not a constant.
   LAZY_FIELD,
+
   /// A catch clause with a variable for the stack trace.
   STACK_TRACE_IN_CATCH,
+
   /// String interpolation.
   STRING_INTERPOLATION,
+
   /// String juxtaposition.
   STRING_JUXTAPOSITION,
+
   /// An implicit call to `super.noSuchMethod`, like calling an unresolved
   /// super method.
   SUPER_NO_SUCH_METHOD,
+
   /// A redirection to the `Symbol` constructor.
   SYMBOL_CONSTRUCTOR,
+
   /// An synchronous for in statement, like `for (var e in i) {}`.
   SYNC_FOR_IN,
+
   /// A method with a `sync*` body modifier.
   SYNC_STAR,
+
   /// A throw expression.
   THROW_EXPRESSION,
+
   /// An implicit throw of a `NoSuchMethodError`, like calling an unresolved
   /// static method.
   THROW_NO_SUCH_METHOD,
+
   /// An implicit throw of a runtime error, like
   THROW_RUNTIME_ERROR,
+
   /// The need for a type variable bound check, like instantiation of a generic
   /// type whose type variable have non-trivial bounds.
   TYPE_VARIABLE_BOUNDS_CHECK,
@@ -131,8 +151,7 @@ class MapLiteralUse {
   MapLiteralUse(this.type, {this.isConstant: false, this.isEmpty: false});
 
   int get hashCode {
-    return
-        type.hashCode * 13 +
+    return type.hashCode * 13 +
         isConstant.hashCode * 17 +
         isEmpty.hashCode * 19;
   }
@@ -140,10 +159,13 @@ class MapLiteralUse {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! MapLiteralUse) return false;
-    return
-        type == other.type &&
+    return type == other.type &&
         isConstant == other.isConstant &&
         isEmpty == other.isEmpty;
+  }
+
+  String toString() {
+    return 'MapLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
   }
 }
 
@@ -156,8 +178,7 @@ class ListLiteralUse {
   ListLiteralUse(this.type, {this.isConstant: false, this.isEmpty: false});
 
   int get hashCode {
-    return
-        type.hashCode * 13 +
+    return type.hashCode * 13 +
         isConstant.hashCode * 17 +
         isEmpty.hashCode * 19;
   }
@@ -165,18 +186,91 @@ class ListLiteralUse {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ListLiteralUse) return false;
-    return
-        type == other.type &&
+    return type == other.type &&
         isConstant == other.isConstant &&
         isEmpty == other.isEmpty;
   }
+
+  String toString() {
+    return 'ListLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
+  }
+}
+
+/// Interface for the accessing the front-end analysis.
+// TODO(johnniwinther): Find a better name for this.
+abstract class Frontend {
+  /// Returns the [ResolutionImpact] for [element].
+  ResolutionImpact getResolutionImpact(Element element);
+}
+
+/// Interface defining target-specific behavior for resolution.
+abstract class Target {
+  /// Returns `true` if [library] is a target specific library whose members
+  /// have special treatment, such as being allowed to extends blacklisted
+  /// classes or members being eagerly resolved.
+  bool isTargetSpecificLibrary(LibraryElement element);
+
+  /// Resolve target specific information for [element] and register it with
+  /// [registry].
+  void resolveNativeElement(Element element, NativeRegistry registry) {}
+
+  /// Processes [element] for resolution and returns the [MethodElement] that
+  /// defines the implementation of [element].
+  MethodElement resolveExternalFunction(MethodElement element) => element;
+
+  /// Called when resolving a call to a foreign function. If a non-null value
+  /// is returned, this is stored as native data for [node] in the resolved
+  /// AST.
+  dynamic resolveForeignCall(Send node, Element element,
+      CallStructure callStructure, ForeignResolver resolver) {
+    return null;
+  }
+
+  /// Returns the default superclass for the given [element] in this target.
+  ClassElement defaultSuperclass(ClassElement element);
+
+  /// Returns `true` if [element] is a native element, that is, that the
+  /// corresponding entity already exists in the target language.
+  bool isNative(Element element) => false;
+
+  /// Returns `true` if [element] is a foreign element, that is, that the
+  /// backend has specialized handling for the element.
+  bool isForeign(Element element) => false;
+
+  /// Returns `true` if this target supports async/await.
+  bool get supportsAsyncAwait => true;
 }
 
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
-abstract class Resolution {
-  Parsing get parsing;
+abstract class Resolution implements Frontend {
+  ParsingContext get parsingContext;
   DiagnosticReporter get reporter;
+  CoreClasses get coreClasses;
   CoreTypes get coreTypes;
+  Types get types;
+  Target get target;
+  ResolverTask get resolver;
+  ResolutionEnqueuer get enqueuer;
+  CompilerOptions get options;
+  IdGenerator get idGenerator;
+  ConstantEnvironment get constants;
+  MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask;
+
+  // TODO(het): Move all elements into common/elements.dart
+  LibraryElement get coreLibrary;
+  FunctionElement get identicalFunction;
+  ClassElement get mirrorSystemClass;
+  FunctionElement get mirrorSystemGetNameFunction;
+  ConstructorElement get mirrorsUsedConstructor;
+  ConstructorElement get symbolConstructor;
+
+  // TODO(het): This is only referenced in a test...
+  /// The constant for the [proxy] variable defined in dart:core.
+  ConstantValue get proxyConstant;
+
+  /// If set to `true` resolution caches will not be cleared. Use this only for
+  /// testing.
+  bool retainCachesForTesting;
 
   void resolveTypedef(TypedefElement typdef);
   void resolveClass(ClassElement cls);
@@ -185,13 +279,49 @@ abstract class Resolution {
   FunctionSignature resolveSignature(FunctionElement function);
   DartType resolveTypeAnnotation(Element element, TypeAnnotation node);
 
+  /// Returns `true` if [element] has been resolved.
+  // TODO(johnniwinther): Normalize semantics between normal and deserialized
+  // elements; deserialized elements are always resolved but the method will
+  // return `false`.
   bool hasBeenResolved(Element element);
+
+  /// Resolve [element] if it has not already been resolved.
+  void ensureResolved(Element element);
+
+  /// Called whenever a class has been resolved.
+  void onClassResolved(ClassElement element);
+
+  /// Registers that [element] has a compile time error.
+  ///
+  /// The error itself is given in [message].
+  void registerCompileTimeError(Element element, DiagnosticMessage message);
+
+  ResolutionWorkItem createWorkItem(
+      Element element, ItemCompilationContext compilationContext);
+
+  /// Returns `true` if [element] as a fully computed [ResolvedAst].
+  bool hasResolvedAst(ExecutableElement element);
+
+  /// Returns the `ResolvedAst` for the [element].
+  ResolvedAst getResolvedAst(ExecutableElement element);
+
+  /// Returns `true` if the [ResolutionImpact] for [element] is cached.
+  bool hasResolutionImpact(Element element);
+
+  /// Returns the precomputed [ResolutionImpact] for [element].
+  ResolutionImpact getResolutionImpact(Element element);
+
+  /// Returns the [ResolvedAst] for [element], computing it if necessary.
+  ResolvedAst computeResolvedAst(Element element);
 
   /// Returns the precomputed [WorldImpact] for [element].
   WorldImpact getWorldImpact(Element element);
 
   /// Computes the [WorldImpact] for [element].
   WorldImpact computeWorldImpact(Element element);
+
+  WorldImpact transformResolutionImpact(
+      Element element, ResolutionImpact resolutionImpact);
 
   /// Removes the [WorldImpact] for [element] from the resolution cache. Later
   /// calls to [getWorldImpact] or [computeWorldImpact] returns an empty impact.
@@ -201,12 +331,63 @@ abstract class Resolution {
   /// Later calls to [getWorldImpact] or [computeWorldImpact] returns an empty
   /// impact.
   void emptyCache();
+
+  void forgetElement(Element element);
+
+  /// Returns `true` if [value] is the top-level [proxy] annotation from the
+  /// core library.
+  bool isProxyConstant(ConstantValue value);
 }
 
-// TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.
-abstract class Parsing {
+/// A container of commonly used dependencies for tasks that involve parsing.
+abstract class ParsingContext {
+  factory ParsingContext(
+      DiagnosticReporter reporter,
+      ParserOptions parserOptions,
+      ParserTask parser,
+      PatchParserTask patchParser,
+      Backend backend) = _ParsingContext;
+
   DiagnosticReporter get reporter;
+  ParserOptions get parserOptions;
+  ParserTask get parser;
+  PatchParserTask get patchParser;
+
+  /// Use [patchParser] directly instead.
+  @deprecated
   void parsePatchClass(ClassElement cls);
+
+  /// Use [parser] and measure directly instead.
+  @deprecated
   measure(f());
+
+  /// Get the [ScannerOptions] to scan the given [element].
   ScannerOptions getScannerOptionsFor(Element element);
+}
+
+class _ParsingContext implements ParsingContext {
+  final DiagnosticReporter reporter;
+  final ParserOptions parserOptions;
+  final ParserTask parser;
+  final PatchParserTask patchParser;
+  final Backend backend;
+
+  _ParsingContext(this.reporter, this.parserOptions, this.parser,
+      this.patchParser, this.backend);
+
+  @override
+  measure(f()) => parser.measure(f);
+
+  @override
+  void parsePatchClass(ClassElement cls) {
+    patchParser.measure(() {
+      if (cls.isPatch) {
+        patchParser.parsePatchClassNode(cls);
+      }
+    });
+  }
+
+  @override
+  ScannerOptions getScannerOptionsFor(Element element) => new ScannerOptions(
+      canUseNative: backend.canLibraryUseNative(element.library));
 }

@@ -496,6 +496,44 @@ main() {
 ''');
   }
 
+  test_createChange_FunctionElement_imported() async {
+    indexUnit(
+        '/foo.dart',
+        r'''
+test() {}
+foo() {}
+''');
+    indexTestUnit('''
+import 'foo.dart';
+main() {
+  print(test);
+  print(test());
+  foo();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test);');
+    expect(refactoring.refactoringName, 'Rename Top-Level Function');
+    expect(refactoring.elementKindName, 'function');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    await assertSuccessfulRefactoring('''
+import 'foo.dart';
+main() {
+  print(newName);
+  print(newName());
+  foo();
+}
+''');
+    assertFileChangeResult(
+        '/foo.dart',
+        '''
+newName() {}
+foo() {}
+''');
+  }
+
   test_createChange_PropertyAccessorElement_getter_declaration() {
     return _test_createChange_PropertyAccessorElement("test {}");
   }

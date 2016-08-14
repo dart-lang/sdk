@@ -21,7 +21,8 @@ class BoolListReader extends Reader<List<bool>> {
   int get size => 4;
 
   @override
-  List<bool> read(BufferPointer bp) => new _FbBoolList(bp.derefObject());
+  List<bool> read(BufferContext bc, int offset) =>
+      new _FbBoolList(bc, bc.derefObject(offset));
 }
 
 /**
@@ -34,51 +35,45 @@ class BoolReader extends Reader<bool> {
   int get size => 1;
 
   @override
-  bool read(BufferPointer bp) => bp._getInt8() != 0;
+  bool read(BufferContext bc, int offset) => bc._getInt8(offset) != 0;
 }
 
 /**
- * A pointer to some data.
+ * Buffer with data and some context about it.
  */
-class BufferPointer {
+class BufferContext {
   final ByteData _buffer;
-  final int _offset;
 
-  factory BufferPointer.fromBytes(List<int> byteList, [int offset = 0]) {
+  factory BufferContext.fromBytes(List<int> byteList) {
     Uint8List uint8List = _asUint8List(byteList);
-    ByteData buf = new ByteData.view(uint8List.buffer);
-    return new BufferPointer._(buf, uint8List.offsetInBytes + offset);
+    ByteData buf = new ByteData.view(uint8List.buffer, uint8List.offsetInBytes);
+    return new BufferContext._(buf);
   }
 
-  BufferPointer._(this._buffer, this._offset);
+  BufferContext._(this._buffer);
 
-  BufferPointer derefObject() {
-    int uOffset = _getUint32();
-    return _advance(uOffset);
+  int derefObject(int offset) {
+    return offset + _getUint32(offset);
   }
 
-  @override
-  String toString() => _offset.toString();
+  Uint8List _asUint8LIst(int offset, int length) =>
+      _buffer.buffer.asUint8List(_buffer.offsetInBytes + offset, length);
 
-  BufferPointer _advance(int delta) {
-    return new BufferPointer._(_buffer, _offset + delta);
-  }
+  double _getFloat64(int offset) =>
+      _buffer.getFloat64(offset, Endianness.LITTLE_ENDIAN);
 
-  double _getFloat64([int delta = 0]) =>
-      _buffer.getFloat64(_offset + delta, Endianness.LITTLE_ENDIAN);
+  int _getInt32(int offset) =>
+      _buffer.getInt32(offset, Endianness.LITTLE_ENDIAN);
 
-  int _getInt32([int delta = 0]) =>
-      _buffer.getInt32(_offset + delta, Endianness.LITTLE_ENDIAN);
+  int _getInt8(int offset) => _buffer.getInt8(offset);
 
-  int _getInt8([int delta = 0]) => _buffer.getInt8(_offset + delta);
+  int _getUint16(int offset) =>
+      _buffer.getUint16(offset, Endianness.LITTLE_ENDIAN);
 
-  int _getUint16([int delta = 0]) =>
-      _buffer.getUint16(_offset + delta, Endianness.LITTLE_ENDIAN);
+  int _getUint32(int offset) =>
+      _buffer.getUint32(offset, Endianness.LITTLE_ENDIAN);
 
-  int _getUint32([int delta = 0]) =>
-      _buffer.getUint32(_offset + delta, Endianness.LITTLE_ENDIAN);
-
-  int _getUint8([int delta = 0]) => _buffer.getUint8(_offset + delta);
+  int _getUint8(int offset) => _buffer.getUint8(offset);
 
   /**
    * If the [byteList] is already a [Uint8List] return it.
@@ -237,9 +232,11 @@ class Builder {
     {
       _currentVTable.computeFieldOffsets(tableTail);
       // Try to find an existing compatible VTable.
-      for (_VTable vTable in _vTables) {
+      for (int i = 0; i < _vTables.length; i++) {
+        _VTable vTable = _vTables[i];
         if (_currentVTable.canUseExistingVTable(vTable)) {
           vTableTail = vTable.tail;
+          break;
         }
       }
       // Write a new VTable.
@@ -561,7 +558,8 @@ class Float64ListReader extends Reader<List<double>> {
   int get size => 4;
 
   @override
-  List<double> read(BufferPointer bp) => new _FbFloat64List(bp.derefObject());
+  List<double> read(BufferContext bc, int offset) =>
+      new _FbFloat64List(bc, bc.derefObject(offset));
 }
 
 /**
@@ -574,7 +572,7 @@ class Int32Reader extends Reader<int> {
   int get size => 4;
 
   @override
-  int read(BufferPointer bp) => bp._getInt32();
+  int read(BufferContext bc, int offset) => bc._getInt32(offset);
 }
 
 /**
@@ -587,7 +585,7 @@ class Int8Reader extends Reader<int> {
   int get size => 1;
 
   @override
-  int read(BufferPointer bp) => bp._getInt8();
+  int read(BufferContext bc, int offset) => bc._getInt8(offset);
 }
 
 /**
@@ -604,8 +602,8 @@ class ListReader<E> extends Reader<List<E>> {
   int get size => 4;
 
   @override
-  List<E> read(BufferPointer bp) =>
-      new _FbGenericList<E>(_elementReader, bp.derefObject());
+  List<E> read(BufferContext bc, int offset) =>
+      new _FbGenericList<E>(_elementReader, bc, bc.derefObject(offset));
 }
 
 /**
@@ -618,7 +616,7 @@ class Offset<T> {
 }
 
 /**
- * Object that can read a value at a [BufferPointer].
+ * Object that can read a value at a [BufferContext].
  */
 abstract class Reader<T> {
   const Reader();
@@ -629,23 +627,23 @@ abstract class Reader<T> {
   int get size;
 
   /**
-   * Read the value at the given pointer.
+   * Read the value at the given [offset] in [bc].
    */
-  T read(BufferPointer bp);
+  T read(BufferContext bc, int offset);
 
   /**
    * Read the value of the given [field] in the given [object].
    */
-  T vTableGet(BufferPointer object, int field, [T defaultValue]) {
-    int vTableSOffset = object._getInt32();
-    BufferPointer vTable = object._advance(-vTableSOffset);
-    int vTableSize = vTable._getUint16();
+  T vTableGet(BufferContext object, int offset, int field, [T defaultValue]) {
+    int vTableSOffset = object._getInt32(offset);
+    int vTableOffset = offset - vTableSOffset;
+    int vTableSize = object._getUint16(vTableOffset);
     int vTableFieldOffset = (1 + 1 + field) * 2;
     if (vTableFieldOffset < vTableSize) {
-      int fieldOffsetInObject = vTable._getUint16(vTableFieldOffset);
+      int fieldOffsetInObject =
+          object._getUint16(vTableOffset + vTableFieldOffset);
       if (fieldOffsetInObject != 0) {
-        BufferPointer fieldPointer = object._advance(fieldOffsetInObject);
-        return read(fieldPointer);
+        return read(object, offset + fieldOffsetInObject);
       }
     }
     return defaultValue;
@@ -662,11 +660,24 @@ class StringReader extends Reader<String> {
   int get size => 4;
 
   @override
-  String read(BufferPointer ref) {
-    BufferPointer object = ref.derefObject();
-    int length = object._getUint32();
-    return UTF8
-        .decode(ref._buffer.buffer.asUint8List(object._offset + 4, length));
+  String read(BufferContext bc, int offset) {
+    int strOffset = bc.derefObject(offset);
+    int length = bc._getUint32(strOffset);
+    Uint8List bytes = bc._asUint8LIst(strOffset + 4, length);
+    if (_isLatin(bytes)) {
+      return new String.fromCharCodes(bytes);
+    }
+    return UTF8.decode(bytes);
+  }
+
+  static bool _isLatin(Uint8List bytes) {
+    int length = bytes.length;
+    for (int i = 0; i < length; i++) {
+      if (bytes[i] > 127) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 
@@ -680,14 +691,14 @@ abstract class TableReader<T> extends Reader<T> {
   int get size => 4;
 
   /**
-   * Return the object at [bp].
+   * Return the object at [offset].
    */
-  T createObject(BufferPointer bp);
+  T createObject(BufferContext bc, int offset);
 
   @override
-  T read(BufferPointer bp) {
-    bp = bp.derefObject();
-    return createObject(bp);
+  T read(BufferContext bp, int offset) {
+    int objectOffset = bp.derefObject(offset);
+    return createObject(bp, objectOffset);
   }
 }
 
@@ -703,7 +714,8 @@ class Uint32ListReader extends Reader<List<int>> {
   int get size => 4;
 
   @override
-  List<int> read(BufferPointer bp) => new _FbUint32List(bp.derefObject());
+  List<int> read(BufferContext bc, int offset) =>
+      new _FbUint32List(bc, bc.derefObject(offset));
 }
 
 /**
@@ -716,7 +728,7 @@ class Uint32Reader extends Reader<int> {
   int get size => 4;
 
   @override
-  int read(BufferPointer bp) => bp._getUint32();
+  int read(BufferContext bc, int offset) => bc._getUint32(offset);
 }
 
 /**
@@ -731,7 +743,8 @@ class Uint8ListReader extends Reader<List<int>> {
   int get size => 4;
 
   @override
-  List<int> read(BufferPointer bp) => new _FbUint8List(bp.derefObject());
+  List<int> read(BufferContext bc, int offset) =>
+      new _FbUint8List(bc, bc.derefObject(offset));
 }
 
 /**
@@ -744,22 +757,23 @@ class Uint8Reader extends Reader<int> {
   int get size => 1;
 
   @override
-  int read(BufferPointer bp) => bp._getUint8();
+  int read(BufferContext bc, int offset) => bc._getUint8(offset);
 }
 
 /**
  * List of booleans backed by 8-bit unsigned integers.
  */
 class _FbBoolList extends Object with ListMixin<bool> implements List<bool> {
-  final BufferPointer bp;
+  final BufferContext bc;
+  final int offset;
   int _length;
 
-  _FbBoolList(this.bp);
+  _FbBoolList(this.bc, this.offset);
 
   @override
   int get length {
     if (_length == null) {
-      int byteLength = bp._getUint32();
+      int byteLength = bc._getUint32(offset);
       _length = (byteLength - 1) * 8 - _getByte(byteLength - 1);
     }
     return _length;
@@ -780,18 +794,18 @@ class _FbBoolList extends Object with ListMixin<bool> implements List<bool> {
   void operator []=(int i, bool e) =>
       throw new StateError('Attempt to modify immutable list');
 
-  int _getByte(int index) => bp._getUint8(4 + index);
+  int _getByte(int index) => bc._getUint8(offset + 4 + index);
 }
 
 /**
  * The list backed by 64-bit values - Uint64 length and Float64.
  */
 class _FbFloat64List extends _FbList<double> {
-  _FbFloat64List(BufferPointer bp) : super(bp);
+  _FbFloat64List(BufferContext bc, int offset) : super(bc, offset);
 
   @override
   double operator [](int i) {
-    return bp._getFloat64(8 + 8 * i);
+    return bc._getFloat64(offset + 8 + 8 * i);
   }
 }
 
@@ -803,15 +817,15 @@ class _FbGenericList<E> extends _FbList<E> {
 
   List<E> _items;
 
-  _FbGenericList(this.elementReader, BufferPointer bp) : super(bp);
+  _FbGenericList(this.elementReader, BufferContext bp, int offset)
+      : super(bp, offset);
 
   @override
   E operator [](int i) {
     _items ??= new List<E>(length);
     E item = _items[i];
     if (item == null) {
-      BufferPointer ref = bp._advance(4 + elementReader.size * i);
-      item = elementReader.read(ref);
+      item = elementReader.read(bc, offset + 4 + elementReader.size * i);
       _items[i] = item;
     }
     return item;
@@ -822,14 +836,15 @@ class _FbGenericList<E> extends _FbList<E> {
  * The base class for immutable lists read from flat buffers.
  */
 abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
-  final BufferPointer bp;
+  final BufferContext bc;
+  final int offset;
   int _length;
 
-  _FbList(this.bp);
+  _FbList(this.bc, this.offset);
 
   @override
   int get length {
-    _length ??= bp._getUint32();
+    _length ??= bc._getUint32(offset);
     return _length;
   }
 
@@ -846,11 +861,11 @@ abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
  * List backed by 32-bit unsigned integers.
  */
 class _FbUint32List extends _FbList<int> {
-  _FbUint32List(BufferPointer bp) : super(bp);
+  _FbUint32List(BufferContext bc, int offset) : super(bc, offset);
 
   @override
   int operator [](int i) {
-    return bp._getUint32(4 + 4 * i);
+    return bc._getUint32(offset + 4 + 4 * i);
   }
 }
 
@@ -858,11 +873,11 @@ class _FbUint32List extends _FbList<int> {
  * List backed by 8-bit unsigned integers.
  */
 class _FbUint8List extends _FbList<int> {
-  _FbUint8List(BufferPointer bp) : super(bp);
+  _FbUint8List(BufferContext bc, int offset) : super(bc, offset);
 
   @override
   int operator [](int i) {
-    return bp._getUint8(4 + i);
+    return bc._getUint8(offset + 4 + i);
   }
 }
 

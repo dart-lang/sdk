@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.3
+# Dart VM Service Protocol 3.5
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.3_ of the Dart VM Service Protocol. This
+This document describes of _version 3.5_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -120,7 +120,7 @@ Here is an example response for our [getVersion](#getversion) request above:
   "result": {
     "type": "Version",
     "major": 3,
-    "minor": 0
+    "minor": 5
   }
   "id": "1"
 }
@@ -131,7 +131,7 @@ The JSON-RPC spec provides for _positional_ parameters as well, but they
 are not supported by the Dart VM.
 
 By convention, every response returned by the Service Protocol is a subtype
-of [Response](#response) and provides a _type_ paramters which can be used
+of [Response](#response) and provides a _type_ parameter which can be used
 to distinguish the exact return type. In the example above, the
 [Version](#version) type is returned.
 
@@ -172,8 +172,7 @@ subscribe to the _GC_ stream multiple times from the same client.
 }
 ```
 
-In addition the the [error codes](http://www.jsonrpc.org/specification#error_object)
-specified in the JSON-RPC spec, we use the following application specific error codes:
+In addition to the [error codes](http://www.jsonrpc.org/specification#error_object) specified in the JSON-RPC spec, we use the following application specific error codes:
 
 code | message | meaning
 ---- | ------- | -------
@@ -183,6 +182,7 @@ code | message | meaning
 103 | Stream already subscribed | The client is already subscribed to the specified _streamId_
 104 | Stream not subscribed | The client is not subscribed to the specified _streamId_
 105 | Isolate must be runnable | This operation cannot happen until the isolate is runnable
+106 | Isolate must be paused | This operation is only valid when the isolate is paused
 
 
 
@@ -311,7 +311,7 @@ version number:
   "result": {
     "type": "Version",
     "major": 3,
-    "minor": 0
+    "minor": 5
   }
 ```
 
@@ -512,7 +512,7 @@ reference will be returned.
 FlagList getFlagList()
 ```
 
-The _getFlagList RPC returns a list of all command line flags in the
+The _getFlagList_ RPC returns a list of all command line flags in the
 VM along with their current values.
 
 See [FlagList](#flaglist).
@@ -971,10 +971,20 @@ class Class extends Object {
   // The superclass of this class, if any.
   @Class super [optional];
 
-  // A list of interface types for this class.
+  // The supertype for this class, if any.
   //
   // The value will be of the kind: Type.
+  @Instance superType [optional];
+
+  // A list of interface types for this class.
+  //
+  // The values will be of the kind: Type.
   @Instance[] interfaces;
+
+  // The mixin type for this class, if any.
+  //
+  // The value will be of the kind: Type.
+  @Instance mixin [optional];
 
   // A list of fields in this class. Does not include fields from
   // superclasses.
@@ -1525,7 +1535,7 @@ class @Instance extends @Object {
   //   Type
   string name [optional];
 
-  // The corresponding Class if this Type is canonical.
+  // The corresponding Class if this Type has a resolved typeClass.
   //
   // Provided for instance kinds:
   //   Type
@@ -2206,6 +2216,10 @@ consists of a line number followed by _(tokenPos, columnNumber)_ pairs:
 
 > [lineNumber, (tokenPos, columnNumber)*]
 
+The _tokenPos_ is an arbitrary integer value that is used to represent
+a location in the source code.  A _tokenPos_ value is not meaningful
+in itself and code should not rely on the exact values returned.
+
 For example, a _tokenPosTable_ with the value...
 
 > [[1, 100, 5, 101, 8],[2, 102, 7]]
@@ -2306,6 +2320,10 @@ class SourceReportRange {
 
   // Has this range been compiled by the Dart VM?
   bool compiled;
+
+  // The error while attempting to compile this range, if this
+  // report was generated with forceCompile=true.
+  @Error error [optional];
 
   // Code coverage information for this range.  Provided only when the
   // Coverage report has been requested and the range has been
@@ -2508,5 +2526,6 @@ version | comments
 3.1 | Add the getSourceReport RPC.  The getObject RPC now accepts offset and count for string objects.  String objects now contain length, offset, and count properties.
 3.2 | Isolate objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
 3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
-
+3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
+3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

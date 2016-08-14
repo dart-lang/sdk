@@ -3113,6 +3113,8 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestNop, assembler) {
+  __ RawEntry();
+
   __ nop(1);
   __ nop(2);
   __ nop(3);
@@ -3128,12 +3130,14 @@ ASSEMBLER_TEST_GENERATE(TestNop, assembler) {
 
 ASSEMBLER_TEST_RUN(TestNop, test) {
   typedef int (*TestNop)();
-  int res = reinterpret_cast<TestNop>(test->entry())();
+  int res = reinterpret_cast<TestNop>(test->payload_start())();
   EXPECT_EQ(36, res);  // 36 nop bytes emitted.
 }
 
 
 ASSEMBLER_TEST_GENERATE(TestAlign0, assembler) {
+  __ RawEntry();
+
   __ Align(4, 0);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
   __ ret();
@@ -3142,12 +3146,14 @@ ASSEMBLER_TEST_GENERATE(TestAlign0, assembler) {
 
 ASSEMBLER_TEST_RUN(TestAlign0, test) {
   typedef int (*TestAlign0)();
-  int res = reinterpret_cast<TestAlign0>(test->entry())();
+  int res = reinterpret_cast<TestAlign0>(test->payload_start())();
   EXPECT_EQ(0, res);  // 0 bytes emitted.
 }
 
 
 ASSEMBLER_TEST_GENERATE(TestAlign1, assembler) {
+  __ RawEntry();
+
   __ nop(1);
   __ Align(4, 0);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
@@ -3157,12 +3163,14 @@ ASSEMBLER_TEST_GENERATE(TestAlign1, assembler) {
 
 ASSEMBLER_TEST_RUN(TestAlign1, test) {
   typedef int (*TestAlign1)();
-  int res = reinterpret_cast<TestAlign1>(test->entry())();
+  int res = reinterpret_cast<TestAlign1>(test->payload_start())();
   EXPECT_EQ(4, res);  // 4 bytes emitted.
 }
 
 
 ASSEMBLER_TEST_GENERATE(TestAlign1Offset1, assembler) {
+  __ RawEntry();
+
   __ nop(1);
   __ Align(4, 1);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
@@ -3172,12 +3180,14 @@ ASSEMBLER_TEST_GENERATE(TestAlign1Offset1, assembler) {
 
 ASSEMBLER_TEST_RUN(TestAlign1Offset1, test) {
   typedef int (*TestAlign1Offset1)();
-  int res = reinterpret_cast<TestAlign1Offset1>(test->entry())();
+  int res = reinterpret_cast<TestAlign1Offset1>(test->payload_start())();
   EXPECT_EQ(3, res);  // 3 bytes emitted.
 }
 
 
 ASSEMBLER_TEST_GENERATE(TestAlignLarge, assembler) {
+  __ RawEntry();
+
   __ nop(1);
   __ Align(16, 0);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
@@ -3187,7 +3197,7 @@ ASSEMBLER_TEST_GENERATE(TestAlignLarge, assembler) {
 
 ASSEMBLER_TEST_RUN(TestAlignLarge, test) {
   typedef int (*TestAlignLarge)();
-  int res = reinterpret_cast<TestAlignLarge>(test->entry())();
+  int res = reinterpret_cast<TestAlignLarge>(test->payload_start())();
   EXPECT_EQ(16, res);  // 16 bytes emitted.
 }
 
@@ -3588,55 +3598,6 @@ ASSEMBLER_TEST_RUN(ConditionalMovesNoOverflow, test) {
   res = reinterpret_cast<ConditionalMovesNoOverflowCode>(test->entry())(1, 1);
   EXPECT_EQ(0, res);
 }
-
-
-ASSEMBLER_TEST_GENERATE(ComputeRange, assembler) {
-  Label miss;
-  __ movq(RDX, CallingConventions::kArg1Reg);
-  __ ComputeRange(RAX, RDX, &miss);
-  __ ret();
-
-  __ Bind(&miss);
-  __ movq(RAX, Immediate(0));
-  __ ret();
-}
-
-
-ASSEMBLER_TEST_RUN(ComputeRange, test) {
-  typedef intptr_t (*ComputeRange)(RawObject*);
-  ComputeRange range_of = reinterpret_cast<ComputeRange>(test->entry());
-
-  EXPECT_EQ(ICData::kInt32RangeBit, range_of(Smi::New(0)));
-  EXPECT_EQ(ICData::kInt32RangeBit, range_of(Smi::New(1)));
-  EXPECT_EQ(ICData::kInt32RangeBit, range_of(Smi::New(kMaxInt32)));
-  EXPECT_EQ(ICData::kInt32RangeBit | ICData::kSignedRangeBit,
-            range_of(Smi::New(-1)));
-  EXPECT_EQ(ICData::kInt32RangeBit | ICData::kSignedRangeBit,
-            range_of(Smi::New(kMinInt32)));
-
-  EXPECT_EQ(ICData::kUint32RangeBit,
-            range_of(Smi::New(static_cast<int64_t>(kMaxInt32) + 1)));
-  EXPECT_EQ(ICData::kUint32RangeBit,
-            range_of(Smi::New(kMaxUint32)));
-
-  // On 64-bit platforms we don't track the sign of the smis outside of
-  // int32 range because it is not needed to distinguish kInt32Range from
-  // kUint32Range.
-  EXPECT_EQ(ICData::kSignedRangeBit,
-            range_of(Smi::New(static_cast<int64_t>(kMinInt32) - 1)));
-  EXPECT_EQ(ICData::kSignedRangeBit,
-            range_of(Smi::New(static_cast<int64_t>(kMaxUint32) + 1)));
-  EXPECT_EQ(ICData::kSignedRangeBit, range_of(Smi::New(Smi::kMaxValue)));
-  EXPECT_EQ(ICData::kSignedRangeBit, range_of(Smi::New(Smi::kMinValue)));
-
-  EXPECT_EQ(ICData::kInt64RangeBit, range_of(Integer::New(Smi::kMaxValue + 1)));
-  EXPECT_EQ(ICData::kInt64RangeBit, range_of(Integer::New(Smi::kMinValue - 1)));
-  EXPECT_EQ(ICData::kInt64RangeBit, range_of(Integer::New(kMaxInt64)));
-  EXPECT_EQ(ICData::kInt64RangeBit, range_of(Integer::New(kMinInt64)));
-
-  EXPECT_EQ(0, range_of(Bool::True().raw()));
-}
-
 
 }  // namespace dart
 

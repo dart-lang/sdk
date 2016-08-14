@@ -71,7 +71,7 @@ class _ChildrenElementList extends ListBase<Element>
     _filter(test, true);
   }
 
-  void _filter(bool test(var element), bool retainMatching) {
+  void _filter(bool test(Element element), bool retainMatching) {
     var removed;
     if (retainMatching) {
       removed = _element.children.where((e) => !test(e));
@@ -264,8 +264,8 @@ $!STREAM_GETTER_SIGNATURES
 // declared to return `ElementList`.  This provides all the static analysis
 // benefit so there is no need for this class have a constrained type parameter.
 //
-class _FrozenElementList extends ListBase
-    implements ElementList, NodeListWrapper {
+class _FrozenElementList<E extends Element> extends ListBase<E>
+    implements ElementList<E>, NodeListWrapper {
   final List<Node> _nodeList;
 
 $if JSINTEROP
@@ -280,9 +280,9 @@ $endif
 
   int get length => _nodeList.length;
 
-  Element operator [](int index) => _nodeList[index];
+  E operator [](int index) => _downcast/*<Node, E>*/(_nodeList[index]);
 
-  void operator []=(int index, Element value) {
+  void operator []=(int index, E value) {
     throw new UnsupportedError('Cannot modify list');
   }
 
@@ -290,7 +290,7 @@ $endif
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void sort([Comparator<Element> compare]) {
+  void sort([Comparator<E> compare]) {
     throw new UnsupportedError('Cannot sort list');
   }
 
@@ -298,11 +298,11 @@ $endif
     throw new UnsupportedError('Cannot shuffle list');
   }
 
-  Element get first => _nodeList.first;
+  E get first => _downcast/*<Node, E>*/(_nodeList.first);
 
-  Element get last => _nodeList.last;
+  E get last => _downcast/*<Node, E>*/(_nodeList.last);
 
-  Element get single => _nodeList.single;
+  E get single => _downcast/*<Node, E>*/(_nodeList.single);
 
   CssClassSet get classes => new _MultiElementCssClassSet(this);
 
@@ -316,7 +316,7 @@ $endif
     //
     // as the code below converts the Iterable[value] to a string multiple
     // times.  Maybe compute the string and set className here.
-    _nodeList.forEach((e) => e.classes = value);
+    forEach((e) => e.classes = value);
   }
 
   CssRect get contentEdge => new _ContentCssListRect(this);
@@ -380,7 +380,15 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *     }
    *     document.registerElement('x-custom', CustomElement);
    */
+$if DART2JS
   Element.created() : super._created();
+$else
+  Element.created() : super._created() {
+    // Validate that this is a custom element & possibly perform additional
+    // initialization.
+    _blink.Blink_Utils.initializeCustomElement(this);
+  }
+$endif
 
   /**
    * Creates the HTML element specified by the tag name.
@@ -585,7 +593,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
-    List copy = new List.from(value);
+    var copy = value.toList();
     var children = this.children;
     children.clear();
     children.addAll(copy);
@@ -603,8 +611,8 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
-  ElementList<Element> querySelectorAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
+    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -622,7 +630,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @deprecated
   @DomName('Element.querySelectorAll')
   @Experimental()
-  ElementList<Element> queryAll(String relativeSelectors) =>
+  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /**
@@ -820,19 +828,18 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
       throw new ArgumentError("The frames parameter should be a List of Maps "
           "with frame information");
     }
-    var convertedFrames = frames;
-    if (convertedFrames is Iterable) {
+    var convertedFrames;
+    if (frames is Iterable) {
 $if DART2JS
       convertedFrames = frames.map(convertDartToNative_Dictionary).toList();
 $else
       convertedFrames = convertDartToNative_List(
           frames.map(convertDartToNative_Dictionary).toList());
 $endif
+    } else {
+      convertedFrames = frames;
     }
-    var convertedTiming = timing;
-    if (convertedTiming is Map) {
-      convertedTiming = convertDartToNative_Dictionary(convertedTiming);
-    }
+    var convertedTiming = timing is Map ? convertDartToNative_Dictionary(timing) : timing;
     return convertedTiming == null
       ? _animate(convertedFrames)
       : _animate(convertedFrames, convertedTiming);
@@ -1265,13 +1272,13 @@ $else
 $endif
     bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
     if (current == null || sameAsParent) {
-      if (foundAsParent) return new Point(0, 0);
+      if (foundAsParent) return new Point/*<num>*/(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
     }
     Element parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
-    return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
+    return new Point/*<num>*/(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
 
   static HtmlDocument _parseDocument;
@@ -1325,7 +1332,7 @@ $endif
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      var base = _parseDocument.createElement('base');
+      BaseElement base = _parseDocument.createElement('base');
       base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
@@ -1483,24 +1490,20 @@ $else
   static var _htmlCollection = js.context["HTMLCollection"];
   static var _nodeList = js.context["NodeList"];
 
+  static const _evilAttributeNames =
+      const ['attributes', 'lastChild', 'children', 'childNodes'];
+
   static bool _hasCorruptedAttributes(Element element) {
-    var attributes = unwrap_jso(element)["attributes"];
-    if (!attributes.instanceof(_namedNodeMap)) {
-      return true;
-    }
-    var childNodes = unwrap_jso(element.childNodes);
-    var length = childNodes["length"];
-    var lastChild = unwrap_jso(element.lastChild);
-    if (null != lastChild &&
-        lastChild != childNodes[length - 1]) {
-      return true;
-    }
-    var children = unwrap_jso(element._children);
-    if (null != children) { // On Safari, children can apparently be null.
-      if (!children.instanceof(_htmlCollection) ||
-          children.instanceof(_nodeList)) {
-	return true;
-      }
+    // We have trusted access to children and to attributes of objects,
+    // so we can inspect directly for attempts at DOM clobbering.
+    var child = element.firstChild;
+    while( child != null)  {
+      if (child is Element) {
+      for (var attributeName in ["id", "name"]) {
+        var childAttribute = child.getAttribute(attributeName);
+        if (_evilAttributeNames.contains(childAttribute)) return true;
+      }}
+      child = child.nextNode;
     }
     return false;
   }
@@ -1509,6 +1512,7 @@ $else
   static bool _hasCorruptedAttributesAdditionalCheck(Element element) => false;
 $endif
 
+$if DART2JS
   static String _safeTagName(element) {
     String result = 'element tag unavailable';
     try {
@@ -1518,6 +1522,15 @@ $endif
     } catch (e) {}
     return result;
   }
+$else
+  static String _safeTagName(element) {
+    try {
+      // Safe as we plumb directly to a C++ native method.
+      return element.tagName;
+    } catch (e) {}
+    return 'element tag unavailable';
+  }
+$endif  
 
 $if DART2JS
   @DomName('Element.offsetParent')
@@ -1570,52 +1583,52 @@ $if DART2JS
 
 $else
   // Need to explicitly delegate because Element is no longer abstract for Dartium.
-  bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(unwrap_jso(this));
-  void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(unwrap_jso(this));
+  bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(this);
+  void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(this);
 
   @DomName('Element.offsetParent')
   @DocsEditable()
-  Element get offsetParent => wrap_jso(_blink.BlinkElement.instance.offsetParent_Getter_(unwrap_jso(this)));
+  Element get offsetParent => _blink.BlinkElement.instance.offsetParent_Getter_(this);
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this));
+  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(this);
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(unwrap_jso(this));
+  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(this);
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(unwrap_jso(this));
+  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(this);
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(unwrap_jso(this));
+  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(this);
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  int get scrollHeight => _blink.BlinkElement.instance.scrollHeight_Getter_(unwrap_jso(this)).round();
+  int get scrollHeight => _blink.BlinkElement.instance.scrollHeight_Getter_(this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int get scrollLeft => _blink.BlinkElement.instance.scrollLeft_Getter_(unwrap_jso(this)).round();
+  int get scrollLeft => _blink.BlinkElement.instance.scrollLeft_Getter_(this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value.round());
+  set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(this, value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int get scrollTop => _blink.BlinkElement.instance.scrollTop_Getter_(unwrap_jso(this)).round();
+  int get scrollTop => _blink.BlinkElement.instance.scrollTop_Getter_(this).round();
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value.round());
+  set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(this, value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  int get scrollWidth => _blink.BlinkElement.instance.scrollWidth_Getter_(unwrap_jso(this)).round();
+  int get scrollWidth => _blink.BlinkElement.instance.scrollWidth_Getter_(this).round();
 $endif
 
 $!MEMBERS

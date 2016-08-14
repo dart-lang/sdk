@@ -26,6 +26,7 @@ void DisassembleToStdout::ConsumeInstruction(const Code& code,
                                              intptr_t hex_size,
                                              char* human_buffer,
                                              intptr_t human_size,
+                                             Object* object,
                                              uword pc) {
   static const int kHexColumnWidth = 23;
   uint8_t* pc_ptr = reinterpret_cast<uint8_t*>(pc);
@@ -37,6 +38,9 @@ void DisassembleToStdout::ConsumeInstruction(const Code& code,
     }
   }
   THR_Print("%s", human_buffer);
+  if (object != NULL) {
+    THR_Print("   %s", object->ToCString());
+  }
   THR_Print("\n");
 }
 
@@ -54,6 +58,7 @@ void DisassembleToJSONStream::ConsumeInstruction(const Code& code,
                                                  intptr_t hex_size,
                                                  char* human_buffer,
                                                  intptr_t human_size,
+                                                 Object* object,
                                                  uword pc) {
   // Instructions are represented as four consecutive values in a JSON array.
   // The first is the address of the instruction, the second is the hex string,
@@ -63,9 +68,8 @@ void DisassembleToJSONStream::ConsumeInstruction(const Code& code,
   jsarr_.AddValue(hex_buffer);
   jsarr_.AddValue(human_buffer);
 
-  Object& object = Object::Handle();
-  if (DecodeLoadObjectFromPoolOrThread(pc, code, &object)) {
-    jsarr_.AddValue(object);
+  if (object != NULL) {
+    jsarr_.AddValue(*object);
   } else {
     jsarr_.AddValueNull();  // Not a reference to null.
   }
@@ -94,34 +98,6 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   jsarr_.AddValue(p);
   jsarr_.AddValueNull();
   free(p);
-}
-
-
-class FindAddrVisitor : public FindObjectVisitor {
- public:
-  explicit FindAddrVisitor(uword addr)
-      : FindObjectVisitor(Isolate::Current()), addr_(addr) { }
-  virtual ~FindAddrVisitor() { }
-
-  virtual uword filter_addr() const { return addr_; }
-
-  // Check if object matches find condition.
-  virtual bool FindObject(RawObject* obj) const {
-    return obj == reinterpret_cast<RawObject*>(addr_);
-  }
-
- private:
-  const uword addr_;
-
-  DISALLOW_COPY_AND_ASSIGN(FindAddrVisitor);
-};
-
-
-bool Disassembler::CanFindOldObject(uword addr) {
-  FindAddrVisitor visitor(addr);
-  NoSafepointScope no_safepoint;
-  return Dart::vm_isolate()->heap()->FindOldObject(&visitor) != Object::null()
-      || Isolate::Current()->heap()->FindOldObject(&visitor) != Object::null();
 }
 
 
@@ -169,28 +145,29 @@ void Disassembler::Disassemble(uword start,
       }
     }
     int instruction_length;
+    Object* object;
     DecodeInstruction(hex_buffer,
                       sizeof(hex_buffer),
                       human_buffer,
                       sizeof(human_buffer),
-                      &instruction_length, pc);
+                      &instruction_length, code, &object, pc);
     formatter->ConsumeInstruction(code,
                                   hex_buffer,
                                   sizeof(hex_buffer),
                                   human_buffer,
                                   sizeof(human_buffer),
+                                  object,
                                   pc);
     pc += instruction_length;
   }
 }
 
 
-void Disassembler::DisassembleCode(const Function& function, bool optimized) {
-  const char* function_fullname = function.ToFullyQualifiedCString();
+void Disassembler::DisassembleCodeHelper(
+    const char* function_fullname, const Code& code, bool optimized) {
   THR_Print("Code for %sfunction '%s' {\n",
             optimized ? "optimized " : "",
             function_fullname);
-  const Code& code = Code::Handle(function.CurrentCode());
   code.Disassemble();
   THR_Print("}\n");
 
@@ -199,7 +176,7 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
   // Pointer offsets are stored in descending order.
   Object& obj = Object::Handle();
   for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
-    const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
+    const uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
     obj = *reinterpret_cast<RawObject**>(addr);
     THR_Print(" %d : %#" Px " '%s'\n",
               code.GetPointerOffsetAt(i), addr, obj.ToCString());
@@ -218,7 +195,7 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
       PcDescriptors::Handle(code.pc_descriptors());
   THR_Print("%s}\n", descriptors.ToCString());
 
-  uword start = Instructions::Handle(code.instructions()).EntryPoint();
+  uword start = Instructions::Handle(code.instructions()).PayloadStart();
   const Array& deopt_table = Array::Handle(code.deopt_info_array());
   intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
   if (deopt_table_length > 0) {
@@ -252,37 +229,39 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
   }
   THR_Print("}\n");
 
-  THR_Print("Variable Descriptors for function '%s' {\n",
-            function_fullname);
-  const LocalVarDescriptors& var_descriptors =
-      LocalVarDescriptors::Handle(code.GetLocalVarDescriptors());
-  intptr_t var_desc_length =
-      var_descriptors.IsNull() ? 0 : var_descriptors.Length();
-  String& var_name = String::Handle();
-  for (intptr_t i = 0; i < var_desc_length; i++) {
-    var_name = var_descriptors.GetName(i);
-    RawLocalVarDescriptors::VarInfo var_info;
-    var_descriptors.GetInfo(i, &var_info);
-    const int8_t kind = var_info.kind();
-    if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
-      THR_Print("  saved current CTX reg offset %d\n", var_info.index());
-    } else {
-      if (kind == RawLocalVarDescriptors::kContextLevel) {
-        THR_Print("  context level %d scope %d", var_info.index(),
-            var_info.scope_id);
-      } else if (kind == RawLocalVarDescriptors::kStackVar) {
-        THR_Print("  stack var '%s' offset %d",
-          var_name.ToCString(), var_info.index());
+  if (FLAG_print_variable_descriptors) {
+    THR_Print("Variable Descriptors for function '%s' {\n",
+              function_fullname);
+    const LocalVarDescriptors& var_descriptors =
+        LocalVarDescriptors::Handle(code.GetLocalVarDescriptors());
+    intptr_t var_desc_length =
+        var_descriptors.IsNull() ? 0 : var_descriptors.Length();
+    String& var_name = String::Handle();
+    for (intptr_t i = 0; i < var_desc_length; i++) {
+      var_name = var_descriptors.GetName(i);
+      RawLocalVarDescriptors::VarInfo var_info;
+      var_descriptors.GetInfo(i, &var_info);
+      const int8_t kind = var_info.kind();
+      if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+        THR_Print("  saved current CTX reg offset %d\n", var_info.index());
       } else {
-        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-        THR_Print("  context var '%s' level %d offset %d",
-            var_name.ToCString(), var_info.scope_id, var_info.index());
+        if (kind == RawLocalVarDescriptors::kContextLevel) {
+          THR_Print("  context level %d scope %d", var_info.index(),
+              var_info.scope_id);
+        } else if (kind == RawLocalVarDescriptors::kStackVar) {
+          THR_Print("  stack var '%s' offset %d",
+            var_name.ToCString(), var_info.index());
+        } else {
+          ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+          THR_Print("  context var '%s' level %d offset %d",
+              var_name.ToCString(), var_info.scope_id, var_info.index());
+        }
+        THR_Print(" (valid %s-%s)\n", var_info.begin_pos.ToCString(),
+                                      var_info.end_pos.ToCString());
       }
-      THR_Print(" (valid %s-%s)\n", var_info.begin_pos.ToCString(),
-                                    var_info.end_pos.ToCString());
     }
+    THR_Print("}\n");
   }
-  THR_Print("}\n");
 
   THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
   const ExceptionHandlers& handlers =
@@ -328,6 +307,22 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
     code.DumpInlinedIntervals();
   }
 }
+
+
+void Disassembler::DisassembleCode(const Function& function, bool optimized) {
+  const char* function_fullname = function.ToFullyQualifiedCString();
+  const Code& code = Code::Handle(function.CurrentCode());
+  DisassembleCodeHelper(function_fullname, code, optimized);
+}
+
+
+void Disassembler::DisassembleCodeUnoptimized(
+    const Function& function, bool optimized) {
+  const char* function_fullname = function.ToFullyQualifiedCString();
+  const Code& code = Code::Handle(function.unoptimized_code());
+  DisassembleCodeHelper(function_fullname, code, optimized);
+}
+
 
 #endif  // !PRODUCT
 

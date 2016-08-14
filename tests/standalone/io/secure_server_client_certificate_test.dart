@@ -66,15 +66,15 @@ Future testClientCertificate(
   X509Certificate clientCertificate = serverEnd.peerCertificate;
   if (sendCert) {
     Expect.isNotNull(clientCertificate);
-    Expect.equals("/CN=user1", clientCertificate.subject);
-    Expect.equals("/CN=clientauthority", clientCertificate.issuer);
+    Expect.isTrue(clientCertificate.subject.contains("user1"));
+    Expect.isTrue(clientCertificate.issuer.contains("clientauthority"));
   } else {
     Expect.isNull(clientCertificate);
   }
   X509Certificate serverCertificate = clientEnd.peerCertificate;
   Expect.isNotNull(serverCertificate);
-  Expect.equals("/CN=localhost", serverCertificate.subject);
-  Expect.equals("/CN=intermediateauthority", serverCertificate.issuer);
+  Expect.isTrue(serverCertificate.subject.contains("localhost"));
+  Expect.isTrue(serverCertificate.issuer.contains("intermediateauthority"));
   clientEnd.close();
   serverEnd.close();
 }

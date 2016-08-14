@@ -109,12 +109,12 @@ class CharSequenceReader implements CharacterReader {
   /**
    * The number of characters in the string.
    */
-  int _stringLength = 0;
+  int _stringLength;
 
   /**
-   * The index, relative to the string, of the last character that was read.
+   * The index, relative to the string, of the next character to be read.
    */
-  int _charOffset = 0;
+  int _charOffset;
 
   /**
    * Initialize a newly created reader to read the characters in the given
@@ -122,35 +122,35 @@ class CharSequenceReader implements CharacterReader {
    */
   CharSequenceReader(this._sequence) {
     this._stringLength = _sequence.length;
-    this._charOffset = -1;
+    this._charOffset = 0;
   }
 
   @override
-  int get offset => _charOffset;
+  int get offset => _charOffset - 1;
 
   @override
   void set offset(int offset) {
-    _charOffset = offset;
+    _charOffset = offset + 1;
   }
 
   @override
   int advance() {
-    if (_charOffset + 1 >= _stringLength) {
+    if (_charOffset >= _stringLength) {
       return -1;
     }
-    return _sequence.codeUnitAt(++_charOffset);
+    return _sequence.codeUnitAt(_charOffset++);
   }
 
   @override
   String getString(int start, int endDelta) =>
-      _sequence.substring(start, _charOffset + 1 + endDelta).toString();
+      _sequence.substring(start, _charOffset + endDelta);
 
   @override
   int peek() {
-    if (_charOffset + 1 >= _stringLength) {
+    if (_charOffset >= _stringLength) {
       return -1;
     }
-    return _sequence.codeUnitAt(_charOffset + 1);
+    return _sequence.codeUnitAt(_charOffset);
   }
 }
 

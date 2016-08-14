@@ -5,7 +5,6 @@
 part of dart2js.js_emitter;
 
 class NativeEmitter {
-
   // TODO(floitsch): the native-emitter should not know about ClassBuilders.
   final Map<Element, full_js_emitter.ClassBuilder> cachedBuilders;
 
@@ -35,11 +34,6 @@ class NativeEmitter {
   JavaScriptBackend get backend => compiler.backend;
 
   BackendHelpers get helpers => backend.helpers;
-
-  jsAst.Expression get defPropFunction {
-    Element element = helpers.defineProperty;
-    return emitterTask.staticFunctionAccess(element);
-  }
 
   /**
    * Prepares native classes for emission. Returns the unneeded classes.
@@ -71,7 +65,8 @@ class NativeEmitter {
    * [classesModifiedByEmitRTISupport] contains the list of classes that must
    * exist, because runtime-type support adds information to the class.
    */
-  Set<Class> prepareNativeClasses(List<Class> classes,
+  Set<Class> prepareNativeClasses(
+      List<Class> classes,
       Set<ClassElement> interceptorClassesNeededByConstants,
       Set<ClassElement> classesModifiedByEmitRTISupport) {
     assert(classes.every((Class cls) => cls != null));
@@ -101,6 +96,7 @@ class NativeEmitter {
       walk(cls.superclass);
       preOrder.add(cls);
     }
+
     classes.forEach(walk);
 
     // Find which classes are needed and which are non-leaf classes.  Any class
@@ -137,9 +133,9 @@ class NativeEmitter {
         needed = true;
       }
       if (backend.isJsInterop(classElement)) {
-        needed = true;  // TODO(jacobr): we don't need all interop classes.
+        needed = true; // TODO(jacobr): we don't need all interop classes.
       } else if (cls.isNative &&
-                 backend.hasNativeTagsForcedNonLeaf(classElement)) {
+          backend.nativeData.hasNativeTagsForcedNonLeaf(classElement)) {
         needed = true;
         nonLeafClasses.add(cls);
       }
@@ -159,10 +155,10 @@ class NativeEmitter {
     for (Class cls in classes) {
       if (!cls.isNative) continue;
       if (backend.isJsInterop(cls.element)) continue;
-      List<String> nativeTags = backend.getNativeTagsOfClass(cls.element);
+      List<String> nativeTags =
+          backend.nativeData.getNativeTagsOfClass(cls.element);
 
-      if (nonLeafClasses.contains(cls) ||
-          extensionPoints.containsKey(cls)) {
+      if (nonLeafClasses.contains(cls) || extensionPoints.containsKey(cls)) {
         nonleafTags
             .putIfAbsent(cls, () => new Set<String>())
             .addAll(nativeTags);
@@ -192,6 +188,7 @@ class NativeEmitter {
       }
       cls.nativeExtensions = extensionPoints[cls];
     }
+
     // Add properties containing the information needed to construct maps used
     // by getNativeInterceptor and custom elements.
     if (compiler.enqueuer.codegen.nativeEnqueuer
@@ -236,9 +233,7 @@ class NativeEmitter {
       if (cls.isNative) continue;
       Class nativeAncestor = nativeAncestorOf(cls);
       if (nativeAncestor != null) {
-        map
-          .putIfAbsent(nativeAncestor, () => <Class>[])
-          .add(cls);
+        map.putIfAbsent(nativeAncestor, () => <Class>[]).add(cls);
       }
     }
     return map;
@@ -251,18 +246,15 @@ class NativeEmitter {
           field.needsCheckedSetter;
     }
 
-    return
-        cls.methods.isEmpty &&
+    return cls.methods.isEmpty &&
         cls.isChecks.isEmpty &&
         cls.callStubs.isEmpty &&
         !cls.superclass.isMixinApplication &&
         !cls.fields.any(needsAccessor);
   }
 
-  void potentiallyConvertDartClosuresToJs(
-      List<jsAst.Statement> statements,
-      FunctionElement member,
-      List<jsAst.Parameter> stubParameters) {
+  void potentiallyConvertDartClosuresToJs(List<jsAst.Statement> statements,
+      FunctionElement member, List<jsAst.Parameter> stubParameters) {
     FunctionSignature parameters = member.functionSignature;
     Element converter = helpers.closureConverter;
     jsAst.Expression closureConverter =
@@ -279,9 +271,8 @@ class NativeEmitter {
             // typedef(s).
             FunctionType functionType = type;
             int arity = functionType.computeArity();
-            statements.add(
-                js.statement('# = #(#, $arity)',
-                    [name, closureConverter, name]));
+            statements.add(js
+                .statement('# = #(#, $arity)', [name, closureConverter, name]));
             break;
           }
         }
@@ -315,17 +306,17 @@ class NativeEmitter {
     assert(invariant(member, nativeMethods.contains(member)));
     // When calling a JS method, we call it with the native name, and only the
     // arguments up until the last one provided.
-    target = backend.getFixedBackendName(member);
+    target = backend.nativeData.getFixedBackendName(member);
 
     if (isInterceptedMethod) {
       receiver = argumentsBuffer[0];
-      arguments = argumentsBuffer.sublist(1,
-          indexOfLastOptionalArgumentInParameters + 1);
+      arguments = argumentsBuffer.sublist(
+          1, indexOfLastOptionalArgumentInParameters + 1);
     } else {
       // Native methods that are not intercepted must be static.
       assert(invariant(member, member.isStatic));
-      arguments = argumentsBuffer.sublist(0,
-          indexOfLastOptionalArgumentInParameters + 1);
+      arguments = argumentsBuffer.sublist(
+          0, indexOfLastOptionalArgumentInParameters + 1);
       if (backend.isJsInterop(member)) {
         // fixedBackendPath is allowed to have the form foo.bar.baz for
         // interop. This template is uncached to avoid possibly running out of
@@ -333,14 +324,15 @@ class NativeEmitter {
         // caching these templates causing an issue  is very low as each class
         // and library that uses typed JavaScript interop will create only 1
         // unique template.
-        receiver = js.uncachedExpressionTemplate(
-            backend.namer.fixedBackendPath(member)).instantiate([]);
+        receiver = js
+            .uncachedExpressionTemplate(backend.namer.fixedBackendPath(member))
+            .instantiate([]);
       } else {
         receiver = js('this');
       }
     }
-    statements.add(
-        js.statement('return #.#(#)', [receiver, target, arguments]));
+    statements
+        .add(js.statement('return #.#(#)', [receiver, target, arguments]));
 
     return statements;
   }

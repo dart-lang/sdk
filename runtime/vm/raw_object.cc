@@ -4,6 +4,7 @@
 
 #include "vm/raw_object.h"
 
+#include "vm/become.h"
 #include "vm/class_table.h"
 #include "vm/dart.h"
 #include "vm/freelist.h"
@@ -13,11 +14,6 @@
 
 
 namespace dart {
-
-#if defined(DEBUG)
-DEFINE_FLAG(bool, validate_overwrite, true, "Verify overwritten fields.");
-#endif  // DEBUG
-
 
 void RawObject::Validate(Isolate* isolate) const {
   if (Object::void_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
@@ -177,20 +173,25 @@ intptr_t RawObject::SizeFromClass() const {
       instance_size = element->Size();
       break;
     }
+    case kForwardingCorpse: {
+      uword addr = RawObject::ToAddr(this);
+      ForwardingCorpse* element = reinterpret_cast<ForwardingCorpse*>(addr);
+      instance_size = element->Size();
+      break;
+    }
     default: {
       // Get the (constant) instance size out of the class object.
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
       Isolate* isolate = Isolate::Current();
-      ClassTable* class_table = isolate->class_table();
 #if defined(DEBUG)
+      ClassTable* class_table = isolate->class_table();
       if (!class_table->IsValidIndex(class_id) ||
           !class_table->HasValidClassAt(class_id)) {
         FATAL2("Invalid class id: %" Pd " from tags %" Px "\n",
                class_id, ptr()->tags_);
       }
 #endif  // DEBUG
-      RawClass* raw_class = class_table->At(class_id);
-      ASSERT(raw_class->ptr()->id_ == class_id);
+      RawClass* raw_class = isolate->GetClassForHeapWalkAt(class_id);
       instance_size =
           raw_class->ptr()->instance_size_in_words_ << kWordSizeLog2;
     }
@@ -218,22 +219,6 @@ intptr_t RawObject::SizeFromClass() const {
 #endif  // DEBUG
   return instance_size;
 }
-
-
-#if defined(DEBUG)
-void RawObject::ValidateOverwrittenPointer(RawObject* raw) {
-  if (FLAG_validate_overwrite) {
-    raw->Validate(Isolate::Current());
-  }
-}
-
-
-void RawObject::ValidateOverwrittenSmi(RawSmi* raw) {
-  if (FLAG_validate_overwrite && raw->IsHeapObject() && raw != Object::null()) {
-    FATAL1("Expected smi/null, found: %" Px "\n", reinterpret_cast<uword>(raw));
-  }
-}
-#endif  // DEBUG
 
 
 intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
@@ -289,6 +274,12 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
         size = element->Size();
         break;
       }
+      case kForwardingCorpse: {
+        uword addr = RawObject::ToAddr(this);
+        ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
+        size = forwarder->Size();
+        break;
+      }
       case kNullCid:
         size = Size();
         break;
@@ -340,13 +331,6 @@ intptr_t RawType::VisitTypePointers(
     RawType* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return Type::InstanceSize();
-}
-
-
-intptr_t RawFunctionType::VisitFunctionTypePointers(
-    RawFunctionType* raw_obj, ObjectPointerVisitor* visitor) {
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return FunctionType::InstanceSize();
 }
 
 
@@ -542,8 +526,11 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 
   RawCode* obj = raw_obj->ptr();
   intptr_t length = Code::PtrOffBits::decode(obj->state_bits_);
+#if defined(TARGET_ARCH_IA32)
+  // On IA32 only we embed pointers to objects directly in the generated
+  // instructions. The variable portion of a Code object describes where to
+  // find those pointers for tracing.
   if (Code::AliveBit::decode(obj->state_bits_)) {
-    // Also visit all the embedded pointers in the corresponding instructions.
     uword entry_point = reinterpret_cast<uword>(obj->instructions_->ptr()) +
         Instructions::HeaderSize();
     for (intptr_t i = 0; i < length; i++) {
@@ -553,6 +540,12 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
     }
   }
   return Code::InstanceSize(length);
+#else
+  // On all other architectures, objects are referenced indirectly through
+  // either an ObjectPool or Thread.
+  ASSERT(length == 0);
+  return Code::InstanceSize(0);
+#endif
 }
 
 
@@ -711,7 +704,7 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
     RawClass* cls =
-        visitor->isolate()->class_table()->At(raw_obj->GetClassId());
+        visitor->isolate()->GetClassForHeapWalkAt(raw_obj->GetClassId());
     instance_size = cls->ptr()->instance_size_in_words_ << kWordSizeLog2;
   }
 
@@ -931,12 +924,12 @@ intptr_t RawStacktrace::VisitStacktracePointers(RawStacktrace* raw_obj,
 }
 
 
-intptr_t RawJSRegExp::VisitJSRegExpPointers(RawJSRegExp* raw_obj,
-                                            ObjectPointerVisitor* visitor) {
+intptr_t RawRegExp::VisitRegExpPointers(RawRegExp* raw_obj,
+                                        ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return JSRegExp::InstanceSize();
+  return RegExp::InstanceSize();
 }
 
 

@@ -5,12 +5,11 @@
 library analyzer.src.dart.element.member;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/constant.dart'
-    show DartObject, EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -462,6 +461,12 @@ abstract class Member implements Element {
   bool get isDeprecated => _baseElement.isDeprecated;
 
   @override
+  bool get isFactory => _baseElement.isFactory;
+
+  @override
+  bool get isJS => _baseElement.isJS;
+
+  @override
   bool get isOverride => _baseElement.isOverride;
 
   @override
@@ -474,6 +479,9 @@ abstract class Member implements Element {
   bool get isPublic => _baseElement.isPublic;
 
   @override
+  bool get isRequired => _baseElement.isRequired;
+
+  @override
   bool get isSynthetic => _baseElement.isSynthetic;
 
   @override
@@ -481,6 +489,9 @@ abstract class Member implements Element {
 
   @override
   LibraryElement get library => _baseElement.library;
+
+  @override
+  Source get librarySource => _baseElement.librarySource;
 
   @override
   ElementLocation get location => _baseElement.location;
@@ -510,7 +521,8 @@ abstract class Member implements Element {
   AstNode computeNode() => _baseElement.computeNode();
 
   @override
-  Element getAncestor(Predicate<Element> predicate) =>
+  Element/*=E*/ getAncestor/*<E extends Element >*/(
+          Predicate<Element> predicate) =>
       baseElement.getAncestor(predicate);
 
   @override
@@ -524,6 +536,7 @@ abstract class Member implements Element {
   /**
    * If the given [child] is not `null`, use the given [visitor] to visit it.
    */
+  @deprecated
   void safelyVisitChild(Element child, ElementVisitor visitor) {
     // TODO(brianwilkerson) Make this private
     if (child != null) {
@@ -694,20 +707,21 @@ class ParameterMember extends VariableMember
   FormalParameter computeNode() => baseElement.computeNode();
 
   @override
-  Element getAncestor(Predicate<Element> predicate) {
+  Element/*=E*/ getAncestor/*<E extends Element>*/(
+      Predicate<Element> predicate) {
     Element element = baseElement.getAncestor(predicate);
     ParameterizedType definingType = this.definingType;
     if (definingType is InterfaceType) {
-      InterfaceType definingInterfaceType = definingType;
       if (element is ConstructorElement) {
-        return ConstructorMember.from(element, definingInterfaceType);
+        return ConstructorMember.from(element, definingType) as Element/*=E*/;
       } else if (element is MethodElement) {
-        return MethodMember.from(element, definingInterfaceType);
+        return MethodMember.from(element, definingType) as Element/*=E*/;
       } else if (element is PropertyAccessorElement) {
-        return PropertyAccessorMember.from(element, definingInterfaceType);
+        return PropertyAccessorMember.from(element, definingType)
+            as Element/*=E*/;
       }
     }
-    return element;
+    return element as Element/*=E*/;
   }
 
   @override
@@ -1017,10 +1031,12 @@ abstract class VariableMember extends Member implements VariableElement {
   bool get isFinal => baseElement.isFinal;
 
   @override
+  @deprecated
   bool get isPotentiallyMutatedInClosure =>
       baseElement.isPotentiallyMutatedInClosure;
 
   @override
+  @deprecated
   bool get isPotentiallyMutatedInScope =>
       baseElement.isPotentiallyMutatedInScope;
 
@@ -1028,10 +1044,13 @@ abstract class VariableMember extends Member implements VariableElement {
   bool get isStatic => baseElement.isStatic;
 
   @override
+  DartObject computeConstantValue() => baseElement.computeConstantValue();
+
+  @override
   void visitChildren(ElementVisitor visitor) {
     // TODO(brianwilkerson) We need to finish implementing the accessors used
     // below so that we can safely invoke them.
     super.visitChildren(visitor);
-    safelyVisitChild(baseElement.initializer, visitor);
+    baseElement.initializer?.accept(visitor);
   }
 }

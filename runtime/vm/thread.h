@@ -23,6 +23,7 @@ class Array;
 class CHA;
 class Class;
 class Code;
+class CompilerStats;
 class Error;
 class ExceptionHandlers;
 class Field;
@@ -44,8 +45,10 @@ class RawError;
 class RawGrowableObjectArray;
 class RawString;
 class RuntimeEntry;
+class Smi;
 class StackResource;
 class String;
+class TimelineStream;
 class TypeArguments;
 class TypeParameter;
 class Zone;
@@ -64,16 +67,16 @@ class Zone;
   V(Library)                                                                   \
   V(Object)                                                                    \
   V(PcDescriptors)                                                             \
+  V(Smi)                                                                       \
   V(String)                                                                    \
   V(TypeArguments)                                                             \
   V(TypeParameter)                                                             \
 
 
-// List of VM-global objects/addresses cached in each Thread object.
-#define CACHED_VM_OBJECTS_LIST(V)                                              \
-  V(RawObject*, object_null_, Object::null(), NULL)                            \
-  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
-  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+#if defined(TARGET_ARCH_DBC)
+#define CACHED_VM_STUBS_LIST(V)
+#else
+#define CACHED_VM_STUBS_LIST(V)                                                \
   V(RawCode*, update_store_buffer_code_,                                       \
     StubCode::UpdateStoreBuffer_entry()->code(), NULL)                         \
   V(RawCode*, fix_callers_target_code_,                                        \
@@ -84,12 +87,35 @@ class Zone;
     StubCode::InvokeDartCode_entry()->code(), NULL)                            \
   V(RawCode*, call_to_runtime_stub_,                                           \
     StubCode::CallToRuntime_entry()->code(), NULL)                             \
+  V(RawCode*, monomorphic_miss_stub_,                                          \
+    StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
+  V(RawCode*, ic_lookup_through_code_stub_,                                    \
+    StubCode::ICLookupThroughCode_entry()->code(), NULL)                       \
 
-#define CACHED_ADDRESSES_LIST(V)                                               \
+#endif
+
+// List of VM-global objects/addresses cached in each Thread object.
+#define CACHED_VM_OBJECTS_LIST(V)                                              \
+  V(RawObject*, object_null_, Object::null(), NULL)                            \
+  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+  CACHED_VM_STUBS_LIST(V)                                                      \
+
+#if defined(TARGET_ARCH_DBC)
+#define CACHED_VM_STUBS_ADDRESSES_LIST(V)
+#else
+#define CACHED_VM_STUBS_ADDRESSES_LIST(V)                                      \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
+  V(uword, megamorphic_lookup_checked_entry_,                                  \
+    StubCode::MegamorphicLookup_entry()->CheckedEntryPoint(), 0)               \
+
+#endif
+
+#define CACHED_ADDRESSES_LIST(V)                                               \
+  CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
   V(uword, native_call_wrapper_entry_point_,                                   \
     NativeEntry::NativeCallWrapperEntry(), 0)                                  \
   V(RawString**, predefined_symbols_address_,                                  \
@@ -118,6 +144,15 @@ class Zone;
 // must currently be called manually (issue 23474).
 class Thread : public BaseThread {
  public:
+  // The kind of task this thread is performing. Sampled by the profiler.
+  enum TaskKind {
+    kUnknownTask = 0x0,
+    kMutatorTask = 0x1,
+    kCompilerTask = 0x2,
+    kSweeperTask = 0x4,
+    kMarkerTask = 0x8,
+    kFinalizerTask = 0x10,
+  };
   ~Thread();
 
   // The currently executing thread, or NULL if not yet initialized.
@@ -139,11 +174,77 @@ class Thread : public BaseThread {
   // SweeperTask (which uses the class table, which is copy-on-write).
   // TODO(koda): Properly synchronize heap access to expand allowed operations.
   static bool EnterIsolateAsHelper(Isolate* isolate,
+                                   TaskKind kind,
                                    bool bypass_safepoint = false);
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
   // Empties the store buffer block into the isolate.
   void PrepareForGC();
+
+  void SetStackLimit(uword value);
+  void SetStackLimitFromStackBase(uword stack_base);
+  void ClearStackLimit();
+
+  // Returns the current C++ stack pointer. Equivalent taking the address of a
+  // stack allocated local, but plays well with AddressSanitizer.
+  static uword GetCurrentStackPointer();
+
+  // Access to the current stack limit for generated code.  This may be
+  // overwritten with a special value to trigger interrupts.
+  uword stack_limit_address() const {
+    return reinterpret_cast<uword>(&stack_limit_);
+  }
+  static intptr_t stack_limit_offset() {
+    return OFFSET_OF(Thread, stack_limit_);
+  }
+
+  // The true stack limit for this isolate.
+  uword saved_stack_limit() const { return saved_stack_limit_; }
+
+#if defined(TARGET_ARCH_DBC)
+  // Access to the current stack limit for DBC interpreter.
+  uword stack_limit() const {
+    return stack_limit_;
+  }
+#endif
+
+  // Stack overflow flags
+  enum {
+    kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
+  };
+
+  uword stack_overflow_flags_address() const {
+    return reinterpret_cast<uword>(&stack_overflow_flags_);
+  }
+  static intptr_t stack_overflow_flags_offset() {
+    return OFFSET_OF(Thread, stack_overflow_flags_);
+  }
+
+  int32_t IncrementAndGetStackOverflowCount() {
+    return ++stack_overflow_count_;
+  }
+
+  TaskKind task_kind() const {
+    return task_kind_;
+  }
+
+  // Retrieves and clears the stack overflow flags.  These are set by
+  // the generated code before the slow path runtime routine for a
+  // stack overflow is called.
+  uword GetAndClearStackOverflowFlags();
+
+  // Interrupt bits.
+  enum {
+    kVMInterrupt = 0x1,  // Internal VM checks: safepoints, store buffers, etc.
+    kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
+
+    kInterruptsMask = (kVMInterrupt | kMessageInterrupt),
+  };
+
+  void ScheduleInterrupts(uword interrupt_bits);
+  void ScheduleInterruptsLocked(uword interrupt_bits);
+  RawError* HandleInterrupts();
+  uword GetAndClearInterrupts();
 
   // OSThread corresponding to this thread.
   OSThread* os_thread() const { return os_thread_; }
@@ -176,6 +277,11 @@ class Thread : public BaseThread {
   }
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
+
+  // Offset of Dart TimelineStream object.
+  static intptr_t dart_stream_offset() {
+    return OFFSET_OF(Thread, dart_stream_);
+  }
 
   // Is |this| executing Dart code?
   bool IsExecutingDartCode() const;
@@ -376,6 +482,8 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   void set_sticky_error(const Error& value);
   void clear_sticky_error();
 
+  CompilerStats* compiler_stats() { return compiler_stats_; }
+
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
   void set_reusable_##object##_handle_scope_active(bool value) {               \
@@ -521,7 +629,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Thread* next() const { return next_; }
 
   // Visit all object pointers.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
   bool IsValidLocalHandle(Dart_Handle object) const;
   int CountLocalHandles() const;
@@ -533,33 +641,15 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
  private:
   template<class T> T* AllocateReusableHandle();
 
-  OSThread* os_thread_;
-  Monitor* thread_lock_;
+  // Accessed from generated code:
+  uword stack_limit_;
+  uword stack_overflow_flags_;
   Isolate* isolate_;
   Heap* heap_;
-  Zone* zone_;
-  ApiLocalScope* api_reusable_scope_;
-  ApiLocalScope* api_top_scope_;
   uword top_exit_frame_info_;
-  StackResource* top_resource_;
-  LongJumpScope* long_jump_base_;
   StoreBufferBlock* store_buffer_block_;
-  int32_t no_callback_scope_depth_;
-#if defined(DEBUG)
-  HandleScope* top_handle_scope_;
-  int32_t no_handle_scope_depth_;
-  int32_t no_safepoint_scope_depth_;
-#endif
-  VMHandles reusable_handles_;
-
-  // Compiler state:
-  CHA* cha_;
-  intptr_t deopt_id_;  // Compilation specific counter.
   uword vm_tag_;
-  RawGrowableObjectArray* pending_functions_;
-
-  RawError* sticky_error_;
-
+  TaskKind task_kind_;
   // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
@@ -575,6 +665,36 @@ RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
   uword name##_entry_point_;
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
+
+  TimelineStream* dart_stream_;
+  OSThread* os_thread_;
+  Monitor* thread_lock_;
+  Zone* zone_;
+  ApiLocalScope* api_reusable_scope_;
+  ApiLocalScope* api_top_scope_;
+  StackResource* top_resource_;
+  LongJumpScope* long_jump_base_;
+  int32_t no_callback_scope_depth_;
+#if defined(DEBUG)
+  HandleScope* top_handle_scope_;
+  int32_t no_handle_scope_depth_;
+  int32_t no_safepoint_scope_depth_;
+#endif
+  VMHandles reusable_handles_;
+  uword saved_stack_limit_;
+  intptr_t defer_oob_messages_count_;
+  uint16_t deferred_interrupts_mask_;
+  uint16_t deferred_interrupts_;
+  int32_t stack_overflow_count_;
+
+  // Compiler state:
+  CHA* cha_;
+  intptr_t deopt_id_;  // Compilation specific counter.
+  RawGrowableObjectArray* pending_functions_;
+
+  RawError* sticky_error_;
+
+  CompilerStats* compiler_stats_;
 
   // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object)                                         \
@@ -622,13 +742,19 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
     OSThread::SetCurrentTLS(reinterpret_cast<uword>(current));
   }
 
+  void DeferOOBMessageInterrupts();
+  void RestoreOOBMessageInterrupts();
+
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
+  friend class InterruptChecker;
   friend class Isolate;
+  friend class IsolateTestHelper;
+  friend class NoOOBMessageScope;
   friend class Simulator;
   friend class StackZone;
   friend class ThreadRegistry;

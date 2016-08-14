@@ -7,6 +7,7 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_MIPS.
 #if defined(TARGET_ARCH_MIPS)
 #include "platform/assert.h"
+#include "vm/instructions.h"
 
 namespace dart {
 
@@ -778,13 +779,22 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
 
 void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                      char* human_buffer, intptr_t human_size,
-                                     int* out_instr_len, uword pc) {
+                                     int* out_instr_len, const Code& code,
+                                     Object** object, uword pc) {
   MIPSDecoder decoder(human_buffer, human_size);
   Instr* instr = Instr::At(pc);
   decoder.InstructionDecode(instr);
   OS::SNPrint(hex_buffer, hex_size, "%08x", instr->InstructionBits());
   if (out_instr_len) {
     *out_instr_len = Instr::kInstrSize;
+  }
+
+  *object = NULL;
+  if (!code.IsNull()) {
+    *object = &Object::Handle();
+    if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
+      *object = NULL;
+    }
   }
 }
 

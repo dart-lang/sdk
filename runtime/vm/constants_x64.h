@@ -93,7 +93,7 @@ const Register ICREG = RBX;  // IC data register.
 const Register ARGS_DESC_REG = R10;  // Arguments descriptor register.
 const Register CODE_REG = R12;
 const Register THR = R14;  // Caches current thread in generated code.
-
+const Register CALLEE_SAVED_TEMP = RBX;
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

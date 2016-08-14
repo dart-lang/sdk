@@ -417,14 +417,14 @@ class _IterationMarker {
   final value;
   final int state;
 
-  _IterationMarker._(this.state, this.value);
+  const _IterationMarker._(this.state, this.value);
 
   static yieldStar(dynamic /* Iterable or Stream */ values) {
     return new _IterationMarker._(YIELD_STAR, values);
   }
 
   static endOfIteration() {
-    return new _IterationMarker._(ITERATION_ENDED, null);
+    return const _IterationMarker._(ITERATION_ENDED, null);
   }
 
   static yieldSingle(dynamic value) {
@@ -439,16 +439,32 @@ class _IterationMarker {
 }
 
 class _SyncStarIterator implements Iterator {
-  final dynamic _body;
+  // _SyncStarIterator handles stepping a sync* generator body state machine.
+  //
+  // It also handles the stepping over 'nested' iterators to flatten yield*
+  // statements. For non-sync* iterators, [_nestedIterator] contains the
+  // iterator. We delegate to [_nestedIterator] when it is not `null`.
+  //
+  // For nested sync* iterators, [this] iterator acts on behalf of the innermost
+  // nested sync* iterator. The current state machine is suspended on a stack
+  // until the inner state machine ends.
 
-  // If [runningNested] this is the nested iterator, otherwise it is the
-  // current value.
+  // The state machine for the innermost _SyncStarIterator.
+  dynamic _body;
+
+  // The current value, unless iterating a non-sync* nested iterator.
   dynamic _current = null;
-  bool _runningNested = false;
 
-  get current => _runningNested ? _current.current : _current;
+  // This is the nested iterator when iterating a yield* of a non-sync iterator.
+  Iterator _nestedIterator = null;
+
+  // Stack of suspended state machines when iterating a yield* of a sync*
+  // iterator.
+  List _suspendedBodies = null;
 
   _SyncStarIterator(this._body);
+
+  get current => _nestedIterator == null ? _current : _nestedIterator.current;
 
   _runBody() {
     // TODO(sra): Find a way to hard-wire SUCCESS and ERROR codes.
@@ -472,33 +488,56 @@ class _SyncStarIterator implements Iterator {
         _body, async_error_codes.SUCCESS, async_error_codes.ERROR);
   }
 
-
   bool moveNext() {
-    if (_runningNested) {
-      if (_current.moveNext()) {
+    while (true) {
+      if (_nestedIterator != null) {
+        if (_nestedIterator.moveNext()) {
+          return true;
+        } else {
+          _nestedIterator = null;
+        }
+      }
+      var value = _runBody();
+      if (value is _IterationMarker) {
+        int state = value.state;
+        if (state == _IterationMarker.ITERATION_ENDED) {
+          if (_suspendedBodies == null || _suspendedBodies.isEmpty) {
+            _current = null;
+            // Rely on [_body] to repeatedly return `ITERATION_ENDED`.
+            return false;
+          }
+          // Resume the innermost suspended iterator.
+          _body = _suspendedBodies.removeLast();
+          continue;
+        } else if (state == _IterationMarker.UNCAUGHT_ERROR) {
+          // Rely on [_body] to repeatedly return `UNCAUGHT_ERROR`.
+          // This is a wrapped exception, so we use JavaScript throw to throw
+          // it.
+          JS('', 'throw #', value.value);
+        } else {
+          assert(state == _IterationMarker.YIELD_STAR);
+          Iterator inner = value.value.iterator;
+          if (inner is _SyncStarIterator) {
+            // Suspend the current state machine and start acting on behalf of
+            // the nested state machine.
+            //
+            // TODO(sra): Recognize "tail yield*" statements and avoid
+            // suspending the current body when all it will do is step without
+            // effect to ITERATION_ENDED.
+            (_suspendedBodies ??= []).add(_body);
+            _body = inner._body;
+            continue;
+          } else {
+            _nestedIterator = inner;
+            continue;
+          }
+        }
+      } else {
+        _current = value;
         return true;
-      } else {
-        _runningNested = false;
       }
     }
-    _current = _runBody();
-    if (_current is _IterationMarker) {
-      if (_current.state == _IterationMarker.ITERATION_ENDED) {
-        _current = null;
-        // Rely on [_body] to repeatedly return `ITERATION_ENDED`.
-        return false;
-      } else if (_current.state == _IterationMarker.UNCAUGHT_ERROR) {
-        // Rely on [_body] to repeatedly return `UNCAUGHT_ERROR`.
-        // This is a wrapped exception, so we use JavaScript throw to throw it.
-        JS('', 'throw #', _current.value);
-      } else {
-        assert(_current.state == _IterationMarker.YIELD_STAR);
-        _current = _current.value.iterator;
-        _runningNested = true;
-        return moveNext();
-      }
-    }
-    return true;
+    return false;  // TODO(sra): Fix type inference so that this is not needed.
   }
 }
 

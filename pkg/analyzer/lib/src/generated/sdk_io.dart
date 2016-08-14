@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@deprecated
 library analyzer.src.generated.sdk_io;
 
 import 'dart:collection';
@@ -25,6 +26,220 @@ import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
+ * An abstract implementation of a Dart SDK in which the available libraries are
+ * stored in a library map. Subclasses are responsible for populating the
+ * library map.
+ */
+@deprecated
+abstract class AbstractDartSdk implements DartSdk {
+  /**
+   * A mapping from Dart library URI's to the library represented by that URI.
+   */
+  LibraryMap libraryMap = new LibraryMap();
+
+  /**
+   * The [AnalysisOptions] to use to create the [context].
+   */
+  AnalysisOptions _analysisOptions;
+
+  /**
+   * The flag that specifies whether an SDK summary should be used. This is a
+   * temporary flag until summaries are enabled by default.
+   */
+  bool _useSummary = false;
+
+  /**
+   * The [AnalysisContext] which is used for all of the sources in this SDK.
+   */
+  InternalAnalysisContext _analysisContext;
+
+  /**
+   * The mapping from Dart URI's to the corresponding sources.
+   */
+  Map<String, Source> _uriToSourceMap = new HashMap<String, Source>();
+
+  /**
+   * Set the [options] for this SDK analysis context.  Throw [StateError] if the
+   * context has been already created.
+   */
+  void set analysisOptions(AnalysisOptions options) {
+    if (_analysisContext != null) {
+      throw new StateError(
+          'Analysis options cannot be changed after context creation.');
+    }
+    _analysisOptions = options;
+  }
+
+  @override
+  AnalysisContext get context {
+    if (_analysisContext == null) {
+      _analysisContext = new SdkAnalysisContext(_analysisOptions);
+      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
+      _analysisContext.sourceFactory = factory;
+      if (_useSummary) {
+        bool strongMode = _analysisOptions?.strongMode ?? false;
+        PackageBundle sdkBundle = getSummarySdkBundle(strongMode);
+        if (sdkBundle != null) {
+          _analysisContext.resultProvider = new SdkSummaryResultProvider(
+              _analysisContext, sdkBundle, strongMode);
+        }
+      }
+    }
+    return _analysisContext;
+  }
+
+  @override
+  List<SdkLibrary> get sdkLibraries => libraryMap.sdkLibraries;
+
+  @override
+  List<String> get uris => libraryMap.uris;
+
+  /**
+   * Return `true` if the SDK summary will be used when available.
+   */
+  bool get useSummary => _useSummary;
+
+  /**
+   * Specify whether SDK summary should be used.
+   */
+  void set useSummary(bool use) {
+    if (_analysisContext != null) {
+      throw new StateError(
+          'The "useSummary" flag cannot be changed after context creation.');
+    }
+    _useSummary = use;
+  }
+
+  /**
+   * Add the extensions from one or more sdk extension files to this sdk. The
+   * [extensions] should be a table mapping the names of extensions to the paths
+   * where those extensions can be found.
+   */
+  void addExtensions(Map<String, String> extensions) {
+    extensions.forEach((String uri, String path) {
+      String shortName = uri.substring(uri.indexOf(':') + 1);
+      SdkLibraryImpl library = new SdkLibraryImpl(shortName);
+      library.path = path;
+      libraryMap.setLibrary(uri, library);
+    });
+  }
+
+  @override
+  Source fromFileUri(Uri uri) {
+    JavaFile file = new JavaFile.fromUri(uri);
+
+    String path = _getPath(file);
+    if (path == null) {
+      return null;
+    }
+    try {
+      return new FileBasedSource(file, parseUriWithException(path));
+    } on URISyntaxException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Failed to create URI: $path",
+          new CaughtException(exception, stackTrace));
+    }
+    return null;
+  }
+
+  String getRelativePathFromFile(JavaFile file);
+
+  @override
+  SdkLibrary getSdkLibrary(String dartUri) => libraryMap.getLibrary(dartUri);
+
+  /**
+   * Return the [PackageBundle] for this SDK, if it exists, or `null` otherwise.
+   * This method should not be used outside of `analyzer` and `analyzer_cli`
+   * packages.
+   */
+  PackageBundle getSummarySdkBundle(bool strongMode);
+
+  FileBasedSource internalMapDartUri(String dartUri) {
+    // TODO(brianwilkerson) Figure out how to unify the implementations in the
+    // two subclasses.
+    String libraryName;
+    String relativePath;
+    int index = dartUri.indexOf('/');
+    if (index >= 0) {
+      libraryName = dartUri.substring(0, index);
+      relativePath = dartUri.substring(index + 1);
+    } else {
+      libraryName = dartUri;
+      relativePath = "";
+    }
+    SdkLibrary library = getSdkLibrary(libraryName);
+    if (library == null) {
+      return null;
+    }
+    String srcPath;
+    if (relativePath.isEmpty) {
+      srcPath = library.path;
+    } else {
+      String libraryPath = library.path;
+      int index = libraryPath.lastIndexOf(JavaFile.separator);
+      if (index == -1) {
+        index = libraryPath.lastIndexOf('/');
+        if (index == -1) {
+          return null;
+        }
+      }
+      String prefix = libraryPath.substring(0, index + 1);
+      srcPath = '$prefix$relativePath';
+    }
+    String filePath = srcPath.replaceAll('/', JavaFile.separator);
+    try {
+      JavaFile file = new JavaFile(filePath);
+      return new FileBasedSource(file, parseUriWithException(dartUri));
+    } on URISyntaxException {
+      return null;
+    }
+  }
+
+  @override
+  Source mapDartUri(String dartUri) {
+    Source source = _uriToSourceMap[dartUri];
+    if (source == null) {
+      source = internalMapDartUri(dartUri);
+      _uriToSourceMap[dartUri] = source;
+    }
+    return source;
+  }
+
+  String _getPath(JavaFile file) {
+    List<SdkLibrary> libraries = libraryMap.sdkLibraries;
+    int length = libraries.length;
+    List<String> paths = new List(length);
+    String filePath = getRelativePathFromFile(file);
+    if (filePath == null) {
+      return null;
+    }
+    for (int i = 0; i < length; i++) {
+      SdkLibrary library = libraries[i];
+      String libraryPath = library.path.replaceAll('/', JavaFile.separator);
+      if (filePath == libraryPath) {
+        return library.shortName;
+      }
+      paths[i] = libraryPath;
+    }
+    for (int i = 0; i < length; i++) {
+      SdkLibrary library = libraries[i];
+      String libraryPath = paths[i];
+      int index = libraryPath.lastIndexOf(JavaFile.separator);
+      if (index >= 0) {
+        String prefix = libraryPath.substring(0, index + 1);
+        if (filePath.startsWith(prefix)) {
+          String relPath = filePath
+              .substring(prefix.length)
+              .replaceAll(JavaFile.separator, '/');
+          return '${library.shortName}/$relPath';
+        }
+      }
+    }
+    return null;
+  }
+}
+
+/**
  * A Dart SDK installed in a specified directory. Typical Dart SDK layout is
  * something like...
  *
@@ -39,8 +254,11 @@ import 'package:path/path.dart' as pathos;
  *        util/
  *           ... Dart utilities ...
  *     Chromium/   <-- Dartium typically exists in a sibling directory
+ *
+ * This class is deprecated. Please use FolderBasedDartSdk instead.
  */
-class DirectoryBasedDartSdk implements DartSdk {
+@deprecated
+class DirectoryBasedDartSdk extends AbstractDartSdk {
   /**
    * The default SDK, or `null` if the default SDK either has not yet been
    * created or cannot be created for some reason.
@@ -193,11 +411,6 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
-   * The [AnalysisContext] which is used for all of the sources in this sdk.
-   */
-  InternalAnalysisContext _analysisContext;
-
-  /**
    * The directory containing the SDK.
    */
   JavaFile _sdkDirectory;
@@ -206,11 +419,6 @@ class DirectoryBasedDartSdk implements DartSdk {
    * The directory within the SDK directory that contains the libraries.
    */
   JavaFile _libraryDirectory;
-
-  /**
-   * The flag that specifies whether SDK summary should be used.
-   */
-  bool _useSummary = false;
 
   /**
    * The revision number of this SDK, or `"0"` if the revision number cannot be
@@ -239,33 +447,13 @@ class DirectoryBasedDartSdk implements DartSdk {
   JavaFile _vmExecutable;
 
   /**
-   * A mapping from Dart library URI's to the library represented by that URI.
-   */
-  LibraryMap _libraryMap;
-
-  /**
-   * The mapping from Dart URI's to the corresponding sources.
-   */
-  Map<String, Source> _uriToSourceMap = new HashMap<String, Source>();
-
-  /**
    * Initialize a newly created SDK to represent the Dart SDK installed in the
    * [sdkDirectory]. The flag [useDart2jsPaths] is `true` if the dart2js path
    * should be used when it is available
    */
   DirectoryBasedDartSdk(JavaFile sdkDirectory, [bool useDart2jsPaths = false]) {
     this._sdkDirectory = sdkDirectory.getAbsoluteFile();
-    _libraryMap = initialLibraryMap(useDart2jsPaths);
-  }
-
-  @override
-  AnalysisContext get context {
-    if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext();
-      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
-      _analysisContext.sourceFactory = factory;
-    }
-    return _analysisContext;
+    libraryMap = initialLibraryMap(useDart2jsPaths);
   }
 
   /**
@@ -361,9 +549,6 @@ class DirectoryBasedDartSdk implements DartSdk {
     return _pubExecutable;
   }
 
-  @override
-  List<SdkLibrary> get sdkLibraries => _libraryMap.sdkLibraries;
-
   /**
    * Return the revision number of this SDK, or `"0"` if the revision number
    * cannot be discovered.
@@ -384,23 +569,6 @@ class DirectoryBasedDartSdk implements DartSdk {
       }
     }
     return _sdkVersion;
-  }
-
-  @override
-  List<String> get uris => _libraryMap.uris;
-
-  /**
-   * Specify whether SDK summary should be used.
-   */
-  void set useSummary(bool use) {
-    _useSummary = use;
-    if (_useSummary) {
-      PackageBundle sdkBundle = _getSummarySdkBundle();
-      if (sdkBundle != null) {
-        _analysisContext.resultProvider =
-            new SdkSummaryResultProvider(_analysisContext, sdkBundle);
-      }
-    }
   }
 
   /**
@@ -443,45 +611,6 @@ class DirectoryBasedDartSdk implements DartSdk {
         _LIBRARIES_FILE);
   }
 
-  @override
-  Source fromFileUri(Uri uri) {
-    JavaFile file = new JavaFile.fromUri(uri);
-    String filePath = file.getAbsolutePath();
-    String libPath = libraryDirectory.getAbsolutePath();
-    if (!filePath.startsWith("$libPath${JavaFile.separator}")) {
-      return null;
-    }
-    filePath = filePath.substring(libPath.length + 1);
-    for (SdkLibrary library in _libraryMap.sdkLibraries) {
-      String libraryPath = library.path;
-      if (filePath.replaceAll('\\', '/') == libraryPath) {
-        String path = library.shortName;
-        try {
-          return new FileBasedSource(file, parseUriWithException(path));
-        } on URISyntaxException catch (exception, stackTrace) {
-          AnalysisEngine.instance.logger.logInformation(
-              "Failed to create URI: $path",
-              new CaughtException(exception, stackTrace));
-          return null;
-        }
-      }
-      libraryPath = new JavaFile(library.path).getParent();
-      if (filePath.startsWith("$libraryPath${JavaFile.separator}")) {
-        String path =
-            "${library.shortName}/${filePath.substring(libraryPath.length + 1)}";
-        try {
-          return new FileBasedSource(file, parseUriWithException(path));
-        } on URISyntaxException catch (exception, stackTrace) {
-          AnalysisEngine.instance.logger.logInformation(
-              "Failed to create URI: $path",
-              new CaughtException(exception, stackTrace));
-          return null;
-        }
-      }
-    }
-    return null;
-  }
-
   /**
    * Return the directory where dartium can be found (the directory that will be
    * the working directory if Dartium is invoked without changing the default),
@@ -509,7 +638,40 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   @override
-  SdkLibrary getSdkLibrary(String dartUri) => _libraryMap.getLibrary(dartUri);
+  PackageBundle getLinkedBundle() => null;
+
+  @override
+  String getRelativePathFromFile(JavaFile file) {
+    String filePath = file.getAbsolutePath();
+    String libPath = libraryDirectory.getAbsolutePath();
+    if (!filePath.startsWith("$libPath${JavaFile.separator}")) {
+      return null;
+    }
+    return filePath.substring(libPath.length + 1);
+  }
+
+  /**
+   * Return the [PackageBundle] for this SDK, if it exists, or `null` otherwise.
+   * This method should not be used outside of `analyzer` and `analyzer_cli`
+   * packages.
+   */
+  PackageBundle getSummarySdkBundle(bool strongMode) {
+    String rootPath = directory.getAbsolutePath();
+    String name = strongMode ? 'strong.sum' : 'spec.sum';
+    String path = pathos.join(rootPath, 'lib', '_internal', name);
+    try {
+      File file = new File(path);
+      if (file.existsSync()) {
+        List<int> bytes = file.readAsBytesSync();
+        return new PackageBundle.fromBuffer(bytes);
+      }
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Failed to load SDK analysis summary from $path',
+          new CaughtException(exception, stackTrace));
+    }
+    return null;
+  }
 
   /**
    * Read all of the configuration files to initialize the library maps. The
@@ -538,38 +700,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   @override
-  Source mapDartUri(String dartUri) {
-    Source source = _uriToSourceMap[dartUri];
-    if (source == null) {
-      source = _mapDartUri(dartUri);
-      _uriToSourceMap[dartUri] = source;
-    }
-    return source;
-  }
-
-  /**
-   * Return the [PackageBundle] for this SDK, if it exists, or `null` otherwise.
-   */
-  PackageBundle _getSummarySdkBundle() {
-    String rootPath = directory.getAbsolutePath();
-    String name =
-        context.analysisOptions.strongMode ? 'strong.sum' : 'spec.sum';
-    String path = pathos.join(rootPath, 'lib', '_internal', name);
-    try {
-      File file = new File(path);
-      if (file.existsSync()) {
-        List<int> bytes = file.readAsBytesSync();
-        return new PackageBundle.fromBuffer(bytes);
-      }
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          'Failed to load SDK analysis summary from $path',
-          new CaughtException(exception, stackTrace));
-    }
-    return null;
-  }
-
-  FileBasedSource _mapDartUri(String dartUri) {
+  FileBasedSource internalMapDartUri(String dartUri) {
     String libraryName;
     String relativePath;
     int index = dartUri.indexOf('/');
@@ -627,6 +758,7 @@ class DirectoryBasedDartSdk implements DartSdk {
  *         platforms: 0),
  *     };
  */
+@deprecated
 class SdkLibrariesReader {
   /**
    * A flag indicating whether the dart2js path should be used when it is

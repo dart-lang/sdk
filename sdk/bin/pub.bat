@@ -30,7 +30,7 @@ if not "_%DART_VM_OPTIONS%_" == "__" (
 
 rem Use the Dart binary in the built SDK so pub can find the version file next
 rem to it.
-set BUILD_DIR=%SDK_DIR%\..\build\ReleaseX64
+set BUILD_DIR=%SDK_DIR%\..\out\ReleaseX64
 set PACKAGES_DIR=%BUILD_DIR%\packages
 set DART=%BUILD_DIR%\dart-sdk\bin\dart
 
@@ -47,7 +47,7 @@ setlocal
 for %%i in (%1) do set result=%%~fi
 set current=
 for /f "usebackq tokens=2 delims=[]" %%i in (`dir /a:l "%~dp1" 2^>nul ^
-                                             ^| find ">     %~n1 ["`) do (
+                                             ^| %SystemRoot%\System32\find.exe ">     %~n1 ["`) do (
   set current=%%i
 )
 if not "%current%"=="" call :follow_links "%current%", result

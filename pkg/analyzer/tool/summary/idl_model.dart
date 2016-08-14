@@ -25,7 +25,7 @@ class ClassDeclaration extends Declaration {
 
   /**
    * If [isTopLevel] is `true` and a file identifier was specified for this
-   * class, the file identifier string.  Otheswise `null`.
+   * class, the file identifier string.  Otherwise `null`.
    */
   final String fileIdentifier;
 
@@ -97,8 +97,13 @@ class FieldDeclaration extends Declaration {
    */
   final bool isDeprecated;
 
-  FieldDeclaration(
-      String documentation, String name, this.type, this.id, this.isDeprecated)
+  /**
+   * Indicates whether the field is informative.
+   */
+  final bool isInformative;
+
+  FieldDeclaration(String documentation, String name, this.type, this.id,
+      this.isDeprecated, this.isInformative)
       : super(documentation, name);
 }
 
@@ -118,6 +123,9 @@ class FieldType {
   final bool isList;
 
   FieldType(this.typeName, this.isList);
+
+  @override
+  String toString() => isList ? 'List<$typeName>' : typeName;
 }
 
 /**

@@ -4,7 +4,7 @@
 // Dart core library.
 
 // VM implementation of DateTime.
-patch class DateTime {
+@patch class DateTime {
   // Natives.
   // The natives have been moved up here to work around Issue 10401.
   static int _getCurrentMicros() native "DateTime_currentTimeMicros";
@@ -30,17 +30,17 @@ patch class DateTime {
 
   List __parts;
 
-  /* patch */ DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-                                                  {bool isUtc: false})
+  @patch DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
+                                             {bool isUtc: false})
       : this._withValue(
           millisecondsSinceEpoch * Duration.MICROSECONDS_PER_MILLISECOND,
           isUtc: isUtc);
 
-  /* patch */ DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-                                                  {bool isUtc: false})
+  @patch DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
+                                             {bool isUtc: false})
       : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
-  /* patch */ DateTime._internal(int year,
+  @patch DateTime._internal(int year,
                                  int month,
                                  int day,
                                  int hour,
@@ -57,17 +57,17 @@ patch class DateTime {
     if (isUtc == null) throw new ArgumentError();
   }
 
-  /* patch */ DateTime._now()
+  @patch DateTime._now()
       : isUtc = false,
         _value = _getCurrentMicros() {
   }
 
-  /* patch */ String get timeZoneName {
+  @patch String get timeZoneName {
     if (isUtc) return "UTC";
     return _timeZoneName(microsecondsSinceEpoch);
   }
 
-  /* patch */ Duration get timeZoneOffset {
+  @patch Duration get timeZoneOffset {
     if (isUtc) return new Duration();
     int offsetInSeconds = _timeZoneOffsetInSeconds(microsecondsSinceEpoch);
     return new Duration(seconds: offsetInSeconds);
@@ -165,42 +165,42 @@ patch class DateTime {
     return __parts;
   }
 
-  /* patch */ DateTime add(Duration duration) {
+  @patch DateTime add(Duration duration) {
     return new DateTime._withValue(
         _value + duration.inMicroseconds, isUtc: isUtc);
   }
 
-  /* patch */ DateTime subtract(Duration duration) {
+  @patch DateTime subtract(Duration duration) {
     return new DateTime._withValue(
         _value - duration.inMicroseconds, isUtc: isUtc);
   }
 
-  /* patch */ Duration difference(DateTime other) {
+  @patch Duration difference(DateTime other) {
     return new Duration(microseconds: _value - other._value);
   }
 
-  /* patch */ int get millisecondsSinceEpoch =>
+  @patch int get millisecondsSinceEpoch =>
       _value ~/ Duration.MICROSECONDS_PER_MILLISECOND;
 
-  /* patch */ int get microsecondsSinceEpoch => _value;
+  @patch int get microsecondsSinceEpoch => _value;
 
-  /* patch */ int get microsecond => _parts[_MICROSECOND_INDEX];
+  @patch int get microsecond => _parts[_MICROSECOND_INDEX];
 
-  /* patch */ int get millisecond => _parts[_MILLISECOND_INDEX];
+  @patch int get millisecond => _parts[_MILLISECOND_INDEX];
 
-  /* patch */ int get second => _parts[_SECOND_INDEX];
+  @patch int get second => _parts[_SECOND_INDEX];
 
-  /* patch */ int get minute => _parts[_MINUTE_INDEX];
+  @patch int get minute => _parts[_MINUTE_INDEX];
 
-  /* patch */ int get hour => _parts[_HOUR_INDEX];
+  @patch int get hour => _parts[_HOUR_INDEX];
 
-  /* patch */ int get day => _parts[_DAY_INDEX];
+  @patch int get day => _parts[_DAY_INDEX];
 
-  /* patch */ int get weekday => _parts[_WEEKDAY_INDEX];
+  @patch int get weekday => _parts[_WEEKDAY_INDEX];
 
-  /* patch */ int get month => _parts[_MONTH_INDEX];
+  @patch int get month => _parts[_MONTH_INDEX];
 
-  /* patch */ int get year => _parts[_YEAR_INDEX];
+  @patch int get year => _parts[_YEAR_INDEX];
 
   /**
    * Returns the amount of microseconds in UTC that represent the same values
@@ -244,7 +244,7 @@ patch class DateTime {
   }
 
   /// Converts the given broken down date to microseconds.
-  /* patch */ static int _brokenDownDateToValue(
+  @patch static int _brokenDownDateToValue(
       int year, int month, int day,
       int hour, int minute, int second, int millisecond, int microsecond,
       bool isUtc) {
@@ -284,14 +284,24 @@ patch class DateTime {
     }
 
     if (!isUtc) {
-      // Note that we need to remove the local timezone adjustement before
+      // Note that we need to remove the local timezone adjustment before
       // asking for the correct zone offset.
       int adjustment = _localTimeZoneAdjustmentInSeconds() *
           Duration.MICROSECONDS_PER_SECOND;
+      // The adjustment is independent of the actual date and of the daylight
+      // saving time. It is positive east of the Prime Meridian and negative
+      // west of it, e.g. -28800 sec for America/Los_Angeles timezone.
 
       int zoneOffset =
           _timeZoneOffsetInSeconds(microsecondsSinceEpoch - adjustment);
+      // The zoneOffset depends on the actual date and reflects any daylight
+      // saving time and/or historical deviation relative to UTC time.
+      // It is positive east of the Prime Meridian and negative west of it,
+      // e.g. -25200 sec for America/Los_Angeles timezone during DST.
       microsecondsSinceEpoch -= zoneOffset * Duration.MICROSECONDS_PER_SECOND;
+      // The resulting microsecondsSinceEpoch value is therefore the calculated
+      // UTC value decreased by a (positive if east of GMT) timezone adjustment
+      // and decreased by typically one hour if DST is in effect.
     }
     if (microsecondsSinceEpoch.abs() >
         _MAX_MILLISECONDS_SINCE_EPOCH * Duration.MICROSECONDS_PER_MILLISECOND) {
@@ -314,7 +324,8 @@ patch class DateTime {
    * Adapted from V8's date implementation. See ECMA 262 - 15.9.1.9.
    */
   static int _equivalentYear(int year) {
-    // Returns the week day (in range 0 - 6).
+    // Returns year y so that _weekDay(y) == _weekDay(year).
+    // _weekDay returns the week day (in range 0 - 6).
     // 1/1/1956 was a Sunday (i.e. weekday 0). 1956 was a leap-year.
     // 1/1/1967 was a Sunday (i.e. weekday 0).
     // Without leap years a subsequent year has a week day + 1 (for example
@@ -352,22 +363,24 @@ patch class DateTime {
   }
 
   /**
-   * Returns a date in seconds that is equivalent to the current date. An
-   * equivalent date has the same fields (`month`, `day`, etc.) as the
-   * [this], but the `year` is in the range [1970..2037].
+   * Returns a date in seconds that is equivalent to the given
+   * date in microseconds [microsecondsSinceEpoch]. An equivalent
+   * date has the same fields (`month`, `day`, etc.) as the given
+   * date, but the `year` is in the range [1901..2038].
    *
    * * The time since the beginning of the year is the same.
-   * * If [this] is in a leap year then the returned seconds are in a leap
-   *   year, too.
-   * * The week day of [this] is the same as the one for the returned date.
+   * * If the given date is in a leap year then the returned
+   *   seconds are in a leap year, too.
+   * * The week day of given date is the same as the one for the
+   *   returned date.
    */
   static int _equivalentSeconds(int microsecondsSinceEpoch) {
-    const int CUT_OFF_SECONDS = 2100000000;
+    const int CUT_OFF_SECONDS = 0x7FFFFFFF;
 
     int secondsSinceEpoch = _flooredDivision(microsecondsSinceEpoch,
                                              Duration.MICROSECONDS_PER_SECOND);
 
-    if (secondsSinceEpoch < 0 || secondsSinceEpoch >= CUT_OFF_SECONDS) {
+    if (secondsSinceEpoch.abs() > CUT_OFF_SECONDS) {
       int year = _yearsFromSecondsSinceEpoch(secondsSinceEpoch);
       int days = _dayFromYear(year);
       int equivalentYear = _equivalentYear(year);

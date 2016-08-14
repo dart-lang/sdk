@@ -33,21 +33,45 @@ class SafepointHandler {
   void EnterSafepointUsingLock(Thread* T);
   void ExitSafepointUsingLock(Thread* T);
 
-  void SafepointThreads(Thread* T);
-  void ResumeThreads(Thread* T);
-
   void BlockForSafepoint(Thread* T);
 
  private:
+  void SafepointThreads(Thread* T);
+  void ResumeThreads(Thread* T);
+
   Isolate* isolate() const { return isolate_; }
   Monitor* threads_lock() const { return isolate_->threads_lock(); }
-  bool safepoint_in_progress() const {
+  bool SafepointInProgress() const {
     ASSERT(threads_lock()->IsOwnedByCurrentThread());
-    return safepoint_in_progress_;
+    return ((safepoint_operation_count_ > 0) && (owner_ != NULL));
   }
-  void set_safepoint_in_progress(bool value) {
+  void SetSafepointInProgress(Thread* T) {
     ASSERT(threads_lock()->IsOwnedByCurrentThread());
-    safepoint_in_progress_ = value;
+    ASSERT(owner_ == NULL);
+    ASSERT(safepoint_operation_count_ == 0);
+    safepoint_operation_count_ = 1;
+    owner_ = T;
+  }
+  void ResetSafepointInProgress(Thread* T) {
+    ASSERT(threads_lock()->IsOwnedByCurrentThread());
+    ASSERT(owner_ == T);
+    ASSERT(safepoint_operation_count_ == 1);
+    safepoint_operation_count_ = 0;
+    owner_ = NULL;
+  }
+  int32_t safepoint_operation_count() const {
+    ASSERT(threads_lock()->IsOwnedByCurrentThread());
+    return safepoint_operation_count_;
+  }
+  void increment_safepoint_operation_count() {
+    ASSERT(threads_lock()->IsOwnedByCurrentThread());
+    ASSERT(safepoint_operation_count_ < kMaxInt32);
+    safepoint_operation_count_ += 1;
+  }
+  void decrement_safepoint_operation_count() {
+    ASSERT(threads_lock()->IsOwnedByCurrentThread());
+    ASSERT(safepoint_operation_count_ > 0);
+    safepoint_operation_count_ -= 1;
   }
 
   Isolate* isolate_;
@@ -57,8 +81,14 @@ class SafepointHandler {
   Monitor* safepoint_lock_;
   int32_t number_threads_not_at_safepoint_;
 
-  // Flag to indicate if a safepoint operation is currently in progress.
-  bool safepoint_in_progress_;
+  // Count that indicates if a safepoint operation is currently in progress
+  // and also tracks the number of recursive safepoint operations on the
+  // same thread.
+  int32_t safepoint_operation_count_;
+
+  // If a safepoint operation is currently in progress, this field contains
+  // the thread that initiated the safepoint operation, otherwise it is NULL.
+  Thread* owner_;
 
   friend class Isolate;
   friend class SafepointOperationScope;
@@ -309,18 +339,47 @@ class TransitionToGenerated : public TransitionSafepointState {
     } else {
       ASSERT(execution_state_ == Thread::kThreadInVM);
       thread()->set_execution_state(Thread::kThreadInVM);
-      // Fast check to see if a safepoint is requested or not.
-      // We do the more expensive operation of blocking the thread
-      // only if a safepoint is requested.
-      if (thread()->IsSafepointRequested()) {
-        handler()->BlockForSafepoint(thread());
-      }
     }
   }
 
  private:
-  int16_t execution_state_;
+  uint32_t execution_state_;
   DISALLOW_COPY_AND_ASSIGN(TransitionToGenerated);
+};
+
+
+// TransitionToVM is used to transition the safepoint state of a
+// thread from "running native code" to "running vm code"
+// and ensures that the state is reverted back to "running native code"
+// when exiting the scope/frame.
+// This transition helper is mainly used in the error path of the
+// Dart API implementations where we sometimes do not have an explicit
+// transition set up.
+class TransitionToVM : public TransitionSafepointState {
+ public:
+  explicit TransitionToVM(Thread* T) : TransitionSafepointState(T),
+                                       execution_state_(T->execution_state()) {
+    ASSERT(T == Thread::Current());
+    ASSERT((execution_state_ == Thread::kThreadInVM) ||
+           (execution_state_ == Thread::kThreadInNative));
+    if (execution_state_ == Thread::kThreadInNative) {
+      T->ExitSafepoint();
+      T->set_execution_state(Thread::kThreadInVM);
+    }
+    ASSERT(T->execution_state() == Thread::kThreadInVM);
+  }
+
+  ~TransitionToVM() {
+    ASSERT(thread()->execution_state() == Thread::kThreadInVM);
+    if (execution_state_ == Thread::kThreadInNative) {
+      thread()->set_execution_state(Thread::kThreadInNative);
+      thread()->EnterSafepoint();
+    }
+  }
+
+ private:
+  uint32_t execution_state_;
+  DISALLOW_COPY_AND_ASSIGN(TransitionToVM);
 };
 
 }  // namespace dart

@@ -10,7 +10,7 @@ part of dart.convert;
  * It is recommended that implementations of `Converter` extend this class,
  * to inherit any further methods that may be added to the class.
  */
-abstract class Converter<S, T> implements StreamTransformer {
+abstract class Converter<S, T> implements StreamTransformer/*<S, T>*/ {
   const Converter();
 
   /**
@@ -24,21 +24,24 @@ abstract class Converter<S, T> implements StreamTransformer {
    * Encoding with the resulting converter is equivalent to converting with
    * `this` before converting with `other`.
    */
-  Converter<S, dynamic> fuse(Converter<T, dynamic> other) {
-    return new _FusedConverter<S, T, dynamic>(this, other);
+  Converter<S, dynamic/*=TT*/> fuse/*<TT>*/(
+      Converter<T, dynamic/*=TT*/> other) {
+    return new _FusedConverter<S, T, dynamic/*=TT*/>(this, other);
   }
 
   /**
    * Starts a chunked conversion.
+   *
+   * The returned sink serves as input for the long-running conversion. The
+   * given [sink] serves as output.
    */
-  ChunkedConversionSink startChunkedConversion(Sink sink) {
+  Sink/*<S>*/ startChunkedConversion(Sink/*<T>*/ sink) {
     throw new UnsupportedError(
         "This converter does not support chunked conversions: $this");
   }
 
-  // Subclasses are encouraged to provide better types.
-  Stream bind(Stream stream) {
-    return new Stream.eventTransformed(
+  Stream/*<T>*/ bind(Stream/*<S>*/ stream) {
+    return new Stream/*<T>*/.eventTransformed(
         stream,
         (EventSink sink) => new _ConverterStreamEventSink(this, sink));
   }
@@ -49,15 +52,16 @@ abstract class Converter<S, T> implements StreamTransformer {
  *
  * For a non-chunked conversion converts the input in sequence.
  */
-class _FusedConverter<S, M, T> extends Converter<S, T> {
-  final Converter _first;
-  final Converter _second;
+class _FusedConverter<S, M, T> extends Converter<S, T>
+    implements ChunkedConverter<S, T, S, T> {
+  final Converter<S, M> _first;
+  final Converter<M, T> _second;
 
   _FusedConverter(this._first, this._second);
 
   T convert(S input) => _second.convert(_first.convert(input));
 
-  ChunkedConversionSink startChunkedConversion(Sink sink) {
+  Sink/*<S>*/ startChunkedConversion(Sink/*<T>*/ sink) {
     return _first.startChunkedConversion(_second.startChunkedConversion(sink));
   }
 }

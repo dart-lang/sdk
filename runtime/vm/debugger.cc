@@ -27,6 +27,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
+#include "vm/timeline.h"
 #include "vm/token_position.h"
 #include "vm/visitor.h"
 
@@ -44,7 +45,6 @@ DEFINE_FLAG(bool, steal_breakpoints, false,
             "handler instead.  This handler dispatches breakpoints to "
             "the VM service.");
 
-DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 
@@ -231,7 +231,9 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
 
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
+#if !defined(TARGET_ARCH_DBC)
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_value_));
+#endif
 }
 
 
@@ -261,114 +263,51 @@ ActivationFrame::ActivationFrame(
 }
 
 
-void DebuggerEvent::UpdateTimestamp() {
-  timestamp_ = OS::GetCurrentTimeMillis();
+bool Debugger::NeedsIsolateEvents() {
+  return ((isolate_ != Dart::vm_isolate()) &&
+          !ServiceIsolate::IsServiceIsolateDescendant(isolate_) &&
+          ((event_handler_ != NULL) || Service::isolate_stream.enabled()));
 }
 
 
-bool Debugger::HasAnyEventHandler() {
-  return ((event_handler_ != NULL) ||
-          Service::isolate_stream.enabled() ||
+bool Debugger::NeedsDebugEvents() {
+  ASSERT(isolate_ != Dart::vm_isolate() &&
+         !ServiceIsolate::IsServiceIsolateDescendant(isolate_));
+  return (FLAG_warn_on_pause_with_no_debugger ||
+          (event_handler_ != NULL) ||
           Service::debug_stream.enabled());
 }
 
 
-bool Debugger::HasDebugEventHandler() {
-  return ((event_handler_ != NULL) ||
-          Service::debug_stream.enabled());
-}
+void Debugger::InvokeEventHandler(ServiceEvent* event) {
+  ASSERT(!event->IsPause());  // For pause events, call Pause instead.
+  Service::HandleEvent(event);
 
-
-static bool ServiceNeedsDebuggerEvent(DebuggerEvent::EventType type) {
-  switch (type) {
-    case DebuggerEvent::kBreakpointResolved:
-      // kBreakpointResolved events are handled differently in the vm
-      // service, so suppress them here.
-      return false;
-
-    case DebuggerEvent::kBreakpointReached:
-    case DebuggerEvent::kExceptionThrown:
-    case DebuggerEvent::kIsolateInterrupted:
-      return (Service::debug_stream.enabled() ||
-              FLAG_warn_on_pause_with_no_debugger);
-
-    case DebuggerEvent::kIsolateCreated:
-    case DebuggerEvent::kIsolateShutdown:
-      return Service::isolate_stream.enabled();
-
-    default:
-      UNREACHABLE();
-      return false;
-  }
-}
-
-
-void Debugger::InvokeEventHandler(DebuggerEvent* event) {
-  // Give the event to the Service first, as the debugger event handler
-  // may go into a message loop and the Service will not.
-  //
-  // kBreakpointResolved events are handled differently in the vm
-  // service, so suppress them here.
-  if (ServiceNeedsDebuggerEvent(event->type())) {
-    ServiceEvent service_event(event);
-    Service::HandleEvent(&service_event);
-  }
-
-  {
+  // Call the embedder's event handler, if it exists.
+  if (event_handler_ != NULL) {
     TransitionVMToNative transition(Thread::Current());
-    if ((FLAG_steal_breakpoints || (event_handler_ == NULL)) &&
-        event->IsPauseEvent()) {
-      // We allow the embedder's default breakpoint handler to be overridden.
-      isolate_->PauseEventHandler();
-    } else if (event_handler_ != NULL) {
-      (*event_handler_)(event);
-    }
-  }
-
-  if (ServiceNeedsDebuggerEvent(event->type()) && event->IsPauseEvent()) {
-    // If we were paused, notify the service that we have resumed.
-    const Error& error =
-        Error::Handle(Thread::Current()->sticky_error());
-    ASSERT(error.IsNull() ||
-           error.IsUnwindError() ||
-           error.IsUnhandledException());
-
-    // Only send a resume event when the isolate is not unwinding.
-    if (!error.IsUnwindError()) {
-      ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
-      service_event.set_top_frame(event->top_frame());
-      Service::HandleEvent(&service_event);
-    }
+    (*event_handler_)(event);
   }
 }
 
 
-void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
-  if (HasAnyEventHandler()) {
-    DebuggerEvent event(isolate_, type);
-    ASSERT(event.isolate_id() != ILLEGAL_ISOLATE_ID);
-    if (type == DebuggerEvent::kIsolateInterrupted) {
-      DebuggerStackTrace* trace = CollectStackTrace();
-      if (trace->Length() > 0) {
-        event.set_top_frame(trace->FrameAt(0));
-      }
-      ASSERT(stack_trace_ == NULL);
-      stack_trace_ = trace;
-      resume_action_ = kContinue;
-      Pause(&event);
-      HandleSteppingRequest(trace);
-      stack_trace_ = NULL;
-    } else {
-      InvokeEventHandler(&event);
-    }
+RawError* Debugger::PauseInterrupted() {
+  if (ignore_breakpoints_ || IsPaused()) {
+    // We don't let the isolate get interrupted if we are already
+    // paused or ignoring breakpoints.
+    return Error::null();
   }
-}
-
-
-RawError* Debugger::SignalIsolateInterrupted() {
-  if (HasDebugEventHandler()) {
-    SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
+  ServiceEvent event(isolate_, ServiceEvent::kPauseInterrupted);
+  DebuggerStackTrace* trace = CollectStackTrace();
+  if (trace->Length() > 0) {
+    event.set_top_frame(trace->FrameAt(0));
   }
+  ASSERT(stack_trace_ == NULL);
+  stack_trace_ = trace;
+  resume_action_ = kContinue;
+  Pause(&event);
+  HandleSteppingRequest(trace);
+  stack_trace_ = NULL;
 
   // If any error occurred while in the debug message loop, return it here.
   const Error& error = Error::Handle(Thread::Current()->sticky_error());
@@ -378,14 +317,14 @@ RawError* Debugger::SignalIsolateInterrupted() {
 }
 
 
-// The vm service handles breakpoint notifications in a different way
-// than the regular debugger breakpoint notifications.
-static void SendServiceBreakpointEvent(ServiceEvent::EventKind kind,
-                                       Breakpoint* bpt) {
-  if (Service::debug_stream.enabled()) {
-    ServiceEvent service_event(Isolate::Current(), kind);
-    service_event.set_breakpoint(bpt);
-    Service::HandleEvent(&service_event);
+void Debugger::SendBreakpointEvent(ServiceEvent::EventKind kind,
+                                   Breakpoint* bpt) {
+  if (NeedsDebugEvents()) {
+    // TODO(turnidge): Currently we send single-shot breakpoint events
+    // to the vm service.  Do we want to change this?
+    ServiceEvent event(isolate_, kind);
+    event.set_breakpoint(bpt);
+    InvokeEventHandler(&event);
   }
 }
 
@@ -395,11 +334,7 @@ void BreakpointLocation::AddBreakpoint(Breakpoint* bpt, Debugger* dbg) {
   set_breakpoints(bpt);
 
   dbg->SyncBreakpointLocation(this);
-
-  if (IsResolved()) {
-    dbg->SignalBpResolved(bpt);
-  }
-  SendServiceBreakpointEvent(ServiceEvent::kBreakpointAdded, bpt);
+  dbg->SendBreakpointEvent(ServiceEvent::kBreakpointAdded, bpt);
 }
 
 
@@ -584,7 +519,7 @@ TokenPosition ActivationFrame::TokenPos() {
     token_pos_ = TokenPosition::kNoSource;
     GetPcDescriptors();
     PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
-    uword pc_offset = pc_ - code().EntryPoint();
+    uword pc_offset = pc_ - code().PayloadStart();
     while (iter.MoveNext()) {
       if (iter.PcOffset() == pc_offset) {
         try_index_ = iter.TryIndex();
@@ -764,8 +699,8 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
         ASSERT(!type.IsNull());
         // Uninstantiated types are not added to ExceptionHandlers data.
         ASSERT(type.IsInstantiated());
-        if (type.IsDynamicType()) return frame;
         if (type.IsMalformed()) continue;
+        if (type.IsDynamicType()) return frame;
         if (exc_obj.IsInstanceOf(type, no_instantiator, NULL)) {
           return frame;
         }
@@ -859,24 +794,25 @@ intptr_t ActivationFrame::NumLocalVariables() {
 }
 
 
+DART_FORCE_INLINE static RawObject* GetVariableValue(uword addr) {
+  return *reinterpret_cast<RawObject**>(addr);
+}
+
+
 RawObject* ActivationFrame::GetParameter(intptr_t index) {
   intptr_t num_parameters = function().num_fixed_parameters();
   ASSERT(0 <= index && index < num_parameters);
-  intptr_t reverse_index = num_parameters - index;
 
   if (function().NumOptionalParameters() > 0) {
     // If the function has optional parameters, the first positional parameter
     // can be in a number of places in the caller's frame depending on how many
     // were actually supplied at the call site, but they are copied to a fixed
     // place in the callee's frame.
-    uword var_address = fp() + ((kFirstLocalSlotFromFp - index) * kWordSize);
-    return reinterpret_cast<RawObject*>(
-        *reinterpret_cast<uword*>(var_address));
+    return GetVariableValue(LocalVarAddress(fp(),
+                                            (kFirstLocalSlotFromFp - index)));
   } else {
-    uword var_address = fp() + (kParamEndSlotFromFp * kWordSize)
-                             + (reverse_index * kWordSize);
-    return reinterpret_cast<RawObject*>(
-        *reinterpret_cast<uword*>(var_address));
+    intptr_t reverse_index = num_parameters - index;
+    return GetVariableValue(ParamAddress(fp(), reverse_index));
   }
 }
 
@@ -889,11 +825,9 @@ RawObject* ActivationFrame::GetClosure() {
 
 RawObject* ActivationFrame::GetStackVar(intptr_t slot_index) {
   if (deopt_frame_.IsNull()) {
-    uword var_address = fp() + slot_index * kWordSize;
-    return reinterpret_cast<RawObject*>(
-        *reinterpret_cast<uword*>(var_address));
+    return GetVariableValue(LocalVarAddress(fp(), slot_index));
   } else {
-    return deopt_frame_.At(deopt_frame_offset_ + slot_index);
+    return deopt_frame_.At(LocalVarIndex(deopt_frame_offset_, slot_index));
   }
 }
 
@@ -1071,12 +1005,14 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
                         Array::Handle(Array::MakeArray(param_values)));
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
+    const Class& method_cls = Class::Handle(function().origin());
     ASSERT(receiver.IsInstance() || receiver.IsNull());
     if (!(receiver.IsInstance() || receiver.IsNull())) {
       return Object::null();
     }
     const Instance& inst = Instance::Cast(receiver);
-    return inst.Evaluate(expr,
+    return inst.Evaluate(method_cls,
+                         expr,
                          Array::Handle(Array::MakeArray(param_names)),
                          Array::Handle(Array::MakeArray(param_values)));
   }
@@ -1169,7 +1105,13 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
       bpt_location_(NULL),
       next_(NULL),
       breakpoint_kind_(kind),
-      saved_value_(Code::null()) {
+#if !defined(TARGET_ARCH_DBC)
+      saved_value_(Code::null())
+#else
+      saved_value_(Bytecode::kTrap),
+      saved_value_fastsmi_(Bytecode::kTrap)
+#endif
+    {
   ASSERT(!code.IsNull());
   ASSERT(token_pos_.IsReal());
   ASSERT(pc_ != 0);
@@ -1262,7 +1204,6 @@ Debugger::Debugger()
     : isolate_(NULL),
       isolate_id_(ILLEGAL_ISOLATE_ID),
       initialized_(false),
-      creation_message_sent_(false),
       next_id_(1),
       latent_locations_(NULL),
       breakpoint_locations_(NULL),
@@ -1314,10 +1255,9 @@ void Debugger::Shutdown() {
     bpt->Disable();
     delete bpt;
   }
-  // Signal isolate shutdown event, but only if we previously sent the creation
-  // event.
-  if (creation_message_sent_) {
-    SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
+  if (NeedsIsolateEvents()) {
+    ServiceEvent event(isolate_, ServiceEvent::kIsolateExit);
+    InvokeEventHandler(&event);
   }
 }
 
@@ -1394,6 +1334,7 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 // that inline the function that contains the newly created breakpoint.
 // We currently don't have this info so we deoptimize all functions.
 void Debugger::DeoptimizeWorld() {
+  BackgroundCompiler::Stop(isolate_);
   DeoptimizeFunctionsOnStack();
   // Iterate over all classes, deoptimize functions.
   // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()
@@ -1438,15 +1379,6 @@ void Debugger::DeoptimizeWorld() {
     if (function.HasOptimizedCode()) {
       function.SwitchToUnoptimizedCode();
     }
-  }
-}
-
-
-void Debugger::SignalBpResolved(Breakpoint* bpt) {
-  if (HasDebugEventHandler() && !bpt->IsSingleShot()) {
-    DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointResolved);
-    event.set_breakpoint(bpt);
-    InvokeEventHandler(&event);
   }
 }
 
@@ -1596,7 +1528,7 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
     if (!function.IsNull() && function.is_visible()) {
       code = ex_trace.CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
-      uword pc = code.EntryPoint() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
+      uword pc = code.PayloadStart() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
       if (code.is_optimized() && ex_trace.expand_inlined()) {
         // Traverse inlined frames.
         for (InlinedFunctionsIterator it(code, pc); !it.Done(); it.Advance()) {
@@ -1605,8 +1537,8 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
           ASSERT(function.raw() == code.function());
           uword pc = it.pc();
           ASSERT(pc != 0);
-          ASSERT(code.EntryPoint() <= pc);
-          ASSERT(pc < (code.EntryPoint() + code.Size()));
+          ASSERT(code.PayloadStart() <= pc);
+          ASSERT(pc < (code.PayloadStart() + code.Size()));
 
           ActivationFrame* activation = new ActivationFrame(
             pc, fp, sp, code, deopt_frame, deopt_frame_offset);
@@ -1658,7 +1590,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
 }
 
 
-void Debugger::SignalExceptionThrown(const Instance& exc) {
+void Debugger::PauseException(const Instance& exc) {
   // We ignore this exception event when the VM is executing code invoked
   // by the debugger to evaluate variables values, when we see a nested
   // breakpoint or exception event, or if the debugger is not
@@ -1672,7 +1604,7 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   if (!ShouldPauseOnException(stack_trace, exc)) {
     return;
   }
-  DebuggerEvent event(isolate_, DebuggerEvent::kExceptionThrown);
+  ServiceEvent event(isolate_, ServiceEvent::kPauseException);
   event.set_exception(&exc);
   if (stack_trace->Length() > 0) {
     event.set_top_frame(stack_trace->FrameAt(0));
@@ -1684,9 +1616,11 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
 }
 
 
-static TokenPosition LastTokenOnLine(const TokenStream& tokens,
+static TokenPosition LastTokenOnLine(Zone* zone,
+                                     const TokenStream& tokens,
                                      TokenPosition pos) {
-  TokenStream::Iterator iter(tokens,
+  TokenStream::Iterator iter(zone,
+                             tokens,
                              pos,
                              TokenStream::Iterator::kAllTokens);
   ASSERT(iter.IsValid());
@@ -1771,10 +1705,11 @@ TokenPosition Debugger::ResolveBreakpointPos(
     last_token_pos = func.end_token_pos();
   }
 
-  Script& script = Script::Handle(func.script());
-  Code& code = Code::Handle(func.unoptimized_code());
+  Zone* zone = Thread::Current()->zone();
+  Script& script = Script::Handle(zone, func.script());
+  Code& code = Code::Handle(zone, func.unoptimized_code());
   ASSERT(!code.IsNull());
-  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  PcDescriptors& desc = PcDescriptors::Handle(zone, code.pc_descriptors());
 
   // First pass: find the safe point which is closest to the beginning
   // of the given token range.
@@ -1821,10 +1756,11 @@ TokenPosition Debugger::ResolveBreakpointPos(
   // the token on the line which is at the best fit column (if column
   // was specified) and has the lowest code address.
   if (best_fit_pos != TokenPosition::kMaxSource) {
-    const Script& script = Script::Handle(func.script());
-    const TokenStream& tokens = TokenStream::Handle(script.tokens());
+    const Script& script = Script::Handle(zone, func.script());
+    const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
     const TokenPosition begin_pos = best_fit_pos;
-    const TokenPosition end_of_line_pos = LastTokenOnLine(tokens, begin_pos);
+    const TokenPosition end_of_line_pos =
+        LastTokenOnLine(zone, tokens, begin_pos);
     uword lowest_pc_offset = kUwordMax;
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
@@ -1892,7 +1828,7 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   if (lowest_pc_offset == kUwordMax) {
     return;
   }
-  uword lowest_pc = code.EntryPoint() + lowest_pc_offset;
+  uword lowest_pc = code.PayloadStart() + lowest_pc_offset;
   CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
   if (code_bpt == NULL) {
     // No code breakpoint for this code exists; create one.
@@ -2223,6 +2159,11 @@ Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
 
 Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
                                           intptr_t line_number) {
+  // Prevent future tests from calling this function in the wrong
+  // execution state.  If you hit this assert, consider using
+  // Dart_SetBreakpoint instead.
+  ASSERT(Thread::Current()->execution_state() == Thread::kThreadInVM);
+
   BreakpointLocation* loc =
       BreakpointLocationAtLineCol(script_url, line_number, -1 /* no column */);
   if (loc != NULL) {
@@ -2235,6 +2176,11 @@ Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
 Breakpoint* Debugger::SetBreakpointAtLineCol(const String& script_url,
                                              intptr_t line_number,
                                              intptr_t column_number) {
+  // Prevent future tests from calling this function in the wrong
+  // execution state.  If you hit this assert, consider using
+  // Dart_SetBreakpoint instead.
+  ASSERT(Thread::Current()->execution_state() == Thread::kThreadInVM);
+
   BreakpointLocation* loc = BreakpointLocationAtLineCol(script_url,
                                                         line_number,
                                                         column_number);
@@ -2362,7 +2308,8 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
 
 RawObject* Debugger::GetStaticField(const Class& cls,
                                     const String& field_name) {
-  const Field& fld = Field::Handle(cls.LookupStaticField(field_name));
+  const Field& fld =
+      Field::Handle(cls.LookupStaticFieldAllowPrivate(field_name));
   if (!fld.IsNull()) {
     // Return the value in the field if it has been initialized already.
     const Instance& value = Instance::Handle(fld.StaticValue());
@@ -2544,23 +2491,52 @@ void Debugger::SetEventHandler(EventHandler* handler) {
 }
 
 
-void Debugger::Pause(DebuggerEvent* event) {
-  ASSERT(!IsPaused());  // No recursive pausing.
+void Debugger::Pause(ServiceEvent* event) {
+  ASSERT(event->IsPause());      // Should call InvokeEventHandler instead.
+  ASSERT(!ignore_breakpoints_);  // We shouldn't get here when ignoring bpts.
+  ASSERT(!IsPaused());           // No recursive pausing.
   ASSERT(obj_cache_ == NULL);
 
   pause_event_ = event;
   pause_event_->UpdateTimestamp();
   obj_cache_ = new RemoteObjectCache(64);
 
-  // We are about to invoke the debuggers event handler. Disable interrupts
-  // for this thread while waiting for debug commands over the service protocol.
+  // We are about to invoke the debugger's event handler. Disable
+  // interrupts for this thread while waiting for debug commands over
+  // the service protocol.
   {
     Thread* thread = Thread::Current();
     DisableThreadInterruptsScope dtis(thread);
     TimelineDurationScope tds(thread,
-                              isolate_->GetDebuggerStream(),
+                              Timeline::GetDebuggerStream(),
                               "Debugger Pause");
-    InvokeEventHandler(event);
+
+    // Send the pause event.
+    Service::HandleEvent(event);
+
+    {
+      TransitionVMToNative transition(Thread::Current());
+      if (FLAG_steal_breakpoints || (event_handler_ == NULL)) {
+        // We allow the embedder's default breakpoint handler to be overridden.
+        isolate_->PauseEventHandler();
+      } else if (event_handler_ != NULL) {
+        (*event_handler_)(event);
+      }
+    }
+
+    // Notify the service that we have resumed.
+    const Error& error =
+        Error::Handle(Thread::Current()->sticky_error());
+    ASSERT(error.IsNull() ||
+           error.IsUnwindError() ||
+           error.IsUnhandledException());
+
+    // Only send a resume event when the isolate is not unwinding.
+    if (!error.IsUnwindError()) {
+      ServiceEvent resume_event(event->isolate(), ServiceEvent::kResume);
+      resume_event.set_top_frame(event->top_frame());
+      Service::HandleEvent(&resume_event);
+    }
   }
 
   pause_event_ = NULL;
@@ -2643,7 +2619,7 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
     bpt = NULL;
   }
 
-  DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointReached);
+  ServiceEvent event(isolate_, ServiceEvent::kPauseBreakpoint);
   event.set_top_frame(top_frame);
   event.set_breakpoint(bpt);
   event.set_at_async_jump(IsAtAsyncJump(top_frame));
@@ -2652,13 +2628,15 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
 
 
 bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
-  Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
+  Zone* zone = Thread::Current()->zone();
+  Object& closure_or_null =
+      Object::Handle(zone, top_frame->GetAsyncOperation());
   if (!closure_or_null.IsNull()) {
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
-    const Script& script = Script::Handle(top_frame->SourceScript());
-    const TokenStream& tokens = TokenStream::Handle(script.tokens());
-    TokenStream::Iterator iter(tokens, top_frame->TokenPos());
+    const Script& script = Script::Handle(zone, top_frame->SourceScript());
+    const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
+    TokenStream::Iterator iter(zone, tokens, top_frame->TokenPos());
     if ((iter.CurrentTokenKind() == Token::kIDENT) &&
         ((iter.CurrentLiteral() == Symbols::Await().raw()) ||
          (iter.CurrentLiteral() == Symbols::YieldKw().raw()))) {
@@ -2668,7 +2646,7 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
   return false;
 }
 
-RawError* Debugger::DebuggerStepCallback() {
+RawError* Debugger::PauseStepping() {
   ASSERT(isolate_->single_step());
   // Don't pause recursively.
   if (IsPaused()) {
@@ -2690,11 +2668,11 @@ RawError* Debugger::DebuggerStepCallback() {
   if (stepping_fp_ != 0) {
     // There is an "interesting frame" set. Only pause at appropriate
     // locations in this frame.
-    if (stepping_fp_ > frame->fp()) {
+    if (IsCalleeFrameOf(stepping_fp_, frame->fp())) {
       // We are i n a callee of the frame we're interested in.
       // Ignore this stepping break.
       return Error::null();
-    } else if (frame->fp() > stepping_fp_) {
+    } else if (IsCalleeFrameOf(frame->fp(), stepping_fp_)) {
       // We returned from the "interesting frame", there can be no more
       // stepping breaks for it. Pause at the next appropriate location
       // and let the user set the "interesting" frame again.
@@ -2725,7 +2703,7 @@ RawError* Debugger::DebuggerStepCallback() {
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = CollectStackTrace();
   // If this step callback is part of stepping over an await statement,
-  // we saved the synthetic async breakpoint in SignalBpReached. We report
+  // we saved the synthetic async breakpoint in PauseBreakpoint. We report
   // that we are paused at that breakpoint and then delete it after continuing.
   SignalPausedEvent(frame, synthetic_async_breakpoint_);
   if (synthetic_async_breakpoint_ != NULL) {
@@ -2742,7 +2720,7 @@ RawError* Debugger::DebuggerStepCallback() {
 }
 
 
-RawError* Debugger::SignalBpReached() {
+RawError* Debugger::PauseBreakpoint() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
@@ -2862,7 +2840,7 @@ RawError* Debugger::SignalBpReached() {
 }
 
 
-void Debugger::BreakHere(const String& msg) {
+void Debugger::PauseDeveloper(const String& msg) {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
@@ -2870,7 +2848,7 @@ void Debugger::BreakHere(const String& msg) {
     return;
   }
 
-  if (!HasDebugEventHandler()) {
+  if (!NeedsDebugEvents()) {
     OS::Print("Hit debugger!");
   }
 
@@ -2881,9 +2859,9 @@ void Debugger::BreakHere(const String& msg) {
 
   // TODO(johnmccutchan): Send |msg| to Observatory.
 
-  // We are in the native call to Debugger_breakHere or Debugger_breakHereIf,
-  // the developer gets a better experience by not seeing this call. To
-  // accomplish this, we continue execution until the call exits (step out).
+  // We are in the native call to Developer_debugger.  the developer
+  // gets a better experience by not seeing this call. To accomplish
+  // this, we continue execution until the call exits (step out).
   SetStepOut();
   HandleSteppingRequest(stack_trace_);
 
@@ -2898,19 +2876,17 @@ void Debugger::Initialize(Isolate* isolate) {
   isolate_ = isolate;
 
   // Use the isolate's control port as the isolate_id for debugging.
-  // This port will be used as a unique ID to represent the isolate in the
-  // debugger wire protocol messages.
+  // This port will be used as a unique ID to represent the isolate in
+  // the debugger embedder api.
   isolate_id_ = isolate_->main_port();
   initialized_ = true;
 }
 
 
 void Debugger::NotifyIsolateCreated() {
-  // Signal isolate creation event.
-  if ((isolate_ != Dart::vm_isolate()) &&
-      !ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
-    SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
-    creation_message_sent_ = true;
+  if (NeedsIsolateEvents()) {
+    ServiceEvent event(isolate_, ServiceEvent::kIsolateStart);
+    InvokeEventHandler(&event);
   }
 }
 
@@ -3012,8 +2988,7 @@ void Debugger::NotifyCompilation(const Function& func) {
                       requested_end_pos.ToCString(),
                       loc->requested_column_number());
           }
-          SignalBpResolved(bpt);
-          SendServiceBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
+          SendBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
           bpt = bpt->next();
         }
       }
@@ -3202,12 +3177,10 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
           prev_bpt->set_next(curr_bpt->next());
         }
 
-        SendServiceBreakpointEvent(ServiceEvent::kBreakpointRemoved, curr_bpt);
+        SendBreakpointEvent(ServiceEvent::kBreakpointRemoved, curr_bpt);
 
         // Remove references from the current debugger pause event.
-        if (pause_event_ != NULL &&
-            pause_event_->type() == DebuggerEvent::kBreakpointReached &&
-            pause_event_->breakpoint() == curr_bpt) {
+        if (pause_event_ != NULL && pause_event_->breakpoint() == curr_bpt) {
           pause_event_->set_breakpoint(NULL);
         }
         break;

@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class Expando<T> {
-  /* patch */ Expando([String this.name])
+@patch class Expando<T> {
+  @patch Expando([String this.name])
       : _data = new List(_minSize),
         _used = 0;
 
   static const _minSize = 8;
   static final _deletedEntry = new _WeakProperty(null, null);
 
-  /* patch */ T operator[](Object object) {
+  @patch T operator[](Object object) {
     _checkType(object);
 
     var mask = _size - 1;
@@ -31,7 +31,7 @@ patch class Expando<T> {
     return null;
   }
 
-  /* patch */ void operator[]=(Object object, T value) {
+  @patch void operator[]=(Object object, T value) {
     _checkType(object);
 
     var mask = _size - 1;

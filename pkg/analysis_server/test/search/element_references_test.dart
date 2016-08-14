@@ -223,178 +223,6 @@ class A {
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
   }
 
-  test_file_libraryUnit_atImportDirective() async {
-    String fileLib = '$testFolder/my_lib.dart';
-    String fileUser = '$testFolder/userA.dart';
-    String codeUser = "import 'my_lib.dart'; // U";
-    addFile(fileLib, 'library my.lib;');
-    addFile(fileUser, codeUser);
-    addTestFile('''
-import 'my_lib.dart'; // T
-''');
-    await findElementReferences('import ', false);
-    expect(searchElement.kind, ElementKind.FILE);
-    expect(results, hasLength(2));
-    // in U
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == fileUser;
-      });
-      expect(result.location.offset, codeUser.indexOf("'my_lib.dart'; // U"));
-      expect(result.location.length, "'my_lib.dart'".length);
-    }
-    // in T
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == testFile;
-      });
-      expect(result.location.offset, testCode.indexOf("'my_lib.dart'; // T"));
-      expect(result.location.length, "'my_lib.dart'".length);
-    }
-  }
-
-  test_file_libraryUnit_atImportDirectiveUri() async {
-    String fileLib = '$testFolder/my_lib.dart';
-    String fileA = '$testFolder/userA.dart';
-    String fileB = '$testFolder/userB.dart';
-    String codeA = "import 'my_lib.dart'; // A";
-    String codeB = "export 'my_lib.dart'; // B";
-    addFile(fileLib, 'library my.lib;');
-    addFile(fileA, codeA);
-    addFile(fileB, codeB);
-    addTestFile('''
-import 'my_lib.dart'; // T
-''');
-    await findElementReferences('my_', false);
-    expect(searchElement.kind, ElementKind.FILE);
-    expect(results, hasLength(3));
-    // in A
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == fileA;
-      });
-      expect(result.location.offset, codeA.indexOf("'my_lib.dart'; // A"));
-      expect(result.location.length, "'my_lib.dart'".length);
-    }
-    // in B
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == fileB;
-      });
-      expect(result.location.offset, codeB.indexOf("'my_lib.dart'; // B"));
-      expect(result.location.length, "'my_lib.dart'".length);
-    }
-    // in T
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == testFile;
-      });
-      expect(result.location.offset, testCode.indexOf("'my_lib.dart'; // T"));
-      expect(result.location.length, "'my_lib.dart'".length);
-    }
-  }
-
-  test_file_libraryUnit_atLibraryDirectiveIdentifier() async {
-    String fileA = '$testFolder/userA.dart';
-    String fileB = '$testFolder/userB.dart';
-    String codeA = "import 'test.dart'; // A";
-    String codeB = "export 'test.dart'; // B";
-    addFile(fileA, codeA);
-    addFile(fileB, codeB);
-    addTestFile('''
-library my.test.lib;
-''');
-    await findElementReferences('test.', false);
-    expect(searchElement.kind, ElementKind.LIBRARY);
-    expect(results, hasLength(2));
-    // in A
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == fileA;
-      });
-      expect(result.location.offset, codeA.indexOf("'test.dart'; // A"));
-      expect(result.location.length, "'test.dart'".length);
-    }
-    // in B
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == fileB;
-      });
-      expect(result.location.offset, codeB.indexOf("'test.dart'; // B"));
-      expect(result.location.length, "'test.dart'".length);
-    }
-  }
-
-  test_file_partUnit_atPartDirective() async {
-    String filePart = '$testFolder/my_part.dart';
-    String fileOther = '$testFolder/userOther.dart';
-    String codeOther = '''
-library lib;
-part 'my_part.dart'; // O
-''';
-    addFile(filePart, 'part of lib;');
-    addFile(fileOther, codeOther);
-    addTestFile('''
-library lib;
-part 'my_part.dart'; // T
-''');
-    await findElementReferences('part ', false);
-    expect(searchElement.kind, ElementKind.FILE);
-    expect(searchElement.name, filePart);
-    expect(results, hasLength(2));
-    // in O
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == fileOther;
-      });
-      expect(result.location.offset, codeOther.indexOf("'my_part.dart'; // O"));
-      expect(result.location.length, "'my_part.dart'".length);
-    }
-    // in T
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == testFile;
-      });
-      expect(result.location.offset, testCode.indexOf("'my_part.dart'; // T"));
-      expect(result.location.length, "'my_part.dart'".length);
-    }
-  }
-
-  test_file_partUnit_atPartDirectiveUri() async {
-    String filePart = '$testFolder/my_part.dart';
-    String fileOther = '$testFolder/userOther.dart';
-    String codeOther = '''
-library lib;
-part 'my_part.dart'; // O
-''';
-    addFile(filePart, 'part of lib;');
-    addFile(fileOther, codeOther);
-    addTestFile('''
-library lib;
-part 'my_part.dart'; // T
-''');
-    await findElementReferences('my_', false);
-    expect(searchElement.kind, ElementKind.FILE);
-    expect(searchElement.name, filePart);
-    expect(results, hasLength(2));
-    // in O
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == fileOther;
-      });
-      expect(result.location.offset, codeOther.indexOf("'my_part.dart'; // O"));
-      expect(result.location.length, "'my_part.dart'".length);
-    }
-    // in T
-    {
-      SearchResult result = results.singleWhere((result) {
-        return result.location.file == testFile;
-      });
-      expect(result.location.offset, testCode.indexOf("'my_part.dart'; // T"));
-      expect(result.location.length, "'my_part.dart'".length);
-    }
-  }
-
   test_function() async {
     addTestFile('''
 fff(p) {}
@@ -440,13 +268,13 @@ main() {
   test_hierarchy_method() async {
     addTestFile('''
 class A {
-  mmm() {} // in A
+  mmm(_) {} // in A
 }
 class B extends A {
-  mmm() {} // in B
+  mmm(_) {} // in B
 }
 class C extends B {
-  mmm() {} // in C
+  mmm(_) {} // in C
 }
 main(A a, B b, C c) {
   a.mmm(10);
@@ -454,11 +282,34 @@ main(A a, B b, C c) {
   c.mmm(30);
 }
 ''');
-    await findElementReferences('mmm() {} // in B', false);
+    await findElementReferences('mmm(_) {} // in B', false);
     expect(searchElement.kind, ElementKind.METHOD);
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(10)');
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(30)');
+  }
+
+  test_hierarchy_method_static() async {
+    addTestFile('''
+class A {
+  static void mmm(_) {} // in A
+}
+class B extends A {
+  static void mmm(_) {} // in B
+}
+class C extends B {
+  static void mmm(_) {} // in C
+}
+main() {
+  A.mmm(10);
+  B.mmm(20);
+  C.mmm(30);
+}
+''');
+    await findElementReferences('mmm(_) {} // in B', false);
+    expect(searchElement.kind, ElementKind.METHOD);
+    expect(results, hasLength(1));
+    assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
   }
 
   test_label() async {

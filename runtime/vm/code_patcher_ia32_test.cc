@@ -21,11 +21,13 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
-  const String& class_name = String::Handle(Symbols::New("ownerClass"));
+  Thread* thread = Thread::Current();
+  const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
   const Script& script = Script::Handle();
-  const Class& owner_class = Class::Handle(
-      Class::New(class_name, script, TokenPosition::kNoSource));
-  const String& function_name = String::Handle(Symbols::New("callerFunction"));
+  const Class& owner_class = Class::Handle(Class::New(
+      Library::Handle(), class_name, script, TokenPosition::kNoSource));
+  const String& function_name = String::Handle(Symbols::New(thread,
+                                                            "callerFunction"));
   const Function& function = Function::Handle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, false, false, false, owner_class,
@@ -38,7 +40,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
                                                          target_name,
                                                          args_descriptor,
                                                          15,
-                                                         1));
+                                                         1,
+                                                         false));
 
   __ LoadObject(ECX, ic_data);
   __ Call(*StubCode::OneArgCheckInlineCache_entry());

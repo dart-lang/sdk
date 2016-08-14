@@ -59,6 +59,8 @@ class PortMap : public AllStatic {
   static void PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream);
 
+  static void DebugDumpForMessageHandler(MessageHandler* handler);
+
  private:
   friend class dart::PortMapTestPeer;
 

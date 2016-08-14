@@ -1420,12 +1420,12 @@ class RegExpEngine: public AllStatic {
 
   static CompilationResult CompileBytecode(
       RegExpCompileData* data,
-      const JSRegExp& regexp,
+      const RegExp& regexp,
       bool is_one_byte,
       Zone* zone);
 
-  static RawJSRegExp* CreateJSRegExp(
-      Zone* zone,
+  static RawRegExp* CreateRegExp(
+      Thread* thread,
       const String& pattern,
       bool multi_line,
       bool ignore_case);

@@ -42,7 +42,8 @@ class SystemEncoding extends Encoding {
   }
 }
 
-class _WindowsCodePageEncoder extends Converter<String, List<int>> {
+class _WindowsCodePageEncoder extends Converter<String, List<int>>
+    implements ChunkedConverter<String, List<int>, String, List<int>> {
 
   const _WindowsCodePageEncoder();
 
@@ -60,9 +61,6 @@ class _WindowsCodePageEncoder extends Converter<String, List<int>> {
   StringConversionSink startChunkedConversion(Sink<List<int>> sink) {
     return new _WindowsCodePageEncoderSink(sink);
   }
-
-  // Override the base-class' bind, to provide a better type.
-  Stream<List<int>> bind(Stream<String> stream) => super.bind(stream);
 
   external static List<int> _encodeString(String string);
 }
@@ -97,7 +95,8 @@ class _WindowsCodePageEncoderSink extends StringConversionSinkBase {
 }
 
 
-class _WindowsCodePageDecoder extends Converter<List<int>, String> {
+class _WindowsCodePageDecoder extends Converter<List<int>, String>
+    implements ChunkedConverter<List<int>, String, List<int>, String> {
 
   const _WindowsCodePageDecoder();
 
@@ -111,9 +110,6 @@ class _WindowsCodePageDecoder extends Converter<List<int>, String> {
   ByteConversionSink startChunkedConversion(Sink<String> sink) {
     return new _WindowsCodePageDecoderSink(sink);
   }
-
-  // Override the base-class' bind, to provide a better type.
-  Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 
   external static String _decodeBytes(List<int> bytes);
 }

@@ -6,36 +6,53 @@
 
 #include <stdio.h>
 
+#include "bin/dartutils.h"
+#include "bin/file.h"
+#include "bin/platform.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "bin/dartutils.h"
-#include "bin/file.h"
-
 
 namespace dart {
 namespace bin {
 
 Dart_Handle Extensions::LoadExtension(const char* extension_directory,
-                                      const char* extension_file,
                                       const char* extension_name,
                                       Dart_Handle parent_library) {
-  if (strncmp(extension_directory, "http://", 7) == 0 ||
-      strncmp(extension_directory, "https://", 8) == 0) {
-    return Dart_NewApiError("Cannot load native extensions over http:");
-  }
-  const char* library_strings[] = { extension_directory, extension_file, NULL };
-  char* library_file = Concatenate(library_strings);
+  // For example on Linux: directory/libfoo-arm.so
+  const char* library_strings[] = {
+    extension_directory,  // directory/
+    Platform::LibraryPrefix(),  // lib
+    extension_name,  // foo
+    "-",
+    Platform::HostArchitecture(),  // arm
+    ".",
+    Platform::LibraryExtension(),  // so
+    NULL,
+  };
+  const char* library_file = Concatenate(library_strings);
   void* library_handle = LoadExtensionLibrary(library_file);
-  free(library_file);
   if (library_handle == NULL) {
-    return GetError();
+    // Fallback on a library file name that does not specify the host
+    // architecture. For example on Linux: directory/libfoo.so
+    const char* fallback_library_strings[] = {
+      extension_directory,  // directory/
+      Platform::LibraryPrefix(),  // lib
+      extension_name,  // foo
+      ".",
+      Platform::LibraryExtension(),  // so
+      NULL,
+    };
+    const char* fallback_library_file = Concatenate(fallback_library_strings);
+    library_handle = LoadExtensionLibrary(fallback_library_file);
+    if (library_handle == NULL) {
+      return GetError();
+    }
   }
 
   const char* strings[] = { extension_name, "_Init", NULL };
-  char* init_function_name = Concatenate(strings);
+  const char* init_function_name = Concatenate(strings);
   void* init_function = ResolveSymbol(library_handle, init_function_name);
-  free(init_function_name);
   Dart_Handle result = GetError();
   if (Dart_IsError(result)) {
     return result;
@@ -48,13 +65,13 @@ Dart_Handle Extensions::LoadExtension(const char* extension_directory,
 
 
 // Concatenates a NULL terminated array of strings.
-// The returned string must be freed.
-char* Extensions::Concatenate(const char** strings) {
+// The returned string is scope allocated.
+const char* Extensions::Concatenate(const char** strings) {
   int size = 1;  // null termination.
   for (int i = 0; strings[i] != NULL; i++) {
     size += strlen(strings[i]);
   }
-  char* result = reinterpret_cast<char*>(malloc(size));
+  char* result = reinterpret_cast<char*>(Dart_ScopeAllocate(size));
   int index = 0;
   for (int i = 0; strings[i] != NULL; i++) {
     index += snprintf(result + index, size - index, "%s", strings[i]);

@@ -5,27 +5,24 @@
 library dart2js.js_backend.helpers;
 
 import '../common.dart';
-import '../common/names.dart' show
-    Identifiers,
-    Uris;
-import '../common/resolution.dart' show
-    Resolution;
-import '../compiler.dart' show
-    Compiler;
-import '../core_types.dart' show
-    CoreClasses;
-import '../elements/elements.dart' show
-    AbstractFieldElement,
-    ClassElement,
-    ConstructorElement,
-    Element,
-    EnumClassElement,
-    FunctionElement,
-    LibraryElement,
-    MethodElement;
-import '../library_loader.dart' show
-    LoadedLibraries;
-
+import '../common/names.dart' show Identifiers, Uris;
+import '../common/resolution.dart' show Resolution;
+import '../compiler.dart' show Compiler;
+import '../core_types.dart' show CoreClasses;
+import '../elements/elements.dart'
+    show
+        AbstractFieldElement,
+        ClassElement,
+        ConstructorElement,
+        Element,
+        EnumClassElement,
+        FunctionElement,
+        LibraryElement,
+        MethodElement,
+        PublicName;
+import '../library_loader.dart' show LoadedLibraries;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector;
 import 'js_backend.dart';
 
 /// Helper classes and functions for the JavaScript backend.
@@ -37,14 +34,12 @@ class BackendHelpers {
       new Uri(scheme: 'dart', path: '_foreign_helper');
   static final Uri DART_JS_MIRRORS =
       new Uri(scheme: 'dart', path: '_js_mirrors');
-  static final Uri DART_JS_NAMES =
-      new Uri(scheme: 'dart', path: '_js_names');
+  static final Uri DART_JS_NAMES = new Uri(scheme: 'dart', path: '_js_names');
   static final Uri DART_EMBEDDED_NAMES =
       new Uri(scheme: 'dart', path: '_js_embedded_names');
   static final Uri DART_ISOLATE_HELPER =
       new Uri(scheme: 'dart', path: '_isolate_helper');
-  static final Uri PACKAGE_JS =
-         new Uri(scheme: 'package', path: 'js/js.dart');
+  static final Uri PACKAGE_JS = new Uri(scheme: 'package', path: 'js/js.dart');
 
   static const String INVOKE_ON = '_getCachedInvocation';
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
@@ -66,7 +61,6 @@ class BackendHelpers {
   MethodElement assertTest;
   MethodElement assertThrow;
   MethodElement assertHelper;
-
 
   LibraryElement jsHelperLibrary;
   LibraryElement asyncLibrary;
@@ -182,6 +176,28 @@ class BackendHelpers {
   /// Holds the class for the [JsBuiltins] enum.
   EnumClassElement jsBuiltinEnum;
 
+  ClassElement _symbolImplementationClass;
+  ClassElement get symbolImplementationClass {
+    return _symbolImplementationClass ??= find(internalLibrary, 'Symbol');
+  }
+
+  final Selector symbolValidatedConstructorSelector =
+      new Selector.call(const PublicName('validated'), CallStructure.ONE_ARG);
+
+  ConstructorElement _symbolValidatedConstructor;
+
+  bool isSymbolValidatedConstructor(Element element) {
+    if (_symbolValidatedConstructor != null) {
+      return element == _symbolValidatedConstructor;
+    }
+    return false;
+  }
+
+  ConstructorElement get symbolValidatedConstructor {
+    return _symbolValidatedConstructor ??= _findConstructor(
+        symbolImplementationClass, symbolValidatedConstructorSelector.name);
+  }
+
   // TODO(johnniwinther): Make these private.
   // TODO(johnniwinther): Split into findHelperFunction and findHelperClass and
   // add a check that the element has the expected kind.
@@ -195,6 +211,14 @@ class BackendHelpers {
     return element;
   }
 
+  ConstructorElement _findConstructor(ClassElement cls, String name) {
+    cls.ensureResolved(resolution);
+    ConstructorElement constructor = cls.lookupConstructor(name);
+    assert(invariant(cls, constructor != null,
+        message: "Constructor '$name' not found in '${cls}'."));
+    return constructor;
+  }
+
   void onLibraryCreated(LibraryElement library) {
     Uri uri = library.canonicalUri;
     if (uri == DART_JS_HELPER) {
@@ -203,9 +227,9 @@ class BackendHelpers {
       asyncLibrary = library;
     } else if (uri == Uris.dart__internal) {
       internalLibrary = library;
-    } else if (uri ==  DART_INTERCEPTORS) {
+    } else if (uri == DART_INTERCEPTORS) {
       interceptorsLibrary = library;
-    } else if (uri ==  DART_FOREIGN_HELPER) {
+    } else if (uri == DART_FOREIGN_HELPER) {
       foreignLibrary = library;
     } else if (uri == DART_ISOLATE_HELPER) {
       isolateHelperLibrary = library;
@@ -221,11 +245,13 @@ class BackendHelpers {
       }
       return result;
     }
+
     jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
     boundClosureClass = lookupHelperClass('BoundClosure');
     closureClass = lookupHelperClass('Closure');
     if (!missingHelperClasses.isEmpty) {
-      reporter.internalError(jsHelperLibrary,
+      reporter.internalError(
+          jsHelperLibrary,
           'dart:_js_helper library does not contain required classes: '
           '$missingHelperClasses');
     }
@@ -309,7 +335,6 @@ class BackendHelpers {
     }
   }
 
-
   void onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     assert(loadedLibraries.containsLibrary(Uris.dart_core));
     assert(loadedLibraries.containsLibrary(DART_INTERCEPTORS));
@@ -340,8 +365,7 @@ class BackendHelpers {
     }
 
     jsIndexableClass.ensureResolved(resolution);
-    jsIndexableLength = compiler.lookupElementIn(
-        jsIndexableClass, 'length');
+    jsIndexableLength = compiler.lookupElementIn(jsIndexableClass, 'length');
     if (jsIndexableLength != null && jsIndexableLength.isAbstractField) {
       AbstractFieldElement element = jsIndexableLength;
       jsIndexableLength = element.getter;
@@ -395,7 +419,6 @@ class BackendHelpers {
   Element get isJsIndexable {
     return findHelper('isJsIndexable');
   }
-
 
   Element get throwIllegalArgumentException {
     return findHelper('iae');
@@ -530,7 +553,7 @@ class BackendHelpers {
   }
 
   Element get createInvocationMirror {
-    return findHelper(Compiler.CREATE_INVOCATION_MIRROR);
+    return findHelper('createInvocationMirror');
   }
 
   Element get cyclicThrowHelper {
@@ -608,8 +631,7 @@ class BackendHelpers {
   }
 
   Element get asyncStarController {
-    ClassElement classElement =
-        findAsyncHelper("_AsyncStarStreamController");
+    ClassElement classElement = findAsyncHelper("_AsyncStarStreamController");
     classElement.ensureResolved(resolution);
     return classElement;
   }

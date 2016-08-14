@@ -51,6 +51,9 @@ class Message {
     return uri.pathSegments[0];
   }
 
+  Message.forMethod(String method)
+      : client = null, method = method, serial = '';
+
   Message.fromUri(this.client, Uri uri)
       : serial = '', method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
@@ -116,23 +119,59 @@ class Message {
     return _completer.future;
   }
 
+  // We currently support two ways of passing parameters from Dart code to C
+  // code. The original way always converts the parameters to strings before
+  // passing them over. Our goal is to convert all C handlers to take the
+  // parameters as Dart objects but until the conversion is complete, we
+  // maintain the list of supported methods below.
+  bool _methodNeedsObjectParameters(String method) {
+    switch (method) {
+      case '_listDevFS':
+      case '_listDevFSFiles':
+      case '_createDevFS':
+      case '_deleteDevFS':
+      case '_writeDevFSFile':
+      case '_writeDevFSFiles':
+      case '_readDevFSFile':
+      case '_spawnUri':
+        return true;
+      default:
+        return false;
+    }
+  }
+
   Future<String> sendToVM() {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
       _completer.complete(value);
     };
-    var keys = _makeAllString(params.keys.toList(growable:false));
-    var values = _makeAllString(params.values.toList(growable:false));
-    var request = new List(6)
-        ..[0] = 0  // Make room for OOB message type.
-        ..[1] = receivePort.sendPort
-        ..[2] = serial
-        ..[3] = method
-        ..[4] = keys
-        ..[5] = values;
-    sendRootServiceMessage(request);
-    return _completer.future;
+    if (_methodNeedsObjectParameters(method)) {
+      // We use a different method invocation path here.
+      var keys = params.keys.toList(growable:false);
+      var values = params.values.toList(growable:false);
+      var request = new List(6)
+          ..[0] = 0  // Make room for OOB message type.
+          ..[1] = receivePort.sendPort
+          ..[2] = serial
+          ..[3] = method
+          ..[4] = keys
+          ..[5] = values;
+      sendObjectRootServiceMessage(request);
+      return _completer.future;
+    } else {
+      var keys = _makeAllString(params.keys.toList(growable:false));
+      var values = _makeAllString(params.values.toList(growable:false));
+      var request = new List(6)
+          ..[0] = 0  // Make room for OOB message type.
+          ..[1] = receivePort.sendPort
+          ..[2] = serial
+          ..[3] = method
+          ..[4] = keys
+          ..[5] = values;
+      sendRootServiceMessage(request);
+      return _completer.future;
+    }
   }
 
   void setResponse(String response) {
@@ -147,3 +186,4 @@ class Message {
 
 external bool sendIsolateServiceMessage(SendPort sp, List m);
 external void sendRootServiceMessage(List m);
+external void sendObjectRootServiceMessage(List m);

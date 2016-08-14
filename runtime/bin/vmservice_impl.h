@@ -18,7 +18,8 @@ class VmService {
 
   static bool Setup(const char* server_ip,
                     intptr_t server_port,
-                    bool running_precompiled);
+                    bool running_precompiled,
+                    bool dev_mode_server);
 
   // Error message if startup failed.
   static const char* GetErrorMessage();
@@ -54,7 +55,6 @@ class VmService {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(VmService);
 };
-
 
 }  // namespace bin
 }  // namespace dart

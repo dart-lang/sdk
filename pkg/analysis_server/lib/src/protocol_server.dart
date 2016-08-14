@@ -17,6 +17,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 
@@ -254,15 +255,15 @@ Location _locationForArgs(engine.AnalysisContext context, engine.Source source,
     engine.SourceRange range) {
   int startLine = 0;
   int startColumn = 0;
-  {
-    engine.LineInfo lineInfo = context.getLineInfo(source);
+  try {
+    engine.LineInfo lineInfo = context.computeLineInfo(source);
     if (lineInfo != null) {
       engine.LineInfo_Location offsetLocation =
           lineInfo.getLocation(range.offset);
       startLine = offsetLocation.lineNumber;
       startColumn = offsetLocation.columnNumber;
     }
-  }
+  } on AnalysisException {}
   return new Location(
       source.fullName, range.offset, range.length, startLine, startColumn);
 }

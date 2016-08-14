@@ -21,7 +21,7 @@ class CHA : public StackResource {
   explicit CHA(Thread* thread)
       : StackResource(thread),
         thread_(thread),
-        leaf_classes_(thread->zone(), 1),
+        guarded_classes_(thread->zone(), 1),
         previous_(thread->cha()) {
     thread->set_cha(this);
   }
@@ -35,24 +35,51 @@ class CHA : public StackResource {
   static bool HasSubclasses(const Class& cls);
   bool HasSubclasses(intptr_t cid) const;
 
+  // Collect the concrete subclasses of 'cls' into 'class_ids'. Return true if
+  // the result is valid (may be invalid because we don't track the subclasses
+  // of classes allocated in the VM isolate or class Object).
+  bool ConcreteSubclasses(const Class& cls, GrowableArray<intptr_t> *class_ids);
+
   // Return true if the class is implemented by some other class.
   static bool IsImplemented(const Class& cls);
 
   // Returns true if any subclass of 'cls' contains the function.
-  bool HasOverride(const Class& cls, const String& function_name);
+  // If no override was found subclass_count would contain total count of
+  // finalized subclasses that CHA looked at.
+  // This count will be used to validate CHA decision before installing
+  // optimized code compiled in background.
+  bool HasOverride(const Class& cls,
+                   const String& function_name,
+                   intptr_t* subclass_count);
 
-  const GrowableArray<Class*>& leaf_classes() const {
-    return leaf_classes_;
-  }
-
-  // Adds class 'cls' to the list of guarded leaf classes, deoptimization occurs
-  // if any of those leaf classes gets subclassed through later loaded/finalized
+  // Adds class 'cls' to the list of guarded classes, deoptimization occurs
+  // if any of those classes gets subclassed through later loaded/finalized
   // libraries. Only classes that were used for CHA optimizations are added.
-  void AddToLeafClasses(const Class& cls);
+  void AddToGuardedClasses(const Class& cls, intptr_t subclass_count);
+
+  // When compiling in background we need to check that no new finalized
+  // subclasses were added to guarded classes.
+  bool IsConsistentWithCurrentHierarchy() const;
+
+  void RegisterDependencies(const Code& code) const;
+
+  // Used for testing.
+  bool IsGuardedClass(intptr_t cid) const;
 
  private:
   Thread* thread_;
-  GrowableArray<Class*> leaf_classes_;
+
+  struct GuardedClassInfo {
+    Class* cls;
+
+    // Number of finalized subclasses that this class had at the moment
+    // when CHA made the first decision based on this class.
+    // Used to validate correctness of background compilation: if
+    // any subclasses were added we will discard compiled code.
+    intptr_t subclass_count;
+  };
+
+  GrowableArray<GuardedClassInfo> guarded_classes_;
   CHA* previous_;
 };
 

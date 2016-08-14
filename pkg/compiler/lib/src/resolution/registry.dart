@@ -5,56 +5,36 @@
 library dart2js.resolution.registry;
 
 import '../common.dart';
-import '../common/backend_api.dart' show
-    Backend,
-    ForeignResolver;
-import '../common/resolution.dart' show
-    Feature,
-    ListLiteralUse,
-    MapLiteralUse,
-    ResolutionImpact;
-import '../common/registry.dart' show
-    Registry;
-import '../compiler.dart' show
-    Compiler;
+import '../common/backend_api.dart'
+    show Backend, ForeignResolver, NativeRegistry;
+import '../common/registry.dart' show Registry;
+import '../common/resolution.dart'
+    show Feature, ListLiteralUse, MapLiteralUse, ResolutionImpact, Target;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/source_span.dart';
-import '../enqueue.dart' show
-    ResolutionEnqueuer;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-import '../util/util.dart' show
-    Setlet;
-import '../universe/call_structure.dart' show
-    CallStructure;
-import '../universe/selector.dart' show
-    Selector;
-import '../universe/use.dart' show
-    DynamicUse,
-    StaticUse,
-    TypeUse;
-import '../universe/world_impact.dart' show
-    WorldImpactBuilder;
-import '../util/enumset.dart' show
-    EnumSet;
-import '../world.dart' show
-    World;
-
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector;
+import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
+import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilder;
+import '../util/enumset.dart' show EnumSet;
+import '../util/util.dart' show Setlet;
+import 'members.dart' show ResolverVisitor;
 import 'send_structure.dart';
+import 'tree_elements.dart' show TreeElementMapping;
 
-import 'members.dart' show
-    ResolverVisitor;
-import 'tree_elements.dart' show
-    TreeElementMapping;
-
-class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
+class _ResolutionWorldImpact extends ResolutionImpact
+    with WorldImpactBuilder
+    implements NativeRegistry {
   final String name;
   EnumSet<Feature> _features;
   Setlet<MapLiteralUse> _mapLiterals;
   Setlet<ListLiteralUse> _listLiterals;
   Setlet<String> _constSymbolNames;
   Setlet<ConstantExpression> _constantLiterals;
+  Setlet<dynamic> _nativeData;
 
   _ResolutionWorldImpact(this.name);
 
@@ -68,8 +48,7 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
 
   @override
   Iterable<MapLiteralUse> get mapLiterals {
-    return _mapLiterals != null
-        ? _mapLiterals : const <MapLiteralUse>[];
+    return _mapLiterals != null ? _mapLiterals : const <MapLiteralUse>[];
   }
 
   void registerListLiteral(ListLiteralUse listLiteralUse) {
@@ -82,8 +61,7 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
 
   @override
   Iterable<ListLiteralUse> get listLiterals {
-    return _listLiterals != null
-        ? _listLiterals : const <ListLiteralUse>[];
+    return _listLiterals != null ? _listLiterals : const <ListLiteralUse>[];
   }
 
   void registerConstSymbolName(String name) {
@@ -95,8 +73,7 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
 
   @override
   Iterable<String> get constSymbolNames {
-    return _constSymbolNames != null
-        ? _constSymbolNames : const <String>[];
+    return _constSymbolNames != null ? _constSymbolNames : const <String>[];
   }
 
   void registerFeature(Feature feature) {
@@ -109,7 +86,8 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
   @override
   Iterable<Feature> get features {
     return _features != null
-        ? _features.iterable(Feature.values) : const <Feature>[];
+        ? _features.iterable(Feature.values)
+        : const <Feature>[];
   }
 
   void registerConstantLiteral(ConstantExpression constant) {
@@ -121,10 +99,56 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
 
   Iterable<ConstantExpression> get constantLiterals {
     return _constantLiterals != null
-        ? _constantLiterals : const <ConstantExpression>[];
+        ? _constantLiterals
+        : const <ConstantExpression>[];
   }
 
-  String toString() => '_ResolutionWorldImpact($name)';
+  void registerNativeData(dynamic nativeData) {
+    assert(nativeData != null);
+    if (_nativeData == null) {
+      _nativeData = new Setlet<dynamic>();
+    }
+    _nativeData.add(nativeData);
+  }
+
+  @override
+  Iterable<dynamic> get nativeData {
+    return _nativeData != null ? _nativeData : const <dynamic>[];
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('_ResolutionWorldImpact($name)');
+    WorldImpact.printOn(sb, this);
+    if (_features != null) {
+      sb.write('\n features:');
+      for (Feature feature in _features.iterable(Feature.values)) {
+        sb.write('\n  $feature');
+      }
+    }
+    if (_mapLiterals != null) {
+      sb.write('\n map-literals:');
+      for (MapLiteralUse use in _mapLiterals) {
+        sb.write('\n  $use');
+      }
+    }
+    if (_listLiterals != null) {
+      sb.write('\n list-literals:');
+      for (ListLiteralUse use in _listLiterals) {
+        sb.write('\n  $use');
+      }
+    }
+    if (_constantLiterals != null) {
+      sb.write('\n const-literals:');
+      for (ConstantExpression constant in _constantLiterals) {
+        sb.write('\n  ${constant.toDartText()}');
+      }
+    }
+    if (_constSymbolNames != null) {
+      sb.write('\n const-symbol-names: $_constSymbolNames');
+    }
+    return sb.toString();
+  }
 }
 
 /// [ResolutionRegistry] collects all resolution information. It stores node
@@ -132,23 +156,16 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
 /// [Backend], [World] and [Enqueuer].
 // TODO(johnniwinther): Split this into an interface and implementation class.
 class ResolutionRegistry extends Registry {
-  final Compiler compiler;
+  final Target target;
   final TreeElementMapping mapping;
   final _ResolutionWorldImpact worldImpact;
 
-  ResolutionRegistry(Compiler compiler, TreeElementMapping mapping)
-      : this.compiler = compiler,
-        this.mapping = mapping,
-        this.worldImpact = new _ResolutionWorldImpact(
-            mapping.analyzedElement.toString());
+  ResolutionRegistry(this.target, TreeElementMapping mapping)
+      : this.mapping = mapping,
+        this.worldImpact =
+            new _ResolutionWorldImpact(mapping.analyzedElement.toString());
 
   bool get isForResolution => true;
-
-  ResolutionEnqueuer get world => compiler.enqueuer.resolution;
-
-  World get universe => compiler.world;
-
-  Backend get backend => compiler.backend;
 
   String toString() => 'ResolutionRegistry for ${mapping.analyzedElement}';
 
@@ -187,8 +204,8 @@ class ResolutionRegistry extends Registry {
   }
 
   /// Sets the target constructor [node] to be [element].
-  void setRedirectingTargetConstructor(RedirectingFactoryBody node,
-                                       ConstructorElement element) {
+  void setRedirectingTargetConstructor(
+      RedirectingFactoryBody node, ConstructorElement element) {
     useElement(node, element);
   }
 
@@ -283,8 +300,8 @@ class ResolutionRegistry extends Registry {
   //  Potential access registration.
   //////////////////////////////////////////////////////////////////////////////
 
-  void setAccessedByClosureIn(Node contextNode, VariableElement element,
-                              Node accessNode) {
+  void setAccessedByClosureIn(
+      Node contextNode, VariableElement element, Node accessNode) {
     mapping.setAccessedByClosureIn(contextNode, element, accessNode);
   }
 
@@ -292,13 +309,13 @@ class ResolutionRegistry extends Registry {
     mapping.registerPotentialMutation(element, mutationNode);
   }
 
-  void registerPotentialMutationInClosure(VariableElement element,
-                                           Node mutationNode) {
+  void registerPotentialMutationInClosure(
+      VariableElement element, Node mutationNode) {
     mapping.registerPotentialMutationInClosure(element, mutationNode);
   }
 
-  void registerPotentialMutationIn(Node contextNode, VariableElement element,
-                                    Node mutationNode) {
+  void registerPotentialMutationIn(
+      Node contextNode, VariableElement element, Node mutationNode) {
     mapping.registerPotentialMutationIn(contextNode, element, mutationNode);
   }
 
@@ -308,10 +325,6 @@ class ResolutionRegistry extends Registry {
 
   void registerStaticUse(StaticUse staticUse) {
     worldImpact.registerStaticUse(staticUse);
-  }
-
-  void registerMetadataConstant(MetadataAnnotation metadata) {
-    backend.registerMetadataConstant(metadata, metadata.annotatedElement, this);
   }
 
   /// Register the use of a type.
@@ -328,31 +341,29 @@ class ResolutionRegistry extends Registry {
     worldImpact.registerTypeUse(new TypeUse.typeLiteral(type));
   }
 
-  void registerLiteralList(Node node,
-                           InterfaceType type,
-                           {bool isConstant,
-                            bool isEmpty}) {
+  void registerLiteralList(Node node, InterfaceType type,
+      {bool isConstant, bool isEmpty}) {
     setType(node, type);
     worldImpact.registerListLiteral(
         new ListLiteralUse(type, isConstant: isConstant, isEmpty: isEmpty));
   }
 
-  void registerMapLiteral(Node node,
-                          InterfaceType type,
-                          {bool isConstant,
-                           bool isEmpty}) {
+  void registerMapLiteral(Node node, InterfaceType type,
+      {bool isConstant, bool isEmpty}) {
     setType(node, type);
     worldImpact.registerMapLiteral(
         new MapLiteralUse(type, isConstant: isConstant, isEmpty: isEmpty));
   }
 
-  void registerForeignCall(Node node,
-                           Element element,
-                           CallStructure callStructure,
-                           ResolverVisitor visitor) {
-    backend.registerForeignCall(
-        node, element, callStructure,
+  void registerForeignCall(Node node, Element element,
+      CallStructure callStructure, ResolverVisitor visitor) {
+    var nativeData = target.resolveForeignCall(node, element, callStructure,
         new ForeignResolutionResolver(visitor, this));
+    if (nativeData != null) {
+      // Split impact from resolution result.
+      mapping.registerNativeData(node, nativeData);
+      worldImpact.registerNativeData(nativeData);
+    }
   }
 
   void registerDynamicUse(DynamicUse dynamicUse) {
@@ -372,12 +383,7 @@ class ResolutionRegistry extends Registry {
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
-    return backend.defaultSuperclass(element);
-  }
-
-  void registerMixinUse(MixinApplicationElement mixinApplication,
-                        ClassElement mixin) {
-    universe.registerMixinUse(mixinApplication, mixin);
+    return target.defaultSuperclass(element);
   }
 
   void registerInstantiation(InterfaceType type) {

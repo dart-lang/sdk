@@ -137,18 +137,18 @@ $!MEMBERS
   /**
    * Helper for iterating over cursors in a request.
    */
-  static Stream<Cursor> _cursorStreamFromResult(Request request,
+  static Stream/*<T>*/ _cursorStreamFromResult/*<T extends Cursor>*/(Request request,
       bool autoAdvance) {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController/*<T>*/(sync: true);
 
     //TODO: Report stacktrace once issue 4061 is resolved.
     request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
-      Cursor cursor = request.result;
+      var cursor = _cast/*<T>*/(request.result);
       if (cursor == null) {
         controller.close();
       } else {
@@ -161,3 +161,6 @@ $!MEMBERS
     return controller.stream;
   }
 }
+
+// ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+/*=To*/ _cast/*<To>*/(dynamic x) => x;

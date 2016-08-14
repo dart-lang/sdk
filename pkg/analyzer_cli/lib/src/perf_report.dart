@@ -5,11 +5,12 @@
 library analyzer_cli.src.perf_report;
 
 import 'dart:convert' show JsonEncoder;
-import 'dart:io' show File, Platform;
+import 'dart:io' show Platform;
 
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
 import 'package:analyzer/task/model.dart' show AnalysisTask;
+import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 
 const _JSON = const JsonEncoder.withIndent("  ");
@@ -39,7 +40,8 @@ String _osType = () {
   }
 }();
 
-String makePerfReport(int startTime, int endTime, CommandLineOptions options) {
+String makePerfReport(int startTime, int endTime, CommandLineOptions options,
+    int analyzedFileCount, AnalysisStats stats) {
   int totalTime = endTime - startTime;
   int otherTime = totalTime;
 
@@ -53,6 +55,7 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options) {
     'dartSdkPath': options.dartSdkPath,
     'strongMode': options.strongMode,
     'showPackageWarnings': options.showPackageWarnings,
+    'showPackageWarningsPrefix': options.showPackageWarningsPrefix,
     'showSdkWarnings': options.showSdkWarnings,
     'definedVariables': options.definedVariables,
     'packageRootPath': options.packageRootPath,
@@ -89,6 +92,9 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options) {
     'options': optionsJson,
     'totalElapsedTime': totalTime,
     'totalTaskTime': totalTaskTime,
+    'analyzedFiles': analyzedFileCount,
+    'generatedDiagnostics': stats.unfilteredCount,
+    'reportedDiagnostics': stats.filteredCount,
     'performanceTags': perfTagsJson,
     'tasks': taskRows.map((r) => r.toJson()).toList(),
   };

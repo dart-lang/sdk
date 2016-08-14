@@ -33,7 +33,7 @@ abstract class SetMixin<E> implements Set<E> {
 
   bool contains(Object element);
 
-  E lookup(E element);
+  E lookup(Object element);
 
   bool remove(Object element);
 
@@ -120,12 +120,12 @@ abstract class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  Iterable map(f(E element)) =>
-      new EfficientLengthMappedIterable<E, dynamic>(this, f);
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/f(E element)) =>
+      new EfficientLengthMappedIterable<E, dynamic/*=T*/>(this, f);
 
   E get single {
     if (length > 1) throw IterableElementError.tooMany();
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) throw IterableElementError.noElement();
     E result = it.current;
     return result;
@@ -138,8 +138,8 @@ abstract class SetMixin<E> implements Set<E> {
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
-  Iterable expand(Iterable f(E element)) =>
-      new ExpandIterable<E, dynamic>(this, f);
+  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) =>
+      new ExpandIterable<E, dynamic/*=T*/>(this, f);
 
   void forEach(void f(E element)) {
     for (E element in this) f(element);
@@ -157,8 +157,8 @@ abstract class SetMixin<E> implements Set<E> {
     return value;
   }
 
-  dynamic fold(var initialValue,
-               dynamic combine(var previousValue, E element)) {
+  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
+      dynamic/*=T*/ combine(var/*=T*/ previousValue, E element)) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;
@@ -213,7 +213,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   E get first {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }
@@ -221,7 +221,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   E get last {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }

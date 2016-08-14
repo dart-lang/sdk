@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.15.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.16.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -239,6 +239,10 @@
             <ref>String</ref>
             <p>The version number of the analysis server.</p>
           </field>
+         <field name="pid">
+           <ref>int</ref>
+           <p>The process id of the analysis server process.</p>
+         </field>
         </params>
       </notification>
       <notification event="error">

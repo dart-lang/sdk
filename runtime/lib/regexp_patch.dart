@@ -4,23 +4,23 @@
 
 import "dart:collection" show LinkedList, LinkedListEntry;
 
-patch class RegExp {
-  /* patch */ factory RegExp(String source,
-                             {bool multiLine: false,
-                              bool caseSensitive: true}) {
-    _JSSyntaxRegExpHashKey key = new _JSSyntaxRegExpHashKey(
+@patch class RegExp {
+  @patch factory RegExp(String source,
+                              {bool multiLine: false,
+                               bool caseSensitive: true}) {
+    _RegExpHashKey key = new _RegExpHashKey(
         source, multiLine, caseSensitive);
-    _JSSyntaxRegExpHashValue value = _cache[key];
+    _RegExpHashValue value = _cache[key];
 
     if (value == null) {
       if (_cache.length > _MAX_CACHE_SIZE) {
-        _JSSyntaxRegExpHashKey lastKey = _recentlyUsed.last;
+        _RegExpHashKey lastKey = _recentlyUsed.last;
         lastKey.unlink();
         _cache.remove(lastKey);
       }
 
-      value = new _JSSyntaxRegExpHashValue(
-          new _JSSyntaxRegExp(source,
+      value = new _RegExpHashValue(
+          new _RegExp(source,
                               multiLine: multiLine,
                               caseSensitive: caseSensitive),
           key);
@@ -47,24 +47,24 @@ patch class RegExp {
   // TODO(zerny): Use self-sizing cache similar to _AccessorCache in
   // mirrors_impl.dart.
   static const int _MAX_CACHE_SIZE = 256;
-  static final Map<_JSSyntaxRegExpHashKey, _JSSyntaxRegExpHashValue> _cache =
-      new HashMap<_JSSyntaxRegExpHashKey, _JSSyntaxRegExpHashValue>();
-  static final LinkedList<_JSSyntaxRegExpHashKey> _recentlyUsed =
-      new LinkedList<_JSSyntaxRegExpHashKey>();
+  static final Map<_RegExpHashKey, _RegExpHashValue> _cache =
+      new HashMap<_RegExpHashKey, _RegExpHashValue>();
+  static final LinkedList<_RegExpHashKey> _recentlyUsed =
+      new LinkedList<_RegExpHashKey>();
 }
 
 
 // Represents both a key in the regular expression cache as well as its
 // corresponding entry in the LRU list.
-class _JSSyntaxRegExpHashKey extends LinkedListEntry<_JSSyntaxRegExpHashKey> {
+class _RegExpHashKey extends LinkedListEntry<_RegExpHashKey> {
   final String pattern;
   final bool multiLine;
   final bool caseSensitive;
 
-  _JSSyntaxRegExpHashKey(this.pattern, this.multiLine, this.caseSensitive);
+  _RegExpHashKey(this.pattern, this.multiLine, this.caseSensitive);
 
   int get hashCode => pattern.hashCode;
-  bool operator==(_JSSyntaxRegExpHashKey that) {
+  bool operator==(_RegExpHashKey that) {
     return (this.pattern == that.pattern) &&
            (this.multiLine == that.multiLine) &&
            (this.caseSensitive == that.caseSensitive);
@@ -74,16 +74,16 @@ class _JSSyntaxRegExpHashKey extends LinkedListEntry<_JSSyntaxRegExpHashKey> {
 
 // Represents a value in the regular expression cache. Contains a pointer
 // back to the key in order to access the corresponding LRU entry.
-class _JSSyntaxRegExpHashValue {
-  final _JSSyntaxRegExp regexp;
-  final _JSSyntaxRegExpHashKey key;
+class _RegExpHashValue {
+  final _RegExp regexp;
+  final _RegExpHashKey key;
 
-  _JSSyntaxRegExpHashValue(this.regexp, this.key);
+  _RegExpHashValue(this.regexp, this.key);
 }
 
 
-class _JSRegExpMatch implements Match {
-  _JSRegExpMatch(this._regexp, this.input, this._match);
+class _RegExpMatch implements Match {
+  _RegExpMatch(this._regexp, this.input, this._match);
 
   int get start => _start(0);
   int get end => _end(0);
@@ -132,11 +132,11 @@ class _JSRegExpMatch implements Match {
 }
 
 
-class _JSSyntaxRegExp implements RegExp {
-  factory _JSSyntaxRegExp(
+class _RegExp implements RegExp {
+  factory _RegExp(
       String pattern,
       {bool multiLine: false,
-       bool caseSensitive: true}) native "JSSyntaxRegExp_factory";
+       bool caseSensitive: true}) native "RegExp_factory";
 
   Match firstMatch(String str) {
     if (str is! String) throw new ArgumentError(str);
@@ -144,7 +144,7 @@ class _JSSyntaxRegExp implements RegExp {
     if (match == null) {
       return null;
     }
-    return new _JSRegExpMatch(this, str, match);
+    return new _RegExpMatch(this, str, match);
   }
 
   Iterable<Match> allMatches(String string, [int start = 0]) {
@@ -167,7 +167,7 @@ class _JSSyntaxRegExp implements RegExp {
     List<int> list = _ExecuteMatch(string, start);
     if (list == null) return null;
     if (list[0] != start) return null;
-    return new _JSRegExpMatch(this, string, list);
+    return new _RegExpMatch(this, string, list);
   }
 
   bool hasMatch(String str) {
@@ -185,13 +185,13 @@ class _JSSyntaxRegExp implements RegExp {
     return str._substringUnchecked(match[0], match[1]);
   }
 
-  String get pattern native "JSSyntaxRegExp_getPattern";
+  String get pattern native "RegExp_getPattern";
 
-  bool get isMultiLine native "JSSyntaxRegExp_getIsMultiLine";
+  bool get isMultiLine native "RegExp_getIsMultiLine";
 
-  bool get isCaseSensitive native "JSSyntaxRegExp_getIsCaseSensitive";
+  bool get isCaseSensitive native "RegExp_getIsCaseSensitive";
 
-  int get _groupCount native "JSSyntaxRegExp_getGroupCount";
+  int get _groupCount native "RegExp_getGroupCount";
 
   // Byte map of one byte characters with a 0xff if the character is a word
   // character (digit, letter or underscore) and 0x00 otherwise.
@@ -239,11 +239,11 @@ class _JSSyntaxRegExp implements RegExp {
   ];
 
   List _ExecuteMatch(String str, int start_index)
-      native "JSSyntaxRegExp_ExecuteMatch";
+      native "RegExp_ExecuteMatch";
 }
 
 class _AllMatchesIterable extends IterableBase<Match> {
-  final _JSSyntaxRegExp _re;
+  final _RegExp _re;
   final String _str;
   final int _start;
 
@@ -255,7 +255,7 @@ class _AllMatchesIterable extends IterableBase<Match> {
 class _AllMatchesIterator implements Iterator<Match> {
   final String _str;
   int _nextIndex;
-  _JSSyntaxRegExp _re;
+  _RegExp _re;
   Match _current;
 
   _AllMatchesIterator(this._re, this._str, this._nextIndex);
@@ -267,7 +267,7 @@ class _AllMatchesIterator implements Iterator<Match> {
     if (_nextIndex <= _str.length) {
       var match = _re._ExecuteMatch(_str, _nextIndex);
       if (match != null) {
-        _current = new _JSRegExpMatch(_re, _str, match);
+        _current = new _RegExpMatch(_re, _str, match);
         _nextIndex = _current.end;
         if (_nextIndex == _current.start) {
           // Zero-width match. Advance by one more.

@@ -14,33 +14,45 @@
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
+#include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/platform.h"
-
 #include "platform/signal_blocker.h"
-
 
 namespace dart {
 namespace bin {
 
-
 PathBuffer::PathBuffer() : length_(0) {
-  data_ = calloc(PATH_MAX + 1,  sizeof(char));  // NOLINT
+  data_ = calloc(PATH_MAX + 1, sizeof(char));  // NOLINT
 }
+
+
+PathBuffer::~PathBuffer() {
+  free(data_);
+}
+
 
 bool PathBuffer::AddW(const wchar_t* name) {
   UNREACHABLE();
   return false;
 }
 
+
 char* PathBuffer::AsString() const {
   return reinterpret_cast<char*>(data_);
 }
+
 
 wchar_t* PathBuffer::AsStringW() const {
   UNREACHABLE();
   return NULL;
 }
+
+
+const char* PathBuffer::AsScopedString() const {
+  return DartUtils::ScopedCopyCString(AsString());
+}
+
 
 bool PathBuffer::Add(const char* name) {
   char* data = AsString();
@@ -49,9 +61,9 @@ bool PathBuffer::Add(const char* name) {
                          "%s",
                          name);
   data[PATH_MAX] = '\0';
-  if (written <= PATH_MAX - length_ &&
-      written >= 0 &&
-      static_cast<size_t>(written) == strlen(name)) {
+  if ((written <= PATH_MAX - length_) &&
+      (written >= 0) &&
+      (static_cast<size_t>(written) == strlen(name))) {
     length_ += written;
     return true;
   } else {
@@ -60,7 +72,8 @@ bool PathBuffer::Add(const char* name) {
   }
 }
 
-void PathBuffer::Reset(int new_length) {
+
+void PathBuffer::Reset(intptr_t new_length) {
   length_ = new_length;
   AsString()[length_] = '\0';
 }
@@ -84,7 +97,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
     do {
       lister_ = reinterpret_cast<intptr_t>(
           opendir(listing->path_buffer().AsString()));
-    } while (lister_ == 0 && errno == EINTR);
+    } while ((lister_ == 0) && (errno == EINTR));
 
     if (lister_ == 0) {
       done_ = true;
@@ -106,18 +119,19 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   int status = 0;
   dirent entry;
   dirent* result;
-  if ((status = NO_RETRY_EXPECTED(readdir_r(reinterpret_cast<DIR*>(lister_),
-                                            &entry,
-                                            &result))) == 0 &&
-      result != NULL) {
+  status = NO_RETRY_EXPECTED(readdir_r(
+      reinterpret_cast<DIR*>(lister_), &entry, &result));
+  if ((status == 0) && (result != NULL)) {
     if (!listing->path_buffer().Add(entry.d_name)) {
       done_ = true;
       return kListError;
     }
     switch (entry.d_type) {
       case DT_DIR:
-        if (strcmp(entry.d_name, ".") == 0) return Next(listing);
-        if (strcmp(entry.d_name, "..") == 0) return Next(listing);
+        if ((strcmp(entry.d_name, ".") == 0) ||
+            (strcmp(entry.d_name, "..") == 0)) {
+          return Next(listing);
+        }
         return kListDirectory;
       case DT_REG:
         return kListFile;
@@ -146,8 +160,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
                                     link_ };
           LinkList* previous = link_;
           while (previous != NULL) {
-            if (previous->dev == current_link.dev &&
-                previous->ino == current_link.ino) {
+            if ((previous->dev == current_link.dev) &&
+                (previous->ino == current_link.ino)) {
               // Report the looping link as a link, rather than following it.
               return kListLink;
             }
@@ -163,14 +177,18 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             // Recurse into the subdirectory with current_link added to the
             // linked list of seen file system links.
             link_ = new LinkList(current_link);
-            if (strcmp(entry.d_name, ".") == 0) return Next(listing);
-            if (strcmp(entry.d_name, "..") == 0) return Next(listing);
+            if ((strcmp(entry.d_name, ".") == 0) ||
+                (strcmp(entry.d_name, "..") == 0)) {
+              return Next(listing);
+            }
             return kListDirectory;
           }
         }
         if (S_ISDIR(entry_info.st_mode)) {
-          if (strcmp(entry.d_name, ".") == 0) return Next(listing);
-          if (strcmp(entry.d_name, "..") == 0) return Next(listing);
+          if ((strcmp(entry.d_name, ".") == 0) ||
+              (strcmp(entry.d_name, "..") == 0)) {
+            return Next(listing);
+          }
           return kListDirectory;
         } else if (S_ISREG(entry_info.st_mode)) {
           return kListFile;
@@ -203,7 +221,7 @@ DirectoryListingEntry::~DirectoryListingEntry() {
 
 
 void DirectoryListingEntry::ResetLink() {
-  if (link_ != NULL && (parent_ == NULL || parent_->link_ != link_)) {
+  if ((link_ != NULL) && ((parent_ == NULL) || (parent_->link_ != link_))) {
     delete link_;
     link_ = NULL;
   }
@@ -218,14 +236,15 @@ static bool DeleteRecursively(PathBuffer* path);
 
 static bool DeleteFile(char* file_name,
                        PathBuffer* path) {
-  return path->Add(file_name) && unlink(path->AsString()) == 0;
+  return path->Add(file_name) && (unlink(path->AsString()) == 0);
 }
 
 
 static bool DeleteDir(char* dir_name,
                       PathBuffer* path) {
-  if (strcmp(dir_name, ".") == 0) return true;
-  if (strcmp(dir_name, "..") == 0) return true;
+  if ((strcmp(dir_name, ".") == 0) || (strcmp(dir_name, "..") == 0)) {
+    return true;
+  }
   return path->Add(dir_name) && DeleteRecursively(path);
 }
 
@@ -240,14 +259,16 @@ static bool DeleteRecursively(PathBuffer* path) {
     return (unlink(path->AsString()) == 0);
   }
 
-  if (!path->Add(File::PathSeparator())) return false;
+  if (!path->Add(File::PathSeparator())) {
+    return false;
+  }
 
   // Not a link. Attempt to open as a directory and recurse into the
   // directory.
   DIR* dir_pointer;
   do {
     dir_pointer = opendir(path->AsString());
-  } while (dir_pointer == NULL && errno == EINTR);
+  } while ((dir_pointer == NULL) && (errno == EINTR));
   if (dir_pointer == NULL) {
     return false;
   }
@@ -259,8 +280,8 @@ static bool DeleteRecursively(PathBuffer* path) {
   while (NO_RETRY_EXPECTED(readdir_r(dir_pointer, &entry, &result)) == 0) {
     if (result == NULL) {
       // End of directory.
-      return NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0 &&
-          NO_RETRY_EXPECTED(remove(path->AsString())) == 0;
+      return (NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0) &&
+             (NO_RETRY_EXPECTED(remove(path->AsString())) == 0);
     }
     bool ok = false;
     switch (entry.d_type) {
@@ -323,33 +344,42 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
       return DOES_NOT_EXIST;
     }
   } else {
-    if (errno == EACCES ||
-        errno == EBADF ||
-        errno == EFAULT ||
-        errno == ENOMEM ||
-        errno == EOVERFLOW) {
+    if ((errno == EACCES) ||
+        (errno == EBADF) ||
+        (errno == EFAULT) ||
+        (errno == ENOMEM) ||
+        (errno == EOVERFLOW)) {
       // Search permissions denied for one of the directories in the
       // path or a low level error occured. We do not know if the
       // directory exists.
       return UNKNOWN;
     }
-    ASSERT(errno == ELOOP ||
-           errno == ENAMETOOLONG ||
-           errno == ENOENT ||
-           errno == ENOTDIR);
+    ASSERT((errno == ELOOP) ||
+           (errno == ENAMETOOLONG) ||
+           (errno == ENOENT) ||
+           (errno == ENOTDIR));
     return DOES_NOT_EXIST;
   }
 }
 
 
-char* Directory::Current() {
+char* Directory::CurrentNoScope() {
   return getcwd(NULL, 0);
+}
+
+
+const char* Directory::Current() {
+  char buffer[PATH_MAX];
+  if (getcwd(buffer, PATH_MAX) == NULL) {
+    return NULL;
+  }
+  return DartUtils::ScopedCopyCString(buffer);
 }
 
 
 bool Directory::SetCurrent(const char* path) {
   int result = NO_RETRY_EXPECTED(chdir(path));
-  return result == 0;
+  return (result == 0);
 }
 
 
@@ -358,14 +388,15 @@ bool Directory::Create(const char* dir_name) {
   // process umask.
   int result = NO_RETRY_EXPECTED(mkdir(dir_name, 0777));
   // If the directory already exists, treat it as a success.
-  if (result == -1 && errno == EEXIST) {
+  if ((result == -1) && (errno == EEXIST)) {
     return (Exists(dir_name) == EXISTS);
   }
   return (result == 0);
 }
 
 
-char* Directory::SystemTemp() {
+const char* Directory::SystemTemp() {
+  PathBuffer path;
   const char* temp_dir = getenv("TMPDIR");
   if (temp_dir == NULL) {
     temp_dir = getenv("TMP");
@@ -373,23 +404,28 @@ char* Directory::SystemTemp() {
   if (temp_dir == NULL) {
     temp_dir = "/tmp";
   }
-  char* result = strdup(temp_dir);
+  if (!path.Add(temp_dir)) {
+    return NULL;
+  }
   // Remove any trailing slash.
+  char* result = path.AsString();
   int length = strlen(result);
-  if (length > 1 && result[length - 1] == '/') {
+  if ((length > 1) && (result[length - 1] == '/')) {
     result[length - 1] = '\0';
   }
-  return result;
+  return path.AsScopedString();
 }
 
 
-char* Directory::CreateTemp(const char* prefix) {
+const char* Directory::CreateTemp(const char* prefix) {
   // Returns a new, unused directory name, adding characters to the end
   // of prefix.  Creates the directory with the permissions specified
   // by the process umask.
-  // The return value must be freed by the caller.
+  // The return value is Dart_ScopeAllocated.
   PathBuffer path;
-  path.Add(prefix);
+  if (!path.Add(prefix)) {
+    return NULL;
+  }
   if (!path.Add("XXXXXX")) {
     // Pattern has overflowed.
     return NULL;
@@ -397,18 +433,18 @@ char* Directory::CreateTemp(const char* prefix) {
   char* result;
   do {
     result = mkdtemp(path.AsString());
-  } while (result == NULL && errno == EINTR);
+  } while ((result == NULL) && (errno == EINTR));
   if (result == NULL) {
     return NULL;
   }
-  return strdup(result);
+  return path.AsScopedString();
 }
 
 
 bool Directory::Delete(const char* dir_name, bool recursive) {
   if (!recursive) {
-    if (File::GetType(dir_name, false) == File::kIsLink &&
-        File::GetType(dir_name, true) == File::kIsDirectory) {
+    if ((File::GetType(dir_name, false) == File::kIsLink) &&
+        (File::GetType(dir_name, true) == File::kIsDirectory)) {
       return (NO_RETRY_EXPECTED(unlink(dir_name)) == 0);
     }
     return (NO_RETRY_EXPECTED(rmdir(dir_name)) == 0);
@@ -424,7 +460,9 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
 
 bool Directory::Rename(const char* path, const char* new_path) {
   ExistsResult exists = Exists(path);
-  if (exists != EXISTS) return false;
+  if (exists != EXISTS) {
+    return false;
+  }
   return (NO_RETRY_EXPECTED(rename(path, new_path)) == 0);
 }
 

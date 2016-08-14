@@ -10,7 +10,6 @@ library dart2js.test.generate_code_with_compile_time_errors;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/dart_backend/dart_backend.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'memory_compiler.dart';
 import 'output_collector.dart';
@@ -53,14 +52,8 @@ test(List<String> options,
       collector.hints.isNotEmpty,
       "Unexpected hints: ${collector.warnings}");
 
-  bool isCodeGenerated;
-  if (options.contains('--output-type=dart')) {
-    DartBackend backend = compiler.backend;
-    isCodeGenerated = backend.outputter.libraryInfo != null;
-  } else {
-    JavaScriptBackend backend = compiler.backend;
-    isCodeGenerated = backend.generatedCode.isNotEmpty;
-  }
+  JavaScriptBackend backend = compiler.backend;
+  bool isCodeGenerated = backend.generatedCode.isNotEmpty;
   Expect.equals(
       expectedCodeGenerated,
       isCodeGenerated,
@@ -93,47 +86,5 @@ void main() {
        ['--generate-code-with-compile-time-errors', '--test-mode'],
        expectedCodeGenerated: true,
        expectedOutput: false);
-
-    await test(
-       ['--use-cps-ir'],
-       expectedCodeGenerated: false,
-       expectedOutput: false);
-    await test(
-       ['--use-cps-ir', '--test-mode'],
-       expectedCodeGenerated: false,
-       expectedOutput: false);
-    await test(
-       ['--use-cps-ir', '--generate-code-with-compile-time-errors'],
-       expectedCodeGenerated: false,
-       expectedOutput: false,
-       expectHint: true);
-    await test(
-       ['--use-cps-ir',
-        '--generate-code-with-compile-time-errors',
-        '--test-mode'],
-       expectedCodeGenerated: false,
-       expectedOutput: false,
-       expectHint: true);
-
-    await test(
-       ['--output-type=dart'],
-       expectedCodeGenerated: false,
-       expectedOutput: false);
-    await test(
-       ['--output-type=dart', '--test-mode'],
-       expectedCodeGenerated: false,
-       expectedOutput: false);
-    await test(
-       ['--output-type=dart', '--generate-code-with-compile-time-errors'],
-       expectedCodeGenerated: false,
-       expectedOutput: false,
-       expectHint: true);
-    await test(
-       ['--output-type=dart',
-        '--generate-code-with-compile-time-errors',
-        '--test-mode'],
-       expectedCodeGenerated: false,
-       expectedOutput: false,
-       expectHint: true);
   });
 }

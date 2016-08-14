@@ -504,48 +504,104 @@ $L$SEH_begin_rsaz_512_mul_gather4:
 	push	r14
 	push	r15
 
-	mov	r9d,r9d
-	sub	rsp,128+24
+	sub	rsp,328
+	movaps	XMMWORD[160+rsp],xmm6
+	movaps	XMMWORD[176+rsp],xmm7
+	movaps	XMMWORD[192+rsp],xmm8
+	movaps	XMMWORD[208+rsp],xmm9
+	movaps	XMMWORD[224+rsp],xmm10
+	movaps	XMMWORD[240+rsp],xmm11
+	movaps	XMMWORD[256+rsp],xmm12
+	movaps	XMMWORD[272+rsp],xmm13
+	movaps	XMMWORD[288+rsp],xmm14
+	movaps	XMMWORD[304+rsp],xmm15
 $L$mul_gather4_body:
-	mov	eax,DWORD[64+r9*4+rdx]
-DB	102,72,15,110,199
-	mov	ebx,DWORD[r9*4+rdx]
-DB	102,72,15,110,201
-	mov	QWORD[128+rsp],r8
+	movd	xmm8,r9d
+	movdqa	xmm1,XMMWORD[(($L$inc+16))]
+	movdqa	xmm0,XMMWORD[$L$inc]
 
-	shl	rax,32
-	or	rbx,rax
+	pshufd	xmm8,xmm8,0
+	movdqa	xmm7,xmm1
+	movdqa	xmm2,xmm1
+	paddd	xmm1,xmm0
+	pcmpeqd	xmm0,xmm8
+	movdqa	xmm3,xmm7
+	paddd	xmm2,xmm1
+	pcmpeqd	xmm1,xmm8
+	movdqa	xmm4,xmm7
+	paddd	xmm3,xmm2
+	pcmpeqd	xmm2,xmm8
+	movdqa	xmm5,xmm7
+	paddd	xmm4,xmm3
+	pcmpeqd	xmm3,xmm8
+	movdqa	xmm6,xmm7
+	paddd	xmm5,xmm4
+	pcmpeqd	xmm4,xmm8
+	paddd	xmm6,xmm5
+	pcmpeqd	xmm5,xmm8
+	paddd	xmm7,xmm6
+	pcmpeqd	xmm6,xmm8
+	pcmpeqd	xmm7,xmm8
+
+	movdqa	xmm8,XMMWORD[rdx]
+	movdqa	xmm9,XMMWORD[16+rdx]
+	movdqa	xmm10,XMMWORD[32+rdx]
+	movdqa	xmm11,XMMWORD[48+rdx]
+	pand	xmm8,xmm0
+	movdqa	xmm12,XMMWORD[64+rdx]
+	pand	xmm9,xmm1
+	movdqa	xmm13,XMMWORD[80+rdx]
+	pand	xmm10,xmm2
+	movdqa	xmm14,XMMWORD[96+rdx]
+	pand	xmm11,xmm3
+	movdqa	xmm15,XMMWORD[112+rdx]
+	lea	rbp,[128+rdx]
+	pand	xmm12,xmm4
+	pand	xmm13,xmm5
+	pand	xmm14,xmm6
+	pand	xmm15,xmm7
+	por	xmm8,xmm10
+	por	xmm9,xmm11
+	por	xmm8,xmm12
+	por	xmm9,xmm13
+	por	xmm8,xmm14
+	por	xmm9,xmm15
+
+	por	xmm8,xmm9
+	pshufd	xmm9,xmm8,0x4e
+	por	xmm8,xmm9
+DB	102,76,15,126,195
+
+	mov	QWORD[128+rsp],r8
+	mov	QWORD[((128+8))+rsp],rdi
+	mov	QWORD[((128+16))+rsp],rcx
+
 	mov	rax,QWORD[rsi]
 	mov	rcx,QWORD[8+rsi]
-	lea	rbp,[128+r9*4+rdx]
 	mul	rbx
 	mov	QWORD[rsp],rax
 	mov	rax,rcx
 	mov	r8,rdx
 
 	mul	rbx
-	movd	xmm4,DWORD[rbp]
 	add	r8,rax
 	mov	rax,QWORD[16+rsi]
 	mov	r9,rdx
 	adc	r9,0
 
 	mul	rbx
-	movd	xmm5,DWORD[64+rbp]
 	add	r9,rax
 	mov	rax,QWORD[24+rsi]
 	mov	r10,rdx
 	adc	r10,0
 
 	mul	rbx
-	pslldq	xmm5,4
 	add	r10,rax
 	mov	rax,QWORD[32+rsi]
 	mov	r11,rdx
 	adc	r11,0
 
 	mul	rbx
-	por	xmm4,xmm5
 	add	r11,rax
 	mov	rax,QWORD[40+rsi]
 	mov	r12,rdx
@@ -558,14 +614,12 @@ DB	102,72,15,110,201
 	adc	r13,0
 
 	mul	rbx
-	lea	rbp,[128+rbp]
 	add	r13,rax
 	mov	rax,QWORD[56+rsi]
 	mov	r14,rdx
 	adc	r14,0
 
 	mul	rbx
-DB	102,72,15,126,227
 	add	r14,rax
 	mov	rax,QWORD[rsi]
 	mov	r15,rdx
@@ -577,6 +631,35 @@ DB	102,72,15,126,227
 
 ALIGN	32
 $L$oop_mul_gather:
+	movdqa	xmm8,XMMWORD[rbp]
+	movdqa	xmm9,XMMWORD[16+rbp]
+	movdqa	xmm10,XMMWORD[32+rbp]
+	movdqa	xmm11,XMMWORD[48+rbp]
+	pand	xmm8,xmm0
+	movdqa	xmm12,XMMWORD[64+rbp]
+	pand	xmm9,xmm1
+	movdqa	xmm13,XMMWORD[80+rbp]
+	pand	xmm10,xmm2
+	movdqa	xmm14,XMMWORD[96+rbp]
+	pand	xmm11,xmm3
+	movdqa	xmm15,XMMWORD[112+rbp]
+	lea	rbp,[128+rbp]
+	pand	xmm12,xmm4
+	pand	xmm13,xmm5
+	pand	xmm14,xmm6
+	pand	xmm15,xmm7
+	por	xmm8,xmm10
+	por	xmm9,xmm11
+	por	xmm8,xmm12
+	por	xmm9,xmm13
+	por	xmm8,xmm14
+	por	xmm9,xmm15
+
+	por	xmm8,xmm9
+	pshufd	xmm9,xmm8,0x4e
+	por	xmm8,xmm9
+DB	102,76,15,126,195
+
 	mul	rbx
 	add	r8,rax
 	mov	rax,QWORD[8+rsi]
@@ -585,7 +668,6 @@ $L$oop_mul_gather:
 	adc	r8,0
 
 	mul	rbx
-	movd	xmm4,DWORD[rbp]
 	add	r9,rax
 	mov	rax,QWORD[16+rsi]
 	adc	rdx,0
@@ -594,7 +676,6 @@ $L$oop_mul_gather:
 	adc	r9,0
 
 	mul	rbx
-	movd	xmm5,DWORD[64+rbp]
 	add	r10,rax
 	mov	rax,QWORD[24+rsi]
 	adc	rdx,0
@@ -603,7 +684,6 @@ $L$oop_mul_gather:
 	adc	r10,0
 
 	mul	rbx
-	pslldq	xmm5,4
 	add	r11,rax
 	mov	rax,QWORD[32+rsi]
 	adc	rdx,0
@@ -612,7 +692,6 @@ $L$oop_mul_gather:
 	adc	r11,0
 
 	mul	rbx
-	por	xmm4,xmm5
 	add	r12,rax
 	mov	rax,QWORD[40+rsi]
 	adc	rdx,0
@@ -637,7 +716,6 @@ $L$oop_mul_gather:
 	adc	r14,0
 
 	mul	rbx
-DB	102,72,15,126,227
 	add	r15,rax
 	mov	rax,QWORD[rsi]
 	adc	rdx,0
@@ -645,7 +723,6 @@ DB	102,72,15,126,227
 	mov	r15,rdx
 	adc	r15,0
 
-	lea	rbp,[128+rbp]
 	lea	rdi,[8+rdi]
 
 	dec	ecx
@@ -660,8 +737,8 @@ DB	102,72,15,126,227
 	mov	QWORD[48+rdi],r14
 	mov	QWORD[56+rdi],r15
 
-DB	102,72,15,126,199
-DB	102,72,15,126,205
+	mov	rdi,QWORD[((128+8))+rsp]
+	mov	rbp,QWORD[((128+16))+rsp]
 
 	mov	r8,QWORD[rsp]
 	mov	r9,QWORD[8+rsp]
@@ -686,6 +763,17 @@ DB	102,72,15,126,205
 	call	__rsaz_512_subtract
 
 	lea	rax,[((128+24+48))+rsp]
+	movaps	xmm6,XMMWORD[((160-200))+rax]
+	movaps	xmm7,XMMWORD[((176-200))+rax]
+	movaps	xmm8,XMMWORD[((192-200))+rax]
+	movaps	xmm9,XMMWORD[((208-200))+rax]
+	movaps	xmm10,XMMWORD[((224-200))+rax]
+	movaps	xmm11,XMMWORD[((240-200))+rax]
+	movaps	xmm12,XMMWORD[((256-200))+rax]
+	movaps	xmm13,XMMWORD[((272-200))+rax]
+	movaps	xmm14,XMMWORD[((288-200))+rax]
+	movaps	xmm15,XMMWORD[((304-200))+rax]
+	lea	rax,[176+rax]
 	mov	r15,QWORD[((-48))+rax]
 	mov	r14,QWORD[((-40))+rax]
 	mov	r13,QWORD[((-32))+rax]
@@ -724,7 +812,7 @@ $L$SEH_begin_rsaz_512_mul_scatter4:
 	mov	r9d,r9d
 	sub	rsp,128+24
 $L$mul_scatter4_body:
-	lea	r8,[r9*4+r8]
+	lea	r8,[r9*8+r8]
 DB	102,72,15,110,199
 DB	102,72,15,110,202
 DB	102,73,15,110,208
@@ -760,30 +848,14 @@ DB	102,72,15,126,214
 
 	call	__rsaz_512_subtract
 
-	mov	DWORD[rsi],r8d
-	shr	r8,32
-	mov	DWORD[128+rsi],r9d
-	shr	r9,32
-	mov	DWORD[256+rsi],r10d
-	shr	r10,32
-	mov	DWORD[384+rsi],r11d
-	shr	r11,32
-	mov	DWORD[512+rsi],r12d
-	shr	r12,32
-	mov	DWORD[640+rsi],r13d
-	shr	r13,32
-	mov	DWORD[768+rsi],r14d
-	shr	r14,32
-	mov	DWORD[896+rsi],r15d
-	shr	r15,32
-	mov	DWORD[64+rsi],r8d
-	mov	DWORD[192+rsi],r9d
-	mov	DWORD[320+rsi],r10d
-	mov	DWORD[448+rsi],r11d
-	mov	DWORD[576+rsi],r12d
-	mov	DWORD[704+rsi],r13d
-	mov	DWORD[832+rsi],r14d
-	mov	DWORD[960+rsi],r15d
+	mov	QWORD[rsi],r8
+	mov	QWORD[128+rsi],r9
+	mov	QWORD[256+rsi],r10
+	mov	QWORD[384+rsi],r11
+	mov	QWORD[512+rsi],r12
+	mov	QWORD[640+rsi],r13
+	mov	QWORD[768+rsi],r14
+	mov	QWORD[896+rsi],r15
 
 	lea	rax,[((128+24+48))+rsp]
 	mov	r15,QWORD[((-48))+rax]
@@ -1150,16 +1222,14 @@ global	rsaz_512_scatter4
 
 ALIGN	16
 rsaz_512_scatter4:
-	lea	rcx,[r8*4+rcx]
+	lea	rcx,[r8*8+rcx]
 	mov	r9d,8
 	jmp	NEAR $L$oop_scatter
 ALIGN	16
 $L$oop_scatter:
 	mov	rax,QWORD[rdx]
 	lea	rdx,[8+rdx]
-	mov	DWORD[rcx],eax
-	shr	rax,32
-	mov	DWORD[64+rcx],eax
+	mov	QWORD[rcx],rax
 	lea	rcx,[128+rcx]
 	dec	r9d
 	jnz	NEAR $L$oop_scatter
@@ -1170,22 +1240,98 @@ global	rsaz_512_gather4
 
 ALIGN	16
 rsaz_512_gather4:
-	lea	rdx,[r8*4+rdx]
+$L$SEH_begin_rsaz_512_gather4:
+DB	0x48,0x81,0xec,0xa8,0x00,0x00,0x00
+DB	0x0f,0x29,0x34,0x24
+DB	0x0f,0x29,0x7c,0x24,0x10
+DB	0x44,0x0f,0x29,0x44,0x24,0x20
+DB	0x44,0x0f,0x29,0x4c,0x24,0x30
+DB	0x44,0x0f,0x29,0x54,0x24,0x40
+DB	0x44,0x0f,0x29,0x5c,0x24,0x50
+DB	0x44,0x0f,0x29,0x64,0x24,0x60
+DB	0x44,0x0f,0x29,0x6c,0x24,0x70
+DB	0x44,0x0f,0x29,0xb4,0x24,0x80,0,0,0
+DB	0x44,0x0f,0x29,0xbc,0x24,0x90,0,0,0
+	movd	xmm8,r8d
+	movdqa	xmm1,XMMWORD[(($L$inc+16))]
+	movdqa	xmm0,XMMWORD[$L$inc]
+
+	pshufd	xmm8,xmm8,0
+	movdqa	xmm7,xmm1
+	movdqa	xmm2,xmm1
+	paddd	xmm1,xmm0
+	pcmpeqd	xmm0,xmm8
+	movdqa	xmm3,xmm7
+	paddd	xmm2,xmm1
+	pcmpeqd	xmm1,xmm8
+	movdqa	xmm4,xmm7
+	paddd	xmm3,xmm2
+	pcmpeqd	xmm2,xmm8
+	movdqa	xmm5,xmm7
+	paddd	xmm4,xmm3
+	pcmpeqd	xmm3,xmm8
+	movdqa	xmm6,xmm7
+	paddd	xmm5,xmm4
+	pcmpeqd	xmm4,xmm8
+	paddd	xmm6,xmm5
+	pcmpeqd	xmm5,xmm8
+	paddd	xmm7,xmm6
+	pcmpeqd	xmm6,xmm8
+	pcmpeqd	xmm7,xmm8
 	mov	r9d,8
 	jmp	NEAR $L$oop_gather
 ALIGN	16
 $L$oop_gather:
-	mov	eax,DWORD[rdx]
-	mov	r8d,DWORD[64+rdx]
+	movdqa	xmm8,XMMWORD[rdx]
+	movdqa	xmm9,XMMWORD[16+rdx]
+	movdqa	xmm10,XMMWORD[32+rdx]
+	movdqa	xmm11,XMMWORD[48+rdx]
+	pand	xmm8,xmm0
+	movdqa	xmm12,XMMWORD[64+rdx]
+	pand	xmm9,xmm1
+	movdqa	xmm13,XMMWORD[80+rdx]
+	pand	xmm10,xmm2
+	movdqa	xmm14,XMMWORD[96+rdx]
+	pand	xmm11,xmm3
+	movdqa	xmm15,XMMWORD[112+rdx]
 	lea	rdx,[128+rdx]
-	shl	r8,32
-	or	rax,r8
-	mov	QWORD[rcx],rax
+	pand	xmm12,xmm4
+	pand	xmm13,xmm5
+	pand	xmm14,xmm6
+	pand	xmm15,xmm7
+	por	xmm8,xmm10
+	por	xmm9,xmm11
+	por	xmm8,xmm12
+	por	xmm9,xmm13
+	por	xmm8,xmm14
+	por	xmm9,xmm15
+
+	por	xmm8,xmm9
+	pshufd	xmm9,xmm8,0x4e
+	por	xmm8,xmm9
+	movq	QWORD[rcx],xmm8
 	lea	rcx,[8+rcx]
 	dec	r9d
 	jnz	NEAR $L$oop_gather
+	movaps	xmm6,XMMWORD[rsp]
+	movaps	xmm7,XMMWORD[16+rsp]
+	movaps	xmm8,XMMWORD[32+rsp]
+	movaps	xmm9,XMMWORD[48+rsp]
+	movaps	xmm10,XMMWORD[64+rsp]
+	movaps	xmm11,XMMWORD[80+rsp]
+	movaps	xmm12,XMMWORD[96+rsp]
+	movaps	xmm13,XMMWORD[112+rsp]
+	movaps	xmm14,XMMWORD[128+rsp]
+	movaps	xmm15,XMMWORD[144+rsp]
+	add	rsp,0xa8
 	DB	0F3h,0C3h		;repret
+$L$SEH_end_rsaz_512_gather4:
 
+
+ALIGN	64
+$L$inc:
+	DD	0,0,1,1
+	DD	2,2,2,2
 EXTERN	__imp_RtlVirtualUnwind
 
 ALIGN	16
@@ -1221,6 +1367,18 @@ se_handler:
 
 	lea	rax,[((128+24+48))+rax]
 
+	lea	rbx,[$L$mul_gather4_epilogue]
+	cmp	rbx,r10
+	jne	NEAR $L$se_not_in_mul_gather4
+
+	lea	rax,[176+rax]
+
+	lea	rsi,[((-48-168))+rax]
+	lea	rdi,[512+r8]
+	mov	ecx,20
+	DD	0xa548f3fc
+
+$L$se_not_in_mul_gather4:
 	mov	rbx,QWORD[((-8))+rax]
 	mov	rbp,QWORD[((-16))+rax]
 	mov	r12,QWORD[((-24))+rax]
@@ -1296,6 +1454,10 @@ ALIGN	4
 	DD	$L$SEH_end_rsaz_512_mul_by_one wrt ..imagebase
 	DD	$L$SEH_info_rsaz_512_mul_by_one wrt ..imagebase
 
+	DD	$L$SEH_begin_rsaz_512_gather4 wrt ..imagebase
+	DD	$L$SEH_end_rsaz_512_gather4 wrt ..imagebase
+	DD	$L$SEH_info_rsaz_512_gather4 wrt ..imagebase
+
 section	.xdata rdata align=8
 ALIGN	8
 $L$SEH_info_rsaz_512_sqr:
@@ -1318,3 +1480,16 @@ $L$SEH_info_rsaz_512_mul_by_one:
 DB	9,0,0,0
 	DD	se_handler wrt ..imagebase
 	DD	$L$mul_by_one_body wrt ..imagebase,$L$mul_by_one_epilogue wrt ..imagebase
+$L$SEH_info_rsaz_512_gather4:
+DB	0x01,0x46,0x16,0x00
+DB	0x46,0xf8,0x09,0x00
+DB	0x3d,0xe8,0x08,0x00
+DB	0x34,0xd8,0x07,0x00
+DB	0x2e,0xc8,0x06,0x00
+DB	0x28,0xb8,0x05,0x00
+DB	0x22,0xa8,0x04,0x00
+DB	0x1c,0x98,0x03,0x00
+DB	0x16,0x88,0x02,0x00
+DB	0x10,0x78,0x01,0x00
+DB	0x0b,0x68,0x00,0x00
+DB	0x07,0x01,0x15,0x00

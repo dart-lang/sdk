@@ -108,6 +108,8 @@ class TimeoutQueue {
  private:
   Timeout* next_timeout_;
   Timeout* timeouts_;
+
+  DISALLOW_COPY_AND_ASSIGN(TimeoutQueue);
 };
 
 
@@ -130,6 +132,8 @@ class CircularLinkedList {
  public:
   CircularLinkedList() : head_(NULL) {}
 
+  typedef void (*ClearFun) (void* value);
+
   // Returns true if the list was empty.
   bool Add(T t) {
     Entry* e = new Entry(t);
@@ -149,7 +153,7 @@ class CircularLinkedList {
     }
   }
 
-  void RemoveHead() {
+  void RemoveHead(ClearFun clear = NULL) {
     ASSERT(head_ != NULL);
 
     Entry* e = head_;
@@ -159,6 +163,9 @@ class CircularLinkedList {
       e->prev_->next_ = e->next_;
       e->next_->prev_ = e->prev_;
       head_ = e->next_;
+    }
+    if (clear != NULL) {
+      clear(reinterpret_cast<void*>(e->t));
     }
     delete e;
   }
@@ -193,9 +200,9 @@ class CircularLinkedList {
     }
   }
 
-  void RemoveAll() {
+  void RemoveAll(ClearFun clear = NULL) {
     while (HasHead()) {
-      RemoveHead();
+      RemoveHead(clear);
     }
   }
 
@@ -221,6 +228,8 @@ class CircularLinkedList {
   };
 
   Entry* head_;
+
+  DISALLOW_COPY_AND_ASSIGN(CircularLinkedList);
 };
 
 
@@ -268,6 +277,9 @@ class DescriptorInfoBase {
 
  protected:
   intptr_t fd_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfoBase);
 };
 
 
@@ -281,7 +293,7 @@ class DescriptorInfoSingleMixin : public DI {
   static const int kTokenCount = 16;
 
  public:
-  explicit DescriptorInfoSingleMixin(intptr_t fd, bool disable_tokens)
+  DescriptorInfoSingleMixin(intptr_t fd, bool disable_tokens)
       : DI(fd), port_(0), tokens_(kTokenCount), mask_(0),
         disable_tokens_(disable_tokens) {}
 
@@ -356,6 +368,8 @@ class DescriptorInfoSingleMixin : public DI {
   int tokens_;
   intptr_t mask_;
   bool disable_tokens_;
+
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfoSingleMixin);
 };
 
 
@@ -400,11 +414,13 @@ class DescriptorInfoMultipleMixin : public DI {
   };
 
  public:
-  explicit DescriptorInfoMultipleMixin(intptr_t fd, bool disable_tokens)
+  DescriptorInfoMultipleMixin(intptr_t fd, bool disable_tokens)
       : DI(fd), tokens_map_(&SamePortValue, kTokenCount),
         disable_tokens_(disable_tokens) {}
 
-  virtual ~DescriptorInfoMultipleMixin() {}
+  virtual ~DescriptorInfoMultipleMixin() {
+    RemoveAllPorts();
+  }
 
   virtual bool IsListeningSocket() const { return true; }
 
@@ -488,14 +504,16 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
   virtual void RemoveAllPorts() {
-    active_readers_.RemoveAll();
     for (HashMap::Entry *entry = tokens_map_.Start();
          entry != NULL;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
+      entry->value = NULL;
+      active_readers_.Remove(pentry);
       delete pentry;
     }
     tokens_map_.Clear();
+    active_readers_.RemoveAll(DeletePortEntry);
   }
 
   virtual Dart_Port NextNotifyDartPort(intptr_t events_ready) {
@@ -541,7 +559,7 @@ class DescriptorInfoMultipleMixin : public DI {
         pentry->token_count--;
       }
 
-      if (was_ready && pentry->token_count <= 0) {
+      if (was_ready && (pentry->token_count <= 0)) {
         active_readers_.Remove(pentry);
       }
     }
@@ -576,6 +594,11 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
  private:
+  static void DeletePortEntry(void* data) {
+    PortEntry* entry = reinterpret_cast<PortEntry*>(data);
+    delete entry;
+  }
+
   // The [Dart_Port]s which are not paused (i.e. are interested in read events,
   // i.e. `mask == (1 << kInEvent)`) and we have enough tokens to communicate
   // with them.
@@ -586,8 +609,9 @@ class DescriptorInfoMultipleMixin : public DI {
   HashMap tokens_map_;
 
   bool disable_tokens_;
-};
 
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfoMultipleMixin);
+};
 
 }  // namespace bin
 }  // namespace dart
@@ -595,6 +619,8 @@ class DescriptorInfoMultipleMixin : public DI {
 // The event handler delegation class is OS specific.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/eventhandler_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "bin/eventhandler_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "bin/eventhandler_linux.h"
 #elif defined(TARGET_OS_MACOS)
@@ -610,6 +636,7 @@ namespace bin {
 
 class EventHandler {
  public:
+  EventHandler() {}
   void SendData(intptr_t id, Dart_Port dart_port, int64_t data) {
     delegate_.SendData(id, dart_port, data);
   }
@@ -635,6 +662,8 @@ class EventHandler {
  private:
   friend class EventHandlerImplementation;
   EventHandlerImplementation delegate_;
+
+  DISALLOW_COPY_AND_ASSIGN(EventHandler);
 };
 
 }  // namespace bin

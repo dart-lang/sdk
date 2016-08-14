@@ -22,6 +22,7 @@ class Isolate;
 class ObjectPointerVisitor;
 class ObjectSet;
 class ServiceEvent;
+class TimelineEventScope;
 class VirtualMemory;
 
 class Heap {
@@ -30,8 +31,6 @@ class Heap {
     kNew,
     kOld,
     kCode,
-    // TODO(koda): Harmonize all old-space allocation and get rid of this.
-    kPretenured,
   };
 
   enum WeakSelector {
@@ -80,8 +79,6 @@ class Heap {
         return AllocateOld(size, HeapPage::kData);
       case kCode:
         return AllocateOld(size, HeapPage::kExecutable);
-      case kPretenured:
-        return AllocatePretenured(size);
       default:
         UNREACHABLE();
     }
@@ -102,6 +99,7 @@ class Heap {
 
   void IterateObjects(ObjectVisitor* visitor) const;
   void IterateOldObjects(ObjectVisitor* visitor) const;
+  void IterateOldObjectsNoEmbedderPages(ObjectVisitor* visitor) const;
   void IterateObjectPointers(ObjectVisitor* visitor) const;
 
   // Find an object by visiting all pointers in the specified heap space,
@@ -138,7 +136,7 @@ class Heap {
 
   // Protect access to the heap. Note: Code pages are made
   // executable/non-executable when 'read_only' is true/false, respectively.
-  void WriteProtect(bool read_only, bool include_code_pages);
+  void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only) {
     old_space_.WriteProtectCode(read_only);
   }
@@ -146,7 +144,6 @@ class Heap {
   // Accessors for inlined allocation in generated code.
   static intptr_t TopOffset(Space space);
   static intptr_t EndOffset(Space space);
-  static Space SpaceForAllocation(intptr_t class_id);
 
   // Initialize the heap and register it with the isolate.
   static void Init(Isolate* isolate,
@@ -195,9 +192,11 @@ class Heap {
   // Associate an id with an object (used when serializing an object).
   // A non-existant id is equal to 0.
   void SetObjectId(RawObject* raw_obj, intptr_t object_id) {
+    ASSERT(Thread::Current()->IsMutatorThread());
     SetWeakEntry(raw_obj, kObjectIds, object_id);
   }
   intptr_t GetObjectId(RawObject* raw_obj) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     return GetWeakEntry(raw_obj, kObjectIds);
   }
   int64_t ObjectIdCount() const;
@@ -240,19 +239,23 @@ class Heap {
     return size <= kNewAllocatableSize;
   }
 
+#ifndef PRODUCT
   void PrintToJSONObject(Space space, JSONObject* object) const;
 
   // The heap map contains the sizes and class ids for the objects in each page.
   void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
-    return old_space_.PrintHeapMapToJSONStream(isolate, stream);
+    old_space_.PrintHeapMapToJSONStream(isolate, stream);
   }
+#endif  // PRODUCT
 
   Isolate* isolate() const { return isolate_; }
 
   Monitor* barrier() const { return barrier_; }
   Monitor* barrier_done() const { return barrier_done_; }
 
-  bool ShouldPretenure(intptr_t class_id) const;
+  Monitor* finalization_tasks_lock() const { return finalization_tasks_lock_; }
+  intptr_t finalization_tasks() const { return finalization_tasks_; }
+  void set_finalization_tasks(intptr_t count) { finalization_tasks_ = count; }
 
   void SetupExternalPage(void* pointer, uword size, bool is_executable) {
     old_space_.SetupExternalPage(pointer, size, is_executable);
@@ -298,7 +301,6 @@ class Heap {
 
   uword AllocateNew(intptr_t size);
   uword AllocateOld(intptr_t size, HeapPage::PageType type);
-  uword AllocatePretenured(intptr_t size);
 
   // Visit all pointers. Caller must ensure concurrent sweeper is not running,
   // and the visitor must not allocate.
@@ -323,7 +325,7 @@ class Heap {
   void RecordAfterGC(Space space);
   void PrintStats();
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
-  void UpdatePretenurePolicy();
+  void PrintStatsToTimeline(TimelineEventScope* event);
 
   // Updates gc in progress flags.
   bool BeginNewSpaceGC(Thread* thread);
@@ -337,15 +339,19 @@ class Heap {
   void GetMergedAddressRange(uword* start, uword* end) const;
 
   Isolate* isolate_;
-  Monitor* barrier_;
-  Monitor* barrier_done_;
 
   // The different spaces used for allocation.
-  Scavenger new_space_;
+  ALIGN8 Scavenger new_space_;
   PageSpace old_space_;
 
   WeakTable* new_weak_tables_[kNumWeakSelectors];
   WeakTable* old_weak_tables_[kNumWeakSelectors];
+
+  Monitor* barrier_;
+  Monitor* barrier_done_;
+
+  Monitor* finalization_tasks_lock_;
+  intptr_t finalization_tasks_;
 
   // GC stats collection.
   GCStats stats_;
@@ -358,10 +364,11 @@ class Heap {
   bool gc_new_space_in_progress_;
   bool gc_old_space_in_progress_;
 
-  int pretenure_policy_;
-
+  friend class Become;  // VisitObjectPointers
   friend class ServiceEvent;
   friend class PageSpace;  // VerifyGC
+  friend class IsolateReloadContext;  // VisitObjects
+
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
 
@@ -391,11 +398,8 @@ class NoHeapGrowthControlScope : public StackResource {
 // Note: During this scope, the code pages are non-executable.
 class WritableVMIsolateScope : StackResource {
  public:
-  explicit WritableVMIsolateScope(Thread* thread, bool include_code_pages);
+  explicit WritableVMIsolateScope(Thread* thread);
   ~WritableVMIsolateScope();
-
- private:
-  bool include_code_pages_;
 };
 
 }  // namespace dart

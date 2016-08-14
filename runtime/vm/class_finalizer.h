@@ -89,8 +89,8 @@ class ClassFinalizer : public AllStatic {
 #endif  // defined(DART_NO_SNAPSHOT).
 
   // Resolve the class of the type, but not the type's type arguments.
-  // May promote the type from Type to FunctionType.
-  static RawAbstractType* ResolveTypeClass(const Class& cls, const Type& type);
+  // May promote the type to function type by setting its signature field.
+  static void ResolveTypeClass(const Class& cls, const Type& type);
 
   // Resolve the type and target of the redirecting factory.
   static void ResolveRedirectingFactory(const Class& cls,
@@ -111,8 +111,7 @@ class ClassFinalizer : public AllStatic {
   static void CheckForLegalConstClass(const Class& cls);
   static RawClass* ResolveClass(const Class& cls,
                                 const UnresolvedClass& unresolved_class);
-  static RawAbstractType* ResolveType(const Class& cls,
-                                      const AbstractType& type);
+  static void ResolveType(const Class& cls, const AbstractType& type);
   static void ResolveRedirectingFactoryTarget(
       const Class& cls,
       const Function& factory,

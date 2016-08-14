@@ -15,7 +15,6 @@ import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -90,8 +89,7 @@ void scheduleNotificationOperations(
     return;
   }
   // Dart
-  CompilationUnit dartUnit =
-      resolvedDartUnit != null ? resolvedDartUnit : parsedDartUnit;
+  CompilationUnit dartUnit = resolvedDartUnit ?? parsedDartUnit;
   if (resolvedDartUnit != null) {
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.HIGHLIGHTS, file)) {
@@ -251,10 +249,12 @@ void sendAnalysisNotificationOverrides(
  * Sets the cache size in the given [context] to the given value.
  */
 void setCacheSize(AnalysisContext context, int cacheSize) {
-  AnalysisOptionsImpl options =
-      new AnalysisOptionsImpl.from(context.analysisOptions);
-  options.cacheSize = cacheSize;
-  context.analysisOptions = options;
+  // TODO(scheglov) The cache size cannot be changed with task model.
+  // TODO(scheglov) Consider removing this function.
+//  AnalysisOptionsImpl options =
+//      new AnalysisOptionsImpl.from(context.analysisOptions);
+//  options.cacheSize = cacheSize;
+//  context.analysisOptions = options;
 }
 
 String _computeLibraryName(CompilationUnit unit) {
@@ -372,12 +372,7 @@ class PerformAnalysisOperation extends ServerOperation {
     List<ChangeNotice> notices = result.changeNotices;
     // nothing to analyze
     if (notices == null) {
-      bool cacheInconsistencyFixed = context.validateCacheConsistency();
-      if (cacheInconsistencyFixed) {
-        server.addOperation(new PerformAnalysisOperation(context, true));
-        return;
-      }
-      // analysis is done
+      server.scheduleCacheConsistencyValidation(context);
       setCacheSize(context, IDLE_CACHE_SIZE);
       server.sendContextAnalysisDoneNotifications(
           context, AnalysisDoneReason.COMPLETE);
@@ -456,10 +451,7 @@ class _DartIndexOperation extends _SingleFileOperation {
   void perform(AnalysisServer server) {
     ServerPerformanceStatistics.indexOperation.makeCurrentWhile(() {
       try {
-        Index index = server.index;
-        AnalysisContext context = unit.element.context;
-        index.index(context, unit);
-        server.index2?.indexUnit(unit);
+        server.index?.indexUnit(unit);
       } catch (exception, stackTrace) {
         server.sendServerErrorNotification(
             'Failed to index: $file', exception, stackTrace);

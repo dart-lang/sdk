@@ -4,12 +4,13 @@
 
 library services.correction.assist;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'dart:async';
 
 /**
  * Compute and return the assists available at the given selection (described by
@@ -88,6 +89,10 @@ class DartAssistKind {
       'CONVERT_INTO_EXPRESSION_BODY', 30, "Convert into expression body");
   static const CONVERT_INTO_FOR_INDEX = const AssistKind(
       'CONVERT_INTO_FOR_INDEX', 30, "Convert into for-index loop");
+  static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
+      'CONVERT_INTO_FINAL_FIELD', 30, "Convert into final field");
+  static const CONVERT_INTO_GETTER =
+      const AssistKind('CONVERT_INTO_GETTER', 30, "Convert into getter");
   static const CONVERT_INTO_IS_NOT =
       const AssistKind('CONVERT_INTO_IS_NOT', 30, "Convert into is!");
   static const CONVERT_INTO_IS_NOT_EMPTY = const AssistKind(

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// See also timeline_message_handler.js.
+
 function onModelLoaded() {
   viewer.globalMode = true;
   viewer.model = model;
@@ -26,10 +28,6 @@ function updateTimeline(events) {
   p.then(onModelLoaded, onImportFail);
 }
 
-function registerForMessages() {
-  window.addEventListener("message", onMessage, false);
-}
-
 function fetchUri(uri, onLoad, onError) {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', uri, true);
@@ -40,34 +38,61 @@ function fetchUri(uri, onLoad, onError) {
   console.log('GET ' + uri);
 }
 
-
 var traceObject;
 var pendingRequests;
+var loadingOverlay;
+
+function showLoadingOverlay(msg) {
+  if (!loadingOverlay) {
+    loadingOverlay = new tr.ui.b.Overlay();
+  }
+  loadingOverlay.textContent = msg;
+  loadingOverlay.title = 'Loading...';
+  loadingOverlay.visible = true;
+}
+
+function hideLoadingOverlay() {
+  if (!loadingOverlay) {
+    return;
+  }
+  loadingOverlay.visible = false;
+  loadingOverlay = undefined;
+}
 
 function gotReponse() {
   pendingRequests--;
   if (pendingRequests == 0) {
     console.log("Got all timeline parts");
     updateTimeline(traceObject);
+    hideLoadingOverlay();
   }
+}
+
+function processTimelineResponse(response) {
+  if (response.error) {
+    // Maybe profiling is disabled.
+    console.log("ERROR " + response.error.message);
+  } else {
+    var result = response['result'];
+    var newStackFrames = result['stackFrames'];  // Map.
+    var newTraceEvents = result['traceEvents'];  // List.
+
+    // Merge in timeline events.
+    traceObject.traceEvents = traceObject.traceEvents.concat(newTraceEvents);
+    for (var key in newStackFrames) {
+      if (newStackFrames.hasOwnProperty(key)) {
+        traceObject.stackFrames[key] = newStackFrames[key];
+      }
+    }
+  }
+
+  gotReponse();
 }
 
 function fetchTimelineOnLoad(event) {
   var xhr = event.target;
   var response = JSON.parse(xhr.responseText);
-  var result = response['result'];
-  var newStackFrames = result['stackFrames'];  // Map.
-  var newTraceEvents = result['traceEvents'];  // List.
-
-  // Merge in timeline events.
-  traceObject.traceEvents = traceObject.traceEvents.concat(newTraceEvents);
-  for (var key in newStackFrames) {
-    if (newStackFrames.hasOwnProperty(key)) {
-      traceObject.stackFrames[key] = newStackFrames[key];
-    }
-  }
-
-  gotReponse();
+  processTimelineResponse(response);
 }
 
 function fetchTimelineOnError(event) {
@@ -76,23 +101,11 @@ function fetchTimelineOnError(event) {
   gotReponse();
 }
 
-function fetchTimeline(vmAddress, isolateIds) {
-  // Reset combined timeline.
-  traceObject = {
-    'stackFrames': {},
-    'traceEvents': []
-  };
-  pendingRequests = 1 + isolateIds.length;
-
+function fetchCPUProfile(vmAddress, isolateIds, timeOrigin, timeExtent) {
+  showLoadingOverlay('Fetching CPU profile(s) from Dart VM');
   var parser = document.createElement('a');
   parser.href = vmAddress;
-  var requestUri = 'http://' +
-                   parser.hostname +
-                   ':' +
-                   parser.port +
-                   '/_getVMTimeline';
-  fetchUri(requestUri, fetchTimelineOnLoad, fetchTimelineOnError);
-
+  pendingRequests += isolateIds.length;
   for (var i = 0; i < isolateIds.length; i++) {
     var isolateId = isolateIds[i];
     var requestUri = 'http://' +
@@ -100,9 +113,45 @@ function fetchTimeline(vmAddress, isolateIds) {
                      ':' +
                      parser.port +
                      '/_getCpuProfileTimeline?tags=VMUser&isolateId=' +
-                     isolateId;
+                     isolateId +
+                     '&timeOriginMicros=' + timeOrigin +
+                     '&timeExtentMicros=' + timeExtent;
     fetchUri(requestUri, fetchTimelineOnLoad, fetchTimelineOnError);
   }
+}
+
+function fetchTimeline(vmAddress, isolateIds) {
+  // Reset combined timeline.
+  traceObject = {
+    'stackFrames': {},
+    'traceEvents': []
+  };
+  pendingRequests = 1;
+
+  showLoadingOverlay('Fetching timeline from Dart VM');
+  var parser = document.createElement('a');
+  parser.href = vmAddress;
+  var requestUri = 'http://' +
+                   parser.hostname +
+                   ':' +
+                   parser.port +
+                   '/_getVMTimeline';
+  fetchUri(requestUri, function(event) {
+    // Grab the response.
+    var xhr = event.target;
+    var response = JSON.parse(xhr.responseText);
+    // Extract the time origin and extent.
+    var timeOrigin = response['result']['timeOriginMicros'];
+    var timeExtent = response['result']['timeExtentMicros'];
+    console.assert(Number.isInteger(timeOrigin), timeOrigin);
+    console.assert(Number.isInteger(timeExtent), timeExtent);
+    console.log(timeOrigin);
+    console.log(timeExtent);
+    // fetchCPUProfile.
+    fetchCPUProfile(vmAddress, isolateIds, timeOrigin, timeExtent);
+    // This must happen after 'fetchCPUProfile';
+    processTimelineResponse(response);
+  }, fetchTimelineOnError);
 }
 
 function saveTimeline() {
@@ -184,29 +233,7 @@ function loadTimeline() {
   inputElement.click();
 }
 
-function onMessage(event) {
-  var request = JSON.parse(event.data);
-  var method = request['method'];
-  var params = request['params'];
-  switch (method) {
-    case 'refresh':
-      fetchTimeline(params['vmAddress'], params['isolateIds']);
-    break;
-    case 'clear':
-      clearTimeline();
-    break;
-    case 'save':
-      saveTimeline();
-    break;
-    case 'load':
-      loadTimeline();
-    break;
-    default:
-      console.log('Unknown method:' + method + '.');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function() {
   var container = document.createElement('track-view-container');
   container.id = 'track_view_container';
   viewer = document.createElement('tr-ui-timeline-view');
@@ -215,7 +242,14 @@ document.addEventListener('DOMContentLoaded', function() {
   viewer.id = 'trace-viewer';
   viewer.globalMode = true;
   document.body.appendChild(viewer);
-  registerForMessages();
+  timeline_loaded = true;
+  console.log('DOMContentLoaded');
+  if (timeline_vm_address != undefined) {
+    console.log('Triggering delayed timeline refresh.');
+    fetchTimeline(timeline_vm_address, timeline_isolates);
+    timeline_vm_address = undefined;
+    timeline_isolates = undefined;
+  }
 });
 
-console.log('loaded');
+console.log('timeline.js loaded');

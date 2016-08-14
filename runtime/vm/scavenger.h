@@ -204,7 +204,9 @@ class Scavenger {
     return collections_;
   }
 
+#ifndef PRODUCT
   void PrintToJSONObject(JSONObject* object) const;
+#endif  // !PRODUCT
 
   void AllocateExternal(intptr_t size);
   void FreeExternal(intptr_t size);
@@ -233,6 +235,7 @@ class Scavenger {
   void IterateWeakReferences(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
   void ProcessToSpace(ScavengerVisitor* visitor);
+  void EnqueueWeakProperty(RawWeakProperty* raw_weak);
   uword ProcessWeakProperty(RawWeakProperty* raw_weak,
                             ScavengerVisitor* visitor);
   void Epilogue(Isolate* isolate, SemiSpace* from, bool invoke_api_callbacks);
@@ -264,7 +267,7 @@ class Scavenger {
   void UpdateMaxHeapCapacity();
   void UpdateMaxHeapUsage();
 
-  void ProcessWeakTables();
+  void ProcessWeakReferences();
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
 
@@ -291,6 +294,9 @@ class Scavenger {
 
   // Keep track whether a scavenge is currently running.
   bool scavenging_;
+
+  // Keep track of pending weak properties discovered while scagenging.
+  RawWeakProperty* delayed_weak_properties_;
 
   int64_t gc_time_micros_;
   intptr_t collections_;

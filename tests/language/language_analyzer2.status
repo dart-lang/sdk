@@ -4,6 +4,8 @@
 
 [ $compiler == dart2analyzer ]
 
+regress_26668_test: Fail # Issue 26678
+
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
@@ -41,9 +43,6 @@ multiline_newline_test/05: MissingCompileTimeError # Issue 23888
 multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
-
-# Unsupported configuration specific imports.
-config_import_test: CompileTimeError # Issue 24579
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
@@ -86,9 +85,6 @@ malbounded_redirecting_factory2_test/none: fail # Issue 11578
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
 
-# test issue 11584, positional arguments cannot be used for named parameters
-compile_time_constant_e_test: fail # Test Issue 11584
-
 # test issue 11585, static warning, not negative test
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
@@ -126,9 +122,6 @@ unresolved_top_level_var_negative_test: fail # Issue 12163
 
 # test issue 12191, ambiguous import is always warning now
 prefix3_negative_test: fail # Issue 12191
-
-# test issue 12289, assignment in assert statement
-type_error_test: fail # Issue 12289
 
 # test issue 12381, It is compile-time error to invoke not existing function
 issue11724_test: fail # Issue 12381
@@ -494,23 +487,6 @@ mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
 
-mixin_of_mixin_test/01: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/02: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/04: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/05: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/06: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/08: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/09: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/10: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/12: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/13: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/15: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/16: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/17: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/19: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/20: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/21: MissingStaticWarning # Issue 25605
-
 accessor_conflict_export2_test: StaticWarning # Issue 25624
 accessor_conflict_export_test: StaticWarning # Issue 25624
 accessor_conflict_import2_test: StaticWarning # Issue 25624
@@ -523,5 +499,16 @@ for_in_side_effects_test: StaticWarning, OK # Test uses custom class that does n
 
 # Experimental feature: Syntactic support for generic methods.
 generic_functions_test: CompileTimeError # Issue 25868
+generic_local_functions_test: CompileTimeError # Issue 25868
 generic_methods_test: CompileTimeError # Issue 25868
 generic_sends_test: CompileTimeError # Issue 25868
+generic_methods_new_test: CompiletimeError # Issue 25868
+generic_methods_function_type_test: CompiletimeError # Issue 25868
+generic_methods_type_expression_test: CompiletimeError # Issue 25868
+
+# Experimental feature: Use initializing formals in initializers and constructor body.
+initializing_formal_access_test: CompiletimeError # Issue 26658
+initializing_formal_capture_test: CompiletimeError # Issue 26658
+initializing_formal_final_test: CompiletimeError # Issue 26658
+initializing_formal_promotion_test: StaticWarning # Issue 26658
+initializing_formal_type_test: CompiletimeError # Issue 26658

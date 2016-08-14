@@ -31,7 +31,7 @@ var tests = [
   (VM vm) async {
     // Modify a flag.
     var params = {
-      'name' : 'trace_isolates',
+      'name' : 'trace_profiler',
       'value' : '123',
     };
     var result = await vm.invokeRpcNoUpgrade('_setFlag', params);

@@ -6,7 +6,7 @@ library characters;
 
 const int $EOF = 0;
 const int $STX = 2;
-const int $BS  = 8;
+const int $BS = 8;
 const int $TAB = 9;
 const int $LF = 10;
 const int $VTAB = 11;

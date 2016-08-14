@@ -7,6 +7,7 @@ library analyzer.test.src.task.options_test;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -23,7 +24,8 @@ import '../context/abstract_context.dart';
 main() {
   initializeTestEnvironment();
   runReflectiveTests(ContextConfigurationTest);
-  runReflectiveTests(GenerateOptionsErrorsTaskTest);
+  runReflectiveTests(GenerateNewOptionsErrorsTaskTest);
+  runReflectiveTests(GenerateOldOptionsErrorsTaskTest);
   runReflectiveTests(OptionsFileValidatorTest);
 }
 
@@ -77,14 +79,13 @@ analyzer:
     expect(analysisOptions.enableGenericMethods, true);
   }
 
-  test_configure_enableConditionalDirectives() {
-    expect(analysisOptions.enableConditionalDirectives, false);
+  test_configure_enableStrictCallChecks() {
     configureContext('''
 analyzer:
   language:
-    enableConditionalDirectives: true
+    enableStrictCallChecks: true
 ''');
-    expect(analysisOptions.enableConditionalDirectives, true);
+    expect(analysisOptions.enableStrictCallChecks, true);
   }
 
   test_configure_enableSuperMixins() {
@@ -94,15 +95,6 @@ analyzer:
     enableSuperMixins: true
 ''');
     expect(analysisOptions.enableSuperMixins, true);
-  }
-
-  test_configure_enableStrictCallChecks() {
-    configureContext('''
-analyzer:
-  language:
-    enableStrictCallChecks: true
-''');
-    expect(analysisOptions.enableStrictCallChecks, true);
   }
 
   test_configure_error_processors() {
@@ -137,6 +129,18 @@ analyzer:
     expect(unusedLocal.severity, ErrorSeverity.ERROR);
   }
 
+  test_configure_excludes() {
+    configureContext('''
+analyzer:
+  exclude:
+    - foo/bar.dart
+    - 'test/**'
+''');
+
+    List<String> excludes = context.getConfigurationData(CONTEXT_EXCLUDES);
+    expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
+  }
+
   test_configure_strong_mode() {
     configureContext('''
 analyzer:
@@ -155,10 +159,19 @@ analyzer:
 }
 
 @reflectiveTest
-class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
-  final optionsFilePath = '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+class GenerateNewOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+}
 
+@reflectiveTest
+class GenerateOldOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+}
+
+abstract class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
   Source source;
+
+  String get optionsFilePath;
   LineInfo lineInfo(String source) =>
       GenerateOptionsErrorsTask.computeLineInfo(source);
 
@@ -222,7 +235,8 @@ class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
     AnalysisTarget target = newSource(optionsFilePath, code);
     computeResult(target, ANALYSIS_OPTIONS_ERRORS);
     expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors = outputs[ANALYSIS_OPTIONS_ERRORS];
+    List<AnalysisError> errors =
+        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
     expect(errors, hasLength(1));
     expect(errors[0].errorCode, AnalysisOptionsErrorCode.PARSE_ERROR);
   }
@@ -250,7 +264,8 @@ analyzer:
     AnalysisTarget target = newSource(optionsFilePath, code);
     computeResult(target, ANALYSIS_OPTIONS_ERRORS);
     expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors = outputs[ANALYSIS_OPTIONS_ERRORS];
+    List<AnalysisError> errors =
+        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
     expect(errors, hasLength(1));
     expect(errors[0].errorCode,
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES);
@@ -396,7 +411,7 @@ linter:
         [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
-  void validate(String source, List<AnalysisOptionsErrorCode> expected) {
+  void validate(String source, List<ErrorCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
     var errors = validator.validate(options);
     expect(errors.map((AnalysisError e) => e.errorCode),

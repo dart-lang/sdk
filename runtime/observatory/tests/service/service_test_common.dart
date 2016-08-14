@@ -140,6 +140,10 @@ Future<Isolate> hasStoppedWithUnhandledException(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPauseException);
 }
 
+Future<Isolate> hasStoppedAtExit(Isolate isolate) {
+  return hasPausedFor(isolate, ServiceEvent.kPauseExit);
+}
+
 Future<Isolate> hasPausedAtStart(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPauseStart);
 }

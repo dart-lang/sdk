@@ -20,6 +20,23 @@ namespace dart {
 
 #ifndef PRODUCT
 
+void AppendJSONStreamConsumer(Dart_StreamConsumer_State state,
+                              const char* stream_name,
+                              const uint8_t* buffer,
+                              intptr_t buffer_length,
+                              void* user_data) {
+  if ((state == Dart_StreamConsumer_kStart) ||
+      (state == Dart_StreamConsumer_kFinish)) {
+    // Ignore.
+    return;
+  }
+  ASSERT(state == Dart_StreamConsumer_kData);
+  JSONStream* js = reinterpret_cast<JSONStream*>(user_data);
+  ASSERT(js != NULL);
+  js->AppendSerializedObject(buffer, buffer_length);
+}
+
+
 DECLARE_FLAG(bool, trace_service);
 
 JSONStream::JSONStream(intptr_t buf_size)
@@ -29,6 +46,8 @@ JSONStream::JSONStream(intptr_t buf_size)
       id_zone_(&default_id_zone_),
       reply_port_(ILLEGAL_PORT),
       seq_(NULL),
+      parameter_keys_(NULL),
+      parameter_values_(NULL),
       method_(""),
       param_keys_(NULL),
       param_values_(NULL),
@@ -53,13 +72,18 @@ void JSONStream::Setup(Zone* zone,
                        const Instance& seq,
                        const String& method,
                        const Array& param_keys,
-                       const Array& param_values) {
+                       const Array& param_values,
+                       bool parameters_are_dart_objects) {
   set_reply_port(reply_port);
   seq_ = &Instance::ZoneHandle(seq.raw());
   method_ = method.ToCString();
 
-  String& string_iterator = String::Handle();
-  if (param_keys.Length() > 0) {
+  if (parameters_are_dart_objects) {
+    parameter_keys_ = &Array::ZoneHandle(param_keys.raw());
+    parameter_values_ = &Array::ZoneHandle(param_values.raw());
+    ASSERT(parameter_keys_->Length() == parameter_values_->Length());
+  } else if (param_keys.Length() > 0) {
+    String& string_iterator = String::Handle();
     ASSERT(param_keys.Length() == param_values.Length());
     const char** param_keys_native =
         zone->Alloc<const char*>(param_keys.Length());
@@ -75,6 +99,7 @@ void JSONStream::Setup(Zone* zone,
     }
     SetParams(param_keys_native, param_values_native, param_keys.Length());
   }
+
   if (FLAG_trace_service) {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
@@ -107,10 +132,22 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
       return "Internal error";
     case kFeatureDisabled:
       return "Feature is disabled";
-    case kVMMustBePaused:
-      return "VM must be paused";
     case kCannotAddBreakpoint:
       return "Cannot add breakpoint";
+    case kIsolateMustBeRunnable:
+      return "Isolate must be runnable";
+    case kIsolateMustBePaused:
+      return "Isolate must be paused";
+    case kIsolateIsReloading:
+      return "Isolate is reloading";
+    case kFileSystemAlreadyExists:
+      return "File system already exists";
+    case kFileSystemDoesNotExist:
+      return "File system does not exist";
+    case kFileDoesNotExist:
+      return "File does not exist";
+    case kIsolateReloadFailed:
+      return "Isolate reload failed";
     default:
       return "Extension error";
   }
@@ -262,6 +299,11 @@ void JSONStream::AppendSerializedObject(const char* serialized_object) {
   buffer_.AddString(serialized_object);
 }
 
+
+void JSONStream::AppendSerializedObject(const uint8_t* buffer,
+                                        intptr_t buffer_length) {
+  buffer_.AddRaw(buffer, buffer_length);
+}
 
 void JSONStream::AppendSerializedObject(const char* property_name,
                                         const char* serialized_object) {
@@ -643,6 +685,42 @@ void JSONStream::set_reply_port(Dart_Port port) {
 }
 
 
+intptr_t JSONStream::NumObjectParameters() const {
+  if (parameter_keys_ == NULL) {
+    return 0;
+  }
+  ASSERT(parameter_keys_ != NULL);
+  ASSERT(parameter_values_ != NULL);
+  return parameter_keys_->Length();
+}
+
+
+RawObject* JSONStream::GetObjectParameterKey(intptr_t i) const {
+  ASSERT((i >= 0) && (i < NumObjectParameters()));
+  return parameter_keys_->At(i);
+}
+
+
+RawObject* JSONStream::GetObjectParameterValue(intptr_t i) const {
+  ASSERT((i >= 0) && (i < NumObjectParameters()));
+  return parameter_values_->At(i);
+}
+
+
+RawObject* JSONStream::LookupObjectParam(const char* c_key) const {
+  const String& key = String::Handle(String::New(c_key));
+  Object& test = Object::Handle();
+  const intptr_t num_object_parameters = NumObjectParameters();
+  for (intptr_t i = 0; i < num_object_parameters; i++) {
+    test = GetObjectParameterKey(i);
+    if (test.IsString() && String::Cast(test).Equals(key)) {
+      return GetObjectParameterValue(i);
+    }
+  }
+  return Object::null();
+}
+
+
 void JSONStream::SetParams(const char** param_keys,
                            const char** param_values,
                            intptr_t num_params) {
@@ -744,8 +822,25 @@ bool JSONStream::AddDartString(const String& s,
   }
   intptr_t limit = offset + count;
   for (intptr_t i = offset; i < limit; i++) {
-    intptr_t code_unit = s.CharAt(i);
-    buffer_.EscapeAndAddCodeUnit(code_unit);
+    uint16_t code_unit = s.CharAt(i);
+    if (Utf16::IsTrailSurrogate(code_unit)) {
+      buffer_.EscapeAndAddUTF16CodeUnit(code_unit);
+    } else if (Utf16::IsLeadSurrogate(code_unit)) {
+      if (i + 1 == limit) {
+        buffer_.EscapeAndAddUTF16CodeUnit(code_unit);
+      } else {
+        uint16_t next_code_unit = s.CharAt(i+1);
+        if (Utf16::IsTrailSurrogate(next_code_unit)) {
+          uint32_t decoded = Utf16::Decode(code_unit, next_code_unit);
+          buffer_.EscapeAndAddCodeUnit(decoded);
+          i++;
+        } else {
+          buffer_.EscapeAndAddUTF16CodeUnit(code_unit);
+        }
+      }
+    } else {
+      buffer_.EscapeAndAddCodeUnit(code_unit);
+    }
   }
   // Return value indicates whether the string is truncated.
   return (offset > 0) || (limit < length);

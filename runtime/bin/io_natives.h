@@ -7,7 +7,6 @@
 
 #include "include/dart_api.h"
 
-
 namespace dart {
 namespace bin {
 

@@ -200,8 +200,8 @@ class RecordingSourceInformationStrategy
   RecordingSourceInformationStrategy(this.strategy);
 
   @override
-  SourceInformationBuilder createBuilderForContext(AstElement element) {
-    return strategy.createBuilderForContext(element);
+  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
+    return strategy.createBuilderForContext(resolvedAst);
   }
 
   @override
@@ -272,8 +272,6 @@ class FindVisitor extends js.BaseVisitor {
   }
 }
 
-const String DISABLE_INLINING = '--disable-inlining';
-
 /// Processor that computes [SourceMapInfo] for the JavaScript compiled for a
 /// given Dart file.
 class SourceMapProcessor {
@@ -315,15 +313,14 @@ class SourceMapProcessor {
     if (options.contains(Flags.useNewSourceInfo)) {
       if (verbose) print('Using the new source information system.');
     }
+    if (options.contains(Flags.disableInlining)) {
+      if (verbose) print('Inlining disabled');
+    }
     api.CompilerImpl compiler = await compilerFor(
         outputProvider: outputProvider,
         // TODO(johnniwinther): Use [verbose] to avoid showing diagnostics.
         options: ['--out=$targetUri', '--source-map=$sourceMapFileUri']
             ..addAll(options));
-    if (options.contains(DISABLE_INLINING)) {
-      if (verbose) print('Inlining disabled');
-      compiler.disableInlining = true;
-    }
 
     JavaScriptBackend backend = compiler.backend;
     var handler = compiler.handler;

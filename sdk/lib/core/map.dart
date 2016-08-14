@@ -244,7 +244,7 @@ abstract class Map<K, V> {
    * The values of [this].
    *
    * The values are iterated in the order of their corresponding keys.
-   * This means that iterating [keys] and [values] in parrallel will
+   * This means that iterating [keys] and [values] in parallel will
    * provided matching pairs of keys and values.
    *
    * The returned iterable has an efficient `length` method based on the

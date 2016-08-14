@@ -20,7 +20,8 @@ import 'dart:_js_helper' show checkInt,
                               patch_startup,
                               Primitives,
                               readHttp,
-                              stringJoinUnchecked;
+                              stringJoinUnchecked,
+                              getTraceFromException;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -743,16 +744,14 @@ class StackTrace {
   @patch
   @NoInline()
   static StackTrace get current {
-    var error = JS('', 'new Error()');
-    var stack = JS('String|Null', '#.stack', error);
-    if (stack is String) return new StackTrace.fromString(stack);
     if (JS('', 'Error.captureStackTrace') != null) {
+      var error = JS('', 'new Error()');
       JS('void', 'Error.captureStackTrace(#)', error);
-      var stack = JS('String|Null', '#.stack', error);
-      if (stack is String) return new StackTrace.fromString(stack);
+      return getTraceFromException(error);
     }
+    // Fallback if Error.captureStackTrace does not exist.
     try {
-      throw 0;
+      throw '';
     } catch (_, stackTrace) {
       return stackTrace;
     }

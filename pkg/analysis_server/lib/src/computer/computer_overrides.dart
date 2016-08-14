@@ -6,9 +6,9 @@ library computer.overrides;
 
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as proto;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 
 /**
  * Return the elements that the given [element] overrides.

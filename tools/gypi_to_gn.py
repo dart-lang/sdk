@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -128,10 +129,28 @@ def ReplaceSubstrings(values, search_for, replace_with):
   # Assume everything else is unchanged.
   return values
 
+def KeepOnly(values, filters):
+  """Recursively filters out strings not ending in "f" from "values"""
+
+  if isinstance(values, list):
+    return [v for v in values if v.endswith(tuple(filters))]
+
+  if isinstance(values, dict):
+    result = {}
+    for key, value in values.items():
+      new_key = KeepOnly(key, filters)
+      new_value = KeepOnly(value, filters)
+      result[new_key] = new_value
+    return result
+
+  return values
+
 def main():
   parser = OptionParser()
   parser.add_option("-r", "--replace", action="append",
     help="Replaces substrings. If passed a=b, replaces all substrs a with b.")
+  parser.add_option("-k", "--keep_only", default = [], action="append",
+    help="Keeps only files ending with the listed strings.")
   (options, args) = parser.parse_args()
 
   if len(args) != 1:
@@ -147,6 +166,9 @@ def main():
         split.append('')
       assert len(split) == 2, "Replacement must be of the form 'key=value'."
       data = ReplaceSubstrings(data, split[0], split[1])
+
+  if options.keep_only != []:
+    data = KeepOnly(data, options.keep_only)
 
   # Sometimes .gypi files use the GYP syntax with percents at the end of the
   # variable name (to indicate not to overwrite a previously-defined value):

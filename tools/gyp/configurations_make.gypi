@@ -18,16 +18,11 @@
           '<@(common_gcc_warning_flags)',
           '-Wnon-virtual-dtor',
           '-Wvla',
-          '-Wno-conversion-null',
           '-Woverloaded-virtual',
           '-g3',
           '-ggdb3',
-          # TODO(iposva): Figure out if we need to pass anything else.
-          #'-ansi',
           '-fno-rtti',
           '-fno-exceptions',
-          # '-fvisibility=hidden',
-          # '-fvisibility-inlines-hidden',
           '-fstack-protector',
           '-Wa,--noexecstack',
         ],
@@ -111,6 +106,18 @@
         'ldflags': [
           '-m64',
         ],
+      },
+
+      'Dart_Linux_simdbc_Base': {
+        'abstract': 1,
+        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
+        'ldflags': [ '-m32', ],
+      },
+
+      'Dart_Linux_simdbc64_Base': {
+        'abstract': 1,
+        'cflags': [ '-O3', '-m64', '-msse2', '-mfpmath=sse' ],
+        'ldflags': [ '-m64', ],
       },
 
       # ARM cross-build

@@ -160,7 +160,7 @@ abstract class Directory implements FileSystemEntity {
    * resolved by the OS.
    *
    * Note that setting the current working directory is a synchronous
-   * operation and that it changes the the working directory of *all*
+   * operation and that it changes the working directory of *all*
    * isolates.
    *
    * Use this with care - especially when working with asynchronous

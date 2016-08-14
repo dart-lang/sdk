@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -29,6 +30,34 @@ namespace dart {
 
 
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
+
+
+static bool IsABIPreservedRegister(Register reg) {
+  return ((1 << reg) & kAbiPreservedCpuRegs) != 0;
+}
+
+
+void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  ASSERT(IsABIPreservedRegister(CODE_REG));
+  ASSERT(!IsABIPreservedRegister(ARGS_DESC_REG));
+  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP));
+  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP2));
+  ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
+  ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+  ASSERT(CALLEE_SAVED_TEMP2 != CODE_REG);
+  ASSERT(CALLEE_SAVED_TEMP2 != ARGS_DESC_REG);
+
+  assembler->Comment("IntrinsicCallPrologue");
+  assembler->mov(CALLEE_SAVED_TEMP, LR);
+  assembler->mov(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
+}
+
+
+void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallEpilogue");
+  assembler->mov(LR, CALLEE_SAVED_TEMP);
+  assembler->mov(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
+}
 
 
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
@@ -154,8 +183,7 @@ static int GetScaleFactor(intptr_t size) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, R2, &fall_through,                              \
-                          /* inline_isolate = */ false);                       \
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &fall_through));             \
   __ ldr(R2, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
   /* Check that length is a positive Smi. */                                   \
   /* R2: requested array length argument. */                                   \
@@ -172,7 +200,7 @@ static int GetScaleFactor(intptr_t size) {
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ AddImmediate(R2, R2, fixed_size);                                         \
   __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));                         \
-  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  Heap::Space space = Heap::kNew;                                              \
   __ ldr(R3, Address(THR, Thread::heap_offset()));                             \
   __ ldr(R0, Address(R3, Heap::TopOffset(space)));                             \
                                                                                \
@@ -193,8 +221,7 @@ static int GetScaleFactor(intptr_t size) {
   /* next object start and initialize the object. */                           \
   __ str(R1, Address(R3, Heap::TopOffset(space)));                             \
   __ AddImmediate(R0, R0, kHeapObjectTag);                                     \
-  __ UpdateAllocationStatsWithSize(cid, R2, space,                             \
-                                   /* inline_isolate = */ false);              \
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));            \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
@@ -652,6 +679,11 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   __ sub(R0, R1, Operand(R0));
   __ SmiTag(R0);
   __ ret();
+}
+
+
+void Intrinsifier::Smi_bitAndFromSmi(Assembler* assembler) {
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -1384,11 +1416,12 @@ void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
-  Label fall_through;
+  Label fall_through, is_smi, double_op;
 
-  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in R0.
   __ LoadDFieldFromOffset(V1, R0, Double::value_offset());
+  __ Bind(&double_op);
   __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
   __ LoadDFieldFromOffset(V0, R0, Double::value_offset());
   switch (kind) {
@@ -1403,6 +1436,12 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ TryAllocate(double_class, &fall_through, R0, R1);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset());
   __ ret();
+
+  __ Bind(&is_smi);  // Convert R0 to a double.
+  __ SmiUntag(R0);
+  __ scvtfdx(V1, R0);
+  __ b(&double_op);
+
   __ Bind(&fall_through);
 }
 
@@ -1561,10 +1600,10 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       math_lib.LookupClassAllowPrivate(Symbols::_Random()));
   ASSERT(!random_class.IsNull());
   const Field& state_field = Field::ZoneHandle(
-      random_class.LookupInstanceField(Symbols::_state()));
+      random_class.LookupInstanceFieldAllowPrivate(Symbols::_state()));
   ASSERT(!state_field.IsNull());
   const Field& random_A_field = Field::ZoneHandle(
-      random_class.LookupStaticField(Symbols::_A()));
+      random_class.LookupStaticFieldAllowPrivate(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
   const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
@@ -1615,7 +1654,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ CompareImmediate(R3, 0);
   __ b(&fall_through, NE);
 
-  __ ldr(R0, FieldAddress(R2, Class::canonical_types_offset()));
+  __ ldr(R0, FieldAddress(R2, Class::canonical_type_offset()));
   __ CompareObject(R0, Object::null_object());
   __ b(&fall_through, EQ);
   __ ret();
@@ -1632,38 +1671,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ b(&fall_through, EQ);
   __ ret();
   // Hash not yet computed.
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
-  Label fall_through, try_two_byte_string;
-
-  __ ldr(R1, Address(SP, 0 * kWordSize));  // Index.
-  __ ldr(R0, Address(SP, 1 * kWordSize));  // String.
-  __ tsti(R1, Immediate(kSmiTagMask));
-  __ b(&fall_through, NE);  // Index is not a Smi.
-  // Range check.
-  __ ldr(R2, FieldAddress(R0, String::length_offset()));
-  __ cmp(R1, Operand(R2));
-  __ b(&fall_through, CS);  // Runtime throws exception.
-  __ CompareClassId(R0, kOneByteStringCid);
-  __ b(&try_two_byte_string, NE);
-  __ SmiUntag(R1);
-  __ AddImmediate(R0, R0, OneByteString::data_offset() - kHeapObjectTag);
-  __ ldr(R0, Address(R0, R1), kUnsignedByte);
-  __ SmiTag(R0);
-  __ ret();
-
-  __ Bind(&try_two_byte_string);
-  __ CompareClassId(R0, kTwoByteStringCid);
-  __ b(&fall_through, NE);
-  ASSERT(kSmiTagShift == 1);
-  __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag);
-  __ ldr(R0, Address(R0, R1), kUnsignedHalfword);
-  __ SmiTag(R0);
-  __ ret();
-
   __ Bind(&fall_through);
 }
 
@@ -1905,8 +1912,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure,
-                          /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, R0, failure));
   __ mov(R6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -1915,7 +1921,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andi(length_reg, length_reg, Immediate(~(kObjectAlignment - 1)));
 
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ ldr(R3, Address(THR, Thread::heap_offset()));
   __ ldr(R0, Address(R3, Heap::TopOffset(space)));
 
@@ -1936,8 +1942,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(R3, Heap::TopOffset(space)));
   __ AddImmediate(R0, R0, kHeapObjectTag);
-  __ UpdateAllocationStatsWithSize(cid, R2, space,
-                                   /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
@@ -2130,7 +2135,7 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
@@ -2149,7 +2154,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ LoadClassId(R1, R1);
   __ AddImmediate(R1, R1, -kOneByteStringCid);
   __ add(R1, R2, Operand(R1, LSL, kWordSizeLog2));
-  __ ldr(R0, FieldAddress(R1, JSRegExp::function_offset(kOneByteStringCid)));
+  __ ldr(R0, FieldAddress(R1, RegExp::function_offset(kOneByteStringCid)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R5.
@@ -2190,6 +2195,24 @@ void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ LoadIsolate(R0);
   __ ldr(R0, Address(R0, Isolate::current_tag_offset()));
+  __ ret();
+}
+
+
+void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
+  if (!FLAG_support_timeline) {
+    __ LoadObject(R0, Bool::False());
+    __ ret();
+    return;
+  }
+  // Load TimelineStream*.
+  __ ldr(R0, Address(THR, Thread::dart_stream_offset()));
+  // Load uintptr_t from TimelineStream*.
+  __ ldr(R0, Address(R0, TimelineStream::enabled_offset()));
+  __ cmp(R0, Operand(0));
+  __ LoadObject(R0, Bool::False());
+  __ LoadObject(TMP, Bool::True());
+  __ csel(R0, TMP, R0, NE);
   __ ret();
 }
 

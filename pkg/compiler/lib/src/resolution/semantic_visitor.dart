@@ -7,13 +7,10 @@ library dart2js.semantics_visitor;
 import '../common.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../tree/tree.dart';
 import '../elements/elements.dart';
-import '../universe/call_structure.dart' show
-    CallStructure;
-import '../universe/selector.dart' show
-    Selector;
-
+import '../tree/tree.dart';
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector;
 import 'operators.dart';
 import 'send_resolver.dart';
 import 'send_structure.dart';
@@ -78,7 +75,6 @@ abstract class SemanticSendResolvedMixin<R, A> implements Visitor<R> {
 /// [SemanticDeclarationVisitor] in a [Visitor].
 abstract class SemanticDeclarationResolvedMixin<R, A>
     implements Visitor<R>, DeclarationResolverMixin {
-
   SemanticDeclarationVisitor<R, A> get declVisitor;
 
   @override
@@ -114,8 +110,7 @@ abstract class SemanticDeclarationResolvedMixin<R, A>
     // TODO(johnniwinther): Support argument.
     A arg = null;
 
-    computeVariableStructures(
-        definitions,
+    computeVariableStructures(definitions,
         (Node node, VariableStructure structure) {
       if (structure == null) {
         return internalError(node, 'No structure for $node');
@@ -128,9 +123,10 @@ abstract class SemanticDeclarationResolvedMixin<R, A>
 }
 
 abstract class SemanticVisitor<R, A> extends Visitor<R>
-    with SemanticSendResolvedMixin<R, A>,
-         SemanticDeclarationResolvedMixin<R, A>,
-         DeclarationResolverMixin {
+    with
+        SemanticSendResolvedMixin<R, A>,
+        SemanticDeclarationResolvedMixin<R, A>,
+        DeclarationResolverMixin {
   TreeElements elements;
 
   SemanticVisitor(this.elements);
@@ -147,10 +143,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m(parameter) => parameter;
   ///
-  R visitParameterGet(
-      Send node,
-      ParameterElement parameter,
-      A arg);
+  R visitParameterGet(Send node, ParameterElement parameter, A arg);
 
   /// Assignment of [rhs] to the [parameter].
   ///
@@ -161,10 +154,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitParameterSet(
-      SendSet node,
-      ParameterElement parameter,
-      Node rhs,
-      A arg);
+      SendSet node, ParameterElement parameter, Node rhs, A arg);
 
   /// Assignment of [rhs] to the final [parameter].
   ///
@@ -175,10 +165,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalParameterSet(
-      SendSet node,
-      ParameterElement parameter,
-      Node rhs,
-      A arg);
+      SendSet node, ParameterElement parameter, Node rhs, A arg);
 
   /// Invocation of the [parameter] with [arguments].
   ///
@@ -188,12 +175,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       parameter(null, 42);
   ///     }
   ///
-  R visitParameterInvoke(
-      Send node,
-      ParameterElement parameter,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitParameterInvoke(Send node, ParameterElement parameter,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Read of the local [variable].
   ///
@@ -204,10 +187,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       return variable;
   ///     }
   ///
-  R visitLocalVariableGet(
-      Send node,
-      LocalVariableElement variable,
-      A arg);
+  R visitLocalVariableGet(Send node, LocalVariableElement variable, A arg);
 
   /// Assignment of [rhs] to the local [variable].
   ///
@@ -219,10 +199,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitLocalVariableSet(
-      SendSet node,
-      LocalVariableElement variable,
-      Node rhs,
-      A arg);
+      SendSet node, LocalVariableElement variable, Node rhs, A arg);
 
   /// Assignment of [rhs] to the final local [variable].
   ///
@@ -234,10 +211,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalLocalVariableSet(
-      SendSet node,
-      LocalVariableElement variable,
-      Node rhs,
-      A arg);
+      SendSet node, LocalVariableElement variable, Node rhs, A arg);
 
   /// Invocation of the local variable [variable] with [arguments].
   ///
@@ -248,12 +222,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       variable(null, 42);
   ///     }
   ///
-  R visitLocalVariableInvoke(
-      Send node,
-      LocalVariableElement variable,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitLocalVariableInvoke(Send node, LocalVariableElement variable,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Closurization of the local [function].
   ///
@@ -264,10 +234,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       return o;
   ///     }
   ///
-  R visitLocalFunctionGet(
-      Send node,
-      LocalFunctionElement function,
-      A arg);
+  R visitLocalFunctionGet(Send node, LocalFunctionElement function, A arg);
 
   /// Assignment of [rhs] to the local [function].
   ///
@@ -279,10 +246,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitLocalFunctionSet(
-      SendSet node,
-      LocalFunctionElement function,
-      Node rhs,
-      A arg);
+      SendSet node, LocalFunctionElement function, Node rhs, A arg);
 
   /// Invocation of the local [function] with [arguments].
   ///
@@ -293,12 +257,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       return o(null, 42);
   ///     }
   ///
-  R visitLocalFunctionInvoke(
-      Send node,
-      LocalFunctionElement function,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitLocalFunctionInvoke(Send node, LocalFunctionElement function,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Invocation of the local [function] with incompatible [arguments].
   ///
@@ -322,11 +282,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m(receiver) => receiver.foo;
   ///
-  R visitDynamicPropertyGet(
-      Send node,
-      Node receiver,
-      Name name,
-      A arg);
+  R visitDynamicPropertyGet(Send node, Node receiver, Name name, A arg);
 
   /// Conditional (if not null) getter call on [receiver] of the property
   /// defined by [selector].
@@ -336,10 +292,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver) => receiver?.foo;
   ///
   R visitIfNotNullDynamicPropertyGet(
-      Send node,
-      Node receiver,
-      Name name,
-      A arg);
+      Send node, Node receiver, Name name, A arg);
 
   /// Setter call on [receiver] with argument [rhs] of the property defined by
   /// [selector].
@@ -351,11 +304,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitDynamicPropertySet(
-      SendSet node,
-      Node receiver,
-      Name name,
-      Node rhs,
-      A arg);
+      SendSet node, Node receiver, Name name, Node rhs, A arg);
 
   /// Conditional (if not null) setter call on [receiver] with argument [rhs] of
   /// the property defined by [selector].
@@ -367,11 +316,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitIfNotNullDynamicPropertySet(
-      SendSet node,
-      Node receiver,
-      Name name,
-      Node rhs,
-      A arg);
+      SendSet node, Node receiver, Name name, Node rhs, A arg);
 
   /// Invocation of the property defined by [selector] on [receiver] with
   /// [arguments].
@@ -383,11 +328,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitDynamicPropertyInvoke(
-      Send node,
-      Node receiver,
-      NodeList arguments,
-      Selector selector,
-      A arg);
+      Send node, Node receiver, NodeList arguments, Selector selector, A arg);
 
   /// Conditinal invocation of the property defined by [selector] on [receiver]
   /// with [arguments], if [receiver] is not null.
@@ -399,11 +340,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitIfNotNullDynamicPropertyInvoke(
-      Send node,
-      Node receiver,
-      NodeList arguments,
-      Selector selector,
-      A arg);
+      Send node, Node receiver, NodeList arguments, Selector selector, A arg);
 
   /// Getter call on `this` of the property defined by [selector].
   ///
@@ -419,10 +356,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => foo;
   ///     }
   ///
-  R visitThisPropertyGet(
-      Send node,
-      Name name,
-      A arg);
+  R visitThisPropertyGet(Send node, Name name, A arg);
 
   /// Setter call on `this` with argument [rhs] of the property defined by
   /// [selector].
@@ -439,11 +373,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() { foo = rhs; }
   ///     }
   ///
-  R visitThisPropertySet(
-      SendSet node,
-      Name name,
-      Node rhs,
-      A arg);
+  R visitThisPropertySet(SendSet node, Name name, Node rhs, A arg);
 
   /// Invocation of the property defined by [selector] on `this` with
   /// [arguments].
@@ -462,10 +392,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///
   R visitThisPropertyInvoke(
-      Send node,
-      NodeList arguments,
-      Selector selector,
-      A arg);
+      Send node, NodeList arguments, Selector selector, A arg);
 
   /// Read of `this`.
   ///
@@ -475,9 +402,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => this;
   ///     }
   ///
-  R visitThisGet(
-      Identifier node,
-      A arg);
+  R visitThisGet(Identifier node, A arg);
 
   /// Invocation of `this` with [arguments].
   ///
@@ -488,11 +413,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitThisInvoke(
-      Send node,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
-
+      Send node, NodeList arguments, CallStructure callStructure, A arg);
 
   /// Read of the super [field].
   ///
@@ -505,10 +426,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() => super.foo;
   ///     }
   ///
-  R visitSuperFieldGet(
-      Send node,
-      FieldElement field,
-      A arg);
+  R visitSuperFieldGet(Send node, FieldElement field, A arg);
 
   /// Assignment of [rhs] to the super [field].
   ///
@@ -521,11 +439,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo = rhs; }
   ///     }
   ///
-  R visitSuperFieldSet(
-      SendSet node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+  R visitSuperFieldSet(SendSet node, FieldElement field, Node rhs, A arg);
 
   /// Assignment of [rhs] to the final static [field].
   ///
@@ -538,11 +452,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo = rhs; }
   ///     }
   ///
-  R visitFinalSuperFieldSet(
-      SendSet node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+  R visitFinalSuperFieldSet(SendSet node, FieldElement field, Node rhs, A arg);
 
   /// Invocation of the super [field] with [arguments].
   ///
@@ -555,12 +465,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo(null, 42); }
   ///     }
   ///
-  R visitSuperFieldInvoke(
-      Send node,
-      FieldElement field,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitSuperFieldInvoke(Send node, FieldElement field, NodeList arguments,
+      CallStructure callStructure, A arg);
 
   /// Closurization of the super [method].
   ///
@@ -573,10 +479,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() => super.foo;
   ///     }
   ///
-  R visitSuperMethodGet(
-      Send node,
-      MethodElement method,
-      A arg);
+  R visitSuperMethodGet(Send node, MethodElement method, A arg);
 
   /// Invocation of the super [method] with [arguments].
   ///
@@ -589,12 +492,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo(null, 42); }
   ///     }
   ///
-  R visitSuperMethodInvoke(
-      Send node,
-      MethodElement method,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitSuperMethodInvoke(Send node, MethodElement method, NodeList arguments,
+      CallStructure callStructure, A arg);
 
   /// Invocation of the super [method] with incompatible [arguments].
   ///
@@ -607,12 +506,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo(null); } // One argument missing.
   ///     }
   ///
-  R visitSuperMethodIncompatibleInvoke(
-      Send node,
-      MethodElement method,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitSuperMethodIncompatibleInvoke(Send node, MethodElement method,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Assignment of [rhs] to the super [method].
   ///
@@ -625,11 +520,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo = rhs; }
   ///     }
   ///
-  R visitSuperMethodSet(
-      Send node,
-      MethodElement method,
-      Node rhs,
-      A arg);
+  R visitSuperMethodSet(Send node, MethodElement method, Node rhs, A arg);
 
   /// Getter call to the super [getter].
   ///
@@ -642,10 +533,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() => super.foo;
   ///     }
   ///
-  R visitSuperGetterGet(
-      Send node,
-      FunctionElement getter,
-      A arg);
+  R visitSuperGetterGet(Send node, FunctionElement getter, A arg);
 
   /// Getter call the super [setter].
   ///
@@ -658,10 +546,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() => super.foo;
   ///     }
   ///
-  R visitSuperSetterGet(
-      Send node,
-      FunctionElement setter,
-      A arg);
+  R visitSuperSetterGet(Send node, FunctionElement setter, A arg);
 
   /// Setter call to the super [setter].
   ///
@@ -674,11 +559,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo = rhs; }
   ///     }
   ///
-  R visitSuperSetterSet(
-      SendSet node,
-      FunctionElement setter,
-      Node rhs,
-      A arg);
+  R visitSuperSetterSet(SendSet node, FunctionElement setter, Node rhs, A arg);
 
   /// Assignment of [rhs] to the super [getter].
   ///
@@ -691,11 +572,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo = rhs; }
   ///     }
   ///
-  R visitSuperGetterSet(
-      SendSet node,
-      FunctionElement getter,
-      Node rhs,
-      A arg);
+  R visitSuperGetterSet(SendSet node, FunctionElement getter, Node rhs, A arg);
 
   /// Invocation of the super [getter] with [arguments].
   ///
@@ -708,12 +585,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo(null, 42; }
   ///     }
   ///
-  R visitSuperGetterInvoke(
-      Send node,
-      FunctionElement getter,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitSuperGetterInvoke(Send node, FunctionElement getter,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Invocation of the super [setter] with [arguments].
   ///
@@ -726,12 +599,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo(null, 42; }
   ///     }
   ///
-  R visitSuperSetterInvoke(
-      Send node,
-      FunctionElement setter,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitSuperSetterInvoke(Send node, FunctionElement setter,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Invocation of a [expression] with [arguments].
   ///
@@ -739,12 +608,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => (a, b){}(null, 42);
   ///
-  R visitExpressionInvoke(
-      Send node,
-      Node expression,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitExpressionInvoke(Send node, Node expression, NodeList arguments,
+      CallStructure callStructure, A arg);
 
   /// Read of the static [field].
   ///
@@ -755,10 +620,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() => C.foo;
   ///
-  R visitStaticFieldGet(
-      Send node,
-      FieldElement field,
-      A arg);
+  R visitStaticFieldGet(Send node, FieldElement field, A arg);
 
   /// Assignment of [rhs] to the static [field].
   ///
@@ -769,11 +631,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo = rhs; }
   ///
-  R visitStaticFieldSet(
-      SendSet node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+  R visitStaticFieldSet(SendSet node, FieldElement field, Node rhs, A arg);
 
   /// Assignment of [rhs] to the final static [field].
   ///
@@ -784,11 +642,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo = rhs; }
   ///
-  R visitFinalStaticFieldSet(
-      SendSet node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+  R visitFinalStaticFieldSet(SendSet node, FieldElement field, Node rhs, A arg);
 
   /// Invocation of the static [field] with [arguments].
   ///
@@ -799,12 +653,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo(null, 42); }
   ///
-  R visitStaticFieldInvoke(
-      Send node,
-      FieldElement field,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitStaticFieldInvoke(Send node, FieldElement field, NodeList arguments,
+      CallStructure callStructure, A arg);
 
   /// Closurization of the static [function].
   ///
@@ -815,10 +665,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() => C.foo;
   ///
-  R visitStaticFunctionGet(
-      Send node,
-      MethodElement function,
-      A arg);
+  R visitStaticFunctionGet(Send node, MethodElement function, A arg);
 
   /// Invocation of the static [function] with [arguments].
   ///
@@ -829,12 +676,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo(null, 42); }
   ///
-  R visitStaticFunctionInvoke(
-      Send node,
-      MethodElement function,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitStaticFunctionInvoke(Send node, MethodElement function,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Invocation of the static [function] with incompatible [arguments].
   ///
@@ -845,12 +688,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo(null); }
   ///
-  R visitStaticFunctionIncompatibleInvoke(
-      Send node,
-      MethodElement function,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitStaticFunctionIncompatibleInvoke(Send node, MethodElement function,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Assignment of [rhs] to the static [function].
   ///
@@ -861,11 +700,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo = rhs; }
   ///
-  R visitStaticFunctionSet(
-      Send node,
-      MethodElement function,
-      Node rhs,
-      A arg);
+  R visitStaticFunctionSet(Send node, MethodElement function, Node rhs, A arg);
 
   /// Getter call to the static [getter].
   ///
@@ -876,10 +711,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() => C.foo;
   ///
-  R visitStaticGetterGet(
-      Send node,
-      FunctionElement getter,
-      A arg);
+  R visitStaticGetterGet(Send node, FunctionElement getter, A arg);
 
   /// Getter call the static [setter].
   ///
@@ -890,10 +722,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() => C.foo;
   ///
-  R visitStaticSetterGet(
-      Send node,
-      FunctionElement setter,
-      A arg);
+  R visitStaticSetterGet(Send node, FunctionElement setter, A arg);
 
   /// Setter call to the static [setter].
   ///
@@ -904,11 +733,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo = rhs; }
   ///
-  R visitStaticSetterSet(
-      SendSet node,
-      FunctionElement setter,
-      Node rhs,
-      A arg);
+  R visitStaticSetterSet(SendSet node, FunctionElement setter, Node rhs, A arg);
 
   /// Assignment of [rhs] to the static [getter].
   ///
@@ -919,11 +744,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo = rhs; }
   ///
-  R visitStaticGetterSet(
-      SendSet node,
-      FunctionElement getter,
-      Node rhs,
-      A arg);
+  R visitStaticGetterSet(SendSet node, FunctionElement getter, Node rhs, A arg);
 
   /// Invocation of the static [getter] with [arguments].
   ///
@@ -934,12 +755,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo(null, 42; }
   ///
-  R visitStaticGetterInvoke(
-      Send node,
-      FunctionElement getter,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitStaticGetterInvoke(Send node, FunctionElement getter,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Invocation of the static [setter] with [arguments].
   ///
@@ -950,12 +767,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo(null, 42; }
   ///
-  R visitStaticSetterInvoke(
-      Send node,
-      FunctionElement setter,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitStaticSetterInvoke(Send node, FunctionElement setter,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Read of the top level [field].
   ///
@@ -964,10 +777,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     var foo;
   ///     m() => foo;
   ///
-  R visitTopLevelFieldGet(
-      Send node,
-      FieldElement field,
-      A arg);
+  R visitTopLevelFieldGet(Send node, FieldElement field, A arg);
 
   /// Assignment of [rhs] to the top level [field].
   ///
@@ -976,11 +786,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     var foo;
   ///     m() { foo = rhs; }
   ///
-  R visitTopLevelFieldSet(
-      SendSet node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+  R visitTopLevelFieldSet(SendSet node, FieldElement field, Node rhs, A arg);
 
   /// Assignment of [rhs] to the final top level [field].
   ///
@@ -990,10 +796,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() { foo = rhs; }
   ///
   R visitFinalTopLevelFieldSet(
-      SendSet node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+      SendSet node, FieldElement field, Node rhs, A arg);
 
   /// Invocation of the top level [field] with [arguments].
   ///
@@ -1002,12 +805,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     var foo;
   ///     m() { foo(null, 42); }
   ///
-  R visitTopLevelFieldInvoke(
-      Send node,
-      FieldElement field,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitTopLevelFieldInvoke(Send node, FieldElement field, NodeList arguments,
+      CallStructure callStructure, A arg);
 
   /// Closurization of the top level [function].
   ///
@@ -1016,10 +815,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     foo(a, b) {};
   ///     m() => foo;
   ///
-  R visitTopLevelFunctionGet(
-      Send node,
-      MethodElement function,
-      A arg);
+  R visitTopLevelFunctionGet(Send node, MethodElement function, A arg);
 
   /// Invocation of the top level [function] with [arguments].
   ///
@@ -1028,12 +824,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     foo(a, b) {};
   ///     m() { foo(null, 42); }
   ///
-  R visitTopLevelFunctionInvoke(
-      Send node,
-      MethodElement function,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitTopLevelFunctionInvoke(Send node, MethodElement function,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Invocation of the top level [function] with incompatible [arguments].
   ///
@@ -1044,12 +836,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo(null); }
   ///
-  R visitTopLevelFunctionIncompatibleInvoke(
-      Send node,
-      MethodElement function,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitTopLevelFunctionIncompatibleInvoke(Send node, MethodElement function,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Assignment of [rhs] to the top level [function].
   ///
@@ -1059,10 +847,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() { foo = rhs; }
   ///
   R visitTopLevelFunctionSet(
-      Send node,
-      MethodElement function,
-      Node rhs,
-      A arg);
+      Send node, MethodElement function, Node rhs, A arg);
 
   /// Getter call to the top level [getter].
   ///
@@ -1071,10 +856,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     get foo => null;
   ///     m() => foo;
   ///
-  R visitTopLevelGetterGet(
-      Send node,
-      FunctionElement getter,
-      A arg);
+  R visitTopLevelGetterGet(Send node, FunctionElement getter, A arg);
 
   /// Getter call the top level [setter].
   ///
@@ -1083,10 +865,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set foo(_) {}
   ///     m() => foo;
   ///
-  R visitTopLevelSetterGet(
-      Send node,
-      FunctionElement setter,
-      A arg);
+  R visitTopLevelSetterGet(Send node, FunctionElement setter, A arg);
 
   /// Setter call to the top level [setter].
   ///
@@ -1096,10 +875,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() { foo = rhs; }
   ///
   R visitTopLevelSetterSet(
-      SendSet node,
-      FunctionElement setter,
-      Node rhs,
-      A arg);
+      SendSet node, FunctionElement setter, Node rhs, A arg);
 
   /// Assignment of [rhs] to the top level [getter].
   ///
@@ -1109,10 +885,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() { foo = rhs; }
   ///
   R visitTopLevelGetterSet(
-      SendSet node,
-      FunctionElement getter,
-      Node rhs,
-      A arg);
+      SendSet node, FunctionElement getter, Node rhs, A arg);
 
   /// Invocation of the top level [getter] with [arguments].
   ///
@@ -1121,12 +894,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     get foo => null;
   ///     m() { foo(null, 42); }
   ///
-  R visitTopLevelGetterInvoke(
-      Send node,
-      FunctionElement getter,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitTopLevelGetterInvoke(Send node, FunctionElement getter,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Invocation of the top level [setter] with [arguments].
   ///
@@ -1135,12 +904,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set foo(_) {};
   ///     m() { foo(null, 42); }
   ///
-  R visitTopLevelSetterInvoke(
-      Send node,
-      FunctionElement setter,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitTopLevelSetterInvoke(Send node, FunctionElement setter,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Read of the type literal for class [element].
   ///
@@ -1149,10 +914,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => C;
   ///
-  R visitClassTypeLiteralGet(
-      Send node,
-      ConstantExpression constant,
-      A arg);
+  R visitClassTypeLiteralGet(Send node, ConstantExpression constant, A arg);
 
   /// Invocation of the type literal for class [element] with [arguments].
   ///
@@ -1161,12 +923,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => C(null, 42);
   ///
-  R visitClassTypeLiteralInvoke(
-      Send node,
-      ConstantExpression constant,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitClassTypeLiteralInvoke(Send node, ConstantExpression constant,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Assignment of [rhs] to the type literal for class [element].
   ///
@@ -1176,10 +934,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() { C = rhs; }
   ///
   R visitClassTypeLiteralSet(
-      SendSet node,
-      ConstantExpression constant,
-      Node rhs,
-      A arg);
+      SendSet node, ConstantExpression constant, Node rhs, A arg);
 
   /// Read of the type literal for typedef [element].
   ///
@@ -1188,10 +943,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     typedef F();
   ///     m() => F;
   ///
-  R visitTypedefTypeLiteralGet(
-      Send node,
-      ConstantExpression constant,
-      A arg);
+  R visitTypedefTypeLiteralGet(Send node, ConstantExpression constant, A arg);
 
   /// Invocation of the type literal for typedef [element] with [arguments].
   ///
@@ -1200,12 +952,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     typedef F();
   ///     m() => F(null, 42);
   ///
-  R visitTypedefTypeLiteralInvoke(
-      Send node,
-      ConstantExpression constant,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitTypedefTypeLiteralInvoke(Send node, ConstantExpression constant,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Assignment of [rhs] to the type literal for typedef [element].
   ///
@@ -1215,10 +963,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() { F = rhs; }
   ///
   R visitTypedefTypeLiteralSet(
-      SendSet node,
-      ConstantExpression constant,
-      Node rhs,
-      A arg);
+      SendSet node, ConstantExpression constant, Node rhs, A arg);
 
   /// Read of the type literal for type variable [element].
   ///
@@ -1229,9 +974,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitTypeVariableTypeLiteralGet(
-      Send node,
-      TypeVariableElement element,
-      A arg);
+      Send node, TypeVariableElement element, A arg);
 
   /// Invocation of the type literal for type variable [element] with
   /// [arguments].
@@ -1242,12 +985,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() { T(null, 42); }
   ///     }
   ///
-  R visitTypeVariableTypeLiteralInvoke(
-      Send node,
-      TypeVariableElement element,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitTypeVariableTypeLiteralInvoke(Send node, TypeVariableElement element,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Assignment of [rhs] to the type literal for type variable [element].
   ///
@@ -1258,10 +997,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitTypeVariableTypeLiteralSet(
-      SendSet node,
-      TypeVariableElement element,
-      Node rhs,
-      A arg);
+      SendSet node, TypeVariableElement element, Node rhs, A arg);
 
   /// Read of the type literal for `dynamic`.
   ///
@@ -1269,10 +1005,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => dynamic;
   ///
-  R visitDynamicTypeLiteralGet(
-      Send node,
-      ConstantExpression constant,
-      A arg);
+  R visitDynamicTypeLiteralGet(Send node, ConstantExpression constant, A arg);
 
   /// Invocation of the type literal for `dynamic` with [arguments].
   ///
@@ -1280,12 +1013,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() { dynamic(null, 42); }
   ///
-  R visitDynamicTypeLiteralInvoke(
-      Send node,
-      ConstantExpression constant,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitDynamicTypeLiteralInvoke(Send node, ConstantExpression constant,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Assignment of [rhs] to the type literal for `dynamic`.
   ///
@@ -1294,10 +1023,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() { dynamic = rhs; }
   ///
   R visitDynamicTypeLiteralSet(
-      SendSet node,
-      ConstantExpression constant,
-      Node rhs,
-      A arg);
+      SendSet node, ConstantExpression constant, Node rhs, A arg);
 
   /// Binary expression `left operator right` where [operator] is a user
   /// definable operator. Binary expressions using operator `==` are handled
@@ -1310,11 +1036,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     mul(a, b) => a * b;
   ///
   R visitBinary(
-      Send node,
-      Node left,
-      BinaryOperator operator,
-      Node right,
-      A arg);
+      Send node, Node left, BinaryOperator operator, Node right, A arg);
 
   /// Binary expression `super operator argument` where [operator] is a user
   /// definable operator implemented on a superclass by [function]. Binary
@@ -1329,12 +1051,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(a) => super + a;
   ///     }
   ///
-  R visitSuperBinary(
-      Send node,
-      FunctionElement function,
-      BinaryOperator operator,
-      Node argument,
-      A arg);
+  R visitSuperBinary(Send node, FunctionElement function,
+      BinaryOperator operator, Node argument, A arg);
 
   /// Binary operation on the unresolved super [element].
   ///
@@ -1346,12 +1064,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super + 42;
   ///     }
   ///
-  R visitUnresolvedSuperBinary(
-      Send node,
-      Element element,
-      BinaryOperator operator,
-      Node argument,
-      A arg);
+  R visitUnresolvedSuperBinary(Send node, Element element,
+      BinaryOperator operator, Node argument, A arg);
 
   /// Index expression `receiver[index]`.
   ///
@@ -1359,11 +1073,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     lookup(a, b) => a[b];
   ///
-  R visitIndex(
-      Send node,
-      Node receiver,
-      Node index,
-      A arg);
+  R visitIndex(Send node, Node receiver, Node index, A arg);
 
   /// Prefix operation on an index expression `operator receiver[index]` where
   /// the operation is defined by [operator].
@@ -1373,11 +1083,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     lookup(a, b) => --a[b];
   ///
   R visitIndexPrefix(
-      Send node,
-      Node receiver,
-      Node index,
-      IncDecOperator operator,
-      A arg);
+      Send node, Node receiver, Node index, IncDecOperator operator, A arg);
 
   /// Postfix operation on an index expression `receiver[index] operator` where
   /// the operation is defined by [operator].
@@ -1387,11 +1093,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     lookup(a, b) => a[b]++;
   ///
   R visitIndexPostfix(
-      Send node,
-      Node receiver,
-      Node index,
-      IncDecOperator operator,
-      A arg);
+      Send node, Node receiver, Node index, IncDecOperator operator, A arg);
 
   /// Index expression `super[index]` where 'operator []' is implemented on a
   /// superclass by [function].
@@ -1405,11 +1107,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(a) => super[a];
   ///     }
   ///
-  R visitSuperIndex(
-      Send node,
-      FunctionElement function,
-      Node index,
-      A arg);
+  R visitSuperIndex(Send node, FunctionElement function, Node index, A arg);
 
   /// Index expression `super[index]` where 'operator []' is unresolved.
   ///
@@ -1420,11 +1118,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(a) => super[a];
   ///     }
   ///
-  R visitUnresolvedSuperIndex(
-      Send node,
-      Element element,
-      Node index,
-      A arg);
+  R visitUnresolvedSuperIndex(Send node, Element element, Node index, A arg);
 
   /// Prefix operation on an index expression `operator super[index]` where
   /// 'operator []' is implemented on a superclass by [indexFunction] and
@@ -1485,13 +1179,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(a) => --super[a];
   ///     }
   ///
-  R visitUnresolvedSuperGetterIndexPrefix(
-      Send node,
-      Element element,
-      MethodElement setter,
-      Node index,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedSuperGetterIndexPrefix(Send node, Element element,
+      MethodElement setter, Node index, IncDecOperator operator, A arg);
 
   /// Postfix operation on an index expression `super[index] operator` where
   /// 'operator []' is unresolved, 'operator []=' is defined by [setter], and
@@ -1506,13 +1195,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(a) => super[a]++;
   ///     }
   ///
-  R visitUnresolvedSuperGetterIndexPostfix(
-      Send node,
-      Element element,
-      MethodElement setter,
-      Node index,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedSuperGetterIndexPostfix(Send node, Element element,
+      MethodElement setter, Node index, IncDecOperator operator, A arg);
 
   /// Prefix operation on an index expression `operator super[index]` where
   /// 'operator []' is implemented on a superclass by [indexFunction] and
@@ -1570,11 +1254,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitUnresolvedSuperIndexPrefix(
-      Send node,
-      Element element,
-      Node index,
-      IncDecOperator operator,
-      A arg);
+      Send node, Element element, Node index, IncDecOperator operator, A arg);
 
   /// Postfix operation on an index expression `super[index] operator` where
   /// both 'operator []' and 'operator []=' are unresolved and the operation is
@@ -1590,11 +1270,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitUnresolvedSuperIndexPostfix(
-      Send node,
-      Element element,
-      Node index,
-      IncDecOperator operator,
-      A arg);
+      Send node, Element element, Node index, IncDecOperator operator, A arg);
 
   /// Binary expression `left == right`.
   ///
@@ -1602,11 +1278,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     neq(a, b) => a != b;
   ///
-  R visitNotEquals(
-      Send node,
-      Node left,
-      Node right,
-      A arg);
+  R visitNotEquals(Send node, Node left, Node right, A arg);
 
   /// Binary expression `super != argument` where `==` is implemented on a
   /// superclass by [function].
@@ -1621,10 +1293,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperNotEquals(
-      Send node,
-      FunctionElement function,
-      Node argument,
-      A arg);
+      Send node, FunctionElement function, Node argument, A arg);
 
   /// Binary expression `left == right`.
   ///
@@ -1632,11 +1301,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     eq(a, b) => a == b;
   ///
-  R visitEquals(
-      Send node,
-      Node left,
-      Node right,
-      A arg);
+  R visitEquals(Send node, Node left, Node right, A arg);
 
   /// Binary expression `super == argument` where `==` is implemented on a
   /// superclass by [function].
@@ -1650,11 +1315,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(a) => super == a;
   ///     }
   ///
-  R visitSuperEquals(
-      Send node,
-      FunctionElement function,
-      Node argument,
-      A arg);
+  R visitSuperEquals(Send node, FunctionElement function, Node argument, A arg);
 
   /// Unary expression `operator expression` where [operator] is a user
   /// definable operator.
@@ -1664,11 +1325,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     neg(a, b) => -a;
   ///     comp(a, b) => ~a;
   ///
-  R visitUnary(
-      Send node,
-      UnaryOperator operator,
-      Node expression,
-      A arg);
+  R visitUnary(Send node, UnaryOperator operator, Node expression, A arg);
 
   /// Unary expression `operator super` where [operator] is a user definable
   /// operator implemented on a superclass by [function].
@@ -1683,10 +1340,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperUnary(
-      Send node,
-      UnaryOperator operator,
-      FunctionElement function,
-      A arg);
+      Send node, UnaryOperator operator, FunctionElement function, A arg);
 
   /// Unary operation on the unresolved super [element].
   ///
@@ -1699,10 +1353,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitUnresolvedSuperUnary(
-      Send node,
-      UnaryOperator operator,
-      Element element,
-      A arg);
+      Send node, UnaryOperator operator, Element element, A arg);
 
   /// Unary expression `!expression`.
   ///
@@ -1710,10 +1361,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     not(a) => !a;
   ///
-  R visitNot(
-      Send node,
-      Node expression,
-      A arg);
+  R visitNot(Send node, Node expression, A arg);
 
   /// Index set expression `receiver[index] = rhs`.
   ///
@@ -1721,12 +1369,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m(receiver, index, rhs) => receiver[index] = rhs;
   ///
-  R visitIndexSet(
-      SendSet node,
-      Node receiver,
-      Node index,
-      Node rhs,
-      A arg);
+  R visitIndexSet(SendSet node, Node receiver, Node index, Node rhs, A arg);
 
   /// Index set expression `super[index] = rhs` where `operator []=` is defined
   /// on a superclass by [function].
@@ -1741,11 +1384,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperIndexSet(
-      SendSet node,
-      FunctionElement function,
-      Node index,
-      Node rhs,
-      A arg);
+      SendSet node, FunctionElement function, Node index, Node rhs, A arg);
 
   /// Index set expression `super[index] = rhs` where `operator []=` is
   /// undefined.
@@ -1759,11 +1398,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitUnresolvedSuperIndexSet(
-      Send node,
-      Element element,
-      Node index,
-      Node rhs,
-      A arg);
+      Send node, Element element, Node index, Node rhs, A arg);
 
   /// If-null, ??, expression with operands [left] and [right].
   ///
@@ -1771,11 +1406,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => left ?? right;
   ///
-  R visitIfNull(
-      Send node,
-      Node left,
-      Node right,
-      A arg);
+  R visitIfNull(Send node, Node left, Node right, A arg);
 
   /// Logical and, &&, expression with operands [left] and [right].
   ///
@@ -1783,11 +1414,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => left && right;
   ///
-  R visitLogicalAnd(
-      Send node,
-      Node left,
-      Node right,
-      A arg);
+  R visitLogicalAnd(Send node, Node left, Node right, A arg);
 
   /// Logical or, ||, expression with operands [left] and [right].
   ///
@@ -1795,11 +1422,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => left || right;
   ///
-  R visitLogicalOr(
-      Send node,
-      Node left,
-      Node right,
-      A arg);
+  R visitLogicalOr(Send node, Node left, Node right, A arg);
 
   /// Is test of [expression] against [type].
   ///
@@ -1808,11 +1431,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => expression is C;
   ///
-  R visitIs(
-      Send node,
-      Node expression,
-      DartType type,
-      A arg);
+  R visitIs(Send node, Node expression, DartType type, A arg);
 
   /// Is not test of [expression] against [type].
   ///
@@ -1821,11 +1440,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => expression is! C;
   ///
-  R visitIsNot(
-      Send node,
-      Node expression,
-      DartType type,
-      A arg);
+  R visitIsNot(Send node, Node expression, DartType type, A arg);
 
   /// As cast of [expression] to [type].
   ///
@@ -1834,11 +1449,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => expression as C;
   ///
-  R visitAs(
-      Send node,
-      Node expression,
-      DartType type,
-      A arg);
+  R visitAs(Send node, Node expression, DartType type, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] of the property on
   /// [receiver] whose getter and setter are defined by [getterSelector] and
@@ -1848,13 +1459,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m(receiver, rhs) => receiver.foo += rhs;
   ///
-  R visitDynamicPropertyCompound(
-      Send node,
-      Node receiver,
-      Name name,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitDynamicPropertyCompound(Send node, Node receiver, Name name,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] of the property on
   /// a possibly null [receiver] whose getter and setter are defined by
@@ -1864,13 +1470,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m(receiver, rhs) => receiver?.foo += rhs;
   ///
-  R visitIfNotNullDynamicPropertyCompound(
-      Send node,
-      Node receiver,
-      Name name,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitIfNotNullDynamicPropertyCompound(Send node, Node receiver, Name name,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] of the property on
   /// `this` whose getter and setter are defined by [getterSelector] and
@@ -1889,11 +1490,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitThisPropertyCompound(
-      Send node,
-      Name name,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+      Send node, Name name, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a [parameter].
   ///
@@ -1901,12 +1498,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m(parameter, rhs) => parameter += rhs;
   ///
-  R visitParameterCompound(
-      Send node,
-      ParameterElement parameter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitParameterCompound(Send node, ParameterElement parameter,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a final
   /// [parameter].
@@ -1915,12 +1508,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m(final parameter, rhs) => parameter += rhs;
   ///
-  R visitFinalParameterCompound(
-      Send node,
-      ParameterElement parameter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitFinalParameterCompound(Send node, ParameterElement parameter,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a local
   /// [variable].
@@ -1932,12 +1521,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       variable += rhs;
   ///     }
   ///
-  R visitLocalVariableCompound(
-      Send node,
-      LocalVariableElement variable,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitLocalVariableCompound(Send node, LocalVariableElement variable,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a final local
   /// [variable].
@@ -1949,12 +1534,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       variable += rhs;
   ///     }
   ///
-  R visitFinalLocalVariableCompound(
-      Send node,
-      LocalVariableElement variable,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitFinalLocalVariableCompound(Send node, LocalVariableElement variable,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a local
   /// [function].
@@ -1966,12 +1547,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       function += rhs;
   ///     }
   ///
-  R visitLocalFunctionCompound(
-      Send node,
-      LocalFunctionElement function,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitLocalFunctionCompound(Send node, LocalFunctionElement function,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a static
   /// [field].
@@ -1983,12 +1560,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => field += rhs;
   ///     }
   ///
-  R visitStaticFieldCompound(
-      Send node,
-      FieldElement field,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitStaticFieldCompound(Send node, FieldElement field,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a final static
   /// [field].
@@ -2000,12 +1573,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => field += rhs;
   ///     }
   ///
-  R visitFinalStaticFieldCompound(
-      Send node,
-      FieldElement field,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitFinalStaticFieldCompound(Send node, FieldElement field,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from a
   /// static [getter] and writing to a static [setter].
@@ -2018,13 +1587,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => o += rhs;
   ///     }
   ///
-  R visitStaticGetterSetterCompound(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitStaticGetterSetterCompound(Send node, FunctionElement getter,
+      FunctionElement setter, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from a
   /// static [method], that is, closurizing [method], and writing to a static
@@ -2038,13 +1602,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => o += rhs;
   ///     }
   ///
-  R visitStaticMethodSetterCompound(
-      Send node,
-      MethodElement method,
-      MethodElement setter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitStaticMethodSetterCompound(Send node, MethodElement method,
+      MethodElement setter, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a top level
   /// [field].
@@ -2054,12 +1613,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     var field;
   ///     m(rhs) => field += rhs;
   ///
-  R visitTopLevelFieldCompound(
-      Send node,
-      FieldElement field,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitTopLevelFieldCompound(Send node, FieldElement field,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a final top
   /// level [field].
@@ -2069,12 +1624,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     final field = 0;
   ///     m(rhs) => field += rhs;
   ///
-  R visitFinalTopLevelFieldCompound(
-      Send node,
-      FieldElement field,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitFinalTopLevelFieldCompound(Send node, FieldElement field,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from a
   /// top level [getter] and writing to a top level [setter].
@@ -2085,13 +1636,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set o(_) {}
   ///     m(rhs) => o += rhs;
   ///
-  R visitTopLevelGetterSetterCompound(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitTopLevelGetterSetterCompound(Send node, FunctionElement getter,
+      FunctionElement setter, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from a
   /// top level [method], that is, closurizing [method], and writing to a top
@@ -2103,13 +1649,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set o(_) {}
   ///     m(rhs) => o += rhs;
   ///
-  R visitTopLevelMethodSetterCompound(
-      Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitTopLevelMethodSetterCompound(Send node, FunctionElement method,
+      FunctionElement setter, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from a
   /// top level [method], that is, closurizing [method], and writing to an
@@ -2120,12 +1661,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     o() {}
   ///     m(rhs) => o += rhs;
   ///
-  R visitTopLevelMethodCompound(
-      Send node,
-      FunctionElement method,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitTopLevelMethodCompound(Send node, FunctionElement method,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a super
   /// [field].
@@ -2139,12 +1676,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.field += rhs;
   ///     }
   ///
-  R visitSuperFieldCompound(
-      Send node,
-      FieldElement field,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitSuperFieldCompound(Send node, FieldElement field,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a final super
   /// [field].
@@ -2158,12 +1691,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.field += rhs;
   ///     }
   ///
-  R visitFinalSuperFieldCompound(
-      Send node,
-      FieldElement field,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitFinalSuperFieldCompound(Send node, FieldElement field,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the [name] property on
   /// [receiver]. That is, [rhs] is only evaluated and assigned, if the value
@@ -2174,11 +1703,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver, rhs) => receiver.foo ??= rhs;
   ///
   R visitDynamicPropertySetIfNull(
-      Send node,
-      Node receiver,
-      Name name,
-      Node rhs,
-      A arg);
+      Send node, Node receiver, Name name, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the [name] property on
   /// [receiver] if not null. That is, [rhs] is only evaluated and assigned,
@@ -2190,11 +1715,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver, rhs) => receiver?.foo ??= rhs;
   ///
   R visitIfNotNullDynamicPropertySetIfNull(
-      Send node,
-      Node receiver,
-      Name name,
-      Node rhs,
-      A arg);
+      Send node, Node receiver, Name name, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the [name] property on `this`.
   /// That is, [rhs] is only evaluated and assigned, if the value of [name] on
@@ -2212,11 +1733,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => foo ??= rhs;
   ///     }
   ///
-  R visitThisPropertySetIfNull(
-      Send node,
-      Name name,
-      Node rhs,
-      A arg);
+  R visitThisPropertySetIfNull(Send node, Name name, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to [parameter]. That is, [rhs] is
   /// only evaluated and assigned, if the value of the [parameter] is `null`.
@@ -2226,10 +1743,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(parameter, rhs) => parameter ??= rhs;
   ///
   R visitParameterSetIfNull(
-      Send node,
-      ParameterElement parameter,
-      Node rhs,
-      A arg);
+      Send node, ParameterElement parameter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the final [parameter]. That is,
   /// [rhs] is only evaluated and assigned, if the value of the [parameter] is
@@ -2240,10 +1754,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(final parameter, rhs) => parameter ??= rhs;
   ///
   R visitFinalParameterSetIfNull(
-      Send node,
-      ParameterElement parameter,
-      Node rhs,
-      A arg);
+      Send node, ParameterElement parameter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the local [variable]. That is,
   /// [rhs] is only evaluated and assigned, if the value of the [variable] is
@@ -2257,10 +1768,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitLocalVariableSetIfNull(
-      Send node,
-      LocalVariableElement variable,
-      Node rhs,
-      A arg);
+      Send node, LocalVariableElement variable, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the final local [variable]. That
   /// is, [rhs] is only evaluated and assigned, if the value of the [variable]
@@ -2274,10 +1782,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalLocalVariableSetIfNull(
-      Send node,
-      LocalVariableElement variable,
-      Node rhs,
-      A arg);
+      Send node, LocalVariableElement variable, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the local [function]. That is,
   /// [rhs] is only evaluated and assigned, if the value of the [function] is
@@ -2291,10 +1796,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitLocalFunctionSetIfNull(
-      Send node,
-      LocalFunctionElement function,
-      Node rhs,
-      A arg);
+      Send node, LocalFunctionElement function, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the static [field]. That is,
   /// [rhs] is only evaluated and assigned, if the value of the [field] is
@@ -2307,11 +1809,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => field ??= rhs;
   ///     }
   ///
-  R visitStaticFieldSetIfNull(
-      Send node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+  R visitStaticFieldSetIfNull(Send node, FieldElement field, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the final static [field]. That
   /// is, [rhs] is only evaluated and assigned, if the value of the [field] is
@@ -2325,10 +1823,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalStaticFieldSetIfNull(
-      Send node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+      Send node, FieldElement field, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the static property defined by
   /// [getter] and [setter]. That is, [rhs] is only evaluated and assigned to
@@ -2342,12 +1837,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => o ??= rhs;
   ///     }
   ///
-  R visitStaticGetterSetterSetIfNull(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      Node rhs,
-      A arg);
+  R visitStaticGetterSetterSetIfNull(Send node, FunctionElement getter,
+      FunctionElement setter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the static property defined by
   /// [method] and [setter]. That is, [rhs] is only evaluated and assigned to
@@ -2363,11 +1854,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitStaticMethodSetterSetIfNull(
-      Send node,
-      MethodElement method,
-      MethodElement setter,
-      Node rhs,
-      A arg);
+      Send node, MethodElement method, MethodElement setter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the static [method]. That is,
   /// [rhs] is only evaluated and assigned, if the value of the [method] is
@@ -2379,10 +1866,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(rhs) => o ??= rhs;
   ///
   R visitStaticMethodSetIfNull(
-      Send node,
-      FunctionElement method,
-      Node rhs,
-      A arg);
+      Send node, FunctionElement method, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the top level [field]. That is,
   /// [rhs] is only evaluated and assigned, if the value of the [field] is
@@ -2393,11 +1877,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     var field;
   ///     m(rhs) => field ??= rhs;
   ///
-  R visitTopLevelFieldSetIfNull(
-      Send node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+  R visitTopLevelFieldSetIfNull(Send node, FieldElement field, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the final top level [field].
   /// That is, [rhs] is only evaluated and assigned, if the value of the [field]
@@ -2409,10 +1889,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(rhs) => field ??= rhs;
   ///
   R visitFinalTopLevelFieldSetIfNull(
-      Send node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+      Send node, FieldElement field, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the top level property defined
   /// by [getter] and [setter]. That is, [rhs] is only evaluated and assigned to
@@ -2424,12 +1901,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set o(_) {}
   ///     m(rhs) => o ??= rhs;
   ///
-  R visitTopLevelGetterSetterSetIfNull(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      Node rhs,
-      A arg);
+  R visitTopLevelGetterSetterSetIfNull(Send node, FunctionElement getter,
+      FunctionElement setter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the top level property defined
   /// by [method] and [setter]. That is, [rhs] is only evaluated and assigned to
@@ -2442,12 +1915,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set o(_) {}
   ///     m(rhs) => o ??= rhs;
   ///
-  R visitTopLevelMethodSetterSetIfNull(
-      Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      Node rhs,
-      A arg);
+  R visitTopLevelMethodSetterSetIfNull(Send node, FunctionElement method,
+      FunctionElement setter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the top level [method]. That is,
   /// [rhs] is only evaluated and assigned, if the value of the [method] is
@@ -2459,10 +1928,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(rhs) => o ??= rhs;
   ///
   R visitTopLevelMethodSetIfNull(
-      Send node,
-      FunctionElement method,
-      Node rhs,
-      A arg);
+      Send node, FunctionElement method, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the super [field]. That is,
   /// [rhs] is only evaluated and assigned, if the value of the [field] is
@@ -2477,11 +1943,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.field ??= rhs;
   ///     }
   ///
-  R visitSuperFieldSetIfNull(
-      Send node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+  R visitSuperFieldSetIfNull(Send node, FieldElement field, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the final super [field]. That
   /// is, [rhs] is only evaluated and assigned, if the value of the [field] is
@@ -2497,10 +1959,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalSuperFieldSetIfNull(
-      Send node,
-      FieldElement field,
-      Node rhs,
-      A arg);
+      Send node, FieldElement field, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the super property defined
   /// by [readField] and [writtenField]. That is, [rhs] is only evaluated and
@@ -2518,12 +1977,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super.field ??= rhs;
   ///     }
   ///
-  R visitSuperFieldFieldSetIfNull(
-      Send node,
-      FieldElement readField,
-      FieldElement writtenField,
-      Node rhs,
-      A arg);
+  R visitSuperFieldFieldSetIfNull(Send node, FieldElement readField,
+      FieldElement writtenField, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the super property defined
   /// by [getter] and [setter]. That is, [rhs] is only evaluated and assigned to
@@ -2539,12 +1994,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.o ??= rhs;
   ///     }
   ///
-  R visitSuperGetterSetterSetIfNull(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      Node rhs,
-      A arg);
+  R visitSuperGetterSetterSetIfNull(Send node, FunctionElement getter,
+      FunctionElement setter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the super property defined
   /// by [method] and [setter]. That is, [rhs] is only evaluated and assigned to
@@ -2561,12 +2012,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.o ??= rhs;
   ///     }
   ///
-  R visitSuperMethodSetterSetIfNull(
-      Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      Node rhs,
-      A arg);
+  R visitSuperMethodSetterSetIfNull(Send node, FunctionElement method,
+      FunctionElement setter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the super [method].
   /// That is, [rhs] is only evaluated and assigned, if the value of
@@ -2583,10 +2030,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperMethodSetIfNull(
-      Send node,
-      FunctionElement method,
-      Node rhs,
-      A arg);
+      Send node, FunctionElement method, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the super property defined
   /// by [setter] with no corresponding getter. That is, [rhs] is only evaluated
@@ -2603,11 +2047,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitUnresolvedSuperGetterSetIfNull(
-      Send node,
-      Element element,
-      MethodElement setter,
-      Node rhs,
-      A arg);
+      Send node, Element element, MethodElement setter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the super property defined
   /// by [getter] with no corresponding setter. That is, [rhs] is only evaluated
@@ -2624,11 +2064,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitUnresolvedSuperSetterSetIfNull(
-      Send node,
-      MethodElement getter,
-      Element element,
-      Node rhs,
-      A arg);
+      Send node, MethodElement getter, Element element, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the top level property defined
   /// by [field] and [setter]. That is, [rhs] is only evaluated and assigned to
@@ -2647,11 +2083,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperFieldSetterSetIfNull(
-      Send node,
-      FieldElement field,
-      FunctionElement setter,
-      Node rhs,
-      A arg);
+      Send node, FieldElement field, FunctionElement setter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the top level property defined
   /// by [getter] and [field]. That is, [rhs] is only evaluated and assigned to
@@ -2670,11 +2102,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperGetterFieldSetIfNull(
-      Send node,
-      FunctionElement getter,
-      FieldElement field,
-      Node rhs,
-      A arg);
+      Send node, FunctionElement getter, FieldElement field, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to an unresolved super property.
   /// That is, [rhs] is only evaluated and assigned, if the value of the
@@ -2689,11 +2117,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.unresolved ??= rhs;
   ///     }
   ///
-  R visitUnresolvedSuperSetIfNull(
-      Send node,
-      Element element,
-      Node rhs,
-      A arg);
+  R visitUnresolvedSuperSetIfNull(Send node, Element element, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the static property defined
   /// by [setter] with no corresponding getter. That is, [rhs] is only evaluated
@@ -2709,11 +2133,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m1() => C.foo ??= 42;
   ///
   R visitUnresolvedStaticGetterSetIfNull(
-      Send node,
-      Element element,
-      MethodElement setter,
-      Node rhs,
-      A arg);
+      Send node, Element element, MethodElement setter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the top level property defined
   /// by [setter] with no corresponding getter. That is, [rhs] is only evaluated
@@ -2726,11 +2146,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m1() => foo ??= 42;
   ///
   R visitUnresolvedTopLevelGetterSetIfNull(
-      Send node,
-      Element element,
-      MethodElement setter,
-      Node rhs,
-      A arg);
+      Send node, Element element, MethodElement setter, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the static property defined
   /// by [getter] with no corresponding setter. That is, [rhs] is only evaluated
@@ -2745,11 +2161,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m1() => C.foo ??= 42;
   ///
   R visitUnresolvedStaticSetterSetIfNull(
-      Send node,
-      MethodElement getter,
-      Element element,
-      Node rhs,
-      A arg);
+      Send node, MethodElement getter, Element element, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the top level property defined
   /// by [getter] with no corresponding setter. That is, [rhs] is only evaluated
@@ -2762,11 +2174,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m1() => foo ??= 42;
   ///
   R visitUnresolvedTopLevelSetterSetIfNull(
-      Send node,
-      MethodElement getter,
-      Element element,
-      Node rhs,
-      A arg);
+      Send node, MethodElement getter, Element element, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to an unresolved property.
   /// That is, [rhs] is only evaluated and assigned, if the value of the
@@ -2780,11 +2188,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m2() => C.unresolved ??= 42;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
-  R visitUnresolvedSetIfNull(
-      Send node,
-      Element element,
-      Node rhs,
-      A arg);
+  R visitUnresolvedSetIfNull(Send node, Element element, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to an invalid expression.
   ///
@@ -2794,11 +2198,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => p ??= 42;
   ///
-  R errorInvalidSetIfNull(
-      Send node,
-      ErroneousElement error,
-      Node rhs,
-      A arg);
+  R errorInvalidSetIfNull(Send node, ErroneousElement error, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the class type literal
   /// [contant]. That is, [rhs] is only evaluated and assigned, if the value
@@ -2811,10 +2211,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(rhs) => C ??= rhs;
   ///
   R visitClassTypeLiteralSetIfNull(
-      Send node,
-      ConstantExpression constant,
-      Node rhs,
-      A arg);
+      Send node, ConstantExpression constant, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the typedef type literal
   /// [constant]. That is, [rhs] is only evaluated and assigned, if the value
@@ -2827,10 +2224,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(rhs) => F ??= rhs;
   ///
   R visitTypedefTypeLiteralSetIfNull(
-      Send node,
-      ConstantExpression constant,
-      Node rhs,
-      A arg);
+      Send node, ConstantExpression constant, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the type literal for the type
   /// variable [element]. That is, [rhs] is only evaluated and assigned, if
@@ -2844,10 +2238,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitTypeVariableTypeLiteralSetIfNull(
-      Send node,
-      TypeVariableElement element,
-      Node rhs,
-      A arg);
+      Send node, TypeVariableElement element, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the dynamic type literal
   /// [constant]. That is, [rhs] is only evaluated and assigned, if the value
@@ -2859,10 +2250,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(rhs) => dynamic ??= rhs;
   ///
   R visitDynamicTypeLiteralSetIfNull(
-      Send node,
-      ConstantExpression constant,
-      Node rhs,
-      A arg);
+      Send node, ConstantExpression constant, Node rhs, A arg);
 
   /// Prefix expression with [operator] on a final super [field].
   ///
@@ -2876,10 +2264,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalSuperFieldPrefix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on an unresolved super property.
   ///
@@ -2892,10 +2277,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitUnresolvedSuperPrefix(
-      Send node,
-      Element element,
-      IncDecOperator operator,
-      A arg);
+      Send node, Element element, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on an unresolved super property.
   ///
@@ -2908,10 +2290,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitUnresolvedSuperPostfix(
-      Send node,
-      Element element,
-      IncDecOperator operator,
-      A arg);
+      Send node, Element element, IncDecOperator operator, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on an unresolved
   /// super property.
@@ -2925,11 +2304,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitUnresolvedSuperCompound(
-      Send node,
-      Element element,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+      Send node, Element element, AssignmentOperator operator, Node rhs, A arg);
 
   /// Postfix expression with [operator] on a final super [field].
   ///
@@ -2943,10 +2318,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalSuperFieldPostfix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from the
   /// super field [readField] and writing to the different super field
@@ -2964,13 +2336,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super.field += rhs;
   ///     }
   ///
-  R visitSuperFieldFieldCompound(
-      Send node,
-      FieldElement readField,
-      FieldElement writtenField,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitSuperFieldFieldCompound(Send node, FieldElement readField,
+      FieldElement writtenField, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from a
   /// super [getter] and writing to a super [setter].
@@ -2985,13 +2352,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.o += rhs;
   ///     }
   ///
-  R visitSuperGetterSetterCompound(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitSuperGetterSetterCompound(Send node, FunctionElement getter,
+      FunctionElement setter, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from a
   /// super [method], that is, closurizing [method], and writing to a super
@@ -3007,13 +2369,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.o += rhs;
   ///     }
   ///
-  R visitSuperMethodSetterCompound(
-      Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitSuperMethodSetterCompound(Send node, FunctionElement method,
+      FunctionElement setter, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading the
   /// closurized super [method] and trying to invoke the non-existing setter.
@@ -3027,12 +2384,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.o += rhs;
   ///     }
   ///
-  R visitSuperMethodCompound(
-      Send node,
-      FunctionElement method,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitSuperMethodCompound(Send node, FunctionElement method,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from the
   /// non-existing super getter and writing to a super [setter].
@@ -3046,13 +2399,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.o += rhs;
   ///     }
   ///
-  R visitUnresolvedSuperGetterCompound(
-      Send node,
-      Element element,
-      MethodElement setter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitUnresolvedSuperGetterCompound(Send node, Element element,
+      MethodElement setter, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from a
   /// super [getter] and writing to the non-existing super setter.
@@ -3066,13 +2414,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.o += rhs;
   ///     }
   ///
-  R visitUnresolvedSuperSetterCompound(
-      Send node,
-      MethodElement getter,
-      Element element,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitUnresolvedSuperSetterCompound(Send node, MethodElement getter,
+      Element element, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from a
   /// super [field] and writing to a super [setter].
@@ -3089,13 +2432,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.o += rhs;
   ///     }
   ///
-  R visitSuperFieldSetterCompound(
-      Send node,
-      FieldElement field,
-      FunctionElement setter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitSuperFieldSetterCompound(Send node, FieldElement field,
+      FunctionElement setter, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] reading from a
   /// super [getter] and writing to a super [field].
@@ -3112,13 +2450,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => super.o += rhs;
   ///     }
   ///
-  R visitSuperGetterFieldCompound(
-      Send node,
-      FunctionElement getter,
-      FieldElement field,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitSuperGetterFieldCompound(Send node, FunctionElement getter,
+      FieldElement field, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a type literal
   /// for class [element].
@@ -3128,12 +2461,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m(rhs) => C += rhs;
   ///
-  R visitClassTypeLiteralCompound(
-      Send node,
-      ConstantExpression constant,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitClassTypeLiteralCompound(Send node, ConstantExpression constant,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a type literal
   /// for typedef [element].
@@ -3143,12 +2472,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     typedef F();
   ///     m(rhs) => F += rhs;
   ///
-  R visitTypedefTypeLiteralCompound(
-      Send node,
-      ConstantExpression constant,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitTypedefTypeLiteralCompound(Send node, ConstantExpression constant,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a type literal
   /// for type variable [element].
@@ -3159,12 +2484,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => T += rhs;
   ///     }
   ///
-  R visitTypeVariableTypeLiteralCompound(
-      Send node,
-      TypeVariableElement element,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitTypeVariableTypeLiteralCompound(Send node, TypeVariableElement element,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on the type
   /// literal for `dynamic`.
@@ -3173,28 +2494,18 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m(rhs) => dynamic += rhs;
   ///
-  R visitDynamicTypeLiteralCompound(
-      Send node,
-      ConstantExpression constant,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitDynamicTypeLiteralCompound(Send node, ConstantExpression constant,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound index assignment of [rhs] with [operator] to [index] on the
-  /// index operators of [receiver] whose getter and setter are defined by
-  /// [getterSelector] and [setterSelector], respectively.
+  /// index operators of [receiver].
   ///
   /// For instance:
   ///
   ///     m(receiver, index, rhs) => receiver[index] += rhs;
   ///
-  R visitCompoundIndexSet(
-      SendSet node,
-      Node receiver,
-      Node index,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitCompoundIndexSet(SendSet node, Node receiver, Node index,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound index assignment of [rhs] with [operator] to [index] on the index
   /// operators of a super class defined by [getter] and [setter].
@@ -3219,8 +2530,8 @@ abstract class SemanticSendVisitor<R, A> {
       A arg);
 
   /// Compound index assignment of [rhs] with [operator] to [index] on a super
-  /// super class where the index getter is undefined and the index setter is
-  /// defined by [setter].
+  /// class where the index getter is undefined and the index setter is defined
+  /// by [setter].
   ///
   /// For instance:
   ///
@@ -3240,8 +2551,8 @@ abstract class SemanticSendVisitor<R, A> {
       A arg);
 
   /// Compound index assignment of [rhs] with [operator] to [index] on a super
-  /// super class where the index getter is defined by [getter] but the index
-  /// setter is undefined.
+  /// class where the index getter is defined by [getter] but the index setter
+  /// is undefined.
   ///
   /// For instance:
   ///
@@ -3262,7 +2573,7 @@ abstract class SemanticSendVisitor<R, A> {
       A arg);
 
   /// Compound index assignment of [rhs] with [operator] to [index] on a super
-  /// super class where the index getter and setter are undefined.
+  /// class where the index getter and setter are undefined.
   ///
   /// For instance:
   ///
@@ -3272,13 +2583,78 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super[1] += 42;
   ///     }
   ///
-  R visitUnresolvedSuperCompoundIndexSet(
-      Send node,
-      Element element,
-      Node index,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitUnresolvedSuperCompoundIndexSet(Send node, Element element, Node index,
+      AssignmentOperator operator, Node rhs, A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on the index operators
+  /// of [receiver].
+  ///
+  /// For instance:
+  ///
+  ///     m(receiver, index, rhs) => receiver[index] ??= rhs;
+  ///
+  R visitIndexSetIfNull(
+      SendSet node, Node receiver, Node index, Node rhs, A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on the index operators
+  /// of a super class defined by [getter] and [setter].
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       operator [](index) {}
+  ///       operator [](index, value) {}
+  ///     }
+  ///     class C extends B {
+  ///       m(index, rhs) => super[index] ??= rhs;
+  ///     }
+  ///
+  R visitSuperIndexSetIfNull(SendSet node, MethodElement getter,
+      MethodElement setter, Node index, Node rhs, A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on a super class where
+  /// the index getter is undefined and the index setter is defined by [setter].
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       operator [](index, value) {}
+  ///     }
+  ///     class C extends B {
+  ///       m() => super[1] ??= 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperGetterIndexSetIfNull(Send node, Element element,
+      MethodElement setter, Node index, Node rhs, A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on a super class where
+  /// the index getter is defined by [getter] but the index setter is undefined.
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       operator [](index) => 42;
+  ///     }
+  ///     class C extends B {
+  ///       m() => super[1] ??= 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperSetterIndexSetIfNull(Send node, MethodElement getter,
+      Element element, Node index, Node rhs, A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on a super class where
+  /// the index getter and setter are undefined.
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m() => super[1] ??= 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperIndexSetIfNull(
+      Send node, Element element, Node index, Node rhs, A arg);
 
   /// Prefix expression with [operator] of the property on [receiver] whose
   /// getter and setter are defined by [getterSelector] and [setterSelector],
@@ -3289,11 +2665,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver) => ++receiver.foo;
   ///
   R visitDynamicPropertyPrefix(
-      Send node,
-      Node receiver,
-      Name name,
-      IncDecOperator operator,
-      A arg);
+      Send node, Node receiver, Name name, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] of the property on a possibly null
   /// [receiver] whose getter and setter are defined by [getterSelector] and
@@ -3304,11 +2676,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver) => ++receiver?.foo;
   ///
   R visitIfNotNullDynamicPropertyPrefix(
-      Send node,
-      Node receiver,
-      Name name,
-      IncDecOperator operator,
-      A arg);
+      Send node, Node receiver, Name name, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a [parameter].
   ///
@@ -3317,10 +2685,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(parameter) => ++parameter;
   ///
   R visitParameterPrefix(
-      Send node,
-      ParameterElement parameter,
-      IncDecOperator operator,
-      A arg);
+      Send node, ParameterElement parameter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a final [parameter].
   ///
@@ -3329,10 +2694,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(final parameter) => ++parameter;
   ///
   R visitFinalParameterPrefix(
-      Send node,
-      ParameterElement parameter,
-      IncDecOperator operator,
-      A arg);
+      Send node, ParameterElement parameter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a local [variable].
   ///
@@ -3344,10 +2706,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitLocalVariablePrefix(
-      Send node,
-      LocalVariableElement variable,
-      IncDecOperator operator,
-      A arg);
+      Send node, LocalVariableElement variable, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a final local [variable].
   ///
@@ -3359,10 +2718,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalLocalVariablePrefix(
-      Send node,
-      LocalVariableElement variable,
-      IncDecOperator operator,
-      A arg);
+      Send node, LocalVariableElement variable, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a local [function].
   ///
@@ -3374,11 +2730,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitLocalFunctionPrefix(
-      Send node,
-      LocalFunctionElement function,
-      IncDecOperator operator,
-      A arg);
-
+      Send node, LocalFunctionElement function, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] of the property on `this` whose getter
   /// and setter are defined by [getterSelector] and [setterSelector],
@@ -3397,10 +2749,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitThisPropertyPrefix(
-      Send node,
-      Name name,
-      IncDecOperator operator,
-      A arg);
+      Send node, Name name, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a static [field].
   ///
@@ -3412,10 +2761,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitStaticFieldPrefix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a final static [field].
   ///
@@ -3427,10 +2773,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalStaticFieldPrefix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a static [getter] and
   /// writing to a static [setter].
@@ -3443,13 +2786,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => ++o;
   ///     }
   ///
-  R visitStaticGetterSetterPrefix(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
-
+  R visitStaticGetterSetterPrefix(Send node, FunctionElement getter,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a static [method], that is,
   /// closurizing [method], and writing to a static [setter].
@@ -3462,12 +2800,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => ++o;
   ///     }
   ///
-  R visitStaticMethodSetterPrefix(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitStaticMethodSetterPrefix(Send node, FunctionElement getter,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a top level [field].
   ///
@@ -3477,10 +2811,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => ++field;
   ///
   R visitTopLevelFieldPrefix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a final top level [field].
   ///
@@ -3490,10 +2821,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => ++field;
   ///
   R visitFinalTopLevelFieldPrefix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a top level [getter] and
   /// writing to a top level [setter].
@@ -3504,12 +2832,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set o(_) {}
   ///     m() => ++o;
   ///
-  R visitTopLevelGetterSetterPrefix(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitTopLevelGetterSetterPrefix(Send node, FunctionElement getter,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a top level [method], that
   /// is, closurizing [method], and writing to a top level [setter].
@@ -3520,12 +2844,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set o(_) {}
   ///     m() => ++o;
   ///
-  R visitTopLevelMethodSetterPrefix(
-      Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitTopLevelMethodSetterPrefix(Send node, FunctionElement method,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a super [field].
   ///
@@ -3539,10 +2859,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperFieldPrefix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from the super field [readField]
   /// and writing to the different super field [writtenField].
@@ -3559,12 +2876,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => ++super.field;
   ///     }
   ///
-  R visitSuperFieldFieldPrefix(
-      Send node,
-      FieldElement readField,
-      FieldElement writtenField,
-      IncDecOperator operator,
-      A arg);
+  R visitSuperFieldFieldPrefix(Send node, FieldElement readField,
+      FieldElement writtenField, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a super [field] and writing
   /// to a super [setter].
@@ -3581,13 +2894,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => ++super.field;
   ///     }
   ///
-  R visitSuperFieldSetterPrefix(
-      Send node,
-      FieldElement field,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
-
+  R visitSuperFieldSetterPrefix(Send node, FieldElement field,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a super [getter] and
   /// writing to a super [setter].
@@ -3602,12 +2910,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => ++super.field;
   ///     }
   ///
-  R visitSuperGetterSetterPrefix(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitSuperGetterSetterPrefix(Send node, FunctionElement getter,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a super [getter] and
   /// writing to a super [field].
@@ -3624,12 +2928,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => ++super.field;
   ///     }
   ///
-  R visitSuperGetterFieldPrefix(
-      Send node,
-      FunctionElement getter,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+  R visitSuperGetterFieldPrefix(Send node, FunctionElement getter,
+      FieldElement field, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a super [method], that is,
   /// closurizing [method], and writing to a super [setter].
@@ -3644,12 +2944,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => ++super.o;
   ///     }
   ///
-  R visitSuperMethodSetterPrefix(
-      Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitSuperMethodSetterPrefix(Send node, FunctionElement method,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a super [method], that is,
   /// closurizing [method], and writing to an unresolved super setter.
@@ -3665,10 +2961,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperMethodPrefix(
-      Send node,
-      FunctionElement method,
-      IncDecOperator operator,
-      A arg);
+      Send node, FunctionElement method, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from an unresolved super getter
   /// and writing to a super [setter].
@@ -3683,12 +2976,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   ///
-  R visitUnresolvedSuperGetterPrefix(
-      Send node,
-      Element element,
-      MethodElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedSuperGetterPrefix(Send node, Element element,
+      MethodElement setter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a super [getter] and
   /// writing to an unresolved super setter.
@@ -3703,12 +2992,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   ///
-  R visitUnresolvedSuperSetterPrefix(
-      Send node,
-      MethodElement getter,
-      Element element,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedSuperSetterPrefix(Send node, MethodElement getter,
+      Element element, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a type literal for a class [element].
   ///
@@ -3718,10 +3003,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => ++C;
   ///
   R visitClassTypeLiteralPrefix(
-      Send node,
-      ConstantExpression constant,
-      IncDecOperator operator,
-      A arg);
+      Send node, ConstantExpression constant, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a type literal for a typedef
   /// [element].
@@ -3732,10 +3014,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => ++F;
   ///
   R visitTypedefTypeLiteralPrefix(
-      Send node,
-      ConstantExpression constant,
-      IncDecOperator operator,
-      A arg);
+      Send node, ConstantExpression constant, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on a type literal for a type variable
   /// [element].
@@ -3747,10 +3026,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitTypeVariableTypeLiteralPrefix(
-      Send node,
-      TypeVariableElement element,
-      IncDecOperator operator,
-      A arg);
+      Send node, TypeVariableElement element, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] on the type literal for `dynamic`.
   ///
@@ -3759,10 +3035,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => ++dynamic;
   ///
   R visitDynamicTypeLiteralPrefix(
-      Send node,
-      ConstantExpression constant,
-      IncDecOperator operator,
-      A arg);
+      Send node, ConstantExpression constant, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] of the property on [receiver] whose
   /// getter and setter are defined by [getterSelector] and [setterSelector],
@@ -3773,11 +3046,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver) => receiver.foo++;
   ///
   R visitDynamicPropertyPostfix(
-      Send node,
-      Node receiver,
-      Name name,
-      IncDecOperator operator,
-      A arg);
+      Send node, Node receiver, Name name, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] of the property on a possibly null
   /// [receiver] whose getter and setter are defined by [getterSelector] and
@@ -3788,11 +3057,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver) => receiver?.foo++;
   ///
   R visitIfNotNullDynamicPropertyPostfix(
-      Send node,
-      Node receiver,
-      Name name,
-      IncDecOperator operator,
-      A arg);
+      Send node, Node receiver, Name name, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a [parameter].
   ///
@@ -3801,10 +3066,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(parameter) => parameter++;
   ///
   R visitParameterPostfix(
-      Send node,
-      ParameterElement parameter,
-      IncDecOperator operator,
-      A arg);
+      Send node, ParameterElement parameter, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a final [parameter].
   ///
@@ -3813,10 +3075,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(final parameter) => parameter++;
   ///
   R visitFinalParameterPostfix(
-      Send node,
-      ParameterElement parameter,
-      IncDecOperator operator,
-      A arg);
+      Send node, ParameterElement parameter, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a local [variable].
   ///
@@ -3828,10 +3087,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitLocalVariablePostfix(
-      Send node,
-      LocalVariableElement variable,
-      IncDecOperator operator,
-      A arg);
+      Send node, LocalVariableElement variable, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a final local [variable].
   ///
@@ -3843,10 +3099,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalLocalVariablePostfix(
-      Send node,
-      LocalVariableElement variable,
-      IncDecOperator operator,
-      A arg);
+      Send node, LocalVariableElement variable, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a local [function].
   ///
@@ -3858,11 +3111,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitLocalFunctionPostfix(
-      Send node,
-      LocalFunctionElement function,
-      IncDecOperator operator,
-      A arg);
-
+      Send node, LocalFunctionElement function, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] of the property on `this` whose getter
   /// and setter are defined by [getterSelector] and [setterSelector],
@@ -3881,10 +3130,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitThisPropertyPostfix(
-      Send node,
-      Name name,
-      IncDecOperator operator,
-      A arg);
+      Send node, Name name, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a static [field].
   ///
@@ -3896,10 +3142,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitStaticFieldPostfix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a final static [field].
   ///
@@ -3911,10 +3154,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitFinalStaticFieldPostfix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] reading from a static [getter] and
   /// writing to a static [setter].
@@ -3927,13 +3167,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => o++;
   ///     }
   ///
-  R visitStaticGetterSetterPostfix(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
-
+  R visitStaticGetterSetterPostfix(Send node, FunctionElement getter,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] reading from a static [method], that
   /// is, closurizing [method], and writing to a static [setter].
@@ -3946,12 +3181,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => o++;
   ///     }
   ///
-  R visitStaticMethodSetterPostfix(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitStaticMethodSetterPostfix(Send node, FunctionElement getter,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a top level [field].
   ///
@@ -3961,10 +3192,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => field++;
   ///
   R visitTopLevelFieldPostfix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a final top level [field].
   ///
@@ -3974,10 +3202,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => field++;
   ///
   R visitFinalTopLevelFieldPostfix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] reading from a top level [getter] and
   /// writing to a top level [setter].
@@ -3988,12 +3213,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set o(_) {}
   ///     m() => o++;
   ///
-  R visitTopLevelGetterSetterPostfix(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitTopLevelGetterSetterPostfix(Send node, FunctionElement getter,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] reading from a top level [method], that
   /// is, closurizing [method], and writing to a top level [setter].
@@ -4004,12 +3225,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set o(_) {}
   ///     m() => o++;
   ///
-  R visitTopLevelMethodSetterPostfix(
-      Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitTopLevelMethodSetterPostfix(Send node, FunctionElement method,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a super [field].
   ///
@@ -4023,10 +3240,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperFieldPostfix(
-      Send node,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+      Send node, FieldElement field, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] reading from the super field
   /// [readField] and writing to the different super field [writtenField].
@@ -4043,12 +3257,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super.field++;
   ///     }
   ///
-  R visitSuperFieldFieldPostfix(
-      Send node,
-      FieldElement readField,
-      FieldElement writtenField,
-      IncDecOperator operator,
-      A arg);
+  R visitSuperFieldFieldPostfix(Send node, FieldElement readField,
+      FieldElement writtenField, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] reading from a super [field] and
   /// writing to a super [setter].
@@ -4065,13 +3275,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super.field++;
   ///     }
   ///
-  R visitSuperFieldSetterPostfix(
-      Send node,
-      FieldElement field,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
-
+  R visitSuperFieldSetterPostfix(Send node, FieldElement field,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] reading from a super [getter] and
   /// writing to a super [setter].
@@ -4086,12 +3291,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super.field++;
   ///     }
   ///
-  R visitSuperGetterSetterPostfix(
-      Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitSuperGetterSetterPostfix(Send node, FunctionElement getter,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] reading from a super [getter] and
   /// writing to a super [field].
@@ -4108,12 +3309,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super.field++;
   ///     }
   ///
-  R visitSuperGetterFieldPostfix(
-      Send node,
-      FunctionElement getter,
-      FieldElement field,
-      IncDecOperator operator,
-      A arg);
+  R visitSuperGetterFieldPostfix(Send node, FunctionElement getter,
+      FieldElement field, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] reading from a super [method], that is,
   /// closurizing [method], and writing to a super [setter].
@@ -4128,12 +3325,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super.o++;
   ///     }
   ///
-  R visitSuperMethodSetterPostfix(
-      Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitSuperMethodSetterPostfix(Send node, FunctionElement method,
+      FunctionElement setter, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] reading from a super [method], that is,
   /// closurizing [method], and writing to an unresolved super.
@@ -4149,10 +3342,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitSuperMethodPostfix(
-      Send node,
-      FunctionElement method,
-      IncDecOperator operator,
-      A arg);
+      Send node, FunctionElement method, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from an unresolved super getter
   /// and writing to a super [setter].
@@ -4167,12 +3357,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   ///
-  R visitUnresolvedSuperGetterPostfix(
-      Send node,
-      Element element,
-      MethodElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedSuperGetterPostfix(Send node, Element element,
+      MethodElement setter, IncDecOperator operator, A arg);
 
   /// Prefix expression with [operator] reading from a super [getter] and
   /// writing to an unresolved super setter.
@@ -4187,12 +3373,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   ///
-  R visitUnresolvedSuperSetterPostfix(
-      Send node,
-      MethodElement getter,
-      Element element,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedSuperSetterPostfix(Send node, MethodElement getter,
+      Element element, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a type literal for a class
   /// [element].
@@ -4203,10 +3385,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => C++;
   ///
   R visitClassTypeLiteralPostfix(
-      Send node,
-      ConstantExpression constant,
-      IncDecOperator operator,
-      A arg);
+      Send node, ConstantExpression constant, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a type literal for a typedef
   /// [element].
@@ -4217,10 +3396,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => F++;
   ///
   R visitTypedefTypeLiteralPostfix(
-      Send node,
-      ConstantExpression constant,
-      IncDecOperator operator,
-      A arg);
+      Send node, ConstantExpression constant, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on a type literal for a type variable
   /// [element].
@@ -4232,10 +3408,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitTypeVariableTypeLiteralPostfix(
-      Send node,
-      TypeVariableElement element,
-      IncDecOperator operator,
-      A arg);
+      Send node, TypeVariableElement element, IncDecOperator operator, A arg);
 
   /// Postfix expression with [operator] on the type literal for `dynamic`.
   ///
@@ -4244,10 +3417,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => dynamic++;
   ///
   R visitDynamicTypeLiteralPostfix(
-      Send node,
-      ConstantExpression constant,
-      IncDecOperator operator,
-      A arg);
+      Send node, ConstantExpression constant, IncDecOperator operator, A arg);
 
   /// Read of the [constant].
   ///
@@ -4256,10 +3426,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     const c = c;
   ///     m() => c;
   ///
-  R visitConstantGet(
-      Send node,
-      ConstantExpression constant,
-      A arg);
+  R visitConstantGet(Send node, ConstantExpression constant, A arg);
 
   /// Invocation of the [constant] with [arguments].
   ///
@@ -4268,12 +3435,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     const c = null;
   ///     m() => c(null, 42);
   ///
-  R visitConstantInvoke(
-      Send node,
-      ConstantExpression constant,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitConstantInvoke(Send node, ConstantExpression constant,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// Read of the unresolved [element].
   ///
@@ -4293,10 +3456,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m11() => unresolved?.Foo?.bar;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
-  R visitUnresolvedGet(
-      Send node,
-      Element element,
-      A arg);
+  R visitUnresolvedGet(Send node, Element element, A arg);
 
   /// Read of the unresolved super [element].
   ///
@@ -4307,10 +3467,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super.foo;
   ///     }
   ///
-  R visitUnresolvedSuperGet(
-      Send node,
-      Element element,
-      A arg);
+  R visitUnresolvedSuperGet(Send node, Element element, A arg);
 
   /// Assignment of [rhs] to the unresolved [element].
   ///
@@ -4330,11 +3487,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m11() => unresolved?.Foo?.bar = 42;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
-  R visitUnresolvedSet(
-      Send node,
-      Element element,
-      Node rhs,
-      A arg);
+  R visitUnresolvedSet(Send node, Element element, Node rhs, A arg);
 
   ///  Assignment of [rhs] to the unresolved super [element].
   ///
@@ -4345,11 +3498,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super.foo = 42;
   ///     }
   ///
-  R visitUnresolvedSuperSet(
-      Send node,
-      Element element,
-      Node rhs,
-      A arg);
+  R visitUnresolvedSuperSet(Send node, Element element, Node rhs, A arg);
 
   /// Invocation of the unresolved [element] with [arguments].
   ///
@@ -4370,11 +3519,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R visitUnresolvedInvoke(
-      Send node,
-      Element element,
-      NodeList arguments,
-      Selector selector,
-      A arg);
+      Send node, Element element, NodeList arguments, Selector selector, A arg);
 
   /// Invocation of the unresolved super [element] with [arguments].
   ///
@@ -4386,11 +3531,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitUnresolvedSuperInvoke(
-      Send node,
-      Element element,
-      NodeList arguments,
-      Selector selector,
-      A arg);
+      Send node, Element element, NodeList arguments, Selector selector, A arg);
 
   /// Compound assignment of [rhs] with [operator] reading from the
   /// non-existing static getter and writing to the static [setter].
@@ -4402,13 +3543,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m1() => C.foo += 42;
   ///
-  R visitUnresolvedStaticGetterCompound(
-      Send node,
-      Element element,
-      MethodElement setter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitUnresolvedStaticGetterCompound(Send node, Element element,
+      MethodElement setter, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment of [rhs] with [operator] reading from the
   /// non-existing top level getter and writing to the top level [setter].
@@ -4418,13 +3554,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set foo(_) {}
   ///     m1() => foo += 42;
   ///
-  R visitUnresolvedTopLevelGetterCompound(
-      Send node,
-      Element element,
-      MethodElement setter,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitUnresolvedTopLevelGetterCompound(Send node, Element element,
+      MethodElement setter, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment of [rhs] with [operator] reading from the static
   /// [getter] and writing to the non-existing static setter.
@@ -4436,13 +3567,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m1() => C.foo += 42;
   ///
-  R visitUnresolvedStaticSetterCompound(
-      Send node,
-      MethodElement getter,
-      Element element,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitUnresolvedStaticSetterCompound(Send node, MethodElement getter,
+      Element element, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment of [rhs] with [operator] reading from the top level
   /// [getter] and writing to the non-existing top level setter.
@@ -4452,13 +3578,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     get foo => 42;
   ///     m1() => foo += 42;
   ///
-  R visitUnresolvedTopLevelSetterCompound(
-      Send node,
-      MethodElement getter,
-      Element element,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitUnresolvedTopLevelSetterCompound(Send node, MethodElement getter,
+      Element element, AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment of [rhs] with [operator] reading the closurized static
   /// [method] and trying to invoke the non-existing setter.
@@ -4470,12 +3591,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m1() => C.foo += 42;
   ///
-  R visitStaticMethodCompound(
-      Send node,
-      MethodElement method,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R visitStaticMethodCompound(Send node, MethodElement method,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Compound assignment of [rhs] where both getter and setter are unresolved.
   ///
@@ -4496,11 +3613,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R visitUnresolvedCompound(
-      Send node,
-      Element element,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+      Send node, Element element, AssignmentOperator operator, Node rhs, A arg);
 
   /// Prefix operation of [operator] reading from the non-existing static getter
   /// and writing to the static [setter].
@@ -4512,12 +3625,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m1() => ++C.foo;
   ///
-  R visitUnresolvedStaticGetterPrefix(
-      Send node,
-      Element element,
-      MethodElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedStaticGetterPrefix(Send node, Element element,
+      MethodElement setter, IncDecOperator operator, A arg);
 
   /// Prefix operation of [operator] reading from the non-existing top level
   /// getter and writing to the top level [setter].
@@ -4527,12 +3636,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set foo(_) {}
   ///     m1() => ++foo;
   ///
-  R visitUnresolvedTopLevelGetterPrefix(
-      Send node,
-      Element element,
-      MethodElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedTopLevelGetterPrefix(Send node, Element element,
+      MethodElement setter, IncDecOperator operator, A arg);
 
   /// Prefix operation of [operator] reading from the static [getter] and
   /// writing to the non-existing static setter.
@@ -4544,12 +3649,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m1() => ++C.foo;
   ///
-  R visitUnresolvedStaticSetterPrefix(
-      Send node,
-      MethodElement getter,
-      Element element,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedStaticSetterPrefix(Send node, MethodElement getter,
+      Element element, IncDecOperator operator, A arg);
 
   /// Postfix operation of [operator] reading from the top level [getter] and
   /// writing to the non-existing top level setter.
@@ -4559,12 +3660,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     get foo => 42;
   ///     m1() => ++foo;
   ///
-  R visitUnresolvedTopLevelSetterPrefix(
-      Send node,
-      MethodElement getter,
-      Element element,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedTopLevelSetterPrefix(Send node, MethodElement getter,
+      Element element, IncDecOperator operator, A arg);
 
   /// Prefix operation of [operator] reading the closurized static [method] and
   /// trying to invoke the non-existing setter.
@@ -4577,10 +3674,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m1() => ++C.foo;
   ///
   R visitStaticMethodPrefix(
-      Send node,
-      MethodElement method,
-      IncDecOperator operator,
-      A arg);
+      Send node, MethodElement method, IncDecOperator operator, A arg);
 
   /// Prefix operation of [operator] reading the closurized top level [method]
   /// and trying to invoke the non-existing setter.
@@ -4593,10 +3687,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m1() => ++C.foo;
   ///
   R visitTopLevelMethodPrefix(
-      Send node,
-      MethodElement method,
-      IncDecOperator operator,
-      A arg);
+      Send node, MethodElement method, IncDecOperator operator, A arg);
 
   /// Prefix operation where both getter and setter are unresolved.
   ///
@@ -4617,10 +3708,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R visitUnresolvedPrefix(
-      Send node,
-      Element element,
-      IncDecOperator operator,
-      A arg);
+      Send node, Element element, IncDecOperator operator, A arg);
 
   /// Postfix operation of [operator] reading from the non-existing static
   /// getter and writing to the static [setter].
@@ -4632,12 +3720,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m1() => C.foo++;
   ///
-  R visitUnresolvedStaticGetterPostfix(
-      Send node,
-      Element element,
-      MethodElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedStaticGetterPostfix(Send node, Element element,
+      MethodElement setter, IncDecOperator operator, A arg);
 
   /// Postfix operation of [operator] reading from the non-existing top level
   /// getter and writing to the top level [setter].
@@ -4647,12 +3731,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set foo(_) {}
   ///     m1() => foo++;
   ///
-  R visitUnresolvedTopLevelGetterPostfix(
-      Send node,
-      Element element,
-      MethodElement setter,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedTopLevelGetterPostfix(Send node, Element element,
+      MethodElement setter, IncDecOperator operator, A arg);
 
   /// Postfix operation of [operator] reading from the static [getter] and
   /// writing to the non-existing static setter.
@@ -4664,12 +3744,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m1() => C.foo++;
   ///
-  R visitUnresolvedStaticSetterPostfix(
-      Send node,
-      MethodElement getter,
-      Element element,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedStaticSetterPostfix(Send node, MethodElement getter,
+      Element element, IncDecOperator operator, A arg);
 
   /// Postfix operation of [operator] reading from the top level [getter] and
   /// writing to the non-existing top level setter.
@@ -4679,12 +3755,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     get foo => 42;
   ///     m1() => foo++;
   ///
-  R visitUnresolvedTopLevelSetterPostfix(
-      Send node,
-      MethodElement getter,
-      Element element,
-      IncDecOperator operator,
-      A arg);
+  R visitUnresolvedTopLevelSetterPostfix(Send node, MethodElement getter,
+      Element element, IncDecOperator operator, A arg);
 
   /// Postfix operation of [operator] reading the closurized static [method] and
   /// trying to invoke the non-existing setter.
@@ -4697,10 +3769,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m1() => C.foo++;
   ///
   R visitStaticMethodPostfix(
-      Send node,
-      MethodElement method,
-      IncDecOperator operator,
-      A arg);
+      Send node, MethodElement method, IncDecOperator operator, A arg);
 
   /// Postfix operation of [operator] reading the closurized top level [method]
   /// and trying to invoke the non-existing setter.
@@ -4713,10 +3782,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m1() => C.foo++;
   ///
   R visitTopLevelMethodPostfix(
-      Send node,
-      MethodElement method,
-      IncDecOperator operator,
-      A arg);
+      Send node, MethodElement method, IncDecOperator operator, A arg);
 
   /// Postfix operation where both getter and setter are unresolved.
   ///
@@ -4737,26 +3803,16 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R visitUnresolvedPostfix(
-      Send node,
-      Element element,
-      IncDecOperator operator,
-      A arg);
+      Send node, Element element, IncDecOperator operator, A arg);
 
   /// Invocation of an undefined unary [operator] on [expression].
   R errorUndefinedUnaryExpression(
-      Send node,
-      Operator operator,
-      Node expression,
-      A arg);
+      Send node, Operator operator, Node expression, A arg);
 
   /// Invocation of an undefined unary [operator] with operands
   /// [left] and [right].
   R errorUndefinedBinaryExpression(
-      Send node,
-      Node left,
-      Operator operator,
-      Node right,
-      A arg);
+      Send node, Node left, Operator operator, Node right, A arg);
 
   /// Const invocation of a [constant] constructor.
   ///
@@ -4768,9 +3824,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => const C<int>(true, 42);
   ///
   R visitConstConstructorInvoke(
-      NewExpression node,
-      ConstructedConstantExpression constant,
-      A arg);
+      NewExpression node, ConstructedConstantExpression constant, A arg);
 
   /// Const invocation of the `bool.fromEnvironment` constructor.
   ///
@@ -4778,10 +3832,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => const bool.fromEnvironment('foo', defaultValue: false);
   ///
-  R visitBoolFromEnvironmentConstructorInvoke(
-      NewExpression node,
-      BoolFromEnvironmentConstantExpression constant,
-      A arg);
+  R visitBoolFromEnvironmentConstructorInvoke(NewExpression node,
+      BoolFromEnvironmentConstantExpression constant, A arg);
 
   /// Const invocation of the `int.fromEnvironment` constructor.
   ///
@@ -4790,9 +3842,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => const int.fromEnvironment('foo', defaultValue: 42);
   ///
   R visitIntFromEnvironmentConstructorInvoke(
-      NewExpression node,
-      IntFromEnvironmentConstantExpression constant,
-      A arg);
+      NewExpression node, IntFromEnvironmentConstantExpression constant, A arg);
 
   /// Const invocation of the `String.fromEnvironment` constructor.
   ///
@@ -4800,10 +3850,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => const String.fromEnvironment('foo', defaultValue: 'bar');
   ///
-  R visitStringFromEnvironmentConstructorInvoke(
-      NewExpression node,
-      StringFromEnvironmentConstantExpression constant,
-      A arg);
+  R visitStringFromEnvironmentConstructorInvoke(NewExpression node,
+      StringFromEnvironmentConstantExpression constant, A arg);
 
   /// Invocation of a generative [constructor] on [type] with [arguments].
   ///
@@ -4904,13 +3952,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   // TODO(johnniwinther): Change [type] to [InterfaceType] when is it not
   // `dynamic`.
-  R visitUnresolvedConstructorInvoke(
-      NewExpression node,
-      Element constructor,
-      DartType type,
-      NodeList arguments,
-      Selector selector,
-      A arg);
+  R visitUnresolvedConstructorInvoke(NewExpression node, Element constructor,
+      DartType type, NodeList arguments, Selector selector, A arg);
 
   /// Invocation of a constructor on an unresolved [type] with [arguments].
   ///
@@ -4922,13 +3965,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   // TODO(johnniwinther): Change [type] to [MalformedType] when is it not
   // `dynamic`.
-  R visitUnresolvedClassConstructorInvoke(
-      NewExpression node,
-      Element element,
-      DartType type,
-      NodeList arguments,
-      Selector selector,
-      A arg);
+  R visitUnresolvedClassConstructorInvoke(NewExpression node, Element element,
+      DartType type, NodeList arguments, Selector selector, A arg);
 
   /// Constant invocation of a non-constant constructor.
   ///
@@ -4939,13 +3977,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() => const C(true, 42);
   ///
-  R errorNonConstantConstructorInvoke(
-      NewExpression node,
-      Element element,
-      DartType type,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R errorNonConstantConstructorInvoke(NewExpression node, Element element,
+      DartType type, NodeList arguments, CallStructure callStructure, A arg);
 
   /// Invocation of a constructor on an abstract [type] with [arguments].
   ///
@@ -5009,11 +4042,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => p;
   ///
-  R errorInvalidGet(
-      Send node,
-      ErroneousElement error,
-      A arg);
-
+  R errorInvalidGet(Send node, ErroneousElement error, A arg);
 
   /// Invocation of an invalid expression with [arguments].
   ///
@@ -5023,12 +4052,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => p(null, 42);
   ///
-  R errorInvalidInvoke(
-      Send node,
-      ErroneousElement error,
-      NodeList arguments,
-      Selector selector,
-      A arg);
+  R errorInvalidInvoke(Send node, ErroneousElement error, NodeList arguments,
+      Selector selector, A arg);
 
   /// Assignment of [rhs] to an invalid expression.
   ///
@@ -5038,11 +4063,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() { p = 42; }
   ///
-  R errorInvalidSet(
-      Send node,
-      ErroneousElement error,
-      Node rhs,
-      A arg);
+  R errorInvalidSet(Send node, ErroneousElement error, Node rhs, A arg);
 
   /// Prefix operation on an invalid expression.
   ///
@@ -5053,10 +4074,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => ++p;
   ///
   R errorInvalidPrefix(
-      Send node,
-      ErroneousElement error,
-      IncDecOperator operator,
-      A arg);
+      Send node, ErroneousElement error, IncDecOperator operator, A arg);
 
   /// Postfix operation on an invalid expression.
   ///
@@ -5067,10 +4085,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => p--;
   ///
   R errorInvalidPostfix(
-      Send node,
-      ErroneousElement error,
-      IncDecOperator operator,
-      A arg);
+      Send node, ErroneousElement error, IncDecOperator operator, A arg);
 
   /// Compound assignment of [operator] with [rhs] on an invalid expression.
   ///
@@ -5080,12 +4095,20 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   ///     m() => p += 42;
   ///
-  R errorInvalidCompound(
-      Send node,
-      ErroneousElement error,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R errorInvalidCompound(Send node, ErroneousElement error,
+      AssignmentOperator operator, Node rhs, A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on the index operators
+  /// of an invalid expression.
+  ///
+  /// For instance:
+  ///
+  ///     import 'foo.dart' as p;
+  ///
+  ///     m(index, rhs) => p[index] ??= rhs;
+  ///
+  R errorInvalidIndexSetIfNull(
+      SendSet node, ErroneousElement error, Node index, Node rhs, A arg);
 
   /// Unary operation with [operator] on an invalid expression.
   ///
@@ -5096,10 +4119,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R errorInvalidUnary(
-      Send node,
-      UnaryOperator operator,
-      ErroneousElement error,
-      A arg);
+      Send node, UnaryOperator operator, ErroneousElement error, A arg);
 
   /// Equals operation on an invalid left expression.
   ///
@@ -5109,11 +4129,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       static m() => super == null;
   ///     }
   ///
-  R errorInvalidEquals(
-      Send node,
-      ErroneousElement error,
-      Node right,
-      A arg);
+  R errorInvalidEquals(Send node, ErroneousElement error, Node right, A arg);
 
   /// Not equals operation on an invalid left expression.
   ///
@@ -5123,11 +4139,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       static m() => super != null;
   ///     }
   ///
-  R errorInvalidNotEquals(
-      Send node,
-      ErroneousElement error,
-      Node right,
-      A arg);
+  R errorInvalidNotEquals(Send node, ErroneousElement error, Node right, A arg);
 
   /// Binary operation with [operator] on an invalid left expression.
   ///
@@ -5137,12 +4149,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       static m() => super + 0;
   ///     }
   ///
-  R errorInvalidBinary(
-      Send node,
-      ErroneousElement error,
-      BinaryOperator operator,
-      Node right,
-      A arg);
+  R errorInvalidBinary(Send node, ErroneousElement error,
+      BinaryOperator operator, Node right, A arg);
 
   /// Index operation on an invalid expression.
   ///
@@ -5152,11 +4160,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       static m() => super[0];
   ///     }
   ///
-  R errorInvalidIndex(
-      Send node,
-      ErroneousElement error,
-      Node index,
-      A arg);
+  R errorInvalidIndex(Send node, ErroneousElement error, Node index, A arg);
 
   /// Index set operation on an invalid expression.
   ///
@@ -5167,11 +4171,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R errorInvalidIndexSet(
-      Send node,
-      ErroneousElement error,
-      Node index,
-      Node rhs,
-      A arg);
+      Send node, ErroneousElement error, Node index, Node rhs, A arg);
 
   /// Compound index set operation on an invalid expression.
   ///
@@ -5181,13 +4181,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       static m() => super[0] += 42;
   ///     }
   ///
-  R errorInvalidCompoundIndexSet(
-      Send node,
-      ErroneousElement error,
-      Node index,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
+  R errorInvalidCompoundIndexSet(Send node, ErroneousElement error, Node index,
+      AssignmentOperator operator, Node rhs, A arg);
 
   /// Prefix index operation on an invalid expression.
   ///
@@ -5197,12 +4192,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       static m() => --super[0];
   ///     }
   ///
-  R errorInvalidIndexPrefix(
-      Send node,
-      ErroneousElement error,
-      Node index,
-      IncDecOperator operator,
-      A arg);
+  R errorInvalidIndexPrefix(Send node, ErroneousElement error, Node index,
+      IncDecOperator operator, A arg);
 
   /// Postfix index operation on an invalid expression.
   ///
@@ -5212,12 +4203,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///       static m() => super[0]++;
   ///     }
   ///
-  R errorInvalidIndexPostfix(
-      Send node,
-      ErroneousElement error,
-      Node index,
-      IncDecOperator operator,
-      A arg);
+  R errorInvalidIndexPostfix(Send node, ErroneousElement error, Node index,
+      IncDecOperator operator, A arg);
 
   /// Access of library through a deferred [prefix].
   ///
@@ -5230,10 +4217,7 @@ abstract class SemanticSendVisitor<R, A> {
   /// This visit method is special in that it is called as a pre-step to calling
   /// the visit method for the actual access. Therefore this method cannot
   /// return a result to its caller.
-  void previsitDeferredAccess(
-      Send node,
-      PrefixElement prefix,
-      A arg);
+  void previsitDeferredAccess(Send node, PrefixElement prefix, A arg);
 }
 
 abstract class SemanticDeclarationVisitor<R, A> {
@@ -5252,10 +4236,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///     get m => 42;
   ///
   R visitTopLevelGetterDeclaration(
-      FunctionExpression node,
-      MethodElement getter,
-      Node body,
-      A arg);
+      FunctionExpression node, MethodElement getter, Node body, A arg);
 
   /// A declaration of a top level [setter].
   ///
@@ -5263,12 +4244,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///
   ///     set m(a) {}
   ///
-  R visitTopLevelSetterDeclaration(
-      FunctionExpression node,
-      MethodElement setter,
-      NodeList parameters,
-      Node body,
-      A arg);
+  R visitTopLevelSetterDeclaration(FunctionExpression node,
+      MethodElement setter, NodeList parameters, Node body, A arg);
 
   /// A declaration of a top level [function].
   ///
@@ -5276,12 +4253,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///
   ///     m(a) {}
   ///
-  R visitTopLevelFunctionDeclaration(
-      FunctionExpression node,
-      MethodElement function,
-      NodeList parameters,
-      Node body,
-      A arg);
+  R visitTopLevelFunctionDeclaration(FunctionExpression node,
+      MethodElement function, NodeList parameters, Node body, A arg);
 
   /// A declaration of a static [getter].
   ///
@@ -5292,10 +4265,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///     }
   ///
   R visitStaticGetterDeclaration(
-      FunctionExpression node,
-      MethodElement getter,
-      Node body,
-      A arg);
+      FunctionExpression node, MethodElement getter, Node body, A arg);
 
   /// A declaration of a static [setter].
   ///
@@ -5305,12 +4275,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       static set m(a) {}
   ///     }
   ///
-  R visitStaticSetterDeclaration(
-      FunctionExpression node,
-      MethodElement setter,
-      NodeList parameters,
-      Node body,
-      A arg);
+  R visitStaticSetterDeclaration(FunctionExpression node, MethodElement setter,
+      NodeList parameters, Node body, A arg);
 
   /// A declaration of a static [function].
   ///
@@ -5320,12 +4286,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       static m(a) {}
   ///     }
   ///
-  R visitStaticFunctionDeclaration(
-      FunctionExpression node,
-      MethodElement function,
-      NodeList parameters,
-      Node body,
-      A arg);
+  R visitStaticFunctionDeclaration(FunctionExpression node,
+      MethodElement function, NodeList parameters, Node body, A arg);
 
   /// A declaration of an abstract instance [getter].
   ///
@@ -5336,9 +4298,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///     }
   ///
   R visitAbstractGetterDeclaration(
-      FunctionExpression node,
-      MethodElement getter,
-      A arg);
+      FunctionExpression node, MethodElement getter, A arg);
 
   /// A declaration of an abstract instance [setter].
   ///
@@ -5348,11 +4308,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       set m(a);
   ///     }
   ///
-  R visitAbstractSetterDeclaration(
-      FunctionExpression node,
-      MethodElement setter,
-      NodeList parameters,
-      A arg);
+  R visitAbstractSetterDeclaration(FunctionExpression node,
+      MethodElement setter, NodeList parameters, A arg);
 
   /// A declaration of an abstract instance [method].
   ///
@@ -5362,11 +4319,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       m(a);
   ///     }
   ///
-  R visitAbstractMethodDeclaration(
-      FunctionExpression node,
-      MethodElement method,
-      NodeList parameters,
-      A arg);
+  R visitAbstractMethodDeclaration(FunctionExpression node,
+      MethodElement method, NodeList parameters, A arg);
 
   /// A declaration of an instance [getter].
   ///
@@ -5377,10 +4331,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///     }
   ///
   R visitInstanceGetterDeclaration(
-      FunctionExpression node,
-      MethodElement getter,
-      Node body,
-      A arg);
+      FunctionExpression node, MethodElement getter, Node body, A arg);
 
   /// A declaration of an instance [setter].
   ///
@@ -5390,12 +4341,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       set m(a) {}
   ///     }
   ///
-  R visitInstanceSetterDeclaration(
-      FunctionExpression node,
-      MethodElement setter,
-      NodeList parameters,
-      Node body,
-      A arg);
+  R visitInstanceSetterDeclaration(FunctionExpression node,
+      MethodElement setter, NodeList parameters, Node body, A arg);
 
   /// A declaration of an instance [method].
   ///
@@ -5405,12 +4352,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       m(a) {}
   ///     }
   ///
-  R visitInstanceMethodDeclaration(
-      FunctionExpression node,
-      MethodElement method,
-      NodeList parameters,
-      Node body,
-      A arg);
+  R visitInstanceMethodDeclaration(FunctionExpression node,
+      MethodElement method, NodeList parameters, Node body, A arg);
 
   /// A declaration of a local [function].
   ///
@@ -5420,12 +4363,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       local(a) {}
   ///     }
   ///
-  R visitLocalFunctionDeclaration(
-      FunctionExpression node,
-      LocalFunctionElement function,
-      NodeList parameters,
-      Node body,
-      A arg);
+  R visitLocalFunctionDeclaration(FunctionExpression node,
+      LocalFunctionElement function, NodeList parameters, Node body, A arg);
 
   /// A declaration of a [closure].
   ///
@@ -5435,12 +4374,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       var closure = (a) {};
   ///     }
   ///
-  R visitClosureDeclaration(
-      FunctionExpression node,
-      LocalFunctionElement closure,
-      NodeList parameters,
-      Node body,
-      A arg);
+  R visitClosureDeclaration(FunctionExpression node,
+      LocalFunctionElement closure, NodeList parameters, Node body, A arg);
 
   /// A declaration of the [index]th [parameter] in a constructor, setter,
   /// method or function.
@@ -5449,12 +4384,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///
   ///     m(a) {}
   ///
-  R visitParameterDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      ParameterElement parameter,
-      int index,
-      A arg);
+  R visitParameterDeclaration(VariableDefinitions node, Node definition,
+      ParameterElement parameter, int index, A arg);
 
   /// A declaration of the [index]th optional [parameter] in a constructor,
   /// method or function with the explicit [defaultValue]. If no default value
@@ -5480,12 +4411,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///
   ///     m({a: 42}) {}
   ///
-  R visitNamedParameterDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      ParameterElement parameter,
-      ConstantExpression defaultValue,
-      A arg);
+  R visitNamedParameterDeclaration(VariableDefinitions node, Node definition,
+      ParameterElement parameter, ConstantExpression defaultValue, A arg);
 
   /// A declaration of the [index]th [parameter] as an initializing formal in a
   /// constructor.
@@ -5497,12 +4424,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       C(this.a);
   ///     }
   ///
-  R visitInitializingFormalDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      InitializingFormalElement parameter,
-      int index,
-      A arg);
+  R visitInitializingFormalDeclaration(VariableDefinitions node,
+      Node definition, InitializingFormalElement parameter, int index, A arg);
 
   /// A declaration of the [index]th optional [parameter] as an initializing
   /// formal in a constructor with the explicit [defaultValue]. If no default
@@ -5550,12 +4473,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       var a = 42;
   ///     }
   ///
-  R visitLocalVariableDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      LocalVariableElement variable,
-      Node initializer,
-      A arg);
+  R visitLocalVariableDeclaration(VariableDefinitions node, Node definition,
+      LocalVariableElement variable, Node initializer, A arg);
 
   /// A declaration of a local constant [variable] initialized to [constant].
   ///
@@ -5565,12 +4484,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       const a = 42;
   ///     }
   ///
-  R visitLocalConstantDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      LocalVariableElement variable,
-      ConstantExpression constant,
-      A arg);
+  R visitLocalConstantDeclaration(VariableDefinitions node, Node definition,
+      LocalVariableElement variable, ConstantExpression constant, A arg);
 
   /// A declaration of a top level [field] with the explicit [initializer].
   /// If no initializer is declared, [initializer] is `null`.
@@ -5579,12 +4494,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///
   ///     var a = 42;
   ///
-  R visitTopLevelFieldDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      FieldElement field,
-      Node initializer,
-      A arg);
+  R visitTopLevelFieldDeclaration(VariableDefinitions node, Node definition,
+      FieldElement field, Node initializer, A arg);
 
   /// A declaration of a top level constant [field] initialized to [constant].
   ///
@@ -5592,12 +4503,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///
   ///     const a = 42;
   ///
-  R visitTopLevelConstantDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      FieldElement field,
-      ConstantExpression constant,
-      A arg);
+  R visitTopLevelConstantDeclaration(VariableDefinitions node, Node definition,
+      FieldElement field, ConstantExpression constant, A arg);
 
   /// A declaration of a static [field] with the explicit [initializer].
   /// If no initializer is declared, [initializer] is `null`.
@@ -5608,12 +4515,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       static var a = 42;
   ///     }
   ///
-  R visitStaticFieldDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      FieldElement field,
-      Node initializer,
-      A arg);
+  R visitStaticFieldDeclaration(VariableDefinitions node, Node definition,
+      FieldElement field, Node initializer, A arg);
 
   /// A declaration of a static constant [field] initialized to [constant].
   ///
@@ -5623,12 +4526,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       static const a = 42;
   ///     }
   ///
-  R visitStaticConstantDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      FieldElement field,
-      ConstantExpression constant,
-      A arg);
+  R visitStaticConstantDeclaration(VariableDefinitions node, Node definition,
+      FieldElement field, ConstantExpression constant, A arg);
 
   /// A declaration of an instance [field] with the explicit [initializer].
   /// If no initializer is declared, [initializer] is `null`.
@@ -5639,12 +4538,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       var a = 42;
   ///     }
   ///
-  R visitInstanceFieldDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      FieldElement field,
-      Node initializer,
-      A arg);
+  R visitInstanceFieldDeclaration(VariableDefinitions node, Node definition,
+      FieldElement field, Node initializer, A arg);
 
   /// A declaration of a generative [constructor] with the explicit constructor
   /// [initializers].
@@ -5693,12 +4588,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       factory C(a) => null;
   ///     }
   ///
-  R visitFactoryConstructorDeclaration(
-      FunctionExpression node,
-      ConstructorElement constructor,
-      NodeList parameters,
-      Node body,
-      A arg);
+  R visitFactoryConstructorDeclaration(FunctionExpression node,
+      ConstructorElement constructor, NodeList parameters, Node body, A arg);
 
   /// A declaration of a redirecting factory [constructor]. The immediate
   /// redirection target and its type is provided in [redirectionTarget] and
@@ -5733,10 +4624,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///     }
   ///
   R visitFieldInitializer(
-      SendSet node,
-      FieldElement field,
-      Node initializer,
-      A arg);
+      SendSet node, FieldElement field, Node initializer, A arg);
 
   /// An initializer of an unresolved field with [initializer] as found in
   /// generative constructor initializers.
@@ -5748,10 +4636,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///     }
   ///
   R errorUnresolvedFieldInitializer(
-      SendSet node,
-      Element element,
-      Node initializer,
-      A arg);
+      SendSet node, Element element, Node initializer, A arg);
 
   /// An super constructor invocation of [superConstructor] with [arguments] as
   /// found in generative constructor initializers.
@@ -5785,11 +4670,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       C(); // Implicit super call of B().
   ///     }
   ///
-  R visitImplicitSuperConstructorInvoke(
-      FunctionExpression node,
-      ConstructorElement superConstructor,
-      InterfaceType type,
-      A arg);
+  R visitImplicitSuperConstructorInvoke(FunctionExpression node,
+      ConstructorElement superConstructor, InterfaceType type, A arg);
 
   /// An super constructor invocation of an unresolved with [arguments] as
   /// found in generative constructor initializers.
@@ -5804,11 +4686,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///     }
   ///
   R errorUnresolvedSuperConstructorInvoke(
-      Send node,
-      Element element,
-      NodeList arguments,
-      Selector selector,
-      A arg);
+      Send node, Element element, NodeList arguments, Selector selector, A arg);
 
   /// An this constructor invocation of [thisConstructor] with [arguments] as
   /// found in a redirecting generative constructors initializer.
@@ -5820,12 +4698,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       C._(a);
   ///     }
   ///
-  R visitThisConstructorInvoke(
-      Send node,
-      ConstructorElement thisConstructor,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg);
+  R visitThisConstructorInvoke(Send node, ConstructorElement thisConstructor,
+      NodeList arguments, CallStructure callStructure, A arg);
 
   /// An this constructor invocation of an unresolved constructor with
   /// [arguments] as found in a redirecting generative constructors initializer.
@@ -5837,9 +4711,5 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///     }
   ///
   R errorUnresolvedThisConstructorInvoke(
-      Send node,
-      Element element,
-      NodeList arguments,
-      Selector selector,
-      A arg);
+      Send node, Element element, NodeList arguments, Selector selector, A arg);
 }

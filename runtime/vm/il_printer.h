@@ -35,6 +35,8 @@ class ParsedFunction;
 // Graph printing.
 class FlowGraphPrinter : public ValueObject {
  public:
+  static const intptr_t kPrintAll = -1;
+
   FlowGraphPrinter(const FlowGraph& flow_graph,
                    bool print_locations = false)
       : function_(flow_graph.function()),
@@ -57,8 +59,10 @@ class FlowGraphPrinter : public ValueObject {
 
   static void PrintGraph(const char* phase, FlowGraph* flow_graph);
 
-  // Debugging helper function.
-  static void PrintICData(const ICData& ic_data);
+  // Debugging helper function. If 'num_checks_to_print' is not specified
+  // all checks will be printed.
+  static void PrintICData(const ICData& ic_data,
+                          intptr_t num_checks_to_print = kPrintAll);
 
   static bool ShouldPrint(const Function& function);
 

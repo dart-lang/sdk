@@ -69,7 +69,7 @@ void main() {
     // 2. Some code was refactored, and there are more methods.
     // Either situation could be problematic, but in situation 2, it is often
     // acceptable to increase [expectedMethodCount] a little.
-    int expectedMethodCount = 431;
+    int expectedMethodCount = 432;
     Expect.isTrue(
         generatedCode.length <= expectedMethodCount,
         'Too many compiled methods: '
@@ -127,18 +127,22 @@ void main() {
       });
     }
 
-    // There should at least be one metadata constant:
-    // 1. The constructed constant for 'MirrorsUsed'.
-    Expect.isTrue(backend.metadataConstants.length >= 1);
-
+    int metadataCount = 0;
     Set<ConstantValue> compiledConstants = backend.constants.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
-    for (var dependency in backend.metadataConstants) {
-      ConstantValue constant = dependency.constant;
+    backend.processMetadata(
+        compiler.enqueuer.resolution.processedElements, (metadata) {
+      ConstantValue constant =
+          backend.constants.getConstantValueForMetadata(metadata);
       Expect.isFalse(compiledConstants.contains(constant),
-                     constant.toStructuredString());
-    }
+                     constant.toStructuredText());
+      metadataCount++;
+    });
+
+    // There should at least be one metadata constant:
+    // 1. The constructed constant for 'MirrorsUsed'.
+    Expect.isTrue(metadataCount >= 1);
 
     // The type literal 'Foo' is both used as metadata, and as a plain value in
     // the program. Make sure that it isn't duplicated.

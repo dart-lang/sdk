@@ -54,7 +54,8 @@ typedef unsigned __int64 uint64_t;
 #include <stdbool.h>
 #if __GNUC__ >= 4
 #if defined(DART_SHARED_LIB)
-#define DART_EXPORT DART_EXTERN_C __attribute__ ((visibility("default")))
+#define DART_EXPORT DART_EXTERN_C __attribute__ ((visibility("default"))) \
+    __attribute((used))
 #else
 #define DART_EXPORT DART_EXTERN_C
 #endif
@@ -528,8 +529,8 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  *   after the object is garbage collected, unless the handle has been deleted.
  *   A valid callback needs to be specified it cannot be NULL.
  *
- * \return Success if the weak persistent handle was
- *   created. Otherwise, returns an error.
+ * \return The weak persistent handle or NULL. NULL is returned in case of bad
+ *   parameters.
  */
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
@@ -721,6 +722,15 @@ typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
 typedef void (*Dart_IsolateShutdownCallback)(void* callback_data);
 
 /**
+ * A thread death callback function.
+ * This callback, provided by the embedder, is called before a thread in the
+ * vm thread pool exits.
+ * This function could be used to dispose of native resources that
+ * are associated and attached to the thread, in order to avoid leaks.
+ */
+typedef void (*Dart_ThreadExitCallback)();
+
+/**
  * Callbacks provided by the embedder for file operations. If the
  * embedder does not allow file operations these callbacks can be
  * NULL.
@@ -774,40 +784,54 @@ typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
 typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
 
 /**
- * Initializes the VM.
+ * The current version of the Dart_InitializeFlags. Should be incremented every
+ * time Dart_InitializeFlags changes in a binary incompatible way.
+ */
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000001)
+
+/**
+ * Describes how to initialize the VM. Used with Dart_Initialize.
  *
+ * \param version Identifies the version of the struct used by the client.
+ *   should be initialized to DART_INITIALIZE_PARAMS_CURRENT_VERSION.
  * \param vm_isolate_snapshot A buffer containing a snapshot of the VM isolate
  *   or NULL if no snapshot is provided.
  * \param instructions_snapshot A buffer containing a snapshot of precompiled
  *   instructions, or NULL if no snapshot is provided.
  * \param create A function to be called during isolate creation.
  *   See Dart_IsolateCreateCallback.
- * \param interrupt This parameter has been DEPRECATED.
- * \param unhandled_exception This parameter has been DEPRECATED.
  * \param shutdown A function to be called when an isolate is shutdown.
  *   See Dart_IsolateShutdownCallback.
- *
  * \param get_service_assets A function to be called by the service isolate when
  *    it requires the vmservice assets archive.
  *    See Dart_GetVMServiceAssetsArchive.
+ */
+typedef struct {
+    int32_t version;
+    const uint8_t* vm_isolate_snapshot;
+    const uint8_t* instructions_snapshot;
+    const uint8_t* data_snapshot;
+    Dart_IsolateCreateCallback create;
+    Dart_IsolateShutdownCallback shutdown;
+    Dart_ThreadExitCallback thread_exit;
+    Dart_FileOpenCallback file_open;
+    Dart_FileReadCallback file_read;
+    Dart_FileWriteCallback file_write;
+    Dart_FileCloseCallback file_close;
+    Dart_EntropySource entropy_source;
+    Dart_GetVMServiceAssetsArchive get_service_assets;
+} Dart_InitializeParams;
+
+/**
+ * Initializes the VM.
+ *
+ * \param flags A struct containing initialization information. The version
+ *   field of the struct must be DART_INITIALIZE_PARAMS_CURRENT_VERSION.
  *
  * \return NULL if initialization is successful. Returns an error message
  *   otherwise. The caller is responsible for freeing the error message.
  */
-DART_EXPORT char* Dart_Initialize(
-    const uint8_t* vm_isolate_snapshot,
-    const uint8_t* instructions_snapshot,
-    const uint8_t* data_snapshot,
-    Dart_IsolateCreateCallback create,
-    Dart_IsolateInterruptCallback interrupt,
-    Dart_IsolateUnhandledExceptionCallback unhandled_exception,
-    Dart_IsolateShutdownCallback shutdown,
-    Dart_FileOpenCallback file_open,
-    Dart_FileReadCallback file_read,
-    Dart_FileWriteCallback file_write,
-    Dart_FileCloseCallback file_close,
-    Dart_EntropySource entropy_source,
-    Dart_GetVMServiceAssetsArchive get_service_assets);
+DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params);
 
 /**
  * Cleanup state in the VM before process termination.
@@ -1164,6 +1188,23 @@ DART_EXPORT bool Dart_IsPausedOnExit();
  * \param paused Is the isolate paused on exit?
  */
 DART_EXPORT void Dart_SetPausedOnExit(bool paused);
+
+
+/**
+ * Called when the embedder has caught a top level unhandled exception error
+ * in the current isolate. Also marks the isolate as paused at exit.
+ *
+ * NOTE: It is illegal to call this twice on the same isolate.
+ *
+ * \param error The unhandled exception error.
+ */
+DART_EXPORT void Dart_SetStickyError(Dart_Handle error);
+
+
+/**
+ * Does the current isolate have a sticky error?
+ */
+DART_EXPORT bool Dart_HasStickyError();
 
 
 /**
@@ -2642,15 +2683,51 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
  * Scripts and Libraries
  * =====================
  */
-/* TODO(turnidge): Finish documenting this section. */
 
 typedef enum {
-  Dart_kImportTag = 0,
+  Dart_kCanonicalizeUrl = 0,
+  Dart_kScriptTag,
   Dart_kSourceTag,
-  Dart_kCanonicalizeUrl
+  Dart_kImportTag,
 } Dart_LibraryTag;
 
-/* TODO(turnidge): Document. */
+/**
+ * The library tag handler is a multi-purpose callback provided by the
+ * embedder to the Dart VM. The embedder implements the tag handler to
+ * provide the ability to load Dart scripts and imports.
+ *
+ * -- TAGS --
+ *
+ * Dart_kCanonicalizeUrl
+ *
+ * This tag indicates that the embedder should canonicalize 'url' with
+ * respect to 'library'.  For most embedders, the
+ * Dart_DefaultCanonicalizeUrl function is a sufficient implementation
+ * of this tag.  The return value should be a string holding the
+ * canonicalized url.
+ *
+ * Dart_kScriptTag
+ *
+ * This tag indicates that the root script should be loaded from
+ * 'url'.  The 'library' parameter will always be null.  Once the root
+ * script is loaded, the embedder should call Dart_LoadScript to
+ * install the root script in the VM.  The return value should be an
+ * error or null.
+ *
+ * Dart_kSourceTag
+ *
+ * This tag is used to load a file referenced by Dart language "part
+ * of" directive.  Once the file's source is loaded, the embedder
+ * should call Dart_LoadSource to provide the file contents to the VM.
+ * The return value should be an error or null.
+ *
+ * Dart_kImportTag
+ *
+ * This tag is used to load a script referenced by Dart language
+ * "import" directive.  Once the script is loaded, the embedder should
+ * call Dart_LoadLibrary to provide the script source to the VM.  The
+ * return value should be an error or null.
+ */
 typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
                                               Dart_Handle library,
                                               Dart_Handle url);
@@ -2672,18 +2749,50 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
     Dart_LibraryTagHandler handler);
 
 /**
- * Loads the root script for the current isolate. The script can be
- * embedded in another file, for example in an html file.
+ * Canonicalizes a url with respect to some library.
  *
- * TODO(turnidge): Document.
+ * The url is resolved with respect to the library's url and some url
+ * normalizations are performed.
  *
- * \line_offset is the number of text lines before the
+ * This canonicalization function should be sufficient for most
+ * embedders to implement the Dart_kCanonicalizeUrl tag.
+ *
+ * \param base_url The base url relative to which the url is
+ *                being resolved.
+ * \param url The url being resolved and canonicalized.  This
+ *            parameter is a string handle.
+ *
+ * \return If no error occurs, a String object is returned.  Otherwise
+ *   an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
+                                                    Dart_Handle url);
+
+/**
+ * Called by the embedder to provide the source for the root script to
+ * the VM.  This function should be called in response to a
+ * Dart_kScriptTag tag handler request (See Dart_LibraryTagHandler,
+ * above).
+ *
+ * \param url The original url requested for the script.
+ *
+ * \param resolved_url The actual url which was loaded.  This parameter
+ *   is optionally provided to support isolate reloading.  A value of
+ *   Dart_Null() indicates that the resolved url was the same as the
+ *   requested url.
+ *
+ * \param source The contents of the url.
+ *
+ * \param line_offset is the number of text lines before the
  *   first line of the Dart script in the containing file.
  *
- * \col_offset is the number of characters before the first character
+ * \param col_offset is the number of characters before the first character
  *   in the first line of the Dart script.
+ *
+ * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
+                                        Dart_Handle resolved_url,
                                         Dart_Handle source,
                                         intptr_t line_offset,
                                         intptr_t col_offset);
@@ -2776,7 +2885,33 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library,
                                                 Dart_Handle error);
 
 
+/**
+ * Called by the embedder to provide the source for an "import"
+ * directive.  This function should be called in response to a
+ * Dart_kImportTag tag handler request (See Dart_LibraryTagHandler,
+ * above).
+ *
+ * \param library The library where the "import" directive occurs.
+ *
+ * \param url The original url requested for the import.
+ *
+ * \param resolved_url The actual url which was loaded.  This parameter
+ *   is optionally provided to support isolate reloading.  A value of
+ *   Dart_Null() indicates that the resolved url was the same as the
+ *   requested url.
+ *
+ * \param source The contents of the url.
+ *
+ * \param line_offset is the number of text lines before the
+ *   first line of the Dart script in the containing file.
+ *
+ * \param col_offset is the number of characters before the first character
+ *   in the first line of the Dart script.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
+                                         Dart_Handle resolved_url,
                                          Dart_Handle source,
                                          intptr_t line_offset,
                                          intptr_t column_offset);
@@ -2797,16 +2932,33 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
                                                   Dart_Handle prefix);
 
 /**
- * Loads a source string into a library.
+ * Called by the embedder to provide the source for a "part of"
+ * directive.  This function should be called in response to a
+ * Dart_kSourceTag tag handler request (See Dart_LibraryTagHandler,
+ * above).
  *
- * \param library A library
- * \param url A url identifying the origin of the source
- * \param source A string of Dart source
+ * \param library The library where the "part of" directive occurs.
+ *
+ * \param url The original url requested for the part.
+ *
+ * \param resolved_url The actual url which was loaded.  This parameter
+ *   is optionally provided to support isolate reloading.  A value of
+ *   Dart_Null() indicates that the resolved url was the same as the
+ *   requested url.
+ *
+ * \param source The contents of the url.
+ *
+ * \param line_offset is the number of text lines before the
+ *   first line of the Dart script in the containing file.
+ *
+ * \param col_offset is the number of characters before the first character
+ *   in the first line of the Dart script.
  *
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
+                                        Dart_Handle resolved_url,
                                         Dart_Handle source,
                                         intptr_t line_offset,
                                         intptr_t column_offset);
@@ -2946,15 +3098,103 @@ DART_EXPORT Dart_Handle Dart_Precompile(
     bool reset_fields);
 
 
-DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
+/**
+ *  Creates a precompiled snapshot.
+ *   - A root library must have been loaded.
+ *   - Dart_Precompile must have been called.
+ *
+ *  Outputs a vm isolate snapshot, an isolate snapshot, and an assembly file
+ *  defining the symbols kInstructionsSnapshot and kDataSnapshot. The assembly
+ *  should be compiled as a static or shared library and linked or loaded by the
+ *  embedder.
+ *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.
+ *  The vm isolate snapshot, kInstructionsSnapshot and kDataSnapshot should be
+ *  passed as arguments to Dart_Initialize. The isolate snapshot should be
+ *  passed to Dart_CreateIsolate.
+ *
+ *  The buffers are scope allocated and are only valid until the next call to
+ *  Dart_ExitScope.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     uint8_t** vm_isolate_snapshot_buffer,
     intptr_t* vm_isolate_snapshot_size,
     uint8_t** isolate_snapshot_buffer,
     intptr_t* isolate_snapshot_size,
-    uint8_t** instructions_snapshot_buffer,
-    intptr_t* instructions_snapshot_size);
+    uint8_t** assembly_buffer,
+    intptr_t* assembly_size);
 
 
+/**
+ *  Same as Dart_CreatePrecompiledSnapshotAssembly, except the instruction and
+ *  data snapshot pieces are provided directly as bytes that the embedder can
+ *  load with mmap. The instructions piece must be loaded with read and
+ *  execute permissions; the rodata piece may be loaded as read-only.
+ */
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size);
+
+
+DART_EXPORT Dart_Handle Dart_PrecompileJIT();
+
+
+/**
+ *  Creates a snapshot that caches unoptimized code and type feedback for faster
+ *  startup and quicker warmup in a subsequent process.
+ *
+ *  Outputs a snapshot in four pieces. The vm isolate snapshot,
+ *  instructions_blob and rodata_blob should be passed as arguments to
+ *  Dart_Initialize. The isolate snapshot should be passed to
+ *  Dart_CreateIsolate. The instructions piece must be loaded with execute
+ *  permissions; the other pieces may loaded as read-only.
+ *
+ *   - Requires the VM to have been started with --load-deferred-eagerly.
+ *   - Requires the VM to have not been started with --precompilation.
+ *   - Not supported when targeting IA32.
+ *   - The VM writing the snapshot and the VM reading the snapshot must be the
+ *     same version, must be built in the same DEBUG/RELEASE/PRODUCT mode, must
+ *     be targeting the same architecture, and must both be in checked mode or
+ *     both in unchecked mode.
+ *
+ *  The buffers are scope allocated and are only valid until the next call to
+ *  Dart_ExitScope.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_CreateAppJITSnapshot(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size);
+
+
+/**
+ *  Returns whether the VM only supports running from precompiled snapshots and
+ *  not from any other kind of snapshot or no snapshot (that is, the VM was
+ *  compiled with DART_PRECOMPILED_RUNTIME).
+ */
+DART_EXPORT bool Dart_IsPrecompiledRuntime();
+
+
+/**
+ *  Returns whether the VM was initialized with a precompiled snapshot. Only
+ *  valid after Dart_Initialize.
+ *  DEPRECATED. This is currently used to disable Platform.executable and
+ *  Platform.resolvedExecutable under precompilation to prevent process
+ *  spawning tests from becoming fork-bombs.
+ */
 DART_EXPORT bool Dart_IsRunningPrecompiledCode();
 
 #endif  /* INCLUDE_DART_API_H_ */  /* NOLINT */

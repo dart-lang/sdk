@@ -9,6 +9,8 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -50,6 +52,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitArgumentList(ArgumentList node) {
+    if (request is DartCompletionRequestImpl) {
+      //TODO(danrubel) consider adding opType to the API then remove this cast
+      OpType opType = (request as DartCompletionRequestImpl).opType;
+      if (opType.includeOnlyNamedArgumentSuggestions) {
+        return;
+      }
+    }
     if (entity == node.rightParenthesis) {
       _addExpressionKeywords(node);
       Token previous = (entity as Token).previous;
@@ -68,6 +77,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitAsExpression(AsExpression node) {
+    if (identical(entity, node.asOperator) &&
+        node.expression is ParenthesizedExpression) {
+      _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+    }
+  }
+
+  @override
   visitBlock(Block node) {
     if (entity is ExpressionStatement) {
       Expression expression = (entity as ExpressionStatement).expression;
@@ -81,7 +100,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         if (next.isSynthetic) {
           next = next.next;
         }
-        if (previous.lexeme == ')' && next.lexeme == '{') {
+        if (previous.type == TokenType.CLOSE_PAREN &&
+            next.type == TokenType.OPEN_CURLY_BRACKET) {
           _addSuggestion2(ASYNC);
           _addSuggestion2(ASYNC_STAR);
           _addSuggestion2(SYNC_STAR);
@@ -148,8 +168,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
           !node.directives.any((d) => d is LibraryDirective)) {
         _addSuggestions([Keyword.LIBRARY], DART_RELEVANCE_HIGH);
       }
-      _addSuggestions(
-          [Keyword.IMPORT, Keyword.EXPORT, Keyword.PART], DART_RELEVANCE_HIGH);
+      _addSuggestion2('${Keyword.IMPORT.syntax} \'\';',
+          offset: 8, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2('${Keyword.EXPORT.syntax} \'\';',
+          offset: 8, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2('${Keyword.PART.syntax} \'\';',
+          offset: 6, relevance: DART_RELEVANCE_HIGH);
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
@@ -207,11 +231,20 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitForStatement(ForStatement node) {
+    // Actual: for (va^)
+    // Parsed: for (va^; ;)
+    if (node.initialization == entity && entity is SimpleIdentifier) {
+      if (_isNextTokenSynthetic(entity, TokenType.SEMICOLON)) {
+        _addSuggestion(Keyword.VAR, DART_RELEVANCE_HIGH);
+      }
+    }
+    // Actual: for (int x i^)
+    // Parsed: for (int x; i^;)
     // Handle the degenerate case while typing - for (int x i^)
-    if (node.condition == entity && entity is SimpleIdentifier) {
-      Token entityToken = (entity as SimpleIdentifier).beginToken;
-      if (entityToken.previous.isSynthetic &&
-          entityToken.previous.type == TokenType.SEMICOLON) {
+    if (node.condition == entity &&
+        entity is SimpleIdentifier &&
+        node.variables != null) {
+      if (_isPreviousTokenSynthetic(entity, TokenType.SEMICOLON)) {
         _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
       }
     }
@@ -238,7 +271,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitIfStatement(IfStatement node) {
-    if (entity == node.thenStatement) {
+    if (_isPreviousTokenSynthetic(entity, TokenType.CLOSE_PAREN)) {
+      // Actual: if (x i^)
+      // Parsed: if (x) i^
+      _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+    } else if (entity == node.thenStatement || entity == node.elseStatement) {
       _addStatementKeywords(node);
     } else if (entity == node.condition) {
       _addExpressionKeywords(node);
@@ -475,6 +512,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (_inSwitch(node)) {
       _addSuggestions([Keyword.BREAK]);
     }
+    if (_isEntityAfterIfWithoutElse(node)) {
+      _addSuggestions([Keyword.ELSE]);
+    }
     _addSuggestions([
       Keyword.ASSERT,
       Keyword.CONST,
@@ -556,4 +596,46 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   bool _inWhileLoop(AstNode node) =>
       node.getAncestor((p) => p is WhileStatement) != null;
+
+  bool _isEntityAfterIfWithoutElse(AstNode node) {
+    Block block = node?.getAncestor((n) => n is Block);
+    if (block == null) {
+      return false;
+    }
+    Object entity = this.entity;
+    if (entity is Statement) {
+      int entityIndex = block.statements.indexOf(entity);
+      if (entityIndex > 0) {
+        Statement prevStatement = block.statements[entityIndex - 1];
+        return prevStatement is IfStatement &&
+            prevStatement.elseStatement == null;
+      }
+    }
+    if (entity is Token) {
+      for (Statement statement in block.statements) {
+        if (statement.endToken.next == entity) {
+          return statement is IfStatement && statement.elseStatement == null;
+        }
+      }
+    }
+    return false;
+  }
+
+  static bool _isNextTokenSynthetic(Object entity, TokenType type) {
+    if (entity is AstNode) {
+      Token token = entity.beginToken;
+      Token nextToken = token.next;
+      return nextToken.isSynthetic && nextToken.type == type;
+    }
+    return false;
+  }
+
+  static bool _isPreviousTokenSynthetic(Object entity, TokenType type) {
+    if (entity is AstNode) {
+      Token token = entity.beginToken;
+      Token previousToken = token.previous;
+      return previousToken.isSynthetic && previousToken.type == type;
+    }
+    return false;
+  }
 }

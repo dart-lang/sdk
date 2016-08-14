@@ -30,7 +30,7 @@ compilationUnitMatcher(String file) {
 
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisTest {
-  Map<String, List<AnalysisError>> filesErrors = {};
+  Map<String, List<String>> filesErrors = {};
   int serverErrorCount = 0;
   int navigationCount = 0;
 
@@ -42,7 +42,8 @@ class UpdateContentTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
-      _format(AnalysisError e) => "${e.location.startLine}: ${e.message}";
+      String _format(AnalysisError e) =>
+          "${e.location.startLine}: ${e.message}";
       filesErrors[decoded.file] = decoded.errors.map(_format).toList();
     }
     if (notification.event == ANALYSIS_NAVIGATION) {
@@ -96,7 +97,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     createProject();
     addTestFile('main() { print(1); }');
     await server.onAnalysisComplete;
-    verify(server.index.index(anyObject, testUnitMatcher)).times(1);
+    verify(server.index.indexUnit(testUnitMatcher)).times(1);
     // add an overlay
     server.updateContent(
         '1', {testFile: new AddContentOverlay('main() { print(2); }')});
@@ -108,7 +109,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     server.updateContent('2', {testFile: new RemoveContentOverlay()});
     // Validate that at the end the unit was indexed.
     await server.onAnalysisComplete;
-    verify(server.index.index(anyObject, testUnitMatcher)).times(3);
+    verify(server.index.indexUnit(testUnitMatcher)).times(3);
   }
 
   test_multiple_contexts() async {

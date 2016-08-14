@@ -6,7 +6,6 @@
 *: Skip
 
 [ $compiler == dart2js ]
-call_on_native_class_test: CompileTimeError # Issue 14813
 native_no_such_method_exception4_frog_test: CompileTimeError # Issue 9631
 native_no_such_method_exception5_frog_test: CompileTimeError # Issue 9631
 
@@ -24,7 +23,6 @@ compute_this_script_test: Skip # Issue 17458
 foreign_test: RuntimeError # Expect.equals(expected: <1234567891011>, actual: <1234567891011>) fails.
 native_exception_test: RuntimeError # Issue 24421
 optimization_hints_test: RuntimeError # Please triage this failure.
-subclassing_constructor_2_test: RuntimeError # Please triage this failure.
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented, 75% of the tests fail.

@@ -4,93 +4,63 @@
 
 library dart2js.js_emitter.full_emitter;
 
-import 'dart:convert';
 import 'dart:collection' show HashMap;
+import 'dart:convert';
 
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
-import 'package:js_runtime/shared/embedded_names.dart' show
-    JsBuiltin,
-    JsGetName;
+import 'package:js_runtime/shared/embedded_names.dart'
+    show JsBuiltin, JsGetName;
 
+import '../../common.dart';
+import '../../common/names.dart' show Names;
+import '../../compiler.dart' show Compiler;
+import '../../constants/values.dart';
+import '../../core_types.dart' show CoreClasses;
+import '../../dart_types.dart' show DartType;
+import '../../deferred_load.dart' show OutputUnit;
+import '../../elements/elements.dart'
+    show
+        ClassElement,
+        Element,
+        Elements,
+        FieldElement,
+        FunctionElement,
+        FunctionSignature,
+        LibraryElement,
+        MetadataAnnotation,
+        MethodElement,
+        Name,
+        TypedefElement,
+        VariableElement;
+import '../../hash/sha1.dart' show Hasher;
+import '../../io/code_output.dart';
+import '../../io/line_column_provider.dart'
+    show LineColumnCollector, LineColumnProvider;
+import '../../io/source_map_builder.dart' show SourceMapBuilder;
+import '../../js/js.dart' as jsAst;
+import '../../js/js.dart' show js;
+import '../../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../../js_backend/js_backend.dart'
+    show
+        CompoundName,
+        ConstantEmitter,
+        GetterName,
+        JavaScriptBackend,
+        JavaScriptConstantCompiler,
+        Namer,
+        SetterName,
+        TypeVariableHandler;
+import '../../universe/call_structure.dart' show CallStructure;
+import '../../universe/selector.dart' show Selector;
+import '../../util/characters.dart' show $$, $A, $HASH, $Z, $a, $z;
+import '../../util/uri_extras.dart' show relativize;
+import '../../util/util.dart' show equalElements;
+import '../constant_ordering.dart' show deepCompareConstants;
 import '../headers.dart';
 import '../js_emitter.dart' hide Emitter;
 import '../js_emitter.dart' as js_emitter show Emitter;
 import '../model.dart';
 import '../program_builder/program_builder.dart';
-import '../constant_ordering.dart' show deepCompareConstants;
-
-import '../../common.dart';
-import '../../common/names.dart' show
-    Names;
-import '../../compiler.dart' show
-    Compiler;
-import '../../constants/values.dart';
-import '../../core_types.dart' show
-    CoreClasses;
-import '../../dart_types.dart' show
-    DartType;
-import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart' show
-    ClassElement,
-    ConstructorBodyElement,
-    Element,
-    Elements,
-    ElementKind,
-    FieldElement,
-    FunctionElement,
-    FunctionSignature,
-    LibraryElement,
-    MetadataAnnotation,
-    MethodElement,
-    MemberElement,
-    Name,
-    ParameterElement,
-    TypedefElement,
-    TypeVariableElement,
-    VariableElement;
-import '../../hash/sha1.dart' show Hasher;
-import '../../io/code_output.dart';
-import '../../io/line_column_provider.dart' show
-    LineColumnCollector,
-    LineColumnProvider;
-import '../../io/source_map_builder.dart' show
-    SourceMapBuilder;
-import '../../js/js.dart' as jsAst;
-import '../../js/js.dart' show js;
-import '../../js_backend/backend_helpers.dart' show
-    BackendHelpers;
-import '../../js_backend/js_backend.dart' show
-    CheckedModeHelper,
-    CompoundName,
-    ConstantEmitter,
-    CustomElementsAnalysis,
-    GetterName,
-    JavaScriptBackend,
-    JavaScriptConstantCompiler,
-    Namer,
-    RuntimeTypes,
-    SetterName,
-    Substitution,
-    TypeCheck,
-    TypeChecks,
-    TypeVariableHandler;
-import '../../js/js_debug.dart';
-import '../../universe/call_structure.dart' show
-    CallStructure;
-import '../../universe/selector.dart' show
-    Selector;
-import '../../util/characters.dart' show
-    $$,
-    $A,
-    $HASH,
-    $PERIOD,
-    $Z,
-    $a,
-    $z;
-import '../../util/uri_extras.dart' show
-    relativize;
-import '../../util/util.dart' show
-    equalElements;
 
 part 'class_builder.dart';
 part 'class_emitter.dart';
@@ -101,7 +71,6 @@ part 'deferred_output_unit_hash.dart';
 part 'interceptor_emitter.dart';
 part 'nsm_emitter.dart';
 part 'setup_program_builder.dart';
-
 
 class Emitter implements js_emitter.Emitter {
   final Compiler compiler;
@@ -153,9 +122,9 @@ class Emitter implements js_emitter.Emitter {
   TypeVariableHandler get typeVariableHandler => backend.typeVariableHandler;
 
   String get _ => space;
-  String get space => compiler.enableMinification ? "" : " ";
-  String get n => compiler.enableMinification ? "" : "\n";
-  String get N => compiler.enableMinification ? "\n" : ";\n";
+  String get space => compiler.options.enableMinification ? "" : " ";
+  String get n => compiler.options.enableMinification ? "" : "\n";
+  String get N => compiler.options.enableMinification ? "\n" : ";\n";
 
   /**
    * List of expressions and statements that will be included in the
@@ -203,15 +172,13 @@ class Emitter implements js_emitter.Emitter {
 
   List<jsAst.Node> cspPrecompiledFunctionFor(OutputUnit outputUnit) {
     return _cspPrecompiledFunctions.putIfAbsent(
-        outputUnit,
-        () => new List<jsAst.Node>());
+        outputUnit, () => new List<jsAst.Node>());
   }
 
   List<jsAst.Expression> cspPrecompiledConstructorNamesFor(
       OutputUnit outputUnit) {
     return _cspPrecompiledConstructorNames.putIfAbsent(
-        outputUnit,
-        () => new List<jsAst.Expression>());
+        outputUnit, () => new List<jsAst.Expression>());
   }
 
   /// Erases the precompiled information for csp mode for all output units.
@@ -226,9 +193,9 @@ class Emitter implements js_emitter.Emitter {
 
   @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
-    if (constant.isFunction) return true;    // Already emitted.
-    if (constant.isPrimitive) return true;   // Inlined.
-    if (constant.isDummy) return true;       // Inlined.
+    if (constant.isFunction) return true; // Already emitted.
+    if (constant.isPrimitive) return true; // Inlined.
+    if (constant.isDummy) return true; // Inlined.
     // The name is null when the constant is already a JS constant.
     // TODO(floitsch): every constant should be registered, so that we can
     // share the ones that take up too much space (like some strings).
@@ -271,8 +238,8 @@ class Emitter implements js_emitter.Emitter {
     if (isConstantInlinedOrAlreadyEmitted(value)) {
       return constantEmitter.generate(value);
     }
-    return js('#.#', [namer.globalObjectForConstant(value),
-                      namer.constantName(value)]);
+    return js('#.#',
+        [namer.globalObjectForConstant(value), namer.constantName(value)]);
   }
 
   jsAst.Expression constantInitializerExpression(ConstantValue value) {
@@ -281,18 +248,17 @@ class Emitter implements js_emitter.Emitter {
 
   String get name => 'CodeEmitter';
 
-  String get finishIsolateConstructorName
-      => '${namer.isolateName}.\$finishIsolateConstructor';
-  String get isolatePropertiesName
-      => '${namer.isolateName}.${namer.isolatePropertiesName}';
-  String get lazyInitializerProperty
-      => r'$lazy';
-  String get lazyInitializerName
-      => '${namer.isolateName}.${lazyInitializerProperty}';
+  String get finishIsolateConstructorName =>
+      '${namer.isolateName}.\$finishIsolateConstructor';
+  String get isolatePropertiesName =>
+      '${namer.isolateName}.${namer.isolatePropertiesName}';
+  String get lazyInitializerProperty => r'$lazy';
+  String get lazyInitializerName =>
+      '${namer.isolateName}.${lazyInitializerProperty}';
   String get initName => 'init';
 
-  jsAst.Name get makeConstListProperty
-      => namer.internalGlobal('makeConstantList');
+  jsAst.Name get makeConstListProperty =>
+      namer.internalGlobal('makeConstantList');
 
   /// The name of the property that contains all field names.
   ///
@@ -322,22 +288,21 @@ class Emitter implements js_emitter.Emitter {
   jsAst.PropertyAccess globalPropertyAccess(Element element) {
     jsAst.Name name = namer.globalPropertyName(element);
     jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
-        new jsAst.VariableUse(namer.globalObjectFor(element)),
-        name);
+        new jsAst.VariableUse(namer.globalObjectFor(element)), name);
     return pa;
   }
 
   @override
   jsAst.Expression isolateLazyInitializerAccess(FieldElement element) {
-     return jsAst.js('#.#', [namer.globalObjectFor(element),
-                             namer.lazyInitializerName(element)]);
-   }
+    return jsAst.js('#.#',
+        [namer.globalObjectFor(element), namer.lazyInitializerName(element)]);
+  }
 
   @override
   jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
-     return jsAst.js('#.#()',
-         [namer.globalObjectFor(element), namer.staticClosureName(element)]);
-   }
+    return jsAst.js('#.#()',
+        [namer.globalObjectFor(element), namer.staticClosureName(element)]);
+  }
 
   @override
   jsAst.PropertyAccess staticFieldAccess(FieldElement element) {
@@ -355,8 +320,8 @@ class Emitter implements js_emitter.Emitter {
   }
 
   @override
-  jsAst.PropertyAccess prototypeAccess(ClassElement element,
-                                       bool hasBeenInstantiated) {
+  jsAst.PropertyAccess prototypeAccess(
+      ClassElement element, bool hasBeenInstantiated) {
     return jsAst.js('#.prototype', constructorAccess(element));
   }
 
@@ -374,8 +339,8 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Template templateForBuiltin(JsBuiltin builtin) {
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
-        return jsAst.js.expressionTemplateYielding(
-            typeAccess(coreClasses.objectClass));
+        return jsAst.js
+            .expressionTemplateYielding(typeAccess(coreClasses.objectClass));
 
       case JsBuiltin.isCheckPropertyToJsConstructorName:
         int isPrefixLength = namer.operatorIsPrefix.length;
@@ -397,8 +362,8 @@ class Emitter implements js_emitter.Emitter {
         // TODO(floitsch): move this closer to where is-check properties are
         // built.
         String isPrefix = namer.operatorIsPrefix;
-        return jsAst.js.expressionTemplateFor(
-            "('$isPrefix' + #) in #.prototype");
+        return jsAst.js
+            .expressionTemplateFor("('$isPrefix' + #) in #.prototype");
 
       case JsBuiltin.isGivenTypeRti:
         return jsAst.js.expressionTemplateFor('#.$typeNameProperty === #');
@@ -421,13 +386,13 @@ class Emitter implements js_emitter.Emitter {
         return jsAst.js.expressionTemplateFor("$functionGettersMap[#]()");
 
       default:
-        reporter.internalError(NO_LOCATION_SPANNABLE,
-            "Unhandled Builtin: $builtin");
+        reporter.internalError(
+            NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
         return null;
     }
   }
 
-  List<jsAst.Statement> buildTrivialNsmHandlers(){
+  List<jsAst.Statement> buildTrivialNsmHandlers() {
     return nsmEmitter.buildTrivialNsmHandlers();
   }
 
@@ -438,9 +403,7 @@ class Emitter implements js_emitter.Emitter {
       jsAst.Expression interceptorsByTagAccess,
       jsAst.Expression leafTagsAccess) {
     return NativeGenerator.buildNativeInfoHandler(infoAccess, constructorAccess,
-                                                  subclassReadGenerator,
-                                                  interceptorsByTagAccess,
-                                                  leafTagsAccess);
+        subclassReadGenerator, interceptorsByTagAccess, leafTagsAccess);
   }
 
   jsAst.ObjectInitializer generateInterceptedNamesSet() {
@@ -451,12 +414,12 @@ class Emitter implements js_emitter.Emitter {
   bool _isNativeTypeNeedingReflectionName(Element element) {
     if (!element.isClass) return false;
     return (element == coreClasses.intClass ||
-            element == coreClasses.doubleClass ||
-            element == coreClasses.numClass ||
-            element == coreClasses.stringClass ||
-            element == coreClasses.boolClass ||
-            element == coreClasses.nullClass ||
-            element == coreClasses.listClass);
+        element == coreClasses.doubleClass ||
+        element == coreClasses.numClass ||
+        element == coreClasses.stringClass ||
+        element == coreClasses.boolClass ||
+        element == coreClasses.nullClass ||
+        element == coreClasses.listClass);
   }
 
   /// Returns the "reflection name" of an [Element] or [Selector].
@@ -474,12 +437,11 @@ class Emitter implements js_emitter.Emitter {
     String name = elementOrSelector.name;
     if (backend.shouldRetainName(name) ||
         elementOrSelector is Element &&
-        // Make sure to retain names of unnamed constructors, and
-        // for common native types.
-        ((name == '' &&
-          backend.isAccessibleByReflection(elementOrSelector)) ||
-         _isNativeTypeNeedingReflectionName(elementOrSelector))) {
-
+            // Make sure to retain names of unnamed constructors, and
+            // for common native types.
+            ((name == '' &&
+                    backend.isAccessibleByReflection(elementOrSelector)) ||
+                _isNativeTypeNeedingReflectionName(elementOrSelector))) {
       // TODO(ahe): Enable the next line when I can tell the difference between
       // an instance method and a global.  They may have the same mangled name.
       // if (recordedMangledNames.contains(mangledName)) return null;
@@ -489,8 +451,7 @@ class Emitter implements js_emitter.Emitter {
     return null;
   }
 
-  String getReflectionNameInternal(elementOrSelector,
-                                   jsAst.Name mangledName) {
+  String getReflectionNameInternal(elementOrSelector, jsAst.Name mangledName) {
     String name = namer.privateName(elementOrSelector.memberName);
     if (elementOrSelector.isGetter) return name;
     if (elementOrSelector.isSetter) {
@@ -512,9 +473,9 @@ class Emitter implements js_emitter.Emitter {
       // with each other.
       return " $name";
     }
-    if (elementOrSelector is Selector
-        || elementOrSelector.isFunction
-        || elementOrSelector.isConstructor) {
+    if (elementOrSelector is Selector ||
+        elementOrSelector.isFunction ||
+        elementOrSelector.isConstructor) {
       int positionalParameterCount;
       String namedArguments = '';
       bool isConstructor = false;
@@ -560,8 +521,8 @@ class Emitter implements js_emitter.Emitter {
     } else if (element.isTypedef) {
       return element.name;
     }
-    throw reporter.internalError(element,
-        'Do not know how to reflect on this $element.');
+    throw reporter.internalError(
+        element, 'Do not know how to reflect on this $element.');
   }
 
   String namedParametersAsReflectionNames(CallStructure structure) {
@@ -570,43 +531,45 @@ class Emitter implements js_emitter.Emitter {
     return ':$names';
   }
 
-  jsAst.Statement buildCspPrecompiledFunctionFor(
-      OutputUnit outputUnit) {
-    if (compiler.useContentSecurityPolicy) {
+  jsAst.Statement buildCspPrecompiledFunctionFor(OutputUnit outputUnit) {
+    if (compiler.options.useContentSecurityPolicy) {
       // TODO(ahe): Compute a hash code.
       // TODO(sigurdm): Avoid this precompiled function. Generated
       // constructor-functions and getter/setter functions can be stored in the
       // library-description table. Setting properties on these can be moved to
       // finishClasses.
-      return js.statement(r"""
+      return js.statement(
+          r"""
         #precompiled = function ($collectedClasses$) {
           #norename;
           var $desc;
           #functions;
           return #result;
         };""",
-        {'norename': new jsAst.Comment("// ::norenaming:: "),
-         'precompiled': generateEmbeddedGlobalAccess(embeddedNames.PRECOMPILED),
-         'functions': cspPrecompiledFunctionFor(outputUnit),
-         'result': new jsAst.ArrayInitializer(
-               cspPrecompiledConstructorNamesFor(outputUnit))});
+          {
+            'norename': new jsAst.Comment("// ::norenaming:: "),
+            'precompiled':
+                generateEmbeddedGlobalAccess(embeddedNames.PRECOMPILED),
+            'functions': cspPrecompiledFunctionFor(outputUnit),
+            'result': new jsAst.ArrayInitializer(
+                cspPrecompiledConstructorNamesFor(outputUnit))
+          });
     } else {
       return js.comment("Constructors are generated at runtime.");
     }
   }
 
-  void assembleClass(Class cls, ClassBuilder enclosingBuilder,
-                     Fragment fragment) {
+  void assembleClass(
+      Class cls, ClassBuilder enclosingBuilder, Fragment fragment) {
     ClassElement classElement = cls.element;
     reporter.withCurrentElement(classElement, () {
-      if (compiler.hasIncrementalSupport) {
+      if (compiler.options.hasIncrementalSupport) {
         ClassBuilder cachedBuilder =
             cachedClassBuilders.putIfAbsent(classElement, () {
-              ClassBuilder builder =
-                  new ClassBuilder.forClass(classElement, namer);
-              classEmitter.emitClass(cls, builder, fragment);
-              return builder;
-            });
+          ClassBuilder builder = new ClassBuilder.forClass(classElement, namer);
+          classEmitter.emitClass(cls, builder, fragment);
+          return builder;
+        });
         invariant(classElement, cachedBuilder.fields.isEmpty);
         invariant(classElement, cachedBuilder.superName == null);
         invariant(classElement, cachedBuilder.functionType == null);
@@ -618,8 +581,8 @@ class Emitter implements js_emitter.Emitter {
     });
   }
 
-  void assembleStaticFunctions(Iterable<Method> staticFunctions,
-                               Fragment fragment) {
+  void assembleStaticFunctions(
+      Iterable<Method> staticFunctions, Fragment fragment) {
     if (staticFunctions == null) return;
 
     for (Method method in staticFunctions) {
@@ -629,17 +592,18 @@ class Emitter implements js_emitter.Emitter {
       if (element == null) continue;
       ClassBuilder builder = new ClassBuilder.forStatics(element, namer);
       containerBuilder.addMemberMethod(method, builder);
-      getElementDescriptor(element, fragment).properties
+      getElementDescriptor(element, fragment)
+          .properties
           .addAll(builder.properties);
     }
   }
 
   jsAst.Statement buildStaticNonFinalFieldInitializations(
       OutputUnit outputUnit) {
-    jsAst.Statement buildInitialization(Element element,
-                                       jsAst.Expression initialValue) {
+    jsAst.Statement buildInitialization(
+        Element element, jsAst.Expression initialValue) {
       return js.statement('${namer.staticStateHolder}.# = #',
-                          [namer.globalPropertyName(element), initialValue]);
+          [namer.globalPropertyName(element), initialValue]);
     }
 
     bool inMainUnit = (outputUnit == compiler.deferredLoadTask.mainOutputUnit);
@@ -650,9 +614,9 @@ class Emitter implements js_emitter.Emitter {
     // If the outputUnit does not contain any static non-final fields, then
     // [fields] is `null`.
     if (fields != null) {
-      for (Element element in fields) {
+      for (FieldElement element in fields) {
         reporter.withCurrentElement(element, () {
-          ConstantValue constant = handler.getInitialValueFor(element);
+          ConstantValue constant = handler.getConstantValue(element.constant);
           parts.add(buildInitialization(element, constantReference(constant)));
         });
       }
@@ -663,7 +627,7 @@ class Emitter implements js_emitter.Emitter {
       // variables, so that `isolateProperties` stays a fast object.
       outputStaticNonFinalFieldLists.forEach(
           (OutputUnit fieldsOutputUnit, Iterable<VariableElement> fields) {
-        if (fieldsOutputUnit == outputUnit) return;  // Skip the main unit.
+        if (fieldsOutputUnit == outputUnit) return; // Skip the main unit.
         for (Element element in fields) {
           reporter.withCurrentElement(element, () {
             parts.add(buildInitialization(element, jsAst.number(0)));
@@ -676,12 +640,14 @@ class Emitter implements js_emitter.Emitter {
   }
 
   jsAst.Statement buildLazilyInitializedStaticFields(
-      Iterable<StaticField> lazyFields, {bool isMainFragment: true}) {
+      Iterable<StaticField> lazyFields,
+      {bool isMainFragment: true}) {
     if (lazyFields.isNotEmpty) {
       needsLazyInitializer = true;
       List<jsAst.Expression> laziesInfo =
           buildLaziesInfo(lazyFields, isMainFragment);
-      return js.statement('''
+      return js.statement(
+          '''
       (function(lazies) {
         for (var i = 0; i < lazies.length; ) {
           var fieldName = lazies[i++];
@@ -712,11 +678,14 @@ class Emitter implements js_emitter.Emitter {
           }
         }
       })(#laziesInfo)
-      ''', {'notMinified': !compiler.enableMinification,
+      ''',
+          {
+            'notMinified': !compiler.options.enableMinification,
             'laziesInfo': new jsAst.ArrayInitializer(laziesInfo),
             'lazy': js(lazyInitializerName),
             'isMainFragment': isMainFragment,
-            'isDeferredFragment': !isMainFragment});
+            'isDeferredFragment': !isMainFragment
+          });
     } else {
       return js.comment("No lazy statics.");
     }
@@ -729,7 +698,7 @@ class Emitter implements js_emitter.Emitter {
       laziesInfo.add(js.quoteName(field.name));
       laziesInfo.add(js.quoteName(namer.deriveLazyInitializerName(field.name)));
       laziesInfo.add(field.code);
-      if (!compiler.enableMinification) {
+      if (!compiler.options.enableMinification) {
         laziesInfo.add(js.quoteName(field.name));
       }
       if (!isMainFragment) {
@@ -740,8 +709,8 @@ class Emitter implements js_emitter.Emitter {
   }
 
   // TODO(sra): Remove this unused function.
-  jsAst.Expression buildLazilyInitializedStaticField(
-      VariableElement element, {String isolateProperties}) {
+  jsAst.Expression buildLazilyInitializedStaticField(VariableElement element,
+      {String isolateProperties}) {
     jsAst.Expression code = backend.generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
@@ -755,28 +724,31 @@ class Emitter implements js_emitter.Emitter {
     if (isolateProperties != null) {
       // This is currently only used in incremental compilation to patch
       // in new lazy values.
-      return js('#(#,#,#,#,#)',
-          [js(lazyInitializerName),
-           js.quoteName(namer.globalPropertyName(element)),
-           js.quoteName(namer.lazyInitializerName(element)),
-           code,
-           js.string(element.name),
-           isolateProperties]);
+      return js('#(#,#,#,#,#)', [
+        js(lazyInitializerName),
+        js.quoteName(namer.globalPropertyName(element)),
+        js.quoteName(namer.lazyInitializerName(element)),
+        code,
+        js.string(element.name),
+        isolateProperties
+      ]);
     }
 
-    if (compiler.enableMinification) {
-      return js('#(#,#,#)',
-          [js(lazyInitializerName),
-           js.quoteName(namer.globalPropertyName(element)),
-           js.quoteName(namer.lazyInitializerName(element)),
-           code]);
+    if (compiler.options.enableMinification) {
+      return js('#(#,#,#)', [
+        js(lazyInitializerName),
+        js.quoteName(namer.globalPropertyName(element)),
+        js.quoteName(namer.lazyInitializerName(element)),
+        code
+      ]);
     } else {
-      return js('#(#,#,#,#)',
-          [js(lazyInitializerName),
-           js.quoteName(namer.globalPropertyName(element)),
-           js.quoteName(namer.lazyInitializerName(element)),
-           code,
-           js.string(element.name)]);
+      return js('#(#,#,#,#)', [
+        js(lazyInitializerName),
+        js.quoteName(namer.globalPropertyName(element)),
+        js.quoteName(namer.lazyInitializerName(element)),
+        code,
+        js.string(element.name)
+      ]);
     }
   }
 
@@ -791,27 +763,27 @@ class Emitter implements js_emitter.Emitter {
       jsAst.Expression typesAccess =
           generateEmbeddedGlobalAccess(embeddedNames.TYPES);
 
-      parts..add(js.statement('# = #;', [metadataAccess, program.metadata]))
-           ..add(js.statement('# = #;', [typesAccess, types]));
+      parts
+        ..add(js.statement('# = #;', [metadataAccess, program.metadata]))
+        ..add(js.statement('# = #;', [typesAccess, types]));
     } else if (types != null) {
-      parts.add(js.statement('var ${namer.deferredTypesName} = #;',
-                             types));
+      parts.add(js.statement('var ${namer.deferredTypesName} = #;', types));
     }
     return new jsAst.Block(parts);
   }
 
   jsAst.Statement buildCompileTimeConstants(List<Constant> constants,
-                                           {bool isMainFragment}) {
+      {bool isMainFragment}) {
     assert(isMainFragment != null);
 
     if (constants.isEmpty) return js.comment("No constants in program.");
     List<jsAst.Statement> parts = <jsAst.Statement>[];
-    if (compiler.hasIncrementalSupport && isMainFragment) {
+    if (compiler.options.hasIncrementalSupport && isMainFragment) {
       parts = cachedEmittedConstantsAst;
     }
     for (Constant constant in constants) {
       ConstantValue constantValue = constant.value;
-      if (compiler.hasIncrementalSupport && isMainFragment) {
+      if (compiler.options.hasIncrementalSupport && isMainFragment) {
         if (cachedEmittedConstants.contains(constantValue)) continue;
         cachedEmittedConstants.add(constantValue);
       }
@@ -823,9 +795,11 @@ class Emitter implements js_emitter.Emitter {
 
   jsAst.Statement buildConstantInitializer(ConstantValue constant) {
     jsAst.Name name = namer.constantName(constant);
-    jsAst.Statement initializer = js.statement('#.# = #',
-                        [namer.globalObjectForConstant(constant), name,
-                         constantInitializerExpression(constant)]);
+    jsAst.Statement initializer = js.statement('#.# = #', [
+      namer.globalObjectForConstant(constant),
+      name,
+      constantInitializerExpression(constant)
+    ]);
     compiler.dumpInfoTask.registerConstantAst(constant, initializer);
     return initializer;
   }
@@ -837,7 +811,8 @@ class Emitter implements js_emitter.Emitter {
 
   jsAst.Statement buildMakeConstantList(bool outputContainsConstantList) {
     if (outputContainsConstantList) {
-      return js.statement(r'''
+      return js.statement(
+          r'''
           // Functions are stored in the hidden class and not as properties in
           // the object. We never actually look at the value, but only want
           // to know if the property exists.
@@ -854,13 +829,12 @@ class Emitter implements js_emitter.Emitter {
 
   jsAst.Statement buildFunctionThatReturnsNull() {
     return js.statement('#.# = function() {}',
-                        [namer.isolateName,
-                         backend.rtiEncoder.getFunctionThatReturnsNullName]);
+        [namer.isolateName, backend.rtiEncoder.getFunctionThatReturnsNullName]);
   }
 
   jsAst.Expression generateFunctionThatReturnsNull() {
-    return js("#.#", [namer.isolateName,
-                      backend.rtiEncoder.getFunctionThatReturnsNullName]);
+    return js("#.#",
+        [namer.isolateName, backend.rtiEncoder.getFunctionThatReturnsNullName]);
   }
 
   buildMain(jsAst.Statement invokeMain) {
@@ -869,23 +843,25 @@ class Emitter implements js_emitter.Emitter {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
     if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
-      parts.add(
-          NativeGenerator.generateIsolateAffinityTagInitialization(
-              backend,
-              generateEmbeddedGlobalAccess,
-              js("""
+      parts.add(NativeGenerator.generateIsolateAffinityTagInitialization(
+          backend,
+          generateEmbeddedGlobalAccess,
+          js(
+              """
         // On V8, the 'intern' function converts a string to a symbol, which
         // makes property access much faster.
         function (s) {
           var o = {};
           o[s] = 1;
           return Object.keys(convertToFastObject(o))[0];
-        }""", [])));
+        }""",
+              [])));
     }
 
-    parts..add(js.comment('BEGIN invoke [main].'))
-         ..add(invokeMain)
-         ..add(js.comment('END invoke [main].'));
+    parts
+      ..add(js.comment('BEGIN invoke [main].'))
+      ..add(invokeMain)
+      ..add(js.comment('END invoke [main].'));
 
     return new jsAst.Block(parts);
   }
@@ -906,7 +882,8 @@ class Emitter implements js_emitter.Emitter {
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
-    return js.statement('''
+    return js.statement(
+        '''
       function init() {
         $isolatePropertiesName = Object.create(null);
         #allClasses = map();
@@ -1016,20 +993,24 @@ class Emitter implements js_emitter.Emitter {
           return Isolate;
       }
 
-      }''', {'allClasses': allClassesAccess,
-            'getTypeFromName': getTypeFromNameAccess,
-            'interceptorsByTag': interceptorsByTagAccess,
-            'leafTags': leafTagsAccess,
-            'finishedClasses': finishedClassesAccess,
-            'needsLazyInitializer': needsLazyInitializer,
-            'lazies': laziesAccess, 'cyclicThrow': cyclicThrow,
-            'isolatePropertiesName': namer.isolatePropertiesName,
-            'outputContainsConstantList': outputContainsConstantList,
-            'makeConstListProperty': makeConstListProperty,
-            'functionThatReturnsNullProperty':
-                backend.rtiEncoder.getFunctionThatReturnsNullName,
-            'hasIncrementalSupport': compiler.hasIncrementalSupport,
-            'lazyInitializerProperty': lazyInitializerProperty,});
+      }''',
+        {
+          'allClasses': allClassesAccess,
+          'getTypeFromName': getTypeFromNameAccess,
+          'interceptorsByTag': interceptorsByTagAccess,
+          'leafTags': leafTagsAccess,
+          'finishedClasses': finishedClassesAccess,
+          'needsLazyInitializer': needsLazyInitializer,
+          'lazies': laziesAccess,
+          'cyclicThrow': cyclicThrow,
+          'isolatePropertiesName': namer.isolatePropertiesName,
+          'outputContainsConstantList': outputContainsConstantList,
+          'makeConstListProperty': makeConstListProperty,
+          'functionThatReturnsNullProperty':
+              backend.rtiEncoder.getFunctionThatReturnsNullName,
+          'hasIncrementalSupport': compiler.options.hasIncrementalSupport,
+          'lazyInitializerProperty': lazyInitializerProperty,
+        });
   }
 
   jsAst.Statement buildConvertToFastObjectFunction() {
@@ -1048,7 +1029,8 @@ class Emitter implements js_emitter.Emitter {
         }'''));
     }
 
-    return js.statement(r'''
+    return js.statement(
+        r'''
       function convertToFastObject(properties) {
         // Create an instance that uses 'properties' as prototype. This should
         // make 'properties' a fast object.
@@ -1057,7 +1039,8 @@ class Emitter implements js_emitter.Emitter {
         new MyClass();
         #;
         return properties;
-      }''', [debugCode]);
+      }''',
+        [debugCode]);
   }
 
   jsAst.Statement buildConvertToSlowObjectFunction() {
@@ -1074,7 +1057,7 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Statement buildSupportsDirectProtoAccess() {
     jsAst.Statement supportsDirectProtoAccess;
 
-    if (compiler.hasIncrementalSupport) {
+    if (compiler.options.hasIncrementalSupport) {
       supportsDirectProtoAccess = js.statement(r'''
         var supportsDirectProtoAccess = false;
       ''');
@@ -1084,29 +1067,47 @@ class Emitter implements js_emitter.Emitter {
           var cls = function () {};
           cls.prototype = {'p': {}};
           var object = new cls();
-          return object.__proto__ &&
-                 object.__proto__.p === cls.prototype.p;
-         })();
+          if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
+            return false;
+    
+          try {
+            // Are we running on a platform where the performance is good?
+            // (i.e. Chrome or d8).
+
+            // Chrome userAgent?
+            if (typeof navigator != "undefined" &&
+                typeof navigator.userAgent == "string" &&
+                navigator.userAgent.indexOf("Chrome/") >= 0) return true;
+
+            // d8 version() looks like "N.N.N.N", jsshell version() like "N".
+            if (typeof version == "function" &&
+                version.length == 0) {
+              var v = version();
+              if (/^\d+\.\d+\.\d+\.\d+$/.test(v)) return true;
+            }
+          } catch(_) {}
+          
+          return false;
+        })();
       ''');
     }
 
     return supportsDirectProtoAccess;
   }
 
-  jsAst.Expression generateLibraryDescriptor(LibraryElement library,
-                                             Fragment fragment) {
+  jsAst.Expression generateLibraryDescriptor(
+      LibraryElement library, Fragment fragment) {
     var uri = "";
-    if (!compiler.enableMinification || backend.mustPreserveUris) {
+    if (!compiler.options.enableMinification || backend.mustPreserveUris) {
       uri = library.canonicalUri;
-      if (uri.scheme == 'file' && compiler.outputUri != null) {
-        uri = relativize(compiler.outputUri, library.canonicalUri, false);
+      if (uri.scheme == 'file' && compiler.options.outputUri != null) {
+        uri =
+            relativize(compiler.options.outputUri, library.canonicalUri, false);
       }
     }
 
-    String libraryName =
-        (!compiler.enableMinification || backend.mustRetainLibraryNames) ?
-        library.libraryName :
-        "";
+    String libraryName = (!compiler.options.enableMinification ||
+        backend.mustRetainLibraryNames) ? library.libraryName : "";
 
     jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
 
@@ -1127,11 +1128,12 @@ class Emitter implements js_emitter.Emitter {
     compiler.dumpInfoTask.registerElementAst(library, initializer);
 
     List<jsAst.Expression> parts = <jsAst.Expression>[];
-    parts..add(js.string(libraryName))
-         ..add(js.string(uri.toString()))
-         ..add(metadata == null ? new jsAst.ArrayHole() : metadata)
-         ..add(js('#', namer.globalObjectFor(library)))
-         ..add(initializer);
+    parts
+      ..add(js.string(libraryName))
+      ..add(js.string(uri.toString()))
+      ..add(metadata == null ? new jsAst.ArrayHole() : metadata)
+      ..add(js('#', namer.globalObjectFor(library)))
+      ..add(initializer);
     if (library == compiler.mainApp) {
       parts.add(js.number(1));
     }
@@ -1139,12 +1141,13 @@ class Emitter implements js_emitter.Emitter {
     return new jsAst.ArrayInitializer(parts);
   }
 
-  void assemblePrecompiledConstructor(OutputUnit outputUnit,
-                                      jsAst.Name constructorName,
-                                      jsAst.Expression constructorAst,
-                                      List<jsAst.Name> fields) {
-    cspPrecompiledFunctionFor(outputUnit).add(
-        new jsAst.FunctionDeclaration(constructorName, constructorAst));
+  void assemblePrecompiledConstructor(
+      OutputUnit outputUnit,
+      jsAst.Name constructorName,
+      jsAst.Expression constructorAst,
+      List<jsAst.Name> fields) {
+    cspPrecompiledFunctionFor(outputUnit)
+        .add(new jsAst.FunctionDeclaration(constructorName, constructorAst));
 
     String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
     bool hasIsolateSupport = compiler.hasIsolateSupport;
@@ -1156,7 +1159,8 @@ class Emitter implements js_emitter.Emitter {
       fieldNamesArray = new jsAst.LiteralNull();
     }
 
-    cspPrecompiledFunctionFor(outputUnit).add(js.statement(r'''
+    cspPrecompiledFunctionFor(outputUnit).add(js.statement(
+        r'''
         {
           #constructorName.#typeNameProperty = #constructorNameString;
           // IE does not have a name property.
@@ -1169,11 +1173,13 @@ class Emitter implements js_emitter.Emitter {
             #constructorName.$fieldNamesProperty = #fieldNamesArray;
           }
         }''',
-        {"constructorName": constructorName,
-         "typeNameProperty": typeNameProperty,
-         "constructorNameString": js.quoteName(constructorName),
-         "hasIsolateSupport": hasIsolateSupport,
-         "fieldNamesArray": fieldNamesArray}));
+        {
+          "constructorName": constructorName,
+          "typeNameProperty": typeNameProperty,
+          "constructorNameString": js.quoteName(constructorName),
+          "hasIsolateSupport": hasIsolateSupport,
+          "fieldNamesArray": fieldNamesArray
+        }));
 
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }
@@ -1194,10 +1200,10 @@ class Emitter implements js_emitter.Emitter {
       jsAst.Expression typeIndex =
           task.metadataCollector.reifyType(type, ignoreTypeVariables: true);
       ClassBuilder builder = new ClassBuilder.forStatics(typedef, namer);
-      builder.addPropertyByName(embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME,
-                                typeIndex);
-      builder.addPropertyByName(embeddedNames.TYPEDEF_PREDICATE_PROPERTY_NAME,
-                                js.boolean(true));
+      builder.addPropertyByName(
+          embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME, typeIndex);
+      builder.addPropertyByName(
+          embeddedNames.TYPEDEF_PREDICATE_PROPERTY_NAME, js.boolean(true));
 
       // We can be pretty sure that the objectClass is initialized, since
       // typedefs are only emitted with reflection, which requires lots of
@@ -1208,16 +1214,14 @@ class Emitter implements js_emitter.Emitter {
       jsAst.Name mangledName = namer.globalPropertyName(typedef);
       String reflectionName = getReflectionName(typedef, mangledName);
       getElementDescriptor(library, mainFragment)
-          ..addProperty(mangledName, declaration)
-          ..addPropertyByName("+$reflectionName", js.string(''));
+        ..addProperty(mangledName, declaration)
+        ..addPropertyByName("+$reflectionName", js.string(''));
       // Also emit a trivial constructor for CSP mode.
       jsAst.Name constructorName = mangledName;
       jsAst.Expression constructorAst = js('function() {}');
       List<jsAst.Name> fieldNames = [];
-      assemblePrecompiledConstructor(mainOutputUnit,
-                                     constructorName,
-                                     constructorAst,
-                                     fieldNames);
+      assemblePrecompiledConstructor(
+          mainOutputUnit, constructorName, constructorAst, fieldNames);
     }
   }
 
@@ -1236,13 +1240,12 @@ class Emitter implements js_emitter.Emitter {
       if (isProgramSplit) {
         String template =
             "var #globalObject = #globalsHolder.#globalObject = map();";
-        parts.add(js.statement(template, {"globalObject": globalObject,
-                                          "globalsHolder": globalsHolder}));
+        parts.add(js.statement(template,
+            {"globalObject": globalObject, "globalsHolder": globalsHolder}));
       } else {
-        parts.add(js.statement("var #globalObject = map();",
-                               {"globalObject": globalObject}));
+        parts.add(js.statement(
+            "var #globalObject = map();", {"globalObject": globalObject}));
       }
-
     }
 
     return new jsAst.Block(parts);
@@ -1294,13 +1297,15 @@ class Emitter implements js_emitter.Emitter {
        '''));
 
       for (String object in Namer.userGlobalObjects) {
-        parts.add(js.statement('''
+        parts.add(js.statement(
+            '''
           if (typeof print === "function") {
             print("Size of " + #objectString + ": "
                   + String(Object.getOwnPropertyNames(#object).length)
                   + ", fast properties " + HasFastProperties(#object));
           }
-        ''', {"object": object, "objectString": js.string(object)}));
+        ''',
+            {"object": object, "objectString": js.string(object)}));
       }
     }
 
@@ -1325,8 +1330,7 @@ class Emitter implements js_emitter.Emitter {
     }
 
     if (!mangledGlobalFieldNames.isEmpty) {
-      List<jsAst.Name> keys = mangledGlobalFieldNames.keys.toList()
-          ..sort();
+      List<jsAst.Name> keys = mangledGlobalFieldNames.keys.toList()..sort();
       List<jsAst.Property> properties = <jsAst.Property>[];
       for (jsAst.Name key in keys) {
         jsAst.Literal value = js.string(mangledGlobalFieldNames[key]);
@@ -1343,18 +1347,17 @@ class Emitter implements js_emitter.Emitter {
 
   void checkEverythingEmitted(Iterable<Element> elements) {
     List<Element> pendingStatics;
-    if (!compiler.hasIncrementalSupport) {
+    if (!compiler.options.hasIncrementalSupport) {
       pendingStatics =
           Elements.sortedByPosition(elements.where((e) => !e.isLibrary));
 
-      pendingStatics.forEach((element) =>
-          reporter.reportInfo(
-              element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
+      pendingStatics.forEach((element) => reporter.reportInfo(
+          element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
     }
 
     if (pendingStatics != null && !pendingStatics.isEmpty) {
-      reporter.internalError(pendingStatics.first,
-          'Pending statics (see above).');
+      reporter.internalError(
+          pendingStatics.first, 'Pending statics (see above).');
     }
   }
 
@@ -1386,9 +1389,10 @@ class Emitter implements js_emitter.Emitter {
     /// variable. The deferred hunks will add their initialization to this.
     /// The semicolon is important in minified mode, without it the
     /// following parenthesis looks like a call to the object literal.
-    return js.statement('self.#deferredInitializers = '
-                        'self.#deferredInitializers || Object.create(null);',
-                        {'deferredInitializers': deferredInitializers});
+    return js.statement(
+        'self.#deferredInitializers = '
+        'self.#deferredInitializers || Object.create(null);',
+        {'deferredInitializers': deferredInitializers});
   }
 
   jsAst.Program buildOutputAstForMain(Program program,
@@ -1399,8 +1403,7 @@ class Emitter implements js_emitter.Emitter {
 
     List<jsAst.Statement> statements = <jsAst.Statement>[];
 
-    statements..add(buildGeneratedBy())
-              ..add(js.comment(HOOKS_API_USAGE));
+    statements..add(buildGeneratedBy())..add(js.comment(HOOKS_API_USAGE));
 
     if (isProgramSplit) {
       statements.add(buildDeferredHeader());
@@ -1422,15 +1425,15 @@ class Emitter implements js_emitter.Emitter {
     }
 
     if (descriptors.isNotEmpty) {
-      List<Element> remainingLibraries = descriptors.keys
-      .where((Element e) => e is LibraryElement)
-      .toList();
+      List<Element> remainingLibraries =
+          descriptors.keys.where((Element e) => e is LibraryElement).toList();
 
       // The remaining descriptors are only accessible through reflection.
       // The program builder does not collect libraries that only
       // contain typedefs that are used for reflection.
       for (LibraryElement element in remainingLibraries) {
-        assert(element is LibraryElement || compiler.hasIncrementalSupport);
+        assert(element is LibraryElement ||
+            compiler.options.hasIncrementalSupport);
         if (element is LibraryElement) {
           parts.add(generateLibraryDescriptor(element, mainFragment));
           descriptors.remove(element);
@@ -1441,7 +1444,8 @@ class Emitter implements js_emitter.Emitter {
 
     // Using a named function here produces easier to read stack traces in
     // Chrome/V8.
-    statements.add(js.statement("""
+    statements.add(js.statement(
+        """
     (function() {
        // No renaming in the top-level function to save the locals for the
        // nested context where they will be used more. We have to put the
@@ -1551,47 +1555,52 @@ class Emitter implements js_emitter.Emitter {
 
        #main;
     })();
-    """, {
-      "disableVariableRenaming": js.comment("/* ::norenaming:: */"),
-      "hasIncrementalSupport": compiler.hasIncrementalSupport,
-      "helper": js('this.#', [namer.incrementalHelperName]),
-      "schemaChange": buildSchemaChangeFunction(),
-      "addMethod": buildIncrementalAddMethod(),
-      "isProgramSplit": isProgramSplit,
-      "supportsDirectProtoAccess": buildSupportsDirectProtoAccess(),
-      "globalsHolder": globalsHolder,
-      "globalObjectSetup": buildGlobalObjectSetup(isProgramSplit),
-      "isolateName": namer.isolateName,
-      "isolatePropertiesName": js(isolatePropertiesName),
-      "initName": initName,
-      "functionThatReturnsNull": buildFunctionThatReturnsNull(),
-      "mangledNames": buildMangledNames(),
-      "setupProgram": buildSetupProgram(program, compiler, backend, namer, this),
-      "setupProgramName": setupProgramName,
-      "descriptors": descriptorsAst,
-      "cspPrecompiledFunctions": buildCspPrecompiledFunctionFor(mainOutputUnit),
-      "getInterceptorMethods": interceptorEmitter.buildGetInterceptorMethods(),
-      "oneShotInterceptors": interceptorEmitter.buildOneShotInterceptors(),
-      "makeConstantList":
-          buildMakeConstantList(program.outputContainsConstantList),
-      "compileTimeConstants":  buildCompileTimeConstants(mainFragment.constants,
-                                                         isMainFragment: true),
-      "deferredBoilerPlate": buildDeferredBoilerPlate(deferredLoadHashes),
-      "staticNonFinalInitializers": buildStaticNonFinalFieldInitializations(
-          mainOutputUnit),
-      "typeToInterceptorMap":
-          interceptorEmitter.buildTypeToInterceptorMap(program),
-      "lazyStaticFields": buildLazilyInitializedStaticFields(
-          mainFragment.staticLazilyInitializedFields),
-      "metadata": buildMetadata(program, mainOutputUnit),
-      "convertToFastObject": buildConvertToFastObjectFunction(),
-      "convertToSlowObject": buildConvertToSlowObjectFunction(),
-      "convertGlobalObjectsToFastObjects":
-          buildConvertGlobalObjectToFastObjects(),
-      "debugFastObjects": buildDebugFastObjectCode(),
-      "init": buildInitFunction(program.outputContainsConstantList),
-      "main": buildMain(mainFragment.invokeMain)
-    }));
+    """,
+        {
+          "disableVariableRenaming": js.comment("/* ::norenaming:: */"),
+          "hasIncrementalSupport": compiler.options.hasIncrementalSupport,
+          "helper": js('this.#', [namer.incrementalHelperName]),
+          "schemaChange": buildSchemaChangeFunction(),
+          "addMethod": buildIncrementalAddMethod(),
+          "isProgramSplit": isProgramSplit,
+          "supportsDirectProtoAccess": buildSupportsDirectProtoAccess(),
+          "globalsHolder": globalsHolder,
+          "globalObjectSetup": buildGlobalObjectSetup(isProgramSplit),
+          "isolateName": namer.isolateName,
+          "isolatePropertiesName": js(isolatePropertiesName),
+          "initName": initName,
+          "functionThatReturnsNull": buildFunctionThatReturnsNull(),
+          "mangledNames": buildMangledNames(),
+          "setupProgram":
+              buildSetupProgram(program, compiler, backend, namer, this),
+          "setupProgramName": setupProgramName,
+          "descriptors": descriptorsAst,
+          "cspPrecompiledFunctions":
+              buildCspPrecompiledFunctionFor(mainOutputUnit),
+          "getInterceptorMethods":
+              interceptorEmitter.buildGetInterceptorMethods(),
+          "oneShotInterceptors": interceptorEmitter.buildOneShotInterceptors(),
+          "makeConstantList":
+              buildMakeConstantList(program.outputContainsConstantList),
+          "compileTimeConstants": buildCompileTimeConstants(
+              mainFragment.constants,
+              isMainFragment: true),
+          "deferredBoilerPlate": buildDeferredBoilerPlate(deferredLoadHashes),
+          "staticNonFinalInitializers":
+              buildStaticNonFinalFieldInitializations(mainOutputUnit),
+          "typeToInterceptorMap":
+              interceptorEmitter.buildTypeToInterceptorMap(program),
+          "lazyStaticFields": buildLazilyInitializedStaticFields(
+              mainFragment.staticLazilyInitializedFields),
+          "metadata": buildMetadata(program, mainOutputUnit),
+          "convertToFastObject": buildConvertToFastObjectFunction(),
+          "convertToSlowObject": buildConvertToSlowObjectFunction(),
+          "convertGlobalObjectsToFastObjects":
+              buildConvertGlobalObjectToFastObjects(),
+          "debugFastObjects": buildDebugFastObjectCode(),
+          "init": buildInitFunction(program.outputContainsConstantList),
+          "main": buildMain(mainFragment.invokeMain)
+        }));
 
     return new jsAst.Program(statements);
   }
@@ -1604,36 +1613,34 @@ class Emitter implements js_emitter.Emitter {
       codeOutputListeners = <CodeOutputListener>[lineColumnCollector];
     }
 
-    CodeOutput mainOutput =
-        new StreamCodeOutput(compiler.outputProvider('', 'js'),
-                             codeOutputListeners);
+    CodeOutput mainOutput = new StreamCodeOutput(
+        compiler.outputProvider('', 'js'), codeOutputListeners);
     outputBuffers[mainOutputUnit] = mainOutput;
 
+    mainOutput.addBuffer(jsAst.createCodeBuffer(program, compiler,
+        monitor: compiler.dumpInfoTask));
 
-    mainOutput.addBuffer(jsAst.createCodeBuffer(
-        program, compiler, monitor: compiler.dumpInfoTask));
-
-    if (compiler.deferredMapUri != null) {
+    if (compiler.options.deferredMapUri != null) {
       outputDeferredMap();
     }
 
     if (generateSourceMap) {
-      mainOutput.add(
-          generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri));
+      mainOutput.add(generateSourceMapTag(
+          compiler.options.sourceMapUri, compiler.options.outputUri));
     }
 
     mainOutput.close();
 
     if (generateSourceMap) {
       outputSourceMap(mainOutput, lineColumnCollector, '',
-          compiler.sourceMapUri, compiler.outputUri);
+          compiler.options.sourceMapUri, compiler.options.outputUri);
     }
   }
 
   /// Used by incremental compilation to patch up the prototype of
   /// [oldConstructor] for use as prototype of [newConstructor].
   jsAst.Fun buildSchemaChangeFunction() {
-    if (!compiler.hasIncrementalSupport) return null;
+    if (!compiler.options.hasIncrementalSupport) return null;
     return js('''
 function(newConstructor, oldConstructor, superclass) {
   // Invariant: newConstructor.prototype has no interesting properties besides
@@ -1666,7 +1673,7 @@ function(newConstructor, oldConstructor, superclass) {
   /// top-level). [globalFunctionsAccess] is a reference to
   /// [embeddedNames.GLOBAL_FUNCTIONS].
   jsAst.Fun buildIncrementalAddMethod() {
-    if (!compiler.hasIncrementalSupport) return null;
+    if (!compiler.options.hasIncrementalSupport) return null;
     return js(r"""
 function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   var arrayOrFunction = originalDescriptor[name];
@@ -1775,8 +1782,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return outputs;
   }
 
-  void finalizeTokensInAst(jsAst.Program main,
-                           Iterable<jsAst.Program> deferredParts) {
+  void finalizeTokensInAst(
+      jsAst.Program main, Iterable<jsAst.Program> deferredParts) {
     jsAst.TokenCounter counter = new jsAst.TokenCounter();
     counter.countTokens(main);
     deferredParts.forEach(counter.countTokens);
@@ -1795,7 +1802,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         programBuilder.collector.outputStaticNonFinalFieldLists;
     outputLibraryLists = programBuilder.collector.outputLibraryLists;
     typedefsNeededForReflection =
-       programBuilder.collector.typedefsNeededForReflection;
+        programBuilder.collector.typedefsNeededForReflection;
 
     assembleProgram(program);
 
@@ -1805,11 +1812,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
     Map<OutputUnit, _DeferredOutputUnitHash> deferredHashTokens =
         new Map<OutputUnit, _DeferredOutputUnitHash>.fromIterables(
-          deferredParts.keys,
-          deferredParts.keys.map((OutputUnit unit) {
-            return new _DeferredOutputUnitHash(unit);
-          })
-        );
+            deferredParts.keys, deferredParts.keys.map((OutputUnit unit) {
+      return new _DeferredOutputUnitHash(unit);
+    }));
 
     jsAst.Program mainOutput =
         buildOutputAstForMain(program, deferredHashTokens);
@@ -1829,10 +1834,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     });
     emitMainOutputUnit(program.mainFragment.outputUnit, mainOutput);
 
-    if (backend.requiresPreamble &&
-        !backend.htmlLibraryIsLoaded) {
-      reporter.reportHintMessage(
-          NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+    if (backend.requiresPreamble && !backend.htmlLibraryIsLoaded) {
+      reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
     // Return the total program size.
     return outputBuffers.values.fold(0, (a, b) => a + b.length);
@@ -1857,8 +1860,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and
       // native elements.
-      ClassElement cls =
-          element.enclosingClassOrCompilationUnit.declaration;
+      ClassElement cls = element.enclosingClassOrCompilationUnit.declaration;
       if (compiler.codegenWorld.directlyInstantiatedClasses.contains(cls) &&
           !backend.isNative(cls) &&
           compiler.deferredLoadTask.outputUnitForElement(element) ==
@@ -1872,8 +1874,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return elementDescriptors
         .putIfAbsent(fragment, () => new Map<Element, ClassBuilder>())
         .putIfAbsent(owner, () {
-          return new ClassBuilder(owner, namer, owner.isClass);
-        });
+      return new ClassBuilder(owner, namer, owner.isClass);
+    });
   }
 
   /// Emits support-code for deferred loading into [output].
@@ -1881,7 +1883,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       Map<OutputUnit, _DeferredOutputUnitHash> deferredLoadHashes) {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    parts.add(js.statement('''
+    parts.add(js.statement(
+        '''
         {
           // Function for checking if a hunk is loaded given its hash.
           #isHunkLoaded = function(hunkHash) {
@@ -1899,15 +1902,18 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
             #deferredInitialized[hunkHash] = true;
           };
         }
-        ''', {"globalsHolder": globalsHolder,
-              "isHunkLoaded": generateEmbeddedGlobalAccess(
-                  embeddedNames.IS_HUNK_LOADED),
-              "isHunkInitialized": generateEmbeddedGlobalAccess(
-                  embeddedNames.IS_HUNK_INITIALIZED),
-              "initializeLoadedHunk": generateEmbeddedGlobalAccess(
-                  embeddedNames.INITIALIZE_LOADED_HUNK),
-              "deferredInitialized": generateEmbeddedGlobalAccess(
-                  embeddedNames.DEFERRED_INITIALIZED)}));
+        ''',
+        {
+          "globalsHolder": globalsHolder,
+          "isHunkLoaded":
+              generateEmbeddedGlobalAccess(embeddedNames.IS_HUNK_LOADED),
+          "isHunkInitialized":
+              generateEmbeddedGlobalAccess(embeddedNames.IS_HUNK_INITIALIZED),
+          "initializeLoadedHunk": generateEmbeddedGlobalAccess(
+              embeddedNames.INITIALIZE_LOADED_HUNK),
+          "deferredInitialized":
+              generateEmbeddedGlobalAccess(embeddedNames.DEFERRED_INITIALIZED)
+        }));
 
     // Write a javascript mapping from Deferred import load ids (derrived
     // from the import prefix.) to a list of lists of uris of hunks to load,
@@ -1917,15 +1923,15 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         new Map<String, List<jsAst.LiteralString>>();
     Map<String, List<_DeferredOutputUnitHash>> deferredLibraryHashes =
         new Map<String, List<_DeferredOutputUnitHash>>();
-    compiler.deferredLoadTask.hunksToLoad.forEach(
-                  (String loadId, List<OutputUnit>outputUnits) {
+    compiler.deferredLoadTask.hunksToLoad
+        .forEach((String loadId, List<OutputUnit> outputUnits) {
       List<jsAst.LiteralString> uris = new List<jsAst.LiteralString>();
       List<_DeferredOutputUnitHash> hashes =
           new List<_DeferredOutputUnitHash>();
       deferredLibraryHashes[loadId] = new List<_DeferredOutputUnitHash>();
       for (OutputUnit outputUnit in outputUnits) {
-        uris.add(js.escapedString(
-            backend.deferredPartFileName(outputUnit.name)));
+        uris.add(
+            js.escapedString(backend.deferredPartFileName(outputUnit.name)));
         hashes.add(deferredLoadHashes[outputUnit]);
       }
 
@@ -1936,8 +1942,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     void emitMapping(String name, Map<String, List<jsAst.Expression>> mapping) {
       List<jsAst.Property> properties = new List<jsAst.Property>();
       mapping.forEach((String key, List<jsAst.Expression> values) {
-        properties.add(new jsAst.Property(js.escapedString(key),
-            new jsAst.ArrayInitializer(values)));
+        properties.add(new jsAst.Property(
+            js.escapedString(key), new jsAst.ArrayInitializer(values)));
       });
       jsAst.Node initializer =
           new jsAst.ObjectInitializer(properties, isOneLiner: true);
@@ -1947,13 +1953,12 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     }
 
     emitMapping(embeddedNames.DEFERRED_LIBRARY_URIS, deferredLibraryUris);
-    emitMapping(embeddedNames.DEFERRED_LIBRARY_HASHES,
-                deferredLibraryHashes);
+    emitMapping(embeddedNames.DEFERRED_LIBRARY_HASHES, deferredLibraryHashes);
 
     return new jsAst.Block(parts);
   }
 
-  Map <OutputUnit, jsAst.Program> buildOutputAstForDeferredCode(
+  Map<OutputUnit, jsAst.Program> buildOutputAstForDeferredCode(
       Program program) {
     if (!program.isSplit) return const <OutputUnit, jsAst.Program>{};
 
@@ -1974,17 +1979,19 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
       for (String globalObject in Namer.reservedGlobalObjectNames) {
         body.add(js.statement('var #object = #globalsHolder.#object;',
-                              {'globalsHolder': globalsHolder,
-                               'object': globalObject}));
+            {'globalsHolder': globalsHolder, 'object': globalObject}));
       }
-      body..add(js.statement('var init = #globalsHolder.init;',
-                             {'globalsHolder': globalsHolder}))
-          ..add(js.statement('var $setupProgramName = '
-                             '#globalsHolder.$setupProgramName;',
-                             {'globalsHolder': globalsHolder}))
-          ..add(js.statement('var ${namer.isolateName} = '
-                             '#globalsHolder.${namer.isolateName};',
-                             {'globalsHolder': globalsHolder}));
+      body
+        ..add(js.statement('var init = #globalsHolder.init;',
+            {'globalsHolder': globalsHolder}))
+        ..add(js.statement(
+            'var $setupProgramName = '
+            '#globalsHolder.$setupProgramName;',
+            {'globalsHolder': globalsHolder}))
+        ..add(js.statement(
+            'var ${namer.isolateName} = '
+            '#globalsHolder.${namer.isolateName};',
+            {'globalsHolder': globalsHolder}));
       String typesAccess =
           generateEmbeddedGlobalAccessString(embeddedNames.TYPES);
       if (libraryDescriptor != null) {
@@ -1993,33 +2000,37 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         // in stack traces and profile entries.
         body.add(js.statement('var dart = #', libraryDescriptor));
 
-        if (compiler.useContentSecurityPolicy) {
+        if (compiler.options.useContentSecurityPolicy) {
           body.add(buildCspPrecompiledFunctionFor(outputUnit));
         }
         body.add(
             js.statement('$setupProgramName(dart, ${typesAccess}.length);'));
       }
 
-      body..add(buildMetadata(program, outputUnit))
-          ..add(js.statement('${typesAccess}.push.apply(${typesAccess}, '
-                             '${namer.deferredTypesName});'));
+      body
+        ..add(buildMetadata(program, outputUnit))
+        ..add(js.statement('${typesAccess}.push.apply(${typesAccess}, '
+            '${namer.deferredTypesName});'));
 
-      body.add(buildCompileTimeConstants(fragment.constants,
-                                         isMainFragment: false));
+      body.add(
+          buildCompileTimeConstants(fragment.constants, isMainFragment: false));
       body.add(buildStaticNonFinalFieldInitializations(outputUnit));
       body.add(buildLazilyInitializedStaticFields(
-          fragment.staticLazilyInitializedFields, isMainFragment: false));
+          fragment.staticLazilyInitializedFields,
+          isMainFragment: false));
 
       List<jsAst.Statement> statements = <jsAst.Statement>[];
 
       statements
-          ..add(buildGeneratedBy())
-          ..add(buildDeferredHeader())
-          ..add(js.statement('${deferredInitializers}.current = '
-                             """function (#, ${namer.staticStateHolder}) {
+        ..add(buildGeneratedBy())
+        ..add(buildDeferredHeader())
+        ..add(js.statement(
+            '${deferredInitializers}.current = '
+            """function (#, ${namer.staticStateHolder}) {
                                   #
                                 }
-                             """, [globalsHolder, body]));
+                             """,
+            [globalsHolder, body]));
 
       result[outputUnit] = new jsAst.Program(statements);
     }
@@ -2033,7 +2044,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   /// itself.
   Map<OutputUnit, String> emitDeferredOutputUnits(
       Map<OutputUnit, jsAst.Program> outputAsts) {
-
     Map<OutputUnit, String> hunkHashes = new Map<OutputUnit, String>();
 
     for (OutputUnit outputUnit in outputAsts.keys) {
@@ -2050,13 +2060,12 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       String partPrefix =
           backend.deferredPartFileName(outputUnit.name, addExtension: false);
       CodeOutput output = new StreamCodeOutput(
-          compiler.outputProvider(partPrefix, 'part.js'),
-          outputListeners);
+          compiler.outputProvider(partPrefix, 'part.js'), outputListeners);
 
       outputBuffers[outputUnit] = output;
 
-      output.addBuffer(jsAst.createCodeBuffer(
-          outputAsts[outputUnit], compiler, monitor: compiler.dumpInfoTask));
+      output.addBuffer(jsAst.createCodeBuffer(outputAsts[outputUnit], compiler,
+          monitor: compiler.dumpInfoTask));
 
       // Make a unique hash of the code (before the sourcemaps are added)
       // This will be used to retrieve the initializing function from the global
@@ -2064,12 +2073,12 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       String hash = hasher.getHash();
 
       output.add('$N${deferredInitializers}["$hash"]$_=$_'
-                       '${deferredInitializers}.current$N');
+          '${deferredInitializers}.current$N');
 
       if (generateSourceMap) {
         Uri mapUri, partUri;
-        Uri sourceMapUri = compiler.sourceMapUri;
-        Uri outputUri = compiler.outputUri;
+        Uri sourceMapUri = compiler.options.sourceMapUri;
+        Uri outputUri = compiler.options.outputUri;
 
         String partName = "$partPrefix.part";
 
@@ -2077,20 +2086,21 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
           String mapFileName = partName + ".js.map";
           List<String> mapSegments = sourceMapUri.pathSegments.toList();
           mapSegments[mapSegments.length - 1] = mapFileName;
-          mapUri = compiler.sourceMapUri.replace(pathSegments: mapSegments);
+          mapUri =
+              compiler.options.sourceMapUri.replace(pathSegments: mapSegments);
         }
 
         if (outputUri != null) {
           String partFileName = partName + ".js";
           List<String> partSegments = outputUri.pathSegments.toList();
           partSegments[partSegments.length - 1] = partFileName;
-          partUri = compiler.outputUri.replace(pathSegments: partSegments);
+          partUri =
+              compiler.options.outputUri.replace(pathSegments: partSegments);
         }
 
         output.add(generateSourceMapTag(mapUri, partUri));
         output.close();
-        outputSourceMap(output, lineColumnCollector, partName,
-                        mapUri, partUri);
+        outputSourceMap(output, lineColumnCollector, partName, mapUri, partUri);
       } else {
         output.close();
       }
@@ -2103,25 +2113,23 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   jsAst.Comment buildGeneratedBy() {
     List<String> options = [];
     if (compiler.mirrorsLibrary != null) options.add('mirrors');
-    if (compiler.useContentSecurityPolicy) options.add("CSP");
+    if (compiler.options.useContentSecurityPolicy) options.add("CSP");
     return new jsAst.Comment(generatedBy(compiler, flavor: options.join(", ")));
   }
 
-  void outputSourceMap(CodeOutput output,
-                       LineColumnProvider lineColumnProvider,
-                       String name,
-                       [Uri sourceMapUri,
-                        Uri fileUri]) {
+  void outputSourceMap(
+      CodeOutput output, LineColumnProvider lineColumnProvider, String name,
+      [Uri sourceMapUri, Uri fileUri]) {
     if (!generateSourceMap) return;
     // Create a source file for the compilation output. This allows using
     // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
     SourceMapBuilder sourceMapBuilder =
-            new SourceMapBuilder(sourceMapUri, fileUri, lineColumnProvider);
+        new SourceMapBuilder(sourceMapUri, fileUri, lineColumnProvider);
     output.forEachSourceLocation(sourceMapBuilder.addMapping);
     String sourceMap = sourceMapBuilder.build();
     compiler.outputProvider(name, 'js.map')
-        ..add(sourceMap)
-        ..close();
+      ..add(sourceMap)
+      ..close();
   }
 
   void outputDeferredMap() {
@@ -2131,20 +2139,20 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
-    compiler.outputProvider(compiler.deferredMapUri.path, 'deferred_map')
-        ..add(const JsonEncoder.withIndent("  ").convert(mapping))
-        ..close();
+    compiler.outputProvider(
+        compiler.options.deferredMapUri.path, 'deferred_map')
+      ..add(const JsonEncoder.withIndent("  ").convert(mapping))
+      ..close();
   }
 
   void invalidateCaches() {
-    if (!compiler.hasIncrementalSupport) return;
+    if (!compiler.options.hasIncrementalSupport) return;
     if (cachedElements.isEmpty) return;
     for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
       if (element.isInstanceMember) {
         cachedClassBuilders.remove(element.enclosingClass);
 
         nativeEmitter.cachedBuilders.remove(element.enclosingClass);
-
       }
     }
   }

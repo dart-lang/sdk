@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
+#include "vm/instructions.h"
 #include "vm/simulator.h"
 #include "vm/signal_handler.h"
 #if defined(TARGET_OS_LINUX)
@@ -72,7 +73,7 @@ uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
 
 uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
 #if defined(TARGET_ARCH_ARM64) && !defined(USING_SIMULATOR)
-  return static_cast<uintptr_t>(mcontext.regs[19]);
+  return static_cast<uintptr_t>(mcontext.regs[SPREG]);
 #else
   return GetCStackPointer(mcontext);
 #endif
@@ -99,7 +100,7 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
 }
 
 
-void SignalHandler::Install(SignalAction action) {
+void SignalHandler::InstallImpl(SignalAction action) {
   struct sigaction act;
   act.sa_handler = NULL;
   act.sa_sigaction = action;

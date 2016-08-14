@@ -12,8 +12,8 @@ import 'package:analysis_server/src/source/caching_pub_package_map_provider.dart
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
@@ -45,7 +45,7 @@ main() {
       packages.forEach((String name, String path) {
         resProvider.newFolder(path);
       });
-      List<String> inputFiles = result['input_files'];
+      List<String> inputFiles = result['input_files'] as List<String>;
       for (String path in inputFiles) {
         resProvider.newFile(path, '');
       }
@@ -74,7 +74,8 @@ main() {
     CachingPubPackageMapProvider newPkgProvider() {
       return new CachingPubPackageMapProvider(
           resProvider,
-          DirectoryBasedDartSdk.defaultSdk,
+          new FolderBasedDartSdk(
+              resProvider, FolderBasedDartSdk.defaultSdkDirectory(resProvider)),
           mockRunner.runPubList,
           mockWriteFile);
     }
@@ -282,7 +283,7 @@ main() {
 
 _assertError(PackageMapInfo info, Map expected) {
   expect(info.packageMap, isNull);
-  List<String> expectedFiles = expected['input_files'];
+  List<String> expectedFiles = expected['input_files'] as List<String>;
   expect(info.dependencies, hasLength(expectedFiles.length));
   for (String path in expectedFiles) {
     expect(info.dependencies, contains(path));
@@ -290,14 +291,15 @@ _assertError(PackageMapInfo info, Map expected) {
 }
 
 _assertInfo(PackageMapInfo info, Map expected) {
-  Map<String, String> expectedPackages = expected['packages'];
+  Map<String, String> expectedPackages =
+      expected['packages'] as Map<String, String>;
   expect(info.packageMap, hasLength(expectedPackages.length));
   for (String key in expectedPackages.keys) {
     List<Folder> packageList = info.packageMap[key];
     expect(packageList, hasLength(1));
     expect(packageList[0].path, expectedPackages[key]);
   }
-  List<String> expectedFiles = expected['input_files'];
+  List<String> expectedFiles = expected['input_files'] as List<String>;
   expect(info.dependencies, hasLength(expectedFiles.length));
   for (String path in expectedFiles) {
     expect(info.dependencies, contains(path));

@@ -38,8 +38,8 @@ Future setup() {
   return createTempDir().then((Directory directory) {
     tmpDir = directory;
     String newPath = path.join(directory.path, "dart2js_batch2_run.dart");
-    File source =
-        new File.fromUri(Platform.script.resolve("dart2js_batch2_run.dart"));
+    File source = new File.fromUri(
+        Platform.script.resolve("data/dart2js_batch2_run.dart"));
     source.copySync(newPath);
   });
 }

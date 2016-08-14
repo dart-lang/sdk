@@ -66,10 +66,10 @@ class StreamInfo {
  public:
   explicit StreamInfo(const char* id) : id_(id), enabled_(false) {}
 
-  const char* id() { return id_; }
+  const char* id() const { return id_; }
 
   void set_enabled(bool value) { enabled_ = value; }
-  bool enabled() { return enabled_; }
+  bool enabled() const { return enabled_; }
 
  private:
   const char* id_;
@@ -81,6 +81,10 @@ class Service : public AllStatic {
  public:
   // Handles a message which is not directed to an isolate.
   static void HandleRootMessage(const Array& message);
+
+  // Handles a message which is not directed to an isolate and also
+  // expects the parameter keys and values to be actual dart objects.
+  static void HandleObjectRootMessage(const Array& message);
 
   // Handles a message which is directed to a particular isolate.
   static void HandleIsolateMessage(Isolate* isolate, const Array& message);
@@ -105,7 +109,7 @@ class Service : public AllStatic {
       Dart_GetVMServiceAssetsArchive get_service_assets);
 
   static void SendEchoEvent(Isolate* isolate, const char* text);
-  static void SendGraphEvent(Thread* thread);
+  static void SendGraphEvent(Thread* thread, bool collect_garbage);
   static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
 
   static void SendEmbedderEvent(Isolate* isolate,
@@ -161,7 +165,9 @@ class Service : public AllStatic {
   static void PrintJSONForVM(JSONStream* js, bool ref);
 
  private:
-  static void InvokeMethod(Isolate* isolate, const Array& message);
+  static void InvokeMethod(Isolate* isolate,
+                           const Array& message,
+                           bool parameters_are_dart_objects = false);
 
   static void EmbedderHandleMessage(EmbedderServiceHandler* handler,
                                     JSONStream* js);

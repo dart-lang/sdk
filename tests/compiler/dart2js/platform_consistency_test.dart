@@ -20,12 +20,8 @@ main() async {
   Map<String, Uri> shared = await load(
       Uri.base.resolve("sdk/lib/dart_shared.platform"),
       input);
-  Map<String, Uri> dart2dart = await load(
-      Uri.base.resolve("sdk/lib/dart2dart.platform"),
-      input);
   Expect.setEquals(new Set.from(shared.keys), new Set.from(client.keys));
   Expect.setEquals(new Set.from(shared.keys), new Set.from(server.keys));
-  Expect.setEquals(new Set.from(shared.keys), new Set.from(dart2dart.keys));
 
   for (String libraryName in shared.keys) {
     test(Map<String, Uri> m) {
@@ -36,6 +32,5 @@ main() async {
     }
     test(client);
     test(server);
-    test(dart2dart);
   }
  }

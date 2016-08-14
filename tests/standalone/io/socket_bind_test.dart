@@ -63,23 +63,25 @@ negTestBindV6OnlyMismatch(String host, bool v6Only) {
 Future testBindDifferentAddresses(InternetAddress addr1,
                                   InternetAddress addr2,
                                   bool addr1V6Only,
-                                  bool addr2V6Only) {
-  asyncStart();
-  return ServerSocket.bind(
-      addr1, 0, v6Only: addr1V6Only, shared: false).then((socket) {
+                                  bool addr2V6Only) async {
+  int freePort = await freeIPv4AndIPv6Port();
+
+  var socket = await ServerSocket.bind(
+      addr1, freePort, v6Only: addr1V6Only, shared: false);
+
+  try {
     Expect.isTrue(socket.port > 0);
 
-    asyncStart();
-    return ServerSocket.bind(
-        addr2, socket.port, v6Only: addr2V6Only, shared: false).then((socket2) {
+    var socket2 = await ServerSocket.bind(
+        addr2, freePort, v6Only: addr2V6Only, shared: false);
+    try {
       Expect.equals(socket.port, socket2.port);
-
-      return Future.wait([
-          socket.close().whenComplete(asyncEnd),
-          socket2.close().whenComplete(asyncEnd),
-      ]);
-    });
-  });
+    } finally {
+      await socket2.close();
+    }
+  } finally {
+    await socket.close();
+  }
 }
 
 testListenCloseListenClose(String host) async {
@@ -110,7 +112,43 @@ testListenCloseListenClose(String host) async {
   asyncEnd();
 }
 
-void main() {
+Future<int> freeIPv4AndIPv6Port() async {
+  var socket =
+    await ServerSocket.bind(InternetAddress.ANY_IP_V6, 0, v6Only: false);
+  int port = socket.port;
+  await socket.close();
+  return port;
+}
+
+Future retry(Future fun(), {int maxCount: 10}) async {
+  for (int i = 0; i < maxCount; i++) {
+    try {
+      // If there is no exception this will simply return, otherwise we keep
+      // trying.
+      return await fun();
+    } catch (_) {}
+    print("Failed to execute test closure in attempt $i "
+          "(${maxCount - i} retries left).");
+  }
+  return await fun();
+}
+
+main() async {
+  asyncStart();
+
+  await retry(() async {
+    await testBindDifferentAddresses(InternetAddress.ANY_IP_V6,
+                                     InternetAddress.ANY_IP_V4,
+                                     true,
+                                     false);
+  });
+  await retry(() async {
+    await testBindDifferentAddresses(InternetAddress.ANY_IP_V4,
+                                     InternetAddress.ANY_IP_V6,
+                                     false,
+                                     true);
+  });
+
   for (var host in ['127.0.0.1', '::1']) {
     testBindShared(host, false);
     testBindShared(host, true);
@@ -123,16 +161,5 @@ void main() {
 
     testListenCloseListenClose(host);
   }
-
-  asyncStart();
-  testBindDifferentAddresses(InternetAddress.ANY_IP_V6,
-                             InternetAddress.ANY_IP_V4,
-                             true,
-                             false).then((_) {
-    testBindDifferentAddresses(InternetAddress.ANY_IP_V4,
-                               InternetAddress.ANY_IP_V6,
-                               false,
-                               true);
-    asyncEnd();
-  });
+  asyncEnd();
 }

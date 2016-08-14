@@ -27,6 +27,23 @@ class Sample;
 class SampleBuffer;
 class ProfileTrieNode;
 
+struct ProfilerCounters {
+  // Count of bail out reasons:
+  int64_t bail_out_unknown_task;
+  int64_t bail_out_jump_to_exception_handler;
+  int64_t bail_out_check_isolate;
+  // Count of single frame sampling reasons:
+  int64_t single_frame_sample_deoptimizing;
+  int64_t single_frame_sample_register_check;
+  int64_t single_frame_sample_get_and_validate_stack_bounds;
+  // Count of stack walkers used:
+  int64_t stack_walker_native;
+  int64_t stack_walker_dart_exit;
+  int64_t stack_walker_dart;
+  int64_t stack_walker_none;
+};
+
+
 class Profiler : public AllStatic {
  public:
   static void InitOnce();
@@ -38,6 +55,8 @@ class Profiler : public AllStatic {
   static SampleBuffer* sample_buffer() {
     return sample_buffer_;
   }
+
+  static void DumpStackTrace(bool native_stack_trace = true);
 
   static void SampleAllocation(Thread* thread, intptr_t cid);
 
@@ -52,10 +71,19 @@ class Profiler : public AllStatic {
   static void SampleThread(Thread* thread,
                            const InterruptedThreadState& state);
 
+  static ProfilerCounters counters() {
+    // Copies the counter values.
+    return counters_;
+  }
+
  private:
+  // Does not walk the thread's stack.
+  static void SampleThreadSingleFrame(Thread* thread, uintptr_t pc);
   static bool initialized_;
 
   static SampleBuffer* sample_buffer_;
+
+  static ProfilerCounters counters_;
 
   friend class Thread;
 };
@@ -91,11 +119,14 @@ class SampleVisitor : public ValueObject {
 class SampleFilter : public ValueObject {
  public:
   SampleFilter(Isolate* isolate,
+               intptr_t thread_task_mask,
                int64_t time_origin_micros,
                int64_t time_extent_micros)
       : isolate_(isolate),
+        thread_task_mask_(thread_task_mask),
         time_origin_micros_(time_origin_micros),
         time_extent_micros_(time_extent_micros) {
+    ASSERT(thread_task_mask != 0);
     ASSERT(time_origin_micros_ >= -1);
     ASSERT(time_extent_micros_ >= -1);
   }
@@ -114,9 +145,12 @@ class SampleFilter : public ValueObject {
   // Returns |true| if |sample| passes the time filter.
   bool TimeFilterSample(Sample* sample);
 
+  // Returns |true| if |sample| passes the thread task filter.
+  bool TaskFilterSample(Sample* sample);
+
  private:
   Isolate* isolate_;
-
+  intptr_t thread_task_mask_;
   int64_t time_origin_micros_;
   int64_t time_extent_micros_;
 };
@@ -274,6 +308,14 @@ class Sample {
     state_ = ClassAllocationSampleBit::update(allocation_sample, state_);
   }
 
+  Thread::TaskKind thread_task() const {
+    return ThreadTaskBit::decode(state_);
+  }
+
+  void set_thread_task(Thread::TaskKind task) {
+    state_ = ThreadTaskBit::update(task, state_);
+  }
+
   bool is_continuation_sample() const {
     return ContinuationSampleBit::decode(state_);
   }
@@ -338,6 +380,8 @@ class Sample {
     kTruncatedTraceBit = 5,
     kClassAllocationSampleBit = 6,
     kContinuationSampleBit = 7,
+    kThreadTaskBit = 8,  // 5 bits.
+    kNextFreeBit = 13,
   };
   class HeadSampleBit : public BitField<uword, bool, kHeadSampleBit, 1> {};
   class LeafFrameIsDart :
@@ -352,6 +396,8 @@ class Sample {
       : public BitField<uword, bool, kClassAllocationSampleBit, 1> {};
   class ContinuationSampleBit
       : public BitField<uword, bool, kContinuationSampleBit, 1> {};
+  class ThreadTaskBit
+      : public BitField<uword, Thread::TaskKind, kThreadTaskBit, 5> {};
 
   int64_t timestamp_;
   ThreadId tid_;
@@ -377,7 +423,7 @@ class CodeDescriptor : public ZoneAllocated {
  public:
   explicit CodeDescriptor(const Code& code);
 
-  uword Entry() const;
+  uword Start() const;
 
   uword Size() const;
 
@@ -393,8 +439,8 @@ class CodeDescriptor : public ZoneAllocated {
   }
 
   bool Contains(uword pc) const {
-    uword end = Entry() + Size();
-    return (pc >= Entry()) && (pc < end);
+    uword end = Start() + Size();
+    return (pc >= Start()) && (pc < end);
   }
 
   static int Compare(CodeDescriptor* const* a,
@@ -402,12 +448,12 @@ class CodeDescriptor : public ZoneAllocated {
     ASSERT(a != NULL);
     ASSERT(b != NULL);
 
-    uword a_entry = (*a)->Entry();
-    uword b_entry = (*b)->Entry();
+    uword a_start = (*a)->Start();
+    uword b_start = (*b)->Start();
 
-    if (a_entry < b_entry) {
+    if (a_start < b_start) {
       return -1;
-    } else if (a_entry > b_entry) {
+    } else if (a_start > b_start) {
       return 1;
     } else {
       return 0;

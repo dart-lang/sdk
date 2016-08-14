@@ -9,13 +9,10 @@ import 'dart:async';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/indexable_file.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 /**
@@ -72,36 +69,14 @@ class SearchDomainHandler implements protocol.RequestHandler {
     }).where((Element element) {
       return element != null;
     }).toList();
-    // prepare referenced file
-    String referencedFile = _getFileReferencedAt(params.file, params.offset);
     // respond
     String searchId = (_nextSearchId++).toString();
     var result = new protocol.SearchFindElementReferencesResult();
     if (elements.isNotEmpty) {
       result.id = searchId;
       result.element = protocol.convertElement(elements.first);
-    } else if (referencedFile != null) {
-      result.id = searchId;
-      result.element =
-          new protocol.Element(protocol.ElementKind.FILE, referencedFile, 0);
     }
     _sendSearchResult(request, result);
-    // search for file
-    if (referencedFile != null) {
-      List<Location> locations = await index.getRelationships(
-          new IndexableFile(referencedFile), IndexConstants.IS_REFERENCED_BY);
-      List<protocol.SearchResult> results = <protocol.SearchResult>[];
-      for (Location location in locations) {
-        IndexableFile locationFile = location.indexable;
-        results.add(new protocol.SearchResult(
-            new protocol.Location(
-                locationFile.path, location.offset, location.length, -1, -1),
-            protocol.SearchResultKind.REFERENCE,
-            false,
-            []));
-      }
-      _sendSearchNotification(searchId, elements.isEmpty, results);
-    }
     // search elements
     elements.forEach((Element element) async {
       var computer = new ElementReferencesComputer(searchEngine);
@@ -143,6 +118,15 @@ class SearchDomainHandler implements protocol.RequestHandler {
   Future findTopLevelDeclarations(protocol.Request request) async {
     var params =
         new protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
+    try {
+      // validate the regex
+      new RegExp(params.pattern);
+    } on FormatException catch (exception) {
+      server.sendResponse(new protocol.Response.invalidParameter(
+          request, 'pattern', exception.message));
+      return;
+    }
+
     await server.onAnalysisComplete;
     // respond
     String searchId = (_nextSearchId++).toString();
@@ -219,31 +203,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
       }
     } on protocol.RequestFailure catch (exception) {
       return exception.response;
-    }
-    return null;
-  }
-
-  /**
-   * Return the full path of the file referenced in the given [file] at the
-   * given [offset], maybe `null`.
-   */
-  String _getFileReferencedAt(String file, int offset) {
-    List<AstNode> nodes = server.getNodesAtOffset(file, offset);
-    if (nodes.length == 1) {
-      AstNode node = nodes.single;
-      if (node is SimpleIdentifier &&
-          node.parent is LibraryIdentifier &&
-          node.parent.parent is LibraryDirective) {
-        LibraryDirective libraryDirective = node.parent.parent;
-        return libraryDirective?.element?.source?.fullName;
-      }
-      if (node is StringLiteral && node.parent is UriBasedDirective) {
-        UriBasedDirective uriBasedDirective = node.parent;
-        return uriBasedDirective.source?.fullName;
-      }
-      if (node is UriBasedDirective) {
-        return node.source?.fullName;
-      }
     }
     return null;
   }

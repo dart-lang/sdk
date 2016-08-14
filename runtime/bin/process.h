@@ -12,7 +12,6 @@
 #include "platform/globals.h"
 #include "platform/utils.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -183,6 +182,8 @@ class SignalInfo {
   Dart_Port port_;
   SignalInfo* next_;
   SignalInfo* prev_;
+
+  DISALLOW_COPY_AND_ASSIGN(SignalInfo);
 };
 
 
@@ -285,6 +286,9 @@ class BufferListBase {
 
   // Number of free bytes in the last node in the list.
   intptr_t free_size_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BufferListBase);
 };
 
 }  // namespace bin

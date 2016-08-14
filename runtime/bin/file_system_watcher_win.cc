@@ -2,19 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
 #include "bin/file_system_watcher.h"
-#include "bin/eventhandler.h"
 
 #include <WinIoCtl.h>  // NOLINT
 
 #include "bin/builtin.h"
+#include "bin/eventhandler.h"
 #include "bin/log.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
-
 
 namespace dart {
 namespace bin {
@@ -49,18 +50,19 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                            OPEN_EXISTING,
                            FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
                            NULL);
-  free(const_cast<wchar_t*>(name));
 
   if (dir == INVALID_HANDLE_VALUE) {
     return -1;
   }
 
   int list_events = 0;
-  if (events & (kCreate | kMove | kDelete)) {
+  if ((events & (kCreate | kMove | kDelete)) != 0) {
     list_events |= FILE_NOTIFY_CHANGE_FILE_NAME |
                    FILE_NOTIFY_CHANGE_DIR_NAME;
   }
-  if (events & kModifyContent) list_events |= FILE_NOTIFY_CHANGE_LAST_WRITE;
+  if ((events & kModifyContent) != 0) {
+    list_events |= FILE_NOTIFY_CHANGE_LAST_WRITE;
+  }
 
   DirectoryWatchHandle* handle =
       new DirectoryWatchHandle(dir, list_events, recursive);
@@ -93,7 +95,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   intptr_t available = dir->Available();
   intptr_t max_count = available / kEventSize + 1;
   Dart_Handle events = Dart_NewList(max_count);
-  uint8_t* buffer = new uint8_t[available];
+  uint8_t* buffer = Dart_ScopeAllocate(available);
   intptr_t bytes = dir->Read(buffer, available);
   intptr_t offset = 0;
   intptr_t i = 0;
@@ -103,11 +105,21 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 
     Dart_Handle event = Dart_NewList(5);
     int mask = 0;
-    if (e->Action == FILE_ACTION_ADDED) mask |= kCreate;
-    if (e->Action == FILE_ACTION_REMOVED) mask |= kDelete;
-    if (e->Action == FILE_ACTION_MODIFIED) mask |= kModifyContent;
-    if (e->Action == FILE_ACTION_RENAMED_OLD_NAME) mask |= kMove;
-    if (e->Action == FILE_ACTION_RENAMED_NEW_NAME) mask |= kMove;
+    if (e->Action == FILE_ACTION_ADDED) {
+      mask |= kCreate;
+    }
+    if (e->Action == FILE_ACTION_REMOVED) {
+      mask |= kDelete;
+    }
+    if (e->Action == FILE_ACTION_MODIFIED) {
+      mask |= kModifyContent;
+    }
+    if (e->Action == FILE_ACTION_RENAMED_OLD_NAME) {
+      mask |= kMove;
+    }
+    if (e->Action == FILE_ACTION_RENAMED_NEW_NAME) {
+      mask |= kMove;
+    }
     Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
     // Move events come in pairs. Just 'enable' by default.
     Dart_ListSetAt(event, 1, Dart_NewInteger(1));
@@ -117,10 +129,11 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
     Dart_ListSetAt(event, 4, Dart_NewInteger(path_id));
     Dart_ListSetAt(events, i, event);
     i++;
-    if (e->NextEntryOffset == 0) break;
+    if (e->NextEntryOffset == 0) {
+      break;
+    }
     offset += e->NextEntryOffset;
   }
-  delete[] buffer;
   return events;
 }
 
@@ -128,3 +141,5 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)
+
+#endif  // !defined(DART_IO_DISABLED)

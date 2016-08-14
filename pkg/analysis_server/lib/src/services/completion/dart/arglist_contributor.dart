@@ -19,6 +19,12 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 int _argCount(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
   if (node is ArgumentList) {
+    if (request.target.entity == node.rightParenthesis) {
+      // Parser ignores trailing commas
+      if (node.rightParenthesis.previous?.lexeme == ',') {
+        return node.arguments.length + 1;
+      }
+    }
     return node.arguments.length;
   }
   return 0;
@@ -87,7 +93,7 @@ bool _isEditingNamedArgLabel(DartCompletionRequest request) {
     var entity = request.target.entity;
     if (entity is NamedExpression) {
       int offset = request.offset;
-      if (entity.offset <= offset && offset < entity.end) {
+      if (entity.offset < offset && offset < entity.end) {
         return true;
       }
     }
@@ -96,12 +102,53 @@ bool _isEditingNamedArgLabel(DartCompletionRequest request) {
 }
 
 /**
- * Determine if the completion target is an emtpy argument list.
+ * Return `true` if the [request] is inside of a [NamedExpression] name.
  */
-bool _isEmptyArgList(DartCompletionRequest request) {
+bool _isInNamedExpression(DartCompletionRequest request) {
+  Object entity = request.target.entity;
+  if (entity is NamedExpression) {
+    Label name = entity.name;
+    return name.offset < request.offset && request.offset < name.end;
+  }
+  return false;
+}
+
+/**
+ * Determine if the completion target is in the middle or beginning of the list
+ * of named parameters and is not preceded by a comma. This method assumes that
+ * _isAppendingToArgList has been called and is false.
+ */
+bool _isInsertingToArgListWithNoSynthetic(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
-  return node is ArgumentList &&
-      node.leftParenthesis.next == node.rightParenthesis;
+  if (node is ArgumentList) {
+    var entity = request.target.entity;
+    return entity is NamedExpression;
+  }
+  return false;
+}
+
+/**
+ * Determine if the completion target is in the middle or beginning of the list
+ * of named parameters and is preceded by a comma. This method assumes that
+ * _isAppendingToArgList and _isInsertingToArgListWithNoSynthetic have been
+ * called and both return false.
+ */
+bool _isInsertingToArgListWithSynthetic(DartCompletionRequest request) {
+  AstNode node = request.target.containingNode;
+  if (node is ArgumentList) {
+    var entity = request.target.entity;
+    if (entity is SimpleIdentifier) {
+      int argIndex = request.target.argIndex;
+      // if the next argument is a NamedExpression, then we are in the named
+      // parameter list, guard first against end of list
+      if (node.arguments.length == argIndex + 1 ||
+          node.arguments.getRange(argIndex + 1, argIndex + 2).first
+          is NamedExpression) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /**
@@ -143,7 +190,7 @@ class ArgListContributor extends DartCompletionContributor {
     }
 
     // Resolve the target expression to determine the arguments
-    await request.resolveExpression(targetId);
+    await request.resolveContainingExpression(targetId);
     // Gracefully degrade if the element could not be resolved
     // e.g. target changed, completion aborted
     targetId = _getTargetId(request.target.containingNode);
@@ -179,66 +226,43 @@ class ArgListContributor extends DartCompletionContributor {
     return EMPTY_LIST;
   }
 
-  void _addArgListSuggestion(Iterable<ParameterElement> requiredParam) {
-    // DEPRECATED... argument lists are no longer suggested.
-    // See https://github.com/dart-lang/sdk/issues/25197
-
-    // String _getParamType(ParameterElement param) {
-    //   DartType type = param.type;
-    //   if (type != null) {
-    //     return type.displayName;
-    //   }
-    //   return 'dynamic';
-    // }
-
-    // StringBuffer completion = new StringBuffer('(');
-    // List<String> paramNames = new List<String>();
-    // List<String> paramTypes = new List<String>();
-    // for (ParameterElement param in requiredParam) {
-    //   String name = param.name;
-    //   if (name != null && name.length > 0) {
-    //     if (completion.length > 1) {
-    //       completion.write(', ');
-    //     }
-    //     completion.write(name);
-    //     paramNames.add(name);
-    //     paramTypes.add(_getParamType(param));
-    //   }
-    // }
-    // completion.write(')');
-    // CompletionSuggestion suggestion = new CompletionSuggestion(
-    //     CompletionSuggestionKind.ARGUMENT_LIST,
-    //     DART_RELEVANCE_HIGH,
-    //     completion.toString(),
-    //     completion.length,
-    //     0,
-    //     false,
-    //     false);
-    // suggestion.parameterNames = paramNames;
-    // suggestion.parameterTypes = paramTypes;
-    // suggestions.add(suggestion);
-  }
-
-  void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters) {
+  void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
+      [bool appendComma = false]) {
+    bool appendColon = !_isInNamedExpression(request);
     Iterable<String> namedArgs = _namedArgs(request);
     for (ParameterElement param in parameters) {
       if (param.parameterKind == ParameterKind.NAMED) {
-        _addNamedParameterSuggestion(request, namedArgs, param.name);
+        _addNamedParameterSuggestion(request, namedArgs, param.name,
+            param.type?.displayName, appendColon, appendComma);
       }
     }
   }
 
   void _addNamedParameterSuggestion(
-      DartCompletionRequest request, List<String> namedArgs, String name) {
+      DartCompletionRequest request,
+      List<String> namedArgs,
+      String name,
+      String paramType,
+      bool appendColon,
+      bool appendComma) {
     if (name != null && name.length > 0 && !namedArgs.contains(name)) {
+      String completion = name;
+      if (appendColon) {
+        completion += ': ';
+      }
+      if (appendComma) {
+        completion += ',';
+      }
       suggestions.add(new CompletionSuggestion(
           CompletionSuggestionKind.NAMED_ARGUMENT,
           DART_RELEVANCE_NAMED_PARAMETER,
-          '$name: ',
-          name.length + 2,
+          completion,
+          completion.length,
           0,
           false,
-          false));
+          false,
+          parameterName: name,
+          parameterType: paramType));
     }
   }
 
@@ -249,14 +273,19 @@ class ArgListContributor extends DartCompletionContributor {
     Iterable<ParameterElement> requiredParam = parameters.where(
         (ParameterElement p) => p.parameterKind == ParameterKind.REQUIRED);
     int requiredCount = requiredParam.length;
-    if (requiredCount > 0 && _isEmptyArgList(request)) {
-      _addArgListSuggestion(requiredParam);
-      return;
-    }
+    // TODO (jwren) _isAppendingToArgList can be split into two cases (with and
+    // without preceded), then _isAppendingToArgList,
+    // _isInsertingToArgListWithNoSynthetic and
+    // _isInsertingToArgListWithSynthetic could be formatted into a single
+    // method which returns some enum with 5+ cases.
     if (_isEditingNamedArgLabel(request) || _isAppendingToArgList(request)) {
       if (requiredCount == 0 || requiredCount < _argCount(request)) {
         _addDefaultParamSuggestions(parameters);
       }
+    } else if (_isInsertingToArgListWithNoSynthetic(request)) {
+      _addDefaultParamSuggestions(parameters, true);
+    } else if (_isInsertingToArgListWithSynthetic(request)) {
+      _addDefaultParamSuggestions(parameters);
     }
   }
 }

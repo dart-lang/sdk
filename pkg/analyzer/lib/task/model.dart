@@ -7,7 +7,7 @@ library analyzer.task.model;
 import 'dart:collection';
 import 'dart:developer';
 
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart' show AnalysisError;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -61,6 +61,9 @@ class AnalysisContextTarget implements AnalysisTarget {
   AnalysisContextTarget(this.context);
 
   @override
+  Source get librarySource => null;
+
+  @override
   Source get source => null;
 }
 
@@ -72,6 +75,12 @@ class AnalysisContextTarget implements AnalysisTarget {
  * required to correctly implement [==] and [hashCode].
  */
 abstract class AnalysisTarget {
+  /**
+   * If this target is associated with a library, return the source of the
+   * library's defining compilation unit; otherwise return `null`.
+   */
+  Source get librarySource;
+
   /**
    * Return the source associated with this target, or `null` if this target is
    * not associated with a source.
@@ -185,11 +194,11 @@ abstract class AnalysisTask {
    * Return the value of the input with the given [name]. Throw an exception if
    * the input value is not defined.
    */
-  Object getRequiredInput(String name) {
+  Object/*=E*/ getRequiredInput/*<E>*/(String name) {
     if (inputs == null || !inputs.containsKey(name)) {
       throw new AnalysisException("Could not $description: missing $name");
     }
-    return inputs[name];
+    return inputs[name] as Object/*=E*/;
   }
 
   /**
@@ -335,6 +344,8 @@ abstract class AnalysisTask {
 //      }
     } on AnalysisException {
       rethrow;
+    } on ModificationTimeMismatchError {
+      rethrow;
     } catch (exception, stackTrace) {
       throw new AnalysisException(
           'Unexpected exception while performing $description',
@@ -381,7 +392,7 @@ abstract class ListTaskInput<E> implements TaskInput<List<E>> {
    * Return a task input that can be used to compute a list whose elements are
    * the result of passing the elements of this input to the [mapper] function.
    */
-  ListTaskInput/*<V>*/ toList/*<V>*/(UnaryFunction<E, dynamic/*<=V>*/ > mapper);
+  ListTaskInput/*<V>*/ toList/*<V>*/(UnaryFunction<E, dynamic/*=V*/ > mapper);
 
   /**
    * Return a task input that can be used to compute a list whose elements are
@@ -423,6 +434,18 @@ abstract class MapTaskInput<K, V> implements TaskInput<Map<K, V>> {
 }
 
 /**
+ * Instances of this class are thrown when a task detects that the modification
+ * time of a cache entry is not the same as the actual modification time.  This
+ * means that any analysis results based on the content of the target cannot be
+ * used anymore and must be invalidated.
+ */
+class ModificationTimeMismatchError {
+  final Source source;
+
+  ModificationTimeMismatchError(this.source);
+}
+
+/**
  * A policy object that can compute sizes of results and provide the maximum
  * active and idle sizes that can be kept in the cache.
  *
@@ -457,6 +480,13 @@ abstract class ResultCachingPolicy<T> {
  */
 abstract class ResultDescriptor<V> {
   /**
+   * A comparator that can be used to sort result descriptors by their name.
+   */
+  static final Comparator<ResultDescriptor> SORT_BY_NAME =
+      (ResultDescriptor first, ResultDescriptor second) =>
+          first.name.compareTo(second.name);
+
+  /**
    * Initialize a newly created analysis result to have the given [name] and
    * [defaultValue].
    *
@@ -465,7 +495,7 @@ abstract class ResultDescriptor<V> {
    * never evicted from the cache, and removed only when they are invalidated.
    */
   factory ResultDescriptor(String name, V defaultValue,
-      {ResultCachingPolicy<V> cachingPolicy}) = ResultDescriptorImpl;
+      {ResultCachingPolicy<V> cachingPolicy}) = ResultDescriptorImpl<V>;
 
   /**
    * Return the caching policy for results described by this descriptor.

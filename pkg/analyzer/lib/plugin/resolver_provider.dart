@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A function that will return a [UriResolver] that can be used to resolve a
- * specific kind of URI within the analysis context rooted at the given folder.
+ * specific kind of URI within the analysis context rooted at the given
+ * [folder].
  */
 typedef UriResolver ResolverProvider(Folder folder);

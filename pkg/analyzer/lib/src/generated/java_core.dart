@@ -21,7 +21,7 @@ String format(String pattern,
 }
 
 /**
- * Inserts the given [args] into [pattern].
+ * Inserts the given [arguments] into [pattern].
  *
  *     format('Hello, {0}!', ['John']) = 'Hello, John!'
  *     format('{0} are you {1}ing?', ['How', 'do']) = 'How are you doing?'
@@ -37,7 +37,7 @@ String formatList(String pattern, List<Object> arguments) {
     int index = int.parse(indexStr);
     Object arg = arguments[index];
     assert(arg != null);
-    return arg != null ? arg.toString() : null;
+    return arg?.toString();
   });
 }
 

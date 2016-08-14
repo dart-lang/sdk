@@ -5,23 +5,31 @@
 #ifndef VM_SERVICE_EVENT_H_
 #define VM_SERVICE_EVENT_H_
 
-#include "vm/debugger.h"
-
-class DebuggerEvent;
-class TimelineEventBlock;
+#include "vm/globals.h"
+#include "vm/heap.h"
 
 namespace dart {
+
+class ActivationFrame;
+class Breakpoint;
+class Instance;
+class Isolate;
+class Object;
+class StreamInfo;
+class String;
+class TimelineEventBlock;
 
 class ServiceEvent {
  public:
   enum EventKind {
     kVMUpdate,           // VM identity information has changed
 
-    kIsolateStart,       // New isolate has started
-    kIsolateRunnable,    // Isolate is ready to run
-    kIsolateExit,        // Isolate has exited
-    kIsolateUpdate,      // Isolate identity information has changed
-
+    kIsolateStart,           // New isolate has started
+    kIsolateRunnable,        // Isolate is ready to run
+    kIsolateExit,            // Isolate has exited
+    kIsolateUpdate,          // Isolate identity information has changed
+    kIsolateReload,          // Result of a reload request
+    kIsolateSpawn,           // Result of an isolate spawn request
     kServiceExtensionAdded,  // A service extension was registered
 
     kPauseStart,         // --pause-isolates-on-start
@@ -68,9 +76,12 @@ class ServiceEvent {
 
   ServiceEvent(Isolate* isolate, EventKind event_kind);
 
-  explicit ServiceEvent(const DebuggerEvent* debugger_event);
-
   Isolate* isolate() const { return isolate_; }
+
+  // Used by the C embedding api.
+  Dart_Port isolate_id() const {
+    return isolate_->main_port();
+  }
 
   EventKind kind() const { return kind_; }
 
@@ -95,6 +106,7 @@ class ServiceEvent {
     embedder_kind_ = embedder_kind;
   }
 
+  const StreamInfo* stream_info() const;
   const char* stream_id() const;
 
   void set_embedder_stream_id(const char* stream_id) {
@@ -136,6 +148,33 @@ class ServiceEvent {
   void set_exception(const Object* exception) {
     ASSERT(kind_ == kPauseException);
     exception_ = exception;
+  }
+
+  const Error* reload_error() const {
+    ASSERT(kind_ == kIsolateReload);
+    return reload_error_;
+  }
+  void set_reload_error(const Error* error) {
+    ASSERT(kind_ == kIsolateReload);
+    reload_error_ = error;
+  }
+
+  const String* spawn_token() const {
+    ASSERT(kind_ == kIsolateSpawn);
+    return spawn_token_;
+  }
+  void set_spawn_token(const String* error) {
+    ASSERT(kind_ == kIsolateSpawn);
+    spawn_token_ = error;
+  }
+
+  const String* spawn_error() const {
+    ASSERT(kind_ == kIsolateSpawn);
+    return spawn_error_;
+  }
+  void set_spawn_error(const String* error) {
+    ASSERT(kind_ == kIsolateSpawn);
+    spawn_error_ = error;
   }
 
   bool at_async_jump() const {
@@ -182,6 +221,8 @@ class ServiceEvent {
     extension_event_ = extension_event;
   }
 
+  void UpdateTimestamp();
+
   int64_t timestamp() const {
     return timestamp_;
   }
@@ -209,6 +250,9 @@ class ServiceEvent {
   const TimelineEventBlock* timeline_event_block_;
   const String* extension_rpc_;
   const Object* exception_;
+  const Error* reload_error_;
+  const String* spawn_token_;
+  const String* spawn_error_;
   bool at_async_jump_;
   const Object* inspectee_;
   const Heap::GCStats* gc_stats_;

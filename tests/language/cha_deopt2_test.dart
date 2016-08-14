@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-counter-threshold=100 --no-background-compilation
+// VMOptions=--optimization-counter-threshold=100 --no-background-compilation --no-use-field-guards
 
 // Test lazy deoptimization at type checks with deferred loading.
 

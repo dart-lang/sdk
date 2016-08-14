@@ -11,6 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
@@ -46,6 +47,14 @@ class FileSystemExceptionTest {
 @reflectiveTest
 class FileTest {
   MemoryResourceProvider provider = new MemoryResourceProvider();
+
+  void test_delete() {
+    File file = provider.newFile('/foo/file.txt', 'content');
+    expect(file.exists, isTrue);
+    // delete
+    file.delete();
+    expect(file.exists, isFalse);
+  }
 
   void test_equals_beforeAndAfterCreate() {
     String path = '/file.txt';
@@ -123,6 +132,19 @@ class FileTest {
     expect(parent.path, equals('/foo/bar'));
   }
 
+  void test_readAsBytesSync_doesNotExist() {
+    File file = provider.getResource('/test.bin');
+    expect(() {
+      file.readAsBytesSync();
+    }, throwsA(_isFileSystemException));
+  }
+
+  void test_readAsBytesSync_exists() {
+    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    File file = provider.newFileWithBytes('/file.bin', bytes);
+    expect(file.readAsBytesSync(), bytes);
+  }
+
   void test_readAsStringSync_doesNotExist() {
     File file = provider.getResource('/test.txt');
     expect(() {
@@ -135,6 +157,43 @@ class FileTest {
     expect(file.readAsStringSync(), 'abc');
   }
 
+  void test_renameSync_newDoesNotExist() {
+    String oldPath = '/foo/bar/file.txt';
+    String newPath = '/foo/bar/new-file.txt';
+    File file = provider.newFile(oldPath, 'text');
+    File newFile = file.renameSync(newPath);
+    expect(file.path, oldPath);
+    expect(file.exists, isFalse);
+    expect(newFile.path, newPath);
+    expect(newFile.exists, isTrue);
+    expect(newFile.readAsStringSync(), 'text');
+  }
+
+  void test_renameSync_newExists_file() {
+    String oldPath = '/foo/bar/file.txt';
+    String newPath = '/foo/bar/new-file.txt';
+    File file = provider.newFile(oldPath, 'text');
+    provider.newFile(newPath, 'new text');
+    File newFile = file.renameSync(newPath);
+    expect(file.path, oldPath);
+    expect(file.exists, isFalse);
+    expect(newFile.path, newPath);
+    expect(newFile.exists, isTrue);
+    expect(newFile.readAsStringSync(), 'text');
+  }
+
+  void test_renameSync_newExists_folder() {
+    String oldPath = '/foo/bar/file.txt';
+    String newPath = '/foo/bar/baz';
+    File file = provider.newFile(oldPath, 'text');
+    provider.newFolder(newPath);
+    expect(() {
+      file.renameSync(newPath);
+    }, throwsA(_isFileSystemException));
+    expect(file.path, oldPath);
+    expect(file.exists, isTrue);
+  }
+
   void test_shortName() {
     File file = provider.getResource('/foo/bar/file.txt');
     expect(file.shortName, 'file.txt');
@@ -143,6 +202,29 @@ class FileTest {
   void test_toString() {
     File file = provider.getResource('/foo/bar/file.txt');
     expect(file.toString(), '/foo/bar/file.txt');
+  }
+
+  void test_toUri() {
+    String path = '/foo/file.txt';
+    File file = provider.newFile(path, '');
+    expect(file.toUri(), new Uri.file(path, windows: false));
+  }
+
+  void test_writeAsBytesSync_existing() {
+    File file = provider.newFileWithBytes('/foo/file.bin', <int>[1, 2]);
+    expect(file.readAsBytesSync(), <int>[1, 2]);
+    // write new bytes
+    file.writeAsBytesSync(<int>[10, 20]);
+    expect(file.readAsBytesSync(), <int>[10, 20]);
+  }
+
+  void test_writeAsBytesSync_new() {
+    File file = provider.getFile('/foo/file.bin');
+    expect(file.exists, false);
+    // write new bytes
+    file.writeAsBytesSync(<int>[10, 20]);
+    expect(file.exists, true);
+    expect(file.readAsBytesSync(), <int>[10, 20]);
   }
 }
 
@@ -171,6 +253,23 @@ class FolderTest {
     expect(folder.contains('/foo/bar/aaa/bbb.txt'), isTrue);
     expect(folder.contains('/baz.txt'), isFalse);
     expect(folder.contains('/foo/bar'), isFalse);
+  }
+
+  void test_delete() {
+    Folder folder = provider.newFolder('/foo');
+    Folder barFolder = provider.newFolder('/foo/bar');
+    File aFile = provider.newFile('/foo/bar/a.txt', '');
+    File bFile = provider.newFile('/foo/b.txt', '');
+    expect(folder.exists, isTrue);
+    expect(barFolder.exists, isTrue);
+    expect(aFile.exists, isTrue);
+    expect(bFile.exists, isTrue);
+    // delete 'folder'
+    folder.delete();
+    expect(folder.exists, isFalse);
+    expect(barFolder.exists, isFalse);
+    expect(aFile.exists, isFalse);
+    expect(bFile.exists, isFalse);
   }
 
   void test_equal_false() {
@@ -202,6 +301,26 @@ class FolderTest {
     Folder child = folder.getChild('baz');
     expect(child, isNotNull);
     expect(child.exists, isTrue);
+  }
+
+  void test_getChildAssumingFile_doesNotExist() {
+    File child = folder.getChildAssumingFile('name');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  void test_getChildAssumingFile_file() {
+    provider.newFile('/foo/bar/name', 'content');
+    File child = folder.getChildAssumingFile('name');
+    expect(child, isNotNull);
+    expect(child.exists, isTrue);
+  }
+
+  void test_getChildAssumingFile_folder() {
+    provider.newFolder('/foo/bar/name');
+    File child = folder.getChildAssumingFile('name');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
   }
 
   void test_getChildAssumingFolder_doesNotExist() {
@@ -274,6 +393,12 @@ class FolderTest {
     expect(parent2.path, equals('/'));
     expect(parent2.parent, isNull);
   }
+
+  void test_toUri() {
+    String path = '/foo/directory';
+    Folder folder = provider.newFolder(path);
+    expect(folder.toUri(), new Uri.directory(path, windows: false));
+  }
 }
 
 @reflectiveTest
@@ -335,14 +460,14 @@ class MemoryFileSourceExistingTest {
   }
 
   void test_resolveRelative() {
-    Uri relative = source.resolveRelativeUri(new Uri.file('bar/baz.dart'));
+    Uri relative = resolveRelativeUri(source.uri, new Uri.file('bar/baz.dart'));
     expect(relative.path, '/foo/bar/baz.dart');
   }
 
   void test_resolveRelative_dart() {
     File file = provider.newFile('/sdk/lib/core/core.dart', '');
     Source source = file.createSource(Uri.parse('dart:core'));
-    Uri resolved = source.resolveRelativeUri(Uri.parse('int.dart'));
+    Uri resolved = resolveRelativeUri(source.uri, Uri.parse('int.dart'));
     expect(resolved.toString(), 'dart:core/int.dart');
   }
 
@@ -384,7 +509,7 @@ class MemoryFileSourceNotExistingTest {
   }
 
   void test_resolveRelative() {
-    Uri relative = source.resolveRelativeUri(new Uri.file('bar/baz.dart'));
+    Uri relative = resolveRelativeUri(source.uri, new Uri.file('bar/baz.dart'));
     expect(relative.path, '/foo/bar/baz.dart');
   }
 
@@ -424,6 +549,13 @@ class MemoryResourceProviderTest {
     expect(file.exists, isTrue);
     provider.deleteFile(path);
     expect(file.exists, isFalse);
+  }
+
+  test_getModificationTimes() async {
+    File file = provider.newFile('/test.dart', '');
+    Source source = file.createSource();
+    List<int> times = await provider.getModificationTimes([source]);
+    expect(times, [source.modificationStamp]);
   }
 
   void test_getStateLocation_uniqueness() {
@@ -467,14 +599,24 @@ class MemoryResourceProviderTest {
     expect(source.contents.data, equals('contents 2'));
   }
 
-  void test_newFolder_aleadyExists_asFile() {
+  void test_newFileWithBytes() {
+    String path = '/my/file';
+    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    provider.newFileWithBytes(path, bytes);
+    File file = provider.getResource(path);
+    expect(file, isNotNull);
+    expect(file.exists, isTrue);
+    expect(file.readAsBytesSync(), bytes);
+  }
+
+  void test_newFolder_alreadyExists_asFile() {
     provider.newFile('/my/file', 'qwerty');
     expect(() {
       provider.newFolder('/my/file');
     }, throwsA(new isInstanceOf<ArgumentError>()));
   }
 
-  void test_newFolder_aleadyExists_asFolder() {
+  void test_newFolder_alreadyExists_asFolder() {
     Folder folder = provider.newFolder('/my/folder');
     Folder newFolder = provider.newFolder('/my/folder');
     expect(newFolder, folder);

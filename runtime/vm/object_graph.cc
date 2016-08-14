@@ -138,7 +138,7 @@ intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
 
 class Unmarker : public ObjectVisitor {
  public:
-  explicit Unmarker(Isolate* isolate) : ObjectVisitor(isolate) { }
+  Unmarker() { }
 
   void VisitObject(RawObject* obj) {
     if (obj->IsMarked()) {
@@ -147,7 +147,7 @@ class Unmarker : public ObjectVisitor {
   }
 
   static void UnmarkAll(Isolate* isolate) {
-    Unmarker unmarker(isolate);
+    Unmarker unmarker;
     isolate->heap()->IterateObjects(&unmarker);
   }
 
@@ -192,10 +192,8 @@ void ObjectGraph::IterateObjectsFrom(const Object& root,
 
 class InstanceAccumulator : public ObjectVisitor {
  public:
-  explicit InstanceAccumulator(ObjectGraph::Stack* stack,
-                               intptr_t class_id,
-                               Isolate* isolate)
-    : ObjectVisitor(isolate), stack_(stack), class_id_(class_id) { }
+  InstanceAccumulator(ObjectGraph::Stack* stack, intptr_t class_id)
+      : stack_(stack), class_id_(class_id) { }
 
   void VisitObject(RawObject* obj) {
     if (obj->GetClassId() == class_id_) {
@@ -217,7 +215,7 @@ void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
   NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
 
-  InstanceAccumulator accumulator(&stack, class_id, isolate());
+  InstanceAccumulator accumulator(&stack, class_id);
   isolate()->heap()->IterateObjects(&accumulator);
 
   stack.TraverseGraph(visitor);
@@ -321,6 +319,36 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
     }
   }
 
+  bool ShouldStop(RawObject* obj) {
+    // A static field is considered a root from a language point of view.
+    if (obj->IsField()) {
+      const Field& field = Field::Handle(static_cast<RawField*>(obj));
+      return field.is_static();
+    }
+    return false;
+  }
+
+  void StartList() {
+    was_last_array_ = false;
+  }
+
+  intptr_t HideNDescendant(RawObject* obj) {
+    // A GrowableObjectArray overwrites its internal storage.
+    // Keeping both of them in the list is redundant.
+    if (was_last_array_ && obj->IsGrowableObjectArray()) {
+      was_last_array_ = false;
+      return 1;
+    }
+    // A LinkedHasMap overwrites its internal storage.
+    // Keeping both of them in the list is redundant.
+    if (was_last_array_ && obj->IsLinkedHashMap()) {
+      was_last_array_ = false;
+      return 1;
+    }
+    was_last_array_ = obj->IsArray();
+    return 0;
+  }
+
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     if (it->Get() != obj_) {
       if (ShouldSkip(it->Get())) {
@@ -332,7 +360,10 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
       HANDLESCOPE(thread_);
       Object& current = Object::Handle();
       Smi& offset_from_parent = Smi::Handle();
+      StartList();
       do {
+        // We collapse the backingstore of some internal objects.
+        length_ -= HideNDescendant(it->Get());
         intptr_t obj_index = length_ * 2;
         intptr_t offset_index = obj_index + 1;
         if (!path_.IsNull() && offset_index < path_.Length()) {
@@ -342,7 +373,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
           path_.SetAt(offset_index, offset_from_parent);
         }
         ++length_;
-      } while (it->MoveToParent());
+      } while (!ShouldStop(it->Get()) && it->MoveToParent());
       return kAbort;
     }
   }
@@ -352,6 +383,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   RawObject* obj_;
   const Array& path_;
   intptr_t length_;
+  bool was_last_array_;
 };
 
 
@@ -376,7 +408,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
                            RawObject* target,
                            const Array& references,
                            Object* scratch)
-    : ObjectVisitor(isolate), ObjectPointerVisitor(isolate), source_(NULL),
+    : ObjectPointerVisitor(isolate), source_(NULL),
       target_(target), references_(references), scratch_(scratch), length_(0) {
     ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
@@ -511,9 +543,13 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
 };
 
 
-intptr_t ObjectGraph::Serialize(WriteStream* stream) {
+intptr_t ObjectGraph::Serialize(WriteStream* stream, bool collect_garbage) {
+  if (collect_garbage) {
+    isolate()->heap()->CollectAllGarbage();
+  }
   // Current encoding assumes objects do not move, so promote everything to old.
   isolate()->heap()->new_space()->Evacuate();
+
   WriteGraphVisitor visitor(isolate(), stream);
   stream->WriteUnsigned(kObjectAlignment);
   stream->WriteUnsigned(0);

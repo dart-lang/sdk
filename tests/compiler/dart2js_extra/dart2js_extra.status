@@ -10,9 +10,6 @@ no_such_method_test: Fail # Wrong Invocation.memberName.
 constant_javascript_semantics4_test: Fail, OK
 mirrors_used_closure_test: Fail # Issue 17939
 
-[ $compiler == dart2js && $runtime == jsshell ]
-mirror_printer_test: Pass, Slow # Issue 16473
-
 [ $compiler == dart2js && $checked ]
 variable_type_test/03: Fail, OK
 variable_type_test/01: Fail, OK
@@ -53,7 +50,7 @@ timer_negative_test: Fail, OK # A negative runtime test.
 bailout8_test: Fail, OK # Mismatch in thrown exception.
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
-deferred/*: Skip # Issue 17458
+deferred/*: Pass,RuntimeError # Issue 17458
 
 [ $compiler == dart2js && $csp ]
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
@@ -84,3 +81,6 @@ constant_javascript_semantics2_test: Pass, Slow # Issue 25940
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 consistent_index_error_string_test: Pass, Slow # Issue 25940
+
+[ $compiler == dart2js ]
+mirror_printer_test: Pass, Slow # Issue 25940, 16473

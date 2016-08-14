@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.src.search.search_engine;
+library test.services.src.search.search_engine_internal;
 
 import 'dart:async';
 
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -37,8 +36,9 @@ class ExpectedMatch {
     this.range = new SourceRange(offset, length);
   }
 
-  bool operator ==(SearchMatch match) {
-    return match.element == this.element &&
+  bool operator ==(Object match) {
+    return match is SearchMatch &&
+        match.element == this.element &&
         match.kind == this.kind &&
         match.isResolved == this.isResolved &&
         match.isQualified == this.isQualified &&
@@ -70,11 +70,11 @@ class SearchEngineImplTest extends AbstractSingleUnitTest {
 
   void setUp() {
     super.setUp();
-    index = createLocalMemoryIndex();
+    index = createMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
   }
 
-  Future test_searchAllSubtypes() {
+  test_searchAllSubtypes() async {
     _indexTestUnit('''
 class T {}
 class A extends T {}
@@ -90,20 +90,20 @@ class C implements B {}
       _expectId(elementB, MatchKind.DECLARATION, 'B extends A'),
       _expectId(elementC, MatchKind.DECLARATION, 'C implements B')
     ];
-    return searchEngine.searchAllSubtypes(element).then((matches) {
-      _assertMatches(matches, expected);
-    });
+    List<SearchMatch> matches = await searchEngine.searchAllSubtypes(element);
+    _assertMatches(matches, expected);
   }
 
-  Future test_searchMemberDeclarations() {
+  test_searchMemberDeclarations() async {
     _indexTestUnit('''
 class A {
   test() {}
 }
 class B {
   int test = 1;
+  int testTwo = 2;
   main() {
-    int test = 2;
+    int test = 3;
   }
 }
 ''');
@@ -113,55 +113,91 @@ class B {
       _expectId(elementA.methods[0], MatchKind.DECLARATION, 'test() {}'),
       _expectId(elementB.fields[0], MatchKind.DECLARATION, 'test = 1;')
     ];
-    return searchEngine.searchMemberDeclarations('test').then((matches) {
-      _assertMatches(matches, expected);
-    });
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberDeclarations('test');
+    _assertMatches(matches, expected);
   }
 
-  Future test_searchMemberReferences() {
+  test_searchMemberReferences_qualified_resolved() async {
     _indexTestUnit('''
-class A {
-  var test; // A
-  mainA() {
-    test(); // a-inv-r-nq
-    test = 1; // a-write-r-nq
-    test += 2; // a-read-write-r-nq
-    print(test); // a-read-r-nq
-  }
+class C {
+  var test;
 }
-main(A a, p) {
-  a.test(); // a-inv-r-q
-  a.test = 1; // a-write-r-q
-  a.test += 2; // a-read-write-r-q
-  print(a.test); // a-read-r-q
-  p.test(); // p-inv-ur-q
-  p.test = 1; // p-write-ur-q
-  p.test += 2; // p-read-write-ur-q
-  print(p.test); // p-read-ur-q
+main(C c) {
+  print(c.test);
+  c.test = 1;
+  c.test += 2;
+  c.test();
 }
 ''');
-    Element mainA = findElement('mainA');
-    Element main = findElement('main');
-    var expected = [
-      _expectId(mainA, MatchKind.INVOCATION, 'test(); // a-inv-r-nq'),
-      _expectId(mainA, MatchKind.WRITE, 'test = 1; // a-write-r-nq'),
-      _expectId(mainA, MatchKind.READ_WRITE, 'test += 2; // a-read-write-r-nq'),
-      _expectId(mainA, MatchKind.READ, 'test); // a-read-r-nq'),
-      _expectIdQ(main, MatchKind.INVOCATION, 'test(); // a-inv-r-q'),
-      _expectIdQ(main, MatchKind.WRITE, 'test = 1; // a-write-r-q'),
-      _expectIdQ(main, MatchKind.READ_WRITE, 'test += 2; // a-read-write-r-q'),
-      _expectIdQ(main, MatchKind.READ, 'test); // a-read-r-q'),
-      _expectIdU(main, MatchKind.INVOCATION, 'test(); // p-inv-ur-q'),
-      _expectIdU(main, MatchKind.WRITE, 'test = 1; // p-write-ur-q'),
-      _expectIdU(main, MatchKind.READ_WRITE, 'test += 2; // p-read-write-ur-q'),
-      _expectIdU(main, MatchKind.READ, 'test); // p-read-ur-q'),
-    ];
-    return searchEngine.searchMemberReferences('test').then((matches) {
-      _assertMatches(matches, expected);
-    });
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences('test');
+    expect(matches, isEmpty);
   }
 
-  Future test_searchReferences_ClassElement() {
+  test_searchMemberReferences_qualified_unresolved() async {
+    _indexTestUnit('''
+main(p) {
+  print(p.test);
+  p.test = 1;
+  p.test += 2;
+  p.test();
+}
+''');
+    Element main = findElement('main');
+    var expected = [
+      _expectIdQU(main, MatchKind.READ, 'test);'),
+      _expectIdQU(main, MatchKind.WRITE, 'test = 1;'),
+      _expectIdQU(main, MatchKind.READ_WRITE, 'test += 2;'),
+      _expectIdQU(main, MatchKind.INVOCATION, 'test();'),
+    ];
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences('test');
+    _assertMatches(matches, expected);
+  }
+
+  test_searchMemberReferences_unqualified_resolved() async {
+    _indexTestUnit('''
+class C {
+  var test;
+  main() {
+    print(test);
+    test = 1;
+    test += 2;
+    test();
+  }
+}
+''');
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences('test');
+    expect(matches, isEmpty);
+  }
+
+  test_searchMemberReferences_unqualified_unresolved() async {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class C {
+  main() {
+    print(test);
+    test = 1;
+    test += 2;
+    test();
+  }
+}
+''');
+    Element main = findElement('main');
+    var expected = [
+      _expectIdU(main, MatchKind.READ, 'test);'),
+      _expectIdU(main, MatchKind.WRITE, 'test = 1;'),
+      _expectIdU(main, MatchKind.READ_WRITE, 'test += 2;'),
+      _expectIdU(main, MatchKind.INVOCATION, 'test();'),
+    ];
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences('test');
+    _assertMatches(matches, expected);
+  }
+
+  test_searchReferences_ClassElement() async {
     _indexTestUnit('''
 class A {}
 main(A p) {
@@ -175,10 +211,10 @@ main(A p) {
       _expectId(pElement, MatchKind.REFERENCE, 'A p'),
       _expectId(vElement, MatchKind.REFERENCE, 'A v')
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_CompilationUnitElement() {
+  test_searchReferences_CompilationUnitElement() async {
     addSource(
         '/my_part.dart',
         '''
@@ -190,13 +226,13 @@ part 'my_part.dart';
 ''');
     CompilationUnitElement element = testLibraryElement.parts[0];
     var expected = [
-      _expectId(testUnitElement, MatchKind.REFERENCE, "'my_part.dart'",
+      _expectIdQ(testUnitElement, MatchKind.REFERENCE, "'my_part.dart'",
           length: "'my_part.dart'".length)
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_ConstructorElement() {
+  test_searchReferences_ConstructorElement() async {
     _indexTestUnit('''
 class A {
   A.named() {}
@@ -208,16 +244,33 @@ main() {
     ConstructorElement element = findElement('named');
     Element mainElement = findElement('main');
     var expected = [
-      _expectId(mainElement, MatchKind.REFERENCE, '.named();', length: 6)
+      _expectIdQ(mainElement, MatchKind.REFERENCE, '.named();', length: 6)
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_Element_unknown() {
-    return _verifyReferences(DynamicElementImpl.instance, []);
+  test_searchReferences_ConstructorElement_synthetic() async {
+    _indexTestUnit('''
+class A {
+}
+main() {
+  new A();
+}
+''');
+    ClassElement classElement = findElement('A');
+    ConstructorElement element = classElement.unnamedConstructor;
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectIdQ(mainElement, MatchKind.REFERENCE, '();', length: 0)
+    ];
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_FieldElement() {
+  test_searchReferences_Element_unknown() async {
+    await _verifyReferences(DynamicElementImpl.instance, []);
+  }
+
+  test_searchReferences_FieldElement() async {
     _indexTestUnit('''
 class A {
   var field;
@@ -235,12 +288,12 @@ class A {
   }
 }
 ''');
-    FieldElement element = findElement('field');
+    FieldElement element = findElement('field', ElementKind.FIELD);
     Element main = findElement('main');
     Element fieldParameter = findElement('field', ElementKind.PARAMETER);
     var expected = [
-      _expectId(fieldParameter, MatchKind.WRITE, 'field}'),
-      _expectId(main, MatchKind.REFERENCE, 'field: 1'),
+      _expectIdQ(fieldParameter, MatchKind.WRITE, 'field}'),
+      _expectIdQ(main, MatchKind.REFERENCE, 'field: 1'),
       _expectId(main, MatchKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, MatchKind.READ, 'field); // ref-q'),
       _expectId(main, MatchKind.INVOCATION, 'field(); // inv-nq'),
@@ -248,10 +301,66 @@ class A {
       _expectId(main, MatchKind.WRITE, 'field = 2; // ref-nq'),
       _expectIdQ(main, MatchKind.WRITE, 'field = 3; // ref-q'),
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_FunctionElement() {
+  test_searchReferences_FieldElement_ofEnum() async {
+    _indexTestUnit('''
+enum MyEnum {
+  A, B, C
+}
+main() {
+  print(MyEnum.A.index);
+  print(MyEnum.values);
+  print(MyEnum.A);
+  print(MyEnum.B);
+}
+''');
+    ClassElement enumElement = findElement('MyEnum');
+    Element mainElement = findElement('main');
+    await _verifyReferences(enumElement.getField('index'),
+        [_expectIdQ(mainElement, MatchKind.READ, 'index);')]);
+    await _verifyReferences(enumElement.getField('values'),
+        [_expectIdQ(mainElement, MatchKind.READ, 'values);')]);
+    await _verifyReferences(enumElement.getField('A'), [
+      _expectIdQ(mainElement, MatchKind.READ, 'A.index);'),
+      _expectIdQ(mainElement, MatchKind.READ, 'A);')
+    ]);
+    await _verifyReferences(enumElement.getField('B'),
+        [_expectIdQ(mainElement, MatchKind.READ, 'B);')]);
+  }
+
+  test_searchReferences_FieldElement_synthetic() async {
+    _indexTestUnit('''
+class A {
+  get field => null;
+  set field(x) {}
+  main() {
+    // getter
+    print(field); // ref-nq
+    print(this.field); // ref-q
+    field(); // inv-nq
+    this.field(); // inv-q
+    // setter
+    field = 2; // ref-nq;
+    this.field = 3; // ref-q;
+  }
+}
+''');
+    FieldElement element = findElement('field', ElementKind.FIELD);
+    Element main = findElement('main');
+    var expected = [
+      _expectId(main, MatchKind.READ, 'field); // ref-nq'),
+      _expectIdQ(main, MatchKind.READ, 'field); // ref-q'),
+      _expectId(main, MatchKind.INVOCATION, 'field(); // inv-nq'),
+      _expectIdQ(main, MatchKind.INVOCATION, 'field(); // inv-q'),
+      _expectId(main, MatchKind.WRITE, 'field = 2; // ref-nq'),
+      _expectIdQ(main, MatchKind.WRITE, 'field = 3; // ref-q'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_FunctionElement() async {
     _indexTestUnit('''
 test() {}
 main() {
@@ -265,10 +374,27 @@ main() {
       _expectId(mainElement, MatchKind.INVOCATION, 'test();'),
       _expectId(mainElement, MatchKind.REFERENCE, 'test);')
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_FunctionTypeAliasElement() {
+  test_searchReferences_FunctionElement_local() async {
+    _indexTestUnit('''
+main() {
+  test() {}
+  test();
+  print(test);
+}
+''');
+    FunctionElement element = findElement('test');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(mainElement, MatchKind.INVOCATION, 'test();'),
+      _expectId(mainElement, MatchKind.REFERENCE, 'test);')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_FunctionTypeAliasElement() async {
     _indexTestUnit('''
 typedef Test();
 main() {
@@ -283,40 +409,87 @@ main() {
       _expectId(aElement, MatchKind.REFERENCE, 'Test a;'),
       _expectId(bElement, MatchKind.REFERENCE, 'Test b;')
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_ImportElement_noPrefix() {
+  test_searchReferences_ImportElement_noPrefix() async {
     _indexTestUnit('''
-import 'dart:math';
+import 'dart:math' show max, PI, Random hide min;
+export 'dart:math' show max, PI, Random hide min;
 main() {
-  print(E);
+  print(PI);
+  print(new Random());
+  print(max(1, 2));
 }
+Random bar() => null;
 ''');
     ImportElement element = testLibraryElement.imports[0];
     Element mainElement = findElement('main');
-    var kind = MatchKind.REFERENCE;
-    var expected = [_expectId(mainElement, kind, 'E);', length: 0)];
-    return _verifyReferences(element, expected);
-  }
-
-  Future test_searchReferences_ImportElement_withPrefix() {
-    _indexTestUnit('''
-import 'dart:math' as math;
-main() {
-  print(math.PI);
-}
-''');
-    ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = findElement('main');
+    Element barElement = findElement('bar');
     var kind = MatchKind.REFERENCE;
     var expected = [
-      _expectId(mainElement, kind, 'math.PI);', length: 'math.'.length)
+      _expectId(mainElement, kind, 'PI);', length: 0),
+      _expectId(mainElement, kind, 'Random()', length: 0),
+      _expectId(mainElement, kind, 'max(', length: 0),
+      _expectId(barElement, kind, 'Random bar()', length: 0),
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_LabelElement() {
+  test_searchReferences_ImportElement_withPrefix() async {
+    _indexTestUnit('''
+import 'dart:math' as math show max, PI, Random hide min;
+export 'dart:math' show max, PI, Random hide min;
+main() {
+  print(math.PI);
+  print(new math.Random());
+  print(math.max(1, 2));
+}
+math.Random bar() => null;
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = findElement('main');
+    Element barElement = findElement('bar');
+    var kind = MatchKind.REFERENCE;
+    var length = 'math.'.length;
+    var expected = [
+      _expectId(mainElement, kind, 'math.PI);', length: length),
+      _expectId(mainElement, kind, 'math.Random()', length: length),
+      _expectId(mainElement, kind, 'math.max(', length: length),
+      _expectId(barElement, kind, 'math.Random bar()', length: length),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_withPrefix_forMultipleImports() async {
+    _indexTestUnit('''
+import 'dart:async' as p;
+import 'dart:math' as p;
+main() {
+  p.Random;
+  p.Future;
+}
+''');
+    Element mainElement = findElement('main');
+    var kind = MatchKind.REFERENCE;
+    var length = 'p.'.length;
+    {
+      ImportElement element = testLibraryElement.imports[0];
+      var expected = [
+        _expectId(mainElement, kind, 'p.Future;', length: length),
+      ];
+      await _verifyReferences(element, expected);
+    }
+    {
+      ImportElement element = testLibraryElement.imports[1];
+      var expected = [
+        _expectId(mainElement, kind, 'p.Random', length: length),
+      ];
+      await _verifyReferences(element, expected);
+    }
+  }
+
+  test_searchReferences_LabelElement() async {
     _indexTestUnit('''
 main() {
 label:
@@ -334,10 +507,10 @@ label:
       _expectId(mainElement, MatchKind.REFERENCE, 'label; // 1'),
       _expectId(mainElement, MatchKind.REFERENCE, 'label; // 2')
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_LibraryElement() {
+  test_searchReferences_LibraryElement() async {
     var codeA = 'part of lib; // A';
     var codeB = 'part of lib; // B';
     addSource('/unitA.dart', codeA);
@@ -348,20 +521,20 @@ part 'unitA.dart';
 part 'unitB.dart';
 ''');
     LibraryElement element = testLibraryElement;
-    CompilationUnitElement elementA = element.parts[0];
-    CompilationUnitElement elementB = element.parts[1];
-    index.index(context, elementA.computeNode());
-    index.index(context, elementB.computeNode());
+    CompilationUnitElement unitElementA = element.parts[0];
+    CompilationUnitElement unitElementB = element.parts[1];
+    index.indexUnit(unitElementA.computeNode());
+    index.indexUnit(unitElementB.computeNode());
     var expected = [
-      new ExpectedMatch(elementA, MatchKind.REFERENCE,
+      new ExpectedMatch(unitElementA, MatchKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
-      new ExpectedMatch(elementB, MatchKind.REFERENCE,
+      new ExpectedMatch(unitElementB, MatchKind.REFERENCE,
           codeB.indexOf('lib; // B'), 'lib'.length),
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_LocalVariableElement() {
+  test_searchReferences_LocalVariableElement() async {
     _indexTestUnit('''
 main() {
   var v;
@@ -379,10 +552,32 @@ main() {
       _expectId(mainElement, MatchKind.READ, 'v);'),
       _expectId(mainElement, MatchKind.INVOCATION, 'v();')
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_MethodElement() {
+  test_searchReferences_LocalVariableElement_inForEachLoop() async {
+    _indexTestUnit('''
+main() {
+  for (var v in []) {
+    v = 1;
+    v += 2;
+    print(v);
+    v();
+  }
+}
+''');
+    LocalVariableElement element = findElement('v');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(mainElement, MatchKind.WRITE, 'v = 1;'),
+      _expectId(mainElement, MatchKind.READ_WRITE, 'v += 2;'),
+      _expectId(mainElement, MatchKind.READ, 'v);'),
+      _expectId(mainElement, MatchKind.INVOCATION, 'v();')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_MethodElement() async {
     _indexTestUnit('''
 class A {
   m() {}
@@ -402,10 +597,10 @@ class A {
       _expectId(mainElement, MatchKind.REFERENCE, 'm); // 3'),
       _expectIdQ(mainElement, MatchKind.REFERENCE, 'm); // 4')
     ];
-    return _verifyReferences(method, expected);
+    await _verifyReferences(method, expected);
   }
 
-  Future test_searchReferences_MethodMember() {
+  test_searchReferences_MethodMember() async {
     _indexTestUnit('''
 class A<T> {
   T m() => null;
@@ -419,10 +614,92 @@ main(A<int> a) {
     var expected = [
       _expectIdQ(mainElement, MatchKind.INVOCATION, 'm(); // ref')
     ];
-    return _verifyReferences(method, expected);
+    await _verifyReferences(method, expected);
   }
 
-  Future test_searchReferences_ParameterElement() {
+  test_searchReferences_ParameterElement_ofConstructor() async {
+    _indexTestUnit('''
+class C {
+  var f;
+  C({p}) : f = p + 1 {
+    p = 2;
+    p += 3;
+    print(p);
+    p();
+  }
+}
+main() {
+  new C(p: 42);
+}
+''');
+    ParameterElement element = findElement('p');
+    ClassElement classC = findElement('C');
+    ConstructorElement constructorA = classC.unnamedConstructor;
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(constructorA, MatchKind.READ, 'p + 1 {'),
+      _expectId(constructorA, MatchKind.WRITE, 'p = 2;'),
+      _expectId(constructorA, MatchKind.READ_WRITE, 'p += 3;'),
+      _expectId(constructorA, MatchKind.READ, 'p);'),
+      _expectId(constructorA, MatchKind.INVOCATION, 'p();'),
+      _expectIdQ(mainElement, MatchKind.REFERENCE, 'p: 42')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_ofLocalFunction() async {
+    _indexTestUnit('''
+main() {
+  foo({p}) {
+    p = 1;
+    p += 2;
+    print(p);
+    p();
+  }
+  foo(p: 42);
+}
+''');
+    ParameterElement element = findElement('p');
+    Element fooElement = findElement('foo');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(fooElement, MatchKind.WRITE, 'p = 1;'),
+      _expectId(fooElement, MatchKind.READ_WRITE, 'p += 2;'),
+      _expectId(fooElement, MatchKind.READ, 'p);'),
+      _expectId(fooElement, MatchKind.INVOCATION, 'p();'),
+      _expectIdQ(mainElement, MatchKind.REFERENCE, 'p: 42')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_ofMethod() async {
+    _indexTestUnit('''
+class C {
+  foo({p}) {
+    p = 1;
+    p += 2;
+    print(p);
+    p();
+  }
+}
+main(C c) {
+  c.foo(p: 42);
+}
+''');
+    ParameterElement element = findElement('p');
+    Element fooElement = findElement('foo');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(fooElement, MatchKind.WRITE, 'p = 1;'),
+      _expectId(fooElement, MatchKind.READ_WRITE, 'p += 2;'),
+      _expectId(fooElement, MatchKind.READ, 'p);'),
+      _expectId(fooElement, MatchKind.INVOCATION, 'p();'),
+      _expectIdQ(mainElement, MatchKind.REFERENCE, 'p: 42')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_ofTopLevelFunction() async {
     _indexTestUnit('''
 foo({p}) {
   p = 1;
@@ -442,12 +719,12 @@ main() {
       _expectId(fooElement, MatchKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, MatchKind.READ, 'p);'),
       _expectId(fooElement, MatchKind.INVOCATION, 'p();'),
-      _expectId(mainElement, MatchKind.REFERENCE, 'p: 42')
+      _expectIdQ(mainElement, MatchKind.REFERENCE, 'p: 42')
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_PrefixElement() {
+  test_searchReferences_PrefixElement() async {
     _indexTestUnit('''
 import 'dart:async' as ppp;
 main() {
@@ -462,29 +739,33 @@ main() {
       _expectId(elementA, MatchKind.REFERENCE, 'ppp.Future'),
       _expectId(elementB, MatchKind.REFERENCE, 'ppp.Stream')
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_PropertyAccessorElement_getter() {
+  test_searchReferences_PropertyAccessorElement_getter() async {
     _indexTestUnit('''
 class A {
-  get g => null;
+  get ggg => null;
   main() {
-    g; // 1
-    this.g; // 2
+    print(ggg); // ref-nq
+    print(this.ggg); // ref-q
+    ggg(); // inv-nq
+    this.ggg(); // inv-q
   }
 }
 ''');
-    PropertyAccessorElement element = findElement('g', ElementKind.GETTER);
-    Element mainElement = findElement('main');
+    PropertyAccessorElement element = findElement('ggg', ElementKind.GETTER);
+    Element main = findElement('main');
     var expected = [
-      _expectId(mainElement, MatchKind.REFERENCE, 'g; // 1'),
-      _expectIdQ(mainElement, MatchKind.REFERENCE, 'g; // 2')
+      _expectId(main, MatchKind.REFERENCE, 'ggg); // ref-nq'),
+      _expectIdQ(main, MatchKind.REFERENCE, 'ggg); // ref-q'),
+      _expectId(main, MatchKind.INVOCATION, 'ggg(); // inv-nq'),
+      _expectIdQ(main, MatchKind.INVOCATION, 'ggg(); // inv-q'),
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_PropertyAccessorElement_setter() {
+  test_searchReferences_PropertyAccessorElement_setter() async {
     _indexTestUnit('''
 class A {
   set s(x) {}
@@ -500,10 +781,10 @@ class A {
       _expectId(mainElement, MatchKind.REFERENCE, 's = 1'),
       _expectIdQ(mainElement, MatchKind.REFERENCE, 's = 2')
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchReferences_TopLevelVariableElement() {
+  test_searchReferences_TopLevelVariableElement() async {
     addSource(
         '/lib.dart',
         '''
@@ -528,18 +809,18 @@ main() {
     TopLevelVariableElement variable = impUnit.topLevelVariables[0];
     Element main = findElement('main');
     var expected = [
-      _expectId(testUnitElement, MatchKind.REFERENCE, 'V; // imp'),
-      _expectId(main, MatchKind.WRITE, 'V = 1; // q'),
-      _expectId(main, MatchKind.READ, 'V); // q'),
-      _expectId(main, MatchKind.INVOCATION, 'V(); // q'),
+      _expectIdQ(testUnitElement, MatchKind.REFERENCE, 'V; // imp'),
+      _expectIdQ(main, MatchKind.WRITE, 'V = 1; // q'),
+      _expectIdQ(main, MatchKind.READ, 'V); // q'),
+      _expectIdQ(main, MatchKind.INVOCATION, 'V(); // q'),
       _expectId(main, MatchKind.WRITE, 'V = 1; // nq'),
       _expectId(main, MatchKind.READ, 'V); // nq'),
       _expectId(main, MatchKind.INVOCATION, 'V(); // nq'),
     ];
-    return _verifyReferences(variable, expected);
+    await _verifyReferences(variable, expected);
   }
 
-  Future test_searchReferences_TypeParameterElement() {
+  test_searchReferences_TypeParameterElement() async {
     _indexTestUnit('''
 class A<T> {
   main(T a, T b) {}
@@ -552,10 +833,10 @@ class A<T> {
       _expectId(aElement, MatchKind.REFERENCE, 'T a'),
       _expectId(bElement, MatchKind.REFERENCE, 'T b')
     ];
-    return _verifyReferences(element, expected);
+    await _verifyReferences(element, expected);
   }
 
-  Future test_searchSubtypes() {
+  test_searchSubtypes() async {
     _indexTestUnit('''
 class T {}
 class A extends T {} // A
@@ -571,12 +852,11 @@ class C implements T {} // C
       _expectId(elementB, MatchKind.REFERENCE, 'T; // B'),
       _expectId(elementC, MatchKind.REFERENCE, 'T {} // C')
     ];
-    return searchEngine.searchSubtypes(element).then((matches) {
-      _assertMatches(matches, expected);
-    });
+    List<SearchMatch> matches = await searchEngine.searchSubtypes(element);
+    _assertMatches(matches, expected);
   }
 
-  Future test_searchTopLevelDeclarations() {
+  test_searchTopLevelDeclarations() async {
     _indexTestUnit('''
 class A {} // A
 class B = Object with A;
@@ -597,7 +877,9 @@ class NoMatchABCDE {}
       _expectId(topD, MatchKind.DECLARATION, 'D() {}'),
       _expectId(topE, MatchKind.DECLARATION, 'E = null')
     ];
-    return _verifyTopLevelDeclarations('^[A-E]\$', expected);
+    List<SearchMatch> matches =
+        await searchEngine.searchTopLevelDeclarations(r'^[A-E]$');
+    _assertMatches(matches, expected);
   }
 
   ExpectedMatch _expectId(Element element, MatchKind kind, String search,
@@ -610,36 +892,42 @@ class NoMatchABCDE {}
         isResolved: isResolved, isQualified: isQualified);
   }
 
-  ExpectedMatch _expectIdQ(Element element, MatchKind kind, String search) {
-    return _expectId(element, kind, search, isQualified: true);
+  /**
+   * Create [ExpectedMatch] for a qualified and resolved match.
+   */
+  ExpectedMatch _expectIdQ(Element element, MatchKind kind, String search,
+      {int length, bool isResolved: true}) {
+    return _expectId(element, kind, search, isQualified: true, length: length);
   }
 
-  ExpectedMatch _expectIdU(Element element, MatchKind kind, String search) {
+  /**
+   * Create [ExpectedMatch] for a qualified and unresolved match.
+   */
+  ExpectedMatch _expectIdQU(Element element, MatchKind kind, String search,
+      {int length}) {
     return _expectId(element, kind, search,
-        isQualified: true, isResolved: false);
+        isQualified: true, isResolved: false, length: length);
+  }
+
+  /**
+   * Create [ExpectedMatch] for a unqualified and unresolved match.
+   */
+  ExpectedMatch _expectIdU(Element element, MatchKind kind, String search,
+      {int length}) {
+    return _expectId(element, kind, search,
+        isQualified: false, isResolved: false, length: length);
   }
 
   void _indexTestUnit(String code) {
     resolveTestUnit(code);
-    index.index(context, testUnit);
+    index.indexUnit(testUnit);
   }
 
   Future _verifyReferences(
-      Element element, List<ExpectedMatch> expectedMatches) {
-    return searchEngine
-        .searchReferences(element)
-        .then((List<SearchMatch> matches) {
-      _assertMatches(matches, expectedMatches);
-    });
-  }
-
-  Future _verifyTopLevelDeclarations(
-      String pattern, List<ExpectedMatch> expectedMatches) {
-    return searchEngine
-        .searchTopLevelDeclarations(pattern)
-        .then((List<SearchMatch> matches) {
-      _assertMatches(matches, expectedMatches);
-    });
+      Element element, List<ExpectedMatch> expectedMatches) async {
+    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    _assertMatches(matches, expectedMatches);
+    expect(matches, hasLength(expectedMatches.length));
   }
 
   static void _assertMatches(

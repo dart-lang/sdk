@@ -445,7 +445,7 @@ class ProcessResult {
   /**
    * Standard output from the process. The value used for the
    * `stdoutEncoding` argument to `Process.run` determines the type. If
-   * `null` was used this value is of type `List<int> otherwise it is
+   * `null` was used this value is of type `List<int>` otherwise it is
    * of type `String`.
    */
   final stdout;
@@ -453,7 +453,7 @@ class ProcessResult {
   /**
    * Standard error from the process. The value used for the
    * `stderrEncoding` argument to `Process.run` determines the type. If
-   * `null` was used this value is of type `List<int>
+   * `null` was used this value is of type `List<int>`
    * otherwise it is of type `String`.
    */
   final stderr;

@@ -53,8 +53,8 @@ class _HttpSession implements HttpSession {
   putIfAbsent(key, ifAbsent) => _data.putIfAbsent(key, ifAbsent);
   addAll(Map other) => _data.addAll(other);
   remove(key) => _data.remove(key);
-  void clear() => _data.clear();
-  void forEach(void f(key, value)) => _data.forEach(f);
+  void clear() { _data.clear(); }
+  void forEach(void f(key, value)) { _data.forEach(f); }
   Iterable get keys => _data.keys;
   Iterable get values => _data.values;
   int get length => _data.length;
@@ -104,7 +104,7 @@ class _HttpSessionManager {
     _startTimer();
   }
 
-  void close() => _stopTimer();
+  void close() { _stopTimer(); }
 
   void _bumpToEnd(_HttpSession session) {
     _removeFromTimeoutQueue(session);

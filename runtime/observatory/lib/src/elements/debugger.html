@@ -1,10 +1,6 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="function_ref.html">
-<link rel="import" href="nav_bar.html">
 <link rel="import" href="eval_link.html">
-<link rel="import" href="observatory_element.html">
 <link rel="import" href="script_inset.html">
-<link rel="import" href="script_ref.html">
 
 <!-- TODO(turnidge): Use core-icon once core_elements work properly in
      devtools -->
@@ -72,7 +68,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="debugger-page" extends="observatory-element">
+<polymer-element name="debugger-page">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -109,11 +105,13 @@
     </style>
 
     <div class="container">
-      <nav-bar id="navbarDiv" notifyOnPause="{{ false }}">
+      <nav-bar id="navbarDiv" >
         <top-nav-menu></top-nav-menu>
 	<vm-nav-menu vm="{{ isolate.vm }}"></vm-nav-menu>
         <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
         <nav-menu link="{{ makeLink('/debugger', isolate) }}" anchor="debugger" last="{{ true }}"></nav-menu>
+        <nav-notify notifications="{{ app.notifications }}"
+                                      notifyOnPause="{{ false }}"></nav-notify>
       </nav-bar>
       <div id="stackDiv" class="stack">
         <debugger-stack id="stackElement" isolate="{{ isolate }}"></debugger-stack>
@@ -132,7 +130,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="debugger-stack" extends="observatory-element">
+<polymer-element name="debugger-stack">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -183,7 +181,7 @@
 </polymer-element>
 
 
-<polymer-element name="debugger-frame" extends="observatory-element">
+<polymer-element name="debugger-frame">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -299,7 +297,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="debugger-message" extends="observatory-element">
+<polymer-element name="debugger-message">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -404,7 +402,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="debugger-console" extends="observatory-element">
+<polymer-element name="debugger-console">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -443,7 +441,7 @@
   </template>
 </polymer-element>
 
-<polymer-element name="debugger-input" extends="observatory-element">
+<polymer-element name="debugger-input">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>

@@ -81,6 +81,8 @@ class MessageHandler {
     return live_ports_;
   }
 
+  void DebugDump();
+
   bool paused() const { return paused_ > 0; }
 
   void increment_paused() { paused_++; }
@@ -185,6 +187,10 @@ class MessageHandler {
   // This is used to delete handlers when their last live port is closed.
   virtual bool OwnedByPortMap() const { return false; }
 
+  // Requests deletion of this message handler when the next task
+  // completes.
+  void RequestDeletion();
+
   void increment_live_ports();
   void decrement_live_ports();
   // ------------ END PortMap API ------------
@@ -239,6 +245,7 @@ class MessageHandler {
   bool should_pause_on_exit_;
   bool is_paused_on_start_;
   bool is_paused_on_exit_;
+  bool delete_me_;
   int64_t paused_timestamp_;
   ThreadPool* pool_;
   ThreadPool::Task* task_;

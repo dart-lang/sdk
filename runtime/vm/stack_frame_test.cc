@@ -75,6 +75,9 @@ void FUNCTION_NAME(StackFrame_dartFrameCount)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
   Dart_Handle index = Dart_GetNativeArgument(args, 0);
   Dart_Handle name = Dart_GetNativeArgument(args, 1);
   const Smi& frame_index_smi = Smi::CheckedHandle(Api::UnwrapHandle(index));
@@ -89,18 +92,18 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
       // Find the function corresponding to this frame and check if it
       // matches the function name passed in.
       const Function& function =
-          Function::Handle(frame->LookupDartFunction());
+          Function::Handle(zone, frame->LookupDartFunction());
       if (function.IsNull()) {
         FATAL("StackFrame_validateFrame fails, invalid dart frame.\n");
       }
       const char* name = function.ToFullyQualifiedCString();
       // Currently all unit tests are loaded as being part of dart:core-lib.
-      String& url = String::Handle(String::New(TestCase::url()));
-      const Library& lib = Library::Handle(Library::LookupLibrary(url));
+      String& url = String::Handle(zone, String::New(TestCase::url()));
+      const Library& lib = Library::Handle(zone,
+                                           Library::LookupLibrary(thread, url));
       ASSERT(!lib.IsNull());
-      const char* lib_name = String::Handle(lib.url()).ToCString();
-      char* full_name = OS::SCreate(Thread::Current()->zone(),
-          "%s_%s", lib_name, expected_name);
+      const char* lib_name = String::Handle(zone, lib.url()).ToCString();
+      char* full_name = OS::SCreate(zone, "%s_%s", lib_name, expected_name);
       if (strcmp(full_name, name) != 0) {
         FATAL("StackFrame_validateFrame fails, incorrect frame.\n");
       }

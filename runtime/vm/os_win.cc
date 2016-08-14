@@ -34,7 +34,9 @@ intptr_t OS::ProcessId() {
 // As a side-effect sets the globals _timezone, _daylight and _tzname.
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
-  if (seconds != seconds_since_epoch) return false;
+  if (seconds != seconds_since_epoch) {
+    return false;
+  }
   // localtime_s implicitly sets _timezone, _daylight and _tzname.
   errno_t error_code = localtime_s(tm_result, &seconds);
   return error_code == 0;
@@ -54,17 +56,38 @@ static int GetDaylightSavingBiasInSeconds() {
 
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
-  tm decomposed;
-  // LocalTime will set _tzname.
-  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  if (succeeded) {
-    int inDaylightSavingsTime = decomposed.tm_isdst;
-    ASSERT(inDaylightSavingsTime == 0 || inDaylightSavingsTime == 1);
-    return _tzname[inDaylightSavingsTime];
-  } else {
-    // Return an empty string like V8 does.
+  TIME_ZONE_INFORMATION zone_information;
+  memset(&zone_information, 0, sizeof(zone_information));
+
+  // Initialize and grab the time zone data.
+  _tzset();
+  DWORD status = GetTimeZoneInformation(&zone_information);
+  if (GetTimeZoneInformation(&zone_information) == TIME_ZONE_ID_INVALID) {
+    // If we can't get the time zone data, the Windows docs indicate that we
+    // are probably out of memory. Return an empty string.
     return "";
   }
+
+  // Figure out whether we're in standard or daylight.
+  bool daylight_savings = (status == TIME_ZONE_ID_DAYLIGHT);
+  if (status == TIME_ZONE_ID_UNKNOWN) {
+    tm local_time;
+    if (LocalTime(seconds_since_epoch, &local_time)) {
+      daylight_savings = (local_time.tm_isdst == 1);
+    }
+  }
+
+  // Convert the wchar string to a null-terminated utf8 string.
+  wchar_t* wchar_name = daylight_savings
+                      ? zone_information.DaylightName
+                      : zone_information.StandardName;
+  intptr_t utf8_len = WideCharToMultiByte(
+      CP_UTF8, 0, wchar_name, -1, NULL, 0, NULL, NULL);
+  char* name = Thread::Current()->zone()->Alloc<char>(utf8_len + 1);
+  WideCharToMultiByte(
+      CP_UTF8, 0, wchar_name, -1, name, utf8_len, NULL, NULL);
+  name[utf8_len] = '\0';
+  return name;
 }
 
 
@@ -160,6 +183,12 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 
+int64_t OS::GetCurrentThreadCPUMicros() {
+  // TODO(johnmccutchan): Implement. See base/time_win.cc for details.
+  return -1;
+}
+
+
 void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   const int kMinimumAlignment = 16;
   ASSERT(Utils::IsPowerOfTwo(alignment));
@@ -250,6 +279,11 @@ char* OS::StrNDup(const char* s, intptr_t n) {
   }
   result[len] = '\0';
   return reinterpret_cast<char*>(memmove(result, s, len));
+}
+
+
+intptr_t OS::StrNLen(const char* s, intptr_t n) {
+  return strnlen(s, n);
 }
 
 

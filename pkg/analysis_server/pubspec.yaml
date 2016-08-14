@@ -9,10 +9,12 @@ dependencies:
   analyzer: ^0.27.0
   args: '>=0.13.0 <0.14.0'
   dart_style: '>=0.2.0 <0.3.0'
-  linter: ^0.1.10
+  isolate: ^0.2.2
+  linter: ^0.1.16
   logging: any
+  package_config: '>=0.1.5 <2.0.0'
   path: any
-  plugin: <0.2.0
+  plugin: ^0.2.0
   watcher: any
   yaml: any
 dev_dependencies:

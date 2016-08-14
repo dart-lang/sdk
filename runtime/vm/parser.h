@@ -14,6 +14,7 @@
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
+#include "vm/hash_table.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/token.h"
@@ -37,6 +38,48 @@ struct ParamList;
 struct QualIdent;
 class TopLevel;
 class RecursionChecker;
+
+// We cache compile time constants during compilation.  This allows us
+// to look them up when the same code gets compiled again.  During
+// background compilation, we are not able to evaluate the constants
+// so this cache is necessary to support background compilation.
+//
+// We cache the constants with the script itself. This is helpful during isolate
+// reloading, as it allows us to reference the compile time constants associated
+// with a particular version of a script. The map key is simply the
+// TokenPosition where the constant is defined.
+class ConstMapKeyEqualsTraits {
+ public:
+  static const char* Name() { return "ConstMapKeyEqualsTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    const Smi& key1 = Smi::Cast(a);
+    const Smi& key2 = Smi::Cast(b);
+    return (key1.Value() == key2.Value());
+  }
+  static bool IsMatch(const TokenPosition& key1, const Object& b) {
+    const Smi& key2 = Smi::Cast(b);
+    return (key1.value() == key2.Value());
+  }
+  static uword Hash(const Object& obj) {
+    const Smi& key = Smi::Cast(obj);
+    return HashValue(key.Value());
+  }
+  static uword Hash(const TokenPosition& key) {
+    return HashValue(key.value());
+  }
+  // Used by CacheConstantValue if a new constant is added to the map.
+  static RawObject* NewKey(const TokenPosition& key) {
+    return Smi::New(key.value());
+  }
+
+ private:
+  static uword HashValue(intptr_t pos) {
+    return pos % (Smi::kMaxValue - 13);
+  }
+};
+typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
 
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
@@ -170,6 +213,8 @@ class ParsedFunction : public ZoneAllocated {
   // relevant.
   void AddToGuardedFields(const Field* field) const;
 
+  void Bailout(const char* origin, const char* reason) const;
+
  private:
   Thread* thread_;
   const Function& function_;
@@ -215,6 +260,10 @@ class Parser : public ValueObject {
   // Build a function containing the initializer expression of the
   // given static field.
   static ParsedFunction* ParseStaticFieldInitializer(const Field& field);
+
+  static void InsertCachedConstantValue(const Script& script,
+                                        TokenPosition token_pos,
+                                        const Instance& value);
 
   // Parse a function to retrieve parameter information that is not retained in
   // the dart::Function object. Returns either an error if the parse fails
@@ -271,6 +320,10 @@ class Parser : public ValueObject {
   // nesting. The function level is zero while parsing the body of the
   // current_function(), but is greater than zero while parsing the body of
   // local functions nested in current_function().
+
+  // FunctionLevel is 0 when parsing code of current_function(), and denotes
+  // the relative nesting level when parsing a nested function.
+  int FunctionLevel() const;
 
   // The class being parsed.
   const Class& current_class() const;
@@ -348,6 +401,7 @@ class Parser : public ValueObject {
   void SkipToMatchingParenthesis();
   void SkipBlock();
   TokenPosition SkipMetadata();
+  bool IsPatchAnnotation(TokenPosition pos);
   void SkipTypeArguments();
   void SkipType(bool allow_void);
   void SkipInitializers();
@@ -547,8 +601,7 @@ class Parser : public ValueObject {
   ClosureNode* CreateImplicitClosureNode(const Function& func,
                                          TokenPosition token_pos,
                                          AstNode* receiver);
-  static void AddFormalParamsToFunction(const ParamList* params,
-                                        const Function& func);
+  void AddFormalParamsToFunction(const ParamList* params, const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
   SequenceNode* ParseConstructor(const Function& func);
@@ -673,6 +726,7 @@ class Parser : public ValueObject {
   // Add specified node to try block list so that it can be patched with
   // inlined finally code if needed.
   void AddNodeForFinallyInlining(AstNode* node);
+  void RemoveNodesForFinallyInlining(SourceLabel* label);
   // Add the inlined finally clause to the specified node.
   void AddFinallyClauseToNode(bool is_async,
                               AstNode* node,
@@ -803,7 +857,6 @@ class Parser : public ValueObject {
                           const String& func_name,
                           ArgumentListNode* arguments);
   String& Interpolate(const GrowableArray<AstNode*>& values);
-  AstNode* MakeAssertCall(TokenPosition begin, TokenPosition end);
   AstNode* ThrowTypeError(TokenPosition type_pos,
                           const AbstractType& type,
                           LibraryPrefix* prefix = NULL);
@@ -827,7 +880,6 @@ class Parser : public ValueObject {
                                 const String* left_ident,
                                 TokenPosition left_pos,
                                 bool is_compound = false);
-  AstNode* InsertClosureCallNodes(AstNode* condition);
 
   ConstructorCallNode* CreateConstructorCallNode(
       TokenPosition token_pos,
@@ -850,8 +902,8 @@ class Parser : public ValueObject {
   Isolate* isolate() const { return isolate_; }
   Zone* zone() const { return thread_->zone(); }
 
+  Thread* thread_;  // Cached current thread.
   Isolate* isolate_;  // Cached current isolate.
-  Thread* thread_;
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;

@@ -22,6 +22,7 @@
             '../sdk/lib/_internal/js_runtime/lib',
             '../sdk/lib/_internal/sdk_library_metadata/lib',
             '../site/try',
+            '../third_party/observatory_pub_packages/packages/charted/lib',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',

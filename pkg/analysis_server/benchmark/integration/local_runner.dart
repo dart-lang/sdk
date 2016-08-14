@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:path/path.dart';
+
 import 'main.dart' as performance;
 
 // Local driver for performance measurement
@@ -15,8 +17,8 @@ main(List<String> args) {
   if (args.length < 3) printHelp('Expected 3 arguments');
   var gitDir = new Directory(args[0]);
   if (!gitDir.existsSync()) printHelp('${gitDir.path} does not exist');
-  if (!new Directory(join(gitDir.path, '.git')).existsSync()) printHelp(
-      '${gitDir.path} does not appear to be a local git repository');
+  if (!new Directory(join(gitDir.path, '.git')).existsSync())
+    printHelp('${gitDir.path} does not appear to be a local git repository');
   var branch = args[1];
   var inputFile = new File(args[2]);
   if (!inputFile.existsSync()) printHelp('${inputFile.path} does not exist');

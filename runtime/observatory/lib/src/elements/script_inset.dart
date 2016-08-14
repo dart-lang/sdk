@@ -8,8 +8,8 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:math';
 import 'observatory_element.dart';
-import 'nav_bar.dart';
 import 'service_ref.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart';
 import 'package:observatory/utils.dart';
 import 'package:polymer/polymer.dart';
@@ -361,6 +361,46 @@ class FunctionDeclarationAnnotation extends DeclarationAnnotation {
   }
 }
 
+class ScriptLineProfile {
+  ScriptLineProfile(this.line, this.sampleCount);
+
+  static const kHotThreshold = 0.05;  // 5%.
+  static const kMediumThreshold = 0.02;  // 2%.
+
+  final int line;
+  final int sampleCount;
+
+  int selfTicks = 0;
+  int totalTicks = 0;
+
+  void process(int exclusive, int inclusive) {
+    selfTicks += exclusive;
+    totalTicks += inclusive;
+  }
+
+  String get formattedSelfTicks {
+    return Utils.formatPercent(selfTicks, sampleCount);
+  }
+
+  String get formattedTotalTicks {
+    return Utils.formatPercent(totalTicks, sampleCount);
+  }
+
+  double _percent(bool self) {
+    if (sampleCount == 0) {
+      return 0.0;
+    }
+    if (self) {
+      return selfTicks / sampleCount;
+    } else {
+      return totalTicks / sampleCount;
+    }
+  }
+
+  bool isHot(bool self) => _percent(self) > kHotThreshold;
+  bool isMedium(bool self) => _percent(self) > kMediumThreshold;
+}
+
 /// Box with script source code in it.
 @CustomTag('script-inset')
 class ScriptInsetElement extends ObservatoryElement {
@@ -378,6 +418,7 @@ class ScriptInsetElement extends ObservatoryElement {
 
   @published Element scroller;
   RefreshButtonElement _refreshButton;
+  ToggleButtonElement _toggleProfileButton;
 
   int _currentLine;
   int _currentCol;
@@ -387,6 +428,7 @@ class ScriptInsetElement extends ObservatoryElement {
   Map<int, List<ServiceMap>> _rangeMap = {};
   Set _callSites = new Set<CallSite>();
   Set _possibleBreakpointLines = new Set<int>();
+  Map<int, ScriptLineProfile> _profileMap = {};
 
   var annotations = [];
   var annotationsCursor;
@@ -396,6 +438,7 @@ class ScriptInsetElement extends ObservatoryElement {
   StreamSubscription _scrollSubscription;
 
   bool hasLoadedLibraryDeclarations = false;
+  bool _includeProfile = false;
 
   String makeLineId(int line) {
     return 'line-$line';
@@ -435,13 +478,17 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   void _onScroll(event) {
-    if (_refreshButton == null) {
-      return;
+    if (_refreshButton != null) {
+      var newTop = _buttonTop(_refreshButton);
+      if (_refreshButton.style.top != newTop) {
+        _refreshButton.style.top = '${newTop}px';
+      }
     }
-    var currentTop = _refreshButton.style.top;
-    var newTop = _refreshButtonTop();
-    if (currentTop != newTop) {
-      _refreshButton.style.top = '${newTop}px';
+    if (_toggleProfileButton != null) {
+      var newTop = _buttonTop(_toggleProfileButton);
+      if (_toggleProfileButton.style.top != newTop) {
+        _toggleProfileButton.style.top = '${newTop}px';
+      }
     }
   }
 
@@ -535,21 +582,52 @@ class ScriptInsetElement extends ObservatoryElement {
 
   // Build _rangeMap and _callSites from a source report.
   Future _refreshSourceReport() async {
+    var reports = [Isolate.kCallSitesReport,
+                   Isolate.kPossibleBreakpointsReport];
+    if (_includeProfile) {
+      reports.add(Isolate.kProfileReport);
+    }
     var sourceReport = await script.isolate.getSourceReport(
-        [Isolate.kCallSitesReport, Isolate.kPossibleBreakpointsReport],
+        reports,
         script, startPos, endPos);
     _possibleBreakpointLines = getPossibleBreakpointLines(sourceReport, script);
     _rangeMap.clear();
     _callSites.clear();
+    _profileMap.clear();
     for (var range in sourceReport['ranges']) {
       int startLine = script.tokenToLine(range['startPos']);
       int endLine = script.tokenToLine(range['endPos']);
-      for (var line = startLine; line <= endLine; line++) {
-        var rangeList = _rangeMap[line];
-        if (rangeList == null) {
-          _rangeMap[line] = [range];
-        } else {
-          rangeList.add(range);
+      // TODO(turnidge): Track down the root cause of null startLine/endLine.
+      if ((startLine != null) && (endLine != null)) {
+        for (var line = startLine; line <= endLine; line++) {
+          var rangeList = _rangeMap[line];
+          if (rangeList == null) {
+            _rangeMap[line] = [range];
+          } else {
+            rangeList.add(range);
+          }
+        }
+      }
+      if (_includeProfile && range['profile'] != null) {
+        List positions = range['profile']['positions'];
+        List exclusiveTicks = range['profile']['exclusiveTicks'];
+        List inclusiveTicks = range['profile']['inclusiveTicks'];
+        int sampleCount = range['profile']['metadata']['sampleCount'];
+        assert(positions.length == exclusiveTicks.length);
+        assert(positions.length == inclusiveTicks.length);
+        for (int i = 0; i < positions.length; i++) {
+          if (positions[i] is String) {
+            // String positions are classifying token positions.
+            // TODO(johnmccutchan): Add classifier data to UI.
+            continue;
+          }
+          int line = script.tokenToLine(positions[i]);
+          ScriptLineProfile lineProfile = _profileMap[line];
+          if (lineProfile == null) {
+            lineProfile = new ScriptLineProfile(line, sampleCount);
+            _profileMap[line] = lineProfile;
+          }
+          lineProfile.process(exclusiveTicks[i], inclusiveTicks[i]);
         }
       }
       if (range['compiled']) {
@@ -852,8 +930,8 @@ class ScriptInsetElement extends ObservatoryElement {
     for (var func in script.library.functions) {
       if ((func.location != null) &&
           (func.location.script == script) &&
-          (func.kind != FunctionKind.kImplicitGetterFunction) &&
-          (func.kind != FunctionKind.kImplicitSetterFunction)) {
+          (func.kind != M.FunctionKind.implicitGetter) &&
+          (func.kind != M.FunctionKind.implicitSetter)) {
         // We annotate a field declaration with the field instead of the
         // implicit getter or setter.
         var a = new FunctionDeclarationAnnotation(func, inspectLink(func));
@@ -864,8 +942,8 @@ class ScriptInsetElement extends ObservatoryElement {
       for (var func in cls.functions) {
         if ((func.location != null) &&
             (func.location.script == script) &&
-            (func.kind != FunctionKind.kImplicitGetterFunction) &&
-            (func.kind != FunctionKind.kImplicitSetterFunction)) {
+            (func.kind != M.FunctionKind.implicitGetter) &&
+            (func.kind != M.FunctionKind.implicitSetter)) {
           // We annotate a field declaration with the field instead of the
           // implicit getter or setter.
           var a = new FunctionDeclarationAnnotation(func, inspectLink(func));
@@ -901,14 +979,15 @@ class ScriptInsetElement extends ObservatoryElement {
     }
   }
 
-  int _refreshButtonTop() {
-    if (_refreshButton == null) {
+  int _buttonTop(Element element) {
+    if (element == null) {
       return 5;
     }
     const padding = 5;
-    const navbarHeight = NavBarElement.height;
+    // TODO (cbernaschina) check if this is needed.
+    const navbarHeight = 40;
     var rect = getBoundingClientRect();
-    var buttonHeight = _refreshButton.clientHeight;
+    var buttonHeight = element.clientHeight;
     return min(max(0, navbarHeight - rect.top) + padding,
                rect.height - (buttonHeight + padding));
   }
@@ -917,9 +996,37 @@ class ScriptInsetElement extends ObservatoryElement {
     var button = new Element.tag('refresh-button');
     button.style.position = 'absolute';
     button.style.display = 'inline-block';
-    button.style.top = '${_refreshButtonTop()}px';
+    button.style.top = '${_buttonTop(null)}px';
     button.style.right = '5px';
     button.callback = _refresh;
+    button.title = 'Refresh coverage';
+    return button;
+  }
+
+  ToggleButtonElement _newToggleProfileButton() {
+    ToggleButtonElement button = new Element.tag('toggle-button');
+    button.style.position = 'absolute';
+    button.style.display = 'inline-block';
+    button.style.top = '${_buttonTop(null)}px';
+    button.style.right = '30px';
+    button.title = 'Toggle CPU profile information';
+    final String enabledColor = 'black';
+    final String disabledColor = 'rgba(0, 0, 0 ,.3)';
+    button.callback = (enabled) async {
+      _includeProfile = enabled;
+      if (button.children.length > 0) {
+        var content = button.children[0];
+        if (enabled) {
+          content.style.color = enabledColor;
+        } else {
+          content.style.color = disabledColor;
+        }
+      }
+      await update();
+    };
+    button.children.add(new Element.tag('icon-whatshot'));
+    button.children[0].style.color = disabledColor;
+    button.enabled = _includeProfile;
     return button;
   }
 
@@ -928,7 +1035,9 @@ class ScriptInsetElement extends ObservatoryElement {
     table.classes.add("sourceTable");
 
     _refreshButton = _newRefreshButton();
+    _toggleProfileButton = _newToggleProfileButton();
     table.append(_refreshButton);
+    table.append(_toggleProfileButton);
 
     if (_startLine == null || _endLine == null) {
       return table;
@@ -996,7 +1105,57 @@ class ScriptInsetElement extends ObservatoryElement {
     e.classes.add("sourceRow");
     e.append(lineBreakpointElement(line));
     e.append(lineNumberElement(line, lineNumPad));
+    if (_includeProfile) {
+      e.append(lineProfileElement(line, false));
+      e.append(lineProfileElement(line, true));
+    }
     e.append(lineSourceElement(line));
+    return e;
+  }
+
+  Element lineProfileElement(ScriptLine line, bool self) {
+    var e = span('');
+    e.classes.add('noCopy');
+    if (self) {
+      e.title = 'Self %';
+    } else {
+      e.title = 'Total %';
+    }
+
+    if (line == null) {
+      e.classes.add('notSourceProfile');
+      e.text = nbsp;
+      return e;
+    }
+
+    var ranges = _rangeMap[line.line];
+    if ((ranges == null) || ranges.isEmpty) {
+      e.classes.add('notSourceProfile');
+      e.text = nbsp;
+      return e;
+    }
+
+    ScriptLineProfile lineProfile = _profileMap[line.line];
+    if (lineProfile == null) {
+      e.classes.add('noProfile');
+      e.text = nbsp;
+      return e;
+    }
+
+    if (self) {
+      e.text = lineProfile.formattedSelfTicks;
+    } else {
+      e.text = lineProfile.formattedTotalTicks;
+    }
+
+    if (lineProfile.isHot(self)) {
+      e.classes.add('hotProfile');
+    } else if (lineProfile.isMedium(self)) {
+      e.classes.add('mediumProfile');
+    } else {
+      e.classes.add('coldProfile');
+    }
+
     return e;
   }
 
@@ -1187,6 +1346,22 @@ class RefreshButtonElement extends PolymerElement {
       await callback();
     }
     busy = false;
+  }
+}
+
+
+@CustomTag('toggle-button')
+class ToggleButtonElement extends PolymerElement {
+  ToggleButtonElement.created() : super.created();
+
+  @published var callback = null;
+  @observable bool enabled = false;
+
+  Future buttonClick(var event, var b, var c) async {
+    enabled = !enabled;
+    if (callback != null) {
+      await callback(enabled);
+    }
   }
 }
 

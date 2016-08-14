@@ -5,16 +5,16 @@
 import 'dart:_internal' as internal;
 import 'dart:convert' show JSON;
 
-patch class Error {
-  /* patch */ static String _objectToString(Object object) {
+@patch class Error {
+  @patch static String _objectToString(Object object) {
     return Object._toString(object);
   }
 
-  /* patch */ static String _stringToSafeString(String string) {
+  @patch static String _stringToSafeString(String string) {
     return JSON.encode(string);
   }
 
-  /* patch */ StackTrace get stackTrace => _stackTrace;
+  @patch StackTrace get stackTrace => _stackTrace;
 
   StackTrace _stackTrace;
 }
@@ -25,6 +25,15 @@ class _AssertionError extends Error implements AssertionError {
 
   static _throwNew(int assertionStart, int assertionEnd)
       native "AssertionError_throwNew";
+
+  static void _checkAssertion(condition, int start, int end) {
+    if (condition is Function) {
+      condition = condition();
+    }
+    if (!condition) {
+      _throwNew(start, end);
+    }
+  }
 
   String toString() {
     if (_url == null) {
@@ -86,12 +95,12 @@ class _CastError extends Error implements CastError {
   final String _errorMsg;
 }
 
-patch class FallThroughError {
+@patch class FallThroughError {
   FallThroughError._create(this._url, this._line);
 
   static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
 
-  /* patch */ String toString() {
+  @patch String toString() {
     return "'$_url': Switch case fall-through at line $_line.";
   }
 
@@ -107,20 +116,26 @@ class _InternalError {
   final String _msg;
 }
 
-patch class CyclicInitializationError {
+@patch class UnsupportedError {
+  static _throwNew(String msg) {
+    throw new UnsupportedError(msg);
+  }
+}
+
+@patch class CyclicInitializationError {
   static _throwNew(String variableName) {
     throw new CyclicInitializationError(variableName);
   }
 }
 
-patch class AbstractClassInstantiationError {
+@patch class AbstractClassInstantiationError {
   AbstractClassInstantiationError._create(
       this._className, this._url, this._line);
 
   static _throwNew(int case_clause_pos, String className)
       native "AbstractClassInstantiationError_throwNew";
 
-  /* patch */ String toString() {
+  @patch String toString() {
     return "Cannot instantiate abstract class $_className: "
            "_url '$_url' line $_line";
   }
@@ -131,7 +146,7 @@ patch class AbstractClassInstantiationError {
   int _line;
 }
 
-patch class NoSuchMethodError {
+@patch class NoSuchMethodError {
   // The compiler emits a call to _throwNew when it cannot resolve a static
   // method at compile time. The receiver is actually the literal class of the
   // unresolved method.
@@ -269,7 +284,7 @@ patch class NoSuchMethodError {
     return "$msg\n\n";
   }
 
-  /* patch */ String toString() {
+  @patch String toString() {
     StringBuffer actual_buf = new StringBuffer();
     int i = 0;
     if (_arguments == null) {

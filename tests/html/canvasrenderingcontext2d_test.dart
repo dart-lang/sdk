@@ -688,7 +688,9 @@ main() {
       expectPixelFilled(x + 10, y);
 
       // The box does not draw after `width` pixels.
-      expectPixelFilled(x + width - 1, y);
+      // Check -2 rather than -1 because this seems
+      // to run into a rounding error on Mac bots.
+      expectPixelFilled(x + width - 2, y);
       expectPixelUnfilled(x + width + 1, y);
     });
 
@@ -709,7 +711,9 @@ main() {
       expectPixelFilled(x + 10, y);
 
       // The box does not draw after `width` pixels.
-      expectPixelFilled(x + width - 1, y);
+      // Check -2 rather than -1 because this seems
+      // to run into a rounding error on Mac bots.
+      expectPixelFilled(x + width - 2, y);
       expectPixelUnfilled(x + width + 1, y);
     });
 

@@ -65,11 +65,13 @@ final Matcher isServerSetSubscriptionsResult = isNull;
  *
  * {
  *   "version": String
+ *   "pid": int
  * }
  */
 final Matcher isServerConnectedParams = new LazyMatcher(() => new MatchesJsonObject(
   "server.connected params", {
-    "version": isString
+    "version": isString,
+    "pid": isInt
   }));
 
 /**

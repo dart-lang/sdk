@@ -317,7 +317,8 @@ a''';
 $a
 bbb''';
 }
-""".replaceAll('\n', '\r\n'));
+"""
+        .replaceAll('\n', '\r\n'));
     _createRefactoring('a =');
     // validate change
     return assertSuccessfulRefactoring(r"""
@@ -328,7 +329,8 @@ a
 a
 bbb''';
 }
-""".replaceAll('\n', '\r\n'));
+"""
+        .replaceAll('\n', '\r\n'));
   }
 
   test_OK_intoStringInterpolation_string_multiLineIntoSingle() {

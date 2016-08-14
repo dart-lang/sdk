@@ -104,13 +104,15 @@ LetNode::LetNode(TokenPosition token_pos)
 
 
 LocalVariable* LetNode::AddInitializer(AstNode* node) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   initializers_.Add(node);
   char name[64];
   OS::SNPrint(name, sizeof(name), ":lt%s_%" Pd "",
       token_pos().ToCString(), vars_.length());
   LocalVariable* temp_var =
       new LocalVariable(token_pos(),
-                        String::ZoneHandle(Symbols::New(name)),
+                        String::ZoneHandle(zone, Symbols::New(thread, name)),
                         Object::dynamic_type());
   vars_.Add(temp_var);
   return temp_var;
@@ -332,11 +334,6 @@ bool BinaryOpNode::IsKindValid() const {
 
 const char* BinaryOpNode::TokenName() const {
   return Token::Str(kind_);
-}
-
-
-const char* BinaryOpWithMask32Node::TokenName() const {
-  return Token::Str(kind());
 }
 
 
@@ -635,7 +632,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
         String::ZoneHandle(zone, Field::LookupSetterSymbol(field_name_));
     Function& setter = Function::ZoneHandle(zone);
     if (!setter_name.IsNull()) {
-      setter = Resolver::ResolveDynamicAnyArgs(cls(), setter_name);
+      setter = Resolver::ResolveDynamicAnyArgs(zone, cls(), setter_name);
     }
     if (setter.IsNull() || setter.is_abstract()) {
       // No instance setter found in super class chain,

@@ -200,14 +200,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 $if DART2JS
   Node._created() : super._created();
 $else
-  Node._created() : super._created() {
-    // By this point blink_jsObject should be setup if it's not then we weren't
-    // called by the registerElement createdCallback - probably created() was
-    // called directly which is verboten.
-    if (this.blink_jsObject == null) {
-      throw new DomException.jsInterop("the created constructor cannot be called directly");
-    }
-  }
+  Node._created() : super._created();
 $endif
 
   /**
@@ -220,7 +213,7 @@ $endif
   set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
-    List copy = new List.from(value);
+    var copy = value.toList();
     text = '';
     for (Node node in copy) {
       append(node);
@@ -304,7 +297,7 @@ $if DARTIUM
    */
   @DomName('Node.childNodes')
   @DocsEditable()
-  List<Node> get childNodes => wrap_jso(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
+  List<Node> get childNodes => _blink.BlinkNode.instance.childNodes_Getter_(this);
 $else
   /**
    * A list of this node's children.

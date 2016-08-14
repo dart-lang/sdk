@@ -265,7 +265,12 @@ class ParseHtmlTaskTest extends AbstractContextTest {
     Source source = newSource('/test.html');
     Map<String, TaskInput> inputs = ParseHtmlTask.buildInputs(source);
     expect(inputs, isNotNull);
-    expect(inputs.keys, unorderedEquals([ParseHtmlTask.CONTENT_INPUT_NAME]));
+    expect(
+        inputs.keys,
+        unorderedEquals([
+          ParseHtmlTask.CONTENT_INPUT_NAME,
+          ParseHtmlTask.MODIFICATION_TIME_INPUT
+        ]));
   }
 
   test_constructor() {

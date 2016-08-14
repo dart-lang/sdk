@@ -717,26 +717,6 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT]);
   }
 
-  void test_assertDoesNotTakeAssignment() {
-    parse4("parseAssertStatement", "assert(b = true);",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT]);
-  }
-
-  void test_assertDoesNotTakeCascades() {
-    parse4("parseAssertStatement", "assert(new A()..m());",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE]);
-  }
-
-  void test_assertDoesNotTakeRethrow() {
-    parse4("parseAssertStatement", "assert(rethrow);",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW]);
-  }
-
-  void test_assertDoesNotTakeThrow() {
-    parse4("parseAssertStatement", "assert(throw x);",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW]);
-  }
-
   void test_breakOutsideOfLoop_breakInDoStatement() {
     parse4("parseDoStatement", "do {break;} while (x);");
   }
@@ -1216,6 +1196,30 @@ class Foo {
         "external typedef F();", [ParserErrorCode.EXTERNAL_TYPEDEF]);
   }
 
+  void test_extraCommaInParameterList() {
+    parse4("parseFormalParameterList", "(int a, , int b)",
+        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
+  }
+
+  void test_extraCommaTrailingNamedParameterGroup() {
+    parse4("parseFormalParameterList", "({int b},)", [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS
+    ]);
+  }
+
+  void test_extraCommaTrailingPositionalParameterGroup() {
+    parse4("parseFormalParameterList", "([int b],)", [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS
+    ]);
+  }
+
+  void test_extraTrailingCommaInParameterList() {
+    parse4("parseFormalParameterList", "(a,,)",
+        [ParserErrorCode.MISSING_IDENTIFIER]);
+  }
+
   void test_factoryTopLevelDeclaration_class() {
     ParserTestCase.parseCompilationUnit(
         "factory class C {}", [ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION]);
@@ -1322,7 +1326,7 @@ class Foo {
         "0++", [ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE]);
   }
 
-  void test_illegalAssignmentToNonAssignable_postfix_plusPlus_parethesized() {
+  void test_illegalAssignmentToNonAssignable_postfix_plusPlus_parenthesized() {
     parseExpression(
         "(x)++", [ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE]);
   }
@@ -1715,6 +1719,11 @@ class Foo {
     expect(expression.isSynthetic, isTrue);
   }
 
+  void test_missingIdentifierForParameterGroup() {
+    parse4("parseFormalParameterList", "(,)",
+        [ParserErrorCode.MISSING_IDENTIFIER]);
+  }
+
   void test_missingKeywordOperator() {
     parse3("parseOperator", <Object>[emptyCommentAndMetadata(), null, null],
         "+(x) {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
@@ -2031,6 +2040,24 @@ class Foo {
   void test_staticTopLevelDeclaration_variable() {
     ParserTestCase.parseCompilationUnit(
         "static var x;", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
+  }
+
+  void test_string_unterminated_interpolation_block() {
+    ParserTestCase.parseCompilationUnit(
+        r'''
+m() {
+ {
+ '${${
+''',
+        [
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+        ]);
   }
 
   void test_switchHasCaseAfterDefaultCase() {
@@ -2748,12 +2775,6 @@ class ParserTestCase extends EngineTestCase {
   bool parseAsync = true;
 
   /**
-   * A flag indicating whether conditional directives support should be enabled
-   * for a specific test.
-   */
-  bool enableConditionalDirectives = false;
-
-  /**
    * A flag indicating whether generic method support should be enabled for a
    * specific test.
    */
@@ -2763,6 +2784,12 @@ class ParserTestCase extends EngineTestCase {
    * Whether generic method comments should be enabled for the test.
    */
   bool enableGenericMethodComments = false;
+
+  /**
+   * A flag indicating whether lazy assignment operators should be enabled for
+   * the test.
+   */
+  bool enableLazyAssignmentOperators = false;
 
   /**
    * Return a CommentAndMetadata object with the given values that can be used for testing.
@@ -2808,6 +2835,7 @@ class ParserTestCase extends EngineTestCase {
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
     scanner.scanGenericMethodComments = enableGenericMethodComments;
+    scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     //
@@ -2815,7 +2843,6 @@ class ParserTestCase extends EngineTestCase {
     //
     Parser parser = createParser(listener);
     parser.parseAsync = parseAsync;
-    parser.parseConditionalDirectives = enableConditionalDirectives;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
@@ -2946,7 +2973,6 @@ class ParserTestCase extends EngineTestCase {
     Parser parser = createParser(listener);
     parser.parseAsync = parseAsync;
     parser.parseFunctionBodies = parseFunctionBodies;
-    parser.parseConditionalDirectives = enableConditionalDirectives;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     CompilationUnit unit = parser.parseCompilationUnit(token);
@@ -3021,19 +3047,18 @@ class ParserTestCase extends EngineTestCase {
   }
 
   /**
-   * Parse the given source as a statement.
-   *
-   * @param source the source to be parsed
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the statement that was parsed
-   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   *           not match those that are expected, or if the result would have been `null`
+   * Parse the given [source] as a statement. The [errorCodes] are the error
+   * codes of the errors that are expected to be found. If
+   * [enableLazyAssignmentOperators] is `true`, then lazy assignment operators
+   * should be enabled.
    */
   static Statement parseStatement(String source,
-      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST,
+      bool enableLazyAssignmentOperators]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
+    scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
@@ -3500,7 +3525,7 @@ class B = Object with A {}''',
 
   void test_expressionList_multiple_end() {
     List<Expression> result = parse4("parseExpressionList", ", 2, 3, 4",
-        [ParserErrorCode.MISSING_IDENTIFIER]);
+        [ParserErrorCode.MISSING_IDENTIFIER]) as List<Expression>;
     expect(result, hasLength(4));
     Expression syntheticExpression = result[0];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
@@ -3510,7 +3535,7 @@ class B = Object with A {}''',
 
   void test_expressionList_multiple_middle() {
     List<Expression> result = parse4("parseExpressionList", "1, 2, , 4",
-        [ParserErrorCode.MISSING_IDENTIFIER]);
+        [ParserErrorCode.MISSING_IDENTIFIER]) as List<Expression>;
     expect(result, hasLength(4));
     Expression syntheticExpression = result[2];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
@@ -3520,7 +3545,7 @@ class B = Object with A {}''',
 
   void test_expressionList_multiple_start() {
     List<Expression> result = parse4("parseExpressionList", "1, 2, 3,",
-        [ParserErrorCode.MISSING_IDENTIFIER]);
+        [ParserErrorCode.MISSING_IDENTIFIER]) as List<Expression>;
     expect(result, hasLength(4));
     Expression syntheticExpression = result[3];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
@@ -3689,7 +3714,7 @@ class C {
         (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList =
         (classMember as FieldDeclaration).fields;
-    expect((fieldList.keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(fieldList.keyword.keyword, Keyword.CONST);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
@@ -3715,7 +3740,7 @@ class C {
         (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList =
         (classMember as FieldDeclaration).fields;
-    expect((fieldList.keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(fieldList.keyword.keyword, Keyword.FINAL);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
@@ -3741,7 +3766,7 @@ class C {
         (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList =
         (classMember as FieldDeclaration).fields;
-    expect((fieldList.keyword as KeywordToken).keyword, Keyword.VAR);
+    expect(fieldList.keyword.keyword, Keyword.VAR);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
@@ -4743,6 +4768,12 @@ class SimpleParserTest extends ParserTestCase {
     ArgumentList argumentList = parse4("parseArgumentList", "(x: x, y: y)");
     NodeList<Expression> arguments = argumentList.arguments;
     expect(arguments, hasLength(2));
+  }
+
+  void test_parseArgumentList_trailing_comma() {
+    ArgumentList argumentList = parse4("parseArgumentList", "(x, y, z,)");
+    NodeList<Expression> arguments = argumentList.arguments;
+    expect(arguments, hasLength(3));
   }
 
   void test_parseAssertStatement() {
@@ -5927,6 +5958,21 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.body, isNotNull);
   }
 
+  void test_parseClassMember_method_trailing_commas() {
+    MethodDeclaration method =
+        parse("parseClassMember", <Object>["C"], "void f(int x, int y,) {}");
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
   void test_parseClassMember_operator_index() {
     MethodDeclaration method =
         parse("parseClassMember", <Object>["C"], "int operator [](int i) {}");
@@ -6067,7 +6113,8 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_h() {
-    List<Combinator> combinators = parse4("parseCombinators", "hide a;");
+    List<Combinator> combinators =
+        parse4("parseCombinators", "hide a;") as List<Combinator>;
     expect(combinators, hasLength(1));
     HideCombinator combinator = combinators[0] as HideCombinator;
     expect(combinator, isNotNull);
@@ -6076,7 +6123,8 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_hs() {
-    List<Combinator> combinators = parse4("parseCombinators", "hide a show b;");
+    List<Combinator> combinators =
+        parse4("parseCombinators", "hide a show b;") as List<Combinator>;
     expect(combinators, hasLength(2));
     HideCombinator hideCombinator = combinators[0] as HideCombinator;
     expect(hideCombinator, isNotNull);
@@ -6090,12 +6138,14 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseCombinators_hshs() {
     List<Combinator> combinators =
-        parse4("parseCombinators", "hide a show b hide c show d;");
+        parse4("parseCombinators", "hide a show b hide c show d;")
+        as List<Combinator>;
     expect(combinators, hasLength(4));
   }
 
   void test_parseCombinators_s() {
-    List<Combinator> combinators = parse4("parseCombinators", "show a;");
+    List<Combinator> combinators =
+        parse4("parseCombinators", "show a;") as List<Combinator>;
     expect(combinators, hasLength(1));
     ShowCombinator combinator = combinators[0] as ShowCombinator;
     expect(combinator, isNotNull);
@@ -6107,7 +6157,7 @@ class SimpleParserTest extends ParserTestCase {
     CommentAndMetadata commentAndMetadata =
         parse4("parseCommentAndMetadata", "/** 1 */ void");
     expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(0));
+    expect(commentAndMetadata.metadata, isNull);
   }
 
   void test_parseCommentAndMetadata_cmc() {
@@ -6163,7 +6213,7 @@ class SimpleParserTest extends ParserTestCase {
     CommentAndMetadata commentAndMetadata =
         parse4("parseCommentAndMetadata", "void");
     expect(commentAndMetadata.comment, isNull);
-    expect(commentAndMetadata.metadata, hasLength(0));
+    expect(commentAndMetadata.metadata, isNull);
   }
 
   void test_parseCommentAndMetadata_singleLine() {
@@ -6174,7 +6224,7 @@ class SimpleParserTest extends ParserTestCase {
 /// 2
 void''');
     expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(0));
+    expect(commentAndMetadata.metadata, isNull);
   }
 
   void test_parseCommentReference_new_prefixed() {
@@ -6205,6 +6255,66 @@ void''');
     expect(identifier.token, isNotNull);
     expect(identifier.name, "a");
     expect(identifier.offset, 9);
+  }
+
+  void test_parseCommentReference_operator_withKeyword_notPrefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["operator ==", 5], "");
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is SimpleIdentifier,
+        SimpleIdentifier,
+        reference.identifier);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 14);
+  }
+
+  void test_parseCommentReference_operator_withKeyword_prefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["Object.operator==", 7], "");
+    PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is PrefixedIdentifier,
+        PrefixedIdentifier,
+        reference.identifier);
+    SimpleIdentifier prefix = prefixedIdentifier.prefix;
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "Object");
+    expect(prefix.offset, 7);
+    expect(prefixedIdentifier.period, isNotNull);
+    SimpleIdentifier identifier = prefixedIdentifier.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 22);
+  }
+
+  void test_parseCommentReference_operator_withoutKeyword_notPrefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["==", 5], "");
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is SimpleIdentifier,
+        SimpleIdentifier,
+        reference.identifier);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 5);
+  }
+
+  void test_parseCommentReference_operator_withoutKeyword_prefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["Object.==", 7], "");
+    PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is PrefixedIdentifier,
+        PrefixedIdentifier,
+        reference.identifier);
+    SimpleIdentifier prefix = prefixedIdentifier.prefix;
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "Object");
+    expect(prefix.offset, 7);
+    expect(prefixedIdentifier.period, isNotNull);
+    SimpleIdentifier identifier = prefixedIdentifier.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 14);
   }
 
   void test_parseCommentReference_prefixed() {
@@ -6249,6 +6359,10 @@ void''');
     expect(identifier.token, isNotNull);
     expect(identifier.name, "");
     expect(identifier.offset, 5);
+    // Should end with EOF token.
+    Token nextToken = identifier.token.next;
+    expect(nextToken, isNotNull);
+    expect(nextToken.type, TokenType.EOF);
   }
 
   void test_parseCommentReferences_multiLine() {
@@ -6256,7 +6370,8 @@ void''');
         TokenType.MULTI_LINE_COMMENT, "/** xxx [a] yyy [bb] zzz */", 3);
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[token];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     List<Token> tokenReferences = token.references;
     expect(references, hasLength(2));
     expect(tokenReferences, hasLength(2));
@@ -6283,33 +6398,51 @@ void''');
   }
 
   void test_parseCommentReferences_notClosed_noIdentifier() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5)
-    ];
-    List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+    DocumentationCommentToken docToken = new DocumentationCommentToken(
+        TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5);
+    List<CommentReference> references = parse(
+        "parseCommentReferences",
+        <Object>[
+          <DocumentationCommentToken>[docToken]
+        ],
+        "") as List<CommentReference>;
+    expect(docToken.references, hasLength(1));
     expect(references, hasLength(1));
+    Token referenceToken = docToken.references[0];
     CommentReference reference = references[0];
     expect(reference, isNotNull);
+    expect(docToken.references[0], same(reference.beginToken));
     expect(reference.identifier, isNotNull);
     expect(reference.identifier.isSynthetic, isTrue);
     expect(reference.identifier.name, "");
+    // Should end with EOF token.
+    Token nextToken = referenceToken.next;
+    expect(nextToken, isNotNull);
+    expect(nextToken.type, TokenType.EOF);
   }
 
   void test_parseCommentReferences_notClosed_withIdentifier() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5)
-    ];
-    List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+    DocumentationCommentToken docToken = new DocumentationCommentToken(
+        TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5);
+    List<CommentReference> references = parse(
+        "parseCommentReferences",
+        <Object>[
+          <DocumentationCommentToken>[docToken]
+        ],
+        "") as List<CommentReference>;
+    expect(docToken.references, hasLength(1));
     expect(references, hasLength(1));
+    Token referenceToken = docToken.references[0];
     CommentReference reference = references[0];
     expect(reference, isNotNull);
+    expect(referenceToken, same(reference.beginToken));
     expect(reference.identifier, isNotNull);
     expect(reference.identifier.isSynthetic, isFalse);
     expect(reference.identifier.name, "namePrefix");
+    // Should end with EOF token.
+    Token nextToken = referenceToken.next;
+    expect(nextToken, isNotNull);
+    expect(nextToken.type, TokenType.EOF);
   }
 
   void test_parseCommentReferences_singleLine() {
@@ -6320,7 +6453,8 @@ void''');
           TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(3));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6342,7 +6476,8 @@ void''');
           "/**\n *     a[i]\n * non-code line\n */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, isEmpty);
   }
 
@@ -6354,7 +6489,8 @@ void''');
           TokenType.SINGLE_LINE_COMMENT, "///     a[i] == b[i]", 0)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, isEmpty);
   }
 
@@ -6364,7 +6500,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** [:xxx [a] yyy:] [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6378,7 +6515,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** `a[i]` and [b] */", 0)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6392,7 +6530,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** `a[i] and [b] */", 0)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(2));
   }
 
@@ -6402,7 +6541,8 @@ void''');
           "/**\n *     a[i]\n * xxx [i] zzz\n */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6416,7 +6556,8 @@ void''');
           "/** [a]: http://www.google.com (Google) [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6430,7 +6571,8 @@ void''');
           "/** [a](http://www.google.com) [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6444,7 +6586,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6972,7 +7115,7 @@ void''');
 
   void test_parseConstructorFieldInitializer_qualified() {
     ConstructorFieldInitializer invocation =
-        parse4("parseConstructorFieldInitializer", "this.a = b");
+        parse2("parseConstructorFieldInitializer", [true], "this.a = b");
     expect(invocation.equals, isNotNull);
     expect(invocation.expression, isNotNull);
     expect(invocation.fieldName, isNotNull);
@@ -6982,7 +7125,7 @@ void''');
 
   void test_parseConstructorFieldInitializer_unqualified() {
     ConstructorFieldInitializer invocation =
-        parse4("parseConstructorFieldInitializer", "a = b");
+        parse2("parseConstructorFieldInitializer", [false], "a = b");
     expect(invocation.equals, isNotNull);
     expect(invocation.expression, isNotNull);
     expect(invocation.fieldName, isNotNull);
@@ -7227,7 +7370,6 @@ void''');
   }
 
   void test_parseExportDirective_configuration_multiple() {
-    enableConditionalDirectives = true;
     ExportDirective directive = parse(
         "parseExportDirective",
         <Object>[emptyCommentAndMetadata()],
@@ -7242,7 +7384,6 @@ void''');
   }
 
   void test_parseExportDirective_configuration_single() {
-    enableConditionalDirectives = true;
     ExportDirective directive = parse(
         "parseExportDirective",
         <Object>[emptyCommentAndMetadata()],
@@ -7314,6 +7455,15 @@ void''');
     expect(expression.leftHandSide, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ);
+    expect(expression.rightHandSide, isNotNull);
+  }
+
+  void test_parseExpression_assign_compound() {
+    enableLazyAssignmentOperators = true;
+    AssignmentExpression expression = parse4("parseExpression", "x ||= y");
+    expect(expression.leftHandSide, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.BAR_BAR_EQ);
     expect(expression.rightHandSide, isNotNull);
   }
 
@@ -7405,12 +7555,14 @@ void''');
   }
 
   void test_parseExpressionList_multiple() {
-    List<Expression> result = parse4("parseExpressionList", "1, 2, 3");
+    List<Expression> result =
+        parse4("parseExpressionList", "1, 2, 3") as List<Expression>;
     expect(result, hasLength(3));
   }
 
   void test_parseExpressionList_single() {
-    List<Expression> result = parse4("parseExpressionList", "1");
+    List<Expression> result =
+        parse4("parseExpressionList", "1") as List<Expression>;
     expect(result, hasLength(1));
   }
 
@@ -7478,7 +7630,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNull);
   }
 
@@ -7488,7 +7640,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNotNull);
   }
 
@@ -7498,7 +7650,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNull);
   }
 
@@ -7508,7 +7660,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
 
@@ -7518,7 +7670,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
 
@@ -7563,7 +7715,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.VAR);
+    expect(keyword.keyword, Keyword.VAR);
     expect(result.type, isNull);
   }
 
@@ -7731,6 +7883,16 @@ void''');
     expect(parameterList.rightParenthesis, isNotNull);
   }
 
+  void test_parseFormalParameterList_named_trailing_comma() {
+    FormalParameterList parameterList =
+        parse4("parseFormalParameterList", "(A a, {B b,})");
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNotNull);
+    expect(parameterList.parameters, hasLength(2));
+    expect(parameterList.rightDelimiter, isNotNull);
+    expect(parameterList.rightParenthesis, isNotNull);
+  }
+
   void test_parseFormalParameterList_normal_multiple() {
     FormalParameterList parameterList =
         parse4("parseFormalParameterList", "(A a, B b, C c)");
@@ -7771,6 +7933,16 @@ void''');
     expect(parameterList.rightParenthesis, isNotNull);
   }
 
+  void test_parseFormalParameterList_normal_single_trailing_comma() {
+    FormalParameterList parameterList =
+        parse4("parseFormalParameterList", "(A a,)");
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNull);
+    expect(parameterList.parameters, hasLength(1));
+    expect(parameterList.rightDelimiter, isNull);
+    expect(parameterList.rightParenthesis, isNotNull);
+  }
+
   void test_parseFormalParameterList_positional_multiple() {
     FormalParameterList parameterList =
         parse4("parseFormalParameterList", "([A a = null, B b, C c = null])");
@@ -7787,6 +7959,16 @@ void''');
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
     expect(parameterList.parameters, hasLength(1));
+    expect(parameterList.rightDelimiter, isNotNull);
+    expect(parameterList.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_positional_trailing_comma() {
+    FormalParameterList parameterList =
+        parse4("parseFormalParameterList", "(A a, [B b,])");
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNotNull);
+    expect(parameterList.parameters, hasLength(2));
     expect(parameterList.rightDelimiter, isNotNull);
     expect(parameterList.rightParenthesis, isNotNull);
   }
@@ -8365,12 +8547,14 @@ void''');
   }
 
   void test_parseIdentifierList_multiple() {
-    List<SimpleIdentifier> list = parse4("parseIdentifierList", "a, b, c");
+    List<SimpleIdentifier> list =
+        parse4("parseIdentifierList", "a, b, c") as List<SimpleIdentifier>;
     expect(list, hasLength(3));
   }
 
   void test_parseIdentifierList_single() {
-    List<SimpleIdentifier> list = parse4("parseIdentifierList", "a");
+    List<SimpleIdentifier> list =
+        parse4("parseIdentifierList", "a") as List<SimpleIdentifier>;
     expect(list, hasLength(1));
   }
 
@@ -8433,7 +8617,6 @@ void''');
   }
 
   void test_parseImportDirective_configuration_multiple() {
-    enableConditionalDirectives = true;
     ImportDirective directive = parse(
         "parseImportDirective",
         <Object>[emptyCommentAndMetadata()],
@@ -8451,7 +8634,6 @@ void''');
   }
 
   void test_parseImportDirective_configuration_single() {
-    enableConditionalDirectives = true;
     ImportDirective directive = parse(
         "parseImportDirective",
         <Object>[emptyCommentAndMetadata()],
@@ -8604,7 +8786,9 @@ void''');
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
@@ -8617,9 +8801,76 @@ void''');
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parseInstanceCreationExpression_qualifiedType_named_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression", <Object>[token], "A.B/*<E>*/.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parseInstanceCreationExpression_qualifiedType_named_typeParameters() {
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A.B<E>.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parseInstanceCreationExpression_qualifiedType_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression", <Object>[token], "A.B/*<E>*/()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_qualifiedType_typeParameters() {
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A.B<E>()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
@@ -8630,22 +8881,89 @@ void''');
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
   void test_parseInstanceCreationExpression_type_named() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_named_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression", <Object>[token], "A/*<B>*/.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_named_typeParameters() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
         parse("parseInstanceCreationExpression", <Object>[token], "A<B>.c()");
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A/*<B>*/()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_typeParameters() {
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A<B>()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
@@ -9528,7 +9846,7 @@ void''');
 
   void test_parseRedirectingConstructorInvocation_named() {
     RedirectingConstructorInvocation invocation =
-        parse4("parseRedirectingConstructorInvocation", "this.a()");
+        parse2("parseRedirectingConstructorInvocation", [true], "this.a()");
     expect(invocation.argumentList, isNotNull);
     expect(invocation.constructorName, isNotNull);
     expect(invocation.thisKeyword, isNotNull);
@@ -9537,7 +9855,7 @@ void''');
 
   void test_parseRedirectingConstructorInvocation_unnamed() {
     RedirectingConstructorInvocation invocation =
-        parse4("parseRedirectingConstructorInvocation", "this()");
+        parse2("parseRedirectingConstructorInvocation", [false], "this()");
     expect(invocation.argumentList, isNotNull);
     expect(invocation.constructorName, isNull);
     expect(invocation.thisKeyword, isNotNull);
@@ -9743,6 +10061,7 @@ void''');
   void test_parseStatement_singleLabel() {
     LabeledStatement statement = parse4("parseStatement", "l: return x;");
     expect(statement.labels, hasLength(1));
+    expect(statement.labels[0].label.inDeclarationContext(), isTrue);
     expect(statement.statement, isNotNull);
   }
 
@@ -10013,7 +10332,32 @@ void''');
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.leftBracket, isNotNull);
     expect(statement.members, hasLength(1));
-    expect(statement.members[0].labels, hasLength(3));
+    {
+      List<Label> labels = statement.members[0].labels;
+      expect(labels, hasLength(3));
+      expect(labels[0].label.inDeclarationContext(), isTrue);
+      expect(labels[1].label.inDeclarationContext(), isTrue);
+      expect(labels[2].label.inDeclarationContext(), isTrue);
+    }
+    expect(statement.rightBracket, isNotNull);
+  }
+
+  void test_parseSwitchStatement_labeledDefault() {
+    SwitchStatement statement =
+        parse4("parseSwitchStatement", "switch (a) {l1: l2: l3: default:}");
+    expect(statement.switchKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.leftBracket, isNotNull);
+    expect(statement.members, hasLength(1));
+    {
+      List<Label> labels = statement.members[0].labels;
+      expect(labels, hasLength(3));
+      expect(labels[0].label.inDeclarationContext(), isTrue);
+      expect(labels[1].label.inDeclarationContext(), isTrue);
+      expect(labels[2].label.inDeclarationContext(), isTrue);
+    }
     expect(statement.rightBracket, isNotNull);
   }
 

@@ -4,26 +4,14 @@
 
 library dart2js.universe.world_impact;
 
-import '../dart_types.dart' show
-    DartType,
-    InterfaceType;
-import '../elements/elements.dart' show
-    Element,
-    LocalFunctionElement,
-    MethodElement;
-import '../util/util.dart' show
-    Setlet;
-
-import 'use.dart' show
-    DynamicUse,
-    StaticUse,
-    TypeUse;
+import '../elements/elements.dart' show Element;
+import '../util/util.dart' show Setlet;
+import 'use.dart' show DynamicUse, StaticUse, TypeUse;
 
 class WorldImpact {
   const WorldImpact();
 
-  Iterable<DynamicUse> get dynamicUses =>
-      const <DynamicUse>[];
+  Iterable<DynamicUse> get dynamicUses => const <DynamicUse>[];
 
   Iterable<StaticUse> get staticUses => const <StaticUse>[];
 
@@ -78,8 +66,7 @@ class WorldImpactBuilder {
   }
 
   Iterable<DynamicUse> get dynamicUses {
-    return _dynamicUses != null
-        ? _dynamicUses : const <DynamicUse>[];
+    return _dynamicUses != null ? _dynamicUses : const <DynamicUse>[];
   }
 
   void registerTypeUse(TypeUse typeUse) {
@@ -91,8 +78,7 @@ class WorldImpactBuilder {
   }
 
   Iterable<TypeUse> get typeUses {
-    return _typeUses != null
-        ? _typeUses : const <TypeUse>[];
+    return _typeUses != null ? _typeUses : const <TypeUse>[];
   }
 
   void registerStaticUse(StaticUse staticUse) {
@@ -121,8 +107,7 @@ class TransformedWorldImpact implements WorldImpact {
 
   @override
   Iterable<DynamicUse> get dynamicUses {
-    return _dynamicUses != null
-        ? _dynamicUses : worldImpact.dynamicUses;
+    return _dynamicUses != null ? _dynamicUses : worldImpact.dynamicUses;
   }
 
   void registerDynamicUse(DynamicUse dynamicUse) {
@@ -143,8 +128,7 @@ class TransformedWorldImpact implements WorldImpact {
 
   @override
   Iterable<TypeUse> get typeUses {
-    return _typeUses != null
-        ? _typeUses : worldImpact.typeUses;
+    return _typeUses != null ? _typeUses : worldImpact.typeUses;
   }
 
   void registerStaticUse(StaticUse staticUse) {
@@ -188,10 +172,8 @@ class ImpactStrategy {
   const ImpactStrategy();
 
   /// Applies [impact] to [visitor] for the [impactUseCase] of [element].
-  void visitImpact(Element element,
-                   WorldImpact impact,
-                   WorldImpactVisitor visitor,
-                   ImpactUseCase impactUseCase) {
+  void visitImpact(Element element, WorldImpact impact,
+      WorldImpactVisitor visitor, ImpactUseCase impactUseCase) {
     // Apply unconditionally.
     impact.apply(visitor);
   }
@@ -220,8 +202,8 @@ class WorldImpactVisitorImpl implements WorldImpactVisitor {
 
   WorldImpactVisitorImpl(
       {VisitUse<StaticUse> visitStaticUse,
-       VisitUse<DynamicUse> visitDynamicUse,
-       VisitUse<TypeUse> visitTypeUse})
+      VisitUse<DynamicUse> visitDynamicUse,
+      VisitUse<TypeUse> visitTypeUse})
       : _visitStaticUse = visitStaticUse,
         _visitDynamicUse = visitDynamicUse,
         _visitTypeUse = visitTypeUse;
@@ -247,4 +229,3 @@ class WorldImpactVisitorImpl implements WorldImpactVisitor {
     }
   }
 }
-

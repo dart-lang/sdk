@@ -5,13 +5,11 @@
 #ifndef BIN_DARTUTILS_H_
 #define BIN_DARTUTILS_H_
 
+#include "bin/isolate_data.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
-
 #include "platform/assert.h"
 #include "platform/globals.h"
-
-#include "bin/isolate_data.h"
 
 namespace dart {
 namespace bin {
@@ -117,6 +115,8 @@ class DartUtils {
   static bool IsDartIOLibURL(const char* url_name);
   static bool IsDartBuiltinLibURL(const char* url_name);
   static bool IsHttpSchemeURL(const char* url_name);
+  static const char* RemoveScheme(const char* url);
+  static void* MapExecutable(const char* name, intptr_t* file_len);
   static void* OpenFile(const char* name, bool write);
   static void ReadFile(const uint8_t** data, intptr_t* file_len, void* stream);
   static void WriteFile(const void* buffer, intptr_t num_bytes, void* stream);
@@ -165,6 +165,23 @@ class DartUtils {
                                   strlen(str));
   }
 
+  // Allocate length bytes for a C string with Dart_ScopeAllocate.
+  static char* ScopedCString(intptr_t length) {
+    char* result = NULL;
+    result = reinterpret_cast<char*>(
+        Dart_ScopeAllocate(length * sizeof(*result)));
+    return result;
+  }
+
+  // Copy str into a buffer allocated with Dart_ScopeAllocate.
+  static char* ScopedCopyCString(const char* str) {
+    size_t str_len = strlen(str);
+    char* result = ScopedCString(str_len + 1);
+    memmove(result, str, str_len);
+    result[str_len] = '\0';
+    return result;
+  }
+
   // Create a new Dart InternalError object with the provided message.
   static Dart_Handle NewError(const char* format, ...);
   static Dart_Handle NewInternalError(const char* message);
@@ -176,13 +193,12 @@ class DartUtils {
   }
 
   static bool SetOriginalWorkingDirectory();
+  static Dart_Handle GetCanonicalizableWorkingDirectory();
 
-  static const char* MapLibraryUrl(CommandLineOptions* url_mapping,
-                                   const char* url_string);
+  static const char* MapLibraryUrl(const char* url_string);
 
   static Dart_Handle ResolveUriInWorkingDirectory(Dart_Handle script_uri);
-  static Dart_Handle FilePathFromUri(Dart_Handle script_uri);
-  static Dart_Handle ResolveUri(Dart_Handle library_url, Dart_Handle url);
+  static Dart_Handle ResolveScript(Dart_Handle url);
 
   // Sniffs the specified text_buffer to see if it contains the magic number
   // representing a script snapshot. If the text_buffer is a script snapshot
@@ -199,6 +215,9 @@ class DartUtils {
   // Global state that stores the original working directory..
   static const char* original_working_directory;
 
+  // Global state that captures the URL mappings specified on the command line.
+  static CommandLineOptions* url_mapping;
+
   static const char* const kDartScheme;
   static const char* const kDartExtensionScheme;
   static const char* const kAsyncLibURL;
@@ -214,10 +233,10 @@ class DartUtils {
 
   static const uint8_t magic_number[];
 
+  static Dart_Handle LibraryFilePath(Dart_Handle library_uri);
+
  private:
   static Dart_Handle SetWorkingDirectory();
-  static Dart_Handle ExtensionPathFromUri(Dart_Handle extension_uri);
-
   static Dart_Handle PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                            Dart_Handle internal_lib,
                                            bool is_service_isolate,
@@ -585,6 +604,69 @@ class ScopedBlockingCall {
   ~ScopedBlockingCall() {
     Dart_ThreadEnableProfiling();
   }
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(ScopedBlockingCall);
+};
+
+
+// Where the argument to the constructor is the handle for an object
+// implementing List<int>, this class creates a scope in which the memory
+// backing the list can be accessed.
+//
+// Do not make Dart_ API calls while in a ScopedMemBuffer.
+// Do not call Dart_PropagateError while in a ScopedMemBuffer.
+class ScopedMemBuffer {
+ public:
+  explicit ScopedMemBuffer(Dart_Handle object) {
+    if (!Dart_IsTypedData(object) && !Dart_IsList(object)) {
+      Dart_ThrowException(DartUtils::NewDartArgumentError(
+          "Argument is not a List<int>"));
+    }
+
+    uint8_t* bytes = NULL;
+    intptr_t bytes_len = 0;
+    bool is_typed_data = false;
+    if (Dart_IsTypedData(object)) {
+      is_typed_data = true;
+      Dart_TypedData_Type typ;
+      ThrowIfError(Dart_TypedDataAcquireData(
+          object,
+          &typ,
+          reinterpret_cast<void**>(&bytes),
+          &bytes_len));
+    } else {
+      ASSERT(Dart_IsList(object));
+      ThrowIfError(Dart_ListLength(object, &bytes_len));
+      bytes = Dart_ScopeAllocate(bytes_len);
+      ASSERT(bytes != NULL);
+      ThrowIfError(Dart_ListGetAsBytes(object, 0, bytes, bytes_len));
+    }
+
+    object_ = object;
+    bytes_ = bytes;
+    bytes_len_ = bytes_len;
+    is_typed_data_ = is_typed_data;
+  }
+
+  ~ScopedMemBuffer() {
+    if (is_typed_data_) {
+      ThrowIfError(Dart_TypedDataReleaseData(object_));
+    }
+  }
+
+  uint8_t* get() const { return bytes_; }
+  intptr_t length() const { return bytes_len_; }
+
+ private:
+  Dart_Handle object_;
+  uint8_t* bytes_;
+  intptr_t bytes_len_;
+  bool is_typed_data_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(ScopedMemBuffer);
 };
 
 }  // namespace bin

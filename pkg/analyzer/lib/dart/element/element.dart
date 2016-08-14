@@ -37,8 +37,8 @@
 library analyzer.dart.element.element;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/constant.dart' show DartObject;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -624,6 +624,16 @@ abstract class Element implements AnalysisTarget {
   bool get isDeprecated;
 
   /**
+   * Return `true` if this element has an annotation of the form '@factory'.
+   */
+  bool get isFactory;
+
+  /**
+   * Return `true` if this element has an annotation of the form '@JS(..)'.
+   */
+  bool get isJS;
+
+  /**
    * Return `true` if this element has an annotation of the form '@override'.
    */
   bool get isOverride;
@@ -644,6 +654,11 @@ abstract class Element implements AnalysisTarget {
    * any library that imports the library in which they are declared.
    */
   bool get isPublic;
+
+  /**
+   * Return `true` if this element has an annotation of the form '@required'.
+   */
+  bool get isRequired;
 
   /**
    * Return `true` if this element is synthetic. A synthetic element is an
@@ -747,12 +762,13 @@ abstract class Element implements AnalysisTarget {
    * [predicate] returns `true`, or `null` if there is no such ancestor. Note
    * that this element will never be returned.
    */
-  Element getAncestor(Predicate<Element> predicate);
+  Element/*=E*/ getAncestor/*<E extends Element >*/(
+      Predicate<Element> predicate);
 
   /**
    * Return a display name for the given element that includes the path to the
    * compilation unit in which the type is defined. If [shortName] is `null`
-   * then [getDisplayName] will be used as the name of this element. Otherwise
+   * then [displayName] will be used as the name of this element. Otherwise
    * the provided name will be used.
    */
   // TODO(brianwilkerson) Make the parameter optional.
@@ -808,16 +824,27 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   bool get isDeprecated;
 
   /**
-   * Return `true` if this annotation marks the associated method as being
-   * expected to override an inherited method.
+   * Return `true` if this annotation marks the associated member as a factory.
    */
-  bool get isOverride;
+  bool get isFactory;
+
+  /**
+   * Return `true` if this annotation marks the associated element with the `JS`
+   * annotation.
+   */
+  bool get isJS;
 
   /**
    * Return `true` if this annotation marks the associated member as requiring
    * overriding methods to call super.
    */
   bool get isMustCallSuper;
+
+  /**
+   * Return `true` if this annotation marks the associated method as being
+   * expected to override an inherited method.
+   */
+  bool get isOverride;
 
   /**
    * Return `true` if this annotation marks the associated member as being
@@ -830,6 +857,19 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * a proxy object.
    */
   bool get isProxy;
+
+  /**
+   * Return `true` if this annotation marks the associated member as being
+   * required.
+   */
+  bool get isRequired;
+
+  /**
+   * Return a representation of the value of this annotation, forcing the value
+   * to be computed if it had not previously been computed, or `null` if the
+   * value of this annotation could not be computed because of errors.
+   */
+  DartObject computeConstantValue();
 }
 
 /**
@@ -1330,12 +1370,6 @@ abstract class LibraryElement implements Element {
   static const List<LibraryElement> EMPTY_LIST = const <LibraryElement>[];
 
   /**
-   * Return a list containing the strongly connected component in the
-   * import/export graph in which the current library resides.
-   */
-  List<LibraryElement> get libraryCycle;
-
-  /**
    * Return the compilation unit that defines this library.
    */
   CompilationUnitElement get definingCompilationUnit;
@@ -1415,6 +1449,12 @@ abstract class LibraryElement implements Element {
    * Return `true` if this library is part of the SDK.
    */
   bool get isInSdk;
+
+  /**
+   * Return a list containing the strongly connected component in the
+   * import/export graph in which the current library resides.
+   */
+  List<LibraryElement> get libraryCycle;
 
   /**
    * Return the element representing the synthetic function `loadLibrary` that
@@ -1840,6 +1880,11 @@ abstract class TypeParameterElement implements TypeDefiningElement {
  */
 abstract class TypeParameterizedElement implements Element {
   /**
+   * The type of this element, which will be a parameterized type.
+   */
+  ParameterizedType get type;
+
+  /**
    * Return a list containing all of the type parameters declared by this
    * element directly. This does not include type parameters that are declared
    * by any enclosing elements.
@@ -1974,4 +2019,12 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
    * 'var').
    */
   DartType get type;
+
+  /**
+   * Return a representation of the value of this variable, forcing the value
+   * to be computed if it had not previously been computed, or `null` if either
+   * this variable was not declared with the 'const' modifier or if the value of
+   * this variable could not be computed because of errors.
+   */
+  DartObject computeConstantValue();
 }

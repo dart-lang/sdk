@@ -1,0 +1,39 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="eval_box.html">
+<link rel="import" href="field_ref.html">
+<link rel="import" href="instance_ref.html">
+
+<polymer-element name="objectstore-view">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ objectStore.isolate.vm }}"></vm-nav-menu>
+      <isolate-nav-menu isolate="{{ objectStore.isolate }}" last="{{ true }}"></isolate-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
+    </nav-bar>
+
+    <div class="content-centered-big">
+      <h1>
+        object store ({{ objectStore.fields.length }})
+      </h1>
+
+      <hr>
+
+      <div class="memberList">
+        <template repeat="{{ field in objectStore.fields }}">
+          <div class="memberItem">
+            <div class="memberName">{{ field.name }}</div>
+            <div class="memberValue"><any-service-ref ref="{{ field.value }}"></any-service-ref></div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <view-footer></view-footer>
+ </template>
+</polymer-element>
+
+<script type="application/dart" src="library_view.dart"></script>

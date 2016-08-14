@@ -8,26 +8,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
-
-import '../compiler.dart' as api show Diagnostic, DiagnosticHandler;
-import '../compiler_new.dart' as api show CompilerInput, CompilerDiagnostics;
-import 'dart2js.dart' show AbortLeg;
-import 'colors.dart' as colors;
-import 'io/source_file.dart';
-import 'filenames.dart';
-import 'util/uri_extras.dart';
 import 'dart:typed_data';
-import '../compiler_new.dart';
 
-List<int> readAll(String filename) {
-  var file = (new File(filename)).openSync();
-  var length = file.lengthSync();
-  // +1 to have a 0 terminated list, see [Scanner].
-  var buffer = new Uint8List(length + 1);
-  file.readIntoSync(buffer, 0, length);
-  file.closeSync();
-  return buffer;
-}
+import '../compiler.dart' as api show Diagnostic;
+import '../compiler_new.dart' as api;
+import '../compiler_new.dart';
+import 'colors.dart' as colors;
+import 'dart2js.dart' show AbortLeg;
+import 'filenames.dart';
+import 'io/source_file.dart';
+import 'util/uri_extras.dart';
 
 abstract class SourceFileProvider implements CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
@@ -55,62 +45,66 @@ abstract class SourceFileProvider implements CompilerInput {
     try {
       source = readAll(resourceUri.toFilePath());
     } on FileSystemException catch (ex) {
-      OSError ose = ex.osError;
-      String detail = (ose != null && ose.message != null)
-          ? ' (${ose.message})'
-          : '';
+      String message = ex.osError?.message;
+      String detail = message != null ? ' ($message)' : '';
       return new Future.error(
-          "Error reading '${relativize(cwd, resourceUri, isWindows)}'"
-          "$detail");
+          "Error reading '${relativizeUri(resourceUri)}' $detail");
     }
     dartCharactersRead += source.length;
-    sourceFiles[resourceUri] =
-        new CachingUtf8BytesSourceFile(
-            resourceUri, relativizeUri(resourceUri), source);
+    sourceFiles[resourceUri] = new CachingUtf8BytesSourceFile(
+        resourceUri, relativizeUri(resourceUri), source);
     return new Future.value(source);
   }
 
   Future<List<int>> _readFromHttp(Uri resourceUri) {
     assert(resourceUri.scheme == 'http');
     HttpClient client = new HttpClient();
-    return client.getUrl(resourceUri)
+    return client
+        .getUrl(resourceUri)
         .then((HttpClientRequest request) => request.close())
         .then((HttpClientResponse response) {
-          if (response.statusCode != HttpStatus.OK) {
-            String msg = 'Failure getting $resourceUri: '
-                      '${response.statusCode} ${response.reasonPhrase}';
-            throw msg;
-          }
-          return response.toList();
-        })
-        .then((List<List<int>> splitContent) {
-           int totalLength = splitContent.fold(0, (int old, List list) {
-             return old + list.length;
-           });
-           Uint8List result = new Uint8List(totalLength);
-           int offset = 0;
-           for (List<int> contentPart in splitContent) {
-             result.setRange(
-                 offset, offset + contentPart.length, contentPart);
-             offset += contentPart.length;
-           }
-           dartCharactersRead += totalLength;
-           sourceFiles[resourceUri] =
-               new CachingUtf8BytesSourceFile(
-                   resourceUri, resourceUri.toString(), result);
-           return result;
-         });
+      if (response.statusCode != HttpStatus.OK) {
+        String msg = 'Failure getting $resourceUri: '
+            '${response.statusCode} ${response.reasonPhrase}';
+        throw msg;
+      }
+      return response.toList();
+    }).then((List<List<int>> splitContent) {
+      int totalLength = splitContent.fold(0, (int old, List list) {
+        return old + list.length;
+      });
+      Uint8List result = new Uint8List(totalLength);
+      int offset = 0;
+      for (List<int> contentPart in splitContent) {
+        result.setRange(offset, offset + contentPart.length, contentPart);
+        offset += contentPart.length;
+      }
+      dartCharactersRead += totalLength;
+      sourceFiles[resourceUri] = new CachingUtf8BytesSourceFile(
+          resourceUri, resourceUri.toString(), result);
+      return result;
+    });
   }
 
   // TODO(johnniwinther): Remove this when no longer needed for the old compiler
   // API.
-  Future/*<List<int> | String>*/ call(Uri resourceUri);
+  Future/*<List<int> | String>*/ call(Uri resourceUri) => throw "unimplemented";
 
   relativizeUri(Uri uri) => relativize(cwd, uri, isWindows);
 
   SourceFile getSourceFile(Uri resourceUri) {
     return sourceFiles[resourceUri];
   }
+}
+
+List<int> readAll(String filename) {
+  var file = (new File(filename)).openSync();
+  var length = file.lengthSync();
+  // +1 to have a 0 terminated list, see [Scanner].
+  var buffer = new Uint8List(length + 1);
+  file.readIntoSync(buffer, 0, length);
+  file.closeSync();
+  return buffer;
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {
@@ -140,7 +134,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
 
   FormattingDiagnosticHandler([SourceFileProvider provider])
       : this.provider =
-          (provider == null) ? new CompilerSourceFileProvider() : provider;
+            (provider == null) ? new CompilerSourceFileProvider() : provider;
 
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
     if (!verbose && kind == api.Diagnostic.VERBOSE_INFO) return;
@@ -171,10 +165,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
 
   @override
   void report(var code, Uri uri, int begin, int end, String message,
-              api.Diagnostic kind) {
-    // TODO(ahe): Remove this when source map is handled differently.
-    if (identical(kind.name, 'source map')) return;
-
+      api.Diagnostic kind) {
     if (isAborting) return;
     isAborting = (kind == api.Diagnostic.CRASH);
 
@@ -219,12 +210,12 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
     } else {
       SourceFile file = provider.sourceFiles[uri];
       if (file != null) {
-        print(file.getLocationMessage(
-          color(message), begin, end, colorize: color));
+        print(file.getLocationMessage(color(message), begin, end,
+            colorize: color));
       } else {
         String position = end - begin > 0 ? '@$begin+${end - begin}' : '';
         print('${provider.relativizeUri(uri)}$position:\n'
-              '${color(message)}');
+            '${color(message)}');
       }
     }
     if (fatal && ++fatalCount >= throwOnErrorCount && throwOnError) {
@@ -242,19 +233,18 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
 
 typedef void MessageCallback(String message);
 
-class RandomAccessFileOutputProvider {
+class RandomAccessFileOutputProvider implements CompilerOutput {
   final Uri out;
   final Uri sourceMapOut;
+  final Uri resolutionOutput;
   final MessageCallback onInfo;
   final MessageCallback onFailure;
 
   int totalCharactersWritten = 0;
   List<String> allOutputFiles = new List<String>();
 
-  RandomAccessFileOutputProvider(this.out,
-                                 this.sourceMapOut,
-                                 {this.onInfo,
-                                  this.onFailure});
+  RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
+      {this.onInfo, this.onFailure, this.resolutionOutput});
 
   static Uri computePrecompiledUri(Uri out) {
     String extension = 'precompiled.js';
@@ -268,6 +258,10 @@ class RandomAccessFileOutputProvider {
   }
 
   EventSink<String> call(String name, String extension) {
+    return createEventSink(name, extension);
+  }
+
+  EventSink<String> createEventSink(String name, String extension) {
     Uri uri;
     bool isPrimaryOutput = false;
     // TODO (johnniwinther, sigurdm): Make a better interface for
@@ -281,12 +275,17 @@ class RandomAccessFileOutputProvider {
       } else if (extension == 'precompiled.js') {
         uri = computePrecompiledUri(out);
         onInfo("File ($uri) is compatible with header"
-               " \"Content-Security-Policy: script-src 'self'\"");
+            " \"Content-Security-Policy: script-src 'self'\"");
       } else if (extension == 'js.map' || extension == 'dart.map') {
         uri = sourceMapOut;
-      } else if (extension == "info.json") {
+      } else if (extension == 'info.json') {
         String outName = out.path.substring(out.path.lastIndexOf('/') + 1);
         uri = out.resolve('$outName.$extension');
+      } else if (extension == 'data') {
+        if (resolutionOutput == null) {
+          onFailure('Serialization target unspecified.');
+        }
+        uri = resolutionOutput;
       } else {
         onFailure('Unknown extension: $extension');
       }
@@ -301,7 +300,7 @@ class RandomAccessFileOutputProvider {
     RandomAccessFile output;
     try {
       output = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
-    } on FileSystemException catch(e) {
+    } on FileSystemException catch (e) {
       onFailure('$e');
     }
 
@@ -311,7 +310,7 @@ class RandomAccessFileOutputProvider {
 
     writeStringSync(String data) {
       // Write the data in chunks of 8kb, otherwise we risk running OOM.
-      int chunkSize = 8*1024;
+      int chunkSize = 8 * 1024;
 
       int offset = 0;
       while (offset < data.length) {
@@ -329,18 +328,81 @@ class RandomAccessFileOutputProvider {
       }
     }
 
-    return new EventSinkWrapper(writeStringSync, onDone);
+    return new _EventSinkWrapper(writeStringSync, onDone);
   }
 }
 
-class EventSinkWrapper extends EventSink<String> {
+class _EventSinkWrapper extends EventSink<String> {
   var onAdd, onClose;
 
-  EventSinkWrapper(this.onAdd, this.onClose);
+  _EventSinkWrapper(this.onAdd, this.onClose);
 
   void add(String data) => onAdd(data);
 
   void addError(error, [StackTrace stackTrace]) => throw error;
 
   void close() => onClose();
+}
+
+/// Adapter to integrate dart2js in bazel.
+///
+/// To handle bazel's special layout:
+///
+///  * We specify a .packages configuration file that expands packages to their
+///    corresponding bazel location. This way there is no need to create a pub
+///    cache prior to invoking dart2js.
+///
+///  * We provide an implicit mapping that can make all urls relative to the
+///  bazel root.
+///    To the compiler, URIs look like:
+///      file:///bazel-root/a/b/c.dart
+///
+///    even though in the file system the file is located at:
+///      file:///path/to/the/actual/bazel/root/a/b/c.dart
+///
+///    This mapping serves two purposes:
+///      - It makes compiler results independent of the machine layout, which
+///        enables us to share results across bazel runs and across machines.
+///
+///      - It hides the distinction between generated and source files. That way
+///      we can use the standard package-resolution mechanism and ignore the
+///      internals of how files are organized within bazel.
+///
+/// When invoking the compiler, bazel will use `package:` and
+/// `file:///bazel-root/` URIs to specify entrypoints.
+///
+/// The mapping is specified using search paths relative to the current
+/// directory. When this provider looks up a file, the bazel-root folder is
+/// replaced by the first directory in the search path containing the file, if
+/// any. For example, given the search path ".,bazel-bin/", and a URL
+/// of the form `file:///bazel-root/a/b.dart`, this provider will check if the
+/// file exists under "./a/b.dart", then check under "bazel-bin/a/b.dart".  If
+/// none of the paths matches, it will attempt to load the file from
+/// `/bazel-root/a/b.dart` which will likely fail.
+class BazelInputProvider extends SourceFileProvider {
+  final List<Uri> dirs;
+
+  BazelInputProvider(List<String> searchPaths)
+      : dirs = searchPaths.map(_resolve).toList();
+
+  static _resolve(String path) => currentDirectory.resolve(path);
+
+  @override
+  Future readFromUri(Uri uri) async {
+    var resolvedUri = uri;
+    var path = uri.path;
+    if (path.startsWith('/bazel-root')) {
+      path = path.substring('/bazel-root/'.length);
+      for (var dir in dirs) {
+        var file = dir.resolve(path);
+        if (await new File.fromUri(file).exists()) {
+          resolvedUri = file;
+          break;
+        }
+      }
+    }
+    var result = await readUtf8BytesFromUri(resolvedUri);
+    sourceFiles[uri] = sourceFiles[resolvedUri];
+    return result;
+  }
 }

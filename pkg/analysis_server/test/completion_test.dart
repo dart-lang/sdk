@@ -365,14 +365,14 @@ import 'dart:convert' as jxx;
 class JsonDecoderX{}
 f1() {var x=new !2j!1s!3}''',
         <String>[
-      "1+json",
-      "1+jxx",
-      "2+json",
-      "2+jxx",
-      "2-JsonDecoder",
-      "3+json",
-      "3-jxx"
-    ]);
+          "1+json",
+          "1+jxx",
+          "2+json",
+          "2+jxx",
+          "2-JsonDecoder",
+          "3+json",
+          "3-jxx"
+        ]);
 
     buildTests(
         'testCommentSnippets050',
@@ -389,17 +389,17 @@ k() {
   const x!2dr.!3a(1, 2, 3);
 }''',
         <String>[
-      "1+xdr",
-      "1+xa",
-      "1+xdr.a",
-      "1+xdr.b",
-      "2+xa", // suggest default constructor
-      "2+xdr", // suggest normal constructor
-      "2+xdr.a",
-      "2+xdr.b", // suggest named constructor
-      "3+b", // suggest named constructor
-      "3+a"
-    ]);
+          "1+xdr",
+          "1+xa",
+          "1+xdr.a",
+          "1+xdr.b",
+          "2+xa", // suggest default constructor
+          "2+xdr", // suggest normal constructor
+          "2+xdr.a",
+          "2+xdr.b", // suggest named constructor
+          "3+b", // suggest named constructor
+          "3+a"
+        ]);
 
     // Type propagation.
     buildTests(
@@ -569,18 +569,18 @@ class Line {
   }
 }''',
         <String>[
-      "1+a",
-      "2+b",
-      "1-g",
-      "2-h",
-      "3+b",
-      "4+c",
-      "5+a",
-      "6+c",
-      "7+g",
-      "8+j",
-      "9+h"
-    ]);
+          "1+a",
+          "2+b",
+          "1-g",
+          "2-h",
+          "3+b",
+          "4+c",
+          "5+a",
+          "6+c",
+          "7+g",
+          "8+j",
+          "9+h"
+        ]);
 
     buildTests(
         'testCommentSnippets065',
@@ -818,12 +818,12 @@ class File {
 }
 f() => new Fil!1''',
         <String>[
-      "1+File",
-      "1+File.fromPath",
-      "1+FileMode",
-      "1+FileMode._internal1",
-      "1+FileMode._internal"
-    ]);
+          "1+File",
+          "1+File.fromPath",
+          "1+FileMode",
+          "1+FileMode._internal1",
+          "1+FileMode._internal"
+        ]);
 
     buildTests(
         'testCommentSnippets078',
@@ -1265,14 +1265,14 @@ class A {
   methodB() {}
 }''',
         <String>[
-      "1+aaa",
-      "1-bbb",
-      "2+int",
-      "2-double",
-      "3+methodA",
-      "3+methodB",
-      "3-int"
-    ]);
+          "1+aaa",
+          "1-bbb",
+          "2+int",
+          "2-double",
+          "3+methodA",
+          "3+methodB",
+          "3-int"
+        ]);
 
     buildTests(
         'testCompletion_dartDoc_reference_incomplete',
@@ -1292,13 +1292,13 @@ class B {}
  */
 class C {}''',
         <String>[
-      "1+double",
-      "1-int",
-      "2+int",
-      "2+String",
-      "3+int",
-      "3+String"
-    ]);
+          "1+double",
+          "1-int",
+          "2+int",
+          "2+String",
+          "3+int",
+          "3+String"
+        ]);
 
     buildTests(
         'testCompletion_double_inFractionPart',
@@ -1328,14 +1328,14 @@ main(p) {
   Str!3;
 }''',
         <String>[
-      "1+str" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1)*/,
-      "1+STR" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/,
-      "2+STR" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1)*/,
-      "2+str" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/,
-      "3+String" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1)*/,
-      "3+STR" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/,
-      "3+str" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/
-    ]);
+          "1+str" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1)*/,
+          "1+STR" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/,
+          "2+STR" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1)*/,
+          "2+str" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/,
+          "3+String" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1)*/,
+          "3+STR" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/,
+          "3+str" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/
+        ]);
 
     buildTests(
         'testCompletion_export_dart',
@@ -1594,13 +1594,13 @@ main(p) {
   var v2 = p is!4;
 }''',
         <String>[
-      "1+MyClass",
-      "2+MyClass",
-      "3+MyClass",
-      "3-v1",
-      "4+is",
-      "4-isVariable"
-    ]);
+          "1+MyClass",
+          "2+MyClass",
+          "3+MyClass",
+          "3-v1",
+          "4+is",
+          "4-isVariable"
+        ]);
 
     buildTests(
         'testCompletion_is_asIdentifierStart',
@@ -1719,9 +1719,9 @@ main(p) {
   foo(Functions.!1);
 }''',
         <String>[
-      "1+myFunc" /*":" + ProposalKind.METHOD*/,
-      "1+myFunc" /*":" + ProposalKind.METHOD_NAME*/
-    ]);
+          "1+myFunc" /*":" + ProposalKind.METHOD*/,
+          "1+myFunc" /*":" + ProposalKind.METHOD_NAME*/
+        ]);
 
     buildTests(
         'testCompletion_namedArgument_alreadyUsed',
@@ -2209,13 +2209,13 @@ throw new Seria!1lizationException();}''',
             f2() {var x=new json.JsonDe!2}
             f3() {var x=new json.JsonDecoder!3}''',
         <String>[
-      "1+JsonDecoder",
-      "1-JsonDecoderX",
-      "2+JsonDecoder",
-      "2-JsonDecoderX",
-      "3+JsonDecoder",
-      "3-JsonDecoderX"
-    ]);
+          "1+JsonDecoder",
+          "1-JsonDecoderX",
+          "2+JsonDecoder",
+          "2-JsonDecoderX",
+          "3+JsonDecoder",
+          "3-JsonDecoderX"
+        ]);
 
     // TODO Enable after type propagation is implemented. Not yet.
     // TODO Include corelib analysis
@@ -2357,14 +2357,14 @@ void r1(var v) {
   v.!1toString!2().!3hash!4Code
 }''',
         <String>[
-      "1+toString",
-      "1-==",
-      "2+toString",
-      "3+hashCode",
-      "3+toString",
-      "4+hashCode",
-      "4-toString"
-    ]);
+          "1+toString",
+          "1-==",
+          "2+toString",
+          "3+hashCode",
+          "3+toString",
+          "4+hashCode",
+          "4-toString"
+        ]);
 
     buildTests(
         'test002',
@@ -2655,19 +2655,20 @@ class Q {
 !4part 'x';''',
         <String>[
           "1+library",
-          "2+import",
-          "3+export",
-          "4+part",
+          "2+import \'\';",
+          "3+export \'\';",
+          "4+part \'\';",
           "5+as",
           "6+hide",
           "7+show",
           "8-null"
         ],
-        failingTests: '567');
+        failingTests: '234567'); //TODO(jwren) 234 failing as correct selection
+        // offset assertions can't be passed into buildTests(..)
 
     // keywords
     buildTests('test018', '''!1part !2of foo;''', <String>["1+part", "2+of"],
-        failingTests: '2');
+        failingTests: '12');
 
     buildTests(
         'test019',
@@ -2748,22 +2749,22 @@ class T {
   }
 }''',
         <String>[
-      "1+m",
-      "2+_m",
-      "3+g",
-      "4+m",
-      "5+_m",
-      "6+g",
-      "7-g",
-      "8-m",
-      "9-_m",
-      "A+_m",
-      "B+m",
-      "C+g",
-      "D+_m",
-      "E+m",
-      "F+g"
-    ]);
+          "1+m",
+          "2+_m",
+          "3+g",
+          "4+m",
+          "5+_m",
+          "6+g",
+          "7-g",
+          "8-m",
+          "9-_m",
+          "A+_m",
+          "B+m",
+          "C+g",
+          "D+_m",
+          "E+m",
+          "F+g"
+        ]);
 
     buildTests('test026', '''var aBcD; var x=ab!1''', <String>["1+aBcD"]);
 
@@ -2799,15 +2800,15 @@ m() {
   }
 }''',
         <String>[
-      "1+ONE",
-      "1-UKSI",
-      "2+EIN",
-      "2-ICHI",
-      "3+ICHI",
-      "3+UKSI",
-      "3+EIN",
-      "3+ONE"
-    ]);
+          "1+ONE",
+          "1-UKSI",
+          "2+EIN",
+          "2-ICHI",
+          "3+ICHI",
+          "3+UKSI",
+          "3+EIN",
+          "3+ONE"
+        ]);
 
     buildTests(
         'test033',
@@ -2905,7 +2906,7 @@ class A<Z extends X> {
 
     // test analysis of untyped fields and top-level vars
     buildTests('test039', '''class X{}var x = null as !1X;''',
-        <String>["1+X", "1-void"]);
+        <String>["1-void"]);
 
     // test arg lists with named params
     buildTests('test040', '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1)!2;}''',

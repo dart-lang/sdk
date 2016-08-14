@@ -26,6 +26,7 @@ class ThreadRegistry {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
   void PrepareForGC();
+  Thread* mutator_thread() const { return mutator_thread_; }
 
  private:
   Thread* active_list() const { return active_list_; }
@@ -48,7 +49,7 @@ class ThreadRegistry {
   // and always schedule execution of Dart code on the same mutator thread
   // object. The ApiLocalScope has been made thread specific but we still
   // have scenarios where we do a temporary exit of an Isolate with live
-  // zones/handles in the the API scope :
+  // zones/handles in the API scope :
   // - Dart_RunLoop()
   // - IsolateSaver in Dart_NewNativePort
   // - Isolate spawn (function/uri) under FLAG_i_like_slow_isolate_spawn

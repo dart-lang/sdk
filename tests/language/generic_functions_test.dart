@@ -1,12 +1,16 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// DartOptions=--generic-method-syntax
+
+/// Dart test verifying that the parser can handle type parameterization of
+/// function declarations and function invocations. Variant of code from
+/// DEP #22, adjusted to use generic top level functions.
+
+library generic_functions_test;
 
 import "package:expect/expect.dart";
-
-// Dart test verifying that the parser can handle type parameterization of
-// function declarations and function invocations. Variant of code from
-// DEP #22, adjusted to use generic top level functions.
 
 class BinaryTreeNode<K extends Comparable<K>, V> {
   final K _key;
@@ -53,19 +57,16 @@ class BinaryTreeNode<K extends Comparable<K>, V> {
   }
 }
 
-// Use fresh type variables.
 BinaryTreeNode<K2, V2> insertOpt<K2 extends Comparable<K2>, V2>(
     BinaryTreeNode<K2, V2> t, K2 key, V2 value) {
   return (t == null) ? new BinaryTreeNode(key, value) : t.insert(key, value);
 }
 
-// Reuse type variables [K], [V] to test shadowing.
 BinaryTreeNode<K, U> mapOpt<K extends Comparable<K>, V, U>(
     BinaryTreeNode<K, V> t, U f(V x)) {
   return (t == null) ? null : t.map<U>(f);
 }
 
-// Use fresh [K2], shadowing [V].
 S foldPreOpt<K2 extends Comparable<K2>, V, S>(
     BinaryTreeNode<K2, V> t, S init, S f(V t, S s)) {
   return (t == null) ? init : t.foldPre<S>(init, f);

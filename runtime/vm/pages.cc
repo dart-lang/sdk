@@ -12,7 +12,6 @@
 #include "vm/object.h"
 #include "vm/os_thread.h"
 #include "vm/safepoint.h"
-#include "vm/verified_memory.h"
 #include "vm/virtual_memory.h"
 
 namespace dart {
@@ -35,8 +34,6 @@ DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
-DEFINE_FLAG(bool, concurrent_sweep, true,
-            "Concurrent sweep for old generation.");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
@@ -59,7 +56,7 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
 
 HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
   VirtualMemory* memory =
-      VerifiedMemory::Reserve(size_in_words << kWordSizeLog2);
+      VirtualMemory::Reserve(size_in_words << kWordSizeLog2);
   if (memory == NULL) {
     return NULL;
   }
@@ -211,7 +208,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   } else {
     // Should not allocate executable pages when running from a precompiled
     // snapshot.
-    ASSERT(!Dart::IsRunningPrecompiledCode());
+    ASSERT(Dart::snapshot_kind() != Snapshot::kAppNoJIT);
 
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
@@ -611,6 +608,15 @@ void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
+void PageSpace::VisitObjectsNoEmbedderPages(ObjectVisitor* visitor) const {
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if (!it.page()->embedder_allocated()) {
+      it.page()->VisitObjects(visitor);
+    }
+  }
+}
+
+
 void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     it.page()->VisitObjectPointers(visitor);
@@ -652,21 +658,20 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
 }
 
 
-void PageSpace::WriteProtect(bool read_only, bool include_code_pages) {
+void PageSpace::WriteProtect(bool read_only) {
   if (read_only) {
     // Avoid MakeIterable trying to write to the heap.
     AbandonBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    HeapPage::PageType page_type = it.page()->type();
-    if ((page_type != HeapPage::kReadOnlyData) &&
-        ((page_type != HeapPage::kExecutable) || include_code_pages)) {
+    if (!it.page()->embedder_allocated()) {
       it.page()->WriteProtect(read_only);
     }
   }
 }
 
 
+#ifndef PRODUCT
 void PageSpace::PrintToJSONObject(JSONObject* object) const {
   if (!FLAG_support_service) {
     return;
@@ -698,8 +703,7 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
 
 class HeapMapAsJSONVisitor : public ObjectVisitor {
  public:
-  explicit HeapMapAsJSONVisitor(JSONArray* array)
-      : ObjectVisitor(NULL), array_(array) {}
+  explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) { }
   virtual void VisitObject(RawObject* obj) {
     array_->AddValue(obj->Size() / kObjectAlignment);
     array_->AddValue(obj->GetClassId());
@@ -751,6 +755,7 @@ void PageSpace::PrintHeapMapToJSONStream(
     }
   }
 }
+#endif  // PRODUCT
 
 
 bool PageSpace::ShouldCollectCode() {
@@ -840,7 +845,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     SpaceUsage usage_before = GetCurrentUsage();
 
     // Mark all reachable old-gen objects.
-    bool collect_code = FLAG_collect_code && ShouldCollectCode();
+    bool collect_code = FLAG_collect_code &&
+                        ShouldCollectCode() &&
+                        !isolate->HasAttemptedReload();
     GCMarker marker(heap_);
     marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
     usage_.used_in_words = marker.marked_words();
@@ -962,7 +969,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   {
     MonitorLocker ml(tasks_lock());
     set_tasks(tasks() - 1);
-    ml.Notify();
+    ml.NotifyAll();
   }
 }
 
@@ -1046,23 +1053,6 @@ uword PageSpace::TryAllocatePromoLocked(intptr_t size,
   result = TryAllocateDataBumpLocked(size, growth_policy);
   if (result != 0) return result;
   return TryAllocateDataLocked(size, growth_policy);
-}
-
-
-uword PageSpace::TryAllocateSmiInitializedLocked(intptr_t size,
-                                                 GrowthPolicy growth_policy) {
-  uword result = TryAllocateDataBumpLocked(size, growth_policy);
-  if (collections() != 0) {
-    FATAL1("%" Pd " GCs before TryAllocateSmiInitializedLocked", collections());
-  }
-#if defined(DEBUG)
-  RawObject** begin = reinterpret_cast<RawObject**>(result);
-  RawObject** end = reinterpret_cast<RawObject**>(result + size);
-  for (RawObject** current = begin; current < end; ++current) {
-    ASSERT(!(*current)->IsHeapObject());
-  }
-#endif
-  return result;
 }
 
 

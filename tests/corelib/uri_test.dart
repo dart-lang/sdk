@@ -26,6 +26,11 @@ testUri(String uriText, bool isAbsolute) {
     Expect.equals(uri,
                   Uri.parse(uriText + "#fragment").removeFragment());
   }
+
+  // Test uri.replace on uri with fragment
+  uri = Uri.parse('http://hello.com/fake#fragment');
+  uri = uri.replace(path: "D/E/E");
+  Expect.stringEquals('http://hello.com/D/E/E#fragment', uri.toString());
 }
 
 testEncodeDecode(String orig, String encoded) {
@@ -130,9 +135,13 @@ testUriPerRFCs() {
   // Test non-URI base (no scheme, no authority, relative path).
   base = Uri.parse("a/b/c?_#_");
   testResolve("a/b/g?q#f", "g?q#f");
+  testResolve("./", "../..");
   testResolve("../", "../../..");
   testResolve("a/b/", ".");
   testResolve("c", "../../c");
+  base = Uri.parse("../../a/b/c?_#_");  // Initial ".." in base url.
+  testResolve("../../a/d", "../d");
+  testResolve("../../../d", "../../../d");
 
   base = Uri.parse("s:a/b");
   testResolve("s:/c", "../c");
@@ -407,7 +416,8 @@ void testReplace() {
       var fragment = uri1.hasFragment ? uri1.fragment : null;
 
       var tmp1 = uri1;
-      test() {
+
+      void test() {
         var tmp2 = new Uri(scheme: scheme, userInfo: userInfo, host: host,
                            port: port, path: path,
                            query: query == "" ? null : query,
@@ -452,6 +462,14 @@ void testReplace() {
   var uri = Uri.parse("/no-authorty/");
   uri = uri.replace(fragment: "fragment");
   Expect.isFalse(uri.hasAuthority);
+
+  uri = new Uri(scheme: "foo", path: "bar");
+  uri = uri.replace(
+      queryParameters: {"x": ["42", "37"], "y": ["43", "38"]});
+  var params = uri.queryParametersAll;
+  Expect.equals(2, params.length);
+  Expect.listEquals(["42", "37"], params["x"]);
+  Expect.listEquals(["43", "38"], params["y"]);
 }
 
 main() {

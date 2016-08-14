@@ -10,6 +10,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 
 class MockSdk implements DartSdk {
   static const _MockSdkLibrary LIB_CORE = const _MockSdkLibrary(
@@ -47,6 +48,7 @@ abstract class String implements Comparable<String> {
 }
 
 class bool extends Object {}
+
 abstract class num implements Comparable<num> {
   bool operator <(num other);
   bool operator <=(num other);
@@ -55,12 +57,21 @@ abstract class num implements Comparable<num> {
   num operator +(num other);
   num operator -(num other);
   num operator *(num other);
-  num operator %(num other);
   num operator /(num other);
+  int operator ^(int other);
+  int operator &(int other);
+  int operator |(int other);
+  int operator <<(int other);
+  int operator >>(int other);
+  int operator ~/(num other);
+  num operator %(num other);
+  int operator ~();
   int toInt();
+  double toDouble();
   num abs();
   int round();
 }
+
 abstract class int extends num {
   bool get isEven => false;
   int operator -();
@@ -68,7 +79,36 @@ abstract class int extends num {
                             { int radix,
                               int onError(String source) });
 }
-class double extends num {}
+
+abstract class double extends num {
+  static const double NAN = 0.0 / 0.0;
+  static const double INFINITY = 1.0 / 0.0;
+  static const double NEGATIVE_INFINITY = -INFINITY;
+  static const double MIN_POSITIVE = 5e-324;
+  static const double MAX_FINITE = 1.7976931348623157e+308;
+
+  double remainder(num other);
+  double operator +(num other);
+  double operator -(num other);
+  double operator *(num other);
+  double operator %(num other);
+  double operator /(num other);
+  int operator ~/(num other);
+  double operator -();
+  double abs();
+  double get sign;
+  int round();
+  int floor();
+  int ceil();
+  int truncate();
+  double roundToDouble();
+  double floorToDouble();
+  double ceilToDouble();
+  double truncateToDouble();
+  external static double parse(String source,
+                               [double onError(String source)]);
+}
+
 class DateTime extends Object {}
 class Null extends Object {}
 
@@ -211,15 +251,15 @@ external void printToConsole(String line);
   InternalAnalysisContext _analysisContext;
 
   MockSdk() {
-    LIBRARIES.forEach((_MockSdkLibrary library) {
-      provider.newFile(library.path, library.content);
+    LIBRARIES.forEach((SdkLibrary library) {
+      provider.newFile(library.path, (library as _MockSdkLibrary).content);
     });
   }
 
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext();
+      _analysisContext = new SdkAnalysisContext(null);
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
     }
@@ -275,6 +315,9 @@ external void printToConsole(String line);
     }
     return null;
   }
+
+  @override
+  PackageBundle getLinkedBundle() => null;
 
   @override
   SdkLibrary getSdkLibrary(String dartUri) {

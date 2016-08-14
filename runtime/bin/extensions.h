@@ -8,7 +8,6 @@
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -17,7 +16,6 @@ class Extensions {
   // TODO(whesse): Make extension load from a relative path relative to
   // the library it is in.  Currently loads from current working directory.
   static Dart_Handle LoadExtension(const char* extension_directory,
-                                   const char* extension_filename,
                                    const char* extension_name,
                                    Dart_Handle parent_library);
 
@@ -28,8 +26,8 @@ class Extensions {
  private:
   static Dart_Handle GetError();
 
-  // The returned string must be freed.
-  static char* Concatenate(const char** strings);
+  // The returned string is scope allocated.
+  static const char* Concatenate(const char** strings);
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Extensions);

@@ -17,9 +17,9 @@ import 'package:unittest/unittest.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
-const Matcher isBool = const isInstanceOf<bool>('bool');
+const Matcher isBool = const isInstanceOf<bool>();
 
-const Matcher isInt = const isInstanceOf<int>('int');
+const Matcher isInt = const isInstanceOf<int>();
 
 const Matcher isNotification = const MatchesJsonObject(
     'notification', const {'event': isString},
@@ -27,7 +27,7 @@ const Matcher isNotification = const MatchesJsonObject(
 
 const Matcher isObject = isMap;
 
-const Matcher isString = const isInstanceOf<String>('String');
+const Matcher isString = const isInstanceOf<String>();
 
 final Matcher isResponse = new MatchesJsonObject('response', {'id': isString},
     optionalFields: {'result': anything, 'error': isRequestError});
@@ -205,7 +205,8 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Start [server].
    */
-  Future startServer() => server.start();
+  Future startServer({int servicesPort, bool checked: true}) =>
+      server.start(servicesPort: servicesPort, checked: checked);
 
   /**
    * After every test, the server is stopped and [sourceDirectory] is deleted.
@@ -404,7 +405,7 @@ class Server {
    * the [Completer] objects which should be completed when acknowledgement is
    * received.
    */
-  final HashMap<String, Completer> _pendingCommands = <String, Completer>{};
+  final Map<String, Completer> _pendingCommands = <String, Completer>{};
 
   /**
    * Number which should be used to compute the 'id' to send in the next command
@@ -509,6 +510,9 @@ class Server {
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
       String trimmedLine = line.trim();
+      if (trimmedLine.startsWith('Observatory listening on ')) {
+        return;
+      }
       _recordStdio('RECV: $trimmedLine');
       var message;
       try {
@@ -596,6 +600,8 @@ class Server {
       {bool debugServer: false,
       int diagnosticPort,
       bool profileServer: false,
+      int servicesPort,
+      bool checked: true,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -610,13 +616,21 @@ class Server {
       arguments.add('--debug');
     }
     if (profileServer) {
-      arguments.add('--observe');
+      if (servicesPort == null) {
+        arguments.add('--observe');
+      } else {
+        arguments.add('--observe=$servicesPort');
+      }
       arguments.add('--pause-isolates-on-exit');
+    } else if (servicesPort != null) {
+      arguments.add('--enable-vm-service=$servicesPort');
     }
     if (Platform.packageRoot != null) {
       arguments.add('--package-root=${Platform.packageRoot}');
     }
-    arguments.add('--checked');
+    if (checked) {
+      arguments.add('--checked');
+    }
     arguments.add(serverPath);
     if (diagnosticPort != null) {
       arguments.add('--port');
@@ -844,7 +858,8 @@ abstract class _RecursiveMatcher extends Matcher {
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    List<MismatchDescriber> mismatches = matchState['mismatches'];
+    List<MismatchDescriber> mismatches =
+        matchState['mismatches'] as List<MismatchDescriber>;
     if (mismatches != null) {
       for (int i = 0; i < mismatches.length; i++) {
         MismatchDescriber mismatch = mismatches[i];

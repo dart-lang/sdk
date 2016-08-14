@@ -2,10 +2,20 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail, Crash
+cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail, Crash
+cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash
+cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash
+cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail, Crash
+cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash
+
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash, Timeout
 cc/AllocGeneric_Overflow: Crash, Timeout
 cc/CodeImmutability: Crash
+cc/Fail0: Fail
+cc/Fail1: Fail
+cc/Fail2: Fail
 
 cc/SNPrint_BadArgs: Skip
 
@@ -19,8 +29,8 @@ dart/data_uri_import_test/none: SkipByDesign
 cc/CorelibIsolateStartup: Skip
 # Negative tests of VerifiedMemory should crash iff in DEBUG mode.
 # TODO(koda): Improve support for negative tests.
-cc/VerifyImplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
-cc/VerifyExplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
+cc/VerifyImplicit_Crash: Crash
+cc/VerifyExplicit_Crash: Crash
 # It can take some time for all the isolates to shutdown in a Debug build.
 dart/spawn_shutdown_test: Pass, Slow  # VM Shutdown test
 
@@ -33,7 +43,7 @@ cc/Service_Profile: Skip
 cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip
 
-[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simmips || $arch == simdbc  || $arch == simdbc64 ]
 cc/Service_Profile: Skip
 
 [ $compiler == dart2js ]
@@ -78,21 +88,75 @@ cc/Dart2JSCompileAll: SkipSlow  # Timeout.
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
-[ $noopt ]
-dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
+[ $noopt || $compiler == precompiler ]
+dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
 
 [ $noopt || $compiler == precompiler || $mode == product ]
-dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
+dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
+cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
+cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
+cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 
 [ $noopt || $runtime == dart_precompiled ]
 # Stacktraces in precompilation omit inlined frames.
 dart/inline_stack_frame_test: Pass, RuntimeError
 dart/optimized_stacktrace_test: Pass, RuntimeError
 
-[ $runtime == dart_product || $runtime == dart_precompiled ]
+[ $runtime == dart_app || $runtime == dart_precompiled ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
 
 [ $runtime == vm && $mode == product ]
 cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.
-cc/LibraryGetClassNames: Fail,OK  # Expects exact type name.
 cc/StackTraceFormat: Fail,OK  # Expects exact type name.
+cc/String_ScrubName: Fail,OK  # Expects exact type name.
+cc/GetFunctionNames: Fail,OK  # Expects exact type name.
+
+[ $arch == simdbc || $arch == simdbc64 ]
+# TODO(vegorov) Profiler is completely disabled in SIMDBC builds.
+cc/Profiler_AllocationSampleTest: Skip
+cc/Profiler_ArrayAllocation: Skip
+cc/Profiler_BasicSourcePosition: Skip
+cc/Profiler_BasicSourcePositionOptimized: Skip
+cc/Profiler_BinaryOperatorSourcePosition: Skip
+cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
+cc/Profiler_ChainedSamples: Skip
+cc/Profiler_ClosureAllocation: Skip
+cc/Profiler_CodeTicks: Skip
+cc/Profiler_ContextAllocation: Skip
+cc/Profiler_FunctionInline: Skip
+cc/Profiler_FunctionTicks: Skip
+cc/Profiler_InliningIntervalBoundry: Skip
+cc/Profiler_IntrinsicAllocation: Skip
+cc/Profiler_SampleBufferIterateTest: Skip
+cc/Profiler_SampleBufferWrapTest: Skip
+cc/Profiler_SourcePosition: Skip
+cc/Profiler_SourcePositionOptimized: Skip
+cc/Profiler_StringAllocation: Skip
+cc/Profiler_StringInterpolation: Skip
+cc/Profiler_ToggleRecordAllocation: Skip
+cc/Profiler_TrivialRecordAllocation: Skip
+cc/Profiler_TypedArrayAllocation: Skip
+cc/Profiler_GetSourceReport: Skip
+
+# TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp
+# is switched on by default because they attempt to call regexp functions
+# directly instead of going through JSSyntaxRegExp_ExecuteMatch.
+cc/RegExp_ExternalOneByteString: Skip
+cc/RegExp_ExternalTwoByteString: Skip
+cc/RegExp_OneByteString: Skip
+cc/RegExp_TwoByteString: Skip
+
+# TODO(vegorov) Field guards are disabled for SIMDBC
+cc/GuardFieldConstructor2Test: Skip
+cc/GuardFieldConstructorTest: Skip
+cc/GuardFieldFinalListTest: Skip
+cc/GuardFieldFinalVariableLengthListTest: Skip
+cc/GuardFieldSimpleTest: Skip
+
+# This test is meaningless for DBC as allocation stubs are not used.
+cc/RegenerateAllocStubs: Skip
+
+[ $hot_reload || $hot_reload_rollback ]
+dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
+dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.

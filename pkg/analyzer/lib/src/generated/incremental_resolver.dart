@@ -9,15 +9,14 @@ import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -35,817 +34,6 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart' show CONTENT, LINE_INFO;
 import 'package:analyzer/task/model.dart';
-
-/**
- * If `true`, an attempt to resolve API-changing modifications is made.
- */
-bool _resolveApiChanges = false;
-
-/**
- * This method is used to enable/disable API-changing modifications resolution.
- */
-void set test_resolveApiChanges(bool value) {
-  _resolveApiChanges = value;
-}
-
-/**
- * Instances of the class [DeclarationMatcher] determine whether the element
- * model defined by a given AST structure matches an existing element model.
- */
-class DeclarationMatcher extends RecursiveAstVisitor {
-  /**
-   * The library containing the AST nodes being visited.
-   */
-  LibraryElement _enclosingLibrary;
-
-  /**
-   * The compilation unit containing the AST nodes being visited.
-   */
-  CompilationUnitElement _enclosingUnit;
-
-  /**
-   * The function type alias containing the AST nodes being visited, or `null` if we are not
-   * in the scope of a function type alias.
-   */
-  FunctionTypeAliasElement _enclosingAlias;
-
-  /**
-   * The class containing the AST nodes being visited, or `null` if we are not
-   * in the scope of a class.
-   */
-  ClassElementImpl _enclosingClass;
-
-  /**
-   * The parameter containing the AST nodes being visited, or `null` if we are not in the
-   * scope of a parameter.
-   */
-  ParameterElement _enclosingParameter;
-
-  FieldDeclaration _enclosingFieldNode = null;
-  bool _inTopLevelVariableDeclaration = false;
-
-  /**
-   * Is `true` if the current class declaration has a constructor.
-   */
-  bool _hasConstructor = false;
-
-  /**
-   * A set containing all of the elements in the element model that were defined by the old AST node
-   * corresponding to the AST node being visited.
-   */
-  HashSet<Element> _allElements = new HashSet<Element>();
-
-  /**
-   * A set containing all of the elements were defined in the old element model,
-   * but are not defined in the new element model.
-   */
-  HashSet<Element> _removedElements = new HashSet<Element>();
-
-  /**
-   * A set containing all of the elements are defined in the new element model,
-   * but were not defined in the old element model.
-   */
-  HashSet<Element> _addedElements = new HashSet<Element>();
-
-  /**
-   * Determines how elements model corresponding to the given [node] differs
-   * from the [element].
-   */
-  DeclarationMatchKind matches(AstNode node, Element element) {
-    logger.enter('match $element @ ${element.nameOffset}');
-    try {
-      _captureEnclosingElements(element);
-      _gatherElements(element);
-      node.accept(this);
-    } on _DeclarationMismatchException {
-      logger.log("mismatched");
-      return DeclarationMatchKind.MISMATCH;
-    } finally {
-      logger.exit();
-    }
-    // no API changes
-    if (_removedElements.isEmpty && _addedElements.isEmpty) {
-      logger.log("no API changes");
-      return DeclarationMatchKind.MATCH;
-    }
-    // simple API change
-    logger.log('_removedElements: $_removedElements');
-    logger.log('_addedElements: $_addedElements');
-    _removedElements.forEach(_removeElement);
-    if (_removedElements.length <= 1 && _addedElements.length == 1) {
-      return DeclarationMatchKind.MISMATCH_OK;
-    }
-    // something more complex
-    return DeclarationMatchKind.MISMATCH;
-  }
-
-  @override
-  visitBlockFunctionBody(BlockFunctionBody node) {
-    // ignore bodies
-  }
-
-  @override
-  visitClassDeclaration(ClassDeclaration node) {
-    String name = node.name.name;
-    ClassElement element = _findElement(_enclosingUnit.types, name);
-    _enclosingClass = element;
-    _processElement(element);
-    _assertSameAnnotations(node, element);
-    _assertSameTypeParameters(node.typeParameters, element.typeParameters);
-    // check for missing clauses
-    if (node.extendsClause == null) {
-      _assertTrue(element.supertype.name == 'Object');
-    }
-    if (node.implementsClause == null) {
-      _assertTrue(element.interfaces.isEmpty);
-    }
-    if (node.withClause == null) {
-      _assertTrue(element.mixins.isEmpty);
-    }
-    // process clauses and members
-    _hasConstructor = false;
-    super.visitClassDeclaration(node);
-    // process default constructor
-    if (!_hasConstructor) {
-      ConstructorElement constructor = element.unnamedConstructor;
-      _processElement(constructor);
-      if (!constructor.isSynthetic) {
-        _assertEquals(constructor.parameters.length, 0);
-      }
-    }
-    // matches, set the element
-    node.name.staticElement = element;
-  }
-
-  @override
-  visitClassTypeAlias(ClassTypeAlias node) {
-    String name = node.name.name;
-    ClassElement element = _findElement(_enclosingUnit.types, name);
-    _enclosingClass = element;
-    _processElement(element);
-    _assertSameTypeParameters(node.typeParameters, element.typeParameters);
-    super.visitClassTypeAlias(node);
-  }
-
-  @override
-  visitCompilationUnit(CompilationUnit node) {
-    _processElement(_enclosingUnit);
-    super.visitCompilationUnit(node);
-  }
-
-  @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
-    _hasConstructor = true;
-    SimpleIdentifier constructorName = node.name;
-    ConstructorElementImpl element = constructorName == null
-        ? _enclosingClass.unnamedConstructor
-        : _enclosingClass.getNamedConstructor(constructorName.name);
-    _processElement(element);
-    _assertEquals(node.constKeyword != null, element.isConst);
-    _assertEquals(node.factoryKeyword != null, element.isFactory);
-    _assertCompatibleParameters(node.parameters, element.parameters);
-    // matches, update the existing element
-    ExecutableElement newElement = node.element;
-    node.element = element;
-    _setLocalElements(element, newElement);
-  }
-
-  @override
-  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    String name = node.name.name;
-    FieldElement element = _findElement(_enclosingClass.fields, name);
-    _processElement(element);
-  }
-
-  @override
-  visitEnumDeclaration(EnumDeclaration node) {
-    String name = node.name.name;
-    ClassElement element = _findElement(_enclosingUnit.enums, name);
-    _enclosingClass = element;
-    _processElement(element);
-    _assertTrue(element.isEnum);
-    super.visitEnumDeclaration(node);
-  }
-
-  @override
-  visitExportDirective(ExportDirective node) {
-    String uri = _getStringValue(node.uri);
-    if (uri != null) {
-      ExportElement element =
-          _findUriReferencedElement(_enclosingLibrary.exports, uri);
-      _processElement(element);
-      _assertCombinators(node.combinators, element.combinators);
-    }
-  }
-
-  @override
-  visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    // ignore bodies
-  }
-
-  @override
-  visitExtendsClause(ExtendsClause node) {
-    _assertSameType(node.superclass, _enclosingClass.supertype);
-  }
-
-  @override
-  visitFieldDeclaration(FieldDeclaration node) {
-    _enclosingFieldNode = node;
-    try {
-      super.visitFieldDeclaration(node);
-    } finally {
-      _enclosingFieldNode = null;
-    }
-  }
-
-  @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    // prepare element name
-    String name = node.name.name;
-    if (node.isSetter) {
-      name += '=';
-    }
-    // prepare element
-    Token property = node.propertyKeyword;
-    ExecutableElementImpl element;
-    if (property == null) {
-      element = _findElement(_enclosingUnit.functions, name);
-    } else {
-      element = _findElement(_enclosingUnit.accessors, name);
-    }
-    // process element
-    _processElement(element);
-    _assertSameAnnotations(node, element);
-    _assertFalse(element.isSynthetic);
-    _assertSameType(node.returnType, element.returnType);
-    _assertCompatibleParameters(
-        node.functionExpression.parameters, element.parameters);
-    _assertBody(node.functionExpression.body, element);
-    // matches, update the existing element
-    ExecutableElement newElement = node.element;
-    node.name.staticElement = element;
-    node.functionExpression.element = element;
-    _setLocalElements(element, newElement);
-  }
-
-  @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
-    String name = node.name.name;
-    FunctionTypeAliasElement element =
-        _findElement(_enclosingUnit.functionTypeAliases, name);
-    _processElement(element);
-    _assertSameTypeParameters(node.typeParameters, element.typeParameters);
-    _assertSameType(node.returnType, element.returnType);
-    _assertCompatibleParameters(node.parameters, element.parameters);
-  }
-
-  @override
-  visitImplementsClause(ImplementsClause node) {
-    List<TypeName> nodes = node.interfaces;
-    List<InterfaceType> types = _enclosingClass.interfaces;
-    _assertSameTypes(nodes, types);
-  }
-
-  @override
-  visitImportDirective(ImportDirective node) {
-    String uri = _getStringValue(node.uri);
-    if (uri != null) {
-      ImportElement element =
-          _findUriReferencedElement(_enclosingLibrary.imports, uri);
-      _processElement(element);
-      // match the prefix
-      SimpleIdentifier prefixNode = node.prefix;
-      PrefixElement prefixElement = element.prefix;
-      if (prefixNode == null) {
-        _assertNull(prefixElement);
-      } else {
-        _assertNotNull(prefixElement);
-        _assertEquals(prefixNode.name, prefixElement.name);
-      }
-      // match combinators
-      _assertCombinators(node.combinators, element.combinators);
-    }
-  }
-
-  @override
-  visitMethodDeclaration(MethodDeclaration node) {
-    // prepare element name
-    String name = node.name.name;
-    if (name == TokenType.MINUS.lexeme &&
-        node.parameters.parameters.length == 0) {
-      name = "unary-";
-    }
-    if (node.isSetter) {
-      name += '=';
-    }
-    // prepare element
-    Token property = node.propertyKeyword;
-    ExecutableElementImpl element;
-    if (property == null) {
-      element = _findElement(_enclosingClass.methods, name);
-    } else {
-      element = _findElement(_enclosingClass.accessors, name);
-    }
-    // process element
-    ExecutableElement newElement = node.element;
-    try {
-      _assertNotNull(element);
-      _assertSameAnnotations(node, element);
-      _assertEquals(node.isStatic, element.isStatic);
-      _assertSameType(node.returnType, element.returnType);
-      _assertCompatibleParameters(node.parameters, element.parameters);
-      _assertBody(node.body, element);
-      _removedElements.remove(element);
-      // matches, update the existing element
-      node.name.staticElement = element;
-      _setLocalElements(element, newElement);
-    } on _DeclarationMismatchException {
-      _removeElement(element);
-      // add new element
-      if (newElement != null) {
-        _addedElements.add(newElement);
-        if (newElement is MethodElement) {
-          List<MethodElement> methods = _enclosingClass.methods.toList();
-          methods.add(newElement);
-          _enclosingClass.methods = methods;
-        } else {
-          List<PropertyAccessorElement> accessors =
-              _enclosingClass.accessors.toList();
-          accessors.add(newElement);
-          _enclosingClass.accessors = accessors;
-        }
-      }
-    }
-  }
-
-  @override
-  visitPartDirective(PartDirective node) {
-    String uri = _getStringValue(node.uri);
-    if (uri != null) {
-      CompilationUnitElement element =
-          _findUriReferencedElement(_enclosingLibrary.parts, uri);
-      _processElement(element);
-    }
-    super.visitPartDirective(node);
-  }
-
-  @override
-  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _inTopLevelVariableDeclaration = true;
-    try {
-      super.visitTopLevelVariableDeclaration(node);
-    } finally {
-      _inTopLevelVariableDeclaration = false;
-    }
-  }
-
-  @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    // prepare variable
-    String name = node.name.name;
-    PropertyInducingElement element;
-    if (_inTopLevelVariableDeclaration) {
-      element = _findElement(_enclosingUnit.topLevelVariables, name);
-    } else {
-      element = _findElement(_enclosingClass.fields, name);
-    }
-    // verify
-    PropertyInducingElement newElement = node.name.staticElement;
-    _processElement(element);
-    _assertSameAnnotations(node, element);
-    _assertEquals(node.isConst, element.isConst);
-    _assertEquals(node.isFinal, element.isFinal);
-    if (_enclosingFieldNode != null) {
-      _assertEquals(_enclosingFieldNode.isStatic, element.isStatic);
-    }
-    _assertSameType(
-        (node.parent as VariableDeclarationList).type, element.type);
-    // matches, restore the existing element
-    node.name.staticElement = element;
-    if (element is VariableElementImpl) {
-      (element as VariableElementImpl).initializer = newElement.initializer;
-    }
-  }
-
-  @override
-  visitWithClause(WithClause node) {
-    List<TypeName> nodes = node.mixinTypes;
-    List<InterfaceType> types = _enclosingClass.mixins;
-    _assertSameTypes(nodes, types);
-  }
-
-  /**
-   * Assert that the given [body] is compatible with the given [element].
-   * It should not be empty if the [element] is not an abstract class member.
-   * If it is present, it should have the same async / generator modifiers.
-   */
-  void _assertBody(FunctionBody body, ExecutableElementImpl element) {
-    if (body is EmptyFunctionBody) {
-      _assertTrue(element.isAbstract);
-    } else {
-      _assertFalse(element.isAbstract);
-      _assertEquals(body.isSynchronous, element.isSynchronous);
-      _assertEquals(body.isGenerator, element.isGenerator);
-    }
-  }
-
-  void _assertCombinators(List<Combinator> nodeCombinators,
-      List<NamespaceCombinator> elementCombinators) {
-    // prepare shown/hidden names in the element
-    Set<String> showNames = new Set<String>();
-    Set<String> hideNames = new Set<String>();
-    for (NamespaceCombinator combinator in elementCombinators) {
-      if (combinator is ShowElementCombinator) {
-        showNames.addAll(combinator.shownNames);
-      } else if (combinator is HideElementCombinator) {
-        hideNames.addAll(combinator.hiddenNames);
-      }
-    }
-    // match combinators with the node
-    for (Combinator combinator in nodeCombinators) {
-      if (combinator is ShowCombinator) {
-        for (SimpleIdentifier nameNode in combinator.shownNames) {
-          String name = nameNode.name;
-          _assertTrue(showNames.remove(name));
-        }
-      } else if (combinator is HideCombinator) {
-        for (SimpleIdentifier nameNode in combinator.hiddenNames) {
-          String name = nameNode.name;
-          _assertTrue(hideNames.remove(name));
-        }
-      }
-    }
-    _assertTrue(showNames.isEmpty);
-    _assertTrue(hideNames.isEmpty);
-  }
-
-  void _assertCompatibleParameter(
-      FormalParameter node, ParameterElement element) {
-    _assertEquals(node.kind, element.parameterKind);
-    if (node.kind == ParameterKind.NAMED ||
-        element.enclosingElement is ConstructorElement) {
-      _assertEquals(node.identifier.name, element.name);
-    }
-    // check parameter type specific properties
-    if (node is DefaultFormalParameter) {
-      Expression nodeDefault = node.defaultValue;
-      if (nodeDefault == null) {
-        _assertNull(element.defaultValueCode);
-      } else {
-        _assertEquals(nodeDefault.toSource(), element.defaultValueCode);
-      }
-      _assertCompatibleParameter(node.parameter, element);
-    } else if (node is FieldFormalParameter) {
-      _assertTrue(element.isInitializingFormal);
-      DartType parameterType = element.type;
-      if (node.type == null && node.parameters == null) {
-        FieldFormalParameterElement parameterElement = element;
-        if (!parameterElement.hasImplicitType) {
-          _assertTrue(parameterType == null || parameterType.isDynamic);
-        }
-        if (parameterElement.field != null) {
-          _assertEquals(node.identifier.name, element.name);
-        }
-      } else {
-        if (node.parameters != null) {
-          _assertTrue(parameterType is FunctionType);
-          FunctionType parameterFunctionType = parameterType;
-          _assertSameType(node.type, parameterFunctionType.returnType);
-        } else {
-          _assertSameType(node.type, parameterType);
-        }
-      }
-      _assertCompatibleParameters(node.parameters, element.parameters);
-    } else if (node is FunctionTypedFormalParameter) {
-      _assertFalse(element.isInitializingFormal);
-      _assertTrue(element.type is FunctionType);
-      FunctionType elementType = element.type;
-      _assertCompatibleParameters(node.parameters, element.parameters);
-      _assertSameType(node.returnType, elementType.returnType);
-    } else if (node is SimpleFormalParameter) {
-      _assertFalse(element.isInitializingFormal);
-      _assertSameType(node.type, element.type);
-    }
-  }
-
-  void _assertCompatibleParameters(
-      FormalParameterList nodes, List<ParameterElement> elements) {
-    if (nodes == null) {
-      return _assertEquals(elements.length, 0);
-    }
-    List<FormalParameter> parameters = nodes.parameters;
-    int length = parameters.length;
-    _assertEquals(length, elements.length);
-    for (int i = 0; i < length; i++) {
-      _assertCompatibleParameter(parameters[i], elements[i]);
-    }
-  }
-
-  /**
-   * Asserts that there is an import with the same prefix as the given
-   * [prefixNode], which exposes the given [element].
-   */
-  void _assertElementVisibleWithPrefix(
-      SimpleIdentifier prefixNode, Element element) {
-    if (prefixNode == null) {
-      return;
-    }
-    String prefixName = prefixNode.name;
-    for (ImportElement import in _enclosingLibrary.imports) {
-      if (import.prefix != null && import.prefix.name == prefixName) {
-        Namespace namespace =
-            new NamespaceBuilder().createImportNamespaceForDirective(import);
-        Iterable<Element> visibleElements = namespace.definedNames.values;
-        if (visibleElements.contains(element)) {
-          return;
-        }
-      }
-    }
-    _assertTrue(false);
-  }
-
-  void _assertEquals(Object a, Object b) {
-    if (a != b) {
-      throw new _DeclarationMismatchException();
-    }
-  }
-
-  void _assertFalse(bool condition) {
-    if (condition) {
-      throw new _DeclarationMismatchException();
-    }
-  }
-
-  void _assertNotNull(Object object) {
-    if (object == null) {
-      throw new _DeclarationMismatchException();
-    }
-  }
-
-  void _assertNull(Object object) {
-    if (object != null) {
-      throw new _DeclarationMismatchException();
-    }
-  }
-
-  void _assertSameAnnotation(Annotation node, ElementAnnotation annotation) {
-    Element element = annotation.element;
-    if (element is ConstructorElement) {
-      _assertTrue(node.name is SimpleIdentifier);
-      _assertNull(node.constructorName);
-      TypeName nodeType = new TypeName(node.name, null);
-      _assertSameType(nodeType, element.returnType);
-      // TODO(scheglov) validate arguments
-    }
-    if (element is PropertyAccessorElement) {
-      _assertTrue(node.name is SimpleIdentifier);
-      String nodeName = node.name.name;
-      String elementName = element.displayName;
-      _assertEquals(nodeName, elementName);
-    }
-  }
-
-  void _assertSameAnnotations(AnnotatedNode node, Element element) {
-    List<Annotation> nodeAnnotations = node.metadata;
-    List<ElementAnnotation> elementAnnotations = element.metadata;
-    int length = nodeAnnotations.length;
-    _assertEquals(elementAnnotations.length, length);
-    for (int i = 0; i < length; i++) {
-      _assertSameAnnotation(nodeAnnotations[i], elementAnnotations[i]);
-    }
-  }
-
-  void _assertSameType(TypeName node, DartType type) {
-    // no type == dynamic
-    if (node == null) {
-      return _assertTrue(type == null || type.isDynamic);
-    }
-    if (type == null) {
-      return _assertTrue(false);
-    }
-    // prepare name
-    SimpleIdentifier prefixIdentifier = null;
-    Identifier nameIdentifier = node.name;
-    if (nameIdentifier is PrefixedIdentifier) {
-      PrefixedIdentifier prefixedIdentifier = nameIdentifier;
-      prefixIdentifier = prefixedIdentifier.prefix;
-      nameIdentifier = prefixedIdentifier.identifier;
-    }
-    String nodeName = nameIdentifier.name;
-    // check specific type kinds
-    if (type is ParameterizedType) {
-      _assertEquals(nodeName, type.name);
-      _assertElementVisibleWithPrefix(prefixIdentifier, type.element);
-      // check arguments
-      TypeArgumentList nodeArgumentList = node.typeArguments;
-      List<DartType> typeArguments = type.typeArguments;
-      if (nodeArgumentList == null) {
-        // Node doesn't have type arguments, so all type arguments of the
-        // element must be "dynamic".
-        for (DartType typeArgument in typeArguments) {
-          _assertTrue(typeArgument.isDynamic);
-        }
-      } else {
-        List<TypeName> nodeArguments = nodeArgumentList.arguments;
-        _assertSameTypes(nodeArguments, typeArguments);
-      }
-    } else if (type is TypeParameterType) {
-      _assertEquals(nodeName, type.name);
-      // TODO(scheglov) it should be possible to rename type parameters
-    } else if (type.isVoid) {
-      _assertEquals(nodeName, 'void');
-    } else if (type.isDynamic) {
-      _assertEquals(nodeName, 'dynamic');
-    } else {
-      // TODO(scheglov) support other types
-      logger.log('node: $node type: $type  type.type: ${type.runtimeType}');
-      _assertTrue(false);
-    }
-  }
-
-  void _assertSameTypeParameter(
-      TypeParameter node, TypeParameterElement element) {
-    _assertSameType(node.bound, element.bound);
-  }
-
-  void _assertSameTypeParameters(
-      TypeParameterList nodesList, List<TypeParameterElement> elements) {
-    if (nodesList == null) {
-      return _assertEquals(elements.length, 0);
-    }
-    List<TypeParameter> nodes = nodesList.typeParameters;
-    int length = nodes.length;
-    _assertEquals(length, elements.length);
-    for (int i = 0; i < length; i++) {
-      _assertSameTypeParameter(nodes[i], elements[i]);
-    }
-  }
-
-  void _assertSameTypes(List<TypeName> nodes, List<DartType> types) {
-    int length = nodes.length;
-    _assertEquals(length, types.length);
-    for (int i = 0; i < length; i++) {
-      _assertSameType(nodes[i], types[i]);
-    }
-  }
-
-  void _assertTrue(bool condition) {
-    if (!condition) {
-      throw new _DeclarationMismatchException();
-    }
-  }
-
-  /**
-   * Given that the comparison is to begin with the given [element], capture
-   * the enclosing elements that might be used while performing the comparison.
-   */
-  void _captureEnclosingElements(Element element) {
-    Element parent =
-        element is CompilationUnitElement ? element : element.enclosingElement;
-    while (parent != null) {
-      if (parent is CompilationUnitElement) {
-        _enclosingUnit = parent;
-        _enclosingLibrary = element.library;
-      } else if (parent is ClassElement) {
-        if (_enclosingClass == null) {
-          _enclosingClass = parent;
-        }
-      } else if (parent is FunctionTypeAliasElement) {
-        if (_enclosingAlias == null) {
-          _enclosingAlias = parent;
-        }
-      } else if (parent is ParameterElement) {
-        if (_enclosingParameter == null) {
-          _enclosingParameter = parent;
-        }
-      }
-      parent = parent.enclosingElement;
-    }
-  }
-
-  void _gatherElements(Element element) {
-    _ElementsGatherer gatherer = new _ElementsGatherer(this);
-    element.accept(gatherer);
-    // TODO(scheglov) what if a change in a directive?
-    if (identical(element, _enclosingLibrary.definingCompilationUnit)) {
-      gatherer.addElements(_enclosingLibrary.imports);
-      gatherer.addElements(_enclosingLibrary.exports);
-      gatherer.addElements(_enclosingLibrary.parts);
-    }
-  }
-
-  void _processElement(Element element) {
-    _assertNotNull(element);
-    if (!_allElements.contains(element)) {
-      throw new _DeclarationMismatchException();
-    }
-    _removedElements.remove(element);
-  }
-
-  void _removeElement(Element element) {
-    if (element != null) {
-      Element enclosingElement = element.enclosingElement;
-      if (element is MethodElement) {
-        ClassElement classElement = enclosingElement;
-        _removeIdenticalElement(classElement.methods, element);
-      } else if (element is PropertyAccessorElement) {
-        if (enclosingElement is ClassElement) {
-          _removeIdenticalElement(enclosingElement.accessors, element);
-        }
-        if (enclosingElement is CompilationUnitElement) {
-          _removeIdenticalElement(enclosingElement.accessors, element);
-        }
-      }
-    }
-  }
-
-  /**
-   * Return the [Element] in [elements] with the given [name].
-   */
-  static Element _findElement(List<Element> elements, String name) {
-    for (Element element in elements) {
-      if (element.name == name) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the [UriReferencedElement] from [elements] with the given [uri], or
-   * `null` if there is no such element.
-   */
-  static UriReferencedElement _findUriReferencedElement(
-      List<UriReferencedElement> elements, String uri) {
-    for (UriReferencedElement element in elements) {
-      if (element.uri == uri) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the value of [literal], or `null` if the string is not a constant
-   * string without any string interpolation.
-   */
-  static String _getStringValue(StringLiteral literal) {
-    if (literal is StringInterpolation) {
-      return null;
-    }
-    return literal.stringValue;
-  }
-
-  /**
-   * Removes the first element identical to the given [element] from [elements].
-   */
-  static void _removeIdenticalElement(List elements, Object element) {
-    int length = elements.length;
-    for (int i = 0; i < length; i++) {
-      if (identical(elements[i], element)) {
-        elements.removeAt(i);
-        return;
-      }
-    }
-  }
-
-  static void _setLocalElements(
-      ExecutableElementImpl to, ExecutableElement from) {
-    if (from != null) {
-      to.functions = from.functions;
-      to.labels = from.labels;
-      to.localVariables = from.localVariables;
-      to.parameters = from.parameters;
-    }
-  }
-}
-
-/**
- * Describes how declarations match an existing elements model.
- */
-class DeclarationMatchKind {
-  /**
-   * Complete match, no API changes.
-   */
-  static const MATCH = const DeclarationMatchKind('MATCH');
-
-  /**
-   * Has API changes that we might be able to resolve incrementally.
-   */
-  static const MISMATCH_OK = const DeclarationMatchKind('MISMATCH_OK');
-
-  /**
-   * Has API changes that we cannot resolve incrementally.
-   */
-  static const MISMATCH = const DeclarationMatchKind('MISMATCH');
-
-  final String name;
-
-  const DeclarationMatchKind(this.name);
-
-  @override
-  String toString() => name;
-}
 
 /**
  * The [Delta] implementation used by incremental resolver.
@@ -878,7 +66,7 @@ class IncrementalBodyDelta extends Delta {
 
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
+      ResultDescriptor descriptor, Object value) {
     // A body change delta should never leak outside its source.
     // It can cause invalidation of results (e.g. hints) in other sources,
     // but only when a result in the updated source is INVALIDATE_NO_DELTA.
@@ -907,6 +95,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(BuildSourceExportClosureTask.DESCRIPTOR) ||
         isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
+        isByTask(ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeLibraryCycleTask.DESCRIPTOR) ||
         isByTask(ComputePropagableVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(DartErrorsTask.DESCRIPTOR) ||
@@ -918,6 +107,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
         isByTask(InferStaticVariableTypesInUnitTask.DESCRIPTOR) ||
+        isByTask(InferStaticVariableTypeTask.DESCRIPTOR) ||
         isByTask(LibraryErrorsReadyTask.DESCRIPTOR) ||
         isByTask(LibraryUnitErrorsTask.DESCRIPTOR) ||
         isByTask(ParseDartTask.DESCRIPTOR) ||
@@ -928,10 +118,13 @@ class IncrementalBodyDelta extends Delta {
         isByTask(PropagateVariableTypeTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
         isByTask(ResolveConstantExpressionTask.DESCRIPTOR) ||
+        isByTask(ResolveDirectiveElementsTask.DESCRIPTOR) ||
         isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTypeNamesTask.DESCRIPTOR) ||
+        isByTask(ResolveTopLevelLibraryTypeBoundsTask.DESCRIPTOR) ||
+        isByTask(ResolveTopLevelUnitTypeBoundsTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTypeNamesTask.DESCRIPTOR) ||
         isByTask(ResolveVariableReferencesTask.DESCRIPTOR) ||
@@ -1051,101 +244,51 @@ class IncrementalResolver {
         _updateDelta = updateEndNew - updateEndOld;
 
   /**
-   * Resolve [node], reporting any errors or warnings to the given listener.
+   * Resolve [body], reporting any errors or warnings to the given listener.
    *
-   * [node] - the root of the AST structure to be resolved.
-   *
-   * Returns `true` if resolution was successful.
+   * [body] - the root of the AST structure to be resolved.
    */
-  bool resolve(AstNode node) {
+  void resolve(BlockFunctionBody body) {
     logger.enter('resolve: $_definingUnit');
     try {
-      AstNode rootNode = _findResolutionRoot(node);
-      _prepareResolutionContext(rootNode);
+      Declaration executable = _findResolutionRoot(body);
+      _prepareResolutionContext(executable);
       // update elements
       _updateCache();
       _updateElementNameOffsets();
-      _buildElements(rootNode);
-      if (!_canBeIncrementallyResolved(rootNode)) {
-        return false;
-      }
+      _buildElements(executable, body);
       // resolve
-      _resolveReferences(rootNode);
-      _computeConstants(rootNode);
+      _resolveReferences(executable);
+      _computeConstants(executable);
       _resolveErrors = errorListener.getErrorsForSource(_source);
       // verify
-      _verify(rootNode);
+      _verify(executable);
       _context.invalidateLibraryHints(_librarySource);
       // update entry errors
       _updateEntry();
-      // OK
-      return true;
     } finally {
       logger.exit();
     }
   }
 
-  void _buildElements(AstNode node) {
+  void _buildElements(Declaration executable, AstNode node) {
     LoggingTimer timer = logger.startTimer();
     try {
       ElementHolder holder = new ElementHolder();
       ElementBuilder builder = new ElementBuilder(holder, _definingUnit);
-      if (_resolutionContext.enclosingClassDeclaration != null) {
-        builder.visitClassDeclarationIncrementally(
-            _resolutionContext.enclosingClassDeclaration);
-      }
+      builder.initForFunctionBodyIncrementalResolution();
       node.accept(builder);
+      // Move local elements into the ExecutableElementImpl.
+      ExecutableElementImpl executableElement =
+          executable.element as ExecutableElementImpl;
+      executableElement.localVariables = holder.localVariables;
+      executableElement.functions = holder.functions;
+      executableElement.labels = holder.labels;
+      holder.validate();
     } finally {
       timer.stop('build elements');
     }
   }
-
-  /**
-   * Return `true` if [node] does not have element model changes, or these
-   * changes can be incrementally propagated.
-   */
-  bool _canBeIncrementallyResolved(AstNode node) {
-    // If we are replacing the whole declaration, this means that its signature
-    // is changed. It might be an API change, or not.
-    //
-    // If, for example, a required parameter is changed, it is not an API
-    // change, but we want to find the existing corresponding Element in the
-    // enclosing one, set it for the node and update as needed.
-    //
-    // If, for example, the name of a method is changed, it is an API change,
-    // we need to know the old Element and the new Element. Again, we need to
-    // check the whole enclosing Element.
-    if (node is Declaration) {
-      node = node.parent;
-    }
-    Element element = _getElement(node);
-    DeclarationMatcher matcher = new DeclarationMatcher();
-    DeclarationMatchKind matchKind = matcher.matches(node, element);
-    if (matchKind == DeclarationMatchKind.MATCH) {
-      return true;
-    }
-    // mismatch that cannot be incrementally fixed
-    return false;
-  }
-
-  /**
-   * Return `true` if the given node can be resolved independently of any other
-   * nodes.
-   *
-   * *Note*: This method needs to be kept in sync with
-   * [ScopeBuilder.ContextBuilder].
-   *
-   * [node] - the node being tested.
-   */
-  bool _canBeResolved(AstNode node) =>
-      node is ClassDeclaration ||
-      node is ClassTypeAlias ||
-      node is CompilationUnit ||
-      node is ConstructorDeclaration ||
-      node is FunctionDeclaration ||
-      node is FunctionTypeAlias ||
-      node is MethodDeclaration ||
-      node is TopLevelVariableDeclaration;
 
   /**
    * Compute a value for all of the constants in the given [node].
@@ -1154,9 +297,9 @@ class IncrementalResolver {
     // compute values
     {
       CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-      ConstantValueComputer computer = new ConstantValueComputer(_context,
+      ConstantValueComputer computer = new ConstantValueComputer(
           _typeProvider, _context.declaredVariables, null, _typeSystem);
-      computer.add(unit, _source, _librarySource);
+      computer.add(unit);
       computer.computeValues();
     }
     // validate
@@ -1176,27 +319,16 @@ class IncrementalResolver {
    *
    * Throws [AnalysisException] if there is no such node.
    */
-  AstNode _findResolutionRoot(AstNode node) {
+  Declaration _findResolutionRoot(AstNode node) {
     while (node != null) {
-      if (_canBeResolved(node)) {
+      if (node is ConstructorDeclaration ||
+          node is FunctionDeclaration ||
+          node is MethodDeclaration) {
         return node;
       }
       node = node.parent;
     }
     throw new AnalysisException("Cannot resolve node: no resolvable node");
-  }
-
-  /**
-   * Return the element defined by [node], or `null` if the node does not
-   * define an element.
-   */
-  Element _getElement(AstNode node) {
-    if (node is Declaration) {
-      return node.element;
-    } else if (node is CompilationUnit) {
-      return node.element;
-    }
-    return null;
   }
 
   void _prepareResolutionContext(AstNode node) {
@@ -1251,7 +383,9 @@ class IncrementalResolver {
     _shiftErrors_NEW(LINTS);
     _shiftErrors_NEW(LIBRARY_UNIT_ERRORS);
     _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
+    _shiftErrors_NEW(RESOLVE_TYPE_BOUNDS_ERRORS);
     _shiftErrors_NEW(RESOLVE_UNIT_ERRORS);
+    _shiftErrors_NEW(STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT);
     _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
     _shiftErrors_NEW(VERIFY_ERRORS);
@@ -1299,6 +433,7 @@ class IncrementalResolver {
 
   void _updateEntry() {
     _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
+    _updateErrors_NEW(RESOLVE_TYPE_BOUNDS_ERRORS, []);
     _updateErrors_NEW(RESOLVE_UNIT_ERRORS, _resolveErrors);
     _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
     _updateErrors_NEW(VERIFY_ERRORS, _verifyErrors);
@@ -1399,9 +534,7 @@ class PoorMansIncrementalResolver {
       this._sourceEntry,
       this._unitEntry,
       this._oldUnit,
-      bool resolveApiChanges) {
-    _resolveApiChanges = resolveApiChanges;
-  }
+      bool resolveApiChanges);
 
   /**
    * Attempts to update [_oldUnit] to the state corresponding to [newCode].
@@ -1437,41 +570,52 @@ class PoorMansIncrementalResolver {
         int endOffsetOld = math.max(firstOffsetOld, lastOffsetOld);
         int beginOffsetNew = math.min(firstOffsetNew, lastOffsetNew);
         int endOffsetNew = math.max(firstOffsetNew, lastOffsetNew);
-        // check for a whitespace only change
-        if (identical(lastPair.oldToken, firstPair.oldToken) &&
-            identical(lastPair.newToken, firstPair.newToken)) {
+        // A pure whitespace change.
+        if (identical(firstPair.oldToken, lastPair.oldToken) &&
+            identical(firstPair.newToken, lastPair.newToken) &&
+            firstPair.kind == _TokenDifferenceKind.OFFSET) {
           _updateOffset = beginOffsetOld - 1;
           _updateEndOld = endOffsetOld;
           _updateEndNew = endOffsetNew;
           _updateDelta = newUnit.length - _oldUnit.length;
-          // A Dart documentation comment change.
-          if (firstPair.kind == _TokenDifferenceKind.COMMENT_DOC) {
-            bool success = _resolveCommentDoc(newUnit, firstPair);
+          logger.log('Whitespace change.');
+          _shiftTokens(firstPair.oldToken, true);
+          IncrementalResolver incrementalResolver = new IncrementalResolver(
+              _cache,
+              _sourceEntry,
+              _unitEntry,
+              _unitElement,
+              _updateOffset,
+              _updateEndOld,
+              _updateEndNew);
+          incrementalResolver._updateCache();
+          incrementalResolver._updateElementNameOffsets();
+          incrementalResolver._shiftEntryErrors();
+          _updateEntry();
+          logger.log('Success.');
+          return true;
+        }
+        // A Dart documentation comment change.
+        {
+          Token firstOldToken = firstPair.oldToken;
+          Token firstNewToken = firstPair.newToken;
+          Token lastOldToken = lastPair.oldToken;
+          Token lastNewToken = lastPair.newToken;
+          if (firstOldToken is DocumentationCommentToken &&
+              firstNewToken is DocumentationCommentToken &&
+              lastOldToken is DocumentationCommentToken &&
+              lastNewToken is DocumentationCommentToken &&
+              identical(firstOldToken.parent, lastOldToken.parent) &&
+              identical(firstNewToken.parent, lastNewToken.parent)) {
+            _updateOffset = beginOffsetOld;
+            _updateEndOld = firstOldToken.parent.offset;
+            _updateEndNew = firstNewToken.parent.offset;
+            _updateDelta = newUnit.length - _oldUnit.length;
+            bool success =
+                _resolveCommentDoc(newUnit, firstOldToken, firstNewToken);
             logger.log('Documentation comment resolved: $success');
             return success;
           }
-          // A pure whitespace change.
-          if (firstPair.kind == _TokenDifferenceKind.OFFSET) {
-            logger.log('Whitespace change.');
-            _shiftTokens(firstPair.oldToken);
-            {
-              IncrementalResolver incrementalResolver = new IncrementalResolver(
-                  _cache,
-                  _sourceEntry,
-                  _unitEntry,
-                  _unitElement,
-                  _updateOffset,
-                  _updateEndOld,
-                  _updateEndNew);
-              incrementalResolver._updateCache();
-              incrementalResolver._updateElementNameOffsets();
-              incrementalResolver._shiftEntryErrors();
-            }
-            _updateEntry();
-            logger.log('Success.');
-            return true;
-          }
-          // fall-through, end-of-line comment
         }
         // Find nodes covering the "old" and "new" token ranges.
         AstNode oldNode =
@@ -1519,13 +663,7 @@ class PoorMansIncrementalResolver {
                     newParent is ConstructorDeclaration ||
                 oldParent is MethodDeclaration &&
                     newParent is MethodDeclaration) {
-              Element oldElement = (oldParent as Declaration).element;
-              if (new DeclarationMatcher().matches(newParent, oldElement) ==
-                  DeclarationMatchKind.MATCH) {
-                oldNode = oldParent;
-                newNode = newParent;
-                found = true;
-              } else {
+              if (oldParents.length == i || newParents.length == i) {
                 return false;
               }
             } else if (oldParent is FunctionBody && newParent is FunctionBody) {
@@ -1550,14 +688,6 @@ class PoorMansIncrementalResolver {
           if (!found) {
             logger.log('Failure: no enclosing function body or executable.');
             return false;
-          }
-          // fail if a comment change outside the bodies
-          if (firstPair.kind == _TokenDifferenceKind.COMMENT) {
-            if (beginOffsetOld <= oldNode.offset ||
-                beginOffsetNew <= newNode.offset) {
-              logger.log('Failure: comment outside a function body.');
-              return false;
-            }
           }
         }
         logger.log(() => 'oldNode: $oldNode');
@@ -1590,12 +720,7 @@ class PoorMansIncrementalResolver {
             _updateOffset,
             _updateEndOld,
             _updateEndNew);
-        bool success = incrementalResolver.resolve(newNode);
-        // check if success
-        if (!success) {
-          logger.log('Failure: element model changed.');
-          return false;
-        }
+        incrementalResolver.resolve(newNode);
         // update DartEntry
         _updateEntry();
         logger.log('Success.');
@@ -1621,7 +746,7 @@ class PoorMansIncrementalResolver {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
-      parser.parseConditionalDirectives = options.enableConditionalDirectives;
+      parser.parseGenericMethodComments = options.strongMode;
       parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
@@ -1635,16 +760,13 @@ class PoorMansIncrementalResolver {
    * Attempts to resolve a documentation comment change.
    * Returns `true` if success.
    */
-  bool _resolveCommentDoc(CompilationUnit newUnit, _TokenPair firstPair) {
-    Token oldToken = firstPair.oldToken;
-    Token newToken = firstPair.newToken;
-    CommentToken oldComments = oldToken.precedingComments;
-    CommentToken newComments = newToken.precedingComments;
-    if (oldComments == null || newComments == null) {
+  bool _resolveCommentDoc(
+      CompilationUnit newUnit, CommentToken oldToken, CommentToken newToken) {
+    if (oldToken == null || newToken == null) {
       return false;
     }
     // find nodes
-    int offset = oldComments.offset;
+    int offset = oldToken.offset;
     logger.log('offset: $offset');
     AstNode oldNode = _findNodeCovering(_oldUnit, offset, offset);
     AstNode newNode = _findNodeCovering(newUnit, offset, offset);
@@ -1655,10 +777,9 @@ class PoorMansIncrementalResolver {
     Comment newComment = newNode;
     logger.log('oldComment.beginToken: ${oldComment.beginToken}');
     logger.log('newComment.beginToken: ${newComment.beginToken}');
-    _updateOffset = oldToken.offset - 1;
     // update token references
-    _shiftTokens(firstPair.oldToken);
-    _setPrecedingComments(oldToken, newComment.tokens.first);
+    _shiftTokens(oldToken.parent);
+    _setPrecedingComments(oldToken.parent, newComment.tokens.first);
     // replace node
     NodeReplacer.replace(oldComment, newComment);
     // update elements
@@ -1676,6 +797,28 @@ class PoorMansIncrementalResolver {
     _updateEntry();
     // resolve references in the comment
     incrementalResolver._resolveReferences(newComment);
+    // update 'documentationComment' of the parent element(s)
+    {
+      AstNode parent = newComment.parent;
+      if (parent is AnnotatedNode) {
+        setElementDocumentationForVariables(VariableDeclarationList list) {
+          for (VariableDeclaration variable in list.variables) {
+            Element variableElement = variable.element;
+            if (variableElement is ElementImpl) {
+              setElementDocumentationComment(variableElement, parent);
+            }
+          }
+        }
+        Element parentElement = ElementLocator.locate(newComment.parent);
+        if (parentElement is ElementImpl) {
+          setElementDocumentationComment(parentElement, parent);
+        } else if (parent is FieldDeclaration) {
+          setElementDocumentationForVariables(parent.fields);
+        } else if (parent is TopLevelVariableDeclaration) {
+          setElementDocumentationForVariables(parent.variables);
+        }
+      }
+    }
     // OK
     return true;
   }
@@ -1684,6 +827,8 @@ class PoorMansIncrementalResolver {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(_unitSource, reader, errorListener);
+    AnalysisOptions options = _unitElement.context.analysisOptions;
+    scanner.scanGenericMethodComments = options.strongMode;
     Token token = scanner.tokenize();
     _newLineInfo = new LineInfo(scanner.lineStarts);
     _newScanErrors = errorListener.errors;
@@ -1703,13 +848,16 @@ class PoorMansIncrementalResolver {
     } else if (token is TokenWithComment) {
       token.precedingComments = comment;
     } else {
-      Type parentType = token != null ? token.runtimeType : null;
+      Type parentType = token?.runtimeType;
       throw new AnalysisException('Uknown parent token type: $parentType');
     }
   }
 
-  void _shiftTokens(Token token) {
+  void _shiftTokens(Token token, [bool goUpComment = false]) {
     while (token != null) {
+      if (goUpComment && token is CommentToken) {
+        token = (token as CommentToken).parent;
+      }
       if (token.offset > _updateOffset) {
         token.offset += _updateDelta;
       }
@@ -1735,6 +883,10 @@ class PoorMansIncrementalResolver {
     // parse results
     _sourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
     _sourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
+    // referenced names
+    ReferencedNames referencedNames = new ReferencedNames(_unitSource);
+    new ReferencedNamesBuilder(referencedNames).build(_oldUnit);
+    _sourceEntry.setValueIncremental(REFERENCED_NAMES, referencedNames, false);
   }
 
   /**
@@ -1749,38 +901,27 @@ class PoorMansIncrementalResolver {
   }
 
   static _TokenDifferenceKind _compareToken(
-      Token oldToken, Token newToken, int delta, bool forComment) {
-    while (true) {
-      if (oldToken == null && newToken == null) {
-        return null;
-      }
-      if (oldToken == null || newToken == null) {
-        return _TokenDifferenceKind.CONTENT;
-      }
-      if (oldToken.type != newToken.type) {
-        return _TokenDifferenceKind.CONTENT;
-      }
-      if (oldToken.lexeme != newToken.lexeme) {
-        return _TokenDifferenceKind.CONTENT;
-      }
-      if (newToken.offset - oldToken.offset != delta) {
-        return _TokenDifferenceKind.OFFSET;
-      }
-      // continue if comment tokens are being checked
-      if (!forComment) {
-        break;
-      }
-      oldToken = oldToken.next;
-      newToken = newToken.next;
+      Token oldToken, Token newToken, int delta) {
+    if (oldToken == null && newToken == null) {
+      return null;
+    }
+    if (oldToken == null || newToken == null) {
+      return _TokenDifferenceKind.CONTENT;
+    }
+    if (oldToken.type != newToken.type) {
+      return _TokenDifferenceKind.CONTENT;
+    }
+    if (oldToken.lexeme != newToken.lexeme) {
+      return _TokenDifferenceKind.CONTENT;
+    }
+    if (newToken.offset - oldToken.offset != delta) {
+      return _TokenDifferenceKind.OFFSET;
     }
     return null;
   }
 
   static _TokenPair _findFirstDifferentToken(Token oldToken, Token newToken) {
-    while (true) {
-      if (oldToken.type == TokenType.EOF && newToken.type == TokenType.EOF) {
-        return null;
-      }
+    while (oldToken.type != TokenType.EOF || newToken.type != TokenType.EOF) {
       if (oldToken.type == TokenType.EOF || newToken.type == TokenType.EOF) {
         return new _TokenPair(_TokenDifferenceKind.CONTENT, oldToken, newToken);
       }
@@ -1788,18 +929,22 @@ class PoorMansIncrementalResolver {
       {
         Token oldComment = oldToken.precedingComments;
         Token newComment = newToken.precedingComments;
-        if (_compareToken(oldComment, newComment, 0, true) != null) {
-          _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken &&
-              newComment is DocumentationCommentToken) {
-            diffKind = _TokenDifferenceKind.COMMENT_DOC;
+        while (true) {
+          _TokenDifferenceKind diffKind =
+              _compareToken(oldComment, newComment, 0);
+          if (diffKind != null) {
+            return new _TokenPair(
+                diffKind, oldComment ?? oldToken, newComment ?? newToken);
           }
-          return new _TokenPair(diffKind, oldToken, newToken);
+          if (oldComment == null && newComment == null) {
+            break;
+          }
+          oldComment = oldComment.next;
+          newComment = newComment.next;
         }
       }
       // compare tokens
-      _TokenDifferenceKind diffKind =
-          _compareToken(oldToken, newToken, 0, false);
+      _TokenDifferenceKind diffKind = _compareToken(oldToken, newToken, 0);
       if (diffKind != null) {
         return new _TokenPair(diffKind, oldToken, newToken);
       }
@@ -1813,24 +958,40 @@ class PoorMansIncrementalResolver {
 
   static _TokenPair _findLastDifferentToken(Token oldToken, Token newToken) {
     int delta = newToken.offset - oldToken.offset;
+    Token prevOldToken;
+    Token prevNewToken;
     while (oldToken.previous != oldToken && newToken.previous != newToken) {
       // compare tokens
-      _TokenDifferenceKind diffKind =
-          _compareToken(oldToken, newToken, delta, false);
+      _TokenDifferenceKind diffKind = _compareToken(oldToken, newToken, delta);
       if (diffKind != null) {
-        return new _TokenPair(diffKind, oldToken.next, newToken.next);
+        return new _TokenPair(diffKind, prevOldToken, prevNewToken);
       }
+      prevOldToken = oldToken;
+      prevNewToken = newToken;
       // compare comments
       {
         Token oldComment = oldToken.precedingComments;
         Token newComment = newToken.precedingComments;
-        if (_compareToken(oldComment, newComment, delta, true) != null) {
-          _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken &&
-              newComment is DocumentationCommentToken) {
-            diffKind = _TokenDifferenceKind.COMMENT_DOC;
+        while (oldComment?.next != null) {
+          oldComment = oldComment.next;
+        }
+        while (newComment?.next != null) {
+          newComment = newComment.next;
+        }
+        while (true) {
+          _TokenDifferenceKind diffKind =
+              _compareToken(oldComment, newComment, delta);
+          if (diffKind != null) {
+            return new _TokenPair(
+                diffKind, oldComment ?? oldToken, newComment ?? newToken);
           }
-          return new _TokenPair(diffKind, oldToken, newToken);
+          if (oldComment == null && newComment == null) {
+            break;
+          }
+          prevOldToken = oldComment;
+          prevNewToken = newComment;
+          oldComment = oldComment.previous;
+          newComment = newComment.previous;
         }
       }
       // next tokens
@@ -1848,7 +1009,7 @@ class PoorMansIncrementalResolver {
   static Token _getBeginTokenNotComment(AstNode node) {
     Token oldBeginToken = node.beginToken;
     if (oldBeginToken is CommentToken) {
-      oldBeginToken = (oldBeginToken as CommentToken).parent;
+      return oldBeginToken.parent;
     }
     return oldBeginToken;
   }
@@ -2046,13 +1207,6 @@ class ResolutionContextBuilder {
 }
 
 /**
- * Instances of the class [_DeclarationMismatchException] represent an exception
- * that is thrown when the element model defined by a given AST structure does
- * not match an existing element model.
- */
-class _DeclarationMismatchException {}
-
-/**
  * Adjusts the location of each Element that moved.
  *
  * Since `==` and `hashCode` of a local variable or function Element are based
@@ -2071,20 +1225,13 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
     // name offset
     int nameOffset = element.nameOffset;
     if (nameOffset > updateOffset) {
-      // TODO(scheglov) make sure that we don't put local variables
-      // and functions into the cache at all.
-      try {
-        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
-      } on FrozenHashCodeException {
-        cache.remove(element);
-        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
-      }
+      (element as ElementImpl).nameOffset = nameOffset + updateDelta;
       if (element is ConstVariableElement) {
-        ConstVariableElement constVariable = element as ConstVariableElement;
-        Expression initializer = constVariable.constantInitializer;
+        Expression initializer = element.constantInitializer;
         if (initializer != null) {
           _shiftTokens(initializer.beginToken);
         }
+        _shiftErrors(element.evaluationResult?.errors);
       }
     }
     // code range
@@ -2127,6 +1274,17 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
     super.visitElement(element);
   }
 
+  void _shiftErrors(List<AnalysisError> errors) {
+    if (errors != null) {
+      for (AnalysisError error in errors) {
+        int errorOffset = error.offset;
+        if (errorOffset > updateOffset) {
+          error.offset += updateDelta;
+        }
+      }
+    }
+  }
+
   void _shiftTokens(Token token) {
     while (token != null) {
       if (token.offset > updateOffset) {
@@ -2148,66 +1306,10 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
   }
 }
 
-class _ElementsGatherer extends GeneralizingElementVisitor {
-  final DeclarationMatcher matcher;
-
-  _ElementsGatherer(this.matcher);
-
-  void addElements(List<Element> elements) {
-    for (Element element in elements) {
-      if (!element.isSynthetic) {
-        _addElement(element);
-      }
-    }
-  }
-
-  @override
-  visitElement(Element element) {
-    _addElement(element);
-    super.visitElement(element);
-  }
-
-  @override
-  visitExecutableElement(ExecutableElement element) {
-    _addElement(element);
-  }
-
-  @override
-  visitParameterElement(ParameterElement element) {}
-
-  @override
-  visitPropertyAccessorElement(PropertyAccessorElement element) {
-    if (!element.isSynthetic) {
-      _addElement(element);
-    }
-    // Don't visit children (such as synthetic setter parameters).
-  }
-
-  @override
-  visitPropertyInducingElement(PropertyInducingElement element) {
-    if (!element.isSynthetic) {
-      _addElement(element);
-    }
-    // Don't visit children (such as property accessors).
-  }
-
-  @override
-  visitTypeParameterElement(TypeParameterElement element) {}
-
-  void _addElement(Element element) {
-    if (element != null) {
-      matcher._allElements.add(element);
-      matcher._removedElements.add(element);
-    }
-  }
-}
-
 /**
  * Describes how two [Token]s are different.
  */
 class _TokenDifferenceKind {
-  static const COMMENT = const _TokenDifferenceKind('COMMENT');
-  static const COMMENT_DOC = const _TokenDifferenceKind('COMMENT_DOC');
   static const CONTENT = const _TokenDifferenceKind('CONTENT');
   static const OFFSET = const _TokenDifferenceKind('OFFSET');
 

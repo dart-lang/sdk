@@ -1,4 +1,313 @@
-## 1.16.0
+## 1.19.0
+
+### Language changes
+
+* The language now allows a trailing comma after the last argument of a call and
+ the last parameter of a function declaration. This can make long argument or
+ parameter lists easier to maintain, as commas can be left as-is when
+ reordering lines. For details, see SDK issue
+ [26644](https://github.com/dart-lang/sdk/issues/26644).
+
+### Core library changes
+
+* `dart:io`
+  * `Socket.connect` with source-address argument is now non-blocking
+    on Mac. Was already non-blocking on all other platforms.
+  * Report a better error when a bind fails because of a bad source address.
+  * Handle HTTP header `charset` parameter with empty value.
+
+### Strong Mode
+
+*   New feature - an option to disable implicit casts
+    (SDK issue [26583](https://github.com/dart-lang/sdk/issues/26583)),
+    see the [documentation](https://github.com/dart-lang/dev_compiler/blob/master/doc/STATIC_SAFETY.md#disable-implicit-casts)
+    for usage instructions and examples.
+
+*   New feature - an option to disable implicit dynamic
+    (SDK issue [25573](https://github.com/dart-lang/sdk/issues/25573)),
+    see the [documentation](https://github.com/dart-lang/dev_compiler/blob/master/doc/STATIC_SAFETY.md#disable-implicit-dynamic)
+    for usage instructions and examples.
+
+*   Breaking change - infer generic type arguments from the
+    constructor invocation arguments
+    (SDK issue [25220](https://github.com/dart-lang/sdk/issues/25220)).
+
+    ```dart
+    var map = new Map<String, String>();
+
+    // infer: Map<String, String>
+    var otherMap = new Map.from(map);
+    ```
+
+*   Breaking change - infer local function return type
+    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26414)).
+
+    ```dart
+    void main() {
+      // infer: return type is int
+      f() { return 40; }
+      int y = f() + 2; // type checks
+      print(y);
+    }
+    ```
+
+*   Breaking change - allow type promotion from a generic type parameter
+    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26965)).
+
+    ```dart
+    void fn/*<T>*/(/*=T*/ object) {
+      if (object is String) {
+        // Treat `object` as `String` inside this block.
+        // But it will require a cast to pass it to something that expects `T`.
+        print(object.substring(1));
+      }
+    }
+    ```
+
+* Breaking change - smarter inference for Future.then
+    (SDK issue [25944](https://github.com/dart-lang/sdk/issues/25944)).
+    Previous workarounds that use async/await or `.then/*<Future<SomeType>>*/`
+    should no longer be necessary.
+
+    ```dart
+    // This will now infer correctly.
+    Future<List<int>> t2 = f.then((_) => [3]);
+    // This infers too.
+    Future<int> t2 = f.then((_) => new Future.value(42));
+    ```
+
+* Breaking change - smarter inference for async functions
+    (SDK issue [25322](https://github.com/dart-lang/sdk/issues/25322)).
+
+    ```dart
+    void test() async {
+      List<int> x = await [4]; // was previously inferred
+      List<int> y = await new Future.value([4]); // now inferred too
+    }
+    ```
+
+* Breaking change - sideways casts are no longer allowed
+    (SDK issue [26120](https://github.com/dart-lang/sdk/issues/26120)).
+
+### Dart VM
+
+*   The dependency on BoringSSL has been rolled forward. Going forward, builds
+    of the Dart VM including secure sockets will require a compiler with C++11
+    support, and to link against glibc 2.16 or newer. For details, see the
+    [Building wiki page](https://github.com/dart-lang/sdk/wiki/Building).
+
+### Tool Changes
+
+* `dartfmt` - upgraded to v0.2.9
+  * Support trailing commas in argument and parameter lists.
+  * Gracefully handle read-only files.
+  * About a dozen other bug fixes.
+
+* Pub
+  * Added the ability for packages to declare a constraint on the [Flutter][]
+    SDK:
+
+        environment:
+          flutter: ^0.1.2
+          sdk: >=1.19.0 <2.0.0
+
+    A Flutter constraint will only be satisfiable when pub is running in the
+    context of the `flutter` executable, and when the Flutter SDK version
+    matches the constraint.
+
+  * Added `sdk` as a new package source that fetches packages from a hard-coded
+    SDK. Currently only the `flutter` SDK is supported:
+
+        dependencies:
+          flutter_driver:
+            sdk: flutter
+            version: ^0.0.1
+
+    A Flutter `sdk` dependency will only be satisfiable when pub is running in
+    the context of the `flutter` executable, and when the Flutter SDK contains a
+    package with the given name whose version matches the constraint.
+
+  * Fixed a bug where packages from a hosted HTTP URL were considered the same
+    as packages from an otherwise-identical HTTPS URL.
+
+  * Fixed timer formatting for timers that lasted longer than a minute.
+
+  * Eliminate some false negatives when determining whether global executables
+    are on the user's executable path.
+
+* dart2dart (aka `dart2js --output-type=dart`) has been removed (this was
+  deprecated in Dart 1.11)
+
+[Flutter]: https://flutter.io/
+
+## 1.18.1 - 2016-08-02
+
+Patch release, resolves two issues and improves performance:
+
+* Debugger: Fixes a bug that crashes the VM
+(SDK issue [26941](https://github.com/dart-lang/sdk/issues/26941))
+
+* VM: Fixes an optimizer bug involving closures, try, and await
+(SDK issue [26948](https://github.com/dart-lang/sdk/issues/26948))
+
+* Dart2js: Speeds up generated code on Firefox
+(https://codereview.chromium.org/2180533002)
+
+## 1.18.0 - 2016-07-27
+
+### Core library changes
+
+* `dart:io`
+  * Adds file locking modes `FileLock.BLOCKING_SHARED` and
+    `FileLock.BLOCKING_EXCLUSIVE`.
+
+## 1.17.1 - 2016-06-10
+
+Patch release, resolves two issues:
+
+* VM: Fixes a bug that caused crashes in async functions.
+(SDK issue [26668](https://github.com/dart-lang/sdk/issues/26668))
+
+* VM: Fixes a bug that caused garbage collection of reachable weak properties.
+(https://codereview.chromium.org/2041413005)
+
+## 1.17.0 - 2016-06-08
+
+### Core library changes
+* `dart:convert`
+  * Deprecate `ChunkedConverter` which was erroneously added in 1.16.
+
+* `dart:core`
+  * `Uri.replace` supports iterables as values for the query parameters.
+  * `Uri.parseIPv6Address` returns a `Uint8List`.
+
+* `dart:io`
+  * Added `NetworkInterface.listSupported`, which is `true` when
+    `NetworkInterface.list` is supported, and `false` otherwise. Currently,
+    `NetworkInterface.list` is not supported on Android.
+
+### Tool Changes
+
+* Pub
+  * TAR files created while publishing a package on Mac OS and Linux now use a
+    more portable format.
+
+  * Errors caused by invalid arguments now print the full usage information for
+    the command.
+
+  * SDK constraints for dependency overrides are no longer considered when
+    determining the total SDK constraint for a lockfile.
+
+  * A bug has been fixed in which a lockfile was considered up-to-date when it
+    actually wasn't.
+
+  * A bug has been fixed in which `pub get --offline` would crash when a
+    prerelease version was selected.
+
+* Dartium and content shell
+  * Debugging Dart code inside iframes improved, was broken.
+
+## 1.16.1 - 2016-05-24
+
+Patch release, resolves one issue:
+
+* VM: Fixes a bug that caused intermittent hangs on Windows.
+(SDK issue [26400](https://github.com/dart-lang/sdk/issues/26400))
+
+## 1.16.0 - 2016-04-26
+
+### Core library changes
+
+* `dart:convert`
+  * Added `BASE64URL` codec and corresponding `Base64Codec.urlSafe` constructor.
+
+  * Introduce `ChunkedConverter` and deprecate chunked methods on `Converter`.
+
+* `dart:html`
+
+  There have been a number of **BREAKING** changes to align APIs with recent
+  changes in Chrome. These include:
+
+  * Chrome's `ShadowRoot` interface no longer has the methods `getElementById`,
+    `getElementsByClassName`, and `getElementsByTagName`, e.g.,
+
+    ```dart
+    elem.shadowRoot.getElementsByClassName('clazz')
+    ```
+
+    should become:
+
+    ```dart
+    elem.shadowRoot.querySelectorAll('.clazz')
+    ```
+
+  * The `clipboardData` property has been removed from `KeyEvent`
+    and `Event`. It has been moved to the new `ClipboardEvent` class, which is
+    now used by `copy`, `cut`, and `paste` events.
+
+  * The `layer` property has been removed from `KeyEvent` and
+    `UIEvent`. It has been moved to `MouseEvent`.
+
+  * The `Point get page` property has been removed from `UIEvent`.
+    It still exists on `MouseEvent` and `Touch`.
+
+  There have also been a number of other additions and removals to `dart:html`,
+  `dart:indexed_db`, `dart:svg`, `dart:web_audio`, and `dart:web_gl` that
+  correspond to changes to Chrome APIs between v39 and v45. Many of the breaking
+  changes represent APIs that would have caused runtime exceptions when compiled
+  to Javascript and run on recent Chrome releases.
+
+* `dart:io`
+  * Added `SecurityContext.alpnSupported`, which is true if a platform
+    supports ALPN, and false otherwise.
+
+### JavaScript interop
+
+For performance reasons, a potentially **BREAKING** change was added for
+libraries that use JS interop.
+Any Dart file that uses `@JS` annotations on declarations (top-level functions,
+classes or class members) to interop with JavaScript code will require that the
+file have the annotation `@JS()` on a library directive.
+
+```dart
+@JS()
+library my_library;
+```
+
+The analyzer will enforce this by generating the error:
+
+The `@JS()` annotation can only be used if it is also declared on the library
+directive.
+
+If part file uses the `@JS()` annotation, the library that uses the part should
+have the `@JS()` annotation e.g.,
+
+```dart
+// library_1.dart
+@JS()
+library library_1;
+
+import 'package:js/js.dart';
+
+part 'part_1.dart';
+```
+
+```dart
+// part_1.dart
+part of library_1;
+
+@JS("frameworkStabilizers")
+external List<FrameworkStabilizer> get frameworkStabilizers;
+```
+
+If your library already has a JS module e.g.,
+
+```dart
+@JS('array.utils')
+library my_library;
+```
+
+Then your library will work without any additional changes.
 
 ### Analyzer
 
@@ -12,6 +321,29 @@
     // String cannot be assigned to int.
     for (int n in <String>["a", "b"]) { ... }
     ```
+
+### Tool Changes
+
+* Pub
+  * `pub serve` now provides caching headers that should improve the performance
+    of requesting large files multiple times.
+
+  * Both `pub get` and `pub upgrade` now have a `--no-precompile` flag that
+    disables precompilation of executables and transformed dependencies.
+
+  * `pub publish` now resolves symlinks when publishing from a Git repository.
+    This matches the behavior it always had when publishing a package that
+    wasn't in a Git repository.
+
+* Dart Dev Compiler
+  * The **experimental** `dartdevc` executable has been added to the SDK.
+
+  * It will help early adopters validate the implementation and provide
+    feedback. `dartdevc` **is not** yet ready for production usage.
+
+  * Read more about the Dart Dev Compiler [here][dartdevc].
+
+[dartdevc]: https://github.com/dart-lang/dev_compiler
 
 ## 1.15.0 - 2016-03-09
 

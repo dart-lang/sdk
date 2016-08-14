@@ -20,19 +20,19 @@ DEFINE_FLAG(bool, compiler_benchmark, false,
 
 class TokenStreamVisitor : public ObjectVisitor {
  public:
-  TokenStreamVisitor(Isolate* isolate, CompilerStats* compiler_stats)
-      : ObjectVisitor(isolate),
-        obj_(Object::Handle()),
+  explicit TokenStreamVisitor(CompilerStats* compiler_stats)
+      : obj_(Object::Handle()),
         stats_(compiler_stats) {
   }
 
   void VisitObject(RawObject* raw_obj) {
-    if (raw_obj->IsFreeListElement()) {
-      return;
+    if (raw_obj->IsPseudoObject()) {
+      return;  // Cannot be wrapped in handles.
     }
     obj_ = raw_obj;
     if (obj_.GetClassId() == TokenStream::kClassId) {
-      TokenStream::Iterator tkit(TokenStream::Cast(obj_),
+      TokenStream::Iterator tkit(Thread::Current()->zone(),
+                                 TokenStream::Cast(obj_),
                                  TokenPosition::kMinSource,
                                  TokenStream::Iterator::kNoNewlines);
       Token::Kind kind = tkit.CurrentTokenKind();
@@ -52,44 +52,69 @@ class TokenStreamVisitor : public ObjectVisitor {
 
 CompilerStats::CompilerStats(Isolate* isolate)
     : isolate_(isolate),
-      parser_timer(true, "parser timer"),
-      scanner_timer(true, "scanner timer"),
-      codegen_timer(true, "codegen timer"),
-      graphbuilder_timer(true, "flow graph builder timer"),
-      ssa_timer(true, "flow graph SSA timer"),
-      graphinliner_timer(true, "flow graph inliner timer"),
-      graphinliner_parse_timer(true, "inliner parsing timer"),
-      graphinliner_build_timer(true, "inliner building timer"),
-      graphinliner_ssa_timer(true, "inliner SSA timer"),
-      graphinliner_opt_timer(true, "inliner optimization timer"),
-      graphinliner_subst_timer(true, "inliner substitution timer"),
-      graphoptimizer_timer(true, "flow graph optimizer timer"),
-      graphcompiler_timer(true, "flow graph compiler timer"),
-      codefinalizer_timer(true, "code finalization timer"),
-      num_tokens_total(0),
-      num_tokens_scanned(0),
-      num_tokens_consumed(0),
-      num_cached_consts(0),
-      num_const_cache_hits(0),
-      num_classes_parsed(0),
-      num_class_tokens(0),
-      num_functions_parsed(0),
-      num_functions_compiled(0),
-      num_functions_optimized(0),
-      num_func_tokens_compiled(0),
-      num_implicit_final_getters(0),
-      num_method_extractors(0),
-      src_length(0),
-      total_code_size(0),
-      total_instr_size(0),
-      pc_desc_size(0),
-      vardesc_size(0),
+#define INITIALIZE_TIMER(timer_name, description)                              \
+      timer_name(true, description),
+STAT_TIMERS(INITIALIZE_TIMER)
+#undef INITIALIZE_TIMER
+
+#define INITIALIZE_COUNTERS(counter_name)                                      \
+      counter_name(0),
+STAT_COUNTERS(INITIALIZE_COUNTERS)
+#undef INITIALIZE_COUNTERS
       text(NULL),
       use_benchmark_output(false) {
 }
 
 
 #ifndef PRODUCT
+
+
+// Used to aggregate stats. Must be atomic.
+void CompilerStats::Add(const CompilerStats& other) {
+#define ADD_TOTAL(timer_name, literal)                                         \
+  timer_name.AddTotal(other.timer_name);
+
+  STAT_TIMERS(ADD_TOTAL)
+#undef ADD_TOTAL
+
+#define ADD_COUNTER(counter_name)                                              \
+  AtomicOperations::IncrementInt64By(&counter_name, other.counter_name);
+
+  STAT_COUNTERS(ADD_COUNTER)
+#undef ADD_COUNTER
+}
+
+
+void CompilerStats::Clear() {
+#define CLEAR_TIMER(timer_name, literal)                                       \
+  timer_name.Reset();
+
+  STAT_TIMERS(CLEAR_TIMER)
+#undef CLEAR_TIMER
+
+#define CLEAR_COUNTER(counter_name)                                            \
+  counter_name = 0;
+
+  STAT_COUNTERS(CLEAR_COUNTER)
+#undef CLEAR_COUNTER
+}
+
+
+bool CompilerStats::IsCleared() const {
+#define CHECK_TIMERS(timer_name, literal)                                      \
+  if (!timer_name.IsReset()) return false;
+
+  STAT_TIMERS(CHECK_TIMERS)
+#undef CHECK_TIMERS
+
+#define CHECK_COUNTERS(counter_name)                                           \
+  if (counter_name != 0) return false;
+
+  STAT_COUNTERS(CHECK_COUNTERS)
+#undef CHECK_COUNTERS
+  return true;
+}
+
 
 // This function is used as a callback in the log object to which the
 // compiler stats are printed. It will be called only once, to print
@@ -99,7 +124,7 @@ static void PrintToStats(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
 static void PrintToStats(const char* format, ...) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  CompilerStats* stats = isolate->compiler_stats();
+  CompilerStats* stats = isolate->aggregate_compiler_stats();
   Zone* zone = thread->zone();
   ASSERT(stats != NULL);
   va_list args;
@@ -113,7 +138,7 @@ void CompilerStats::Update() {
   // Traverse the heap and compute number of tokens in all
   // TokenStream objects.
   num_tokens_total = 0;
-  TokenStreamVisitor visitor(isolate_, this);
+  TokenStreamVisitor visitor(this);
   isolate_->heap()->IterateObjects(&visitor);
   Dart::vm_isolate()->heap()->IterateObjects(&visitor);
 }

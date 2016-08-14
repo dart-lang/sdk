@@ -12,18 +12,19 @@ import 'dart:core' hide Resource;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/embedder.dart';
+import 'package:analyzer/source/config.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart' as context;
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -45,11 +46,6 @@ import 'package:yaml/yaml.dart';
  * Information tracked by the [ContextManager] for each context.
  */
 class ContextInfo {
-  /**
-   * The [ContextManager] which is tracking this information.
-   */
-  final ContextManagerImpl contextManager;
-
   /**
    * The [Folder] for which this information object is created.
    */
@@ -81,6 +77,11 @@ class ContextInfo {
   String packageDescriptionPath;
 
   /**
+   * The folder disposition for this context.
+   */
+  final FolderDisposition disposition;
+
+  /**
    * Paths to files which determine the folder disposition and package map.
    *
    * TODO(paulberry): if any of these files are outside of [folder], they won't
@@ -101,9 +102,8 @@ class ContextInfo {
   Map<String, Source> sources = new HashMap<String, Source>();
 
   ContextInfo(ContextManagerImpl contextManager, this.parent, Folder folder,
-      File packagespecFile, this.packageRoot)
-      : contextManager = contextManager,
-        folder = folder,
+      File packagespecFile, this.packageRoot, this.disposition)
+      : folder = folder,
         pathFilter = new PathFilter(
             folder.path, null, contextManager.resourceProvider.pathContext) {
     packageDescriptionPath = packagespecFile.path;
@@ -115,9 +115,10 @@ class ContextInfo {
    * [ContextInfo]s.
    */
   ContextInfo._root()
-      : contextManager = null,
-        folder = null,
-        pathFilter = null;
+      : folder = null,
+        pathFilter = null,
+        packageRoot = null,
+        disposition = null;
 
   /**
    * Iterate through all [children] and their children, recursively.
@@ -342,6 +343,12 @@ abstract class ContextManagerCallbacks {
   void computingPackageMap(bool computing);
 
   /**
+   * Called when the context manager changes the folder with which a context is
+   * associated. Currently this is mostly FYI, and used only in tests.
+   */
+  void moveContext(Folder from, Folder to);
+
+  /**
    * Remove the context associated with the given [folder].  [flushedFiles] is
    * a list of the files which will be "orphaned" by removing this context
    * (they will no longer be analyzed by any context).
@@ -385,6 +392,13 @@ class ContextManagerImpl implements ContextManager {
   static const String PACKAGE_SPEC_NAME = '.packages';
 
   /**
+   * The name of the key in an embedder file whose value is the list of
+   * libraries in the SDK.
+   * TODO(brianwilkerson) This is also defined in sdk.dart.
+   */
+  static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
+
+  /**
    * The [ResourceProvider] using which paths are converted into [Resource]s.
    */
   final ResourceProvider resourceProvider;
@@ -406,13 +420,6 @@ class ContextManagerImpl implements ContextManager {
    * The context used to work with file system paths.
    */
   pathos.Context pathContext;
-
-  /**
-   * A function that will return a [UriResolver] that can be used to resolve
-   * URI's for embedded libraries within a given folder, or `null` if we should
-   * fall back to the standard URI resolver.
-   */
-  final EmbeddedResolverProvider embeddedUriResolverProvider;
 
   /**
    * The list of excluded paths (folders and files) most recently passed to
@@ -496,7 +503,6 @@ class ContextManagerImpl implements ContextManager {
       this.resourceProvider,
       this.sdkManager,
       this.packageResolverProvider,
-      this.embeddedUriResolverProvider,
       this._packageMapProvider,
       this.analyzedFilesGlobs,
       this._instrumentationService,
@@ -517,6 +523,7 @@ class ContextManagerImpl implements ContextManager {
       contexts.add(info.context);
       info.children.forEach(addContextAndDescendants);
     }
+
     if (innermostContainingInfo != null) {
       if (analysisRoot == innermostContainingInfo.folder) {
         addContextAndDescendants(innermostContainingInfo);
@@ -530,6 +537,11 @@ class ContextManagerImpl implements ContextManager {
     }
     return contexts;
   }
+
+  /**
+   * Check if this map defines embedded libraries.
+   */
+  bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
   @override
   AnalysisContext getContextFor(String path) {
@@ -592,15 +604,15 @@ class ContextManagerImpl implements ContextManager {
       info.context.analysisOptions = new AnalysisOptionsImpl();
 
       // Apply inherited options.
-      options = _getEmbeddedOptions(info.context);
+      options = _toStringMap(_getEmbeddedOptions(info));
       if (options != null) {
         configureContextOptions(info.context, options);
       }
     } else {
       // Check for embedded options.
-      YamlMap embeddedOptions = _getEmbeddedOptions(info.context);
+      Map embeddedOptions = _getEmbeddedOptions(info);
       if (embeddedOptions != null) {
-        options = new Merger().merge(embeddedOptions, options);
+        options = _toStringMap(new Merger().merge(embeddedOptions, options));
       }
     }
 
@@ -611,7 +623,7 @@ class ContextManagerImpl implements ContextManager {
         p.optionsProcessed(info.context, options);
       } catch (e, stacktrace) {
         AnalysisEngine.instance.logger.logError(
-            'Error processing .analysis_options',
+            'Error processing analysis options',
             new CaughtException(e, stacktrace));
       }
     });
@@ -624,26 +636,24 @@ class ContextManagerImpl implements ContextManager {
     }
 
     var analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer is! Map) {
-      // Done.
-      return;
-    }
-
-    // Set ignore patterns.
-    YamlList exclude = analyzer[AnalyzerOptions.exclude];
-    if (exclude != null) {
-      setIgnorePatternsForContext(info, exclude);
+    if (analyzer is Map) {
+      // Set ignore patterns.
+      YamlList exclude = analyzer[AnalyzerOptions.exclude];
+      List<String> excludeList = toStringList(exclude);
+      if (excludeList != null) {
+        setIgnorePatternsForContext(info, excludeList);
+      }
     }
   }
 
   /**
-   * Return the options from the analysis options file in the given [folder], or
-   * `null` if there is no file in the folder or if the contents of the file are
-   * not valid YAML.
+   * Return the options from the analysis options file in the given [folder]
+   * if exists, or in one of the parent folders, or `null` if no analysis
+   * options file is found or if the contents of the file are not valid YAML.
    */
   Map<String, Object> readOptions(Folder folder) {
     try {
-      return analysisOptionsProvider.getOptions(folder);
+      return analysisOptionsProvider.getOptions(folder, crawlUp: true);
     } catch (_) {
       // Parse errors are reported by GenerateOptionsErrorsTask.
     }
@@ -912,22 +922,20 @@ class ContextManagerImpl implements ContextManager {
           // If there is no embedded URI resolver, a new source factory needs to
           // be recreated.
           if (sourceFactory is SourceFactoryImpl) {
-            if (!sourceFactory.resolvers
-                .any((UriResolver r) => r is EmbedderUriResolver)) {
-              // Get all but the dart: Uri resolver.
-              List<UriResolver> resolvers = sourceFactory.resolvers
-                  .where((r) => r is! DartUriResolver)
-                  .toList();
-              // Add an embedded URI resolver in its place.
-              resolvers.add(new EmbedderUriResolver(embedderYamls));
+            // Get all but the dart: Uri resolver.
+            List<UriResolver> resolvers = sourceFactory.resolvers
+                .where((r) => r is! DartUriResolver)
+                .toList();
+            // Add an embedded URI resolver in its place.
+            resolvers.add(new DartUriResolver(
+                new EmbedderSdk(resourceProvider, embedderYamls)));
 
-              // Set a new source factory.
-              SourceFactoryImpl newFactory = sourceFactory.clone();
-              newFactory.resolvers.clear();
-              newFactory.resolvers.addAll(resolvers);
-              info.context.sourceFactory = newFactory;
-              return;
-            }
+            // Set a new source factory.
+            SourceFactoryImpl newFactory = sourceFactory.clone();
+            newFactory.resolvers.clear();
+            newFactory.resolvers.addAll(resolvers);
+            info.context.sourceFactory = newFactory;
+            return;
           }
         }
 
@@ -1053,17 +1061,11 @@ class ContextManagerImpl implements ContextManager {
    */
   ContextInfo _createContext(
       ContextInfo parent, Folder folder, File packagespecFile) {
-    ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
-        normalizedPackageRoots[folder.path]);
-
-    FolderDisposition disposition;
     List<String> dependencies = <String>[];
-
-    // Next resort to a package uri resolver.
-    if (disposition == null) {
-      disposition =
-          _computeFolderDisposition(folder, dependencies.add, packagespecFile);
-    }
+    FolderDisposition disposition =
+        _computeFolderDisposition(folder, dependencies.add, packagespecFile);
+    ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
+        normalizedPackageRoots[folder.path], disposition);
 
     Map<String, Object> optionMap = readOptions(info.folder);
     AnalysisOptions options =
@@ -1074,6 +1076,27 @@ class ContextManagerImpl implements ContextManager {
     info.context = callbacks.addContext(folder, options, disposition);
     folderMap[folder] = info.context;
     info.context.name = folder.path;
+
+    // Look for pubspec-specified analysis configuration.
+    File pubspec;
+    if (packagespecFile?.exists == true) {
+      if (packagespecFile.shortName == PUBSPEC_NAME) {
+        pubspec = packagespecFile;
+      }
+    }
+    if (pubspec == null) {
+      Resource child = folder.getChild(PUBSPEC_NAME);
+      if (child.exists && child is File) {
+        pubspec = child;
+      }
+    }
+    if (pubspec != null) {
+      File pubSource = resourceProvider.getFile(pubspec.path);
+      setConfiguration(
+          info.context,
+          new AnalysisConfiguration.fromPubspec(
+              pubSource, resourceProvider, disposition.packages));
+    }
 
     processOptionsForContext(info, optionMap);
 
@@ -1147,24 +1170,31 @@ class ContextManagerImpl implements ContextManager {
     List<UriResolver> packageUriResolvers =
         disposition.createPackageUriResolvers(resourceProvider);
 
-    EmbedderUriResolver embedderUriResolver;
-
-    // First check for a resolver provider.
-    if (embeddedUriResolverProvider != null) {
-      embedderUriResolver = embeddedUriResolverProvider(folder);
-    }
-
-    // If no embedded URI resolver was provided, defer to a locator-backed one.
-    embedderUriResolver ??=
-        new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
-    if (embedderUriResolver.length == 0) {
-      // The embedder uri resolver has no mappings. Use the default Dart SDK
-      // uri resolver.
+    EmbedderYamlLocator locator =
+        disposition.getEmbedderLocator(resourceProvider);
+    Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
+    EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderYamls);
+    if (embedderSdk.libraryMap.size() == 0) {
+      // There was no embedder file, or the file was empty, so used the default
+      // SDK.
       resolvers.add(new DartUriResolver(sdkManager.getSdkForOptions(options)));
     } else {
-      // The embedder uri resolver has mappings, use it instead of the default
-      // Dart SDK uri resolver.
-      resolvers.add(embedderUriResolver);
+      // The embedder file defines an alternate SDK, so use it.
+      List<String> paths = <String>[];
+      for (Folder folder in embedderYamls.keys) {
+        paths.add(folder
+            .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
+            .path);
+      }
+      DartSdk dartSdk =
+          sdkManager.getSdk(new SdkDescription(paths, options), () {
+        embedderSdk.analysisOptions = options;
+        // TODO(brianwilkerson) Enable summary use after we have decided where
+        // summary files for embedder files will live.
+        embedderSdk.useSummary = false;
+        return embedderSdk;
+      });
+      resolvers.add(new DartUriResolver(dartSdk));
     }
 
     resolvers.addAll(packageUriResolvers);
@@ -1238,18 +1268,33 @@ class ContextManagerImpl implements ContextManager {
     return packageSpec;
   }
 
-  /// Get analysis options associated with an `_embedder.yaml`. If there is
-  /// more than one `_embedder.yaml` associated with the given context, `null`
-  /// is returned.
-  YamlMap _getEmbeddedOptions(AnalysisContext context) {
-    if (context is InternalAnalysisContext) {
-      EmbedderYamlLocator locator = context.embedderYamlLocator;
-      Iterable<YamlMap> maps = locator.embedderYamls.values;
-      if (maps.length == 1) {
-        return maps.first;
+  /// Get analysis options inherited from an `_embedder.yaml` (deprecated)
+  /// and/or a package specified configuration.  If more than one
+  /// `_embedder.yaml` is associated with the given context, the embedder is
+  /// skipped.
+  ///
+  /// Returns null if there are no embedded/configured options.
+  Map _getEmbeddedOptions(ContextInfo info) {
+    Map embeddedOptions = null;
+    EmbedderYamlLocator locator =
+        info.disposition.getEmbedderLocator(resourceProvider);
+    Iterable<YamlMap> maps = locator.embedderYamls.values;
+    if (maps.length == 1) {
+      embeddedOptions = maps.first;
+    }
+
+    AnalysisConfiguration configuration = getConfiguration(info.context);
+    if (configuration != null) {
+      Map configMap = configuration.options;
+      if (configMap != null) {
+        if (embeddedOptions != null) {
+          embeddedOptions = new Merger().merge(embeddedOptions, configMap);
+        } else {
+          embeddedOptions = configMap;
+        }
       }
     }
-    return null;
+    return embeddedOptions;
   }
 
   /**
@@ -1563,6 +1608,25 @@ class ContextManagerImpl implements ContextManager {
     return false;
   }
 
+  /**
+   * If the given [object] is a map, and all of the keys in the map are strings,
+   * return a map containing the same mappings. Otherwise, return `null`.
+   */
+  Map<String, Object> _toStringMap(Object object) {
+    if (object is Map) {
+      Map<String, Object> stringMap = new HashMap<String, Object>();
+      for (var key in object.keys) {
+        if (key is String) {
+          stringMap[key] = object[key];
+        } else {
+          return null;
+        }
+      }
+      return stringMap;
+    }
+    return null;
+  }
+
   void _updateContextPackageUriResolver(
       Folder contextFolder, FolderDisposition disposition) {
     AnalysisContext context = folderMap[contextFolder];
@@ -1642,6 +1706,10 @@ class CustomPackageResolverDisposition extends FolderDisposition {
   Iterable<UriResolver> createPackageUriResolvers(
           ResourceProvider resourceProvider) =>
       <UriResolver>[resolver];
+
+  @override
+  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
+      new EmbedderYamlLocator(null);
 }
 
 /**
@@ -1682,6 +1750,13 @@ abstract class FolderDisposition {
    */
   Iterable<UriResolver> createPackageUriResolvers(
       ResourceProvider resourceProvider);
+
+  /**
+   * Return the locator used to locate the _embedder.yaml file used to configure
+   * the SDK. The [resourceProvider] is used to access the file system in cases
+   * where that is necessary.
+   */
+  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider);
 }
 
 /**
@@ -1701,6 +1776,10 @@ class NoPackageFolderDisposition extends FolderDisposition {
   Iterable<UriResolver> createPackageUriResolvers(
           ResourceProvider resourceProvider) =>
       const <UriResolver>[];
+
+  @override
+  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
+      new EmbedderYamlLocator(null);
 }
 
 /**
@@ -1709,6 +1788,8 @@ class NoPackageFolderDisposition extends FolderDisposition {
  */
 class PackageMapDisposition extends FolderDisposition {
   final Map<String, List<Folder>> packageMap;
+
+  EmbedderYamlLocator _embedderLocator;
 
   @override
   final String packageRoot;
@@ -1725,6 +1806,14 @@ class PackageMapDisposition extends FolderDisposition {
         new SdkExtUriResolver(packageMap),
         new PackageMapUriResolver(resourceProvider, packageMap)
       ];
+
+  @override
+  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) {
+    if (_embedderLocator == null) {
+      _embedderLocator = new EmbedderYamlLocator(packageMap);
+    }
+    return _embedderLocator;
+  }
 }
 
 /**
@@ -1735,22 +1824,27 @@ class PackagesFileDisposition extends FolderDisposition {
   @override
   final Packages packages;
 
+  Map<String, List<Folder>> packageMap;
+
+  EmbedderYamlLocator _embedderLocator;
+
   PackagesFileDisposition(this.packages);
 
   @override
   String get packageRoot => null;
 
   Map<String, List<Folder>> buildPackageMap(ResourceProvider resourceProvider) {
-    Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
-    if (packages == null) {
-      return packageMap;
-    }
-    packages.asMap().forEach((String name, Uri uri) {
-      if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-        var path = resourceProvider.pathContext.fromUri(uri);
-        packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
+    if (packageMap == null) {
+      packageMap = <String, List<Folder>>{};
+      if (packages != null) {
+        packages.asMap().forEach((String name, Uri uri) {
+          if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
+            var path = resourceProvider.pathContext.fromUri(uri);
+            packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
+          }
+        });
       }
-    });
+    }
     return packageMap;
   }
 
@@ -1764,5 +1858,14 @@ class PackagesFileDisposition extends FolderDisposition {
     } else {
       return const <UriResolver>[];
     }
+  }
+
+  @override
+  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) {
+    if (_embedderLocator == null) {
+      _embedderLocator =
+          new EmbedderYamlLocator(buildPackageMap(resourceProvider));
+    }
+    return _embedderLocator;
   }
 }

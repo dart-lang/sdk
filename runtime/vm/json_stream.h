@@ -47,14 +47,27 @@ enum JSONRpcErrorCode {
 
   kExtensionError = -32000,
 
-  kFeatureDisabled         = 100,
-  kVMMustBePaused          = 101,
-  kCannotAddBreakpoint     = 102,
-  kStreamAlreadySubscribed = 103,
-  kStreamNotSubscribed     = 104,
-  kIsolateMustBeRunnable   = 105,
+  kFeatureDisabled           = 100,
+  kCannotAddBreakpoint       = 102,
+  kStreamAlreadySubscribed   = 103,
+  kStreamNotSubscribed       = 104,
+  kIsolateMustBeRunnable     = 105,
+  kIsolateMustBePaused       = 106,
+
+  // Experimental (used in private rpcs).
+  kIsolateIsReloading        = 1000,
+  kFileSystemAlreadyExists   = 1001,
+  kFileSystemDoesNotExist    = 1002,
+  kFileDoesNotExist          = 1003,
+  kIsolateReloadFailed       = 1004,
 };
 
+// Expected that user_data is a JSONStream*.
+void AppendJSONStreamConsumer(Dart_StreamConsumer_State state,
+                              const char* stream_name,
+                              const uint8_t* buffer,
+                              intptr_t buffer_length,
+                              void* user_data);
 
 class JSONStream : ValueObject {
  public:
@@ -66,7 +79,8 @@ class JSONStream : ValueObject {
              const Instance& seq,
              const String& method,
              const Array& param_keys,
-             const Array& param_values);
+             const Array& param_values,
+             bool parameters_are_dart_objects = false);
   void SetupError();
 
   void PrintError(intptr_t code, const char* details_format, ...);
@@ -91,6 +105,11 @@ class JSONStream : ValueObject {
                  intptr_t num_params);
 
   Dart_Port reply_port() const { return reply_port_; }
+
+  intptr_t NumObjectParameters() const;
+  RawObject* GetObjectParameterKey(intptr_t i) const;
+  RawObject* GetObjectParameterValue(intptr_t i) const;
+  RawObject* LookupObjectParam(const char* key) const;
 
   intptr_t num_params() const { return num_params_; }
   const char* GetParamKey(intptr_t i) const {
@@ -128,6 +147,12 @@ class JSONStream : ValueObject {
 
   // Append |serialized_object| to the stream.
   void AppendSerializedObject(const char* serialized_object);
+
+  void PrintCommaIfNeeded();
+
+  // Append |buffer| to the stream.
+  void AppendSerializedObject(const uint8_t* buffer,
+                              intptr_t buffer_length);
 
   // Append |serialized_object| to the stream with |property_name|.
   void AppendSerializedObject(const char* property_name,
@@ -196,7 +221,6 @@ class JSONStream : ValueObject {
                      const TimelineEventBlock* timeline_event_block);
   void PrintPropertyVM(const char* name, bool ref = true);
   void PrintPropertyName(const char* name);
-  void PrintCommaIfNeeded();
   bool NeedComma();
 
   bool AddDartString(const String& s, intptr_t offset, intptr_t count);
@@ -215,6 +239,8 @@ class JSONStream : ValueObject {
   ServiceIdZone* id_zone_;
   Dart_Port reply_port_;
   Instance* seq_;
+  Array* parameter_keys_;
+  Array* parameter_values_;
   const char* method_;
   const char** param_keys_;
   const char** param_values_;

@@ -6,6 +6,16 @@ part of dart.convert;
 
 typedef void _ChunkedConversionCallback<T>(T accumulated);
 
+/// This class is deprecated. Extend [Converter] directly.
+@deprecated
+abstract class ChunkedConverter<S, T, S2, T2> extends Converter<S, T> {
+  const ChunkedConverter(): super();
+
+  dynamic bind(dynamic other) => super.bind(other);
+  dynamic startChunkedConversion(dynamic sink) =>
+      super.startChunkedConversion(sink);
+}
+
 /**
  * A [ChunkedConversionSink] is used to transmit data more efficiently between
  * two converters during chunked conversions.
@@ -14,13 +24,13 @@ typedef void _ChunkedConversionCallback<T>(T accumulated);
  * work with a plain `Sink`, but may work more efficiently with certain
  * specialized types of `ChunkedConversionSink`.
  *
- * It is recommended that implementations of `ChunkedConversionSink` extends
+ * It is recommended that implementations of `ChunkedConversionSink` extend
  * this class, to inherit any further methods that may be added to the class.
  */
 abstract class ChunkedConversionSink<T> implements Sink<T> {
   ChunkedConversionSink();
   factory ChunkedConversionSink.withCallback(
-      void callback(List<T> accumulated)) = _SimpleCallbackSink;
+      void callback(List<T> accumulated)) = _SimpleCallbackSink<T>;
 
   /**
    * Adds chunked data to this sink.
@@ -55,7 +65,7 @@ class _SimpleCallbackSink<T> extends ChunkedConversionSink<T> {
 }
 
 /**
- * This class converts implements the logic for a chunked conversion as a
+ * This class implements the logic for a chunked conversion as a
  * stream transformer.
  *
  * It is used as strategy in the [EventTransformStream].
@@ -71,15 +81,17 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
    * The input sink for new data. All data that is received with
    * [handleData] is added into this sink.
    */
-  ChunkedConversionSink _chunkedSink;
+  final Sink<S> _chunkedSink;
 
-  _ConverterStreamEventSink(Converter converter, EventSink<T> sink)
+  _ConverterStreamEventSink(
+      Converter/*=Converter<S, T>*/ converter,
+      EventSink<T> sink)
       : this._eventSink = sink,
         _chunkedSink = converter.startChunkedConversion(sink);
 
-  void add(S o) => _chunkedSink.add(o);
+  void add(S o) { _chunkedSink.add(o); }
   void addError(Object error, [StackTrace stackTrace]) {
     _eventSink.addError(error, stackTrace);
   }
-  void close() => _chunkedSink.close();
+  void close() { _chunkedSink.close(); }
 }

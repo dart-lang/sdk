@@ -24,9 +24,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
-  void addTestSource(String code, [Uri uri]) {
+  Source addTestSource(String code, [Uri uri]) {
     testCode = code;
     testSource = addSource(testFile, code);
+    return testSource;
   }
 
   void assertNoErrorsInSource(Source source) {

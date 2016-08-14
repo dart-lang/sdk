@@ -2209,7 +2209,7 @@ class A {
     Source source = addSource(r'''
 class A {
   int x;
-  factory A(this.x) {}
+  factory A(this.x) => null;
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(
@@ -2237,6 +2237,18 @@ class A {
 class A {
   int x;
   m([this.x]) {}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+    verify([source]);
+  }
+
+  void test_fieldInitializerOutsideConstructor_inFunctionTypeParameter() {
+    Source source = addSource(r'''
+class A {
+  int x;
+  A(int p(this.x));
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(
@@ -3201,7 +3213,7 @@ class A {
     Source source = addSource(r'''
 int B;
 class A {
-  factory B() {}
+  factory B() => null;
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(
@@ -3212,7 +3224,7 @@ class A {
   void test_invalidFactoryNameNotAClass_notEnclosingClassName() {
     Source source = addSource(r'''
 class A {
-  factory B() {}
+  factory B() => null;
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(
@@ -4736,7 +4748,7 @@ class B extends A {
   void test_nonGenerativeConstructor_explicit() {
     Source source = addSource(r'''
 class A {
-  factory A.named() {}
+  factory A.named() => null;
 }
 class B extends A {
   B() : super.named();
@@ -4749,7 +4761,7 @@ class B extends A {
   void test_nonGenerativeConstructor_implicit() {
     Source source = addSource(r'''
 class A {
-  factory A() {}
+  factory A() => null;
 }
 class B extends A {
   B();
@@ -4762,7 +4774,7 @@ class B extends A {
   void test_nonGenerativeConstructor_implicit2() {
     Source source = addSource(r'''
 class A {
-  factory A() {}
+  factory A() => null;
 }
 class B extends A {
 }''');
@@ -5478,6 +5490,22 @@ class D implements A {}''');
     verify([source]);
   }
 
+  void test_recursiveInterfaceInheritanceBaseCaseExtends_abstract() {
+    Source source = addSource(r'''
+class C extends C {
+  var bar = 0;
+  m();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS,
+      StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
+    ]);
+    verify([source]);
+  }
+
   void test_recursiveInterfaceInheritanceBaseCaseImplements() {
     Source source = addSource("class A implements A {}");
     computeLibrarySourceErrors(source);
@@ -5744,6 +5772,7 @@ class A {
 class B extends A {
   factory B() {
     super.m();
+    return null;
   }
 }''');
     computeLibrarySourceErrors(source);
@@ -6045,6 +6074,21 @@ main() {
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
+  void test_uriDoesNotExist_import_appears_after_deleting_target() {
+    Source test = addSource("import 'target.dart';");
+    Source target = addNamedSource("/target.dart", "");
+    computeLibrarySourceErrors(test);
+    assertErrors(test, [HintCode.UNUSED_IMPORT]);
+
+    // Remove the overlay in the same way as AnalysisServer.
+    analysisContext2.setContents(target, null);
+    ChangeSet changeSet = new ChangeSet()..removedSource(target);
+    analysisContext2.applyChanges(changeSet);
+
+    computeLibrarySourceErrors(test);
+    assertErrors(test, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+  }
+
   void test_uriDoesNotExist_import_disappears_when_fixed() {
     Source source = addSource("import 'target.dart';");
     computeLibrarySourceErrors(source);
@@ -6063,21 +6107,6 @@ main() {
     // Make sure the error goes away.
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
-  }
-
-  void test_uriDoesNotExist_import_appears_after_deleting_target() {
-    Source test = addSource("import 'target.dart';");
-    Source target = addNamedSource("/target.dart", "");
-    computeLibrarySourceErrors(test);
-    assertErrors(test, [HintCode.UNUSED_IMPORT]);
-
-    // Remove the overlay in the same way as AnalysisServer.
-    analysisContext2.setContents(target, null);
-    ChangeSet changeSet = new ChangeSet()..removedSource(target);
-    analysisContext2.applyChanges(changeSet);
-
-    computeLibrarySourceErrors(test);
-    assertErrors(test, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
   void test_uriDoesNotExist_part() {

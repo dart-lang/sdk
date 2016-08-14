@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+import '../common.dart';
+import '../common/names.dart' show Identifiers, Names, Selectors;
+import '../compiler.dart' show Compiler;
+import '../elements/elements.dart';
+import '../tree/tree.dart';
+import '../types/types.dart';
+import 'backend.dart';
 
 /**
  * Categorizes `noSuchMethod` implementations.
@@ -44,15 +50,19 @@ part of js_backend;
 class NoSuchMethodRegistry {
   /// The implementations that fall into category A, described above.
   final Set<FunctionElement> defaultImpls = new Set<FunctionElement>();
+
   /// The implementations that fall into category B, described above.
   final Set<FunctionElement> throwingImpls = new Set<FunctionElement>();
+
   /// The implementations that fall into category C, described above.
   final Set<FunctionElement> notApplicableImpls = new Set<FunctionElement>();
+
   /// The implementations that fall into category D, described above.
   final Set<FunctionElement> otherImpls = new Set<FunctionElement>();
 
   /// The implementations that fall into category D1
   final Set<FunctionElement> complexNoReturnImpls = new Set<FunctionElement>();
+
   /// The implementations that fall into category D2
   final Set<FunctionElement> complexReturningImpls = new Set<FunctionElement>();
 
@@ -90,23 +100,20 @@ class NoSuchMethodRegistry {
   /// Emits a diagnostic
   void emitDiagnostic() {
     throwingImpls.forEach((e) {
-        if (!_hasForwardingSyntax(e)) {
-          reporter.reportHintMessage(
-              e, MessageKind.DIRECTLY_THROWING_NSM);
-        }
-      });
+      if (!_hasForwardingSyntax(e)) {
+        reporter.reportHintMessage(e, MessageKind.DIRECTLY_THROWING_NSM);
+      }
+    });
     complexNoReturnImpls.forEach((e) {
-        if (!_hasForwardingSyntax(e)) {
-          reporter.reportHintMessage(
-              e, MessageKind.COMPLEX_THROWING_NSM);
-        }
-      });
+      if (!_hasForwardingSyntax(e)) {
+        reporter.reportHintMessage(e, MessageKind.COMPLEX_THROWING_NSM);
+      }
+    });
     complexReturningImpls.forEach((e) {
-        if (!_hasForwardingSyntax(e)) {
-          reporter.reportHintMessage(
-              e, MessageKind.COMPLEX_RETURNING_NSM);
-        }
-      });
+      if (!_hasForwardingSyntax(e)) {
+        reporter.reportHintMessage(e, MessageKind.COMPLEX_RETURNING_NSM);
+      }
+    });
   }
 
   /// Returns [true] if the given element is a complex [noSuchMethod]
@@ -154,7 +161,7 @@ class NoSuchMethodRegistry {
       Element superCall =
           element.enclosingClass.lookupSuperByName(Names.noSuchMethod_);
       NsmCategory category = _categorizeImpl(superCall);
-      switch(category) {
+      switch (category) {
         case NsmCategory.DEFAULT:
           defaultImpls.add(element);
           break;
@@ -183,17 +190,25 @@ class NoSuchMethodRegistry {
 
   bool _isDefaultNoSuchMethodImplementation(FunctionElement element) {
     ClassElement classElement = element.enclosingClass;
-    return classElement == _compiler.coreClasses.objectClass
-        || classElement == _backend.helpers.jsInterceptorClass
-        || classElement == _backend.helpers.jsNullClass;
+    return classElement == _compiler.coreClasses.objectClass ||
+        classElement == _backend.helpers.jsInterceptorClass ||
+        classElement == _backend.helpers.jsNullClass;
   }
 
   bool _hasForwardingSyntax(FunctionElement element) {
     // At this point we know that this is signature-compatible with
     // Object.noSuchMethod, but it may have more than one argument as long as
     // it only has one required argument.
+    if (!element.hasResolvedAst) {
+      // TODO(johnniwinther): Why do we see unresolved elements here?
+      return false;
+    }
+    ResolvedAst resolvedAst = element.resolvedAst;
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
+      return false;
+    }
     String param = element.parameters.first.name;
-    Statement body = element.node.body;
+    Statement body = resolvedAst.body;
     Expression expr;
     if (body is Return && body.isArrowBody) {
       expr = body.expression;
@@ -203,6 +218,13 @@ class NoSuchMethodRegistry {
       Statement stmt = body.statements.nodes.head;
       if (stmt is Return && stmt.hasExpression) {
         expr = stmt.expression;
+      }
+    }
+    if (expr is Send && expr.isTypeCast) {
+      Send sendExpr = expr;
+      var typeName = sendExpr.typeAnnotationFromIsCheckOrCast.typeName;
+      if (typeName is Identifier && typeName.source == "dynamic") {
+        expr = sendExpr.receiver;
       }
     }
     if (expr is Send &&
@@ -223,7 +245,15 @@ class NoSuchMethodRegistry {
   }
 
   bool _hasThrowingSyntax(FunctionElement element) {
-    Statement body = element.node.body;
+    if (!element.hasResolvedAst) {
+      // TODO(johnniwinther): Why do we see unresolved elements here?
+      return false;
+    }
+    ResolvedAst resolvedAst = element.resolvedAst;
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
+      return false;
+    }
+    Statement body = resolvedAst.body;
     if (body is Return && body.isArrowBody) {
       if (body.expression is Throw) {
         return true;
@@ -240,9 +270,4 @@ class NoSuchMethodRegistry {
   }
 }
 
-enum NsmCategory {
-  DEFAULT,
-  THROWING,
-  NOT_APPLICABLE,
-  OTHER,
-}
+enum NsmCategory { DEFAULT, THROWING, NOT_APPLICABLE, OTHER, }

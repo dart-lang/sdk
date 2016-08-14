@@ -11,9 +11,10 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/socket_server.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 
@@ -109,19 +110,22 @@ class SocketServerTest {
   }
 
   static SocketServer _createSocketServer() {
+    PhysicalResourceProvider resourceProvider =
+        PhysicalResourceProvider.INSTANCE;
     ServerPlugin serverPlugin = new ServerPlugin();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([serverPlugin]);
-    SdkCreator sdkCreator = () =>
-        new DirectoryBasedDartSdk(DirectoryBasedDartSdk.defaultSdkDirectory);
+    SdkCreator sdkCreator = (_) => new FolderBasedDartSdk(resourceProvider,
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
     return new SocketServer(
         new AnalysisServerOptions(),
-        sdkCreator,
-        sdkCreator(),
+        new DartSdkManager('', false, sdkCreator),
+        sdkCreator(null),
         InstrumentationService.NULL_SERVICE,
         serverPlugin,
         null,
-        null);
+        null,
+        false);
   }
 }
 

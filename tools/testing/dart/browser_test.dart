@@ -6,9 +6,7 @@ library browser_test;
 
 import 'path.dart';
 
-String getHtmlContents(String title,
-                       String scriptType,
-                       Path sourceScript) {
+String getHtmlContents(String title, String scriptType, Path sourceScript) {
   return """
 <!DOCTYPE html>
 <html>

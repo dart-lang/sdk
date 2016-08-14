@@ -2327,6 +2327,893 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 }
 
 /**
+ * An AST Visitor that captures visit call timings.
+ */
+class TimedAstVisitor<T> implements AstVisitor<T> {
+  /**
+   * The base visitor whose visit methods will be timed.
+   */
+  final AstVisitor<T> _baseVisitor;
+
+  /**
+   * Collects elapsed time for visit calls.
+   */
+  final Stopwatch stopwatch;
+
+  /**
+   * Initialize a newly created visitor to time calls to the given base
+   * visitor's visits.
+   */
+  TimedAstVisitor(this._baseVisitor, [Stopwatch watch])
+      : stopwatch = watch ?? new Stopwatch();
+
+  @override
+  T visitAdjacentStrings(AdjacentStrings node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitAdjacentStrings(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitAnnotation(Annotation node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitAnnotation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitArgumentList(ArgumentList node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitArgumentList(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitAsExpression(AsExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitAsExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitAssertStatement(AssertStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitAssertStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitAssignmentExpression(AssignmentExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitAssignmentExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitAwaitExpression(AwaitExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitAwaitExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitBinaryExpression(BinaryExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitBinaryExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitBlock(Block node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitBlock(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitBlockFunctionBody(BlockFunctionBody node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitBlockFunctionBody(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitBooleanLiteral(BooleanLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitBooleanLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitBreakStatement(BreakStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitBreakStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitCascadeExpression(CascadeExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitCascadeExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitCatchClause(CatchClause node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitCatchClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitClassDeclaration(ClassDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitClassDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitClassTypeAlias(ClassTypeAlias node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitClassTypeAlias(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitComment(Comment node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitComment(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitCommentReference(CommentReference node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitCommentReference(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitCompilationUnit(CompilationUnit node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitCompilationUnit(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitConditionalExpression(ConditionalExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitConditionalExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitConfiguration(Configuration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitConfiguration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitConstructorDeclaration(ConstructorDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitConstructorDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitConstructorFieldInitializer(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitConstructorName(ConstructorName node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitConstructorName(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitContinueStatement(ContinueStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitContinueStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitDeclaredIdentifier(DeclaredIdentifier node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitDeclaredIdentifier(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitDefaultFormalParameter(DefaultFormalParameter node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitDefaultFormalParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitDoStatement(DoStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitDoStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitDottedName(DottedName node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitDottedName(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitDoubleLiteral(DoubleLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitDoubleLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitEmptyFunctionBody(EmptyFunctionBody node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitEmptyFunctionBody(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitEmptyStatement(EmptyStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitEmptyStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitEnumConstantDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitEnumDeclaration(EnumDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitEnumDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitExportDirective(ExportDirective node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitExportDirective(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitExpressionFunctionBody(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitExpressionStatement(ExpressionStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitExpressionStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitExtendsClause(ExtendsClause node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitExtendsClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitFieldDeclaration(FieldDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitFieldDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitFieldFormalParameter(FieldFormalParameter node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitFieldFormalParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitForEachStatement(ForEachStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForEachStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitFormalParameterList(FormalParameterList node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitFormalParameterList(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitForStatement(ForStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitFunctionDeclaration(FunctionDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitFunctionDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitFunctionDeclarationStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitFunctionExpression(FunctionExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitFunctionExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitFunctionExpressionInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitFunctionTypeAlias(FunctionTypeAlias node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitFunctionTypeAlias(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitFunctionTypedFormalParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitHideCombinator(HideCombinator node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitHideCombinator(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitIfStatement(IfStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitIfStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitImplementsClause(ImplementsClause node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitImplementsClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitImportDirective(ImportDirective node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitImportDirective(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitIndexExpression(IndexExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitIndexExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitInstanceCreationExpression(InstanceCreationExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitInstanceCreationExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitIntegerLiteral(IntegerLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitIntegerLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitInterpolationExpression(InterpolationExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitInterpolationExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitInterpolationString(InterpolationString node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitInterpolationString(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitIsExpression(IsExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitIsExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitLabel(Label node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitLabel(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitLabeledStatement(LabeledStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitLabeledStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitLibraryDirective(LibraryDirective node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitLibraryDirective(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitLibraryIdentifier(LibraryIdentifier node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitLibraryIdentifier(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitListLiteral(ListLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitListLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitMapLiteral(MapLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitMapLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitMapLiteralEntry(MapLiteralEntry node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitMapLiteralEntry(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitMethodDeclaration(MethodDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitMethodDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitMethodInvocation(MethodInvocation node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitMethodInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitNamedExpression(NamedExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitNamedExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitNativeClause(NativeClause node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitNativeClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitNativeFunctionBody(NativeFunctionBody node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitNativeFunctionBody(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitNullLiteral(NullLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitNullLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitParenthesizedExpression(ParenthesizedExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitParenthesizedExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitPartDirective(PartDirective node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitPartDirective(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitPartOfDirective(PartOfDirective node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitPartOfDirective(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitPostfixExpression(PostfixExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitPostfixExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitPrefixedIdentifier(PrefixedIdentifier node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitPrefixedIdentifier(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitPrefixExpression(PrefixExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitPrefixExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitPropertyAccess(PropertyAccess node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitPropertyAccess(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitRedirectingConstructorInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitRethrowExpression(RethrowExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitRethrowExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitReturnStatement(ReturnStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitReturnStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitScriptTag(ScriptTag node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitScriptTag(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitShowCombinator(ShowCombinator node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitShowCombinator(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSimpleFormalParameter(SimpleFormalParameter node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSimpleFormalParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSimpleIdentifier(SimpleIdentifier node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSimpleIdentifier(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSimpleStringLiteral(SimpleStringLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSimpleStringLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitStringInterpolation(StringInterpolation node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitStringInterpolation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSuperConstructorInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSuperExpression(SuperExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSuperExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSwitchCase(SwitchCase node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSwitchCase(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSwitchDefault(SwitchDefault node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSwitchDefault(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSwitchStatement(SwitchStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSwitchStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSymbolLiteral(SymbolLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSymbolLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitThisExpression(ThisExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitThisExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitThrowExpression(ThrowExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitThrowExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitTopLevelVariableDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitTryStatement(TryStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitTryStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitTypeArgumentList(TypeArgumentList node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitTypeArgumentList(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitTypeName(TypeName node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitTypeName(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitTypeParameter(TypeParameter node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitTypeParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitTypeParameterList(TypeParameterList node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitTypeParameterList(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitVariableDeclaration(VariableDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitVariableDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitVariableDeclarationList(VariableDeclarationList node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitVariableDeclarationList(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitVariableDeclarationStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitWhileStatement(WhileStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitWhileStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitWithClause(WithClause node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitWithClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitYieldStatement(YieldStatement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitYieldStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+}
+
+/**
  * An AST visitor that will recursively visit all of the nodes in an AST
  * structure (like instances of the class [RecursiveAstVisitor]). In addition,
  * every node will also be visited by using a single unified [visitNode] method.

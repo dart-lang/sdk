@@ -8,6 +8,7 @@
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/thread_interrupter.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -22,8 +23,12 @@ bool OSThread::creation_enabled_ = false;
 OSThread::OSThread() :
     BaseThread(true),
     id_(OSThread::GetCurrentThreadId()),
-    join_id_(OSThread::GetCurrentThreadJoinId()),
+#if defined(DEBUG)
+    join_id_(kInvalidThreadJoinId),
+#endif
+#ifndef PRODUCT
     trace_id_(OSThread::GetCurrentThreadTraceId()),
+#endif
     name_(NULL),
     timeline_block_lock_(new Mutex()),
     timeline_block_(NULL),
@@ -59,6 +64,18 @@ OSThread::~OSThread() {
   timeline_block_ = NULL;
   delete timeline_block_lock_;
   free(name_);
+}
+
+
+
+void OSThread::SetName(const char* name) {
+  MutexLocker ml(thread_list_lock_);
+  // Clear the old thread name.
+  if (name_ != NULL) {
+    free(name_);
+    name_ = NULL;
+  }
+  set_name(name);
 }
 
 
@@ -147,8 +164,8 @@ OSThread* OSThread::CreateAndSetUnknownThread() {
 }
 
 
-bool OSThread::IsThreadInList(ThreadJoinId join_id) {
-  if (join_id == OSThread::kInvalidThreadJoinId) {
+bool OSThread::IsThreadInList(ThreadId id) {
+  if (id == OSThread::kInvalidThreadId) {
     return false;
   }
   OSThreadIterator it;
@@ -156,8 +173,8 @@ bool OSThread::IsThreadInList(ThreadJoinId join_id) {
     ASSERT(OSThread::thread_list_lock_->IsOwnedByCurrentThread());
     OSThread* t = it.Next();
     // An address test is not sufficient because the allocator may recycle
-    // the address for another Thread. Test against the thread's join id.
-    if (t->join_id() == join_id) {
+    // the address for another Thread. Test against the thread's id.
+    if (t->id() == id) {
       return true;
     }
   }

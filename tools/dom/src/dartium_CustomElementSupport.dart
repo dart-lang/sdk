@@ -29,40 +29,11 @@ class _VMElementUpgrader implements ElementUpgrader {
   }
 
   Element upgrade(element) {
-    var jsObject;
-    var tag;
-    var isNativeElementExtension = false;
-
-    try {
-      tag = _getCustomElementName(element);
-    } catch (e) {
-      isNativeElementExtension = element.localName == _extendsTag;
+    // Only exact type matches are supported- cannot be a subclass.
+    if (element.runtimeType != _nativeType) {
+      throw new ArgumentError('element is not subclass of $_nativeType');
     }
-
-    if (element.runtimeType == HtmlElement || element.runtimeType == TemplateElement) {
-      if (tag != _extendsTag) {
-        throw new UnsupportedError('$tag is not registered.');
-      }
-      jsObject = unwrap_jso(element);
-    } else if (element.runtimeType == js.JsObject) {
-      // It's a Polymer core element (written in JS).
-      jsObject = element;
-    } else if (isNativeElementExtension) {
-      // Extending a native element.
-      jsObject = element.blink_jsObject;
-
-      // Element to extend is the real tag.
-      tag = element.localName;
-    } else if (tag != null && element.localName != tag) {
-      throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected native Html or Svg element to extend.');
-    } else if (tag == null) {
-      throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected HtmlElement/JsObject.');
-    }
-
-    // Remember Dart class to tagName for any upgrading done in wrap_jso.
-    addCustomElementType(tag, _type, _extendsTag);
-
-    return _createCustomUpgrader(_type, jsObject);
+    return _createCustomUpgrader(_type, element);
   }
 }
 

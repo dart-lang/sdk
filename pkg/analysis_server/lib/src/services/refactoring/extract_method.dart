@@ -55,9 +55,9 @@ String _getNormalizedSource(String src) {
 /**
  * Returns the [Map] which maps [map] values to their keys.
  */
-Map<String, String> _inverseMap(Map map) {
-  Map result = {};
-  map.forEach((key, value) {
+Map<String, String> _inverseMap(Map<String, String> map) {
+  Map<String, String> result = <String, String>{};
+  map.forEach((String key, String value) {
     result[value] = key;
   });
   return result;
@@ -70,7 +70,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     implements ExtractMethodRefactoring {
   static const ERROR_EXITS =
       'Selected statements contain a return statement, but not all possible '
-      'execuion flows exit. Semantics may not be preserved.';
+      'execution flows exit. Semantics may not be preserved.';
 
   final SearchEngine searchEngine;
   final CompilationUnit unit;
@@ -420,7 +420,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       return validateCreateMethod(searchEngine, classElement, name);
     }
     // OK
-    return new Future.value(result);
+    return new Future<RefactoringStatus>.value(result);
   }
 
   /**

@@ -371,7 +371,8 @@ static void PushArgumentsArray(Assembler* assembler) {
   Label loop;
   __ Bind(&loop);
   __ ldr(IP, Address(R1, kWordSize, Address::PreIndex));
-  __ InitializeFieldNoBarrier(R0, Address(R3, R2, LSL, 1), IP);
+  // Generational barrier is needed, array is not necessarily in new space.
+  __ StoreIntoObject(R0, Address(R3, R2, LSL, 1), IP);
   __ Bind(&enter);
   __ subs(R2, R2, Operand(Smi::RawValue(1)));  // R2 is Smi.
   __ b(&loop, PL);
@@ -625,8 +626,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ b(&slow_case, GT);
 
   const intptr_t cid = kArrayCid;
-  __ MaybeTraceAllocation(cid, R4, &slow_case,
-                          /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R4, &slow_case));
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(R9, fixed_size);
@@ -635,7 +635,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ bic(R9, R9, Operand(kObjectAlignment - 1));
 
   // R9: Allocation size.
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ LoadIsolate(R8);
   __ ldr(R8, Address(R8, Isolate::heap_offset()));
   // Potential new object start.
@@ -653,7 +653,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R3, cid, /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R3, cid));
   __ str(NOTFP, Address(R8, Heap::TopOffset(space)));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -679,12 +679,12 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R0: new object start as a tagged pointer.
   // NOTFP: new object end address.
   // Store the type argument field.
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, Array::type_arguments_offset()),
                               R1);
 
   // Set the length field.
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, Array::length_offset()),
                               R2);
 
@@ -696,7 +696,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // data area to be initialized.
   // NOTFP: new object end address.
   // R9: allocation size.
-  __ IncrementAllocationStatsWithSize(R3, R9, space);
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R3, R9, space));
 
   __ LoadObject(R8, Object::null_object());
   __ mov(R9, Operand(R8));
@@ -773,9 +773,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   __ Push(R4);
-#if defined(TARGET_OS_MAC)
+#if defined(TARGET_ABI_IOS)
   ASSERT(kExitLinkSlotFromEntryFp == -26);
-#else
+#elif defined(TARGET_ABI_EABI)
   ASSERT(kExitLinkSlotFromEntryFp == -27);
 #endif
   __ Push(R9);
@@ -859,13 +859,12 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     ASSERT(kSmiTagShift == 1);
     __ bic(R2, R2, Operand(kObjectAlignment - 1));
 
-    __ MaybeTraceAllocation(kContextCid, R8, &slow_case,
-                            /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, R8, &slow_case));
     // Now allocate the object.
     // R1: number of context variables.
     // R2: object size.
     const intptr_t cid = kContextCid;
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    Heap::Space space = Heap::kNew;
     __ LoadIsolate(R9);
     __ ldr(R9, Address(R9, Isolate::heap_offset()));
     __ ldr(R0, Address(R9, Heap::TopOffset(space)));
@@ -891,7 +890,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R2: object size.
     // R3: next object start.
     // R9: heap.
-    __ LoadAllocationStatsAddress(R4, cid, /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
     __ str(R3, Address(R9, Heap::TopOffset(space)));
     __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -928,7 +927,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R3: next object start.
     // R4: allocation stats address.
     __ LoadObject(R8, Object::null_object());
-    __ InitializeFieldNoBarrier(R0, FieldAddress(R0, Context::parent_offset()),
+    __ StoreIntoObjectNoBarrier(R0, FieldAddress(R0, Context::parent_offset()),
                                 R8);
 
     // Initialize the context variables.
@@ -941,7 +940,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label loop;
     __ AddImmediate(NOTFP, R0, Context::variable_offset(0) - kHeapObjectTag);
     __ InitializeFieldsNoBarrier(R0, NOTFP, R3, R8, R9);
-    __ IncrementAllocationStatsWithSize(R4, R2, space);
+    NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1064,7 +1063,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::kNew;
     __ ldr(R9, Address(THR, Thread::heap_offset()));
     __ ldr(R0, Address(R9, Heap::TopOffset(space)));
     __ AddImmediate(R1, R0, instance_size);
@@ -1083,7 +1082,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.
-    __ LoadAllocationStatsAddress(R9, cls.id(), /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R9, cls.id()));
 
     // R0: new object start.
     // R1: next object start.
@@ -1132,7 +1131,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // Set the type arguments in the new object.
       __ ldr(R4, Address(SP, 0));
       FieldAddress type_args(R0, cls.type_arguments_field_offset());
-      __ InitializeFieldNoBarrier(R0, type_args, R4);
+      __ StoreIntoObjectNoBarrier(R0, type_args, R4);
     }
 
     // Done allocating and initializing the instance.
@@ -1140,7 +1139,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // R9: allocation stats table.
 
     // Update allocation stats.
-    __ IncrementAllocationStats(R9, cls.id(), space);
+    NOT_IN_PRODUCT(__ IncrementAllocationStats(R9, cls.id(), space));
 
     // R0: new object (tagged).
     __ Ret();
@@ -1325,7 +1324,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    RangeCollectionMode range_collection_mode,
     bool optimized) {
   __ CheckCodePointer();
   ASSERT(num_args > 0);
@@ -1353,18 +1351,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ Bind(&done_stepping);
   }
 
-  __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
-  if (range_collection_mode == kCollectRanges) {
-    ASSERT((num_args == 1) || (num_args == 2));
-    if (num_args == 2) {
-      __ ldr(R0, Address(SP, 1 * kWordSize));
-      __ UpdateRangeFeedback(R0, 0, R9, R1, R4, &not_smi_or_overflow);
-    }
-
-    __ ldr(R0, Address(SP, 0 * kWordSize));
-    __ UpdateRangeFeedback(R0, num_args - 1, R9, R1, R4, &not_smi_or_overflow);
-  }
   if (kind != Token::kILLEGAL) {
     EmitFastSmiOp(assembler, kind, num_args, &not_smi_or_overflow);
   }
@@ -1479,31 +1466,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&call_target_function);
   // R0: target function.
   __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
-  if (range_collection_mode == kCollectRanges) {
-    __ ldr(R1, Address(SP, 0 * kWordSize));
-    if (num_args == 2) {
-      __ ldr(R3, Address(SP, 1 * kWordSize));
-    }
-    __ EnterStubFrame();
-    if (num_args == 2) {
-      __ PushList((1 << R1) | (1 << R3) | (1 << R9));
-    } else {
-      __ PushList((1 << R1) | (1 << R9));
-    }
-    __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-    __ blx(R2);
-
-    Label done;
-    __ ldr(R9, Address(FP, kFirstLocalSlotFromFp * kWordSize));
-    __ UpdateRangeFeedback(R0, 2, R9, R1, R4, &done);
-    __ Bind(&done);
-    __ RestoreCodePointer();
-    __ LeaveStubFrame();
-    __ Ret();
-  } else {
-    __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-    __ bx(R2);
-  }
+  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  __ bx(R2);
 
   if (FLAG_support_debugger && !optimized) {
     __ Bind(&stepping);
@@ -1533,8 +1497,7 @@ void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(assembler,
       1,
       kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
+      Token::kILLEGAL);
 }
 
 
@@ -1543,8 +1506,7 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(assembler,
       2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
+      Token::kILLEGAL);
 }
 
 
@@ -1553,44 +1515,21 @@ void StubCode::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(assembler,
       2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kADD,
-      kCollectRanges);
+      Token::kADD);
 }
 
 
 void StubCode::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R8);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kSUB,
-      kCollectRanges);
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kSUB);
 }
 
 
 void StubCode::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R8);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ,
-      kIgnoreRanges);
-}
-
-
-void StubCode::GenerateUnaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, R8);
-  GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL,
-      kCollectRanges);
-}
-
-
-void StubCode::GenerateBinaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, R8);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kCollectRanges);
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ);
 }
 
 
@@ -1599,7 +1538,7 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
       kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges, true /* optimized */);
+      true /* optimized */);
 }
 
 
@@ -1608,7 +1547,7 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges, true /* optimized */);
+      true /* optimized */);
 }
 
 
@@ -1682,16 +1621,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R8);
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges);
+      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R8);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges);
+      kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
 }
 
 
@@ -2049,57 +1986,60 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
-  __ LoadTaggedClassIdMayBeSmi(R0, R0);
-  // R0: receiver cid as Smi.
-  __ ldr(R4, FieldAddress(R9, MegamorphicCache::arguments_descriptor_offset()));
-  __ ldr(R2, FieldAddress(R9, MegamorphicCache::buckets_offset()));
-  __ ldr(R1, FieldAddress(R9, MegamorphicCache::mask_offset()));
-  // R2: cache buckets array.
-  // R1: mask.
-  __ mov(R3, Operand(R0));
-  // R3: probe.
-
-  Label loop, update, load_target_function;
-  __ b(&loop);
-
-  __ Bind(&update);
-  __ add(R3, R3, Operand(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ and_(R3, R3, Operand(R1));
-  const intptr_t base = Array::data_offset();
-  // R3 is smi tagged, but table entries are two words, so LSL 2.
-  __ add(IP, R2, Operand(R3, LSL, 2));
-  __ ldr(R6, FieldAddress(IP, base));
-
-  ASSERT(kIllegalCid == 0);
-  __ tst(R6, Operand(R6));
-  __ b(&load_target_function, EQ);
-  __ cmp(R6, Operand(R0));
-  __ b(&update, NE);
-
-  __ Bind(&load_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ add(IP, R2, Operand(R3, LSL, 2));
-  __ ldr(R0, FieldAddress(IP, base + kWordSize));
-  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
-  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-}
-
-
 // Called from megamorphic calls.
 //  R0: receiver
 //  R9: MegamorphicCache (preserved)
 // Result:
-//  R1: target entry point
 //  CODE_REG: target Code
 //  R4: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler);
-  __ Ret();
+  __ NoMonomorphicCheckedEntry();
+
+  __ LoadTaggedClassIdMayBeSmi(R0, R0);
+  // R0: receiver cid as Smi.
+  __ ldr(R2, FieldAddress(R9, MegamorphicCache::buckets_offset()));
+  __ ldr(R1, FieldAddress(R9, MegamorphicCache::mask_offset()));
+  // R2: cache buckets array.
+  // R1: mask.
+
+  // Compute the table index.
+  ASSERT(MegamorphicCache::kSpreadFactor == 7);
+  // Use reverse substract to multiply with 7 == 8 - 1.
+  __ rsb(R3, R0, Operand(R0, LSL, 3));
+  // R3: probe.
+  Label loop;
+  __ Bind(&loop);
+  __ and_(R3, R3, Operand(R1));
+
+  const intptr_t base = Array::data_offset();
+  // R3 is smi tagged, but table entries are two words, so LSL 2.
+  Label probe_failed;
+  __ add(IP, R2, Operand(R3, LSL, 2));
+  __ ldr(R6, FieldAddress(IP, base));
+  __ cmp(R6, Operand(R0));
+  __ b(&probe_failed, NE);
+
+  Label load_target;
+  __ Bind(&load_target);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ ldr(R0, FieldAddress(IP, base + kWordSize));
+  __ ldr(R4, FieldAddress(R9, MegamorphicCache::arguments_descriptor_offset()));
+  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
+  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  __ bx(R1);
+
+  // Probe failed, check if it is a miss.
+  __ Bind(&probe_failed);
+  ASSERT(kIllegalCid == 0);
+  __ tst(R6, Operand(R6));
+  __ b(&load_target, EQ);  // branch if miss.
+
+  // Try next extry in the table.
+  __ AddImmediate(R3, Smi::RawValue(1));
+  __ b(&loop);
 }
 
 
@@ -2107,10 +2047,11 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 //  R0: receiver
 //  R9: ICData (preserved)
 // Result:
-//  R1: target entry point
 //  CODE_REG: target Code object
 //  R4: arguments descriptor
-void StubCode::GenerateICLookupStub(Assembler* assembler) {
+void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
@@ -2135,13 +2076,76 @@ void StubCode::GenerateICLookupStub(Assembler* assembler) {
   __ LoadFromOffset(kWord, R0, R8, target_offset);
   __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ Ret();
+  __ bx(R1);
 
   __ Bind(&miss);
   __ LoadIsolate(R2);
   __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
   __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ Ret();
+  __ bx(R1);
+}
+
+
+void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
+  Label loop, found, miss;
+  __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
+  __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
+  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  // R8: first IC entry
+  __ LoadTaggedClassIdMayBeSmi(R1, R0);
+  // R1: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ ldr(R2, Address(R8, 0));
+  __ cmp(R1, Operand(R2));
+  __ b(&found, EQ);
+  __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));
+  __ b(&miss, EQ);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ AddImmediate(R8, entry_length);  // Next entry.
+  __ b(&loop);
+
+  __ Bind(&found);
+  const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
+  const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
+  __ ldr(R1, Address(R8, entry_offset));
+  __ ldr(CODE_REG, Address(R8, code_offset));
+  __ bx(R1);
+
+  __ Bind(&miss);
+  __ LoadIsolate(R2);
+  __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
+  __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ bx(R1);
+}
+
+
+// Called from the monomorphic checked entry.
+//  R0: receiver
+void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ Push(R0);  // Preserve receiver.
+
+  __ PushObject(Object::null_object());  // Result.
+  __ Push(R0);                           // Arg0: Receiver
+  __ CallRuntime(kMonomorphicMissRuntimeEntry, 1);
+  __ Drop(1);
+  __ Pop(R9);  // result = IC
+
+  __ Pop(R0);  // Restore receiver.
+  __ LeaveStubFrame();
+
+  __ ldr(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
+  __ ldr(R1, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ bx(R1);
+}
+
+
+void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
+  __ bkpt(0);
 }
 
 }  // namespace dart

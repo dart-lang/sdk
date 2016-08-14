@@ -238,18 +238,21 @@ def UploadDartTestsResults(layout_test_results_dir, name, version,
   dir_name = os.path.dirname(layout_test_results_dir)
   base_name = os.path.basename(layout_test_results_dir)
   cwd = os.getcwd()
-  os.chdir(dir_name)
+  try:
+    os.chdir(dir_name)
 
-  archive_name = 'layout_test_results.zip'
-  archive.ZipDir(archive_name, base_name)
+    archive_name = 'layout_test_results.zip'
+    archive.ZipDir(archive_name, base_name)
 
-  target = '/'.join([GS_DIR, 'layout-test-results', name, component + '-' +
-                     checked + '-' + version + '.zip'])
-  status = OldUploadFile(os.path.abspath(archive_name), GS_SITE + target)
-  os.remove(archive_name)
-  if status == 0:
-    print ('@@@STEP_LINK@download@' + GS_URL + target + '@@@')
-  else:
+    target = '/'.join([GS_DIR, 'layout-test-results', name, component + '-' +
+                       checked + '-' + version + '.zip'])
+    status = OldUploadFile(os.path.abspath(archive_name), GS_SITE + target)
+    os.remove(archive_name)
+    if status == 0:
+      print ('@@@STEP_LINK@download@' + GS_URL + target + '@@@')
+    else:
+      print '@@@STEP_FAILURE@@@'
+  except:
     print '@@@STEP_FAILURE@@@'
   os.chdir(cwd)
 

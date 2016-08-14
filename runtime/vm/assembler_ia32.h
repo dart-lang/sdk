@@ -636,12 +636,10 @@ class Assembler : public ValueObject {
     return 0xCCCCCCCC;
   }
 
-  // Note: verified_mem mode forces far jumps.
   void j(Condition condition, Label* label, bool near = kFarJump);
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
-  // Note: verified_mem mode forces far jumps.
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
 
@@ -677,14 +675,6 @@ class Assembler : public ValueObject {
   void CompareObject(Register reg, const Object& object);
   void LoadDoubleConstant(XmmRegister dst, double value);
 
-  // When storing into a heap object field, knowledge of the previous content
-  // is expressed through these constants.
-  enum FieldContent {
-    kEmptyOrSmiOrNull,  // Empty = garbage/zapped in release/debug mode.
-    kHeapObjectOrSmi,
-    kOnlySmi,
-  };
-
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,  // Value we are storing.
@@ -692,22 +682,10 @@ class Assembler : public ValueObject {
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value,
-                                FieldContent old_content = kHeapObjectOrSmi);
-  void InitializeFieldNoBarrier(Register object,
-                                const Address& dest,
-                                Register value) {
-    return StoreIntoObjectNoBarrier(object, dest, value, kEmptyOrSmiOrNull);
-  }
+                                Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                const Object& value,
-                                FieldContent old_content = kHeapObjectOrSmi);
-  void InitializeFieldNoBarrier(Register object,
-                                const Address& dest,
-                                const Object& value) {
-    return StoreIntoObjectNoBarrier(object, dest, value, kEmptyOrSmiOrNull);
-  }
+                                const Object& value);
 
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
@@ -762,20 +740,6 @@ class Assembler : public ValueObject {
                             Register scratch,
                             Label* is_smi);
 
-  void ComputeRange(Register result,
-                    Register value,
-                    Register lo_temp,
-                    Register hi_temp,
-                    Label* miss);
-
-  void UpdateRangeFeedback(Register value,
-                           intptr_t index,
-                           Register ic_data,
-                           Register scratch1,
-                           Register scratch2,
-                           Register scratch3,
-                           Label* miss);
-
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,
                                            intptr_t index_scale,
@@ -803,7 +767,11 @@ class Assembler : public ValueObject {
     sarl(reg, Immediate(kSmiTagSize));
   }
 
-  intptr_t PreferredLoopAlignment() { return 16; }
+  void BranchIfNotSmi(Register reg, Label* label) {
+    testl(reg, Immediate(kSmiTagMask));
+    j(NOT_ZERO, label);
+  }
+
   void Align(intptr_t alignment, intptr_t offset);
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
@@ -892,24 +860,20 @@ class Assembler : public ValueObject {
   void MaybeTraceAllocation(intptr_t cid,
                             Register temp_reg,
                             Label* trace,
-                            bool near_jump,
-                            bool inline_isolate = true);
+                            bool near_jump);
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,
-                             Heap::Space space,
-                             bool inline_isolate = true);
+                             Heap::Space space);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
                                      Register temp_reg,
-                                     Heap::Space space,
-                                     bool inline_isolate = true);
+                                     Heap::Space space);
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      intptr_t instance_size,
                                      Register temp_reg,
-                                     Heap::Space space,
-                                     bool inline_isolate = true);
+                                     Heap::Space space);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -1013,17 +977,6 @@ class Assembler : public ValueObject {
   void StoreIntoObjectFilterNoSmi(Register object,
                                   Register value,
                                   Label* no_update);
-#if defined(DEBUG)
-  void VerifyUninitialized(const Address& address);
-  void VerifyObjectOrSmi(const Address& address);
-  void VerifySmi(const Address& address, const char* stop_msg = "Expected Smi");
-#endif  // DEBUG
-  // Like VerifiedMemory::Verify(address, kWordSize) and ::Write, but also,
-  // in DEBUG mode, verifies that 'address' has content of type 'old_content'.
-  void VerifyHeapWord(const Address& address, FieldContent old_content);
-  void VerifiedWrite(const Address& dest,
-                     Register value,
-                     FieldContent old_content);
   void UnverifiedStoreOldObject(const Address& dest, const Object& value);
 
   int32_t jit_cookie();

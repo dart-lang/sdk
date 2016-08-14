@@ -283,6 +283,7 @@ class _CodeGenerator {
             }
             int id;
             bool isDeprecated = false;
+            bool isInformative = false;
             for (Annotation annotation in classMember.metadata) {
               if (annotation.name.name == 'Id') {
                 if (id != null) {
@@ -305,6 +306,8 @@ class _CodeGenerator {
                   throw new Exception('@deprecated does not take args ($desc)');
                 }
                 isDeprecated = true;
+              } else if (annotation.name.name == 'informative') {
+                isInformative = true;
               }
             }
             if (id == null) {
@@ -314,7 +317,12 @@ class _CodeGenerator {
             idlModel.FieldType fieldType =
                 new idlModel.FieldType(type.name.name, isList);
             cls.allFields.add(new idlModel.FieldDeclaration(
-                doc, classMember.name.name, fieldType, id, isDeprecated));
+                doc,
+                classMember.name.name,
+                fieldType,
+                id,
+                isDeprecated,
+                isInformative));
           } else if (classMember is ConstructorDeclaration &&
               classMember.name.name == 'fromBuffer') {
             // Ignore `fromBuffer` declarations; they simply forward to the
@@ -443,6 +451,7 @@ class _CodeGenerator {
     out("import 'flat_buffers.dart' as fb;");
     out("import 'idl.dart' as idl;");
     out("import 'dart:convert' as convert;");
+    out("import 'api_signature.dart' as api_sig;");
     out();
     for (idlModel.EnumDeclaration enm in _idl.enums.values) {
       _generateEnumReader(enm);
@@ -536,9 +545,7 @@ class _CodeGenerator {
     out('class $builderName extends Object with $mixinName '
         'implements ${idlPrefix(name)} {');
     indent(() {
-      out('bool _finished = false;');
       // Generate fields.
-      out();
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
@@ -564,7 +571,6 @@ class _CodeGenerator {
           out('void set $fieldName($typeStr _value) {');
           indent(() {
             String stateFieldName = '_' + fieldName;
-            out('assert(!_finished);');
             // Validate that int(s) are non-negative.
             if (fieldType.typeName == 'int') {
               if (!fieldType.isList) {
@@ -589,6 +595,68 @@ class _CodeGenerator {
         String suffix = i == fields.length - 1 ? ';' : ',';
         out('${prefix}_${field.name} = ${field.name}$suffix');
       }
+      // Generate flushInformative().
+      {
+        out();
+        out('/**');
+        out(' * Flush [informative] data recursively.');
+        out(' */');
+        out('void flushInformative() {');
+        indent(() {
+          for (idlModel.FieldDeclaration field in cls.fields) {
+            idlModel.FieldType fieldType = field.type;
+            String valueName = '_' + field.name;
+            if (field.isInformative) {
+              out('$valueName = null;');
+            } else if (_idl.classes.containsKey(fieldType.typeName)) {
+              if (fieldType.isList) {
+                out('$valueName?.forEach((b) => b.flushInformative());');
+              } else {
+                out('$valueName?.flushInformative();');
+              }
+            }
+          }
+        });
+        out('}');
+      }
+      // Generate collectApiSignature().
+      {
+        out();
+        out('/**');
+        out(' * Accumulate non-[informative] data into [signature].');
+        out(' */');
+        out('void collectApiSignature(api_sig.ApiSignature signature) {');
+        indent(() {
+          List<idlModel.FieldDeclaration> sortedFields = cls.fields.toList()
+            ..sort((idlModel.FieldDeclaration a, idlModel.FieldDeclaration b) =>
+                a.id.compareTo(b.id));
+          for (idlModel.FieldDeclaration field in sortedFields) {
+            if (field.isInformative) {
+              continue;
+            }
+            String ref = 'this._${field.name}';
+            if (field.type.isList) {
+              out('if ($ref == null) {');
+              indent(() {
+                out('signature.addInt(0);');
+              });
+              out('} else {');
+              indent(() {
+                out('signature.addInt($ref.length);');
+                out('for (var x in $ref) {');
+                indent(() {
+                  _generateSignatureCall(field.type.typeName, 'x', false);
+                });
+                out('}');
+              });
+              out('}');
+            } else {
+              _generateSignatureCall(field.type.typeName, ref, true);
+            }
+          }
+        });
+        out('}');
+      }
       // Generate finish.
       if (cls.isTopLevel) {
         out();
@@ -605,8 +673,6 @@ class _CodeGenerator {
       out();
       out('fb.Offset finish(fb.Builder fbBuilder) {');
       indent(() {
-        out('assert(!_finished);');
-        out('_finished = true;');
         // Write objects and remember Offset(s).
         for (idlModel.FieldDeclaration field in cls.fields) {
           idlModel.FieldType fieldType = field.type;
@@ -717,9 +783,9 @@ class _CodeGenerator {
       out('int get size => 1;');
       out();
       out('@override');
-      out('${idlPrefix(name)} read(fb.BufferPointer bp) {');
+      out('${idlPrefix(name)} read(fb.BufferContext bc, int offset) {');
       indent(() {
-        out('int index = const fb.Uint8Reader().read(bp);');
+        out('int index = const fb.Uint8Reader().read(bc, offset);');
         out('return index < $count ? ${idlPrefix(name)}.values[index] : $def;');
       });
       out('}');
@@ -734,9 +800,10 @@ class _CodeGenerator {
     out('class $implName extends Object with $mixinName'
         ' implements ${idlPrefix(name)} {');
     indent(() {
-      out('final fb.BufferPointer _bp;');
+      out('final fb.BufferContext _bc;');
+      out('final int _bcOffset;');
       out();
-      out('$implName(this._bp);');
+      out('$implName(this._bc, this._bcOffset);');
       out();
       // Write cache fields.
       for (idlModel.FieldDeclaration field in cls.fields) {
@@ -792,7 +859,8 @@ class _CodeGenerator {
         } else {
           out('$returnType get $fieldName {');
           indent(() {
-            String readExpr = '$readCode.vTableGet(_bp, $index, $def)';
+            String readExpr =
+                '$readCode.vTableGet(_bc, _bcOffset, $index, $def)';
             out('_$fieldName ??= $readExpr;');
             out('return _$fieldName;');
           });
@@ -874,7 +942,7 @@ class _CodeGenerator {
       out('const $readerName();');
       out();
       out('@override');
-      out('$implName createObject(fb.BufferPointer bp) => new $implName(bp);');
+      out('$implName createObject(fb.BufferContext bc, int offset) => new $implName(bc, offset);');
     });
     out('}');
   }
@@ -883,10 +951,60 @@ class _CodeGenerator {
     String name = cls.name;
     out('${idlPrefix(name)} read$name(List<int> buffer) {');
     indent(() {
-      out('fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);');
-      out('return const _${name}Reader().read(rootRef);');
+      out('fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);');
+      out('return const _${name}Reader().read(rootRef, 0);');
     });
     out('}');
+  }
+
+  /**
+   * Generate a call to the appropriate method of [ApiSignature] for the type
+   * [typeName], using the data named by [ref].  If [couldBeNull] is `true`,
+   * generate code to handle the possibility that [ref] is `null` (substituting
+   * in the appropriate default value).
+   */
+  void _generateSignatureCall(String typeName, String ref, bool couldBeNull) {
+    if (_idl.enums.containsKey(typeName)) {
+      if (couldBeNull) {
+        out('signature.addInt($ref == null ? 0 : $ref.index);');
+      } else {
+        out('signature.addInt($ref.index);');
+      }
+    } else if (_idl.classes.containsKey(typeName)) {
+      if (couldBeNull) {
+        out('signature.addBool($ref != null);');
+      }
+      out('$ref?.collectApiSignature(signature);');
+    } else {
+      switch (typeName) {
+        case 'String':
+          if (couldBeNull) {
+            ref += " ?? ''";
+          }
+          out("signature.addString($ref);");
+          break;
+        case 'int':
+          if (couldBeNull) {
+            ref += ' ?? 0';
+          }
+          out('signature.addInt($ref);');
+          break;
+        case 'bool':
+          if (couldBeNull) {
+            ref += ' == true';
+          }
+          out('signature.addBool($ref);');
+          break;
+        case 'double':
+          if (couldBeNull) {
+            ref += ' ?? 0.0';
+          }
+          out('signature.addDouble($ref);');
+          break;
+        default:
+          throw "Don't know how to generate signature call for $typeName";
+      }
+    }
   }
 
   /**

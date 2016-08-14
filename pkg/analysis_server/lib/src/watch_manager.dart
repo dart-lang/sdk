@@ -176,12 +176,12 @@ class WatchNode<T> {
   /**
    * The parent of this node.
    */
-  WatchNode parent;
+  WatchNode<T> parent;
 
   /**
    * The information for the children of this node.
    */
-  final List<WatchNode> _children = <WatchNode>[];
+  final List<WatchNode<T>> _children = <WatchNode<T>>[];
 
   /**
    * The tokens that were used to register interest in watching this folder.
@@ -203,7 +203,7 @@ class WatchNode<T> {
   /**
    * Return a list containing the children of this node.
    */
-  Iterable<WatchNode> get children => _children;
+  Iterable<WatchNode<T>> get children => _children;
 
   /**
    * Remove this node from the tree of watched folders.
@@ -220,11 +220,11 @@ class WatchNode<T> {
    * [filePath]. If no other node is found, return this node, even if this node
    * does not contain the path.
    */
-  WatchNode findParent(String filePath) {
+  WatchNode<T> findParent(String filePath) {
     if (_children == null) {
       return this;
     }
-    for (WatchNode childNode in _children) {
+    for (WatchNode<T> childNode in _children) {
       if (childNode.folder.isOrContains(filePath)) {
         return childNode.findParent(filePath);
       }
@@ -237,8 +237,8 @@ class WatchNode<T> {
    * of this node or as a descendent of one of this node's children. Return the
    * immediate parent of the newly added node.
    */
-  WatchNode insert(WatchNode node) {
-    WatchNode parentNode = findParent(node.folder.path);
+  WatchNode<T> insert(WatchNode<T> node) {
+    WatchNode<T> parentNode = findParent(node.folder.path);
     parentNode._addChild(node, true);
     return parentNode;
   }
@@ -256,11 +256,11 @@ class WatchNode<T> {
    * existing children of this node should now be children of the new child, and
    * if so, move them.
    */
-  void _addChild(WatchNode newChild, bool checkChildren) {
+  void _addChild(WatchNode<T> newChild, bool checkChildren) {
     if (checkChildren) {
       Folder folder = newChild.folder;
       for (int i = _children.length - 1; i >= 0; i--) {
-        WatchNode existingChild = _children[i];
+        WatchNode<T> existingChild = _children[i];
         if (folder.contains(existingChild.folder.path)) {
           newChild._addChild(existingChild, false);
           _children.removeAt(i);
@@ -275,10 +275,10 @@ class WatchNode<T> {
    * Remove the given [node] from the list of children of this node. Any
    * children of the [node] will become children of this node.
    */
-  void _removeChild(WatchNode child) {
+  void _removeChild(WatchNode<T> child) {
     _children.remove(child);
-    Iterable<WatchNode> grandchildren = child.children;
-    for (WatchNode grandchild in grandchildren) {
+    Iterable<WatchNode<T>> grandchildren = child.children;
+    for (WatchNode<T> grandchild in grandchildren) {
       grandchild.parent = this;
       _children.add(grandchild);
     }

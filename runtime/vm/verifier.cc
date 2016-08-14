@@ -20,7 +20,7 @@ namespace dart {
 void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
   if (raw_obj->IsHeapObject()) {
     uword raw_addr = RawObject::ToAddr(raw_obj);
-    if (raw_obj->IsFreeListElement()) {
+    if (raw_obj->IsFreeListElement() || raw_obj->IsForwardingCorpse()) {
       if (raw_obj->IsMarked()) {
         FATAL1("Marked free list element encountered %#" Px "\n", raw_addr);
       }
@@ -42,13 +42,12 @@ void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
     }
   }
   allocated_set_->Add(raw_obj);
-  raw_obj->Validate(isolate());
+  raw_obj->Validate(isolate_);
 }
 
 
 void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
   for (RawObject** current = first; current <= last; current++) {
-    VerifiedMemory::Verify(reinterpret_cast<uword>(current), kWordSize);
     RawObject* raw_obj = *current;
     if (raw_obj->IsHeapObject()) {
       if (!allocated_set_->Contains(raw_obj)) {
@@ -82,5 +81,23 @@ void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
   isolate->VisitWeakPersistentHandles(&weak_visitor);
   delete allocated_set;
 }
+
+
+#if defined(DEBUG)
+VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
+    : thread_(thread),
+      instanceHandle_(Instance::Handle(thread->zone())) {
+}
+
+
+void VerifyCanonicalVisitor::VisitObject(RawObject* obj) {
+  if (obj->GetClassId() >= kInstanceCid) {
+    if (obj->IsCanonical()) {
+      instanceHandle_ ^= obj;
+      ASSERT(instanceHandle_.CheckIsCanonical(thread_));
+    }
+  }
+}
+#endif  // defined(DEBUG)
 
 }  // namespace dart

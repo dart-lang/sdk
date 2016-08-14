@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
@@ -25,12 +26,6 @@ void setFieldType(VariableElement field, DartType newType) {
   (field as VariableElementImpl).type = newType;
   if (field.initializer != null) {
     (field.initializer as ExecutableElementImpl).returnType = newType;
-  }
-  if (field is PropertyInducingElementImpl) {
-    (field.getter as ExecutableElementImpl).returnType = newType;
-    if (!field.isFinal && !field.isConst) {
-      (field.setter.parameters[0] as ParameterElementImpl).type = newType;
-    }
   }
 }
 
@@ -50,7 +45,7 @@ ParameterElement _getParameter(ExecutableElement setter) {
 }
 
 /**
- * A function that returns `true` if the given [variable] passes the filter.
+ * A function that returns `true` if the given [element] passes the filter.
  */
 typedef bool VariableFilter(VariableElement element);
 
@@ -72,7 +67,7 @@ class InstanceMemberInferrer {
   /**
    * The inheritance manager used to find overridden method.
    */
-  InheritanceManager inheritanceManager;
+  final InheritanceManager inheritanceManager;
 
   /**
    * The classes that have been visited while attempting to infer the types of
@@ -84,7 +79,8 @@ class InstanceMemberInferrer {
   /**
    * Initialize a newly create inferrer.
    */
-  InstanceMemberInferrer(this.typeProvider, {TypeSystem typeSystem})
+  InstanceMemberInferrer(this.typeProvider, this.inheritanceManager,
+      {TypeSystem typeSystem})
       : typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl();
 
   /**
@@ -92,7 +88,6 @@ class InstanceMemberInferrer {
    * compilation [unit].
    */
   void inferCompilationUnit(CompilationUnitElement unit) {
-    inheritanceManager = new InheritanceManager(unit.library);
     unit.types.forEach((ClassElement classElement) {
       try {
         _inferClass(classElement);
@@ -161,7 +156,7 @@ class InstanceMemberInferrer {
   }
 
   /**
-   * Given a [method], return the type of the parameter in the method that
+   * Given a method, return the type of the parameter in the method that
    * corresponds to the given [parameter]. If the parameter is positional, then
    * it appears at the given [index] in its enclosing element's list of
    * parameters.
@@ -284,6 +279,12 @@ class InstanceMemberInferrer {
     List<FunctionType> overriddenTypes = new List<FunctionType>();
     for (ExecutableElement overriddenMethod in overriddenMethods) {
       FunctionType overriddenType = overriddenMethod.type;
+      if (overriddenType == null) {
+        // TODO(brianwilkerson) I think the overridden method should always have
+        // a type, but there appears to be a bug that causes it to sometimes be
+        // null, we guard against that case by not performing inference.
+        return;
+      }
       if (overriddenType.typeFormals.isNotEmpty) {
         if (overriddenType.typeFormals.length != typeFormals.length) {
           return;
@@ -465,10 +466,14 @@ class VariableGatherer extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!node.inDeclarationContext()) {
-      Element element = node.staticElement;
-      if (element is PropertyAccessorElement && element.isSynthetic) {
-        element = (element as PropertyAccessorElement).variable;
+      Element nonAccessor(Element element) {
+        if (element is PropertyAccessorElement && element.isSynthetic) {
+          return element.variable;
+        }
+        return element;
       }
+
+      Element element = nonAccessor(node.staticElement);
       if (element is VariableElement && (filter == null || filter(element))) {
         results.add(element);
       }

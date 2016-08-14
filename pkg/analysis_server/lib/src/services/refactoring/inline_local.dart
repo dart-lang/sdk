@@ -84,7 +84,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
       result = new RefactoringStatus.fatal(
           'Local variable declaration or reference must be selected '
           'to activate this refactoring.');
-      return new Future.value(result);
+      return new Future<RefactoringStatus>.value(result);
     }
     // should have initializer at declaration
     if (_variableNode.initializer == null) {
@@ -93,7 +93,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
           _variableElement.displayName);
       result = new RefactoringStatus.fatal(
           message, newLocation_fromNode(_variableNode));
-      return new Future.value(result);
+      return new Future<RefactoringStatus>.value(result);
     }
     // prepare references
     _references = await searchEngine.searchReferences(_variableElement);

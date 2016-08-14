@@ -4,11 +4,11 @@
 
 library dart2js.profile_many;
 
-import 'dart2js.dart' as cmdline;
 import 'dart:async';
 
-const String USAGE =
-"""
+import 'dart2js.dart' as cmdline;
+
+const String USAGE = """
 Usage: dart2js_profile_many.dart [OPTIONS] [FILES]
 
 Invokes dart2js separately for each file using the given options.
@@ -20,7 +20,6 @@ printUsage() {
 }
 
 void main(List<String> args) {
-
   List options = [];
   List files = [];
 
@@ -45,10 +44,8 @@ void main(List<String> args) {
     List subargs = [];
     subargs.addAll(options);
     subargs.add(file);
-    return cmdline.compilerMain(subargs).catchError((e) {  });
+    return cmdline.compilerMain(subargs).catchError((e) {});
   }).then((_) {
     print("Done");
   });
-
-
 }

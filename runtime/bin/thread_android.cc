@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_ANDROID)
 
 #include "bin/thread.h"
+#include "bin/thread_android.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/time.h>  // NOLINT
@@ -37,7 +38,9 @@ namespace bin {
   }
 #else
 #define RETURN_ON_PTHREAD_FAILURE(result) \
-  if (result != 0) return result;
+  if (result != 0) { \
+    return result; \
+  }
 #endif
 
 
@@ -152,11 +155,6 @@ ThreadId Thread::GetCurrentThreadId() {
 }
 
 
-bool Thread::Join(ThreadId id) {
-  return false;
-}
-
-
 intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) == sizeof(intptr_t));
   return static_cast<intptr_t>(id);
@@ -164,7 +162,7 @@ intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
 
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
-  return a == b;
+  return (a == b);
 }
 
 

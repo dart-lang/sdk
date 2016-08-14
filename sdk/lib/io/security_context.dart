@@ -14,6 +14,10 @@ part of dart.io;
  *
  * Certificates and keys can be added to a SecurityContext from either PEM
  * or PKCS12 containers.
+ *
+ * iOS note: Some methods to add, remove, and inspect certificates are not yet
+ * implemented. However, the platform's built-in trusted certificates can
+ * be used, by way of [SecurityContext.defaultContext].
  */
 abstract class SecurityContext {
   external factory SecurityContext();
@@ -24,8 +28,10 @@ abstract class SecurityContext {
    * This object can also be accessed, and modified, directly.
    * Each isolate has a different [defaultContext] object.
    * The [defaultContext] object uses a list of well-known trusted
-   * certificate authorities as its trusted roots.  This list is
-   * taken from Mozilla, who maintains it as part of Firefox.
+   * certificate authorities as its trusted roots. On Linux and Windows, this
+   * list is taken from Mozilla, who maintains it as part of Firefox. On,
+   * MacOS, iOS, and Android, this list comes from the trusted certificates
+   * stores built in to the platforms.
    */
   external static SecurityContext get defaultContext;
 
@@ -41,6 +47,11 @@ abstract class SecurityContext {
    *
    * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
    * Prefer using [usePrivateKeyBytes].
+   *
+   * iOS note: Only PKCS12 data is supported. It should contain both the private
+   * key and the certificate chain. On iOS one call to [usePrivateKey] with this
+   * data is used instead of two calls to [useCertificateChain] and
+   * [usePrivateKey].
    */
   void usePrivateKey(String file, {String password});
 
@@ -64,6 +75,13 @@ abstract class SecurityContext {
    *
    * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
    * Prefer using [setTrustedCertificatesBytes].
+   *
+   * iOS note: On iOS, this call takes only the bytes for a single DER
+   * encoded X509 certificate. It may be called multiple times to add
+   * multiple trusted certificates to the context. A DER encoded certificate
+   * can be obtained from a PEM encoded certificate by using the openssl tool:
+   *
+   *   $ openssl x509 -outform der -in cert.pem -out cert.der
    */
   void setTrustedCertificates(String file, {String password});
 
@@ -89,6 +107,9 @@ abstract class SecurityContext {
    *
    * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
    * Prefer using [useCertificateChainBytes].
+   *
+   * iOS note: As noted above, [usePrivateKey] does the job of both
+   * that call and this one. On iOS, this call is a no-op.
    */
   void useCertificateChain(String file, {String password});
 
@@ -113,6 +134,8 @@ abstract class SecurityContext {
    *
    * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
    * Prefer using [setClientAuthoritiesBytes].
+   *
+   * iOS note: This call is not supported.
    */
   void setClientAuthorities(String file, {String password});
 
@@ -124,6 +147,11 @@ abstract class SecurityContext {
    * Like [setClientAuthority] but takes the contents of the file.
    */
   void setClientAuthoritiesBytes(List<int> authCertBytes, {String password});
+
+  /**
+   * Whether the platform supports ALPN.
+   */
+  external static bool get alpnSupported;
 
   /**
    * Sets the list of application-level protocols supported by a client

@@ -8,6 +8,8 @@ part of dart.async;
 // Core Stream types
 // -------------------------------------------------------------------
 
+typedef void _TimerCallback();
+
 /**
  * A source of asynchronous data events.
  *
@@ -127,9 +129,9 @@ abstract class Stream<T> {
    * If no future is passed, the stream closes as soon as possible.
    */
   factory Stream.fromFutures(Iterable<Future<T>> futures) {
-    var controller = new StreamController<T>(sync: true);
+    _StreamController<T> controller = new StreamController<T>(sync: true);
     int count = 0;
-    var onValue = (value) {
+    var onValue = (T value) {
       if (!controller.isClosed) {
         controller._add(value);
         if (--count == 0) controller._closeUnchecked();
@@ -259,13 +261,13 @@ abstract class Stream<T> {
    *         _outputSink.add(data);
    *       }
    *
-   *       void addError(e, [st]) => _outputSink(e, st);
-   *       void close() => _outputSink.close();
+   *       void addError(e, [st]) { _outputSink.addError(e, st); }
+   *       void close() { _outputSink.close(); }
    *     }
    *
    *     class DuplicationTransformer implements StreamTransformer<String, String> {
    *       // Some generic types ommitted for brevety.
-   *       Stream bind(Stream stream) => new Stream<String>.eventTransform(
+   *       Stream bind(Stream stream) => new Stream<String>.eventTransformed(
    *           stream,
    *           (EventSink sink) => new DuplicationSink(sink));
    *     }
@@ -314,26 +316,37 @@ abstract class Stream<T> {
   /**
    * Adds a subscription to this stream.
    *
-   * On each data event from this stream, the subscriber's [onData] handler
-   * is called. If [onData] is null, nothing happens.
+   * Returns a [StreamSubscription] which handles events from the stream using
+   * the provided [onData], [onError] and [onDone] handlers.
+   * The handlers can be changed on the subscription, but they start out
+   * as the provided functions.
    *
-   * On errors from this stream, the [onError] handler is given a
-   * object describing the error.
+   * On each data event from this stream, the subscriber's [onData] handler
+   * is called. If [onData] is `null`, nothing happens.
+   *
+   * On errors from this stream, the [onError] handler is called with the
+   * error object and possibly a stack trace.
    *
    * The [onError] callback must be of type `void onError(error)` or
    * `void onError(error, StackTrace stackTrace)`. If [onError] accepts
-   * two arguments it is called with the stack trace (which could be `null` if
-   * the stream itself received an error without stack trace).
+   * two arguments it is called with the error object and the stack trace
+   * (which could be `null` if the stream itself received an error without
+   * stack trace).
    * Otherwise it is called with just the error object.
    * If [onError] is omitted, any errors on the stream are considered unhandled,
    * and will be passed to the current [Zone]'s error handler.
    * By default unhandled async errors are treated
    * as if they were uncaught top-level errors.
    *
-   * If this stream closes, the [onDone] handler is called.
+   * If this stream closes and sends a done event, the [onDone] handler is
+   * called. If [onDone] is `null`, nothing happens.
    *
-   * If [cancelOnError] is true, the subscription is ended when
-   * the first error is reported. The default is false.
+   * If [cancelOnError] is true, the subscription is automatically cancelled
+   * when the first error event is delivered. The default is `false`.
+   *
+   * While a subscription is paused, or when it has been cancelled,
+   * the subscription doesn't receive events and none of the
+   * event handler functions are called.
    */
   StreamSubscription<T> listen(void onData(T event),
                                { Function onError,
@@ -384,18 +397,20 @@ abstract class Stream<T> {
    *
    * The returned stream is a broadcast stream if this stream is.
    */
-  Stream asyncMap(convert(T event)) {
-    StreamController controller;
-    StreamSubscription subscription;
-    void onListen () {
+  Stream/*<E>*/ asyncMap/*<E>*/(convert(T event)) {
+    StreamController/*<E>*/ controller;
+    StreamSubscription/*<T>*/ subscription;
+
+    void onListen() {
       final add = controller.add;
       assert(controller is _StreamController ||
              controller is _BroadcastStreamController);
-      final eventSink = controller;
+      final _EventSink/*<E>*/ eventSink =
+          controller as Object /*=_EventSink<E>*/;
       final addError = eventSink._addError;
       subscription = this.listen(
           (T event) {
-            var newValue;
+            dynamic newValue;
             try {
               newValue = convert(event);
             } catch (e, s) {
@@ -407,21 +422,22 @@ abstract class Stream<T> {
               newValue.then(add, onError: addError)
                       .whenComplete(subscription.resume);
             } else {
-              controller.add(newValue);
+              controller.add(newValue as Object/*=E*/);
             }
           },
           onError: addError,
           onDone: controller.close
       );
     }
+
     if (this.isBroadcast) {
-      controller = new StreamController.broadcast(
+      controller = new StreamController/*<E>*/.broadcast(
         onListen: onListen,
         onCancel: () { subscription.cancel(); },
         sync: true
       );
     } else {
-      controller = new StreamController(
+      controller = new StreamController/*<E>*/(
         onListen: onListen,
         onPause: () { subscription.pause(); },
         onResume: () { subscription.resume(); },
@@ -445,16 +461,17 @@ abstract class Stream<T> {
    *
    * The returned stream is a broadcast stream if this stream is.
    */
-  Stream asyncExpand(Stream convert(T event)) {
-    StreamController controller;
-    StreamSubscription subscription;
+  Stream/*<E>*/ asyncExpand/*<E>*/(Stream/*<E>*/ convert(T event)) {
+    StreamController/*<E>*/ controller;
+    StreamSubscription<T> subscription;
     void onListen() {
       assert(controller is _StreamController ||
              controller is _BroadcastStreamController);
-      final eventSink = controller;
+      final _EventSink/*<E>*/ eventSink =
+          controller as Object /*=_EventSink<E>*/;
       subscription = this.listen(
           (T event) {
-            Stream newStream;
+            Stream/*<E>*/ newStream;
             try {
               newStream = convert(event);
             } catch (e, s) {
@@ -472,13 +489,13 @@ abstract class Stream<T> {
       );
     }
     if (this.isBroadcast) {
-      controller = new StreamController.broadcast(
+      controller = new StreamController/*<E>*/.broadcast(
         onListen: onListen,
         onCancel: () { subscription.cancel(); },
         sync: true
       );
     } else {
-      controller = new StreamController(
+      controller = new StreamController/*<E>*/(
         onListen: onListen,
         onPause: () { subscription.pause(); },
         onResume: () { subscription.resume(); },
@@ -497,7 +514,7 @@ abstract class Stream<T> {
    *
    * The [onError] callback must be of type `void onError(error)` or
    * `void onError(error, StackTrace stackTrace)`. Depending on the function
-   * type the the stream either invokes [onError] with or without a stack
+   * type the stream either invokes [onError] with or without a stack
    * trace. The stack trace argument might be `null` if the stream itself
    * received an error without stack trace.
    *
@@ -532,7 +549,7 @@ abstract class Stream<T> {
    * If a broadcast stream is listened to more than once, each subscription
    * will individually call `convert` and expand the events.
    */
-  Stream/*<S>*/ expand(Iterable/*<S>*/ convert(T value)) {
+  Stream/*<S>*/ expand/*<S>*/(Iterable/*<S>*/ convert(T value)) {
     return new _ExpandStream<T, dynamic/*=S*/>(this, convert);
   }
 
@@ -566,7 +583,8 @@ abstract class Stream<T> {
    * The `streamTransformer` can decide whether it wants to return a
    * broadcast stream or not.
    */
-  Stream transform(StreamTransformer<T, dynamic> streamTransformer) {
+  Stream/*<S>*/ transform/*<S>*/(
+      StreamTransformer<T, dynamic/*=S*/ > streamTransformer) {
     return streamTransformer.bind(this);
   }
 
@@ -610,14 +628,14 @@ abstract class Stream<T> {
   Future/*<S>*/ fold/*<S>*/(var/*=S*/ initialValue,
       /*=S*/ combine(var/*=S*/ previous, T element)) {
 
-    _Future result = new _Future();
-    var value = initialValue;
+    _Future/*<S>*/ result = new _Future/*<S>*/();
+    var/*=S*/ value = initialValue;
     StreamSubscription subscription;
     subscription = this.listen(
       (T element) {
         _runUserCode(
           () => combine(value, element),
-          (newValue) { value = newValue; },
+          (/*=S*/ newValue) { value = newValue; },
           _cancelAndErrorClosure(subscription, result)
         );
       },
@@ -879,8 +897,8 @@ abstract class Stream<T> {
    * In case of a `done` event the future completes with the given
    * [futureValue].
    */
-  Future drain([var futureValue]) => listen(null, cancelOnError: true)
-      .asFuture(futureValue);
+  Future/*<E>*/ drain/*<E>*/([/*=E*/ futureValue])
+      => listen(null, cancelOnError: true).asFuture/*<E>*/(futureValue);
 
   /**
    * Provides at most the first [n] values of this stream.
@@ -1291,13 +1309,13 @@ abstract class Stream<T> {
    * will have its individually timer that starts counting on listen,
    * and the subscriptions' timers can be paused individually.
    */
-  Stream timeout(Duration timeLimit, {void onTimeout(EventSink sink)}) {
-    StreamController controller;
+  Stream<T> timeout(Duration timeLimit, {void onTimeout(EventSink<T> sink)}) {
+    StreamController<T> controller;
     // The following variables are set on listen.
     StreamSubscription<T> subscription;
     Timer timer;
     Zone zone;
-    Function timeout;
+    _TimerCallback timeout;
 
     void onData(T event) {
       timer.cancel();
@@ -1308,7 +1326,7 @@ abstract class Stream<T> {
       timer.cancel();
       assert(controller is _StreamController ||
              controller is _BroadcastStreamController);
-      var eventSink = controller;
+      dynamic eventSink = controller;
       eventSink._addError(error, stackTrace);  // Avoid Zone error replacement.
       timer = zone.createTimer(timeLimit, timeout);
     }
@@ -1328,12 +1346,15 @@ abstract class Stream<T> {
                                                    timeLimit), null);
         };
       } else {
-        onTimeout = zone.registerUnaryCallback(onTimeout);
+        // TODO(floitsch): the return type should be 'void', and the type
+        // should be inferred.
+        var registeredOnTimeout =
+            zone.registerUnaryCallback/*<dynamic, EventSink<T>>*/(onTimeout);
         _ControllerEventSinkWrapper wrapper =
             new _ControllerEventSinkWrapper(null);
         timeout = () {
           wrapper._sink = controller;  // Only valid during call.
-          zone.runUnaryGuarded(onTimeout, wrapper);
+          zone.runUnaryGuarded(registeredOnTimeout, wrapper);
           wrapper._sink = null;
         };
       }
@@ -1348,8 +1369,8 @@ abstract class Stream<T> {
       return result;
     }
     controller = isBroadcast
-        ? new _SyncBroadcastStreamController(onListen, onCancel)
-        : new _SyncStreamController(
+        ? new _SyncBroadcastStreamController<T>(onListen, onCancel)
+        : new _SyncStreamController<T>(
               onListen,
               () {
                 // Don't null the timer, onCancel may call cancel again.
@@ -1472,7 +1493,7 @@ abstract class StreamSubscription<T> {
    * In case of a `done` event the future completes with the given
    * [futureValue].
    */
-  Future asFuture([var futureValue]);
+  Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]);
 }
 
 
@@ -1499,8 +1520,9 @@ class StreamView<T> extends Stream<T> {
 
   bool get isBroadcast => _stream.isBroadcast;
 
-  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
-                               void onCancel(StreamSubscription subscription)})
+  Stream<T> asBroadcastStream(
+      {void onListen(StreamSubscription<T> subscription),
+       void onCancel(StreamSubscription<T> subscription)})
       => _stream.asBroadcastStream(onListen: onListen, onCancel: onCancel);
 
   StreamSubscription<T> listen(void onData(T value),
@@ -1696,7 +1718,7 @@ abstract class StreamTransformer<S, T> {
    */
   const factory StreamTransformer(
       StreamSubscription<T> transformer(Stream<S> stream, bool cancelOnError))
-      = _StreamSubscriptionTransformer;
+      = _StreamSubscriptionTransformer<S, T>;
 
   /**
    * Creates a [StreamTransformer] that delegates events to the given functions.
@@ -1713,7 +1735,7 @@ abstract class StreamTransformer<S, T> {
       void handleData(S data, EventSink<T> sink),
       void handleError(Object error, StackTrace stackTrace, EventSink<T> sink),
       void handleDone(EventSink<T> sink)})
-          = _StreamHandlerTransformer;
+          = _StreamHandlerTransformer<S, T>;
 
   /**
    * Transform the incoming [stream]'s events.

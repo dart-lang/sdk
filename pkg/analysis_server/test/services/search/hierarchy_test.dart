@@ -6,9 +6,9 @@ library test.services.src.search.hierarchy;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/index2/index2.dart';
+import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -23,13 +23,13 @@ main() {
 
 @reflectiveTest
 class HierarchyTest extends AbstractSingleUnitTest {
-  Index2 index;
-  SearchEngineImpl2 searchEngine;
+  Index index;
+  SearchEngineImpl searchEngine;
 
   void setUp() {
     super.setUp();
-    index = createMemoryIndex2();
-    searchEngine = new SearchEngineImpl2(index);
+    index = createMemoryIndex();
+    searchEngine = new SearchEngineImpl(index);
   }
 
   void test_getClassMembers() {
@@ -118,6 +118,41 @@ class D {
     return Future.wait([futureA, futureB, futureC, futureD]);
   }
 
+  Future test_getHierarchyMembers_fields_static() async {
+    _indexTestUnit('''
+class A {
+  static int foo;
+}
+class B extends A {
+  static get foo => null;
+}
+class C extends B {
+  static set foo(x) {}
+}
+''');
+    ClassElement classA = findElement('A');
+    ClassElement classB = findElement('B');
+    ClassElement classC = findElement('C');
+    ClassMemberElement memberA = classA.fields[0];
+    ClassMemberElement memberB = classB.fields[0];
+    ClassMemberElement memberC = classC.fields[0];
+    {
+      Set<ClassMemberElement> members =
+          await getHierarchyMembers(searchEngine, memberA);
+      expect(members, unorderedEquals([memberA]));
+    }
+    {
+      Set<ClassMemberElement> members =
+          await getHierarchyMembers(searchEngine, memberB);
+      expect(members, unorderedEquals([memberB]));
+    }
+    {
+      Set<ClassMemberElement> members =
+          await getHierarchyMembers(searchEngine, memberC);
+      expect(members, unorderedEquals([memberC]));
+    }
+  }
+
   Future test_getHierarchyMembers_methods() {
     _indexTestUnit('''
 class A {
@@ -162,6 +197,31 @@ class E extends D {
       expect(members, unorderedEquals([memberD, memberE]));
     });
     return Future.wait([futureA, futureB, futureC, futureD, futureE]);
+  }
+
+  Future test_getHierarchyMembers_methods_static() async {
+    _indexTestUnit('''
+class A {
+  static foo() {}
+}
+class B extends A {
+  static foo() {}
+}
+''');
+    ClassElement classA = findElement('A');
+    ClassElement classB = findElement('B');
+    ClassMemberElement memberA = classA.methods[0];
+    ClassMemberElement memberB = classB.methods[0];
+    {
+      Set<ClassMemberElement> members =
+          await getHierarchyMembers(searchEngine, memberA);
+      expect(members, unorderedEquals([memberA]));
+    }
+    {
+      Set<ClassMemberElement> members =
+          await getHierarchyMembers(searchEngine, memberB);
+      expect(members, unorderedEquals([memberB]));
+    }
   }
 
   Future test_getHierarchyMembers_withInterfaces() {

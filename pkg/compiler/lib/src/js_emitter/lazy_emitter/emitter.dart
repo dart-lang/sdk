@@ -4,34 +4,19 @@
 
 library dart2js.js_emitter.lazy_emitter;
 
-import 'package:js_runtime/shared/embedded_names.dart' show
-    JsBuiltin,
-    METADATA,
-    TYPES;
+import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
 
 import '../../common.dart';
-import '../../compiler.dart' show
-    Compiler;
-import '../../constants/values.dart' show
-    ConstantValue;
-import '../../elements/elements.dart' show
-    ClassElement,
-    Element,
-    FieldElement,
-    FunctionElement;
+import '../../compiler.dart' show Compiler;
+import '../../constants/values.dart' show ConstantValue;
+import '../../elements/elements.dart'
+    show ClassElement, Element, FieldElement, FunctionElement;
 import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart' show
-    JavaScriptBackend,
-    Namer;
-
-import '../js_emitter.dart' show
-    NativeEmitter;
-import '../js_emitter.dart' as emitterTask show
-    Emitter;
+import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../js_emitter.dart' show NativeEmitter;
+import '../js_emitter.dart' as emitterTask show Emitter;
 import '../model.dart';
-import '../program_builder/program_builder.dart' show
-    ProgramBuilder;
-
+import '../program_builder/program_builder.dart' show ProgramBuilder;
 import 'model_emitter.dart';
 
 class Emitter implements emitterTask.Emitter {
@@ -97,8 +82,8 @@ class Emitter implements emitterTask.Emitter {
 
   @override
   js.Expression isolateLazyInitializerAccess(FieldElement element) {
-    return js.js('#.#', [namer.globalObjectFor(element),
-                         namer.lazyInitializerName(element)]);
+    return js.js('#.#',
+        [namer.globalObjectFor(element), namer.lazyInitializerName(element)]);
   }
 
   @override
@@ -122,8 +107,8 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.PropertyAccess prototypeAccess(ClassElement element,
-                                    bool hasBeenInstantiated) {
+  js.PropertyAccess prototypeAccess(
+      ClassElement element, bool hasBeenInstantiated) {
     js.Expression constructor =
         hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
     return js.js('#.prototype', constructor);
@@ -187,13 +172,12 @@ class Emitter implements emitterTask.Emitter {
         throw new UnsupportedError('createDartClosureFromNameOfStaticFunction');
 
       default:
-        reporter.internalError(NO_LOCATION_SPANNABLE,
-                                "Unhandled Builtin: $builtin");
+        reporter.internalError(
+            NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
         return null;
     }
   }
 
   @override
-  void invalidateCaches() {
-  }
+  void invalidateCaches() {}
 }

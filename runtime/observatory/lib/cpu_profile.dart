@@ -4,7 +4,9 @@
 
 library cpu_profiler;
 
+import 'dart:async';
 import 'dart:typed_data';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart';
 import 'package:observatory/utils.dart';
 

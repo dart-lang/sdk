@@ -368,7 +368,9 @@ class Assembler : public ValueObject {
         prologue_offset_(-1),
         use_far_branches_(use_far_branches),
         comments_(),
-        constant_pool_allowed_(false) { }
+        constant_pool_allowed_(false) {
+    MonomorphicCheckedEntry();
+  }
 
   ~Assembler() { }
 
@@ -744,14 +746,6 @@ class Assembler : public ValueObject {
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
 
-  // When storing into a heap object field, knowledge of the previous content
-  // is expressed through these constants.
-  enum FieldContent {
-    kEmptyOrSmiOrNull,  // Empty = garbage/zapped in release/debug mode.
-    kHeapObjectOrSmi,
-    kOnlySmi,
-  };
-
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,  // Value we are storing.
@@ -763,27 +757,16 @@ class Assembler : public ValueObject {
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value,
-                                FieldContent old_content = kHeapObjectOrSmi);
-  void InitializeFieldNoBarrier(Register object,
-                                const Address& dest,
-                                Register value) {
-    StoreIntoObjectNoBarrier(object, dest, value, kEmptyOrSmiOrNull);
-  }
-  void StoreIntoObjectNoBarrierOffset(
-      Register object,
-      int32_t offset,
-      Register value,
-      FieldContent old_content = kHeapObjectOrSmi);
+                                Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                const Object& value,
-                                FieldContent old_content = kHeapObjectOrSmi);
-  void StoreIntoObjectNoBarrierOffset(
-      Register object,
-      int32_t offset,
-      const Object& value,
-      FieldContent old_content = kHeapObjectOrSmi);
+                                const Object& value);
+  void StoreIntoObjectNoBarrierOffset(Register object,
+                                      int32_t offset,
+                                      Register value);
+  void StoreIntoObjectNoBarrierOffset(Register object,
+                                      int32_t offset,
+                                      const Object& value);
 
   // Store value_even, value_odd, value_even, ... into the words in the address
   // range [begin, end), assumed to be uninitialized fields in object (tagged).
@@ -812,18 +795,6 @@ class Assembler : public ValueObject {
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
-
-  void ComputeRange(Register result,
-                    Register value,
-                    Register scratch,
-                    Label* miss);
-
-  void UpdateRangeFeedback(Register value,
-                           intptr_t idx,
-                           Register ic_data,
-                           Register scratch1,
-                           Register scratch2,
-                           Label* miss);
 
   intptr_t FindImmediate(int32_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
@@ -938,6 +909,11 @@ class Assembler : public ValueObject {
     b(is_smi, CC);
   }
 
+  void BranchIfNotSmi(Register reg, Label* label) {
+    tst(reg, Operand(kSmiTagMask));
+    b(label, NE);
+  }
+
   void CheckCodePointer();
 
   // Function frame setup and tear down.
@@ -970,14 +946,16 @@ class Assembler : public ValueObject {
   void EnterStubFrame();
   void LeaveStubFrame();
 
+  void NoMonomorphicCheckedEntry();
+  void MonomorphicCheckedEntry();
+
   // The register into which the allocation stats table is loaded with
   // LoadAllocationStatsAddress should be passed to
   // IncrementAllocationStats(WithSize) as stats_addr_reg to update the
   // allocation stats. These are separate assembler macros so we can
   // avoid a dependent load too nearby the load of the table address.
   void LoadAllocationStatsAddress(Register dest,
-                                  intptr_t cid,
-                                  bool inline_isolate = true);
+                                  intptr_t cid);
   void IncrementAllocationStats(Register stats_addr,
                                 intptr_t cid,
                                 Heap::Space space);
@@ -1004,8 +982,7 @@ class Assembler : public ValueObject {
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid,
                             Register temp_reg,
-                            Label* trace,
-                            bool inline_isolate = true);
+                            Label* trace);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -1194,27 +1171,6 @@ class Assembler : public ValueObject {
   void StoreIntoObjectFilterNoSmi(Register object,
                                   Register value,
                                   Label* no_update);
-
-  // Helpers for write-barrier verification.
-
-  // Returns VerifiedMemory::offset() as an Operand.
-  Operand GetVerifiedMemoryShadow();
-  // Writes value to [base + offset] and also its shadow location, if enabled.
-  void WriteShadowedField(Register base,
-                          intptr_t offset,
-                          Register value,
-                          Condition cond = AL);
-  void WriteShadowedFieldPair(Register base,
-                              intptr_t offset,
-                              Register value_even,
-                              Register value_odd,
-                              Condition cond = AL);
-  // Writes new_value to address and its shadow location, if enabled, after
-  // verifying that its old value matches its shadow.
-  void VerifiedWrite(Register object,
-                     const Address& address,
-                     Register new_value,
-                     FieldContent old_content);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

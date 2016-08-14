@@ -109,9 +109,53 @@ static RawFunction* GetFunction(const Class& cls, const char* name) {
 
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(name))));
+      lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
+}
+
+
+TEST_CASE(Service_IsolateStickyError) {
+  const char* kScript =
+      "main() => throw 'HI THERE STICKY';\n";
+
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT(Dart_IsUnhandledExceptionError(result));
+  EXPECT(!Dart_HasStickyError());
+  EXPECT(Thread::Current()->sticky_error() == Error::null());
+
+  {
+    TransitionNativeToVM transition(thread);
+
+    JSONStream js;
+    isolate->PrintJSON(&js, false);
+    // No error property and no PauseExit state.
+    EXPECT_NOTSUBSTRING("\"error\":", js.ToCString());
+    EXPECT_NOTSUBSTRING("HI THERE STICKY", js.ToCString());
+    EXPECT_NOTSUBSTRING("PauseExit", js.ToCString());
+  }
+
+  // Set the sticky error.
+  Dart_SetStickyError(result);
+  EXPECT(Dart_HasStickyError());
+
+  {
+    TransitionNativeToVM transition(thread);
+
+    JSONStream js;
+    isolate->PrintJSON(&js, false);
+    // Error and PauseExit set.
+    EXPECT_SUBSTRING("\"error\":", js.ToCString());
+    EXPECT_SUBSTRING("HI THERE STICKY", js.ToCString());
+    EXPECT_SUBSTRING("PauseExit", js.ToCString());
+  }
 }
 
 
@@ -184,7 +228,7 @@ TEST_CASE(Service_Code) {
   const Code& code_c = Code::Handle(function_c.CurrentCode());
   EXPECT(!code_c.IsNull());
   // Use the entry of the code object as it's reference.
-  uword entry = code_c.EntryPoint();
+  uword entry = code_c.PayloadStart();
   int64_t compile_timestamp = code_c.compile_timestamp();
   EXPECT_GT(code_c.Size(), 16);
   uword last = entry + code_c.Size();
@@ -571,23 +615,27 @@ TEST_CASE(Service_Address) {
 }
 
 
-static const char* alpha_callback(
+static bool alpha_callback(
     const char* name,
     const char** option_keys,
     const char** option_values,
     intptr_t num_options,
-    void* user_data) {
-  return strdup("alpha");
+    void* user_data,
+    const char** result) {
+  *result = strdup("alpha");
+  return true;
 }
 
 
-static const char* beta_callback(
+static bool beta_callback(
     const char* name,
     const char** option_keys,
     const char** option_values,
     intptr_t num_options,
-    void* user_data) {
-  return strdup("beta");
+    void* user_data,
+    const char** result) {
+  *result = strdup("beta");
+  return false;
 }
 
 
@@ -626,7 +674,7 @@ TEST_CASE(Service_EmbedderRootHandler) {
   service_msg = Eval(lib, "[0, port, 1, 'beta', [], []]");
   Service::HandleRootMessage(service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":beta,\"id\":1}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":1}",
                handler.msg());
 }
 
@@ -666,7 +714,7 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":beta,\"id\":\"0\"}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":\"0\"}",
                handler.msg());
 }
 

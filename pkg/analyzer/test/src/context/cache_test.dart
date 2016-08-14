@@ -4,10 +4,14 @@
 
 library analyzer.test.src.context.cache_test;
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/model.dart';
@@ -50,6 +54,27 @@ class AbstractCacheTest {
 class AnalysisCacheTest extends AbstractCacheTest {
   void test_creation() {
     expect(cache, isNotNull);
+  }
+
+  test_flush() {
+    AnalysisTarget target = new TestSource();
+    ResultDescriptor resultA = new ResultDescriptor('A', null);
+    ResultDescriptor resultB = new ResultDescriptor('B', null);
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    // put values
+    entry.setValue(resultA, 'a', TargetedResult.EMPTY_LIST);
+    entry.setValue(resultB, 'b', TargetedResult.EMPTY_LIST);
+    expect(cache.getState(target, resultA), CacheState.VALID);
+    expect(cache.getState(target, resultB), CacheState.VALID);
+    expect(cache.getValue(target, resultA), 'a');
+    expect(cache.getValue(target, resultB), 'b');
+    // flush A
+    cache.flush((target, result) => result == resultA);
+    expect(cache.getState(target, resultA), CacheState.FLUSHED);
+    expect(cache.getState(target, resultB), CacheState.VALID);
+    expect(cache.getValue(target, resultA), isNull);
+    expect(cache.getValue(target, resultB), 'b');
   }
 
   void test_get() {
@@ -266,6 +291,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor result = new ResultDescriptor('test', null);
     CaughtException exception = new CaughtException(null, null);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setErrorState(exception, <ResultDescriptor>[result]);
     entry.fixExceptionState();
     expect(entry.getState(result), CacheState.ERROR);
@@ -294,6 +320,27 @@ class CacheEntryTest extends AbstractCacheTest {
     entry.fixExceptionState();
     expect(entry.getState(result), CacheState.INVALID);
     expect(entry.exception, isNull);
+  }
+
+  test_flush() {
+    AnalysisTarget target = new TestSource();
+    ResultDescriptor resultA = new ResultDescriptor('A', null);
+    ResultDescriptor resultB = new ResultDescriptor('B', null);
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    // put values
+    entry.setValue(resultA, 'a', TargetedResult.EMPTY_LIST);
+    entry.setValue(resultB, 'b', TargetedResult.EMPTY_LIST);
+    expect(entry.getState(resultA), CacheState.VALID);
+    expect(entry.getState(resultB), CacheState.VALID);
+    expect(entry.getValue(resultA), 'a');
+    expect(entry.getValue(resultB), 'b');
+    // flush A
+    entry.flush((target, result) => result == resultA);
+    expect(entry.getState(resultA), CacheState.FLUSHED);
+    expect(entry.getState(resultB), CacheState.VALID);
+    expect(entry.getValue(resultA), isNull);
+    expect(entry.getValue(resultB), 'b');
   }
 
   test_getState() {
@@ -352,6 +399,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor result = new ResultDescriptor('test', null);
     CaughtException exception = new CaughtException(null, null);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setErrorState(exception, <ResultDescriptor>[result]);
     expect(entry.hasErrorState(), true);
   }
@@ -360,6 +408,7 @@ class CacheEntryTest extends AbstractCacheTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setValue(result, 'value', TargetedResult.EMPTY_LIST);
     entry.invalidateAllInformation();
     expect(entry.getState(result), CacheState.INVALID);
@@ -373,6 +422,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor result3 = new ResultDescriptor('res3', 3);
     // prepare some good state
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setValue(result1, 10, TargetedResult.EMPTY_LIST);
     entry.setValue(result2, 20, TargetedResult.EMPTY_LIST);
     entry.setValue(result3, 30, TargetedResult.EMPTY_LIST);
@@ -460,6 +510,7 @@ class CacheEntryTest extends AbstractCacheTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setValue(result, 42, TargetedResult.EMPTY_LIST);
     // an invalid state change
     expect(() {
@@ -474,6 +525,7 @@ class CacheEntryTest extends AbstractCacheTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', 1);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     // set VALID
     entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
@@ -488,6 +540,7 @@ class CacheEntryTest extends AbstractCacheTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', 1);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     // set VALID
     entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
@@ -649,6 +702,12 @@ class CacheEntryTest extends AbstractCacheTest {
         unorderedEquals([new TargetedResult(target, result2)]));
     expect(entry.getResultData(result2).dependedOnResults,
         unorderedEquals([new TargetedResult(target, result1)]));
+    // record invalidated results
+    Set<TargetedResult> reportedInvalidatedResults = new Set<TargetedResult>();
+    cache.onResultInvalidated.listen((InvalidatedResult invalidatedResult) {
+      reportedInvalidatedResults.add(new TargetedResult(
+          invalidatedResult.entry.target, invalidatedResult.descriptor));
+    });
     // invalidate result2 with Delta: keep result2, invalidate result3
     entry.setState(result2, CacheState.INVALID,
         delta: new _KeepContinueDelta(target, result2));
@@ -660,6 +719,10 @@ class CacheEntryTest extends AbstractCacheTest {
         unorderedEquals([new TargetedResult(target, result2)]));
     expect(entry.getResultData(result2).dependedOnResults,
         unorderedEquals([new TargetedResult(target, result1)]));
+    // (target, result3) was reported as invalidated
+    // (target, result2) was NOT reported
+    expect(reportedInvalidatedResults,
+        unorderedEquals([new TargetedResult(target, result3)]));
   }
 
   test_setState_valid() {
@@ -674,6 +737,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor result = new ResultDescriptor('test', null);
     String value = 'value';
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setValue(result, value, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), value);
@@ -728,6 +792,28 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry.getValue(result2), 222);
   }
 
+  test_setValue_userBeforeProvider_invalidateProvider_alsoUser() {
+    AnalysisTarget target1 = new TestSource('/a.dart');
+    AnalysisTarget target2 = new TestSource('/b.dart');
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    cache.put(entry1);
+    cache.put(entry2);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    // set results, all of them are VALID
+    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    expect(entry1.getState(result1), CacheState.VALID);
+    expect(entry2.getState(result2), CacheState.VALID);
+    expect(entry1.getValue(result1), 111);
+    expect(entry2.getValue(result2), 222);
+    // invalidate result1, should invalidate also result2
+    entry1.setState(result1, CacheState.INVALID);
+    expect(entry1.getState(result1), CacheState.INVALID);
+    expect(entry2.getState(result2), CacheState.INVALID);
+  }
+
   test_setValueIncremental() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
@@ -769,6 +855,7 @@ class CacheEntryTest extends AbstractCacheTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setValue(result, 42, TargetedResult.EMPTY_LIST);
     expect(entry.toString(), isNotNull);
   }
@@ -1028,6 +1115,35 @@ abstract class CachePartitionTest extends EngineTestCase {
 }
 
 @reflectiveTest
+class PackageCachePartitionTest extends CachePartitionTest {
+  MemoryResourceProvider resourceProvider;
+  Folder rootFolder;
+
+  CachePartition createPartition() {
+    resourceProvider = new MemoryResourceProvider();
+    rootFolder = resourceProvider.newFolder('/package/root');
+    return new PackageCachePartition(null, rootFolder);
+  }
+
+  void test_contains_false() {
+    CachePartition partition = createPartition();
+    AnalysisTarget target = new TestSource();
+    expect(partition.isResponsibleFor(target), isFalse);
+  }
+
+  void test_contains_true() {
+    SdkCachePartition partition = new SdkCachePartition(null);
+    SourceFactory factory = new SourceFactory([
+      new PackageMapUriResolver(resourceProvider, <String, List<Folder>>{
+        'root': <Folder>[rootFolder]
+      })
+    ]);
+    AnalysisTarget target = factory.forUri("package:root/root.dart");
+    expect(partition.isResponsibleFor(target), isTrue);
+  }
+}
+
+@reflectiveTest
 class ResultDataTest extends EngineTestCase {
   test_creation() {
     String value = 'value';
@@ -1062,8 +1178,10 @@ class SdkCachePartitionTest extends CachePartitionTest {
 
   void test_contains_true() {
     SdkCachePartition partition = new SdkCachePartition(null);
-    SourceFactory factory = new SourceFactory(
-        [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
+    SourceFactory factory = new SourceFactory([new DartUriResolver(sdk)]);
     AnalysisTarget target = factory.forUri("dart:core");
     expect(partition.isResponsibleFor(target), isTrue);
   }
@@ -1126,8 +1244,17 @@ class _KeepContinueDelta implements Delta {
   _KeepContinueDelta(this.source, this.keepDescriptor);
 
   @override
+  bool gatherChanges(InternalAnalysisContext context, AnalysisTarget target,
+      ResultDescriptor descriptor, Object value) {
+    return false;
+  }
+
+  @override
+  void gatherEnd() {}
+
+  @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
+      ResultDescriptor descriptor, Object value) {
     if (descriptor == keepDescriptor) {
       return DeltaResult.KEEP_CONTINUE;
     }
@@ -1136,6 +1263,9 @@ class _KeepContinueDelta implements Delta {
 }
 
 class _TestAnalysisTarget implements AnalysisTarget {
+  @override
+  Source get librarySource => null;
+
   @override
   Source get source => null;
 }

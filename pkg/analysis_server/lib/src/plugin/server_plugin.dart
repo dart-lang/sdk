@@ -25,12 +25,9 @@ import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
-import 'package:analysis_server/src/provisional/index/index.dart';
-import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:plugin/plugin.dart';
 
@@ -112,53 +109,49 @@ class ServerPlugin implements Plugin {
    * The extension point that allows plugins to register file patterns that will
    * cause files to be analyzed.
    */
-  ExtensionPoint analyzedFilePatternsExtensionPoint;
+  ExtensionPoint<List<String>> analyzedFilePatternsExtensionPoint;
 
   /**
    * The extension point that allows plugins to register assist contributors.
    */
-  ExtensionPoint assistContributorExtensionPoint;
+  ExtensionPoint<AssistContributor> assistContributorExtensionPoint;
 
   /**
    * The extension point that allows plugins to register completion
    * contributors.
    */
-  ExtensionPoint completionContributorExtensionPoint;
+  ExtensionPoint<CompletionContributorFactory>
+      completionContributorExtensionPoint;
 
   /**
    * The extension point that allows plugins to register domains with the
    * server.
    */
-  ExtensionPoint domainExtensionPoint;
+  ExtensionPoint<RequestHandlerFactory> domainExtensionPoint;
 
   /**
    * The extension point that allows plugins to register fix contributors with
    * the server.
    */
-  ExtensionPoint fixContributorExtensionPoint;
-
-  /**
-   * The extension point that allows plugins to register index contributors.
-   */
-  ExtensionPoint indexContributorExtensionPoint;
+  ExtensionPoint<FixContributor> fixContributorExtensionPoint;
 
   /**
    * The extension point that allows plugins to register navigation
    * contributors.
    */
-  ExtensionPoint navigationContributorExtensionPoint;
+  ExtensionPoint<NavigationContributor> navigationContributorExtensionPoint;
 
   /**
    * The extension point that allows plugins to register occurrences
    * contributors.
    */
-  ExtensionPoint occurrencesContributorExtensionPoint;
+  ExtensionPoint<OccurrencesContributor> occurrencesContributorExtensionPoint;
 
   /**
    * The extension point that allows plugins to get access to the `analysis`
    * domain.
    */
-  ExtensionPoint setAnalysisDomainExtensionPoint;
+  ExtensionPoint<SetAnalysisDomain> setAnalysisDomainExtensionPoint;
 
   /**
    * Initialize a newly created plugin.
@@ -200,13 +193,6 @@ class ServerPlugin implements Plugin {
       fixContributorExtensionPoint.extensions;
 
   /**
-   * Return a list containing all of the index contributors that were
-   * contributed.
-   */
-  List<IndexContributor> get indexContributors =>
-      indexContributorExtensionPoint.extensions;
-
-  /**
    * Return a list containing all of the navigation contributors that were
    * contributed.
    */
@@ -245,30 +231,33 @@ class ServerPlugin implements Plugin {
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
-    setAnalysisDomainExtensionPoint = registerExtensionPoint(
-        SET_ANALISYS_DOMAIN_EXTENSION_POINT,
-        _validateSetAnalysisDomainFunction);
-    analyzedFilePatternsExtensionPoint = registerExtensionPoint(
-        ANALYZED_FILE_PATTERNS_EXTENSION_POINT,
-        _validateAnalyzedFilePatternsExtension);
-    assistContributorExtensionPoint = registerExtensionPoint(
-        ASSIST_CONTRIBUTOR_EXTENSION_POINT,
-        _validateAssistContributorExtension);
-    completionContributorExtensionPoint = registerExtensionPoint(
-        COMPLETION_CONTRIBUTOR_EXTENSION_POINT,
-        _validateCompletionContributorExtension);
-    domainExtensionPoint = registerExtensionPoint(
-        DOMAIN_EXTENSION_POINT, _validateDomainExtension);
-    fixContributorExtensionPoint = registerExtensionPoint(
-        FIX_CONTRIBUTOR_EXTENSION_POINT, _validateFixContributorExtension);
-    indexContributorExtensionPoint = registerExtensionPoint(
-        INDEX_CONTRIBUTOR_EXTENSION_POINT, _validateIndexContributorExtension);
-    navigationContributorExtensionPoint = registerExtensionPoint(
-        NAVIGATION_CONTRIBUTOR_EXTENSION_POINT,
-        _validateNavigationContributorExtension);
-    occurrencesContributorExtensionPoint = registerExtensionPoint(
-        OCCURRENCES_CONTRIBUTOR_EXTENSION_POINT,
-        _validateOccurrencesContributorExtension);
+    analyzedFilePatternsExtensionPoint = new ExtensionPoint<List<String>>(
+        this, ANALYZED_FILE_PATTERNS_EXTENSION_POINT, null);
+    registerExtensionPoint(analyzedFilePatternsExtensionPoint);
+    assistContributorExtensionPoint = new ExtensionPoint<AssistContributor>(
+        this, ASSIST_CONTRIBUTOR_EXTENSION_POINT, null);
+    registerExtensionPoint(assistContributorExtensionPoint);
+    completionContributorExtensionPoint =
+        new ExtensionPoint<CompletionContributorFactory>(
+            this, COMPLETION_CONTRIBUTOR_EXTENSION_POINT, null);
+    registerExtensionPoint(completionContributorExtensionPoint);
+    domainExtensionPoint = new ExtensionPoint<RequestHandlerFactory>(
+        this, DOMAIN_EXTENSION_POINT, null);
+    registerExtensionPoint(domainExtensionPoint);
+    fixContributorExtensionPoint = new ExtensionPoint<FixContributor>(
+        this, FIX_CONTRIBUTOR_EXTENSION_POINT, null);
+    registerExtensionPoint(fixContributorExtensionPoint);
+    navigationContributorExtensionPoint =
+        new ExtensionPoint<NavigationContributor>(
+            this, NAVIGATION_CONTRIBUTOR_EXTENSION_POINT, null);
+    registerExtensionPoint(navigationContributorExtensionPoint);
+    occurrencesContributorExtensionPoint =
+        new ExtensionPoint<OccurrencesContributor>(
+            this, OCCURRENCES_CONTRIBUTOR_EXTENSION_POINT, null);
+    registerExtensionPoint(occurrencesContributorExtensionPoint);
+    setAnalysisDomainExtensionPoint = new ExtensionPoint<SetAnalysisDomain>(
+        this, SET_ANALISYS_DOMAIN_EXTENSION_POINT, null);
+    registerExtensionPoint(setAnalysisDomainExtensionPoint);
   }
 
   @override
@@ -280,7 +269,8 @@ class ServerPlugin implements Plugin {
       '**/*.${AnalysisEngine.SUFFIX_DART}',
       '**/*.${AnalysisEngine.SUFFIX_HTML}',
       '**/*.${AnalysisEngine.SUFFIX_HTM}',
-      '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}'
+      '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
+      '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}'
     ];
     registerExtension(ANALYZED_FILE_PATTERNS_EXTENSION_POINT_ID, patterns);
     //
@@ -323,128 +313,5 @@ class ServerPlugin implements Plugin {
     //
     registerExtension(
         FIX_CONTRIBUTOR_EXTENSION_POINT_ID, new DefaultFixContributor());
-    //
-    // Register index contributors.
-    //
-    registerExtension(
-        INDEX_CONTRIBUTOR_EXTENSION_POINT_ID, new DartIndexContributor());
-  }
-
-  /**
-   * Return `true` if the list being used as an [extension] contains any
-   * elements that are not strings.
-   */
-  bool _containsNonString(List extension) {
-    for (Object element in extension) {
-      if (element is! String) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid list of analyzed file patterns.
-   */
-  void _validateAnalyzedFilePatternsExtension(Object extension) {
-    if (extension is! List || _containsNonString(extension)) {
-      String id = analyzedFilePatternsExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must be a List of Strings');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid assist contributor.
-   */
-  void _validateAssistContributorExtension(Object extension) {
-    if (extension is! AssistContributor) {
-      String id = assistContributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be an AssistContributor');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid completion contributor.
-   */
-  void _validateCompletionContributorExtension(Object extension) {
-    if (extension is! CompletionContributorFactory) {
-      String id = completionContributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be an CompletionContributorFactory');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid domain.
-   */
-  void _validateDomainExtension(Object extension) {
-    if (extension is! RequestHandlerFactory) {
-      String id = domainExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be a RequestHandlerFactory');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid fix contributor.
-   */
-  void _validateFixContributorExtension(Object extension) {
-    if (extension is! FixContributor) {
-      String id = fixContributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must be a FixContributor');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid index contributor.
-   */
-  void _validateIndexContributorExtension(Object extension) {
-    if (extension is! IndexContributor) {
-      String id = indexContributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must be an IndexContributor');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid navigation contributor.
-   */
-  void _validateNavigationContributorExtension(Object extension) {
-    if (extension is! NavigationContributor) {
-      String id = navigationContributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be an NavigationContributor');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid occurrences contributor.
-   */
-  void _validateOccurrencesContributorExtension(Object extension) {
-    if (extension is! OccurrencesContributor) {
-      String id = occurrencesContributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be an OccurrencesContributor');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid analysis domain receiver.
-   */
-  void _validateSetAnalysisDomainFunction(Object extension) {
-    if (extension is! SetAnalysisDomain) {
-      String id = setAnalysisDomainExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be a SetAnalysisDomain function');
-    }
   }
 }

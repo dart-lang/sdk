@@ -5,21 +5,23 @@
 library collections;
 
 /**
- * Returns the concatentation of the input iterables.
+ * Returns the concatenation of the input [iterables].
  *
  * The returned iterable is a lazily-evaluated view on the input iterables.
  */
-Iterable concat(Iterable<Iterable> iterables) => iterables.expand((x) => x);
+Iterable/*<E>*/ concat/*<E>*/(Iterable<Iterable/*<E>*/ > iterables) =>
+    iterables.expand((x) => x);
 
 /**
- * Returns the concatentation of the input iterables as a [List].
+ * Returns the concatenation of the input [iterables] as a [List].
  */
-List concatToList(Iterable<Iterable> iterables) => concat(iterables).toList();
+List/*<E>*/ concatToList/*<E>*/(Iterable<Iterable/*<E>*/ > iterables) =>
+    concat(iterables).toList();
 
 /**
  * Returns the given [list] if it is not empty, or `null` otherwise.
  */
-List nullIfEmpty(List list) {
+List/*<E>*/ nullIfEmpty/*<E>*/(List/*<E>*/ list) {
   if (list == null) {
     return null;
   }

@@ -192,6 +192,11 @@ class ScannerTest {
     _assertToken(TokenType.AMPERSAND_AMPERSAND, "&&");
   }
 
+  void test_ampersand_ampersand_eq() {
+    _assertToken(TokenType.AMPERSAND_AMPERSAND_EQ, "&&=",
+        lazyAssignmentOperators: true);
+  }
+
   void test_ampersand_eq() {
     _assertToken(TokenType.AMPERSAND_EQ, "&=");
   }
@@ -222,6 +227,10 @@ class ScannerTest {
 
   void test_bar_bar() {
     _assertToken(TokenType.BAR_BAR, "||");
+  }
+
+  void test_bar_bar_eq() {
+    _assertToken(TokenType.BAR_BAR_EQ, "||=", lazyAssignmentOperators: true);
   }
 
   void test_bar_eq() {
@@ -1177,8 +1186,10 @@ class ScannerTest {
    * Assert that the token scanned from the given [source] has the
    * [expectedType].
    */
-  Token _assertToken(TokenType expectedType, String source) {
-    Token originalToken = _scan(source);
+  Token _assertToken(TokenType expectedType, String source,
+      {bool lazyAssignmentOperators: false}) {
+    Token originalToken =
+        _scan(source, lazyAssignmentOperators: lazyAssignmentOperators);
     expect(originalToken, isNotNull);
     expect(originalToken.type, expectedType);
     expect(originalToken.offset, 0);
@@ -1190,7 +1201,8 @@ class ScannerTest {
       return originalToken;
     } else if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
       // Adding space to an end-of-line comment changes the comment.
-      Token tokenWithSpaces = _scan(" $source");
+      Token tokenWithSpaces =
+          _scan(" $source", lazyAssignmentOperators: lazyAssignmentOperators);
       expect(tokenWithSpaces, isNotNull);
       expect(tokenWithSpaces.type, expectedType);
       expect(tokenWithSpaces.offset, 1);
@@ -1199,20 +1211,23 @@ class ScannerTest {
       return originalToken;
     } else if (expectedType == TokenType.INT ||
         expectedType == TokenType.DOUBLE) {
-      Token tokenWithLowerD = _scan("${source}d");
+      Token tokenWithLowerD =
+          _scan("${source}d", lazyAssignmentOperators: lazyAssignmentOperators);
       expect(tokenWithLowerD, isNotNull);
       expect(tokenWithLowerD.type, expectedType);
       expect(tokenWithLowerD.offset, 0);
       expect(tokenWithLowerD.length, source.length);
       expect(tokenWithLowerD.lexeme, source);
-      Token tokenWithUpperD = _scan("${source}D");
+      Token tokenWithUpperD =
+          _scan("${source}D", lazyAssignmentOperators: lazyAssignmentOperators);
       expect(tokenWithUpperD, isNotNull);
       expect(tokenWithUpperD.type, expectedType);
       expect(tokenWithUpperD.offset, 0);
       expect(tokenWithUpperD.length, source.length);
       expect(tokenWithUpperD.lexeme, source);
     }
-    Token tokenWithSpaces = _scan(" $source ");
+    Token tokenWithSpaces =
+        _scan(" $source ", lazyAssignmentOperators: lazyAssignmentOperators);
     expect(tokenWithSpaces, isNotNull);
     expect(tokenWithSpaces.type, expectedType);
     expect(tokenWithSpaces.offset, 1);
@@ -1249,21 +1264,24 @@ class ScannerTest {
     expect(token.type, TokenType.EOF);
   }
 
-  Token _scan(String source, {bool genericMethodComments: false}) {
+  Token _scan(String source,
+      {bool genericMethodComments: false,
+      bool lazyAssignmentOperators: false}) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Token token = _scanWithListener(source, listener,
-        genericMethodComments: genericMethodComments);
+        genericMethodComments: genericMethodComments,
+        lazyAssignmentOperators: lazyAssignmentOperators);
     listener.assertNoErrors();
     return token;
   }
 
   Token _scanWithListener(String source, GatheringErrorListener listener,
-      {bool genericMethodComments: false}) {
+      {bool genericMethodComments: false,
+      bool lazyAssignmentOperators: false}) {
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
-    if (genericMethodComments) {
-      scanner.scanGenericMethodComments = true;
-    }
+    scanner.scanGenericMethodComments = genericMethodComments;
+    scanner.scanLazyAssignmentOperators = lazyAssignmentOperators;
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     return result;

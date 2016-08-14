@@ -1584,8 +1584,6 @@ void Assembler::LoadObjectHelper(Register rd,
                                  Register pp) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
-  // Load common VM constants from the thread. This works also in places where
-  // no constant pool is set up (e.g. intrinsic code).
   if (Thread::CanLoadFromThread(object)) {
     // Load common VM constants from the thread. This works also in places where
     // no constant pool is set up (e.g. intrinsic code).
@@ -1601,11 +1599,7 @@ void Assembler::LoadObjectHelper(Register rd,
                  : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
   } else {
-    ASSERT(FLAG_allow_absolute_addresses);
-    ASSERT(object.IsOld());
-    // Make sure that class CallPattern is able to decode this load immediate.
-    const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
-    LoadImmediate(rd, object_raw, cond);
+    UNREACHABLE();
   }
 }
 
@@ -1693,49 +1687,6 @@ void Assembler::StoreIntoObjectFilter(Register object,
 }
 
 
-Operand Assembler::GetVerifiedMemoryShadow() {
-  Operand offset;
-  if (!Operand::CanHold(VerifiedMemory::offset(), &offset)) {
-    FATAL1("Offset 0x%" Px " not representable", VerifiedMemory::offset());
-  }
-  return offset;
-}
-
-
-void Assembler::WriteShadowedField(Register base,
-                                   intptr_t offset,
-                                   Register value,
-                                   Condition cond) {
-  if (VerifiedMemory::enabled()) {
-    ASSERT(base != value);
-    Operand shadow(GetVerifiedMemoryShadow());
-    add(base, base, shadow, cond);
-    str(value, Address(base, offset), cond);
-    sub(base, base, shadow, cond);
-  }
-  str(value, Address(base, offset), cond);
-}
-
-
-void Assembler::WriteShadowedFieldPair(Register base,
-                                       intptr_t offset,
-                                       Register value_even,
-                                       Register value_odd,
-                                       Condition cond) {
-  ASSERT(value_odd == value_even + 1);
-  ASSERT(value_even % 2 == 0);
-  if (VerifiedMemory::enabled()) {
-    ASSERT(base != value_even);
-    ASSERT(base != value_odd);
-    Operand shadow(GetVerifiedMemoryShadow());
-    add(base, base, shadow, cond);
-    strd(value_even, value_odd, base, offset, cond);
-    sub(base, base, shadow, cond);
-  }
-  strd(value_even, value_odd, base, offset, cond);
-}
-
-
 Register UseRegister(Register reg, RegList* used) {
   ASSERT(reg != THR);
   ASSERT(reg != SP);
@@ -1755,89 +1706,12 @@ Register AllocateRegister(RegList* used) {
 }
 
 
-void Assembler::VerifiedWrite(Register object,
-                              const Address& address,
-                              Register new_value,
-                              FieldContent old_content) {
-#if defined(DEBUG)
-  ASSERT(address.mode() == Address::Offset ||
-         address.mode() == Address::NegOffset);
-  // Allocate temporary registers (and check for register collisions).
-  RegList used = 0;
-  UseRegister(new_value, &used);
-  Register base = UseRegister(address.rn(), &used);
-  if ((object != base) && (object != kNoRegister)) {
-    UseRegister(object, &used);
-  }
-  if (address.rm() != kNoRegister) {
-    UseRegister(address.rm(), &used);
-  }
-  Register old_value = AllocateRegister(&used);
-  Register temp = AllocateRegister(&used);
-  PushList(used);
-  ldr(old_value, address);
-  // First check that 'old_value' contains 'old_content'.
-  // Smi test.
-  tst(old_value, Operand(kHeapObjectTag));
-  Label ok;
-  switch (old_content) {
-    case kOnlySmi:
-      b(&ok, EQ);  // Smi is OK.
-      Stop("Expected smi.");
-      break;
-    case kHeapObjectOrSmi:
-      b(&ok, EQ);  // Smi is OK.
-      // Non-smi case: Verify object pointer is word-aligned when untagged.
-      COMPILE_ASSERT(kHeapObjectTag == 1);
-      tst(old_value, Operand((kWordSize - 1) - kHeapObjectTag));
-      b(&ok, EQ);
-      Stop("Expected heap object or Smi");
-      break;
-    case kEmptyOrSmiOrNull:
-      b(&ok, EQ);  // Smi is OK.
-      // Non-smi case: Check for the special zap word or null.
-      // Note: Cannot use CompareImmediate, since IP may be in use.
-      LoadImmediate(temp, Heap::kZap32Bits);
-      cmp(old_value, Operand(temp));
-      b(&ok, EQ);
-      LoadObject(temp, Object::null_object());
-      cmp(old_value, Operand(temp));
-      b(&ok, EQ);
-      Stop("Expected zapped, Smi or null");
-      break;
-    default:
-      UNREACHABLE();
-  }
-  Bind(&ok);
-  if (VerifiedMemory::enabled()) {
-    Operand shadow_offset(GetVerifiedMemoryShadow());
-    // Adjust the address to shadow.
-    add(base, base, shadow_offset);
-    ldr(temp, address);
-    cmp(old_value, Operand(temp));
-    Label match;
-    b(&match, EQ);
-    Stop("Write barrier verification failed");
-    Bind(&match);
-    // Write new value in shadow.
-    str(new_value, address);
-    // Restore original address.
-    sub(base, base, shadow_offset);
-  }
-  str(new_value, address);
-  PopList(used);
-#else
-  str(new_value, address);
-#endif  // DEBUG
-}
-
-
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  VerifiedWrite(object, dest, value, kHeapObjectOrSmi);
+  str(value, dest);
   Label done;
   if (can_value_be_smi) {
     StoreIntoObjectFilter(object, value, &done);
@@ -1878,9 +1752,8 @@ void Assembler::StoreIntoObjectOffset(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         Register value,
-                                         FieldContent old_content) {
-  VerifiedWrite(object, dest, value, old_content);
+                                         Register value) {
+  str(value, dest);
 #if defined(DEBUG)
   Label done;
   StoreIntoObjectFilter(object, value, &done);
@@ -1891,50 +1764,48 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
-void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
-                                               int32_t offset,
-                                               Register value,
-                                               FieldContent old_content) {
-  int32_t ignored = 0;
-  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
-                             old_content);
-  } else {
-    AddImmediate(IP, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(IP), value, old_content);
-  }
-}
-
-
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value,
-                                         FieldContent old_content) {
+                                         const Object& value) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
   LoadObject(IP, value);
-  VerifiedWrite(object, dest, IP, old_content);
+  str(IP, dest);
 }
 
 
 void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                int32_t offset,
-                                               const Object& value,
-                                               FieldContent old_content) {
-  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
-  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
+                                               Register value) {
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
-                             old_content);
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
   } else {
     Register base = object == R9 ? R8 : R9;
     Push(base);
     AddImmediate(base, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(base), value, old_content);
+    StoreIntoObjectNoBarrier(object, Address(base), value);
+    Pop(base);
+  }
+}
+
+
+void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+                                               int32_t offset,
+                                               const Object& value) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
+  int32_t ignored = 0;
+  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    Register base = object == R9 ? R8 : R9;
+    Push(base);
+    AddImmediate(base, object, offset - kHeapObjectTag);
+    StoreIntoObjectNoBarrier(object, Address(base), value);
     Pop(base);
   }
 }
@@ -1950,9 +1821,9 @@ void Assembler::InitializeFieldsNoBarrier(Register object,
   Bind(&init_loop);
   AddImmediate(begin, 2 * kWordSize);
   cmp(begin, Operand(end));
-  WriteShadowedFieldPair(begin, -2 * kWordSize, value_even, value_odd, LS);
+  strd(value_even, value_odd, begin, -2 * kWordSize, LS);
   b(&init_loop, CC);
-  WriteShadowedField(begin, -2 * kWordSize, value_even, HI);
+  str(value_even, Address(begin, -2 * kWordSize), HI);
 #if defined(DEBUG)
   Label done;
   StoreIntoObjectFilter(object, value_even, &done);
@@ -1973,11 +1844,11 @@ void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
   ASSERT(value_odd == value_even + 1);
   intptr_t current_offset = begin_offset;
   while (current_offset + kWordSize < end_offset) {
-    WriteShadowedFieldPair(base, current_offset, value_even, value_odd);
+    strd(value_even, value_odd, base, current_offset);
     current_offset += 2*kWordSize;
   }
   while (current_offset < end_offset) {
-    WriteShadowedField(base, current_offset, value_even);
+    str(value_even, Address(base, current_offset));
     current_offset += kWordSize;
   }
 #if defined(DEBUG)
@@ -1999,7 +1870,7 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   Stop("New value must be Smi.");
   Bind(&done);
 #endif  // defined(DEBUG)
-  VerifiedWrite(kNoRegister, dest, value, kOnlySmi);
+  str(value, dest);
 }
 
 
@@ -2047,47 +1918,6 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   LoadClassIdMayBeSmi(result, object);
   SmiTag(result);
-}
-
-
-void Assembler::ComputeRange(Register result,
-                             Register value,
-                             Register scratch,
-                             Label* not_mint) {
-  const Register hi = TMP;
-  const Register lo = scratch;
-
-  Label done;
-  mov(result, Operand(value, LSR, kBitsPerWord - 1));
-  tst(value, Operand(kSmiTagMask));
-  b(&done, EQ);
-  CompareClassId(value, kMintCid, result);
-  b(not_mint, NE);
-  ldr(hi, FieldAddress(value, Mint::value_offset() + kWordSize));
-  ldr(lo, FieldAddress(value, Mint::value_offset()));
-  rsb(result, hi, Operand(ICData::kInt32RangeBit));
-  cmp(hi, Operand(lo, ASR, kBitsPerWord - 1));
-  b(&done, EQ);
-  LoadImmediate(result, ICData::kUint32RangeBit);  // Uint32
-  tst(hi, Operand(hi));
-  LoadImmediate(result, ICData::kInt64RangeBit, NE);  // Int64
-  Bind(&done);
-}
-
-
-void Assembler::UpdateRangeFeedback(Register value,
-                                    intptr_t index,
-                                    Register ic_data,
-                                    Register scratch1,
-                                    Register scratch2,
-                                    Label* miss) {
-  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
-  ComputeRange(scratch1, value, scratch2, miss);
-  ldr(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
-  orr(scratch2,
-      scratch2,
-      Operand(scratch1, LSL, ICData::RangeFeedbackShift(index)));
-  str(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
 }
 
 
@@ -2720,7 +2550,7 @@ void Assembler::Branch(const StubEntry& stub_entry,
                        Patchability patchable,
                        Register pp,
                        Condition cond) {
-  const Code& target_code = Code::Handle(stub_entry.code());
+  const Code& target_code = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target_code, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
@@ -2744,7 +2574,7 @@ void Assembler::BranchLink(const Code& target, Patchability patchable) {
 
 void Assembler::BranchLink(const StubEntry& stub_entry,
                            Patchability patchable) {
-  const Code& code = Code::Handle(stub_entry.code());
+  const Code& code = Code::ZoneHandle(stub_entry.code());
   BranchLink(code, patchable);
 }
 
@@ -2763,7 +2593,7 @@ void Assembler::BranchLinkToRuntime() {
 
 void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
                                           const Object& equivalence) {
-  const Code& target = Code::Handle(stub_entry.code());
+  const Code& target = Code::ZoneHandle(stub_entry.code());
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
@@ -2783,7 +2613,7 @@ void Assembler::BranchLink(const ExternalLabel* label) {
 
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLinkPatchable(Code::Handle(stub_entry.code()));
+  BranchLinkPatchable(Code::ZoneHandle(stub_entry.code()));
 }
 
 
@@ -3392,7 +3222,9 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
     ldr(PP, Address(FP, kSavedCallerPpSlotFromFp * kWordSize));
     set_constant_pool_allowed(false);
   }
-  Drop(2);  // Drop saved PP, PC marker.
+
+  // This will implicitly drop saved PP, PC marker due to restoring SP from FP
+  // first.
   LeaveFrame((1 << FP) | (1 << LR));
 }
 
@@ -3407,43 +3239,67 @@ void Assembler::LeaveStubFrame() {
 }
 
 
-void Assembler::LoadAllocationStatsAddress(Register dest,
-                                           intptr_t cid,
-                                           bool inline_isolate) {
-  ASSERT(dest != kNoRegister);
-  ASSERT(dest != TMP);
-  ASSERT(cid > 0);
-  const intptr_t class_offset = ClassTable::ClassOffsetFor(cid);
-  if (inline_isolate) {
-    ASSERT(FLAG_allow_absolute_addresses);
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    if (cid < kNumPredefinedCids) {
-      LoadImmediate(dest, reinterpret_cast<uword>(*table_ptr) + class_offset);
-    } else {
-      LoadImmediate(dest, reinterpret_cast<uword>(table_ptr));
-      ldr(dest, Address(dest, 0));
-      AddImmediate(dest, class_offset);
-    }
-  } else {
-    LoadIsolate(dest);
-    intptr_t table_offset =
-        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-    ldr(dest, Address(dest, table_offset));
-    AddImmediate(dest, class_offset);
-  }
+void Assembler::NoMonomorphicCheckedEntry() {
+  buffer_.Reset();
+  bkpt(0);
+  bkpt(0);
+  bkpt(0);
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
 }
 
 
+// R0 receiver, R9 guarded cid as Smi
+void Assembler::MonomorphicCheckedEntry() {
+#if defined(TESTING) || defined(DEBUG)
+  bool saved_use_far_branches = use_far_branches();
+  set_use_far_branches(false);
+#endif
+
+  Label miss;
+  Bind(&miss);
+  ldr(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
+  ldr(IP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  bx(IP);
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  LoadClassIdMayBeSmi(R4, R0);
+  SmiUntag(R9);
+  cmp(R4, Operand(R9));
+  b(&miss, NE);
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+
+#if defined(TESTING) || defined(DEBUG)
+  set_use_far_branches(saved_use_far_branches);
+#endif
+}
+
+
+#ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
-                                     Label* trace,
-                                     bool inline_isolate) {
-  LoadAllocationStatsAddress(temp_reg, cid, inline_isolate);
+                                     Label* trace) {
+  LoadAllocationStatsAddress(temp_reg, cid);
   const uword state_offset = ClassHeapStats::state_offset();
   ldr(temp_reg, Address(temp_reg, state_offset));
   tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
   b(trace, NE);
+}
+
+
+void Assembler::LoadAllocationStatsAddress(Register dest,
+                                           intptr_t cid) {
+  ASSERT(dest != kNoRegister);
+  ASSERT(dest != TMP);
+  ASSERT(cid > 0);
+  const intptr_t class_offset = ClassTable::ClassOffsetFor(cid);
+  LoadIsolate(dest);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  ldr(dest, Address(dest, table_offset));
+  AddImmediate(dest, class_offset);
 }
 
 
@@ -3483,6 +3339,7 @@ void Assembler::IncrementAllocationStatsWithSize(Register stats_addr_reg,
   add(TMP, TMP, Operand(size_reg));
   str(TMP, size_address);
 }
+#endif  // !PRODUCT
 
 
 void Assembler::TryAllocate(const Class& cls,
@@ -3498,9 +3355,9 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure,
-                         /* inline_isolate = */ false);
-    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    NOT_IN_PRODUCT(
+      MaybeTraceAllocation(cls.id(), temp_reg, failure));
+    Heap::Space space = Heap::kNew;
     ldr(temp_reg, Address(THR, Thread::heap_offset()));
     ldr(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
     // TODO(koda): Protect against unsigned overflow here.
@@ -3516,8 +3373,7 @@ void Assembler::TryAllocate(const Class& cls,
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
 
-    LoadAllocationStatsAddress(temp_reg, cls.id(),
-                               /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cls.id()));
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -3529,7 +3385,7 @@ void Assembler::TryAllocate(const Class& cls,
     LoadImmediate(IP, tags);
     str(IP, FieldAddress(instance_reg, Object::tags_offset()));
 
-    IncrementAllocationStats(temp_reg, cls.id(), space);
+    NOT_IN_PRODUCT(IncrementAllocationStats(temp_reg, cls.id(), space));
   } else {
     b(failure);
   }
@@ -3547,8 +3403,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure, /* inline_isolate = */ false);
-    Heap::Space space = Heap::SpaceForAllocation(cid);
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
+    Heap::Space space = Heap::kNew;
     ldr(temp1, Address(THR, Thread::heap_offset()));
     // Potential new object start.
     ldr(instance, Address(temp1, Heap::TopOffset(space)));
@@ -3562,7 +3418,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
-    LoadAllocationStatsAddress(temp2, cid, /* inline_isolate = */ false);
+    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp2, cid));
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -3578,7 +3434,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     str(temp1, FieldAddress(instance, Array::tags_offset()));  // Store tags.
 
     LoadImmediate(temp1, instance_size);
-    IncrementAllocationStatsWithSize(temp2, temp1, space);
+    NOT_IN_PRODUCT(IncrementAllocationStatsWithSize(temp2, temp1, space));
   } else {
     b(failure);
   }

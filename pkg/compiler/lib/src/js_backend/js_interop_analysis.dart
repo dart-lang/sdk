@@ -5,17 +5,11 @@
 /// Analysis to determine how to generate code for typed JavaScript interop.
 library compiler.src.js_backend.js_interop_analysis;
 
-import '../common/names.dart' show Identifiers;
-import '../compiler.dart' show Compiler;
-import '../diagnostics/messages.dart' show MessageKind;
+import '../common.dart';
 import '../constants/values.dart'
-    show
-        ConstantValue,
-        ConstructedConstantValue,
-        ListConstantValue,
-        NullConstantValue,
-        StringConstantValue,
-        TypeConstantValue;
+    show ConstantValue, ConstructedConstantValue, StringConstantValue;
+import '../dart_types.dart' show DartType, DynamicType, FunctionType;
+import '../diagnostics/messages.dart' show MessageKind;
 import '../elements/elements.dart'
     show
         ClassElement,
@@ -25,12 +19,10 @@ import '../elements/elements.dart'
         LibraryElement,
         ParameterElement,
         MetadataAnnotation;
-
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../universe/selector.dart' show Selector;
 import '../universe/universe.dart' show SelectorConstraints;
-
 import 'backend_helpers.dart' show BackendHelpers;
 import 'js_backend.dart' show JavaScriptBackend;
 
@@ -64,19 +56,21 @@ class JsInteropAnalysis {
 
   void processJsInteropAnnotation(Element e) {
     for (MetadataAnnotation annotation in e.implementation.metadata) {
-      ConstantValue constant = backend.compiler.constants.getConstantValue(
-          annotation.constant);
+      // TODO(johnniwinther): Avoid processing unresolved elements.
+      if (annotation.constant == null) continue;
+      ConstantValue constant =
+          backend.compiler.constants.getConstantValue(annotation.constant);
       if (constant == null || constant is! ConstructedConstantValue) continue;
       ConstructedConstantValue constructedConstant = constant;
       if (constructedConstant.type.element == helpers.jsAnnotationClass) {
         ConstantValue value = constructedConstant.fields[nameField];
         if (value.isString) {
           StringConstantValue stringValue = value;
-          backend.setJsInteropName(
-              e, stringValue.primitiveValue.slowToString());
+          backend.nativeData
+              .setJsInteropName(e, stringValue.primitiveValue.slowToString());
         } else {
           // TODO(jacobr): report a warning if the value is not a String.
-          backend.setJsInteropName(e, '');
+          backend.nativeData.setJsInteropName(e, '');
         }
         enabledJsInterop = true;
         return;
@@ -87,10 +81,10 @@ class JsInteropAnalysis {
   bool hasAnonymousAnnotation(Element element) {
     if (backend.helpers.jsAnonymousClass == null) return false;
     return element.metadata.any((MetadataAnnotation annotation) {
-      ConstantValue constant = backend.compiler.constants.getConstantValue(
-          annotation.constant);
-      if (constant == null ||
-          constant is! ConstructedConstantValue) return false;
+      ConstantValue constant =
+          backend.compiler.constants.getConstantValue(annotation.constant);
+      if (constant == null || constant is! ConstructedConstantValue)
+        return false;
       ConstructedConstantValue constructedConstant = constant;
       return constructedConstant.type.element ==
           backend.helpers.jsAnonymousClass;
@@ -100,10 +94,10 @@ class JsInteropAnalysis {
   void _checkFunctionParameters(FunctionElement fn) {
     if (fn.hasFunctionSignature &&
         fn.functionSignature.optionalParametersAreNamed) {
-      backend.reporter.reportErrorMessage(fn,
-          MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS, {
-            'method': fn.name
-          });
+      backend.reporter.reportErrorMessage(
+          fn,
+          MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+          {'method': fn.name});
     }
   }
 
@@ -124,8 +118,7 @@ class JsInteropAnalysis {
       // when all of jsinterop types are unreachable from main.
       if (!backend.compiler.world.isImplemented(classElement)) return;
 
-      if (!classElement
-          .implementsInterface(helpers.jsJavaScriptObjectClass)) {
+      if (!classElement.implementsInterface(helpers.jsJavaScriptObjectClass)) {
         backend.reporter.reportErrorMessage(classElement,
             MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS, {
           'cls': classElement.name,
@@ -133,15 +126,16 @@ class JsInteropAnalysis {
         });
       }
 
-      classElement.forEachMember(
-          (ClassElement classElement, Element member) {
+      classElement.forEachMember((ClassElement classElement, Element member) {
         processJsInteropAnnotation(member);
 
         if (!member.isSynthesized &&
             backend.isJsInterop(classElement) &&
             member is FunctionElement) {
           FunctionElement fn = member;
-          if (!fn.isExternal && !fn.isAbstract && !fn.isConstructor &&
+          if (!fn.isExternal &&
+              !fn.isAbstract &&
+              !fn.isConstructor &&
               !fn.isStatic) {
             backend.reporter.reportErrorMessage(
                 fn,
@@ -150,16 +144,14 @@ class JsInteropAnalysis {
           }
 
           if (fn.isFactoryConstructor && hasAnonymousAnnotation(classElement)) {
-              fn.functionSignature.orderedForEachParameter(
-                  (ParameterElement parameter) {
-                if (!parameter.isNamed) {
-                  backend.reporter.reportErrorMessage(parameter,
+            fn.functionSignature
+                .orderedForEachParameter((ParameterElement parameter) {
+              if (!parameter.isNamed) {
+                backend.reporter.reportErrorMessage(
+                    parameter,
                     MessageKind
                         .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-                    {
-                      'parameter': parameter.name,
-                      'cls': classElement.name
-                    });
+                    {'parameter': parameter.name, 'cls': classElement.name});
               }
             });
           } else {
@@ -181,7 +173,7 @@ class JsInteropAnalysis {
           if (selector.namedArgumentCount > 0) return;
           int argumentCount = selector.argumentCount;
           var candidateParameterNames =
-              'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLOMOPQRSTUVWXYZ';
+              'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
           var parameters = new List<String>.generate(
               argumentCount, (i) => candidateParameterNames[i]);
 
@@ -193,5 +185,13 @@ class JsInteropAnalysis {
       });
     });
     return new jsAst.Block(statements);
+  }
+
+  FunctionType buildJsFunctionType() {
+    // TODO(jacobr): consider using codegenWorld.isChecks to determine the
+    // range of positional arguments that need to be supported by JavaScript
+    // function types.
+    return new FunctionType.synthesized(const DynamicType(), [],
+        new List<DartType>.filled(16, const DynamicType()));
   }
 }

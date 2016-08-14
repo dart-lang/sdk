@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _WindowsCodePageDecoder {
-  /* patch */ static String _decodeBytes(List<int> bytes)
+@patch class _WindowsCodePageDecoder {
+  @patch static String _decodeBytes(List<int> bytes)
       native "SystemEncodingToString";
 }
 
 
-patch class _WindowsCodePageEncoder {
-  /* patch */ static List<int> _encodeString(String string)
+@patch class _WindowsCodePageEncoder {
+  @patch static List<int> _encodeString(String string)
       native "StringToSystemEncoding";
 }
 
 
-patch class Process {
-  /* patch */ static Future<Process> start(
+@patch class Process {
+  @patch static Future<Process> start(
       String executable,
       List<String> arguments,
       {String workingDirectory,
@@ -33,7 +33,7 @@ patch class Process {
     return process._start();
   }
 
-  /* patch */ static Future<ProcessResult> run(
+  @patch static Future<ProcessResult> run(
       String executable,
       List<String> arguments,
       {String workingDirectory,
@@ -52,7 +52,7 @@ patch class Process {
                                      stderrEncoding);
   }
 
-  /* patch */ static ProcessResult runSync(
+  @patch static ProcessResult runSync(
       String executable,
       List<String> arguments,
       {String workingDirectory,
@@ -71,7 +71,7 @@ patch class Process {
                                          stderrEncoding);
   }
 
-  /* patch */ static bool killPid(
+  @patch static bool killPid(
       int pid, [ProcessSignal signal = ProcessSignal.SIGTERM]) {
     if (signal is! ProcessSignal) {
       throw new ArgumentError(
@@ -125,25 +125,25 @@ class _SignalController {
     }
   }
 
-  /* patch */ static _setSignalHandler(int signal)
+  @patch static _setSignalHandler(int signal)
       native "Process_SetSignalHandler";
-  /* patch */ static int _clearSignalHandler(int signal)
+  @patch static int _clearSignalHandler(int signal)
       native "Process_ClearSignalHandler";
 }
 
 Function _getWatchSignalInternal() => _ProcessUtils._watchSignalInternal;
 
 
-patch class _ProcessUtils {
-  /* patch */ static void _exit(int status) native "Process_Exit";
-  /* patch */ static void _setExitCode(int status)
+@patch class _ProcessUtils {
+  @patch static void _exit(int status) native "Process_Exit";
+  @patch static void _setExitCode(int status)
       native "Process_SetExitCode";
-  /* patch */ static int _getExitCode() native "Process_GetExitCode";
-  /* patch */ static void _sleep(int millis) native "Process_Sleep";
-  /* patch */ static int _pid(Process process) native "Process_Pid";
+  @patch static int _getExitCode() native "Process_GetExitCode";
+  @patch static void _sleep(int millis) native "Process_Sleep";
+  @patch static int _pid(Process process) native "Process_Pid";
   static bool _killPid(int pid, int signal)
       native "Process_KillPid";
-  /* patch */ static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
+  @patch static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
     if (signal != ProcessSignal.SIGHUP &&
         signal != ProcessSignal.SIGINT &&
         signal != ProcessSignal.SIGTERM &&

@@ -15,19 +15,19 @@ Uri _unsupportedUriBase() {
 // value for Uri.base.
 _UriBaseClosure _uriBaseClosure = _unsupportedUriBase;
 
-patch class Uri {
+@patch class Uri {
   static final bool _isWindowsCached = _isWindowsPlatform;
 
-  /* patch */ static bool get _isWindows => _isWindowsCached;
+  @patch static bool get _isWindows => _isWindowsCached;
 
-  /* patch */ static Uri get base => _uriBaseClosure();
+  @patch static Uri get base => _uriBaseClosure();
 
   static bool get _isWindowsPlatform native "Uri_isWindowsPlatform";
 
-  /* patch */ static String _uriEncode(List<int> canonicalTable,
-                                       String text,
-                                       Encoding encoding,
-                                       bool spaceToPlus) {
+  @patch static String _uriEncode(List<int> canonicalTable,
+                                        String text,
+                                        Encoding encoding,
+                                        bool spaceToPlus) {
     // First check if the text will be changed by encoding.
     int i = 0;
     if (identical(encoding, UTF8) ||

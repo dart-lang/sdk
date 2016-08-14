@@ -422,6 +422,22 @@ interface MIDIOutput : MIDIPort {
     [DartSuppress] void send(sequence<unsigned long> data, optional double timestamp);
 };
 
+[DartSuppress]
+interface MutationEvent {};
+
+// Tweaks types required for Dart strong mode.
+[DartSupplemental]
+interface HTMLCollection {
+
+    // FIXME: The index argument should not be optional.
+    getter Node? item([Default=Undefined] optional unsigned long index);
+    getter any namedItem(DOMString name);
+
+    [DartSuppress] getter Element? item([Default=Undefined] optional unsigned long index);
+    [DartSuppress] getter Element? namedItem(DOMString name);
+
+};
+
 Element implements GlobalEventHandlers;
 
 

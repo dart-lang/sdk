@@ -15,6 +15,7 @@
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -30,6 +31,29 @@ namespace dart {
 
 
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
+
+
+static bool IsABIPreservedRegister(Register reg) {
+  return ((1 << reg) & kAbiPreservedCpuRegs) != 0;
+}
+
+
+void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  ASSERT(IsABIPreservedRegister(CODE_REG));
+  ASSERT(IsABIPreservedRegister(ARGS_DESC_REG));
+  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP));
+
+  // Save LR by moving it to a callee saved temporary register.
+  assembler->Comment("IntrinsicCallPrologue");
+  assembler->mov(CALLEE_SAVED_TEMP, Operand(LR));
+}
+
+
+void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+  // Restore LR.
+  assembler->Comment("IntrinsicCallEpilogue");
+  assembler->mov(LR, Operand(CALLEE_SAVED_TEMP));
+}
 
 
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
@@ -79,7 +103,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Store backing array object in growable array object.
   __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
   // R0 is new, no barrier needed.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::data_offset()),
       R1);
@@ -87,14 +111,14 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // R0: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ ldr(R1, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::type_arguments_offset()),
       R1);
 
   // Set the length field in the growable array object to 0.
   __ LoadImmediate(R1, 0);
-  __ InitializeFieldNoBarrier(
+  __ StoreIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, GrowableObjectArray::length_offset()),
       R1);
@@ -142,8 +166,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, R2, &fall_through,                              \
-                          /* inline_isolate = */ false);                       \
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &fall_through));             \
   __ ldr(R2, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
   /* Check that length is a positive Smi. */                                   \
   /* R2: requested array length argument. */                                   \
@@ -160,7 +183,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ AddImmediate(R2, fixed_size);                                             \
   __ bic(R2, R2, Operand(kObjectAlignment - 1));                               \
-  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  Heap::Space space = Heap::kNew;                                              \
   __ ldr(R3, Address(THR, Thread::heap_offset()));                             \
   __ ldr(R0, Address(R3, Heap::TopOffset(space)));                             \
                                                                                \
@@ -179,7 +202,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ LoadAllocationStatsAddress(R4, cid, /* inline_isolate = */ false);        \
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));                      \
   __ str(R1, Address(R3, Heap::TopOffset(space)));                             \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
   /* Initialize the tags. */                                                   \
@@ -204,7 +227,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* R2: allocation size. */                                                   \
   /* R4: allocation stats address. */                                          \
   __ ldr(R3, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
-  __ InitializeFieldNoBarrier(R0,                                              \
+  __ StoreIntoObjectNoBarrier(R0,                                              \
                               FieldAddress(R0, type_name::length_offset()),    \
                               R3);                                             \
   /* Initialize all array elements to 0. */                                    \
@@ -226,7 +249,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ b(&init_loop, CC);                                                        \
   __ str(R8, Address(R3, -2 * kWordSize), HI);                                 \
                                                                                \
-  __ IncrementAllocationStatsWithSize(R4, R2, space);                          \
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));          \
   __ Ret();                                                                    \
   __ Bind(&fall_through);                                                      \
 
@@ -498,7 +521,6 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
   Label fall_through;
-  __ Push(R6);
   TestBothArgumentsSmis(assembler, &fall_through);
   __ CompareImmediate(R0, Smi::RawValue(Smi::kBits));
   __ b(&fall_through, HI);
@@ -526,10 +548,10 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   __ LoadImmediate(NOTFP, 1);
   __ mov(NOTFP, Operand(NOTFP, LSL, R0));  // NOTFP <- 1 << R0
   __ sub(NOTFP, NOTFP, Operand(1));  // NOTFP <- NOTFP - 1
-  __ rsb(R6, R0, Operand(32));  // R6 <- 32 - R0
-  __ mov(NOTFP, Operand(NOTFP, LSL, R6));  // NOTFP <- NOTFP << R6
+  __ rsb(R3, R0, Operand(32));  // R3 <- 32 - R0
+  __ mov(NOTFP, Operand(NOTFP, LSL, R3));  // NOTFP <- NOTFP << R3
   __ and_(NOTFP, R1, Operand(NOTFP));  // NOTFP <- NOTFP & R1
-  __ mov(NOTFP, Operand(NOTFP, LSR, R6));  // NOTFP <- NOTFP >> R6
+  __ mov(NOTFP, Operand(NOTFP, LSR, R3));  // NOTFP <- NOTFP >> R3
   // Now NOTFP has the bits that fall off of R1 on a left shift.
   __ mov(R1, Operand(R1, LSL, R0));  // R1 gets the low bits.
 
@@ -540,11 +562,8 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
 
   __ str(R1, FieldAddress(R0, Mint::value_offset()));
   __ str(NOTFP, FieldAddress(R0, Mint::value_offset() + kWordSize));
-  __ Pop(R6);
   __ Ret();
   __ Bind(&fall_through);
-  ASSERT(CODE_REG == R6);
-  __ Pop(R6);
 }
 
 
@@ -752,6 +771,11 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   __ rsb(R0, R0, Operand(32));
   __ SmiTag(R0);
   __ Ret();
+}
+
+
+void Intrinsifier::Smi_bitAndFromSmi(Assembler* assembler) {
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -1288,11 +1312,12 @@ void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   if (TargetCPUFeatures::vfp_supported()) {
-    Label fall_through;
+    Label fall_through, is_smi, double_op;
 
-    TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+    TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
     // Both arguments are double, right operand is in R0.
     __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
+    __ Bind(&double_op);
     __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
     __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
     switch (kind) {
@@ -1307,6 +1332,11 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
     __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
     __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
     __ Ret();
+    __ Bind(&is_smi);  // Convert R0 to a double.
+    __ SmiUntag(R0);
+    __ vmovsr(S0, R0);
+    __ vcvtdi(D1, S0);
+    __ b(&double_op);
     __ Bind(&fall_through);
   }
 }
@@ -1480,10 +1510,10 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       math_lib.LookupClassAllowPrivate(Symbols::_Random()));
   ASSERT(!random_class.IsNull());
   const Field& state_field = Field::ZoneHandle(
-      random_class.LookupInstanceField(Symbols::_state()));
+      random_class.LookupInstanceFieldAllowPrivate(Symbols::_state()));
   ASSERT(!state_field.IsNull());
   const Field& random_A_field = Field::ZoneHandle(
-      random_class.LookupStaticField(Symbols::_A()));
+      random_class.LookupStaticFieldAllowPrivate(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
   const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
@@ -1538,7 +1568,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ CompareImmediate(R3, 0);
   __ b(&fall_through, NE);
 
-  __ ldr(R0, FieldAddress(R2, Class::canonical_types_offset()));
+  __ ldr(R0, FieldAddress(R2, Class::canonical_type_offset()));
   __ CompareObject(R0, Object::null_object());
   __ b(&fall_through, EQ);
   __ Ret();
@@ -1552,38 +1582,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ ldr(R0, FieldAddress(R0, String::hash_offset()));
   __ cmp(R0, Operand(0));
   __ bx(LR, NE);  // Hash not yet computed.
-}
-
-
-void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
-  Label fall_through, try_two_byte_string;
-
-  __ ldr(R1, Address(SP, 0 * kWordSize));  // Index.
-  __ ldr(R0, Address(SP, 1 * kWordSize));  // String.
-  __ tst(R1, Operand(kSmiTagMask));
-  __ b(&fall_through, NE);  // Index is not a Smi.
-  // Range check.
-  __ ldr(R2, FieldAddress(R0, String::length_offset()));
-  __ cmp(R1, Operand(R2));
-  __ b(&fall_through, CS);  // Runtime throws exception.
-  __ CompareClassId(R0, kOneByteStringCid, R3);
-  __ b(&try_two_byte_string, NE);
-  __ SmiUntag(R1);
-  __ AddImmediate(R0, OneByteString::data_offset() - kHeapObjectTag);
-  __ ldrb(R0, Address(R0, R1));
-  __ SmiTag(R0);
-  __ Ret();
-
-  __ Bind(&try_two_byte_string);
-  __ CompareClassId(R0, kTwoByteStringCid, R3);
-  __ b(&fall_through, NE);
-  ASSERT(kSmiTagShift == 1);
-  __ AddImmediate(R0, TwoByteString::data_offset() - kHeapObjectTag);
-  __ ldrh(R0, Address(R0, R1));
-  __ SmiTag(R0);
-  __ Ret();
-
-  __ Bind(&fall_through);
 }
 
 
@@ -1827,8 +1825,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure,
-                          /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, R0, failure));
   __ mov(R8, Operand(length_reg));  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -1837,7 +1834,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ bic(length_reg, length_reg, Operand(kObjectAlignment - 1));
 
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = Heap::SpaceForAllocation(cid);
+  Heap::Space space = Heap::kNew;
   __ ldr(R3, Address(THR, Thread::heap_offset()));
   __ ldr(R0, Address(R3, Heap::TopOffset(space)));
 
@@ -1856,7 +1853,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R4, cid, /* inline_isolate = */ false);
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
   __ str(R1, Address(R3, Heap::TopOffset(space)));
   __ AddImmediate(R0, kHeapObjectTag);
 
@@ -1880,16 +1877,16 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   }
 
   // Set the length field using the saved length (R8).
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, String::length_offset()),
                               R8);
   // Clear hash.
   __ LoadImmediate(TMP, 0);
-  __ InitializeFieldNoBarrier(R0,
+  __ StoreIntoObjectNoBarrier(R0,
                               FieldAddress(R0, String::hash_offset()),
                               TMP);
 
-  __ IncrementAllocationStatsWithSize(R4, R2, space);
+  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2, space));
   __ b(ok);
 
   __ Bind(&fail);
@@ -2055,7 +2052,7 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
@@ -2074,7 +2071,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ LoadClassId(R1, R1);
   __ AddImmediate(R1, R1, -kOneByteStringCid);
   __ add(R1, R2, Operand(R1, LSL, kWordSizeLog2));
-  __ ldr(R0, FieldAddress(R1, JSRegExp::function_offset(kOneByteStringCid)));
+  __ ldr(R0, FieldAddress(R1, RegExp::function_offset(kOneByteStringCid)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R9.
@@ -2115,6 +2112,23 @@ void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ LoadIsolate(R0);
   __ ldr(R0, Address(R0, Isolate::current_tag_offset()));
+  __ Ret();
+}
+
+
+void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
+  if (!FLAG_support_timeline) {
+    __ LoadObject(R0, Bool::False());
+    __ Ret();
+    return;
+  }
+  // Load TimelineStream*.
+  __ ldr(R0, Address(THR, Thread::dart_stream_offset()));
+  // Load uintptr_t from TimelineStream*.
+  __ ldr(R0, Address(R0, TimelineStream::enabled_offset()));
+  __ cmp(R0, Operand(0));
+  __ LoadObject(R0, Bool::True(), NE);
+  __ LoadObject(R0, Bool::False(), EQ);
   __ Ret();
 }
 

@@ -61,333 +61,6 @@ class LocalConstructorContributorTest extends DartCompletionContributorTest {
     return new LocalConstructorContributor();
   }
 
-  test_constructor_parameters_mixed_required_and_named() async {
-    addTestSource('class A {A(x, {int y}) {^}}');
-    await computeSuggestions();
-    assertNotSuggested('x');
-    assertNotSuggested('y');
-  }
-
-  test_constructor_parameters_mixed_required_and_positional() async {
-    addTestSource('class A {A(x, [int y]) {^}}');
-    await computeSuggestions();
-    assertNotSuggested('x');
-    assertNotSuggested('y');
-  }
-
-  test_constructor_parameters_named() async {
-    addTestSource('class A {A({x, int y}) {^}}');
-    await computeSuggestions();
-    assertNotSuggested('x');
-    assertNotSuggested('y');
-  }
-
-  test_constructor_parameters_positional() async {
-    addTestSource('class A {A([x, int y]) {^}}');
-    await computeSuggestions();
-    assertNotSuggested('x');
-    assertNotSuggested('y');
-  }
-
-  test_constructor_parameters_required() async {
-    addTestSource('class A {A(x, int y) {^}}');
-    await computeSuggestions();
-    assertNotSuggested('x');
-    assertNotSuggested('y');
-  }
-
-  test_enum() async {
-    addTestSource('enum E { one, two } main() {^}');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    assertNotSuggested('one');
-    assertNotSuggested('two');
-  }
-
-  test_enum_deprecated() async {
-    addTestSource('@deprecated enum E { one, two } main() {^}');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    assertNotSuggested('one');
-    assertNotSuggested('two');
-  }
-
-  test_function_parameters_mixed_required_and_named() async {
-    addTestSource('''
-void m(x, {int y}) {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_function_parameters_mixed_required_and_positional() async {
-    addTestSource('''
-void m(x, [int y]) {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_function_parameters_named() async {
-    addTestSource('''
-void m({x, int y}) {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_function_parameters_none() async {
-    addTestSource('''
-void m() {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_function_parameters_positional() async {
-    addTestSource('''
-void m([x, int y]) {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_function_parameters_required() async {
-    addTestSource('''
-void m(x, int y) {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_ignore_symbol_being_completed() async {
-    addTestSource('class MyClass { } main(MC^) { }');
-    await computeSuggestions();
-    assertNotSuggested('MyClass');
-    assertNotSuggested('MC');
-  }
-
-  test_inDartDoc_reference1() async {
-    addTestSource('''
-/// The [^
-main(aaa, bbb) {}''');
-    await computeSuggestions();
-    assertNotSuggested('main');
-  }
-
-  test_inDartDoc_reference2() async {
-    addTestSource('''
-/// The [m^
-main(aaa, bbb) {}''');
-    await computeSuggestions();
-    assertNotSuggested('main');
-  }
-
-  test_inDartDoc_reference3() async {
-    addTestSource('''
-/// The [^]
-main(aaa, bbb) {}''');
-    await computeSuggestions();
-    assertNotSuggested('main');
-  }
-
-  test_inDartDoc_reference4() async {
-    addTestSource('''
-/// The [m^]
-main(aaa, bbb) {}''');
-    await computeSuggestions();
-    assertNotSuggested('main');
-  }
-
-  test_InstanceCreationExpression() async {
-    addTestSource('''
-class A {foo(){var f; {var x;}}}
-class B {B(this.x, [String boo]) { } int x;}
-class C {C.bar({boo: 'hoo', int z: 0}) { } }
-main() {new ^ String x = "hello";}''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion;
-
-    suggestion = assertSuggestConstructor('A', elemOffset: -1);
-    expect(suggestion.element.parameters, '()');
-    expect(suggestion.element.returnType, 'A');
-    expect(suggestion.declaringType, 'A');
-    expect(suggestion.parameterNames, hasLength(0));
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, false);
-
-    suggestion = assertSuggestConstructor('B');
-    expect(suggestion.element.parameters, '(int x, [String boo])');
-    expect(suggestion.element.returnType, 'B');
-    expect(suggestion.declaringType, 'B');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'int');
-    expect(suggestion.parameterNames[1], 'boo');
-    expect(suggestion.parameterTypes[1], 'String');
-    expect(suggestion.requiredParameterCount, 1);
-    expect(suggestion.hasNamedParameters, false);
-
-    suggestion = assertSuggestConstructor('C.bar');
-    expect(suggestion.element.parameters, '({dynamic boo: \'hoo\', int z: 0})');
-    expect(suggestion.element.returnType, 'C');
-    expect(suggestion.declaringType, 'C');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'boo');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'z');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, true);
-  }
-
-  test_method_parameters_mixed_required_and_named() async {
-    addTestSource('''
-class A {
-  void m(x, {int y}) {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_method_parameters_mixed_required_and_positional() async {
-    addTestSource('''
-class A {
-  void m(x, [int y]) {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_method_parameters_named() async {
-    addTestSource('''
-class A {
-  void m({x, int y}) {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_method_parameters_none() async {
-    addTestSource('''
-class A {
-  void m() {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_method_parameters_positional() async {
-    addTestSource('''
-class A {
-  void m([x, int y]) {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_method_parameters_required() async {
-    addTestSource('''
-class A {
-  void m(x, int y) {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_missing_params_constructor() async {
-    addTestSource('class C1{C1{} main(){C^}}');
-    await computeSuggestions();
-  }
-
-  test_missing_params_function() async {
-    addTestSource('int f1{} main(){f^}');
-    await computeSuggestions();
-  }
-
-  test_missing_params_method() async {
-    addTestSource('class C1{int f1{} main(){f^}}');
-    await computeSuggestions();
-  }
-
-  test_overrides() async {
-    addTestSource('''
-class A {m() {}}
-class B extends A {m() {^}}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_prioritization() async {
-    addTestSource('main() {var ab; var _ab; ^}');
-    await computeSuggestions();
-    assertNotSuggested('ab');
-    assertNotSuggested('_ab');
-  }
-
-  test_prioritization_private() async {
-    addTestSource('main() {var ab; var _ab; _^}');
-    await computeSuggestions();
-    assertNotSuggested('ab');
-    assertNotSuggested('_ab');
-  }
-
-  test_prioritization_public() async {
-    addTestSource('main() {var ab; var _ab; a^}');
-    await computeSuggestions();
-    assertNotSuggested('ab');
-    assertNotSuggested('_ab');
-  }
-
-  test_shadowed_name() async {
-    addTestSource('var a; class A { var a; m() { ^ } }');
-    await computeSuggestions();
-    assertNotSuggested('a');
-  }
-
   test_ArgumentList() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
@@ -1946,6 +1619,41 @@ class C {foo(){var f; {var x;} return a ? T^ : c}}''');
     //assertNotSuggested('T1');
   }
 
+  test_constructor_parameters_mixed_required_and_named() async {
+    addTestSource('class A {A(x, {int y}) {^}}');
+    await computeSuggestions();
+    assertNotSuggested('x');
+    assertNotSuggested('y');
+  }
+
+  test_constructor_parameters_mixed_required_and_positional() async {
+    addTestSource('class A {A(x, [int y]) {^}}');
+    await computeSuggestions();
+    assertNotSuggested('x');
+    assertNotSuggested('y');
+  }
+
+  test_constructor_parameters_named() async {
+    addTestSource('class A {A({x, int y}) {^}}');
+    await computeSuggestions();
+    assertNotSuggested('x');
+    assertNotSuggested('y');
+  }
+
+  test_constructor_parameters_positional() async {
+    addTestSource('class A {A([x, int y]) {^}}');
+    await computeSuggestions();
+    assertNotSuggested('x');
+    assertNotSuggested('y');
+  }
+
+  test_constructor_parameters_required() async {
+    addTestSource('class A {A(x, int y) {^}}');
+    await computeSuggestions();
+    assertNotSuggested('x');
+    assertNotSuggested('y');
+  }
+
   test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
@@ -2076,6 +1784,22 @@ class A {a(blat: ^) { }}''');
     assertNotSuggested('String');
     assertNotSuggested('identical');
     assertNotSuggested('bar');
+  }
+
+  test_enum() async {
+    addTestSource('enum E { one, two } main() {^}');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+  }
+
+  test_enum_deprecated() async {
+    addTestSource('@deprecated enum E { one, two } main() {^}');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    assertNotSuggested('one');
+    assertNotSuggested('two');
   }
 
   test_ExpressionStatement_identifier() async {
@@ -2301,6 +2025,72 @@ main() {for (int index = 0; index < 10; ++i^)}''');
     assertNotSuggested('bar');
   }
 
+  test_function_parameters_mixed_required_and_named() async {
+    addTestSource('''
+void m(x, {int y}) {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_function_parameters_mixed_required_and_positional() async {
+    addTestSource('''
+void m(x, [int y]) {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_function_parameters_named() async {
+    addTestSource('''
+void m({x, int y}) {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_function_parameters_none() async {
+    addTestSource('''
+void m() {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_function_parameters_positional() async {
+    addTestSource('''
+void m([x, int y]) {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_function_parameters_required() async {
+    addTestSource('''
+void m(x, int y) {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
   test_FunctionDeclaration_returnType_afterComment() async {
     // ClassDeclaration  CompilationUnit
     addSource(
@@ -2473,6 +2263,13 @@ main() {var a; if (a.^) something}''');
     assertNotSuggested('==');
   }
 
+  test_ignore_symbol_being_completed() async {
+    addTestSource('class MyClass { } main(MC^) { }');
+    await computeSuggestions();
+    assertNotSuggested('MyClass');
+    assertNotSuggested('MC');
+  }
+
   test_ImportDirective_dart() async {
     // SimpleStringLiteral  ImportDirective
     addTestSource('''
@@ -2481,6 +2278,38 @@ main() {}''');
     await computeSuggestions();
 
     assertNoSuggestions();
+  }
+
+  test_inDartDoc_reference1() async {
+    addTestSource('''
+/// The [^
+main(aaa, bbb) {}''');
+    await computeSuggestions();
+    assertNotSuggested('main');
+  }
+
+  test_inDartDoc_reference2() async {
+    addTestSource('''
+/// The [m^
+main(aaa, bbb) {}''');
+    await computeSuggestions();
+    assertNotSuggested('main');
+  }
+
+  test_inDartDoc_reference3() async {
+    addTestSource('''
+/// The [^]
+main(aaa, bbb) {}''');
+    await computeSuggestions();
+    assertNotSuggested('main');
+  }
+
+  test_inDartDoc_reference4() async {
+    addTestSource('''
+/// The [m^]
+main(aaa, bbb) {}''');
+    await computeSuggestions();
+    assertNotSuggested('main');
   }
 
   test_IndexExpression() async {
@@ -2533,6 +2362,48 @@ class C {foo(){var f; {var x;} f[T^]}}''');
     //assertNotSuggested('T1');
   }
 
+  test_InstanceCreationExpression() async {
+    addTestSource('''
+class A {foo(){var f; {var x;}}}
+class B {B(this.x, [String boo]) { } int x;}
+class C {C.bar({boo: 'hoo', int z: 0}) { } }
+main() {new ^ String x = "hello";}''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion;
+
+    suggestion = assertSuggestConstructor('A', elemOffset: -1);
+    expect(suggestion.element.parameters, '()');
+    expect(suggestion.element.returnType, 'A');
+    expect(suggestion.declaringType, 'A');
+    expect(suggestion.parameterNames, hasLength(0));
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, false);
+
+    suggestion = assertSuggestConstructor('B');
+    expect(suggestion.element.parameters, '(int x, [String boo])');
+    expect(suggestion.element.returnType, 'B');
+    expect(suggestion.declaringType, 'B');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'int');
+    expect(suggestion.parameterNames[1], 'boo');
+    expect(suggestion.parameterTypes[1], 'String');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, false);
+
+    suggestion = assertSuggestConstructor('C.bar');
+    expect(suggestion.element.parameters, '({dynamic boo: \'hoo\', int z: 0})');
+    expect(suggestion.element.returnType, 'C');
+    expect(suggestion.declaringType, 'C');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'boo');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'z');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, true);
+  }
+
   test_InstanceCreationExpression_imported() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addSource(
@@ -2576,6 +2447,80 @@ class C {foo(){var f; {var x;} new ^}}''');
     expect(replacementLength, 1);
     assertNotSuggested('Future');
     assertNotSuggested('Foo');
+  }
+
+  test_InstanceCreationExpression_variable_declaration_filter() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a = new ^
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertNotSuggested('D');
+  }
+
+  test_InstanceCreationExpression_variable_declaration_filter2() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a = new ^;
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertNotSuggested('D');
+  }
+
+  test_InstanceCreationExpression_assignment_expression_filter() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a;
+  a = new ^
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertNotSuggested('D');
+  }
+
+  test_InstanceCreationExpression_assignment_expression_filter2() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a;
+  a = new ^;
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertNotSuggested('D');
   }
 
   test_InterpolationExpression() async {
@@ -2811,6 +2756,14 @@ main() {new^ X.c();}''');
     assertNoSuggestions();
   }
 
+  test_localVariableDeclarationName() async {
+    addTestSource('main() {String m^}');
+    await computeSuggestions();
+
+    assertNotSuggested('main');
+    assertNotSuggested('min');
+  }
+
   test_MapLiteralEntry() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
     addSource(
@@ -2888,6 +2841,84 @@ foo = {7:T^};''');
     expect(replacementLength, 1);
     assertNotSuggested('T1');
     assertNotSuggested('T2');
+  }
+
+  test_method_parameters_mixed_required_and_named() async {
+    addTestSource('''
+class A {
+  void m(x, {int y}) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_parameters_mixed_required_and_positional() async {
+    addTestSource('''
+class A {
+  void m(x, [int y]) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_parameters_named() async {
+    addTestSource('''
+class A {
+  void m({x, int y}) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_parameters_none() async {
+    addTestSource('''
+class A {
+  void m() {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_parameters_positional() async {
+    addTestSource('''
+class A {
+  void m([x, int y]) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_parameters_required() async {
+    addTestSource('''
+class A {
+  void m(x, int y) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
   }
 
   test_MethodDeclaration_body_getters() async {
@@ -3147,6 +3178,21 @@ class X{}''');
     assertNotSuggested('==');
   }
 
+  test_missing_params_constructor() async {
+    addTestSource('class C1{C1{} main(){C^}}');
+    await computeSuggestions();
+  }
+
+  test_missing_params_function() async {
+    addTestSource('int f1{} main(){f^}');
+    await computeSuggestions();
+  }
+
+  test_missing_params_method() async {
+    addTestSource('class C1{int f1{} main(){f^}}');
+    await computeSuggestions();
+  }
+
   test_new_instance() async {
     addTestSource('import "dart:math"; class A {x() {new Random().^}}');
     await computeSuggestions();
@@ -3157,6 +3203,15 @@ class X{}''');
     assertNotSuggested('Random');
     assertNotSuggested('Object');
     assertNotSuggested('A');
+  }
+
+  test_overrides() async {
+    addTestSource('''
+class A {m() {}}
+class B extends A {m() {^}}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
   }
 
   test_parameterName_excludeTypes() async {
@@ -3595,14 +3650,6 @@ class X {foo(){A^.bar}}''');
     assertNotSuggested('length');
   }
 
-  test_localVariableDeclarationName() async {
-    addTestSource('main() {String m^}');
-    await computeSuggestions();
-
-    assertNotSuggested('main');
-    assertNotSuggested('min');
-  }
-
   test_PrefixedIdentifier_trailingStmt_param2() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('f(String g) {g.^ int y = 0;}');
@@ -3617,6 +3664,27 @@ class X {foo(){A^.bar}}''');
     await computeSuggestions();
 
     assertNotSuggested('length');
+  }
+
+  test_prioritization() async {
+    addTestSource('main() {var ab; var _ab; ^}');
+    await computeSuggestions();
+    assertNotSuggested('ab');
+    assertNotSuggested('_ab');
+  }
+
+  test_prioritization_private() async {
+    addTestSource('main() {var ab; var _ab; _^}');
+    await computeSuggestions();
+    assertNotSuggested('ab');
+    assertNotSuggested('_ab');
+  }
+
+  test_prioritization_public() async {
+    addTestSource('main() {var ab; var _ab; a^}');
+    await computeSuggestions();
+    assertNotSuggested('ab');
+    assertNotSuggested('_ab');
   }
 
   test_PropertyAccess_expression() async {
@@ -3663,6 +3731,12 @@ class X {foo(){A^.bar}}''');
     assertNotSuggested('a');
     assertNotSuggested('Object');
     assertNotSuggested('==');
+  }
+
+  test_shadowed_name() async {
+    addTestSource('var a; class A { var a; m() { ^ } }');
+    await computeSuggestions();
+    assertNotSuggested('a');
   }
 
   test_SwitchStatement_c() async {

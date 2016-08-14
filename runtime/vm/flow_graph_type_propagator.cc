@@ -8,6 +8,7 @@
 #include "vm/bit_vector.h"
 #include "vm/il_printer.h"
 #include "vm/regexp_assembler.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -20,8 +21,7 @@ DECLARE_FLAG(bool, propagate_types);
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
 #ifndef PRODUCT
   Thread* thread = flow_graph->thread();
-  Isolate* const isolate = flow_graph->isolate();
-  TimelineStream* compiler_timeline = isolate->GetCompilerStream();
+  TimelineStream* compiler_timeline = Timeline::GetCompilerStream();
   TimelineDurationScope tds2(thread,
                              compiler_timeline,
                              "FlowGraphTypePropagator");
@@ -237,6 +237,13 @@ void FlowGraphTypePropagator::VisitCheckSmi(CheckSmiInstr* check) {
 }
 
 
+void FlowGraphTypePropagator::VisitCheckArrayBound(
+    CheckArrayBoundInstr* check) {
+  // Array bounds checks also test index for smi.
+  SetCid(check->index()->definition(), kSmiCid);
+}
+
+
 void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
   if ((check->unary_checks().NumberOfChecks() != 1) ||
       !check->Dependencies().IsNone()) {
@@ -251,17 +258,8 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
 
 
 void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
-  if (!check->Dependencies().IsNone()) {
-    // TODO(vegorov): If check is affected by side-effect we can still propagate
-    // the type further but not the cid.
-    return;
-  }
-
-  LoadClassIdInstr* load_cid =
-      check->value()->definition()->OriginalDefinition()->AsLoadClassId();
-  if (load_cid != NULL) {
-    SetCid(load_cid->object()->definition(), check->cid());
-  }
+  // Can't propagate the type/cid because it may cause illegal code motion and
+  // we don't track dependencies in all places via redefinitions.
 }
 
 
@@ -270,7 +268,7 @@ void FlowGraphTypePropagator::VisitGuardFieldClass(
   const intptr_t cid = guard->field().guarded_cid();
   if ((cid == kIllegalCid) ||
       (cid == kDynamicCid) ||
-      !CheckClassInstr::IsImmutableClassId(cid)) {
+      Field::IsExternalizableCid(cid)) {
     return;
   }
 
@@ -365,6 +363,8 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
         new CheckSmiInstr(assert->value()->Copy(zone()),
                           assert->env()->deopt_id(),
                           check->token_pos());
+    check_clone->AsCheckSmi()->set_licm_hoisted(
+        check->AsCheckSmi()->licm_hoisted());
   } else {
     ASSERT(check->IsCheckClass());
     check_clone =
@@ -372,6 +372,8 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
                             assert->env()->deopt_id(),
                             check->AsCheckClass()->unary_checks(),
                             check->token_pos());
+    check_clone->AsCheckClass()->set_licm_hoisted(
+        check->AsCheckClass()->licm_hoisted());
   }
   ASSERT(check_clone != NULL);
   ASSERT(assert->deopt_id() == assert->env()->deopt_id());
@@ -466,6 +468,11 @@ CompileType CompileType::Int() {
 }
 
 
+CompileType CompileType::Smi() {
+  return Create(kSmiCid, Type::ZoneHandle(Type::SmiType()));
+}
+
+
 CompileType CompileType::String() {
   return FromAbstractType(Type::ZoneHandle(Type::StringType()), kNonNullable);
 }
@@ -508,7 +515,7 @@ intptr_t CompileType::ToNullableCid() {
                 type_class.ToCString());
           }
           if (FLAG_use_cha_deopt) {
-            cha->AddToLeafClasses(type_class);
+            cha->AddToGuardedClasses(type_class, /*subclass_count=*/0);
           }
           cid_ = type_class.id();
         } else {
@@ -697,12 +704,15 @@ CompileType ParameterInstr::ComputeType() const {
   // However there are parameters that are known to match their declared type:
   // for example receiver.
   GraphEntryInstr* graph_entry = block_->AsGraphEntry();
-  // Parameters at catch blocks and OSR entries have type dynamic.
+  if (graph_entry == NULL) {
+    graph_entry = block_->AsCatchBlockEntry()->graph_entry();
+  }
+  // Parameters at OSR entries have type dynamic.
   //
   // TODO(kmillikin): Use the actual type of the parameter at OSR entry.
   // The code below is not safe for OSR because it doesn't necessarily use
   // the correct scope.
-  if ((graph_entry == NULL) || graph_entry->IsCompiledForOsr()) {
+  if (graph_entry->IsCompiledForOsr()) {
     return CompileType::Dynamic();
   }
 
@@ -713,7 +723,7 @@ CompileType ParameterInstr::ComputeType() const {
     // from being generated.
     switch (index()) {
       case RegExpMacroAssembler::kParamRegExpIndex:
-        return CompileType::FromCid(kJSRegExpCid);
+        return CompileType::FromCid(kRegExpCid);
       case RegExpMacroAssembler::kParamStringIndex:
         return CompileType::FromCid(function.string_specialization_cid());
       case RegExpMacroAssembler::kParamStartOffsetIndex:
@@ -724,12 +734,11 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
-  LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
-  const AbstractType& type = scope->VariableAt(index())->type();
-
   // Parameter is the receiver.
   if ((index() == 0) &&
       (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
+    LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
+    const AbstractType& type = scope->VariableAt(index())->type();
     if (type.IsObjectType() || type.IsNullType()) {
       // Receiver can be null.
       return CompileType::FromAbstractType(type, CompileType::kNullable);
@@ -754,7 +763,8 @@ CompileType ParameterInstr::ComputeType() const {
                   type_class.ToCString());
             }
             if (FLAG_use_cha_deopt) {
-              thread->cha()->AddToLeafClasses(type_class);
+              thread->cha()->AddToGuardedClasses(
+                  type_class, /*subclass_count=*/0);
             }
             cid = type_class.id();
           }
@@ -780,7 +790,7 @@ CompileType ConstantInstr::ComputeType() const {
   }
 
   intptr_t cid = value().GetClassId();
-  if (!CheckClassInstr::IsImmutableClassId(cid)) {
+  if (Field::IsExternalizableCid(cid)) {
     cid = kDynamicCid;
   }
 
@@ -885,6 +895,15 @@ CompileType AllocateUninitializedContextInstr::ComputeType() const {
 }
 
 
+CompileType PolymorphicInstanceCallInstr::ComputeType() const {
+  if (!HasSingleRecognizedTarget()) return CompileType::Dynamic();
+  const Function& target = Function::Handle(ic_data().GetTargetAt(0));
+  return (target.recognized_kind() != MethodRecognizer::kUnknown)
+      ? CompileType::FromCid(MethodRecognizer::ResultCid(target))
+      : CompileType::Dynamic();
+}
+
+
 CompileType StaticCallInstr::ComputeType() const {
   if (result_cid_ != kDynamicCid) {
     return CompileType::FromCid(result_cid_);
@@ -912,11 +931,6 @@ CompileType LoadLocalInstr::ComputeType() const {
 }
 
 
-CompileType PushTempInstr::ComputeType() const {
-  return CompileType::Dynamic();
-}
-
-
 CompileType DropTempsInstr::ComputeType() const {
   return *value()->Type();
 }
@@ -928,8 +942,8 @@ CompileType StoreLocalInstr::ComputeType() const {
 }
 
 
-CompileType StringFromCharCodeInstr::ComputeType() const {
-  return CompileType::FromCid(cid_);
+CompileType OneByteStringFromCharCodeInstr::ComputeType() const {
+  return CompileType::FromCid(kOneByteStringCid);
 }
 
 
@@ -954,16 +968,21 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     abstract_type = &AbstractType::ZoneHandle(field.type());
   }
   ASSERT(field.is_static());
-  if (field.is_final() && !FLAG_fields_may_be_reset) {
-    const Instance& obj = Instance::Handle(field.StaticValue());
-    if ((obj.raw() != Object::sentinel().raw()) &&
-        (obj.raw() != Object::transition_sentinel().raw()) &&
-        !obj.IsNull()) {
-      is_nullable = CompileType::kNonNullable;
-      cid = obj.GetClassId();
+  if (field.is_final()) {
+    if (!FLAG_fields_may_be_reset) {
+      const Instance& obj = Instance::Handle(field.StaticValue());
+      if ((obj.raw() != Object::sentinel().raw()) &&
+          (obj.raw() != Object::transition_sentinel().raw()) &&
+          !obj.IsNull()) {
+        is_nullable = CompileType::kNonNullable;
+        cid = obj.GetClassId();
+      }
+    } else if (field.guarded_cid() != kIllegalCid) {
+      cid = field.guarded_cid();
+      if (!IsNullableCid(cid)) is_nullable = CompileType::kNonNullable;
     }
   }
-  if (!CheckClassInstr::IsImmutableClassId(cid)) {
+  if (Field::IsExternalizableCid(cid)) {
     cid = kDynamicCid;
   }
   return CompileType(is_nullable, cid, abstract_type);
@@ -981,8 +1000,7 @@ CompileType AllocateObjectInstr::ComputeType() const {
     ASSERT(cls().id() == kClosureCid);
     return CompileType(CompileType::kNonNullable,
                        kClosureCid,
-                       &FunctionType::ZoneHandle(
-                           closure_function().SignatureType()));
+                       &Type::ZoneHandle(closure_function().SignatureType()));
   }
   // TODO(vegorov): Incorporate type arguments into the returned type.
   return CompileType::FromCid(cls().id());
@@ -1009,8 +1027,9 @@ CompileType LoadFieldInstr::ComputeType() const {
 
   const AbstractType* abstract_type = NULL;
   if (Isolate::Current()->type_checks() &&
-      type().HasResolvedTypeClass() &&
-      !Field::IsExternalizableCid(Class::Handle(type().type_class()).id())) {
+      (type().IsFunctionType() ||
+       (type().HasResolvedTypeClass() &&
+       !Field::IsExternalizableCid(Class::Handle(type().type_class()).id())))) {
     abstract_type = &type();
   }
 

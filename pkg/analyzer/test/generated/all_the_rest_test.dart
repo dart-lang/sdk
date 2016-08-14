@@ -8,11 +8,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -43,6 +45,7 @@ main() {
   runReflectiveTests(ContentCacheTest);
   runReflectiveTests(CustomUriResolverTest);
   runReflectiveTests(DartUriResolverTest);
+  // ignore: deprecated_member_use
   runReflectiveTests(DirectoryBasedDartSdkTest);
   runReflectiveTests(DirectoryBasedSourceContainerTest);
   runReflectiveTests(ElementBuilderTest);
@@ -53,7 +56,8 @@ main() {
   runReflectiveTests(ExitDetectorTest);
   runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
-  runReflectiveTests(FileUriResolverTest);
+  runReflectiveTests(ResolveRelativeUriTest);
+  // ignore: deprecated_member_use
   runReflectiveTests(SDKLibrariesReaderTest);
   runReflectiveTests(UriKindTest);
 }
@@ -84,8 +88,9 @@ class CustomUriResolverTest {
   }
 
   void test_resolve_unknown_uri() {
-    UriResolver resolver =
-        new CustomUriResolver({'custom:library': '/path/to/library.dart',});
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': '/path/to/library.dart',
+    });
     Source result =
         resolver.resolveAbsolute(parseUriWithException("custom:non_library"));
     expect(result, isNull);
@@ -94,7 +99,9 @@ class CustomUriResolverTest {
   void test_resolve_uri() {
     String path =
         FileUtilities2.createFile("/path/to/library.dart").getAbsolutePath();
-    UriResolver resolver = new CustomUriResolver({'custom:library': path,});
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': path,
+    });
     Source result =
         resolver.resolveAbsolute(parseUriWithException("custom:library"));
     expect(result, isNotNull);
@@ -105,9 +112,7 @@ class CustomUriResolverTest {
 @reflectiveTest
 class DartUriResolverTest {
   void test_creation() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     expect(new DartUriResolver(sdk), isNotNull);
   }
 
@@ -118,9 +123,7 @@ class DartUriResolverTest {
   }
 
   void test_resolve_dart() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     Source result =
         resolver.resolveAbsolute(parseUriWithException("dart:core"));
@@ -128,31 +131,53 @@ class DartUriResolverTest {
   }
 
   void test_resolve_dart_nonExistingLibrary() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver.resolveAbsolute(parseUriWithException("dart:cor"));
     expect(result, isNull);
   }
 
   void test_resolve_nonDart() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver
         .resolveAbsolute(parseUriWithException("package:some/file.dart"));
     expect(result, isNull);
   }
+
+  DartSdk _createSdk() {
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    Folder sdkFolder = FolderBasedDartSdk.defaultSdkDirectory(resourceProvider);
+    expect(sdkFolder, isNotNull);
+    return new FolderBasedDartSdk(resourceProvider, sdkFolder);
+  }
 }
 
+@deprecated
 @reflectiveTest
 class DirectoryBasedDartSdkTest {
   void fail_getDocFileFor() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile docFile = sdk.getDocFileFor("html");
     expect(docFile, isNotNull);
+  }
+
+  void test_analysisOptions_afterContextCreation() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    sdk.context;
+    expect(() {
+      sdk.analysisOptions = new AnalysisOptionsImpl();
+    }, throwsStateError);
+  }
+
+  void test_analysisOptions_beforeContextCreation() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    sdk.analysisOptions = new AnalysisOptionsImpl();
+    sdk.context;
+    // cannot change "analysisOptions" in the context
+    expect(() {
+      sdk.context.analysisOptions = new AnalysisOptionsImpl();
+    }, throwsStateError);
   }
 
   void test_creation() {
@@ -260,6 +285,20 @@ class DirectoryBasedDartSdkTest {
     expect(executable, isNotNull);
     expect(executable.exists(), isTrue);
     expect(executable.isExecutable(), isTrue);
+  }
+
+  void test_useSummary_afterContextCreation() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    sdk.context;
+    expect(() {
+      sdk.useSummary = true;
+    }, throwsStateError);
+  }
+
+  void test_useSummary_beforeContextCreation() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    sdk.useSummary = true;
+    sdk.context;
   }
 
   DirectoryBasedDartSdk _createDartSdk() {
@@ -563,11 +602,13 @@ class C {
     String stackParameterName = "s";
     CatchClause clause =
         AstFactory.catchClause2(exceptionParameterName, stackParameterName);
+    _setNodeSourceRange(clause, 100, 110);
     clause.accept(builder);
 
     List<LocalVariableElement> variables = holder.localVariables;
     expect(variables, hasLength(2));
-    VariableElement exceptionVariable = variables[0];
+
+    LocalVariableElement exceptionVariable = variables[0];
     expect(exceptionVariable, isNotNull);
     expect(exceptionVariable.name, exceptionParameterName);
     expect(exceptionVariable.hasImplicitType, isTrue);
@@ -575,13 +616,16 @@ class C {
     expect(exceptionVariable.isConst, isFalse);
     expect(exceptionVariable.isFinal, isFalse);
     expect(exceptionVariable.initializer, isNull);
-    VariableElement stackVariable = variables[1];
+    _assertVisibleRange(exceptionVariable, 100, 110);
+
+    LocalVariableElement stackVariable = variables[1];
     expect(stackVariable, isNotNull);
     expect(stackVariable.name, stackParameterName);
     expect(stackVariable.isSynthetic, isFalse);
     expect(stackVariable.isConst, isFalse);
     expect(stackVariable.isFinal, isFalse);
     expect(stackVariable.initializer, isNull);
+    _assertVisibleRange(stackVariable, 100, 110);
   }
 
   void test_visitCatchClause_withType() {
@@ -1480,9 +1524,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    SourceRange visibleRange = parameter.visibleRange;
-    expect(100, visibleRange.offset);
-    expect(110, visibleRange.end);
+    _assertVisibleRange(parameter, 100, 110);
   }
 
   void test_visitFunctionTypedFormalParameter_withTypeParameters() {
@@ -1505,9 +1547,7 @@ class C {
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
     expect(parameter.typeParameters, hasLength(1));
-    SourceRange visibleRange = parameter.visibleRange;
-    expect(100, visibleRange.offset);
-    expect(110, visibleRange.end);
+    _assertVisibleRange(parameter, 100, 110);
   }
 
   void test_visitLabeledStatement() {
@@ -1555,6 +1595,43 @@ class C {
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitMethodDeclaration_duplicateField_synthetic() {
+    buildElementsForText(r'''
+class A {
+  int f;
+  int get f => 42;
+}
+''');
+    ClassDeclaration classNode = compilationUnit.declarations.single;
+    // ClassElement
+    ClassElement classElement = classNode.element;
+    expect(classElement.fields, hasLength(2));
+    expect(classElement.accessors, hasLength(3));
+    FieldElement notSyntheticFieldElement = classElement.fields
+        .singleWhere((f) => f.displayName == 'f' && !f.isSynthetic);
+    FieldElement syntheticFieldElement = classElement.fields
+        .singleWhere((f) => f.displayName == 'f' && f.isSynthetic);
+    PropertyAccessorElement syntheticGetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isGetter && a.isSynthetic);
+    PropertyAccessorElement syntheticSetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isSetter && a.isSynthetic);
+    PropertyAccessorElement notSyntheticGetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isGetter && !a.isSynthetic);
+    expect(notSyntheticFieldElement.getter, same(syntheticGetterElement));
+    expect(notSyntheticFieldElement.setter, same(syntheticSetterElement));
+    expect(syntheticFieldElement.getter, same(notSyntheticGetterElement));
+    expect(syntheticFieldElement.setter, isNull);
+    // class members nodes and their elements
+    FieldDeclaration fieldDeclNode = classNode.members[0];
+    VariableDeclaration fieldNode = fieldDeclNode.fields.variables.single;
+    MethodDeclaration getterNode = classNode.members[1];
+    expect(fieldNode.element, notSyntheticFieldElement);
+    expect(getterNode.element, notSyntheticGetterElement);
   }
 
   void test_visitMethodDeclaration_external() {
@@ -2051,11 +2128,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.NAMED);
-    {
-      SourceRange visibleRange = parameter.visibleRange;
-      expect(100, visibleRange.offset);
-      expect(110, visibleRange.end);
-    }
+    _assertVisibleRange(parameter, 100, 110);
     expect(parameter.defaultValueCode, "42");
     FunctionElement initializer = parameter.initializer;
     expect(initializer, isNotNull);
@@ -2083,11 +2156,7 @@ class C {
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    {
-      SourceRange visibleRange = parameter.visibleRange;
-      expect(100, visibleRange.offset);
-      expect(110, visibleRange.end);
-    }
+    _assertVisibleRange(parameter, 100, 110);
   }
 
   void test_visitSimpleFormalParameter_type() {
@@ -2110,11 +2179,7 @@ class C {
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    {
-      SourceRange visibleRange = parameter.visibleRange;
-      expect(100, visibleRange.offset);
-      expect(110, visibleRange.end);
-    }
+    _assertVisibleRange(parameter, 100, 110);
   }
 
   void test_visitTypeAlias_minimal() {
@@ -2233,6 +2298,7 @@ class C {
         AstFactory.blockFunctionBody2([statement]));
     statement.beginToken.offset = 50;
     statement.endToken.offset = 80;
+    _setBlockBodySourceRange(constructor.body, 100, 110);
     constructor.accept(builder);
 
     List<ConstructorElement> constructors = holder.constructors;
@@ -2244,6 +2310,73 @@ class C {
     _assertHasCodeRange(variableElement, 50, 31);
     expect(variableElement.hasImplicitType, isTrue);
     expect(variableElement.name, variableName);
+    _assertVisibleRange(variableElement, 100, 110);
+  }
+
+  void test_visitVariableDeclaration_inForEachStatement() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    //
+    // m() { for (var v in []) }
+    //
+    String variableName = "v";
+    Statement statement = AstFactory.forEachStatement(
+        AstFactory.declaredIdentifier3('v'),
+        AstFactory.listLiteral(),
+        AstFactory.block());
+    _setNodeSourceRange(statement, 100, 110);
+    MethodDeclaration method = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3("m"),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2([statement]));
+    _setBlockBodySourceRange(method.body, 200, 220);
+    method.accept(builder);
+
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    List<LocalVariableElement> variableElements = methods[0].localVariables;
+    expect(variableElements, hasLength(1));
+    LocalVariableElement variableElement = variableElements[0];
+    expect(variableElement.name, variableName);
+    _assertVisibleRange(variableElement, 100, 110);
+  }
+
+  void test_visitVariableDeclaration_inForStatement() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    //
+    // m() { for (T v;;) }
+    //
+    String variableName = "v";
+    ForStatement statement = AstFactory.forStatement2(
+        AstFactory.variableDeclarationList(null, AstFactory.typeName4('T'),
+            [AstFactory.variableDeclaration('v')]),
+        null,
+        null,
+        AstFactory.block());
+    _setNodeSourceRange(statement, 100, 110);
+    MethodDeclaration method = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3("m"),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2([statement]));
+    _setBlockBodySourceRange(method.body, 200, 220);
+    method.accept(builder);
+
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    List<LocalVariableElement> variableElements = methods[0].localVariables;
+    expect(variableElements, hasLength(1));
+    LocalVariableElement variableElement = variableElements[0];
+    expect(variableElement.name, variableName);
+    _assertVisibleRange(variableElement, 100, 110);
   }
 
   void test_visitVariableDeclaration_inMethod() {
@@ -2265,6 +2398,7 @@ class C {
         AstFactory.identifier3("m"),
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2([statement]));
+    _setBlockBodySourceRange(method.body, 100, 110);
     method.accept(builder);
 
     List<MethodElement> methods = holder.methods;
@@ -2274,6 +2408,7 @@ class C {
     LocalVariableElement variableElement = variableElements[0];
     expect(variableElement.hasImplicitType, isFalse);
     expect(variableElement.name, variableName);
+    _assertVisibleRange(variableElement, 100, 110);
   }
 
   void test_visitVariableDeclaration_localNestedInFunction() {
@@ -2435,8 +2570,24 @@ class C {
     expect(docRange.length, expectedLength);
   }
 
+  void _assertVisibleRange(LocalElement element, int offset, int end) {
+    SourceRange visibleRange = element.visibleRange;
+    expect(visibleRange.offset, offset);
+    expect(visibleRange.end, end);
+  }
+
   ElementBuilder _makeBuilder(ElementHolder holder) =>
       new ElementBuilder(holder, new CompilationUnitElementImpl('test.dart'));
+
+  void _setBlockBodySourceRange(BlockFunctionBody body, int offset, int end) {
+    _setNodeSourceRange(body.block, offset, end);
+  }
+
+  void _setNodeSourceRange(AstNode node, int offset, int end) {
+    node.beginToken.offset = offset;
+    Token endToken = node.endToken;
+    endToken.offset = end - endToken.length;
+  }
 
   void _useParameterInMethod(
       FormalParameter formalParameter, int blockOffset, int blockEnd) {
@@ -2457,20 +2608,6 @@ class C {
 
 @reflectiveTest
 class ElementLocatorTest extends ResolverTestCase {
-  void fail_locate_ExportDirective() {
-    AstNode id = _findNodeIn("export", "export 'dart:core';");
-    Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ImportElement, ImportElement, element);
-  }
-
-  void fail_locate_Identifier_libraryDirective() {
-    AstNode id = _findNodeIn("foo", "library foo.bar;");
-    Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
-  }
-
   void fail_locate_Identifier_partOfDirective() {
     // Can't resolve the library element without the library declaration.
     //    AstNode id = findNodeIn("foo", "part of foo.bar;");
@@ -2533,6 +2670,13 @@ class A {
     Element element = ElementLocator.locate(declaration);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement, ConstructorElement, element);
+  }
+
+  void test_locate_ExportDirective() {
+    AstNode id = _findNodeIn("export", "export 'dart:core';");
+    Element element = ElementLocator.locate(id);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ExportElement, ExportElement, element);
   }
 
   void test_locate_FunctionDeclaration() {
@@ -2614,6 +2758,13 @@ class A {
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FieldElement, FieldElement, element);
+  }
+
+  void test_locate_Identifier_libraryDirective() {
+    AstNode id = _findNodeIn("foo", "library foo.bar;");
+    Element element = ElementLocator.locate(id);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is LibraryElement, LibraryElement, element);
   }
 
   void test_locate_Identifier_propertyAccess() {
@@ -3159,18 +3310,6 @@ class ErrorSeverityTest extends EngineTestCase {
  */
 @reflectiveTest
 class ExitDetectorTest extends ParserTestCase {
-  void fail_doStatement_continue_with_label() {
-    _assertFalse("{ x: do { continue x; } while(true); }");
-  }
-
-  void fail_whileStatement_continue_with_label() {
-    _assertFalse("{ x: while (true) { continue x; } }");
-  }
-
-  void fail_whileStatement_doStatement_scopeRequired() {
-    _assertTrue("{ while (true) { x: do { continue x; } while(true); }");
-  }
-
   void test_asExpression() {
     _assertFalse("a as Object;");
   }
@@ -3189,6 +3328,11 @@ class ExitDetectorTest extends ParserTestCase {
 
   void test_assignmentExpression() {
     _assertFalse("v = 1;");
+  }
+
+  void test_assignmentExpression_compound_lazy() {
+    enableLazyAssignmentOperators = true;
+    _assertFalse("v ||= false;");
   }
 
   void test_assignmentExpression_lhs_throw() {
@@ -3371,6 +3515,44 @@ class ExitDetectorTest extends ParserTestCase {
     expect(new ExitDetector(), isNotNull);
   }
 
+  void test_doStatement_break_and_throw() {
+    _assertFalse("{ do { if (1==1) break; throw 'T'; } while (0==1); }");
+  }
+
+  void test_doStatement_continue_and_throw() {
+    _assertFalse("{ do { if (1==1) continue; throw 'T'; } while (0==1); }");
+  }
+
+  void test_doStatement_continueDoInSwitch_and_throw() {
+    _assertFalse('''
+{
+  D: do {
+    switch (1) {
+      L: case 0: continue D;
+      M: case 1: break;
+    }
+    throw 'T';
+  } while (0 == 1);
+}''');
+  }
+
+  void test_doStatement_continueInSwitch_and_throw() {
+    _assertFalse('''
+{
+  do {
+    switch (1) {
+      L: case 0: continue;
+      M: case 1: break;
+    }
+    throw 'T';
+  } while (0 == 1);
+}''');
+  }
+
+  void test_doStatement_return() {
+    _assertTrue("{ do { return null; } while (1 == 2); }");
+  }
+
   void test_doStatement_throwCondition() {
     _assertTrue("{ do {} while (throw ''); }");
   }
@@ -3381,6 +3563,10 @@ class ExitDetectorTest extends ParserTestCase {
 
   void test_doStatement_true_continue() {
     _assertTrue("{ do { continue; } while (true); }");
+  }
+
+  void test_doStatement_true_continueWithLabel() {
+    _assertTrue("{ x: do { continue x; } while (true); }");
   }
 
   void test_doStatement_true_if_return() {
@@ -3417,6 +3603,10 @@ class ExitDetectorTest extends ParserTestCase {
 
   void test_forStatement_implicitTrue_break() {
     _assertFalse("for (;;) { break; }");
+  }
+
+  void test_forStatement_implicitTrue_if_break() {
+    _assertFalse("{ for (;;) { if (1==2) { var a = 1; } else { break; } } }");
   }
 
   void test_forStatement_initialization() {
@@ -3643,6 +3833,19 @@ class ExitDetectorTest extends ParserTestCase {
     _assertTrue("switch (i) { case 0: case 1: return 0; default: return 1; }");
   }
 
+  // The ExitDetector could conceivably follow switch continue labels and
+  // determine that `case 0` exits, `case 1` continues to an exiting case, and
+  // `default` exits, so the switch exits.
+  @failingTest
+  void test_switch_includesContinue() {
+    _assertTrue('''
+switch (i) {
+  zero: case 0: return 0;
+  case 1: continue zero;
+  default: return 1;
+}''');
+  }
+
   void test_switch_noDefault() {
     _assertFalse("switch (i) { case 0: return 0; }");
   }
@@ -3663,16 +3866,85 @@ class ExitDetectorTest extends ParserTestCase {
     _assertFalse("try {} catch (e, s) {} finally {}");
   }
 
+  void test_tryStatement_noReturn_noFinally() {
+    _assertFalse("try {} catch (e, s) {}");
+  }
+
   void test_tryStatement_return_catch() {
     _assertFalse("try {} catch (e, s) { return 1; } finally {}");
+  }
+
+  void test_tryStatement_return_catch_noFinally() {
+    _assertFalse("try {} catch (e, s) { return 1; }");
   }
 
   void test_tryStatement_return_finally() {
     _assertTrue("try {} catch (e, s) {} finally { return 1; }");
   }
 
-  void test_tryStatement_return_try() {
-    _assertTrue("try { return 1; } catch (e, s) {} finally {}");
+  void test_tryStatement_return_try_noCatch() {
+    _assertTrue("try { return 1; } finally {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchDoesNotExit() {
+    _assertFalse("try { return 1; } catch (e, s) {} finally {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchDoesNotExit_noFinally() {
+    _assertFalse("try { return 1; } catch (e, s) {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchExits() {
+    _assertTrue("try { return 1; } catch (e, s) { return 1; } finally {}");
+  }
+
+  void test_tryStatement_return_try_oneCatchExits_noFinally() {
+    _assertTrue("try { return 1; } catch (e, s) { return 1; }");
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoExit() {
+    _assertTrue('''
+try { return 1; }
+on int catch (e, s) { return 1; }
+on String catch (e, s) { return 1; }
+finally {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoExit_noFinally() {
+    _assertTrue('''
+try { return 1; }
+on int catch (e, s) { return 1; }
+on String catch (e, s) { return 1; }''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoNotExit() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) {}
+finally {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesDoNotExit_noFinally() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesMixed() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) { return 1; }
+finally {}''');
+  }
+
+  void test_tryStatement_return_try_twoCatchesMixed_noFinally() {
+    _assertFalse('''
+try { return 1; }
+on int catch (e, s) {}
+on String catch (e, s) { return 1; }''');
   }
 
   void test_variableDeclarationStatement_noInitializer() {
@@ -3699,8 +3971,20 @@ class ExitDetectorTest extends ParserTestCase {
     _assertFalse("{ while (true) { break; } }");
   }
 
+  void test_whileStatement_true_break_and_throw() {
+    _assertFalse("{ while (true) { if (1==1) break; throw 'T'; } }");
+  }
+
   void test_whileStatement_true_continue() {
     _assertTrue("{ while (true) { continue; } }");
+  }
+
+  void test_whileStatement_true_continueWithLabel() {
+    _assertTrue("{ x: while (true) { continue x; } }");
+  }
+
+  void test_whileStatement_true_doStatement_scopeRequired() {
+    _assertTrue("{ while (true) { x: do { continue x; } while (true); } }");
   }
 
   void test_whileStatement_true_if_return() {
@@ -3724,7 +4008,8 @@ class ExitDetectorTest extends ParserTestCase {
   }
 
   void _assertHasReturn(bool expectedResult, String source) {
-    Statement statement = ParserTestCase.parseStatement(source);
+    Statement statement = ParserTestCase.parseStatement(
+        source, [], enableLazyAssignmentOperators);
     expect(ExitDetector.exits(statement), expectedResult);
   }
 
@@ -3740,6 +4025,20 @@ class ExitDetectorTest extends ParserTestCase {
  */
 @reflectiveTest
 class ExitDetectorTest2 extends ResolverTestCase {
+  void test_forStatement_implicitTrue_breakWithLabel() {
+    Source source = addSource(r'''
+void f() {
+  x: for (;;) {
+    if (1 < 2) {
+      break x;
+    }
+    return;
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
   void test_switch_withEnum_false_noDefault() {
     Source source = addSource(r'''
 enum E { A, B }
@@ -3754,12 +4053,7 @@ String f(E e) {
   return x;
 }
 ''');
-    LibraryElement element = resolve2(source);
-    CompilationUnit unit = resolveCompilationUnit(source, element);
-    FunctionDeclaration function = unit.declarations.last;
-    BlockFunctionBody body = function.functionExpression.body;
-    Statement statement = body.block.statements[1];
-    expect(ExitDetector.exits(statement), false);
+    _assertNthStatementDoesNotExit(source, 1);
   }
 
   void test_switch_withEnum_false_withDefault() {
@@ -3776,12 +4070,7 @@ String f(E e) {
   return x;
 }
 ''');
-    LibraryElement element = resolve2(source);
-    CompilationUnit unit = resolveCompilationUnit(source, element);
-    FunctionDeclaration function = unit.declarations.last;
-    BlockFunctionBody body = function.functionExpression.body;
-    Statement statement = body.block.statements[1];
-    expect(ExitDetector.exits(statement), false);
+    _assertNthStatementDoesNotExit(source, 1);
   }
 
   void test_switch_withEnum_true_noDefault() {
@@ -3796,15 +4085,10 @@ String f(E e) {
   }
 }
 ''');
-    LibraryElement element = resolve2(source);
-    CompilationUnit unit = resolveCompilationUnit(source, element);
-    FunctionDeclaration function = unit.declarations.last;
-    BlockFunctionBody body = function.functionExpression.body;
-    Statement statement = body.block.statements[0];
-    expect(ExitDetector.exits(statement), true);
+    _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_switch_withEnum_true_withDefault() {
+  void test_switch_withEnum_true_withExitingDefault() {
     Source source = addSource(r'''
 enum E { A, B }
 String f(E e) {
@@ -3816,12 +4100,122 @@ String f(E e) {
   }
 }
 ''');
+    _assertNthStatementExits(source, 0);
+  }
+
+  void test_switch_withEnum_true_withNonExitingDefault() {
+    Source source = addSource(r'''
+enum E { A, B }
+String f(E e) {
+  var x;
+  switch (e) {
+    case A:
+      return 'A';
+    default:
+      x = '?';
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 1);
+  }
+
+  void test_whileStatement_breakWithLabel() {
+    Source source = addSource(r'''
+void f() {
+  x: while (true) {
+    if (1 < 2) {
+      break x;
+    }
+    return;
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_whileStatement_breakWithLabel_afterExting() {
+    Source source = addSource(r'''
+void f() {
+  x: while (true) {
+    return;
+    if (1 < 2) {
+      break x;
+    }
+  }
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
+  void test_whileStatement_switchWithBreakWithLabel() {
+    Source source = addSource(r'''
+void f() {
+  x: while (true) {
+    switch (true) {
+      case false: break;
+      case true: break x;
+    }
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_yieldStatement_plain() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield 1;
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_yieldStatement_star_plain() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield* 1;
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_yieldStatement_star_throw() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield* throw '';
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
+  void test_yieldStatement_throw() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield throw '';
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
+  void _assertHasReturn(bool expectedResult, Source source, int n) {
     LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
-    Statement statement = body.block.statements[0];
-    expect(ExitDetector.exits(statement), true);
+    Statement statement = body.block.statements[n];
+    expect(ExitDetector.exits(statement), expectedResult);
+  }
+
+  // Assert that the [n]th statement in the last function declaration of
+  // [source] exits.
+  void _assertNthStatementDoesNotExit(Source source, int n) {
+    _assertHasReturn(false, source, n);
+  }
+
+  // Assert that the [n]th statement in the last function declaration of
+  // [source] does not exit.
+  void _assertNthStatementExits(Source source, int n) {
+    _assertHasReturn(true, source, n);
   }
 }
 
@@ -3892,7 +4286,8 @@ class FileBasedSourceTest {
   }
 
   void test_getEncoding() {
-    SourceFactory factory = new SourceFactory([new FileUriResolver()]);
+    SourceFactory factory = new SourceFactory(
+        [new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)]);
     String fullPath = "/does/not/exist.dart";
     JavaFile file = FileUtilities2.createFile(fullPath);
     FileBasedSource source = new FileBasedSource(file);
@@ -3921,9 +4316,7 @@ class FileBasedSourceTest {
   }
 
   void test_isInSystemLibrary_contagious() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     SourceFactory factory = new SourceFactory([resolver]);
     // resolve dart:core
@@ -3953,38 +4346,6 @@ class FileBasedSourceTest {
     expect(source.exists(), isFalse);
   }
 
-  void test_resolveRelative_dart_fileName() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("dart:test"));
-    expect(source, isNotNull);
-    Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "dart:test/lib.dart");
-  }
-
-  void test_resolveRelative_dart_filePath() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("dart:test"));
-    expect(source, isNotNull);
-    Uri relative =
-        source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "dart:test/c/lib.dart");
-  }
-
-  void test_resolveRelative_dart_filePathWithParent() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource(
-        file, parseUriWithException("dart:test/b/test.dart"));
-    expect(source, isNotNull);
-    Uri relative =
-        source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "dart:test/c/lib.dart");
-  }
-
   void test_resolveRelative_file_fileName() {
     if (OSUtilities.isWindows()) {
       // On Windows, the URI that is produced includes a drive letter,
@@ -3995,7 +4356,8 @@ class FileBasedSourceTest {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
-    Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
+    Uri relative =
+        resolveRelativeUri(source.uri, parseUriWithException("lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/b/lib.dart");
   }
@@ -4011,7 +4373,7 @@ class FileBasedSourceTest {
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
     Uri relative =
-        source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
+        resolveRelativeUri(source.uri, parseUriWithException("c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/b/c/lib.dart");
   }
@@ -4026,51 +4388,9 @@ class FileBasedSourceTest {
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
     Uri relative =
-        source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
+        resolveRelativeUri(source.uri, parseUriWithException("../c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/c/lib.dart");
-  }
-
-  void test_resolveRelative_package_fileName() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("package:b/test.dart"));
-    expect(source, isNotNull);
-    Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:b/lib.dart");
-  }
-
-  void test_resolveRelative_package_fileNameWithoutPackageName() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("package:test.dart"));
-    expect(source, isNotNull);
-    Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:lib.dart");
-  }
-
-  void test_resolveRelative_package_filePath() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("package:b/test.dart"));
-    expect(source, isNotNull);
-    Uri relative =
-        source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:b/c/lib.dart");
-  }
-
-  void test_resolveRelative_package_filePathWithParent() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource(
-        file, parseUriWithException("package:a/b/test.dart"));
-    expect(source, isNotNull);
-    Uri relative =
-        source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:a/c/lib.dart");
   }
 
   void test_system() {
@@ -4081,43 +4401,69 @@ class FileBasedSourceTest {
     expect(source.fullName, file.getAbsolutePath());
     expect(source.isInSystemLibrary, isTrue);
   }
+
+  DartSdk _createSdk() {
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    Folder sdkFolder = FolderBasedDartSdk.defaultSdkDirectory(resourceProvider);
+    expect(sdkFolder, isNotNull);
+    return new FolderBasedDartSdk(resourceProvider, sdkFolder);
+  }
 }
 
 @reflectiveTest
-class FileUriResolverTest {
-  void test_creation() {
-    expect(new FileUriResolver(), isNotNull);
+class ResolveRelativeUriTest {
+  void test_resolveRelative_dart_dartUri() {
+    _assertResolve('dart:foo', 'dart:bar', 'dart:bar');
   }
 
-  void test_resolve_file() {
-    UriResolver resolver = new FileUriResolver();
-    Source result = resolver
-        .resolveAbsolute(parseUriWithException("file:/does/not/exist.dart"));
+  void test_resolveRelative_dart_fileName() {
+    _assertResolve('dart:test', 'lib.dart', 'dart:test/lib.dart');
+  }
+
+  void test_resolveRelative_dart_filePath() {
+    _assertResolve('dart:test', 'c/lib.dart', 'dart:test/c/lib.dart');
+  }
+
+  void test_resolveRelative_dart_filePathWithParent() {
+    _assertResolve(
+        'dart:test/b/test.dart', '../c/lib.dart', 'dart:test/c/lib.dart');
+  }
+
+  void test_resolveRelative_package_dartUri() {
+    _assertResolve('package:foo/bar.dart', 'dart:test', 'dart:test');
+  }
+
+  void test_resolveRelative_package_emptyPath() {
+    _assertResolve('package:foo/bar.dart', '', 'package:foo/bar.dart');
+  }
+
+  void test_resolveRelative_package_fileName() {
+    _assertResolve('package:b/test.dart', 'lib.dart', 'package:b/lib.dart');
+  }
+
+  void test_resolveRelative_package_fileNameWithoutPackageName() {
+    _assertResolve('package:test.dart', 'lib.dart', 'package:lib.dart');
+  }
+
+  void test_resolveRelative_package_filePath() {
+    _assertResolve('package:b/test.dart', 'c/lib.dart', 'package:b/c/lib.dart');
+  }
+
+  void test_resolveRelative_package_filePathWithParent() {
+    _assertResolve(
+        'package:a/b/test.dart', '../c/lib.dart', 'package:a/c/lib.dart');
+  }
+
+  void _assertResolve(String baseStr, String containedStr, String expectedStr) {
+    Uri base = Uri.parse(baseStr);
+    Uri contained = Uri.parse(containedStr);
+    Uri result = resolveRelativeUri(base, contained);
     expect(result, isNotNull);
-    expect(result.fullName,
-        FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
-  }
-
-  void test_resolve_nonFile() {
-    UriResolver resolver = new FileUriResolver();
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("dart:core"));
-    expect(result, isNull);
-  }
-
-  void test_restore() {
-    UriResolver resolver = new FileUriResolver();
-    Uri uri = parseUriWithException('file:///foo/bar.dart');
-    Source source = resolver.resolveAbsolute(uri);
-    expect(source, isNotNull);
-    expect(resolver.restoreAbsolute(source), uri);
-    expect(
-        resolver.restoreAbsolute(
-            new NonExistingSource(source.fullName, null, null)),
-        uri);
+    expect(result.toString(), expectedStr);
   }
 }
 
+@deprecated
 @reflectiveTest
 class SDKLibrariesReaderTest extends EngineTestCase {
   void test_readFrom_dart2js() {

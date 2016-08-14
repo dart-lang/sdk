@@ -1,3 +1,27 @@
+## 0.27.4-alpha.19
+* Added support for running the dev compiler in the browser.
+
+## 0.27.4-alpha.18
+* Support for references to operators in doc comments (#26929).
+
+## 0.27.4-alpha.17
+* Support for trailing commas in parameter and argument lists (#26647).
+* Strong mode breaking change: can now infer generic type arguments from the constructor invocation arguments (#25220).
+
+## 0.27.4-alpha.16
+* (Internal) Corresponds with the analyzer/server in the `1.18.0-dev.4.0` SDK.
+
+## 0.27.4-alpha.9
+* Restore EmbedderUriResolver API.
+
+## 0.27.4-alpha.8
+* Ignore processing performance improvements.
+* EmbedderUriResolver API updates.
+
+## 0.27.4
+
+* Added support for 'analysis_options.yaml' files as an alternative to '.analysis_options' files.
+
 ## 0.27.1
 * Moved the public and private API's for the element model into their proper places.
 * Added back support for auto-processing of plugins.

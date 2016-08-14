@@ -5,37 +5,24 @@
 library dart2js.resolution.variables;
 
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
-import '../elements/modelx.dart' show
-    LocalVariableElementX,
-    VariableList;
+import '../common/resolution.dart';
+import '../elements/modelx.dart' show LocalVariableElementX, VariableList;
 import '../tree/tree.dart';
-import '../universe/use.dart' show
-    TypeUse;
-import '../util/util.dart' show
-    Link;
-
-import 'members.dart' show
-    ResolverVisitor;
-import 'registry.dart' show
-    ResolutionRegistry;
-import 'resolution_common.dart' show
-    CommonResolverVisitor;
-import 'scope.dart' show
-    VariableDefinitionScope;
+import '../universe/use.dart' show TypeUse;
+import '../util/util.dart' show Link;
+import 'members.dart' show ResolverVisitor;
+import 'registry.dart' show ResolutionRegistry;
+import 'resolution_common.dart' show CommonResolverVisitor;
+import 'scope.dart' show VariableDefinitionScope;
 
 class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
   VariableList variables;
 
-  VariableDefinitionsVisitor(Compiler compiler,
-                             this.definitions,
-                             this.resolver,
-                             this.variables)
-      : super(compiler) {
-  }
+  VariableDefinitionsVisitor(
+      Resolution resolution, this.definitions, this.resolver, this.variables)
+      : super(resolution);
 
   ResolutionRegistry get registry => resolver.registry;
 
@@ -47,9 +34,8 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
         new VariableDefinitionScope(resolver.scope, name);
     resolver.visitIn(node.arguments.head, scope);
     if (scope.variableReferencedInInitializer) {
-      reporter.reportErrorMessage(
-          identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
-          {'variableName': name});
+      reporter.reportErrorMessage(identifier,
+          MessageKind.REFERENCE_IN_INITIALIZATION, {'variableName': name});
     }
     return identifier;
   }
@@ -58,20 +44,17 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
     // The variable is initialized to null.
     // TODO(johnniwinther): Register a feature instead.
     registry.registerTypeUse(
-        new TypeUse.instantiation(compiler.coreTypes.nullType));
+        new TypeUse.instantiation(resolution.coreTypes.nullType));
     if (definitions.modifiers.isConst) {
       if (resolver.inLoopVariable) {
-        reporter.reportErrorMessage(
-            node, MessageKind.CONST_LOOP_VARIABLE);
+        reporter.reportErrorMessage(node, MessageKind.CONST_LOOP_VARIABLE);
       } else {
         reporter.reportErrorMessage(
             node, MessageKind.CONST_WITHOUT_INITIALIZER);
       }
     }
-    if (definitions.modifiers.isFinal &&
-        !resolver.inLoopVariable) {
-      reporter.reportErrorMessage(
-          node, MessageKind.FINAL_WITHOUT_INITIALIZER);
+    if (definitions.modifiers.isFinal && !resolver.inLoopVariable) {
+      reporter.reportErrorMessage(node, MessageKind.FINAL_WITHOUT_INITIALIZER);
     }
     return node;
   }
@@ -80,14 +63,13 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       Identifier name = visit(link.head);
       LocalVariableElementX element = new LocalVariableElementX(
-          name.source, resolver.enclosingElement,
-          variables, name.token);
+          name.source, resolver.enclosingElement, variables, name.token);
       resolver.defineLocalVariable(link.head, element);
       resolver.addToScope(element);
       if (definitions.modifiers.isConst) {
-        compiler.enqueuer.resolution.addDeferredAction(element, () {
+        addDeferredAction(element, () {
           element.constant =
-              compiler.resolver.constantCompiler.compileConstant(element);
+              resolution.resolver.constantCompiler.compileConstant(element);
         });
       }
     }

@@ -42,7 +42,7 @@ set DART2JS=%DART_ROOT%\pkg\compiler\lib\src\dart2js.dart
 rem DART_CONFIGURATION defaults to ReleaseX64
 if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseX64
 
-set BUILD_DIR=%DART_ROOT%\build\%DART_CONFIGURATION%
+set BUILD_DIR=%DART_ROOT%\out\%DART_CONFIGURATION%
 
 set PACKAGE_ROOT=%BUILD_DIR%\packages
 
@@ -57,7 +57,7 @@ setlocal
 for %%i in (%1) do set result=%%~fi
 set current=
 for /f "usebackq tokens=2 delims=[]" %%i in (`dir /a:l "%~dp1" 2^>nul ^
-                                             ^| find ">     %~n1 ["`) do (
+                                             ^| %SystemRoot%\System32\find.exe ">     %~n1 ["`) do (
   set current=%%i
 )
 if not "%current%"=="" call :follow_links "%current%", result

@@ -400,7 +400,7 @@ class HttpConnectionsInfo {
  * To set the value of a header use the `set()` method:
  *
  *     request.headers.set(HttpHeaders.CACHE_CONTROL,
-                           'max-age=3600, must-revalidate');
+ *                         'max-age=3600, must-revalidate');
  *
  * To retrieve the value of a header use the `value()` method:
  *
@@ -969,13 +969,13 @@ abstract class HttpRequest implements Stream<List<int>> {
   /**
    * The requested URI for the request.
    *
-   * The returend URI is reconstructed by using http-header fields, to access
+   * The returned URI is reconstructed by using http-header fields, to access
    * otherwise lost information, e.g. host and scheme.
    *
    * To reconstruct the scheme, first 'X-Forwarded-Proto' is checked, and then
    * falling back to server type.
    *
-   * To reconstruct the host, fisrt 'X-Forwarded-Host' is checked, then 'Host'
+   * To reconstruct the host, first 'X-Forwarded-Host' is checked, then 'Host'
    * and finally calling back to server.
    */
   Uri get requestedUri;
@@ -1660,7 +1660,7 @@ abstract class HttpClient {
    *
    * If a bad certificate is received on a connection attempt, the library calls
    * the function that was the value of badCertificateCallback at the time
-   * the the request is made, even if the value of badCertificateCallback
+   * the request is made, even if the value of badCertificateCallback
    * has changed since then.
    */
   set badCertificateCallback(bool callback(X509Certificate cert,

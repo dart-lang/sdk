@@ -2142,6 +2142,66 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     error: MessageKind.NO_SUPER_IN_STATIC,
                     index: '42',
                     operator: '--')),
+    const Test(
+        '''
+        m() => [][42] ??= 0;
+        ''',
+        const Visit(VisitKind.VISIT_INDEX_SET_IF_NULL,
+                    receiver: '[] ',
+                    index: '42',
+                    rhs: '0')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          m() => super[42] ??= 0;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_INDEX_SET_IF_NULL,
+                    getter: 'function(B#[])',
+                    setter: 'function(B#[]=)',
+                    index: '42',
+                    rhs: '0')),
+    const Test.clazz(
+        '''
+        class B {
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          m() => super[42] ??= 0;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_SET_IF_NULL,
+                    setter: 'function(B#[]=)',
+                    index: '42',
+                    rhs: '0')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+        }
+        class C extends B {
+          m() => super[42] ??= 0;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_SET_IF_NULL,
+                    getter: 'function(B#[])',
+                    index: '42',
+                    rhs: '0')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => super[42] ??= 0;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_SET_IF_NULL,
+                    index: '42',
+                    rhs: '0')),
   ],
   'Equals': const [
     // Equals
@@ -2642,8 +2702,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_COMPOUND,
             getter: 'field(A#a)', setter: 'setter(B#a)',
             operator: '+=', rhs: '42')),
-    // TODO(johnniwinther): Enable this when dart2js supports shadow setters.
-    /*const Test.clazz(
+    const Test.clazz(
         '''
         class A {
           var a;
@@ -2656,9 +2715,12 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => super.a += 42;
         }
         ''',
-        const Visit(VisitKind.VISIT_SUPER_FIELD_FIELD_COMPOUND,
-            getter: 'field(B#a)', setter: 'field(A#a)',
-            operator: '+=', rhs: '42')),*/
+        // TODO(johnniwinther): Change this to
+        // [VISIT_SUPER_FIELD_FIELD_COMPOUND] when dart2js supports shadow
+        // setters.
+        const Visit(VisitKind.VISIT_SUPER_FINAL_FIELD_COMPOUND,
+            element: 'field(B#a)',
+            operator: '+=', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -4377,8 +4439,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_SET_IF_NULL,
             getter: 'field(A#a)', setter: 'setter(B#a)',
             rhs: '42')),
-    // TODO(johnniwinther): Enable this when dart2js supports shadow setters.
-    /*const Test.clazz(
+    const Test.clazz(
         '''
         class A {
           var a;
@@ -4391,9 +4452,12 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => super.a ??= 42;
         }
         ''',
-        const Visit(VisitKind.VISIT_SUPER_FIELD_FIELD_SET_IF_NULL,
-            getter: 'field(B#a)', setter: 'field(A#a)',
-            rhs: '42')),*/
+        // TODO(johnniwinther): Change this to
+        // [VISIT_SUPER_FIELD_FIELD_SET_IF_NULL] when dart2js supports shadow
+        // setters.
+        const Visit(VisitKind.VISIT_SUPER_FINAL_FIELD_SET_IF_NULL,
+            element: 'field(B#a)',
+            rhs: '42')),
     const Test.clazz(
         '''
         class B {

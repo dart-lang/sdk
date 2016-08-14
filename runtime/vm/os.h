@@ -25,8 +25,9 @@ class OS {
   // Returns the current process id.
   static intptr_t ProcessId();
 
-  // Returns the abbreviated time-zone name for the given instant.
-  // For example "CET" or "CEST".
+  // Returns a time-zone name for the given instant.
+  // The name is provided by the underlying platform.
+  // The returned string may be Zone allocated.
   static const char* GetTimeZoneName(int64_t seconds_since_epoch);
 
   // Returns the difference in seconds between local time and UTC for the given
@@ -55,6 +56,13 @@ class OS {
 
   // Returns the frequency of the monotonic clock.
   static int64_t GetCurrentMonotonicFrequency();
+
+  // Returns the value of current thread's CPU usage clock in microseconds.
+  // NOTE: This clock will return different values depending on the calling
+  // thread. It is only expected to increase in value as the thread uses
+  // CPU time.
+  // NOTE: This function will return -1 on OSs that are not supported.
+  static int64_t GetCurrentThreadCPUMicros();
 
   // Returns a cleared aligned array of type T with n entries.
   // Alignment must be >= 16 and a power of two.
@@ -103,6 +111,7 @@ class OS {
 
   // Not all platform support strndup.
   static char* StrNDup(const char* s, intptr_t n);
+  static intptr_t StrNLen(const char* s, intptr_t n);
 
   // Print formatted output to stdout/stderr for debugging.
   static void Print(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);

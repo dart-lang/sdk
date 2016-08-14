@@ -5,25 +5,28 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_MACOS)
 
-#include <mach-o/dyld.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
-
-#include "bin/file.h"
 #include "bin/platform.h"
 
 #if !TARGET_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif  // !TARGET_OS_IOS
+#include <mach-o/dyld.h>
 #include <signal.h>  // NOLINT
 #include <string.h>  // NOLINT
+#include <sys/sysctl.h>  // NOLINT
+#include <sys/types.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
 #include "bin/fdutils.h"
-
+#include "bin/file.h"
 
 namespace dart {
 namespace bin {
+
+const char* Platform::executable_name_ = NULL;
+char* Platform::resolved_executable_name_ = NULL;
+int Platform::script_index_ = 1;
+char** Platform::argv_ = NULL;
 
 bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
@@ -61,6 +64,11 @@ const char* Platform::OperatingSystem() {
 }
 
 
+const char* Platform::LibraryPrefix() {
+  return "lib";
+}
+
+
 const char* Platform::LibraryExtension() {
   return "dylib";
 }
@@ -73,14 +81,16 @@ bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
 
 char** Platform::Environment(intptr_t* count) {
 #if TARGET_OS_IOS
-  // TODO(iposva): On Mac (desktop), _NSGetEnviron() is used to access the
-  // environ from shared libraries or bundles. This is present in crt_externs.h
-  // which is unavailable on iOS. On iOS, everything is statically linked for
-  // now. So arguably, accessing the environ directly with a "extern char
-  // **environ" will work. But this approach is brittle as the target with this
-  // CU could be a dynamic framework (introduced in iOS 8). A more elegant
-  // approach needs to be devised.
-  return NULL;
+  // TODO(zra,chinmaygarde): On iOS, environment variables are seldom used. Wire
+  // this up if someone needs it. In the meantime, we return an empty array.
+  char** result;
+  result = reinterpret_cast<char**>(Dart_ScopeAllocate(1 * sizeof(*result)));
+  if (result == NULL) {
+    return NULL;
+  }
+  result[0] = NULL;
+  *count = 0;
+  return result;
 #else
   // Using environ directly is only safe as long as we do not
   // provide access to modifying environment variables.
@@ -89,9 +99,12 @@ char** Platform::Environment(intptr_t* count) {
   char** environ = *(_NSGetEnviron());
   intptr_t i = 0;
   char** tmp = environ;
-  while (*(tmp++) != NULL) i++;
+  while (*(tmp++) != NULL) {
+    i++;
+  }
   *count = i;
-  char** result = new char*[i];
+  char** result;
+  result = reinterpret_cast<char**>(Dart_ScopeAllocate(i * sizeof(*result)));
   for (intptr_t current = 0; current < i; current++) {
     result[current] = environ[current];
   }
@@ -100,29 +113,22 @@ char** Platform::Environment(intptr_t* count) {
 }
 
 
-void Platform::FreeEnvironment(char** env, intptr_t count) {
-  delete[] env;
-}
-
-
-char* Platform::ResolveExecutablePath() {
+const char* Platform::ResolveExecutablePath() {
   // Get the required length of the buffer.
   uint32_t path_size = 0;
-  char* path = NULL;
-  if (_NSGetExecutablePath(path, &path_size) == 0) {
+  if (_NSGetExecutablePath(NULL, &path_size) == 0) {
     return NULL;
   }
   // Allocate buffer and get executable path.
-  path = reinterpret_cast<char*>(malloc(path_size));
+  char* path = DartUtils::ScopedCString(path_size);
   if (_NSGetExecutablePath(path, &path_size) != 0) {
-    free(path);
     return NULL;
   }
   // Return the canonical path as the returned path might contain symlinks.
-  char* canon_path = File::GetCanonicalPath(path);
-  free(path);
+  const char* canon_path = File::GetCanonicalPath(path);
   return canon_path;
 }
+
 
 void Platform::Exit(int exit_code) {
   exit(exit_code);

@@ -30,7 +30,6 @@
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
     'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
-    'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
     'vmservice_cc_file': '<(gen_source_dir)/vmservice_gen.cc',
     'vmservice_patch_cc_file': '<(gen_source_dir)/vmservice_patch_gen.cc',
   },
@@ -234,7 +233,6 @@
         'generate_mirrors_patch_cc_file#host',
         'generate_profiler_cc_file#host',
         'generate_typed_data_cc_file#host',
-        'generate_typed_data_patch_cc_file#host',
         'generate_vmservice_cc_file#host',
         'generate_vmservice_patch_cc_file#host',
       ],
@@ -273,7 +271,6 @@
         '<(mirrors_patch_cc_file)',
         '<(profiler_cc_file)',
         '<(typed_data_cc_file)',
-        '<(typed_data_patch_cc_file)',
         '<(vmservice_cc_file)',
         '<(vmservice_patch_cc_file)',
       ],
@@ -974,8 +971,8 @@
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        # Load the shared library sources.
-        '../../sdk/lib/typed_data/typed_data_sources.gypi',
+        # Load the runtime implementation sources.
+        '../lib/typed_data_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -1006,46 +1003,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(typed_data_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_typed_data_patch_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the runtime implementation sources.
-        '../lib/typed_data_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_typed_data_patch_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(typed_data_patch_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(typed_data_patch_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::typed_data_patch_paths_',
-            '--library_name', 'dart:typed_data',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(typed_data_patch_cc_file)'' file.'
         },
       ]
     },

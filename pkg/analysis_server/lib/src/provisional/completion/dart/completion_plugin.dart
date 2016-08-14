@@ -24,6 +24,7 @@ import 'package:analysis_server/src/services/completion/dart/named_constructor_c
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
 import 'package:plugin/plugin.dart';
 
 /**
@@ -49,23 +50,24 @@ class DartCompletionPlugin implements Plugin {
    * The extension point that allows plugins to register Dart specific
    * completion contributor factories.
    */
-  ExtensionPoint _contributorExtensionPoint;
-
-  @override
-  String get uniqueIdentifier => UNIQUE_IDENTIFIER;
+  ExtensionPoint<DartCompletionContributorFactory> _contributorExtensionPoint;
 
   /**
    * Return a list containing all of the Dart specific completion contributors.
    */
   Iterable<DartCompletionContributor> get contributors =>
-      _contributorExtensionPoint.extensions
-          .map((DartCompletionContributorFactory factory) => factory());
+      _contributorExtensionPoint.extensions.map(
+          (Object factory) => (factory as DartCompletionContributorFactory)());
+
+  @override
+  String get uniqueIdentifier => UNIQUE_IDENTIFIER;
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
-    _contributorExtensionPoint = registerExtensionPoint(
-        CONTRIBUTOR_EXTENSION_POINT,
-        _validateDartCompletionContributorExtension);
+    _contributorExtensionPoint =
+        new ExtensionPoint<DartCompletionContributorFactory>(
+            this, CONTRIBUTOR_EXTENSION_POINT, null);
+    registerExtensionPoint(_contributorExtensionPoint);
   }
 
   @override
@@ -115,17 +117,7 @@ class DartCompletionPlugin implements Plugin {
         () => new TypeMemberContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new UriContributor());
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid Dart specific completion contributor.
-   */
-  void _validateDartCompletionContributorExtension(Object extension) {
-    if (extension is! DartCompletionContributorFactory) {
-      String id = _contributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be a DartCompletionContributorFactory');
-    }
+    registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+        () => new VariableNameContributor());
   }
 }

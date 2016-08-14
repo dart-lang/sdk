@@ -131,6 +131,7 @@ class _ConstEnumSet<E> extends EnumSet<E> {
         value |= 1 << (enumValue as dynamic).index;
       }
     }
+
     values.forEach(add);
     return new _ConstEnumSet(value);
   }

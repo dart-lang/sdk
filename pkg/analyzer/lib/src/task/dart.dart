@@ -16,8 +16,10 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -34,6 +36,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -45,20 +48,56 @@ import 'package:analyzer/task/model.dart';
 /**
  * The [ResultCachingPolicy] for ASTs.
  */
-const ResultCachingPolicy AST_CACHING_POLICY =
-    const SimpleResultCachingPolicy(8192, 8192);
+const ResultCachingPolicy<CompilationUnit> AST_CACHING_POLICY =
+    const SimpleResultCachingPolicy(16384, 16384);
+
+/**
+ * The [ResultCachingPolicy] for ASTs that can be reused when a library
+ * on which the source depends is changed.  It is worth to keep some number
+ * of these ASTs in memory in order to avoid parsing sources.  In contrast,
+ * none of [AST_CACHING_POLICY] managed ASTs can be reused after a change, so
+ * it is worth to keep them in memory while analysis is being performed, but
+ * once analysis is done, they can be flushed.
+ */
+const ResultCachingPolicy<CompilationUnit> AST_REUSABLE_CACHING_POLICY =
+    const SimpleResultCachingPolicy(1024, 1024);
+
+/**
+ * The [ResultCachingPolicy] for lists of [ConstantEvaluationTarget]s.
+ */
+const ResultCachingPolicy<List<ConstantEvaluationTarget>>
+    CONSTANT_EVALUATION_TARGET_LIST_POLICY =
+    const SimpleResultCachingPolicy(-1, -1);
+
+/**
+ * The [ResultCachingPolicy] for [ConstantEvaluationTarget]s.
+ */
+const ResultCachingPolicy<ConstantEvaluationTarget>
+    CONSTANT_EVALUATION_TARGET_POLICY = const SimpleResultCachingPolicy(-1, -1);
 
 /**
  * The [ResultCachingPolicy] for [Element]s.
  */
-const ResultCachingPolicy ELEMENT_CACHING_POLICY =
+const ResultCachingPolicy<Element> ELEMENT_CACHING_POLICY =
     const SimpleResultCachingPolicy(-1, -1);
 
 /**
  * The [ResultCachingPolicy] for [TOKEN_STREAM].
  */
-const ResultCachingPolicy TOKEN_STREAM_CACHING_POLICY =
+const ResultCachingPolicy<Token> TOKEN_STREAM_CACHING_POLICY =
     const SimpleResultCachingPolicy(1, 1);
+
+/**
+ * The [ResultCachingPolicy] for [UsedImportedElements]s.
+ */
+const ResultCachingPolicy<UsedImportedElements> USED_IMPORTED_ELEMENTS_POLICY =
+    const SimpleResultCachingPolicy(-1, -1);
+
+/**
+ * The [ResultCachingPolicy] for [UsedLocalElements]s.
+ */
+const ResultCachingPolicy<UsedLocalElements> USED_LOCAL_ELEMENTS_POLICY =
+    const SimpleResultCachingPolicy(-1, -1);
 
 /**
  * The errors produced while resolving a library directives.
@@ -94,7 +133,7 @@ final ListResultDescriptor<ConstantEvaluationTarget>
     COMPILATION_UNIT_CONSTANTS =
     new ListResultDescriptor<ConstantEvaluationTarget>(
         'COMPILATION_UNIT_CONSTANTS', null,
-        cachingPolicy: ELEMENT_CACHING_POLICY);
+        cachingPolicy: CONSTANT_EVALUATION_TARGET_LIST_POLICY);
 
 /**
  * The element model associated with a single compilation unit.
@@ -151,7 +190,7 @@ final ListResultDescriptor<ConstantEvaluationTarget>
  */
 final ResultDescriptor<ConstantEvaluationTarget> CONSTANT_VALUE =
     new ResultDescriptor<ConstantEvaluationTarget>('CONSTANT_VALUE', null,
-        cachingPolicy: ELEMENT_CACHING_POLICY);
+        cachingPolicy: CONSTANT_EVALUATION_TARGET_POLICY);
 
 /**
  * The sources representing the libraries that include a given source as a part.
@@ -196,6 +235,24 @@ final ResultDescriptor<bool> CREATED_RESOLVED_UNIT10 =
  */
 final ResultDescriptor<bool> CREATED_RESOLVED_UNIT11 =
     new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT11', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT12] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT12 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT12', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT13] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT13 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT13', false);
 
 /**
  * The flag specifying that [RESOLVED_UNIT2] has been been computed for this
@@ -270,6 +327,33 @@ final ResultDescriptor<bool> CREATED_RESOLVED_UNIT9 =
     new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT9', false);
 
 /**
+ * All [AnalysisError]s results for [Source]s.
+ */
+final List<ListResultDescriptor<AnalysisError>> ERROR_SOURCE_RESULTS =
+    <ListResultDescriptor<AnalysisError>>[
+  BUILD_DIRECTIVES_ERRORS,
+  BUILD_LIBRARY_ERRORS,
+  PARSE_ERRORS,
+  SCAN_ERRORS,
+];
+
+/**
+ * All [AnalysisError]s results in for [LibrarySpecificUnit]s.
+ */
+final List<ListResultDescriptor<AnalysisError>> ERROR_UNIT_RESULTS =
+    <ListResultDescriptor<AnalysisError>>[
+  HINTS,
+  LIBRARY_UNIT_ERRORS,
+  LINTS,
+  RESOLVE_TYPE_BOUNDS_ERRORS,
+  RESOLVE_TYPE_NAMES_ERRORS,
+  RESOLVE_UNIT_ERRORS,
+  STRONG_MODE_ERRORS,
+  VARIABLE_REFERENCE_ERRORS,
+  VERIFY_ERRORS
+];
+
+/**
  * The sources representing the export closure of a library.
  * The [Source]s include only library sources, not their units.
  *
@@ -288,6 +372,12 @@ final ListResultDescriptor<Source> EXPORT_SOURCE_CLOSURE =
 final ListResultDescriptor<AnalysisError> HINTS =
     new ListResultDescriptor<AnalysisError>(
         'HINT_ERRORS', AnalysisError.NO_ERRORS);
+
+/**
+ * The ignore information for a [Source].
+ */
+final ResultDescriptor<IgnoreInfo> IGNORE_INFO =
+    new ResultDescriptor<IgnoreInfo>('IGNORE_INFO', null);
 
 /**
  * A list of the [VariableElement]s whose type should be inferred that another
@@ -330,7 +420,7 @@ final ResultDescriptor<VariableElement> INFERRED_STATIC_VARIABLE =
  *
  * Only non-empty in strongMode.
  *
- * The result is only available for [LibrarySpecificUnit]s.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<LibraryElement> LIBRARY_CYCLE =
     new ListResultDescriptor<LibraryElement>('LIBRARY_CYCLE', null);
@@ -342,7 +432,7 @@ final ListResultDescriptor<LibraryElement> LIBRARY_CYCLE =
  *
  * Only non-empty in strongMode.
  *
- * The result is only available for [LibrarySpecificUnit]s.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<CompilationUnitElement> LIBRARY_CYCLE_DEPENDENCIES =
     new ListResultDescriptor<CompilationUnitElement>(
@@ -355,7 +445,7 @@ final ListResultDescriptor<CompilationUnitElement> LIBRARY_CYCLE_DEPENDENCIES =
  *
  * Only non-empty in strongMode.
  *
- * The result is only available for [LibrarySpecificUnit]s.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<CompilationUnitElement> LIBRARY_CYCLE_UNITS =
     new ListResultDescriptor<CompilationUnitElement>(
@@ -376,7 +466,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
 /**
  * The partial [LibraryElement] associated with a library.
  *
- * In addition to [LIBRARY_ELEMENT1] [LibraryElement.imports] and
+ * In addition to [LIBRARY_ELEMENT1] also [LibraryElement.imports] and
  * [LibraryElement.exports] are set.
  *
  * The result is only available for [Source]s representing a library.
@@ -414,7 +504,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT4 =
 /**
  * The partial [LibraryElement] associated with a library.
  *
- * [LIBRARY_ELEMENT4] plus resolved types for every element.
+ * [LIBRARY_ELEMENT5] plus resolved types type parameter bounds.
  *
  * The result is only available for [Source]s representing a library.
  */
@@ -425,7 +515,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT5 =
 /**
  * The partial [LibraryElement] associated with a library.
  *
- * [LIBRARY_ELEMENT5] plus propagated types for propagable variables.
+ * [LIBRARY_ELEMENT5] plus resolved types for every element.
  *
  * The result is only available for [Source]s representing a library.
  */
@@ -436,7 +526,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT6 =
 /**
  * The partial [LibraryElement] associated with a library.
  *
- * [LIBRARY_ELEMENT6] for the library and its import/export closure.
+ * [LIBRARY_ELEMENT6] plus propagated types for propagable variables.
  *
  * The result is only available for [Source]s representing a library.
  */
@@ -447,13 +537,41 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT7 =
 /**
  * The partial [LibraryElement] associated with a library.
  *
- * The same as a [LIBRARY_ELEMENT7].
+ * [LIBRARY_ELEMENT7] for the library and its import/export closure.
  *
  * The result is only available for [Source]s representing a library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT8 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT8', null,
         cachingPolicy: ELEMENT_CACHING_POLICY);
+
+/**
+ * The partial [LibraryElement] associated with a library.
+ *
+ * The same as a [LIBRARY_ELEMENT8].
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT9 =
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT9', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
+
+/**
+ * List of all `LIBRARY_ELEMENT` results.
+ */
+final List<ResultDescriptor<LibraryElement>> LIBRARY_ELEMENT_RESULTS =
+    <ResultDescriptor<LibraryElement>>[
+  LIBRARY_ELEMENT1,
+  LIBRARY_ELEMENT2,
+  LIBRARY_ELEMENT3,
+  LIBRARY_ELEMENT4,
+  LIBRARY_ELEMENT5,
+  LIBRARY_ELEMENT6,
+  LIBRARY_ELEMENT7,
+  LIBRARY_ELEMENT8,
+  LIBRARY_ELEMENT9,
+  LIBRARY_ELEMENT
+];
 
 /**
  * The flag specifying whether all analysis errors are computed in a specific
@@ -508,6 +626,15 @@ final ListResultDescriptor<AnalysisError> PARSE_ERRORS =
         'PARSE_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
+ * The list of [PendingError]s for a compilation unit.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ListResultDescriptor<PendingError> PENDING_ERRORS =
+    new ListResultDescriptor<PendingError>(
+        'PENDING_ERRORS', const <PendingError>[]);
+
+/**
  * A list of the [VariableElement]s whose type should be known to propagate
  * the type of another variable (the target).
  *
@@ -547,15 +674,6 @@ final ResultDescriptor<bool> READY_LIBRARY_ELEMENT2 =
     new ResultDescriptor<bool>('READY_LIBRARY_ELEMENT2', false);
 
 /**
- * The flag specifying that [LIBRARY_ELEMENT5] is ready for a library and its
- * import/export closure.
- *
- * The result is only available for [Source]s representing a library.
- */
-final ResultDescriptor<bool> READY_LIBRARY_ELEMENT5 =
-    new ResultDescriptor<bool>('READY_LIBRARY_ELEMENT5', false);
-
-/**
  * The flag specifying that [LIBRARY_ELEMENT6] is ready for a library and its
  * import/export closure.
  *
@@ -563,6 +681,15 @@ final ResultDescriptor<bool> READY_LIBRARY_ELEMENT5 =
  */
 final ResultDescriptor<bool> READY_LIBRARY_ELEMENT6 =
     new ResultDescriptor<bool>('READY_LIBRARY_ELEMENT6', false);
+
+/**
+ * The flag specifying that [LIBRARY_ELEMENT7] is ready for a library and its
+ * import/export closure.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ResultDescriptor<bool> READY_LIBRARY_ELEMENT7 =
+    new ResultDescriptor<bool>('READY_LIBRARY_ELEMENT7', false);
 
 /**
  * The flag specifying that [RESOLVED_UNIT] is ready for all of the units of a
@@ -580,6 +707,38 @@ final ResultDescriptor<bool> READY_RESOLVED_UNIT =
  */
 final ResultDescriptor<ReferencedNames> REFERENCED_NAMES =
     new ResultDescriptor<ReferencedNames>('REFERENCED_NAMES', null);
+
+/**
+ * The sources of the Dart files that a library references.
+ *
+ * The list is the union of [IMPORTED_LIBRARIES], [EXPORTED_LIBRARIES] and
+ * [UNITS] of the defining unit and [INCLUDED_PARTS]. Never empty or `null`.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ListResultDescriptor<Source> REFERENCED_SOURCES =
+    new ListResultDescriptor<Source>('REFERENCED_SOURCES', Source.EMPTY_LIST);
+
+/**
+ * The list of [ConstantEvaluationTarget]s on which error verification depends.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ListResultDescriptor<ConstantEvaluationTarget> REQUIRED_CONSTANTS =
+    new ListResultDescriptor<ConstantEvaluationTarget>(
+        'REQUIRED_CONSTANTS', const <ConstantEvaluationTarget>[]);
+
+/**
+ * The errors produced while resolving bounds of type parameters of classes,
+ * class and function aliases.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ListResultDescriptor<AnalysisError> RESOLVE_TYPE_BOUNDS_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
+        'RESOLVE_TYPE_BOUNDS_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
  * The errors produced while resolving type names.
@@ -614,11 +773,14 @@ final ListResultDescriptor<AnalysisError> RESOLVE_UNIT_ERRORS =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT1 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT1', null,
-        cachingPolicy: AST_CACHING_POLICY);
+        cachingPolicy: AST_REUSABLE_CACHING_POLICY);
 
 /**
- * The resolved [CompilationUnit] associated with a compilation unit, with
- * constants not yet resolved.
+ * The partially resolved [CompilationUnit] associated with a compilation unit.
+ *
+ * In addition to what is true of a [RESOLVED_UNIT9], tasks that use this value
+ * as an input can assume that the initializers of instance variables have been
+ * re-resolved.
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
@@ -627,13 +789,46 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT10 =
         cachingPolicy: AST_CACHING_POLICY);
 
 /**
- * The resolved [CompilationUnit] associated with a compilation unit, with
- * constants resolved.
+ * The resolved [CompilationUnit] associated with a compilation unit in which
+ * the types of class members have been inferred in addition to everything that
+ * is true of a [RESOLVED_UNIT10].
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT11 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT11', null,
+        cachingPolicy: AST_CACHING_POLICY);
+
+/**
+ * The resolved [CompilationUnit] associated with a compilation unit, with
+ * constants not yet resolved.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT12 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT12', null,
+        cachingPolicy: AST_CACHING_POLICY);
+
+/**
+ * The resolved [CompilationUnit] associated with a compilation unit, with
+ * constants resolved.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT13 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT13', null,
+        cachingPolicy: AST_CACHING_POLICY);
+
+/**
+ * The partially resolved [CompilationUnit] associated with a compilation unit.
+ *
+ * In addition to what is true of a [RESOLVED_UNIT1], tasks that use this value
+ * as an input can assume that its directives have been resolved.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT2', null,
         cachingPolicy: AST_CACHING_POLICY);
 
 /**
@@ -645,20 +840,6 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT11 =
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
-final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
-    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT2', null,
-        cachingPolicy: AST_CACHING_POLICY);
-
-/**
- * The partially resolved [CompilationUnit] associated with a compilation unit.
- *
- * In addition to what is true of a [RESOLVED_UNIT2], tasks that use this value
- * as an input can assume that the types associated with declarations have been
- * resolved. This includes the types of superclasses, mixins, interfaces,
- * fields, return types, parameters, and local variables.
- *
- * The result is only available for [LibrarySpecificUnit]s.
- */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT3', null,
         cachingPolicy: AST_CACHING_POLICY);
@@ -667,8 +848,8 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
  * The partially resolved [CompilationUnit] associated with a compilation unit.
  *
  * In addition to what is true of a [RESOLVED_UNIT3], tasks that use this value
- * as an input can assume that references to local variables and formal
- * parameters have been resolved.
+ * as an input can assume that the types associated with type bounds have been
+ * resolved.
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
@@ -680,9 +861,9 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
  * The partially resolved [CompilationUnit] associated with a compilation unit.
  *
  * In addition to what is true of a [RESOLVED_UNIT4], tasks that use this value
- * as an input can assume that elements and types associated with expressions
- * outside of method bodies (essentially initializers) have been initially
- * resolved.
+ * as an input can assume that the types associated with declarations have been
+ * resolved. This includes the types of superclasses, mixins, interfaces,
+ * fields, return types, parameters, and local variables.
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
@@ -694,8 +875,8 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT5 =
  * The partially resolved [CompilationUnit] associated with a compilation unit.
  *
  * In addition to what is true of a [RESOLVED_UNIT5], tasks that use this value
- * as an input can assume that the types of final variables have been
- * propagated.
+ * as an input can assume that references to local variables and formal
+ * parameters have been resolved.
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
@@ -707,7 +888,9 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT6 =
  * The partially resolved [CompilationUnit] associated with a compilation unit.
  *
  * In addition to what is true of a [RESOLVED_UNIT6], tasks that use this value
- * as an input can assume that the types of static variables have been inferred.
+ * as an input can assume that elements and types associated with expressions
+ * outside of method bodies (essentially initializers) have been initially
+ * resolved.
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
@@ -719,8 +902,8 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT7 =
  * The partially resolved [CompilationUnit] associated with a compilation unit.
  *
  * In addition to what is true of a [RESOLVED_UNIT7], tasks that use this value
- * as an input can assume that the initializers of instance variables have been
- * re-resolved.
+ * as an input can assume that the types of final variables have been
+ * propagated.
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
@@ -729,15 +912,37 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT8 =
         cachingPolicy: AST_CACHING_POLICY);
 
 /**
- * The resolved [CompilationUnit] associated with a compilation unit in which
- * the types of class members have been inferred in addition to everything that
- * is true of a [RESOLVED_UNIT8].
+ * The partially resolved [CompilationUnit] associated with a compilation unit.
+ *
+ * In addition to what is true of a [RESOLVED_UNIT8], tasks that use this value
+ * as an input can assume that the types of static variables have been inferred.
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT9 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT9', null,
         cachingPolicy: AST_CACHING_POLICY);
+
+/**
+ * List of all `RESOLVED_UNITx` results.
+ */
+final List<ResultDescriptor<CompilationUnit>> RESOLVED_UNIT_RESULTS =
+    <ResultDescriptor<CompilationUnit>>[
+  RESOLVED_UNIT1,
+  RESOLVED_UNIT2,
+  RESOLVED_UNIT3,
+  RESOLVED_UNIT4,
+  RESOLVED_UNIT5,
+  RESOLVED_UNIT6,
+  RESOLVED_UNIT7,
+  RESOLVED_UNIT8,
+  RESOLVED_UNIT9,
+  RESOLVED_UNIT10,
+  RESOLVED_UNIT11,
+  RESOLVED_UNIT12,
+  RESOLVED_UNIT13,
+  RESOLVED_UNIT
+];
 
 /**
  * The errors produced while scanning a compilation unit.
@@ -749,6 +954,28 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT9 =
 final ListResultDescriptor<AnalysisError> SCAN_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'SCAN_ERRORS', AnalysisError.NO_ERRORS);
+
+/**
+ * The errors produced while resolving a static [VariableElement] initializer.
+ *
+ * The result is only available for [VariableElement]s, and only when strong
+ * mode is enabled.
+ */
+final ListResultDescriptor<AnalysisError> STATIC_VARIABLE_RESOLUTION_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
+        'STATIC_VARIABLE_RESOLUTION_ERRORS', AnalysisError.NO_ERRORS);
+
+/**
+ * A list of the [AnalysisError]s reported while resolving static
+ * [INFERABLE_STATIC_VARIABLES_IN_UNIT] defined in a unit.
+ *
+ * The result is only available for [LibrarySpecificUnit]s, and only when strong
+ * mode is enabled.
+ */
+final ListResultDescriptor<AnalysisError>
+    STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT =
+    new ListResultDescriptor<AnalysisError>(
+        'STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT', null);
 
 /**
  * The additional strong mode errors produced while verifying a
@@ -775,14 +1002,14 @@ final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
  */
 final ResultDescriptor<UsedImportedElements> USED_IMPORTED_ELEMENTS =
     new ResultDescriptor<UsedImportedElements>('USED_IMPORTED_ELEMENTS', null,
-        cachingPolicy: ELEMENT_CACHING_POLICY);
+        cachingPolicy: USED_IMPORTED_ELEMENTS_POLICY);
 
 /**
  * The [UsedLocalElements] of a [LibrarySpecificUnit].
  */
 final ResultDescriptor<UsedLocalElements> USED_LOCAL_ELEMENTS =
     new ResultDescriptor<UsedLocalElements>('USED_LOCAL_ELEMENTS', null,
-        cachingPolicy: ELEMENT_CACHING_POLICY);
+        cachingPolicy: USED_LOCAL_ELEMENTS_POLICY);
 
 /**
  * The errors produced while resolving variable references in a compilation unit.
@@ -897,12 +1124,10 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     //
     // Prepare constants.
     //
-    ConstantFinder constantFinder =
-        new ConstantFinder(context, source, librarySpecificUnit.library);
+    ConstantFinder constantFinder = new ConstantFinder();
     unit.accept(constantFinder);
     List<ConstantEvaluationTarget> constants =
-        new List<ConstantEvaluationTarget>.from(
-            constantFinder.constantsToCompute);
+        constantFinder.constantsToCompute.toList();
     //
     // Record outputs.
     //
@@ -947,6 +1172,12 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
    * The name of the input for [RESOLVED_UNIT1] of a library unit.
    */
   static const String UNIT_INPUT_NAME = 'UNIT_INPUT_NAME';
+
+  /**
+   * The input with a map from referenced sources to their modification times.
+   */
+  static const String SOURCES_MODIFICATION_TIME_INPUT_NAME =
+      'SOURCES_MODIFICATION_TIME_INPUT_NAME';
 
   /**
    * The input with a list of [LIBRARY_ELEMENT3]s of imported libraries.
@@ -995,6 +1226,8 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     //
     LibraryElementImpl libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit libraryUnit = getRequiredInput(UNIT_INPUT_NAME);
+    Map<Source, int> sourceModificationTimeMap =
+        getRequiredInput(SOURCES_MODIFICATION_TIME_INPUT_NAME);
     Map<Source, LibraryElement> importLibraryMap =
         getRequiredInput(IMPORTS_LIBRARY_ELEMENT_INPUT_NAME);
     Map<Source, LibraryElement> exportLibraryMap =
@@ -1026,6 +1259,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
       DirectiveElementBuilder builder = new DirectiveElementBuilder(
           context,
           libraryElement,
+          sourceModificationTimeMap,
           importLibraryMap,
           importSourceKindMap,
           exportLibraryMap,
@@ -1057,6 +1291,8 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
       LIBRARY_INPUT: LIBRARY_ELEMENT1.of(source),
       UNIT_INPUT_NAME:
           RESOLVED_UNIT1.of(new LibrarySpecificUnit(source, source)),
+      SOURCES_MODIFICATION_TIME_INPUT_NAME:
+          REFERENCED_SOURCES.of(source).toMapOf(MODIFICATION_TIME),
       IMPORTS_LIBRARY_ELEMENT_INPUT_NAME:
           IMPORTED_LIBRARIES.of(source).toMapOf(LIBRARY_ELEMENT1),
       EXPORTS_LIBRARY_ELEMENT_INPUT_NAME:
@@ -1100,7 +1336,7 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
       'BuildEnumMemberElementsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[CREATED_RESOLVED_UNIT2, RESOLVED_UNIT2]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT3, RESOLVED_UNIT3]);
 
   BuildEnumMemberElementsTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -1120,13 +1356,17 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
     // Build the enum members if they have not already been created.
     //
     EnumDeclaration findFirstEnum() {
-      for (CompilationUnitMember member in unit.declarations) {
+      NodeList<CompilationUnitMember> members = unit.declarations;
+      int length = members.length;
+      for (int i = 0; i < length; i++) {
+        CompilationUnitMember member = members[i];
         if (member is EnumDeclaration) {
           return member;
         }
       }
       return null;
     }
+
     EnumDeclaration firstEnum = findFirstEnum();
     if (firstEnum != null && firstEnum.element.accessors.isEmpty) {
       EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
@@ -1135,8 +1375,8 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[CREATED_RESOLVED_UNIT2] = true;
-    outputs[RESOLVED_UNIT2] = unit;
+    outputs[CREATED_RESOLVED_UNIT3] = true;
+    outputs[RESOLVED_UNIT3] = unit;
   }
 
   /**
@@ -1148,7 +1388,7 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
-      UNIT_INPUT: RESOLVED_UNIT1.of(unit)
+      UNIT_INPUT: RESOLVED_UNIT2.of(unit)
     };
   }
 
@@ -1193,6 +1433,7 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
     //
     // Compute export namespace.
     //
+    library.exportNamespace = null;
     NamespaceBuilder builder = new NamespaceBuilder();
     Namespace namespace = builder.createExportNamespaceForLibrary(library);
     library.exportNamespace = namespace;
@@ -1251,6 +1492,11 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   static const String PARTS_UNIT_INPUT = 'PARTS_UNIT_INPUT';
 
   /**
+   * The name of the input whose value is the modification time of the source.
+   */
+  static const String MODIFICATION_TIME_INPUT = 'MODIFICATION_TIME_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -1286,6 +1532,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     CompilationUnit definingCompilationUnit =
         getRequiredInput(DEFINING_UNIT_INPUT);
     List<CompilationUnit> partUnits = getRequiredInput(PARTS_UNIT_INPUT);
+    int modificationTime = getRequiredInput(MODIFICATION_TIME_INPUT);
     //
     // Process inputs.
     //
@@ -1293,7 +1540,9 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         definingCompilationUnit.element;
     Map<Source, CompilationUnit> partUnitMap =
         new HashMap<Source, CompilationUnit>();
-    for (CompilationUnit partUnit in partUnits) {
+    int partLength = partUnits.length;
+    for (int i = 0; i < partLength; i++) {
+      CompilationUnit partUnit = partUnits[i];
       Source partSource = partUnit.element.source;
       partUnitMap[partSource] = partUnit;
     }
@@ -1308,21 +1557,23 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     List<Directive> directivesToResolve = <Directive>[];
     List<CompilationUnitElementImpl> sourcedCompilationUnits =
         <CompilationUnitElementImpl>[];
-    for (Directive directive in definingCompilationUnit.directives) {
+    NodeList<Directive> directives = definingCompilationUnit.directives;
+    int directiveLength = directives.length;
+    for (int i = 0; i < directiveLength; i++) {
+      Directive directive = directives[i];
       if (directive is LibraryDirective) {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
       } else if (directive is PartDirective) {
-        PartDirective partDirective = directive;
-        StringLiteral partUri = partDirective.uri;
-        Source partSource = partDirective.source;
+        StringLiteral partUri = directive.uri;
+        Source partSource = directive.source;
         hasPartDirective = true;
         CompilationUnit partUnit = partUnitMap[partSource];
         if (partUnit != null) {
           CompilationUnitElementImpl partElement = partUnit.element;
           partElement.uriOffset = partUri.offset;
           partElement.uriEnd = partUri.end;
-          partElement.uri = partDirective.uriContent;
+          partElement.uri = directive.uriContent;
           //
           // Validate that the part contains a part-of directive with the same
           // name as the library.
@@ -1402,6 +1653,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     if (libraryElement == null) {
       libraryElement =
           new LibraryElementImpl.forNode(owningContext, libraryNameNode);
+      libraryElement.synthetic = modificationTime < 0;
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;
       libraryElement.parts = sourcedCompilationUnits;
@@ -1420,7 +1672,9 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     // TODO(brianwilkerson) This updates the state of the AST structures but
     // does not associate a new result with it.
     //
-    for (Directive directive in directivesToResolve) {
+    int length = directivesToResolve.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directivesToResolve[i];
       directive.element = libraryElement;
     }
     //
@@ -1436,7 +1690,10 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
    * [element] does not define an entry point.
    */
   FunctionElement _findEntryPoint(CompilationUnitElementImpl element) {
-    for (FunctionElement function in element.functions) {
+    List<FunctionElement> functions = element.functions;
+    int length = functions.length;
+    for (int i = 0; i < length; i++) {
+      FunctionElement function = functions[i];
       if (function.isEntryPoint) {
         return function;
       }
@@ -1450,7 +1707,10 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
    */
   String _getPartLibraryName(Source partSource, CompilationUnit partUnit,
       List<Directive> directivesToResolve) {
-    for (Directive directive in partUnit.directives) {
+    NodeList<Directive> directives = partUnit.directives;
+    int length = directives.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directives[i];
       if (directive is PartOfDirective) {
         directivesToResolve.add(directive);
         LibraryIdentifier libraryName = directive.libraryName;
@@ -1467,7 +1727,10 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
    * import directive with a `dart-ext:` URI.
    */
   bool _hasExtUri(CompilationUnit unit) {
-    for (Directive directive in unit.directives) {
+    NodeList<Directive> directives = unit.directives;
+    int length = directives.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directives[i];
       if (directive is ImportDirective) {
         if (DartUriResolver.isDartExtUri(directive.uriContent)) {
           return true;
@@ -1489,7 +1752,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
           RESOLVED_UNIT1.of(new LibrarySpecificUnit(source, source)),
       PARTS_UNIT_INPUT: INCLUDED_PARTS.of(source).toList((Source unit) {
         return RESOLVED_UNIT1.of(new LibrarySpecificUnit(source, unit));
-      })
+      }),
+      MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(source)
     };
   }
 
@@ -1647,8 +1911,9 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     LibraryElement coreLibrary = getRequiredInput(CORE_INPUT);
     LibraryElement asyncLibrary = getOptionalInput(ASYNC_INPUT);
     if (asyncLibrary == null) {
-      asyncLibrary =
-          (context as AnalysisContextImpl).createMockAsyncLib(coreLibrary);
+      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      asyncLibrary = (context as AnalysisContextImpl)
+          .createMockAsyncLib(coreLibrary, asyncSource);
     }
     Namespace coreNamespace = coreLibrary.publicNamespace;
     Namespace asyncNamespace = asyncLibrary.publicNamespace;
@@ -1657,7 +1922,8 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     //
     if (!context.analysisOptions.enableAsync) {
       AnalysisContextImpl contextImpl = context;
-      asyncLibrary = contextImpl.createMockAsyncLib(coreLibrary);
+      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      asyncLibrary = contextImpl.createMockAsyncLib(coreLibrary, asyncSource);
       asyncNamespace = asyncLibrary.publicNamespace;
     }
     TypeProvider typeProvider =
@@ -1808,7 +2074,9 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
     } else {
       List<ConstantEvaluationTarget> constantsInCycle =
           <ConstantEvaluationTarget>[];
-      for (WorkItem workItem in dependencyCycle) {
+      int length = dependencyCycle.length;
+      for (int i = 0; i < length; i++) {
+        WorkItem workItem = dependencyCycle[i];
         if (workItem.descriptor == DESCRIPTOR) {
           constantsInCycle.add(workItem.target);
         }
@@ -1853,7 +2121,7 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
 class ComputeInferableStaticVariableDependenciesTask
     extends InferStaticVariableTask {
   /**
-   * The name of the [RESOLVED_UNIT5] input.
+   * The name of the [RESOLVED_UNIT7] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -1907,7 +2175,7 @@ class ComputeInferableStaticVariableDependenciesTask
       CompilationUnitElementImpl unit = target
           .getAncestor((Element element) => element is CompilationUnitElement);
       return <String, TaskInput>{
-        UNIT_INPUT: RESOLVED_UNIT5
+        UNIT_INPUT: RESOLVED_UNIT7
             .of(new LibrarySpecificUnit(unit.librarySource, unit.source))
       };
     }
@@ -1986,14 +2254,17 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
       List<LibraryElement> component = library.libraryCycle;
       Set<LibraryElement> filter = new Set<LibraryElement>.from(component);
       Set<CompilationUnitElement> deps = new Set<CompilationUnitElement>();
-      void addLibrary(l) {
+      void addLibrary(LibraryElement l) {
         if (!filter.contains(l)) {
           deps.addAll(l.units);
         }
       }
-      for (LibraryElement l in component) {
-        l.importedLibraries.forEach(addLibrary);
-        l.exportedLibraries.forEach(addLibrary);
+
+      int length = component.length;
+      for (int i = 0; i < length; i++) {
+        LibraryElement library = component[i];
+        library.importedLibraries.forEach(addLibrary);
+        library.exportedLibraries.forEach(addLibrary);
       }
       //
       // Record outputs.
@@ -2014,10 +2285,10 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
    * given [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    LibrarySpecificUnit unit = target;
+    Source librarySource = target;
     return <String, TaskInput>{
-      LIBRARY_ELEMENT_INPUT: LIBRARY_ELEMENT2.of(unit.library),
-      'resolveReachableLibraries': READY_LIBRARY_ELEMENT2.of(unit.library),
+      LIBRARY_ELEMENT_INPUT: LIBRARY_ELEMENT2.of(librarySource),
+      'resolveReachableLibraries': READY_LIBRARY_ELEMENT2.of(librarySource),
     };
   }
 
@@ -2037,7 +2308,7 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
 class ComputePropagableVariableDependenciesTask
     extends InferStaticVariableTask {
   /**
-   * The name of the [RESOLVED_UNIT5] input.
+   * The name of the [RESOLVED_UNIT7] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -2092,7 +2363,7 @@ class ComputePropagableVariableDependenciesTask
       CompilationUnitElementImpl unit = target
           .getAncestor((Element element) => element is CompilationUnitElement);
       return <String, TaskInput>{
-        UNIT_INPUT: RESOLVED_UNIT5
+        UNIT_INPUT: RESOLVED_UNIT7
             .of(new LibrarySpecificUnit(unit.librarySource, unit.source))
       };
     }
@@ -2107,6 +2378,73 @@ class ComputePropagableVariableDependenciesTask
   static ComputePropagableVariableDependenciesTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ComputePropagableVariableDependenciesTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [REQUIRED_CONSTANTS] for a unit.
+ */
+class ComputeRequiredConstantsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ComputeRequiredConstantsTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[PENDING_ERRORS, REQUIRED_CONSTANTS]);
+
+  ComputeRequiredConstantsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    Source source = getRequiredSource();
+    //
+    // Prepare inputs.
+    //
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    //
+    // Use the ErrorVerifier to compute errors.
+    //
+    RequiredConstantsComputer computer = new RequiredConstantsComputer(source);
+    unit.accept(computer);
+    List<PendingError> pendingErrors = computer.pendingErrors;
+    List<ConstantEvaluationTarget> requiredConstants =
+        computer.requiredConstants;
+    //
+    // Record outputs.
+    //
+    outputs[PENDING_ERRORS] = pendingErrors;
+    outputs[REQUIRED_CONSTANTS] = requiredConstants;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    LibrarySpecificUnit unit = target;
+    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT.of(unit)};
+  }
+
+  /**
+   * Create a [ComputeRequiredConstantsTask] based on the given [target] in
+   * the given [context].
+   */
+  static ComputeRequiredConstantsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ComputeRequiredConstantsTask(context, target);
   }
 }
 
@@ -2195,95 +2533,328 @@ class ContainingLibrariesTask extends SourceBasedAnalysisTask {
  * The description for a change in a Dart source.
  */
 class DartDelta extends Delta {
-  bool hasDirectiveChange = false;
-
-  final Set<String> addedNames = new Set<String>();
   final Set<String> changedNames = new Set<String>();
-  final Set<String> removedNames = new Set<String>();
+  final Map<Source, Set<String>> changedPrivateNames = <Source, Set<String>>{};
 
-  final Set<Source> invalidatedSources = new Set<Source>();
+  final Map<String, ClassElementDelta> changedClasses =
+      <String, ClassElementDelta>{};
 
-  DartDelta(Source source) : super(source) {
-    invalidatedSources.add(source);
+  /**
+   * The cache of libraries in which all results are invalid.
+   */
+  final Set<Source> librariesWithAllInvalidResults = new Set<Source>();
+
+  /**
+   * The cache of libraries in which all results are valid.
+   */
+  final Set<Source> librariesWithAllValidResults = new Set<Source>();
+
+  /**
+   * The cache of libraries with all, but [HINTS] and [VERIFY_ERRORS] results
+   * are valid.
+   */
+  final Set<Source> libraryWithInvalidErrors = new Set<Source>();
+
+  /**
+   * This set is cleared in every [gatherEnd], and [gatherChanges] uses it
+   * to find changes in every source only once per visit process.
+   */
+  final Set<Source> currentVisitUnits = new Set<Source>();
+
+  DartDelta(Source source) : super(source);
+
+  /**
+   * Add names that are changed in the given [references].
+   * Return `true` if any change was added.
+   */
+  bool addChangedElements(ReferencedNames references, Source refLibrary) {
+    int numberOfChanges = 0;
+    int lastNumberOfChange = -1;
+    while (numberOfChanges != lastNumberOfChange) {
+      lastNumberOfChange = numberOfChanges;
+      // Classes that extend changed classes are also changed.
+      // If there is a delta for a superclass, use it for the subclass.
+      // Otherwise mark the subclass as "general name change".
+      references.superToSubs.forEach((String superName, Set<String> subNames) {
+        ClassElementDelta superDelta = changedClasses[superName];
+        for (String subName in subNames) {
+          if (superDelta != null) {
+            ClassElementDelta subDelta = changedClasses.putIfAbsent(subName,
+                () => new ClassElementDelta(null, refLibrary, subName));
+            _log(() => '$subName in $refLibrary has delta because of its '
+                'superclass $superName has delta');
+            if (subDelta.superDeltas.add(superDelta)) {
+              numberOfChanges++;
+            }
+          } else if (isChanged(refLibrary, superName)) {
+            if (nameChanged(refLibrary, subName)) {
+              _log(() => '$subName in $refLibrary is changed because its '
+                  'superclass $superName is changed');
+              numberOfChanges++;
+            }
+          }
+        }
+      });
+      // If a user element uses a changed top-level element, then the user is
+      // also changed. Note that if a changed class with delta is used, this
+      // does not make the user changed - classes with delta keep their
+      // original elements, so resolution of their names does not change.
+      references.userToDependsOn.forEach((user, dependencies) {
+        for (String dependency in dependencies) {
+          if (isChangedOrClassMember(refLibrary, dependency)) {
+            if (nameChanged(refLibrary, user)) {
+              _log(() => '$user in $refLibrary is changed because '
+                  'of $dependency in $dependencies');
+              numberOfChanges++;
+            }
+          }
+        }
+      });
+    }
+    return numberOfChanges != 0;
   }
 
-  void elementAdded(Element element) {
-    addedNames.add(element.name);
+  void classChanged(ClassElementDelta classDelta) {
+    changedClasses[classDelta.name] = classDelta;
   }
 
   void elementChanged(Element element) {
-    changedNames.add(element.name);
+    Source librarySource = element.library.source;
+    nameChanged(librarySource, element.name);
   }
 
-  void elementRemoved(Element element) {
-    removedNames.add(element.name);
+  @override
+  bool gatherChanges(InternalAnalysisContext context, AnalysisTarget target,
+      ResultDescriptor descriptor, Object value) {
+    // Prepare target source.
+    Source targetUnit = target.source;
+    Source targetLibrary = target.librarySource;
+    if (target is Source) {
+      if (context.getKindOf(target) == SourceKind.LIBRARY) {
+        targetLibrary = target;
+      }
+    }
+    // We don't know what to do with the given target.
+    if (targetUnit == null || targetUnit != targetLibrary) {
+      return false;
+    }
+    // Attempt to find new changed names for the unit only once.
+    if (!currentVisitUnits.add(targetUnit)) {
+      return false;
+    }
+    // Add changes.
+    ReferencedNames referencedNames =
+        context.getResult(targetUnit, REFERENCED_NAMES);
+    if (referencedNames == null) {
+      return false;
+    }
+    return addChangedElements(referencedNames, targetLibrary);
   }
 
-  bool isNameAffected(String name) {
-    return addedNames.contains(name) ||
-        changedNames.contains(name) ||
-        removedNames.contains(name);
+  @override
+  void gatherEnd() {
+    currentVisitUnits.clear();
   }
 
-  bool nameChanged(String name) {
-    return changedNames.add(name);
+  bool hasAffectedHintsVerifyErrors(
+      ReferencedNames references, Source refLibrary) {
+    for (String superName in references.superToSubs.keys) {
+      if (isChangedOrClass(refLibrary, superName)) {
+        _log(() => '$refLibrary hints/verify errors are affected because '
+            '${references.superToSubs[superName]} subclasses $superName');
+        return true;
+      }
+    }
+    for (String name in references.names) {
+      ClassElementDelta classDelta = changedClasses[name];
+      if (classDelta != null && classDelta.hasAnnotationChanges) {
+        _log(() => '$refLibrary hints/verify errors are  affected because '
+            '$name has a class delta with annotation changes');
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool hasAffectedReferences(ReferencedNames references, Source refLibrary) {
+    // Resolution must be performed when a referenced element changes.
+    for (String name in references.names) {
+      if (isChangedOrClassMember(refLibrary, name)) {
+        _log(() => '$refLibrary is affected by $name');
+        return true;
+      }
+    }
+    // Resolution must be performed when the unnamed constructor of
+    // an instantiated class is added/changed/removed.
+    // TODO(scheglov) Use only instantiations with default constructor.
+    for (String name in references.instantiatedNames) {
+      for (ClassElementDelta classDelta in changedClasses.values) {
+        if (classDelta.name == name && classDelta.hasUnnamedConstructorChange) {
+          _log(() =>
+              '$refLibrary is affected by the default constructor of $name');
+          return true;
+        }
+      }
+    }
+    for (String name in references.extendedUsedUnnamedConstructorNames) {
+      for (ClassElementDelta classDelta in changedClasses.values) {
+        if (classDelta.name == name && classDelta.hasUnnamedConstructorChange) {
+          _log(() =>
+              '$refLibrary is affected by the default constructor of $name');
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if the given [name], used in a unit of the [librarySource],
+   * is affected by a changed top-level element, excluding classes.
+   */
+  bool isChanged(Source librarySource, String name) {
+    if (_isPrivateName(name)) {
+      if (changedPrivateNames[librarySource]?.contains(name) ?? false) {
+        return true;
+      }
+    }
+    return changedNames.contains(name);
+  }
+
+  /**
+   * Return `true` if the given [name], used in a unit of the [librarySource],
+   * is affected by a changed top-level element or a class.
+   */
+  bool isChangedOrClass(Source librarySource, String name) {
+    if (isChanged(librarySource, name)) {
+      return true;
+    }
+    return changedClasses[name] != null;
+  }
+
+  /**
+   * Return `true` if the given [name], used in a unit of the [librarySource],
+   * is affected by a changed top-level element or a class member.
+   */
+  bool isChangedOrClassMember(Source librarySource, String name) {
+    if (isChanged(librarySource, name)) {
+      return true;
+    }
+    // TODO(scheglov) Optimize this.
+    for (ClassElementDelta classDelta in changedClasses.values) {
+      if (classDelta.hasChanges(librarySource, name)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Register the fact that the given [name], defined in the [librarySource]
+   * is changed.  Return `true` if the [name] is a new name, not yet registered.
+   */
+  bool nameChanged(Source librarySource, String name) {
+    if (_isPrivateName(name)) {
+      return changedPrivateNames
+          .putIfAbsent(librarySource, () => new Set<String>())
+          .add(name);
+    } else {
+      return changedNames.add(name);
+    }
   }
 
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
-    if (hasDirectiveChange) {
-      return DeltaResult.INVALIDATE;
+      ResultDescriptor descriptor, Object value) {
+    // Always invalidate compounding results.
+    if (descriptor == LIBRARY_ELEMENT4 ||
+        descriptor == READY_LIBRARY_ELEMENT6 ||
+        descriptor == READY_LIBRARY_ELEMENT7) {
+      return DeltaResult.INVALIDATE_KEEP_DEPENDENCIES;
     }
     // Prepare target source.
-    Source targetSource = null;
+    Source targetUnit = target.source;
+    Source targetLibrary = target.librarySource;
     if (target is Source) {
-      targetSource = target;
-    }
-    if (target is LibrarySpecificUnit) {
-      targetSource = target.library;
-    }
-    if (target is Element) {
-      targetSource = target.source;
-    }
-    // Keep results that are updated incrementally.
-    // If we want to analyze only some references to the source being changed,
-    // we need to keep the same instances of CompilationUnitElement and
-    // LibraryElement.
-    if (targetSource == source) {
-      if (ParseDartTask.DESCRIPTOR.results.contains(descriptor)) {
-        return DeltaResult.KEEP_CONTINUE;
+      if (context.getKindOf(target) == SourceKind.LIBRARY) {
+        targetLibrary = target;
       }
-      if (BuildCompilationUnitElementTask.DESCRIPTOR.results
-          .contains(descriptor)) {
-        return DeltaResult.KEEP_CONTINUE;
-      }
-      if (BuildLibraryElementTask.DESCRIPTOR.results.contains(descriptor)) {
-        return DeltaResult.KEEP_CONTINUE;
-      }
+    }
+    // We don't know what to do with the given target, invalidate it.
+    if (targetUnit == null || targetUnit != targetLibrary) {
       return DeltaResult.INVALIDATE;
     }
-    // Use the target library dependency information to decide whether
-    // the delta affects the library.
-    if (targetSource != null) {
-      List<Source> librarySources =
-          context.getLibrariesContaining(targetSource);
-      for (Source librarySource in librarySources) {
-        AnalysisCache cache = context.analysisCache;
-        ReferencedNames referencedNames =
-            cache.getValue(librarySource, REFERENCED_NAMES);
-        if (referencedNames == null) {
-          return DeltaResult.INVALIDATE;
-        }
-        referencedNames.addChangedElements(this);
-        if (referencedNames.isAffectedBy(this)) {
-          return DeltaResult.INVALIDATE;
-        }
+    // Keep results that don't change: any library.
+    if (_isTaskResult(ScanDartTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ParseDartTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildCompilationUnitElementTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildLibraryElementTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildDirectiveElementsTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ResolveDirectiveElementsTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildEnumMemberElementsTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(BuildSourceExportClosureTask.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ReadyLibraryElement2Task.DESCRIPTOR, descriptor) ||
+        _isTaskResult(ComputeLibraryCycleTask.DESCRIPTOR, descriptor)) {
+      return DeltaResult.KEEP_CONTINUE;
+    }
+    // Keep results that don't change: changed library.
+    if (targetUnit == source) {
+      return DeltaResult.INVALIDATE;
+    }
+    // Keep results that don't change: dependent library.
+    if (targetUnit != source) {
+      if (_isTaskResult(BuildPublicNamespaceTask.DESCRIPTOR, descriptor)) {
+        return DeltaResult.KEEP_CONTINUE;
       }
-      return DeltaResult.STOP;
+    }
+    // Handle in-library results only for now.
+    if (targetLibrary != null) {
+      // Use cached library results.
+      if (librariesWithAllInvalidResults.contains(targetLibrary)) {
+        return DeltaResult.INVALIDATE;
+      }
+      if (librariesWithAllValidResults.contains(targetLibrary)) {
+        return DeltaResult.KEEP_CONTINUE;
+      }
+      // The library is almost, but not completely valid.
+      // Some error results are invalid.
+      if (libraryWithInvalidErrors.contains(targetLibrary)) {
+        if (descriptor == HINTS || descriptor == VERIFY_ERRORS) {
+          return DeltaResult.INVALIDATE_NO_DELTA;
+        }
+        return DeltaResult.KEEP_CONTINUE;
+      }
+      // Compute the library result.
+      ReferencedNames referencedNames =
+          context.getResult(targetUnit, REFERENCED_NAMES);
+      if (referencedNames == null) {
+        return DeltaResult.INVALIDATE_NO_DELTA;
+      }
+      if (hasAffectedReferences(referencedNames, targetLibrary)) {
+        librariesWithAllInvalidResults.add(targetLibrary);
+        return DeltaResult.INVALIDATE;
+      }
+      if (hasAffectedHintsVerifyErrors(referencedNames, targetLibrary)) {
+        libraryWithInvalidErrors.add(targetLibrary);
+        return DeltaResult.KEEP_CONTINUE;
+      }
+      librariesWithAllValidResults.add(targetLibrary);
+      return DeltaResult.KEEP_CONTINUE;
     }
     // We don't know what to do with the given target, invalidate it.
     return DeltaResult.INVALIDATE;
+  }
+
+  void _log(String getMessage()) {
+//    String message = getMessage();
+//    print(message);
+  }
+
+  static bool _isPrivateName(String name) => name.startsWith('_');
+
+  static bool _isTaskResult(
+      TaskDescriptor taskDescriptor, ResultDescriptor result) {
+    return taskDescriptor.results.contains(result);
   }
 }
 
@@ -2299,17 +2870,14 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
       createTask, buildInputs, <ResultDescriptor>[DART_ERRORS]);
 
   /**
+   * The name of the [IGNORE_INFO_INPUT] input.
+   */
+  static const String IGNORE_INFO_INPUT = 'IGNORE_INFO_INPUT';
+
+  /**
    * The name of the [LINE_INFO_INPUT] input.
    */
   static const String LINE_INFO_INPUT = 'LINE_INFO_INPUT';
-
-  /**
-   * The name of the [PARSED_UNIT_INPUT] input.
-   */
-  static const String PARSED_UNIT_INPUT = 'PARSED_UNIT_INPUT';
-
-  // Prefix for comments ignoring error codes.
-  static const String _normalizedIgnorePrefix = '//ignore:';
 
   DartErrorsTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
@@ -2324,11 +2892,17 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
-    for (ResultDescriptor result in enginePlugin.dartErrorsForSource) {
+    List<ResultDescriptor> errorsForSource = enginePlugin.dartErrorsForSource;
+    int sourceLength = errorsForSource.length;
+    for (int i = 0; i < sourceLength; i++) {
+      ResultDescriptor result = errorsForSource[i];
       String inputName = result.name + '_input';
       errorLists.add(getRequiredInput(inputName));
     }
-    for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
+    List<ResultDescriptor> errorsForUnit = enginePlugin.dartErrorsForUnit;
+    int unitLength = errorsForUnit.length;
+    for (int i = 0; i < unitLength; i++) {
+      ResultDescriptor result = errorsForUnit[i];
       String inputName = result.name + '_input';
       Map<Source, List<AnalysisError>> errorMap = getRequiredInput(inputName);
       for (List<AnalysisError> errors in errorMap.values) {
@@ -2353,67 +2927,15 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
       return errors;
     }
 
-    List<AnalysisError> filtered = <AnalysisError>[];
+    IgnoreInfo ignoreInfo = getRequiredInput(IGNORE_INFO_INPUT);
+    if (!ignoreInfo.hasIgnores) {
+      return errors;
+    }
 
-    // Sort errors.
-    errors.sort((AnalysisError e1, AnalysisError e2) => e1.offset - e2.offset);
-
-    CompilationUnit cu = getRequiredInput(PARSED_UNIT_INPUT);
-    Token token = cu.beginToken;
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT);
 
-    int errorIndex = 0;
-
-    // Step through tokens looking for comments.
-    while (errorIndex < errors.length && token.type != TokenType.EOF) {
-      // Find leading comment.
-      Token comments = token.precedingComments;
-      while (comments?.next != null) {
-        comments = comments.next;
-      }
-
-      // Normalize content.
-      String comment =
-          comments?.lexeme?.toLowerCase()?.replaceAll(new RegExp(r'\s+'), '');
-
-      // Check for ignores.
-      if (comment != null && comment.startsWith(_normalizedIgnorePrefix)) {
-        int affectedLine = lineInfo.getLocation(token.offset).lineNumber;
-
-        // Process all affected errors.
-        while (errorIndex < errors.length) {
-          AnalysisError currentError = errors[errorIndex++];
-          int errorLine = lineInfo.getLocation(currentError.offset).lineNumber;
-          if (errorLine < affectedLine) {
-            filtered.add(currentError);
-          } else if (errorLine == affectedLine) {
-            // Check for an ignore.
-            if (!_isIgnoredBy(currentError, comment)) {
-              filtered.add(currentError);
-            }
-          } else {
-            // Back up index and break.
-            --errorIndex;
-            break;
-          }
-        }
-      }
-
-      token = token.next;
-    }
-
-    // Add remaining errors.
-    if (errorIndex < errors.length) {
-      filtered.addAll(errors.sublist(errorIndex));
-    }
-
-    return filtered;
+    return filterIgnored(errors, ignoreInfo, lineInfo);
   }
-
-  bool _isIgnoredBy(AnalysisError error, String comment) => comment
-      .substring(_normalizedIgnorePrefix.length)
-      .split(',')
-      .contains(error.errorCode.name.toLowerCase());
 
   /**
    * Return a map from the names of the inputs of this kind of task to the task
@@ -2424,15 +2946,21 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     Source source = target;
     Map<String, TaskInput> inputs = <String, TaskInput>{};
     inputs[LINE_INFO_INPUT] = LINE_INFO.of(source);
-    inputs[PARSED_UNIT_INPUT] = PARSED_UNIT.of(source);
+    inputs[IGNORE_INFO_INPUT] = IGNORE_INFO.of(source);
     EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
     // for Source
-    for (ResultDescriptor result in enginePlugin.dartErrorsForSource) {
+    List<ResultDescriptor> errorsForSource = enginePlugin.dartErrorsForSource;
+    int sourceLength = errorsForSource.length;
+    for (int i = 0; i < sourceLength; i++) {
+      ResultDescriptor result = errorsForSource[i];
       String inputName = result.name + '_input';
       inputs[inputName] = result.of(source);
     }
     // for LibrarySpecificUnit
-    for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
+    List<ResultDescriptor> errorsForUnit = enginePlugin.dartErrorsForUnit;
+    int unitLength = errorsForUnit.length;
+    for (int i = 0; i < unitLength; i++) {
+      ResultDescriptor result = errorsForUnit[i];
       String inputName = result.name + '_input';
       inputs[inputName] =
           CONTAINING_LIBRARIES.of(source).toMap((Source library) {
@@ -2451,14 +2979,35 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
       AnalysisContext context, AnalysisTarget target) {
     return new DartErrorsTask(context, target);
   }
+
+  /**
+   * Return a new list with items from [errors] which are not filtered out by
+   * the [ignoreInfo].
+   */
+  static List<AnalysisError> filterIgnored(
+      List<AnalysisError> errors, IgnoreInfo ignoreInfo, LineInfo lineInfo) {
+    if (errors.isEmpty || !ignoreInfo.hasIgnores) {
+      return errors;
+    }
+
+    bool isIgnored(AnalysisError error) {
+      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+      String errorCode = error.errorCode.name.toLowerCase();
+      // Ignores can be on the line or just preceding the error.
+      return ignoreInfo.ignoredAt(errorCode, errorLine) ||
+          ignoreInfo.ignoredAt(errorCode, errorLine - 1);
+    }
+
+    return errors.where((AnalysisError e) => !isIgnored(e)).toList();
+  }
 }
 
 /**
- * A task that builds [RESOLVED_UNIT11] for a unit.
+ * A task that builds [RESOLVED_UNIT13] for a unit.
  */
 class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [RESOLVED_UNIT10] input.
+   * The name of the [RESOLVED_UNIT12] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -2474,7 +3023,7 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
       'EvaluateUnitConstantsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[CREATED_RESOLVED_UNIT11, RESOLVED_UNIT11]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT13, RESOLVED_UNIT13]);
 
   EvaluateUnitConstantsTask(AnalysisContext context, LibrarySpecificUnit target)
       : super(context, target);
@@ -2487,8 +3036,8 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
     // No actual work needs to be performed; the task manager will ensure that
     // all constants are evaluated before this method is called.
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    outputs[RESOLVED_UNIT11] = unit;
-    outputs[CREATED_RESOLVED_UNIT11] = true;
+    outputs[RESOLVED_UNIT13] = unit;
+    outputs[CREATED_RESOLVED_UNIT13] = true;
   }
 
   /**
@@ -2499,8 +3048,8 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      'libraryElement': LIBRARY_ELEMENT8.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT10.of(unit),
+      'libraryElement': LIBRARY_ELEMENT9.of(unit.library),
+      UNIT_INPUT: RESOLVED_UNIT12.of(unit),
       CONSTANT_VALUES:
           COMPILATION_UNIT_CONSTANTS.of(unit).toListOf(CONSTANT_VALUE),
       'constantExpressionsDependencies':
@@ -2523,7 +3072,7 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
  */
 class GatherUsedImportedElementsTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [RESOLVED_UNIT10] input.
+   * The name of the [RESOLVED_UNIT12] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -2567,7 +3116,7 @@ class GatherUsedImportedElementsTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
-    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT10.of(unit)};
+    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT12.of(unit)};
   }
 
   /**
@@ -2585,7 +3134,7 @@ class GatherUsedImportedElementsTask extends SourceBasedAnalysisTask {
  */
 class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [RESOLVED_UNIT10] input.
+   * The name of the [RESOLVED_UNIT12] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -2629,7 +3178,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
-    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT10.of(unit)};
+    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT12.of(unit)};
   }
 
   /**
@@ -2647,7 +3196,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
  */
 class GenerateHintsTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [RESOLVED_UNIT10] input.
+   * The name of the [RESOLVED_UNIT12] input.
    */
   static const String RESOLVED_UNIT_INPUT = 'RESOLVED_UNIT';
 
@@ -2714,6 +3263,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       usedImportedElementsList.forEach(verifier.removeUsedElements);
       verifier.generateDuplicateImportHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
+      verifier.generateUnusedShownNameHints(errorReporter);
     }
     // Unused local elements.
     {
@@ -2728,11 +3278,13 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices.
-    InheritanceManager inheritanceManager =
-        new InheritanceManager(libraryElement);
+    InheritanceManager inheritanceManager = new InheritanceManager(
+        libraryElement,
+        includeAbstractFromSuperclasses: true);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
 
-    unit.accept(new BestPracticesVerifier(errorReporter, typeProvider,
+    unit.accept(new BestPracticesVerifier(
+        errorReporter, typeProvider, libraryElement,
         typeSystem: typeSystem));
     unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
     // Find to-do comments.
@@ -2813,10 +3365,25 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
     //
     // Generate lints.
     //
+    List<AstVisitor> visitors = <AstVisitor>[];
+
+    bool timeVisits = analysisOptions.enableTiming;
     List<Linter> linters = getLints(context);
-    linters.forEach((l) => l.reporter = errorReporter);
-    Iterable<AstVisitor> visitors = linters.map((l) => l.getVisitor()).toList();
-    unit.accept(new DelegatingAstVisitor(visitors.where((v) => v != null)));
+    int length = linters.length;
+    for (int i = 0; i < length; i++) {
+      Linter linter = linters[i];
+      AstVisitor visitor = linter.getVisitor();
+      if (visitor != null) {
+        linter.reporter = errorReporter;
+        if (timeVisits) {
+          visitor = new TimedAstVisitor(visitor, lintRegistry.getTimer(linter));
+        }
+        visitors.add(visitor);
+      }
+    }
+
+    DelegatingAstVisitor dv = new DelegatingAstVisitor(visitors);
+    unit.accept(dv);
 
     //
     // Record outputs.
@@ -2843,6 +3410,80 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * Information about analysis `//ignore:` comments within a source file.
+ */
+class IgnoreInfo {
+  /**
+   *  Instance shared by all cases without matches.
+   */
+  static final IgnoreInfo _EMPTY_INFO = new IgnoreInfo();
+
+  /**
+   * A regular expression for matching 'ignore' comments.  Produces matches
+   * containing 2 groups.  For example:
+   *
+   *     * ['//ignore: error_code', 'error_code']
+   *
+   * Resulting codes may be in a list ('error_code_1,error_code2').
+   */
+  static final RegExp _IGNORE_MATCHER =
+      new RegExp(r'//[ ]*ignore:(.*)$', multiLine: true);
+
+  final Map<int, List<String>> _ignoreMap = new HashMap<int, List<String>>();
+
+  /**
+   * Whether this info object defines any ignores.
+   */
+  bool get hasIgnores => ignores.isNotEmpty;
+
+  /**
+   * Map of line numbers to associated ignored error codes.
+   */
+  Map<int, Iterable<String>> get ignores => _ignoreMap;
+
+  /**
+   * Ignore this [errorCode] at [line].
+   */
+  void add(int line, String errorCode) {
+    _ignoreMap.putIfAbsent(line, () => new List<String>()).add(errorCode);
+  }
+
+  /**
+   * Ignore these [errorCodes] at [line].
+   */
+  void addAll(int line, Iterable<String> errorCodes) {
+    _ignoreMap.putIfAbsent(line, () => new List<String>()).addAll(errorCodes);
+  }
+
+  /**
+   * Test whether this [errorCode] is ignored at the given [line].
+   */
+  bool ignoredAt(String errorCode, int line) =>
+      _ignoreMap[line]?.contains(errorCode) == true;
+
+  /**
+   * Calculate ignores for the given [content] with line [info].
+   */
+  static IgnoreInfo calculateIgnores(String content, LineInfo info) {
+    Iterable<Match> matches = _IGNORE_MATCHER.allMatches(content);
+    if (matches.isEmpty) {
+      return _EMPTY_INFO;
+    }
+
+    IgnoreInfo ignoreInfo = new IgnoreInfo();
+    for (Match match in matches) {
+      // See _IGNORE_MATCHER for format --- note the possibility of error lists.
+      Iterable<String> codes = match
+          .group(1)
+          .split(',')
+          .map((String code) => code.trim().toLowerCase());
+      ignoreInfo.addAll(info.getLocation(match.start).lineNumber, codes);
+    }
+    return ignoreInfo;
+  }
+}
+
+/**
  * A task that ensures that all of the inferable instance members in a
  * compilation unit have had their type inferred.
  */
@@ -2853,7 +3494,7 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
   static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
 
   /**
-   * The name of the input whose value is the [RESOLVED_UNIT7] for the
+   * The name of the input whose value is the [RESOLVED_UNIT9] for the
    * compilation unit.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
@@ -2865,7 +3506,7 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
       'InferInstanceMembersInUnitTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[CREATED_RESOLVED_UNIT9, RESOLVED_UNIT9]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT11, RESOLVED_UNIT11]);
 
   /**
    * Initialize a newly created task to build a library element for the given
@@ -2889,15 +3530,16 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     // Infer instance members.
     //
     if (context.analysisOptions.strongMode) {
-      InstanceMemberInferrer inferrer = new InstanceMemberInferrer(typeProvider,
+      InstanceMemberInferrer inferrer = new InstanceMemberInferrer(
+          typeProvider, new InheritanceManager(unit.element.library),
           typeSystem: context.typeSystem);
       inferrer.inferCompilationUnit(unit.element);
     }
     //
     // Record outputs.
     //
-    outputs[RESOLVED_UNIT9] = unit;
-    outputs[CREATED_RESOLVED_UNIT9] = true;
+    outputs[RESOLVED_UNIT11] = unit;
+    outputs[CREATED_RESOLVED_UNIT11] = true;
   }
 
   /**
@@ -2908,21 +3550,25 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      UNIT_INPUT: RESOLVED_UNIT8.of(unit),
+      UNIT_INPUT: RESOLVED_UNIT10.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
       // In strong mode, add additional dependencies to enforce inference
       // ordering.
 
       // Require that field re-resolution be complete for all units in the
       // current library cycle.
-      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT8
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source))),
+      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit.library).toList(
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT10.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source))),
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
-      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
+      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit.library).toList(
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT11.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source)))
     };
   }
 
@@ -2951,19 +3597,20 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
    */
   VariableDeclaration getDeclaration(CompilationUnit unit) {
     VariableElement variable = target;
-    AstNode node = new NodeLocator2(variable.nameOffset).searchWithin(unit);
+    int offset = variable.nameOffset;
+    AstNode node = new NodeLocator2(offset).searchWithin(unit);
     if (node == null) {
       Source variableSource = variable.source;
       Source unitSource = unit.element.source;
       if (variableSource != unitSource) {
         throw new AnalysisException(
             "Failed to find the AST node for the variable "
-            "${variable.displayName} in $variableSource "
+            "${variable.displayName} at $offset in $variableSource "
             "because we were looking in $unitSource");
       }
       throw new AnalysisException(
           "Failed to find the AST node for the variable "
-          "${variable.displayName} in $variableSource");
+          "${variable.displayName} at $offset in $variableSource");
     }
     VariableDeclaration declaration =
         node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
@@ -2971,14 +3618,28 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
       Source variableSource = variable.source;
       Source unitSource = unit.element.source;
       if (variableSource != unitSource) {
+        if (declaration == null) {
+          throw new AnalysisException(
+              "Failed to find the declaration of the variable "
+              "${variable.displayName} at $offset in $variableSource "
+              "because the node was not in a variable declaration "
+              "possibly because we were looking in $unitSource");
+        }
         throw new AnalysisException(
             "Failed to find the declaration of the variable "
-            "${variable.displayName} in $variableSource"
+            "${variable.displayName} at $offset in $variableSource "
             "because we were looking in $unitSource");
+      }
+      if (declaration == null) {
+        throw new AnalysisException(
+            "Failed to find the declaration of the variable "
+            "${variable.displayName} at $offset in $variableSource "
+            "because the node was not in a variable declaration");
       }
       throw new AnalysisException(
           "Failed to find the declaration of the variable "
-          "${variable.displayName} in $variableSource");
+          "${variable.displayName} at $offset in $variableSource "
+          "because the node was not the name in a variable declaration");
     }
     return declaration;
   }
@@ -2990,16 +3651,16 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
  */
 class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the input whose value is the [RESOLVED_UNIT6] for the
+   * The name of the input whose value is the [RESOLVED_UNIT8] for the
    * compilation unit.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
-   * The name of the input whose value is a list of the inferable static
-   * variables whose types have been computed.
+   * The name of the [STATIC_VARIABLE_RESOLUTION_ERRORS] for all static
+   * variables in the compilation unit.
    */
-  static const String INFERRED_VARIABLES_INPUT = 'INFERRED_VARIABLES_INPUT';
+  static const String ERRORS_LIST_INPUT = 'INFERRED_VARIABLES_INPUT';
 
   /**
    * The task descriptor describing this kind of task.
@@ -3007,8 +3668,11 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'InferStaticVariableTypesInUnitTask',
       createTask,
-      buildInputs,
-      <ResultDescriptor>[CREATED_RESOLVED_UNIT7, RESOLVED_UNIT7]);
+      buildInputs, <ResultDescriptor>[
+    CREATED_RESOLVED_UNIT9,
+    RESOLVED_UNIT9,
+    STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT
+  ]);
 
   /**
    * Initialize a newly created task to build a library element for the given
@@ -3027,13 +3691,16 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    List<List<AnalysisError>> errorLists = getRequiredInput(ERRORS_LIST_INPUT);
     //
     // Record outputs. There is no additional work to be done at this time
     // because the work has implicitly been done by virtue of the task model
     // preparing all of the inputs.
     //
-    outputs[RESOLVED_UNIT7] = unit;
-    outputs[CREATED_RESOLVED_UNIT7] = true;
+    outputs[RESOLVED_UNIT9] = unit;
+    outputs[CREATED_RESOLVED_UNIT9] = true;
+    outputs[STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT] =
+        AnalysisError.mergeLists(errorLists);
   }
 
   /**
@@ -3044,10 +3711,13 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      INFERRED_VARIABLES_INPUT: INFERABLE_STATIC_VARIABLES_IN_UNIT
+      'inferredTypes': INFERABLE_STATIC_VARIABLES_IN_UNIT
           .of(unit)
           .toListOf(INFERRED_STATIC_VARIABLE),
-      UNIT_INPUT: RESOLVED_UNIT6.of(unit)
+      ERRORS_LIST_INPUT: INFERABLE_STATIC_VARIABLES_IN_UNIT
+          .of(unit)
+          .toListOf(STATIC_VARIABLE_RESOLUTION_ERRORS),
+      UNIT_INPUT: RESOLVED_UNIT8.of(unit)
     };
   }
 
@@ -3078,15 +3748,17 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
   static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
 
   /**
-   * The name of the [RESOLVED_UNIT6] input.
+   * The name of the [RESOLVED_UNIT8] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'InferStaticVariableTypeTask',
       createTask,
-      buildInputs,
-      <ResultDescriptor>[INFERRED_STATIC_VARIABLE]);
+      buildInputs, <ResultDescriptor>[
+    INFERRED_STATIC_VARIABLE,
+    STATIC_VARIABLE_RESOLUTION_ERRORS
+  ]);
 
   InferStaticVariableTypeTask(
       InternalAnalysisContext context, VariableElement variable)
@@ -3114,17 +3786,19 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
 
     // If we're not in a dependency cycle, and we have no type annotation,
     // re-resolve the right hand side and do inference.
+    List<AnalysisError> errors = AnalysisError.NO_ERRORS;
     if (dependencyCycle == null && variable.hasImplicitType) {
       VariableDeclaration declaration = getDeclaration(unit);
       //
       // Re-resolve the variable's initializer so that the inferred types
       // of other variables will be propagated.
       //
+      RecordingErrorListener errorListener = new RecordingErrorListener();
       Expression initializer = declaration.initializer;
       ResolutionContext resolutionContext = ResolutionContextBuilder.contextFor(
           initializer, AnalysisErrorListener.NULL_LISTENER);
-      ResolverVisitor visitor = new ResolverVisitor(variable.library,
-          variable.source, typeProvider, AnalysisErrorListener.NULL_LISTENER,
+      ResolverVisitor visitor = new ResolverVisitor(
+          variable.library, variable.source, typeProvider, errorListener,
           nameScope: resolutionContext.scope);
       if (resolutionContext.enclosingClassDeclaration != null) {
         visitor.prepareToResolveMembersInClass(
@@ -3141,6 +3815,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
         newType = typeProvider.dynamicType;
       }
       setFieldType(variable, newType);
+      errors = getUniqueErrors(errorListener.errors);
     } else {
       // TODO(brianwilkerson) For now we simply don't infer any type for
       // variables or fields involved in a cycle. We could try to be smarter
@@ -3153,6 +3828,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
     // Record outputs.
     //
     outputs[INFERRED_STATIC_VARIABLE] = variable;
+    outputs[STATIC_VARIABLE_RESOLUTION_ERRORS] = errors;
   }
 
   /**
@@ -3169,15 +3845,17 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
           .of(variable)
           .toListOf(INFERRED_STATIC_VARIABLE),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
-      UNIT_INPUT: RESOLVED_UNIT6.of(unit),
+      UNIT_INPUT: RESOLVED_UNIT8.of(unit),
       // In strong mode, add additional dependencies to enforce inference
       // ordering.
 
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
-      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
+      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit.library).toList(
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT11.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source)))
     };
   }
 
@@ -3265,6 +3943,12 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   static const String LINTS_INPUT = 'LINTS';
 
   /**
+   * The name of the [STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT] input.
+   */
+  static const String STATIC_VARIABLE_RESOLUTION_ERRORS_INPUT =
+      'STATIC_VARIABLE_RESOLUTION_ERRORS_INPUT';
+
+  /**
    * The name of the [STRONG_MODE_ERRORS] input.
    */
   static const String STRONG_MODE_ERRORS_INPUT = 'STRONG_MODE_ERRORS';
@@ -3274,6 +3958,12 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
    */
   static const String RESOLVE_TYPE_NAMES_ERRORS_INPUT =
       'RESOLVE_TYPE_NAMES_ERRORS';
+
+  /**
+   * The name of the [RESOLVE_TYPE_BOUNDS_ERRORS] input.
+   */
+  static const String RESOLVE_TYPE_NAMES_ERRORS2_INPUT =
+      'RESOLVE_TYPE_NAMES_ERRORS2';
 
   /**
    * The name of the [RESOLVE_UNIT_ERRORS] input.
@@ -3317,7 +4007,9 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     errorLists.add(getRequiredInput(HINTS_INPUT));
     errorLists.add(getRequiredInput(LINTS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_TYPE_NAMES_ERRORS_INPUT));
+    errorLists.add(getRequiredInput(RESOLVE_TYPE_NAMES_ERRORS2_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_UNIT_ERRORS_INPUT));
+    errorLists.add(getRequiredInput(STATIC_VARIABLE_RESOLUTION_ERRORS_INPUT));
     errorLists.add(getRequiredInput(STRONG_MODE_ERRORS_INPUT));
     errorLists.add(getRequiredInput(VARIABLE_REFERENCE_ERRORS_INPUT));
     errorLists.add(getRequiredInput(VERIFY_ERRORS_INPUT));
@@ -3338,7 +4030,10 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
       HINTS_INPUT: HINTS.of(unit),
       LINTS_INPUT: LINTS.of(unit),
       RESOLVE_TYPE_NAMES_ERRORS_INPUT: RESOLVE_TYPE_NAMES_ERRORS.of(unit),
+      RESOLVE_TYPE_NAMES_ERRORS2_INPUT: RESOLVE_TYPE_BOUNDS_ERRORS.of(unit),
       RESOLVE_UNIT_ERRORS_INPUT: RESOLVE_UNIT_ERRORS.of(unit),
+      STATIC_VARIABLE_RESOLUTION_ERRORS_INPUT:
+          STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT.of(unit),
       STRONG_MODE_ERRORS_INPUT: STRONG_MODE_ERRORS.of(unit),
       VARIABLE_REFERENCE_ERRORS_INPUT: VARIABLE_REFERENCE_ERRORS.of(unit),
       VERIFY_ERRORS_INPUT: VERIFY_ERRORS.of(unit)
@@ -3402,8 +4097,10 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     LIBRARY_SPECIFIC_UNITS,
     PARSE_ERRORS,
     PARSED_UNIT,
+    REFERENCED_NAMES,
+    REFERENCED_SOURCES,
     SOURCE_KIND,
-    UNITS
+    UNITS,
   ]);
 
   /**
@@ -3429,7 +4126,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.parseAsync = options.enableAsync;
     parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
     parser.parseGenericMethods = options.enableGenericMethods;
-    parser.parseConditionalDirectives = options.enableConditionalDirectives;
     parser.parseGenericMethodComments = options.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
@@ -3439,7 +4135,10 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     HashSet<Source> explicitlyImportedSourceSet = new HashSet<Source>();
     HashSet<Source> exportedSourceSet = new HashSet<Source>();
     HashSet<Source> includedSourceSet = new HashSet<Source>();
-    for (Directive directive in unit.directives) {
+    NodeList<Directive> directives = unit.directives;
+    int length = directives.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directives[i];
       if (directive is PartOfDirective) {
         hasPartOfDirective = true;
       } else {
@@ -3489,6 +4188,11 @@ class ParseDartTask extends SourceBasedAnalysisTask {
       sourceKind = SourceKind.PART;
     }
     //
+    // Compute referenced names.
+    //
+    ReferencedNames referencedNames = new ReferencedNames(source);
+    new ReferencedNamesBuilder(referencedNames).build(unit);
+    //
     // Record outputs.
     //
     List<Source> explicitlyImportedSources =
@@ -3498,6 +4202,11 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     List<Source> includedSources = includedSourceSet.toList();
     List<AnalysisError> parseErrors = getUniqueErrors(errorListener.errors);
     List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
+    List<Source> referencedSources = (new Set<Source>()
+          ..addAll(importedSources)
+          ..addAll(exportedSources)
+          ..addAll(unitSources))
+        .toList();
     List<LibrarySpecificUnit> librarySpecificUnits =
         unitSources.map((s) => new LibrarySpecificUnit(source, s)).toList();
     outputs[EXPLICITLY_IMPORTED_LIBRARIES] = explicitlyImportedSources;
@@ -3507,6 +4216,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     outputs[LIBRARY_SPECIFIC_UNITS] = librarySpecificUnits;
     outputs[PARSE_ERRORS] = parseErrors;
     outputs[PARSED_UNIT] = unit;
+    outputs[REFERENCED_NAMES] = referencedNames;
+    outputs[REFERENCED_SOURCES] = referencedSources;
     outputs[SOURCE_KIND] = sourceKind;
     outputs[UNITS] = unitSources;
   }
@@ -3574,16 +4285,16 @@ class ParseDartTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that builds [RESOLVED_UNIT5] for a unit.
+ * A task that builds [RESOLVED_UNIT7] for a unit.
  */
 class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT5] input.
+   * The name of the [LIBRARY_ELEMENT6] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
   /**
-   * The name of the [RESOLVED_UNIT4] input.
+   * The name of the [RESOLVED_UNIT6] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -3601,8 +4312,8 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
       buildInputs, <ResultDescriptor>[
     INFERABLE_STATIC_VARIABLES_IN_UNIT,
     PROPAGABLE_VARIABLES_IN_UNIT,
-    CREATED_RESOLVED_UNIT5,
-    RESOLVED_UNIT5
+    CREATED_RESOLVED_UNIT7,
+    RESOLVED_UNIT7
   ]);
 
   PartiallyResolveUnitReferencesTask(
@@ -3636,8 +4347,8 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
       outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = VariableElement.EMPTY_LIST;
     }
     outputs[PROPAGABLE_VARIABLES_IN_UNIT] = visitor.propagableVariables;
-    outputs[RESOLVED_UNIT5] = unit;
-    outputs[CREATED_RESOLVED_UNIT5] = true;
+    outputs[RESOLVED_UNIT7] = unit;
+    outputs[CREATED_RESOLVED_UNIT7] = true;
   }
 
   /**
@@ -3648,18 +4359,20 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      'fullyBuiltLibraryElements': READY_LIBRARY_ELEMENT5.of(unit.library),
-      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT4.of(unit),
+      'fullyBuiltLibraryElements': READY_LIBRARY_ELEMENT6.of(unit.library),
+      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(unit.library),
+      UNIT_INPUT: RESOLVED_UNIT6.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
       // In strong mode, add additional dependencies to enforce inference
       // ordering.
 
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
-      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
+      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit.library).toList(
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT11.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source)))
     };
   }
 
@@ -3680,7 +4393,7 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
 class PropagateVariableTypesInLibraryClosureTask
     extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT6] input.
+   * The name of the [LIBRARY_ELEMENT7] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
@@ -3691,9 +4404,64 @@ class PropagateVariableTypesInLibraryClosureTask
       'PropagateVariableTypesInLibraryClosureTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[LIBRARY_ELEMENT7]);
+      <ResultDescriptor>[LIBRARY_ELEMENT8]);
 
   PropagateVariableTypesInLibraryClosureTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    LibraryElement library = getRequiredInput(LIBRARY_INPUT);
+    outputs[LIBRARY_ELEMENT8] = library;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source source = target;
+    return <String, TaskInput>{
+      'readyForClosure': READY_LIBRARY_ELEMENT7.of(source),
+      LIBRARY_INPUT: LIBRARY_ELEMENT7.of(source),
+    };
+  }
+
+  /**
+   * Create a [PropagateVariableTypesInLibraryClosureTask] based on the given
+   * [target] in the given [context].
+   */
+  static PropagateVariableTypesInLibraryClosureTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new PropagateVariableTypesInLibraryClosureTask(context, target);
+  }
+}
+
+/**
+ * An artificial task that does nothing except to force propagated types for
+ * all propagable variables in the defining and part units of a library.
+ */
+class PropagateVariableTypesInLibraryTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [LIBRARY_ELEMENT6] input.
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'PropagateVariableTypesInLibraryTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[LIBRARY_ELEMENT7]);
+
+  PropagateVariableTypesInLibraryTask(
       InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
 
@@ -3714,64 +4482,9 @@ class PropagateVariableTypesInLibraryClosureTask
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
-      'readyForClosure': READY_LIBRARY_ELEMENT6.of(source),
-      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(source),
-    };
-  }
-
-  /**
-   * Create a [PropagateVariableTypesInLibraryClosureTask] based on the given
-   * [target] in the given [context].
-   */
-  static PropagateVariableTypesInLibraryClosureTask createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new PropagateVariableTypesInLibraryClosureTask(context, target);
-  }
-}
-
-/**
- * An artificial task that does nothing except to force propagated types for
- * all propagable variables in the defining and part units of a library.
- */
-class PropagateVariableTypesInLibraryTask extends SourceBasedAnalysisTask {
-  /**
-   * The name of the [LIBRARY_ELEMENT5] input.
-   */
-  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
-
-  /**
-   * The task descriptor describing this kind of task.
-   */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'PropagateVariableTypesInLibraryTask',
-      createTask,
-      buildInputs,
-      <ResultDescriptor>[LIBRARY_ELEMENT6]);
-
-  PropagateVariableTypesInLibraryTask(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  void internalPerform() {
-    LibraryElement library = getRequiredInput(LIBRARY_INPUT);
-    outputs[LIBRARY_ELEMENT6] = library;
-  }
-
-  /**
-   * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the
-   * given [target].
-   */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    Source source = target;
-    return <String, TaskInput>{
       'propagatedVariableTypesInUnits':
-          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT6),
-      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(source),
+          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT8),
+      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(source),
     };
   }
 
@@ -3791,7 +4504,7 @@ class PropagateVariableTypesInLibraryTask extends SourceBasedAnalysisTask {
  */
 class PropagateVariableTypesInUnitTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the input whose value is the [RESOLVED_UNIT5] for the
+   * The name of the input whose value is the [RESOLVED_UNIT7] for the
    * compilation unit.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
@@ -3803,7 +4516,7 @@ class PropagateVariableTypesInUnitTask extends SourceBasedAnalysisTask {
       'PropagateVariableTypesInUnitTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[CREATED_RESOLVED_UNIT6, RESOLVED_UNIT6]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT8, RESOLVED_UNIT8]);
 
   PropagateVariableTypesInUnitTask(
       InternalAnalysisContext context, LibrarySpecificUnit unit)
@@ -3823,8 +4536,8 @@ class PropagateVariableTypesInUnitTask extends SourceBasedAnalysisTask {
     // because the work has implicitly been done by virtue of the task model
     // preparing all of the inputs.
     //
-    outputs[RESOLVED_UNIT6] = unit;
-    outputs[CREATED_RESOLVED_UNIT6] = true;
+    outputs[RESOLVED_UNIT8] = unit;
+    outputs[CREATED_RESOLVED_UNIT8] = true;
   }
 
   /**
@@ -3837,7 +4550,7 @@ class PropagateVariableTypesInUnitTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       'variables':
           PROPAGABLE_VARIABLES_IN_UNIT.of(unit).toListOf(PROPAGATED_VARIABLE),
-      UNIT_INPUT: RESOLVED_UNIT5.of(unit)
+      UNIT_INPUT: RESOLVED_UNIT7.of(unit)
     };
   }
 
@@ -3862,7 +4575,7 @@ class PropagateVariableTypeTask extends InferStaticVariableTask {
   static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
 
   /**
-   * The name of the [RESOLVED_UNIT5] input.
+   * The name of the [RESOLVED_UNIT7] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -3948,7 +4661,7 @@ class PropagateVariableTypeTask extends InferStaticVariableTask {
           .of(variable)
           .toListOf(PROPAGATED_VARIABLE),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
-      UNIT_INPUT: RESOLVED_UNIT5.of(unit),
+      UNIT_INPUT: RESOLVED_UNIT7.of(unit),
     };
   }
 
@@ -4006,7 +4719,7 @@ class ReadyLibraryElement2Task extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that ensures that [LIBRARY_ELEMENT5] is ready for the target library
+ * A task that ensures that [LIBRARY_ELEMENT6] is ready for the target library
  * source and its import/export closure.
  */
 class ReadyLibraryElement5Task extends SourceBasedAnalysisTask {
@@ -4014,52 +4727,9 @@ class ReadyLibraryElement5Task extends SourceBasedAnalysisTask {
       'ReadyLibraryElement5Task',
       createTask,
       buildInputs,
-      <ResultDescriptor>[READY_LIBRARY_ELEMENT5]);
-
-  ReadyLibraryElement5Task(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  bool get handlesDependencyCycles => true;
-
-  @override
-  void internalPerform() {
-    outputs[READY_LIBRARY_ELEMENT5] = true;
-  }
-
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    Source source = target;
-    return <String, TaskInput>{
-      'thisLibraryElementReady': LIBRARY_ELEMENT5.of(source),
-      'directlyImportedLibrariesReady':
-          IMPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT5),
-      'directlyExportedLibrariesReady':
-          EXPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT5),
-    };
-  }
-
-  static ReadyLibraryElement5Task createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new ReadyLibraryElement5Task(context, target);
-  }
-}
-
-/**
- * A task that ensures that [LIBRARY_ELEMENT6] is ready for the target library
- * source and its import/export closure.
- */
-class ReadyLibraryElement6Task extends SourceBasedAnalysisTask {
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'ReadyLibraryElement6Task',
-      createTask,
-      buildInputs,
       <ResultDescriptor>[READY_LIBRARY_ELEMENT6]);
 
-  ReadyLibraryElement6Task(
+  ReadyLibraryElement5Task(
       InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
 
@@ -4082,6 +4752,49 @@ class ReadyLibraryElement6Task extends SourceBasedAnalysisTask {
           IMPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT6),
       'directlyExportedLibrariesReady':
           EXPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT6),
+    };
+  }
+
+  static ReadyLibraryElement5Task createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ReadyLibraryElement5Task(context, target);
+  }
+}
+
+/**
+ * A task that ensures that [LIBRARY_ELEMENT7] is ready for the target library
+ * source and its import/export closure.
+ */
+class ReadyLibraryElement6Task extends SourceBasedAnalysisTask {
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ReadyLibraryElement6Task',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[READY_LIBRARY_ELEMENT7]);
+
+  ReadyLibraryElement6Task(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  bool get handlesDependencyCycles => true;
+
+  @override
+  void internalPerform() {
+    outputs[READY_LIBRARY_ELEMENT7] = true;
+  }
+
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source source = target;
+    return <String, TaskInput>{
+      'thisLibraryElementReady': LIBRARY_ELEMENT7.of(source),
+      'directlyImportedLibrariesReady':
+          IMPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT7),
+      'directlyExportedLibrariesReady':
+          EXPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT7),
     };
   }
 
@@ -4131,54 +4844,70 @@ class ReadyResolvedUnitTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * Information about a library - which names it uses, which names it defines
- * with their externally visible dependencies.
+ * Information about a Dart [source] - which names it uses, which names it
+ * defines with their externally visible dependencies.
  */
 class ReferencedNames {
+  final Source source;
+
+  /**
+   * The mapping from the name of a class to the set of names of other classes
+   * that extend, mix-in, or implement it.
+   *
+   * If the set of member of a class is changed, these changes might change
+   * the list of unimplemented inherited members in the class and classes that
+   * extend, mix-in, or implement it. So, we might need to report (or stop
+   * reporting) the corresponding warning.
+   */
+  final Map<String, Set<String>> superToSubs = <String, Set<String>>{};
+
+  /**
+   * The names of extended classes for which the unnamed constructor is
+   * invoked. Because we cannot use the name of the constructor to identify
+   * whether the unit is affected, we need to use the class name.
+   */
+  final Set<String> extendedUsedUnnamedConstructorNames = new Set<String>();
+
+  /**
+   * The names of instantiated classes.
+   *
+   * If one of these classes changes its set of members, it might change
+   * its list of unimplemented inherited members. So, we might need to report
+   * (or stop reporting) the corresponding warning.
+   */
+  final Set<String> instantiatedNames = new Set<String>();
+
+  /**
+   * The set of names that are referenced by the library, both inside and
+   * outside of method bodies.
+   */
   final Set<String> names = new Set<String>();
+
+  /**
+   * The mapping from the name of a top-level element to the set of names that
+   * the element uses in a way that is visible outside of the element, e.g.
+   * the return type, or a parameter type.
+   */
   final Map<String, Set<String>> userToDependsOn = <String, Set<String>>{};
 
-  /**
-   * Updates [delta] by adding names that are changed in this library.
-   */
-  void addChangedElements(DartDelta delta) {
-    bool hasProgress = true;
-    while (hasProgress) {
-      hasProgress = false;
-      userToDependsOn.forEach((user, dependencies) {
-        for (String dependency in dependencies) {
-          if (delta.isNameAffected(dependency)) {
-            if (delta.nameChanged(user)) {
-              hasProgress = true;
-            }
-          }
-        }
-      });
-    }
-  }
+  ReferencedNames(this.source);
 
-  /**
-   * Returns `true` if the library described by this object is affected by
-   * the given [delta].
-   */
-  bool isAffectedBy(DartDelta delta) {
-    for (String name in names) {
-      if (delta.isNameAffected(name)) {
-        return true;
-      }
-    }
-    return false;
+  void addSubclass(String subName, String superName) {
+    superToSubs.putIfAbsent(superName, () => new Set<String>()).add(subName);
   }
 }
 
 /**
  * A builder for creating [ReferencedNames].
- *
- * TODO(scheglov) Record dependencies for all other top-level declarations.
  */
-class ReferencedNamesBuilder extends RecursiveAstVisitor {
+class ReferencedNamesBuilder extends GeneralizingAstVisitor {
+  final Set<String> importPrefixNames = new Set<String>();
   final ReferencedNames names;
-  int bodyLevel = 0;
+
+  String enclosingSuperClassName;
+  ReferencedNamesScope scope = new ReferencedNamesScope(null);
+
+  int localLevel = 0;
   Set<String> dependsOn;
 
   ReferencedNamesBuilder(this.names);
@@ -4189,41 +4918,329 @@ class ReferencedNamesBuilder extends RecursiveAstVisitor {
   }
 
   @override
-  visitBlockFunctionBody(BlockFunctionBody node) {
+  visitBlock(Block node) {
+    ReferencedNamesScope outerScope = scope;
     try {
-      bodyLevel++;
-      super.visitBlockFunctionBody(node);
+      scope = new ReferencedNamesScope.forBlock(scope, node);
+      super.visitBlock(node);
     } finally {
-      bodyLevel--;
+      scope = outerScope;
     }
   }
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    dependsOn = new Set<String>();
-    super.visitClassDeclaration(node);
-    names.userToDependsOn[node.name.name] = dependsOn;
-    dependsOn = null;
+    ReferencedNamesScope outerScope = scope;
+    try {
+      scope = new ReferencedNamesScope.forClass(scope, node);
+      dependsOn = new Set<String>();
+      enclosingSuperClassName =
+          _getSimpleName(node.extendsClause?.superclass?.name);
+      super.visitClassDeclaration(node);
+      String className = node.name.name;
+      names.userToDependsOn[className] = dependsOn;
+      _addSuperName(className, node.extendsClause?.superclass);
+      _addSuperNames(className, node.withClause?.mixinTypes);
+      _addSuperNames(className, node.implementsClause?.interfaces);
+    } finally {
+      enclosingSuperClassName = null;
+      dependsOn = null;
+      scope = outerScope;
+    }
   }
 
   @override
-  visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  visitClassTypeAlias(ClassTypeAlias node) {
+    ReferencedNamesScope outerScope = scope;
     try {
-      bodyLevel++;
-      super.visitExpressionFunctionBody(node);
+      scope = new ReferencedNamesScope.forClassTypeAlias(scope, node);
+      dependsOn = new Set<String>();
+      super.visitClassTypeAlias(node);
+      String className = node.name.name;
+      names.userToDependsOn[className] = dependsOn;
+      _addSuperName(className, node.superclass);
+      _addSuperNames(className, node.withClause?.mixinTypes);
+      _addSuperNames(className, node.implementsClause?.interfaces);
     } finally {
-      bodyLevel--;
+      dependsOn = null;
+      scope = outerScope;
+    }
+  }
+
+  @override
+  visitComment(Comment node) {
+    try {
+      localLevel++;
+      super.visitComment(node);
+    } finally {
+      localLevel--;
+    }
+  }
+
+  @override
+  visitConstructorName(ConstructorName node) {
+    if (node.parent is! ConstructorDeclaration) {
+      super.visitConstructorName(node);
+    }
+  }
+
+  @override
+  visitFunctionBody(FunctionBody node) {
+    try {
+      localLevel++;
+      super.visitFunctionBody(node);
+    } finally {
+      localLevel--;
+    }
+  }
+
+  @override
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    if (localLevel == 0) {
+      ReferencedNamesScope outerScope = scope;
+      try {
+        scope = new ReferencedNamesScope.forFunction(scope, node);
+        dependsOn = new Set<String>();
+        super.visitFunctionDeclaration(node);
+        names.userToDependsOn[node.name.name] = dependsOn;
+      } finally {
+        dependsOn = null;
+        scope = outerScope;
+      }
+    } else {
+      super.visitFunctionDeclaration(node);
+    }
+  }
+
+  @override
+  visitFunctionTypeAlias(FunctionTypeAlias node) {
+    if (localLevel == 0) {
+      ReferencedNamesScope outerScope = scope;
+      try {
+        scope = new ReferencedNamesScope.forFunctionTypeAlias(scope, node);
+        dependsOn = new Set<String>();
+        super.visitFunctionTypeAlias(node);
+        names.userToDependsOn[node.name.name] = dependsOn;
+      } finally {
+        dependsOn = null;
+        scope = outerScope;
+      }
+    } else {
+      super.visitFunctionTypeAlias(node);
+    }
+  }
+
+  @override
+  visitImportDirective(ImportDirective node) {
+    if (node.prefix != null) {
+      importPrefixNames.add(node.prefix.name);
+    }
+    super.visitImportDirective(node);
+  }
+
+  @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    ConstructorName constructorName = node.constructorName;
+    Identifier typeName = constructorName.type.name;
+    if (typeName is SimpleIdentifier) {
+      names.instantiatedNames.add(typeName.name);
+    }
+    if (typeName is PrefixedIdentifier) {
+      String prefixName = typeName.prefix.name;
+      if (importPrefixNames.contains(prefixName)) {
+        names.instantiatedNames.add(typeName.identifier.name);
+      } else {
+        names.instantiatedNames.add(prefixName);
+      }
+    }
+    super.visitInstanceCreationExpression(node);
+  }
+
+  @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    ReferencedNamesScope outerScope = scope;
+    try {
+      scope = new ReferencedNamesScope.forMethod(scope, node);
+      super.visitMethodDeclaration(node);
+    } finally {
+      scope = outerScope;
     }
   }
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    if (!node.inDeclarationContext()) {
-      String name = node.name;
-      names.names.add(name);
-      if (dependsOn != null && bodyLevel == 0) {
-        dependsOn.add(name);
+    // Ignore all declarations.
+    if (node.inDeclarationContext()) {
+      return;
+    }
+    // Ignore class names references from constructors.
+    AstNode parent = node.parent;
+    if (parent is ConstructorDeclaration && parent.returnType == node) {
+      return;
+    }
+    // Prepare name.
+    String name = node.name;
+    // Ignore unqualified names shadowed by local elements.
+    if (!node.isQualified) {
+      if (scope.contains(name)) {
+        return;
       }
+      if (importPrefixNames.contains(name)) {
+        return;
+      }
+    }
+    // Do add the dependency.
+    names.names.add(name);
+    if (dependsOn != null && localLevel == 0) {
+      dependsOn.add(name);
+    }
+  }
+
+  @override
+  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    if (node.constructorName == null && enclosingSuperClassName != null) {
+      names.extendedUsedUnnamedConstructorNames.add(enclosingSuperClassName);
+    }
+    super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
+  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    VariableDeclarationList variableList = node.variables;
+    // Prepare type dependencies.
+    Set<String> typeDependencies = new Set<String>();
+    dependsOn = typeDependencies;
+    variableList.type?.accept(this);
+    // Combine individual variable dependencies with the type dependencies.
+    for (VariableDeclaration variable in variableList.variables) {
+      dependsOn = new Set<String>();
+      variable.accept(this);
+      dependsOn.addAll(typeDependencies);
+      names.userToDependsOn[variable.name.name] = dependsOn;
+    }
+    dependsOn = null;
+  }
+
+  void _addSuperName(String className, TypeName type) {
+    if (type != null) {
+      Identifier typeName = type.name;
+      if (typeName is SimpleIdentifier) {
+        names.addSubclass(className, typeName.name);
+      }
+      if (typeName is PrefixedIdentifier) {
+        names.addSubclass(className, typeName.identifier.name);
+      }
+    }
+  }
+
+  void _addSuperNames(String className, List<TypeName> types) {
+    types?.forEach((type) => _addSuperName(className, type));
+  }
+
+  static String _getSimpleName(Identifier identifier) {
+    if (identifier is SimpleIdentifier) {
+      return identifier.name;
+    }
+    if (identifier is PrefixedIdentifier) {
+      return identifier.identifier.name;
+    }
+    return null;
+  }
+}
+
+class ReferencedNamesScope {
+  final ReferencedNamesScope enclosing;
+  Set<String> names;
+
+  ReferencedNamesScope(this.enclosing);
+
+  factory ReferencedNamesScope.forBlock(
+      ReferencedNamesScope enclosing, Block node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    for (Statement statement in node.statements) {
+      if (statement is FunctionDeclarationStatement) {
+        scope.add(statement.functionDeclaration.name.name);
+      } else if (statement is VariableDeclarationStatement) {
+        for (VariableDeclaration variable in statement.variables.variables) {
+          scope.add(variable.name.name);
+        }
+      }
+    }
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forClass(
+      ReferencedNamesScope enclosing, ClassDeclaration node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
+    for (ClassMember member in node.members) {
+      if (member is FieldDeclaration) {
+        for (VariableDeclaration variable in member.fields.variables) {
+          scope.add(variable.name.name);
+        }
+      } else if (member is MethodDeclaration) {
+        scope.add(member.name.name);
+      }
+    }
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forClassTypeAlias(
+      ReferencedNamesScope enclosing, ClassTypeAlias node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forFunction(
+      ReferencedNamesScope enclosing, FunctionDeclaration node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.functionExpression.typeParameters);
+    scope._addFormalParameters(node.functionExpression.parameters);
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forFunctionTypeAlias(
+      ReferencedNamesScope enclosing, FunctionTypeAlias node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
+    return scope;
+  }
+
+  factory ReferencedNamesScope.forMethod(
+      ReferencedNamesScope enclosing, MethodDeclaration node) {
+    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
+    scope._addTypeParameters(node.typeParameters);
+    scope._addFormalParameters(node.parameters);
+    return scope;
+  }
+
+  void add(String name) {
+    names ??= new Set<String>();
+    names.add(name);
+  }
+
+  bool contains(String name) {
+    if (names != null && names.contains(name)) {
+      return true;
+    }
+    if (enclosing != null) {
+      return enclosing.contains(name);
+    }
+    return false;
+  }
+
+  void _addFormalParameters(FormalParameterList parameterList) {
+    if (parameterList != null) {
+      parameterList.parameters
+          .map((p) => p is NormalFormalParameter ? p.identifier.name : '')
+          .forEach(add);
+    }
+  }
+
+  void _addTypeParameters(TypeParameterList typeParameterList) {
+    if (typeParameterList != null) {
+      typeParameterList.typeParameters.map((p) => p.name.name).forEach(add);
     }
   }
 }
@@ -4272,7 +5289,7 @@ class ResolveConstantExpressionTask extends ConstantEvaluationAnalysisTask {
           'Cannot build inputs for a ${target.runtimeType}');
     }
     return <String, TaskInput>{
-      'createdResolvedUnit': CREATED_RESOLVED_UNIT10
+      'createdResolvedUnit': CREATED_RESOLVED_UNIT12
           .of(new LibrarySpecificUnit(librarySource, target.source))
     };
   }
@@ -4288,12 +5305,86 @@ class ResolveConstantExpressionTask extends ConstantEvaluationAnalysisTask {
 }
 
 /**
+ * A task that resolves imports and export directives to already built elements.
+ */
+class ResolveDirectiveElementsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the input whose value is the defining [LIBRARY_ELEMENT2].
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
+   * The name of the input for [RESOLVED_UNIT1] of a unit.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ResolveDirectiveElementsTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT2, RESOLVED_UNIT2]);
+
+  ResolveDirectiveElementsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    LibrarySpecificUnit targetUnit = target;
+    //
+    // Prepare inputs.
+    //
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    //
+    // Resolve directive AST nodes to elements.
+    //
+    if (targetUnit.unit == targetUnit.library) {
+      DirectiveResolver resolver = new DirectiveResolver();
+      unit.accept(resolver);
+    }
+    //
+    // Record outputs.
+    //
+    outputs[CREATED_RESOLVED_UNIT2] = true;
+    outputs[RESOLVED_UNIT2] = unit;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    LibrarySpecificUnit unit = target;
+    return <String, TaskInput>{
+      LIBRARY_INPUT: LIBRARY_ELEMENT2.of(unit.library),
+      UNIT_INPUT: RESOLVED_UNIT1.of(unit)
+    };
+  }
+
+  /**
+   * Create a [ResolveDirectiveElementsTask] based on the given [target] in
+   * the given [context].
+   */
+  static ResolveDirectiveElementsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ResolveDirectiveElementsTask(context, target);
+  }
+}
+
+/**
  * A task that ensures that all of the inferable instance members in a
  * compilation unit have had their right hand sides re-resolved
  */
 class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT5] input.
+   * The name of the [LIBRARY_ELEMENT6] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
@@ -4303,7 +5394,7 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
   static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
 
   /**
-   * The name of the input whose value is the [RESOLVED_UNIT7] for the
+   * The name of the input whose value is the [RESOLVED_UNIT9] for the
    * compilation unit.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
@@ -4315,7 +5406,7 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
       'ResolveInstanceFieldsInUnitTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[CREATED_RESOLVED_UNIT8, RESOLVED_UNIT8]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT10, RESOLVED_UNIT10]);
 
   /**
    * Initialize a newly created task to build a library element for the given
@@ -4342,26 +5433,18 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
       //
       // Resolve references.
       //
-      // TODO(leafp): This code only needs to re-resolve the right hand sides of
-      // instance fields.  We could do incremental resolution on each field
-      // only using the incremental resolver.  However, this caused a massive
-      // performance degredation on the large_class_declaration_test.dart test.
-      // I would hypothesize that incremental resolution of field is linear in
-      // the size of the enclosing class, and hence incrementally resolving each
-      // field was quadratic.  We may wish to revisit this if we can resolve
-      // this performance issue.
-      PartialResolverVisitor visitor = new PartialResolverVisitor(
+      InstanceFieldResolverVisitor visitor = new InstanceFieldResolverVisitor(
           libraryElement,
           unitElement.source,
           typeProvider,
           AnalysisErrorListener.NULL_LISTENER);
-      unit.accept(visitor);
+      visitor.resolveCompilationUnit(unit);
     }
     //
     // Record outputs.
     //
-    outputs[RESOLVED_UNIT8] = unit;
-    outputs[CREATED_RESOLVED_UNIT8] = true;
+    outputs[RESOLVED_UNIT10] = unit;
+    outputs[CREATED_RESOLVED_UNIT10] = true;
   }
 
   /**
@@ -4372,22 +5455,26 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      UNIT_INPUT: RESOLVED_UNIT7.of(unit),
-      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(unit.library),
+      UNIT_INPUT: RESOLVED_UNIT9.of(unit),
+      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(unit.library),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
       // In strong mode, add additional dependencies to enforce inference
       // ordering.
 
       // Require that static variable inference  be complete for all units in
       // the current library cycle.
-      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT7
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source))),
+      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit.library).toList(
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT9.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source))),
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
-      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
+      'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit.library).toList(
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT11.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source)))
     };
   }
 
@@ -4402,19 +5489,14 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that finishes resolution by requesting [RESOLVED_UNIT10] for every
- * unit in the libraries closure and produces [LIBRARY_ELEMENT8].
+ * A task that finishes resolution by requesting [RESOLVED_UNIT12] for every
+ * unit in the libraries closure and produces [LIBRARY_ELEMENT9].
  */
 class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT7] input.
+   * The name of the [LIBRARY_ELEMENT8] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
-
-  /**
-   * The name of the list of [RESOLVED_UNIT10] input.
-   */
-  static const String UNITS_INPUT = 'UNITS_INPUT';
 
   /**
    * The task descriptor describing this kind of task.
@@ -4423,7 +5505,7 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
       'ResolveLibraryReferencesTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[LIBRARY_ELEMENT8, REFERENCED_NAMES]);
+      <ResultDescriptor>[LIBRARY_ELEMENT9]);
 
   ResolveLibraryReferencesTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -4434,21 +5516,8 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    //
-    // Prepare inputs.
-    //
     LibraryElement library = getRequiredInput(LIBRARY_INPUT);
-    List<CompilationUnit> units = getRequiredInput(UNITS_INPUT);
-    // Compute referenced names.
-    ReferencedNames referencedNames = new ReferencedNames();
-    for (CompilationUnit unit in units) {
-      new ReferencedNamesBuilder(referencedNames).build(unit);
-    }
-    //
-    // Record outputs.
-    //
-    outputs[LIBRARY_ELEMENT8] = library;
-    outputs[REFERENCED_NAMES] = referencedNames;
+    outputs[LIBRARY_ELEMENT9] = library;
   }
 
   /**
@@ -4459,8 +5528,9 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
-      LIBRARY_INPUT: LIBRARY_ELEMENT7.of(source),
-      UNITS_INPUT: LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT10),
+      LIBRARY_INPUT: LIBRARY_ELEMENT8.of(source),
+      'resolvedUnits':
+          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT12),
     };
   }
 
@@ -4475,17 +5545,17 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that finishes resolution by requesting [RESOLVED_UNIT11] for every
+ * A task that finishes resolution by requesting [RESOLVED_UNIT13] for every
  * unit in the libraries closure and produces [LIBRARY_ELEMENT].
  */
 class ResolveLibraryTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT8] input.
+   * The name of the [LIBRARY_ELEMENT9] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
   /**
-   * The name of the list of [RESOLVED_UNIT11] input.
+   * The name of the list of [RESOLVED_UNIT13] input.
    */
   static const String UNITS_INPUT = 'UNITS_INPUT';
 
@@ -4524,7 +5594,7 @@ class ResolveLibraryTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
-      LIBRARY_INPUT: LIBRARY_ELEMENT8.of(source),
+      LIBRARY_INPUT: LIBRARY_ELEMENT9.of(source),
       'thisLibraryClosureIsReady': READY_RESOLVED_UNIT.of(source),
     };
   }
@@ -4545,7 +5615,7 @@ class ResolveLibraryTask extends SourceBasedAnalysisTask {
  */
 class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT4] input.
+   * The name of the [LIBRARY_ELEMENT5] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
@@ -4561,7 +5631,7 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
       'ResolveLibraryTypeNamesTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[LIBRARY_ELEMENT5]);
+      <ResultDescriptor>[LIBRARY_ELEMENT6]);
 
   ResolveLibraryTypeNamesTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -4584,7 +5654,7 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[LIBRARY_ELEMENT5] = library;
+    outputs[LIBRARY_ELEMENT6] = library;
   }
 
   /**
@@ -4596,8 +5666,8 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
     Source source = target;
     return <String, TaskInput>{
       'resolvedUnit':
-          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT3),
-      LIBRARY_INPUT: LIBRARY_ELEMENT4.of(source),
+          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT5),
+      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(source),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
@@ -4613,12 +5683,169 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * An artificial task that does nothing except to force type parameter bounds
+ * type names resolution for the defining and part units of a library.
+ */
+class ResolveTopLevelLibraryTypeBoundsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [LIBRARY_ELEMENT4] input.
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ResolveTopLevelLibraryTypeBoundsTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[LIBRARY_ELEMENT5]);
+
+  ResolveTopLevelLibraryTypeBoundsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  bool get handlesDependencyCycles => true;
+
+  @override
+  void internalPerform() {
+    LibraryElement library = getRequiredInput(LIBRARY_INPUT);
+    outputs[LIBRARY_ELEMENT5] = library;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source source = target;
+    return <String, TaskInput>{
+      LIBRARY_INPUT: LIBRARY_ELEMENT4.of(source),
+      'thisLibraryUnitsReady':
+          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT4),
+      'directlyImportedLibrariesReady':
+          IMPORTED_LIBRARIES.of(source).toListOf(LIBRARY_ELEMENT5),
+      'directlyExportedLibrariesReady':
+          EXPORTED_LIBRARIES.of(source).toListOf(LIBRARY_ELEMENT5),
+    };
+  }
+
+  /**
+   * Create a [ResolveTopLevelLibraryTypeBoundsTask] based on the given [target]
+   * in the given [context].
+   */
+  static ResolveTopLevelLibraryTypeBoundsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ResolveTopLevelLibraryTypeBoundsTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [RESOLVED_UNIT4] for a unit.
+ */
+class ResolveTopLevelUnitTypeBoundsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the input whose value is the defining [LIBRARY_ELEMENT4].
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
+   * The name of the [RESOLVED_UNIT3] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ResolveTopLevelUnitTypeBoundsTask',
+      createTask,
+      buildInputs, <ResultDescriptor>[
+    RESOLVE_TYPE_BOUNDS_ERRORS,
+    CREATED_RESOLVED_UNIT4,
+    RESOLVED_UNIT4
+  ]);
+
+  ResolveTopLevelUnitTypeBoundsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    //
+    // Prepare inputs.
+    //
+    LibraryElement library = getRequiredInput(LIBRARY_INPUT);
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    CompilationUnitElement unitElement = unit.element;
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    //
+    // Resolve TypeName nodes.
+    //
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    new TypeParameterBoundsResolver(
+            typeProvider, library, unitElement.source, errorListener)
+        .resolveTypeBounds(unit);
+    //
+    // Record outputs.
+    //
+    outputs[RESOLVE_TYPE_BOUNDS_ERRORS] =
+        getTargetSourceErrors(errorListener, target);
+    outputs[RESOLVED_UNIT4] = unit;
+    outputs[CREATED_RESOLVED_UNIT4] = true;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    // TODO(brianwilkerson) This task updates the element model to have type
+    // information and updates the class hierarchy. It should produce a new
+    // version of the element model in order to record those changes.
+    LibrarySpecificUnit unit = target;
+    return <String, TaskInput>{
+      'importsExportNamespace':
+          IMPORTED_LIBRARIES.of(unit.library).toMapOf(LIBRARY_ELEMENT4),
+      'dependOnAllExportedSources':
+          IMPORTED_LIBRARIES.of(unit.library).toMapOf(EXPORT_SOURCE_CLOSURE),
+      LIBRARY_INPUT: LIBRARY_ELEMENT4.of(unit.library),
+      UNIT_INPUT: RESOLVED_UNIT3.of(unit),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
+    };
+  }
+
+  /**
+   * Create a [ResolveTopLevelUnitTypeBoundsTask] based on the given [target] in
+   * the given [context].
+   */
+  static ResolveTopLevelUnitTypeBoundsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ResolveTopLevelUnitTypeBoundsTask(context, target);
+  }
+}
+
+/**
  * A task that resolves the bodies of top-level functions, constructors, and
  * methods within a single compilation unit.
  */
 class ResolveUnitTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the input whose value is the defining [LIBRARY_ELEMENT7].
+   * The name of the input whose value is the defining [LIBRARY_ELEMENT8].
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
@@ -4628,7 +5855,7 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
   static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
 
   /**
-   * The name of the [RESOLVED_UNIT9] input.
+   * The name of the [RESOLVED_UNIT11] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -4636,8 +5863,8 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
       'ResolveUnitTask', createTask, buildInputs, <ResultDescriptor>[
     CONSTANT_EXPRESSIONS_DEPENDENCIES,
     RESOLVE_UNIT_ERRORS,
-    CREATED_RESOLVED_UNIT10,
-    RESOLVED_UNIT10
+    CREATED_RESOLVED_UNIT12,
+    RESOLVED_UNIT12
   ]);
 
   ResolveUnitTask(
@@ -4683,8 +5910,8 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
     //
     outputs[CONSTANT_EXPRESSIONS_DEPENDENCIES] = constExprDependencies;
     outputs[RESOLVE_UNIT_ERRORS] = getTargetSourceErrors(errorListener, target);
-    outputs[RESOLVED_UNIT10] = unit;
-    outputs[CREATED_RESOLVED_UNIT10] = true;
+    outputs[RESOLVED_UNIT12] = unit;
+    outputs[CREATED_RESOLVED_UNIT12] = true;
   }
 
   /**
@@ -4695,17 +5922,19 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      LIBRARY_INPUT: LIBRARY_ELEMENT7.of(unit.library),
+      LIBRARY_INPUT: LIBRARY_ELEMENT8.of(unit.library),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
-      UNIT_INPUT: RESOLVED_UNIT9.of(unit),
+      UNIT_INPUT: RESOLVED_UNIT11.of(unit),
       // In strong mode, add additional dependencies to enforce inference
       // ordering.
 
       // Require that inference be complete for all units in the
       // current library cycle.
-      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
+      'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit.library).toList(
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT11.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source)))
     };
   }
 
@@ -4720,16 +5949,16 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that builds [RESOLVED_UNIT3] for a unit.
+ * A task that builds [RESOLVED_UNIT5] for a unit.
  */
 class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the input whose value is the defining [LIBRARY_ELEMENT4].
+   * The name of the input whose value is the defining [LIBRARY_ELEMENT5].
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
   /**
-   * The name of the [RESOLVED_UNIT2] input.
+   * The name of the [RESOLVED_UNIT4] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -4744,8 +5973,8 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ResolveUnitTypeNamesTask', createTask, buildInputs, <ResultDescriptor>[
     RESOLVE_TYPE_NAMES_ERRORS,
-    CREATED_RESOLVED_UNIT3,
-    RESOLVED_UNIT3
+    CREATED_RESOLVED_UNIT5,
+    RESOLVED_UNIT5
   ]);
 
   ResolveUnitTypeNamesTask(
@@ -4776,8 +6005,8 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     //
     outputs[RESOLVE_TYPE_NAMES_ERRORS] =
         getTargetSourceErrors(errorListener, target);
-    outputs[RESOLVED_UNIT3] = unit;
-    outputs[CREATED_RESOLVED_UNIT3] = true;
+    outputs[RESOLVED_UNIT5] = unit;
+    outputs[CREATED_RESOLVED_UNIT5] = true;
   }
 
   /**
@@ -4791,10 +6020,8 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     // version of the element model in order to record those changes.
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      'importsExportNamespace':
-          IMPORTED_LIBRARIES.of(unit.library).toMapOf(LIBRARY_ELEMENT4),
-      LIBRARY_INPUT: LIBRARY_ELEMENT4.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT2.of(unit),
+      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(unit.library),
+      UNIT_INPUT: RESOLVED_UNIT4.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
@@ -4810,7 +6037,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that builds [RESOLVED_UNIT4] for a unit.
+ * A task that builds [RESOLVED_UNIT6] for a unit.
  */
 class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
   /**
@@ -4819,7 +6046,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
   /**
-   * The name of the [RESOLVED_UNIT3] input.
+   * The name of the [RESOLVED_UNIT5] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -4835,8 +6062,8 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
       'ResolveVariableReferencesTask',
       createTask,
       buildInputs, <ResultDescriptor>[
-    CREATED_RESOLVED_UNIT4,
-    RESOLVED_UNIT4,
+    CREATED_RESOLVED_UNIT6,
+    RESOLVED_UNIT6,
     VARIABLE_REFERENCE_ERRORS
   ]);
 
@@ -4868,8 +6095,8 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[RESOLVED_UNIT4] = unit;
-    outputs[CREATED_RESOLVED_UNIT4] = true;
+    outputs[RESOLVED_UNIT6] = unit;
+    outputs[CREATED_RESOLVED_UNIT6] = true;
     outputs[VARIABLE_REFERENCE_ERRORS] =
         getTargetSourceErrors(errorListener, target);
   }
@@ -4883,7 +6110,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT1.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT3.of(unit),
+      UNIT_INPUT: RESOLVED_UNIT5.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
@@ -4909,13 +6136,18 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   static const String CONTENT_INPUT_NAME = 'CONTENT_INPUT_NAME';
 
   /**
+   * The name of the input whose value is the modification time of the file.
+   */
+  static const String MODIFICATION_TIME_INPUT = 'MODIFICATION_TIME_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ScanDartTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[LINE_INFO, SCAN_ERRORS, TOKEN_STREAM],
+      <ResultDescriptor>[IGNORE_INFO, LINE_INFO, SCAN_ERRORS, TOKEN_STREAM],
       suitabilityFor: suitabilityFor);
 
   /**
@@ -4931,9 +6163,10 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     Source source = getRequiredSource();
-
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    if (context.getModificationStamp(target.source) < 0) {
+
+    int modificationTime = getRequiredInput(MODIFICATION_TIME_INPUT);
+    if (modificationTime < 0) {
       String message = 'Content could not be read';
       if (context is InternalAnalysisContext) {
         CacheEntry entry =
@@ -4966,9 +6199,15 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       scanner.setSourceStart(fragment.line, fragment.column);
       scanner.preserveComments = context.analysisOptions.preserveComments;
       scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
+      scanner.scanLazyAssignmentOperators =
+          context.analysisOptions.enableLazyAssignmentOperators;
+
+      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
       outputs[TOKEN_STREAM] = scanner.tokenize();
-      outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
+      outputs[LINE_INFO] = lineInfo;
+      outputs[IGNORE_INFO] =
+          IgnoreInfo.calculateIgnores(fragment.content, lineInfo);
       outputs[SCAN_ERRORS] = getUniqueErrors(errorListener.errors);
     } else if (target is Source) {
       String content = getRequiredInput(CONTENT_INPUT_NAME);
@@ -4977,9 +6216,14 @@ class ScanDartTask extends SourceBasedAnalysisTask {
           new Scanner(source, new CharSequenceReader(content), errorListener);
       scanner.preserveComments = context.analysisOptions.preserveComments;
       scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
+      scanner.scanLazyAssignmentOperators =
+          context.analysisOptions.enableLazyAssignmentOperators;
+
+      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
       outputs[TOKEN_STREAM] = scanner.tokenize();
-      outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
+      outputs[LINE_INFO] = lineInfo;
+      outputs[IGNORE_INFO] = IgnoreInfo.calculateIgnores(content, lineInfo);
       outputs[SCAN_ERRORS] = getUniqueErrors(errorListener.errors);
     } else {
       throw new AnalysisException(
@@ -4990,16 +6234,23 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   /**
    * Return a map from the names of the inputs of this kind of task to the task
    * input descriptors describing those inputs for a task with the given
-   * [source].
+   * [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     if (target is Source) {
-      return <String, TaskInput>{CONTENT_INPUT_NAME: CONTENT.of(target)};
+      return <String, TaskInput>{
+        CONTENT_INPUT_NAME: CONTENT.of(target, flushOnAccess: true),
+        MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(target)
+      };
     } else if (target is DartScript) {
       // This task does not use the following input; it is included only to add
       // a dependency between this value and the containing source so that when
       // the containing source is modified these results will be invalidated.
-      return <String, TaskInput>{'-': DART_SCRIPTS.of(target.source)};
+      Source source = target.source;
+      return <String, TaskInput>{
+        '-': DART_SCRIPTS.of(source),
+        MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(source)
+      };
     }
     throw new AnalysisException(
         'Cannot build inputs for a ${target.runtimeType}');
@@ -5035,7 +6286,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
  */
 class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [RESOLVED_UNIT11] input.
+   * The name of the [RESOLVED_UNIT13] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
@@ -5071,9 +6322,14 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     AnalysisOptionsImpl options = context.analysisOptions;
     if (options.strongMode) {
-      unit.accept(new CodeChecker(
-          typeProvider, new StrongTypeSystemImpl(), errorListener,
-          hints: options.strongModeHints));
+      CodeChecker checker = new CodeChecker(
+          typeProvider,
+          new StrongTypeSystemImpl(
+              implicitCasts: options.implicitCasts,
+              nonnullableTypes: options.nonnullableTypes),
+          errorListener,
+          options);
+      checker.visitCompilationUnit(unit);
     }
     //
     // Record outputs.
@@ -5091,7 +6347,7 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      UNIT_INPUT: RESOLVED_UNIT11.of(unit),
+      UNIT_INPUT: RESOLVED_UNIT13.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
     };
   }
@@ -5111,14 +6367,26 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
  */
 class VerifyUnitTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [RESOLVED_UNIT] input.
+   * The name of the [PENDING_ERRORS] input.
    */
-  static const String UNIT_INPUT = 'UNIT_INPUT';
+  static const String PENDING_ERRORS_INPUT = 'PENDING_ERRORS_INPUT';
+
+  /**
+   * The name of the input of a mapping from [REFERENCED_SOURCES] to their
+   * [MODIFICATION_TIME]s.
+   */
+  static const String REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT =
+      'REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT';
 
   /**
    * The name of the [TYPE_PROVIDER] input.
    */
   static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
+   * The name of the [RESOLVED_UNIT] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
    * The task descriptor describing this kind of task.
@@ -5130,6 +6398,12 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    * The [ErrorReporter] to report errors to.
    */
   ErrorReporter errorReporter;
+
+  /**
+   * The mapping from the current library referenced sources to their
+   * modification times.
+   */
+  Map<Source, int> sourceTimeMap;
 
   VerifyUnitTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
@@ -5145,7 +6419,6 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     //
     // Prepare inputs.
     //
-    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
@@ -5154,6 +6427,10 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
           'VerifyUnitTask verifying a unit with no library: '
           '${unitElement.source.fullName}');
     }
+    List<PendingError> pendingErrors = getRequiredInput(PENDING_ERRORS_INPUT);
+    sourceTimeMap =
+        getRequiredInput(REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT);
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Validate the directives.
     //
@@ -5175,7 +6452,12 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
         context.analysisOptions.enableSuperMixins,
         context.analysisOptions.enableAssertMessage);
     unit.accept(errorVerifier);
-
+    //
+    // Convert the pending errors into actual errors.
+    //
+    for (PendingError pendingError in pendingErrors) {
+      errorListener.onError(pendingError.toAnalysisError());
+    }
     //
     // Record outputs.
     //
@@ -5187,7 +6469,10 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    * exists and report an error if it does not.
    */
   void validateDirectives(CompilationUnit unit) {
-    for (Directive directive in unit.directives) {
+    NodeList<Directive> directives = unit.directives;
+    int length = directives.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directives[i];
       if (directive is UriBasedDirective) {
         validateReferencedSource(directive);
       }
@@ -5201,7 +6486,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
   void validateReferencedSource(UriBasedDirective directive) {
     Source source = directive.source;
     if (source != null) {
-      if (context.exists(source)) {
+      int modificationTime = sourceTimeMap[source] ?? -1;
+      if (modificationTime >= 0) {
         return;
       }
     } else {
@@ -5211,8 +6497,38 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
       }
     }
     StringLiteral uriLiteral = directive.uri;
-    errorReporter.reportErrorForNode(CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        uriLiteral, [directive.uriContent]);
+    CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+    if (_isGenerated(source)) {
+      errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
+    }
+    errorReporter
+        .reportErrorForNode(errorCode, uriLiteral, [directive.uriContent]);
+  }
+
+  /**
+   * Return `true` if the given [source] refers to a file that is assumed to be
+   * generated.
+   */
+  bool _isGenerated(Source source) {
+    if (source == null) {
+      return false;
+    }
+    // TODO(brianwilkerson) Generalize this mechanism.
+    const List<String> suffixes = const <String>[
+      '.g.dart',
+      '.pb.dart',
+      '.pbenum.dart',
+      '.pbserver.dart',
+      '.pbjson.dart',
+      '.template.dart'
+    ];
+    String fullName = source.fullName;
+    for (String suffix in suffixes) {
+      if (fullName.endsWith(suffix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -5225,6 +6541,10 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       'thisLibraryClosureIsReady': READY_RESOLVED_UNIT.of(unit.library),
       UNIT_INPUT: RESOLVED_UNIT.of(unit),
+      REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT:
+          REFERENCED_SOURCES.of(unit.library).toMapOf(MODIFICATION_TIME),
+      PENDING_ERRORS_INPUT: PENDING_ERRORS.of(unit),
+      'requiredConstants': REQUIRED_CONSTANTS.of(unit).toListOf(CONSTANT_VALUE),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
@@ -5306,16 +6626,26 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
     if (_libraries.add(library)) {
       if (kind == _SourceClosureKind.IMPORT ||
           kind == _SourceClosureKind.IMPORT_EXPORT) {
-        for (ImportElement importElement in library.imports) {
-          Source importedSource = importElement.importedLibrary.source;
-          _newSources.add(importedSource);
+        List<ImportElement> imports = library.imports;
+        int length = imports.length;
+        for (int i = 0; i < length; i++) {
+          ImportElement importElement = imports[i];
+          Source importedSource = importElement.importedLibrary?.source;
+          if (importedSource != null) {
+            _newSources.add(importedSource);
+          }
         }
       }
       if (kind == _SourceClosureKind.EXPORT ||
           kind == _SourceClosureKind.IMPORT_EXPORT) {
-        for (ExportElement exportElement in library.exports) {
-          Source exportedSource = exportElement.exportedLibrary.source;
-          _newSources.add(exportedSource);
+        List<ExportElement> exports = library.exports;
+        int length = exports.length;
+        for (int i = 0; i < length; i++) {
+          ExportElement exportElement = exports[i];
+          Source exportedSource = exportElement.exportedLibrary?.source;
+          if (exportedSource != null) {
+            _newSources.add(exportedSource);
+          }
         }
       }
     }

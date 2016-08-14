@@ -61,335 +61,6 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
     return new LocalReferenceContributor();
   }
 
-  test_constructor_parameters_mixed_required_and_named() async {
-    addTestSource('class A {A(x, {int y}) {^}}');
-    await computeSuggestions();
-    assertSuggestParameter('x', null);
-    assertSuggestParameter('y', 'int');
-  }
-
-  test_constructor_parameters_mixed_required_and_positional() async {
-    addTestSource('class A {A(x, [int y]) {^}}');
-    await computeSuggestions();
-    assertSuggestParameter('x', null);
-    assertSuggestParameter('y', 'int');
-  }
-
-  test_constructor_parameters_named() async {
-    addTestSource('class A {A({x, int y}) {^}}');
-    await computeSuggestions();
-    assertSuggestParameter('x', null);
-    assertSuggestParameter('y', 'int');
-  }
-
-  test_constructor_parameters_positional() async {
-    addTestSource('class A {A([x, int y]) {^}}');
-    await computeSuggestions();
-    assertSuggestParameter('x', null);
-    assertSuggestParameter('y', 'int');
-  }
-
-  test_constructor_parameters_required() async {
-    addTestSource('class A {A(x, int y) {^}}');
-    await computeSuggestions();
-    assertSuggestParameter('x', null);
-    assertSuggestParameter('y', 'int');
-  }
-
-  test_enum() async {
-    addTestSource('enum E { one, two } main() {^}');
-    await computeSuggestions();
-    assertSuggestEnum('E');
-    assertNotSuggested('one');
-    assertNotSuggested('two');
-  }
-
-  test_enum_deprecated() async {
-    addTestSource('@deprecated enum E { one, two } main() {^}');
-    await computeSuggestions();
-    assertSuggestEnum('E', isDeprecated: true);
-    assertNotSuggested('one');
-    assertNotSuggested('two');
-  }
-
-  test_function_parameters_mixed_required_and_named() async {
-    addTestSource('''
-void m(x, {int y}) {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 1);
-    expect(suggestion.hasNamedParameters, true);
-  }
-
-  test_function_parameters_mixed_required_and_positional() async {
-    addTestSource('''
-void m(x, [int y]) {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 1);
-    expect(suggestion.hasNamedParameters, false);
-  }
-
-  test_function_parameters_named() async {
-    addTestSource('''
-void m({x, int y}) {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, true);
-  }
-
-  test_function_parameters_none() async {
-    addTestSource('''
-void m() {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    expect(suggestion.parameterNames, isEmpty);
-    expect(suggestion.parameterTypes, isEmpty);
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, false);
-  }
-
-  test_function_parameters_positional() async {
-    addTestSource('''
-void m([x, int y]) {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, false);
-  }
-
-  test_function_parameters_required() async {
-    addTestSource('''
-void m(x, int y) {}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 2);
-    expect(suggestion.hasNamedParameters, false);
-  }
-
-  test_ignore_symbol_being_completed() async {
-    addTestSource('class MyClass { } main(MC^) { }');
-    await computeSuggestions();
-    assertSuggestClass('MyClass');
-    assertNotSuggested('MC');
-  }
-
-  test_inDartDoc_reference3() async {
-    addTestSource('''
-/// The [^]
-main(aaa, bbb) {}''');
-    await computeSuggestions();
-    assertSuggestFunction('main', null,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-  }
-
-  test_inDartDoc_reference4() async {
-    addTestSource('''
-/// The [m^]
-main(aaa, bbb) {}''');
-    await computeSuggestions();
-    assertSuggestFunction('main', null,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-  }
-
-  test_InstanceCreationExpression() async {
-    addTestSource('''
-class A {foo(){var f; {var x;}}}
-class B {B(this.x, [String boo]) { } int x;}
-class C {C.bar({boo: 'hoo', int z: 0}) { } }
-main() {new ^ String x = "hello";}''');
-    await computeSuggestions();
-    // Suggested by LocalConstructorContributor
-    assertNoSuggestions();
-  }
-
-  test_method_parameters_mixed_required_and_named() async {
-    addTestSource('''
-class A {
-  void m(x, {int y}) {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_method_parameters_mixed_required_and_positional() async {
-    addTestSource('''
-class A {
-  void m(x, [int y]) {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_method_parameters_named() async {
-    addTestSource('''
-class A {
-  void m({x, int y}) {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_method_parameters_none() async {
-    addTestSource('''
-class A {
-  void m() {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_method_parameters_positional() async {
-    addTestSource('''
-class A {
-  void m([x, int y]) {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_method_parameters_required() async {
-    addTestSource('''
-class A {
-  void m(x, int y) {}
-}
-class B extends A {
-  main() {^}
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('m');
-  }
-
-  test_missing_params_constructor() async {
-    addTestSource('class C1{C1{} main(){C^}}');
-    await computeSuggestions();
-  }
-
-  test_missing_params_function() async {
-    addTestSource('int f1{} main(){f^}');
-    await computeSuggestions();
-  }
-
-  test_missing_params_method() async {
-    addTestSource('class C1{int f1{} main(){f^}}');
-    await computeSuggestions();
-  }
-
-  test_overrides() async {
-    addTestSource('''
-class A {m() {}}
-class B extends A {m() {^}}
-''');
-    await computeSuggestions();
-    assertSuggestMethod('m', 'B', null, relevance: DART_RELEVANCE_LOCAL_METHOD);
-  }
-
-  test_prioritization() async {
-    addTestSource('main() {var ab; var _ab; ^}');
-    await computeSuggestions();
-    assertSuggestLocalVariable('ab', null);
-    assertSuggestLocalVariable('_ab', null, relevance: DART_RELEVANCE_DEFAULT);
-  }
-
-  test_prioritization_private() async {
-    addTestSource('main() {var ab; var _ab; _^}');
-    await computeSuggestions();
-    assertSuggestLocalVariable('ab', null);
-    assertSuggestLocalVariable('_ab', null);
-  }
-
-  test_prioritization_public() async {
-    addTestSource('main() {var ab; var _ab; a^}');
-    await computeSuggestions();
-    assertSuggestLocalVariable('ab', null);
-    assertSuggestLocalVariable('_ab', null, relevance: DART_RELEVANCE_DEFAULT);
-  }
-
-  test_shadowed_name() async {
-    addTestSource('var a; class A { var a; m() { ^ } }');
-    await computeSuggestions();
-    assertSuggestField('a', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
-  }
-
   test_ArgumentList() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
@@ -660,7 +331,44 @@ void main() {expect(foo: ^)}''');
     assertNotSuggested('main');
   }
 
-  test_AsExpression() async {
+  test_ArgumentList_namedParam_filter() async {
+    // SimpleIdentifier  NamedExpression  ArgumentList
+    // InstanceCreationExpression
+    addTestSource('''
+        class A {}
+        class B extends A {}
+        class C implements A {}
+        class D {}
+        class E {
+          A a;
+          E({A someA});
+        }
+        A a = new A();
+        B b = new B();
+        C c = new C();
+        D d = new D();
+        E e = new E(someA: ^);
+  ''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTopLevelVar('a', 'A',
+        relevance:
+            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+    assertSuggestTopLevelVar('b', 'B',
+        relevance:
+            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+    assertSuggestTopLevelVar('c', 'C',
+        relevance:
+            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+    assertSuggestTopLevelVar('d', 'D',
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+    assertSuggestTopLevelVar('e', 'E',
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+  }
+
+  test_AsExpression_type() async {
     // SimpleIdentifier  TypeName  AsExpression
     addTestSource('''
         class A {var b; X _c; foo() {var a; (a as ^).foo();}''');
@@ -673,6 +381,50 @@ void main() {expect(foo: ^)}''');
     assertNotSuggested('Object');
     assertSuggestClass('A');
     assertNotSuggested('==');
+  }
+
+  test_AsExpression_type_filter_extends() async {
+    // SimpleIdentifier  TypeName  AsExpression
+    addTestSource('''
+class A {} class B extends A {} class C extends A {} class D {}
+f(A a){ (a as ^) }''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('D');
+    assertNotSuggested('Object');
+  }
+
+  test_AsExpression_type_filter_implements() async {
+    // SimpleIdentifier  TypeName  AsExpression
+    addTestSource('''
+class A {} class B implements A {} class C implements A {} class D {}
+f(A a){ (a as ^) }''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('D');
+    assertNotSuggested('Object');
+  }
+
+  test_AsExpression_type_filter_undefined_type() async {
+    // SimpleIdentifier  TypeName  AsExpression
+    addTestSource('''
+class A {}
+f(U u){ (u as ^) }''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('A');
   }
 
   test_AssignmentExpression_name() async {
@@ -2003,6 +1755,41 @@ class C {foo(){var f; {var x;} return a ? T^ : c}}''');
     //assertNotSuggested('T1');
   }
 
+  test_constructor_parameters_mixed_required_and_named() async {
+    addTestSource('class A {A(x, {int y}) {^}}');
+    await computeSuggestions();
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_mixed_required_and_positional() async {
+    addTestSource('class A {A(x, [int y]) {^}}');
+    await computeSuggestions();
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_named() async {
+    addTestSource('class A {A({x, int y}) {^}}');
+    await computeSuggestions();
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_positional() async {
+    addTestSource('class A {A([x, int y]) {^}}');
+    await computeSuggestions();
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
+  test_constructor_parameters_required() async {
+    addTestSource('class A {A(x, int y) {^}}');
+    await computeSuggestions();
+    assertSuggestParameter('x', null);
+    assertSuggestParameter('y', 'int');
+  }
+
   test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
@@ -2136,6 +1923,52 @@ class A {a(blat: ^) { }}''');
     assertNotSuggested('bar');
   }
 
+  test_enum() async {
+    addTestSource('enum E { one, two } main() {^}');
+    await computeSuggestions();
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one');
+    assertSuggestEnumConst('E.two');
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+  }
+
+  test_enum_deprecated() async {
+    addTestSource('@deprecated enum E { one, two } main() {^}');
+    await computeSuggestions();
+    assertSuggestEnum('E', isDeprecated: true);
+    assertSuggestEnumConst('E.one', isDeprecated: true);
+    assertSuggestEnumConst('E.two', isDeprecated: true);
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+  }
+
+  test_enum_filter() async {
+    // SimpleIdentifier  NamedExpression  ArgumentList
+    // InstanceCreationExpression
+    addTestSource('''
+        enum E { one, two }
+        enum F { three, four }
+        class A {}
+        class B {
+          B({E someE});
+        }
+        A a = new A();
+        B b = new B(someE: ^);
+  ''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestEnumConst('E.one',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestEnumConst('E.two',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertNotSuggested('a');
+    assertNotSuggested('F.three');
+    assertNotSuggested('F.four');
+  }
+
   test_ExpressionStatement_identifier() async {
     // SimpleIdentifier  ExpressionStatement  Block
     addSource(
@@ -2214,6 +2047,39 @@ class C {foo(){^} void bar() {}}''');
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 3);
     assertNoSuggestions();
+  }
+
+  test_ForEachStatement() async {
+    // SimpleIdentifier  ForEachStatement
+    addTestSource('main() {List<int> values; for (int index in ^)}');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestLocalVariable('values', 'List');
+    assertNotSuggested('index');
+  }
+
+  test_ForEachStatement2() async {
+    // SimpleIdentifier  ForEachStatement
+    addTestSource('main() {List<int> values; for (int index in i^)}');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestLocalVariable('values', 'List');
+    assertNotSuggested('index');
+  }
+
+  test_ForEachStatement3() async {
+    // SimpleIdentifier ParenthesizedExpression  ForEachStatement
+    addTestSource('main() {List<int> values; for (int index in (i^))}');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestLocalVariable('values', 'List');
+    assertNotSuggested('index');
   }
 
   test_ForEachStatement_body_typed() async {
@@ -2304,39 +2170,6 @@ class A {a(^) { }}''');
     assertNotSuggested('bar');
   }
 
-  test_ForEachStatement() async {
-    // SimpleIdentifier  ForEachStatement
-    addTestSource('main() {List<int> values; for (int index in ^)}');
-    await computeSuggestions();
-
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    assertSuggestLocalVariable('values', 'List');
-    assertNotSuggested('index');
-  }
-
-  test_ForEachStatement2() async {
-    // SimpleIdentifier  ForEachStatement
-    addTestSource('main() {List<int> values; for (int index in i^)}');
-    await computeSuggestions();
-
-    expect(replacementOffset, completionOffset - 1);
-    expect(replacementLength, 1);
-    assertSuggestLocalVariable('values', 'List');
-    assertNotSuggested('index');
-  }
-
-  test_ForEachStatement3() async {
-    // SimpleIdentifier ParenthesizedExpression  ForEachStatement
-    addTestSource('main() {List<int> values; for (int index in (i^))}');
-    await computeSuggestions();
-
-    expect(replacementOffset, completionOffset - 1);
-    expect(replacementLength, 1);
-    assertSuggestLocalVariable('values', 'List');
-    assertNotSuggested('index');
-  }
-
   test_ForStatement_body() async {
     // Block  ForStatement
     addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');
@@ -2365,7 +2198,7 @@ class A {a(^) { }}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestLocalVariable('a', 'List');
+    assertNotSuggested('a');
     assertNotSuggested('Object');
     assertNotSuggested('int');
   }
@@ -2393,6 +2226,117 @@ main() {for (int index = 0; index < 10; ++i^)}''');
     assertSuggestFunction('main', null,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertNotSuggested('bar');
+  }
+
+  test_function_parameters_mixed_required_and_named() async {
+    addTestSource('''
+void m(x, {int y}) {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, true);
+  }
+
+  test_function_parameters_mixed_required_and_positional() async {
+    addTestSource('''
+void m(x, [int y]) {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_function_parameters_named() async {
+    addTestSource('''
+void m({x, int y}) {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, true);
+  }
+
+  test_function_parameters_none() async {
+    addTestSource('''
+void m() {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    expect(suggestion.parameterNames, isEmpty);
+    expect(suggestion.parameterTypes, isEmpty);
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_function_parameters_positional() async {
+    addTestSource('''
+void m([x, int y]) {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_function_parameters_required() async {
+    addTestSource('''
+void m(x, int y) {}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 2);
+    expect(suggestion.hasNamedParameters, false);
   }
 
   test_FunctionDeclaration_returnType_afterComment() async {
@@ -2588,6 +2532,13 @@ main() {var a; if (a.^) something}''');
     assertNotSuggested('==');
   }
 
+  test_ignore_symbol_being_completed() async {
+    addTestSource('class MyClass { } main(MC^) { }');
+    await computeSuggestions();
+    assertSuggestClass('MyClass');
+    assertNotSuggested('MC');
+  }
+
   test_ImportDirective_dart() async {
     // SimpleStringLiteral  ImportDirective
     addTestSource('''
@@ -2596,6 +2547,26 @@ main() {}''');
     await computeSuggestions();
 
     assertNoSuggestions();
+  }
+
+  test_inDartDoc_reference3() async {
+    addTestSource('''
+/// The [^]
+main(aaa, bbb) {}''');
+    await computeSuggestions();
+    assertSuggestFunction('main', null,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+  }
+
+  test_inDartDoc_reference4() async {
+    addTestSource('''
+/// The [m^]
+main(aaa, bbb) {}''');
+    await computeSuggestions();
+    assertSuggestFunction('main', null,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
   }
 
   test_IndexExpression() async {
@@ -2649,6 +2620,17 @@ class C {foo(){var f; {var x;} f[T^]}}''');
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
     // TODO (danrubel) getter is being suggested instead of top level var
     //assertNotSuggested('T1');
+  }
+
+  test_InstanceCreationExpression() async {
+    addTestSource('''
+class A {foo(){var f; {var x;}}}
+class B {B(this.x, [String boo]) { } int x;}
+class C {C.bar({boo: 'hoo', int z: 0}) { } }
+main() {new ^ String x = "hello";}''');
+    await computeSuggestions();
+    // Suggested by LocalConstructorContributor
+    assertNoSuggestions();
   }
 
   test_InstanceCreationExpression_imported() async {
@@ -2864,6 +2846,50 @@ main(){var a; if (a is ^)}''');
     assertNotSuggested('Object');
   }
 
+  test_IsExpression_type_filter_extends() async {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+class A {} class B extends A {} class C extends A {} class D {}
+f(A a){ if (a is ^) {}}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('D');
+    assertNotSuggested('Object');
+  }
+
+  test_IsExpression_type_filter_implements() async {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+class A {} class B implements A {} class C implements A {} class D {}
+f(A a){ if (a is ^) {}}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('D');
+    assertNotSuggested('Object');
+  }
+
+  test_IsExpression_type_filter_undefined_type() async {
+    // SimpleIdentifier  TypeName  AsExpression
+    addTestSource('''
+class A {}
+f(U u){ (u as ^) }''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('A');
+  }
+
   test_IsExpression_type_partial() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('''
@@ -2934,6 +2960,14 @@ main() {new^ X.c();}''');
     await computeSuggestions();
 
     assertNoSuggestions();
+  }
+
+  test_localVariableDeclarationName() async {
+    addTestSource('main() {String m^}');
+    await computeSuggestions();
+
+    assertNotSuggested('main');
+    assertNotSuggested('min');
   }
 
   test_MapLiteralEntry() async {
@@ -3016,6 +3050,84 @@ foo = {7:T^};''');
     assertNotSuggested('T1');
     assertSuggestTopLevelVar('T2', 'int',
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+  }
+
+  test_method_parameters_mixed_required_and_named() async {
+    addTestSource('''
+class A {
+  void m(x, {int y}) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_parameters_mixed_required_and_positional() async {
+    addTestSource('''
+class A {
+  void m(x, [int y]) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_parameters_named() async {
+    addTestSource('''
+class A {
+  void m({x, int y}) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_parameters_none() async {
+    addTestSource('''
+class A {
+  void m() {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_parameters_positional() async {
+    addTestSource('''
+class A {
+  void m([x, int y]) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
+  }
+
+  test_method_parameters_required() async {
+    addTestSource('''
+class A {
+  void m(x, int y) {}
+}
+class B extends A {
+  main() {^}
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('m');
   }
 
   test_MethodDeclaration_body_getters() async {
@@ -3347,6 +3459,21 @@ class X{}''');
     assertNotSuggested('==');
   }
 
+  test_missing_params_constructor() async {
+    addTestSource('class C1{C1{} main(){C^}}');
+    await computeSuggestions();
+  }
+
+  test_missing_params_function() async {
+    addTestSource('int f1{} main(){f^}');
+    await computeSuggestions();
+  }
+
+  test_missing_params_method() async {
+    addTestSource('class C1{int f1{} main(){f^}}');
+    await computeSuggestions();
+  }
+
   test_new_instance() async {
     addTestSource('import "dart:math"; class A {x() {new Random().^}}');
     await computeSuggestions();
@@ -3357,6 +3484,15 @@ class X{}''');
     assertNotSuggested('Random');
     assertNotSuggested('Object');
     assertNotSuggested('A');
+  }
+
+  test_overrides() async {
+    addTestSource('''
+class A {m() {}}
+class B extends A {m() {^}}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('m', 'B', null, relevance: DART_RELEVANCE_LOCAL_METHOD);
   }
 
   test_parameterName_excludeTypes() async {
@@ -3798,14 +3934,6 @@ class X {foo(){A^.bar}}''');
     assertNotSuggested('length');
   }
 
-  test_localVariableDeclarationName() async {
-    addTestSource('main() {String m^}');
-    await computeSuggestions();
-
-    assertNotSuggested('main');
-    assertNotSuggested('min');
-  }
-
   test_PrefixedIdentifier_trailingStmt_param2() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('f(String g) {g.^ int y = 0;}');
@@ -3820,6 +3948,27 @@ class X {foo(){A^.bar}}''');
     await computeSuggestions();
 
     assertNotSuggested('length');
+  }
+
+  test_prioritization() async {
+    addTestSource('main() {var ab; var _ab; ^}');
+    await computeSuggestions();
+    assertSuggestLocalVariable('ab', null);
+    assertSuggestLocalVariable('_ab', null, relevance: DART_RELEVANCE_DEFAULT);
+  }
+
+  test_prioritization_private() async {
+    addTestSource('main() {var ab; var _ab; _^}');
+    await computeSuggestions();
+    assertSuggestLocalVariable('ab', null);
+    assertSuggestLocalVariable('_ab', null);
+  }
+
+  test_prioritization_public() async {
+    addTestSource('main() {var ab; var _ab; a^}');
+    await computeSuggestions();
+    assertSuggestLocalVariable('ab', null);
+    assertSuggestLocalVariable('_ab', null, relevance: DART_RELEVANCE_DEFAULT);
   }
 
   test_PropertyAccess_expression() async {
@@ -3866,6 +4015,12 @@ class X {foo(){A^.bar}}''');
     assertNotSuggested('a');
     assertNotSuggested('Object');
     assertNotSuggested('==');
+  }
+
+  test_shadowed_name() async {
+    addTestSource('var a; class A { var a; m() { ^ } }');
+    await computeSuggestions();
+    assertSuggestField('a', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
   test_SwitchStatement_c() async {
@@ -3986,7 +4141,7 @@ class X{}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    // Contributed by FieldFormalConstructorContributor
+    // Contributed by FieldFormalContributor
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('sb');
@@ -4024,7 +4179,7 @@ class X{}''');
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    // Contributed by FieldFormalConstructorContributor
+    // Contributed by FieldFormalContributor
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('d');
@@ -4061,7 +4216,7 @@ class X{}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 1);
-    // Contributed by FieldFormalConstructorContributor
+    // Contributed by FieldFormalContributor
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('d');
@@ -4099,7 +4254,7 @@ class X{}''');
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('b');
-    // Contributed by FieldFormalConstructorContributor
+    // Contributed by FieldFormalContributor
     assertNotSuggested('_c');
     assertNotSuggested('d');
     assertNotSuggested('_e');

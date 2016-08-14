@@ -2,7 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.helpers;
+import 'dart:async' show EventSink;
+import 'dart:collection';
+import 'dart:convert';
+
+import '../../compiler.dart';
+import '../common.dart';
+import '../compiler.dart' show Compiler;
+import '../util/util.dart';
 
 // Helper methods for statistics.
 
@@ -27,11 +34,12 @@ Stats _stats;
 /// If [xml] is `true`, stats output is formatted as XML with a default
 /// extension of 'xml', otherwise the output is indented text with a default
 /// extension of 'log'.
-void enableStatsOutput({CompilerOutputProvider outputProvider,
-                        bool xml: true,
-                        String name: 'stats',
-                        String extension,
-                        int examples: 10}) {
+void enableStatsOutput(
+    {CompilerOutputProvider outputProvider,
+    bool xml: true,
+    String name: 'stats',
+    String extension,
+    int examples: 10}) {
   if (_stats != null) {
     throw new StateError('Stats have already been initialized.');
   }
@@ -187,7 +195,7 @@ class Stats {
   /// elements are looked up in [dataA] or [dataB] using [dataA] as the primary
   /// source.
   void dumpCorrelation(idA, Iterable a, idB, Iterable b,
-                       {Map dataA, Map dataB}) {}
+      {Map dataA, Map dataB}) {}
 }
 
 /// Interface for printing output data.
@@ -240,13 +248,13 @@ abstract class StatsPrinter {
 
   /// Start a stat entry for [id] with additional [data].
   void open(String id,
-            [Map<String, dynamic> data = const <String, dynamic>{}]) {}
+      [Map<String, dynamic> data = const <String, dynamic>{}]) {}
 
   /// Create a stat entry for [id] with additional [data] and content created by
   /// [createChildContent].
   void child(String id,
-             [Map<String, dynamic> data = const <String, dynamic>{},
-              void createChildContent()]) {
+      [Map<String, dynamic> data = const <String, dynamic>{},
+      void createChildContent()]) {
     open(id, data);
     if (createChildContent != null) createChildContent();
     close(id);
@@ -267,8 +275,7 @@ abstract class BasePrinter extends StatsPrinter with Indentation {
   final int examples;
   final StatsOutput output;
 
-  BasePrinter({this.output: const DebugOutput(),
-               this.examples: 10}) {
+  BasePrinter({this.output: const DebugOutput(), this.examples: 10}) {
     indentationUnit = " ";
   }
 }
@@ -277,12 +284,11 @@ abstract class BasePrinter extends StatsPrinter with Indentation {
 class ConsolePrinter extends BasePrinter {
   int extraLevel = 0;
 
-  ConsolePrinter({StatsOutput output: const DebugOutput(),
-                  int examples: 10})
+  ConsolePrinter({StatsOutput output: const DebugOutput(), int examples: 10})
       : super(output: output, examples: examples);
 
   void open(String id,
-            [Map<String, dynamic> data = const <String, dynamic>{}]) {
+      [Map<String, dynamic> data = const <String, dynamic>{}]) {
     if (extraLevel > 0) return;
 
     StringBuffer sb = new StringBuffer();
@@ -331,8 +337,7 @@ class XMLPrinter extends BasePrinter {
   static const HtmlEscape escape = const HtmlEscape();
   bool opened = false;
 
-  XMLPrinter({output: const DebugOutput(),
-              int examples: 10})
+  XMLPrinter({output: const DebugOutput(), int examples: 10})
       : super(output: output, examples: examples);
 
   void start(String id) {
@@ -348,7 +353,7 @@ class XMLPrinter extends BasePrinter {
   }
 
   void open(String id,
-            [Map<String, dynamic> data = const <String, dynamic>{}]) {
+      [Map<String, dynamic> data = const <String, dynamic>{}]) {
     StringBuffer sb = new StringBuffer();
     sb.write(indentation);
     sb.write('<$id');
@@ -390,9 +395,8 @@ class _StackTraceNode implements Comparable<_StackTraceNode> {
   _StackTraceNode.leaf(StackTraceLines stackTrace)
       : this(stackTrace.lines, 1, const []);
 
-  _StackTraceNode.node(List<StackTraceLine> commonPrefix,
-                       _StackTraceNode first,
-                       _StackTraceNode second)
+  _StackTraceNode.node(List<StackTraceLine> commonPrefix, _StackTraceNode first,
+      _StackTraceNode second)
       : this(commonPrefix, first.count + second.count, [first, second]);
 
   void add(StackTraceLines stackTrace) {
@@ -493,7 +497,8 @@ class _StackTraceTree extends _StackTraceNode {
     printer.open('trace', {
       'id': id,
       'totalCount': totalCount,
-      'sampleFrequency': sampleFrequency});
+      'sampleFrequency': sampleFrequency
+    });
     dumpSubtraces(printer);
     printer.close('trace');
   }
@@ -566,9 +571,9 @@ class ActiveStats implements Stats {
     if (sampleFrequency == null) {
       sampleFrequency = stackTraceSampleFrequency;
     }
-    traceMap.putIfAbsent(key,
-        () => new _StackTraceTree(key, sampleFrequency)).sample();
-
+    traceMap
+        .putIfAbsent(key, () => new _StackTraceTree(key, sampleFrequency))
+        .sample();
   }
 
   Iterable getList(String key) {
@@ -596,7 +601,6 @@ class ActiveStats implements Stats {
             limit: printer.examples, dataMap: set);
       });
     });
-
   }
 
   void dumpFrequencies() {
@@ -657,14 +661,11 @@ class ActiveStats implements Stats {
           (examplesLimit == 0 || !hasData(examples.first))) {
         printer.child('examples', {'count': count, 'example': examples.first});
       } else {
-        printer.child('examples',
-            {'count': count, 'examples': examples.length},
+        printer.child('examples', {'count': count, 'examples': examples.length},
             () {
           examples.forEach((example) {
-            dumpIterable(
-                'examples', '$example', map[example],
-                limit: examplesLimit,
-                includeCount: false);
+            dumpIterable('examples', '$example', map[example],
+                limit: examplesLimit, includeCount: false);
           });
         });
       }
@@ -688,22 +689,22 @@ class ActiveStats implements Stats {
   }
 
   void dumpCorrelation(keyA, Iterable a, keyB, Iterable b,
-                       {Map dataA, Map dataB}) {
+      {Map dataA, Map dataB}) {
     printer.child('correlations', {'title': '$keyA vs $keyB'}, () {
       List aAndB = a.where((e) => e != null && b.contains(e)).toList();
       List aAndNotB = a.where((e) => e != null && !b.contains(e)).toList();
       List notAandB = b.where((e) => e != null && !a.contains(e)).toList();
-      dumpIterable('correlation', '$keyA && $keyB', aAndB, dataMap: dataA,
-          limit: printer.examples);
-      dumpIterable('correlation', '$keyA && !$keyB', aAndNotB, dataMap: dataA,
-          limit: printer.examples);
-      dumpIterable('correlation', '!$keyA && $keyB', notAandB, dataMap: dataB,
-          limit: printer.examples);
+      dumpIterable('correlation', '$keyA && $keyB', aAndB,
+          dataMap: dataA, limit: printer.examples);
+      dumpIterable('correlation', '$keyA && !$keyB', aAndNotB,
+          dataMap: dataA, limit: printer.examples);
+      dumpIterable('correlation', '!$keyA && $keyB', notAandB,
+          dataMap: dataB, limit: printer.examples);
     });
   }
 
   void dumpIterable(String tag, String title, Iterable iterable,
-                    {int limit, Map dataMap, bool includeCount: true}) {
+      {int limit, Map dataMap, bool includeCount: true}) {
     if (limit == 0) return;
 
     Map childData = {};
@@ -748,9 +749,9 @@ class ActiveStats implements Stats {
 /// If [isValidKey] is provided, this is used to determine with a value of [map]
 /// is a potential key of the inversion map.
 Map<dynamic, Set> inverseMap(Map map,
-                             {bool equals(key1, key2),
-                              int hashCode(key),
-                              bool isValidKey(potentialKey)}) {
+    {bool equals(key1, key2),
+    int hashCode(key),
+    bool isValidKey(potentialKey)}) {
   Map<dynamic, Set> result = new LinkedHashMap<dynamic, Set>(
       equals: equals, hashCode: hashCode, isValidKey: isValidKey);
   map.forEach((k, v) {
@@ -778,11 +779,10 @@ Map trySortMap(Map map) {
 
 /// Returns a new map in which the keys of [map] are sorted using [compare].
 /// If [compare] is null, the keys must be [Comparable].
-Map sortMap(Map map, [int compare(a,b)]) {
+Map sortMap(Map map, [int compare(a, b)]) {
   List keys = map.keys.toList();
   keys.sort(compare);
   Map sortedMap = new Map();
   keys.forEach((k) => sortedMap[k] = map[k]);
   return sortedMap;
 }
-

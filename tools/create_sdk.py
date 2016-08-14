@@ -19,6 +19,7 @@
 # ......dartfmt
 # ......dart2js
 # ......dartanalyzer
+# ......dartdevc
 # ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
@@ -26,6 +27,7 @@
 # ........dartanalyzer.dart.snapshot
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
+# ........dartdevc.dart.snapshot
 # ........pub.dart.snapshot
 # ........utils_wrapper.dart.snapshot
 #.........resources/
@@ -42,7 +44,6 @@
 # ......dart_client.platform
 # ......dart_server.platform
 # ......dart_shared.platform
-# ......dart2dart.platform
 # ......_internal/
 #.........spec.sum
 #.........strong.sum
@@ -57,6 +58,7 @@
 # ......io/
 # ......isolate/
 # ......js/
+# ......js_util/
 # ......math/
 # ......mirrors/
 # ......typed_data/
@@ -129,14 +131,14 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDartScripts(home, sdk_root):
   for executable in ['dart2js_sdk', 'dartanalyzer_sdk', 'dartfmt_sdk',
-                     'pub_sdk', 'dartdoc']:
+                     'pub_sdk', 'dartdoc', 'dartdevc_sdk']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
 
 def CopySnapshots(snapshots, sdk_root):
   for snapshot in ['analysis_server', 'dart2js', 'dartanalyzer', 'dartfmt',
-                   'utils_wrapper', 'pub', 'dartdoc']:
+                   'utils_wrapper', 'pub', 'dartdoc', 'dartdevc']:
     snapshot += '.dart.snapshot'
     copyfile(join(snapshots, snapshot),
              join(sdk_root, 'bin', 'snapshots', snapshot))
@@ -252,7 +254,7 @@ def Main():
                   join('html', 'dart2js'), join('html', 'dartium'),
                   join('html', 'html_common'),
                   join('indexed_db', 'dart2js'), join('indexed_db', 'dartium'),
-                  'js', 'math', 'mirrors', 'profiler', 'typed_data',
+                  'js', 'js_util', 'math', 'mirrors', 'profiler', 'typed_data',
                   join('svg', 'dart2js'), join('svg', 'dartium'),
                   join('web_audio', 'dart2js'), join('web_audio', 'dartium'),
                   join('web_gl', 'dart2js'), join('web_gl', 'dartium'),
@@ -264,8 +266,7 @@ def Main():
   # Copy the platform descriptors.
   for file_name in ["dart_client.platform",
                     "dart_server.platform",
-                    "dart_shared.platform",
-                    "dart2dart.platform"]:
+                    "dart_shared.platform"]:
     copyfile(join(HOME, 'sdk', 'lib', file_name), join(LIB, file_name));
 
   # Copy libraries.dart to lib/_internal/libraries.dart for backwards

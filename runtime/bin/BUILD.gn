@@ -5,6 +5,12 @@
 
 declare_args() {
   dart_io_support = false
+
+  # TODO(zra, jamesr): Remove this check once we start building boringssl for
+  # the fuchsia port.
+  if (!defined(is_fuchsia) || !is_fuchsia) {
+    dart_boringssl_path = "../../third_party/boringssl"
+  }
 }
 
 
@@ -119,7 +125,7 @@ builtin_impl_sources_gypi =
                 ["builtin_impl_sources.gypi"])
 
 static_library("libdart_builtin") {
-  configs += ["..:dart_config"]
+  configs += ["..:dart_config", "..:dart_product_config"]
   public_configs = [":libdart_builtin_config"]
   deps = [
     ":generate_builtin_cc_file",
@@ -132,6 +138,7 @@ static_library("libdart_builtin") {
   set_sources_assignment_filter(["*_test.cc", "*_test.h"])
   sources = [
     "log_android.cc",
+    "log_fuchsia.cc",
     "log_linux.cc",
     "log_macos.cc",
     "log_win.cc",
@@ -140,7 +147,9 @@ static_library("libdart_builtin") {
 
 
 static_library("libdart_nosnapshot") {
-  configs += ["..:dart_config"]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiled_runtime_config"]
   deps = [
     "../vm:libdart_lib_nosnapshot",
     "../vm:libdart_vm_nosnapshot",
@@ -171,8 +180,49 @@ static_library("libdart_nosnapshot") {
 }
 
 
+static_library("libdart_nosnapshot_with_precompiler") {
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiler_config"]
+  deps = [
+    "../vm:libdart_lib_nosnapshot_with_precompiler",
+    "../vm:libdart_vm_nosnapshot_with_precompiler",
+    "../vm:libdart_platform",
+    "../third_party/double-conversion/src:libdouble_conversion",
+    "..:generate_version_cc_file",
+  ]
+
+  sources = [
+    "../include/dart_api.h",
+    "../include/dart_mirrors_api.h",
+    "../include/dart_native_api.h",
+    "../include/dart_tools_api.h",
+    "../vm/dart_api_impl.cc",
+    "../vm/debugger_api_impl.cc",
+    "../vm/mirrors_api_impl.cc",
+    "../vm/native_api_impl.cc",
+    "$target_gen_dir/../version.cc",
+  ]
+
+  include_dirs = [
+    "..",
+  ]
+
+  defines = [
+    "DART_SHARED_LIB",
+  ]
+}
+
+io_impl_sources_gypi =
+    exec_script("../../tools/gypi_to_gn.py",
+                [ rebase_path("io_impl_sources.gypi") ],
+                "scope",
+                [ "io_impl_sources.gypi" ])
+
 executable("gen_snapshot") {
-  configs += ["..:dart_config"]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiler_config"]
   deps = [
     ":gen_resources_cc",
     ":gen_snapshot_dart_io",
@@ -180,7 +230,7 @@ executable("gen_snapshot") {
     ":generate_io_cc_file",
     ":generate_io_patch_cc_file",
     ":libdart_builtin",
-    ":libdart_nosnapshot",
+    ":libdart_nosnapshot_with_precompiler",
   ]
 
   sources = [
@@ -191,11 +241,6 @@ executable("gen_snapshot") {
     "builtin_gen_snapshot.cc",
     "builtin.cc",
     "builtin.h",
-    "platform_android.cc",
-    "platform_linux.cc",
-    "platform_macos.cc",
-    "platform_win.cc",
-    "platform.h",
     "vmservice_impl.cc",
     "vmservice_impl.h",
     # Include generated source files.
@@ -208,47 +253,29 @@ executable("gen_snapshot") {
   include_dirs = [
     "..",
   ]
+
+  if (is_mac) {
+    libs = [
+      "CoreFoundation.framework",
+      "CoreServices.framework"
+    ]
+  }
 }
-
-
-source_set("libdart_embedder_noio") {
-  configs += ["..:dart_config",]
-  deps = [
-    "..:libdart",
-    "../vm:libdart_platform",
-  ]
-}
-
-io_impl_sources_gypi =
-    exec_script("../../tools/gypi_to_gn.py",
-                [ rebase_path("io_impl_sources.gypi") ],
-                "scope",
-                [ "io_impl_sources.gypi" ])
-
 
 # A source set for the implementation of 'dart:io' library
 # (without secure sockets) suitable for linking with gen_snapshot.
 source_set("gen_snapshot_dart_io") {
-  configs += ["..:dart_config",]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiler_config"]
 
-  # Set custom sources assignment filter. The custom filters does three things:
-  # 1) Filters out unnecessary files pulled in from the gypi files.
-  # 2) Filters out secure socket support.
-  # 3) Enables dart:io by filtering out _unsupported.cc implementations.
+  deps = [
+    "//third_party/zlib",
+  ]
+
   custom_sources_filter = [
-    "*net/nss_memio.cc",
-    "*net/nss_memio.h",
-    "*root_certificates.cc",
-    "*secure_socket.cc",
-    "*secure_socket.h",
-    "filter.cc",
-    "*io_service_unsupported.cc",
-    "platform_*.cc",
-    "*io_service.cc",
-    "*io_service.h",
     "*_test.cc",
     "*_test.h",
-    "*dbg*",
     "builtin.cc",
     "builtin_common.cc",
     "builtin_gen_snapshot.cc",
@@ -268,11 +295,6 @@ source_set("gen_snapshot_dart_io") {
   sources += [
     "io_natives.cc",
     "io_natives.h",
-    "log_android.cc",
-    "log_linux.cc",
-    "log_macos.cc",
-    "log_win.cc",
-    "log.h",
   ]
 
   include_dirs = [
@@ -281,28 +303,27 @@ source_set("gen_snapshot_dart_io") {
   ]
 }
 
+source_set("libdart_embedder_noio") {
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiled_runtime_config"]
+  deps = [
+    "..:libdart",
+    "../vm:libdart_platform",
+  ]
+}
+
+
 # A source set for the implementation of 'dart:io' library
 # (without secure sockets).
 source_set("embedded_dart_io") {
-  configs += ["..:dart_config",]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiled_runtime_config"]
 
-  # Set custom sources assignment filter. The custom filters does three things:
-  # 1) Filters out unnecessary files pulled in from the gypi files.
-  # 2) Filters out secure socket support.
-  # 3) Enables dart:io by filtering out _unsupported.cc implementations.
   custom_sources_filter = [
-    "*net/nss_memio.cc",
-    "*net/nss_memio.h",
-    "*root_certificates.cc",
-    "*secure_socket.cc",
-    "*secure_socket.h",
-    "*filter_unsupported.cc",
-    "*io_service_unsupported.cc",
-    "*io_service.cc",
-    "*io_service.h",
     "*_test.cc",
     "*_test.h",
-    "*dbg*",
     "builtin.cc",
     "builtin_gen_snapshot.cc",
   ]
@@ -315,7 +336,19 @@ source_set("embedded_dart_io") {
   }
   set_sources_assignment_filter(custom_sources_filter)
 
-  defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+  if (is_mac || is_ios) {
+    libs = [
+      "Security.framework",
+    ]
+  } else if (defined(is_fuchsia) && is_fuchsia) {
+    defines = [
+      "DART_IO_SECURE_SOCKET_DISABLED"
+    ]
+  } else {
+    deps = [
+      rebase_path(dart_boringssl_path, "."),
+    ]
+  }
 
   sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
   sources += [
@@ -331,9 +364,232 @@ source_set("embedded_dart_io") {
     "log_win.cc",
     "log.h",
   ]
+  if (is_linux) {
+    sources += [ "../../third_party/root_certificates/root_certificates.cc"]
+  }
 
   include_dirs = [
     "..",
     "//third_party"
   ]
 }
+
+
+action("generate_snapshot_bin") {
+  deps = [
+    "../bin:gen_snapshot($host_toolchain)",
+  ]
+
+  vm_isolate_snapshot = "$target_gen_dir/vm_isolate_snapshot.bin"
+  isolate_snapshot = "$target_gen_dir/isolate_snapshot.bin"
+  gen_snapshot_stamp_file = "$target_gen_dir/gen_snapshot.stamp"
+  outputs = [
+    vm_isolate_snapshot,
+    isolate_snapshot,
+    gen_snapshot_stamp_file,
+  ]
+
+  gen_snapshot_dir =
+      get_label_info("../bin:gen_snapshot($host_toolchain)", "root_out_dir")
+
+  script = rebase_path("../tools/create_snapshot_bin.py")
+  args = [
+    "--executable",
+    rebase_path("$gen_snapshot_dir/gen_snapshot"),
+    "--vm_output_bin",
+    rebase_path(vm_isolate_snapshot, root_build_dir),
+    "--output_bin",
+    rebase_path(isolate_snapshot, root_build_dir),
+    "--target_os",
+    current_os,
+    "--timestamp_file",
+    rebase_path(gen_snapshot_stamp_file, root_build_dir),
+  ]
+}
+
+
+action("generate_snapshot_file") {
+  deps = [
+    ":generate_snapshot_bin",
+  ]
+
+  snapshot_in_cc_file = "snapshot_in.cc"
+  inputs = [
+    "../tools/create_snapshot_file.py",
+    snapshot_in_cc_file,
+    "$target_gen_dir/vm_isolate_snapshot.bin",
+    "$target_gen_dir/isolate_snapshot.bin",
+  ]
+  output = "$root_gen_dir/dart_snapshot.cc"
+  outputs = [
+    output,
+  ]
+
+  script = "../tools/create_snapshot_file.py"
+  args = [
+    "--vm_input_bin",
+    rebase_path("$target_gen_dir/vm_isolate_snapshot.bin"),
+    "--input_bin",
+    rebase_path("$target_gen_dir/isolate_snapshot.bin"),
+    "--input_cc",
+    rebase_path(snapshot_in_cc_file),
+    "--output",
+    rebase_path(output),
+  ]
+}
+
+
+source_set("dart_snapshot_cc") {
+  sources = [
+    "$root_gen_dir/dart_snapshot.cc",
+  ]
+
+  deps = [
+    ":generate_snapshot_file",
+  ]
+}
+
+if (defined(is_fuchsia) && is_fuchsia) {
+  executable("fuchsia_test") {
+    configs += ["..:dart_config",
+                "..:dart_product_config",
+                "..:dart_precompiled_runtime_config"]
+    sources = [
+      "fuchsia_test.cc",
+      "log_fuchsia.cc",
+    ]
+
+    include_dirs = [
+      "..",
+      "../include"
+    ]
+
+    deps = [
+      ":dart_snapshot_cc",
+      ":libdart_embedder_noio",
+    ]
+  }
+
+  copy("hello_fuchsia") {
+    sources = [ "../tests/vm/dart/hello_fuchsia_test.dart" ]
+    outputs = [ "$root_out_dir/hello_fuchsia.dart" ]
+  }
+
+  executable("dart_no_observatory") {
+    configs += ["..:dart_config",
+                "..:dart_product_config",
+                "..:dart_precompiled_runtime_config",]
+    deps = [
+      ":hello_fuchsia",
+      ":gen_resources_cc",
+      ":embedded_dart_io",
+      ":libdart_builtin",
+      "../vm:libdart_platform",
+      "..:libdart",
+      ":dart_snapshot_cc",
+      "//third_party/zlib",
+    ]
+
+    defines = [
+      "NO_OBSERVATORY",
+    ]
+
+    sources = [
+      "main.cc",
+      "observatory_assets_empty.cc",
+      "vmservice_impl.cc",
+      "vmservice_impl.h",
+      "$target_gen_dir/resources_gen.cc",
+    ]
+
+    include_dirs = [
+      "..",
+      "//third_party",
+    ]
+  }
+
+  action("generate_snapshot_test_dat_file") {
+    snapshot_test_dat_file = "$root_gen_dir/snapshot_test.dat"
+    snapshot_test_in_dat_file = "../vm/snapshot_test_in.dat"
+    snapshot_test_dart_file = "../vm/snapshot_test.dart"
+    inputs = [
+      "../tools/create_string_literal.py",
+      snapshot_test_in_dat_file,
+      snapshot_test_dart_file,
+    ]
+
+    outputs = [
+      snapshot_test_dat_file,
+    ]
+
+    script = "../tools/create_string_literal.py"
+    args = [
+      "--output",
+      rebase_path(snapshot_test_dat_file),
+      "--input_cc",
+      rebase_path(snapshot_test_in_dat_file),
+      "--include",
+      "INTENTIONALLY_LEFT_BLANK",
+      "--var_name",
+      "INTENTIONALLY_LEFT_BLANK_TOO",
+      rebase_path(snapshot_test_dart_file),
+    ]
+  }
+
+  executable("run_vm_tests") {
+    testonly = true
+    configs += ["..:dart_config",
+                "..:dart_product_config",
+                "..:dart_precompiled_runtime_config",]
+    deps = [
+      "..:libdart",
+      ":libdart_builtin",
+      ":embedded_dart_io",
+      ":dart_snapshot_cc",
+      ":generate_snapshot_test_dat_file",
+      "../vm:libdart_platform",
+      "//third_party/zlib",
+    ]
+    include_dirs = [
+      "..",
+      "$target_gen_dir",
+    ]
+    defines = [
+      "TESTING",
+    ]
+
+    vm_tests_list = exec_script("../../tools/gypi_to_gn.py",
+                                  [rebase_path("../vm/vm_sources.gypi"),
+                                   "--keep_only=_test.cc",
+                                   "--keep_only=_test.h",],
+                                  "scope",
+                                  ["../vm/vm_sources.gypi"])
+    vm_tests = rebase_path(vm_tests_list.sources, ".", "../vm")
+
+    builtin_impl_tests_list =
+        exec_script("../../tools/gypi_to_gn.py",
+                    [rebase_path("builtin_impl_sources.gypi"),
+                     "--keep_only=_test.cc",
+                     "--keep_only=_test.h",],
+                    "scope",
+                    ["builtin_impl_sources.gypi"])
+
+    sources = [
+      "run_vm_tests.cc",
+    ] + builtin_impl_tests_list.sources + vm_tests
+  }
+
+  copy("fuchsia_vm_tests") {
+    sources = [ "fuchsia_vm_tests.txt" ]
+    outputs = [ "$root_out_dir/fuchsia_vm_tests.txt" ]
+  }
+
+  executable("run_vm_tests_fuchsia") {
+    testonly = true
+    configs += ["..:dart_config"]
+    sources = [
+      "run_vm_tests_fuchsia.cc"
+    ]
+    libs = [ "launchpad" ]
+  }
+}  # defined(is_fuchsia) && is_fuchsia

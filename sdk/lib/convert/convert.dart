@@ -11,8 +11,7 @@
  * provides support for implementing converters in a way which makes them easy to
  * chain and to use with streams.
  *
- * The `dart:convert` library works in both web apps and command-line apps.
- * To use it:
+ * To use this library in your code:
  *
  *     import 'dart:convert';
  *

@@ -146,18 +146,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
 $if JSINTEROP
   set _svgClassName(AnimatedString value) =>
-      _blink.BlinkSVGElement.instance.className_Setter_(unwrap_jso(this), unwrap_jso(value));
+      _blink.BlinkSVGElement.instance.className_Setter_(this, value);
 
-  String get className => _svgClassName.baseVal;
-
-  // Unbelievable hack. We can't create an SvgAnimatedString, but we can get
-  // the existing one and change its baseVal. Then we call the blink setter directly
-  // TODO(alanknight): Handle suppressing the SVGAnimated<*> better
-  set className(String s) {
-    var oldClass = _svgClassName;
-    oldClass.baseVal = s;
-    _svgClassName = oldClass;
-  }
 $endif
 $!MEMBERS
 }

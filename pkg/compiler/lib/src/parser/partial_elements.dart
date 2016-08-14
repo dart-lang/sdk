@@ -5,60 +5,40 @@
 library dart2js.parser.partial_elements;
 
 import '../common.dart';
-import '../common/resolution.dart' show
-    Parsing,
-    Resolution;
+import '../common/resolution.dart' show ParsingContext, Resolution;
 import '../dart_types.dart' show DynamicType;
-import '../elements/elements.dart' show
-    CompilationUnitElement,
-    ConstructorElement,
-    Element,
-    ElementKind,
-    GetterElement,
-    LibraryElement,
-    MetadataAnnotation,
-    MethodElement,
-    SetterElement,
-    STATE_NOT_STARTED,
-    STATE_DONE;
-import '../elements/modelx.dart' show
-    BaseFunctionElementX,
-    ClassElementX,
-    ConstructorElementX,
-    DeclarationSite,
-    ElementX,
-    FieldElementX,
-    GetterElementX,
-    MetadataAnnotationX,
-    MethodElementX,
-    SetterElementX,
-    TypedefElementX,
-    VariableList;
-import '../elements/visitor.dart' show
-    ElementVisitor;
-import '../tokens/token.dart' show
-    BadInputToken,
-    BeginGroupToken,
-    ErrorToken,
-    KeywordToken,
-    StringToken,
-    Token,
-    UnmatchedToken,
-    UnterminatedToken;
-import '../tokens/token_constants.dart' as Tokens show
-    EOF_TOKEN;
+import '../elements/elements.dart'
+    show
+        CompilationUnitElement,
+        Element,
+        ElementKind,
+        GetterElement,
+        MetadataAnnotation,
+        SetterElement,
+        STATE_NOT_STARTED,
+        STATE_DONE;
+import '../elements/modelx.dart'
+    show
+        BaseFunctionElementX,
+        ClassElementX,
+        ConstructorElementX,
+        DeclarationSite,
+        ElementX,
+        GetterElementX,
+        MetadataAnnotationX,
+        MethodElementX,
+        SetterElementX,
+        TypedefElementX,
+        VariableList;
+import '../elements/visitor.dart' show ElementVisitor;
+import '../tokens/token.dart' show Token;
+import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
-
-import 'class_element_parser.dart' show
-    ClassElementParser;
-import 'parser.dart' show
-    Parser;
-import 'listener.dart' show
-    ParserError;
-import 'member_listener.dart' show
-    MemberListener;
-import 'node_listener.dart' show
-    NodeListener;
+import 'class_element_parser.dart' show ClassElementParser;
+import 'listener.dart' show ParserError;
+import 'member_listener.dart' show MemberListener;
+import 'node_listener.dart' show NodeListener;
+import 'parser.dart' show Parser;
 
 abstract class PartialElement implements DeclarationSite {
   Token beginToken;
@@ -91,7 +71,8 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
     _position = ElementX.findNameToken(
         beginToken,
         modifiers.isFactory || isGenerativeConstructor,
-        name, enclosingElement.name);
+        name,
+        enclosingElement.name);
   }
 
   bool get hasNode => cachedNode != null;
@@ -102,7 +83,7 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
     return cachedNode;
   }
 
-  FunctionExpression parseNode(Parsing parsing) {
+  FunctionExpression parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
     parseFunction(Parser p) {
       if (isClassMember && modifiers.isFactory) {
@@ -111,6 +92,7 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
         p.parseFunction(beginToken, getOrSet);
       }
     }
+
     cachedNode = parse(parsing, this, declarationSite, parseFunction);
     return cachedNode;
   }
@@ -126,44 +108,34 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
 
 abstract class PartialFunctionElement
     implements PartialElement, PartialFunctionMixin {
-
-  factory PartialFunctionElement(
-      String name,
-      Token beginToken,
-      Token getOrSet,
-      Token endToken,
-      Modifiers modifiers,
-      Element enclosingElement,
+  factory PartialFunctionElement(String name, Token beginToken, Token getOrSet,
+      Token endToken, Modifiers modifiers, Element enclosingElement,
       {bool hasBody: true}) {
     if (getOrSet == null) {
       return new PartialMethodElement(
-          name, beginToken, endToken, modifiers,
-          enclosingElement, hasBody: hasBody);
+          name, beginToken, endToken, modifiers, enclosingElement,
+          hasBody: hasBody);
     } else if (identical(getOrSet.stringValue, 'get')) {
       return new PartialGetterElement(
-          name, beginToken, getOrSet, endToken, modifiers,
-          enclosingElement, hasBody: hasBody);
+          name, beginToken, getOrSet, endToken, modifiers, enclosingElement,
+          hasBody: hasBody);
     } else {
       assert(identical(getOrSet.stringValue, 'set'));
       return new PartialSetterElement(
-          name, beginToken, getOrSet, endToken, modifiers,
-          enclosingElement, hasBody: hasBody);
+          name, beginToken, getOrSet, endToken, modifiers, enclosingElement,
+          hasBody: hasBody);
     }
   }
 
   PartialFunctionElement copyWithEnclosing(Element enclosing);
 }
 
-
 class PartialMethodElement extends MethodElementX
     with PartialElement, PartialFunctionMixin
     implements PartialFunctionElement {
-  PartialMethodElement(String name,
-                       Token beginToken,
-                       Token endToken,
-                       Modifiers modifiers,
-                       Element enclosing,
-                       {bool hasBody: true})
+  PartialMethodElement(String name, Token beginToken, Token endToken,
+      Modifiers modifiers, Element enclosing,
+      {bool hasBody: true})
       : super(name, ElementKind.FUNCTION, modifiers, enclosing, hasBody) {
     init(beginToken, null, endToken);
   }
@@ -175,20 +147,17 @@ class PartialMethodElement extends MethodElementX
 
   PartialMethodElement copyWithEnclosing(Element enclosing) {
     return new PartialMethodElement(
-        name, beginToken, endToken, modifiers, enclosing, hasBody: hasBody);
+        name, beginToken, endToken, modifiers, enclosing,
+        hasBody: hasBody);
   }
 }
 
 class PartialGetterElement extends GetterElementX
     with PartialElement, PartialFunctionMixin
-    implements GetterElement, PartialFunctionElement  {
-  PartialGetterElement(String name,
-                       Token beginToken,
-                       Token getToken,
-                       Token endToken,
-                       Modifiers modifiers,
-                       Element enclosing,
-                       {bool hasBody: true})
+    implements GetterElement, PartialFunctionElement {
+  PartialGetterElement(String name, Token beginToken, Token getToken,
+      Token endToken, Modifiers modifiers, Element enclosing,
+      {bool hasBody: true})
       : super(name, modifiers, enclosing, hasBody) {
     init(beginToken, getToken, endToken);
   }
@@ -211,13 +180,9 @@ class PartialGetterElement extends GetterElementX
 class PartialSetterElement extends SetterElementX
     with PartialElement, PartialFunctionMixin
     implements SetterElement, PartialFunctionElement {
-  PartialSetterElement(String name,
-                       Token beginToken,
-                       Token setToken,
-                       Token endToken,
-                       Modifiers modifiers,
-                       Element enclosing,
-                       {bool hasBody: true})
+  PartialSetterElement(String name, Token beginToken, Token setToken,
+      Token endToken, Modifiers modifiers, Element enclosing,
+      {bool hasBody: true})
       : super(name, modifiers, enclosing, hasBody) {
     init(beginToken, setToken, endToken);
   }
@@ -241,12 +206,8 @@ class PartialSetterElement extends SetterElementX
 // [PartialFactoryConstructor] subclasses and make this abstract.
 class PartialConstructorElement extends ConstructorElementX
     with PartialElement, PartialFunctionMixin {
-  PartialConstructorElement(String name,
-                            Token beginToken,
-                            Token endToken,
-                            ElementKind kind,
-                            Modifiers modifiers,
-                            Element enclosing)
+  PartialConstructorElement(String name, Token beginToken, Token endToken,
+      ElementKind kind, Modifiers modifiers, Element enclosing)
       : super(name, kind, modifiers, enclosing) {
     init(beginToken, null, endToken);
   }
@@ -258,22 +219,19 @@ class PartialConstructorElement extends ConstructorElementX
 }
 
 class PartialFieldList extends VariableList with PartialElement {
-  PartialFieldList(Token beginToken,
-                   Token endToken,
-                   Modifiers modifiers,
-                   bool hasParseError)
+  PartialFieldList(
+      Token beginToken, Token endToken, Modifiers modifiers, bool hasParseError)
       : super(modifiers) {
     super.beginToken = beginToken;
     super.endToken = endToken;
     super.hasParseError = hasParseError;
   }
 
-  VariableDefinitions parseNode(Element element, Parsing parsing) {
+  VariableDefinitions parseNode(Element element, ParsingContext parsing) {
     if (definitions != null) return definitions;
     DiagnosticReporter reporter = parsing.reporter;
     reporter.withCurrentElement(element, () {
-      definitions = parse(
-          parsing, element, declarationSite,
+      definitions = parse(parsing, element, declarationSite,
           (Parser parser) => parser.parseMember(beginToken));
 
       if (!hasParseError &&
@@ -282,11 +240,10 @@ class PartialFieldList extends VariableList with PartialElement {
           !definitions.modifiers.isConst &&
           definitions.type == null &&
           !definitions.isErroneous) {
-        reporter.reportErrorMessage(
-            definitions,
-            MessageKind.GENERIC,
-            { 'text': 'A field declaration must start with var, final, '
-                      'const, or a type annotation.' });
+        reporter.reportErrorMessage(definitions, MessageKind.GENERIC, {
+          'text': 'A field declaration must start with var, final, '
+              'const, or a type annotation.'
+        });
       }
     });
     return definitions;
@@ -295,7 +252,7 @@ class PartialFieldList extends VariableList with PartialElement {
   computeType(Element element, Resolution resolution) {
     if (type != null) return type;
     // TODO(johnniwinther): Compute this in the resolver.
-    VariableDefinitions node = parseNode(element, resolution.parsing);
+    VariableDefinitions node = parseNode(element, resolution.parsingContext);
     if (node.type != null) {
       type = resolution.reporter.withCurrentElement(element, () {
         return resolution.resolveTypeAnnotation(element, node.type);
@@ -309,12 +266,8 @@ class PartialFieldList extends VariableList with PartialElement {
 }
 
 class PartialTypedefElement extends TypedefElementX with PartialElement {
-
   PartialTypedefElement(
-      String name,
-      Element enclosing,
-      Token beginToken,
-      Token endToken)
+      String name, Element enclosing, Token beginToken, Token endToken)
       : super(name, enclosing) {
     this.beginToken = beginToken;
     this.endToken = endToken;
@@ -322,10 +275,9 @@ class PartialTypedefElement extends TypedefElementX with PartialElement {
 
   Token get token => beginToken;
 
-  Node parseNode(Parsing parsing) {
+  Node parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
-    cachedNode = parse(
-        parsing, this, declarationSite,
+    cachedNode = parse(parsing, this, declarationSite,
         (p) => p.parseTopLevelDeclaration(token));
     return cachedNode;
   }
@@ -364,17 +316,15 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
     throw new UnsupportedError("endToken=");
   }
 
-  Node parseNode(Parsing parsing) {
+  Node parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
-    var metadata = parse(parsing,
-                         annotatedElement,
-                         declarationSite,
-                         (p) => p.parseMetadata(beginToken));
+    var metadata = parse(parsing, annotatedElement, declarationSite,
+        (p) => p.parseMetadata(beginToken));
     if (metadata is Metadata) {
       cachedNode = metadata.expression;
       return cachedNode;
     } else {
-      assert (metadata is ErrorNode);
+      assert(metadata is ErrorNode);
       return metadata;
     }
   }
@@ -390,11 +340,8 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
 class PartialClassElement extends ClassElementX with PartialElement {
   ClassNode cachedNode;
 
-  PartialClassElement(String name,
-                      Token beginToken,
-                      Token endToken,
-                      Element enclosing,
-                      int id)
+  PartialClassElement(
+      String name, Token beginToken, Token endToken, Element enclosing, int id)
       : super(name, enclosing, id, STATE_NOT_STARTED) {
     this.beginToken = beginToken;
     this.endToken = endToken;
@@ -420,22 +367,20 @@ class PartialClassElement extends ClassElementX with PartialElement {
     return cachedNode;
   }
 
-  ClassNode parseNode(Parsing parsing) {
+  ClassNode parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
     DiagnosticReporter reporter = parsing.reporter;
     reporter.withCurrentElement(this, () {
       parsing.measure(() {
         MemberListener listener = new MemberListener(
             parsing.getScannerOptionsFor(this), reporter, this);
-        Parser parser = new ClassElementParser(listener);
+        Parser parser = new ClassElementParser(listener, parsing.parserOptions);
         try {
           Token token = parser.parseTopLevelDeclaration(beginToken);
           assert(identical(token, endToken.next));
           cachedNode = listener.popNode();
-          assert(
-              invariant(
-                  beginToken, listener.nodes.isEmpty,
-                  message: "Non-empty listener stack: ${listener.nodes}"));
+          assert(invariant(beginToken, listener.nodes.isEmpty,
+              message: "Non-empty listener stack: ${listener.nodes}"));
         } on ParserError {
           // TODO(ahe): Often, a ParserError is thrown while parsing the class
           // body. This means that the stack actually contains most of the
@@ -448,8 +393,15 @@ class PartialClassElement extends ClassElementX with PartialElement {
           Token extendsKeyword = null;
           NodeList body = listener.makeNodeList(0, beginToken, endToken, null);
           cachedNode = new ClassNode(
-              Modifiers.EMPTY, name, typeParameters, supertype, interfaces,
-              beginToken, extendsKeyword, body, endToken);
+              Modifiers.EMPTY,
+              name,
+              typeParameters,
+              supertype,
+              interfaces,
+              beginToken,
+              extendsKeyword,
+              body,
+              endToken);
           hasParseError = true;
         }
       });
@@ -475,10 +427,7 @@ class PartialClassElement extends ClassElementX with PartialElement {
   }
 }
 
-Node parse(
-    Parsing parsing,
-    ElementX element,
-    PartialElement partial,
+Node parse(ParsingContext parsing, ElementX element, PartialElement partial,
     doParse(Parser parser)) {
   DiagnosticReporter reporter = parsing.reporter;
   return parsing.measure(() {
@@ -491,7 +440,7 @@ Node parse(
         if (partial.hasParseError) {
           listener.suppressParseErrors = true;
         }
-        doParse(new Parser(listener));
+        doParse(new Parser(listener, parsing.parserOptions));
       } on ParserError catch (e) {
         partial.hasParseError = true;
         return new ErrorNode(element.position, e.reason);

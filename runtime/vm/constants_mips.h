@@ -186,7 +186,7 @@ const Register LRREG = RA;  // Link register.
 const Register ICREG = S5;  // IC data register.
 const Register ARGS_DESC_REG = S4;
 const Register THR = S3;  // Caches current thread in generated code.
-
+const Register CALLEE_SAVED_TEMP = S5;
 
 // The code that generates a comparison can be far away from the code that
 // generates the branch that uses the result of that comparison. In this case,

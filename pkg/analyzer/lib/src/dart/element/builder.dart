@@ -74,6 +74,11 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   final LibraryElementImpl libraryElement;
 
   /**
+   * Map from sources referenced by this library to their modification times.
+   */
+  final Map<Source, int> sourceModificationTimeMap;
+
+  /**
    * Map from sources imported by this library to their corresponding library
    * elements.
    */
@@ -126,6 +131,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   DirectiveElementBuilder(
       this.context,
       this.libraryElement,
+      this.sourceModificationTimeMap,
       this.importLibraryMap,
       this.importSourceKindMap,
       this.exportLibraryMap,
@@ -163,38 +169,38 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
     Source exportedSource = node.source;
-    if (exportedSource != null && context.exists(exportedSource)) {
-      // The exported source will be null if the URI in the export
-      // directive was invalid.
-      LibraryElement exportedLibrary = exportLibraryMap[exportedSource];
-      if (exportedLibrary != null) {
-        ExportElementImpl exportElement = new ExportElementImpl(node.offset);
-        exportElement.metadata = _getElementAnnotations(node.metadata);
-        StringLiteral uriLiteral = node.uri;
+    int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
+    // The exported source will be null if the URI in the export
+    // directive was invalid.
+    LibraryElement exportedLibrary = exportLibraryMap[exportedSource];
+    if (exportedLibrary != null) {
+      ExportElementImpl exportElement = new ExportElementImpl(node.offset);
+      exportElement.metadata = _getElementAnnotations(node.metadata);
+      StringLiteral uriLiteral = node.uri;
+      if (uriLiteral != null) {
+        exportElement.uriOffset = uriLiteral.offset;
+        exportElement.uriEnd = uriLiteral.end;
+      }
+      exportElement.uri = node.uriContent;
+      exportElement.combinators = _buildCombinators(node);
+      exportElement.exportedLibrary = exportedLibrary;
+      setElementDocumentationComment(exportElement, node);
+      node.element = exportElement;
+      exports.add(exportElement);
+      if (exportedTime >= 0 &&
+          exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
+        int offset = node.offset;
+        int length = node.length;
         if (uriLiteral != null) {
-          exportElement.uriOffset = uriLiteral.offset;
-          exportElement.uriEnd = uriLiteral.end;
+          offset = uriLiteral.offset;
+          length = uriLiteral.length;
         }
-        exportElement.uri = node.uriContent;
-        exportElement.combinators = _buildCombinators(node);
-        exportElement.exportedLibrary = exportedLibrary;
-        setElementDocumentationComment(exportElement, node);
-        node.element = exportElement;
-        exports.add(exportElement);
-        if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
-          int offset = node.offset;
-          int length = node.length;
-          if (uriLiteral != null) {
-            offset = uriLiteral.offset;
-            length = uriLiteral.length;
-          }
-          errors.add(new AnalysisError(
-              libraryElement.source,
-              offset,
-              length,
-              CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-              [uriLiteral.toSource()]));
-        }
+        errors.add(new AnalysisError(
+            libraryElement.source,
+            offset,
+            length,
+            CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+            [uriLiteral.toSource()]));
       }
     }
     return null;
@@ -205,53 +211,53 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
     Source importedSource = node.source;
-    if (importedSource != null && context.exists(importedSource)) {
-      // The imported source will be null if the URI in the import
-      // directive was invalid.
-      LibraryElement importedLibrary = importLibraryMap[importedSource];
-      if (importedLibrary != null) {
-        if (importedLibrary.isDartCore) {
-          explicitlyImportsCore = true;
+    int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
+    // The imported source will be null if the URI in the import
+    // directive was invalid.
+    LibraryElement importedLibrary = importLibraryMap[importedSource];
+    if (importedLibrary != null) {
+      if (importedLibrary.isDartCore) {
+        explicitlyImportsCore = true;
+      }
+      ImportElementImpl importElement = new ImportElementImpl(node.offset);
+      importElement.metadata = _getElementAnnotations(node.metadata);
+      StringLiteral uriLiteral = node.uri;
+      if (uriLiteral != null) {
+        importElement.uriOffset = uriLiteral.offset;
+        importElement.uriEnd = uriLiteral.end;
+      }
+      importElement.uri = node.uriContent;
+      importElement.deferred = node.deferredKeyword != null;
+      importElement.combinators = _buildCombinators(node);
+      importElement.importedLibrary = importedLibrary;
+      setElementDocumentationComment(importElement, node);
+      SimpleIdentifier prefixNode = node.prefix;
+      if (prefixNode != null) {
+        importElement.prefixOffset = prefixNode.offset;
+        String prefixName = prefixNode.name;
+        PrefixElementImpl prefix = nameToPrefixMap[prefixName];
+        if (prefix == null) {
+          prefix = new PrefixElementImpl.forNode(prefixNode);
+          nameToPrefixMap[prefixName] = prefix;
         }
-        ImportElementImpl importElement = new ImportElementImpl(node.offset);
-        importElement.metadata = _getElementAnnotations(node.metadata);
-        StringLiteral uriLiteral = node.uri;
+        importElement.prefix = prefix;
+        prefixNode.staticElement = prefix;
+      }
+      node.element = importElement;
+      imports.add(importElement);
+      if (importedTime >= 0 &&
+          importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
+        int offset = node.offset;
+        int length = node.length;
         if (uriLiteral != null) {
-          importElement.uriOffset = uriLiteral.offset;
-          importElement.uriEnd = uriLiteral.end;
+          offset = uriLiteral.offset;
+          length = uriLiteral.length;
         }
-        importElement.uri = node.uriContent;
-        importElement.deferred = node.deferredKeyword != null;
-        importElement.combinators = _buildCombinators(node);
-        importElement.importedLibrary = importedLibrary;
-        setElementDocumentationComment(importElement, node);
-        SimpleIdentifier prefixNode = node.prefix;
-        if (prefixNode != null) {
-          importElement.prefixOffset = prefixNode.offset;
-          String prefixName = prefixNode.name;
-          PrefixElementImpl prefix = nameToPrefixMap[prefixName];
-          if (prefix == null) {
-            prefix = new PrefixElementImpl.forNode(prefixNode);
-            nameToPrefixMap[prefixName] = prefix;
-          }
-          importElement.prefix = prefix;
-          prefixNode.staticElement = prefix;
-        }
-        node.element = importElement;
-        imports.add(importElement);
-        if (importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
-          int offset = node.offset;
-          int length = node.length;
-          if (uriLiteral != null) {
-            offset = uriLiteral.offset;
-            length = uriLiteral.length;
-          }
-          ErrorCode errorCode = (importElement.isDeferred
-              ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-              : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
-          errors.add(new AnalysisError(libraryElement.source, offset, length,
-              errorCode, [uriLiteral.toSource()]));
-        }
+        ErrorCode errorCode = importElement.isDeferred
+            ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
+            : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
+        errors.add(new AnalysisError(libraryElement.source, offset, length,
+            errorCode, [uriLiteral.toSource()]));
       }
     }
     return null;
@@ -342,6 +348,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _currentHolder = initialHolder;
   }
 
+  /**
+   * Prepares for incremental resolution of a function body.
+   */
+  void initForFunctionBodyIncrementalResolution() {
+    _inFunction = true;
+  }
+
   @override
   Object visitAnnotation(Annotation node) {
     // Although it isn't valid to do so because closures are not constant
@@ -370,6 +383,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       if (node.exceptionType == null) {
         exception.hasImplicitType = true;
       }
+      exception.setVisibleRange(node.offset, node.length);
       _currentHolder.addLocalVariable(exception);
       exceptionParameter.staticElement = exception;
       // stack trace
@@ -378,6 +392,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         LocalVariableElementImpl stackTrace =
             new LocalVariableElementImpl.forNode(stackTraceParameter);
         _setCodeRange(stackTrace, stackTraceParameter);
+        stackTrace.setVisibleRange(node.offset, node.length);
         _currentHolder.addLocalVariable(stackTrace);
         stackTraceParameter.staticElement = stackTrace;
       }
@@ -411,12 +426,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ClassElementImpl element = new ClassElementImpl.forNode(className);
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
-    List<TypeParameterElement> typeParameters = holder.typeParameters;
-    List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
-    InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
-    interfaceType.typeArguments = typeArguments;
-    element.type = interfaceType;
-    element.typeParameters = typeParameters;
+    element.typeParameters = holder.typeParameters;
     setElementDocumentationComment(element, node);
     element.abstract = node.isAbstract;
     element.accessors = holder.accessors;
@@ -440,19 +450,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
-  /**
-   * Implementation of this method should be synchronized with
-   * [visitClassDeclaration].
-   */
-  void visitClassDeclarationIncrementally(ClassDeclaration node) {
-    //
-    // Process field declarations before constructors and methods so that field
-    // formal parameters can be correctly resolved to their fields.
-    //
-    ClassElement classElement = node.element;
-    _buildFieldMap(classElement.fields);
-  }
-
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ElementHolder holder = new ElementHolder();
@@ -463,12 +460,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.metadata = _createElementAnnotations(node.metadata);
     element.abstract = node.abstractKeyword != null;
     element.mixinApplication = true;
-    List<TypeParameterElement> typeParameters = holder.typeParameters;
-    element.typeParameters = typeParameters;
-    List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
-    InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
-    interfaceType.typeArguments = typeArguments;
-    element.type = interfaceType;
+    element.typeParameters = holder.typeParameters;
     setElementDocumentationComment(element, node);
     _currentHolder.addType(element);
     className.staticElement = element;
@@ -543,9 +535,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     ForEachStatement statement = node.parent as ForEachStatement;
-    int declarationEnd = node.offset + node.length;
-    int statementEnd = statement.offset + statement.length;
-    element.setVisibleRange(declarationEnd, statementEnd - declarationEnd - 1);
+    element.setVisibleRange(statement.offset, statement.length);
     element.const3 = node.isConst;
     element.final2 = node.isFinal;
     if (node.type == null) {
@@ -609,18 +599,11 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
     SimpleIdentifier enumName = node.name;
-    ClassElementImpl enumElement = new ClassElementImpl.forNode(enumName);
+    EnumElementImpl enumElement = new EnumElementImpl.forNode(enumName);
     _setCodeRange(enumElement, node);
     enumElement.metadata = _createElementAnnotations(node.metadata);
-    enumElement.enum2 = true;
     setElementDocumentationComment(enumElement, node);
-    InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
-    enumElement.type = enumType;
-    // The equivalent code for enums in the spec shows a single constructor,
-    // but that constructor is not callable (since it is a compile-time error
-    // to subclass, mix-in, implement, or explicitly instantiate an enum).  So
-    // we represent this as having no constructors.
-    enumElement.constructors = ConstructorElement.EMPTY_LIST;
+    InterfaceTypeImpl enumType = enumElement.type;
     //
     // Build the elements for the constants. These are minimal elements; the
     // rest of the constant elements (and elements for other fields) must be
@@ -637,7 +620,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       constantField.type = enumType;
       setElementDocumentationComment(constantField, constant);
       fields.add(constantField);
-      _createGetter(constantField);
+      new PropertyAccessorElementImpl_ImplicitGetter(constantField);
       constantName.staticElement = constantField;
     }
     enumElement.fields = fields;
@@ -990,8 +973,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       } else {
         SimpleIdentifier propertyNameNode = node.name;
         String propertyName = propertyNameNode.name;
-        FieldElementImpl field =
-            _currentHolder.getField(propertyName) as FieldElementImpl;
+        FieldElementImpl field = _currentHolder.getField(propertyName,
+            synthetic: true) as FieldElementImpl;
         if (field == null) {
           field = new FieldElementImpl(node.name.name, -1);
           field.final2 = true;
@@ -1201,10 +1184,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = variable;
       _setCodeRange(element, node);
-      Block enclosingBlock = node.getAncestor((node) => node is Block);
-      // TODO(brianwilkerson) This isn't right for variables declared in a for
-      // loop.
-      variable.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
+      _setVariableVisibleRange(variable, node);
       variable.hasImplicitType = varList.type == null;
       _currentHolder.addLocalVariable(variable);
       variableName.staticElement = element;
@@ -1242,25 +1222,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       holder.validate();
     }
     if (element is PropertyInducingElementImpl) {
-      PropertyAccessorElementImpl getter =
-          new PropertyAccessorElementImpl.forVariable(element);
-      getter.getter = true;
-      if (element.hasImplicitType) {
-        getter.hasImplicitReturnType = true;
-      }
+      PropertyAccessorElementImpl_ImplicitGetter getter =
+          new PropertyAccessorElementImpl_ImplicitGetter(element);
       _currentHolder.addAccessor(getter);
-      element.getter = getter;
       if (!isConst && !isFinal) {
-        PropertyAccessorElementImpl setter =
-            new PropertyAccessorElementImpl.forVariable(element);
-        setter.setter = true;
-        ParameterElementImpl parameter =
-            new ParameterElementImpl("_${element.name}", element.nameOffset);
-        parameter.synthetic = true;
-        parameter.parameterKind = ParameterKind.REQUIRED;
-        setter.parameters = <ParameterElement>[parameter];
+        PropertyAccessorElementImpl_ImplicitSetter setter =
+            new PropertyAccessorElementImpl_ImplicitSetter(element);
         _currentHolder.addAccessor(setter);
-        element.setter = setter;
       }
     }
     return null;
@@ -1298,7 +1266,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     int count = fields.length;
     for (int i = 0; i < count; i++) {
       FieldElement field = fields[i];
-      _fieldMap[field.name] = field;
+      _fieldMap[field.name] ??= field;
     }
   }
 
@@ -1313,9 +1281,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ConstructorElementImpl constructor =
         new ConstructorElementImpl.forNode(null);
     constructor.synthetic = true;
-    constructor.returnType = definingClass.type;
     constructor.enclosingElement = definingClass;
-    constructor.type = new FunctionTypeImpl(constructor);
     return <ConstructorElement>[constructor];
   }
 
@@ -1334,18 +1300,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       a.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
-  }
-
-  /**
-   * Create a getter that corresponds to the given [field].
-   */
-  void _createGetter(FieldElementImpl field) {
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
-    getter.getter = true;
-    getter.returnType = field.type;
-    getter.type = new FunctionTypeImpl(getter);
-    field.getter = getter;
   }
 
   /**
@@ -1399,6 +1353,18 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       element.setVisibleRange(body.offset, body.length);
     }
+  }
+
+  void _setVariableVisibleRange(
+      LocalVariableElementImpl element, VariableDeclaration node) {
+    AstNode scopeNode;
+    AstNode parent2 = node.parent.parent;
+    if (parent2 is ForStatement) {
+      scopeNode = parent2;
+    } else {
+      scopeNode = node.getAncestor((node) => node is Block);
+    }
+    element.setVisibleRange(scopeNode.offset, scopeNode.length);
   }
 
   /**

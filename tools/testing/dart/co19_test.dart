@@ -22,21 +22,33 @@ import "test_options.dart";
 import "test_suite.dart";
 import "test_configurations.dart";
 
-const List<String> COMMON_ARGUMENTS =
-    const <String>['--report', '--progress=diff', 'co19'];
+const List<String> COMMON_ARGUMENTS = const <String>[
+  '--report',
+  '--progress=diff',
+  'co19'
+];
 
 const List<List<String>> COMMAND_LINES = const <List<String>>[
-    const <String>['-mrelease,debug', '-rvm', '-cnone'],
-    const <String>['-mrelease,debug', '-rvm', '-cnone', '--checked'],
-    const <String>['-mrelease', '-rnone', '-cdart2analyzer'],
-    const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk'],
-    const <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk',
-                   '--minified'],
-    const <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk',
-                   '--checked'],
-    const <String>['-mrelease', '-rdartium', '-cnone', '--use-sdk',
-                   '--checked'],
-    const <String>['-mrelease', '-rdartium', '-cnone', '--use-sdk'],
+  const <String>['-mrelease,debug', '-rvm', '-cnone'],
+  const <String>['-mrelease,debug', '-rvm', '-cnone', '--checked'],
+  const <String>['-mrelease', '-rnone', '-cdart2analyzer'],
+  const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk'],
+  const <String>[
+    '-mrelease',
+    '-rd8,jsshell',
+    '-cdart2js',
+    '--use-sdk',
+    '--minified'
+  ],
+  const <String>[
+    '-mrelease',
+    '-rd8,jsshell',
+    '-cdart2js',
+    '--use-sdk',
+    '--checked'
+  ],
+  const <String>['-mrelease', '-rdartium', '-cnone', '--use-sdk', '--checked'],
+  const <String>['-mrelease', '-rdartium', '-cnone', '--use-sdk'],
 ];
 
 void main(List<String> args) {
@@ -55,4 +67,3 @@ void main(List<String> args) {
     testConfigurations(configurations);
   }
 }
-

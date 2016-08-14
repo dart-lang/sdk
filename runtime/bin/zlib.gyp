@@ -64,11 +64,6 @@
               '<(zlib_path)/.',
         ],
       },
-      'conditions': [
-        ['OS!="win"', {
-          'product_name': 'chrome_zlib',
-        }],
-      ],
     },
   ],
 }

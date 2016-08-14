@@ -99,6 +99,11 @@ class A {
     _assertDefinedName('A', IndexNameKind.topLevel, 'A {}');
   }
 
+  void test_definedName_topLevel_class2() {
+    _indexTestUnit('class A {}', declOnly: true);
+    _assertDefinedName('A', IndexNameKind.topLevel, 'A {}');
+  }
+
   void test_definedName_topLevel_classAlias() {
     _indexTestUnit('''
 class M {}
@@ -671,6 +676,13 @@ main() {
     assertThat(constA)..isReferencedAt('(); // 1', true, length: 0);
   }
 
+  void test_isReferencedBy_DynamicElement() {
+    _indexTestUnit('''
+dynamic f() {
+}''');
+    expect(unitIndex.usedElementOffsets, isEmpty);
+  }
+
   void test_isReferencedBy_FieldElement() {
     _indexTestUnit('''
 class A {
@@ -687,7 +699,7 @@ main(A a) {
   new A(field: 4);
 }
 ''');
-    FieldElement field = findElement('field');
+    FieldElement field = findElement('field', ElementKind.FIELD);
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
     // A()
@@ -717,7 +729,7 @@ class A {
 ''');
     // aaa
     {
-      FieldElement field = findElement('aaa');
+      FieldElement field = findElement('aaa', ElementKind.FIELD);
       PropertyAccessorElement getter = field.getter;
       PropertyAccessorElement setter = field.setter;
       assertThat(field)..isWrittenAt('aaa, ', true);
@@ -726,7 +738,7 @@ class A {
     }
     // bbb
     {
-      FieldElement field = findElement('bbb');
+      FieldElement field = findElement('bbb', ElementKind.FIELD);
       PropertyAccessorElement getter = field.getter;
       PropertyAccessorElement setter = field.setter;
       assertThat(field)..isWrittenAt('bbb) {}', true);
@@ -756,6 +768,43 @@ main() {
     assertThat(enumElement.getGetter('B'))..isReferencedAt('B);', true);
   }
 
+  void test_isReferencedBy_FieldElement_synthetic_hasGetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  int get f => 0;
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
+  void test_isReferencedBy_FieldElement_synthetic_hasGetterSetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  int get f => 0;
+  set f(_) {}
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
+  void test_isReferencedBy_FieldElement_synthetic_hasSetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  set f(_) {}
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
   void test_isReferencedBy_FunctionElement() {
     _indexTestUnit('''
 foo() {}
@@ -768,6 +817,26 @@ main() {
     assertThat(element)
       ..isReferencedAt('foo);', false)
       ..isInvokedAt('foo());', false);
+  }
+
+  void test_isReferencedBy_FunctionElement_with_LibraryElement() {
+    addSource(
+        '/foo.dart',
+        r'''
+bar() {}
+''');
+    _indexTestUnit('''
+import "foo.dart";
+main() {
+  bar();
+}
+''');
+    LibraryElement fooLibrary = testLibraryElement.imports[0].importedLibrary;
+    assertThat(fooLibrary)..isReferencedAt('"foo.dart";', true, length: 10);
+    {
+      FunctionElement bar = fooLibrary.definingCompilationUnit.functions[0];
+      assertThat(bar)..isInvokedAt('bar();', false);
+    }
   }
 
   void test_isReferencedBy_FunctionTypeAliasElement() {
@@ -895,10 +964,26 @@ class A {
   A.bar() : field = 5;
 }
 ''');
-    FieldElement element = findElement('field');
+    FieldElement element = findElement('field', ElementKind.FIELD);
     assertThat(element)
       ..isWrittenAt('field})', true)
       ..isWrittenAt('field = 5', true);
+  }
+
+  void test_usedName_inLibraryIdentifier() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+library aaa.bbb.ccc;
+class C {
+  var bbb;
+}
+main(p) {
+  p.bbb = 1;
+}
+''');
+    assertThatName('bbb')
+      ..isNotUsed('bbb.ccc', IndexRelationKind.IS_READ_BY)
+      ..isUsedQ('bbb = 1;', IndexRelationKind.IS_WRITTEN_BY);
   }
 
   void test_usedName_qualified_resolved() {
@@ -915,10 +1000,10 @@ main(C c) {
 }
 ''');
     assertThatName('x')
-      ..isNotUsed('x;', IndexRelationKind.IS_READ_BY)
-      ..isNotUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
-      ..isNotUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
-      ..isNotUsed('x();', IndexRelationKind.IS_INVOKED_BY);
+      ..isNotUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
   void test_usedName_qualified_unresolved() {
@@ -952,10 +1037,10 @@ class C {
 }
 ''');
     assertThatName('x')
-      ..isNotUsed('x;', IndexRelationKind.IS_READ_BY)
-      ..isNotUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
-      ..isNotUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
-      ..isNotUsed('x();', IndexRelationKind.IS_INVOKED_BY);
+      ..isNotUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
   void test_usedName_unqualified_unresolved() {
@@ -1049,12 +1134,34 @@ main() {
    */
   int _findElementId(Element element) {
     int unitId = _getUnitId(element);
-    ElementInfo info = PackageIndexAssembler.newElementInfo(unitId, element);
+    // Prepare the element that was put into the index.
+    IndexElementInfo info = new IndexElementInfo(element);
+    element = info.element;
+    // Prepare element's name components.
+    int unitMemberId = _getStringId(PackageIndexAssembler.NULL_STRING);
+    int classMemberId = _getStringId(PackageIndexAssembler.NULL_STRING);
+    int parameterId = _getStringId(PackageIndexAssembler.NULL_STRING);
+    for (Element e = element; e != null; e = e.enclosingElement) {
+      if (e.enclosingElement is CompilationUnitElement) {
+        unitMemberId = _getStringId(e.name);
+      }
+    }
+    for (Element e = element; e != null; e = e.enclosingElement) {
+      if (e.enclosingElement is ClassElement) {
+        classMemberId = _getStringId(e.name);
+      }
+    }
+    if (element is ParameterElement) {
+      parameterId = _getStringId(element.name);
+    }
+    // Find the element's id.
     for (int elementId = 0;
         elementId < packageIndex.elementUnits.length;
         elementId++) {
       if (packageIndex.elementUnits[elementId] == unitId &&
-          packageIndex.elementOffsets[elementId] == info.offset &&
+          packageIndex.elementNameUnitMemberIds[elementId] == unitMemberId &&
+          packageIndex.elementNameClassMemberIds[elementId] == classMemberId &&
+          packageIndex.elementNameParameterIds[elementId] == parameterId &&
           packageIndex.elementKinds[elementId] == info.kind) {
         return elementId;
       }
@@ -1109,10 +1216,14 @@ main() {
     return _getStringId(str);
   }
 
-  void _indexTestUnit(String code) {
+  void _indexTestUnit(String code, {bool declOnly: false}) {
     resolveTestUnit(code);
     PackageIndexAssembler assembler = new PackageIndexAssembler();
-    assembler.index(testUnit);
+    if (declOnly) {
+      assembler.indexDeclarations(testUnit);
+    } else {
+      assembler.indexUnit(testUnit);
+    }
     // assemble, write and read
     PackageIndexBuilder indexBuilder = assembler.assemble();
     List<int> indexBytes = indexBuilder.toBuffer();
@@ -1193,6 +1304,11 @@ class _NameIndexAssert {
   _NameIndexAssert(this.test, this.name);
 
   void isNotUsed(String search, IndexRelationKind kind) {
+    test._assertUsedName(
+        name, kind, test._expectedLocation(search, false), true);
+  }
+
+  void isNotUsedQ(String search, IndexRelationKind kind) {
     test._assertUsedName(
         name, kind, test._expectedLocation(search, true), true);
   }

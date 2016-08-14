@@ -18,8 +18,8 @@ class RawObject;
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
  public:
-  explicit ObjectPointerVisitor(Isolate* isolate) : isolate_(isolate) {}
-  virtual ~ObjectPointerVisitor() {}
+  explicit ObjectPointerVisitor(Isolate* isolate) : isolate_(isolate) { }
+  virtual ~ObjectPointerVisitor() { }
 
   Isolate* isolate() const { return isolate_; }
 
@@ -48,18 +48,14 @@ class ObjectPointerVisitor {
 // An object visitor interface.
 class ObjectVisitor {
  public:
-  explicit ObjectVisitor(Isolate* isolate) : isolate_(isolate) {}
+  ObjectVisitor() { }
 
-  virtual ~ObjectVisitor() {}
-
-  Isolate* isolate() const { return isolate_; }
+  virtual ~ObjectVisitor() { }
 
   // Invoked for each object.
   virtual void VisitObject(RawObject* obj) = 0;
 
  private:
-  Isolate* isolate_;
-
   DISALLOW_COPY_AND_ASSIGN(ObjectVisitor);
 };
 
@@ -67,8 +63,8 @@ class ObjectVisitor {
 // An object finder visitor interface.
 class FindObjectVisitor {
  public:
-  explicit FindObjectVisitor(Isolate* isolate) : isolate_(isolate) {}
-  virtual ~FindObjectVisitor() {}
+  FindObjectVisitor() { }
+  virtual ~FindObjectVisitor() { }
 
   // Allow to specify a address filter.
   virtual uword filter_addr() const { return 0; }
@@ -81,9 +77,7 @@ class FindObjectVisitor {
   virtual bool FindObject(RawObject* obj) const = 0;
 
  private:
-  Isolate* isolate_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(FindObjectVisitor);
+  DISALLOW_COPY_AND_ASSIGN(FindObjectVisitor);
 };
 
 }  // namespace dart

@@ -9,9 +9,11 @@
 #include "vm/assembler.h"
 #include "vm/code_generator.h"
 #include "vm/deferred_objects.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/growable_array.h"
 #include "vm/locations.h"
 #include "vm/object.h"
+#include "vm/stack_frame.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -48,6 +50,10 @@ class DeoptContext {
   intptr_t* GetSourceFrameAddressAt(intptr_t index) const {
     ASSERT(source_frame_ != NULL);
     ASSERT((0 <= index) && (index < source_frame_size_));
+#if !defined(TARGET_ARCH_DBC)
+    // Convert FP relative index to SP relative one.
+    index = source_frame_size_ - 1 - index;
+#endif  // !defined(TARGET_ARCH_DBC)
     return &source_frame_[index];
   }
 
@@ -64,20 +70,34 @@ class DeoptContext {
   }
 
   intptr_t RegisterValue(Register reg) const {
-    ASSERT(cpu_registers_ != NULL);
     ASSERT(reg >= 0);
     ASSERT(reg < kNumberOfCpuRegisters);
+#if !defined(TARGET_ARCH_DBC)
+    ASSERT(cpu_registers_ != NULL);
     return cpu_registers_[reg];
+#else
+    // On DBC registers and stack slots are the same.
+    const intptr_t stack_index = num_args_ + kDartFrameFixedSize + reg;
+    return *GetSourceFrameAddressAt(stack_index);
+#endif  // !defined(TARGET_ARCH_DBC)
   }
 
   double FpuRegisterValue(FpuRegister reg) const {
+    ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
     ASSERT(fpu_registers_ != NULL);
     ASSERT(reg >= 0);
+#if !defined(TARGET_ARCH_DBC)
     ASSERT(reg < kNumberOfFpuRegisters);
     return *reinterpret_cast<double*>(&fpu_registers_[reg]);
+#else
+    // On DBC registers and stack slots are the same.
+    const intptr_t stack_index = num_args_ + kDartFrameFixedSize + reg;
+    return *reinterpret_cast<double*>(GetSourceFrameAddressAt(stack_index));
+#endif
   }
 
   simd128_value_t FpuRegisterValueAsSimd128(FpuRegister reg) const {
+    ASSERT(FlowGraphCompiler::SupportsUnboxedSimd128());
     ASSERT(fpu_registers_ != NULL);
     ASSERT(reg >= 0);
     ASSERT(reg < kNumberOfFpuRegisters);
@@ -85,9 +105,29 @@ class DeoptContext {
     return simd128_value_t().readFrom(address);
   }
 
-  void set_dest_frame(intptr_t* dest_frame) {
-    ASSERT(dest_frame != NULL && dest_frame_ == NULL);
-    dest_frame_ = dest_frame;
+  // Return base pointer for the given frame (either source or destination).
+  // Base pointer points to the slot with the lowest address in the frame
+  // including incoming arguments and artificial deoptimization frame
+  // on top of it.
+  // Note: artificial frame created by the deoptimization stub is considered
+  // part of the frame because it contains saved caller PC and FP that
+  // deoptimization will fill in.
+  intptr_t* FrameBase(const StackFrame* frame) {
+#if !defined(TARGET_ARCH_DBC)
+    // SP of the deoptimization frame is the lowest slot because
+    // stack is growing downwards.
+    return reinterpret_cast<intptr_t*>(
+      frame->sp() - (kDartFrameFixedSize * kWordSize));
+#else
+    // First argument is the lowest slot because stack is growing upwards.
+    return reinterpret_cast<intptr_t*>(
+        frame->fp() - (kDartFrameFixedSize + num_args_) * kWordSize);
+#endif  // !defined(TARGET_ARCH_DBC)
+  }
+
+  void set_dest_frame(const StackFrame* frame) {
+    ASSERT(frame != NULL && dest_frame_ == NULL);
+    dest_frame_ = FrameBase(frame);
   }
 
   Thread* thread() const { return thread_; }
@@ -188,10 +228,18 @@ class DeoptContext {
     return deferred_objects_[idx];
   }
 
+  intptr_t num_args() const { return num_args_; }
+
  private:
   intptr_t* GetDestFrameAddressAt(intptr_t index) const {
     ASSERT(dest_frame_ != NULL);
     ASSERT((0 <= index) && (index < dest_frame_size_));
+#if defined(TARGET_ARCH_DBC)
+    // Stack on DBC is growing upwards but we record deopt commands
+    // in the same order we record them on other architectures as if
+    // the stack was growing downwards.
+    index = dest_frame_size_ - 1 - index;
+#endif  // defined(TARGET_ARCH_DBC)
     return &dest_frame_[index];
   }
 
@@ -383,7 +431,7 @@ class RegisterSource {
         context, reg()));
     } else {
       return *reinterpret_cast<T*>(context->GetSourceFrameAddressAt(
-          context->source_frame_size() - raw_index() - 1));
+          raw_index()));
     }
   }
 

@@ -8,6 +8,7 @@
 #include "platform/globals.h"
 #include "platform/utils.h"
 #include "vm/os.h"
+#include "vm/unicode.h"
 
 namespace dart {
 
@@ -48,6 +49,15 @@ void TextBuffer::AddChar(char ch) {
 }
 
 
+void TextBuffer::AddRaw(const uint8_t* buffer,
+                        intptr_t buffer_length) {
+  EnsureCapacity(buffer_length);
+  memmove(&buf_[msg_len_], buffer, buffer_length);
+  msg_len_ += buffer_length;
+  buf_[msg_len_] = '\0';
+}
+
+
 intptr_t TextBuffer::Printf(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -71,57 +81,51 @@ intptr_t TextBuffer::Printf(const char* format, ...) {
 }
 
 
-// Write a UTF-16 code unit so it can be read by a JSON parser in a string
-// literal. Use escape sequences for characters other than printable ASCII.
+// Write a UTF-32 code unit so it can be read by a JSON parser in a string
+// literal. Use official encoding from JSON specification. http://json.org/
 void TextBuffer::EscapeAndAddCodeUnit(uint32_t codeunit) {
   switch (codeunit) {
     case '"':
-      Printf("%s", "\\\"");
+      AddRaw(reinterpret_cast<uint8_t const*>("\\\""), 2);
       break;
     case '\\':
-      Printf("%s", "\\\\");
+      AddRaw(reinterpret_cast<uint8_t const*>("\\\\"), 2);
       break;
     case '/':
-      Printf("%s", "\\/");
+      AddRaw(reinterpret_cast<uint8_t const*>("\\/"), 2);
       break;
     case '\b':
-      Printf("%s", "\\b");
+      AddRaw(reinterpret_cast<uint8_t const*>("\\b"), 2);
       break;
     case '\f':
-      Printf("%s", "\\f");
+      AddRaw(reinterpret_cast<uint8_t const*>("\\f"), 2);
       break;
     case '\n':
-      Printf("%s", "\\n");
+      AddRaw(reinterpret_cast<uint8_t const*>("\\n"), 2);
       break;
     case '\r':
-      Printf("%s", "\\r");
+      AddRaw(reinterpret_cast<uint8_t const*>("\\r"), 2);
       break;
     case '\t':
-      Printf("%s", "\\t");
+      AddRaw(reinterpret_cast<uint8_t const*>("\\t"), 2);
       break;
     default:
       if (codeunit < 0x20) {
-        // Encode character as \u00HH.
-        uint32_t digit2 = (codeunit >> 4) & 0xf;
-        uint32_t digit3 = (codeunit & 0xf);
-        Printf("\\u00%c%c",
-               digit2 > 9 ? 'A' + (digit2 - 10) : '0' + digit2,
-               digit3 > 9 ? 'A' + (digit3 - 10) : '0' + digit3);
-      } else if (codeunit > 127) {
-        // Encode character as \uHHHH.
-        uint32_t digit0 = (codeunit >> 12) & 0xf;
-        uint32_t digit1 = (codeunit >> 8) & 0xf;
-        uint32_t digit2 = (codeunit >> 4) & 0xf;
-        uint32_t digit3 = (codeunit & 0xf);
-        Printf("\\u%c%c%c%c",
-               digit0 > 9 ? 'A' + (digit0 - 10) : '0' + digit0,
-               digit1 > 9 ? 'A' + (digit1 - 10) : '0' + digit1,
-               digit2 > 9 ? 'A' + (digit2 - 10) : '0' + digit2,
-               digit3 > 9 ? 'A' + (digit3 - 10) : '0' + digit3);
+        EscapeAndAddUTF16CodeUnit(codeunit);
       } else {
-        AddChar(codeunit);
+        char encoded[6];
+        intptr_t length = Utf8::Length(codeunit);
+        Utf8::Encode(codeunit, encoded);
+        AddRaw(reinterpret_cast<uint8_t const*>(encoded), length);
       }
   }
+}
+
+
+// Write an incomplete UTF-16 code unit so it can be read by a JSON parser in a
+// string literal.
+void TextBuffer::EscapeAndAddUTF16CodeUnit(uint16_t codeunit) {
+  Printf("\\u%04X", codeunit);
 }
 
 

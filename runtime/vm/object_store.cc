@@ -56,6 +56,7 @@ ObjectStore::ObjectStore()
     error_class_(Class::null()),
     weak_property_class_(Class::null()),
     symbol_table_(Array::null()),
+    canonical_types_(Array::null()),
     canonical_type_arguments_(Array::null()),
     async_library_(Library::null()),
     builtin_library_(Library::null()),
@@ -73,6 +74,7 @@ ObjectStore::ObjectStore()
     typed_data_library_(Library::null()),
     vmservice_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
+    libraries_map_(Array::null()),
     closure_functions_(GrowableObjectArray::null()),
     pending_classes_(GrowableObjectArray::null()),
     pending_deferred_loads_(GrowableObjectArray::null()),
@@ -87,8 +89,10 @@ ObjectStore::ObjectStore()
     lookup_port_handler_(Function::null()),
     empty_uint32_array_(TypedData::null()),
     handle_message_function_(Function::null()),
+    simple_instance_of_function_(Function::null()),
+    simple_instance_of_true_function_(Function::null()),
+    simple_instance_of_false_function_(Function::null()),
     library_load_error_table_(Array::null()),
-    compile_time_constants_(Array::null()),
     unique_dynamic_targets_(Array::null()),
     token_objects_(GrowableObjectArray::null()),
     token_objects_map_(Array::null()),
@@ -116,6 +120,26 @@ void ObjectStore::Init(Isolate* isolate) {
   ObjectStore* store = new ObjectStore();
   isolate->set_object_store(store);
 }
+
+
+#ifndef PRODUCT
+void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  jsobj->AddProperty("type", "_ObjectStore");
+
+  {
+    JSONObject fields(jsobj, "fields");
+    Object& value = Object::Handle();
+#define PRINT_OBJECT_STORE_FIELD(type, name)                                   \
+    value = name;                                                              \
+    fields.AddProperty(#name, value);
+OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD);
+#undef PRINT_OBJECT_STORE_FIELD
+  }
+}
+#endif  // !PRODUCT
 
 
 RawError* ObjectStore::PreallocateObjects() {
@@ -182,7 +206,21 @@ RawError* ObjectStore::PreallocateObjects() {
 }
 
 
+RawFunction* ObjectStore::PrivateObjectLookup(const String& name) {
+  const Library& core_lib = Library::Handle(core_library());
+  const String& mangled = String::ZoneHandle(core_lib.PrivateName(name));
+  const Class& cls = Class::Handle(object_class());
+  const Function& result = Function::Handle(cls.LookupDynamicFunction(mangled));
+  ASSERT(!result.IsNull());
+  return result.raw();
+}
+
+
 void ObjectStore::InitKnownObjects() {
+#ifdef DART_PRECOMPILED_RUNTIME
+  // These objects are only needed for code generation.
+  return;
+#else
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -204,6 +242,15 @@ void ObjectStore::InitKnownObjects() {
   const Library& internal_lib = Library::Handle(internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());
   set_symbol_class(cls);
+
+  // Cache the core private functions used for fast instance of checks.
+  simple_instance_of_function_ =
+      PrivateObjectLookup(Symbols::_simpleInstanceOf());
+  simple_instance_of_true_function_ =
+      PrivateObjectLookup(Symbols::_simpleInstanceOfTrue());
+  simple_instance_of_false_function_ =
+      PrivateObjectLookup(Symbols::_simpleInstanceOfFalse());
+#endif
 }
 
 }  // namespace dart

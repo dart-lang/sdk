@@ -90,7 +90,7 @@ class JsonStreamDecoder extends Converter<String, Map> {
   Map convert(String text) => JSON.decode(text);
 
   @override
-  ChunkedConversionSink startChunkedConversion(Sink sink) =>
+  ChunkedConversionSink<String> startChunkedConversion(Sink<Map> sink) =>
       new ChannelChunkSink<String, Map>(this, sink);
 }
 
@@ -103,7 +103,7 @@ class NotificationConverter extends Converter<Map, Notification> {
   Notification convert(Map json) => new Notification.fromJson(json);
 
   @override
-  ChunkedConversionSink startChunkedConversion(Sink sink) =>
+  ChunkedConversionSink<Map> startChunkedConversion(Sink<Notification> sink) =>
       new ChannelChunkSink<Map, Notification>(this, sink);
 }
 
@@ -115,7 +115,7 @@ class ResponseConverter extends Converter<Map, Response> {
   Response convert(Map json) => new Response.fromJson(json);
 
   @override
-  ChunkedConversionSink startChunkedConversion(Sink sink) =>
+  ChunkedConversionSink<Map> startChunkedConversion(Sink<Response> sink) =>
       new ChannelChunkSink<Map, Response>(this, sink);
 }
 

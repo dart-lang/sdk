@@ -333,7 +333,7 @@ class Database(object):
     result = []
     if interface.parents:
       parent = interface.parents[0]
-      if (IsPureInterface(parent.type.id) or
+      if (IsPureInterface(parent.type.id, self) or
           (propagate_event_target and parent.type.id == 'EventTarget')):
         result = walk(interface.parents, [])
       else:

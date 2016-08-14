@@ -2,7 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+import '../common.dart';
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../io/code_output.dart';
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import 'backend.dart';
+import 'constant_system_javascript.dart';
+import 'namer.dart';
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
 
@@ -15,13 +25,11 @@ typedef jsAst.Expression _ConstantListGenerator(jsAst.Expression array);
  * (if there are some). It is hence up to that function to decide which
  * constants should be inlined or not.
  */
-class ConstantEmitter
-    implements ConstantValueVisitor<jsAst.Expression, Null> {
-
+class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   // Matches blank lines, comment lines and trailing comments that can't be part
   // of a string.
   static final RegExp COMMENT_RE =
-      new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''' , multiLine: true);
+      new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
 
   final Compiler compiler;
   final Namer namer;
@@ -66,12 +74,16 @@ class ConstantEmitter
     return new jsAst.LiteralNull();
   }
 
-  static final _exponentialRE = new RegExp(
-      '^'
-      '\([-+]?\)'         // 1: sign
-      '\([0-9]+\)'        // 2: leading digit(s)
+  @override
+  jsAst.Expression visitNonConstant(NonConstantValue constant, [_]) {
+    return new jsAst.LiteralNull();
+  }
+
+  static final _exponentialRE = new RegExp('^'
+      '\([-+]?\)' // 1: sign
+      '\([0-9]+\)' // 2: leading digit(s)
       '\(\.\([0-9]*\)\)?' // 4: fraction digits
-      'e\([-+]?[0-9]+\)'  // 5: exponent with sign
+      'e\([-+]?[0-9]+\)' // 5: exponent with sign
       r'$');
 
   /// Reduces the size of exponential representations when minification is
@@ -105,7 +117,7 @@ class ConstantEmitter
     // digits are lost anyway.
     String representation = primitiveValue.toString();
     String alternative = null;
-    int cutoff = compiler.enableMinification ? 10000 : 1e10.toInt();
+    int cutoff = compiler.options.enableMinification ? 10000 : 1e10.toInt();
     if (primitiveValue.abs() >= cutoff) {
       alternative = _shortenExponentialRepresentation(
           primitiveValue.toStringAsExponential());
@@ -133,7 +145,7 @@ class ConstantEmitter
 
   @override
   jsAst.Expression visitBool(BoolConstantValue constant, [_]) {
-    if (compiler.enableMinification) {
+    if (compiler.options.enableMinification) {
       if (constant.isTrue) {
         // Use !0 for true.
         return js("!0");
@@ -154,7 +166,7 @@ class ConstantEmitter
   @override
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
     return js.escapedString(constant.primitiveValue.slowToString(),
-                            ascii: true);
+        ascii: true);
   }
 
   @override
@@ -189,7 +201,8 @@ class ConstantEmitter
     jsAst.Expression jsGeneralMap() {
       List<jsAst.Expression> data = <jsAst.Expression>[];
       for (int i = 0; i < constant.keys.length; i++) {
-        jsAst.Expression keyExpression = constantReferenceGenerator(constant.keys[i]);
+        jsAst.Expression keyExpression =
+            constantReferenceGenerator(constant.keys[i]);
         jsAst.Expression valueExpression =
             constantReferenceGenerator(constant.values[i]);
         data.add(keyExpression);
@@ -208,32 +221,32 @@ class ConstantEmitter
     int emittedArgumentCount = 0;
     classElement.implementation.forEachInstanceField(
         (ClassElement enclosing, Element field) {
-          if (field.name == JavaScriptMapConstant.LENGTH_NAME) {
-            arguments.add(
-                new jsAst.LiteralNumber('${constant.keyList.entries.length}'));
-          } else if (field.name == JavaScriptMapConstant.JS_OBJECT_NAME) {
-            arguments.add(jsMap());
-          } else if (field.name == JavaScriptMapConstant.KEYS_NAME) {
-            arguments.add(constantReferenceGenerator(constant.keyList));
-          } else if (field.name == JavaScriptMapConstant.PROTO_VALUE) {
-            assert(constant.protoValue != null);
-            arguments.add(constantReferenceGenerator(constant.protoValue));
-          } else if (field.name == JavaScriptMapConstant.JS_DATA_NAME) {
-            arguments.add(jsGeneralMap());
-          } else {
-            reporter.internalError(field,
-                "Compiler has unexpected field ${field.name} for "
-                "${className}.");
-          }
-          emittedArgumentCount++;
-        },
-        includeSuperAndInjectedMembers: true);
+      if (field.name == JavaScriptMapConstant.LENGTH_NAME) {
+        arguments
+            .add(new jsAst.LiteralNumber('${constant.keyList.entries.length}'));
+      } else if (field.name == JavaScriptMapConstant.JS_OBJECT_NAME) {
+        arguments.add(jsMap());
+      } else if (field.name == JavaScriptMapConstant.KEYS_NAME) {
+        arguments.add(constantReferenceGenerator(constant.keyList));
+      } else if (field.name == JavaScriptMapConstant.PROTO_VALUE) {
+        assert(constant.protoValue != null);
+        arguments.add(constantReferenceGenerator(constant.protoValue));
+      } else if (field.name == JavaScriptMapConstant.JS_DATA_NAME) {
+        arguments.add(jsGeneralMap());
+      } else {
+        reporter.internalError(
+            field,
+            "Compiler has unexpected field ${field.name} for "
+            "${className}.");
+      }
+      emittedArgumentCount++;
+    }, includeSuperAndInjectedMembers: true);
     if ((className == JavaScriptMapConstant.DART_STRING_CLASS &&
-         emittedArgumentCount != 3) ||
+            emittedArgumentCount != 3) ||
         (className == JavaScriptMapConstant.DART_PROTO_CLASS &&
-         emittedArgumentCount != 4) ||
+            emittedArgumentCount != 4) ||
         (className == JavaScriptMapConstant.DART_GENERAL_CLASS &&
-         emittedArgumentCount != 1)) {
+            emittedArgumentCount != 1)) {
       reporter.internalError(classElement,
           "Compiler and ${className} disagree on number of fields.");
     }
@@ -255,7 +268,7 @@ class ConstantEmitter
     DartType type = constant.representedType;
     jsAst.Name typeName = namer.runtimeTypeName(type.element);
     return new jsAst.Call(getHelperProperty(backend.helpers.createRuntimeType),
-                          [js.quoteName(typeName)]);
+        [js.quoteName(typeName)]);
   }
 
   @override
@@ -266,7 +279,7 @@ class ConstantEmitter
 
   @override
   jsAst.Expression visitSynthetic(SyntheticConstantValue constant, [_]) {
-    switch (constant.kind) {
+    switch (constant.valueKind) {
       case SyntheticConstantKind.DUMMY_INTERCEPTOR:
       case SyntheticConstantKind.EMPTY_VALUE:
         return new jsAst.LiteralNumber('0');
@@ -275,25 +288,25 @@ class ConstantEmitter
         return constant.payload;
       default:
         reporter.internalError(NO_LOCATION_SPANNABLE,
-                               "Unexpected DummyConstantKind ${constant.kind}");
+            "Unexpected DummyConstantKind ${constant.kind}");
         return null;
     }
   }
 
   @override
   jsAst.Expression visitConstructed(ConstructedConstantValue constant, [_]) {
-    Element element = constant.type.element;
-    if (backend.isForeign(element)
-        && element.name == 'JS_CONST') {
+    ClassElement element = constant.type.element;
+    if (backend.isForeign(element) && element.name == 'JS_CONST') {
       StringConstantValue str = constant.fields.values.single;
       String value = str.primitiveValue.slowToString();
       return new jsAst.LiteralExpression(stripComments(value));
     }
     jsAst.Expression constructor =
         backend.emitter.constructorAccess(constant.type.element);
-    List<jsAst.Expression> fields =
-        constant.fields.values.map(constantReferenceGenerator)
-        .toList(growable: false);
+    List<jsAst.Expression> fields = <jsAst.Expression>[];
+    element.forEachInstanceField((_, FieldElement field) {
+      fields.add(constantReferenceGenerator(constant.fields[field]));
+    }, includeSuperAndInjectedMembers: true);
     jsAst.New instantiation = new jsAst.New(constructor, fields);
     return maybeAddTypeArguments(constant.type, instantiation);
   }
@@ -302,16 +315,16 @@ class ConstantEmitter
     return rawJavaScript.replaceAll(COMMENT_RE, '');
   }
 
-  jsAst.Expression maybeAddTypeArguments(InterfaceType type,
-                                         jsAst.Expression value) {
+  jsAst.Expression maybeAddTypeArguments(
+      InterfaceType type, jsAst.Expression value) {
     if (type is InterfaceType &&
         !type.treatAsRaw &&
         backend.classNeedsRti(type.element)) {
       InterfaceType interface = type;
       RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
-      Iterable<jsAst.Expression> arguments = interface.typeArguments
-          .map((DartType type) =>
-              rtiEncoder.getTypeRepresentationWithPlaceholders(type, (_){}));
+      Iterable<jsAst.Expression> arguments = interface.typeArguments.map(
+          (DartType type) =>
+              rtiEncoder.getTypeRepresentationWithPlaceholders(type, (_) {}));
       jsAst.Expression argumentList =
           new jsAst.ArrayInitializer(arguments.toList());
       return new jsAst.Call(

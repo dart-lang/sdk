@@ -62,7 +62,8 @@ class VMTag : public AllStatic {
   }
   static const char* TagName(uword id);
   static bool IsNativeEntryTag(uword id);
-
+  static bool IsDartTag(uword id);
+  static bool IsExitFrameTag(uword id);
   static bool IsRuntimeEntryTag(uword id);
   static const char* RuntimeEntryTagName(uword id);
 
@@ -97,7 +98,9 @@ class VMTagCounters {
 
   int64_t count(uword tag);
 
+#ifndef PRODUCT
   void PrintToJSONObject(JSONObject* obj);
+#endif  // !PRODUCT
 
  private:
   int64_t counters_[VMTag::kNumVMTags];

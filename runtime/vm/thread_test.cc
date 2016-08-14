@@ -111,7 +111,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
                          intptr_t id)
       : isolate_(isolate), monitor_(monitor), done_(done), id_(id) {}
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_);
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
     {
       Thread* thread = Thread::Current();
       // Create a zone (which is also a stack resource) and exercise it a bit.
@@ -259,7 +259,7 @@ class SafepointTestTask : public ThreadPool::Task {
       local_done_(false) {}
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_);
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
     {
       MonitorLocker ml(monitor_);
       ++*expected_count_;
@@ -405,6 +405,25 @@ VM_TEST_CASE(SafepointTestVM) {
 }
 
 
+// Test case for recursive safepoint operations.
+VM_TEST_CASE(RecursiveSafepointTest1) {
+  intptr_t count = 0;
+  {
+    SafepointOperationScope safepoint_scope(thread);
+    count += 1;
+    {
+      SafepointOperationScope safepoint_scope(thread);
+      count += 1;
+      {
+        SafepointOperationScope safepoint_scope(thread);
+        count += 1;
+      }
+    }
+  }
+  EXPECT(count == 3);
+}
+
+
 VM_TEST_CASE(ThreadIterator_Count) {
   intptr_t thread_count_0 = 0;
   intptr_t thread_count_1 = 0;
@@ -435,12 +454,13 @@ VM_TEST_CASE(ThreadIterator_Count) {
 
 VM_TEST_CASE(ThreadIterator_FindSelf) {
   OSThread* current = OSThread::Current();
-  EXPECT(OSThread::IsThreadInList(current->join_id()));
+  EXPECT(OSThread::IsThreadInList(current->id()));
 }
 
 
 struct ThreadIteratorTestParams {
-  ThreadId spawned_thread_join_id;
+  ThreadId spawned_thread_id;
+  ThreadJoinId spawned_thread_join_id;
   Monitor* monitor;
 };
 
@@ -452,9 +472,10 @@ void ThreadIteratorTestMain(uword parameter) {
   EXPECT(thread != NULL);
 
   MonitorLocker ml(params->monitor);
-  params->spawned_thread_join_id = thread->join_id();
-  EXPECT(params->spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
-  EXPECT(OSThread::IsThreadInList(thread->join_id()));
+  params->spawned_thread_id = thread->id();
+  params->spawned_thread_join_id = OSThread::GetCurrentThreadJoinId(thread);
+  EXPECT(params->spawned_thread_id != OSThread::kInvalidThreadId);
+  EXPECT(OSThread::IsThreadInList(thread->id()));
   ml.Notify();
 }
 
@@ -463,25 +484,25 @@ void ThreadIteratorTestMain(uword parameter) {
 // on Windows. See |OnDartThreadExit| in os_thread_win.cc for more details.
 TEST_CASE(ThreadIterator_AddFindRemove) {
   ThreadIteratorTestParams params;
-  params.spawned_thread_join_id = OSThread::kInvalidThreadJoinId;
+  params.spawned_thread_id = OSThread::kInvalidThreadId;
   params.monitor = new Monitor();
 
   {
     MonitorLocker ml(params.monitor);
-    EXPECT(params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId);
-    // Spawn thread and wait to receive the thread join id.
+    EXPECT(params.spawned_thread_id == OSThread::kInvalidThreadId);
+    // Spawn thread and wait to receive the thread id.
     OSThread::Start("ThreadIteratorTest",
                     ThreadIteratorTestMain,
                     reinterpret_cast<uword>(&params));
-    while (params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId) {
+    while (params.spawned_thread_id == OSThread::kInvalidThreadId) {
       ml.Wait();
     }
+    EXPECT(params.spawned_thread_id != OSThread::kInvalidThreadId);
     EXPECT(params.spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
-    // Join thread.
     OSThread::Join(params.spawned_thread_join_id);
   }
 
-  EXPECT(!OSThread::IsThreadInList(params.spawned_thread_join_id))
+  EXPECT(!OSThread::IsThreadInList(params.spawned_thread_id))
 
   delete params.monitor;
 }
@@ -523,6 +544,46 @@ VM_TEST_CASE(SafepointTestVM2) {
 }
 
 
+// Test recursive safepoint operation scopes with other threads trying
+// to also start a safepoint operation scope.
+VM_TEST_CASE(RecursiveSafepointTest2) {
+  Isolate* isolate = thread->isolate();
+  Monitor monitor;
+  intptr_t expected_count = 0;
+  intptr_t total_done = 0;
+  intptr_t exited = 0;
+  for (int i = 0; i < SafepointTestTask::kTaskCount; i++) {
+    Dart::thread_pool()->Run(new SafepointTestTask(
+        isolate, &monitor, &expected_count, &total_done, &exited));
+  }
+  bool all_helpers = false;
+  do {
+    SafepointOperationScope safepoint_scope(thread);
+    {
+      SafepointOperationScope safepoint_scope(thread);
+      MonitorLocker ml(&monitor);
+      if (expected_count == SafepointTestTask::kTaskCount) {
+        all_helpers = true;
+      }
+    }
+  } while (!all_helpers);
+  String& label = String::Handle(String::New("foo"));
+  UserTag& tag = UserTag::Handle(UserTag::New(label));
+  isolate->set_current_tag(tag);
+  bool all_exited = false;
+  do {
+    SafepointOperationScope safepoint_scope(thread);
+    {
+      SafepointOperationScope safepoint_scope(thread);
+      MonitorLocker ml(&monitor);
+      if (exited == SafepointTestTask::kTaskCount) {
+        all_exited = true;
+      }
+    }
+  } while (!all_exited);
+}
+
+
 class AllocAndGCTask : public ThreadPool::Task {
  public:
   AllocAndGCTask(Isolate* isolate,
@@ -534,7 +595,7 @@ class AllocAndGCTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_);
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
     {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);

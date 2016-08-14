@@ -97,7 +97,6 @@ _removed_html_interfaces = [
   'HTMLFrameSetElement',
   'HTMLMarqueeElement',
   'IDBAny',
-  'MutationEvent',
   'Notation',
   'PagePopupController',
   'RGBColor',
@@ -142,6 +141,8 @@ _removed_html_interfaces = [
   'WorkerLocation', # Workers
   'WorkerNavigator', # Workers
   'XMLHttpRequestProgressEvent',
+  # Obsolete event for NaCl.
+  'ResourceProgressEvent',
 ]
 
 for interface in _removed_html_interfaces:
@@ -242,11 +243,14 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Document.title',
   'Document.webkitCancelFullScreen',
   'Document.webkitExitFullscreen',
+   # Not prefixed.
   'Document.webkitFullscreenElement',
   'Document.webkitFullscreenEnabled',
   'Document.webkitHidden',
   'Document.webkitIsFullScreen',
   'Document.webkitVisibilityState',
+   # Not prefixed but requires custom implementation for cross-browser compatibility.
+  'Document.visibilityState',
 
   'Element.animate',
   'Element.children',
@@ -318,13 +322,10 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'MouseEvent.clientY',
   'MouseEvent.movementX',
   'MouseEvent.movementY',
-  'MouseEvent.webkitMovementX',
-  'MouseEvent.webkitMovementY',
   'MouseEvent.offsetX',
   'MouseEvent.offsetY',
   'MouseEvent.screenX',
   'MouseEvent.screenY',
-  'MutationEvent.initMutationEvent',
   'MutationObserver.observe',
   'Node.attributes',
   'Node.localName',
@@ -454,38 +455,6 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
       '_createObjectUrlFromWebKitSource',
   'URL.createObjectURL(MediaStream stream)': 'createObjectUrlFromStream',
   'URL.createObjectURL(Blob blob)': 'createObjectUrlFromBlob',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, ImageData pixels)': 'texImage2DImageData',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLImageElement image)': 'texImage2DImage',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLCanvasElement canvas)': 'texImage2DCanvas',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLVideoElement video)': 'texImage2DVideo',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'ImageData pixels)': 'texSubImage2DImageData',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLImageElement image)': 'texSubImage2DImage',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLCanvasElement canvas)': 'texSubImage2DCanvas',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLVideoElement video)': 'texSubImage2DVideo',
-  'WebGLRenderingContextBase.bufferData(unsigned long target, '
-      'ArrayBuffer data, unsigned long usage)': 'bufferByteData',
-  'WebGLRenderingContextBase.bufferData(unsigned long target, '
-      'ArrayBufferView data, unsigned long usage)': 'bufferDataTyped',
-  'WebGLRenderingContextBase.bufferSubData(unsigned long target, '
-      'long long offset, ArrayBuffer data)': 'bufferSubByteData',
-  'WebGLRenderingContextBase.bufferSubData(unsigned long target, '
-      'long long offset, ArrayBufferView data)': 'bufferSubDataTyped',
   'WebSocket.send(ArrayBuffer data)': 'sendByteBuffer',
   'WebSocket.send(ArrayBufferView data)': 'sendTypedData',
   'WebSocket.send(DOMString data)': 'sendString',
@@ -525,10 +494,6 @@ overloaded_and_renamed = monitored.Set(
   'CanvasRenderingContext2D.isPointInStroke',
   'CanvasRenderingContext2D.stroke',
   'Navigator.sendBeacon',
-  'WebGLRenderingContextBase.bufferData',
-  'WebGLRenderingContextBase.bufferSubData',
-  'WebGLRenderingContextBase.texImage2D',
-  'WebGLRenderingContextBase.texSubImage2D',
 ])
 
 for member in convert_to_future_members:
@@ -547,6 +512,7 @@ for member in convert_to_future_members:
 # subclasses.
 # TODO(jacobr): cleanup and augment this list.
 removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
+    'Attr.textContent', # Not needed as it is the same as Node.textContent.
     'AudioBufferSourceNode.looping', # TODO(vsm): Use deprecated IDL annotation
     'CSSStyleDeclaration.getPropertyCSSValue',
     'CanvasRenderingContext2D.clearShadow',
@@ -804,6 +770,8 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'MessageEvent.data',
     'MessageEvent.ports',
     'MessageEvent.webkitInitMessageEvent',
+    'MouseEvent.webkitMovementX',
+    'MouseEvent.webkitMovementY',
     'MouseEvent.x',
     'MouseEvent.y',
     'Navigator.registerServiceWorker',

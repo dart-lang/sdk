@@ -420,7 +420,7 @@ class B {}''');
   }
 
   void _assertLocate(CompilationUnit unit, int start, int end,
-      Predicate<AstNode> predicate, Type expectedClass) {
+      Predicate<Object> predicate, Type expectedClass) {
     NodeLocator locator = new NodeLocator(start, end);
     AstNode node = locator.searchWithin(unit);
     expect(node, isNotNull);
@@ -664,6 +664,11 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     FunctionExpressionInvocation toNode =
         AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"));
+    ClassElement elementT = ElementFactory.classElement2('T');
+    fromNode.typeArguments =
+        AstFactory.typeArgumentList(<TypeName>[AstFactory.typeName(elementT)]);
+    toNode.typeArguments =
+        AstFactory.typeArgumentList(<TypeName>[AstFactory.typeName4('T')]);
 
     _copyAndVerifyInvocation(fromNode, toNode);
 
@@ -791,6 +796,11 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitMethodInvocation() {
     MethodInvocation fromNode = AstFactory.methodInvocation2("m");
     MethodInvocation toNode = AstFactory.methodInvocation2("m");
+    ClassElement elementT = ElementFactory.classElement2('T');
+    fromNode.typeArguments =
+        AstFactory.typeArgumentList(<TypeName>[AstFactory.typeName(elementT)]);
+    toNode.typeArguments =
+        AstFactory.typeArgumentList(<TypeName>[AstFactory.typeName4('T')]);
     _copyAndVerifyInvocation(fromNode, toNode);
   }
 
@@ -1086,6 +1096,15 @@ class ResolutionCopierTest extends EngineTestCase {
     expect(toNode.staticType, same(staticType));
     expect(toNode.propagatedInvokeType, same(propagatedInvokeType));
     expect(toNode.staticInvokeType, same(staticInvokeType));
+    List<TypeName> fromTypeArguments = toNode.typeArguments.arguments;
+    List<TypeName> toTypeArguments = fromNode.typeArguments.arguments;
+    if (fromTypeArguments != null) {
+      for (int i = 0; i < fromTypeArguments.length; i++) {
+        TypeName toArgument = fromTypeArguments[i];
+        TypeName fromArgument = toTypeArguments[i];
+        expect(toArgument.type, same(fromArgument.type));
+      }
+    }
   }
 }
 

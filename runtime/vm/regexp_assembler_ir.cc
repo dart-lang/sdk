@@ -311,7 +311,7 @@ bool IRRegExpMacroAssembler::CanReadUnaligned() {
 
 
 RawArray* IRRegExpMacroAssembler::Execute(
-    const JSRegExp& regexp,
+    const RegExp& regexp,
     const String& input,
     const Smi& start_offset,
     Zone* zone) {
@@ -429,9 +429,9 @@ ConstantInstr* IRRegExpMacroAssembler::StringConstant(const char* value) const {
 ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   const Library& lib = Library::Handle(Z, Library::CoreLibrary());
   const Class& regexp_class = Class::Handle(Z,
-        lib.LookupClassAllowPrivate(Symbols::JSSyntaxRegExp()));
+        lib.LookupClassAllowPrivate(Symbols::_RegExp()));
   const Field& word_character_field = Field::ZoneHandle(Z,
-      regexp_class.LookupStaticField(Symbols::_wordCharacterMap()));
+      regexp_class.LookupStaticFieldAllowPrivate(Symbols::_wordCharacterMap()));
   ASSERT(!word_character_field.IsNull());
 
   if (word_character_field.IsUninitialized()) {

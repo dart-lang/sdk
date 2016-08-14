@@ -31,27 +31,37 @@ import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(OptionsWorkManagerTest);
+  runReflectiveTests(OptionsWorkManagerNewFileTest);
+  runReflectiveTests(OptionsWorkManagerOldFileTest);
 }
 
 @reflectiveTest
-class OptionsWorkManagerTest {
-  static final optionsFile = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+class OptionsWorkManagerNewFileTest extends OptionsWorkManagerTest {
+  String get optionsFile => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+}
+
+@reflectiveTest
+class OptionsWorkManagerOldFileTest extends OptionsWorkManagerTest {
+  String get optionsFile => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+}
+
+abstract class OptionsWorkManagerTest {
   InternalAnalysisContext context = new _InternalAnalysisContextMock();
   AnalysisCache cache;
-
   OptionsWorkManager manager;
 
   CaughtException caughtException = new CaughtException(null, null);
 
-  Source source1 = new TestSource('test1/$optionsFile');
-  Source source2 = new TestSource('test2/$optionsFile');
-  Source source3 = new TestSource('test3/$optionsFile');
-  Source source4 = new TestSource('test4/$optionsFile');
+  Source source1;
+
+  Source source2;
+  Source source3;
+  Source source4;
   CacheEntry entry1;
   CacheEntry entry2;
   CacheEntry entry3;
   CacheEntry entry4;
+  String get optionsFile;
 
   void expect_sourceQueue(List<Source> sources) {
     expect(manager.sourceQueue, unorderedEquals(sources));
@@ -60,6 +70,10 @@ class OptionsWorkManagerTest {
   void setUp() {
     cache = context.analysisCache;
     manager = new OptionsWorkManager(context);
+    source1 = new TestSource('test1/$optionsFile');
+    source2 = new TestSource('test2/$optionsFile');
+    source3 = new TestSource('test3/$optionsFile');
+    source4 = new TestSource('test4/$optionsFile');
     entry1 = context.getCacheEntry(source1);
     entry2 = context.getCacheEntry(source2);
     entry3 = context.getCacheEntry(source3);

@@ -9,7 +9,6 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/engine.dart'
     show
-        AnalysisErrorInfo,
         AnalysisErrorInfoImpl,
         CacheState,
         ChangeNoticeImpl,
@@ -105,6 +104,21 @@ class DartWorkManagerTest {
     manager.applyChange([], [source1], []);
     expect_librarySourceQueue([source3]);
     expect_unknownSourceQueue([source4, source1]);
+  }
+
+  /**
+   * When we perform limited invalidation, we keep [SOURCE_KIND] valid. So, we
+   * don't need to put such sources into [DartWorkManager.unknownSourceQueue],
+   * and remove from [DartWorkManager.librarySourceQueue].
+   */
+  void test_applyChange_change_hasSourceKind() {
+    entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    manager.librarySourceQueue.addAll([source1, source2]);
+    manager.unknownSourceQueue.addAll([source3]);
+    // change source1
+    manager.applyChange([], [source1, source2], []);
+    expect_librarySourceQueue([source1]);
+    expect_unknownSourceQueue([source2, source3]);
   }
 
   void test_applyChange_remove() {
@@ -315,6 +329,7 @@ class DartWorkManagerTest {
   }
 
   void test_getLibrariesContainingPart() {
+    when(context.aboutToComputeResult(anyObject, anyObject)).thenReturn(false);
     Source part1 = new TestSource('part1.dart');
     Source part2 = new TestSource('part2.dart');
     Source part3 = new TestSource('part3.dart');
@@ -324,6 +339,33 @@ class DartWorkManagerTest {
     manager.partLibrariesMap[part2] = [library2];
     manager.libraryPartsMap[library1] = [part1];
     manager.libraryPartsMap[library2] = [part1, part2];
+    // getLibrariesContainingPart
+    expect(manager.getLibrariesContainingPart(part1),
+        unorderedEquals([library1, library2]));
+    expect(
+        manager.getLibrariesContainingPart(part2), unorderedEquals([library2]));
+    expect(manager.getLibrariesContainingPart(part3), isEmpty);
+  }
+
+  void test_getLibrariesContainingPart_askResultProvider() {
+    Source part1 = new TestSource('part1.dart');
+    Source part2 = new TestSource('part2.dart');
+    Source part3 = new TestSource('part3.dart');
+    Source library1 = new TestSource('library1.dart');
+    Source library2 = new TestSource('library2.dart');
+    // configure AnalysisContext mock
+    when(context.aboutToComputeResult(anyObject, CONTAINING_LIBRARIES))
+        .thenInvoke((CacheEntry entry, ResultDescriptor result) {
+      if (entry.target == part1) {
+        entry.setValue(result, <Source>[library1, library2], []);
+        return true;
+      }
+      if (entry.target == part2) {
+        entry.setValue(result, <Source>[library2], []);
+        return true;
+      }
+      return false;
+    });
     // getLibrariesContainingPart
     expect(manager.getLibrariesContainingPart(part1),
         unorderedEquals([library1, library2]));
@@ -750,6 +792,11 @@ class DartWorkManagerTest {
     expect(manager.libraryPartsMap, isEmpty);
   }
 
+  void test_unitIncrementallyResolved() {
+    manager.unitIncrementallyResolved(source1, source2);
+    expect_librarySourceQueue([source1]);
+  }
+
   CacheEntry _getOrCreateEntry(Source source, [bool explicit = true]) {
     CacheEntry entry = cache.get(source);
     if (entry == null) {
@@ -775,9 +822,16 @@ class _InternalAnalysisContextMock extends TypedMock
 
   Map<Source, ChangeNoticeImpl> _pendingNotices = <Source, ChangeNoticeImpl>{};
 
+  @override
+  final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =
+      new ReentrantSynchronousStream<InvalidatedResult>();
+
   _InternalAnalysisContextMock() {
     privateAnalysisCachePartition = new UniversalCachePartition(this);
     analysisCache = new AnalysisCache([privateAnalysisCachePartition]);
+    analysisCache.onResultInvalidated.listen((InvalidatedResult event) {
+      onResultInvalidated.add(event);
+    });
   }
 
   @override

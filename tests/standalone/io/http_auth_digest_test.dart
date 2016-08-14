@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:convert/convert.dart";
 import "package:crypto/crypto.dart";
 import "package:expect/expect.dart";
 import 'dart:async';
@@ -31,9 +32,8 @@ class Server {
     String realm = "test";
     String username = "dart";
     String password = "password";
-    var hasher = new MD5();
-    hasher.add("${username}:${realm}:${password}".codeUnits);
-    ha1 = CryptoUtils.bytesToHex(hasher.close());
+    var hasher = md5.convert("${username}:${realm}:${password}".codeUnits);
+    ha1 = hex.encode(hasher.bytes);
 
     var nonce = "12345678";  // No need for random nonce in test.
 
@@ -96,18 +96,17 @@ class Server {
             }
             Expect.isNotNull(header.parameters["response"]);
 
-            var hasher = new MD5();
-            hasher.add("${request.method}:${uri}".codeUnits);
-            var ha2 = CryptoUtils.bytesToHex(hasher.close());
+            var hasher = md5.convert("${request.method}:${uri}".codeUnits);
+            var ha2 = hex.encode(hasher.bytes);
 
             var x;
-            hasher = new MD5();
+            Digest digest;
             if (qop == null || qop == "" || qop == "none") {
-              hasher.add("$ha1:${nonce}:$ha2".codeUnits);
+              digest = md5.convert("$ha1:${nonce}:$ha2".codeUnits);
             } else {
-              hasher.add("$ha1:${nonce}:${nc}:${cnonce}:${qop}:$ha2".codeUnits);
+              digest = md5.convert("$ha1:${nonce}:${nc}:${cnonce}:${qop}:$ha2".codeUnits);
             }
-            Expect.equals(CryptoUtils.bytesToHex(hasher.close()),
+            Expect.equals(hex.encode(digest.bytes),
                           header.parameters["response"]);
 
             successCount++;

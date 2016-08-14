@@ -7,16 +7,16 @@ const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
 const int _maxUnicode = 0x10ffff;
 
-patch class String {
-  /* patch */ factory String.fromCharCodes(Iterable<int> charCodes,
-                                           [int start = 0, int end]) {
+@patch class String {
+  @patch factory String.fromCharCodes(Iterable<int> charCodes,
+                                      [int start = 0, int end]) {
     if (charCodes is! Iterable) throw new ArgumentError.value(charCodes, "charCodes");
     if (start is! int) throw new ArgumentError.value(start, "start");
     if (end != null && end is! int) throw new ArgumentError.value(end, "end");
     return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
-  /* patch */ factory String.fromCharCode(int charCode) {
+  @patch factory String.fromCharCode(int charCode) {
     if (charCode >= 0) {
       if (charCode <= 0xff) {
         return _OneByteString._allocate(1).._setAt(0, charCode);
@@ -37,8 +37,8 @@ patch class String {
     throw new RangeError.range(charCode, 0, 0x10ffff);
   }
 
-  /* patch */ const factory String.fromEnvironment(String name,
-                                                   {String defaultValue})
+  @patch const factory String.fromEnvironment(String name,
+                                              {String defaultValue})
       native "String_fromEnvironment";
 }
 
@@ -47,7 +47,7 @@ patch class String {
  * [_StringBase] contains common methods used by concrete String
  * implementations, e.g., _OneByteString.
  */
-class _StringBase {
+abstract class _StringBase {
   // Constants used by replaceAll encoding of string slices between matches.
   // A string slice (start+length) is encoded in a single Smi to save memory
   // overhead in the common case.
@@ -230,7 +230,7 @@ class _StringBase {
 
   String operator [](int index) native "String_charAt";
 
-  int codeUnitAt(int index) native "String_codeUnitAt";
+  int codeUnitAt(int index);  // Implemented in the subclasses.
 
   int get length native "String_getLength";
 
@@ -801,6 +801,7 @@ class _StringBase {
 
   // Convert single object to string.
   static String _interpolateSingle(Object o) {
+    if (o is String) return o;
     final s = o.toString();
     if (s is! String) {
       throw new ArgumentError(s);
@@ -935,6 +936,8 @@ class _OneByteString extends _StringBase implements String {
   }
 
   int get hashCode native "String_getHashCode";
+
+  int codeUnitAt(int index) native "String_codeUnitAt";
 
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isOneByteWhitespace(codeUnit);
@@ -1239,6 +1242,8 @@ class _TwoByteString extends _StringBase implements String {
     return _StringBase._isTwoByteWhitespace(codeUnit);
   }
 
+  int codeUnitAt(int index) native "String_codeUnitAt";
+
   bool operator ==(Object other) {
     return super == other;
   }
@@ -1254,6 +1259,8 @@ class _ExternalOneByteString extends _StringBase implements String {
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isOneByteWhitespace(codeUnit);
   }
+
+  int codeUnitAt(int index) native "String_codeUnitAt";
 
   bool operator ==(Object other) {
     return super == other;
@@ -1272,6 +1279,8 @@ class _ExternalTwoByteString extends _StringBase implements String {
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isTwoByteWhitespace(codeUnit);
   }
+
+  int codeUnitAt(int index) native "String_codeUnitAt";
 
   bool operator ==(Object other) {
     return super == other;

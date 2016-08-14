@@ -61,6 +61,12 @@ class CompletionTargetTest extends AbstractContextTest {
     assertTarget(')', '()', argIndex: 0);
   }
 
+  test_ArgumentList_InstanceCreationExpression2() {
+    // ArgumentList  InstanceCreationExpression  Block
+    addTestSource('main() {new Foo(a,^)}');
+    assertTarget(')', '(a)', argIndex: 1);
+  }
+
   test_ArgumentList_InstanceCreationExpression_functionArg2() {
     // ArgumentList  InstanceCreationExpression  Block
     addTestSource('main() {new B(^)} class B{B(f()){}}');
@@ -85,10 +91,16 @@ class CompletionTargetTest extends AbstractContextTest {
     assertTarget('n', '(n)', argIndex: 0);
   }
 
+  test_ArgumentList_MethodInvocation3a() {
+    // ArgumentList  MethodInvocation  Block
+    addTestSource('main() {foo((n)^)}');
+    assertTarget(')', '((n))', argIndex: 0);
+  }
+
   test_ArgumentList_MethodInvocation4() {
     // ArgumentList  MethodInvocation  Block
     addTestSource('main() {foo(n,^)}');
-    assertTarget('', '(n, )', argIndex: 1);
+    assertTarget(')', '(n)', argIndex: 1);
   }
 
   test_ArgumentList_MethodInvocation_functionArg() {

@@ -6,7 +6,7 @@
 #define BIN_PLATFORM_H_
 
 #include "bin/builtin.h"
-
+#include "platform/globals.h"
 
 namespace dart {
 namespace bin {
@@ -20,9 +20,29 @@ class Platform {
   static int NumberOfProcessors();
 
   // Returns a string representing the operating system ("linux",
-  // "macos" or "windows"). The returned string should not be
+  // "macos", "windows", or "android"). The returned string should not be
   // deallocated by the caller.
   static const char* OperatingSystem();
+
+  // Returns the architecture name of the processor the VM is running on
+  // (ia32, x64, arm, arm64, or mips).
+  static const char* HostArchitecture() {
+#if defined(HOST_ARCH_ARM)
+    return "arm";
+#elif defined(HOST_ARCH_ARM64)
+    return "arm64";
+#elif defined(HOST_ARCH_IA32)
+    return "ia32";
+#elif defined(HOST_ARCH_MIPS)
+    return "mips";
+#elif defined(HOST_ARCH_X64)
+    return "x64";
+#else
+#error Architecture detection failed.
+#endif
+  }
+
+  static const char* LibraryPrefix();
 
   // Returns a string representing the operating system's shared library
   // extension (e.g. 'so', 'dll', ...). The returned string should not be
@@ -32,14 +52,12 @@ class Platform {
   // Extracts the local hostname.
   static bool LocalHostname(char* buffer, intptr_t buffer_length);
 
-  // Extracts the environment variables for the current process.  The
-  // array of strings returned must be deallocated using
-  // FreeEnvironment. The number of elements in the array is returned
-  // in the count argument.
+  // Extracts the environment variables for the current process.  The array of
+  // strings is Dart_ScopeAllocated. The number of elements in the array is
+  // returned in the count argument.
   static char** Environment(intptr_t* count);
-  static void FreeEnvironment(char** env, intptr_t count);
 
-  static char* ResolveExecutablePath();
+  static const char* ResolveExecutablePath();
 
   // Stores the executable name.
   static void SetExecutableName(const char* executable_name) {
@@ -51,7 +69,10 @@ class Platform {
   static const char* GetResolvedExecutableName() {
     if (resolved_executable_name_ == NULL) {
       // Try to resolve the executable path using platform specific APIs.
-      resolved_executable_name_ = Platform::ResolveExecutablePath();
+      const char* resolved_name = Platform::ResolveExecutablePath();
+      if (resolved_name != NULL) {
+        resolved_executable_name_ = strdup(resolved_name);
+      }
     }
     return resolved_executable_name_;
   }
@@ -74,7 +95,7 @@ class Platform {
   // The path to the executable.
   static const char* executable_name_;
   // The path to the resolved executable.
-  static const char* resolved_executable_name_;
+  static char* resolved_executable_name_;
 
   static int script_index_;
   static char** argv_;  // VM flags are argv_[1 ... script_index_ - 1]

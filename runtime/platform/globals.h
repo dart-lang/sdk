@@ -102,6 +102,9 @@
 // the value defined in TargetConditionals.h
 #define TARGET_OS_MACOS 1
 #if TARGET_OS_IPHONE
+// Test for this #define by saying '#if TARGET_OS_IOS' rather than the usual
+// '#if defined(TARGET_OS_IOS)'. TARGET_OS_IOS is defined to be 0 in
+// XCode >= 7.0. See Issue #24453.
 #define TARGET_OS_IOS 1
 #endif
 
@@ -110,7 +113,10 @@
 // Windows, both 32- and 64-bit, regardless of the check for _WIN32.
 #define TARGET_OS_WINDOWS 1
 
-#else
+#elif defined(__Fuchsia__)
+#define TARGET_OS_FUCHSIA
+
+#elif !defined(TARGET_OS_FUCHSIA)
 #error Automatic target os detection failed.
 #endif
 
@@ -132,6 +138,10 @@
 #endif  // defined(DEBUG)
 #endif  // defined(PRODUCT)
 
+
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
+#error DART_PRECOMPILED_RUNTIME and DART_PRECOMPILER are mutually exclusive
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
 
 namespace dart {
 
@@ -254,6 +264,15 @@ typedef simd128_value_t fpu_register_t;
 #error Automatic compiler detection failed.
 #endif
 
+// DART_NOINLINE tells compiler to never inline a particular function.
+#ifdef _MSC_VER
+#define DART_NOINLINE __declspec(noinline)
+#elif __GNUC__
+#define DART_NOINLINE __attribute__((noinline))
+#else
+#error Automatic compiler detection failed.
+#endif
+
 // DART_UNUSED inidicates to the compiler that a variable/typedef is expected
 // to be unused and disables the related warning.
 #ifdef __GNUC__
@@ -279,6 +298,7 @@ typedef simd128_value_t fpu_register_t;
 #if !defined(TARGET_ARCH_X64)
 #if !defined(TARGET_ARCH_IA32)
 #if !defined(TARGET_ARCH_ARM64)
+#if !defined(TARGET_ARCH_DBC)
 // No target architecture specified pick the one matching the host architecture.
 #if defined(HOST_ARCH_MIPS)
 #define TARGET_ARCH_MIPS 1
@@ -292,6 +312,7 @@ typedef simd128_value_t fpu_register_t;
 #define TARGET_ARCH_ARM64 1
 #else
 #error Automatic target architecture detection failed.
+#endif
 #endif
 #endif
 #endif
@@ -334,9 +355,31 @@ typedef simd128_value_t fpu_register_t;
 #define USING_SIMULATOR 1
 #endif
 
+#elif defined(TARGET_ARCH_DBC)
+#define USING_SIMULATOR 1
+
 #else
 #error Unknown architecture.
 #endif
+
+// Disable background threads by default on armv5te. The relevant
+// implementations are uniprocessors.
+#if !defined(TARGET_ARCH_ARM_5TE)
+#define ARCH_IS_MULTI_CORE 1
+#endif
+
+
+#if defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ABI_IOS) && defined(TARGET_ABI_EABI)
+#error Both TARGET_ABI_IOS and TARGET_ABI_EABI defined.
+#elif !defined(TARGET_ABI_IOS) && !defined(TARGET_ABI_EABI)
+#if defined(TARGET_OS_MAC)
+#define TARGET_ABI_IOS 1
+#else
+#define TARGET_ABI_EABI 1
+#endif
+#endif
+#endif  // TARGET_ARCH_ARM
 
 
 // Short form printf format specifiers
@@ -645,6 +688,14 @@ static inline T ReadUnaligned(const T* ptr) {
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
+#endif
+
+// For checking deterministic graph generation, we can store instruction
+// tag in the ICData and check it when recreating the flow graph in
+// optimizing compiler. Enable it for other modes (product, release) if needed
+// for debugging.
+#if defined(DEBUG)
+#define TAG_IC_DATA
 #endif
 
 }  // namespace dart

@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
@@ -66,16 +67,16 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, false, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(getterName), same(getterG));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[getterName], same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -86,17 +87,17 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, false, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject);
-    expect(mapB.get(getterName), isNull);
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject);
+    expect(mapB[getterName], isNull);
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -107,17 +108,17 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, false, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(getterName), same(getterG));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[getterName], same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -125,9 +126,9 @@ class InheritanceManagerTest {
   void test_getMapOfMembersInheritedFromClasses_implicitExtends() {
     // class A {}
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
     _assertNoErrors(classA);
   }
 
@@ -137,17 +138,17 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.supertype = classA.type;
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(methodName), same(methodM));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[methodName], same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -158,17 +159,17 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject);
-    expect(mapB.get(methodName), isNull);
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject);
+    expect(mapB[methodName], isNull);
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -179,17 +180,17 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(methodName), same(methodM));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[methodName], same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -201,17 +202,17 @@ class InheritanceManagerTest {
     ClassElementImpl classA1 = ElementFactory.classElement2("A1");
     String methodName = "m";
     MethodElement methodA1M =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA1.methods = <MethodElement>[methodA1M];
     ClassElementImpl classA2 = ElementFactory.classElement2("A2");
     MethodElement methodA2M =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA2.methods = <MethodElement>[methodA2M];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA1.type, classA2.type];
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    expect(mapB.get(methodName), same(methodA2M));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    expect(mapB[methodName], same(methodA2M));
     _assertNoErrors(classA1);
     _assertNoErrors(classA2);
     _assertNoErrors(classB);
@@ -223,16 +224,16 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, false, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(getterName), same(getterG));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[getterName], same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -243,17 +244,17 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, false, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(getterName), same(getterG));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[getterName], same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -264,63 +265,89 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, false, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(getterName), same(getterG));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[getterName], same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
+  }
+
+  void test_getMapOfMembersInheritedFromInterfaces_field_indirectWith() {
+    // class A { int f; }
+    // class B extends A {}
+    // class C extends Object with B {}
+    ClassElementImpl classA = ElementFactory.classElement2('A');
+    String fieldName = "f";
+    FieldElement fieldF = ElementFactory.fieldElement(
+        fieldName, false, false, false, _typeProvider.intType);
+    classA.fields = <FieldElement>[fieldF];
+    classA.accessors = <PropertyAccessorElement>[fieldF.getter, fieldF.setter];
+
+    ClassElementImpl classB = ElementFactory.classElement('B', classA.type);
+
+    ClassElementImpl classC = ElementFactory.classElement2('C');
+    classC.mixins = <InterfaceType>[classB.type];
+
+    Map<String, ExecutableElement> mapC =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classC);
+    expect(mapC, hasLength(_numOfMembersInObject + 2));
+    expect(mapC[fieldName], same(fieldF.getter));
+    expect(mapC['$fieldName='], same(fieldF.setter));
+    _assertNoErrors(classA);
+    _assertNoErrors(classB);
+    _assertNoErrors(classC);
   }
 
   void test_getMapOfMembersInheritedFromInterfaces_implicitExtends() {
     // class A {}
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
     _assertNoErrors(classA);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I2, I1 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI1.methods = <MethodElement>[methodM];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     PropertyAccessorElement getter =
-    ElementFactory.getterElement(methodName, false, _typeProvider.intType);
+        ElementFactory.getterElement(methodName, false, _typeProvider.intType);
     classI2.accessors = <PropertyAccessorElement>[getter];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI2.type, classI1.type];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapA.get(methodName), isNull);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapA[methodName], isNull);
     _assertErrors(classA,
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I1, I2 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElement methodM1 =
-    ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
+        ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElement methodM2 = ElementFactory
@@ -328,70 +355,70 @@ class InheritanceManagerTest {
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapA.get(methodName), isNull);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapA[methodName], isNull);
     _assertErrors(
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I1, I2 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI1.methods = <MethodElement>[methodM];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     PropertyAccessorElement getter =
-    ElementFactory.getterElement(methodName, false, _typeProvider.intType);
+        ElementFactory.getterElement(methodName, false, _typeProvider.intType);
     classI2.accessors = <PropertyAccessorElement>[getter];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapA.get(methodName), isNull);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapA[methodName], isNull);
     _assertErrors(classA,
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
     // class I1 { dynamic m(int, [int]); }
     // class I2 { dynamic m(int, int, int); }
     // class A implements I1, I2 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElementImpl methodM1 =
-    ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
+        ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter1 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.REQUIRED;
     ParameterElementImpl parameter2 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
     methodM1.parameters = <ParameterElement>[parameter1, parameter2];
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElementImpl methodM2 =
-    ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
+        ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter3 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
     parameter3.type = _typeProvider.intType;
     parameter3.parameterKind = ParameterKind.REQUIRED;
     ParameterElementImpl parameter4 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a4"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a4"));
     parameter4.type = _typeProvider.intType;
     parameter4.parameterKind = ParameterKind.REQUIRED;
     ParameterElementImpl parameter5 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a5"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a5"));
     parameter5.type = _typeProvider.intType;
     parameter5.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement>[
@@ -402,16 +429,16 @@ class InheritanceManagerTest {
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapA.get(methodName), isNull);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapA[methodName], isNull);
     _assertErrors(
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I2, I1 {}
@@ -422,14 +449,14 @@ class InheritanceManagerTest {
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElement methodM2 =
-    ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
+        ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI2.type, classI1.type];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapA.get(methodName), isNull);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapA[methodName], isNull);
     _assertErrors(
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
@@ -440,16 +467,16 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(methodName), same(methodM));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[methodName], same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -460,17 +487,17 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(methodName), same(methodM));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[methodName], same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -481,17 +508,17 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    MemberMap mapB =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(methodName), same(methodM));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[methodName], same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -503,25 +530,25 @@ class InheritanceManagerTest {
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName1 = "m1";
     MethodElement methodM1 =
-    ElementFactory.methodElement(methodName1, _typeProvider.intType);
+        ElementFactory.methodElement(methodName1, _typeProvider.intType);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     String methodName2 = "m2";
     MethodElement methodM2 =
-    ElementFactory.methodElement(methodName2, _typeProvider.intType);
+        ElementFactory.methodElement(methodName2, _typeProvider.intType);
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 2);
-    expect(mapA.get(methodName1), same(methodM1));
-    expect(mapA.get(methodName2), same(methodM2));
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 2);
+    expect(mapA[methodName1], same(methodM1));
+    expect(mapA[methodName2], same(methodM2));
     _assertNoErrors(classA);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
     // class I1 { int get g; }
     // class I2 { num get g; }
     // class A implements I1, I2 {}
@@ -536,52 +563,52 @@ class InheritanceManagerTest {
     classI2.accessors = <PropertyAccessorElement>[getter2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
     PropertyAccessorElement syntheticAccessor = ElementFactory.getterElement(
         accessorName, false, _typeProvider.dynamicType);
-    expect(mapA.get(accessorName).type, syntheticAccessor.type);
+    expect(mapA[accessorName].type, syntheticAccessor.type);
     _assertNoErrors(classA);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
     // class I1 { dynamic m(int); }
     // class I2 { dynamic m(num); }
     // class A implements I1, I2 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElementImpl methodM1 =
-    ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
+        ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter1 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.REQUIRED;
     methodM1.parameters = <ParameterElement>[parameter1];
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElementImpl methodM2 =
-    ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
+        ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter2 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter2.type = _typeProvider.numType;
     parameter2.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement>[parameter2];
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
     MethodElement syntheticMethod = ElementFactory.methodElement(
         methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
-    expect(mapA.get(methodName).type, syntheticMethod.type);
+    expect(mapA[methodName].type, syntheticMethod.type);
     _assertNoErrors(classA);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
     // class I1 { set s(int); }
     // class I2 { set s(num); }
     // class A implements I1, I2 {}
@@ -596,18 +623,18 @@ class InheritanceManagerTest {
     classI2.accessors = <PropertyAccessorElement>[setter2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
     PropertyAccessorElementImpl syntheticAccessor = ElementFactory
         .setterElement(accessorName, false, _typeProvider.dynamicType);
     syntheticAccessor.returnType = _typeProvider.dynamicType;
-    expect(mapA.get("$accessorName=").type, syntheticAccessor.type);
+    expect(mapA["$accessorName="].type, syntheticAccessor.type);
     _assertNoErrors(classA);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -621,15 +648,15 @@ class InheritanceManagerTest {
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String accessorName = "g";
     PropertyAccessorElement getter1 =
-    ElementFactory.getterElement(accessorName, false, classA.type);
+        ElementFactory.getterElement(accessorName, false, classA.type);
     classI1.accessors = <PropertyAccessorElement>[getter1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     PropertyAccessorElement getter2 =
-    ElementFactory.getterElement(accessorName, false, classB.type);
+        ElementFactory.getterElement(accessorName, false, classB.type);
     classI2.accessors = <PropertyAccessorElement>[getter2];
     ClassElementImpl classI3 = ElementFactory.classElement2("I3");
     PropertyAccessorElement getter3 =
-    ElementFactory.getterElement(accessorName, false, classC.type);
+        ElementFactory.getterElement(accessorName, false, classC.type);
     classI3.accessors = <PropertyAccessorElement>[getter3];
     ClassElementImpl classD = ElementFactory.classElement2("D");
     classD.interfaces = <InterfaceType>[
@@ -637,17 +664,17 @@ class InheritanceManagerTest {
       classI2.type,
       classI3.type
     ];
-    MemberMap mapD =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
-    expect(mapD.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapD =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classD);
+    expect(mapD.length, _numOfMembersInObject + 1);
     PropertyAccessorElement syntheticAccessor = ElementFactory.getterElement(
         accessorName, false, _typeProvider.dynamicType);
-    expect(mapD.get(accessorName).type, syntheticAccessor.type);
+    expect(mapD[accessorName].type, syntheticAccessor.type);
     _assertNoErrors(classD);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -661,27 +688,27 @@ class InheritanceManagerTest {
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElementImpl methodM1 =
-    ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
+        ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter1 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter1.type = classA.type;
     parameter1.parameterKind = ParameterKind.REQUIRED;
     methodM1.parameters = <ParameterElement>[parameter1];
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElementImpl methodM2 =
-    ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
+        ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter2 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter2.type = classB.type;
     parameter2.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement>[parameter2];
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classI3 = ElementFactory.classElement2("I3");
     MethodElementImpl methodM3 =
-    ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
+        ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter3 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter3.type = classC.type;
     parameter3.parameterKind = ParameterKind.REQUIRED;
     methodM3.parameters = <ParameterElement>[parameter3];
@@ -692,17 +719,17 @@ class InheritanceManagerTest {
       classI2.type,
       classI3.type
     ];
-    MemberMap mapD =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
-    expect(mapD.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapD =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classD);
+    expect(mapD.length, _numOfMembersInObject + 1);
     MethodElement syntheticMethod = ElementFactory.methodElement(
         methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
-    expect(mapD.get(methodName).type, syntheticMethod.type);
+    expect(mapD[methodName].type, syntheticMethod.type);
     _assertNoErrors(classD);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -716,15 +743,15 @@ class InheritanceManagerTest {
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String accessorName = "s";
     PropertyAccessorElement setter1 =
-    ElementFactory.setterElement(accessorName, false, classA.type);
+        ElementFactory.setterElement(accessorName, false, classA.type);
     classI1.accessors = <PropertyAccessorElement>[setter1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     PropertyAccessorElement setter2 =
-    ElementFactory.setterElement(accessorName, false, classB.type);
+        ElementFactory.setterElement(accessorName, false, classB.type);
     classI2.accessors = <PropertyAccessorElement>[setter2];
     ClassElementImpl classI3 = ElementFactory.classElement2("I3");
     PropertyAccessorElement setter3 =
-    ElementFactory.setterElement(accessorName, false, classC.type);
+        ElementFactory.setterElement(accessorName, false, classC.type);
     classI3.accessors = <PropertyAccessorElement>[setter3];
     ClassElementImpl classD = ElementFactory.classElement2("D");
     classD.interfaces = <InterfaceType>[
@@ -732,46 +759,46 @@ class InheritanceManagerTest {
       classI2.type,
       classI3.type
     ];
-    MemberMap mapD =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
-    expect(mapD.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapD =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classD);
+    expect(mapD.length, _numOfMembersInObject + 1);
     PropertyAccessorElementImpl syntheticAccessor = ElementFactory
         .setterElement(accessorName, false, _typeProvider.dynamicType);
     syntheticAccessor.returnType = _typeProvider.dynamicType;
-    expect(mapD.get("$accessorName=").type, syntheticAccessor.type);
+    expect(mapD["$accessorName="].type, syntheticAccessor.type);
     _assertNoErrors(classD);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
+      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class A implements I1, I2 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElement methodM1 =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElementImpl methodM2 =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter1 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM2.parameters = <ParameterElement>[parameter1];
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
-    expect(mapA.get(methodName), same(methodM2));
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
+    expect(mapA[methodName], same(methodM2));
     _assertNoErrors(classA);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
+      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class I3 { int m([int, int]); }
@@ -779,26 +806,26 @@ class InheritanceManagerTest {
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElementImpl methodM1 =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElementImpl methodM2 =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter1 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM1.parameters = <ParameterElement>[parameter1];
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classI3 = ElementFactory.classElement2("I3");
     MethodElementImpl methodM3 =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter2 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
     ParameterElementImpl parameter3 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
     parameter3.type = _typeProvider.intType;
     parameter3.parameterKind = ParameterKind.POSITIONAL;
     methodM3.parameters = <ParameterElement>[parameter2, parameter3];
@@ -809,15 +836,15 @@ class InheritanceManagerTest {
       classI2.type,
       classI3.type
     ];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
-    expect(mapA.get(methodName), same(methodM3));
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
+    expect(mapA[methodName], same(methodM3));
     _assertNoErrors(classA);
   }
 
   void
-  test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
+      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
     // class I1 { int m(); }
     // class I2 { int m(); }
     // class I3 { int m([int]); }
@@ -826,30 +853,30 @@ class InheritanceManagerTest {
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElement methodM1 =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElement methodM2 =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classI3 = ElementFactory.classElement2("I3");
     MethodElementImpl methodM3 =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter1 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM3.parameters = <ParameterElement>[parameter1];
     classI3.methods = <MethodElement>[methodM3];
     ClassElementImpl classI4 = ElementFactory.classElement2("I4");
     MethodElementImpl methodM4 =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter2 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
     ParameterElementImpl parameter3 =
-    new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
+        new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
     parameter3.type = _typeProvider.intType;
     parameter3.parameterKind = ParameterKind.POSITIONAL;
     methodM4.parameters = <ParameterElement>[parameter2, parameter3];
@@ -861,18 +888,42 @@ class InheritanceManagerTest {
       classI3.type,
       classI4.type
     ];
-    MemberMap mapA =
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
-    expect(mapA.get(methodName), same(methodM4));
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
+    expect(mapA[methodName], same(methodM4));
     _assertNoErrors(classA);
+  }
+
+  void test_getMembersInheritedFromClasses_field_indirectWith() {
+    // class A { int f; }
+    // class B extends A {}
+    // class C extends Object with B {}
+    ClassElementImpl classA = ElementFactory.classElement2('A');
+    String fieldName = "f";
+    FieldElement fieldF = ElementFactory.fieldElement(
+        fieldName, false, false, false, _typeProvider.intType);
+    classA.fields = <FieldElement>[fieldF];
+    classA.accessors = <PropertyAccessorElement>[fieldF.getter, fieldF.setter];
+
+    ClassElementImpl classB = ElementFactory.classElement('B', classA.type);
+
+    ClassElementImpl classC = ElementFactory.classElement2('C');
+    classC.mixins = <InterfaceType>[classB.type];
+
+    Map<String, ExecutableElement> mapC =
+        _inheritanceManager.getMembersInheritedFromClasses(classC);
+    expect(mapC, hasLength(_numOfMembersInObject));
+    _assertNoErrors(classA);
+    _assertNoErrors(classB);
+    _assertNoErrors(classC);
   }
 
   void test_lookupInheritance_interface_getter() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, false, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
@@ -886,7 +937,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
@@ -900,7 +951,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setterS =
-    ElementFactory.setterElement(setterName, false, _typeProvider.intType);
+        ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
@@ -914,7 +965,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     (methodM as MethodElementImpl).static = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
@@ -945,12 +996,12 @@ class InheritanceManagerTest {
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName1 = "m1";
     MethodElement methodM1 =
-    ElementFactory.methodElement(methodName1, _typeProvider.intType);
+        ElementFactory.methodElement(methodName1, _typeProvider.intType);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     String methodName2 = "m2";
     MethodElement methodM2 =
-    ElementFactory.methodElement(methodName2, _typeProvider.intType);
+        ElementFactory.methodElement(methodName2, _typeProvider.intType);
     classI2.methods = <MethodElement>[methodM2];
     classI2.interfaces = <InterfaceType>[classI1.type];
     ClassElementImpl classA = ElementFactory.classElement2("A");
@@ -968,7 +1019,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, false, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
@@ -982,7 +1033,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
@@ -996,7 +1047,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setterS =
-    ElementFactory.setterElement(setterName, false, _typeProvider.intType);
+        ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
@@ -1010,7 +1061,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     (methodM as MethodElementImpl).static = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
@@ -1030,7 +1081,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, false, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, getterName),
@@ -1060,7 +1111,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, methodName),
@@ -1073,7 +1124,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setterS =
-    ElementFactory.setterElement(setterName, false, _typeProvider.intType);
+        ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, "$setterName="),
@@ -1086,7 +1137,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     (methodM as MethodElementImpl).static = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
@@ -1099,7 +1150,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, false, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     expect(_inheritanceManager.lookupMember(classA, getterName), same(getterG));
     _assertNoErrors(classA);
@@ -1109,7 +1160,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG =
-    ElementFactory.getterElement(getterName, true, _typeProvider.intType);
+        ElementFactory.getterElement(getterName, true, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     expect(_inheritanceManager.lookupMember(classA, getterName), isNull);
     _assertNoErrors(classA);
@@ -1119,7 +1170,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     expect(_inheritanceManager.lookupMember(classA, methodName), same(methodM));
     _assertNoErrors(classA);
@@ -1129,7 +1180,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElement methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     (methodM as MethodElementImpl).static = true;
     classA.methods = <MethodElement>[methodM];
     expect(_inheritanceManager.lookupMember(classA, methodName), isNull);
@@ -1146,7 +1197,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setterS =
-    ElementFactory.setterElement(setterName, false, _typeProvider.intType);
+        ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
     expect(_inheritanceManager.lookupMember(classA, "$setterName="),
         same(setterS));
@@ -1157,7 +1208,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setterS =
-    ElementFactory.setterElement(setterName, true, _typeProvider.intType);
+        ElementFactory.setterElement(setterName, true, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
     expect(_inheritanceManager.lookupMember(classA, setterName), isNull);
     _assertNoErrors(classA);
@@ -1167,7 +1218,7 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElementImpl methodM =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     expect(
         _inheritanceManager.lookupOverrides(classA, methodName), hasLength(0));
@@ -1178,14 +1229,14 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElementImpl methodMinA =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodMinA];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElementImpl methodMinB =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classB.methods = <MethodElement>[methodMinB];
     List<ExecutableElement> overrides =
-    _inheritanceManager.lookupOverrides(classB, methodName);
+        _inheritanceManager.lookupOverrides(classB, methodName);
     expect(overrides, unorderedEquals([methodMinA]));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -1195,15 +1246,15 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElementImpl methodMinA =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodMinA];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
     MethodElementImpl methodMinB =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classB.methods = <MethodElement>[methodMinB];
     List<ExecutableElement> overrides =
-    _inheritanceManager.lookupOverrides(classB, methodName);
+        _inheritanceManager.lookupOverrides(classB, methodName);
     expect(overrides, unorderedEquals([methodMinA]));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -1213,19 +1264,19 @@ class InheritanceManagerTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElementImpl methodMinA =
-    ElementFactory.methodElement(methodName, _typeProvider.intType);
+        ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodMinA];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     MethodElementImpl methodMinB =
-    ElementFactory.methodElement(methodName, _typeProvider.doubleType);
+        ElementFactory.methodElement(methodName, _typeProvider.doubleType);
     classB.methods = <MethodElement>[methodMinB];
     ClassElementImpl classC = ElementFactory.classElement2("C");
     classC.interfaces = <InterfaceType>[classA.type, classB.type];
     MethodElementImpl methodMinC =
-    ElementFactory.methodElement(methodName, _typeProvider.numType);
+        ElementFactory.methodElement(methodName, _typeProvider.numType);
     classC.methods = <MethodElement>[methodMinC];
     List<ExecutableElement> overrides =
-    _inheritanceManager.lookupOverrides(classC, methodName);
+        _inheritanceManager.lookupOverrides(classC, methodName);
     expect(overrides, unorderedEquals([methodMinA, methodMinB]));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
@@ -1236,7 +1287,7 @@ class InheritanceManagerTest {
       [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     HashSet<AnalysisError> actualErrors =
-    _inheritanceManager.getErrors(classElt);
+        _inheritanceManager.getErrors(classElt);
     if (actualErrors != null) {
       for (AnalysisError error in actualErrors) {
         errorListener.onError(error);
@@ -1257,9 +1308,9 @@ class InheritanceManagerTest {
   InheritanceManager _createInheritanceManager() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
     FileBasedSource source =
-    new FileBasedSource(FileUtilities2.createFile("/test.dart"));
+        new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
-    new CompilationUnitElementImpl("test.dart");
+        new CompilationUnitElementImpl("test.dart");
     definingCompilationUnit.librarySource =
         definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");

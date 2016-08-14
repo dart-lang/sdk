@@ -30,7 +30,7 @@ class VerifyObjectVisitor : public ObjectVisitor {
   VerifyObjectVisitor(Isolate* isolate,
                      ObjectSet* allocated_set,
                      MarkExpectation mark_expectation)
-      : ObjectVisitor(isolate),
+      : isolate_(isolate),
         allocated_set_(allocated_set),
         mark_expectation_(mark_expectation) {
   }
@@ -38,6 +38,7 @@ class VerifyObjectVisitor : public ObjectVisitor {
   virtual void VisitObject(RawObject* obj);
 
  private:
+  Isolate* isolate_;
   ObjectSet* allocated_set_;
   MarkExpectation mark_expectation_;
 
@@ -79,6 +80,21 @@ class VerifyWeakPointersVisitor : public HandleVisitor {
 
   DISALLOW_COPY_AND_ASSIGN(VerifyWeakPointersVisitor);
 };
+
+
+#if defined(DEBUG)
+class VerifyCanonicalVisitor : public ObjectVisitor {
+ public:
+  explicit VerifyCanonicalVisitor(Thread* thread);
+  virtual void VisitObject(RawObject* obj);
+
+ private:
+  Thread* thread_;
+  Instance& instanceHandle_;
+
+  DISALLOW_COPY_AND_ASSIGN(VerifyCanonicalVisitor);
+};
+#endif  // defined(DEBUG)
 
 }  // namespace dart
 

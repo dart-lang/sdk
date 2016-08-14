@@ -4,7 +4,6 @@
 
 library analysis_server.src.status.get_handler;
 
-import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
@@ -19,12 +18,10 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
-import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_index.dart';
-import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
+import 'package:analysis_server/src/status/memory_use.dart';
 import 'package:analysis_server/src/status/validator.dart';
 import 'package:analysis_server/src/utilities/average.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -32,13 +29,16 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -258,9 +258,9 @@ class GetHandler {
   static const String ELEMENT_PATH = '/element';
 
   /**
-   * The path used to request information about elements with the given name.
+   * The path used to request an analysis of the memory use of the analyzer.
    */
-  static const String INDEX_ELEMENT_BY_NAME = '/index/element-by-name';
+  static const String MEMORY_USE_PATH = '/memoryUse';
 
   /**
    * The path used to request an overlay contents.
@@ -395,8 +395,8 @@ class GetHandler {
       _returnDiagnosticInfo(request);
     } else if (path == ELEMENT_PATH) {
       _returnElement(request);
-    } else if (path == INDEX_ELEMENT_BY_NAME) {
-      _returnIndexElementByName(request);
+    } else if (path == MEMORY_USE_PATH) {
+      _returnMemoryUsage(request);
     } else if (path == OVERLAY_PATH) {
       _returnOverlayContents(request);
     } else if (path == OVERLAYS_PATH) {
@@ -404,6 +404,20 @@ class GetHandler {
     } else {
       _returnUnknownRequest(request);
     }
+  }
+
+  /**
+   * Produce an encoded version of the given [descriptor] that can be used to
+   * find the descriptor later.
+   */
+  String _encodeSdkDescriptor(SdkDescription descriptor) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(descriptor.options.encodeCrossContextOptions());
+    for (String path in descriptor.paths) {
+      buffer.write('+');
+      buffer.write(path);
+    }
+    return buffer.toString();
   }
 
   /**
@@ -468,6 +482,14 @@ class GetHandler {
     if (unit != null) {
       return unit;
     }
+    unit = entry.getValue(RESOLVED_UNIT12);
+    if (unit != null) {
+      return unit;
+    }
+    unit = entry.getValue(RESOLVED_UNIT13);
+    if (unit != null) {
+      return unit;
+    }
     return entry.getValue(RESOLVED_UNIT);
   }
 
@@ -499,6 +521,7 @@ class GetHandler {
         results.add(LIBRARY_ELEMENT3);
         results.add(LIBRARY_ELEMENT4);
         results.add(LIBRARY_ELEMENT5);
+        results.add(LIBRARY_ELEMENT6);
         results.add(LIBRARY_ELEMENT);
         results.add(LIBRARY_ERRORS_READY);
         results.add(PARSE_ERRORS);
@@ -525,6 +548,7 @@ class GetHandler {
       results.add(INFERABLE_STATIC_VARIABLES_IN_UNIT);
       results.add(LIBRARY_UNIT_ERRORS);
       results.add(RESOLVE_TYPE_NAMES_ERRORS);
+      results.add(RESOLVE_TYPE_BOUNDS_ERRORS);
       results.add(RESOLVE_UNIT_ERRORS);
       results.add(RESOLVED_UNIT1);
       results.add(RESOLVED_UNIT2);
@@ -537,6 +561,8 @@ class GetHandler {
       results.add(RESOLVED_UNIT9);
       results.add(RESOLVED_UNIT10);
       results.add(RESOLVED_UNIT11);
+      results.add(RESOLVED_UNIT12);
+      results.add(RESOLVED_UNIT13);
       results.add(RESOLVED_UNIT);
       results.add(STRONG_MODE_ERRORS);
       results.add(USED_IMPORTED_ELEMENTS);
@@ -557,10 +583,30 @@ class GetHandler {
   }
 
   /**
+   * Return the context for the SDK whose descriptor is encoded to be the same
+   * as the given [contextFilter]. The [analysisServer] is used to access the
+   * SDKs.
+   */
+  AnalysisContext _getSdkContext(
+      AnalysisServer analysisServer, String contextFilter) {
+    DartSdkManager manager = analysisServer.sdkManager;
+    List<SdkDescription> descriptors = manager.sdkDescriptors;
+    for (SdkDescription descriptor in descriptors) {
+      if (contextFilter == _encodeSdkDescriptor(descriptor)) {
+        return manager.getSdk(descriptor, () => null)?.context;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Return `true` if the given analysis [context] has at least one entry with
    * an exception.
    */
   bool _hasException(InternalAnalysisContext context) {
+    if (context == null) {
+      return false;
+    }
     MapIterator<AnalysisTarget, CacheEntry> iterator =
         context.analysisCache.iterator();
     while (iterator.moveNext()) {
@@ -623,6 +669,7 @@ class GetHandler {
             _writeRow(buffer, [tag.elapsedMs, percentStr, tag.label],
                 classes: ["right", "right", null]);
           }
+
           tags.forEach(writeRow);
           buffer.write('</table>');
           //
@@ -637,6 +684,7 @@ class GetHandler {
             }
             counts[key] = count;
           }
+
           Set<AnalysisTarget> countedTargets = new HashSet<AnalysisTarget>();
           Map<String, int> sourceTypeCounts = new HashMap<String, int>();
           Map<String, int> typeCounts = new HashMap<String, int>();
@@ -704,6 +752,7 @@ class GetHandler {
                 }
               });
             }
+
             explicitSourceCount += explicitSources.length;
             explicitLineCount += lineCount(explicitSources, true);
             implicitSourceCount += implicitSources.length;
@@ -759,6 +808,44 @@ class GetHandler {
             "right"
           ]);
           buffer.write('</table>');
+
+          Map<ResultDescriptor, int> recomputedCounts =
+              CacheEntry.recomputedCounts;
+          List<ResultDescriptor> descriptors = recomputedCounts.keys.toList();
+          descriptors.sort(ResultDescriptor.SORT_BY_NAME);
+          buffer.write('<p><b>Results computed after being flushed</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(buffer, ['Result', 'Count'], header: true);
+          for (ResultDescriptor descriptor in descriptors) {
+            _writeRow(buffer, [descriptor.name, recomputedCounts[descriptor]],
+                classes: [null, "right"]);
+          }
+          buffer.write('</table>');
+
+          {
+            buffer.write('<p><b>Cache consistency statistics</b></p>');
+            buffer.write(
+                '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+            _writeRow(buffer, ['Name', 'Count'], header: true);
+            _writeRow(buffer, [
+              'Changed',
+              PerformanceStatistics
+                  .cacheConsistencyValidationStatistics.numOfChanged
+            ], classes: [
+              null,
+              "right"
+            ]);
+            _writeRow(buffer, [
+              'Removed',
+              PerformanceStatistics
+                  .cacheConsistencyValidationStatistics.numOfRemoved
+            ], classes: [
+              null,
+              "right"
+            ]);
+            buffer.write('</table>');
+          }
         }, (StringBuffer buffer) {
           //
           // Write task model timing information.
@@ -883,9 +970,17 @@ class GetHandler {
       return _returnFailure(
           request, 'Query parameter $CONTEXT_QUERY_PARAM required');
     }
+    InternalAnalysisContext context = null;
     Folder folder = _findFolder(analysisServer, contextFilter);
     if (folder == null) {
-      return _returnFailure(request, 'Invalid context: $contextFilter');
+      context = _getSdkContext(analysisServer, contextFilter);
+      if (context == null) {
+        return _returnFailure(request, 'Invalid context: $contextFilter');
+      }
+      return _returnFailure(request,
+          'Cannot view cache entries from an SDK context: $contextFilter');
+    } else {
+      context = analysisServer.folderMap[folder];
     }
     String sourceUri = request.uri.queryParameters[SOURCE_QUERY_PARAM];
     if (sourceUri == null) {
@@ -897,12 +992,11 @@ class GetHandler {
     Map<Folder, List<CacheEntry>> entryMap =
         new HashMap<Folder, List<CacheEntry>>();
     StringBuffer invalidKeysBuffer = new StringBuffer();
-    analysisServer.folderMap
-        .forEach((Folder folder, InternalAnalysisContext context) {
+    analysisServer.folderMap.forEach((Folder folder, AnalysisContext context) {
       Source source = context.sourceFactory.forUri(sourceUri);
       if (source != null) {
         MapIterator<AnalysisTarget, CacheEntry> iterator =
-            context.analysisCache.iterator();
+            (context as InternalAnalysisContext).analysisCache.iterator();
         while (iterator.moveNext()) {
           if (source == iterator.key.source) {
             if (!allContexts.contains(folder)) {
@@ -928,7 +1022,6 @@ class GetHandler {
     });
     allContexts.sort((Folder firstFolder, Folder secondFolder) =>
         firstFolder.path.compareTo(secondFolder.path));
-    InternalAnalysisContext context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Cache Entry',
@@ -982,12 +1075,11 @@ class GetHandler {
         }
         for (CacheEntry entry in entries) {
           Map<String, String> linkParameters = <String, String>{
-            CONTEXT_QUERY_PARAM: folder.path,
+            CONTEXT_QUERY_PARAM: contextFilter,
             SOURCE_QUERY_PARAM: sourceUri
           };
           List<ResultDescriptor> results = _getExpectedResults(entry);
-          results.sort((ResultDescriptor first, ResultDescriptor second) =>
-              first.toString().compareTo(second.toString()));
+          results.sort(ResultDescriptor.SORT_BY_NAME);
 
           buffer.write('<h3>');
           buffer.write(HTML_ESCAPE.convert(entry.target.toString()));
@@ -1200,17 +1292,21 @@ class GetHandler {
       return _returnFailure(
           request, 'Query parameter $CONTEXT_QUERY_PARAM required');
     }
+    InternalAnalysisContext context = null;
     Folder folder = _findFolder(analysisServer, contextFilter);
     if (folder == null) {
-      return _returnFailure(request, 'Invalid context: $contextFilter');
+      context = _getSdkContext(analysisServer, contextFilter);
+      if (context == null) {
+        return _returnFailure(request, 'Invalid context: $contextFilter');
+      }
+    } else {
+      context = analysisServer.folderMap[folder];
     }
-
-    InternalAnalysisContext context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Context Diagnostics',
           ['Context: $contextFilter'], (StringBuffer buffer) {
-        _writeContextDiagnostics(buffer, context);
+        _writeContextDiagnostics(buffer, context, contextFilter);
       });
     });
   }
@@ -1229,20 +1325,25 @@ class GetHandler {
       return _returnFailure(
           request, 'Query parameter $CONTEXT_QUERY_PARAM required');
     }
+    InternalAnalysisContext context = null;
     Folder folder = _findFolder(analysisServer, contextFilter);
     if (folder == null) {
-      return _returnFailure(request, 'Invalid context: $contextFilter');
+      context = _getSdkContext(analysisServer, contextFilter);
+      if (context == null) {
+        return _returnFailure(request, 'Invalid context: $contextFilter');
+      }
+    } else {
+      context = analysisServer.folderMap[folder];
     }
 
-    List<String> priorityNames;
+    List<String> priorityNames = <String>[];
     List<String> explicitNames = <String>[];
     List<String> implicitNames = <String>[];
     Map<String, String> links = new HashMap<String, String>();
     List<CaughtException> exceptions = <CaughtException>[];
-    InternalAnalysisContext context = analysisServer.folderMap[folder];
-    priorityNames = context.prioritySources
-        .map((Source source) => source.fullName)
-        .toList();
+    context.prioritySources.forEach((Source source) {
+      priorityNames.add(source.fullName);
+    });
     MapIterator<AnalysisTarget, CacheEntry> iterator =
         context.analysisCache.iterator(context: context);
     while (iterator.moveNext()) {
@@ -1258,7 +1359,7 @@ class GetHandler {
           String link = makeLink(
               CACHE_ENTRY_PATH,
               {
-                CONTEXT_QUERY_PARAM: folder.path,
+                CONTEXT_QUERY_PARAM: contextFilter,
                 SOURCE_QUERY_PARAM: target.uri.toString()
               },
               sourceName,
@@ -1301,59 +1402,82 @@ class GetHandler {
       }
     }
 
+    void writeOptions(StringBuffer buffer, AnalysisOptionsImpl options,
+        {void writeAdditionalOptions(StringBuffer buffer)}) {
+      if (options == null) {
+        buffer.write('<p>No option information available.</p>');
+        return;
+      }
+      buffer.write('<p>');
+      _writeOption(
+          buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
+      _writeOption(buffer, 'Cache size', options.cacheSize);
+      _writeOption(buffer, 'Enable async support', options.enableAsync);
+      _writeOption(
+          buffer, 'Enable generic methods', options.enableGenericMethods);
+      _writeOption(
+          buffer, 'Enable strict call checks', options.enableStrictCallChecks);
+      _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
+      _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
+      _writeOption(buffer, 'Generate errors in implicit files',
+          options.generateImplicitErrors);
+      _writeOption(
+          buffer, 'Generate errors in SDK files', options.generateSdkErrors);
+      _writeOption(buffer, 'Generate hints', options.hint);
+      _writeOption(buffer, 'Incremental resolution', options.incremental);
+      _writeOption(buffer, 'Incremental resolution with API changes',
+          options.incrementalApi);
+      _writeOption(buffer, 'Preserve comments', options.preserveComments);
+      _writeOption(buffer, 'Strong mode', options.strongMode);
+      _writeOption(buffer, 'Strong mode hints', options.strongModeHints);
+      if (writeAdditionalOptions != null) {
+        writeAdditionalOptions(buffer);
+      }
+      buffer.write('</p>');
+    }
+
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(
           buffer, 'Analysis Server - Context', ['Context: $contextFilter'],
           (StringBuffer buffer) {
         buffer.write('<h3>Configuration</h3>');
 
-        _writeTwoColumns(buffer, (StringBuffer buffer) {
-          AnalysisOptionsImpl options = context.analysisOptions;
-          buffer.write('<p><b>Options</b></p>');
-          buffer.write('<p>');
-          _writeOption(
-              buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
-          _writeOption(buffer, 'Cache size', options.cacheSize);
-          _writeOption(buffer, 'Enable async support', options.enableAsync);
-          _writeOption(
-              buffer, 'Enable generic methods', options.enableGenericMethods);
-          _writeOption(buffer, 'Enable strict call checks',
-              options.enableStrictCallChecks);
-          _writeOption(
-              buffer, 'Enable super mixins', options.enableSuperMixins);
-          _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
-          _writeOption(buffer, 'Generate errors in implicit files',
-              options.generateImplicitErrors);
-          _writeOption(buffer, 'Generate errors in SDK files',
-              options.generateSdkErrors);
-          _writeOption(buffer, 'Generate hints', options.hint);
-          _writeOption(buffer, 'Incremental resolution', options.incremental);
-          _writeOption(buffer, 'Incremental resolution with API changes',
-              options.incrementalApi);
-          _writeOption(buffer, 'Preserve comments', options.preserveComments);
-          _writeOption(buffer, 'Strong mode', options.strongMode);
-          _writeOption(buffer, 'Strong mode hints', options.strongModeHints,
-              last: true);
-          buffer.write('</p>');
-        }, (StringBuffer buffer) {
-          List<Linter> lints =
-              context.getConfigurationData(CONFIGURED_LINTS_KEY);
-          buffer.write('<p><b>Lints</b></p>');
-          if (lints.isEmpty) {
-            buffer.write('<p>none</p>');
-          } else {
-            for (Linter lint in lints) {
-              buffer.write('<p>');
-              buffer.write(lint.runtimeType);
-              buffer.write('</p>');
+        _writeColumns(buffer, <HtmlGenerator>[
+          (StringBuffer buffer) {
+            buffer.write('<p><b>Context Options</b></p>');
+            writeOptions(buffer, context.analysisOptions);
+          },
+          (StringBuffer buffer) {
+            buffer.write('<p><b>SDK Context Options</b></p>');
+            DartSdk sdk = context?.sourceFactory?.dartSdk;
+            writeOptions(buffer, sdk?.context?.analysisOptions,
+                writeAdditionalOptions: (StringBuffer buffer) {
+              if (sdk is FolderBasedDartSdk) {
+                _writeOption(buffer, 'Use summaries', sdk.useSummary);
+              }
+            });
+          },
+          (StringBuffer buffer) {
+            List<Linter> lints =
+                context.getConfigurationData(CONFIGURED_LINTS_KEY);
+            buffer.write('<p><b>Lints</b></p>');
+            if (lints.isEmpty) {
+              buffer.write('<p>none</p>');
+            } else {
+              for (Linter lint in lints) {
+                buffer.write('<p>');
+                buffer.write(lint.runtimeType);
+                buffer.write('</p>');
+              }
             }
-          }
 
-          List<ErrorProcessor> errorProcessors =
-              context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
-          int processorCount = errorProcessors?.length ?? 0;
-          buffer.write('<p><b>Error Processor count</b>: $processorCount</p>');
-        });
+            List<ErrorProcessor> errorProcessors =
+                context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+            int processorCount = errorProcessors?.length ?? 0;
+            buffer
+                .write('<p><b>Error Processor count</b>: $processorCount</p>');
+          }
+        ]);
 
         SourceFactory sourceFactory = context.sourceFactory;
         if (sourceFactory is SourceFactoryImpl) {
@@ -1361,6 +1485,25 @@ class GetHandler {
           for (UriResolver resolver in sourceFactory.resolvers) {
             buffer.write('<p>');
             buffer.write(resolver.runtimeType);
+            if (resolver is DartUriResolver) {
+              DartSdk sdk = resolver.dartSdk;
+              buffer.write(' (sdk = ');
+              buffer.write(sdk.runtimeType);
+              if (sdk is FolderBasedDartSdk) {
+                buffer.write(' (path = ');
+                buffer.write(sdk.directory.path);
+                buffer.write(')');
+              } else if (sdk is EmbedderSdk) {
+                buffer.write(' (map = ');
+                _writeMapOfStringToString(buffer, sdk.urlMappings);
+                buffer.write(')');
+              }
+              buffer.write(')');
+            } else if (resolver is SdkExtUriResolver) {
+              buffer.write(' (map = ');
+              _writeMapOfStringToString(buffer, resolver.urlMappings);
+              buffer.write(')');
+            }
             buffer.write('</p>');
           }
         }
@@ -1420,12 +1563,16 @@ class GetHandler {
       return _returnFailure(
           request, 'Query parameter $CONTEXT_QUERY_PARAM required');
     }
+    InternalAnalysisContext context = null;
     Folder folder = _findFolder(analysisServer, contextFilter);
     if (folder == null) {
-      return _returnFailure(request, 'Invalid context: $contextFilter');
+      context = _getSdkContext(analysisServer, contextFilter);
+      if (context == null) {
+        return _returnFailure(request, 'Invalid context: $contextFilter');
+      }
+    } else {
+      context = analysisServer.folderMap[folder];
     }
-
-    InternalAnalysisContext context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Context Validation Diagnostics',
@@ -1506,49 +1653,83 @@ class GetHandler {
     });
   }
 
-  /**
-   * Return a response containing information about elements with the given
-   * name.
-   */
-  Future _returnIndexElementByName(HttpRequest request) async {
-    AnalysisServer analysisServer = _server.analysisServer;
-    if (analysisServer == null) {
-      return _returnFailure(request, 'Analysis server not running');
-    }
-    Index index = analysisServer.index;
-    if (index == null) {
-      return _returnFailure(request, 'Indexing is disabled');
-    }
-    String name = request.uri.queryParameters[INDEX_ELEMENT_NAME];
-    if (name == null) {
-      return _returnFailure(
-          request, 'Query parameter $INDEX_ELEMENT_NAME required');
-    }
-    if (index is LocalIndex) {
-      Map<List<String>, List<InspectLocation>> relations =
-          await index.findElementsByName(name);
-      _writeResponse(request, (StringBuffer buffer) {
-        _writePage(buffer, 'Analysis Server - Index Elements', ['Name: $name'],
-            (StringBuffer buffer) {
-          buffer.write('<table border="1">');
-          _writeRow(buffer, ['Element', 'Relationship', 'Location'],
-              header: true);
-          relations.forEach(
-              (List<String> elementPath, List<InspectLocation> relations) {
-            String elementLocation = elementPath.join(' ');
-            relations.forEach((InspectLocation location) {
-              var relString = location.relationship.identifier;
-              var locString = '${location.path} offset=${location.offset} '
-                  'length=${location.length} flags=${location.flags}';
-              _writeRow(buffer, [elementLocation, relString, locString]);
-            });
+  void _returnMemoryUsage(HttpRequest request) {
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Server - Memory Use', [],
+          (StringBuffer buffer) {
+        AnalysisServer server = _server.analysisServer;
+        MemoryUseData data = new MemoryUseData();
+        data.processAnalysisServer(server);
+        Map<Type, Set> instances = data.instances;
+        List<Type> instanceTypes = instances.keys.toList();
+        instanceTypes.sort((Type left, Type right) =>
+            left.toString().compareTo(right.toString()));
+        Map<Type, Set> ownerMap = data.ownerMap;
+        List<Type> ownerTypes = ownerMap.keys.toList();
+        ownerTypes.sort((Type left, Type right) =>
+            left.toString().compareTo(right.toString()));
+
+        _writeTwoColumns(buffer, (StringBuffer buffer) {
+          buffer.write('<h3>Instance Counts (reachable from contexts)</h3>');
+          buffer.write('<table>');
+          _writeRow(buffer, ['Count', 'Class name'], header: true);
+          instanceTypes.forEach((Type type) {
+            _writeRow(buffer, [instances[type].length, type],
+                classes: ['right', null]);
           });
           buffer.write('</table>');
+
+          buffer.write(
+              '<h3>Ownership (which classes of objects hold on to others)</h3>');
+          buffer.write('<table>');
+          _writeRow(buffer, ['Referenced Type', 'Referencing Types'],
+              header: true);
+          ownerTypes.forEach((Type type) {
+            List<String> referencingTypes =
+                ownerMap[type].map((Type type) => type.toString()).toList();
+            referencingTypes.sort();
+            _writeRow(buffer, [type, referencingTypes.join('<br>')]);
+          });
+          buffer.write('</table>');
+
+          buffer.write('<h3>Other Data</h3>');
+          buffer.write('<p>');
+          buffer.write(data.uniqueTargetedResults.length);
+          buffer.write(' non-equal TargetedResults</p>');
+          buffer.write('<p>');
+          buffer.write(data.uniqueLSUs.length);
+          buffer.write(' non-equal LibrarySpecificUnits</p>');
+          int count = data.mismatchedTargets.length;
+          buffer.write('<p>');
+          buffer.write(count);
+          buffer.write(' mismatched targets</p>');
+          if (count < 100) {
+            for (AnalysisTarget target in data.mismatchedTargets) {
+              buffer.write(target);
+              buffer.write('<br>');
+            }
+          }
+        }, (StringBuffer buffer) {
+          void writeCountMap(String title, Map<Type, int> counts) {
+            List<Type> classNames = counts.keys.toList();
+            classNames.sort((Type left, Type right) =>
+                left.toString().compareTo(right.toString()));
+
+            buffer.write('<h3>$title</h3>');
+            buffer.write('<table>');
+            _writeRow(buffer, ['Count', 'Class name'], header: true);
+            classNames.forEach((Type type) {
+              _writeRow(buffer, [counts[type], type], classes: ['right', null]);
+            });
+            buffer.write('</table>');
+          }
+
+          writeCountMap('Directly Held AST Nodes', data.directNodeCounts);
+          writeCountMap('Indirectly Held AST Nodes', data.indirectNodeCounts);
+          writeCountMap('Directly Held Elements', data.elementCounts);
         });
       });
-    } else {
-      return _returnFailure(request, 'LocalIndex expected, but $index found.');
-    }
+    });
   }
 
   void _returnOverlayContents(HttpRequest request) {
@@ -1704,7 +1885,40 @@ class GetHandler {
           buffer.write(' <small>[no .packages file]</small>');
         }
       });
-      // TODO(brianwilkerson) Add items for the SDK contexts (currently only one).
+      buffer.write('</p>');
+      buffer.write('<p><b>SDK Contexts</b></p>');
+      buffer.write('<p>');
+      first = true;
+      DartSdkManager manager = analysisServer.sdkManager;
+      List<SdkDescription> descriptors = manager.sdkDescriptors;
+      if (descriptors.isEmpty) {
+        buffer.write('none');
+      } else {
+        Map<String, SdkDescription> sdkMap = <String, SdkDescription>{};
+        for (SdkDescription descriptor in descriptors) {
+          sdkMap[descriptor.toString()] = descriptor;
+        }
+        List<String> descriptorNames = sdkMap.keys.toList();
+        descriptorNames.sort();
+        for (String name in descriptorNames) {
+          if (first) {
+            first = false;
+          } else {
+            buffer.write('<br>');
+          }
+          SdkDescription descriptor = sdkMap[name];
+          String contextId = _encodeSdkDescriptor(descriptor);
+          buffer.write(makeLink(
+              CONTEXT_PATH,
+              {CONTEXT_QUERY_PARAM: contextId},
+              name,
+              _hasException(manager.getSdk(descriptor, () => null)?.context)));
+          buffer.write(' <small><b>[');
+          buffer.write(makeLink(CONTEXT_DIAGNOSTICS_PATH,
+              {CONTEXT_QUERY_PARAM: contextId}, 'diagnostics'));
+          buffer.write(']</b></small>');
+        }
+      }
       buffer.write('</p>');
 
       int freq = AnalysisServer.performOperationDelayFrequency;
@@ -1719,6 +1933,23 @@ class GetHandler {
       _writeSubscriptionMap(
           buffer, AnalysisService.VALUES, analysisServer.analysisServices);
     });
+  }
+
+  /**
+   * Write multiple columns of information to the given [buffer], where the list
+   * of [columns] functions are used to generate the content of those columns.
+   */
+  void _writeColumns(StringBuffer buffer, List<HtmlGenerator> columns) {
+    buffer
+        .write('<table class="column"><tr class="column"><td class="column">');
+    int count = columns.length;
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        buffer.write('</td><td class="column">');
+      }
+      columns[i](buffer);
+    }
+    buffer.write('</td></tr></table>');
   }
 
   /**
@@ -1827,14 +2058,14 @@ class GetHandler {
    * Write diagnostic information about the given [context] to the given
    * [buffer].
    */
-  void _writeContextDiagnostics(
-      StringBuffer buffer, InternalAnalysisContext context) {
+  void _writeContextDiagnostics(StringBuffer buffer,
+      InternalAnalysisContext context, String contextFilter) {
     AnalysisDriver driver = (context as AnalysisContextImpl).driver;
     List<WorkItem> workItems = driver.currentWorkOrder?.workItems;
 
     buffer.write('<p>');
     buffer.write(makeLink(CONTEXT_VALIDATION_DIAGNOSTICS_PATH,
-        {CONTEXT_QUERY_PARAM: context.name}, 'Run validation'));
+        {CONTEXT_QUERY_PARAM: contextFilter}, 'Run validation'));
     buffer.write('</p>');
 
     buffer.write('<h3>Most Recently Perfomed Tasks</h3>');
@@ -1910,7 +2141,7 @@ class GetHandler {
     buffer.write(_diagnosticCallAverage.value);
     buffer.write(' (ms)</p>&nbsp;');
 
-    var json = response.toJson()[Response.RESULT];
+    Map json = response.toJson()[Response.RESULT];
     List contexts = json['contexts'];
     contexts.sort((first, second) => first['name'].compareTo(second['name']));
 
@@ -2076,6 +2307,28 @@ class GetHandler {
   }
 
   /**
+   * Write to the given [buffer] a representation of the given [map] of strings
+   * to strings.
+   */
+  void _writeMapOfStringToString(StringBuffer buffer, Map<String, String> map) {
+    List<String> keys = map.keys.toList();
+    keys.sort();
+    int length = keys.length;
+    buffer.write('{');
+    for (int i = 0; i < length; i++) {
+      buffer.write('<br>');
+      String key = keys[i];
+      if (i > 0) {
+        buffer.write(', ');
+      }
+      buffer.write(key);
+      buffer.write(' = ');
+      buffer.write(map[key]);
+    }
+    buffer.write('<br>}');
+  }
+
+  /**
    * Write a representation of an analysis option with the given [name] and
    * [value] to the given [buffer]. The option should be separated from other
    * options unless the [last] flag is true, indicating that this is the last
@@ -2125,6 +2378,8 @@ class GetHandler {
         'table.column {border: 0px solid black; width: 100%; table-layout: fixed;}');
     buffer.write('td.column {vertical-align: top; width: 50%;}');
     buffer.write('td.right {text-align: right;}');
+    buffer.write('th {text-align: left; vertical-align:top;}');
+    buffer.write('tr {vertical-align:top;}');
     buffer.write('</style>');
     buffer.write('</head>');
 
@@ -2167,6 +2422,7 @@ class GetHandler {
       buffer.write(plugin.runtimeType);
       buffer.write(')<br>');
     }
+
     buffer.write('<h3>Plugin Status</h3><p>');
     writePlugin(AnalysisEngine.instance.enginePlugin);
     writePlugin(_server.serverPlugin);
@@ -2257,7 +2513,7 @@ class GetHandler {
     _writeTwoColumns(buffer, (StringBuffer buffer) {
       if (analysisServer == null) {
         buffer.write('Status: <span style="color:red">Not running</span>');
-        return false;
+        return;
       }
       buffer.write('<p>');
       buffer.write('Status: Running<br>');
@@ -2283,10 +2539,13 @@ class GetHandler {
       buffer.write('<p>');
       buffer.write(makeLink(DIAGNOSTIC_PATH, {}, 'General diagnostics'));
       buffer.write('</p>');
+      buffer.write('<p>');
+      buffer.write(makeLink(MEMORY_USE_PATH, {}, 'Memory usage'));
+      buffer.write(' <small>(long running)</small></p>');
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
     });
-    return true;
+    return analysisServer != null;
   }
 
   /**

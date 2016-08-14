@@ -79,8 +79,8 @@ abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
    *
    * Effectively a shorthand for:
    *
-   *     new LinkedHashMap(equals: identical,
-   *                       hashCode: identityHashCodeOf)
+   *     new LinkedHashMap<K, V>(equals: identical,
+   *                             hashCode: identityHashCode)
    */
   external factory LinkedHashMap.identity();
 
@@ -89,7 +89,7 @@ abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
    */
   factory LinkedHashMap.from(Map other) {
     LinkedHashMap<K, V> result = new LinkedHashMap<K, V>();
-    other.forEach((k, v) { result[k] = v; });
+    other.forEach((k, v) { result[k as Object/*=K*/] = v as Object/*=V*/; });
     return result;
   }
 

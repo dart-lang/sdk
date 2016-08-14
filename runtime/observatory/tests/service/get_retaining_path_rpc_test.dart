@@ -9,25 +9,27 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 class _TestClass {
-  _TestClass(this.x, this.y);
+  _TestClass();
   var x;
   var y;
 }
 
-var target1;
-var target2;
-var target3;
-var globalObject;
-var globalList;
+var target1 = new _TestClass();
+var target2 = new _TestClass();
+var target3 = new _TestClass();
+var target4 = new _TestClass();
+var target5 = new _TestClass();
+var globalObject = new _TestClass();
+var globalList = new List(100);
+var globalMap1 = new Map();
+var globalMap2 = new Map();
 
 void warmup() {
-  target1 = new _TestClass(null, null);
-  target2 = new _TestClass(null, null);
-  globalObject = new _TestClass(target1, target2);
-
-  target3 = new _TestClass(null, null);
-  globalList = new List(100);
+  globalObject.x = target1;
+  globalObject.y = target2;
   globalList[12] = target3;
+  globalMap1['key'] = target4;
+  globalMap2[target5] = 'value';
 }
 
 eval(Isolate isolate, String expression) async {
@@ -44,9 +46,10 @@ var tests = [
     var obj = await eval(isolate, 'globalObject');
     var params = {
       'targetId': obj['id'],
-      'limit': 4,
+      'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    expect(result['elements'].length, equals(2));
     expect(result['elements'][1]['value']['name'], equals('globalObject'));
   },
 
@@ -74,10 +77,11 @@ var tests = [
         isolate, '() { var tmp = target1; target1 = null; return tmp;} ()');
     var params = {
       'targetId': target1['id'],
-      'limit': 4,
+      'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
+    expect(result['elements'].length, equals(3));
     expect(result['elements'][1]['parentField']['name'], equals('x'));
     expect(result['elements'][2]['value']['name'], equals('globalObject'));
   },
@@ -87,10 +91,11 @@ var tests = [
         isolate, '() { var tmp = target2; target2 = null; return tmp;} ()');
     var params = {
       'targetId': target2['id'],
-      'limit': 4,
+      'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
+    expect(result['elements'].length, equals(3));
     expect(result['elements'][1]['parentField']['name'], equals('y'));
     expect(result['elements'][2]['value']['name'], equals('globalObject'));
   },
@@ -100,13 +105,44 @@ var tests = [
         isolate, '() { var tmp = target3; target3 = null; return tmp;} ()');
     var params = {
       'targetId': target3['id'],
-      'limit': 4,
+      'limit': 100,
     };
     var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
+    expect(result['elements'].length, equals(3));
     expect(result['elements'][1]['parentListIndex'], equals(12));
     expect(result['elements'][2]['value']['name'], equals('globalList'));
   },
+
+  (Isolate isolate) async {
+    var target4 = await eval(
+        isolate, '() { var tmp = target4; target4 = null; return tmp;} ()');
+    var params = {
+      'targetId': target4['id'],
+      'limit': 100,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    expect(result['type'], equals('RetainingPath'));
+    expect(result['elements'].length, equals(3));
+    expect(result['elements'][1]['parentMapKey']['valueAsString'],
+        equals('key'));
+    expect(result['elements'][2]['value']['name'], equals('globalMap1'));
+  },
+
+  (Isolate isolate) async {
+    var target5 = await eval(
+        isolate, '() { var tmp = target5; target5 = null; return tmp;} ()');
+    var params = {
+      'targetId': target5['id'],
+      'limit': 100,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    expect(result['type'], equals('RetainingPath'));
+    expect(result['elements'].length, equals(3));
+    expect(result['elements'][1]['parentMapKey']['class']['name'],
+      equals('_TestClass'));
+    expect(result['elements'][2]['value']['name'], equals('globalMap2'));
+  }
 ];
 
 main(args) async => runIsolateTests(args, tests, testeeBefore:warmup);

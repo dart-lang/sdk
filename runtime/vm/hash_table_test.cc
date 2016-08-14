@@ -20,6 +20,9 @@ namespace dart {
 // easy to engineer collisions.
 class TestTraits {
  public:
+  static const char* Name() { return "TestTraits"; }
+  static bool ReportStats() { return false; }
+
   static bool IsMatch(const char* key, const Object& obj) {
     return String::Cast(obj).Equals(key);
   }
@@ -60,7 +63,7 @@ void Validate(const Table& table) {
 
 TEST_CASE(HashTable) {
   typedef HashTable<TestTraits, 2, 1> Table;
-  Table table(HashTables::New<Table>(5));
+  Table table(Thread::Current()->zone(), HashTables::New<Table>(5));
   // Ensure that we did get at least 5 entries.
   EXPECT_LE(5, table.NumEntries());
   EXPECT_EQ(0, table.NumOccupied());
@@ -114,34 +117,6 @@ TEST_CASE(HashTable) {
     k = String::New("f");
     table.InsertKey(entry, k);
     EXPECT_EQ(5, table.NumOccupied());
-  }
-  table.Release();
-}
-
-
-TEST_CASE(EnumIndexHashMap) {
-  typedef EnumIndexHashMap<TestTraits> Table;
-  Table table(HashTables::New<Table>(5));
-  table.UpdateOrInsert(String::Handle(String::New("a")),
-                       String::Handle(String::New("A")));
-  EXPECT(table.ContainsKey("a"));
-  table.UpdateValue("a", String::Handle(String::New("AAA")));
-  String& a_value = String::Handle();
-  a_value ^= table.GetOrNull("a");
-  EXPECT(a_value.Equals("AAA"));
-  Object& null_value = Object::Handle(table.GetOrNull("0"));
-  EXPECT(null_value.IsNull());
-
-  // Test on-demand allocation of a new key object using NewKey in traits.
-  String& b_value = String::Handle();
-  b_value ^=
-      table.InsertNewOrGetValue("b", String::Handle(String::New("BBB")));
-  EXPECT(b_value.Equals("BBB"));
-  {
-    // When the key is already present, there should be no allocation.
-    NoSafepointScope no_safepoint;
-    b_value ^= table.InsertNewOrGetValue("b", a_value);
-    EXPECT(b_value.Equals("BBB"));
   }
   table.Release();
 }
@@ -287,7 +262,6 @@ TEST_CASE(Sets) {
        initial_capacity < 32;
        ++initial_capacity) {
     TestSet<UnorderedHashSet<TestTraits> >(initial_capacity, false);
-    TestSet<EnumIndexHashSet<TestTraits> >(initial_capacity, true);
   }
 }
 
@@ -297,7 +271,6 @@ TEST_CASE(Maps) {
        initial_capacity < 32;
        ++initial_capacity) {
     TestMap<UnorderedHashMap<TestTraits> >(initial_capacity, false);
-    TestMap<EnumIndexHashMap<TestTraits> >(initial_capacity, true);
   }
 }
 

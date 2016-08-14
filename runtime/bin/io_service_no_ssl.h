@@ -5,9 +5,12 @@
 #ifndef BIN_IO_SERVICE_NO_SSL_H_
 #define BIN_IO_SERVICE_NO_SSL_H_
 
+#if defined(DART_IO_DISABLED) || !defined(DART_IO_SECURE_SOCKET_DISABLED)
+#error "io_service_no_ssl.h can only be included on builds with IO enabled"
+#endif
+
 #include "bin/builtin.h"
 #include "bin/utils.h"
-
 
 namespace dart {
 namespace bin {
@@ -66,6 +69,10 @@ IO_SERVICE_REQUEST_LIST(DECLARE_REQUEST)
   };
 
   static Dart_Port GetServicePort();
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(IOService);
 };
 
 }  // namespace bin

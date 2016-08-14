@@ -12,7 +12,6 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -29,12 +28,15 @@ namespace bin {
   V(Directory_CreateTemp, 1)                                                   \
   V(Directory_Delete, 2)                                                       \
   V(Directory_Rename, 2)                                                       \
-  V(Directory_List, 3)                                                         \
+  V(Directory_FillWithDirectoryListing, 4)                                     \
+  V(Directory_GetAsyncDirectoryListerPointer, 1)                               \
+  V(Directory_SetAsyncDirectoryListerPointer, 2)                               \
   V(EventHandler_SendData, 3)                                                  \
   V(EventHandler_TimerMillisecondClock, 0)                                     \
+  V(File_GetPointer, 1)                                                        \
+  V(File_SetPointer, 2)                                                        \
   V(File_Open, 2)                                                              \
   V(File_Exists, 1)                                                            \
-  V(File_GetFD, 1)                                                             \
   V(File_Close, 1)                                                             \
   V(File_ReadByte, 1)                                                          \
   V(File_WriteByte, 2)                                                         \
@@ -76,6 +78,7 @@ namespace bin {
   V(Filter_Processed, 3)                                                       \
   V(InternetAddress_Parse, 1)                                                  \
   V(IOService_NewServicePort, 0)                                               \
+  V(NetworkInterface_ListSupported, 0)                                         \
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_PathSeparator, 0)                                                 \
@@ -107,6 +110,7 @@ namespace bin {
   V(SecureSocket_Renegotiate, 4)                                               \
   V(SecurityContext_Allocate, 1)                                               \
   V(SecurityContext_UsePrivateKeyBytes, 3)                                     \
+  V(SecurityContext_AlpnSupported, 0)                                          \
   V(SecurityContext_SetAlpnProtocols, 3)                                       \
   V(SecurityContext_SetClientAuthoritiesBytes, 3)                              \
   V(SecurityContext_SetTrustedCertificatesBytes, 3)                            \
@@ -117,6 +121,7 @@ namespace bin {
   V(Socket_CreateConnect, 3)                                                   \
   V(Socket_CreateBindConnect, 4)                                               \
   V(Socket_CreateBindDatagram, 4)                                              \
+  V(Socket_IsBindError, 2)                                                     \
   V(Socket_Available, 1)                                                       \
   V(Socket_Read, 2)                                                            \
   V(Socket_RecvFrom, 1)                                                        \
@@ -169,7 +174,7 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
   int num_entries = sizeof(IOEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(IOEntries[i]);
-    if (!strcmp(function_name, entry->name_) &&
+    if ((strcmp(function_name, entry->name_) == 0) &&
         (entry->argument_count_ == argument_count)) {
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }

@@ -10,7 +10,6 @@ import 'dart:async';
 
 doThrow() {
   throw "TheException"; // Line 13.
-  return "end of doThrow";
 }
 
 doCaught() {

@@ -18,15 +18,11 @@ sample_extension: Crash # Unable to compile UnsupportedError.message.
 [ $compiler == dart2analyzer ]
 build_dart: Skip
 
-[ $compiler == dart2dart ]
-# Skip until we stabilize language tests.
-*: Skip
-
 [ $arch == arm ]
 sample_extension/test/sample_extension_test: Skip # Issue 14705
 
 [ $arch == simarm64 ]
 *: Skip
 
-[ $noopt || $runtime == dart_precompiled || $runtime == dart_product ]
-sample_extension: RuntimeError # Platform.executable
+[ $noopt || $runtime == dart_precompiled || $runtime == dart_app ]
+sample_extension: Skip # Platform.executable

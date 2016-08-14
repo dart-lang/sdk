@@ -19,6 +19,7 @@ class CodeEmitterTask extends CompilerTask {
   NativeEmitter nativeEmitter;
   MetadataCollector metadataCollector;
   Emitter emitter;
+  final Compiler compiler;
 
   /// Records if a type variable is read dynamically for type tests.
   final Set<TypeVariableElement> readTypeVariables =
@@ -34,10 +35,11 @@ class CodeEmitterTask extends CompilerTask {
   Set<ClassElement> neededClasses;
 
   CodeEmitterTask(Compiler compiler, Namer namer, bool generateSourceMap,
-                  bool useStartupEmitter)
-      : super(compiler),
+      bool useStartupEmitter)
+      : compiler = compiler,
         this.namer = namer,
-        this.typeTestRegistry = new TypeTestRegistry(compiler) {
+        this.typeTestRegistry = new TypeTestRegistry(compiler),
+        super(compiler.measurer) {
     nativeEmitter = new NativeEmitter(this);
     if (USE_LAZY_EMITTER) {
       emitter = new lazy_js_emitter.Emitter(compiler, namer, nativeEmitter);
@@ -98,7 +100,7 @@ class CodeEmitterTask extends CompilerTask {
 
   /// Returns the JS prototype of the given class [e].
   jsAst.Expression prototypeAccess(ClassElement e,
-                                   {bool hasBeenInstantiated: false}) {
+      {bool hasBeenInstantiated: false}) {
     return emitter.prototypeAccess(e, hasBeenInstantiated);
   }
 
@@ -141,8 +143,8 @@ class CodeEmitterTask extends CompilerTask {
       emitter.invalidateCaches();
 
       Set<ClassElement> rtiNeededClasses = _finalizeRti();
-      ProgramBuilder programBuilder = new ProgramBuilder(
-          compiler, namer, this, emitter, rtiNeededClasses);
+      ProgramBuilder programBuilder =
+          new ProgramBuilder(compiler, namer, this, emitter, rtiNeededClasses);
       int size = emitter.emitProgram(programBuilder);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;

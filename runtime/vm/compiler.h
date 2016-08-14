@@ -38,7 +38,7 @@ class CompilationPipeline : public ZoneAllocated {
       ParsedFunction* parsed_function,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id) = 0;
-  virtual void FinalizeCompilation() = 0;
+  virtual void FinalizeCompilation(FlowGraph* flow_graph) = 0;
   virtual ~CompilationPipeline() { }
 };
 
@@ -53,7 +53,7 @@ class DartCompilationPipeline : public CompilationPipeline {
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id);
 
-  virtual void FinalizeCompilation();
+  virtual void FinalizeCompilation(FlowGraph* flow_graph);
 };
 
 
@@ -69,7 +69,7 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id);
 
-  virtual void FinalizeCompilation();
+  virtual void FinalizeCompilation(FlowGraph* flow_graph);
 
  private:
   IndirectGotoInstr* backtrack_goto_;
@@ -81,6 +81,8 @@ class Compiler : public AllStatic {
   static const intptr_t kNoOSRDeoptId = Thread::kNoDeoptId;
 
   static bool IsBackgroundCompilation();
+  // The result for a function may change if debugging gets turned on/off.
+  static bool CanOptimizeFunction(Thread* thread, const Function& function);
 
   // Extracts top level entities from the script and populates
   // the class dictionary of the library.
@@ -146,7 +148,7 @@ class Compiler : public AllStatic {
   // because the mutator thread changed the state (e.g., deoptimization,
   // deferred loading). The background compilation may retry to compile
   // the same function later.
-  static void AbortBackgroundCompilation(intptr_t deopt_id);
+  static void AbortBackgroundCompilation(intptr_t deopt_id, const char* msg);
 };
 
 
@@ -156,9 +158,19 @@ class Compiler : public AllStatic {
 // No OSR compilation in the background compiler.
 class BackgroundCompiler : public ThreadPool::Task {
  public:
+  virtual ~BackgroundCompiler();
+
   static void EnsureInit(Thread* thread);
 
-  static void Stop(BackgroundCompiler* task);
+  // Stops background compiler of the given isolate.
+  // TODO(turnidge): Give Stop and Disable more distinct names.
+  static void Stop(Isolate* isolate);
+
+  static void Disable();
+
+  static void Enable();
+
+  static bool IsDisabled();
 
   // Call to optimize a function in the background, enters the function in the
   // compilation queue.
@@ -167,6 +179,7 @@ class BackgroundCompiler : public ThreadPool::Task {
   void VisitPointers(ObjectPointerVisitor* visitor);
 
   BackgroundCompilationQueue* function_queue() const { return function_queue_; }
+  bool is_running() const { return running_; }
 
  private:
   explicit BackgroundCompiler(Isolate* isolate);

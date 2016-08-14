@@ -19,7 +19,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     if (view == null) {
       view = window;
     }
-    final e = document._createEvent("UIEvent");
+    UIEvent e = document._createEvent("UIEvent");
     e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }

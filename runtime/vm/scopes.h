@@ -182,7 +182,6 @@ class SourceLabel : public ZoneAllocated {
   const String& name() const { return name_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
-    ASSERT(owner_ == NULL);
     owner_ = owner;
   }
 
@@ -191,6 +190,7 @@ class SourceLabel : public ZoneAllocated {
   // Returns the function level of the scope in which the label is defined.
   int FunctionLevel() const;
 
+  bool IsUnresolved() { return kind_ == kForward; }
   void ResolveForwardReference() { kind_ = kCase; }
 
  private:
@@ -254,6 +254,9 @@ class LocalScope : public ZoneAllocated {
   // Add a label to the scope. Returns false if a label with the same name
   // is already present.
   bool AddLabel(SourceLabel* label);
+
+  // Move an unresolved label of a switch case label to an outer switch.
+  void MoveLabel(SourceLabel* label);
 
   // Lookup a variable in this scope only.
   LocalVariable* LocalLookupVariable(const String& name) const;

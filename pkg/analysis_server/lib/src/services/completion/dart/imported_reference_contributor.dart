@@ -10,11 +10,11 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
+import '../../../protocol_server.dart' show CompletionSuggestion;
 
 List<String> hiddenNamesIn(ImportElement importElem) {
   for (NamespaceCombinator combinator in importElem.combinators) {
@@ -51,6 +51,17 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     List<ImportElement> imports = await request.resolveImports();
     if (imports == null) {
       return EMPTY_LIST;
+    }
+
+    // If the target is in an expression
+    // then resolve the outermost/entire expression
+    AstNode node = request.target.containingNode;
+    if (node is Expression) {
+      await request.resolveContainingExpression(node);
+
+      // Discard any cached target information
+      // because it may have changed as a result of the resolution
+      node = request.target.containingNode;
     }
 
     this.request = request;

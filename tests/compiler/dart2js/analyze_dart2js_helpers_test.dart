@@ -48,9 +48,11 @@ main(List<String> arguments) {
         options: options, showDiagnostics: verbose);
     FormattingDiagnosticHandler diagnostics =
         new FormattingDiagnosticHandler(compiler.provider);
-    HelperAnalyzer analyzer = new HelperAnalyzer(diagnostics);
     Directory dir =
         new Directory.fromUri(Uri.base.resolve('pkg/compiler/lib/'));
+    String helpersUriPrefix = dir.uri.resolve('src/helpers/').toString();
+    HelperAnalyzer analyzer = new HelperAnalyzer(diagnostics, helpersUriPrefix);
+    LibraryElement helperLibrary;
     for (FileSystemEntity entity in dir.listSync(recursive: true)) {
       if (entity is File && entity.path.endsWith('.dart')) {
         Uri file = Uri.base.resolve(nativeToUriPath(entity.path));
@@ -59,6 +61,9 @@ main(List<String> arguments) {
         }
         LibraryElement library = await compiler.analyzeUri(file);
         if (library != null) {
+          if (library.libraryName == 'dart2js.helpers') {
+            helperLibrary = library;
+          }
           library.forEachLocalMember((Element element) {
             if (element is ClassElement) {
               element.forEachLocalMember((AstElement member) {
@@ -71,12 +76,16 @@ main(List<String> arguments) {
         }
       }
     }
+    Expect.isNotNull(helperLibrary, 'Helper library not found');
+    Expect.isTrue(analyzer.isHelper(helperLibrary),
+        "Helper library $helperLibrary is not considered a helper.");
     Expect.isTrue(analyzer.errors.isEmpty, "Errors found.");
   });
 }
 
 class HelperAnalyzer extends TraversalVisitor {
   final FormattingDiagnosticHandler diagnostics;
+  final String helpersUriPrefix;
   List<SourceSpan> errors = <SourceSpan>[];
 
   ResolvedAst resolvedAst;
@@ -86,7 +95,7 @@ class HelperAnalyzer extends TraversalVisitor {
 
   AnalyzableElement get analyzedElement => resolvedAst.element;
 
-  HelperAnalyzer(this.diagnostics) : super(null);
+  HelperAnalyzer(this.diagnostics, this.helpersUriPrefix) : super(null);
 
   @override
   void apply(Node node, [_]) {
@@ -94,7 +103,7 @@ class HelperAnalyzer extends TraversalVisitor {
   }
 
   void analyze(ResolvedAst resolvedAst) {
-    if (resolvedAst.node == null) {
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       // Skip synthesized members.
       return;
     }
@@ -105,7 +114,7 @@ class HelperAnalyzer extends TraversalVisitor {
 
   bool isHelper(Element element) {
     Uri uri = element.library.canonicalUri;
-    return uri.path.endsWith('src/helpers/helpers.dart');
+    return '$uri'.startsWith(helpersUriPrefix);
   }
 
   void checkAccess(Node node, MemberElement element) {

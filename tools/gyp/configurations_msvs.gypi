@@ -10,6 +10,11 @@
     'configurations': {
       'Dart_Win_Base': {
         'abstract': 1,
+        'msvs_configuration_attributes': {
+          'OutputDirectory': '<(DEPTH)\\out\\$(ConfigurationName)',
+          'IntermediateDirectory': '$(OutDir)\\obj\\$(ProjectName)',
+          'CharacterSet': '1',
+        },
         'defines': [
           '_HAS_EXCEPTIONS=0',  # disable C++ exceptions use in C++ std. libs.
         ],
@@ -34,6 +39,12 @@
         'abstract': 1,
       },
       'Dart_Win_simmips_Base': {
+        'abstract': 1,
+      },
+      'Dart_Win_simdbc_Base': {
+        'abstract': 1,
+      },
+      'Dart_Win_simdbc64_Base': {
         'abstract': 1,
       },
       'Dart_Win_Debug': {
@@ -105,6 +116,7 @@
             'Optimization': '2',
             'InlineFunctionExpansion': '2',
             'EnableIntrinsicFunctions': 'true',
+            'EnableFunctionLevelLinking': 'true',
             'FavorSizeOrSpeed': '0',
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',

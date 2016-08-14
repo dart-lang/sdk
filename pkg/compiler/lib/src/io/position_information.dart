@@ -8,20 +8,13 @@
 library dart2js.source_information.position;
 
 import '../common.dart';
-import '../elements/elements.dart' show
-    AstElement,
-    FieldElement,
-    LocalElement;
+import '../elements/elements.dart'
+    show AstElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
-import '../js/js_source_mapping.dart';
 import '../js/js_debug.dart';
-import '../tree/tree.dart' show
-    FunctionExpression,
-    Node,
-    Send;
-
-import 'code_output.dart' show
-    CodeBuffer;
+import '../js/js_source_mapping.dart';
+import '../tree/tree.dart' show Node, Send;
+import 'code_output.dart' show CodeBuffer;
 import 'source_file.dart';
 import 'source_information.dart';
 
@@ -34,8 +27,7 @@ class PositionSourceInformation extends SourceInformation {
   @override
   final SourceLocation closingPosition;
 
-  PositionSourceInformation(this.startPosition,
-                            [this.closingPosition]);
+  PositionSourceInformation(this.startPosition, [this.closingPosition]);
 
   @override
   List<SourceLocation> get sourceLocations {
@@ -60,14 +52,14 @@ class PositionSourceInformation extends SourceInformation {
 
   int get hashCode {
     return 0x7FFFFFFF &
-           (startPosition.hashCode * 17 + closingPosition.hashCode * 19);
+        (startPosition.hashCode * 17 + closingPosition.hashCode * 19);
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! PositionSourceInformation) return false;
     return startPosition == other.startPosition &&
-           closingPosition == other.closingPosition;
+        closingPosition == other.closingPosition;
   }
 
   /// Create a textual representation of the source information using [uriText]
@@ -78,11 +70,11 @@ class PositionSourceInformation extends SourceInformation {
     // Use 1-based line/column info to match usual dart tool output.
     if (startPosition != null) {
       sb.write('[${startPosition.line + 1},'
-                '${startPosition.column + 1}]');
+          '${startPosition.column + 1}]');
     }
     if (closingPosition != null) {
       sb.write('-[${closingPosition.line + 1},'
-                 '${closingPosition.column + 1}]');
+          '${closingPosition.column + 1}]');
     }
     return sb.toString();
   }
@@ -109,8 +101,8 @@ class PositionSourceInformationStrategy
   const PositionSourceInformationStrategy();
 
   @override
-  SourceInformationBuilder createBuilderForContext(AstElement element) {
-    return new PositionSourceInformationBuilder(element);
+  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
+    return new PositionSourceInformationBuilder(resolvedAst);
   }
 
   @override
@@ -149,24 +141,24 @@ class SourceMappedMarker extends SourceInformation {
 class PositionSourceInformationBuilder implements SourceInformationBuilder {
   final SourceFile sourceFile;
   final String name;
-  final AstElement element;
+  final ResolvedAst resolvedAst;
 
-  PositionSourceInformationBuilder(AstElement element)
-      : this.element = element,
-        sourceFile = element.implementation.compilationUnit.script.file,
-        name = computeElementNameForSourceMaps(element);
+  PositionSourceInformationBuilder(ResolvedAst resolvedAst)
+      : this.resolvedAst = resolvedAst,
+        sourceFile = computeSourceFile(resolvedAst),
+        name = computeElementNameForSourceMaps(resolvedAst.element);
 
-  SourceInformation buildDeclaration(AstElement element) {
-    if (element.isSynthesized) {
+  SourceInformation buildDeclaration(ResolvedAst resolvedAst) {
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
+      SourceSpan span = resolvedAst.element.sourcePosition;
       return new PositionSourceInformation(
-          new OffsetSourceLocation(
-              sourceFile, element.position.charOffset, name));
+          new OffsetSourceLocation(sourceFile, span.begin, name));
     } else {
       return new PositionSourceInformation(
-          new OffsetSourceLocation(sourceFile,
-              element.resolvedAst.node.getBeginToken().charOffset, name),
-          new OffsetSourceLocation(sourceFile,
-              element.resolvedAst.node.getEndToken().charOffset, name));
+          new OffsetSourceLocation(
+              sourceFile, resolvedAst.node.getBeginToken().charOffset, name),
+          new OffsetSourceLocation(
+              sourceFile, resolvedAst.node.getEndToken().charOffset, name));
     }
   }
 
@@ -188,16 +180,13 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   @override
   SourceInformation buildImplicitReturn(AstElement element) {
     if (element.isSynthesized) {
-      return new PositionSourceInformation(
-          new OffsetSourceLocation(
-              sourceFile, element.position.charOffset, name));
+      return new PositionSourceInformation(new OffsetSourceLocation(
+          sourceFile, element.position.charOffset, name));
     } else {
-      return new PositionSourceInformation(
-          new OffsetSourceLocation(sourceFile,
-              element.resolvedAst.node.getEndToken().charOffset, name));
+      return new PositionSourceInformation(new OffsetSourceLocation(
+          sourceFile, element.resolvedAst.node.getEndToken().charOffset, name));
     }
- }
-
+  }
 
   @override
   SourceInformation buildLoop(Node node) => buildBegin(node);
@@ -249,15 +238,10 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
 
   @override
   SourceInformation buildVariableDeclaration() {
-    if (element.hasNode) {
-      Node node = element.node;
-      if (node is FunctionExpression) {
-        return buildBegin(node.body);
-      } else if (element.isField) {
-        FieldElement field = element;
-        if (field.initializer != null) {
-          return buildBegin(field.initializer);
-        }
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      Node body = resolvedAst.body;
+      if (body != null) {
+        return buildBegin(body);
       }
       // TODO(johnniwinther): Are there other cases?
     }
@@ -265,8 +249,8 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   @override
-  SourceInformationBuilder forContext(AstElement element) {
-    return new PositionSourceInformationBuilder(element);
+  SourceInformationBuilder forContext(ResolvedAst resolvedAst) {
+    return new PositionSourceInformationBuilder(resolvedAst);
   }
 
   @override
@@ -333,7 +317,7 @@ class CodePosition {
 
   String toString() {
     return 'CodePosition(start=$startPosition,'
-           'end=$endPosition,closing=$closingPosition)';
+        'end=$endPosition,closing=$closingPosition)';
   }
 }
 
@@ -347,12 +331,10 @@ class CodePositionRecorder implements CodePositionMap {
   Map<js.Node, CodePosition> _codePositionMap =
       new Map<js.Node, CodePosition>.identity();
 
-  void registerPositions(js.Node node,
-                         int startPosition,
-                         int endPosition,
-                         int closingPosition) {
-    registerCodePosition(node,
-        new CodePosition(startPosition, endPosition, closingPosition));
+  void registerPositions(
+      js.Node node, int startPosition, int endPosition, int closingPosition) {
+    registerCodePosition(
+        node, new CodePosition(startPosition, endPosition, closingPosition));
   }
 
   void registerCodePosition(js.Node node, CodePosition codePosition) {
@@ -396,8 +378,7 @@ enum SourcePositionKind {
   INNER,
 }
 
-SourceLocation getSourceLocation(
-    SourceInformation sourceInformation,
+SourceLocation getSourceLocation(SourceInformation sourceInformation,
     [SourcePositionKind sourcePositionKind = SourcePositionKind.START]) {
   if (sourceInformation == null) return null;
   switch (sourcePositionKind) {
@@ -449,12 +430,11 @@ class PositionSourceInformationProcessor implements SourceInformationProcessor {
   CodePositionMap codePositionMap;
   List<TraceListener> traceListeners;
 
-  PositionSourceInformationProcessor(
-      SourceMapper sourceMapper,
+  PositionSourceInformationProcessor(SourceMapper sourceMapper,
       [Coverage coverage]) {
     codePositionMap = coverage != null
-              ? new CodePositionCoverage(codePositionRecorder, coverage)
-              : codePositionRecorder;
+        ? new CodePositionCoverage(codePositionRecorder, coverage)
+        : codePositionRecorder;
     traceListeners = [new PositionTraceListener(sourceMapper)];
     if (coverage != null) {
       traceListeners.add(new CoverageListener(coverage));
@@ -466,10 +446,8 @@ class PositionSourceInformationProcessor implements SourceInformationProcessor {
   }
 
   @override
-  void onPositions(js.Node node,
-                   int startPosition,
-                   int endPosition,
-                   int closingPosition) {
+  void onPositions(
+      js.Node node, int startPosition, int endPosition, int closingPosition) {
     codePositionRecorder.registerPositions(
         node, startPosition, endPosition, closingPosition);
   }
@@ -524,7 +502,6 @@ class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
     }
     return visit(node.value);
   }
-
 }
 
 /// Mixin that add support for computing [SourceInformation] for a [js.Node].
@@ -535,8 +512,8 @@ class NodeToSourceInformationMixin {
 }
 
 /// [TraceListener] that register [SourceLocation]s with a [SourceMapper].
-class PositionTraceListener extends TraceListener with
-    NodeToSourceInformationMixin {
+class PositionTraceListener extends TraceListener
+    with NodeToSourceInformationMixin {
   final SourceMapper sourceMapper;
 
   PositionTraceListener(this.sourceMapper);
@@ -617,47 +594,35 @@ class CallPosition {
         // a.m()   this.m()  a.b.c.d.m()
         // ^       ^         ^
         return new CallPosition(
-            node,
-            CodePositionKind.START,
-            SourcePositionKind.START);
+            node, CodePositionKind.START, SourcePositionKind.START);
       } else {
         // *.m()  *.a.b.c.d.m()
         //   ^              ^
         return new CallPosition(
-            access.selector,
-            CodePositionKind.START,
-            SourcePositionKind.INNER);
+            access.selector, CodePositionKind.START, SourcePositionKind.INNER);
       }
     } else if (node.target is js.VariableUse) {
       // m()
       // ^
       return new CallPosition(
-          node,
-          CodePositionKind.START,
-          SourcePositionKind.START);
+          node, CodePositionKind.START, SourcePositionKind.START);
     } else if (node.target is js.Fun || node.target is js.New) {
       // function(){}()  new Function("...")()
       //             ^                      ^
       return new CallPosition(
-          node.target,
-          CodePositionKind.END,
-          SourcePositionKind.INNER);
+          node.target, CodePositionKind.END, SourcePositionKind.INNER);
     } else if (node.target is js.Binary || node.target is js.Call) {
       // (0,a)()   m()()
       //      ^       ^
       return new CallPosition(
-          node.target,
-          CodePositionKind.END,
-          SourcePositionKind.INNER);
+          node.target, CodePositionKind.END, SourcePositionKind.INNER);
     } else {
       assert(invariant(NO_LOCATION_SPANNABLE, false,
           message: "Unexpected property access ${nodeToString(node)}:\n"
-                   "${DebugPrinter.prettyPrint(node)}"));
+              "${DebugPrinter.prettyPrint(node)}"));
       // Don't know....
       return new CallPosition(
-          node,
-          CodePositionKind.START,
-          SourcePositionKind.START);
+          node, CodePositionKind.START, SourcePositionKind.START);
     }
   }
 }
@@ -708,7 +673,8 @@ class Offset {
   ///
   final int leftToRightOffset;
 
-  Offset(this.statementOffset, this.leftToRightOffset, this.subexpressionOffset);
+  Offset(
+      this.statementOffset, this.leftToRightOffset, this.subexpressionOffset);
 
   String toString() {
     return 'Offset[statementOffset=$statementOffset,'
@@ -717,13 +683,7 @@ class Offset {
   }
 }
 
-enum BranchKind {
-  CONDITION,
-  LOOP,
-  CATCH,
-  FINALLY,
-  CASE,
-}
+enum BranchKind { CONDITION, LOOP, CATCH, FINALLY, CASE, }
 
 enum StepKind {
   FUN_ENTRY,
@@ -767,7 +727,7 @@ abstract class TraceListener {
 
 /// Visitor that computes the [js.Node]s the are part of the JavaScript
 /// steppable execution and thus needs source mapping locations.
-class JavaScriptTracer extends js.BaseVisitor  {
+class JavaScriptTracer extends js.BaseVisitor {
   final CodePositionMap codePositions;
   final List<TraceListener> listeners;
 
@@ -785,9 +745,7 @@ class JavaScriptTracer extends js.BaseVisitor  {
 
   bool active;
 
-  JavaScriptTracer(this.codePositions,
-           this.listeners,
-           {this.active: false});
+  JavaScriptTracer(this.codePositions, this.listeners, {this.active: false});
 
   void notifyStart(js.Node node) {
     listeners.forEach((listener) => listener.onStart(node));
@@ -852,15 +810,15 @@ class JavaScriptTracer extends js.BaseVisitor  {
     if (!active) {
       active = node.sourceInformation != null;
     }
-    leftToRightOffset = statementOffset =
-        getSyntaxOffset(node, kind: CodePositionKind.START);
+    leftToRightOffset =
+        statementOffset = getSyntaxOffset(node, kind: CodePositionKind.START);
     Offset entryOffset = getOffsetForNode(node, statementOffset);
     notifyStep(node, entryOffset, StepKind.FUN_ENTRY);
 
     visit(node.body);
 
-    leftToRightOffset = statementOffset =
-        getSyntaxOffset(node, kind: CodePositionKind.CLOSING);
+    leftToRightOffset =
+        statementOffset = getSyntaxOffset(node, kind: CodePositionKind.CLOSING);
     Offset exitOffset = getOffsetForNode(node, statementOffset);
     notifyStep(node, exitOffset, StepKind.FUN_EXIT);
     active = activeBefore;
@@ -874,7 +832,7 @@ class JavaScriptTracer extends js.BaseVisitor  {
   }
 
   int getSyntaxOffset(js.Node node,
-                      {CodePositionKind kind: CodePositionKind.START}) {
+      {CodePositionKind kind: CodePositionKind.START}) {
     CodePosition codePosition = codePositions[node];
     if (codePosition != null) {
       return codePosition.getPosition(kind);
@@ -882,18 +840,14 @@ class JavaScriptTracer extends js.BaseVisitor  {
     return null;
   }
 
-  visitSubexpression(js.Node parent,
-                     js.Expression child,
-                     int codeOffset,
-                     StepKind kind) {
+  visitSubexpression(
+      js.Node parent, js.Expression child, int codeOffset, StepKind kind) {
     var oldSteps = steps;
     steps = [];
     offsetPosition = codeOffset;
     visit(child);
     if (steps.isEmpty) {
-      notifyStep(parent,
-          getOffsetForNode(parent, offsetPosition),
-          kind);
+      notifyStep(parent, getOffsetForNode(parent, offsetPosition), kind);
       // The [offsetPosition] should only be used by the first subexpression.
       offsetPosition = null;
     }
@@ -904,8 +858,7 @@ class JavaScriptTracer extends js.BaseVisitor  {
   visitExpressionStatement(js.ExpressionStatement node) {
     statementOffset = getSyntaxOffset(node);
     visitSubexpression(
-        node, node.expression, statementOffset,
-        StepKind.EXPRESSION_STATEMENT);
+        node, node.expression, statementOffset, StepKind.EXPRESSION_STATEMENT);
     statementOffset = null;
     leftToRightOffset = null;
   }
@@ -920,11 +873,10 @@ class JavaScriptTracer extends js.BaseVisitor  {
     offsetPosition = null;
     visitList(node.arguments);
     offsetPosition = oldPosition;
-    CallPosition callPosition =
-        CallPosition.getSemanticPositionForCall(node);
+    CallPosition callPosition = CallPosition.getSemanticPositionForCall(node);
     js.Node positionNode = callPosition.node;
-    int callOffset = getSyntaxOffset(
-        positionNode, kind: callPosition.codePositionKind);
+    int callOffset =
+        getSyntaxOffset(positionNode, kind: callPosition.codePositionKind);
     if (offsetPosition == null) {
       // Use the call offset if this is not the first subexpression.
       offsetPosition = callOffset;
@@ -943,8 +895,7 @@ class JavaScriptTracer extends js.BaseVisitor  {
       // Use the syntax offset if this is not the first subexpression.
       offsetPosition = getSyntaxOffset(node);
     }
-    notifyStep(
-        node, getOffsetForNode(node, offsetPosition), StepKind.NEW);
+    notifyStep(node, getOffsetForNode(node, offsetPosition), StepKind.NEW);
     steps.add(node);
     offsetPosition = null;
   }
@@ -996,8 +947,8 @@ class JavaScriptTracer extends js.BaseVisitor  {
   @override
   visitIf(js.If node) {
     statementOffset = getSyntaxOffset(node);
-    visitSubexpression(node, node.condition, statementOffset,
-        StepKind.IF_CONDITION);
+    visitSubexpression(
+        node, node.condition, statementOffset, StepKind.IF_CONDITION);
     statementOffset = null;
     visit(node.then, BranchKind.CONDITION, true);
     visit(node.otherwise, BranchKind.CONDITION, false);
@@ -1009,8 +960,8 @@ class JavaScriptTracer extends js.BaseVisitor  {
     statementOffset = offset;
     leftToRightOffset = null;
     if (node.init != null) {
-      visitSubexpression(node, node.init, getSyntaxOffset(node),
-          StepKind.FOR_INITIALIZER);
+      visitSubexpression(
+          node, node.init, getSyntaxOffset(node), StepKind.FOR_INITIALIZER);
     }
 
     if (node.condition != null) {
@@ -1023,8 +974,8 @@ class JavaScriptTracer extends js.BaseVisitor  {
 
     statementOffset = offset;
     if (node.update != null) {
-      visitSubexpression(node, node.update, getSyntaxOffset(node.update),
-          StepKind.FOR_UPDATE);
+      visitSubexpression(
+          node, node.update, getSyntaxOffset(node.update), StepKind.FOR_UPDATE);
     }
 
     notifyPopBranch();
@@ -1150,8 +1101,8 @@ class JavaScriptTracer extends js.BaseVisitor  {
   @override
   visitSwitch(js.Switch node) {
     statementOffset = getSyntaxOffset(node);
-    visitSubexpression(node, node.key, getSyntaxOffset(node),
-        StepKind.SWITCH_EXPRESSION);
+    visitSubexpression(
+        node, node.key, getSyntaxOffset(node), StepKind.SWITCH_EXPRESSION);
     statementOffset = null;
     leftToRightOffset = null;
     for (int i = 0; i < node.cases.length; i++) {
@@ -1202,7 +1153,6 @@ class JavaScriptTracer extends js.BaseVisitor  {
   }
 }
 
-
 class Coverage {
   Set<js.Node> _nodesWithInfo = new Set<js.Node>();
   int _nodesWithInfoCount = 0;
@@ -1237,8 +1187,7 @@ class Coverage {
             node.expression.runtimeType, () => 0);
         _nodesWithoutInfoCountByType[node.expression.runtimeType]++;
       } else {
-        _nodesWithoutInfoCountByType.putIfAbsent(
-            node.runtimeType, () => 0);
+        _nodesWithoutInfoCountByType.putIfAbsent(node.runtimeType, () => 0);
         _nodesWithoutInfoCountByType[node.runtimeType]++;
       }
     }
@@ -1274,8 +1223,8 @@ class Coverage {
       sb.write(') by runtime type:');
       List<Type> types = _nodesWithoutInfoCountByType.keys.toList();
       types.sort((a, b) {
-        return -_nodesWithoutInfoCountByType[a].compareTo(
-            _nodesWithoutInfoCountByType[b]);
+        return -_nodesWithoutInfoCountByType[a]
+            .compareTo(_nodesWithoutInfoCountByType[b]);
       });
 
       types.forEach((Type type) {
@@ -1331,7 +1280,7 @@ class CodePositionCoverage implements CodePositionMap {
     CodePosition codePosition = codePositions[node];
     if (codePosition == null) {
       coverage.registerNodesWithoutOffset(node);
-   }
+    }
     return codePosition;
   }
 }

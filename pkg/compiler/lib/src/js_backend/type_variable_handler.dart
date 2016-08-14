@@ -2,14 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+import '../common.dart';
+import '../common/registry.dart' show Registry;
+import '../compiler.dart' show Compiler;
+import '../constants/expressions.dart';
+import '../constants/values.dart';
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../enqueue.dart' show Enqueuer;
+import '../js/js.dart' as jsAst;
+import '../js_emitter/js_emitter.dart'
+    show CodeEmitterTask, MetadataCollector, Placeholder;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/use.dart' show StaticUse;
+import '../util/util.dart';
+import 'backend.dart';
 
 /**
  * Handles construction of TypeVariable constants needed at runtime.
  */
 class TypeVariableHandler {
   final Compiler _compiler;
-  FunctionElement _typeVariableConstructor;
+  ConstructorElement _typeVariableConstructor;
 
   /**
    * Set to 'true' on first encounter of a class with type variables.
@@ -38,8 +52,8 @@ class TypeVariableHandler {
   JavaScriptBackend get _backend => _compiler.backend;
   DiagnosticReporter get reporter => _compiler.reporter;
 
-  void registerClassWithTypeVariables(ClassElement cls, Enqueuer enqueuer,
-                                      Registry registry) {
+  void registerClassWithTypeVariables(
+      ClassElement cls, Enqueuer enqueuer, Registry registry) {
     if (enqueuer.isResolutionQueue) {
       // On first encounter, we have to ensure that the support classes get
       // resolved.
@@ -55,10 +69,9 @@ class TypeVariableHandler {
         _backend.enqueueInResolution(_typeVariableConstructor, registry);
         _backend.registerInstantiatedType(
             _typeVariableClass.rawType, enqueuer, registry);
-        enqueuer.registerStaticUse(
-            new StaticUse.staticInvoke(
-                _backend.registerBackendUse(_backend.helpers.createRuntimeType),
-                CallStructure.ONE_ARG));
+        enqueuer.registerStaticUse(new StaticUse.staticInvoke(
+            _backend.registerBackendUse(_backend.helpers.createRuntimeType),
+            CallStructure.ONE_ARG));
         _seenClassesWithTypeVariables = true;
       }
     } else {
@@ -78,53 +91,28 @@ class TypeVariableHandler {
     for (TypeVariableType currentTypeVariable in cls.typeVariables) {
       TypeVariableElement typeVariableElement = currentTypeVariable.element;
 
-      AstConstant name = new AstConstant(
-          typeVariableElement,
-          typeVariableElement.node,
-          new StringConstantExpression(currentTypeVariable.name),
-          _backend.constantSystem.createString(
-              new DartString.literal(currentTypeVariable.name)));
       jsAst.Expression boundIndex =
           _metadataCollector.reifyType(typeVariableElement.bound);
-      ConstantValue boundValue =
-          new SyntheticConstantValue(
-              SyntheticConstantKind.TYPEVARIABLE_REFERENCE,
-              boundIndex);
+      ConstantValue boundValue = new SyntheticConstantValue(
+          SyntheticConstantKind.TYPEVARIABLE_REFERENCE, boundIndex);
       ConstantExpression boundExpression =
           new SyntheticConstantExpression(boundValue);
-      AstConstant bound = new AstConstant(
-          typeVariableElement,
-          typeVariableElement.node,
-          boundExpression,
-          boundValue);
-      AstConstant type = new AstConstant(
-          typeVariableElement,
-          typeVariableElement.node,
-          new TypeConstantExpression(cls.rawType),
-          _backend.constantSystem.createType(_backend.compiler, cls.rawType));
-      List<AstConstant> arguments = [type, name, bound];
+      ConstantExpression constant = new ConstructedConstantExpression(
+          _typeVariableConstructor.enclosingClass.thisType,
+          _typeVariableConstructor,
+          const CallStructure.unnamed(3), [
+        new TypeConstantExpression(cls.rawType),
+        new StringConstantExpression(currentTypeVariable.name),
+        new SyntheticConstantExpression(boundValue)
+      ]);
 
-      // TODO(johnniwinther): Support a less front-end specific creation of
-      // constructed constants.
-      AstConstant constant =
-          CompileTimeConstantEvaluator.makeConstructedConstant(
-              _compiler,
-              _backend.constants,
-              typeVariableElement,
-              typeVariableElement.node,
-              typeVariableType,
-              _typeVariableConstructor,
-              typeVariableType,
-              _typeVariableConstructor,
-              const CallStructure.unnamed(3),
-              arguments,
-              arguments);
-      ConstantValue value = constant.value;
+      _backend.constants.evaluate(constant);
+      ConstantValue value = _backend.constants.getConstantValue(constant);
       _backend.registerCompileTimeConstant(value, _compiler.globalDependencies);
       _backend.addCompileTimeConstantForEmission(value);
       _backend.constants.addCompileTimeConstantForEmission(value);
-      constants.add(
-          _reifyTypeVariableConstant(value, currentTypeVariable.element));
+      constants
+          .add(_reifyTypeVariableConstant(value, currentTypeVariable.element));
     }
     _typeVariables[cls] = constants;
   }
@@ -137,8 +125,8 @@ class TypeVariableHandler {
    * entry in the list has already been reserved and the constant is added
    * there, otherwise a new entry for [c] is created.
    */
-  jsAst.Expression _reifyTypeVariableConstant(ConstantValue c,
-                                              TypeVariableElement variable) {
+  jsAst.Expression _reifyTypeVariableConstant(
+      ConstantValue c, TypeVariableElement variable) {
     jsAst.Expression name = _task.constantReference(c);
     jsAst.Expression result = _metadataCollector.reifyExpression(name);
     if (_typeVariableConstants.containsKey(variable)) {

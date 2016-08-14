@@ -4,20 +4,14 @@
 
 library js.source_mapping;
 
+import '../io/code_output.dart' show BufferedCodeOutput, SourceLocations;
+import '../io/source_information.dart'
+    show SourceLocation, SourceInformation, SourceInformationStrategy;
 import 'js.dart';
-import '../io/code_output.dart' show
-    BufferedCodeOutput,
-    CodeBuffer,
-    SourceLocations;
-import '../io/source_information.dart' show
-    SourceLocation,
-    SourceInformation,
-    SourceInformationStrategy;
 
 /// [SourceInformationStrategy] that can associate source information with
 /// JavaScript output.
-class JavaScriptSourceInformationStrategy
-    extends SourceInformationStrategy {
+class JavaScriptSourceInformationStrategy extends SourceInformationStrategy {
   const JavaScriptSourceInformationStrategy();
 
   /// Creates a processor that can associate source information on [Node] with
@@ -34,10 +28,7 @@ class CodePositionListener {
   /// Called to associate [node] with the provided start, end and closing
   /// positions.
   void onPositions(
-      Node node,
-      int startPosition,
-      int endPosition,
-      int closingPosition) {}
+      Node node, int startPosition, int endPosition, int closingPosition) {}
 }
 
 /// An interface for mapping code offsets with [SourceLocation]s for JavaScript

@@ -7,5 +7,5 @@ library analyzer.src.generated.scanner;
 
 export 'package:analyzer/dart/ast/token.dart';
 export 'package:analyzer/src/dart/ast/token.dart' hide SimpleToken;
-export 'package:analyzer/src/dart/scanner/scanner.dart';
 export 'package:analyzer/src/dart/scanner/reader.dart';
+export 'package:analyzer/src/dart/scanner/scanner.dart';

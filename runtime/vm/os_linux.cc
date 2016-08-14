@@ -40,7 +40,7 @@ DEFINE_FLAG(bool, generate_perf_events_symbols, false,
 class PerfCodeObserver : public CodeObserver {
  public:
   PerfCodeObserver() : out_file_(NULL) {
-    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
+    Dart_FileOpenCallback file_open = Dart::file_open_callback();
     if (file_open == NULL) {
       return;
     }
@@ -51,7 +51,7 @@ class PerfCodeObserver : public CodeObserver {
   }
 
   ~PerfCodeObserver() {
-    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+    Dart_FileCloseCallback file_close = Dart::file_close_callback();
     if ((file_close == NULL) || (out_file_ == NULL)) {
       return;
     }
@@ -67,7 +67,7 @@ class PerfCodeObserver : public CodeObserver {
                       uword prologue_offset,
                       uword size,
                       bool optimized) {
-    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    Dart_FileWriteCallback file_write = Dart::file_write_callback();
     if ((file_write == NULL) || (out_file_ == NULL)) {
       return;
     }
@@ -175,6 +175,19 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 
+int64_t OS::GetCurrentThreadCPUMicros() {
+  struct timespec ts;
+  if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) != 0) {
+    UNREACHABLE();
+    return -1;
+  }
+  int64_t result = ts.tv_sec;
+  result *= kMicrosecondsPerSecond;
+  result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
+  return result;
+}
+
+
 void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   const int kMinimumAlignment = 16;
   ASSERT(Utils::IsPowerOfTwo(alignment));
@@ -197,7 +210,8 @@ void OS::AlignedFree(void* ptr) {
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) ||                                               \
     defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM64)
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_DBC)
   const int kMinimumAlignment = 16;
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
   const int kMinimumAlignment = 8;
@@ -217,7 +231,8 @@ intptr_t OS::ActivationFrameAlignment() {
 intptr_t OS::PreferredCodeAlignment() {
 #if defined(TARGET_ARCH_IA32) ||                                               \
     defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM64)
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_DBC)
   const int kMinimumAlignment = 32;
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
   const int kMinimumAlignment = 16;
@@ -282,6 +297,11 @@ void OS::DebugBreak() {
 
 char* OS::StrNDup(const char* s, intptr_t n) {
   return strndup(s, n);
+}
+
+
+intptr_t OS::StrNLen(const char* s, intptr_t n) {
+  return strnlen(s, n);
 }
 
 

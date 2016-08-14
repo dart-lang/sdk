@@ -6,8 +6,6 @@ library mocks;
 
 import 'dart:async';
 import 'dart:io';
-@MirrorsUsed(targets: 'mocks', override: '*')
-import 'dart:mirrors';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
@@ -26,7 +24,7 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 /**
- * Answer the absolute path the the SDK relative to the currently running
+ * Answer the absolute path the SDK relative to the currently running
  * script or throw an exception if it cannot be found.
  */
 String get sdkPath {
@@ -251,12 +249,8 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   Future<Response> waitForResponse(Request request) {
     String id = request.id;
-    pumpEventQueue().then((_) {
-      responseController.addError(new NoResponseException(request));
-    });
-    return responseController.stream.firstWhere((response) {
-      return response.id == id;
-    });
+    return new Future<Response>(() =>
+        responseController.stream.firstWhere((response) => response.id == id));
   }
 }
 
@@ -283,15 +277,15 @@ class MockServerOperation implements PerformAnalysisOperation {
  * A mock [WebSocket] for testing.
  */
 class MockSocket<T> implements WebSocket {
-  StreamController controller = new StreamController();
-  MockSocket twin;
-  Stream stream;
+  StreamController<T> controller = new StreamController<T>();
+  MockSocket<T> twin;
+  Stream<T> stream;
 
   MockSocket();
 
   factory MockSocket.pair() {
-    MockSocket socket1 = new MockSocket();
-    MockSocket socket2 = new MockSocket();
+    MockSocket<T> socket1 = new MockSocket<T>();
+    MockSocket<T> socket2 = new MockSocket<T>();
     socket1.twin = socket2;
     socket2.twin = socket1;
     socket1.stream = socket2.controller.stream;
@@ -299,7 +293,7 @@ class MockSocket<T> implements WebSocket {
     return socket1;
   }
 
-  void add(T text) => controller.add(text);
+  void add(dynamic text) => controller.add(text as T);
 
   void allowMultipleListeners() {
     stream = stream.asBroadcastStream();
@@ -308,14 +302,14 @@ class MockSocket<T> implements WebSocket {
   Future close([int code, String reason]) =>
       controller.close().then((_) => twin.controller.close());
 
-  StreamSubscription<T> listen(void onData(T event),
+  StreamSubscription<T> listen(void onData(dynamic event),
           {Function onError, void onDone(), bool cancelOnError}) =>
-      stream.listen(onData,
+      stream.listen((T data) => onData(data),
           onError: onError, onDone: onDone, cancelOnError: cancelOnError);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
-  Stream<T> where(bool test(T)) => stream.where(test);
+  Stream<T> where(bool test(dynamic t)) => stream.where((T data) => test(data));
 }
 
 class MockSource extends StringTypedMock implements Source {

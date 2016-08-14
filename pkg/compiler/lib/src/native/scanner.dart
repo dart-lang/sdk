@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of native;
+import '../common.dart';
+import '../parser/element_listener.dart' show ElementListener;
+import '../tokens/token.dart' show BeginGroupToken, Token;
+import '../tokens/token_constants.dart' as Tokens show STRING_TOKEN;
 
 void checkAllowedLibrary(ElementListener listener, Token token) {
   if (listener.scannerOptions.canUseNative) return;
   listener.reportError(token, MessageKind.NATIVE_NOT_SUPPORTED);
 }
 
-Token handleNativeBlockToSkip(Listener listener, Token token) {
+Token handleNativeBlockToSkip(ElementListener listener, Token token) {
   checkAllowedLibrary(listener, token);
   token = token.next;
   if (identical(token.kind, Tokens.STRING_TOKEN)) {

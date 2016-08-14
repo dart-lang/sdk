@@ -4,33 +4,18 @@
 
 library dart2js.scanner.array_based;
 
-import '../io/source_file.dart' show
-    SourceFile;
-import '../tokens/keyword.dart' show
-    Keyword;
-import '../tokens/precedence.dart' show
-    PrecedenceInfo;
-import '../tokens/precedence_constants.dart' as Precedence show
-    COMMENT_INFO,
-    EOF_INFO;
-import '../tokens/token.dart' show
-    BeginGroupToken,
-    ErrorToken,
-    KeywordToken,
-    SymbolToken,
-    Token;
-import '../tokens/token_constants.dart' as Tokens show
-    LT_TOKEN,
-    OPEN_CURLY_BRACKET_TOKEN,
-    STRING_INTERPOLATION_TOKEN;
-import '../util/characters.dart' show
-    $LF,
-    $STX;
-import '../util/util.dart' show
-    Link;
-
-import 'scanner.dart' show
-    AbstractScanner;
+import '../io/source_file.dart' show SourceFile;
+import '../tokens/keyword.dart' show Keyword;
+import '../tokens/precedence.dart' show PrecedenceInfo;
+import '../tokens/precedence_constants.dart' as Precedence
+    show COMMENT_INFO, EOF_INFO;
+import '../tokens/token.dart'
+    show BeginGroupToken, ErrorToken, KeywordToken, SymbolToken, Token;
+import '../tokens/token_constants.dart' as Tokens
+    show LT_TOKEN, OPEN_CURLY_BRACKET_TOKEN, STRING_INTERPOLATION_TOKEN;
+import '../util/characters.dart' show $LF, $STX;
+import '../util/util.dart' show Link;
+import 'scanner.dart' show AbstractScanner;
 
 abstract class ArrayBasedScanner extends AbstractScanner {
   ArrayBasedScanner(SourceFile file, bool includeComments)
@@ -77,8 +62,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    */
   void appendKeywordToken(Keyword keyword) {
     String syntax = keyword.syntax;
-    // Type parameters and arguments cannot contain 'this' or 'super'.
-    if (identical(syntax, 'this') || identical(syntax, 'super')) {
+    // Type parameters and arguments cannot contain 'this'.
+    if (identical(syntax, 'this')) {
       discardOpenLt();
     }
     tail.next = new KeywordToken(keyword, tokenStart);
@@ -153,7 +138,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     BeginGroupToken begin = groupingStack.head;
     if (!identical(begin.kind, openKind)) {
       assert(begin.kind == Tokens.STRING_INTERPOLATION_TOKEN &&
-             openKind == Tokens.OPEN_CURLY_BRACKET_TOKEN);
+          openKind == Tokens.OPEN_CURLY_BRACKET_TOKEN);
       // We're ending an interpolated expression.
       begin.endGroup = close;
       groupingStack = groupingStack.tail;
@@ -240,8 +225,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * list, like the '=' in the above example.
    */
   void discardOpenLt() {
-    while (!groupingStack.isEmpty
-        && identical(groupingStack.head.kind, Tokens.LT_TOKEN)) {
+    while (!groupingStack.isEmpty &&
+        identical(groupingStack.head.kind, Tokens.LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
   }

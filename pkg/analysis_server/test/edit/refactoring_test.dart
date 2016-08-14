@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
@@ -119,11 +118,12 @@ main(A a, B b, C c, D d) {
 
   Future<Response> _sendConvertRequest(String search) {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.CONVERT_GETTER_TO_METHOD,
-        testFile,
-        findOffset(search),
-        0,
-        false).toRequest('0');
+            RefactoringKind.CONVERT_GETTER_TO_METHOD,
+            testFile,
+            findOffset(search),
+            0,
+            false)
+        .toRequest('0');
     return serverChannel.sendRequest(request);
   }
 }
@@ -232,11 +232,12 @@ main(A a, B b, C c, D d) {
 
   Future<Response> _sendConvertRequest(String search) {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.CONVERT_METHOD_TO_GETTER,
-        testFile,
-        findOffset(search),
-        0,
-        false).toRequest('0');
+            RefactoringKind.CONVERT_METHOD_TO_GETTER,
+            testFile,
+            findOffset(search),
+            0,
+            false)
+        .toRequest('0');
     return serverChannel.sendRequest(request);
   }
 }
@@ -652,20 +653,17 @@ void res(int a, int b) {
 ''');
   }
 
-  Future<Response> _computeChange() {
-    return _prepareOptions().then((_) {
-      // send request with the options
-      return _sendExtractRequest();
-    });
+  Future<Response> _computeChange() async {
+    await _prepareOptions();
+    // send request with the options
+    return _sendExtractRequest();
   }
 
-  Future<ExtractMethodFeedback> _computeInitialFeedback() {
-    return waitForTasksFinished().then((_) {
-      return _sendExtractRequest();
-    }).then((Response response) {
-      var result = new EditGetRefactoringResult.fromResponse(response);
-      return result.feedback;
-    });
+  Future<ExtractMethodFeedback> _computeInitialFeedback() async {
+    await waitForTasksFinished();
+    Response response = await _sendExtractRequest();
+    var result = new EditGetRefactoringResult.fromResponse(response);
+    return result.feedback;
   }
 
   Future _prepareOptions() {
@@ -729,7 +727,7 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
 
   @override
   Index createIndex() {
-    return createLocalMemoryIndex();
+    return createMemoryIndex();
   }
 
   /**
@@ -737,8 +735,9 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
    * [length].
    */
   Future getRefactorings(int offset, int length) async {
-    Request request = new EditGetAvailableRefactoringsParams(
-        testFile, offset, length).toRequest('0');
+    Request request =
+        new EditGetAvailableRefactoringsParams(testFile, offset, length)
+            .toRequest('0');
     serverChannel.sendRequest(request);
     var response = await serverChannel.waitForResponse(request);
     var result = new EditGetAvailableRefactoringsResult.fromResponse(response);
@@ -981,11 +980,12 @@ main() {
 
   Future<Response> _sendInlineRequest(String search) {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.INLINE_LOCAL_VARIABLE,
-        testFile,
-        findOffset(search),
-        0,
-        false).toRequest('0');
+            RefactoringKind.INLINE_LOCAL_VARIABLE,
+            testFile,
+            findOffset(search),
+            0,
+            false)
+        .toRequest('0');
     return serverChannel.sendRequest(request);
   }
 }
@@ -1108,8 +1108,13 @@ main() {
 
   Future<Response> _sendInlineRequest(String search) {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.INLINE_METHOD, testFile, findOffset(search), 0, false,
-        options: options).toRequest('0');
+            RefactoringKind.INLINE_METHOD,
+            testFile,
+            findOffset(search),
+            0,
+            false,
+            options: options)
+        .toRequest('0');
     return serverChannel.sendRequest(request);
   }
 }
@@ -1136,8 +1141,9 @@ import 'bin/lib.dart';
 
   Future<Response> _sendMoveRequest() {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.MOVE_FILE, testFile, 0, 0, false,
-        options: options).toRequest('0');
+            RefactoringKind.MOVE_FILE, testFile, 0, 0, false,
+            options: options)
+        .toRequest('0');
     return serverChannel.sendRequest(request);
   }
 
@@ -1151,9 +1157,10 @@ class RenameTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendRenameRequest(String search, String newName,
       {String id: '0', bool validateOnly: false}) {
     RenameOptions options = newName != null ? new RenameOptions(newName) : null;
-    Request request = new EditGetRefactoringParams(
-        RefactoringKind.RENAME, testFile, findOffset(search), 0, validateOnly,
-        options: options).toRequest(id);
+    Request request = new EditGetRefactoringParams(RefactoringKind.RENAME,
+            testFile, findOffset(search), 0, validateOnly,
+            options: options)
+        .toRequest(id);
     return serverChannel.sendRequest(request);
   }
 
@@ -1853,24 +1860,23 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
 
   @override
   Index createIndex() {
-    return createLocalMemoryIndex();
+    return createMemoryIndex();
   }
 
   Future<EditGetRefactoringResult> getRefactoringResult(
-      Future<Response> requestSender()) {
-    return waitForTasksFinished().then((_) {
-      return requestSender().then((Response response) {
-        return new EditGetRefactoringResult.fromResponse(response);
-      });
-    });
+      Future<Response> requestSender()) async {
+    await waitForTasksFinished();
+    Response response = await requestSender();
+    return new EditGetRefactoringResult.fromResponse(response);
   }
 
   Future<Response> sendRequest(
       RefactoringKind kind, int offset, int length, RefactoringOptions options,
       [bool validateOnly = false]) {
     Request request = new EditGetRefactoringParams(
-        kind, testFile, offset, length, validateOnly,
-        options: options).toRequest('0');
+            kind, testFile, offset, length, validateOnly,
+            options: options)
+        .toRequest('0');
     return serverChannel.sendRequest(request);
   }
 

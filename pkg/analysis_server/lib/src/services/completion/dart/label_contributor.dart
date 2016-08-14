@@ -191,8 +191,8 @@ class _LabelVisitor extends LocalDeclarationVisitor {
 
   _LabelVisitor(DartCompletionRequest request, this.includeStatementLabels,
       this.includeCaseLabels, this.suggestions)
-      : super(request.offset),
-        request = request;
+      : request = request,
+        super(request.offset);
 
   @override
   void declaredClass(ClassDeclaration declaration) {

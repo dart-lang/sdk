@@ -42,7 +42,7 @@ class CompletionPerformance {
 
   void complete([String tag = null]) {
     _stopwatch.stop();
-    _logDuration(tag != null ? tag : 'total time', _stopwatch.elapsed);
+    _logDuration(tag ?? 'total time', _stopwatch.elapsed);
   }
 
   void logElapseTime(String tag) {

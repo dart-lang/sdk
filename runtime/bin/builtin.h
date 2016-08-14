@@ -28,10 +28,9 @@ class Builtin {
   // Note: Changes to this enum should be accompanied with changes to
   // the builtin_libraries_ array in builtin.cc and builtin_nolib.cc.
   enum BuiltinLibraryId {
+    kInvalidLibrary = -1,
     kBuiltinLibrary = 0,
-    kIOLibrary,
-
-    kInvalidLibrary,
+    kIOLibrary
   };
 
   // Get source corresponding to built in library specified in 'id'.
@@ -44,12 +43,18 @@ class Builtin {
   static void SetNativeResolver(BuiltinLibraryId id);
 
   static Dart_Handle LoadLibrary(Dart_Handle url, BuiltinLibraryId id);
+  static BuiltinLibraryId FindId(const char* url_string);
 
   // Check if built in library specified in 'id' is already loaded, if not
   // load it.
   static Dart_Handle LoadAndCheckLibrary(BuiltinLibraryId id);
 
   static Dart_Handle SetLoadPort(Dart_Port port);
+
+  static Dart_Port LoadPort() {
+    ASSERT(load_port_ != ILLEGAL_PORT);
+    return load_port_;
+  }
 
  private:
   // Map specified URI to an actual file name from 'source_paths' and read
@@ -66,7 +71,21 @@ class Builtin {
   static const char* _builtin_source_paths_[];
   static const char* io_source_paths_[];
   static const char* io_patch_paths_[];
+  static const char* html_source_paths_[];
+  static const char* html_common_source_paths_[];
+  static const char* js_source_paths_[];
+  static const char* js_util_source_paths_[];
+  static const char* blink_source_paths_[];
+  static const char* indexeddb_source_paths_[];
+  static const char* cached_patches_source_paths_[];
+  static const char* web_gl_source_paths_[];
+  static const char* metadata_source_paths_[];
+  static const char* websql_source_paths_[];
+  static const char* svg_source_paths_[];
+  static const char* webaudio_source_paths_[];
+
   static Dart_Port load_port_;
+  static const int num_libs_;
 
   typedef struct {
     const char* url_;

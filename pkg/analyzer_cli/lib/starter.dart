@@ -4,7 +4,6 @@
 
 library analyzer_cli.starter;
 
-import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:plugin/plugin.dart';
@@ -21,14 +20,6 @@ abstract class CommandLineStarter {
    * Initialize a newly created starter to start up a command-line analysis.
    */
   factory CommandLineStarter() = Driver;
-
-  /**
-   * Set the embedded resolver provider used to override the way embedded
-   * library URI's are resolved in some contexts. The provider should return
-   * `null` if the embedded library URI resolution scheme should be used
-   * instead.
-   */
-  void set embeddedUriResolverProvider(EmbeddedResolverProvider provider);
 
   /**
    * Set the package resolver provider used to override the way package URI's

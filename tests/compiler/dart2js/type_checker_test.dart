@@ -26,6 +26,7 @@ import 'package:compiler/src/script.dart';
 import 'package:compiler/src/util/util.dart';
 
 import 'mock_compiler.dart';
+import 'options_helper.dart';
 import 'parser_helper.dart';
 
 final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE;
@@ -2512,13 +2513,13 @@ analyzeTopLevel(String text, [expectedWarnings]) {
         classElement.forEachLocalMember((Element e) {
           if (!e.isSynthesized) {
             element = e;
-            node = element.parseNode(compiler.parsing);
+            node = element.parseNode(compiler.parsingContext);
             compiler.resolver.resolve(element);
             mapping = element.treeElements;
           }
         });
       } else {
-        node = element.parseNode(compiler.parsing);
+        node = element.parseNode(compiler.parsingContext);
         compiler.resolver.resolve(element);
         mapping = element.treeElements;
       }
@@ -2555,21 +2556,21 @@ analyze(MockCompiler compiler,
   Token tokens = scan(text);
   NodeListener listener = new NodeListener(
       const ScannerOptions(), compiler.reporter, null);
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener, new MockParserOptions());
   parser.parseStatement(tokens);
   Node node = listener.popNode();
   Element compilationUnit =
     new CompilationUnitElementX(new Script(null, null, null), compiler.mainApp);
   Element function = new MockElement(compilationUnit);
   TreeElements elements = compiler.resolveNodeStatement(node, function);
-  compiler.enqueuer.resolution.emptyDeferredTaskQueue();
+  compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
   TypeCheckerVisitor checker = new TypeCheckerVisitor(
       compiler, elements, compiler.types);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
   checker.analyze(node);
   if (flushDeferred) {
-    compiler.enqueuer.resolution.emptyDeferredTaskQueue();
+    compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
   }
   compareWarningKinds(text, warnings, collector.warnings);
   compareWarningKinds(text, errors, collector.errors);
@@ -2601,7 +2602,7 @@ analyzeIn(MockCompiler compiler,
   Token tokens = scan(text);
   NodeListener listener = new NodeListener(
       const ScannerOptions(), compiler.reporter, null);
-  Parser parser = new Parser(listener,
+  Parser parser = new Parser(listener, new MockParserOptions(),
       asyncAwaitKeywordsEnabled: element.asyncMarker != AsyncMarker.SYNC);
   parser.parseStatement(tokens);
   Node node = listener.popNode();

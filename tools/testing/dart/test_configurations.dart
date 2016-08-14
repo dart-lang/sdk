@@ -8,6 +8,7 @@ import "dart:async";
 import 'dart:io';
 import "dart:math" as math;
 
+import 'android.dart';
 import "browser_controller.dart";
 import "co19_test_config.dart";
 import "http_server.dart";
@@ -26,38 +27,36 @@ import "vm_test_config.dart";
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = [
-    new Path('pkg'),
-    new Path('third_party/pkg_tested'),
-    new Path('runtime/tests/vm'),
-    new Path('runtime/observatory/tests/service'),
-    new Path('samples'),
-    new Path('samples-dev'),
-    new Path('tests/benchmark_smoke'),
-    new Path('tests/chrome'),
-    new Path('tests/compiler/dart2js'),
-    new Path('tests/compiler/dart2js_extra'),
-    new Path('tests/compiler/dart2js_native'),
-    new Path('tests/corelib'),
-    new Path('tests/html'),
-    new Path('tests/isolate'),
-    new Path('tests/language'),
-    new Path('tests/lib'),
-    new Path('tests/standalone'),
-    new Path('tests/try'),
-    new Path('tests/utils'),
-    new Path('utils/tests/css'),
-    new Path('utils/tests/peg'),
+  new Path('pkg'),
+  new Path('third_party/pkg_tested'),
+  new Path('runtime/tests/vm'),
+  new Path('runtime/observatory/tests/service'),
+  new Path('runtime/observatory/tests/observatory_ui'),
+  new Path('samples'),
+  new Path('samples-dev'),
+  new Path('tests/benchmark_smoke'),
+  new Path('tests/chrome'),
+  new Path('tests/compiler/dart2js'),
+  new Path('tests/compiler/dart2js_extra'),
+  new Path('tests/compiler/dart2js_native'),
+  new Path('tests/corelib'),
+  new Path('tests/html'),
+  new Path('tests/isolate'),
+  new Path('tests/language'),
+  new Path('tests/lib'),
+  new Path('tests/standalone'),
+  new Path('tests/try'),
+  new Path('tests/utils'),
+  new Path('utils/tests/css'),
+  new Path('utils/tests/peg'),
 ];
 
-void testConfigurations(List<Map> configurations) {
+Future testConfigurations(List<Map> configurations) async {
   var startTime = new DateTime.now();
   // Extract global options from first configuration.
   var firstConf = configurations[0];
   var maxProcesses = firstConf['tasks'];
   var progressIndicator = firstConf['progress'];
-  // TODO(kustermann): Remove this option once the buildbots don't use it
-  // anymore.
-  var failureSummary = firstConf['failure-summary'];
   BuildbotProgressIndicator.stepName = firstConf['step_name'];
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
@@ -68,17 +67,19 @@ void testConfigurations(List<Map> configurations) {
   var recordingPath = firstConf['record_to_file'];
   var recordingOutputPath = firstConf['replay_from_file'];
 
-  Browser.deleteCache = firstConf['clear_browser_cache'];
+  Browser.resetBrowserConfiguration = firstConf['reset_browser_configuration'];
 
   if (recordingPath != null && recordingOutputPath != null) {
     print("Fatal: Can't have the '--record_to_file' and '--replay_from_file'"
-          "at the same time. Exiting ...");
+        "at the same time. Exiting ...");
     exit(1);
   }
 
-  if (!firstConf['append_logs'])  {
-    var files = [new File(TestUtils.flakyFileName()),
-                 new File(TestUtils.testOutcomeFileName())];
+  if (!firstConf['append_logs']) {
+    var files = [
+      new File(TestUtils.flakyFileName()),
+      new File(TestUtils.testOutcomeFileName())
+    ];
     for (var file in files) {
       if (file.existsSync()) {
         file.deleteSync();
@@ -86,19 +87,23 @@ void testConfigurations(List<Map> configurations) {
     }
   }
 
-  DebugLogger.init(firstConf['write_debug_log'] ?
-      TestUtils.debugLogfile() : null, append: firstConf['append_logs']);
+  DebugLogger.init(
+      firstConf['write_debug_log'] ? TestUtils.debugLogfile() : null,
+      append: firstConf['append_logs']);
 
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator
   // is used. This is only needed because of the junit tests.
   if (progressIndicator != 'silent') {
-    List output_words = configurations.length > 1 ?
-        ['Test configurations:'] : ['Test configuration:'];
+    List output_words = configurations.length > 1
+        ? ['Test configurations:']
+        : ['Test configuration:'];
     for (Map conf in configurations) {
       List settings = ['compiler', 'runtime', 'mode', 'arch']
-          .map((name) => conf[name]).toList();
+          .map((name) => conf[name])
+          .toList();
       if (conf['checked']) settings.add('checked');
+      if (conf['strong']) settings.add('strong');
       if (conf['noopt']) settings.add('noopt');
       output_words.add(settings.join('_'));
     }
@@ -114,9 +119,9 @@ void testConfigurations(List<Map> configurations) {
   var maxBrowserProcesses = maxProcesses;
   if (configurations.length > 1 &&
       (configurations[0]['test_server_port'] != 0 ||
-       configurations[0]['test_server_cross_origin_port'] != 0)) {
+          configurations[0]['test_server_cross_origin_port'] != 0)) {
     print("If the http server ports are specified, only one configuration"
-          " may be run at a time");
+        " may be run at a time");
     exit(1);
   }
   for (var conf in configurations) {
@@ -127,11 +132,12 @@ void testConfigurations(List<Map> configurations) {
       // The http server is available on window.location.port, and a second
       // server for cross-domain tests can be found by calling
       // getCrossOriginPortNumber().
-      var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
-                                       useContentSecurityPolicy,
-                                       conf['runtime'],
-                                       null,
-                                       conf['package_root']);
+      var servers = new TestingServers(
+          new Path(TestUtils.buildDir(conf)),
+          useContentSecurityPolicy,
+          conf['runtime'],
+          null,
+          conf['package_root']);
       serverFutures.add(servers.startServers(conf['local_ip'],
           port: conf['test_server_port'],
           crossOriginPort: conf['test_server_cross_origin_port']));
@@ -158,7 +164,7 @@ void testConfigurations(List<Map> configurations) {
       // for mobile safari simultainiously.
       maxBrowserProcesses = 1;
     } else if (conf['runtime'] == 'chrome' &&
-               Platform.operatingSystem == 'macos') {
+        Platform.operatingSystem == 'macos') {
       // Chrome on mac results in random timeouts.
       // Issue: https://github.com/dart-lang/sdk/issues/23891
       // This change does not fix the problem.
@@ -176,12 +182,19 @@ void testConfigurations(List<Map> configurations) {
       var suite_path = new Path(conf['suite_dir']);
       testSuites.add(new PKGTestSuite(conf, suite_path));
     } else {
+      for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
+        final name = testSuiteDir.filename;
+        if (selectors.containsKey(name)) {
+          testSuites
+              .add(new StandardTestSuite.forDirectory(conf, testSuiteDir));
+        }
+      }
       for (String key in selectors.keys) {
         if (key == 'co19') {
           testSuites.add(new Co19TestSuite(conf));
         } else if (conf['compiler'] == 'none' &&
-                   conf['runtime'] == 'vm' &&
-                   key == 'vm') {
+            conf['runtime'] == 'vm' &&
+            key == 'vm') {
           // vm tests contain both cc tests (added here) and dart tests (added
           // in [TEST_SUITE_DIRECTORIES]).
           testSuites.add(new VMTestSuite(conf));
@@ -190,29 +203,21 @@ void testConfigurations(List<Map> configurations) {
             testSuites.add(new AnalyzeLibraryTestSuite(conf));
           }
         } else if (conf['compiler'] == 'none' &&
-                   conf['runtime'] == 'vm' &&
-                   key == 'pkgbuild') {
+            conf['runtime'] == 'vm' &&
+            key == 'pkgbuild') {
           if (!conf['use_repository_packages'] &&
               !conf['use_public_packages']) {
             print("You need to use either --use-repository-packages or "
-                  "--use-public-packages with the pkgbuild test suite!");
+                "--use-public-packages with the pkgbuild test suite!");
             exit(1);
           }
           if (!conf['use_sdk']) {
             print("Running the 'pkgbuild' test suite requires "
-                  "passing the '--use-sdk' to test.py");
+                "passing the '--use-sdk' to test.py");
             exit(1);
           }
           testSuites.add(
               new PkgBuildTestSuite(conf, 'pkgbuild', 'pkg/pkgbuild.status'));
-        }
-      }
-
-      for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
-        final name = testSuiteDir.filename;
-        if (selectors.containsKey(name)) {
-          testSuites.add(
-              new StandardTestSuite.forDirectory(conf, testSuiteDir));
         }
       }
     }
@@ -252,9 +257,8 @@ void testConfigurations(List<Map> configurations) {
       var printFailureSummary = progressIndicator != 'buildbot';
       eventListener.add(new TestFailurePrinter(printFailureSummary, formatter));
     }
-    eventListener.add(progressIndicatorFromName(progressIndicator,
-                                                startTime,
-                                                formatter));
+    eventListener.add(
+        progressIndicatorFromName(progressIndicator, startTime, formatter));
     if (printTiming) {
       eventListener.add(new TimingPrinter(startTime));
     }
@@ -274,27 +278,37 @@ void testConfigurations(List<Map> configurations) {
     eventListener.add(new SummaryPrinter(jsonOnly: reportInJson));
   } else {
     eventListener.add(new ExitCodeSetter());
+    eventListener.add(new IgnoredTestMonitor());
   }
 
-  void startProcessQueue() {
-    // [firstConf] is needed here, since the ProcessQueue needs to know the
-    // settings of 'noBatch' and 'local_ip'
-    new ProcessQueue(firstConf,
-                     maxProcesses,
-                     maxBrowserProcesses,
-                     startTime,
-                     testSuites,
-                     eventListener,
-                     allTestsFinished,
-                     verbose,
-                     recordingPath,
-                     recordingOutputPath);
+  // If any of the configurations need to access android devices we'll first
+  // make a pool of all available adb devices.
+  AdbDevicePool adbDevicePool;
+  bool needsAdbDevicePool = configurations.any((Map conf) {
+    return conf['runtime'] == 'dart_precompiled' &&
+           conf['system'] == 'android';
+  });
+  if (needsAdbDevicePool) {
+    adbDevicePool = await AdbDevicePool.create();
   }
 
   // Start all the HTTP servers required before starting the process queue.
-  if (serverFutures.isEmpty) {
-    startProcessQueue();
-  } else {
-    Future.wait(serverFutures).then((_) => startProcessQueue());
+  if (!serverFutures.isEmpty) {
+    await Future.wait(serverFutures);
   }
+
+  // [firstConf] is needed here, since the ProcessQueue needs to know the
+  // settings of 'noBatch' and 'local_ip'
+  new ProcessQueue(
+      firstConf,
+      maxProcesses,
+      maxBrowserProcesses,
+      startTime,
+      testSuites,
+      eventListener,
+      allTestsFinished,
+      verbose,
+      recordingPath,
+      recordingOutputPath,
+      adbDevicePool);
 }

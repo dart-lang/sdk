@@ -4,69 +4,58 @@
 
 library script_ref_element;
 
-import 'package:polymer/polymer.dart';
-import 'package:observatory/service.dart';
-import 'service_ref.dart';
+import 'dart:html';
+import 'dart:async';
+import 'package:observatory/models.dart' as M show IsolateRef, ScriptRef;
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 
-@CustomTag('script-ref')
-class ScriptRefElement extends ServiceRefElement {
-  @published int pos;
+class ScriptRefElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<ScriptRefElement>('script-ref-wrapped');
 
-  String get hoverText {
-    if (ref == null) {
-      return super.hoverText;
-    }
-    return ref.vmName;
-  }
+  RenderingScheduler _r;
 
-  void posChanged(oldValue) {
-    _updateProperties(null);
-  }
+  Stream<RenderedEvent<ScriptRefElement>> get onRendered => _r.onRendered;
 
-  void _updateProperties(_) {
-    if (ref != null && ref.loaded) {
-      notifyPropertyChange(#name, 0, 1);
-      notifyPropertyChange(#url, 0, 1);
-    }
-  }
 
-  String get name {
-    if (ref == null) {
-      return super.name;
-    }
-    if ((pos != null) && (pos >= 0)) {
-      if (ref.loaded) {
-        // Script is loaded, get the line number.
-        Script script = ref;
-        return '${super.name}:${script.tokenToLine(pos)}:'
-            '${script.tokenToCol(pos)}';
-      } else {
-        ref.load().then(_updateProperties);
-      }
-    }
-    return super.name;
-  }
+  M.IsolateRef _isolate;
+  M.ScriptRef _script;
 
-  String get url {
-    if (ref == null) {
-      return super.url;
-    }
-    if ((pos != null) && (pos >= 0)) {
-      if (ref.loaded) {
-        return '${super.url}---pos=${pos}';
-      } else {
-        ref.load().then(_updateProperties);
-      }
-    }
-    return super.url;
+  M.IsolateRef get isolate => _isolate;
+  M.ScriptRef get script => _script;
+
+  factory ScriptRefElement(M.IsolateRef isolate, M.ScriptRef script,
+                           {RenderingQueue queue}) {
+    assert(isolate != null);
+    assert(script != null);
+    ScriptRefElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._isolate = isolate;
+    e._script = script;
+    return e;
   }
 
   ScriptRefElement.created() : super.created();
-}
 
-@CustomTag('source-link')
-class SourceLinkElement extends PolymerElement {
-  SourceLinkElement.created() : super.created();
+  @override
+  void attached() {
+    super.attached();
+    _r.enable();
+  }
 
-  @published SourceLocation location;
+  @override
+  void detached() {
+    super.detached();
+    children = [];
+    _r.disable(notify: true);
+  }
+
+  void render() {
+    children = [
+      new AnchorElement(href: Uris.inspect(isolate, object: script))
+        ..title = script.uri
+        ..text = script.uri.split('/').last
+    ];
+  }
 }

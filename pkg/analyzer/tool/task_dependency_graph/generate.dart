@@ -26,11 +26,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as path;
@@ -42,8 +42,11 @@ import 'package:path/path.dart';
 main() {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = normalize(join(dirname(script), '..', '..'));
-  GeneratedContent.generateAll(pkgPath, <GeneratedContent>[target]);
+  GeneratedContent.generateAll(pkgPath, <GeneratedContent>[target, htmlTarget]);
 }
+
+final GeneratedFile htmlTarget = new GeneratedFile(
+    'doc/tasks.html', (String pkgPath) => new Driver(pkgPath).generateHtml());
 
 final GeneratedFile target = new GeneratedFile(
     'tool/task_dependency_graph/tasks.dot',
@@ -52,6 +55,7 @@ final GeneratedFile target = new GeneratedFile(
 typedef void GetterFinderCallback(PropertyAccessorElement element);
 
 class Driver {
+  static bool hasInitializedPlugins = false;
   PhysicalResourceProvider resourceProvider;
   AnalysisContext context;
   InterfaceType resultDescriptorType;
@@ -59,6 +63,7 @@ class Driver {
   ClassElement enginePluginClass;
   CompilationUnitElement taskUnitElement;
   InterfaceType extensionPointIdType;
+
   final String rootDir;
 
   Driver(String pkgPath) : rootDir = new Directory(pkgPath).absolute.path;
@@ -121,10 +126,32 @@ class Driver {
    * Generate the task dependency graph and return it as a [String].
    */
   String generateFileContents() {
-    AnalysisEngine.instance.processRequiredPlugins();
+    return '''
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+// This file has been automatically generated.  Please do not edit it manually.
+// To regenerate the file, use the script
+// "pkg/analyzer/tool/task_dependency_graph/generate.dart".
+//
+// To render this graph using Graphviz (www.graphviz.org) use the command:
+// "dot tasks.dot -Tpdf -O".
+digraph G {
+${generateGraphData()}
+}
+''';
+  }
+
+  String generateGraphData() {
+    if (!hasInitializedPlugins) {
+      AnalysisEngine.instance.processRequiredPlugins();
+      hasInitializedPlugins = true;
+    }
     List<String> lines = <String>[];
     resourceProvider = PhysicalResourceProvider.INSTANCE;
-    DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
+    DartSdk sdk = new FolderBasedDartSdk(resourceProvider,
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
     context = AnalysisEngine.instance.createAnalysisContext();
     String packageRootPath;
     if (Platform.packageRoot != null) {
@@ -136,7 +163,7 @@ class Driver {
     List<UriResolver> uriResolvers = [
       new DartUriResolver(sdk),
       new PackageUriResolver(<JavaFile>[packagesDir]),
-      new FileUriResolver()
+      new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
     ];
     context.sourceFactory = new SourceFactory(uriResolvers);
     Source dartDartSource =
@@ -197,20 +224,32 @@ class Driver {
       lines.add('  $result [shape=box]');
     }
     lines.sort();
+    return lines.join('\n');
+  }
+
+  String generateHtml() {
     return '''
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-//
-// This file has been automatically generated.  Please do not edit it manually.
-// To regenerate the file, use the script
-// "pkg/analyzer/tool/task_dependency_graph/generate.dart".
-//
-// To render this graph using Graphviz (www.graphviz.org) use the command:
-// "dot tasks.dot -Tpdf -O".
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analysis Task Dependency Graph</title>
+    <link rel="stylesheet" href="support/style.css">
+    <script src="support/viz.js"></script>
+    <script type="application/dart" src="support/web_app.dart.js"></script>
+    <script src="support/dart.js"></script>
+</head>
+<body>
+<button id="zoomBtn">Zoom</button>
+<script type="text/vnd.graphviz" id="dot">
 digraph G {
-${lines.join('\n')}
+  tooltip="Analysis Task Dependency Graph";
+  node [fontname=Helvetica];
+  edge [fontname=Helvetica, fontcolor=gray];
+${generateGraphData()}
 }
+</script>
+</body>
+</html>
 ''';
   }
 

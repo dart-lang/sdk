@@ -8,10 +8,9 @@
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
 
-#include "bin/fdutils.h"
 #include "bin/crypto.h"
+#include "bin/fdutils.h"
 #include "platform/signal_blocker.h"
-
 
 namespace dart {
 namespace bin {

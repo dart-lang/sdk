@@ -43,7 +43,7 @@ set ANALYZER=%DART_ROOT%\pkg\analyzer_cli\bin\analyzer.dart
 rem DART_CONFIGURATION defaults to ReleaseX64
 if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseX64
 
-set BUILD_DIR=%DART_ROOT%\build\%DART_CONFIGURATION%
+set BUILD_DIR=%DART_ROOT%\out\%DART_CONFIGURATION%
 
 set PACKAGE_ROOT=%BUILD_DIR%\packages
 
@@ -57,7 +57,7 @@ rem Follow the symbolic links (junctions points) using `dir to determine the
 rem canonical path. Output with a link looks something like this
 rem
 rem 01/03/2013  10:11 PM    <JUNCTION>     abc def
-rem [c:\dart_bleeding\dart-repo.9\dart\build\ReleaseIA32\dart-sdk]
+rem [c:\dart_bleeding\dart-repo.9\dart\out\ReleaseIA32\dart-sdk]
 rem
 rem So in the output of 'dir /a:l "targetdir"' we are looking for a filename
 rem surrounded by right angle bracket and left square bracket. Once we get
@@ -67,7 +67,7 @@ setlocal
 for %%i in (%1) do set result=%%~fi
 set current=
 for /f "usebackq tokens=2 delims=[]" %%i in (`dir /a:l "%~dp1" 2^>nul ^
-                                             ^| find ">     %~n1 ["`) do (
+                                             ^| %SystemRoot%\System32\find.exe ">     %~n1 ["`) do (
   set current=%%i
 )
 if not "%current%"=="" call :follow_links "%current%", result

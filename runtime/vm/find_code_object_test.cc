@@ -13,15 +13,20 @@
 
 namespace dart {
 
-VM_TEST_CASE(FindCodeObject) {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-  const int kLoopCount = 50000;
+static const int kScriptSize = 512 * KB;
+static const int kLoopCount = 50000;
+#elif defined(TARGET_ARCH_DBC)
+static const int kScriptSize = 1 * MB;
+static const int kLoopCount = 60000;
 #else
-  const int kLoopCount = 25000;
+static const int kScriptSize = 512 * KB;
+static const int kLoopCount = 25000;
 #endif
-  const int kScriptSize = 512 * KB;
+static char scriptChars[kScriptSize];
+
+VM_TEST_CASE(FindCodeObject) {
   const int kNumFunctions = 1024;
-  char scriptChars[kScriptSize];
 
   // Get access to the code index table.
   Isolate* isolate = Isolate::Current();
@@ -55,7 +60,7 @@ VM_TEST_CASE(FindCodeObject) {
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kScriptTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  clsA = lib.LookupClass(String::Handle(Symbols::New("A")));
+  clsA = lib.LookupClass(String::Handle(Symbols::New(thread, "A")));
   EXPECT(!clsA.IsNull());
   ClassFinalizer::ProcessPendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
@@ -105,7 +110,7 @@ VM_TEST_CASE(FindCodeObject) {
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kScriptTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  clsB = lib.LookupClass(String::Handle(Symbols::New("B")));
+  clsB = lib.LookupClass(String::Handle(Symbols::New(thread, "B")));
   EXPECT(!clsB.IsNull());
   ClassFinalizer::ProcessPendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
@@ -128,7 +133,7 @@ VM_TEST_CASE(FindCodeObject) {
   EXPECT(!function.IsNull());
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
-  pc = code.EntryPoint() + 16;
+  pc = code.PayloadStart() + 16;
   EXPECT(Code::LookupCode(pc) == code.raw());
 
   OS::SNPrint(buffer, 256, "moo%d", 54);
@@ -137,7 +142,7 @@ VM_TEST_CASE(FindCodeObject) {
   EXPECT(!function.IsNull());
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
-  pc = code.EntryPoint() + 16;
+  pc = code.PayloadStart() + 16;
   EXPECT(Code::LookupCode(pc) == code.raw());
 
   // Lookup the large function
@@ -147,11 +152,11 @@ VM_TEST_CASE(FindCodeObject) {
   EXPECT(!function.IsNull());
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
-  pc = code.EntryPoint() + 16;
+  pc = code.PayloadStart() + 16;
   EXPECT(code.Size() > (PageSpace::kPageSizeInWords << kWordSizeLog2));
   EXPECT(Code::LookupCode(pc) == code.raw());
   EXPECT(code.Size() > (1 * MB));
-  pc = code.EntryPoint() + (1 * MB);
+  pc = code.PayloadStart() + (1 * MB);
   EXPECT(Code::LookupCode(pc) == code.raw());
 }
 

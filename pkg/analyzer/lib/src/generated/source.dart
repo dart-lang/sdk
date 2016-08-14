@@ -14,7 +14,8 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
+import 'package:analyzer/src/generated/source_io.dart'
+    show FileBasedSource, PackageUriResolver;
 import 'package:analyzer/task/model.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
@@ -111,7 +112,7 @@ class CustomUriResolver extends UriResolver {
     if (!fileUri.isAbsolute) return null;
 
     JavaFile javaFile = new JavaFile.fromUri(fileUri);
-    return new FileBasedSource(javaFile, actualUri != null ? actualUri : uri);
+    return new FileBasedSource(javaFile, actualUri ?? uri);
   }
 }
 
@@ -183,19 +184,19 @@ class LineInfo {
    * A list containing the offsets of the first character of each line in the
    * source code.
    */
-  final List<int> _lineStarts;
+  final List<int> lineStarts;
 
   /**
-   * The zero-based [_lineStarts] index resulting from the last call to
+   * The zero-based [lineStarts] index resulting from the last call to
    * [getLocation].
    */
   int _previousLine = 0;
 
   /**
    * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [_lineStarts].
+   * encoded in the given list of [lineStarts].
    */
-  factory LineInfo(List<int> _lineStarts) => new LineInfoWithCount(_lineStarts);
+  factory LineInfo(List<int> lineStarts) => new LineInfoWithCount(lineStarts);
 
   /**
    * Initialize a newly created set of line information corresponding to the
@@ -206,34 +207,39 @@ class LineInfo {
 
   /**
    * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [_lineStarts].
+   * encoded in the given list of [lineStarts].
    */
-  LineInfo._(this._lineStarts) {
-    if (_lineStarts == null) {
+  LineInfo._(this.lineStarts) {
+    if (lineStarts == null) {
       throw new IllegalArgumentException("lineStarts must be non-null");
-    } else if (_lineStarts.length < 1) {
+    } else if (lineStarts.length < 1) {
       throw new IllegalArgumentException("lineStarts must be non-empty");
     }
   }
+
+  /**
+   * The number of lines.
+   */
+  int get lineCount => lineStarts.length;
 
   /**
    * Return the location information for the character at the given [offset].
    */
   LineInfo_Location getLocation(int offset) {
     var min = 0;
-    var max = _lineStarts.length - 1;
+    var max = lineStarts.length - 1;
 
     // Subsequent calls to [getLocation] are often for offsets near each other.
     // To take advantage of that, we cache the index of the line start we found
     // when this was last called. If the current offset is on that line or
     // later, we'll skip those early indices completely when searching.
-    if (offset >= _lineStarts[_previousLine]) {
+    if (offset >= lineStarts[_previousLine]) {
       min = _previousLine;
 
       // Before kicking off a full binary search, do a quick check here to see
       // if the new offset is on that exact line.
-      if (min == _lineStarts.length - 1 || offset < _lineStarts[min + 1]) {
-        return new LineInfo_Location(min + 1, offset - _lineStarts[min] + 1);
+      if (min == lineStarts.length - 1 || offset < lineStarts[min + 1]) {
+        return new LineInfo_Location(min + 1, offset - lineStarts[min] + 1);
       }
     }
 
@@ -241,7 +247,7 @@ class LineInfo {
     while (min < max) {
       var midpoint = (max - min + 1) ~/ 2 + min;
 
-      if (_lineStarts[midpoint] > offset) {
+      if (lineStarts[midpoint] > offset) {
         max = midpoint - 1;
       } else {
         min = midpoint;
@@ -250,7 +256,7 @@ class LineInfo {
 
     _previousLine = min;
 
-    return new LineInfo_Location(min + 1, offset - _lineStarts[min] + 1);
+    return new LineInfo_Location(min + 1, offset - lineStarts[min] + 1);
   }
 
   /**
@@ -258,10 +264,11 @@ class LineInfo {
    * [lineNumber].
    */
   int getOffsetOfLine(int lineNumber) {
-    if (lineNumber < 0 || lineNumber >= _lineStarts.length) {
-      throw new ArgumentError('Invalid line number: $lineNumber');
+    if (lineNumber < 0 || lineNumber >= lineCount) {
+      throw new ArgumentError(
+          'Invalid line number: $lineNumber; must be between 0 and ${lineCount - 1}');
     }
-    return _lineStarts[lineNumber];
+    return lineStarts[lineNumber];
   }
 }
 
@@ -303,14 +310,9 @@ class LineInfo_Location {
 class LineInfoWithCount extends LineInfo {
   /**
    * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [_lineStarts].
+   * encoded in the given list of [lineStarts].
    */
-  LineInfoWithCount(List<int> _lineStarts) : super._(_lineStarts);
-
-  /**
-   * Return the number of lines in the file.
-   */
-  int get lineCount => _lineStarts.length;
+  LineInfoWithCount(List<int> lineStarts) : super._(lineStarts);
 }
 
 /**
@@ -404,11 +406,6 @@ class NonExistingSource extends Source {
 
   @override
   bool exists() => false;
-
-  @override
-  Uri resolveRelativeUri(Uri relativeUri) {
-    throw new UnsupportedOperationException('$fullName does not exist.');
-  }
 }
 
 /**
@@ -440,7 +437,7 @@ abstract class Source implements AnalysisTarget {
   /**
    * Get the contents and timestamp of this source.
    *
-   * Clients should consider using the the method [AnalysisContext.getContents]
+   * Clients should consider using the method [AnalysisContext.getContents]
    * because contexts can have local overrides of the content of a source that the source is not
    * aware of.
    *
@@ -483,6 +480,9 @@ abstract class Source implements AnalysisTarget {
    */
   bool get isInSystemLibrary;
 
+  @override
+  Source get librarySource => null;
+
   /**
    * Return the modification stamp for this source, or a negative value if the
    * source does not exist. A modification stamp is a non-negative integer with
@@ -491,7 +491,7 @@ abstract class Source implements AnalysisTarget {
    * will be returned, but if the contents of the source have been modified one
    * or more times (even if the net change is zero) the stamps will be different.
    *
-   * Clients should consider using the the method
+   * Clients should consider using the method
    * [AnalysisContext.getModificationStamp] because contexts can have local
    * overrides of the content of a source that the source is not aware of.
    */
@@ -540,28 +540,13 @@ abstract class Source implements AnalysisTarget {
   /**
    * Return `true` if this source exists.
    *
-   * Clients should consider using the the method [AnalysisContext.exists] because
+   * Clients should consider using the method [AnalysisContext.exists] because
    * contexts can have local overrides of the content of a source that the source is not aware of
    * and a source with local content is considered to exist even if there is no file on disk.
    *
    * @return `true` if this source exists
    */
   bool exists();
-
-  /**
-   * Resolve the relative URI against the URI associated with this source object.
-   *
-   * Note: This method is not intended for public use, it is only visible out of necessity. It is
-   * only intended to be invoked by a [SourceFactory]. Source factories will
-   * only invoke this method if the URI is relative, so implementations of this method are not
-   * required to, and generally do not, verify the argument. The result of invoking this method with
-   * an absolute URI is intentionally left unspecified.
-   *
-   * @param relativeUri the relative URI to be resolved against this source
-   * @return the URI to which given URI was resolved
-   * @throws AnalysisException if the relative URI could not be resolved
-   */
-  Uri resolveRelativeUri(Uri relativeUri);
 }
 
 /**
@@ -770,12 +755,10 @@ class SourceRange {
   int get hashCode => 31 * offset + length;
 
   @override
-  bool operator ==(Object obj) {
-    if (obj is! SourceRange) {
-      return false;
-    }
-    SourceRange sourceRange = obj as SourceRange;
-    return sourceRange.offset == offset && sourceRange.length == length;
+  bool operator ==(Object other) {
+    return other is SourceRange &&
+        other.offset == offset &&
+        other.length == length;
   }
 
   /**
@@ -911,6 +894,20 @@ class UriKind extends Enum<UriKind> {
       break;
     }
     return null;
+  }
+
+  /**
+   * Return the URI kind corresponding to the given scheme string.
+   */
+  static UriKind fromScheme(String scheme) {
+    if (scheme == PackageUriResolver.PACKAGE_SCHEME) {
+      return UriKind.PACKAGE_URI;
+    } else if (scheme == DartUriResolver.DART_SCHEME) {
+      return UriKind.DART_URI;
+    } else if (scheme == ResourceUriResolver.FILE_SCHEME) {
+      return UriKind.FILE_URI;
+    }
+    return UriKind.FILE_URI;
   }
 }
 

@@ -46,6 +46,8 @@ class AotOptimizer : public FlowGraphVisitor {
   // Merge instructions (only per basic-block).
   void TryOptimizePatterns();
 
+  void ReplaceArrayBoundChecks();
+
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitLoadCodeUnits(LoadCodeUnitsInstr* instr);
@@ -62,8 +64,6 @@ class AotOptimizer : public FlowGraphVisitor {
   bool TryCreateICData(InstanceCallInstr* call);
   const ICData& TrySpecializeICData(const ICData& ic_data, intptr_t cid);
 
-  void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
-
   bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
@@ -72,6 +72,7 @@ class AotOptimizer : public FlowGraphVisitor {
   bool TryReplaceWithEqualityOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithRelationalOp(InstanceCallInstr* call, Token::Kind op_kind);
 
+  bool TryInlineFieldAccess(InstanceCallInstr* call);
   bool TryInlineInstanceGetter(InstanceCallInstr* call);
   bool TryInlineInstanceSetter(InstanceCallInstr* call,
                                const ICData& unary_ic_data);
@@ -165,7 +166,7 @@ class AotOptimizer : public FlowGraphVisitor {
 
   const Function& function() const { return flow_graph_->function(); }
 
-  bool IsBlackListedForInlining(intptr_t deopt_id);
+  bool IsAllowedForInlining(intptr_t deopt_id);
 
   FlowGraph* flow_graph_;
 

@@ -11,6 +11,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
+#include "vm/clustered_snapshot.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/stack_frame.h"
@@ -138,7 +139,7 @@ BENCHMARK(CorelibCompilerStats) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   TransitionNativeToVM transition(thread);
-  CompilerStats* stats = thread->isolate()->compiler_stats();
+  CompilerStats* stats = thread->isolate()->aggregate_compiler_stats();
   ASSERT(stats != NULL);
   stats->EnableBenchmark();
   Timer timer(true, "Compiler stats compiling all of Core lib");
@@ -174,7 +175,7 @@ BENCHMARK(Dart2JSCompilerStats) {
         reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
     EXPECT_VALID(lib);
   }
-  CompilerStats* stats = thread->isolate()->compiler_stats();
+  CompilerStats* stats = thread->isolate()->aggregate_compiler_stats();
   ASSERT(stats != NULL);
   stats->EnableBenchmark();
   Timer timer(true, "Compile all of dart2js benchmark");
@@ -524,15 +525,14 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kCore,
+                            &vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer,
-                            NULL, /* instructions_snapshot_buffer */
                             &malloc_allocator,
-                            false, /* snapshot_code */
-                            true /* vm_isolate_is_symbolic */);
+                            NULL /* instructions_writer */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
-  ASSERT(snapshot->kind() == Snapshot::kFull);
+  ASSERT(snapshot->kind() == Snapshot::kCore);
   benchmark->set_score(snapshot->length());
 }
 
@@ -561,15 +561,14 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kCore,
+                            &vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer,
-                            NULL, /* instructions_snapshot_buffer */
                             &malloc_allocator,
-                            false, /* snapshot_code */
-                            true /* vm_isolate_is_symbolic */);
+                            NULL /* instructions_writer */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
-  ASSERT(snapshot->kind() == Snapshot::kFull);
+  ASSERT(snapshot->kind() == Snapshot::kCore);
   benchmark->set_score(snapshot->length());
 }
 

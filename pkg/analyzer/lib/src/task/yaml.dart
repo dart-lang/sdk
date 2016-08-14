@@ -6,7 +6,7 @@ library analyzer.src.task.yaml;
 
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -100,7 +100,7 @@ class ParseYamlTask extends SourceBasedAnalysisTask {
    * input descriptors describing those inputs for a task with the given
    * [source].
    */
-  static Map<String, TaskInput> buildInputs(Source source) {
+  static Map<String, TaskInput> buildInputs(AnalysisTarget source) {
     return <String, TaskInput>{CONTENT_INPUT_NAME: CONTENT.of(source)};
   }
 

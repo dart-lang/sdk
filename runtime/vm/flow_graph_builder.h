@@ -140,6 +140,10 @@ class FlowGraphBuilder : public ValueObject {
 
   void AddCatchEntry(CatchBlockEntryInstr* entry);
 
+  GraphEntryInstr* graph_entry() const {
+    return graph_entry_;
+  }
+
   intptr_t num_copied_params() const {
     return num_copied_params_;
   }
@@ -432,8 +436,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   // Helpers for allocating and deallocating temporary locals on top of the
   // expression stack.
-  LocalVariable* EnterTempLocalScope(Value* value, TokenPosition token_pos);
-  Definition* ExitTempLocalScope(LocalVariable* var, TokenPosition token_pos);
+  LocalVariable* EnterTempLocalScope(Value* value);
+  Definition* ExitTempLocalScope(Value* value);
 
   void BuildLetTempExpressions(LetNode* node);
 

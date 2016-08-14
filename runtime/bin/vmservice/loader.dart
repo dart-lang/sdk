@@ -4,6 +4,311 @@
 
 part of vmservice_io;
 
+_sanitizeWindowsPath(path) {
+  // For Windows we need to massage the paths a bit according to
+  // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
+  //
+  // Convert
+  // C:\one\two\three
+  // to
+  // /C:/one/two/three
+
+  if (_isWindows == false) {
+    // Do nothing when not running Windows.
+    return path;
+  }
+
+  var fixedPath = "${path.replaceAll('\\', '/')}";
+
+  if ((path.length > 2) && (path[1] == ':')) {
+    // Path begins with a drive letter.
+    return '/$fixedPath';
+  }
+
+  return fixedPath;
+}
+
+_trimWindowsPath(path) {
+  // Convert /X:/ to X:/.
+  if (_isWindows == false) {
+    // Do nothing when not running Windows.
+    return path;
+  }
+  if (!path.startsWith('/') || (path.length < 3)) {
+    return path;
+  }
+  // Match '/?:'.
+  if ((path[0] == '/') && (path[2] == ':')) {
+    // Remove leading '/'.
+    return path.substring(1);
+  }
+  return path;
+}
+
+// Ensure we have a trailing slash character.
+_enforceTrailingSlash(uri) {
+  if (!uri.endsWith('/')) {
+    return '$uri/';
+  }
+  return uri;
+}
+
+// State associated with the isolate that is used for loading.
+class IsolateLoaderState extends IsolateEmbedderData {
+  IsolateLoaderState(this.isolateId);
+
+  final int isolateId;
+
+  SendPort sp;
+
+  void init(String packageRootFlag,
+            String packagesConfigFlag,
+            String workingDirectory,
+            String rootScript) {
+    // _workingDirectory must be set first.
+    _workingDirectory = new Uri.directory(workingDirectory);
+    if (rootScript != null) {
+      _rootScript = Uri.parse(rootScript);
+    }
+    // If the --package-root flag was passed.
+    if (packageRootFlag != null) {
+      _setPackageRoot(packageRootFlag);
+    }
+    // If the --packages flag was passed.
+    if (packagesConfigFlag != null) {
+      _setPackagesConfig(packagesConfigFlag);
+    }
+  }
+
+  void cleanup() {
+    if (_packagesPort != null) {
+      _packagesPort.close();
+      _packagesPort = null;
+    }
+  }
+
+  // The working directory when the embedder started.
+  Uri _workingDirectory;
+
+  // The root script's uri.
+  Uri _rootScript;
+
+  bool _traceLoading = false;
+
+  // Packages are either resolved looking up in a map or resolved from within a
+  // package root.
+  bool get _packagesReady => (_packageRoot != null) ||
+                             (_packageMap != null) ||
+                             (_packageError != null);
+
+  // Error string set if there was an error resolving package configuration.
+  // For example not finding a .packages file or packages/ directory, malformed
+  // .packages file or any other related error.
+  String _packageError = null;
+
+  // The directory to look in to resolve "package:" scheme URIs. By default it
+  // is the 'packages' directory right next to the script.
+  Uri _packageRoot = null;
+
+  // The map describing how certain package names are mapped to Uris.
+  Uri _packageConfig = null;
+  Map<String, Uri> _packageMap = null;
+
+  _setPackageRoot(String packageRoot) {
+    packageRoot = _sanitizeWindowsPath(packageRoot);
+    if (packageRoot.startsWith('file:') ||
+        packageRoot.startsWith('http:') ||
+        packageRoot.startsWith('https:')) {
+      packageRoot = _enforceTrailingSlash(packageRoot);
+      _packageRoot = _workingDirectory.resolve(packageRoot);
+    } else {
+      packageRoot = _sanitizeWindowsPath(packageRoot);
+      packageRoot = _trimWindowsPath(packageRoot);
+      _packageRoot =
+          _workingDirectory.resolveUri(new Uri.directory(packageRoot));
+    }
+  }
+
+  _setPackagesConfig(String packagesParam) {
+    var packagesName = _sanitizeWindowsPath(packagesParam);
+    var packagesUri = Uri.parse(packagesName);
+    if (packagesUri.scheme == '') {
+      // Script does not have a scheme, assume that it is a path,
+      // resolve it against the working directory.
+      packagesUri = _workingDirectory.resolveUri(packagesUri);
+    }
+    _requestPackagesMap(packagesUri);
+    _pendingPackageLoads.add(() {
+      // Dummy action.
+    });
+  }
+
+  // Handling of access to the package root or package map from user code.
+  _triggerPackageResolution(action) {
+    if (_packagesReady) {
+      // Packages are ready. Execute the action now.
+      action();
+    } else {
+      if (_pendingPackageLoads.isEmpty) {
+        // Package resolution has not been setup yet, and this is the first
+        // request for package resolution & loading.
+        _requestPackagesMap();
+      }
+      // Register the action for when the package resolution is ready.
+      _pendingPackageLoads.add(action);
+    }
+  }
+
+  // A list of callbacks which should be invoked after the package map has been
+  // loaded.
+  List<Function> _pendingPackageLoads = [];
+
+  // Given a uri with a 'package' scheme, return a Uri that is prefixed with
+  // the package root or resolved relative to the package configuration.
+  Uri _resolvePackageUri(Uri uri) {
+    assert(uri.scheme == "package");
+    assert(_packagesReady);
+
+    if (uri.host.isNotEmpty) {
+      var path = '${uri.host}${uri.path}';
+      var right = 'package:$path';
+      var wrong = 'package://$path';
+
+      throw "URIs using the 'package:' scheme should look like "
+            "'$right', not '$wrong'.";
+    }
+
+    var packageNameEnd = uri.path.indexOf('/');
+    if (packageNameEnd == 0) {
+      // Package URIs must have a non-empty package name (not start with "/").
+      throw "URIS using the 'package:' scheme should look like "
+            "'package:packageName${uri.path}', not 'package:${uri.path}'";
+    }
+    if (_traceLoading) {
+      _log('Resolving package with uri path: ${uri.path}');
+    }
+    var resolvedUri;
+    if (_packageError != null) {
+      if (_traceLoading) {
+        _log("Resolving package with pending resolution error: $_packageError");
+      }
+      throw _packageError;
+    } else if (_packageRoot != null) {
+      resolvedUri = _packageRoot.resolve(uri.path);
+    } else {
+      if (packageNameEnd < 0) {
+        // Package URIs must have a path after the package name, even if it's
+        // just "/".
+        throw "URIS using the 'package:' scheme should look like "
+              "'package:${uri.path}/', not 'package:${uri.path}'";
+      }
+      var packageName = uri.path.substring(0, packageNameEnd);
+      var mapping = _packageMap[packageName];
+      if (_traceLoading) {
+        _log("Mapped '$packageName' package to '$mapping'");
+      }
+      if (mapping == null) {
+        throw "No mapping for '$packageName' package when resolving '$uri'.";
+      }
+      var path;
+      assert(uri.path.length > packageName.length);
+      path = uri.path.substring(packageName.length + 1);
+      if (_traceLoading) {
+        _log("Path to be resolved in package: $path");
+      }
+      resolvedUri = mapping.resolve(path);
+    }
+    if (_traceLoading) {
+      _log("Resolved '$uri' to '$resolvedUri'.");
+    }
+    return resolvedUri;
+  }
+
+  RawReceivePort _packagesPort;
+
+  void _requestPackagesMap([Uri packageConfig]) {
+    assert(_packagesPort == null);
+    assert(_rootScript != null);
+    // Create a port to receive the packages map on.
+    _packagesPort = new RawReceivePort(_handlePackagesReply);
+    var sp = _packagesPort.sendPort;
+
+    if (packageConfig != null) {
+      // Explicitly specified .packages path.
+      _handlePackagesRequest(sp,
+                             _traceLoading,
+                             -2,
+                             packageConfig);
+    } else {
+      // Search for .packages or packages/ starting at the root script.
+      _handlePackagesRequest(sp,
+                             _traceLoading,
+                             -1,
+                             _rootScript);
+    }
+
+    if (_traceLoading) {
+      _log("Requested packages map for '$_rootScript'.");
+    }
+  }
+
+  void _handlePackagesReply(msg) {
+    assert(_packagesPort != null);
+    // Make sure to close the _packagePort before any other action.
+    _packagesPort.close();
+    _packagesPort = null;
+
+    if (_traceLoading) {
+      _log("Got packages reply: $msg");
+    }
+    if (msg is String) {
+      if (_traceLoading) {
+        _log("Got failure response on package port: '$msg'");
+      }
+      // Remember the error message.
+      _packageError = msg;
+    } else if (msg is List) {
+      if (msg.length == 1) {
+        if (_traceLoading) {
+          _log("Received package root: '${msg[0]}'");
+        }
+        _packageRoot = Uri.parse(msg[0]);
+      } else {
+        // First entry contains the location of the loaded .packages file.
+        assert((msg.length % 2) == 0);
+        assert(msg.length >= 2);
+        assert(msg[1] == null);
+        _packageConfig = Uri.parse(msg[0]);
+        _packageMap = new Map<String, Uri>();
+        for (var i = 2; i < msg.length; i+=2) {
+          // TODO(iposva): Complain about duplicate entries.
+          _packageMap[msg[i]] = Uri.parse(msg[i+1]);
+        }
+        if (_traceLoading) {
+          _log("Setup package map: $_packageMap");
+        }
+      }
+    } else {
+      _packageError = "Bad type of packages reply: ${msg.runtimeType}";
+      if (_traceLoading) {
+        _log(_packageError);
+      }
+    }
+
+    // Resolve all pending package loads now that we know how to resolve them.
+    while (_pendingPackageLoads.length > 0) {
+      // Order does not matter as we queue all of the requests up right now.
+      var req = _pendingPackageLoads.removeLast();
+      // Call the registered closure, to handle the delayed action.
+      req();
+    }
+    // Reset the pending package loads to empty. So that we eventually can
+    // finish loading.
+    _pendingPackageLoads = [];
+  }
+
+}
+
 _log(msg) {
   print("% $msg");
 }
@@ -11,19 +316,60 @@ _log(msg) {
 var _httpClient;
 
 // Send a response to the requesting isolate.
-void _sendResourceResponse(SendPort sp, int id, dynamic data) {
+void _sendResourceResponse(SendPort sp,
+                           int tag,
+                           Uri uri,
+                           Uri resolvedUri,
+                           String libraryUrl,
+                           dynamic data) {
   assert((data is List<int>) || (data is String));
-  var msg = new List(2);
-  msg[0] = id;
-  msg[1] = data;
+  var msg = new List(5);
+  if (data is String) {
+    // We encountered an error, flip the sign of the tag to indicate that.
+    tag = -tag;
+    if (libraryUrl == null) {
+      data = 'Could not load "$uri": $data';
+    } else {
+      data = 'Could not import "$uri" from "$libraryUrl": $data';
+    }
+  }
+  msg[0] = tag;
+  msg[1] = uri.toString();
+  msg[2] = resolvedUri.toString();
+  msg[3] = libraryUrl;
+  msg[4] = data;
   sp.send(msg);
 }
 
-void _loadHttp(SendPort sp, int id, Uri uri) {
+// Send a response to the requesting isolate.
+void _sendExtensionImportResponse(SendPort sp,
+                                  Uri uri,
+                                  String libraryUrl,
+                                  String resolvedUri) {
+  var msg = new List(5);
+  int tag = _Dart_kImportExtension;
+  if (resolvedUri == null) {
+    // We could not resolve the dart-ext: uri.
+    tag = -tag;
+    resolvedUri = 'Could not resolve "$uri" from "$libraryUrl"';
+  }
+  msg[0] = tag;
+  msg[1] = uri.toString();
+  msg[2] = resolvedUri;
+  msg[3] = libraryUrl;
+  msg[4] = resolvedUri;
+  sp.send(msg);
+}
+
+void _loadHttp(SendPort sp,
+               int tag,
+               Uri uri,
+               Uri resolvedUri,
+               String libraryUrl) {
   if (_httpClient == null) {
     _httpClient = new HttpClient()..maxConnectionsPerHost = 6;
   }
-  _httpClient.getUrl(uri)
+  _httpClient.getUrl(resolvedUri)
     .then((HttpClientRequest request) => request.close())
     .then((HttpClientResponse response) {
       var builder = new BytesBuilder(copy: false);
@@ -31,37 +377,48 @@ void _loadHttp(SendPort sp, int id, Uri uri) {
           builder.add,
           onDone: () {
             if (response.statusCode != 200) {
-              var msg = "Failure getting $uri:\n"
+              var msg = "Failure getting $resolvedUri:\n"
                         "  ${response.statusCode} ${response.reasonPhrase}";
-              _sendResourceResponse(sp, id, msg);
+              _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, msg);
             } else {
-              _sendResourceResponse(sp, id, builder.takeBytes());
+              _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl,
+                                    builder.takeBytes());
             }
           },
           onError: (e) {
-            _sendResourceResponse(sp, id, e.toString());
+            _sendResourceResponse(
+                sp, tag, uri, resolvedUri, libraryUrl, e.toString());
           });
     })
     .catchError((e) {
-      _sendResourceResponse(sp, id, e.toString());
+      _sendResourceResponse(
+        sp, tag, uri, resolvedUri, libraryUrl, e.toString());
     });
   // It's just here to push an event on the event loop so that we invoke the
   // scheduled microtasks.
   Timer.run(() {});
 }
 
-void _loadFile(SendPort sp, int id, Uri uri) {
-  var path = uri.toFilePath();
+void _loadFile(SendPort sp,
+               int tag,
+               Uri uri,
+               Uri resolvedUri,
+               String libraryUrl) {
+  var path = resolvedUri.toFilePath();
   var sourceFile = new File(path);
   sourceFile.readAsBytes().then((data) {
-    _sendResourceResponse(sp, id, data);
+    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, data);
   },
   onError: (e) {
-    _sendResourceResponse(sp, id, e.toString());
+    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, e.toString());
   });
 }
 
-void _loadDataUri(SendPort sp, int id, Uri uri) {
+void _loadDataUri(SendPort sp,
+                  int tag,
+                  Uri uri,
+                  Uri resolvedUri,
+                  String libraryUrl) {
   try {
     var mime = uri.data.mimeType;
     if ((mime != "application/dart") &&
@@ -74,25 +431,105 @@ void _loadDataUri(SendPort sp, int id, Uri uri) {
       // The C++ portion of the embedder assumes UTF-8.
       throw "Only utf-8 or US-ASCII encodings are supported: $charset given.";
     }
-    _sendResourceResponse(sp, id, uri.data.contentAsBytes());
+    _sendResourceResponse(
+        sp, tag, uri, resolvedUri, libraryUrl, uri.data.contentAsBytes());
   } catch (e) {
-    _sendResourceResponse(sp, id, "Invalid data uri ($uri):\n  $e");
+    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl,
+                          "Invalid data uri ($uri):\n  $e");
   }
 }
 
-_handleResourceRequest(SendPort sp, bool traceLoading, int id, Uri resource) {
-  if (resource.scheme == 'file') {
-    _loadFile(sp, id, resource);
-  } else if ((resource.scheme == 'http') || (resource.scheme == 'https')) {
-    _loadHttp(sp, id, resource);
-  } else if ((resource.scheme == 'data')) {
-    _loadDataUri(sp, id, resource);
+// Loading a package URI needs to first map the package name to a loadable
+// URI.
+_loadPackage(IsolateLoaderState loaderState,
+             SendPort sp,
+             bool traceLoading,
+             int tag,
+             Uri uri,
+             Uri resolvedUri,
+             String libraryUrl) {
+  if (loaderState._packagesReady) {
+    var resolvedUri;
+    try {
+      resolvedUri = loaderState._resolvePackageUri(uri);
+    } catch (e, s) {
+      if (traceLoading) {
+        _log("Exception ($e) when resolving package URI: $uri");
+      }
+      // Report error.
+      _sendResourceResponse(sp,
+                            tag,
+                            uri,
+                            resolvedUri,
+                            libraryUrl,
+                            e.toString());
+      return;
+    }
+    // Recursively call with the new resolved uri.
+    _handleResourceRequest(loaderState,
+                           sp,
+                           traceLoading,
+                           tag,
+                           uri,
+                           resolvedUri,
+                           libraryUrl);
   } else {
-    _sendResourceResponse(sp, id,
-                          'Unknown scheme (${resource.scheme}) for $resource');
+    if (loaderState._pendingPackageLoads.isEmpty) {
+      // Package resolution has not been setup yet, and this is the first
+      // request for package resolution & loading.
+      loaderState._requestPackagesMap();
+    }
+    // Register the action of loading this package once the package resolution
+    // is ready.
+    loaderState._pendingPackageLoads.add(() {
+      _handleResourceRequest(loaderState,
+                             sp,
+                             traceLoading,
+                             tag,
+                             uri,
+                             uri,
+                             libraryUrl);
+    });
+    if (traceLoading) {
+      _log("Pending package load of '$uri': "
+           "${loaderState._pendingPackageLoads.length} pending");
+    }
   }
 }
 
+// TODO(johnmccutchan): This and most other top level functions in this file
+// should be turned into methods on the IsolateLoaderState class.
+_handleResourceRequest(IsolateLoaderState loaderState,
+                       SendPort sp,
+                       bool traceLoading,
+                       int tag,
+                       Uri uri,
+                       Uri resolvedUri,
+                       String libraryUrl) {
+  if (resolvedUri.scheme == '' || resolvedUri.scheme == 'file') {
+    _loadFile(sp, tag, uri, resolvedUri, libraryUrl);
+  } else if ((resolvedUri.scheme == 'http') ||
+             (resolvedUri.scheme == 'https')) {
+    _loadHttp(sp, tag, uri, resolvedUri, libraryUrl);
+  } else if ((resolvedUri.scheme == 'data')) {
+    _loadDataUri(sp, tag, uri, resolvedUri, libraryUrl);
+  } else if ((resolvedUri.scheme == 'package')) {
+    _loadPackage(loaderState,
+                 sp,
+                 traceLoading,
+                 tag,
+                 uri,
+                 resolvedUri,
+                 libraryUrl);
+  } else {
+    _sendResourceResponse(sp, tag,
+                          uri,
+                          resolvedUri,
+                          libraryUrl,
+                          'Unknown scheme (${resolvedUri.scheme}) for '
+                          '$resolvedUri');
+  }
+}
 
 // Handling of packages requests. Finding and parsing of .packages file or
 // packages/ directories.
@@ -329,7 +766,6 @@ _findPackagesFile(SendPort sp, bool traceLoading, Uri base) async {
   }
 }
 
-
 Future<bool> _loadHttpPackagesFile(SendPort sp,
                                    bool traceLoading,
                                    Uri resource) async {
@@ -386,14 +822,17 @@ _loadPackagesData(sp, traceLoading, resource){
   }
 }
 
-
+// This code used to exist in a second isolate and so it uses a SendPort to
+// report it's return value. This could be refactored so that it returns it's
+// value and the caller could wait on the future rather than a message on
+// SendPort.
 _handlePackagesRequest(SendPort sp,
                        bool traceLoading,
-                       int id,
+                       int tag,
                        Uri resource) async {
   try {
-    if (id == -1) {
-      if (resource.scheme == 'file') {
+    if (tag == -1) {
+      if (resource.scheme == '' || resource.scheme == 'file') {
         _findPackagesFile(sp, traceLoading, resource);
       } else if ((resource.scheme == 'http') || (resource.scheme == 'https')) {
         // Try to load the .packages file next to the resource.
@@ -409,11 +848,11 @@ _handlePackagesRequest(SendPort sp,
         sp.send("Unsupported scheme used to locate .packages file: "
                 "'$resource'.");
       }
-    } else if (id == -2) {
+    } else if (tag == -2) {
       if (traceLoading) {
         _log("Handling load of packages map: '$resource'.");
       }
-      if (resource.scheme == 'file') {
+      if (resource.scheme == '' || resource.scheme == 'file') {
         var exists = await new File.fromUri(resource).exists();
         if (exists) {
           _loadPackagesFile(sp, traceLoading, resource);
@@ -432,7 +871,7 @@ _handlePackagesRequest(SendPort sp,
                 "'$resource'.");
       }
     } else {
-      sp.send("Unknown packages request id: $id for '$resource'.");
+      sp.send("Unknown packages request tag: $tag for '$resource'.");
     }
   } catch (e, s) {
     if (traceLoading) {
@@ -442,21 +881,195 @@ _handlePackagesRequest(SendPort sp,
   }
 }
 
+// Shutdown all active loaders by sending an error message.
+void shutdownLoaders() {
+  String message = 'Service shutdown';
+  if (_httpClient != null) {
+    _httpClient.close(force: true);
+    _httpClient = null;
+  }
+  isolateEmbedderData.values.toList().forEach((IsolateLoaderState ils) {
+    ils.cleanup();
+    assert(ils.sp != null);
+    _sendResourceResponse(ils.sp, 1, null, null, null, message);
+  });
+}
+
+// See Dart_LibraryTag in dart_api.h
+const _Dart_kCanonicalizeUrl = 0;      // Canonicalize the URL.
+const _Dart_kScriptTag = 1;            // Load the root script.
+const _Dart_kSourceTag = 2;            // Load a part source.
+const _Dart_kImportTag = 3;            // Import a library.
+
+// Extra requests. Keep these in sync between loader.dart and builtin.dart.
+const _Dart_kInitLoader = 4;           // Initialize the loader.
+const _Dart_kResourceLoad = 5;         // Resource class support.
+const _Dart_kGetPackageRootUri = 6;    // Uri of the packages/ directory.
+const _Dart_kGetPackageConfigUri = 7;  // Uri of the .packages file.
+const _Dart_kResolvePackageUri = 8;    // Resolve a package: uri.
+const _Dart_kImportExtension = 9;      // Import a dart-ext: file.
 
 // External entry point for loader requests.
 _processLoadRequest(request) {
-  SendPort sp = request[0];
-  assert(sp != null);
-  bool traceLoading = request[1];
-  assert(traceLoading != null);
-  int id = request[2];
-  assert(id != null);
-  String resource = request[3];
-  assert(resource != null);
-  var uri = Uri.parse(resource);
-  if (id >= 0) {
-    _handleResourceRequest(sp, traceLoading, id, uri);
-  } else {
-    _handlePackagesRequest(sp, traceLoading, id, uri);
+  assert(request is List);
+  assert(request.length > 4);
+
+  // Should we trace loading?
+  bool traceLoading = request[0];
+
+  // This is the sending isolate's Dart_GetMainPortId().
+  int isolateId = request[1];
+
+  // The tag describing the operation.
+  int tag = request[2];
+
+  // The send port to send the response on.
+  SendPort sp = request[3];
+
+  // Grab the loader state for the requesting isolate.
+  IsolateLoaderState loaderState = isolateEmbedderData[isolateId];
+
+  // We are either about to initialize the loader, or, we already have.
+  assert((tag == _Dart_kInitLoader) || (loaderState != null));
+
+  // Handle the request specified in the tag.
+  switch (tag) {
+    case _Dart_kScriptTag: {
+      Uri uri = Uri.parse(request[4]);
+      // Remember the root script.
+      loaderState._rootScript = uri;
+      _handleResourceRequest(loaderState,
+                             sp,
+                             traceLoading,
+                             tag,
+                             uri,
+                             uri,
+                             null);
+    }
+    break;
+    case _Dart_kSourceTag:
+    case _Dart_kImportTag: {
+      // The url of the file being loaded.
+      var uri = Uri.parse(request[4]);
+      // The library that is importing/parting the file.
+      String libraryUrl = request[5];
+      _handleResourceRequest(loaderState,
+                             sp,
+                             traceLoading,
+                             tag,
+                             uri,
+                             uri,
+                             libraryUrl);
+    }
+    break;
+    case _Dart_kInitLoader: {
+      String packageRoot = request[4];
+      String packagesFile = request[5];
+      String workingDirectory = request[6];
+      String rootScript = request[7];
+      if (loaderState == null) {
+        loaderState = new IsolateLoaderState(isolateId);
+        isolateEmbedderData[isolateId] = loaderState;
+        loaderState.init(packageRoot,
+                         packagesFile,
+                         workingDirectory,
+                         rootScript);
+      }
+      loaderState.sp = sp;
+      assert(isolateEmbedderData[isolateId] == loaderState);
+    }
+    break;
+    case _Dart_kResourceLoad: {
+      Uri uri = Uri.parse(request[4]);
+      _handleResourceRequest(loaderState,
+                             sp,
+                             traceLoading,
+                             tag,
+                             uri,
+                             uri,
+                             null);
+    }
+    break;
+    case _Dart_kGetPackageRootUri:
+      loaderState._triggerPackageResolution(() {
+        // Respond with the package root (if any) after package resolution.
+        sp.send(loaderState._packageRoot);
+      });
+    break;
+    case _Dart_kGetPackageConfigUri:
+      loaderState._triggerPackageResolution(() {
+        // Respond with the packages config (if any) after package resolution.
+        sp.send(loaderState._packageConfig);
+      });
+    break;
+    case _Dart_kResolvePackageUri:
+      Uri uri = Uri.parse(request[4]);
+      loaderState._triggerPackageResolution(() {
+        // Respond with the resolved package uri after package resolution.
+        Uri resolvedUri;
+        try {
+          resolvedUri = loaderState._resolvePackageUri(uri);
+        } catch (e, s) {
+          if (traceLoading) {
+            _log("Exception ($e) when resolving package URI: $uri");
+          }
+          resolvedUri = null;
+        }
+        sp.send(resolvedUri);
+      });
+    break;
+    case _Dart_kImportExtension:
+      Uri uri = Uri.parse(request[4]);
+      String libraryUri = request[5];
+      // Strip any filename off of the libraryUri's path.
+      int index = libraryUri.lastIndexOf('/');
+      var path;
+      if (index == -1) {
+        path = './';
+      } else {
+        path = libraryUri.substring(0, index + 1);
+      }
+      var pathUri = Uri.parse(path);
+      switch (pathUri.scheme) {
+        case '':
+        case 'file':
+          _sendExtensionImportResponse(sp, uri, libraryUri,
+                                       pathUri.toFilePath());
+        break;
+        case 'data':
+        case 'http':
+        case 'https':
+          _sendExtensionImportResponse(sp, uri, libraryUri,
+                                       pathUri.toString());
+        break;
+        case 'package':
+          // Start package resolution.
+          loaderState._triggerPackageResolution(() {
+            // Attempt to find the fully resolved uri of [path].
+            Uri resolvedUri;
+            try {
+              resolvedUri = loaderState._resolvePackageUri(pathUri);
+            } catch (e, s) {
+              if (traceLoading) {
+                _log("Exception ($e) when resolving package URI: $uri");
+              }
+              resolvedUri = null;
+            }
+            _sendExtensionImportResponse(sp,
+                                         uri,
+                                         libraryUri,
+                                         resolvedUri.toString());
+          });
+        break;
+        default:
+          if (traceLoading) {
+            _log('Unknown scheme (${pathUri.scheme}) in $pathUri.');
+          }
+          _sendExtensionImportResponse(sp, uri, libraryUri, null);
+        break;
+      }
+    break;
+    default:
+      _log('Unknown loader request tag=$tag from $isolateId');
   }
 }

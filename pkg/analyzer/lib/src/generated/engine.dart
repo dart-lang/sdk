@@ -11,8 +11,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/embedder.dart';
+import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -83,6 +84,12 @@ abstract class AnalysisContext {
    * An empty list of contexts.
    */
   static const List<AnalysisContext> EMPTY_LIST = const <AnalysisContext>[];
+
+  /**
+   * The file resolver provider used to override the way file URI's are
+   * resolved in some contexts.
+   */
+  ResolverProvider fileResolverProvider;
 
   /**
    * Return the set of analysis options controlling the behavior of this
@@ -346,7 +353,7 @@ abstract class AnalysisContext {
    *
    * See [setConfigurationData].
    */
-  Object getConfigurationData(ResultDescriptor key);
+  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key);
 
   /**
    * Return the contents and timestamp of the given [source].
@@ -622,14 +629,6 @@ abstract class AnalysisContext {
    * so that the default contents will be returned.
    */
   void setContents(Source source, String contents);
-
-  /**
-   * Check the cache for any invalid entries (entries whose modification time
-   * does not match the modification time of the source associated with the
-   * entry). Invalid entries will be marked as invalid so that the source will
-   * be re-analyzed. Return `true` if at least one entry was invalid.
-   */
-  bool validateCacheConsistency();
 }
 
 /**
@@ -729,9 +728,14 @@ class AnalysisEngine {
   static const String SUFFIX_HTML = "html";
 
   /**
-   * The file name used for analysis options files.
+   * The deprecated file name used for analysis options files.
    */
   static const String ANALYSIS_OPTIONS_FILE = '.analysis_options';
+
+  /**
+   * The file name used for analysis options files.
+   */
+  static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
   /**
    * The unique instance of this class.
@@ -775,12 +779,6 @@ class AnalysisEngine {
   final PartitionManager partitionManager = new PartitionManager();
 
   /**
-   * A flag indicating whether the task model should attempt to limit
-   * invalidation after a change.
-   */
-  bool limitInvalidationInTaskModel = false;
-
-  /**
    * The task manager used to manage the tasks used to analyze code.
    */
   TaskManager _taskManager;
@@ -816,7 +814,7 @@ class AnalysisEngine {
    * analysis engine to the given [logger].
    */
   void set logger(Logger logger) {
-    this._logger = logger == null ? Logger.NULL : logger;
+    this._logger = logger ?? Logger.NULL;
   }
 
   /**
@@ -876,8 +874,9 @@ class AnalysisEngine {
     if (fileName == null) {
       return false;
     }
-    return (context ?? pathos.posix).basename(fileName) ==
-        ANALYSIS_OPTIONS_FILE;
+    String basename = (context ?? pathos.posix).basename(fileName);
+    return basename == ANALYSIS_OPTIONS_FILE ||
+        basename == ANALYSIS_OPTIONS_YAML_FILE;
   }
 
   /**
@@ -1062,12 +1061,19 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to enable interface libraries (DEP 40).
    */
+  @deprecated
   bool get enableConditionalDirectives;
 
   /**
    * Return `true` to enable generic methods (DEP 22).
    */
   bool get enableGenericMethods => null;
+
+  /**
+   * Return `true` to enable the lazy compound assignment operators '&&=' and
+   * '||='.
+   */
+  bool get enableLazyAssignmentOperators;
 
   /**
    * Return `true` to strictly follow the specification when generating
@@ -1080,6 +1086,19 @@ abstract class AnalysisOptions {
    * Object, and are allowed to reference `super`.
    */
   bool get enableSuperMixins;
+
+  /**
+   * Return `true` if timing data should be gathered during execution.
+   */
+  bool get enableTiming;
+
+  /**
+   * A flag indicating whether finer grained dependencies should be used
+   * instead of just source level dependencies.
+   *
+   * This option is experimental and subject to change.
+   */
+  bool get finerGrainedInvalidation;
 
   /**
    * Return `true` if errors, warnings and hints should be generated for sources
@@ -1132,6 +1151,14 @@ abstract class AnalysisOptions {
   bool get strongMode;
 
   /**
+   * Return `true` if dependencies between computed results should be tracked
+   * by analysis cache.  This option should only be set to `false` if analysis
+   * is performed in such a way that none of the inputs is ever changed
+   * during the life time of the context.
+   */
+  bool get trackCacheDependencies;
+
+  /**
    * Return an integer encoding of the values of the options that need to be the
    * same across all of the contexts associated with partitions that are to be
    * shared by a single analysis context.
@@ -1164,6 +1191,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
 
   /**
+   * The default list of non-nullable type names.
+   */
+  static const List<String> NONNULLABLE_TYPES = const <String>[];
+
+  /**
    * A predicate indicating whether analysis is to parse and analyze function
    * bodies.
    */
@@ -1194,14 +1226,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableAsync = true;
 
   /**
-   * A flag indicating whether interface libraries are to be supported (DEP 40).
-   */
-  bool enableConditionalDirectives = false;
-
-  /**
    * A flag indicating whether generic methods are to be supported (DEP 22).
    */
   bool enableGenericMethods = false;
+
+  @override
+  bool enableLazyAssignmentOperators = false;
 
   /**
    * A flag indicating whether analysis is to strictly follow the specification
@@ -1214,6 +1244,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * than Object, and are allowed to reference `super`.
    */
   bool enableSuperMixins = false;
+
+  @override
+  bool enableTiming = false;
 
   /**
    * A flag indicating whether errors, warnings and hints should be generated
@@ -1273,6 +1306,38 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   // TODO(leafp): replace this with something more general
   bool strongModeHints = false;
 
+  @override
+  bool trackCacheDependencies = true;
+
+  /**
+   * A flag indicating whether implicit casts are allowed in [strongMode]
+   * (they are always allowed in Dart 1.0 mode).
+   *
+   * This option is experimental and subject to change.
+   */
+  bool implicitCasts = true;
+
+  /**
+   * A list of non-nullable type names, prefixed by the library URI they belong
+   * to, e.g., 'dart:core,int', 'dart:core,bool', 'file:///foo.dart,bar', etc.
+   */
+  List<String> nonnullableTypes = NONNULLABLE_TYPES;
+
+  @override
+  bool finerGrainedInvalidation = false;
+
+  /**
+   * A flag indicating whether implicit dynamic type is allowed, on by default.
+   *
+   * This flag can be used without necessarily enabling [strongMode], but it is
+   * designed with strong mode's type inference in mind. Without type inference,
+   * it will raise many errors. Also it does not provide type safety without
+   * strong mode.
+   *
+   * This option is experimental and subject to change.
+   */
+  bool implicitDynamic = true;
+
   /**
    * Initialize a newly created set of analysis options to have their default
    * values.
@@ -1289,10 +1354,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = options.dart2jsHint;
     enableAssertMessage = options.enableAssertMessage;
     enableAsync = options.enableAsync;
-    enableConditionalDirectives = options.enableConditionalDirectives;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
+    enableTiming = options.enableTiming;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
@@ -1304,7 +1369,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
+      implicitCasts = options.implicitCasts;
+      nonnullableTypes = options.nonnullableTypes;
+      implicitDynamic = options.implicitDynamic;
     }
+    trackCacheDependencies = options.trackCacheDependencies;
+    finerGrainedInvalidation = options.finerGrainedInvalidation;
   }
 
   bool get analyzeFunctionBodies {
@@ -1337,6 +1407,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _analyzeFunctionBodiesPredicate = value;
   }
 
+  /**
+   * A flag indicating whether interface libraries are to be supported (DEP 40).
+   */
+  bool get enableConditionalDirectives => true;
+
+  @deprecated
+  void set enableConditionalDirectives(_) {}
+
   @override
   int encodeCrossContextOptions() =>
       (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
@@ -1358,6 +1436,49 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
+  }
+
+  /**
+   * Produce a human readable list of option names corresponding to the options
+   * encoded in the given [encoding], presumably from invoking the method
+   * [encodeCrossContextOptions].
+   */
+  static String decodeCrossContextOptions(int encoding) {
+    if (encoding == 0) {
+      return 'none';
+    }
+    StringBuffer buffer = new StringBuffer();
+    bool needsSeparator = false;
+    void add(String optionName) {
+      if (needsSeparator) {
+        buffer.write(', ');
+      }
+      buffer.write(optionName);
+      needsSeparator = true;
+    }
+
+    if (encoding & ENABLE_ASSERT_FLAG > 0) {
+      add('assert');
+    }
+    if (encoding & ENABLE_ASYNC_FLAG > 0) {
+      add('async');
+    }
+    if (encoding & ENABLE_GENERIC_METHODS_FLAG > 0) {
+      add('genericMethods');
+    }
+    if (encoding & ENABLE_STRICT_CALL_CHECKS_FLAG > 0) {
+      add('strictCallChecks');
+    }
+    if (encoding & ENABLE_STRONG_MODE_FLAG > 0) {
+      add('strongMode');
+    }
+    if (encoding & ENABLE_STRONG_MODE_HINTS_FLAG > 0) {
+      add('strongModeHints');
+    }
+    if (encoding & ENABLE_SUPER_MIXINS_FLAG > 0) {
+      add('superMixins');
+    }
+    return buffer.toString();
   }
 
   /**
@@ -1433,6 +1554,58 @@ class ApplyChangesStatus {
   final bool hasChanges;
 
   ApplyChangesStatus(this.hasChanges);
+}
+
+/**
+ * Statistics about cache consistency validation.
+ */
+class CacheConsistencyValidationStatistics {
+  /**
+   * Number of sources which were changed, but the context was not notified
+   * about it, so this fact was detected only during cache consistency
+   * validation.
+   */
+  int numOfChanged = 0;
+
+  /**
+   * Number of sources which stopped existing, but the context was not notified
+   * about it, so this fact was detected only during cache consistency
+   * validation.
+   */
+  int numOfRemoved = 0;
+
+  /**
+   * Reset all counters.
+   */
+  void reset() {
+    numOfChanged = 0;
+    numOfRemoved = 0;
+  }
+}
+
+/**
+ * Interface for cache consistency validation in an [InternalAnalysisContext].
+ */
+abstract class CacheConsistencyValidator {
+  /**
+   * Return sources for which the contexts needs to know modification times.
+   */
+  List<Source> getSourcesToComputeModificationTimes();
+
+  /**
+   * Notify the validator that modification [times] were computed for [sources].
+   * If a source does not exist, its modification time is `-1`.
+   *
+   * It's up to the validator and the context how to use this information,
+   * the list of sources the context has might have been changed since the
+   * previous invocation of [getSourcesToComputeModificationTimes].
+   *
+   * Check the cache for any invalid entries (entries whose modification time
+   * does not match the modification time of the source associated with the
+   * entry). Invalid entries will be marked as invalid so that the source will
+   * be re-analyzed. Return `true` if at least one entry was invalid.
+   */
+  bool sourceModificationTimesComputed(List<Source> sources, List<int> times);
 }
 
 /**
@@ -1920,19 +2093,33 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   AnalysisCache get analysisCache;
 
   /**
+   * The cache consistency validator for this context.
+   */
+  CacheConsistencyValidator get cacheConsistencyValidator;
+
+  /**
    * Allow the client to supply its own content cache.  This will take the
    * place of the content cache created by default, allowing clients to share
    * the content cache between contexts.
    */
   set contentCache(ContentCache value);
 
-  /// Get the [EmbedderYamlLocator] for this context.
+  /**
+   * Get the [EmbedderYamlLocator] for this context.
+   */
+  @deprecated
   EmbedderYamlLocator get embedderYamlLocator;
 
   /**
    * Return a list of the explicit targets being analyzed by this context.
    */
   List<AnalysisTarget> get explicitTargets;
+
+  /**
+   * Return the [StreamController] reporting [InvalidatedResult]s for everything
+   * in this context's cache.
+   */
+  ReentrantSynchronousStream<InvalidatedResult> get onResultInvalidated;
 
   /**
    * Return a list containing all of the sources that have been marked as
@@ -2206,6 +2393,13 @@ class PerformanceStatistics {
    * The [PerformanceTag] for time spent in summaries support.
    */
   static PerformanceTag summary = new PerformanceTag('summary');
+
+  /**
+   * Statistics about cache consistency validation.
+   */
+  static final CacheConsistencyValidationStatistics
+      cacheConsistencyValidationStatistics =
+      new CacheConsistencyValidationStatistics();
 }
 
 /**

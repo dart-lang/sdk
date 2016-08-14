@@ -6,7 +6,7 @@ import "dart:_internal" show POWERS_OF_TEN;
 
 // JSON conversion.
 
-patch _parseJson(String json, reviver(var key, var value)) {
+@patch _parseJson(String json, reviver(var key, var value)) {
   _BuildJsonListener listener;
   if (reviver == null) {
     listener = new _BuildJsonListener();
@@ -21,18 +21,20 @@ patch _parseJson(String json, reviver(var key, var value)) {
   return listener.result;
 }
 
-patch class Utf8Decoder {
-  /* patch */
-  Converter<List<int>, dynamic> fuse(Converter<String, dynamic> next) {
+@patch class Utf8Decoder {
+  @patch
+  Converter<List<int>, dynamic/*=T*/> fuse/*<T>*/(
+      Converter<String, dynamic/*=T*/> next) {
     if (next is JsonDecoder) {
-      return new _JsonUtf8Decoder(next._reviver, this._allowMalformed);
+      return new _JsonUtf8Decoder(next._reviver, this._allowMalformed)
+          as dynamic/*=Converter<List<int>, T>*/;
     }
     // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
-    return super.fuse(next);
+    return super.fuse/*<T>*/(next);
   }
 
   // Allow intercepting of UTF-8 decoding when built-in lists are passed.
-  /* patch */
+  @patch
   static String _convertIntercepted(
       bool allowMalformed, List<int> codeUnits, int start, int end) {
     return null;  // This call was not intercepted.
@@ -45,7 +47,7 @@ class _JsonUtf8Decoder extends Converter<List<int>, Object> {
 
   _JsonUtf8Decoder(this._reviver, this._allowMalformed);
 
-  dynamic convert(List<int> input) {
+  Object convert(List<int> input) {
     var parser = _JsonUtf8DecoderSink._createParser(_reviver, _allowMalformed);
     parser.chunk = input;
     parser.chunkEnd = input.length;
@@ -1374,8 +1376,8 @@ class _JsonStringParser extends _ChunkedJsonParser {
   }
 }
 
-patch class JsonDecoder {
-  /* patch */ StringConversionSink startChunkedConversion(Sink<Object> sink) {
+@patch class JsonDecoder {
+  @patch StringConversionSink startChunkedConversion(Sink<Object> sink) {
     return new _JsonStringDecoderSink(this._reviver, sink);
   }
 }

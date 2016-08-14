@@ -11,6 +11,7 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
@@ -51,10 +52,9 @@ main() {
         resourceProvider,
         new MockPackageMapProvider(),
         null,
-        null,
         serverPlugin,
         new AnalysisServerOptions(),
-        () => new MockSdk(),
+        new DartSdkManager('', false, (_) => new MockSdk()),
         InstrumentationService.NULL_SERVICE);
     handler = new DiagnosticDomainHandler(server);
   });
@@ -74,7 +74,7 @@ main() {
 
       int fileCount = 1 /* test.dart */;
 
-      var json = response.toJson()[Response.RESULT];
+      Map json = response.toJson()[Response.RESULT];
       expect(json['contexts'], hasLength(1));
       var context = json['contexts'][0];
       expect(context['name'], '/project');
@@ -87,7 +87,7 @@ main() {
     test('getDiagnostics - (no root)', () async {
       var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
       var response = handler.handleRequest(request);
-      var json = response.toJson()[Response.RESULT];
+      Map json = response.toJson()[Response.RESULT];
       expect(json['contexts'], hasLength(0));
     });
   });

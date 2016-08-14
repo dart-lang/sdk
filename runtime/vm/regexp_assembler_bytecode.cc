@@ -12,6 +12,7 @@
 #include "vm/regexp.h"
 #include "vm/regexp_parser.h"
 #include "vm/regexp_interpreter.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -452,7 +453,7 @@ void BytecodeRegExpMacroAssembler::Expand() {
 }
 
 
-static intptr_t Prepare(const JSRegExp& regexp,
+static intptr_t Prepare(const RegExp& regexp,
                         const String& subject,
                         Zone* zone) {
   bool is_one_byte = subject.IsOneByteString() ||
@@ -460,11 +461,18 @@ static intptr_t Prepare(const JSRegExp& regexp,
 
   if (regexp.bytecode(is_one_byte) == TypedData::null()) {
     const String& pattern = String::Handle(zone, regexp.pattern());
+    NOT_IN_PRODUCT(TimelineDurationScope tds(Thread::Current(),
+                                             Timeline::GetCompilerStream(),
+                                             "CompileIrregexpBytecode");
+    if (tds.enabled()) {
+      tds.SetNumArguments(1);
+      tds.CopyArgument(0, "pattern", pattern.ToCString());
+    });  // !PRODUCT
 
     const bool multiline = regexp.is_multi_line();
     RegExpCompileData* compile_data = new(zone) RegExpCompileData();
     if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
-      // Parsing failures are handled in the JSRegExp factory constructor.
+      // Parsing failures are handled in the RegExp factory constructor.
       UNREACHABLE();
     }
 
@@ -491,7 +499,7 @@ static intptr_t Prepare(const JSRegExp& regexp,
 }
 
 
-static IrregexpInterpreter::IrregexpResult ExecRaw(const JSRegExp& regexp,
+static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
                                                    const String& subject,
                                                    intptr_t index,
                                                    int32_t* output,
@@ -537,7 +545,7 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const JSRegExp& regexp,
 }
 
 
-RawInstance* BytecodeRegExpMacroAssembler::Interpret(const JSRegExp& regexp,
+RawInstance* BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
                                                      const String& subject,
                                                      const Smi& start_index,
                                                      Zone* zone) {

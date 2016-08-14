@@ -23,6 +23,7 @@ main() {
   runReflectiveTests(ConstructorDeclarationTest);
   runReflectiveTests(FieldFormalParameterTest);
   runReflectiveTests(IndexExpressionTest);
+  runReflectiveTests(MethodDeclarationTest);
   runReflectiveTests(NodeListTest);
   runReflectiveTests(SimpleIdentifierTest);
   runReflectiveTests(SimpleStringLiteralTest);
@@ -305,6 +306,44 @@ class IndexExpressionTest extends EngineTestCase {
 }
 
 @reflectiveTest
+class MethodDeclarationTest extends EngineTestCase {
+  void test_firstTokenAfterCommentAndMetadata_external() {
+    MethodDeclaration declaration =
+        AstFactory.methodDeclaration4(external: true, name: 'm');
+    expect(declaration.firstTokenAfterCommentAndMetadata,
+        declaration.externalKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_external_getter() {
+    MethodDeclaration declaration = AstFactory.methodDeclaration4(
+        external: true, property: Keyword.GET, name: 'm');
+    expect(declaration.firstTokenAfterCommentAndMetadata,
+        declaration.externalKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_external_operator() {
+    MethodDeclaration declaration = AstFactory.methodDeclaration4(
+        external: true, operator: true, name: 'm');
+    expect(declaration.firstTokenAfterCommentAndMetadata,
+        declaration.externalKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_getter() {
+    MethodDeclaration declaration =
+        AstFactory.methodDeclaration4(property: Keyword.GET, name: 'm');
+    expect(declaration.firstTokenAfterCommentAndMetadata,
+        declaration.propertyKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_operator() {
+    MethodDeclaration declaration =
+        AstFactory.methodDeclaration4(operator: true, name: 'm');
+    expect(declaration.firstTokenAfterCommentAndMetadata,
+        declaration.operatorKeyword);
+  }
+}
+
+@reflectiveTest
 class NodeListTest extends EngineTestCase {
   void test_add() {
     AstNode parent = AstFactory.argumentList();
@@ -534,124 +573,6 @@ class NodeListTest extends EngineTestCase {
 
 @reflectiveTest
 class SimpleIdentifierTest extends ParserTestCase {
-  void test_inDeclarationContext_catch_exception() {
-    SimpleIdentifier identifier =
-        AstFactory.catchClause("e").exceptionParameter;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_catch_stack() {
-    SimpleIdentifier identifier =
-        AstFactory.catchClause2("e", "s").stackTraceParameter;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_classDeclaration() {
-    SimpleIdentifier identifier =
-        AstFactory.classDeclaration(null, "C", null, null, null, null).name;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_classTypeAlias() {
-    SimpleIdentifier identifier =
-        AstFactory.classTypeAlias("C", null, null, null, null, null).name;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_constructorDeclaration() {
-    SimpleIdentifier identifier = AstFactory
-        .constructorDeclaration(AstFactory.identifier3("C"), "c", null, null)
-        .name;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_declaredIdentifier() {
-    DeclaredIdentifier declaredIdentifier = AstFactory.declaredIdentifier3("v");
-    SimpleIdentifier identifier = declaredIdentifier.identifier;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_enumConstantDeclaration() {
-    EnumDeclaration enumDeclaration =
-        AstFactory.enumDeclaration2('MyEnum', ['CONST']);
-    SimpleIdentifier identifier = enumDeclaration.constants[0].name;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_enumDeclaration() {
-    EnumDeclaration enumDeclaration =
-        AstFactory.enumDeclaration2('MyEnum', ['A', 'B', 'C']);
-    SimpleIdentifier identifier = enumDeclaration.name;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_fieldFormalParameter() {
-    SimpleIdentifier identifier =
-        AstFactory.fieldFormalParameter2("p").identifier;
-    expect(identifier.inDeclarationContext(), isFalse);
-  }
-
-  void test_inDeclarationContext_functionDeclaration() {
-    SimpleIdentifier identifier =
-        AstFactory.functionDeclaration(null, null, "f", null).name;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_functionTypeAlias() {
-    SimpleIdentifier identifier =
-        AstFactory.typeAlias(null, "F", null, null).name;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_label_false() {
-    SimpleIdentifier identifier =
-        AstFactory.namedExpression2("l", AstFactory.integer(0)).name.label;
-    expect(identifier.inDeclarationContext(), isFalse);
-  }
-
-  void test_inDeclarationContext_label_true() {
-    Label label = AstFactory.label2("l");
-    SimpleIdentifier identifier = label.label;
-    AstFactory.labeledStatement([label], AstFactory.emptyStatement());
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_methodDeclaration() {
-    SimpleIdentifier identifier = AstFactory.identifier3("m");
-    AstFactory.methodDeclaration2(
-        null, null, null, null, identifier, null, null);
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_prefix() {
-    SimpleIdentifier identifier =
-        AstFactory.importDirective3("uri", "pref").prefix;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_simpleFormalParameter() {
-    SimpleIdentifier identifier =
-        AstFactory.simpleFormalParameter3("p").identifier;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_typeParameter_bound() {
-    TypeName bound = AstFactory.typeName4("A");
-    SimpleIdentifier identifier = bound.name as SimpleIdentifier;
-    AstFactory.typeParameter2("E", bound);
-    expect(identifier.inDeclarationContext(), isFalse);
-  }
-
-  void test_inDeclarationContext_typeParameter_name() {
-    SimpleIdentifier identifier = AstFactory.typeParameter("E").name;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
-  void test_inDeclarationContext_variableDeclaration() {
-    SimpleIdentifier identifier = AstFactory.variableDeclaration("v").name;
-    expect(identifier.inDeclarationContext(), isTrue);
-  }
-
   void test_inGetterContext() {
     for (_WrapperKind wrapper in _WrapperKind.values) {
       for (_AssignmentKind assignment in _AssignmentKind.values) {
@@ -669,6 +590,13 @@ class SimpleIdentifierTest extends ParserTestCase {
         }
       }
     }
+  }
+
+  void test_inGetterContext_constructorFieldInitializer() {
+    ConstructorFieldInitializer initializer = AstFactory
+        .constructorFieldInitializer(false, 'f', AstFactory.integer(0));
+    SimpleIdentifier identifier = initializer.fieldName;
+    expect(identifier.inGetterContext(), isFalse);
   }
 
   void test_inGetterContext_forEachLoop() {

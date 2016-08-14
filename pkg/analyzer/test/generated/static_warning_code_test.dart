@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.static_warning_code_test;
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart';
@@ -19,6 +20,21 @@ main() {
 
 @reflectiveTest
 class StaticWarningCodeTest extends ResolverTestCase {
+  void fail_argumentTypeNotAssignable_tearOff_required() {
+    Source source = addSource(r'''
+class C {
+  Object/*=T*/ f/*<T>*/(Object/*=T*/ x) => x;
+}
+g(C c) {
+  var h = c.f/*<int>*/;
+  print(h('s'));
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
   void fail_undefinedGetter() {
     Source source = addSource(r'''
 ''');
@@ -993,7 +1009,8 @@ class Future {}''');
     assertErrors(source, [StaticWarningCode.CONFLICTING_DART_IMPORT]);
   }
 
-  void test_conflictingInstanceGetterAndSuperclassMember_declField_direct_setter() {
+  void
+      test_conflictingInstanceGetterAndSuperclassMember_declField_direct_setter() {
     Source source = addSource(r'''
 class A {
   static set v(x) {}
@@ -1007,7 +1024,8 @@ class B extends A {
     verify([source]);
   }
 
-  void test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_getter() {
+  void
+      test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_getter() {
     Source source = addSource(r'''
 class A {
   static get v => 0;
@@ -1021,7 +1039,8 @@ class B extends A {
     verify([source]);
   }
 
-  void test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_method() {
+  void
+      test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_method() {
     Source source = addSource(r'''
 class A {
   static v() {}
@@ -1035,7 +1054,8 @@ class B extends A {
     verify([source]);
   }
 
-  void test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_setter() {
+  void
+      test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_setter() {
     Source source = addSource(r'''
 class A {
   static set v(x) {}
@@ -2319,6 +2339,24 @@ set g(String v) {}''');
     verify([source]);
   }
 
+  void test_missingEnumConstantInSwitch() {
+    Source source = addSource(r'''
+enum E { ONE, TWO, THREE, FOUR }
+bool odd(E e) {
+  switch (e) {
+    case E.ONE:
+    case E.THREE: return true;
+  }
+  return false;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+      StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH
+    ]);
+    verify([source]);
+  }
+
   void test_mixedReturnTypes_localFunction() {
     Source source = addSource(r'''
 class C {
@@ -2505,7 +2543,8 @@ class C extends A {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
     // 15979
     Source source = addSource(r'''
 abstract class M {}
@@ -2534,7 +2573,8 @@ class B = A with M;''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
     // 15979
     Source source = addSource(r'''
 class M {}
@@ -2548,7 +2588,8 @@ class B = A with M;''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation() {
     // 15028
     Source source = addSource(r'''
 class C {
@@ -2616,7 +2657,8 @@ class C extends A {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount() {
     // 7640
     Source source = addSource(r'''
 abstract class A {
@@ -2683,7 +2725,8 @@ class B extends A implements I {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter() {
     // test from language/override_inheritance_abstract_test_14.dart
     Source source = addSource(r'''
 abstract class A {
@@ -2744,7 +2787,8 @@ class C extends B {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingGetter() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingGetter() {
     // 16133
     Source source = addSource(r'''
 class I {
@@ -2759,7 +2803,8 @@ class C implements I {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingSetter() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingSetter() {
     // 16133
     Source source = addSource(r'''
 class I {
@@ -2803,7 +2848,8 @@ class C extends A {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromInterface_missingBoth() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromInterface_missingBoth() {
     // 16133
     Source source = addSource(r'''
 class I {
@@ -2811,6 +2857,23 @@ class I {
 }
 class C implements I {
 }''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);
+    verify([source]);
+  }
+
+  void
+      test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromMixin_missingBoth() {
+    // 26411
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+class A {
+  int f;
+}
+class B extends A {}
+class C extends Object with B {}
+''');
     computeLibrarySourceErrors(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);
@@ -3189,7 +3252,8 @@ a.A f() { return null; }'''
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType() {
+  void
+      test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType() {
     resolveWithErrors(<String>[
       r'''
 library lib1;
@@ -3463,6 +3527,12 @@ f(var l) {
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
+  void test_undefinedIdentifierAwait_function() {
+    Source source = addSource("void a() { await; }");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT]);
+  }
+
   void test_undefinedIdentifier_importCore_withShow() {
     Source source = addSource(r'''
 import 'dart:core' show List;
@@ -3615,23 +3685,5 @@ class S {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.VOID_RETURN_FOR_GETTER]);
-  }
-
-  void test_missingEnumConstantInSwitch() {
-    Source source = addSource(r'''
-enum E { ONE, TWO, THREE, FOUR }
-bool odd(E e) {
-  switch (e) {
-    case E.ONE:
-    case E.THREE: return true;
-  }
-  return false;
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
-      StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH
-    ]);
-    verify([source]);
   }
 }

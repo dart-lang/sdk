@@ -5,14 +5,13 @@
 #include "platform/globals.h"
 
 #include "platform/assert.h"
+#include "vm/become.h"
 #include "vm/dart_api_impl.h"
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/unit_test.h"
 
 namespace dart {
-
-DECLARE_FLAG(int, marker_tasks);
 
 TEST_CASE(OldGC) {
   const char* kScriptChars =
@@ -32,7 +31,7 @@ TEST_CASE(OldGC) {
   heap->CollectGarbage(Heap::kOld);
 }
 
-
+#if !defined(PRODUCT)
 TEST_CASE(OldGC_Unsync) {
   FLAG_marker_tasks = 0;
   const char* kScriptChars =
@@ -51,7 +50,7 @@ TEST_CASE(OldGC_Unsync) {
   Heap* heap = isolate->heap();
   heap->CollectGarbage(Heap::kOld);
 }
-
+#endif
 
 TEST_CASE(LargeSweep) {
   const char* kScriptChars =
@@ -75,6 +74,7 @@ TEST_CASE(LargeSweep) {
 }
 
 
+#ifndef PRODUCT
 class ClassHeapStatsTestHelper {
  public:
   static ClassHeapStats* GetHeapStatsForCid(ClassTable* class_table,
@@ -93,7 +93,7 @@ class ClassHeapStatsTestHelper {
 
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(name))));
+      lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
@@ -232,12 +232,12 @@ TEST_CASE(ArrayHeapStats) {
   EXPECT_GT(expected_size + kTolerance, after - before);
   Dart_ExitScope();
 }
+#endif  // !PRODUCT
 
 
 class FindOnly : public FindObjectVisitor {
  public:
-  FindOnly(Isolate* isolate, RawObject* target)
-      : FindObjectVisitor(isolate), target_(target) {
+  explicit FindOnly(RawObject* target) : target_(target) {
 #if defined(DEBUG)
     EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
 #endif
@@ -254,7 +254,7 @@ class FindOnly : public FindObjectVisitor {
 
 class FindNothing : public FindObjectVisitor {
  public:
-  FindNothing() : FindObjectVisitor(Isolate::Current()) { }
+  FindNothing() { }
   virtual ~FindNothing() { }
   virtual bool FindObject(RawObject* obj) const { return false; }
 };
@@ -268,7 +268,7 @@ TEST_CASE(FindObject) {
     const String& obj = String::Handle(String::New("x", spaces[space]));
     {
       NoSafepointScope no_safepoint;
-      FindOnly find_only(isolate, obj.raw());
+      FindOnly find_only(obj.raw());
       EXPECT(obj.raw() == heap->FindObject(&find_only));
     }
   }
@@ -284,10 +284,86 @@ TEST_CASE(IterateReadOnly) {
   const String& obj = String::Handle(String::New("x", Heap::kOld));
   Heap* heap = Thread::Current()->isolate()->heap();
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
-  heap->WriteProtect(true, true /* include_code_pages */);
+  heap->WriteProtect(true);
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
-  heap->WriteProtect(false, true /* include_code_pages */);
+  heap->WriteProtect(false);
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
 }
 
-}  // namespace dart.
+
+void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  const String& before_obj = String::Handle(String::New("old", before_space));
+  const String& after_obj = String::Handle(String::New("new", after_space));
+
+  EXPECT(before_obj.raw() != after_obj.raw());
+
+  // Allocate the arrays in old space to test the remembered set.
+  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
+  before.SetAt(0, before_obj);
+  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
+  after.SetAt(0, after_obj);
+
+  Become::ElementsForwardIdentity(before, after);
+
+  EXPECT(before_obj.raw() == after_obj.raw());
+
+  heap->CollectAllGarbage();
+
+  EXPECT(before_obj.raw() == after_obj.raw());
+}
+
+
+VM_TEST_CASE(BecomeFowardOldToOld) {
+  TestBecomeForward(Heap::kOld, Heap::kOld);
+}
+
+
+VM_TEST_CASE(BecomeFowardNewToNew) {
+  TestBecomeForward(Heap::kNew, Heap::kNew);
+}
+
+
+VM_TEST_CASE(BecomeFowardOldToNew) {
+  TestBecomeForward(Heap::kOld, Heap::kNew);
+}
+
+
+VM_TEST_CASE(BecomeFowardNewToOld) {
+  TestBecomeForward(Heap::kNew, Heap::kOld);
+}
+
+
+VM_TEST_CASE(BecomeForwardRememberedObject) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  const String& new_element = String::Handle(String::New("new", Heap::kNew));
+  const String& old_element = String::Handle(String::New("old", Heap::kOld));
+  const Array& before_obj = Array::Handle(Array::New(1, Heap::kOld));
+  const Array& after_obj = Array::Handle(Array::New(1, Heap::kOld));
+  before_obj.SetAt(0, new_element);
+  after_obj.SetAt(0, old_element);
+  EXPECT(before_obj.raw()->IsRemembered());
+  EXPECT(!after_obj.raw()->IsRemembered());
+
+  EXPECT(before_obj.raw() != after_obj.raw());
+
+  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
+  before.SetAt(0, before_obj);
+  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
+  after.SetAt(0, after_obj);
+
+  Become::ElementsForwardIdentity(before, after);
+
+  EXPECT(before_obj.raw() == after_obj.raw());
+  EXPECT(!after_obj.raw()->IsRemembered());
+
+  heap->CollectAllGarbage();
+
+  EXPECT(before_obj.raw() == after_obj.raw());
+}
+
+}  // namespace dart

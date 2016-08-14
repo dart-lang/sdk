@@ -153,10 +153,11 @@ void emptyChecks(list) {
   Expect.isTrue(list.takeWhile((x) => true).isEmpty);
   Expect.isTrue(list.toList().isEmpty);
   var l2 = list.toList();
-  l2.add(0);
-  Expect.equals(0, l2.last);
+  var sampleValue = list is List<int> ? 0 : 0.0;
+  l2.add(sampleValue);
+  Expect.equals(sampleValue, l2.last);
   var l3 = list.toList(growable: false);
-  Expect.throws(() => l3.add(0), (e) => e is UnsupportedError);
+  Expect.throws(() => l3.add(sampleValue), (e) => e is UnsupportedError);
 }
 
 main() {

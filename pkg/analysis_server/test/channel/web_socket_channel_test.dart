@@ -35,9 +35,9 @@ class WebSocketChannelTest {
   static WebSocketClientChannel client;
   static WebSocketServerChannel server;
 
-  static List requestsReceived;
-  static List responsesReceived;
-  static List notificationsReceived;
+  static List<Request> requestsReceived;
+  static List<Response> responsesReceived;
+  static List<Notification> notificationsReceived;
 
   static Future close() {
     var timeout = new Duration(seconds: 1);
@@ -144,9 +144,9 @@ class WebSocketChannelTest {
     server = new WebSocketServerChannel(
         socket.twin, InstrumentationService.NULL_SERVICE);
 
-    requestsReceived = [];
-    responsesReceived = [];
-    notificationsReceived = [];
+    requestsReceived = <Request>[];
+    responsesReceived = <Response>[];
+    notificationsReceived = <Notification>[];
 
     // Allow multiple listeners on server side for testing.
     socket.twin.allowMultipleListeners();

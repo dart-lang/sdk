@@ -149,7 +149,7 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType _typeType;
 
   /**
-   * The type representing typenames that can't be resolved.
+   * The type representing type names that can't be resolved.
    */
   DartType _undefinedType;
 
@@ -480,8 +480,8 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get stringType {
     if (_stringType == null) {
-      _stringType = ElementFactory.classElement2("String").type;
-      ClassElementImpl stringElement = _stringType.element as ClassElementImpl;
+      ClassElementImpl stringElement = ElementFactory.classElement2("String");
+      _stringType = stringElement.type;
       _setAccessors(stringElement, <PropertyAccessorElement>[
         ElementFactory.getterElement("isEmpty", false, boolType),
         ElementFactory.getterElement("length", false, intType),
@@ -683,10 +683,6 @@ class TestTypeProvider implements TypeProvider {
     }
     for (MethodElement method in classElement.methods) {
       (method as ExecutableElementImpl).type = new FunctionTypeImpl(method);
-    }
-    for (ConstructorElement constructor in classElement.constructors) {
-      (constructor as ExecutableElementImpl).type =
-          new FunctionTypeImpl(constructor);
     }
   }
 

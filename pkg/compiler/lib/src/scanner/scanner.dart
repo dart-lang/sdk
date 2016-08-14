@@ -4,29 +4,20 @@
 
 library dart2js.scanner;
 
-import '../io/source_file.dart' show
-    SourceFile,
-    Utf8BytesSourceFile;
-import '../tokens/keyword.dart' show
-    Keyword,
-    KeywordState;
+import '../io/source_file.dart' show SourceFile, Utf8BytesSourceFile;
+import '../tokens/keyword.dart' show Keyword, KeywordState;
 import '../tokens/precedence.dart';
 import '../tokens/precedence_constants.dart';
 import '../tokens/token.dart';
 import '../tokens/token_constants.dart';
 import '../util/characters.dart';
-
-import 'string_scanner.dart' show
-    StringScanner;
-import 'utf8_bytes_scanner.dart' show
-    Utf8BytesScanner;
-
+import 'string_scanner.dart' show StringScanner;
+import 'utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
 abstract class Scanner {
   Token tokenize();
 
-  factory Scanner(SourceFile file,
-      {bool includeComments: false}) {
+  factory Scanner(SourceFile file, {bool includeComments: false}) {
     if (file is Utf8BytesSourceFile) {
       return new Utf8BytesScanner(file, includeComments: includeComments);
     } else {
@@ -72,8 +63,7 @@ abstract class AbstractScanner implements Scanner {
 
   final List<int> lineStarts = <int>[0];
 
-  AbstractScanner(
-      this.file, this.includeComments) {
+  AbstractScanner(this.file, this.includeComments) {
     this.tail = this.tokens;
   }
 
@@ -166,8 +156,8 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  void appendSubstringToken(PrecedenceInfo info, int start,
-                            bool asciiOnly, [int extraOffset]);
+  void appendSubstringToken(PrecedenceInfo info, int start, bool asciiOnly,
+      [int extraOffset]);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
   void appendPrecedenceToken(PrecedenceInfo info);
@@ -236,8 +226,10 @@ abstract class AbstractScanner implements Scanner {
 
   int bigSwitch(int next) {
     beginToken();
-    if (identical(next, $SPACE) || identical(next, $TAB)
-        || identical(next, $LF) || identical(next, $CR)) {
+    if (identical(next, $SPACE) ||
+        identical(next, $TAB) ||
+        identical(next, $LF) ||
+        identical(next, $CR)) {
       appendWhiteSpace(next);
       next = advance();
       // Sequences of spaces are common, so advance through them fast.
@@ -354,8 +346,8 @@ abstract class AbstractScanner implements Scanner {
     }
 
     if (identical(next, $CLOSE_SQUARE_BRACKET)) {
-      return appendEndGroup(CLOSE_SQUARE_BRACKET_INFO,
-                            OPEN_SQUARE_BRACKET_TOKEN);
+      return appendEndGroup(
+          CLOSE_SQUARE_BRACKET_INFO, OPEN_SQUARE_BRACKET_TOKEN);
     }
 
     if (identical(next, $BACKPING)) {
@@ -369,8 +361,7 @@ abstract class AbstractScanner implements Scanner {
     }
 
     if (identical(next, $CLOSE_CURLY_BRACKET)) {
-      return appendEndGroup(CLOSE_CURLY_BRACKET_INFO,
-                            OPEN_CURLY_BRACKET_TOKEN);
+      return appendEndGroup(CLOSE_CURLY_BRACKET_INFO, OPEN_CURLY_BRACKET_TOKEN);
     }
 
     if (identical(next, $SLASH)) {
@@ -394,9 +385,15 @@ abstract class AbstractScanner implements Scanner {
     }
 
     // TODO(ahe): Would a range check be faster?
-    if (identical(next, $1) || identical(next, $2) || identical(next, $3)
-        || identical(next, $4) ||  identical(next, $5) || identical(next, $6)
-        || identical(next, $7) || identical(next, $8) || identical(next, $9)) {
+    if (identical(next, $1) ||
+        identical(next, $2) ||
+        identical(next, $3) ||
+        identical(next, $4) ||
+        identical(next, $5) ||
+        identical(next, $6) ||
+        identical(next, $7) ||
+        identical(next, $8) ||
+        identical(next, $9)) {
       return tokenizeNumber(next);
     }
 
@@ -429,8 +426,8 @@ abstract class AbstractScanner implements Scanner {
           next = advance();
           if (next > 127) asciiOnly = false;
         } while (!identical(next, $LF) &&
-                 !identical(next, $CR) &&
-                 !identical(next, $EOF));
+            !identical(next, $CR) &&
+            !identical(next, $EOF));
         if (!asciiOnly) handleUnicode(start);
         return next;
       }
@@ -655,9 +652,9 @@ abstract class AbstractScanner implements Scanner {
     bool hasDigits = false;
     while (true) {
       next = advance();
-      if (($0 <= next && next <= $9)
-          || ($A <= next && next <= $F)
-          || ($a <= next && next <= $f)) {
+      if (($0 <= next && next <= $9) ||
+          ($A <= next && next <= $F) ||
+          ($a <= next && next <= $f)) {
         hasDigits = true;
       } else {
         if (!hasDigits) {
@@ -687,7 +684,8 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeFractionPart(int next, int start) {
     bool done = false;
     bool hasDigit = false;
-    LOOP: while (!done) {
+    LOOP:
+    while (!done) {
       if ($0 <= next && next <= $9) {
         hasDigit = true;
       } else if (identical($e, next) || identical($E, next)) {
@@ -765,7 +763,6 @@ abstract class AbstractScanner implements Scanner {
     }
     return null;
   }
-
 
   int tokenizeMultiLineComment(int next, int start) {
     bool asciiOnlyComment = true; // Track if the entire comment is ASCII.
@@ -924,8 +921,8 @@ abstract class AbstractScanner implements Scanner {
         asciiOnly = true;
         continue;
       }
-      if (next <= $CR
-          && (identical(next, $LF) ||
+      if (next <= $CR &&
+          (identical(next, $LF) ||
               identical(next, $CR) ||
               identical(next, $EOF))) {
         if (!asciiOnly) handleUnicode(start);
@@ -960,7 +957,7 @@ abstract class AbstractScanner implements Scanner {
       next = bigSwitch(next);
     }
     if (identical(next, $EOF)) return next;
-    next = advance();  // Move past the $STX.
+    next = advance(); // Move past the $STX.
     beginToken(); // The string interpolation suffix starts here.
     return next;
   }
@@ -1006,7 +1003,8 @@ abstract class AbstractScanner implements Scanner {
     bool asciiOnlyLine = true;
     int unicodeStart = start;
     int next = advance(); // Advance past the (last) quote (of three).
-    outer: while (!identical(next, $EOF)) {
+    outer:
+    while (!identical(next, $EOF)) {
       while (!identical(next, quoteChar)) {
         if (identical(next, $LF)) {
           if (!asciiOnlyLine) {

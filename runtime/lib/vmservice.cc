@@ -9,9 +9,11 @@
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/message.h"
+#include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/port.h"
+#include "vm/service_event.h"
 #include "vm/service_isolate.h"
 #include "vm/symbols.h"
 
@@ -37,7 +39,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
     const String& library_url = Symbols::DartVMService();
     ASSERT(!library_url.IsNull());
     const Library& library =
-        Library::Handle(Library::LookupLibrary(library_url));
+        Library::Handle(Library::LookupLibrary(thread, library_url));
     ASSERT(!library.IsNull());
     // Get function.
     const String& function_name =
@@ -115,6 +117,15 @@ DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
+  if (FLAG_support_service) {
+    Service::HandleObjectRootMessage(message);
+  }
+  return Object::null();
+}
+
+
 DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   if (FLAG_trace_service) {
     OS::Print("vm-service: Booting dart:vmservice library.\n");
@@ -139,6 +150,9 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
 DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
   if (FLAG_trace_service) {
     OS::Print("vm-service: processed exit message.\n");
+    MessageHandler* message_handler = isolate->message_handler();
+    OS::Print("vm-service: live ports = %" Pd "\n",
+              message_handler->live_ports());
   }
   return Object::null();
 }
@@ -402,8 +416,8 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
 
   intptr_t archive_size = archive.Length();
 
-  const Array& result_list = Array::Handle(thread->zone(),
-    Array::New(2 * archive_size));
+  Dart_Handle result_list = Dart_NewList(2 * archive_size);
+  ASSERT(!Dart_IsError(result_list));
 
   intptr_t idx = 0;
   while (archive.HasMore()) {
@@ -424,17 +438,53 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
     Dart_NewWeakPersistentHandle(
         dart_contents, contents, contents_length, ContentsFinalizer);
 
-    result_list.SetAt(idx, Api::UnwrapStringHandle(
-        thread->zone(), dart_filename));
-    result_list.SetAt(idx + 1, Api::UnwrapExternalTypedDataHandle(
-        thread->zone(), dart_contents));
+    Dart_ListSetAt(result_list, idx, dart_filename);
+    Dart_ListSetAt(result_list, (idx + 1), dart_contents);
     idx += 2;
   }
-
-  return result_list.raw();
+  return Api::UnwrapArrayHandle(thread->zone(), result_list).raw();
 #else
   return Object::null();
 #endif
+}
+
+
+
+DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 2) {
+#ifndef PRODUCT
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, result, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, token, arguments->NativeArgAt(1));
+
+  if (result.IsSendPort()) {
+    Dart_Port id = SendPort::Cast(result).Id();
+    Isolate* isolate = PortMap::GetIsolate(id);
+    if (isolate != NULL) {
+      ServiceEvent spawn_event(isolate, ServiceEvent::kIsolateSpawn);
+      spawn_event.set_spawn_token(&token);
+      Service::HandleEvent(&spawn_event);
+    } else {
+      // There is no isolate at the control port anymore.  Must have
+      // died already.
+      ServiceEvent spawn_event(NULL, ServiceEvent::kIsolateSpawn);
+      const String& error = String::Handle(String::New(
+          "spawned isolate exited before notification completed"));
+      spawn_event.set_spawn_token(&token);
+      spawn_event.set_spawn_error(&error);
+      Service::HandleEvent(&spawn_event);
+    }
+  } else {
+    // The isolate failed to spawn.
+    ASSERT(result.IsString());
+    ServiceEvent spawn_event(NULL, ServiceEvent::kIsolateSpawn);
+    spawn_event.set_spawn_token(&token);
+    spawn_event.set_spawn_error(&String::Cast(result));
+    Service::HandleEvent(&spawn_event);
+  }
+#endif  // PRODUCT
+  return Object::null();
 }
 
 }  // namespace dart

@@ -7,6 +7,7 @@ library analyzer.test.generated.test.generated.source_factory;
 import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine, Logger;
@@ -40,7 +41,9 @@ Source createSource({String path, String uri}) =>
 
 void runPackageMapTests() {
   final Uri baseUri = new Uri.file('test/base');
-  final List<UriResolver> testResolvers = [new FileUriResolver()];
+  final List<UriResolver> testResolvers = [
+    new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
+  ];
 
   Packages createPackageMap(Uri base, String configFileContents) {
     List<int> bytes = UTF8.encode(configFileContents);

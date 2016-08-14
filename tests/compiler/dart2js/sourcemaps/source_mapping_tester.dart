@@ -98,7 +98,6 @@ bool parseArgument(String argument,
 
 const Map<String, List<String>> TEST_CONFIGURATIONS = const {
   'ssa': const ['--use-new-source-info', ],
-  'cps': const ['--use-new-source-info', '--use-cps-ir'],
   'old': const [],
 };
 
