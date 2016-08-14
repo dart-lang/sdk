@@ -1683,6 +1683,9 @@ class _Mirrors {
   }
 
   static Type _resolveType(Type key, List<Type> typeArguments) {
+    if (!typeArguments.every((_) => _ is Type)) {
+      throw new ArgumentError.value(typeArguments, 'typeArguments');
+    }
     var resolvedTypeMirror = makeLocalTypeMirrorWithTypeArguments(
       key, typeArguments.toList(growable: false));
     var actualType = resolvedTypeMirror.reflectedType;

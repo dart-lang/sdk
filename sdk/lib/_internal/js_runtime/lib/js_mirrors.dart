@@ -534,6 +534,7 @@ class JsLibraryMirror extends JsDeclarationMirror
     addToResult(Symbol key, Mirror value) {
       result[key] = value;
     }
+
     __functions.forEach(addToResult);
     __getters.forEach(addToResult);
     __setters.forEach(addToResult);
@@ -547,6 +548,7 @@ class JsLibraryMirror extends JsDeclarationMirror
     addToResult(Symbol key, Mirror value) {
       result[key] = value;
     }
+
     __members.forEach(addToResult);
     return _cachedDeclarations =
         new UnmodifiableMapView<Symbol, DeclarationMirror>(result);
@@ -586,30 +588,25 @@ InstanceMirror reflect(Object reflectee) {
 }
 
 TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
-  var mangledTypeArguments = null;
+  String mangledName = getMangledTypeName(key);
   if (typeArguments != null) {
-    if (typeArguments.isEmpty)
-      throw new ArgumentError.value(typeArguments, 'typeArguments',
-          'Type argument list can not be empty');
-    mangledTypeArguments =
-        typeArguments.map((argType) => getMangledTypeName(argType));
+    if (!typeArguments.every((_) => _ is Type)) {
+      throw new ArgumentError.value(typeArguments, 'typeArguments');
+    }
+    var mangledTypeArguments =
+        typeArguments.map((_) => getMangledTypeName(_));
+    mangledName =
+        "${mangledName}<${mangledTypeArguments.join(', ')}>";
   }
-  return reflectClassByMangledName(
-      getMangledTypeName(key), mangledTypeArguments);
+  return reflectClassByMangledName(mangledName);
 }
 
-TypeMirror reflectClassByMangledName(String mangledName,
-    [List<String> mangledTypeArguments]) {
-  if (mangledTypeArguments == null) {
-    String unmangledName = mangledGlobalNames[mangledName];
-    if (mangledName == 'dynamic') return JsMirrorSystem._dynamicType;
-    if (mangledName == 'void') return JsMirrorSystem._voidType;
-    if (unmangledName == null) unmangledName = mangledName;
-    return reflectClassByName(s(unmangledName), mangledName);
-  } else {
-    var typedClassName = "${mangledName}<${mangledTypeArguments.join(',')}>";
-    return reflectClassByName(s(typedClassName), typedClassName);
-  }
+TypeMirror reflectClassByMangledName(String mangledName) {
+  String unmangledName = mangledGlobalNames[mangledName];
+  if (mangledName == 'dynamic') return JsMirrorSystem._dynamicType;
+  if (mangledName == 'void') return JsMirrorSystem._voidType;
+  if (unmangledName == null) unmangledName = mangledName;
+  return reflectClassByName(s(unmangledName), mangledName);
 }
 
 var classMirrors;
@@ -627,11 +624,20 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     if (originalDeclaration is JsTypedefMirror) {
       throw new UnimplementedError();
     }
+    if (originalDeclaration.typeVariables.isEmpty) {
+      throw new ArgumentError.value(originalDeclaration.reflectedType);
+    }
     List<String> typeArguments = mangledName
         .substring(typeArgIndex + 1, mangledName.length - 1)
-        .split(',');
+        .split(', ')
+        .where((_) => _.isNotEmpty)
+        .toList();
+    if (typeArguments.isEmpty)
+      throw new ArgumentError.value(typeArguments, 'typeArguments',
+          'Type argument list can not be empty');
     if (originalDeclaration.typeVariables.length != typeArguments.length) {
-      throw new ArgumentError("Number of type arguments does not match");
+      throw new ArgumentError.value(typeArguments, 'typeArguments',
+          "Number of type arguments does not match");
     }
     mirror = new JsTypeBoundClassMirror(
         originalDeclaration,
@@ -1123,7 +1129,8 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   }
 
   InstanceMirror getField(Symbol fieldName) {
-    FASTPATH: {
+    FASTPATH:
+    {
       var cache = _getterCache;
       if (isMissingCache(cache) || isMissingProbe(fieldName)) break FASTPATH;
       // If the [fieldName] has an associated probe function, we can use
@@ -1797,6 +1804,7 @@ class JsClassMirror extends JsTypeMirror
     addToResult(Symbol key, Mirror value) {
       result[key] = value;
     }
+
     __members.forEach(addToResult);
     __constructors.forEach(addToResult);
     typeVariables.forEach((tv) => result[tv.simpleName] = tv);
@@ -2864,6 +2872,7 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
       }
       return typeArgument._mangledName;
     }
+
     representation =
         runtimeTypeToString(type, onTypeVariable: substituteTypeVariable);
   }
