@@ -1,7 +1,12 @@
+# 0.1.24
+
+* Internal updates to keep up with changes in the analyzer package.
+* Updated `close_sinks` to respect calls to `destroy` (#282).
+* Fixed `only_throw_errors` to report on the expression not node.
+
 # 0.1.23
 
 * Removed `whitespace_around_ops` pending re-name and re-design (#249).
-
 
 # 0.1.22
 
