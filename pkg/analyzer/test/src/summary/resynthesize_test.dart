@@ -49,6 +49,12 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
    */
   Set<String> variablesWithNotConstInitializers = new Set<String>();
 
+  /**
+   * Tests may set this to `true` to indicate that a missing file at the time of
+   * summary resynthesis shouldn't trigger an error.
+   */
+  bool allowMissingFiles = false;
+
   bool get checkPropagatedTypes => true;
 
   void addLibrary(String uri) {
@@ -1184,7 +1190,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       });
     }
     return new TestSummaryResynthesizer(
-        null, context, unlinkedSummaries, linkedSummaries);
+        null, context, unlinkedSummaries, linkedSummaries, allowMissingFiles);
   }
 
   ElementImpl getActualElement(Element element, String desc) {
@@ -1331,13 +1337,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       return false;
     } else if (modifier == Modifier.SYNTHETIC) {
       return element.isSynthetic;
-    } else if (modifier == Modifier.URI_EXISTS) {
-      if (element is ExportElement) {
-        return element.uriExists;
-      } else if (element is ImportElement) {
-        return element.uriExists;
-      }
-      return false;
     }
     throw new UnimplementedError(
         'Modifier $modifier for ${element?.runtimeType}');
@@ -1422,7 +1421,7 @@ class ResynthesizeElementTest extends ResynthesizeTest {
       });
     }
     return new TestSummaryResynthesizer(
-        null, context, unlinkedSummaries, linkedSummaries);
+        null, context, unlinkedSummaries, linkedSummaries, allowMissingFiles);
   }
 
   /**
@@ -3607,6 +3606,34 @@ void f() {
 ''');
   }
 
+  test_instantiateToBounds_boundRefersToEarlierTypeArgument() {
+    checkLibrary('''
+class C<S extends num, T extends C<S, T>> {}
+C c;
+''');
+  }
+
+  test_instantiateToBounds_boundRefersToItself() {
+    checkLibrary('''
+class C<T extends C<T>> {}
+C c;
+''');
+  }
+
+  test_instantiateToBounds_boundRefersToLaterTypeArgument() {
+    checkLibrary('''
+class C<T extends C<T, U>, U extends num> {}
+C c;
+''');
+  }
+
+  test_instantiateToBounds_simple() {
+    checkLibrary('''
+class C<T extends num> {}
+C c;
+''');
+  }
+
   test_library() {
     checkLibrary('');
   }
@@ -4476,6 +4503,21 @@ typedef F();''');
     checkLibrary('f() {} g() {}');
   }
 
+  test_unresolved_export() {
+    allowMissingFiles = true;
+    checkLibrary("export 'foo.dart';", allowErrors: true);
+  }
+
+  test_unresolved_import() {
+    allowMissingFiles = true;
+    checkLibrary("import 'foo.dart';", allowErrors: true);
+  }
+
+  test_unresolved_part() {
+    allowMissingFiles = true;
+    checkLibrary("part 'foo.dart';", allowErrors: true);
+  }
+
   test_unused_type_parameter() {
     checkLibrary('''
 class C<T> {
@@ -4588,6 +4630,7 @@ var x;''');
 class TestSummaryResynthesizer extends SummaryResynthesizer {
   final Map<String, UnlinkedUnit> unlinkedSummaries;
   final Map<String, LinkedLibrary> linkedSummaries;
+  final bool allowMissingFiles;
 
   /**
    * The set of uris for which unlinked summaries have been requested using
@@ -4602,7 +4645,7 @@ class TestSummaryResynthesizer extends SummaryResynthesizer {
   final Set<String> linkedSummariesRequested = new Set<String>();
 
   TestSummaryResynthesizer(SummaryResynthesizer parent, AnalysisContext context,
-      this.unlinkedSummaries, this.linkedSummaries)
+      this.unlinkedSummaries, this.linkedSummaries, this.allowMissingFiles)
       : super(parent, context, context.typeProvider, context.sourceFactory,
             context.analysisOptions.strongMode);
 
@@ -4610,7 +4653,7 @@ class TestSummaryResynthesizer extends SummaryResynthesizer {
   LinkedLibrary getLinkedSummary(String uri) {
     linkedSummariesRequested.add(uri);
     LinkedLibrary serializedLibrary = linkedSummaries[uri];
-    if (serializedLibrary == null) {
+    if (serializedLibrary == null && !allowMissingFiles) {
       fail('Unexpectedly tried to get linked summary for $uri');
     }
     return serializedLibrary;
@@ -4620,7 +4663,7 @@ class TestSummaryResynthesizer extends SummaryResynthesizer {
   UnlinkedUnit getUnlinkedSummary(String uri) {
     unlinkedSummariesRequested.add(uri);
     UnlinkedUnit serializedUnit = unlinkedSummaries[uri];
-    if (serializedUnit == null) {
+    if (serializedUnit == null && !allowMissingFiles) {
       fail('Unexpectedly tried to get unlinked summary for $uri');
     }
     return serializedUnit;

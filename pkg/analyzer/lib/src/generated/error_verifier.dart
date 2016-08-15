@@ -497,8 +497,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _initialFieldElementsMap = new HashMap<FieldElement, INIT_STATE>();
       for (FieldElement fieldElement in fieldElements) {
         if (!fieldElement.isSynthetic) {
-          _initialFieldElementsMap[fieldElement] = fieldElement.initializer ==
-              null ? INIT_STATE.NOT_INIT : INIT_STATE.INIT_IN_DECLARATION;
+          _initialFieldElementsMap[fieldElement] =
+              fieldElement.initializer == null
+                  ? INIT_STATE.NOT_INIT
+                  : INIT_STATE.INIT_IN_DECLARATION;
         }
       }
     }
@@ -1305,6 +1307,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
         return parameter;
       }
+
       FormalParameter parameter = baseParameter(formalParameter);
       if (parameter is FieldFormalParameter) {
         FieldElement fieldElement =
@@ -1413,8 +1416,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check the given [executableElement] against override-error codes. The
-   * [overriddenExecutable] is the element that the executable element is
+   * Check the given [derivedElement] against override-error codes. The
+   * [baseElement] is the element that the executable element is
    * overriding. The [parameters] is the parameters of the executable element.
    * The [errorNameTarget] is the node to report problems on.
    *
@@ -1431,25 +1434,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * [StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES].
    */
   bool _checkForAllInvalidOverrideErrorCodes(
-      ExecutableElement executableElement,
-      ExecutableElement overriddenExecutable,
+      ExecutableElement derivedElement,
+      ExecutableElement baseElement,
       List<ParameterElement> parameters,
       List<AstNode> parameterLocations,
       SimpleIdentifier errorNameTarget) {
     bool isGetter = false;
     bool isSetter = false;
-    if (executableElement is PropertyAccessorElement) {
-      isGetter = executableElement.isGetter;
-      isSetter = executableElement.isSetter;
+    if (derivedElement is PropertyAccessorElement) {
+      isGetter = derivedElement.isGetter;
+      isSetter = derivedElement.isSetter;
     }
-    String executableElementName = executableElement.name;
-    FunctionType overridingFT = executableElement.type;
-    FunctionType overriddenFT = overriddenExecutable.type;
+    String executableElementName = derivedElement.name;
+    FunctionType derivedFT = derivedElement.type;
+    FunctionType baseFT = baseElement.type;
     InterfaceType enclosingType = _enclosingClass.type;
-    overriddenFT =
-        _inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
-            overriddenFT, executableElementName, enclosingType);
-    if (overridingFT == null || overriddenFT == null) {
+    baseFT = _inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
+        baseFT, executableElementName, enclosingType);
+    if (derivedFT == null || baseFT == null) {
       return false;
     }
 
@@ -1457,12 +1459,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // TODO(jmesserly): this duplicates some code in isSubtypeOf and most of
     // _isGenericFunctionSubtypeOf. Ideally, we'd let TypeSystem produce
     // an error message once it's ready to "return false".
-    if (!overridingFT.typeFormals.isEmpty) {
-      if (overriddenFT.typeFormals.isEmpty) {
-        overridingFT = _typeSystem.instantiateToBounds(overridingFT);
+    if (!derivedFT.typeFormals.isEmpty) {
+      if (baseFT.typeFormals.isEmpty) {
+        derivedFT = _typeSystem.instantiateToBounds(derivedFT);
       } else {
-        List<TypeParameterElement> params1 = overridingFT.typeFormals;
-        List<TypeParameterElement> params2 = overriddenFT.typeFormals;
+        List<TypeParameterElement> params1 = derivedFT.typeFormals;
+        List<TypeParameterElement> params2 = baseFT.typeFormals;
         int count = params1.length;
         if (params2.length != count) {
           _errorReporter.reportErrorForNode(
@@ -1470,7 +1472,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               errorNameTarget, [
             count,
             params2.length,
-            overriddenExecutable.enclosingElement.displayName
+            baseElement.enclosingElement.displayName
           ]);
           return true;
         }
@@ -1506,74 +1508,73 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               p1.bound,
               p2.displayName,
               p2.bound,
-              overriddenExecutable.enclosingElement.displayName
+              baseElement.enclosingElement.displayName
             ]);
             return true;
           }
         }
         // Proceed with the rest of the checks, using instantiated types.
-        overridingFT = overridingFT.instantiate(variablesFresh);
-        overriddenFT = overriddenFT.instantiate(variablesFresh);
+        derivedFT = derivedFT.instantiate(variablesFresh);
+        baseFT = baseFT.instantiate(variablesFresh);
       }
     }
 
-    DartType overridingFTReturnType = overridingFT.returnType;
-    DartType overriddenFTReturnType = overriddenFT.returnType;
-    List<DartType> overridingNormalPT = overridingFT.normalParameterTypes;
-    List<DartType> overriddenNormalPT = overriddenFT.normalParameterTypes;
-    List<DartType> overridingPositionalPT = overridingFT.optionalParameterTypes;
-    List<DartType> overriddenPositionalPT = overriddenFT.optionalParameterTypes;
-    Map<String, DartType> overridingNamedPT = overridingFT.namedParameterTypes;
-    Map<String, DartType> overriddenNamedPT = overriddenFT.namedParameterTypes;
+    DartType derivedFTReturnType = derivedFT.returnType;
+    DartType baseFTReturnType = baseFT.returnType;
+    List<DartType> derivedNormalPT = derivedFT.normalParameterTypes;
+    List<DartType> baseNormalPT = baseFT.normalParameterTypes;
+    List<DartType> derivedPositionalPT = derivedFT.optionalParameterTypes;
+    List<DartType> basePositionalPT = baseFT.optionalParameterTypes;
+    Map<String, DartType> derivedNamedPT = derivedFT.namedParameterTypes;
+    Map<String, DartType> baseNamedPT = baseFT.namedParameterTypes;
     // CTEC.INVALID_OVERRIDE_REQUIRED, CTEC.INVALID_OVERRIDE_POSITIONAL and
     // CTEC.INVALID_OVERRIDE_NAMED
-    if (overridingNormalPT.length > overriddenNormalPT.length) {
+    if (derivedNormalPT.length > baseNormalPT.length) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.INVALID_OVERRIDE_REQUIRED, errorNameTarget, [
-        overriddenNormalPT.length,
-        overriddenExecutable,
-        overriddenExecutable.enclosingElement.displayName
+        baseNormalPT.length,
+        baseElement,
+        baseElement.enclosingElement.displayName
       ]);
       return true;
     }
-    if (overridingNormalPT.length + overridingPositionalPT.length <
-        overriddenPositionalPT.length + overriddenNormalPT.length) {
+    if (derivedNormalPT.length + derivedPositionalPT.length <
+        basePositionalPT.length + baseNormalPT.length) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.INVALID_OVERRIDE_POSITIONAL, errorNameTarget, [
-        overriddenPositionalPT.length + overriddenNormalPT.length,
-        overriddenExecutable,
-        overriddenExecutable.enclosingElement.displayName
+        basePositionalPT.length + baseNormalPT.length,
+        baseElement,
+        baseElement.enclosingElement.displayName
       ]);
       return true;
     }
     // For each named parameter in the overridden method, verify that there is
     // the same name in the overriding method.
-    for (String overriddenParamName in overriddenNamedPT.keys) {
-      if (!overridingNamedPT.containsKey(overriddenParamName)) {
+    for (String overriddenParamName in baseNamedPT.keys) {
+      if (!derivedNamedPT.containsKey(overriddenParamName)) {
         // The overridden method expected the overriding method to have
         // overridingParamName, but it does not.
         _errorReporter.reportErrorForNode(
             StaticWarningCode.INVALID_OVERRIDE_NAMED, errorNameTarget, [
           overriddenParamName,
-          overriddenExecutable,
-          overriddenExecutable.enclosingElement.displayName
+          baseElement,
+          baseElement.enclosingElement.displayName
         ]);
         return true;
       }
     }
     // SWC.INVALID_METHOD_OVERRIDE_RETURN_TYPE
-    if (overriddenFTReturnType != VoidTypeImpl.instance &&
-        !_typeSystem.isAssignableTo(
-            overridingFTReturnType, overriddenFTReturnType)) {
+    if (baseFTReturnType != VoidTypeImpl.instance &&
+        !_typeSystem.isAssignableTo(derivedFTReturnType, baseFTReturnType)) {
       _errorReporter.reportTypeErrorForNode(
           !isGetter
               ? StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE
               : StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
           errorNameTarget,
           [
-            overridingFTReturnType,
-            overriddenFTReturnType,
-            overriddenExecutable.enclosingElement.displayName
+            derivedFTReturnType,
+            baseFTReturnType,
+            baseElement.enclosingElement.displayName
           ]);
       return true;
     }
@@ -1582,33 +1583,32 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     int parameterIndex = 0;
-    for (int i = 0; i < overridingNormalPT.length; i++) {
-      if (!_typeSystem.isAssignableTo(
-          overridingNormalPT[i], overriddenNormalPT[i])) {
+    for (int i = 0; i < derivedNormalPT.length; i++) {
+      if (!_typeSystem.isAssignableTo(baseNormalPT[i], derivedNormalPT[i])) {
         _errorReporter.reportTypeErrorForNode(
             !isSetter
                 ? StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
                 : StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE,
             parameterLocations[parameterIndex],
             [
-              overridingNormalPT[i],
-              overriddenNormalPT[i],
-              overriddenExecutable.enclosingElement.displayName
+              derivedNormalPT[i],
+              baseNormalPT[i],
+              baseElement.enclosingElement.displayName
             ]);
         return true;
       }
       parameterIndex++;
     }
     // SWC.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE
-    for (int i = 0; i < overriddenPositionalPT.length; i++) {
+    for (int i = 0; i < basePositionalPT.length; i++) {
       if (!_typeSystem.isAssignableTo(
-          overridingPositionalPT[i], overriddenPositionalPT[i])) {
+          basePositionalPT[i], derivedPositionalPT[i])) {
         _errorReporter.reportTypeErrorForNode(
             StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE,
             parameterLocations[parameterIndex], [
-          overridingPositionalPT[i],
-          overriddenPositionalPT[i],
-          overriddenExecutable.enclosingElement.displayName
+          derivedPositionalPT[i],
+          basePositionalPT[i],
+          baseElement.enclosingElement.displayName
         ]);
         return true;
       }
@@ -1616,15 +1616,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // SWC.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE &
     // SWC.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
-    for (String overriddenName in overriddenNamedPT.keys) {
-      DartType overridingType = overridingNamedPT[overriddenName];
-      if (overridingType == null) {
+    for (String overriddenName in baseNamedPT.keys) {
+      DartType derivedType = derivedNamedPT[overriddenName];
+      if (derivedType == null) {
         // Error, this is never reached- INVALID_OVERRIDE_NAMED would have been
         // created above if this could be reached.
         continue;
       }
-      DartType overriddenType = overriddenNamedPT[overriddenName];
-      if (!_typeSystem.isAssignableTo(overriddenType, overridingType)) {
+      DartType baseType = baseNamedPT[overriddenName];
+      if (!_typeSystem.isAssignableTo(baseType, derivedType)) {
         // lookup the parameter for the error to select
         ParameterElement parameterToSelect = null;
         AstNode parameterLocationToSelect = null;
@@ -1641,9 +1641,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           _errorReporter.reportTypeErrorForNode(
               StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
               parameterLocationToSelect, [
-            overridingType,
-            overriddenType,
-            overriddenExecutable.enclosingElement.displayName
+            derivedType,
+            baseType,
+            baseElement.enclosingElement.displayName
           ]);
           return true;
         }
@@ -1661,7 +1661,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     List<ParameterElementImpl> parameterElts = new List<ParameterElementImpl>();
     List<ParameterElementImpl> overriddenParameterElts =
         new List<ParameterElementImpl>();
-    List<ParameterElement> overriddenPEs = overriddenExecutable.parameters;
+    List<ParameterElement> overriddenPEs = baseElement.parameters;
     for (int i = 0; i < parameters.length; i++) {
       ParameterElement parameter = parameters[i];
       if (parameter.parameterKind.isOptional) {
@@ -1714,8 +1714,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
                         .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
                     formalParameters[i],
                     [
-                      overriddenExecutable.enclosingElement.displayName,
-                      overriddenExecutable.displayName,
+                      baseElement.enclosingElement.displayName,
+                      baseElement.displayName,
                       parameterName
                     ]);
                 foundError = true;
@@ -1753,8 +1753,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
                     .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
                 formalParameters[i],
                 [
-                  overriddenExecutable.enclosingElement.displayName,
-                  overriddenExecutable.displayName
+                  baseElement.enclosingElement.displayName,
+                  baseElement.displayName
                 ]);
             foundError = true;
           }
@@ -2202,6 +2202,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     Element toVariable(Element element) {
       return element is PropertyAccessorElement ? element.variable : element;
     }
+
     element = toVariable(element);
     if (element is VariableElement) {
       if (element.isConst) {
@@ -5813,6 +5814,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           argument,
           [argumentType, parameterType]);
     }
+
     if (element is FunctionTypedElement) {
       _checkTypeArgumentsAgainstBounds(
           element.typeParameters, typeArguments, targetType, reportError);

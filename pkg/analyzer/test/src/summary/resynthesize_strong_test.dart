@@ -25,4 +25,11 @@ class ResynthesizeStrongTest extends ResynthesizeElementTest {
   @override
   AnalysisOptionsImpl createOptions() =>
       super.createOptions()..strongMode = true;
+
+  @override
+  @failingTest
+  test_instantiateToBounds_boundRefersToLaterTypeArgument() {
+    // TODO(paulberry): this is failing due to dartbug.com/27072.
+    super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
+  }
 }

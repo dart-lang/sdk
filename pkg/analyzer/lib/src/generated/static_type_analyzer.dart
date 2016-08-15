@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/strong/checker.dart' show getDefiniteType;
 
 /**
  * Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
@@ -478,50 +479,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     _inferLocalFunctionReturnType(node);
     return null;
-  }
-
-  /**
-   * Infers the return type of a local function, either a lambda or
-   * (in strong mode) a local function declaration.
-   */
-  void _inferLocalFunctionReturnType(FunctionExpression node) {
-    bool recordInference = false;
-    ExecutableElementImpl functionElement =
-        node.element as ExecutableElementImpl;
-
-    FunctionBody body = node.body;
-    DartType computedType;
-    if (body is ExpressionFunctionBody) {
-      computedType = _getStaticType(body.expression);
-    } else {
-      computedType = _dynamicType;
-    }
-
-    // If we had a better type from the function body, use it.
-    //
-    // This helps in a few cases:
-    // * ExpressionFunctionBody, when the surrounding context had a better type.
-    // * BlockFunctionBody, if we inferred a type from yield/return.
-    // * we also normalize bottom to dynamic here.
-    if (_strongMode && (computedType.isBottom || computedType.isDynamic)) {
-      DartType contextType = InferenceContext.getContext(body);
-      if (contextType is FutureUnionType) {
-        // TODO(jmesserly): can we do something better here?
-        computedType = body.isAsynchronous ? contextType.type : _dynamicType;
-      } else {
-        computedType = contextType ?? _dynamicType;
-      }
-      recordInference = !computedType.isDynamic;
-    }
-
-    computedType = _computeReturnTypeOfFunction(body, computedType);
-
-    functionElement.returnType = computedType;
-    _recordPropagatedTypeOfFunction(functionElement, node.body);
-    _recordStaticType(node, functionElement.type);
-    if (recordInference) {
-      _resolver.inferenceContext.recordInference(node, functionElement.type);
-    }
   }
 
   /**
@@ -1467,8 +1424,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   void _analyzeLeastUpperBound(
       Expression node, Expression expr1, Expression expr2) {
-    DartType staticType1 = _getStaticType(expr1);
-    DartType staticType2 = _getStaticType(expr2);
+    DartType staticType1 = _getDefiniteType(expr1);
+    DartType staticType2 = _getDefiniteType(expr2);
     if (staticType1 == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType1 = _dynamicType;
@@ -1695,6 +1652,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     return result;
   }
+
+  /**
+   * Gets the definite type of expression, which can be used in cases where
+   * the most precise type is desired, for example computing the least upper
+   * bound.
+   *
+   * See [getDefiniteType] for more information. Without strong mode, this is
+   * equivalent to [_getStaticType].
+   */
+  DartType _getDefiniteType(Expression expr) =>
+      getDefiniteType(expr, _typeSystem, _typeProvider);
 
   /**
    * If the given element name can be mapped to the name of a class defined within the given
@@ -1983,7 +1951,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
             ? returnContext.futureOfType
             : returnContext.type;
       } else {
-        returnType = returnContext as DartType;
+        returnType = returnContext;
       }
       return ts.inferGenericFunctionCall(
           _typeProvider, fnType, paramTypes, argTypes, returnType);
@@ -2030,6 +1998,50 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       constructor.staticElement =
           ConstructorMember.from(rawElement, inferred.returnType);
       node.staticElement = constructor.staticElement;
+    }
+  }
+
+  /**
+   * Infers the return type of a local function, either a lambda or
+   * (in strong mode) a local function declaration.
+   */
+  void _inferLocalFunctionReturnType(FunctionExpression node) {
+    bool recordInference = false;
+    ExecutableElementImpl functionElement =
+        node.element as ExecutableElementImpl;
+
+    FunctionBody body = node.body;
+    DartType computedType;
+    if (body is ExpressionFunctionBody) {
+      computedType = _getStaticType(body.expression);
+    } else {
+      computedType = _dynamicType;
+    }
+
+    // If we had a better type from the function body, use it.
+    //
+    // This helps in a few cases:
+    // * ExpressionFunctionBody, when the surrounding context had a better type.
+    // * BlockFunctionBody, if we inferred a type from yield/return.
+    // * we also normalize bottom to dynamic here.
+    if (_strongMode && (computedType.isBottom || computedType.isDynamic)) {
+      DartType contextType = InferenceContext.getContext(body);
+      if (contextType is FutureUnionType) {
+        // TODO(jmesserly): can we do something better here?
+        computedType = body.isAsynchronous ? contextType.type : _dynamicType;
+      } else {
+        computedType = contextType ?? _dynamicType;
+      }
+      recordInference = !computedType.isDynamic;
+    }
+
+    computedType = _computeReturnTypeOfFunction(body, computedType);
+
+    functionElement.returnType = computedType;
+    _recordPropagatedTypeOfFunction(functionElement, node.body);
+    _recordStaticType(node, functionElement.type);
+    if (recordInference) {
+      _resolver.inferenceContext.recordInference(node, functionElement.type);
     }
   }
 

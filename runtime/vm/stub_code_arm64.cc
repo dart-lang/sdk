@@ -2032,10 +2032,11 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 //  R0: receiver
 //  R5: MegamorphicCache (preserved)
 // Result:
-//  R1: target entry point
 //  CODE_REG: target Code
 //  R4: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
   // Jump if receiver is a smi.
   Label smi_case;
   __ TestImmediate(R0, kSmiTagMask);
@@ -2083,7 +2084,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ ldr(R4, FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
   __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ ret();
+  __ br(R1);
 
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
@@ -2106,10 +2107,11 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 //  R0: receiver
 //  R5: ICData (preserved)
 // Result:
-//  R1: target entry point
 //  CODE_REG: target Code object
 //  R4: arguments descriptor
 void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
@@ -2134,17 +2136,19 @@ void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
   __ ldr(R0, Address(R8, target_offset));
   __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ ret();
+  __ br(R1);
 
   __ Bind(&miss);
   __ LoadIsolate(R2);
   __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
   __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ ret();
+  __ br(R1);
 }
 
 
 void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
@@ -2169,13 +2173,34 @@ void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
   const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
   __ ldr(R1, Address(R8, entry_offset));
   __ ldr(CODE_REG, Address(R8, code_offset));
-  __ ret();
+  __ br(R1);
 
   __ Bind(&miss);
   __ LoadIsolate(R2);
   __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
   __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ ret();
+  __ br(R1);
+}
+
+
+// Called from the monomorphic checked entry.
+//  R0: receiver
+void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ Push(R0);  // Preserve receiver.
+
+  __ PushObject(Object::null_object());  // Result.
+  __ Push(R0);                           // Arg0: Receiver
+  __ CallRuntime(kMonomorphicMissRuntimeEntry, 1);
+  __ Drop(1);
+  __ Pop(R5);  // result = IC
+
+  __ Pop(R0);  // Restore receiver.
+  __ LeaveStubFrame();
+
+  __ ldr(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
+  __ ldr(R1, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ br(R1);
 }
 
 

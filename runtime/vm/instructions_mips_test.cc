@@ -25,8 +25,8 @@ ASSEMBLER_TEST_RUN(Call, test) {
   // in the code, points to the Ret instruction above, i.e. two instructions
   // before the end of the code buffer, including the delay slot for the
   // return jump.
-  CallPattern call(test->entry() + test->code().Size() - (2*Instr::kInstrSize),
-                   test->code());
+  uword end = test->payload_start() + test->code().Size();
+  CallPattern call(end - (2 * Instr::kInstrSize), test->code());
   EXPECT_EQ(StubCode::InvokeDartCode_entry()->code(), call.TargetCode());
 }
 

@@ -20,11 +20,10 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
@@ -244,6 +243,11 @@ class Driver implements ServerStarter {
       "incremental-resolution-validation";
 
   /**
+   * The name of the option used to enable using pub summary manager.
+   */
+  static const String ENABLE_PUB_SUMMARY_MANAGER = 'enable-pub-summary-manager';
+
+  /**
    * The name of the option used to enable fined grained invalidation.
    */
   static const String FINER_GRAINED_INVALIDATION = 'finer-grained-invalidation';
@@ -379,6 +383,8 @@ class Driver implements ServerStarter {
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
+    analysisServerOptions.enablePubSummaryManager =
+        results[ENABLE_PUB_SUMMARY_MANAGER];
     analysisServerOptions.finerGrainedInvalidation =
         results[FINER_GRAINED_INVALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
@@ -405,18 +411,22 @@ class Driver implements ServerStarter {
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
 
-    JavaFile defaultSdkDirectory;
+    String defaultSdkPath;
     if (results[SDK_OPTION] != null) {
-      defaultSdkDirectory = new JavaFile(results[SDK_OPTION]);
+      defaultSdkPath = results[SDK_OPTION];
     } else {
       // No path to the SDK was provided.
       // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
-      defaultSdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
+      defaultSdkPath = FolderBasedDartSdk
+          .defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
+          .path;
     }
     bool useSummaries = analysisServerOptions.fileReadMode == 'as-is';
     SdkCreator defaultSdkCreator = (AnalysisOptions options) {
-      DirectoryBasedDartSdk sdk =
-          new DirectoryBasedDartSdk(defaultSdkDirectory);
+      PhysicalResourceProvider resourceProvider =
+          PhysicalResourceProvider.INSTANCE;
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
+          FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
       sdk.analysisOptions = options;
       sdk.useSummary = useSummaries;
       return sdk;
@@ -424,7 +434,7 @@ class Driver implements ServerStarter {
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator(null);
+    DartSdk defaultSdk = defaultSdkCreator(null);
     //
     // Initialize the instrumentation service.
     //
@@ -448,8 +458,7 @@ class Driver implements ServerStarter {
     //
     socketServer = new SocketServer(
         analysisServerOptions,
-        new DartSdkManager(defaultSdkDirectory.getAbsolutePath(), useSummaries,
-            defaultSdkCreator),
+        new DartSdkManager(defaultSdkPath, useSummaries, defaultSdkCreator),
         defaultSdk,
         service,
         serverPlugin,
@@ -530,6 +539,10 @@ class Driver implements ServerStarter {
         help: "set a destination for the incremental resolver's log");
     parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
         help: "enable validation of incremental resolution results (slow)",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(ENABLE_PUB_SUMMARY_MANAGER,
+        help: "enable using summaries for pub cache packages",
         defaultsTo: false,
         negatable: false);
     parser.addFlag(FINER_GRAINED_INVALIDATION,

@@ -380,7 +380,8 @@ class AssemblerTest {
 
   const Code& code() const { return code_; }
 
-  uword entry() const { return code_.EntryPoint(); }
+  uword payload_start() const { return code_.PayloadStart(); }
+  uword entry() const { return code_.UncheckedEntryPoint(); }
 
   // Invoke/InvokeWithCodeAndThread is used to call assembler test functions
   // using the ABI calling convention.

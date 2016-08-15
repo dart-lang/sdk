@@ -113,6 +113,15 @@ test() {
 ''');
   }
 
+  void test_callMethodOnFunctions() {
+    checkFile(r'''
+void f(int x) => print(x);
+main() {
+  f.call(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
+}
+    ''');
+  }
+
   void test_castsInConditions() {
     checkFile('''
 main() {
@@ -798,13 +807,13 @@ void main() {
     Left f;
     f = /*error:STATIC_TYPE_ERROR*/top;
     f = left;
-    f = /*error:STATIC_TYPE_ERROR*/right;
+    f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Right f;
     f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/left;
+    f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
@@ -844,13 +853,13 @@ void main() {
     Left f;
     f = /*warning:DOWN_CAST_COMPOSITE*/top;
     f = left;
-    f = /*warning:DOWN_CAST_COMPOSITE*/right;
+    f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Right f;
     f = /*warning:DOWN_CAST_COMPOSITE*/top;
-    f = /*warning:DOWN_CAST_COMPOSITE*/left;
+    f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
@@ -931,14 +940,14 @@ void main() {
     f = topTop;
     f = aa;
     f = aTop;
-    f = /*warning:DOWN_CAST_COMPOSITE should be error:STATIC_TYPE_ERROR*/botA;
+    f = /*error:INVALID_ASSIGNMENT*/botA;
     f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<ATop>*/(
         topA,
         topTop,
         aa,
         aTop,
-        /*warning:DOWN_CAST_COMPOSITE should be error:STATIC_TYPE_ERROR*/botA,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                     );
     apply/*<ATop>*/(
@@ -946,31 +955,31 @@ void main() {
         (dynamic x) => (x as Object),
         (A x) => x,
         (A x) => null,
-        /*warning:DOWN_CAST_COMPOSITE should be error:STATIC_TYPE_ERROR*/botA,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                     );
   }
   {
     BotA f;
     f = topA;
-    f = /*error:STATIC_TYPE_ERROR*/topTop;
+    f = /*error:INVALID_ASSIGNMENT*/topTop;
     f = aa;
-    f = /*error:STATIC_TYPE_ERROR*/aTop;
+    f = /*error:INVALID_ASSIGNMENT*/aTop;
     f = botA;
     f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<BotA>*/(
         topA,
-        /*error:STATIC_TYPE_ERROR*/topTop,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
-        /*error:STATIC_TYPE_ERROR*/aTop,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aTop,
         botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                     );
     apply/*<BotA>*/(
         (dynamic x) => new A(),
-        /*error:STATIC_TYPE_ERROR*/(dynamic x) => (x as Object),
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
         (A x) => x,
-        /*error:STATIC_TYPE_ERROR*/(A x) => (x as Object),
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => (x as Object),
         botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                     );
@@ -978,14 +987,14 @@ void main() {
   {
     AA f;
     f = topA;
-    f = /*error:STATIC_TYPE_ERROR*/topTop;
+    f = /*error:INVALID_ASSIGNMENT*/topTop;
     f = aa;
     f = /*error:STATIC_TYPE_ERROR*/aTop; // known function
     f = /*warning:DOWN_CAST_COMPOSITE*/botA;
     f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<AA>*/(
         topA,
-        /*error:STATIC_TYPE_ERROR*/topTop,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
         /*error:STATIC_TYPE_ERROR*/aTop, // known function
         /*warning:DOWN_CAST_COMPOSITE*/botA,
@@ -993,7 +1002,7 @@ void main() {
                   );
     apply/*<AA>*/(
         (dynamic x) => new A(),
-        /*error:STATIC_TYPE_ERROR*/(dynamic x) => (x as Object),
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
         (A x) => x,
         /*error:STATIC_TYPE_ERROR*/(A x) => (x as Object), // known function
         /*warning:DOWN_CAST_COMPOSITE*/botA,
@@ -1004,24 +1013,24 @@ void main() {
     TopTop f;
     f = topA;
     f = topTop;
-    f = /*error:STATIC_TYPE_ERROR*/aa;
+    f = /*error:INVALID_ASSIGNMENT*/aa;
     f = /*error:STATIC_TYPE_ERROR*/aTop; // known function
-    f = /*warning:DOWN_CAST_COMPOSITE should be error:STATIC_TYPE_ERROR*/botA;
+    f = /*error:INVALID_ASSIGNMENT*/botA;
     f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<TopTop>*/(
         topA,
         topTop,
-        /*error:STATIC_TYPE_ERROR*/aa,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aa,
         /*error:STATIC_TYPE_ERROR*/aTop, // known function
-        /*warning:DOWN_CAST_COMPOSITE should be error:STATIC_TYPE_ERROR*/botA,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                       );
     apply/*<TopTop>*/(
         (dynamic x) => new A(),
         (dynamic x) => (x as Object),
-        /*error:STATIC_TYPE_ERROR*/(A x) => x,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
         /*error:STATIC_TYPE_ERROR*/(A x) => (x as Object), // known function
-        /*warning:DOWN_CAST_COMPOSITE should be error:STATIC_TYPE_ERROR*/botA,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                       );
   }
@@ -1132,16 +1141,16 @@ void main() {
     f = bot;
   }
   {
-    Function2<B, B> f;
+    Function2<B, B> f; // left
     f = /*error:STATIC_TYPE_ERROR*/top;
     f = left;
-    f = /*error:STATIC_TYPE_ERROR*/right;
+    f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
-    Function2<A, A> f;
+    Function2<A, A> f; // right
     f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/left;
+    f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
@@ -1177,12 +1186,12 @@ void main() {
 
     left = /*warning:DOWN_CAST_COMPOSITE*/top;
     left = left;
-    left = /*warning:DOWN_CAST_COMPOSITE*/right; // Should we reject this?
+    left = /*error:INVALID_ASSIGNMENT*/right;
     left = bot;
 
-    right = /*warning:DOWN_CAST_COMPOSITE*/top;
-    right = /*warning:DOWN_CAST_COMPOSITE*/left; // Should we reject this?
-    right = right;
+    right = /*info:INVALID_ASSIGNMENT,warning:DOWN_CAST_COMPOSITE*/top;
+    right = /*error:INVALID_ASSIGNMENT*/left;
+    right = /*info:INVALID_ASSIGNMENT*/right;
     right = bot;
 
     bot = /*warning:DOWN_CAST_COMPOSITE*/top;
@@ -1222,13 +1231,13 @@ void main() {
     Function2<AToB, AToB> f; // Left
     f = /*error:STATIC_TYPE_ERROR*/top;
     f = left;
-    f = /*error:STATIC_TYPE_ERROR*/right;
+    f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Function2<BToA, BToA> f; // Right
     f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/left;
+    f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
@@ -1237,7 +1246,7 @@ void main() {
     f = bot;
     f = /*error:STATIC_TYPE_ERROR*/left;
     f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/left;
+    f = /*error:STATIC_TYPE_ERROR*/right;
   }
 }
 ''');
@@ -1271,13 +1280,13 @@ void main() {
     Function2<AToB, AToB> f; // Left
     f = /*error:STATIC_TYPE_ERROR*/top;
     f = left;
-    f = /*error:STATIC_TYPE_ERROR*/right;
+    f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Function2<BToA, BToA> f; // Right
     f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/left;
+    f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
@@ -1286,7 +1295,7 @@ void main() {
     f = bot;
     f = /*error:STATIC_TYPE_ERROR*/left;
     f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/left;
+    f = /*error:STATIC_TYPE_ERROR*/right;
   }
 }
 ''');
@@ -1320,13 +1329,13 @@ void main() {
     Function2<AToB, AToB> f; // Left
     f = /*error:STATIC_TYPE_ERROR*/top;
     f = left;
-    f = /*error:STATIC_TYPE_ERROR*/right;
+    f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Function2<BToA, BToA> f; // Right
     f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/left;
+    f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
@@ -1335,7 +1344,7 @@ void main() {
     f = bot;
     f = /*error:STATIC_TYPE_ERROR*/left;
     f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/left;
+    f = /*error:STATIC_TYPE_ERROR*/right;
   }
 }
 ''');
@@ -1363,12 +1372,12 @@ void main() {
     left = /*warning:DOWN_CAST_COMPOSITE*/top;
     left = left;
     left =
-        /*warning:DOWN_CAST_COMPOSITE should be error:STATIC_TYPE_ERROR*/right;
+        /*error:INVALID_ASSIGNMENT*/right;
     left = bot;
 
     right = /*warning:DOWN_CAST_COMPOSITE*/top;
     right =
-        /*warning:DOWN_CAST_COMPOSITE should be error:STATIC_TYPE_ERROR*/left;
+        /*error:INVALID_ASSIGNMENT*/left;
     right = right;
     right = bot;
 
@@ -1408,13 +1417,13 @@ void main() {
     Function2<B, B> f;
     f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
     f = c.left;
-    f = /*warning:DOWN_CAST_COMPOSITE*/c.right;
+    f = /*error:INVALID_ASSIGNMENT*/c.right;
     f = c.bot;
   }
   {
     Function2<A, A> f;
     f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
-    f = /*warning:DOWN_CAST_COMPOSITE*/c.left;
+    f = /*error:INVALID_ASSIGNMENT*/c.left;
     f = c.right;
     f = c.bot;
   }
@@ -1466,13 +1475,13 @@ void main() {
     Left f;
     f = /*warning:DOWN_CAST_COMPOSITE*/top;
     f = left;
-    f = /*warning:DOWN_CAST_COMPOSITE*/right; // Should we reject this?
+    f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Right f;
     f = /*warning:DOWN_CAST_COMPOSITE*/top;
-    f = /*warning:DOWN_CAST_COMPOSITE*/left; // Should we reject this?
+    f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
@@ -1623,7 +1632,7 @@ void main() {
      f = new A();
      f = /*error:INVALID_ASSIGNMENT*/new B();
      f = i2i;
-     f = /*error:STATIC_TYPE_ERROR*/n2n;
+     f = /*error:INVALID_ASSIGNMENT*/n2n;
      f = /*warning:DOWN_CAST_COMPOSITE*/i2i as Object;
      f = /*warning:DOWN_CAST_COMPOSITE*/n2n as Function;
    }
@@ -1631,7 +1640,7 @@ void main() {
      N2N f;
      f = /*error:INVALID_ASSIGNMENT*/new A();
      f = new B();
-     f = /*error:STATIC_TYPE_ERROR*/i2i;
+     f = /*error:INVALID_ASSIGNMENT*/i2i;
      f = n2n;
      f = /*warning:DOWN_CAST_COMPOSITE*/i2i as Object;
      f = /*warning:DOWN_CAST_COMPOSITE*/n2n as Function;
@@ -1693,13 +1702,13 @@ void main() {
     Function2<B, B> f;
     f = /*error:STATIC_TYPE_ERROR*/C.top;
     f = C.left;
-    f = /*error:STATIC_TYPE_ERROR*/C.right;
+    f = /*error:INVALID_ASSIGNMENT*/C.right;
     f = C.bot;
   }
   {
     Function2<A, A> f;
     f = /*error:STATIC_TYPE_ERROR*/C.top;
-    f = /*error:STATIC_TYPE_ERROR*/C.left;
+    f = /*error:INVALID_ASSIGNMENT*/C.left;
     f = C.right;
     f = C.bot;
   }
@@ -1753,7 +1762,7 @@ void main() {
     checkFile('''
 typedef num Num2Num(num x);
 void main() {
-  Num2Num g = /*info:INFERRED_TYPE_CLOSURE,error:STATIC_TYPE_ERROR*/(int x) { return x; };
+  Num2Num g = /*info:INFERRED_TYPE_CLOSURE,error:INVALID_ASSIGNMENT*/(int x) { return x; };
   print(g(42));
 }
 ''');
@@ -2977,6 +2986,19 @@ main() {
 ''');
   }
 
+  void test_nullCoalescingStrictArrow() {
+    checkFile(r'''
+bool _alwaysTrue(x) => true;
+typedef bool TakesA<T>(T t);
+class C<T> {
+  TakesA<T> g;
+  C(TakesA<T> f)
+    : g = f ?? _alwaysTrue;
+  C.a() : g = _alwaysTrue;
+}
+    ''');
+  }
+
   void test_optionalParams() {
     // Regression test for https://github.com/dart-lang/sdk/issues/26155
     checkFile(r'''
@@ -2985,6 +3007,23 @@ void takesF(void f(int x)) {
   takesF(/*info:INFERRED_TYPE_CLOSURE*/(y) { bool z = y.isEven; });
 }
     ''');
+  }
+
+  void test_overrideNarrowsType() {
+    addFile(r'''
+class A {}
+class B extends A {}
+
+abstract class C {
+  m(A a);
+  n(B b);
+}
+abstract class D extends C {
+  /*error:INVALID_METHOD_OVERRIDE*/m(/*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B b);
+  n(A a);
+}
+    ''');
+    check(implicitCasts: false);
   }
 
   void test_privateOverride() {
@@ -3114,7 +3153,7 @@ void main() {
     lOfOs = new L<Object>(); // Reset type propagation.
   }
   {
-    lOfAs = /*warning:DOWN_CAST_COMPOSITE*/mOfDs;
+    lOfAs = /*error:INVALID_ASSIGNMENT*/mOfDs;
     lOfAs = /*error:INVALID_ASSIGNMENT*/mOfOs;
     lOfAs = mOfAs;
     lOfAs = /*warning:DOWN_CAST_COMPOSITE*/lOfDs;
@@ -3128,7 +3167,7 @@ void main() {
     mOfDs = mOfAs;
     mOfDs = /*info:DOWN_CAST_IMPLICIT*/lOfDs;
     mOfDs = /*info:DOWN_CAST_IMPLICIT*/lOfOs;
-    mOfDs = /*warning:DOWN_CAST_COMPOSITE*/lOfAs;
+    mOfDs = /*error:INVALID_ASSIGNMENT*/lOfAs;
     mOfDs = new M(); // Reset type propagation.
   }
   {

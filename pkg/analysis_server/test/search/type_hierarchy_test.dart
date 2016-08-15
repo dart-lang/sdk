@@ -142,6 +142,18 @@ class CCC extends BBB implements AAA {}
       {
         'classElement': {
           'kind': 'CLASS',
+          'name': 'BBB',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [3]
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
           'name': 'CCC',
           'location': anything,
           'flags': 0
@@ -151,18 +163,6 @@ class CCC extends BBB implements AAA {}
         'mixins': [],
         'subclasses': []
       },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'BBB',
-          'location': anything,
-          'flags': 0
-        },
-        'superclass': 0,
-        'interfaces': [],
-        'mixins': [],
-        'subclasses': [2]
-      }
     ]);
   }
 

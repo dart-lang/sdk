@@ -23,7 +23,9 @@ class IndexElementInfo {
 
   factory IndexElementInfo(Element element) {
     IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
-    if (element.isSynthetic) {
+    if (element is LibraryElement || element is CompilationUnitElement) {
+      kind = IndexSyntheticElementKind.unit;
+    } else if (element.isSynthetic) {
       if (element is ConstructorElement) {
         kind = IndexSyntheticElementKind.constructor;
         element = element.enclosingElement;
@@ -60,8 +62,6 @@ class IndexElementInfo {
         throw new ArgumentError(
             'Unsupported synthetic element ${element.runtimeType}');
       }
-    } else if (element is LibraryElement || element is CompilationUnitElement) {
-      kind = IndexSyntheticElementKind.unit;
     }
     return new IndexElementInfo._(element, kind);
   }

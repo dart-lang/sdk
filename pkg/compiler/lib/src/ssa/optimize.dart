@@ -1223,6 +1223,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       }
       return false;
     }
+
     return instruction.isAllocation &&
         instruction.isPure() &&
         trivialDeadStoreReceivers.putIfAbsent(
@@ -1275,7 +1276,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void cleanPhis(HGraph graph) {
-    L: for (HBasicBlock block in graph.blocks) {
+    L:
+    for (HBasicBlock block in graph.blocks) {
       List<HBasicBlock> predecessors = block.predecessors;
       // Zap all inputs to phis that correspond to dead blocks.
       block.forEachPhi((HPhi phi) {
@@ -1569,6 +1571,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       assert(instruction is HGoto || instruction is HLoopBranch);
       return instruction is HGoto || instruction.inputs[0].isConstantTrue();
     }
+
     bool firstInstructionInLoop = block == loopHeader
         // Compensate for lack of code motion.
         ||

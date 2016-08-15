@@ -298,6 +298,7 @@ class _RuntimeTypes implements RuntimeTypes {
               methodsNeedingRti.add(method);
             }
           }
+
           compiler.resolverWorld.closuresWithFreeTypeVariables
               .forEach(analyzeMethod);
           compiler.resolverWorld.callMethodsWithFreeTypeVariables
@@ -314,6 +315,7 @@ class _RuntimeTypes implements RuntimeTypes {
           methodsNeedingRti.add(method);
         }
       }
+
       compiler.resolverWorld.closuresWithFreeTypeVariables
           .forEach(analyzeMethod);
       compiler.resolverWorld.callMethodsWithFreeTypeVariables
@@ -417,6 +419,7 @@ class _RuntimeTypes implements RuntimeTypes {
         functionArgumentCollector.collect(type);
       }
     }
+
     collectFunctionTypeArguments(isChecks);
     collectFunctionTypeArguments(checkedBounds);
 
@@ -432,6 +435,7 @@ class _RuntimeTypes implements RuntimeTypes {
         }
       }
     }
+
     collectTypeArguments(instantiatedTypes);
     collectTypeArguments(checkedTypeArguments, isTypeArgument: true);
 
@@ -462,6 +466,7 @@ class _RuntimeTypes implements RuntimeTypes {
         functionArgumentCollector.collect(type);
       }
     }
+
     collectFunctionTypeArguments(instantiatedTypes);
     collectFunctionTypeArguments(checkedTypeArguments);
 
@@ -471,6 +476,7 @@ class _RuntimeTypes implements RuntimeTypes {
         collector.collect(type, isTypeArgument: isTypeArgument);
       }
     }
+
     collectTypeArguments(isChecks);
     collectTypeArguments(checkedBounds, isTypeArgument: true);
 
@@ -641,6 +647,7 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
     jsAst.Expression onVariable(TypeVariableType v) {
       return new jsAst.VariableUse(v.name);
     }
+
     ;
     jsAst.Expression encoding = getTypeRepresentation(type, onVariable);
     if (contextClass == null && !alwaysGenerateFunction) {

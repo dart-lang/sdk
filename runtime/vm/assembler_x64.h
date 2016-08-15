@@ -949,6 +949,10 @@ class Assembler : public ValueObject {
   void EnterStubFrame();
   void LeaveStubFrame();
 
+  void RawEntry() { buffer_.Reset(); }
+  void NoMonomorphicCheckedEntry();
+  void MonomorphicCheckedEntry();
+
   void UpdateAllocationStats(intptr_t cid,
                              Heap::Space space);
 

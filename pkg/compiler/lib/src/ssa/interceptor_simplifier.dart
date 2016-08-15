@@ -185,7 +185,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
   HInstruction findDominator(Iterable<HInstruction> instructions) {
     HInstruction result;
-    L1: for (HInstruction candidate in instructions) {
+    L1:
+    for (HInstruction candidate in instructions) {
       for (HInstruction current in instructions) {
         if (current != candidate && !candidate.dominates(current)) continue L1;
       }

@@ -93,7 +93,7 @@ class ClassViewElement extends ObservatoryElement {
         })
     ];
     if (M.isSampleProcessRunning(progress.status)) {
-      progress = await stream.last;
+      progress = (await stream.last).progress;
     }
     if (progress.status == M.SampleProfileLoadingStatus.loaded) {
       shadowRoot.querySelector('#stackTraceTreeConfig')..children = [

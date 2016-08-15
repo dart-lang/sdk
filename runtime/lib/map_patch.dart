@@ -17,9 +17,9 @@
     return map;
   }
 
-  /* @patch */ factory Map.unmodifiable(Map other) {
+  @patch factory Map.unmodifiable(Map other) {
     return new UnmodifiableMapView<K, V>(new Map.from(other));
   }
 
-  /* @patch */ factory Map() = LinkedHashMap<K, V>;
+  @patch factory Map() = LinkedHashMap<K, V>;
 }

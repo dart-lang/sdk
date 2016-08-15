@@ -1196,6 +1196,7 @@ class LibraryElementX extends ElementX
           f(element);
         }
       }
+
       localMembers.forEach(filterPatch);
     } else {
       localMembers.forEach(f);

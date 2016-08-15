@@ -13,6 +13,14 @@ class HashMap {
  public:
   typedef bool (*MatchFun) (void* key1, void* key2);
 
+  typedef void (*ClearFun) (void* value);
+
+  // initial_capacity is the size of the initial hash map;
+  // it must be a power of 2 (and thus must not be 0).
+  HashMap(MatchFun match, uint32_t initial_capacity);
+
+  ~HashMap();
+
   static bool SamePointerValue(void* key1, void* key2) {
     return key1 == key2;
   }
@@ -37,17 +45,11 @@ class HashMap {
                   reinterpret_cast<char*>(key2)) == 0;
   }
 
-
-  // initial_capacity is the size of the initial hash map;
-  // it must be a power of 2 (and thus must not be 0).
-  HashMap(MatchFun match, uint32_t initial_capacity);
-
-  ~HashMap();
-
   // HashMap entries are (key, value, hash) triplets.
   // Some clients may not need to use the value slot
   // (e.g. implementers of sets, where the key is the value).
   struct Entry {
+    Entry() : key(NULL), value(NULL), hash(0) {}
     void* key;
     void* value;
     uint32_t hash;  // The full hash value for key.
@@ -63,8 +65,12 @@ class HashMap {
   // Removes the entry with matching key.
   void Remove(void* key, uint32_t hash);
 
-  // Empties the hash map (occupancy() == 0).
-  void Clear();
+  // Empties the hash map (occupancy() == 0), and calls the function 'clear' on
+  // each of the values if given.
+  void Clear(ClearFun clear = NULL);
+
+  // The number of entries stored in the table.
+  intptr_t size() const { return occupancy_; }
 
   // The capacity of the table. The implementation
   // makes sure that occupancy is at most 80% of
@@ -94,6 +100,7 @@ class HashMap {
   void Resize();
 
   friend class IntSet;  // From hashmap_test.cc
+  DISALLOW_COPY_AND_ASSIGN(HashMap);
 };
 
 }  // namespace dart

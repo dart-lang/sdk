@@ -674,7 +674,8 @@ class HBasicBlock extends HInstructionList {
 
     if (better.isEmpty) return rewrite(from, to);
 
-    L1: for (HInstruction user in from.usedBy) {
+    L1:
+    for (HInstruction user in from.usedBy) {
       for (HCheck check in better) {
         if (check.dominates(user)) {
           user.rewriteInput(from, check);

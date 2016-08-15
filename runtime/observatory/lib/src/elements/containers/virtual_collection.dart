@@ -106,8 +106,8 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _top = (scrollTop / _itemHeight).floor();
 
     _scroller.style.height = '${_itemHeight*(_items.length)}px';
-    _shifter.style.top = '${_itemHeight*_top}px';
     final tail_length = (_height / _itemHeight / _preload).ceil();
+    _shifter.style.top = '${_itemHeight*(_top - tail_length)}px';
     final length = tail_length * 2 + tail_length * _preload;
 
     if (_shifter.children.length < length) {
@@ -116,7 +116,6 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
         e..style.display = 'hidden';
         _shifter.children.add(e);
       }
-      _shifter.style.height = '${_itemHeight*length}px';
       children = [
         _scroller
           ..children = [_shifter]
@@ -152,7 +151,10 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   }
 
   void _onResize(_) {
-    _height = getBoundingClientRect().height;
-    _r.dirty();
+    final newHeight = getBoundingClientRect().height;
+    if (newHeight > _height) {
+      _height = newHeight;
+      _r.dirty();
+    }
   }
 }

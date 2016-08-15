@@ -5,10 +5,10 @@
 import 'dart:_internal';
 
 @patch class UserTag {
-  /* @patch */ factory UserTag(String label) {
+  @patch factory UserTag(String label) {
     return new _UserTag(label);
   }
-  /* @patch */ static UserTag get defaultTag => _getDefaultTag();
+  @patch static UserTag get defaultTag => _getDefaultTag();
 }
 
 

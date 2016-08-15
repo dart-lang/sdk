@@ -86,26 +86,5 @@ void main() {
        ['--generate-code-with-compile-time-errors', '--test-mode'],
        expectedCodeGenerated: true,
        expectedOutput: false);
-
-    await test(
-       ['--use-cps-ir'],
-       expectedCodeGenerated: false,
-       expectedOutput: false);
-    await test(
-       ['--use-cps-ir', '--test-mode'],
-       expectedCodeGenerated: false,
-       expectedOutput: false);
-    await test(
-       ['--use-cps-ir', '--generate-code-with-compile-time-errors'],
-       expectedCodeGenerated: false,
-       expectedOutput: false,
-       expectHint: true);
-    await test(
-       ['--use-cps-ir',
-        '--generate-code-with-compile-time-errors',
-        '--test-mode'],
-       expectedCodeGenerated: false,
-       expectedOutput: false,
-       expectHint: true);
   });
 }

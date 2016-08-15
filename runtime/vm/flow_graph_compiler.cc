@@ -1006,7 +1006,7 @@ void FlowGraphCompiler::EmitDeopt(intptr_t deopt_id,
 void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   ASSERT(exception_handlers_list_ != NULL);
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
-      exception_handlers_list_->FinalizeExceptionHandlers(code.EntryPoint()));
+      exception_handlers_list_->FinalizeExceptionHandlers(code.PayloadStart()));
   code.set_exception_handlers(handlers);
   if (FLAG_compiler_stats) {
     Thread* thread = Thread::Current();
@@ -1020,7 +1020,7 @@ void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
 void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
-      pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
+      pc_descriptors_list_->FinalizePcDescriptors(code.PayloadStart()));
   if (!is_optimizing_) descriptors.Verify(parsed_function_.function());
   code.set_pc_descriptors(descriptors);
   code.set_lazy_deopt_pc_offset(lazy_deopt_pc_offset_);

@@ -562,9 +562,6 @@ class ExportElementHandle extends ElementHandle implements ExportElement {
   int get uriEnd => actualElement.uriEnd;
 
   @override
-  bool get uriExists => actualElement.uriExists;
-
-  @override
   int get uriOffset => actualElement.uriOffset;
 }
 
@@ -708,9 +705,6 @@ class ImportElementHandle extends ElementHandle implements ImportElement {
 
   @override
   int get uriEnd => actualElement.uriEnd;
-
-  @override
-  bool get uriExists => actualElement.uriExists;
 
   @override
   int get uriOffset => actualElement.uriOffset;

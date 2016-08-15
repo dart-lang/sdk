@@ -956,6 +956,28 @@ final ListResultDescriptor<AnalysisError> SCAN_ERRORS =
         'SCAN_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
+ * The errors produced while resolving a static [VariableElement] initializer.
+ *
+ * The result is only available for [VariableElement]s, and only when strong
+ * mode is enabled.
+ */
+final ListResultDescriptor<AnalysisError> STATIC_VARIABLE_RESOLUTION_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
+        'STATIC_VARIABLE_RESOLUTION_ERRORS', AnalysisError.NO_ERRORS);
+
+/**
+ * A list of the [AnalysisError]s reported while resolving static
+ * [INFERABLE_STATIC_VARIABLES_IN_UNIT] defined in a unit.
+ *
+ * The result is only available for [LibrarySpecificUnit]s, and only when strong
+ * mode is enabled.
+ */
+final ListResultDescriptor<AnalysisError>
+    STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT =
+    new ListResultDescriptor<AnalysisError>(
+        'STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT', null);
+
+/**
  * The additional strong mode errors produced while verifying a
  * compilation unit.
  *
@@ -1470,6 +1492,11 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   static const String PARTS_UNIT_INPUT = 'PARTS_UNIT_INPUT';
 
   /**
+   * The name of the input whose value is the modification time of the source.
+   */
+  static const String MODIFICATION_TIME_INPUT = 'MODIFICATION_TIME_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -1505,6 +1532,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     CompilationUnit definingCompilationUnit =
         getRequiredInput(DEFINING_UNIT_INPUT);
     List<CompilationUnit> partUnits = getRequiredInput(PARTS_UNIT_INPUT);
+    int modificationTime = getRequiredInput(MODIFICATION_TIME_INPUT);
     //
     // Process inputs.
     //
@@ -1625,6 +1653,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     if (libraryElement == null) {
       libraryElement =
           new LibraryElementImpl.forNode(owningContext, libraryNameNode);
+      libraryElement.synthetic = modificationTime < 0;
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;
       libraryElement.parts = sourcedCompilationUnits;
@@ -1723,7 +1752,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
           RESOLVED_UNIT1.of(new LibrarySpecificUnit(source, source)),
       PARTS_UNIT_INPUT: INCLUDED_PARTS.of(source).toList((Source unit) {
         return RESOLVED_UNIT1.of(new LibrarySpecificUnit(source, unit));
-      })
+      }),
+      MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(source)
     };
   }
 
@@ -3627,10 +3657,10 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
-   * The name of the input whose value is a list of the inferable static
-   * variables whose types have been computed.
+   * The name of the [STATIC_VARIABLE_RESOLUTION_ERRORS] for all static
+   * variables in the compilation unit.
    */
-  static const String INFERRED_VARIABLES_INPUT = 'INFERRED_VARIABLES_INPUT';
+  static const String ERRORS_LIST_INPUT = 'INFERRED_VARIABLES_INPUT';
 
   /**
    * The task descriptor describing this kind of task.
@@ -3638,8 +3668,11 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'InferStaticVariableTypesInUnitTask',
       createTask,
-      buildInputs,
-      <ResultDescriptor>[CREATED_RESOLVED_UNIT9, RESOLVED_UNIT9]);
+      buildInputs, <ResultDescriptor>[
+    CREATED_RESOLVED_UNIT9,
+    RESOLVED_UNIT9,
+    STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT
+  ]);
 
   /**
    * Initialize a newly created task to build a library element for the given
@@ -3658,6 +3691,7 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    List<List<AnalysisError>> errorLists = getRequiredInput(ERRORS_LIST_INPUT);
     //
     // Record outputs. There is no additional work to be done at this time
     // because the work has implicitly been done by virtue of the task model
@@ -3665,6 +3699,8 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
     //
     outputs[RESOLVED_UNIT9] = unit;
     outputs[CREATED_RESOLVED_UNIT9] = true;
+    outputs[STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT] =
+        AnalysisError.mergeLists(errorLists);
   }
 
   /**
@@ -3675,9 +3711,12 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      INFERRED_VARIABLES_INPUT: INFERABLE_STATIC_VARIABLES_IN_UNIT
+      'inferredTypes': INFERABLE_STATIC_VARIABLES_IN_UNIT
           .of(unit)
           .toListOf(INFERRED_STATIC_VARIABLE),
+      ERRORS_LIST_INPUT: INFERABLE_STATIC_VARIABLES_IN_UNIT
+          .of(unit)
+          .toListOf(STATIC_VARIABLE_RESOLUTION_ERRORS),
       UNIT_INPUT: RESOLVED_UNIT8.of(unit)
     };
   }
@@ -3716,8 +3755,10 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'InferStaticVariableTypeTask',
       createTask,
-      buildInputs,
-      <ResultDescriptor>[INFERRED_STATIC_VARIABLE]);
+      buildInputs, <ResultDescriptor>[
+    INFERRED_STATIC_VARIABLE,
+    STATIC_VARIABLE_RESOLUTION_ERRORS
+  ]);
 
   InferStaticVariableTypeTask(
       InternalAnalysisContext context, VariableElement variable)
@@ -3745,17 +3786,19 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
 
     // If we're not in a dependency cycle, and we have no type annotation,
     // re-resolve the right hand side and do inference.
+    List<AnalysisError> errors = AnalysisError.NO_ERRORS;
     if (dependencyCycle == null && variable.hasImplicitType) {
       VariableDeclaration declaration = getDeclaration(unit);
       //
       // Re-resolve the variable's initializer so that the inferred types
       // of other variables will be propagated.
       //
+      RecordingErrorListener errorListener = new RecordingErrorListener();
       Expression initializer = declaration.initializer;
       ResolutionContext resolutionContext = ResolutionContextBuilder.contextFor(
           initializer, AnalysisErrorListener.NULL_LISTENER);
-      ResolverVisitor visitor = new ResolverVisitor(variable.library,
-          variable.source, typeProvider, AnalysisErrorListener.NULL_LISTENER,
+      ResolverVisitor visitor = new ResolverVisitor(
+          variable.library, variable.source, typeProvider, errorListener,
           nameScope: resolutionContext.scope);
       if (resolutionContext.enclosingClassDeclaration != null) {
         visitor.prepareToResolveMembersInClass(
@@ -3772,6 +3815,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
         newType = typeProvider.dynamicType;
       }
       setFieldType(variable, newType);
+      errors = getUniqueErrors(errorListener.errors);
     } else {
       // TODO(brianwilkerson) For now we simply don't infer any type for
       // variables or fields involved in a cycle. We could try to be smarter
@@ -3784,6 +3828,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
     // Record outputs.
     //
     outputs[INFERRED_STATIC_VARIABLE] = variable;
+    outputs[STATIC_VARIABLE_RESOLUTION_ERRORS] = errors;
   }
 
   /**
@@ -3898,6 +3943,12 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   static const String LINTS_INPUT = 'LINTS';
 
   /**
+   * The name of the [STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT] input.
+   */
+  static const String STATIC_VARIABLE_RESOLUTION_ERRORS_INPUT =
+      'STATIC_VARIABLE_RESOLUTION_ERRORS_INPUT';
+
+  /**
    * The name of the [STRONG_MODE_ERRORS] input.
    */
   static const String STRONG_MODE_ERRORS_INPUT = 'STRONG_MODE_ERRORS';
@@ -3958,6 +4009,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     errorLists.add(getRequiredInput(RESOLVE_TYPE_NAMES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_TYPE_NAMES_ERRORS2_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_UNIT_ERRORS_INPUT));
+    errorLists.add(getRequiredInput(STATIC_VARIABLE_RESOLUTION_ERRORS_INPUT));
     errorLists.add(getRequiredInput(STRONG_MODE_ERRORS_INPUT));
     errorLists.add(getRequiredInput(VARIABLE_REFERENCE_ERRORS_INPUT));
     errorLists.add(getRequiredInput(VERIFY_ERRORS_INPUT));
@@ -3980,6 +4032,8 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
       RESOLVE_TYPE_NAMES_ERRORS_INPUT: RESOLVE_TYPE_NAMES_ERRORS.of(unit),
       RESOLVE_TYPE_NAMES_ERRORS2_INPUT: RESOLVE_TYPE_BOUNDS_ERRORS.of(unit),
       RESOLVE_UNIT_ERRORS_INPUT: RESOLVE_UNIT_ERRORS.of(unit),
+      STATIC_VARIABLE_RESOLUTION_ERRORS_INPUT:
+          STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT.of(unit),
       STRONG_MODE_ERRORS_INPUT: STRONG_MODE_ERRORS.of(unit),
       VARIABLE_REFERENCE_ERRORS_INPUT: VARIABLE_REFERENCE_ERRORS.of(unit),
       VERIFY_ERRORS_INPUT: VERIFY_ERRORS.of(unit)
@@ -6443,8 +6497,38 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
       }
     }
     StringLiteral uriLiteral = directive.uri;
-    errorReporter.reportErrorForNode(CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        uriLiteral, [directive.uriContent]);
+    CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+    if (_isGenerated(source)) {
+      errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
+    }
+    errorReporter
+        .reportErrorForNode(errorCode, uriLiteral, [directive.uriContent]);
+  }
+
+  /**
+   * Return `true` if the given [source] refers to a file that is assumed to be
+   * generated.
+   */
+  bool _isGenerated(Source source) {
+    if (source == null) {
+      return false;
+    }
+    // TODO(brianwilkerson) Generalize this mechanism.
+    const List<String> suffixes = const <String>[
+      '.g.dart',
+      '.pb.dart',
+      '.pbenum.dart',
+      '.pbserver.dart',
+      '.pbjson.dart',
+      '.template.dart'
+    ];
+    String fullName = source.fullName;
+    for (String suffix in suffixes) {
+      if (fullName.endsWith(suffix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

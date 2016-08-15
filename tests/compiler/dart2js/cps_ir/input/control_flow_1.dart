@@ -1,4 +1,0 @@
-main() {
-  while (true);
-}
-

@@ -235,6 +235,25 @@ const x = [const C()];
     expect(classC.unnamedConstructor.isCycleFree, false);
   }
 
+  void test_createPackageBundle_withPackageUri() {
+    PackageBundle bundle = createPackageBundle(
+        '''
+class B {
+  void f(int i) {}
+}
+class C extends B {
+  f(i) {} // Inferred param type: int
+}
+''',
+        uri: 'package:foo/bar.dart');
+    UnlinkedExecutable cf = bundle.unlinkedUnits[0].classes[1].executables[0];
+    UnlinkedParam cfi = cf.parameters[0];
+    expect(cfi.inferredTypeSlot, isNot(0));
+    EntityRef typeRef =
+        bundle.linkedLibraries[0].units[0].types[cfi.inferredTypeSlot];
+    expect(bundle.unlinkedUnits[0].references[typeRef.reference].name, 'int');
+  }
+
   void test_getContainedName_nonStaticField() {
     createLinker('class C { var f; }');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);

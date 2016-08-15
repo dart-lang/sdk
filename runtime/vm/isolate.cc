@@ -1109,6 +1109,10 @@ bool Isolate::ReloadSources(JSONStream* js,
 
 
 void Isolate::DeleteReloadContext() {
+  // Another thread may be in the middle of GetClassForHeapWalkAt.
+  Thread* thread = Thread::Current();
+  SafepointOperationScope safepoint_scope(thread);
+
   delete reload_context_;
   reload_context_ = NULL;
 }

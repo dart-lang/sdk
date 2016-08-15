@@ -65,13 +65,16 @@
             </template>
             <template repeat="{{ element in path['elements'] }}">
             <div class="memberItem">
-              <div class="memberName">[{{ element['index']}}]</div>
+              <div class="memberName">[{{ path['elements'].indexOf(element) }}]</div>
               <div class="memberValue">
                 <template if="{{ element['parentField'] != null }}">
                   from <any-service-ref ref="{{ element['parentField'] }}"></any-service-ref> of
                 </template>
                 <template if="{{ element['parentListIndex'] != null }}">
                   from [{{ element['parentListIndex'] }}] of
+                </template>
+                <template if="{{ element['parentMapKey'] != null }}">
+                  from [<any-service-ref ref="{{ element['parentMapKey'] }}"></any-service-ref>] of
                 </template>
                 <template if="{{ element['_parentWordOffset'] != null }}">
                   from word[{{ element['_parentWordOffset'] }}] of

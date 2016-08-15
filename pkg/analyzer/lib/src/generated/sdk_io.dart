@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@deprecated
 library analyzer.src.generated.sdk_io;
 
 import 'dart:collection';
@@ -29,6 +30,7 @@ import 'package:path/path.dart' as pathos;
  * stored in a library map. Subclasses are responsible for populating the
  * library map.
  */
+@deprecated
 abstract class AbstractDartSdk implements DartSdk {
   /**
    * A mapping from Dart library URI's to the library represented by that URI.
@@ -252,7 +254,10 @@ abstract class AbstractDartSdk implements DartSdk {
  *        util/
  *           ... Dart utilities ...
  *     Chromium/   <-- Dartium typically exists in a sibling directory
+ *
+ * This class is deprecated. Please use FolderBasedDartSdk instead.
  */
+@deprecated
 class DirectoryBasedDartSdk extends AbstractDartSdk {
   /**
    * The default SDK, or `null` if the default SDK either has not yet been
@@ -633,6 +638,9 @@ class DirectoryBasedDartSdk extends AbstractDartSdk {
   }
 
   @override
+  PackageBundle getLinkedBundle() => null;
+
+  @override
   String getRelativePathFromFile(JavaFile file) {
     String filePath = file.getAbsolutePath();
     String libPath = libraryDirectory.getAbsolutePath();
@@ -750,6 +758,7 @@ class DirectoryBasedDartSdk extends AbstractDartSdk {
  *         platforms: 0),
  *     };
  */
+@deprecated
 class SdkLibrariesReader {
   /**
    * A flag indicating whether the dart2js path should be used when it is

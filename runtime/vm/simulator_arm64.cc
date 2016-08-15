@@ -265,7 +265,7 @@ bool SimulatorDebugger::GetQValue(char* desc, simd_value_t* value) {
 TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
                                                             uword pc) {
   TokenPosition token_pos = TokenPosition::kNoSource;
-  uword pc_offset = pc - code.EntryPoint();
+  uword pc_offset = pc - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);

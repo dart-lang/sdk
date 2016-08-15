@@ -2006,21 +2006,37 @@ static bool PrintRetainingPath(Thread* thread,
   Smi& slot_offset = Smi::Handle();
   Class& element_class = Class::Handle();
   Array& element_field_map = Array::Handle();
+  LinkedHashMap& map = LinkedHashMap::Handle();
+  Array& map_data = Array::Handle();
   Field& field = Field::Handle();
   limit = Utils::Minimum(limit, length);
   for (intptr_t i = 0; i < limit; ++i) {
     JSONObject jselement(&elements);
     element = path.At(i * 2);
-    jselement.AddProperty("index", i);
     jselement.AddProperty("value", element);
-    // Interpret the word offset from parent as list index or instance field.
-    // TODO(koda): User-friendly interpretation for map entries.
+    // Interpret the word offset from parent as list index, map key
+    // or instance field.
     if (i > 0) {
       slot_offset ^= path.At((i * 2) - 1);
-      if (element.IsArray()) {
+      jselement.AddProperty("offset", slot_offset.Value());
+      if (element.IsArray() || element.IsGrowableObjectArray()) {
         intptr_t element_index = slot_offset.Value() -
             (Array::element_offset(0) >> kWordSizeLog2);
         jselement.AddProperty("parentListIndex", element_index);
+      } else if (element.IsLinkedHashMap()) {
+        map = static_cast<RawLinkedHashMap*>(path.At(i * 2));
+        map_data = map.data();
+        intptr_t element_index = slot_offset.Value() -
+            (Array::element_offset(0) >> kWordSizeLog2);
+        LinkedHashMap::Iterator iterator(map);
+        while (iterator.MoveNext()) {
+          if (iterator.CurrentKey() == map_data.At(element_index) ||
+              iterator.CurrentValue() == map_data.At(element_index)) {
+            element = iterator.CurrentKey();
+            jselement.AddProperty("parentMapKey", element);
+            break;
+          }
+        }
       } else if (element.IsInstance()) {
         element_class ^= element.clazz();
         element_field_map = element_class.OffsetToFieldMap();

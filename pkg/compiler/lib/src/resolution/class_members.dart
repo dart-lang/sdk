@@ -280,6 +280,7 @@ abstract class MembersCreator {
           reporter.reportWarning(warning, infos);
         });
       }
+
       if (interfaceMember.isSetter) {
         reportWarning(
             MessageKind.UNIMPLEMENTED_SETTER_ONE,
@@ -443,6 +444,7 @@ abstract class MembersCreator {
                     ]);
               });
             }
+
             if (declared.isDeclaredByField) {
               if (inherited.isDeclaredByField) {
                 reportWarning(
@@ -686,7 +688,8 @@ class InterfaceMembersCreator extends MembersCreator {
         bool allAreGetters = true;
         Map<DartType, Setlet<Member>> subtypesOfAllInherited =
             new Map<DartType, Setlet<Member>>();
-        outer: for (Member inherited in inheritedMembers) {
+        outer:
+        for (Member inherited in inheritedMembers) {
           if (inherited.isGetter) {
             someAreGetters = true;
             if (!allAreGetters) break outer;

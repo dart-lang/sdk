@@ -2713,8 +2713,9 @@ VM_TEST_CASE(Code) {
   Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
   function.AttachCode(code);
   const Instructions& instructions = Instructions::Handle(code.instructions());
-  uword entry_point = instructions.EntryPoint();
-  EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
+  uword entry_point = instructions.UncheckedEntryPoint();
+  EXPECT_EQ(instructions.raw(),
+            Instructions::FromUncheckedEntryPoint(entry_point));
   const Object& result = Object::Handle(
       DartEntry::InvokeFunction(function, Array::empty_array()));
   EXPECT_EQ(1, Smi::Cast(result).Value());
@@ -2731,8 +2732,9 @@ VM_TEST_CASE(CodeImmutability) {
   Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
   function.AttachCode(code);
   Instructions& instructions = Instructions::Handle(code.instructions());
-  uword entry_point = instructions.EntryPoint();
-  EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
+  uword entry_point = instructions.UncheckedEntryPoint();
+  EXPECT_EQ(instructions.raw(),
+            Instructions::FromUncheckedEntryPoint(entry_point));
   // Try writing into the generated code, expected to crash.
   *(reinterpret_cast<char*>(entry_point) + 1) = 1;
   if (!FLAG_write_protect_code) {

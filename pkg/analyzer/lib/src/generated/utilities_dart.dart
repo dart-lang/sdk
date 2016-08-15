@@ -27,21 +27,14 @@ Uri resolveRelativeUri(Uri baseUri, Uri containedUri) {
   }
   Uri origBaseUri = baseUri;
   try {
-    bool isOpaque = baseUri.isAbsolute && !baseUri.path.startsWith('/');
-    if (isOpaque) {
-      String scheme = baseUri.scheme;
+    String scheme = baseUri.scheme;
+    if (scheme == DartUriResolver.DART_SCHEME) {
       String part = baseUri.path;
-      if (scheme == DartUriResolver.DART_SCHEME && part.indexOf('/') < 0) {
-        part = "$part/$part.dart";
+      if (part.indexOf('/') < 0) {
+        baseUri = FastUri.parse('$scheme:$part/$part.dart');
       }
-      baseUri = FastUri.parse("$scheme:/$part");
     }
-    Uri result = baseUri.resolveUri(containedUri);
-    if (isOpaque) {
-      result =
-          FastUri.parse("${result.scheme}:${result.path.substring(1)}");
-    }
-    return result;
+    return baseUri.resolveUri(containedUri);
   } catch (exception, stackTrace) {
     throw new AnalysisException(
         "Could not resolve URI ($containedUri) relative to source ($origBaseUri)",

@@ -127,7 +127,7 @@ static void BuildStackTrace(StacktraceBuilder* builder) {
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      offset = Smi::New(frame->pc() - code.EntryPoint());
+      offset = Smi::New(frame->pc() - code.PayloadStart());
       builder->AddFrame(code, offset);
     }
     frame = frames.NextFrame();

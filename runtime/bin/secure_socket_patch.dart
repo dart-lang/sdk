@@ -3,17 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @patch class SecureSocket {
-  /* @patch */ factory SecureSocket._(RawSecureSocket rawSocket) =>
+  @patch factory SecureSocket._(RawSecureSocket rawSocket) =>
       new _SecureSocket(rawSocket);
 }
 
 
 @patch class _SecureFilter {
-  /* @patch */ factory _SecureFilter() => new _SecureFilterImpl();
+  @patch factory _SecureFilter() => new _SecureFilterImpl();
 }
 
 @patch class X509Certificate {
-  /* @patch */ factory X509Certificate._() => new _X509CertificateImpl();
+  @patch factory X509Certificate._() => new _X509CertificateImpl();
 }
 
 class _SecureSocket extends _Socket implements SecureSocket {
@@ -116,15 +116,15 @@ class _SecureFilterImpl
 }
 
 @patch class SecurityContext {
-  /* @patch */ factory SecurityContext() {
+  @patch factory SecurityContext() {
     return new _SecurityContext();
   }
 
-  /* @patch */ static SecurityContext get defaultContext {
+  @patch static SecurityContext get defaultContext {
     return _SecurityContext.defaultContext;
   }
 
-  /* @patch */ static bool get alpnSupported {
+  @patch static bool get alpnSupported {
     return _SecurityContext.alpnSupported;
   }
 }

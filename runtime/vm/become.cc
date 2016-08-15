@@ -192,6 +192,35 @@ static bool IsDummyObject(RawObject* object) {
 }
 
 
+void Become::CrashDump(RawObject* before_obj, RawObject* after_obj) {
+  OS::PrintErr("DETECTED FATAL ISSUE IN BECOME MAPPINGS\n");
+
+  OS::PrintErr("BEFORE ADDRESS: %p\n", before_obj);
+  OS::PrintErr("BEFORE IS HEAP OBJECT: %s",
+               before_obj->IsHeapObject() ? "YES" : "NO");
+  OS::PrintErr("BEFORE IS VM HEAP OBJECT: %s",
+               before_obj->IsVMHeapObject() ? "YES" : "NO");
+
+  OS::PrintErr("AFTER ADDRESS: %p\n", after_obj);
+  OS::PrintErr("AFTER IS HEAP OBJECT: %s",
+               after_obj->IsHeapObject() ? "YES" : "NO");
+  OS::PrintErr("AFTER IS VM HEAP OBJECT: %s",
+               after_obj->IsVMHeapObject() ? "YES" : "NO");
+
+  if (before_obj->IsHeapObject()) {
+    OS::PrintErr("BEFORE OBJECT CLASS ID=%" Pd "\n", before_obj->GetClassId());
+    const Object& obj = Object::Handle(before_obj);
+    OS::PrintErr("BEFORE OBJECT AS STRING=%s\n", obj.ToCString());
+  }
+
+  if (after_obj->IsHeapObject()) {
+    OS::PrintErr("AFTER OBJECT CLASS ID=%" Pd "\n", after_obj->GetClassId());
+    const Object& obj = Object::Handle(after_obj);
+    OS::PrintErr("AFTER OBJECT AS STRING=%s\n", obj.ToCString());
+  }
+}
+
+
 void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -210,12 +239,15 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
       FATAL("become: Cannot self-forward");
     }
     if (!before_obj->IsHeapObject()) {
+      CrashDump(before_obj, after_obj);
       FATAL("become: Cannot forward immediates");
     }
     if (!after_obj->IsHeapObject()) {
-      FATAL("become: Cannot become an immediates");
+      CrashDump(before_obj, after_obj);
+      FATAL("become: Cannot become immediates");
     }
     if (before_obj->IsVMHeapObject()) {
+      CrashDump(before_obj, after_obj);
       FATAL("become: Cannot forward VM heap objects");
     }
     if (before_obj->IsForwardingCorpse() && !IsDummyObject(before_obj)) {

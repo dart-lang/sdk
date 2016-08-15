@@ -19,7 +19,7 @@ main(var argv) async {
   parser.addOption('out', abbr: 'o');
   parser.addOption('library-root', abbr: 'l');
   parser.addOption('packages', abbr: 'p');
-  parser.addOption('bazel-config');
+  parser.addOption('bazel-paths', abbr: 'I', allowMultiple: true);
   var args = parser.parse(argv);
 
   var resolutionInputs = args['deps']
@@ -39,13 +39,14 @@ main(var argv) async {
       resolutionInputs: resolutionInputs,
       packagesDiscoveryProvider: findPackages);
 
-  var bazelConfigPath = args['bazel-config'];
-  var inputProvider = bazelConfigPath != null
-      ? new BazelInputProvider(bazelConfigPath)
+  var bazelSearchPaths = args['bazel-paths'];
+  var inputProvider = bazelSearchPaths != null
+      ? new BazelInputProvider(bazelSearchPaths)
       : new CompilerSourceFileProvider();
 
   var outputProvider = const NullCompilerOutput();
-  var diagnostics = new FormattingDiagnosticHandler(inputProvider);
+  var diagnostics = new FormattingDiagnosticHandler(inputProvider)
+    ..enableColors = true;
   var compiler =
       new CompilerImpl(inputProvider, outputProvider, diagnostics, options);
 

@@ -83,6 +83,12 @@ ClassTable::~ClassTable() {
 }
 
 
+void ClassTable::AddOldTable(RawClass** old_table) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  old_tables_->Add(old_table);
+}
+
+
 void ClassTable::FreeOldTables() {
   while (old_tables_->length() > 0) {
     free(old_tables_->RemoveLast());

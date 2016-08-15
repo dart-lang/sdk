@@ -40,6 +40,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
@@ -1544,6 +1545,7 @@ class AnalysisServer {
 class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
+  bool enablePubSummaryManager = false;
   bool finerGrainedInvalidation = false;
   bool noErrorNotification = false;
   bool noIndex = false;
@@ -1603,8 +1605,19 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         _createSourceFactory(context, options, disposition, folder);
     context.analysisOptions = options;
 
-    // TODO(scheglov) use linked bundles
-//    analysisServer.pubSummaryManager.getLinkedBundles(context);
+    if (analysisServer.options.enablePubSummaryManager) {
+      List<LinkedPubPackage> linkedBundles =
+          analysisServer.pubSummaryManager.getLinkedBundles(context);
+      if (linkedBundles.isNotEmpty) {
+        SummaryDataStore store = new SummaryDataStore([]);
+        for (LinkedPubPackage package in linkedBundles) {
+          store.addBundle(null, package.unlinked);
+          store.addBundle(null, package.linked);
+        }
+        context.resultProvider =
+            new InputPackagesResultProvider(context, store);
+      }
+    }
 
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));

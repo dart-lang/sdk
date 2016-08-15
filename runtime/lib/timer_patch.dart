@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @patch class Timer {
-  /*@patch*/ static Timer _createTimer(Duration duration, void callback()) {
+  @patch static Timer _createTimer(Duration duration, void callback()) {
     // TODO(iposva): Remove _TimerFactory and use VMLibraryHooks exclusively.
     if (_TimerFactory._factory == null) {
       _TimerFactory._factory = VMLibraryHooks.timerFactory;
@@ -16,7 +16,7 @@
     return _TimerFactory._factory(milliseconds, (_) { callback(); }, false);
   }
 
-  /*@patch*/ static Timer _createPeriodicTimer(Duration duration,
+  @patch static Timer _createPeriodicTimer(Duration duration,
                                               void callback(Timer timer)) {
     // TODO(iposva): Remove _TimerFactory and use VMLibraryHooks exclusively.
     if (_TimerFactory._factory == null) {

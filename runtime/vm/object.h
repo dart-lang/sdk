@@ -3960,11 +3960,46 @@ class Instructions : public Object {
  public:
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
 
-  uword EntryPoint() const {
-    return EntryPoint(raw());
+  uword PayloadStart() const {
+    return PayloadStart(raw());
   }
-  static uword EntryPoint(RawInstructions* instr) {
+  uword UncheckedEntryPoint() const {
+    return UncheckedEntryPoint(raw());
+  }
+  uword CheckedEntryPoint() const {
+    return CheckedEntryPoint(raw());
+  }
+  static uword PayloadStart(RawInstructions* instr) {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
+  }
+
+#if defined(TARGET_ARCH_IA32)
+  static const intptr_t kCheckedEntryOffset = 0;
+  static const intptr_t kUncheckedEntryOffset = 0;
+#elif defined(TARGET_ARCH_X64)
+  static const intptr_t kCheckedEntryOffset = 23;
+  static const intptr_t kUncheckedEntryOffset = 44;
+#elif defined(TARGET_ARCH_ARM)
+  static const intptr_t kCheckedEntryOffset = 12;
+  static const intptr_t kUncheckedEntryOffset = 36;
+#elif defined(TARGET_ARCH_ARM64)
+  static const intptr_t kCheckedEntryOffset = 24;
+  static const intptr_t kUncheckedEntryOffset = 48;
+#elif defined(TARGET_ARCH_MIPS)
+  static const intptr_t kCheckedEntryOffset = 16;
+  static const intptr_t kUncheckedEntryOffset = 56;
+#elif defined(TARGET_ARCH_DBC)
+  static const intptr_t kCheckedEntryOffset = 0;
+  static const intptr_t kUncheckedEntryOffset = 0;
+#else
+#error Missing entry offsets for current architecture
+#endif
+
+  static uword UncheckedEntryPoint(RawInstructions* instr) {
+    return PayloadStart(instr) + kUncheckedEntryOffset;
+  }
+  static uword CheckedEntryPoint(RawInstructions* instr) {
+    return PayloadStart(instr) + kCheckedEntryOffset;
   }
 
   static const intptr_t kMaxElements = (kMaxInt32 -
@@ -3991,9 +4026,9 @@ class Instructions : public Object {
     return Utils::RoundUp(sizeof(RawInstructions), alignment);
   }
 
-  static RawInstructions* FromEntryPoint(uword entry_point) {
+  static RawInstructions* FromUncheckedEntryPoint(uword entry_point) {
     return reinterpret_cast<RawInstructions*>(
-        entry_point - HeaderSize() + kHeapObjectTag);
+        entry_point - HeaderSize() - kUncheckedEntryOffset + kHeapObjectTag);
   }
 
   bool Equals(const Instructions& other) const {
@@ -4445,6 +4480,9 @@ class Code : public Object {
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawCode, entry_point_);
   }
+  static intptr_t checked_entry_point_offset() {
+    return OFFSET_OF(RawCode, checked_entry_point_);
+  }
 
   RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
   static intptr_t object_pool_offset() {
@@ -4464,8 +4502,14 @@ class Code : public Object {
   }
   void set_is_alive(bool value) const;
 
-  uword EntryPoint() const {
-    return Instructions::Handle(instructions()).EntryPoint();
+  uword PayloadStart() const {
+    return Instructions::PayloadStart(instructions());
+  }
+  uword UncheckedEntryPoint() const {
+    return Instructions::UncheckedEntryPoint(instructions());
+  }
+  uword CheckedEntryPoint() const {
+    return Instructions::CheckedEntryPoint(instructions());
   }
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4476,7 +4520,7 @@ class Code : public Object {
   }
   bool ContainsInstructionAt(uword addr) const {
     const Instructions& instr = Instructions::Handle(instructions());
-    const uword offset = addr - instr.EntryPoint();
+    const uword offset = addr - instr.PayloadStart();
     return offset < static_cast<uword>(instr.size());
   }
 

@@ -92,6 +92,7 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
         p.parseFunction(beginToken, getOrSet);
       }
     }
+
     cachedNode = parse(parsing, this, declarationSite, parseFunction);
     return cachedNode;
   }

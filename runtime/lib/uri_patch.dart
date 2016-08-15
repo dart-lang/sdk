@@ -18,13 +18,13 @@ _UriBaseClosure _uriBaseClosure = _unsupportedUriBase;
 @patch class Uri {
   static final bool _isWindowsCached = _isWindowsPlatform;
 
-  /* @patch */ static bool get _isWindows => _isWindowsCached;
+  @patch static bool get _isWindows => _isWindowsCached;
 
-  /* @patch */ static Uri get base => _uriBaseClosure();
+  @patch static Uri get base => _uriBaseClosure();
 
   static bool get _isWindowsPlatform native "Uri_isWindowsPlatform";
 
-  /* @patch */ static String _uriEncode(List<int> canonicalTable,
+  @patch static String _uriEncode(List<int> canonicalTable,
                                         String text,
                                         Encoding encoding,
                                         bool spaceToPlus) {

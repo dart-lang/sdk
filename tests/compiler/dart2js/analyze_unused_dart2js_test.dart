@@ -40,25 +40,9 @@ const Map<String, List<String>> WHITE_LIST = const {
   "lib/src/serialization/": const [
       "is never"],
 
-  // Nested functions are currently kept alive in the IR.
-  "lib/src/tree_ir/": const [
-    "accept", "FunctionExpression", "CreateFunction"
-  ],
-
   "lib/src/universe/universe.dart": const [
       "The method 'getterInvocationsByName' is never called.",
       "The method 'setterInvocationsByName' is never called."],
-
-  "lib/src/cps_ir/": const [
-    "accept", "CreateFunction",
-  ],
-
-  // Useful utility functions that are not currently used.
-  "lib/src/cps_ir/cps_fragment.dart": const [
-    "The method 'beginLoop' is never called.",
-    "The method 'continueLoop' is never called.",
-    "The method 'invokeMethod' is never called.",
-  ],
 };
 
 void main() {

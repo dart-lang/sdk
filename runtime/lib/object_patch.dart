@@ -29,10 +29,10 @@
     return result;
   }
 
-  /* @patch */ int get hashCode => _objectHashCode(this);
+  @patch int get hashCode => _objectHashCode(this);
   int get _identityHashCode => _objectHashCode(this);
 
-  /* @patch */ String toString() native "Object_toString";
+  @patch String toString() native "Object_toString";
   // A statically dispatched version of Object.toString.
   static String _toString(obj) native "Object_toString";
 
@@ -43,7 +43,7 @@
                 Map<String, dynamic> namedArguments)
       native "Object_noSuchMethod";
 
-  /* @patch */ noSuchMethod(Invocation invocation) {
+  @patch noSuchMethod(Invocation invocation) {
     return _noSuchMethod(invocation.isMethod,
                          internal.Symbol.getName(invocation.memberName),
                          invocation._type,
@@ -51,7 +51,7 @@
                          _symbolMapToStringMap(invocation.namedArguments));
   }
 
-  /* @patch */ Type get runtimeType native "Object_runtimeType";
+  @patch Type get runtimeType native "Object_runtimeType";
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.

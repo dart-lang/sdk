@@ -10,7 +10,6 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../dart_types.dart' show DartType, FunctionType, TypeKind;
 import '../elements/elements.dart';
 import '../tree/dartstring.dart' show DartString;
@@ -390,9 +389,8 @@ class MemberTypeInformation extends ElementTypeInformation
    * This map contains the callers of [element]. It stores all unique call sites
    * to enable counting the global number of call sites of [element].
    *
-   * A call site is either an AST [ast.Node], a [cps_ir.Node] or in the case of
-   * synthesized calls, an [Element] (see uses of [synthesizeForwardingCall]
-   * in [SimpleTypeInferrerVisitor]).
+   * A call site is either an AST [ast.Node], an [Element] (see uses of
+   * [synthesizeForwardingCall] in [SimpleTypeInferrerVisitor]).
    *
    * The global information is summarized in [cleanup], after which [_callers]
    * is set to `null`.
@@ -403,7 +401,7 @@ class MemberTypeInformation extends ElementTypeInformation
       : super._internal(null, element);
 
   void addCall(Element caller, Spannable node) {
-    assert(node is ast.Node || node is cps_ir.Node || node is Element);
+    assert(node is ast.Node || node is Element);
     _callers ??= <Element, Setlet>{};
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
@@ -882,10 +880,12 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     bool isUInt31(info) {
       return info.type.satisfies(uint31Implementation, classWorld);
     }
+
     bool isPositiveInt(info) {
       return info.type
           .satisfies(classWorld.backend.positiveIntImplementation, classWorld);
     }
+
     TypeInformation tryLater() => inferrer.types.nonNullEmptyType;
 
     TypeInformation argument =

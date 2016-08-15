@@ -6,6 +6,7 @@ library analyzer.src.summary.summary_sdk;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -20,7 +21,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/model.dart' show ResultDescriptor, TargetedResult;
-import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 
 class SdkSummaryResultProvider extends ResynthesizerResultProvider {
   final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
@@ -167,6 +167,9 @@ class SummaryBasedDartSdk implements DartSdk {
   Source fromFileUri(Uri uri) {
     return null;
   }
+
+  @override
+  PackageBundle getLinkedBundle() => _bundle;
 
   @override
   SdkLibrary getSdkLibrary(String uri) {

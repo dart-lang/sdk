@@ -48,6 +48,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     void checkCyclicReference() {
       element.checkCyclicReference(resolution);
     }
+
     addDeferredAction(element, checkCyclicReference);
   }
 }

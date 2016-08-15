@@ -8,15 +8,15 @@ const int _maxUtf16 = 0xffff;
 const int _maxUnicode = 0x10ffff;
 
 @patch class String {
-  /* @patch */ factory String.fromCharCodes(Iterable<int> charCodes,
-                                            [int start = 0, int end]) {
+  @patch factory String.fromCharCodes(Iterable<int> charCodes,
+                                      [int start = 0, int end]) {
     if (charCodes is! Iterable) throw new ArgumentError.value(charCodes, "charCodes");
     if (start is! int) throw new ArgumentError.value(start, "start");
     if (end != null && end is! int) throw new ArgumentError.value(end, "end");
     return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
-  /* @patch */ factory String.fromCharCode(int charCode) {
+  @patch factory String.fromCharCode(int charCode) {
     if (charCode >= 0) {
       if (charCode <= 0xff) {
         return _OneByteString._allocate(1).._setAt(0, charCode);
@@ -37,8 +37,8 @@ const int _maxUnicode = 0x10ffff;
     throw new RangeError.range(charCode, 0, 0x10ffff);
   }
 
-  /* @patch */ const factory String.fromEnvironment(String name,
-                                                    {String defaultValue})
+  @patch const factory String.fromEnvironment(String name,
+                                              {String defaultValue})
       native "String_fromEnvironment";
 }
 

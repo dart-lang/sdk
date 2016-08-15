@@ -97,6 +97,18 @@ const _Protected protected = const _Protected();
 ///   corresponding to a named parameter that has this annotation.
 const Required required = const Required();
 
+/// Used to annotate a declaration was made public, so that it is more visible
+/// than otherwise necessary, to make code testable.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with a declaration not in the `lib` folder
+///   of a package;
+///   or
+/// * the declaration is referenced outside of its the defining library or a
+///   library which is in the `test` folder of the defining package.
+const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
+
 /// Used to annotate a named parameter `p` in a method or function `f`.
 ///
 /// See [required] for more details.
@@ -134,4 +146,8 @@ class _OptionalTypeArgs {
 
 class _Protected {
   const _Protected();
+}
+
+class _VisibleForTesting {
+  const _VisibleForTesting();
 }

@@ -331,9 +331,13 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
 
   result = GetReloadErrorOrRootLibrary();
 
-  Isolate* isolate = Isolate::Current();
-  if (isolate->reload_context() != NULL) {
-    isolate->DeleteReloadContext();
+  {
+    Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
+    Isolate* isolate = thread->isolate();
+    if (isolate->reload_context() != NULL) {
+      isolate->DeleteReloadContext();
+    }
   }
 
   return result;
@@ -403,7 +407,7 @@ void AssemblerTest::Assemble() {
     OS::Print("Code for test '%s' {\n", name_);
     const Instructions& instructions =
         Instructions::Handle(code_.instructions());
-    uword start = instructions.EntryPoint();
+    uword start = instructions.PayloadStart();
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
     OS::Print("}\n");
   }

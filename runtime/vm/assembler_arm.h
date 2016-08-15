@@ -368,7 +368,9 @@ class Assembler : public ValueObject {
         prologue_offset_(-1),
         use_far_branches_(use_far_branches),
         comments_(),
-        constant_pool_allowed_(false) { }
+        constant_pool_allowed_(false) {
+    MonomorphicCheckedEntry();
+  }
 
   ~Assembler() { }
 
@@ -943,6 +945,9 @@ class Assembler : public ValueObject {
   // a stub frame.
   void EnterStubFrame();
   void LeaveStubFrame();
+
+  void NoMonomorphicCheckedEntry();
+  void MonomorphicCheckedEntry();
 
   // The register into which the allocation stats table is loaded with
   // LoadAllocationStatsAddress should be passed to

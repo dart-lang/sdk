@@ -3222,7 +3222,9 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
     ldr(PP, Address(FP, kSavedCallerPpSlotFromFp * kWordSize));
     set_constant_pool_allowed(false);
   }
-  Drop(2);  // Drop saved PP, PC marker.
+
+  // This will implicitly drop saved PP, PC marker due to restoring SP from FP
+  // first.
   LeaveFrame((1 << FP) | (1 << LR));
 }
 
@@ -3234,6 +3236,44 @@ void Assembler::EnterStubFrame() {
 
 void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
+}
+
+
+void Assembler::NoMonomorphicCheckedEntry() {
+  buffer_.Reset();
+  bkpt(0);
+  bkpt(0);
+  bkpt(0);
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+}
+
+
+// R0 receiver, R9 guarded cid as Smi
+void Assembler::MonomorphicCheckedEntry() {
+#if defined(TESTING) || defined(DEBUG)
+  bool saved_use_far_branches = use_far_branches();
+  set_use_far_branches(false);
+#endif
+
+  Label miss;
+  Bind(&miss);
+  ldr(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
+  ldr(IP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  bx(IP);
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  LoadClassIdMayBeSmi(R4, R0);
+  SmiUntag(R9);
+  cmp(R4, Operand(R9));
+  b(&miss, NE);
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+
+#if defined(TESTING) || defined(DEBUG)
+  set_use_far_branches(saved_use_far_branches);
+#endif
 }
 
 

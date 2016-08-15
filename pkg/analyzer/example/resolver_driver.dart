@@ -8,14 +8,14 @@ import 'dart:io';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart' hide File;
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/file_system/file_system.dart' hide File;
-import 'package:analyzer/file_system/physical_file_system.dart';
 
 void main(List<String> args) {
   print('working dir ${new File('.').resolveSymbolicLinksSync()}');
@@ -30,12 +30,13 @@ void main(List<String> args) {
     packageRoot = args[2];
   }
 
-  JavaSystemIO.setProperty("com.google.dart.sdk", args[0]);
-  DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
+  PhysicalResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+  DartSdk sdk = new FolderBasedDartSdk(
+      resourceProvider, resourceProvider.getFolder(args[0]));
 
   var resolvers = [
     new DartUriResolver(sdk),
-    new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
+    new ResourceUriResolver(resourceProvider)
   ];
 
   if (packageRoot != null) {

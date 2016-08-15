@@ -72,10 +72,16 @@ class PhysicalResourceProvider implements ResourceProvider {
   Context get pathContext => io.Platform.isWindows ? windows : posix;
 
   @override
-  File getFile(String path) => new _PhysicalFile(new io.File(path));
+  File getFile(String path) {
+    path = normalize(path);
+    return new _PhysicalFile(new io.File(path));
+  }
 
   @override
-  Folder getFolder(String path) => new _PhysicalFolder(new io.Directory(path));
+  Folder getFolder(String path) {
+    path = normalize(path);
+    return new _PhysicalFolder(new io.Directory(path));
+  }
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {

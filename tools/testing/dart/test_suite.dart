@@ -973,6 +973,10 @@ class StandardTestSuite extends TestSuite {
       packageRoot = new Path(configuration['package_root']);
       optionsFromFile['packageRoot'] = packageRoot.toNativePath();
     }
+    if (configuration['packages'] != null) {
+      Path packages = new Path(configuration['packages']);
+      optionsFromFile['packages'] = packages.toNativePath();
+    }
 
     if (new CompilerConfiguration(configuration).hasCompiler &&
         expectCompileError(info)) {
@@ -1471,9 +1475,8 @@ class StandardTestSuite extends TestSuite {
       args = [];
     }
     args.addAll(TestUtils.standardOptions(configuration));
-    String packageRoot = packageRootArgument(optionsFromFile['packageRoot']);
-    if (packageRoot != null) args.add(packageRoot);
-    String packages = packagesArgument(optionsFromFile['packages']);
+    String packages = packagesArgument(optionsFromFile['packageRoot'],
+                                       optionsFromFile['packages']);
     if (packages != null) args.add(packages);
     args.add('--out=$outputFile');
     args.add(inputFile);
@@ -1493,9 +1496,8 @@ class StandardTestSuite extends TestSuite {
   Command _polymerDeployCommand(
       String inputFile, String outputDir, optionsFromFile) {
     List<String> args = [];
-    String packageRoot = packageRootArgument(optionsFromFile['packageRoot']);
-    if (packageRoot != null) args.add(packageRoot);
-    String packages = packagesArgument(optionsFromFile['packages']);
+    String packages = packagesArgument(optionsFromFile['packageRoot'],
+                                       optionsFromFile['packages']);
     if (packages != null) args.add(packages);
     args
       ..add('package:polymer/deploy.dart')
@@ -1550,11 +1552,8 @@ class StandardTestSuite extends TestSuite {
   List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
 
-    String packageRoot = packageRootArgument(optionsFromFile['packageRoot']);
-    if (packageRoot != null) {
-      args.add(packageRoot);
-    }
-    String packages = packagesArgument(optionsFromFile['packages']);
+    String packages = packagesArgument(optionsFromFile['packageRoot'],
+                                       optionsFromFile['packages']);
     if (packages != null) {
       args.add(packages);
     }
@@ -1582,30 +1581,16 @@ class StandardTestSuite extends TestSuite {
     return args;
   }
 
-  String packageRoot(String packageRootFromFile) {
+  String packagesArgument(String packageRootFromFile,
+                             String packagesFromFile) {
+    if (packagesFromFile != null) {
+      return "--packages=$packagesFromFile";
+    }
     if (packageRootFromFile == "none") {
       return null;
     }
-    String packageRoot = packageRootFromFile;
-    if (packageRootFromFile == null) {
-      packageRoot = "$buildDir/packages/";
-    }
-    return packageRoot;
-  }
-
-  String packageRootArgument(String packageRootFromFile) {
-    var packageRootPath = packageRoot(packageRootFromFile);
-    if (packageRootPath == null) {
-      return null;
-    }
-    return "--package-root=$packageRootPath";
-  }
-
-  String packagesArgument(String packagesFromFile) {
-    if (packagesFromFile == null || packagesFromFile == "none") {
-      return null;
-    }
-    return "--packages=$packagesFromFile";
+    packageRootFromFile ??= "$buildDir/packages/";
+    return "--package-root=$packageRootFromFile";
   }
 
   /**

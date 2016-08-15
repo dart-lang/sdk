@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:yaml/yaml.dart';
 
 export 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
@@ -44,6 +44,9 @@ class EmbedderSdk extends AbstractDartSdk {
 
   /// The url mappings for this SDK.
   Map<String, String> get urlMappings => _urlMappings;
+
+  @override
+  PackageBundle getLinkedBundle() => null;
 
   @override
   String getRelativePathFromFile(JavaFile file) => file.getAbsolutePath();

@@ -6,8 +6,8 @@
 
 @patch class bool {
 
-  /* @patch */ const factory bool.fromEnvironment(String name,
-                                                 {bool defaultValue: false})
+  @patch const factory bool.fromEnvironment(String name,
+                                            {bool defaultValue: false})
       native "Bool_fromEnvironment";
 
   int get hashCode => this ? 1231 : 1237;

@@ -28,9 +28,10 @@ VM_STUB_CODE_LIST(STUB_CODE_DECLARE);
 
 StubEntry::StubEntry(const Code& code)
     : code_(code.raw()),
-      entry_point_(code.EntryPoint()),
+      entry_point_(code.UncheckedEntryPoint()),
+      checked_entry_point_(code.CheckedEntryPoint()),
       size_(code.Size()),
-      label_(code.EntryPoint()) {
+      label_(code.UncheckedEntryPoint()) {
 }
 
 

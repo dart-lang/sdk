@@ -352,7 +352,8 @@ class _EventSinkWrapper extends EventSink<String> {
 ///    corresponding bazel location. This way there is no need to create a pub
 ///    cache prior to invoking dart2js.
 ///
-///  * We provide a mapping that can make all urls relative to the bazel root.
+///  * We provide an implicit mapping that can make all urls relative to the
+///  bazel root.
 ///    To the compiler, URIs look like:
 ///      file:///bazel-root/a/b/c.dart
 ///
@@ -367,55 +368,41 @@ class _EventSinkWrapper extends EventSink<String> {
 ///      we can use the standard package-resolution mechanism and ignore the
 ///      internals of how files are organized within bazel.
 ///
-/// This class is initialized using a dart2js-bazel configuration file. The file
-/// follows the following custom format:
-///
-///     <generated-path-prefix>
-///     <file1-bazel-root-relative-path>
-///     <file2-bazel-root-relative-path>
-///     ...
-///     <fileN-bazel-root-relative-path>
-///
-/// For example:
-///
-///     bazel-bin/123/
-///     a/b/c.dart
-///     bazel-bin/123/a/b/d.dart
-///     a/b/e.dart
-///
-/// The current working directory will be used to resolve the bazel-root and
-/// when invoking the compiler, bazel will use `package:` and
+/// When invoking the compiler, bazel will use `package:` and
 /// `file:///bazel-root/` URIs to specify entrypoints.
+///
+/// The mapping is specified using search paths relative to the current
+/// directory. When this provider looks up a file, the bazel-root folder is
+/// replaced by the first directory in the search path containing the file, if
+/// any. For example, given the search path ".,bazel-bin/", and a URL
+/// of the form `file:///bazel-root/a/b.dart`, this provider will check if the
+/// file exists under "./a/b.dart", then check under "bazel-bin/a/b.dart".  If
+/// none of the paths matches, it will attempt to load the file from
+/// `/bazel-root/a/b.dart` which will likely fail.
 class BazelInputProvider extends SourceFileProvider {
-  /// Anything above this root is treated as machine specific and will only be
-  /// used to locate files on disk, but otherwise it's abstracted away in the
-  /// representation of canonical uris in the compiler.
-  final Uri bazelRoot;
+  final List<Uri> dirs;
 
-  /// Path prefix where generated files are located.
-  final String genPath;
+  BazelInputProvider(List<String> searchPaths)
+      : dirs = searchPaths.map(_resolve).toList();
 
-  /// Mapping from bazel-root uris to relative paths on top of [bazelRoot].
-  final Map<Uri, Uri> mappings = <Uri, Uri>{};
-
-  factory BazelInputProvider(String configPath) {
-    var config = new File(configPath).readAsLinesSync();
-    var bazelRoot = currentDirectory;
-    var outPrefix = config[0];
-    var files = config.skip(1);
-    return new BazelInputProvider._(bazelRoot, outPrefix, files);
-  }
-
-  BazelInputProvider._(this.bazelRoot, this.genPath, Iterable<String> files) {
-    var fakeBazelRoot = Uri.parse('file:///bazel-root/');
-    for (var path in files) {
-      var absolute = currentDirectory.resolve(path);
-      var bazelRelativeUri = fakeBazelRoot.resolve(
-          path.startsWith(genPath) ? path.substring(genPath.length) : path);
-      mappings[bazelRelativeUri] = absolute;
-    }
-  }
+  static _resolve(String path) => currentDirectory.resolve(path);
 
   @override
-  Future readFromUri(Uri uri) => readUtf8BytesFromUri(mappings[uri] ?? uri);
+  Future readFromUri(Uri uri) async {
+    var resolvedUri = uri;
+    var path = uri.path;
+    if (path.startsWith('/bazel-root')) {
+      path = path.substring('/bazel-root/'.length);
+      for (var dir in dirs) {
+        var file = dir.resolve(path);
+        if (await new File.fromUri(file).exists()) {
+          resolvedUri = file;
+          break;
+        }
+      }
+    }
+    var result = await readUtf8BytesFromUri(resolvedUri);
+    sourceFiles[uri] = sourceFiles[resolvedUri];
+    return result;
+  }
 }

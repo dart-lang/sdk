@@ -385,6 +385,7 @@ class IncrementalResolver {
     _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
     _shiftErrors_NEW(RESOLVE_TYPE_BOUNDS_ERRORS);
     _shiftErrors_NEW(RESOLVE_UNIT_ERRORS);
+    _shiftErrors_NEW(STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT);
     _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
     _shiftErrors_NEW(VERIFY_ERRORS);
@@ -800,16 +801,21 @@ class PoorMansIncrementalResolver {
     {
       AstNode parent = newComment.parent;
       if (parent is AnnotatedNode) {
+        setElementDocumentationForVariables(VariableDeclarationList list) {
+          for (VariableDeclaration variable in list.variables) {
+            Element variableElement = variable.element;
+            if (variableElement is ElementImpl) {
+              setElementDocumentationComment(variableElement, parent);
+            }
+          }
+        }
         Element parentElement = ElementLocator.locate(newComment.parent);
         if (parentElement is ElementImpl) {
           setElementDocumentationComment(parentElement, parent);
-        } else if (parentElement == null && parent is FieldDeclaration) {
-          for (VariableDeclaration field in parent.fields.variables) {
-            Element fieldElement = field.element;
-            if (fieldElement is ElementImpl) {
-              setElementDocumentationComment(fieldElement, parent);
-            }
-          }
+        } else if (parent is FieldDeclaration) {
+          setElementDocumentationForVariables(parent.fields);
+        } else if (parent is TopLevelVariableDeclaration) {
+          setElementDocumentationForVariables(parent.variables);
         }
       }
     }

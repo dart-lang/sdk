@@ -182,19 +182,9 @@ abstract class LibraryElementCommon implements LibraryElement {
       return path.substring(path.lastIndexOf('/') + 1);
     }
   }
-
-  int compareTo(LibraryElement other) {
-    if (this == other) return 0;
-    return libraryOrScriptName.compareTo(other.libraryOrScriptName);
-  }
 }
 
-abstract class CompilationUnitElementCommon implements CompilationUnitElement {
-  int compareTo(CompilationUnitElement other) {
-    if (this == other) return 0;
-    return '${script.readableUri}'.compareTo('${other.script.readableUri}');
-  }
-}
+abstract class CompilationUnitElementCommon implements CompilationUnitElement {}
 
 abstract class ClassElementCommon implements ClassElement {
   @override
@@ -589,8 +579,8 @@ abstract class MixinApplicationElementCommon
     constructors.forEach(f);
     if (mixin != null)
       mixin.forEachLocalMember((Element mixedInElement) {
-      if (mixedInElement.isInstanceMember) f(mixedInElement);
-    });
+        if (mixedInElement.isInstanceMember) f(mixedInElement);
+      });
   }
 }
 

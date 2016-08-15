@@ -238,6 +238,7 @@ class ClassTable {
   void PrintToJSONObject(JSONObject* object);
 #endif  // !PRODUCT
 
+  void AddOldTable(RawClass** old_table);
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
 

@@ -2999,6 +2999,26 @@ var Y = () {
     InterfaceType intType = context.typeProvider.intType;
     expect(expression.staticType, intType);
   }
+
+  test_staticModeHints_forStaticVariableInference() {
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(context.analysisOptions)
+          ..strongModeHints = true;
+    Source source = newSource(
+        '/test.dart',
+        r'''
+var V = [42];
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT9);
+    expect(outputs[RESOLVED_UNIT9], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT9], isTrue);
+    // An INFERRED_TYPE_LITERAL error should be generated.
+    List<AnalysisError> errors = outputs[
+        STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT] as List<AnalysisError>;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, StrongModeCode.INFERRED_TYPE_LITERAL);
+  }
 }
 
 @reflectiveTest
@@ -3544,6 +3564,7 @@ class C {
       SimpleIdentifier reference = statement.expression;
       expect(reference.staticElement, isResolved ? isNotNull : isNull);
     }
+
     //
     // The reference to 'A' in 'f1' should not be resolved.
     //
@@ -5682,7 +5703,21 @@ const int x = p.y;
     ]);
   }
 
-  test_perform_directiveError() {
+  test_perform_directiveError_generated() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+import 'generated-file.g.dart';
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED]);
+  }
+
+  test_perform_directiveError_nonGenerated() {
     Source source = newSource(
         '/test.dart',
         '''
@@ -5785,6 +5820,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
           matcher: matcher);
       return outputs[result];
     }
+
     return sources.map(compute).toList();
   }
 
@@ -5795,6 +5831,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
       computeResult(source, result, matcher: matcher);
       return outputs;
     }
+
     return sources.map(compute).toList();
   }
 

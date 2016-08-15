@@ -1309,6 +1309,35 @@ class E {}
     expect(cls.interfaces, isEmpty);
   }
 
+  test_unresolved_import() {
+    allowMissingFiles = true;
+    serializeLibraryText("import 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].uri, 'foo.dart');
+    // Note: imports[1] is the implicit import of dart:core.
+    expect(unlinkedUnits[0].imports[1].isImplicit, true);
+    expect(linked.importDependencies, hasLength(2));
+    checkDependency(
+        linked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
+  test_unresolved_export() {
+    allowMissingFiles = true;
+    serializeLibraryText("export 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, 'foo.dart');
+    expect(linked.exportDependencies, hasLength(1));
+    checkDependency(
+        linked.exportDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
+  test_unresolved_part() {
+    allowMissingFiles = true;
+    serializeLibraryText("part 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0], 'foo.dart');
+  }
+
   test_class_no_mixins() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.mixins, isEmpty);
@@ -2702,8 +2731,11 @@ const int v = p.a.length;
 
   test_constExpr_pushInt_max() {
     UnlinkedVariable variable = serializeVariableText('const v = 0xFFFFFFFF;');
-    _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt,], ints: [0xFFFFFFFF]);
+    _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+    ], ints: [
+      0xFFFFFFFF
+    ]);
   }
 
   test_constExpr_pushInt_negative() {
@@ -2726,15 +2758,26 @@ const int v = p.a.length;
 
   test_constExpr_pushLongInt_min2() {
     UnlinkedVariable variable = serializeVariableText('const v = 0x100000000;');
-    _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushLongInt], ints: [2, 1, 0,]);
+    _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedConstOperation.pushLongInt
+    ], ints: [
+      2,
+      1,
+      0,
+    ]);
   }
 
   test_constExpr_pushLongInt_min3() {
     UnlinkedVariable variable =
         serializeVariableText('const v = 0x10000000000000000;');
-    _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushLongInt], ints: [3, 1, 0, 0,]);
+    _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedConstOperation.pushLongInt
+    ], ints: [
+      3,
+      1,
+      0,
+      0,
+    ]);
   }
 
   test_constExpr_pushNull() {

@@ -12,8 +12,8 @@ import 'package:analysis_server/src/source/caching_pub_package_map_provider.dart
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
@@ -74,7 +74,8 @@ main() {
     CachingPubPackageMapProvider newPkgProvider() {
       return new CachingPubPackageMapProvider(
           resProvider,
-          DirectoryBasedDartSdk.defaultSdk,
+          new FolderBasedDartSdk(
+              resProvider, FolderBasedDartSdk.defaultSdkDirectory(resProvider)),
           mockRunner.runPubList,
           mockWriteFile);
     }

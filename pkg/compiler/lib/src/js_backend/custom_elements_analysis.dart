@@ -204,6 +204,7 @@ class CustomElementsAnalysisJoin {
         }
       }
     }
+
     classElement.forEachMember(selectGenerativeConstructors,
         includeBackendMembers: false, includeSuperAndInjectedMembers: false);
     return result;

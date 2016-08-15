@@ -776,7 +776,7 @@ void AssemblyInstructionsWriter::Write() {
     // 2. Write a label at the entry point.
     owner = code.owner();
     if (owner.IsNull()) {
-      const char* name = StubCode::NameOfStub(insns.EntryPoint());
+      const char* name = StubCode::NameOfStub(insns.UncheckedEntryPoint());
       assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
     } else if (owner.IsClass()) {
       str = Class::Cast(owner).Name();

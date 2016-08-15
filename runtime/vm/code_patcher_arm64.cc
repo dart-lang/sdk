@@ -110,15 +110,29 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
 
 
 void CodePatcher::PatchSwitchableCallAt(uword return_address,
-                                        const Code& code,
-                                        const ICData& ic_data,
-                                        const MegamorphicCache& cache,
-                                        const Code& lookup_stub) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  SwitchableCallPattern call(return_address, code);
-  ASSERT(call.cache() == ic_data.raw());
-  call.SetLookupStub(lookup_stub);
-  call.SetCache(cache);
+                                        const Code& caller_code,
+                                        const Object& data,
+                                        const Code& target) {
+  ASSERT(caller_code.ContainsInstructionAt(return_address));
+  SwitchableCallPattern call(return_address, caller_code);
+  call.SetData(data);
+  call.SetTarget(target);
+}
+
+
+RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
+                                                const Code& caller_code) {
+  ASSERT(caller_code.ContainsInstructionAt(return_address));
+  SwitchableCallPattern call(return_address, caller_code);
+  return call.target();
+}
+
+
+RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
+                                                const Code& caller_code) {
+  ASSERT(caller_code.ContainsInstructionAt(return_address));
+  SwitchableCallPattern call(return_address, caller_code);
+  return call.data();
 }
 
 

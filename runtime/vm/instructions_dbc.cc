@@ -190,27 +190,32 @@ void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
 
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
-      cache_pool_index_(-1),
-      stub_pool_index_(-1) {
+      data_pool_index_(-1),
+      target_pool_index_(-1) {
   UNIMPLEMENTED();
 }
 
 
-RawObject* SwitchableCallPattern::cache() const {
+RawObject* SwitchableCallPattern::data() const {
+  return object_pool_.ObjectAt(data_pool_index_);
+}
+
+
+RawCode* SwitchableCallPattern::target() const {
   return reinterpret_cast<RawCode*>(
-      object_pool_.ObjectAt(cache_pool_index_));
+      object_pool_.ObjectAt(target_pool_index_));
 }
 
 
-void SwitchableCallPattern::SetCache(const MegamorphicCache& cache) const {
-  ASSERT(Object::Handle(object_pool_.ObjectAt(cache_pool_index_)).IsICData());
-  object_pool_.SetObjectAt(cache_pool_index_, cache);
+void SwitchableCallPattern::SetData(const Object& data) const {
+  ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
+  object_pool_.SetObjectAt(data_pool_index_, data);
 }
 
 
-void SwitchableCallPattern::SetLookupStub(const Code& lookup_stub) const {
-  ASSERT(Object::Handle(object_pool_.ObjectAt(stub_pool_index_)).IsCode());
-  object_pool_.SetObjectAt(stub_pool_index_, lookup_stub);
+void SwitchableCallPattern::SetTarget(const Code& target) const {
+  ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
+  object_pool_.SetObjectAt(target_pool_index_, target);
 }
 
 

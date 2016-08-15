@@ -619,7 +619,13 @@ class Listener {
 }
 
 String closeBraceFor(String openBrace) {
-  return const {'(': ')', '[': ']', '{': '}', '<': '>', r'${': '}',}[openBrace];
+  return const {
+    '(': ')',
+    '[': ']',
+    '{': '}',
+    '<': '>',
+    r'${': '}',
+  }[openBrace];
 }
 
 class ParserError {

@@ -87,6 +87,10 @@ class Zone;
     StubCode::InvokeDartCode_entry()->code(), NULL)                            \
   V(RawCode*, call_to_runtime_stub_,                                           \
     StubCode::CallToRuntime_entry()->code(), NULL)                             \
+  V(RawCode*, monomorphic_miss_stub_,                                          \
+    StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
+  V(RawCode*, ic_lookup_through_code_stub_,                                    \
+    StubCode::ICLookupThroughCode_entry()->code(), NULL)                       \
 
 #endif
 
@@ -105,8 +109,8 @@ class Zone;
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
-  V(uword, megamorphic_lookup_entry_point_,                                    \
-    StubCode::MegamorphicLookup_entry()->EntryPoint(), 0)                      \
+  V(uword, megamorphic_lookup_checked_entry_,                                  \
+    StubCode::MegamorphicLookup_entry()->CheckedEntryPoint(), 0)               \
 
 #endif
 

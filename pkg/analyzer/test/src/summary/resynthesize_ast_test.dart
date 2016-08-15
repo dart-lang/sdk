@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/task/dart.dart' show PARSED_UNIT;
+import 'package:analyzer/task/general.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
@@ -714,7 +715,8 @@ class ResynthesizeAstTest extends ResynthesizeTest
 /**
  * Abstract mixin for serializing ASTs and resynthesizing elements from it.
  */
-abstract class _AstResynthesizeTestMixin {
+abstract class _AstResynthesizeTestMixin
+    implements _AstResynthesizeTestMixinInterface {
   final Set<Source> serializedSources = new Set<Source>();
   final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
   final Map<String, UnlinkedUnitBuilder> uriToUnit =
@@ -743,7 +745,7 @@ abstract class _AstResynthesizeTestMixin {
       Map<String, LinkedLibrary> sdkLibraries =
           SerializedMockSdk.instance.uriToLinkedLibrary;
       LinkedLibrary linkedLibrary = sdkLibraries[absoluteUri];
-      if (linkedLibrary == null) {
+      if (linkedLibrary == null && !allowMissingFiles) {
         fail('Linker unexpectedly requested LinkedLibrary for "$absoluteUri".'
             '  Libraries available: ${sdkLibraries.keys}');
       }
@@ -753,7 +755,7 @@ abstract class _AstResynthesizeTestMixin {
     UnlinkedUnit getUnit(String absoluteUri) {
       UnlinkedUnit unit = uriToUnit[absoluteUri] ??
           SerializedMockSdk.instance.uriToUnlinkedUnit[absoluteUri];
-      if (unit == null) {
+      if (unit == null && !allowMissingFiles) {
         fail('Linker unexpectedly requested unit for "$absoluteUri".');
       }
       return unit;
@@ -777,7 +779,8 @@ abstract class _AstResynthesizeTestMixin {
           ..addAll(unlinkedSummaries),
         new Map<String, LinkedLibrary>()
           ..addAll(SerializedMockSdk.instance.uriToLinkedLibrary)
-          ..addAll(linkedSummaries));
+          ..addAll(linkedSummaries),
+        allowMissingFiles);
   }
 
   UnlinkedUnit _getUnlinkedUnit(Source source) {
@@ -790,6 +793,14 @@ abstract class _AstResynthesizeTestMixin {
       }
     }
     return uriToUnit.putIfAbsent(uriStr, () {
+      int modificationTime = context.computeResult(source, MODIFICATION_TIME);
+      if (modificationTime < 0) {
+        // Source does not exist.
+        if (!allowMissingFiles) {
+          fail('Unexpectedly tried to get unlinked summary for $source');
+        }
+        return null;
+      }
       CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
       UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
@@ -820,14 +831,30 @@ abstract class _AstResynthesizeTestMixin {
     }
 
     UnlinkedPublicNamespace getImport(String relativeUri) {
-      return getPart(relativeUri).publicNamespace;
+      return getPart(relativeUri)?.publicNamespace;
     }
 
     UnlinkedUnit definingUnit = _getUnlinkedUnit(librarySource);
-    LinkedLibraryBuilder linkedLibrary =
-        prelink(definingUnit, getPart, getImport);
-    linkedLibrary.dependencies.skip(1).forEach((LinkedDependency d) {
-      _serializeLibrary(resolveRelativeUri(d.uri));
-    });
+    if (definingUnit != null) {
+      LinkedLibraryBuilder linkedLibrary =
+          prelink(definingUnit, getPart, getImport);
+      linkedLibrary.dependencies.skip(1).forEach((LinkedDependency d) {
+        _serializeLibrary(resolveRelativeUri(d.uri));
+      });
+    }
   }
+}
+
+/**
+ * Interface that [_AstResynthesizeTestMixin] requires of classes it's mixed
+ * into.  We can't place the getter below into [_AstResynthesizeTestMixin]
+ * directly, because then it would be overriding a field at the site where the
+ * mixin is instantiated.
+ */
+abstract class _AstResynthesizeTestMixinInterface {
+  /**
+   * A test should return `true` to indicate that a missing file at the time of
+   * summary resynthesis shouldn't trigger an error.
+   */
+  bool get allowMissingFiles;
 }

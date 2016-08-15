@@ -190,6 +190,9 @@ class FixProcessor {
       _addFix_createPartUri();
       _addFix_replaceImportUri();
     }
+    if (errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED) {
+      _addFix_replaceImportUri();
+    }
     if (errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE) {
       _addFix_canBeNullAfterNullAware();
     }

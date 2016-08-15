@@ -3749,6 +3749,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       reporter.reportErrorMessage(modifierNode, MessageKind.EXTRANEOUS_MODIFIER,
           {'modifier': modifier});
     }
+
     if (modifiers.isFinal && (modifiers.isConst || modifiers.isVar)) {
       reportExtraModifier('final');
     }

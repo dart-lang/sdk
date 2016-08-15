@@ -27,8 +27,8 @@ ASSEMBLER_TEST_RUN(Call, test) {
   // The return address, which must be the address of an instruction contained
   // in the code, points to the Ret instruction above, i.e. one instruction
   // before the end of the code buffer.
-  CallPattern call(test->entry() + test->code().Size() - Instr::kInstrSize,
-                   test->code());
+  uword end = test->payload_start() + test->code().Size();
+  CallPattern call(end - Instr::kInstrSize, test->code());
   EXPECT_EQ(StubCode::InvokeDartCode_entry()->code(), call.TargetCode());
 }
 

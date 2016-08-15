@@ -1519,9 +1519,10 @@ class CodeDeserializationCluster : public DeserializationCluster {
       int32_t text_offset = d->Read<int32_t>();
       RawInstructions* instr = reinterpret_cast<RawInstructions*>(
           d->GetInstructionsAt(text_offset) + kHeapObjectTag);
-      uword entry_point = Instructions::EntryPoint(instr);
 
-      code->ptr()->entry_point_ = entry_point;
+      code->ptr()->entry_point_ = Instructions::UncheckedEntryPoint(instr);
+      code->ptr()->checked_entry_point_ =
+          Instructions::CheckedEntryPoint(instr);
       code->ptr()->active_instructions_ = instr;
       code->ptr()->instructions_ = instr;
       code->ptr()->object_pool_ =
@@ -2141,7 +2142,7 @@ class ICDataDeserializationCluster : public DeserializationCluster {
           funcOrCode = ic.GetTargetOrCodeAt(j);
           if (funcOrCode.IsCode()) {
             code ^= funcOrCode.raw();
-            entry_point = Smi::FromAlignedAddress(code.EntryPoint());
+            entry_point = Smi::FromAlignedAddress(code.UncheckedEntryPoint());
             ic.SetEntryPointAt(j, entry_point);
           }
         }

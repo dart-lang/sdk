@@ -10,11 +10,11 @@ import 'dart:io' as io;
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -273,13 +273,13 @@ class BuildMode {
       sdk = summarySdk;
       sdkBundle = summarySdk.bundle;
     } else {
-      DirectoryBasedDartSdk directorySdk =
-          new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
-      directorySdk.analysisOptions =
+      FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
+          resourceProvider.getFolder(options.dartSdkPath), options.strongMode);
+      dartSdk.analysisOptions =
           Driver.createAnalysisOptionsForCommandLineOptions(options);
-      directorySdk.useSummary = !options.buildSummaryOnlyAst;
-      sdk = directorySdk;
-      sdkBundle = directorySdk.getSummarySdkBundle(options.strongMode);
+      dartSdk.useSummary = !options.buildSummaryOnlyAst;
+      sdk = dartSdk;
+      sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
     }
 
     // In AST mode include SDK bundle to avoid parsing SDK sources.

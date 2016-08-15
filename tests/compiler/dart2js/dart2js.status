@@ -38,18 +38,7 @@ patch_test/bug: RuntimeError # Issue 21132
 
 quarantined/http_test: Pass, Slow
 
-# These tests are for the now-deleted dart2dart variant of the CPS IR.
-# We want to adapt them to test the JS variant of the CPS IR instead,
-# but for now they are disabled.
-backend_dart/end2end_test: Skip
-backend_dart/sexpr2_test: Skip
-backend_dart/sexpr_test: Skip
-backend_dart/opt_constprop_test: Skip
-backend_dart/opt_shrinking_test: Skip
-backend_dart/opt_redundant_phi_test: Skip
-
 # Source information is not correct due to inlining.
-js_backend_cps_ir_source_information_test: Fail
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_invokes_test: Pass, Slow
 

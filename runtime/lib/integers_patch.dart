@@ -9,8 +9,8 @@ import 'dart:_internal' as internal;
 
 @patch class int {
 
-  /* @patch */ const factory int.fromEnvironment(String name,
-                                                {int defaultValue})
+  @patch const factory int.fromEnvironment(String name,
+                                           {int defaultValue})
       native "Integer_fromEnvironment";
 
 
@@ -42,9 +42,9 @@ import 'dart:_internal' as internal;
     return sign * result;
   }
 
-  /* @patch */ static int parse(String source,
-                               { int radix,
-                                 int onError(String str) }) {
+  @patch static int parse(String source,
+                          { int radix,
+                            int onError(String str) }) {
     if (source == null) throw new ArgumentError("The source must not be null");
     if (source.isEmpty) return _throwFormatException(onError, source, 0, radix);
     if (radix == null || radix == 10) {

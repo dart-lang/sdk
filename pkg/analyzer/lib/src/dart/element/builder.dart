@@ -154,7 +154,6 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
       ImportElementImpl importElement = new ImportElementImpl(-1);
       importElement.importedLibrary = importLibraryMap[coreLibrarySource];
       importElement.synthetic = true;
-      importElement.uriExists = true;
       imports.add(importElement);
     }
     //
@@ -183,7 +182,6 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         exportElement.uriEnd = uriLiteral.end;
       }
       exportElement.uri = node.uriContent;
-      exportElement.uriExists = exportedTime >= 0;
       exportElement.combinators = _buildCombinators(node);
       exportElement.exportedLibrary = exportedLibrary;
       setElementDocumentationComment(exportElement, node);
@@ -229,7 +227,6 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         importElement.uriEnd = uriLiteral.end;
       }
       importElement.uri = node.uriContent;
-      importElement.uriExists = importedTime >= 0;
       importElement.deferred = node.deferredKeyword != null;
       importElement.combinators = _buildCombinators(node);
       importElement.importedLibrary = importedLibrary;

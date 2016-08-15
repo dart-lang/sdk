@@ -11,8 +11,8 @@ import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 
 /**
  * The function used to run pub list.
@@ -40,7 +40,7 @@ class PubPackageMapProvider implements PackageMapProvider {
   /**
    * Sdk that we use to find the pub executable.
    */
-  final DirectoryBasedDartSdk sdk;
+  final FolderBasedDartSdk sdk;
 
   /**
    * The function used to run pub list.
@@ -146,6 +146,7 @@ class PubPackageMapProvider implements PackageMapProvider {
         packageMap[packageName] = folders;
       }
     }
+
     packages.forEach((key, value) {
       if (value is String) {
         processPaths(key, [value]);
@@ -169,7 +170,7 @@ class PubPackageMapProvider implements PackageMapProvider {
    * Run pub list to determine the packages and input files.
    */
   io.ProcessResult _runPubListDefault(Folder folder) {
-    String executablePath = sdk.pubExecutable.getAbsolutePath();
+    String executablePath = sdk.pubExecutable.path;
     List<String> arguments = [PUB_LIST_COMMAND];
     String workingDirectory = folder.path;
     int subprocessId = AnalysisEngine.instance.instrumentationService

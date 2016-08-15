@@ -1875,7 +1875,7 @@ void Precompiler::BindStaticCalls() {
           // stub.
           ASSERT(target_.HasCode());
           target_code_ ^= target_.CurrentCode();
-          uword pc = pc_offset_.Value() + code_.EntryPoint();
+          uword pc = pc_offset_.Value() + code_.PayloadStart();
           CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
         }
       }
@@ -1932,10 +1932,6 @@ void Precompiler::SwitchICCalls() {
         if (entry_.IsICData()) {
           ic_ ^= entry_.raw();
 
-          // Only single check ICs are SwitchableCalls that use the ICLookup
-          // stubs. Some operators like + have ICData that check the types of
-          // arguments in addition to the receiver and use special stubs
-          // with fast paths for Smi operations.
           if (ic_.NumArgsTested() != 1) continue;
 
           for (intptr_t j = 0; j < ic_.NumberOfChecks(); j++) {
@@ -1944,7 +1940,8 @@ void Precompiler::SwitchICCalls() {
               target_ ^= entry_.raw();
               ASSERT(target_.HasCode());
               target_code_ = target_.CurrentCode();
-              entry_point_ = Smi::FromAlignedAddress(target_code_.EntryPoint());
+              entry_point_ =
+                  Smi::FromAlignedAddress(target_code_.UncheckedEntryPoint());
               ic_.SetCodeAt(j, target_code_);
               ic_.SetEntryPointAt(j, entry_point_);
             } else {
@@ -2911,7 +2908,7 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
     if (trace_compiler) {
       THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
                 function.ToFullyQualifiedCString(),
-                Code::Handle(function.CurrentCode()).EntryPoint(),
+                Code::Handle(function.CurrentCode()).PayloadStart(),
                 Code::Handle(function.CurrentCode()).Size(),
                 per_compile_timer.TotalElapsedTime());
     }

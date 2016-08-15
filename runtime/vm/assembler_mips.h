@@ -243,7 +243,9 @@ class Assembler : public ValueObject {
         delay_slot_available_(false),
         in_delay_slot_(false),
         comments_(),
-        constant_pool_allowed_(true) { }
+        constant_pool_allowed_(true) {
+    MonomorphicCheckedEntry();
+  }
   ~Assembler() { }
 
   void PopRegister(Register r) { Pop(r); }
@@ -280,7 +282,6 @@ class Assembler : public ValueObject {
   }
 
   void set_use_far_branches(bool b) {
-    ASSERT(buffer_.Size() == 0);
     use_far_branches_ = b;
   }
 
@@ -294,6 +295,9 @@ class Assembler : public ValueObject {
   // A separate macro for when a Ret immediately follows, so that we can use
   // the branch delay slot.
   void LeaveStubFrameAndReturn(Register ra = RA);
+
+  void NoMonomorphicCheckedEntry();
+  void MonomorphicCheckedEntry();
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,

@@ -354,8 +354,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     // Don't allow implicit downcasts between function types
     // and call method objects, as these will almost always fail.
-    if ((fromType is FunctionType && getCallMethodType(toType) != null) ||
-        (toType is FunctionType && getCallMethodType(fromType) != null)) {
+    if (fromType is FunctionType && getCallMethodType(toType) != null) {
       return false;
     }
 
@@ -373,7 +372,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     // If the subtype relation goes the other way, allow the implicit
     // downcast.
-    if (isSubtypeOf(toType, fromType) || toType.isAssignableTo(fromType)) {
+    if (isSubtypeOf(toType, fromType)) {
       // TODO(leafp,jmesserly): we emit warnings/hints for these in
       // src/task/strong/checker.dart, which is a bit inconsistent. That
       // code should be handled into places that use isAssignableTo, such as

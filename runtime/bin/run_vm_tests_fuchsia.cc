@@ -156,7 +156,7 @@ static int run_test(const char* test_name) {
   argv[1] = old_gen_arg;
   argv[2] = test_name;
 
-  mx_handle_t p = launchpad_launch(argv[0], kArgc, argv);
+  mx_handle_t p = launchpad_launch_mxio(argv[0], kArgc, argv);
   if (p < 0) {
     fprintf(stderr, "process failed to start\n");
     return -1;

@@ -16,8 +16,6 @@ import 'constants/constructors.dart' as constants;
 import 'constants/evaluation.dart' as constants;
 import 'constants/expressions.dart' as constants;
 import 'constants/values.dart' as constants;
-import 'cps_ir/cps_ir_builder.dart' as ir_builder;
-import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
 import 'dart2js.dart' as dart2js;
 import 'dart_types.dart' as dart_types;
 import 'deferred_load.dart' as deferred;
@@ -42,7 +40,6 @@ import 'script.dart';
 import 'source_file_provider.dart' as source_file_provider;
 import 'ssa/nodes.dart' as ssa;
 import 'tree/tree.dart' as tree;
-import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
 import 'util/util.dart' as util;
 import 'world.dart';
 
@@ -71,14 +68,12 @@ void main(List<String> arguments) {
   useIo();
   usedByTests();
   useElements();
-  useIr(null);
   useCompiler(null);
   useTypes();
   useCodeEmitterTask(null);
   useScript(null);
   useProgramBuilder(null);
   useSemanticVisitor();
-  useTreeVisitors();
   useDeferred();
 }
 
@@ -283,10 +278,6 @@ useElements(
   l.forEachImport(null);
 }
 
-useIr(ir_builder.IrBuilder builder) {
-  builder..buildStringConstant(null);
-}
-
 useCompiler(compiler.Compiler c) {
   c.libraryLoader
     ..reset()
@@ -320,16 +311,6 @@ useSemanticVisitor() {
   new semantic_visitor.BulkSendVisitor()..apply(null, null);
   new semantic_visitor.TraversalVisitor(null).apply(null, null);
   new semantic_visitor.BulkDeclarationVisitor().apply(null, null);
-}
-
-class TreeVisitor1 extends tree_ir.ExpressionVisitor1
-    with tree_ir.StatementVisitor1 {
-  noSuchMethod(inv) {}
-}
-
-useTreeVisitors() {
-  new TreeVisitor1().visitExpression(null, null);
-  new TreeVisitor1().visitStatement(null, null);
 }
 
 useDeferred([deferred.DeferredLoadTask task]) {

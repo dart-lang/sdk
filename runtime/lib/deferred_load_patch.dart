@@ -5,7 +5,7 @@
 final Set<String> _loadedLibraries = new Set<String>();
 
 @patch class DeferredLibrary {
-  /* @patch */ Future<Null> load() {
+  @patch Future<Null> load() {
     // Dummy implementation that should eventually be replaced by real
     // implementation.
     Future future =

@@ -81,7 +81,8 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
   var pattern = new RegExp('^(${patterns.join(")\$|^(")})\$');
 
   Iterator<String> arguments = argv.iterator;
-  OUTER: while (arguments.moveNext()) {
+  OUTER:
+  while (arguments.moveNext()) {
     String argument = arguments.current;
     Match match = pattern.firstMatch(argument);
     assert(match.groupCount == handlers.length);
@@ -317,7 +318,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
-    new OptionHandler(Flags.useCpsIr, passThrough),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
@@ -684,9 +684,6 @@ be removed in a future version:
   --generate-code-with-compile-time-errors
     Generates output even if the program contains compile-time errors. Use the
     exit code to determine if compilation failed.
-
-  --use-cps-ir
-    Experimental.  Use the new CPS based backend for code generation.
 
   --no-frequency-based-minification
     Experimental.  Disabled the new frequency based minifying namer and use the

@@ -488,7 +488,6 @@ class Assembler : public ValueObject {
   }
 
   void set_use_far_branches(bool b) {
-    ASSERT(buffer_.Size() == 0);
     use_far_branches_ = b;
   }
 
@@ -1363,6 +1362,9 @@ class Assembler : public ValueObject {
   // a stub frame.
   void EnterStubFrame();
   void LeaveStubFrame();
+
+  void NoMonomorphicCheckedEntry();
+  void MonomorphicCheckedEntry();
 
   void UpdateAllocationStats(intptr_t cid,
                              Heap::Space space);

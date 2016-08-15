@@ -3,27 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @patch class _File {
-  /* @patch */ static _exists(String path) native "File_Exists";
-  /* @patch */ static _create(String path) native "File_Create";
-  /* @patch */ static _createLink(String path, String target)
+  @patch static _exists(String path) native "File_Exists";
+  @patch static _create(String path) native "File_Create";
+  @patch static _createLink(String path, String target)
       native "File_CreateLink";
-  /* @patch */ static _linkTarget(String path) native "File_LinkTarget";
-  /* @patch */ static _deleteNative(String path) native "File_Delete";
-  /* @patch */ static _deleteLinkNative(String path) native "File_DeleteLink";
-  /* @patch */ static _rename(String oldPath, String newPath)
+  @patch static _linkTarget(String path) native "File_LinkTarget";
+  @patch static _deleteNative(String path) native "File_Delete";
+  @patch static _deleteLinkNative(String path) native "File_DeleteLink";
+  @patch static _rename(String oldPath, String newPath)
       native "File_Rename";
-  /* @patch */ static _renameLink(String oldPath, String newPath)
+  @patch static _renameLink(String oldPath, String newPath)
       native "File_RenameLink";
-  /* @patch */ static _copy(String oldPath, String newPath) native "File_Copy";
-  /* @patch */ static _lengthFromPath(String path) native "File_LengthFromPath";
-  /* @patch */ static _lastModified(String path) native "File_LastModified";
-  /* @patch */ static _open(String path, int mode) native "File_Open";
-  /* @patch */ static int _openStdio(int fd) native "File_OpenStdio";
+  @patch static _copy(String oldPath, String newPath) native "File_Copy";
+  @patch static _lengthFromPath(String path) native "File_LengthFromPath";
+  @patch static _lastModified(String path) native "File_LastModified";
+  @patch static _open(String path, int mode) native "File_Open";
+  @patch static int _openStdio(int fd) native "File_OpenStdio";
 }
 
 
 @patch class _RandomAccessFileOps {
-  /* @patch */ factory _RandomAccessFileOps(int pointer)
+  @patch factory _RandomAccessFileOps(int pointer)
       => new _RandomAccessFileOpsImpl(pointer);
 }
 
@@ -74,7 +74,7 @@ class _WatcherPath {
 
   StreamController _broadcastController;
 
-  /* @patch */ static Stream<FileSystemEvent> _watch(
+  @patch static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive) {
     if (Platform.isLinux) {
       return new _InotifyFileSystemWatcher(path, events, recursive).stream;
@@ -262,7 +262,7 @@ class _WatcherPath {
     });
   }
 
-  /* @patch */ static bool get isSupported
+  @patch static bool get isSupported
       native "FileSystemWatcher_IsSupported";
 
   static int _initWatcher() native "FileSystemWatcher_InitWatcher";

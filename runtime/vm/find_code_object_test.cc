@@ -133,7 +133,7 @@ VM_TEST_CASE(FindCodeObject) {
   EXPECT(!function.IsNull());
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
-  pc = code.EntryPoint() + 16;
+  pc = code.PayloadStart() + 16;
   EXPECT(Code::LookupCode(pc) == code.raw());
 
   OS::SNPrint(buffer, 256, "moo%d", 54);
@@ -142,7 +142,7 @@ VM_TEST_CASE(FindCodeObject) {
   EXPECT(!function.IsNull());
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
-  pc = code.EntryPoint() + 16;
+  pc = code.PayloadStart() + 16;
   EXPECT(Code::LookupCode(pc) == code.raw());
 
   // Lookup the large function
@@ -152,11 +152,11 @@ VM_TEST_CASE(FindCodeObject) {
   EXPECT(!function.IsNull());
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
-  pc = code.EntryPoint() + 16;
+  pc = code.PayloadStart() + 16;
   EXPECT(code.Size() > (PageSpace::kPageSizeInWords << kWordSizeLog2));
   EXPECT(Code::LookupCode(pc) == code.raw());
   EXPECT(code.Size() > (1 * MB));
-  pc = code.EntryPoint() + (1 * MB);
+  pc = code.PayloadStart() + (1 * MB);
   EXPECT(Code::LookupCode(pc) == code.raw());
 }
 

@@ -740,6 +740,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           registry.registerInstantiatedClass(classElement);
         }
       }
+
       register(helpers.jsPlainJavaScriptObjectClass);
       register(helpers.jsUnknownJavaScriptObjectClass);
 

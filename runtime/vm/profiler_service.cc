@@ -1181,7 +1181,7 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
                        const Code& code,
                        ProcessedSample* sample,
                        intptr_t frame_index) {
-    intptr_t offset = pc - code.EntryPoint();
+    intptr_t offset = pc - code.PayloadStart();
     if (frame_index != 0) {
       // The PC of frames below the top frame is a call's return address,
       // which can belong to a different inlining interval than the call.
@@ -1341,8 +1341,8 @@ class ProfileBuilder : public ValueObject {
       ASSERT(!code.IsNull());
       RegisterLiveProfileCode(
           new ProfileCode(ProfileCode::kDartCode,
-                          code.EntryPoint(),
-                          code.EntryPoint() + code.Size(),
+                          code.PayloadStart(),
+                          code.PayloadStart() + code.Size(),
                           code.compile_timestamp(),
                           code));
     }
