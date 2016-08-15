@@ -48,7 +48,7 @@ vars = {
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.0.1+2",
   "code_transformers_rev": "@bfe9799e88d9c231747435e1c1d2495ef5ecd966",
-  "collection_tag": "@1.8.0",
+  "collection_tag": "@1.9.0",
   "convert_tag": "@2.0.0",
   "crypto_tag" : "@2.0.1",
   "csslib_tag" : "@0.12.0",
@@ -82,13 +82,14 @@ vars = {
   "observatory_pub_packages_rev": "@a01235b5b71df27b602dae4676d0bf771cbe7fa2",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "package_config_rev": "@1.0.0",
+  "package_resolver": "@1.0.6",
   "path_tag": "@1.3.6",
   "plugin_tag": "@0.2.0",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.2.1",
   "protobuf_tag": "@0.5.1+1",
   "pub_cache_tag": "@v0.1.0",
-  "pub_rev": "@391b445dc6b28958794658b18caedb69d8cf8719",
+  "pub_rev": "@02443903ebaada11cad89386ad6d0202d2dbee38",
   "pub_semver_tag": "@1.3.0",
   "quiver_tag": "@0.21.4",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
@@ -253,6 +254,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg_tested/package_config":
       (Var("github_mirror") % "package_config") +
       Var("package_config_rev"),
+  Var("dart_root") + "/third_party/pkg_tested/package_resolver":
+      "https://github.com/dart-lang/package_resolver.git" +
+      Var("package_resolver_rev"),
   Var("dart_root") + "/third_party/pkg/path":
       (Var("github_mirror") % "path") + Var("path_tag"),
   Var("dart_root") + "/third_party/pkg/plugin":
