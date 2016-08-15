@@ -127,9 +127,6 @@
     the context of the `flutter` executable, and when the Flutter SDK contains a
     package with the given name whose version matches the constraint.
 
-  * `tar` files on Linux are now created with `0` as the user and group IDs.
-    This fixes a crash when publishing packages while using Active Directory.
-
   * Fixed a bug where packages from a hosted HTTP URL were considered the same
     as packages from an otherwise-identical HTTPS URL.
 
