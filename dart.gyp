@@ -114,20 +114,6 @@
       'dependencies': [
         'create_sdk',
         'packages',
-        'try',
-      ],
-    },
-    {
-      # This is the target that is built on the dart2js debug build bots.
-      # It must depend on anything that is required by the dart2js
-      # test suites.
-      # We have this additional target because the try target takes to long
-      # to build in debug mode and will make the build step time out.
-      'target_name': 'dart2js_bot_debug',
-      'type': 'none',
-      'dependencies': [
-        'create_sdk',
-        'packages',
       ],
     },
     {
@@ -148,13 +134,6 @@
       'type': 'none',
       'dependencies': [
         'pkg/pkg.gyp:pkg_packages',
-      ],
-    },
-    {
-      'target_name': 'try',
-      'type': 'none',
-      'dependencies': [
-        'site/try/build_try.gyp:try_site',
       ],
     },
   ],
