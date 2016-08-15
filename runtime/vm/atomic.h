@@ -51,14 +51,9 @@ class AtomicOperations : public AllStatic {
 
   // Performs a load of a word from 'ptr', but without any guarantees about
   // memory order (i.e., no load barriers/fences).
-  static uword LoadRelaxed(uword* ptr) {
-    return *static_cast<volatile uword*>(ptr);
-  }
-
-  // Performs a load of a word from 'ptr', but without any guarantees about
-  // memory order (i.e., no load barriers/fences).
-  static intptr_t LoadRelaxedIntPtr(intptr_t* ptr) {
-    return *static_cast<volatile intptr_t*>(ptr);
+  template <typename T>
+  static T LoadRelaxed(T* ptr) {
+    return *static_cast<volatile T*>(ptr);
   }
 };
 

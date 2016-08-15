@@ -1324,10 +1324,11 @@ RawClass* IsolateReloadContext::FindOriginalClass(const Class& cls) {
 
 
 RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
-  if (saved_class_table_ != NULL) {
+  RawClass** class_table = AtomicOperations::LoadRelaxed(&saved_class_table_);
+  if (class_table != NULL) {
     ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
-    return saved_class_table_[cid];
+    return class_table[cid];
   } else {
     return isolate_->class_table()->At(cid);
   }
