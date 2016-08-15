@@ -34,7 +34,7 @@ export NODE_PATH=.
 (5) Compile a test file with a `main` entry point:
 
 ```
-dart  $DDC_PATH/bin/dartdevc.dart compile --modules node -o hello.js hello.dart
+dart  $DDC_PATH/bin/dartdevc.dart --modules node -o hello.js hello.dart
 ```
 
 Note, the `hello.js` built here is not fully linked.  It loads the SDK via a `require` call.
@@ -48,7 +48,7 @@ node -e 'require("hello").hello.main()'
 (7) Compile multiple libraries using summaries.  E.g., write a `world.dart` that imports `hello.dart` with it's own `main`.  Step 5 above generated a summary (`hello.sum`) for `hello.dart`.  Build world:
 
 ```
-dart $DDC_PATH/bin/dartdevc.dart compile --modules node -s hello.sum -o world.js world.dart
+dart $DDC_PATH/bin/dartdevc.dart --modules node -s hello.sum -o world.js world.dart
 ```
 
 Run world just like hello above:
