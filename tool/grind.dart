@@ -34,4 +34,4 @@ _addTask(String name, {String description, Parser parser, String valueHelp}) {
       positionals: [new Positional(valueHelp: valueHelp)]));
 }
 
-typedef String Parser(String);
+typedef void Parser(String s);
