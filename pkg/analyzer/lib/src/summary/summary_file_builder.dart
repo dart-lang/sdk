@@ -116,8 +116,8 @@ class SummaryBuilder {
     // Prepare SDK.
     //
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
-        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider), strongMode);
+    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+        resourceProvider, resourceProvider.getFolder(sdkPath), strongMode);
     sdk.useSummary = false;
     sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = strongMode;
 
