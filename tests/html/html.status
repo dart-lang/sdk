@@ -319,6 +319,7 @@ xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 webgl_1_test: Pass, Fail   # Issue 8219
 text_event_test: Fail # Issue 17893
+element_animate_test/timing_dict: RuntimeError # Issue 26730
 
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
