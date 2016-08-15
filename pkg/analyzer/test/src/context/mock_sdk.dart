@@ -441,6 +441,19 @@ class MockSdk implements DartSdk {
     // table above.
     return null;
   }
+
+  /**
+   * This method is used to apply patches to [MockSdk].  It may be called only
+   * before analysis, i.e. before the analysis context was created.
+   */
+  void updateUriFile(String uri, String updateContent(String content)) {
+    assert(_analysisContext == null);
+    String path = FULL_URI_MAP[uri];
+    assert(path != null);
+    String content = provider.getFile(path).readAsStringSync();
+    String newContent = updateContent(content);
+    provider.updateFile(path, newContent);
+  }
 }
 
 class _MockSdkLibrary implements SdkLibrary {
