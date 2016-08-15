@@ -60,7 +60,8 @@
               <template if="{{ field.guardClass == 'unknown' }}">
                 none
               </template>
-              <template if="{{ field.guardClass != 'unknown' &&
+              <template if="{{ field.guardClass != null &&
+                            field.guardClass != 'unknown' &&
                             field.guardClass != 'dynamic' }}">
                 <class-ref ref="{{ field.guardClass }}"></class-ref>
                 <template if="{{ field.guardNullable }}">
