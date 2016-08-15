@@ -2011,6 +2011,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // schedule
       dartWorkManager.unitIncrementallyResolved(librarySource, unitSource);
       // OK
+      driver.reset();
       return true;
     });
   }

@@ -343,6 +343,49 @@ int b = aa;''';
     expect(context.performAnalysisTask().changeNotices, isNull);
   }
 
+  void test_applyChanges_incremental_resetDriver() {
+    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+    Source source = addSource(
+        "/test.dart",
+        r'''
+main() {
+  print(42);
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(source).errors, hasLength(0));
+    // Update the source to have a parse error.
+    // This is an incremental change, but we always invalidate DART_ERRORS.
+    context.setContents(
+        source,
+        r'''
+main() {
+  print(42)
+}
+''');
+    AnalysisCache cache = context.analysisCache;
+    expect(cache.getValue(source, PARSE_ERRORS), hasLength(1));
+    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
+    // Perform enough analysis to prepare inputs (is not actually tested) for
+    // the DART_ERRORS computing task, but don't compute it yet.
+    context.performAnalysisTask();
+    context.performAnalysisTask();
+    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
+    // Update the source so that PARSE_ERRORS is empty.
+    context.setContents(
+        source,
+        r'''
+main() {
+  print(42);
+}
+''');
+    expect(cache.getValue(source, PARSE_ERRORS), hasLength(0));
+    // After full analysis DART_ERRORS should also be empty.
+    _performPendingAnalysisTasks();
+    expect(cache.getValue(source, DART_ERRORS), hasLength(0));
+    expect(context.getErrors(source).errors, hasLength(0));
+  }
+
   void test_applyChanges_overriddenSource() {
     String content = "library test;";
     Source source = addSource("/test.dart", content);
