@@ -837,7 +837,6 @@ class Isolate : public BaseIsolate {
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
-  static Dart_IsolateInterruptCallback vmstats_callback_;
 
   static void WakePauseEventHandler(Dart_Isolate isolate);
 
