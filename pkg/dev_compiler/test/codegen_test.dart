@@ -102,14 +102,11 @@ main(List<String> arguments) {
     var relativePath = path.relative(testFile, from: codegenTestDir);
 
     // Only compile the top-level files for generating coverage.
-    if (codeCoverage && path.dirname(relativePath) != ".") continue;
+    bool isTopLevelTest = path.dirname(relativePath) == ".";
+    if (codeCoverage && !isTopLevelTest) continue;
 
     var name = path.withoutExtension(relativePath);
     test('dartdevc $name', () {
-      var relativeDir = path.dirname(relativePath);
-      var outDir = path.join(codegenOutputDir, relativeDir);
-      var expectDir = path.join(codegenExpectDir, relativeDir);
-
       // Check if we need to use special compile options.
       var contents = new File(testFile).readAsStringSync();
       var match =
@@ -125,15 +122,11 @@ main(List<String> arguments) {
       // Collect any other files we've imported.
       var files = new Set<String>();
       _collectTransitiveImports(contents, files, from: testFile);
-      var moduleName =
-          path.withoutExtension(path.relative(testFile, from: codegenTestDir));
-      var unit = new BuildUnit(moduleName, path.dirname(testFile),
-          files.toList(), _moduleForLibrary);
+      var unit = new BuildUnit(
+          name, path.dirname(testFile), files.toList(), _moduleForLibrary);
       var module = compiler.compile(unit, options);
-      _writeModule(
-          path.join(outDir, path.basenameWithoutExtension(testFile)),
-          path.join(expectDir, path.basenameWithoutExtension(testFile)),
-          module);
+      _writeModule(path.join(codegenOutputDir, name),
+          isTopLevelTest ? path.join(codegenExpectDir, name) : null, module);
     });
   }
 
@@ -150,7 +143,6 @@ main(List<String> arguments) {
 
 void _writeModule(String outPath, String expectPath, JSModuleFile result) {
   _ensureDirectory(path.dirname(outPath));
-  _ensureDirectory(path.dirname(expectPath));
 
   String errors = result.errors.join('\n');
   if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
@@ -158,7 +150,6 @@ void _writeModule(String outPath, String expectPath, JSModuleFile result) {
 
   var jsFile = new File(outPath + '.js');
   var summaryFile = new File(outPath + '.sum');
-  var expectFile = new File(expectPath + '.js');
   var errorFile = new File(outPath + '.err');
 
   if (result.isValid) {
@@ -171,8 +162,6 @@ void _writeModule(String outPath, String expectPath, JSModuleFile result) {
       new File(mapPath)
           .writeAsStringSync(JSON.encode(result.placeSourceMap(mapPath)));
     }
-
-    expectFile.writeAsStringSync(result.code);
 
     // There are no errors, so delete any stale ".err" file.
     if (errorFile.existsSync()) {
@@ -202,12 +191,24 @@ dart_library.library('$moduleName', null, [
     if (jsFile.existsSync()) {
       jsFile.deleteSync();
     }
+  }
 
-    // There are errors, so delete any stale expect ".js" file.
-    if (expectFile.existsSync()) {
-      expectFile.deleteSync();
+  // Write the expectation file if needed.
+  // Generally speaking we try to avoid these tests, but they are occasionally
+  // useful.
+  if (expectPath != null) {
+    _ensureDirectory(path.dirname(expectPath));
+
+    var expectFile = new File(expectPath + '.js');
+    if (result.isValid) {
+      expectFile.writeAsStringSync(result.code);
+    } else {
+      // There are errors, so delete any stale expect ".js" file.
+      if (expectFile.existsSync()) {
+        expectFile.deleteSync();
+      }
+      expectFile.writeAsStringSync("//FAILED TO COMPILE");
     }
-    expectFile.writeAsStringSync("//FAILED TO COMPILE");
   }
 }
 
