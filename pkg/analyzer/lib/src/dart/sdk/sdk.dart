@@ -128,8 +128,7 @@ abstract class AbstractDartSdk implements DartSdk {
    */
   void addExtensions(Map<String, String> extensions) {
     extensions.forEach((String uri, String path) {
-      String shortName = uri.substring(uri.indexOf(':') + 1);
-      SdkLibraryImpl library = new SdkLibraryImpl(shortName);
+      SdkLibraryImpl library = new SdkLibraryImpl(uri);
       library.path = path;
       libraryMap.setLibrary(uri, library);
     });
