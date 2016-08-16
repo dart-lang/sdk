@@ -11499,7 +11499,7 @@ static intptr_t DecodeSLEB128(const uint8_t* data,
   } while ((part & 0x80) != 0);
 
   if ((shift < (sizeof(value) * 8)) && ((part & 0x40) != 0)) {
-    value |= static_cast<intptr_t>(-1) << shift;
+    value |= static_cast<intptr_t>(kUwordMax << shift);
   }
   return value;
 }
