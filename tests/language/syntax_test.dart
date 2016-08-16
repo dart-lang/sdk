@@ -238,6 +238,7 @@ main() {
     new SyntaxTest() = 1; /// 64: compile-time error
     futureOf(null) = 1; /// 65: compile-time error
 
+    new C();
   } catch (ex) {
     // Swallowing exceptions. Any error should be a compile-time error
     // which kills the current isolate.
@@ -247,3 +248,9 @@ main() {
 class Bad {
   factory Bad<Bad(String type) { return null; } /// 63: compile-time error
 }
+
+class C {
+  void f;  /// 66: compile-time error
+  static void g;  /// 67: compile-time error
+}
+

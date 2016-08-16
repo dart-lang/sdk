@@ -4495,6 +4495,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
         ReportError("missing 'var', 'final', 'const' or type"
                     " in field declaration");
       }
+    } else if (member.type->IsVoidType()) {
+      ReportError(member.name_pos, "field may not be 'void'");
     }
     ParseFieldDefinition(members, &member);
   } else {
