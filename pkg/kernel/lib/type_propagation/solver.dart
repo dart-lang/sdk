@@ -84,8 +84,6 @@ class Solver {
   /// than the lattice point's own escape level.
   final List<int> latticePointEscape;
 
-  final int _numberOfClasses;
-
   /// The lattice point containing all functions.
   final int _functionLatticePoint;
 
@@ -128,8 +126,7 @@ class Solver {
         this.latticePointEscape =
             new List<int>.filled(builder.constraints.numberOfLatticePoints, 0),
         this.valueEscape =
-            new List<int>.filled(builder.constraints.numberOfValues, 0),
-        this._numberOfClasses = builder.hierarchy.classes.length {
+            new List<int>.filled(builder.constraints.numberOfValues, 0) {
     // Initialize the lattice and escape data.
     for (int i = 1; i < constraints.numberOfLatticePoints; ++i) {
       List<int> parents = constraints.parentsOfLatticePoint[i];

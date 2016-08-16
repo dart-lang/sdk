@@ -1479,6 +1479,7 @@ String procedureKindToString(ProcedureKind kind) {
     case ProcedureKind.Factory:
       return 'factory';
   }
+  throw 'illegal ProcedureKind: $kind';
 }
 
 class ExpressionPrinter {
