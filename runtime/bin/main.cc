@@ -476,6 +476,24 @@ static bool ProcessHotReloadRollbackTestModeOption(
 }
 
 
+extern bool short_socket_read;
+
+extern bool short_socket_write;
+
+static bool ProcessShortSocketReadOption(const char* arg,
+                                         CommandLineOptions* vm_options) {
+  short_socket_read = true;
+  return true;
+}
+
+
+static bool ProcessShortSocketWriteOption(const char* arg,
+                                          CommandLineOptions* vm_options) {
+  short_socket_write = true;
+  return true;
+}
+
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option, CommandLineOptions* vm_options);
@@ -502,6 +520,8 @@ static struct {
   { "--trace-loading", ProcessTraceLoadingOption },
   { "--hot-reload-test-mode", ProcessHotReloadTestModeOption },
   { "--hot-reload-rollback-test-mode", ProcessHotReloadRollbackTestModeOption },
+  { "--short_socket_read", ProcessShortSocketReadOption },
+  { "--short_socket_write", ProcessShortSocketWriteOption },
   { NULL, NULL }
 };
 
