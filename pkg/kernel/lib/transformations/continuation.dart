@@ -263,7 +263,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   addReturnStatementIfNecessary(Statement body) {
     if (body is Block) {
       Block block = body;
-      if (block.statements.last is! ReturnStatement) {
+      if (block.statements.isEmpty ||
+          block.statements.last is! ReturnStatement) {
         var returnStatement = new ReturnStatement();
         block.statements.add(returnStatement);
         returnStatement.parent = block;
