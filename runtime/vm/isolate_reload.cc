@@ -48,7 +48,9 @@ DEFINE_FLAG(bool, check_reloaded, false,
 
 
 InstanceMorpher::InstanceMorpher(Zone* zone, const Class& from, const Class& to)
-  : from_(from), to_(to), mapping_(zone, 0) {
+    : from_(Class::Handle(zone, from.raw())),
+      to_(Class::Handle(zone, to.raw())),
+      mapping_(zone, 0) {
   ComputeMapping();
   before_ = new(zone) ZoneGrowableArray<const Instance*>(zone, 0);
   after_ = new(zone) ZoneGrowableArray<const Instance*>(zone, 0);
