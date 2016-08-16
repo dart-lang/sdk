@@ -206,6 +206,15 @@ void ReasonForCancelling::AppendTo(JSONArray* array) {
 }
 
 
+ClassReasonForCancelling::ClassReasonForCancelling(Zone* zone,
+                                                   const Class& from,
+                                                   const Class& to)
+    : ReasonForCancelling(zone),
+      from_(Class::ZoneHandle(zone, from.raw())),
+      to_(Class::ZoneHandle(zone, to.raw())) {
+}
+
+
 void ClassReasonForCancelling::AppendTo(JSONArray* array) {
   JSONObject jsobj(array);
   jsobj.AddProperty("type", "ReasonForCancelling");
@@ -413,8 +422,10 @@ void IsolateReloadContext::ReportSuccess() {
 
 class Aborted : public ReasonForCancelling {
  public:
-  explicit Aborted(Zone* zone, const Error& error)
-      : ReasonForCancelling(zone), error_(error) { }
+  Aborted(Zone* zone, const Error& error)
+      : ReasonForCancelling(zone),
+        error_(Error::ZoneHandle(zone, error.raw())) {
+  }
 
  private:
   const Error& error_;
