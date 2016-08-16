@@ -499,6 +499,9 @@ abstract class Member extends TreeNode {
   /// True if this is a non-static field or procedure.
   bool get isInstanceMember;
 
+  bool get isExternal;
+  void set isExternal(bool value);
+
   /// The body of the procedure or constructor, or `null` if this is a field.
   FunctionNode get function => null;
 
@@ -562,6 +565,11 @@ class Field extends Member {
   /// True if the field is neither final nor const.
   bool get isMutable => flags & (FlagStatic | FlagConst) == 0;
   bool get isInstanceMember => !isStatic;
+
+  bool get isExternal => false;
+  void set isExternal(bool value) {
+    if (value) throw 'Fields cannot be external';
+  }
 
   accept(MemberVisitor v) => v.visitField(this);
 

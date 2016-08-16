@@ -323,7 +323,11 @@ class ExpressionScope extends TypeScope {
   }
 
   ast.Statement buildOptionalFunctionBody(FunctionBody body) {
-    if (body == null || body is EmptyFunctionBody) return null;
+    if (body == null ||
+        body is EmptyFunctionBody ||
+        body is NativeFunctionBody) {
+      return null;
+    }
     return buildMandatoryFunctionBody(body);
   }
 
@@ -2031,6 +2035,19 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     }
   }
 
+  void handleNativeBody(FunctionBody body) {
+    if (body is NativeFunctionBody) {
+      currentMember.isExternal = true;
+      currentMember.addAnnotation(new ast.ConstructorInvocation(
+          scope.loader.getCoreClassConstructorReference('Native',
+              library: 'dart:_internal'),
+          new ast.Arguments(<ast.Expression>[
+            new ast.StringLiteral(body.stringLiteral.stringValue)
+          ]),
+          isConst: true));
+    }
+  }
+
   visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.factoryKeyword != null) {
       buildFactoryConstructor(node);
@@ -2044,6 +2061,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     ast.Constructor constructor = currentMember;
     constructor.function = scope.buildFunctionNode(node.parameters, node.body,
         inferredReturnType: const ast.VoidType())..parent = constructor;
+    handleNativeBody(node.body);
     for (var parameter in node.parameters.parameterElements) {
       if (parameter is FieldFormalParameterElement) {
         var initializer = new ast.FieldInitializer(
@@ -2090,6 +2108,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         inferredReturnType: new ast.InterfaceType(classNode,
             types.freshTypeParameters.map(_makeTypeParameterType).toList()));
     procedure.function = function..parent = procedure;
+    handleNativeBody(node.body);
     if (node.redirectedConstructor != null) {
       assert(function.body == null);
       ConstructorElement targetElement =
@@ -2129,6 +2148,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         typeParameters:
             scope.buildOptionalTypeParameterList(node.typeParameters))
       ..parent = procedure;
+    handleNativeBody(node.body);
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
@@ -2150,6 +2170,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         typeParameters:
             scope.buildOptionalTypeParameterList(function.typeParameters))
       ..parent = procedure;
+    handleNativeBody(function.body);
   }
 
   visitEnumConstantDeclaration(EnumConstantDeclaration node) {

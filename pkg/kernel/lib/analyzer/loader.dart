@@ -22,6 +22,8 @@ abstract class ReferenceLevelLoader {
   ast.Class getRootClassReference();
   ast.Constructor getRootClassConstructorReference();
   ast.Class getCoreClassReference(String className);
+  ast.Constructor getCoreClassConstructorReference(String className,
+      {String constructorName, String library});
   ast.TypeParameter tryGetClassTypeParameter(TypeParameterElement element);
   bool get strongMode;
 }
@@ -90,8 +92,11 @@ class AnalyzerLoader implements ReferenceLevelLoader {
   }
 
   LibraryElement getDartCoreLibrary() {
-    return _dartCoreLibrary ??= context
-        .computeLibraryElement(context.sourceFactory.forUri('dart:core'));
+    return _dartCoreLibrary ??= _findLibraryElement('dart:core');
+  }
+
+  LibraryElement _findLibraryElement(String uri) {
+    return context.computeLibraryElement(context.sourceFactory.forUri(uri));
   }
 
   ast.Class getRootClassReference() {
@@ -105,6 +110,23 @@ class AnalyzerLoader implements ReferenceLevelLoader {
 
   ast.Class getCoreClassReference(String className) {
     return getClassReference(getDartCoreLibrary().getType(className));
+  }
+
+  ast.Constructor getCoreClassConstructorReference(
+      String className, {String constructorName, String library}) {
+    LibraryElement libraryElement = library != null
+        ? _findLibraryElement(library)
+        : getDartCoreLibrary();
+    ClassElement element = libraryElement.getType(className);
+    if (element == null) {
+      throw 'Missing core class $className from ${libraryElement.name}';
+    }
+    var constructor = element.constructors.firstWhere((constructor) {
+      return (constructorName == null)
+          ? (constructor.nameLength == 0)
+          : (constructor.name == constructorName);
+    });
+    return getMemberReference(constructor);
   }
 
   ClassElement getClassElement(ast.Class node) {
