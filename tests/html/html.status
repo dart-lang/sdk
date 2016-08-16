@@ -151,6 +151,7 @@ transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 js_util_test/callConstructor: RuntimeError # Issue 26978
 element_animate_test: Fail # Element.animate not supported on these browsers.
+gamepad_test: Fail # IE does not support Navigator.getGamepads()
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
@@ -270,6 +271,7 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari doe
 element_test: Pass, Fail # Issue 21434
 mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
 element_animate_test: Fail # Element.animate not supported on these browsers.
+gamepad_test: Fail # Safari does not support Navigator.getGamepads()
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
