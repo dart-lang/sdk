@@ -113,12 +113,6 @@ namespace dart {
   V(Int32x4, withFlagW, Int32x4WithFlagW, Int32x4, 0x345ac675)                 \
   V(Int64List, [], Int64ArrayGetIndexed, Dynamic, 0x0c0c939a)                  \
   V(Int64List, []=, Int64ArraySetIndexed, Dynamic, 0x3714d004)                 \
-  V(Float32x4List, [], Float32x4ArrayGetIndexed, Float32x4, 0x01c7017b)        \
-  V(Float32x4List, []=, Float32x4ArraySetIndexed, Dynamic, 0x56e843aa)         \
-  V(Int32x4List, [], Int32x4ArrayGetIndexed, Int32x4, 0x08353f8d)              \
-  V(Int32x4List, []=, Int32x4ArraySetIndexed, Dynamic, 0x1d9a47a5)             \
-  V(Float64x2List, [], Float64x2ArrayGetIndexed, Float64x2, 0x669b1498)        \
-  V(Float64x2List, []=, Float64x2ArraySetIndexed, Dynamic, 0x76da6ffe)         \
   V(_Bigint, get:_neg, Bigint_getNeg, Bool, 0x7bf17a57)                        \
   V(_Bigint, get:_used, Bigint_getUsed, Smi, 0x55041013)                       \
   V(_Bigint, get:_digits, Bigint_getDigits, TypedDataUint32Array, 0x46a6c1b3)  \
@@ -290,6 +284,12 @@ namespace dart {
   V(Float64List, []=, Float64ArraySetIndexed, Dynamic, 0x139b2465)             \
   V(Float32List, [], Float32ArrayGetIndexed, Double, 0x5686528f)               \
   V(Float32List, []=, Float32ArraySetIndexed, Dynamic, 0x1b0d90df)             \
+  V(Float32x4List, [], Float32x4ArrayGetIndexed, Float32x4, 0x01c7017b)        \
+  V(Float32x4List, []=, Float32x4ArraySetIndexed, Dynamic, 0x56e843aa)         \
+  V(Int32x4List, [], Int32x4ArrayGetIndexed, Int32x4, 0x08353f8d)              \
+  V(Int32x4List, []=, Int32x4ArraySetIndexed, Dynamic, 0x1d9a47a5)             \
+  V(Float64x2List, [], Float64x2ArrayGetIndexed, Float64x2, 0x669b1498)        \
+  V(Float64x2List, []=, Float64x2ArraySetIndexed, Dynamic, 0x76da6ffe)         \
   V(_TypedList, get:length, TypedDataLength, Smi, 0x2090dc1a)                  \
   V(Float32x4, get:x, Float32x4ShuffleX, Double, 0x63d0c13f)                   \
   V(Float32x4, get:y, Float32x4ShuffleY, Double, 0x20343b1b)                   \
