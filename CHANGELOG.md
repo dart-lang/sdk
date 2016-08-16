@@ -127,6 +127,11 @@
     the context of the `flutter` executable, and when the Flutter SDK contains a
     package with the given name whose version matches the constraint.
 
+  * Added a `--no-packages-dir` flag to `pub get`, `pub upgrade`, and `pub
+    downgrade`. When this flag is passed, pub will not generate a `packages/`
+    directory, and will remove that directory and any symlinks to it if they
+    exist. Note that this replaces the unsupported `--no-package-symlinks` flag.
+
   * `tar` files on Linux are now created with `0` as the user and group IDs.
     This fixes a crash when publishing packages while using Active Directory.
 
