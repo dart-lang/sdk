@@ -47,7 +47,9 @@ class TargetRepository implements M.TargetRepository {
     SC.WebSocketVMTarget target = t as SC.WebSocketVMTarget;
     if (!_list.contains(target)) return;
     current = target;
+    current.lastConnectionTime = new DateTime.now().millisecondsSinceEpoch;
     _onChange.add(new TargetChangeEvent(this));
+    _store();
   }
 
   void delete(o) {
