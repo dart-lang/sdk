@@ -5,7 +5,7 @@
 library dart2js.resolution.constructors;
 
 import '../common.dart';
-import '../common/resolution.dart' show Feature, Resolution;
+import '../common/resolution.dart' show Resolution;
 import '../constants/constructors.dart'
     show
         GenerativeConstantConstructor,
@@ -24,6 +24,7 @@ import '../elements/modelx.dart'
         ParameterElementX;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/feature.dart' show Feature;
 import '../universe/use.dart' show StaticUse;
 import '../util/util.dart' show Link;
 import 'members.dart' show lookupInScope, ResolverVisitor;

@@ -48,6 +48,7 @@ uri_retention_test: Fail # Issue 26504
 
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
+serialization*: Slow, Pass
 
 [ $checked ]
 analyze_dart2js_helpers_test: Pass, Slow

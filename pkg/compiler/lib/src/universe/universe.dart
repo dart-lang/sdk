@@ -102,6 +102,11 @@ abstract class SelectorConstraintsStrategy {
   UniverseSelectorConstraints createSelectorConstraints(Selector selector);
 }
 
+/// The [Universe] is an auxiliary class used in the process of computing the
+/// [ClassWorld]. The concepts here and in [ClassWorld] are very similar -- in
+/// the same way that the "universe expands" you can think of this as a mutable
+/// world that is expanding as we visit and discover parts of the program.
+/// TODO(sigmund): rename to "growing/expanding/mutable world"?
 class Universe {
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through

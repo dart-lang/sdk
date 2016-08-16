@@ -8,14 +8,14 @@ import '../common.dart';
 import '../common/backend_api.dart'
     show Backend, ForeignResolver, NativeRegistry;
 import '../common/registry.dart' show Registry;
-import '../common/resolution.dart'
-    show Feature, ListLiteralUse, MapLiteralUse, ResolutionImpact, Target;
+import '../common/resolution.dart' show ResolutionImpact, Target;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/feature.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilder;
