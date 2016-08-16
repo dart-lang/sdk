@@ -833,7 +833,8 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
       api.CompilerInput compilerInput,
       api.CompilerDiagnostics compilerDiagnostics,
       api.CompilerOutput compilerOutput,
-      List<_SerializedData> serializedData) {
+      List<_SerializedData> serializedData,
+      {bool compileOnly: false}) {
     api.CompilerInput input = compilerInput;
     CompilerOptions options = compilerOptions;
     if (serializedData != null && serializedData.isNotEmpty) {
@@ -851,7 +852,9 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
         }
       }
       options =
-          CompilerOptions.copy(options, resolutionInputs: resolutionInputs);
+          CompilerOptions.copy(options,
+              resolutionInputs: resolutionInputs,
+              compileOnly: compileOnly);
     }
     return oldCompileFunc(options, input, compilerDiagnostics, compilerOutput);
   }
@@ -902,7 +905,8 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
         compilerInput,
         compilerDiagnostics,
         compilerOutput,
-        [serializedDartCore, output.serializedData]);
+        [serializedDartCore, output.serializedData],
+        compileOnly: true);
   }
 
   /// Compiles the entry point using the serialized data from dart:core.

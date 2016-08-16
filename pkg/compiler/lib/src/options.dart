@@ -200,6 +200,9 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
   // If `true`, sources are resolved and serialized.
   final bool resolveOnly;
 
+  // If `true`, sources are only available from serialized data.
+  final bool compileOnly;
+
   /// URI where the compiler should generate the output source map file.
   final Uri sourceMapUri;
 
@@ -489,6 +492,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.resolutionInputs: null,
       this.resolutionOutput: null,
       this.resolveOnly: false,
+      this.compileOnly: false,
       this.sourceMapUri: null,
       this.strips: const [],
       this.testMode: false,
@@ -545,6 +549,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       resolutionInputs,
       resolutionOutput,
       resolveOnly,
+      compileOnly,
       sourceMapUri,
       strips,
       testMode,
@@ -610,6 +615,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         resolutionInputs: resolutionInputs ?? options.resolutionInputs,
         resolutionOutput: resolutionOutput ?? options.resolutionOutput,
         resolveOnly: resolveOnly ?? options.resolveOnly,
+        compileOnly: compileOnly ?? options.compileOnly,
         sourceMapUri: sourceMapUri ?? options.sourceMapUri,
         strips: strips ?? options.strips,
         testMode: testMode ?? options.testMode,

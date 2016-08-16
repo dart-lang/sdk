@@ -322,7 +322,8 @@ abstract class Compiler implements LibraryLoaderListener {
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(
           resolvedUriTranslator,
-          new _ScriptLoader(this),
+          options.compileOnly
+              ? new _NoScriptLoader(this) : new _ScriptLoader(this),
           new _ElementScanner(scanner),
           serialization,
           this,
@@ -2166,6 +2167,18 @@ class _ScriptLoader implements ScriptLoader {
 
   Future<Script> readScript(Uri uri, [Spannable spannable]) =>
       compiler.readScript(uri, spannable);
+}
+
+/// [ScriptLoader] used to ensure that scripts are not loaded accidentally
+/// through the [LibraryLoader] when `CompilerOptions.compileOnly` is `true`.
+class _NoScriptLoader implements ScriptLoader {
+  Compiler compiler;
+  _NoScriptLoader(this.compiler);
+
+  Future<Script> readScript(Uri uri, [Spannable spannable]) {
+    compiler.reporter.internalError(spannable,
+        "Script loading of '$uri' is not enabled.");
+  }
 }
 
 class _ElementScanner implements ElementScanner {
