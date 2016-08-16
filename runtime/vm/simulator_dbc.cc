@@ -1528,6 +1528,26 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(PushPolymorphicInstanceCall, A_D);
+    const uint8_t argc = rA;
+    const intptr_t cids_length = rD;
+    RawObject** args = SP - argc + 1;
+    const intptr_t receiver_cid = SimulatorHelpers::GetClassId(args[0]);
+    for (intptr_t i = 0; i < 2*cids_length; i+=2) {
+      const intptr_t icdata_cid = Bytecode::DecodeD(*(pc + i));
+      if (receiver_cid == icdata_cid) {
+        RawFunction* target =
+            RAW_CAST(Function, LOAD_CONSTANT(Bytecode::DecodeD(*(pc + i + 1))));
+        *++SP = target;
+        pc++;
+        break;
+      }
+    }
+    pc += 2 * cids_length;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(NativeBootstrapCall, 0);
     RawFunction* function = FrameFunction(FP);
     RawObject** incoming_args =
