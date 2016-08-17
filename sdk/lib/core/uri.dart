@@ -2066,11 +2066,13 @@ class _Uri implements Uri {
   static String _makeQuery(
       String query, int start, int end,
       Map<String, dynamic/*String|Iterable<String>*/> queryParameters) {
-    if (query == null && queryParameters == null) return null;
-    if (query != null && queryParameters != null) {
-      throw new ArgumentError('Both query and queryParameters specified');
+    if (query != null) {
+      if (queryParameters != null) {
+        throw new ArgumentError('Both query and queryParameters specified');
+      }
+      return _normalize(query, start, end, _queryCharTable);
     }
-    if (query != null) return _normalize(query, start, end, _queryCharTable);
+    if (queryParameters == null) return null;
 
     var result = new StringBuffer();
     var separator = "";
