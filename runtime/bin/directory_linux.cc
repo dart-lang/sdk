@@ -120,7 +120,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   dirent* result;
   errno = 0;
   result = readdir(reinterpret_cast<DIR*>(lister_));
-  if (result != NULL) {
+  if ((errno == 0) && (result != NULL)) {
     if (!listing->path_buffer().Add(result->d_name)) {
       done_ = true;
       return kListError;
