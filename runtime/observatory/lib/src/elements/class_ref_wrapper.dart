@@ -21,7 +21,10 @@ class ClassRefElementWrapper extends HtmlElement {
 
   Class _class;
   Class get ref => _class;
-  void set ref(Class ref) { _class = ref; render(); }
+  void set ref(Class ref) {
+    _class = ref;
+    render();
+  }
 
   ClassRefElementWrapper.created() : super.created() {
     binder.registerCallback(this);

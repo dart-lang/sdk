@@ -12,7 +12,7 @@ class InstanceRepositoryMock implements M.InstanceRepository {
   InstanceRepositoryMock({InstanceRepositoryMockCallback getter})
     : _get = getter;
 
-  Future<M.Instance> get(String id){
+  Future<M.Instance> get(String id, {int count}){
     if (_get != null) {
       return _get(id);
     }

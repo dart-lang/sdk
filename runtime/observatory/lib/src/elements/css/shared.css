@@ -518,6 +518,29 @@ function-ref-wrapped > a[href] {
   text-decoration: none;
 }
 
+/* instance-ref */
+/* TODO(cbernaschina) fix instance-ref-wrapped to instance-ref when wrapper
+removed */
+
+instance-ref-wrapped .empathize {
+  font-style: italic;
+}
+instance-ref-wrapped .indent {
+  margin-left: 1.5em;
+  font: 400 14px 'Montserrat', sans-serif;
+  line-height: 150%;
+}
+instance-ref-wrapped .stackTraceBox {
+  margin-left: 1.5em;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: consolas, courier, monospace;
+  font-size: 12px;
+  white-space: pre;
+  overflow-x: auto;
+}
+
 /* isolate-counter-chart */
 
 isolate-counter-chart {

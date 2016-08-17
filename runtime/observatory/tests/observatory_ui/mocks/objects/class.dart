@@ -13,6 +13,8 @@ class ClassRefMock implements M.ClassRef {
 class ClassMock implements M.Class {
   final String id;
   final String name;
+  final M.ClassRef clazz;
+  final int size;
   final M.ErrorRef error;
   final bool isAbstract;
   final bool isConst;
@@ -24,8 +26,9 @@ class ClassMock implements M.Class {
   final Iterable<M.InstanceRef> interfaces;
   final M.InstanceRef mixin;
   final Iterable<M.ClassRef> subclasses;
-  const ClassMock({this.id: 'c-id', this.name: 'c-name', this.error,
-      this.isAbstract: false, this.isConst: false, this.isPatch: false,
-      this.library, this.location, this.superclass, this.superType,
-      this.interfaces: const [], this.mixin, this.subclasses: const []});
+  const ClassMock({this.id: 'c-id', this.name: 'c-name', this.clazz, this.size,
+      this.error, this.isAbstract: false, this.isConst: false,
+      this.isPatch: false, this.library, this.location, this.superclass,
+      this.superType, this.interfaces: const [], this.mixin,
+      this.subclasses: const []});
 }

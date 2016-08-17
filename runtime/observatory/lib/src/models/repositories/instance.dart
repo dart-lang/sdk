@@ -5,5 +5,5 @@
 part of models;
 
 abstract class InstanceRepository{
-  Future<Instance> get(String id);
+  Future<Instance> get(String id, {int count});
 }

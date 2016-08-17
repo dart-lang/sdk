@@ -9,7 +9,8 @@ class InstanceRepository extends M.InstanceRepository {
 
   InstanceRepository(this.isolate);
 
-  Future<M.Instance> get(String id) async{
-    return (await isolate.getObject(id)) as S.Instance;
+  Future<M.Instance> get(String id, {int count: S.kDefaultFieldLimit}) async{
+    assert(count != null);
+    return (await isolate.getObject(id, count: count)) as S.Instance;
   }
 }
