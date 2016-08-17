@@ -3802,6 +3802,7 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("version", Version::String());
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
   jsobj.AddProperty64("pid", OS::ProcessId());
+  jsobj.AddProperty64("_maxRSS", OS::MaxRSS());
   int64_t start_time_millis = (vm_isolate->start_time() /
                                kMicrosecondsPerMillisecond);
   jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
