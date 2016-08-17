@@ -274,8 +274,10 @@ static bool DeleteRecursively(PathBuffer* path) {
 
   // Iterate the directory and delete all files and directories.
   int path_length = path->length();
-  while (true) {
-    dirent* entry = readdir(dir_pointer);
+  errno = 0;
+  //Initial read
+  dirent* entry = readdir(dir_pointer);
+  while (errno == 0){
     if (entry == NULL) {
       // End of directory.
       return (NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0) &&
@@ -322,6 +324,9 @@ static bool DeleteRecursively(PathBuffer* path) {
       break;
     }
     path->Reset(path_length);
+    errno = 0;
+    //Perform readdir for next loop
+    entry = readdir(dir_pointer);
   }
   // Only happens if an error.
   ASSERT(errno != 0);
