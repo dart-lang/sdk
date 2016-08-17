@@ -6,19 +6,12 @@
 ///                           ERROR HANDLING
 /// -----------------------------------------------------------------------
 ///
-/// Consumers of the AST currently need to handle two types of error cases:
-/// - The "invalid" node types (e.g. [InvalidExpression])
-/// - Mismatching arguments and parameters on statically resolved invocations.
+/// As a rule of thumb, errors that can be detected statically are handled by
+/// the frontend, typically by translating the erroneous code into a 'throw' or
+/// a call to 'noSuchMethod'.
 ///
-/// Although the frontend does not yet catch all possible errors, AST consumers
-/// should assume that a member reference always points to a meaningful target.
-/// For instance, a [SuperMethodInvocation] will never target an abstract
-/// method, and [StaticSet] will never have a final field as a write target.
-/// Should the input contain such errors, the frontend must create an invalid
-/// node instead.
-///
-/// Since the frontend is not yet complete, erroneous code may slip through,
-/// but this should be fixed in the frontend, not by the AST consumer.
+/// For example, there are no arity mismatches in static invocations, and
+/// there are no direct invocations of a constructor on a abstract class.
 ///
 /// -----------------------------------------------------------------------
 ///                                 NAMES

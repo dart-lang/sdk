@@ -276,11 +276,13 @@ class BinaryPrinter extends Visitor {
     _typeParameterIndexer.pop(node.typeParameters);
   }
 
+  static final Name _emptyName = new Name('');
+
   visitConstructor(Constructor node) {
     _variableIndexer = new VariableIndexer()..build(node);
     writeByte(Tag.Constructor);
     writeByte(node.flags);
-    writeName(node.name ?? '');
+    writeName(node.name ?? _emptyName);
     writeNodeList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);

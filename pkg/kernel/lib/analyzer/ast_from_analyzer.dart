@@ -10,10 +10,12 @@ import '../log.dart';
 import '../type_algebra.dart';
 import 'analyzer.dart';
 import 'loader.dart';
+import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/generated/parser.dart';
 
 /// Provides reference-level access to libraries, classes, and members.
 ///
-/// "References level" objects are incomplete nodes that have no children but
+/// "Reference level" objects are incomplete nodes that have no children but
 /// can be used for linking until the loader upgrades the node to "body level".
 ///
 /// The [ReferenceScope] is the most restrictive scope in a hierarchy of scopes
@@ -90,7 +92,8 @@ class ReferenceScope {
 
   bool isLocalFunction(Element element) {
     return element is FunctionElement &&
-        element.enclosingElement is! CompilationUnitElement;
+        element.enclosingElement is! CompilationUnitElement &&
+        element.enclosingElement is! LibraryElement;
   }
 
   bool isLocal(Element element) {
@@ -143,6 +146,11 @@ class ReferenceScope {
   ast.Member resolveGet(Element element, Element auxiliary) {
     element = desynthesizeGetter(element);
     if (supportsGet(element)) return getMemberReference(element);
+    if (element is PropertyAccessorElement && element.isSetter) {
+      // The getter is sometimes stored as the 'corresponding getter' instead
+      // of the 'auxiliary' element.
+      auxiliary ??= element.correspondingGetter;
+    }
     auxiliary = desynthesizeGetter(auxiliary);
     if (supportsGet(auxiliary)) return getMemberReference(auxiliary);
     return null;
@@ -151,6 +159,11 @@ class ReferenceScope {
   ast.Member resolveSet(Element element, Element auxiliary) {
     element = desynthesizeSetter(element);
     if (supportsSet(element)) return getMemberReference(element);
+    if (element is PropertyAccessorElement && element.isSetter) {
+      // The setter is sometimes stored as the 'corresponding setter' instead
+      // of the 'auxiliary' element.
+      auxiliary ??= element.correspondingGetter;
+    }
     auxiliary = desynthesizeSetter(auxiliary);
     if (supportsSet(auxiliary)) return getMemberReference(auxiliary);
     return null;
@@ -183,6 +196,19 @@ class ReferenceScope {
       return getMemberReference(element);
     }
     return null;
+  }
+
+  /// A static accessor that generates a 'throw NoSuchMethodError' when a
+  /// read or write access could not be resolved.
+  Accessor staticAccess(String name, Element element, [Element auxiliary]) {
+    return new _StaticAccessor(this, name, resolveGet(element, auxiliary),
+        resolveSet(element, auxiliary));
+  }
+
+  /// An accessor that generates a 'throw NoSuchMethodError' on both read
+  /// and write access.
+  Accessor unresolvedAccess(String name) {
+    return new _StaticAccessor(this, name, null, null);
   }
 }
 
@@ -332,13 +358,17 @@ class ExpressionScope extends TypeScope {
   }
 
   ast.Statement buildMandatoryFunctionBody(FunctionBody body) {
-    if (body is BlockFunctionBody) {
-      return buildStatement(body.block);
+    try {
+      if (body is BlockFunctionBody) {
+        return buildStatement(body.block);
+      } else if (body is ExpressionFunctionBody) {
+        return new ast.ReturnStatement(buildExpression(body.expression));
+      } else {
+        return internalError('Missing function body');
+      }
+    } on _CompilationError catch (e) {
+      return new ast.ExpressionStatement(buildThrowCompileTimeError(e.message));
     }
-    if (body is ExpressionFunctionBody) {
-      return new ast.ReturnStatement(buildExpression(body.expression));
-    }
-    return new ast.InvalidStatement();
   }
 
   ast.AsyncMarker getAsyncMarker({bool isAsync: false, bool isStar: false}) {
@@ -388,6 +418,14 @@ class ExpressionScope extends TypeScope {
             isAsync: body.isAsynchronous, isStar: body.isGenerator));
   }
 
+  ast.Expression buildTopLevelExpression(Expression node) {
+    try {
+      return _expressionBuilder.build(node);
+    } on _CompilationError catch (e) {
+      return buildThrowCompileTimeError(e.message);
+    }
+  }
+
   ast.Expression buildExpression(Expression node) {
     return _expressionBuilder.build(node);
   }
@@ -409,7 +447,9 @@ class ExpressionScope extends TypeScope {
   }
 
   ast.Expression buildThis() {
-    return allowThis ? new ast.ThisExpression() : new ast.InvalidExpression();
+    return allowThis
+        ? new ast.ThisExpression()
+        : emitCompileTimeError(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
   }
 
   ast.Initializer buildInitializer(ConstructorInitializer node) {
@@ -452,6 +492,122 @@ class ExpressionScope extends TypeScope {
       declaration.initializer = initializer..parent = declaration;
     }
     return declaration;
+  }
+
+  /// Returns true if [arguments] can be accepted by [target]
+  /// (not taking type checks into account).
+  bool areArgumentsCompatible(
+      FunctionTypedElement target, ast.Arguments arguments) {
+    var positionals = arguments.positional;
+    var parameters = target.parameters;
+    const required = ParameterKind.REQUIRED; // For avoiding long lines.
+    const named = ParameterKind.NAMED;
+    // If the first unprovided parameter is required, there are too few
+    // positional arguments.
+    if (positionals.length < parameters.length &&
+        parameters[positionals.length].parameterKind == required) {
+      return false;
+    }
+    // If there are more positional arguments than parameters, or if the last
+    // positional argument corresponds to a named parameter, there are too many
+    // positional arguments.
+    if (positionals.length > parameters.length) return false;
+    if (positionals.isNotEmpty &&
+        parameters[positionals.length - 1].parameterKind == named) {
+      return false; // Too many positional arguments.
+    }
+    if (arguments.named.isEmpty) return true;
+    int firstNamedParameter = positionals.length;
+    while (firstNamedParameter < parameters.length &&
+        parameters[firstNamedParameter].parameterKind != ParameterKind.NAMED) {
+      ++firstNamedParameter;
+    }
+    namedLoop: for (int i = 0; i < arguments.named.length; ++i) {
+      String name = arguments.named[i].name;
+      for (int j = firstNamedParameter; j < parameters.length; ++j) {
+        if (parameters[j].parameterKind == ParameterKind.NAMED &&
+            parameters[j].name == name) {
+          continue namedLoop;
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+
+  /// Throws a NoSuchMethodError corresponding to a call to [memberName] on
+  /// [receiver] with the given [arguments].
+  ///
+  /// If provided, [candiateTarget] provides the expected arity and argument
+  /// names for the best candidate target.
+  ast.Expression buildThrowNoSuchMethodError(
+      ast.Expression receiver, String memberName, ast.Arguments arguments,
+      {Element candidateTarget}) {
+    // TODO(asgerf): When we have better integration with patch files, use
+    //   the internal constructor that provides a more detailed error message.
+    ast.Expression candidateArgumentNames;
+    if (candidateTarget is FunctionTypedElement) {
+      candidateArgumentNames = new ast.ListLiteral(candidateTarget.parameters
+          .map((p) => new ast.StringLiteral(p.name))
+          .toList());
+    } else {
+      candidateArgumentNames = new ast.NullLiteral();
+    }
+    return new ast.Throw(new ast.ConstructorInvocation(
+        loader.getCoreClassConstructorReference('NoSuchMethodError'),
+        new ast.Arguments(<ast.Expression>[
+          receiver,
+          new ast.SymbolLiteral(memberName),
+          new ast.ListLiteral(arguments.positional),
+          new ast.MapLiteral(arguments.named.map((arg) {
+            return new ast.MapEntry(new ast.SymbolLiteral(arg.name), arg.value);
+          }).toList()),
+          candidateArgumentNames
+        ])));
+  }
+
+  ast.Expression buildThrowCompileTimeError(String message) {
+    // The spec does not mandate a specific behavior in face of a compile-time
+    // error.  We just throw a string.  The VM throws an uncatchable exception
+    // for this case.
+    // TOOD(asgerf): Should we add uncatchable exceptions to kernel?
+    return new ast.Throw(new ast.StringLiteral(message));
+  }
+
+  static final RegExp _errorMessagePattern = new RegExp(r'\{(\d+)\}');
+
+  /// Throws an exception that will be caught at the function level, to replace
+  /// the entire function with a throw.
+  emitCompileTimeError(ErrorCode error, [List arguments]) {
+    String message = error.message;
+    if (arguments != null) {
+      message = message.replaceAllMapped(_errorMessagePattern, (m) {
+        String numberString = m.group(1);
+        int index = int.parse(numberString);
+        return arguments[index];
+      });
+    }
+    throw new _CompilationError(message);
+  }
+
+  ast.Expression buildThrowAbstractClassInstantiationError(String name) {
+    return new ast.Throw(new ast.ConstructorInvocation(
+        loader.getCoreClassConstructorReference(
+            'AbstractClassInstantiationError'),
+        new ast.Arguments(<ast.Expression>[new ast.StringLiteral(name)])));
+  }
+
+  emitInvalidConstant([ErrorCode error]) {
+    error ??= CompileTimeErrorCode.INVALID_CONSTANT;
+    return emitCompileTimeError(error);
+  }
+
+  internalError(String message) {
+    throw 'Internal error when compiling $location: $message';
+  }
+
+  unsupportedFeature(String feature) {
+    throw new _CompilationError('$feature is not supported');
   }
 
   ast.Expression buildAnnotation(Annotation annotation) {
@@ -598,7 +754,12 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
 
   ast.Statement visitBreakStatement(BreakStatement node) {
     var stackNode = findLabelTarget(node.label?.name, breakStack);
-    if (stackNode == null) return new ast.InvalidStatement();
+    if (stackNode == null) {
+      return node.label == null
+          ? scope.emitCompileTimeError(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP)
+          : scope.emitCompileTimeError(
+              CompileTimeErrorCode.LABEL_UNDEFINED, [node.label.name]);
+    }
     var result = new ast.BreakStatement(null);
     stackNode.jumps.add(result);
     return result;
@@ -606,7 +767,12 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
 
   ast.Statement visitContinueStatement(ContinueStatement node) {
     var stackNode = findLabelTarget(node.label?.name, continueStack);
-    if (stackNode == null) return new ast.InvalidStatement();
+    if (stackNode == null) {
+      return node.label == null
+          ? scope.emitCompileTimeError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP)
+          : scope.emitCompileTimeError(
+              CompileTimeErrorCode.LABEL_UNDEFINED, [node.label.name]);
+    }
     var result = stackNode.isSwitchTarget
         ? new ast.ContinueSwitchStatement(null)
         : new ast.BreakStatement(null);
@@ -674,7 +840,10 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     ast.SwitchCase currentCase = null;
     for (var member in node.members) {
       if (currentCase != null && currentCase.isDefault) {
-        return new ast.InvalidStatement(); // Case clause after default.
+        var error = member is SwitchCase
+            ? ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE
+            : ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES;
+        return scope.emitCompileTimeError(error);
       }
       if (currentCase == null) {
         currentCase = new ast.SwitchCase(<ast.Expression>[], null);
@@ -876,8 +1045,7 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
 
   @override
   visitStatement(Statement node) {
-    log.severe('Unhandled statement ${node.runtimeType} in ${scope.location}');
-    return new ast.InvalidStatement();
+    return scope.internalError('Unhandled statement ${node.runtimeType}');
   }
 }
 
@@ -949,10 +1117,9 @@ class ExpressionBuilder
     }
     ast.Expression expression;
     if (node.leftOperand is SuperExpression) {
-      // TODO: Will the element resolve correctly in case of the '!=' operator?
       var method = scope.resolveMethod(node.staticElement);
       if (method == null) {
-        // TODO: Preserve enough information to throw the right exception.
+        // TODO: Invoke super.noSuchMethod.
         return new ast.InvalidExpression();
       }
       expression = new ast.SuperMethodInvocation(
@@ -1039,9 +1206,10 @@ class ExpressionBuilder
       if (argument is NamedExpression) {
         named.add(new ast.NamedExpression(
             argument.name.label.name, build(argument.expression)));
+      } else if (named.isNotEmpty) {
+        return scope.emitCompileTimeError(
+            ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
       } else {
-        // TODO: Return an error node if a positional argument occurs after
-        //       a named argument.
         positional.add(build(argument));
       }
     }
@@ -1080,12 +1248,6 @@ class ExpressionBuilder
         // left-hand value or an expression depending on the context.
         return visitSimpleIdentifier(node.identifier);
 
-      case ElementKind.CONSTRUCTOR:
-      case ElementKind.ERROR:
-      case ElementKind.EXPORT:
-      case ElementKind.LABEL:
-        return new ast.InvalidExpression();
-
       case ElementKind.DYNAMIC:
       case ElementKind.FUNCTION_TYPE_ALIAS:
       case ElementKind.TYPE_PARAMETER:
@@ -1101,13 +1263,18 @@ class ExpressionBuilder
       case ElementKind.SETTER:
       case ElementKind.LOCAL_VARIABLE:
       case ElementKind.PARAMETER:
+      case ElementKind.ERROR:
         return PropertyAccessor.make(
             build(node.prefix), scope.buildName(node.identifier));
 
       case ElementKind.UNIVERSE:
       case ElementKind.NAME:
+      case ElementKind.CONSTRUCTOR:
+      case ElementKind.EXPORT:
+      case ElementKind.LABEL:
       default:
-        throw 'What is this? ${node} ${node.staticElement}';
+        return scope.internalError(
+            'Unexpected element kind: ${node.prefix.staticElement}');
     }
   }
 
@@ -1133,16 +1300,10 @@ class ExpressionBuilder
       case ElementKind.TYPE_PARAMETER:
         return new ast.TypeLiteral(scope.buildTypeAnnotation(node));
 
-      case ElementKind.COMPILATION_UNIT:
-      case ElementKind.CONSTRUCTOR:
-      case ElementKind.EXPORT:
-      case ElementKind.IMPORT:
-      case ElementKind.LABEL:
-      case ElementKind.LIBRARY:
-      case ElementKind.PREFIX:
-        return new ast.InvalidExpression();
-
       case ElementKind.ERROR: // This covers the case where nothing was found.
+        if (!scope.allowThis) {
+          return scope.unresolvedAccess(node.name);
+        }
         return PropertyAccessor.make(scope.buildThis(), scope.buildName(node));
 
       case ElementKind.FIELD:
@@ -1152,17 +1313,17 @@ class ExpressionBuilder
       case ElementKind.METHOD:
         if (isStatic(element)) {
           Element auxiliary = node.auxiliaryElements?.staticElement;
-          // TODO: If the getter and/or setter is unresolved then preserve
-          // enough information to throw the right exception.
-          return new StaticAccessor(scope.resolveGet(element, auxiliary),
-              scope.resolveSet(element, auxiliary));
+          return scope.staticAccess(node.name, element, auxiliary);
+        }
+        if (!scope.allowThis) {
+          return scope.unresolvedAccess(node.name);
         }
         return PropertyAccessor.make(scope.buildThis(), scope.buildName(node));
 
       case ElementKind.FUNCTION:
         FunctionElement function = element;
         if (scope.isTopLevelFunction(function)) {
-          return new StaticAccessor(scope.getMemberReference(function), null);
+          return scope.staticAccess(node.name, function);
         }
         return new VariableAccessor(scope.getVariableReference(function));
 
@@ -1170,11 +1331,21 @@ class ExpressionBuilder
       case ElementKind.PARAMETER:
         return new VariableAccessor(scope.getVariableReference(element));
 
+      case ElementKind.IMPORT:
+      case ElementKind.LIBRARY:
+      case ElementKind.PREFIX:
+        return scope.emitCompileTimeError(
+            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+            [node.name]);
+
+      case ElementKind.COMPILATION_UNIT:
+      case ElementKind.CONSTRUCTOR:
+      case ElementKind.EXPORT:
+      case ElementKind.LABEL:
       case ElementKind.UNIVERSE:
       case ElementKind.NAME:
       default:
-        log.severe('Unexpected element kind: $element');
-        return new ast.InvalidExpression();
+        return scope.internalError('Unexpected element kind: $element');
     }
   }
 
@@ -1184,8 +1355,8 @@ class ExpressionBuilder
     } else if (node.target is SuperExpression) {
       Element element = node.staticElement;
       Element auxiliary = node.auxiliaryElements?.staticElement;
-      // TODO: If the getter and/or setter is unresolved then preserve
-      // enough information to throw the right exception.
+      // TODO: If the getter and/or setter is unresolved, redirect to
+      //   super.noSuchMethod.
       return new SuperIndexAccessor(
           build(node.index),
           scope.resolveIndexGet(element, auxiliary),
@@ -1195,18 +1366,35 @@ class ExpressionBuilder
     }
   }
 
-  ConstructorElement resolveEffectiveTarget(ConstructorElement element) {
+  ConstructorElement resolveConstantConstructor(
+      ConstructorElement element, ast.Arguments arguments) {
     ConstructorElement anchor = null;
     int anchorLifetime = 1;
     while (true) {
-      ConstructorDeclaration node = element.computeNode();
-      // TODO: Preserve enough information to throw the right exception.
-      if (node == null) {
-        log.severe('Could not find AST node for $element');
-        return null;
+      if (!element.isConst) {
+        return scope
+            .emitInvalidConstant(CompileTimeErrorCode.CONST_WITH_NON_CONST);
       }
+      ConstructorDeclaration node = element.computeNode();
+      assert(node != null);
       if (node.redirectedConstructor == null) {
         return node.element;
+      }
+      // Update the type arguments inplace on the [arguments] node.
+      if (node.redirectedConstructor.type.typeArguments != null) {
+        ast.InterfaceType type =
+            scope.buildType(node.redirectedConstructor.type.type);
+        var targetClass = scope.getClassReference(element.enclosingElement);
+        if (targetClass.typeParameters.length != arguments.types.length) {
+          return scope.emitInvalidConstant();
+        }
+        type = substitutePairwise(
+            type, targetClass.typeParameters, arguments.types);
+        arguments.types
+          ..clear()
+          ..addAll(type.typeArguments);
+      } else {
+        arguments.types.clear();
       }
       element = node.redirectedConstructor.staticElement;
       if (element == null) return null; // Unresolved.
@@ -1221,57 +1409,67 @@ class ExpressionBuilder
   ast.Expression visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     TypeName type = node.constructorName.type;
+    var element = node.staticElement;
     List<ast.DartType> inferTypeArguments() {
       var inferredType = scope.getInferredType(node);
-      return inferredType is ast.InterfaceType
-          ? inferredType.typeArguments
-          : null;
+      if (inferredType is ast.InterfaceType) {
+        return inferredType.typeArguments;
+      }
+      var classElement = element?.enclosingElement;
+      int numberOfTypeArguments = classElement == null
+          ? 0
+          : classElement.typeParameters.length;
+      return new List<ast.DartType>.filled(numberOfTypeArguments,
+          const ast.DynamicType(), growable: true);
     }
     var arguments = buildArguments(node.argumentList,
         explicitTypeArguments: type.typeArguments,
         inferTypeArguments: inferTypeArguments);
-    var element = node.staticElement;
-    if (element is ConstructorElement && element.isFactory) {
-      if (node.isConst) {
-        // Constant factory calls are resolved to their effective targets.
-        element = resolveEffectiveTarget(element);
-        // TODO: Preserve enough information to throw the right exception.
-        if (element == null) {
-          return new ast.InvalidExpression();
-        }
-        if (element.isExternal && element.isConst && element.isFactory) {
-          ast.Member target = scope.resolveMethod(element);
-          return target is ast.Procedure
-              ? new ast.StaticInvocation(target, arguments, isConst: true)
-              : new ast.InvalidExpression();
-        } else if (element.isConst && !element.enclosingElement.isAbstract) {
-          ast.Constructor target = scope.resolveConstructor(element);
-          return target != null
-              ? new ast.ConstructorInvocation(target, arguments, isConst: true)
-              : new ast.InvalidExpression();
-        } else {
-          return new ast.InvalidExpression();
-        }
+    // Constant factory calls are resolved to their effective targets.
+    if (element is ConstructorElement && element.isFactory && node.isConst) {
+      element = resolveConstantConstructor(element, arguments);
+    }
+    ast.Expression noSuchMethodError() {
+      return node.isConst
+          ? scope.emitInvalidConstant()
+          : scope.buildThrowNoSuchMethodError(
+              new ast.NullLiteral(), '${node.constructorName}', arguments,
+              candidateTarget: element);
+    }
+    if (element == null) {
+      return noSuchMethodError();
+    }
+    if (node.isConst && !element.isConst) {
+      return scope
+          .emitInvalidConstant(CompileTimeErrorCode.CONST_WITH_NON_CONST);
+    }
+    var classElement = element.enclosingElement;
+    assert(classElement != null);
+    if (classElement.isEnum) {
+      return scope.emitCompileTimeError(CompileTimeErrorCode.INSTANTIATE_ENUM);
+    }
+    if (element.isFactory) {
+      ast.Member target = scope.resolveMethod(element);
+      if (target is ast.Procedure &&
+          scope.areArgumentsCompatible(element, arguments)) {
+        return new ast.StaticInvocation(target, arguments,
+            isConst: node.isConst);
       } else {
-        // Non-constant call to factory procedure.
-        var procedure = scope.resolveMethod(element);
-        if (procedure == null) {
-          // TODO: Preserve enough information to throw the right exception.
-          return new ast.InvalidExpression();
-        }
-        return new ast.StaticInvocation(procedure, arguments);
+        return noSuchMethodError();
       }
-    } else {
-      // Ordinary constructor call.
-      var constructor = scope.resolveConstructor(node.staticElement);
-      if (constructor == null ||
-          (node.isConst && !constructor.isConst) ||
-          element.enclosingElement.isAbstract) {
-        // TODO: Preserve enough information to throw the right exception.
-        return new ast.InvalidExpression();
-      }
+    }
+    if (classElement.isAbstract) {
+      return node.isConst
+          ? scope.emitInvalidConstant()
+          : scope.buildThrowAbstractClassInstantiationError(classElement.name);
+    }
+    ast.Constructor constructor = scope.resolveConstructor(element);
+    if (constructor != null &&
+        scope.areArgumentsCompatible(element, arguments)) {
       return new ast.ConstructorInvocation(constructor, arguments,
           isConst: node.isConst);
+    } else {
+      return noSuchMethodError();
     }
   }
 
@@ -1287,43 +1485,55 @@ class ExpressionBuilder
 
   ast.Expression visitMethodInvocation(MethodInvocation node) {
     Element element = node.methodName.staticElement;
+    if (element != null && element == element.library?.loadLibraryFunction) {
+      return scope.unsupportedFeature('Deferred loading');
+    }
+    var target = node.target;
     if (node.isCascaded) {
       return new ast.MethodInvocation(makeCascadeReceiver(),
           scope.buildName(node.methodName), buildArgumentsForInvocation(node));
-    } else if (node.target is SuperExpression) {
-      var target = scope.resolveMethod(element);
-      if (target == null) {
-        // TODO: Preserve enough information to throw the right exception.
+    } else if (target is SuperExpression) {
+      var method = scope.resolveMethod(element);
+      if (method == null) {
+        // TODO: Redirect to super.noSuchMethod.
         return new ast.InvalidExpression();
       }
       return new ast.SuperMethodInvocation(
-          target, buildArgumentsForInvocation(node));
+          method, buildArgumentsForInvocation(node));
     } else if (scope.isLocal(element)) {
       return new ast.MethodInvocation(
           new ast.VariableGet(scope.getVariableReference(element)),
           callName,
           buildArgumentsForInvocation(node));
     } else if (scope.isStaticMethod(element)) {
-      var target = scope.resolveMethod(element);
-      if (target == null) {
-        // TODO: Preserve enough information to throw the right exception.
-        return new ast.InvalidExpression();
+      var method = scope.resolveMethod(element);
+      var arguments = buildArgumentsForInvocation(node);
+      if (method == null || !scope.areArgumentsCompatible(element, arguments)) {
+        return scope.buildThrowNoSuchMethodError(
+            new ast.NullLiteral(), node.methodName.name, arguments,
+            candidateTarget: element);
       }
-      return new ast.StaticInvocation(
-          target, buildArgumentsForInvocation(node));
+      return new ast.StaticInvocation(method, arguments);
     } else if (scope.isStaticVariableOrGetter(element)) {
-      var target = scope.resolveGet(element, null);
-      if (target == null) {
-        // TODO: Preserve enough information to throw the right exception.
-        return new ast.InvalidExpression();
+      var method = scope.resolveGet(element, null);
+      if (method == null) {
+        return scope.buildThrowNoSuchMethodError(
+            new ast.NullLiteral(), node.methodName.name, new ast.Arguments([]),
+            candidateTarget: element);
       }
-      return new ast.MethodInvocation(new ast.StaticGet(target), callName,
+      return new ast.MethodInvocation(new ast.StaticGet(method), callName,
           buildArgumentsForInvocation(node));
-    } else if (node.target == null) {
+    } else if (target == null && !scope.allowThis ||
+        target is Identifier && target.staticElement is ClassElement ||
+        target is Identifier && target.staticElement is PrefixElement) {
+      return scope.buildThrowNoSuchMethodError(new ast.NullLiteral(),
+          node.methodName.name, buildArgumentsForInvocation(node),
+          candidateTarget: element);
+    } else if (target == null) {
       return new ast.MethodInvocation(scope.buildThis(),
           scope.buildName(node.methodName), buildArgumentsForInvocation(node));
     } else if (node.operator.value() == '?.') {
-      var receiver = makeOrReuseVariable(build(node.target));
+      var receiver = makeOrReuseVariable(build(target));
       return makeLet(
           receiver,
           new ast.ConditionalExpression(
@@ -1340,7 +1550,7 @@ class ExpressionBuilder
   }
 
   ast.Expression visitNamedExpression(NamedExpression node) {
-    return new ast.InvalidExpression();
+    return scope.internalError('Unexpected named expression');
   }
 
   ast.Expression visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -1365,7 +1575,7 @@ class ExpressionBuilder
             voidContext: isInVoidContext(node));
 
       default:
-        return new ast.InvalidExpression();
+        return scope.internalError('Invalid postfix operator $operator');
     }
   }
 
@@ -1377,7 +1587,7 @@ class ExpressionBuilder
         if (node.operand is SuperExpression) {
           var target = scope.resolveMethod(node.staticElement);
           if (target == null) {
-            // TODO: Preserve enough information to throw the right exception.
+            // TODO: Redirect to super.noSuchMethod.
             return new ast.InvalidExpression();
           }
           return new ast.SuperMethodInvocation(
@@ -1397,7 +1607,7 @@ class ExpressionBuilder
         return leftHand.buildPrefixIncrement(binaryOperator);
 
       default:
-        return new ast.InvalidExpression();
+        return scope.internalError('Invalid prefix operator $operator');
     }
   }
 
@@ -1409,8 +1619,8 @@ class ExpressionBuilder
     } else if (target is SuperExpression) {
       Element element = node.propertyName.staticElement;
       Element auxiliary = node.propertyName.auxiliaryElements?.staticElement;
-      // TODO: If the getter and/or setter is unresolved, preserve enough
-      // information to throw the right exception.
+      // TODO: If the getter and/or setter is unresolved, redirect to
+      //   super.noSuchMethod.
       return new SuperPropertyAccessor(scope.resolveGet(element, auxiliary),
           scope.resolveSet(element, auxiliary));
     } else if (target is Identifier && target.staticElement is ClassElement) {
@@ -1418,10 +1628,7 @@ class ExpressionBuilder
       // which is equivalent to a regular static access.
       Element element = node.propertyName.staticElement;
       Element auxiliary = node.propertyName.auxiliaryElements?.staticElement;
-      // TODO: If the getter and/or setter is unresolved, preserve enough
-      // information to throw the right exception.
-      return new StaticAccessor(scope.resolveGet(element, auxiliary),
-          scope.resolveSet(element, auxiliary));
+      return scope.staticAccess(node.propertyName.name, element, auxiliary);
     } else if (node.operator.value() == '?.') {
       return new NullAwarePropertyAccessor(
           build(target), scope.buildName(node.propertyName));
@@ -1436,7 +1643,8 @@ class ExpressionBuilder
   }
 
   ast.Expression visitSuperExpression(SuperExpression node) {
-    return new ast.InvalidExpression();
+    return scope
+        .emitCompileTimeError(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
   }
 
   ast.Expression visitThisExpression(ThisExpression node) {
@@ -1473,8 +1681,7 @@ class ExpressionBuilder
   }
 
   ast.Expression visitExpression(Expression node) {
-    log.severe('Unhandled expression ${node.runtimeType} in ${scope.location}');
-    return new ast.InvalidExpression();
+    return scope.internalError('Unhandled expression ${node.runtimeType}');
   }
 }
 
@@ -1729,6 +1936,11 @@ class InitializerBuilder extends GeneralizingAstVisitor<ast.Initializer> {
 /// Brings a class from reference level to body level.
 ///
 /// The enclosing library is assumed to be at body level already.
+//
+// TODO(asgerf): Error recovery during class construction is currently handled
+//   locally, but this can in theory break global invariants in the kernel IR.
+//   To safely compile code with compile-time errors, we may need a recovery
+//   pass to enforce all kernel invariants before it is given to the backend.
 class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   final ExpressionScope scope;
   final ast.Class currentClass;
@@ -1742,9 +1954,20 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
 
   void build(CompilationUnitMember node) {
     if (node == null) {
-      throw 'Missing class declaration for $element';
+      buildBrokenClass();
+      return;
     }
     node.accept(this);
+  }
+
+  /// Builds an empty class for broken classes that have no AST.
+  ///
+  /// This should only be used to recover from a compile-time error.
+  void buildBrokenClass() {
+    currentClass.name = element.name;
+    currentClass.supertype = scope.getRootClassReference().rawType;
+    currentClass.constructors.add(
+        new ast.Constructor(new ast.FunctionNode(new ast.InvalidStatement())));
   }
 
   void addAnnotations(List<Annotation> annotations) {
@@ -1811,11 +2034,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
           scope.buildOptionalTypeAnnotation(node.extendsClause?.superclass) ??
               scope.getRootClassReference().rawType;
       if (superclass is! ast.InterfaceType) {
-        // TODO: Handle the error case where the super class is InvalidType.
-        log.warning('Unresolved type super type '
-            '${node.extendsClause?.superclass} for ${node.element}');
-        classNode.supertype =
-            new ast.InterfaceType(scope.getRootClassReference());
+        classNode.supertype = scope.getRootClassReference().rawType;
       } else {
         if (node.withClause != null) {
           superclass = buildMixinType(superclass,
@@ -1903,10 +2122,17 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     ast.MixinClass classNode = currentClass;
     addTypeParameterBounds(node.typeParameters);
     var baseType = scope.buildTypeAnnotation(node.superclass);
-    var mixins = node.withClause.mixinTypes.map(scope.buildTypeAnnotation);
-    classNode.supertype =
-        buildMixinType(baseType, mixins.take(mixins.length - 1));
-    classNode.mixedInType = mixins.last;
+    if (node.withClause != null) {
+      var mixins = node.withClause.mixinTypes.map(scope.buildTypeAnnotation);
+      classNode.supertype =
+          buildMixinType(baseType, mixins.take(mixins.length - 1));
+      classNode.mixedInType = mixins.last is ast.InterfaceType
+          ? mixins.last
+          : scope.getRootClassReference().rawType;
+    } else {
+      classNode.supertype = baseType;
+      classNode.mixedInType = scope.getRootClassReference().rawType;
+    }
     addImplementedClasses(node.implementsClause);
     ClassElement element = node.element;
     assert(element.isMixinApplication);
@@ -1942,7 +2168,6 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
       return;
     }
     Element element = this.element; // Allow type promotion.
-    assert(element.isSynthetic);
     ClassElement enclosingClass = element.getAncestor(_isClassElement);
     if (element is ConstructorElement && enclosingClass.isMixinApplication) {
       buildMixinConstructor(element);
@@ -1957,7 +2182,22 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         element.name == 'values') {
       return; // Built when enclosing enum class is built.
     }
-    log.warning('Unrecognized synthetic member: $element (${element.kind})');
+    buildBrokenMember();
+  }
+
+  /// Builds an empty member.
+  ///
+  /// This should only be used to recover from a compile-time error.
+  void buildBrokenMember() {
+    var member = currentMember;
+    member.name = new ast.Name(element.name, scope.currentLibrary);
+    if (member is ast.Procedure) {
+      member.function = new ast.FunctionNode(new ast.InvalidStatement())
+        ..parent = member;
+    } else if (member is ast.Constructor) {
+      member.function = new ast.FunctionNode(new ast.InvalidStatement())
+        ..parent = member;
+    }
   }
 
   void buildDefaultConstructor(ConstructorElement element) {
@@ -2113,24 +2353,29 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
       assert(function.body == null);
       ConstructorElement targetElement =
           node.redirectedConstructor.staticElement;
-      ast.Member target = targetElement.isFactory
+      ast.Member target = targetElement?.isFactory ?? false
           ? scope.resolveMethod(targetElement)
           : scope.resolveConstructor(targetElement);
-      if (targetElement == null ||
+      var positional =
+          function.positionalParameters.map(_makeVariableGet).toList();
+      var named =
+          function.namedParameters.map(_makeNamedExpressionFrom).toList();
+      List<ast.DartType> typeArguments = scope.buildOptionalTypeArgumentList(
+          node.redirectedConstructor.type.typeArguments);
+      var arguments =
+          new ast.Arguments(positional, named: named, types: typeArguments);
+      if (targetElement != null &&
           !targetElement.isFactory &&
-              targetElement.enclosingElement.isAbstract) {
-        log.warning('Unresolved redirecting factory in ${scope.location}');
-        // TODO: Preserve enough information to throw the right exception.
-        function.body = new ast.InvalidStatement()..parent = function;
+          targetElement.enclosingElement.isAbstract) {
+        function.body = scope.buildThrowAbstractClassInstantiationError(
+            targetElement.enclosingElement.name)..parent = function;
+      } else if (target == null ||
+          !scope.areArgumentsCompatible(targetElement, arguments)) {
+        function.body = new ast.ExpressionStatement(
+            scope.buildThrowNoSuchMethodError(new ast.NullLiteral(),
+                '${node.redirectedConstructor}', arguments,
+                candidateTarget: targetElement))..parent = function;
       } else {
-        var positional =
-            function.positionalParameters.map(_makeVariableGet).toList();
-        var named =
-            function.namedParameters.map(_makeNamedExpressionFrom).toList();
-        var types =
-            function.typeParameters.map(_makeTypeParameterType).toList();
-        var arguments =
-            new ast.Arguments(positional, named: named, types: types);
         var invocation = target is ast.Constructor
             ? new ast.ConstructorInvocation(target, arguments)
             : new ast.StaticInvocation(target, arguments);
@@ -2156,7 +2401,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     ast.Field field = currentMember;
     field.type = scope.buildType(node.element.type);
     if (node.initializer != null) {
-      field.initializer = scope.buildExpression(node.initializer)
+      field.initializer = scope.buildTopLevelExpression(node.initializer)
         ..parent = field;
     }
   }
@@ -2182,6 +2427,17 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 }
 
+/// Internal exception thrown from the expression or statement builder when a
+/// compilation error is found.
+///
+/// This is then caught at the function level to replace the entire function
+/// body (or field initializer) with a throw.
+class _CompilationError {
+  String message;
+
+  _CompilationError(this.message);
+}
+
 /// Constructor alias for [ast.TypeParameterType], use instead of a closure.
 ast.DartType _makeTypeParameterType(ast.TypeParameter parameter) {
   return new ast.TypeParameterType(parameter);
@@ -2200,4 +2456,27 @@ ast.StaticGet _makeStaticGet(ast.Field field) {
 /// Create a named expression with the name and value of the given variable.
 ast.NamedExpression _makeNamedExpressionFrom(ast.VariableDeclaration variable) {
   return new ast.NamedExpression(variable.name, new ast.VariableGet(variable));
+}
+
+/// A [StaticAccessor] that throws a NoSuchMethodError when a suitable target
+/// could not be resolved.
+class _StaticAccessor extends StaticAccessor {
+  final MemberScope scope;
+  final String name;
+
+  _StaticAccessor(
+      this.scope, this.name, ast.Member readTarget, ast.Member writeTarget)
+      : super(readTarget, writeTarget);
+
+  @override
+  makeInvalidRead() {
+    return scope.buildThrowNoSuchMethodError(
+        new ast.NullLiteral(), name, new ast.Arguments([]));
+  }
+
+  @override
+  makeInvalidWrite(ast.Expression value) {
+    return scope.buildThrowNoSuchMethodError(
+        new ast.NullLiteral(), name, new ast.Arguments([value]));
+  }
 }
