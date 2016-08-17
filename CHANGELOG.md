@@ -16,6 +16,11 @@
   * About a dozen other bug fixes.
 
 * Pub
+  * Added a `--no-packages-dir` flag to `pub get`, `pub upgrade`, and `pub
+    downgrade`. When this flag is passed, pub will not generate a `packages/`
+    directory, and will remove that directory and any symlinks to it if they
+    exist. Note that this replaces the unsupported `--no-package-symlinks` flag.
+
   * Added the ability for packages to declare a constraint on the [Flutter][]
     SDK:
 
@@ -54,8 +59,8 @@
   * Eliminate some false negatives when determining whether global executables
     are on the user's executable path.
 
-* dart2dart (aka `dart2js --output-type=dart`) has been removed (this was
-  deprecated in Dart 1.11)
+* `dart2js`
+  * `dart2dart` (aka `dart2js --output-type=dart`) has been removed (this was deprecated in Dart 1.11).
 
 [Flutter]: https://flutter.io/
 
