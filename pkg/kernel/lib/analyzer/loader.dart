@@ -8,6 +8,8 @@ import '../repository.dart';
 import 'analyzer.dart';
 import 'ast_from_analyzer.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -389,7 +391,7 @@ AnalysisContext createContext(String sdk, String packageRoot, bool strongMode) {
 
   List<UriResolver> resolvers = [
     new DartUriResolver(dartSdk),
-    new FileUriResolver()
+    new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
   ];
 
   if (packageRoot != null) {
