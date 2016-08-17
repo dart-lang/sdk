@@ -198,24 +198,12 @@ class PubSummaryManager {
       store.addBundle(null, sdkBundle);
       store.addBundle(null, unlinkedBuilder);
       // Link the extension bundle.
-      Map<String, LinkedLibraryBuilder> linkedLibraries;
-      try {
-        linkedLibraries = link([libUriStr].toSet(), (String absoluteUri) {
-          LinkedLibrary dependencyLibrary = store.linkedMap[absoluteUri];
-          if (dependencyLibrary == null) {
-            throw new _LinkException();
-          }
-          return dependencyLibrary;
-        }, (String absoluteUri) {
-          UnlinkedUnit unlinkedUnit = store.unlinkedMap[absoluteUri];
-          if (unlinkedUnit == null) {
-            throw new _LinkException();
-          }
-          return unlinkedUnit;
-        }, strong);
-      } on _LinkException {
-        return null;
-      }
+      Map<String, LinkedLibraryBuilder> linkedLibraries =
+          link([libUriStr].toSet(), (String absoluteUri) {
+        return store.linkedMap[absoluteUri];
+      }, (String absoluteUri) {
+        return store.unlinkedMap[absoluteUri];
+      }, strong);
       if (linkedLibraries.length != 1) {
         return null;
       }
@@ -311,11 +299,7 @@ class PubSummaryManager {
     // Link each package node.
     for (_LinkedNode node in nodes) {
       if (!node.isEvaluated) {
-        try {
-          new _LinkedWalker(store, strong).walk(node);
-        } on _LinkException {
-          // Linking of the node failed.
-        }
+        new _LinkedWalker(store, strong).walk(node);
       }
     }
 
@@ -639,7 +623,6 @@ class _LinkedNode extends Node<_LinkedNode> {
   final PackageBundle unlinked;
   final Map<String, _LinkedNode> packageToNode;
 
-  bool failed = false;
   String _linkedHash;
 
   List<int> linkedNewBytes;
@@ -648,7 +631,7 @@ class _LinkedNode extends Node<_LinkedNode> {
   _LinkedNode(this.sdkBundles, this.package, this.unlinked, this.packageToNode);
 
   @override
-  bool get isEvaluated => linked != null || failed;
+  bool get isEvaluated => linked != null;
 
   /**
    * Return the hash string that corresponds to this linked bundle in the
@@ -657,33 +640,26 @@ class _LinkedNode extends Node<_LinkedNode> {
    * dependencies cannot computed.
    */
   String get linkedHash {
-    if (_linkedHash == null && !failed) {
-      try {
-        List<String> signatures = <String>[];
-        Set<_LinkedNode> transitiveDependencies =
-            computeTransitiveDependencies();
-        sdkBundles
-            .map((sdkBundle) => sdkBundle.apiSignature)
-            .forEach(signatures.add);
-        transitiveDependencies
-            .map((node) => node.unlinked.apiSignature)
-            .forEach(signatures.add);
-        signatures.sort();
-        // Combine sorted unlinked API signatures into a single hash.
-        ApiSignature signature = new ApiSignature();
-        signatures.forEach(signature.addString);
-        _linkedHash = signature.toHex();
-      } on _LinkException {}
+    if (_linkedHash == null) {
+      List<String> signatures = <String>[];
+      Set<_LinkedNode> transitiveDependencies = computeTransitiveDependencies();
+      sdkBundles
+          .map((sdkBundle) => sdkBundle.apiSignature)
+          .forEach(signatures.add);
+      transitiveDependencies
+          .map((node) => node.unlinked.apiSignature)
+          .forEach(signatures.add);
+      signatures.sort();
+      // Combine sorted unlinked API signatures into a single hash.
+      ApiSignature signature = new ApiSignature();
+      signatures.forEach(signature.addString);
+      _linkedHash = signature.toHex();
     }
     return _linkedHash;
   }
 
   @override
   List<_LinkedNode> computeDependencies() {
-    if (failed) {
-      return const <_LinkedNode>[];
-    }
-
     Set<_LinkedNode> dependencies = new Set<_LinkedNode>();
 
     void appendDependency(String uriStr) {
@@ -696,14 +672,9 @@ class _LinkedNode extends Node<_LinkedNode> {
       } else if (uriStr.startsWith('package:')) {
         String package = PubSummaryManager.getPackageName(uriStr);
         _LinkedNode packageNode = packageToNode[package];
-        if (packageNode == null) {
-          failed = true;
-          throw new _LinkException();
+        if (packageNode != null) {
+          dependencies.add(packageNode);
         }
-        dependencies.add(packageNode);
-      } else {
-        failed = true;
-        throw new _LinkException();
       }
     }
 
@@ -722,10 +693,9 @@ class _LinkedNode extends Node<_LinkedNode> {
   }
 
   /**
-   * Return the set of transitive dependencies for this node, throw
-   * [_LinkException] if any dependency is missing, so the whole transitive
-   * dependency set cannot be computed.  Only [unlinked] is used, so this
-   * method can be called before linking.
+   * Return the set of existing transitive dependencies for this node, skipping
+   * any missing dependencies.  Only [unlinked] is used, so this method can be
+   * called before linking.
    */
   Set<_LinkedNode> computeTransitiveDependencies() {
     Set<_LinkedNode> allDependencies = new Set<_LinkedNode>();
@@ -774,19 +744,9 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
     // Perform linking.
     Map<String, LinkedLibraryBuilder> linkedLibraries =
         link(libraryUris, (String absoluteUri) {
-      LinkedLibrary dependencyLibrary = store.linkedMap[absoluteUri];
-      if (dependencyLibrary == null) {
-        scc.forEach((node) => node.failed = true);
-        throw new _LinkException();
-      }
-      return dependencyLibrary;
+      return store.linkedMap[absoluteUri];
     }, (String absoluteUri) {
-      UnlinkedUnit unlinkedUnit = store.unlinkedMap[absoluteUri];
-      if (unlinkedUnit == null) {
-        scc.forEach((node) => node.failed = true);
-        throw new _LinkException();
-      }
-      return unlinkedUnit;
+      return store.unlinkedMap[absoluteUri];
     }, strong);
     // Assemble linked bundles and put them into the store.
     for (_LinkedNode node in scc) {
@@ -803,9 +763,3 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
     }
   }
 }
-
-/**
- * This exception is thrown during linking as a signal that linking of the
- * current bundle cannot be performed, e.g. when a dependency cannot be found.
- */
-class _LinkException {}

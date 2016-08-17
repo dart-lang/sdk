@@ -551,8 +551,10 @@ String d;
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
       expect(linkedPackage.linked.linkedLibraryUris, ['package:aaa/a.dart']);
-      _assertHasLinkedVariable(linkedPackage, 'a1', 'int', 'dart:core');
-      _assertHasLinkedVariable(linkedPackage, 'a2', 'B', 'package:bbb/b.dart');
+      _assertHasLinkedVariable(linkedPackage, 'a1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'a2', 'B',
+          expectedTypeNameUri: 'package:bbb/b.dart');
     }
 
     // package:bbb
@@ -560,7 +562,8 @@ String d;
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
       expect(linkedPackage.linked.linkedLibraryUris, ['package:bbb/b.dart']);
-      _assertHasLinkedVariable(linkedPackage, 'b', 'C', 'package:ccc/c.dart');
+      _assertHasLinkedVariable(linkedPackage, 'b', 'C',
+          expectedTypeNameUri: 'package:ccc/c.dart');
     }
 
     // package:ccc
@@ -568,8 +571,10 @@ String d;
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'ccc');
       expect(linkedPackage.linked.linkedLibraryUris, ['package:ccc/c.dart']);
-      _assertHasLinkedVariable(linkedPackage, 'c1', 'A', 'package:aaa/a.dart');
-      _assertHasLinkedVariable(linkedPackage, 'c2', 'D', 'package:ddd/d.dart');
+      _assertHasLinkedVariable(linkedPackage, 'c1', 'A',
+          expectedTypeNameUri: 'package:aaa/a.dart');
+      _assertHasLinkedVariable(linkedPackage, 'c2', 'D',
+          expectedTypeNameUri: 'package:ddd/d.dart');
     }
 
     // package:ddd
@@ -577,7 +582,8 @@ String d;
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'ddd');
       expect(linkedPackage.linked.linkedLibraryUris, ['package:ddd/d.dart']);
-      _assertHasLinkedVariable(linkedPackage, 'd', 'String', 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'd', 'String',
+          expectedTypeNameUri: 'dart:core');
     }
   }
 
@@ -591,7 +597,8 @@ int a;
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:ccc/c.dart';
-C b;
+int b1;
+C b2;
 ''');
 
     // Configure packages resolution.
@@ -611,15 +618,27 @@ C b;
     await manager.onUnlinkedComplete;
 
     // Try to link.
-    // Only 'aaa' can be linked, because 'bbb' references not available 'ccc'.
+    // Both 'aaa' and 'bbb' are linked.
+    // The name 'C' in 'b.dart' is not resolved.
     List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
-    expect(linkedPackages, hasLength(1));
+    expect(linkedPackages, hasLength(2));
 
     // package:aaa
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
-      _assertHasLinkedVariable(linkedPackage, 'a', 'int', 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'int',
+          expectedTypeNameUri: 'dart:core');
+    }
+
+    // package:bbb
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
+      _assertHasLinkedVariable(linkedPackage, 'b1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'b2', 'C',
+          expectedToBeResolved: false);
     }
   }
 
@@ -628,13 +647,16 @@ C b;
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b.dart';
-int a;
+int a1;
+B a2;
 ''');
     resourceProvider.newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:ccc/c.dart';
-int b;
+class B {}
+int b1;
+C b2;
 ''');
 
     // Configure packages resolution.
@@ -654,10 +676,30 @@ int b;
     await manager.onUnlinkedComplete;
 
     // Try to link.
-    // No linked libraries, because 'aaa' needs 'bbb', and 'bbb' needs 'ccc'.
-    // But 'ccc' is not available, so the whole chain cannot be linked.
+    // Both 'aaa' and 'bbb' are linked.
+    // The name 'C' in 'b.dart' is not resolved.
     List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
-    expect(linkedPackages, isEmpty);
+    expect(linkedPackages, hasLength(2));
+
+    // package:aaa
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
+      _assertHasLinkedVariable(linkedPackage, 'a1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'a2', 'B',
+          expectedTypeNameUri: 'package:bbb/b.dart');
+    }
+
+    // package:bbb
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
+      _assertHasLinkedVariable(linkedPackage, 'b1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'b2', 'C',
+          expectedToBeResolved: false);
+    }
   }
 
   test_getLinkedBundles_missingLibrary() async {
@@ -665,7 +707,8 @@ int b;
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b2.dart';
-int a;
+int a1;
+B2 a2;
 ''');
     resourceProvider.newFile(
         '$CACHE/bbb/lib/b.dart',
@@ -691,16 +734,27 @@ int b = 42;
     await manager.onUnlinkedComplete;
 
     // Try to link.
-    // Only 'bbb', because 'aaa' references 'package:bbb/b2.dart', which does
-    // not exist in the bundle 'bbb'.
+    // Both 'aaa' and 'bbb' are linked.
+    // The name 'B2' in 'a.dart' is not resolved.
     List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
-    expect(linkedPackages, hasLength(1));
+    expect(linkedPackages, hasLength(2));
+
+    // package:aaa
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
+      _assertHasLinkedVariable(linkedPackage, 'a1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'a2', 'B2',
+          expectedToBeResolved: false);
+    }
 
     // package:bbb
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
-      _assertHasLinkedVariable(linkedPackage, 'b', 'int', 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'b', 'int',
+          expectedTypeNameUri: 'dart:core');
     }
   }
 
@@ -709,7 +763,7 @@ int b = 42;
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b.dart';
-int a;
+B a;
 ''');
     resourceProvider.newFile(
         '$CACHE/bbb/lib/b.dart',
@@ -717,7 +771,8 @@ int a;
 import 'package:aaa/a.dart';
 import 'package:ccc/c2.dart';
 class B {}
-int b;
+int b1;
+C2 b2;
 ''');
     resourceProvider.newFile(
         '$CACHE/ccc/lib/c.dart',
@@ -745,17 +800,35 @@ int c;
     await manager.onUnlinkedComplete;
 
     // Try to link.
-    // Only 'ccc' is linked.
-    // The 'aaa' + 'bbb' cycle cannot be linked because 'bbb' references
-    // 'package:ccc/c2.dart', which does not exist in the bundle 'ccc'.
+    // All bundles 'aaa' and 'bbb' and 'ccc' are linked.
+    // The name 'C2' in 'b.dart' is not resolved.
     List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
-    expect(linkedPackages, hasLength(1));
+    expect(linkedPackages, hasLength(3));
+
+    // package:aaa
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'B',
+          expectedTypeNameUri: 'package:bbb/b.dart');
+    }
+
+    // package:bbb
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
+      _assertHasLinkedVariable(linkedPackage, 'b1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'b2', 'C2',
+          expectedToBeResolved: false);
+    }
 
     // package:ccc
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'ccc');
-      _assertHasLinkedVariable(linkedPackage, 'c', 'int', 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'c', 'int',
+          expectedTypeNameUri: 'dart:core');
     }
   }
 
@@ -797,14 +870,16 @@ A b;
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
-      _assertHasLinkedVariable(linkedPackage, 'a', 'int', 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'int',
+          expectedTypeNameUri: 'dart:core');
     }
 
     // package:bbb
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
-      _assertHasLinkedVariable(linkedPackage, 'b', 'A', 'package:aaa/a.dart');
+      _assertHasLinkedVariable(linkedPackage, 'b', 'A',
+          expectedTypeNameUri: 'package:aaa/a.dart');
     }
   }
 
@@ -843,7 +918,8 @@ class A {}
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
-      _assertHasLinkedVariable(linkedPackage, 'a', 'A', 'src/a2.dart');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'A',
+          expectedTypeNameUri: 'src/a2.dart');
     }
   }
 
@@ -891,7 +967,8 @@ class C {}
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
-      _assertHasLinkedVariable(linkedPackage, 'a', 'C', 'package:ccc/c.dart');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'C',
+          expectedTypeNameUri: 'package:ccc/c.dart');
     }
   }
 
@@ -945,14 +1022,16 @@ class ExtB {}
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
-      _assertHasLinkedVariable(linkedPackage, 'a', 'ExtB', 'dart:bbb');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'ExtB',
+          expectedTypeNameUri: 'dart:bbb');
     }
 
     // package:bbb
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
-      _assertHasLinkedVariable(linkedPackage, 'b', 'ExtB', 'dart:bbb');
+      _assertHasLinkedVariable(linkedPackage, 'b', 'ExtB',
+          expectedTypeNameUri: 'dart:bbb');
     }
   }
 
@@ -961,7 +1040,8 @@ class ExtB {}
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'xxx:yyy/zzz.dart';
-Z a;
+int a1;
+Z a2;
 ''');
 
     // Configure packages resolution.
@@ -979,10 +1059,20 @@ Z a;
     await manager.onUnlinkedComplete;
 
     // Try to link.
-    // The package 'aaa' cannot be linked because it uses not 'dart' or
-    // 'package' import URI scheme.
+    // The package 'aaa' is linked.
+    // The name 'Z' in 'a.dart' is not resolved.
     List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
-    expect(linkedPackages, hasLength(0));
+    expect(linkedPackages, hasLength(1));
+
+    // package:aaa
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
+      _assertHasLinkedVariable(linkedPackage, 'a1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'a2', 'Z',
+          expectedToBeResolved: false);
+    }
   }
 
   test_getPackageName() {
@@ -1225,11 +1315,10 @@ class B {}
     expect(folder.getChildAssumingFile(fileName).exists, isTrue);
   }
 
-  void _assertHasLinkedVariable(
-      LinkedPubPackage linkedPackage,
-      String variableName,
-      String expectedTypeName,
-      String expectedTypeNameUri) {
+  void _assertHasLinkedVariable(LinkedPubPackage linkedPackage,
+      String variableName, String expectedTypeName,
+      {bool expectedToBeResolved: true,
+      String expectedTypeNameUri: 'shouldBeSpecifiedIfResolved'}) {
     PackageBundle unlinked = linkedPackage.unlinked;
     PackageBundle linked = linkedPackage.linked;
     expect(unlinked, isNotNull);
@@ -1249,8 +1338,12 @@ class B {}
               LinkedUnit linkedUnit = linkedLibrary.units.single;
               int typeNameDependency =
                   linkedUnit.references[typeNameReference].dependency;
-              expect(linkedLibrary.dependencies[typeNameDependency].uri,
-                  expectedTypeNameUri);
+              if (expectedToBeResolved) {
+                expect(linkedLibrary.dependencies[typeNameDependency].uri,
+                    expectedTypeNameUri);
+              } else {
+                expect(typeNameDependency, isZero);
+              }
               return;
             }
           }
