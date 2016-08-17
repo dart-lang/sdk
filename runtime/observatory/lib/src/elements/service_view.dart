@@ -54,25 +54,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         HeapMapElement element = new Element.tag('heap-map');
         element.fragmentation = object;
         return element;
-      case 'IO':
-        IOViewElement element = new Element.tag('io-view');
-        element.io = object;
-        return element;
-      case 'HttpServerList':
-        IOHttpServerListViewElement element =
-            new Element.tag('io-http-server-list-view');
-        element.list = object;
-        return element;
-      case 'HttpServer':
-        IOHttpServerViewElement element =
-            new Element.tag('io-http-server-view');
-        element.httpServer = object;
-        return element;
-      case 'HttpServerConnection':
-        IOHttpServerConnectionViewElement element =
-            new Element.tag('io-http-server-connection-view');
-        element.connection = object;
-        return element;
       case 'Object':
         return (object) {
           switch (object.vmType) {
@@ -100,24 +81,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
               return element;
           }
         }(object);
-      case 'SocketList':
-        IOSocketListViewElement element =
-            new Element.tag('io-socket-list-view');
-        element.list = object;
-        return element;
-      case 'Socket':
-        IOSocketViewElement element = new Element.tag('io-socket-view');
-        element.socket = object;
-        return element;
-      case 'WebSocketList':
-        IOWebSocketListViewElement element =
-            new Element.tag('io-web-socket-list-view');
-        element.list = object;
-        return element;
-      case 'WebSocket':
-        IOWebSocketViewElement element = new Element.tag('io-web-socket-view');
-        element.webSocket = object;
-        return element;
       case 'Isolate':
         IsolateViewElement element = new Element.tag('isolate-view');
         element.isolate = object;
@@ -125,25 +88,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Library':
         LibraryViewElement element = new Element.tag('library-view');
         element.library = object;
-        return element;
-      case 'ProcessList':
-        IOProcessListViewElement element =
-            new Element.tag('io-process-list-view');
-        element.list = object;
-        return element;
-      case 'Process':
-        IOProcessViewElement element = new Element.tag('io-process-view');
-        element.process = object;
-        return element;
-      case 'RandomAccessFileList':
-        IORandomAccessFileListViewElement element =
-            new Element.tag('io-random-access-file-list-view');
-        element.list = object;
-        return element;
-      case 'RandomAccessFile':
-        IORandomAccessFileViewElement element =
-            new Element.tag('io-random-access-file-view');
-        element.file = object;
         return element;
       case 'Script':
         ScriptViewElement element = new Element.tag('script-view');

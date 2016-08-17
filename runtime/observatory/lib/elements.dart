@@ -22,7 +22,6 @@ export 'package:observatory/src/elements/icdata_view.dart';
 export 'package:observatory/src/elements/instance_ref.dart';
 export 'package:observatory/src/elements/instance_view.dart';
 export 'package:observatory/src/elements/instructions_view.dart';
-export 'package:observatory/src/elements/io_view.dart';
 export 'package:observatory/src/elements/isolate_reconnect.dart';
 export 'package:observatory/src/elements/isolate_summary.dart';
 export 'package:observatory/src/elements/isolate_view.dart';
