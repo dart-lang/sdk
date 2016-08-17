@@ -84,7 +84,7 @@ class FileSource extends Source {
    */
   TimestampedData<String> get contentsFromFile {
     return new TimestampedData<String>(
-        file.modificationStamp, fileReadMode(file.readAsStringSync()));
+        modificationStamp, fileReadMode(file.readAsStringSync()));
   }
 
   @override
@@ -94,13 +94,19 @@ class FileSource extends Source {
   String get fullName => _absolutePath ??= file.path;
 
   @override
-  int get hashCode => id;
+  int get hashCode => uri.hashCode;
 
   @override
   bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
 
   @override
-  int get modificationStamp => file.modificationStamp;
+  int get modificationStamp {
+    try {
+      return file.modificationStamp;
+    } on FileSystemException {
+      return -1;
+    }
+  }
 
   @override
   String get shortName => file.shortName;
