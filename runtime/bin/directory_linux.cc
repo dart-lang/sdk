@@ -117,18 +117,18 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
 
   // Iterate the directory and post the directories and files to the
   // ports.
-  dirent* result;
+  dirent* entry;
   errno = 0;
-  result = readdir(reinterpret_cast<DIR*>(lister_));
-  if ((errno == 0) && (result != NULL)) {
-    if (!listing->path_buffer().Add(result->d_name)) {
+  entry = readdir(reinterpret_cast<DIR*>(lister_));
+  if (entry != NULL) {
+    if (!listing->path_buffer().Add(entry->d_name)) {
       done_ = true;
       return kListError;
     }
-    switch (result->d_type) {
+    switch (entry->d_type) {
       case DT_DIR:
-        if ((strcmp(result->d_name, ".") == 0) ||
-            (strcmp(result->d_name, "..") == 0)) {
+        if ((strcmp(entry->d_name, ".") == 0) ||
+            (strcmp(entry->d_name, "..") == 0)) {
           return Next(listing);
         }
         return kListDirectory;
@@ -176,16 +176,16 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             // Recurse into the subdirectory with current_link added to the
             // linked list of seen file system links.
             link_ = new LinkList(current_link);
-            if ((strcmp(result->d_name, ".") == 0) ||
-                (strcmp(result->d_name, "..") == 0)) {
+            if ((strcmp(entry->d_name, ".") == 0) ||
+                (strcmp(entry->d_name, "..") == 0)) {
               return Next(listing);
             }
             return kListDirectory;
           }
         }
         if (S_ISDIR(entry_info.st_mode)) {
-          if ((strcmp(result->d_name, ".") == 0) ||
-              (strcmp(result->d_name, "..") == 0)) {
+          if ((strcmp(entry->d_name, ".") == 0) ||
+              (strcmp(entry->d_name, "..") == 0)) {
             return Next(listing);
           }
           return kListDirectory;
