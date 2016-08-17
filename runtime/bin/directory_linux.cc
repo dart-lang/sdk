@@ -275,26 +275,26 @@ static bool DeleteRecursively(PathBuffer* path) {
   // Iterate the directory and delete all files and directories.
   int path_length = path->length();
   while (true) {
-    dirent* result = readdir(dir_pointer);
-    if (result == NULL) {
+    dirent* entry = readdir(dir_pointer);
+    if (entry == NULL) {
       // End of directory.
       return (NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0) &&
              (NO_RETRY_EXPECTED(remove(path->AsString())) == 0);
     }
     bool ok = false;
-    switch (result->d_type) {
+    switch (entry->d_type) {
       case DT_DIR:
-        ok = DeleteDir(result->d_name, path);
+        ok = DeleteDir(entry->d_name, path);
         break;
       case DT_REG:
       case DT_LNK:
         // Treat all links as files. This will delete the link which
         // is what we want no matter if the link target is a file or a
         // directory.
-        ok = DeleteFile(result->d_name, path);
+        ok = DeleteFile(entry->d_name, path);
         break;
       case DT_UNKNOWN: {
-        if (!path->Add(result->d_name)) {
+        if (!path->Add(entry->d_name)) {
           break;
         }
         // On some file systems the entry type is not determined by
@@ -306,12 +306,12 @@ static bool DeleteRecursively(PathBuffer* path) {
         }
         path->Reset(path_length);
         if (S_ISDIR(entry_info.st_mode)) {
-          ok = DeleteDir(result->d_name, path);
+          ok = DeleteDir(entry->d_name, path);
         } else if (S_ISREG(entry_info.st_mode) || S_ISLNK(entry_info.st_mode)) {
           // Treat links as files. This will delete the link which is
           // what we want no matter if the link target is a file or a
           // directory.
-          ok = DeleteFile(result->d_name, path);
+          ok = DeleteFile(entry->d_name, path);
         }
         break;
       }
