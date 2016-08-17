@@ -155,6 +155,12 @@ int OS::NumberOfAvailableProcessors() {
 }
 
 
+uintptr_t OS::MaxRSS() {
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
 void OS::Sleep(int64_t millis) {
   mx_nanosleep(
       millis * kMicrosecondsPerMillisecond * kNanosecondsPerMicrosecond);
