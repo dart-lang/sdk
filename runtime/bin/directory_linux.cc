@@ -117,9 +117,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
 
   // Iterate the directory and post the directories and files to the
   // ports.
-  dirent* entry;
   errno = 0;
-  entry = readdir(reinterpret_cast<DIR*>(lister_));
+  dirent* entry = readdir(reinterpret_cast<DIR*>(lister_));
   if (entry != NULL) {
     if (!listing->path_buffer().Add(entry->d_name)) {
       done_ = true;
@@ -274,11 +273,14 @@ static bool DeleteRecursively(PathBuffer* path) {
 
   // Iterate the directory and delete all files and directories.
   int path_length = path->length();
-  errno = 0;
-  //Initial read
-  dirent* entry = readdir(dir_pointer);
-  while (errno == 0){
+  while (true){
+    // In case `readdir()` returns `NULL` we distinguish between end-of-stream and error
+    // by looking if `errno` was updated.
+    errno = 0;
+    dirent* entry = readdir(dir_pointer);
     if (entry == NULL) {
+      // Failed to read next directory entry
+      if (errno != 0) break;
       // End of directory.
       return (NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0) &&
              (NO_RETRY_EXPECTED(remove(path->AsString())) == 0);
@@ -324,9 +326,6 @@ static bool DeleteRecursively(PathBuffer* path) {
       break;
     }
     path->Reset(path_length);
-    errno = 0;
-    //Perform readdir for next loop
-    entry = readdir(dir_pointer);
   }
   // Only happens if an error.
   ASSERT(errno != 0);
