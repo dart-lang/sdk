@@ -685,6 +685,14 @@ main() => y;
 var x, y = 2;
 ''',
   }),
+
+  const Test('Double values', const {},
+      preserializedSourceFiles: const {
+  'main.dart': '''
+const a = 1e+400;
+main() => a;
+''',
+  }),
 ];
 
 class Test {
