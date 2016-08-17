@@ -279,7 +279,7 @@ static bool DeleteRecursively(PathBuffer* path) {
     errno = 0;
     dirent* entry = readdir(dir_pointer);
     if (entry == NULL) {
-      // Failed to read next directory entry
+      // Failed to read next directory entry.
       if (errno != 0) break;
       // End of directory.
       return (NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0) &&
