@@ -116,7 +116,7 @@ def SrcSteps(build_info):
       sys.exit(1)
 
     if build_info.builder_tag == "debian_wheezy":
-      if not "wheezy" in stdout:
+      if not "jessie" in stdout:
         print "Trying to build debian bits on a non debian system"
         print "You can't fix this, please contact ricow@ or whesse@"
         sys.exit(1)

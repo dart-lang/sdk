@@ -72,13 +72,13 @@ debootstrap --arch=$ARCH --components=main,restricted,universe,multiverse \
     wheezy $CHROOT http://http.us.debian.org/debian/
 chroot $CHROOT apt-get update
 chroot $CHROOT apt-get -y install \
-    debhelper python g++-4.6 git subversion
+    debhelper python git gcc sudo make
 
 # Add chrome-bot user.
-chroot $CHROOT groupadd --gid 1000 chrome-bot
-chroot $CHROOT useradd --gid 1000 --uid 1000 --create-home chrome-bot
+chroot $CHROOT groupadd --gid 1001 chrome-bot
+chroot $CHROOT useradd --gid 1001 --uid 1001 --create-home chrome-bot
 mkdir $CHROOT/b
-chown 1000:1000 $CHROOT/b
+chown 1001:1001 $CHROOT/b
 
 # Create trampoline script for running the initialization as chrome-bot.
 cat << EOF > $CHROOT/b/init_chroot_trampoline.sh
@@ -111,6 +111,6 @@ fi
 
 chmod 755 $CHROOT/b/init_chroot_trampoline.sh
 
-chown 1000:1000 $CHROOT/b/init_chroot.sh
+chown 1001:1001 $CHROOT/b/init_chroot.sh
 chmod 755 $CHROOT/b/init_chroot.sh
 chroot $CHROOT /bin/sh /b/init_chroot_trampoline.sh
