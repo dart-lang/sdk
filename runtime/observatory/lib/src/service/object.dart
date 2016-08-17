@@ -256,8 +256,6 @@ abstract class ServiceObject extends Observable implements M.ObjectRef {
           case 'TokenStream':
             obj = new TokenStream._empty(owner);
             break;
-          default:
-            obj = new UnknownObject._empty(owner);
         }
         break;
       case 'Event':
@@ -1801,7 +1799,8 @@ class ObjectStore extends ServiceObject {
 
 
 /// A [ServiceObject] which implements [ObservableMap].
-class ServiceMap extends ServiceObject implements ObservableMap {
+class ServiceMap extends ServiceObject implements ObservableMap,
+                                                  M.UnknownObjectRef  {
   final ObservableMap _map = new ObservableMap();
   static String objectIdRingPrefix = 'objects/';
 
@@ -2534,7 +2533,7 @@ class Instance extends HeapObject implements M.Instance {
   @observable Iterable<Guarded<ServiceObject>> elements;  // If a List.
   @observable Iterable<MapAssociation> associations;  // If a Map.
   @observable Iterable<dynamic> typedElements;  // If a TypedData.
-  @observable Instance referent;  // If a MirrorReference.
+  @observable ServiceObject referent;  // If a MirrorReference.
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
   @observable Breakpoint activationBreakpoint;  // If a Closure.
@@ -2547,6 +2546,30 @@ class Instance extends HeapObject implements M.Instance {
   @observable bool isCaseSensitive;  // If a RegExp.
   @observable bool isMultiLine;  // If a RegExp.
 
+  bool get isAbstractType {
+    return (kind == M.InstanceKind.type ||
+            kind == M.InstanceKind.typeRef ||
+            kind == M.InstanceKind.typeParameter ||
+            kind == M.InstanceKind.boundedType);
+  }
+  bool get isNull => kind == M.InstanceKind.vNull;
+  bool get isBool => kind == M.InstanceKind.bool;
+  bool get isDouble => kind == M.InstanceKind.double;
+  bool get isString => kind == M.InstanceKind.string;
+  bool get isInt => kind == M.InstanceKind.int;
+  bool get isList => kind == M.InstanceKind.list;
+  bool get isMap => kind == M.InstanceKind.map;
+  bool get isTypedData {
+    return M.isTypedData(kind);
+  }
+  bool get isSimdValue {
+    return M.isSimdValue(kind);
+  }
+  bool get isRegExp => kind == M.InstanceKind.regExp;
+  bool get isMirrorReference => kind == M.InstanceKind.mirrorReference;
+  bool get isWeakProperty => kind == M.InstanceKind.weakProperty;
+  bool get isClosure => kind == M.InstanceKind.closure;
+  bool get isStackTrace => kind == M.InstanceKind.stackTrace;
   bool get isStackOverflowError {
     if (clazz == null) {
       return false;
@@ -3579,21 +3602,6 @@ class Instructions extends HeapObject implements M.InstructionsRef {
       return;
     }
     objectPool = map['_objectPool'];
-  }
-}
-
-class UnknownObject extends HeapObject implements M.UnknownObjectRef {
-  bool get immutable => true;
-
-  UnknownObject._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  void _update(ObservableMap map, bool mapIsRef) {
-    _upgradeCollection(map, isolate);
-    super._update(map, mapIsRef);
-
-    if (mapIsRef) {
-      return;
-    }
   }
 }
 

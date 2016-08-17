@@ -293,7 +293,6 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         return _loadedInstance.typedElements
           .map((e) => new DivElement()..text = '[ ${index++} ] : $e')
           .toList()..addAll(_createShowMoreButton());
-      break;
       case M.InstanceKind.mirrorReference:
         return [
           new SpanElement()..text = '<referent> : ',

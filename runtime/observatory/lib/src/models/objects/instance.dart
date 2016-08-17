@@ -308,5 +308,5 @@ abstract class Instance extends Object implements InstanceRef {
   ///
   /// Provided for instance kinds:
   ///   MirrorReference
-  InstanceRef get referent;
+  ObjectRef get referent;
 }
