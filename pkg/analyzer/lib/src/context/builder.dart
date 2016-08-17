@@ -13,7 +13,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -253,10 +252,8 @@ class ContextBuilder {
   DartSdk findSdk(
       Map<String, List<Folder>> packageMap, AnalysisOptions options) {
     if (packageMap != null) {
-      // TODO(brianwilkerson) Fix it so that we don't have to create a resolver
-      // to figure out what the extensions are.
-      SdkExtUriResolver extResolver = new SdkExtUriResolver(packageMap);
-      List<String> extFilePaths = extResolver.extensionFilePaths;
+      SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
+      List<String> extFilePaths = extFinder.extensionFilePaths;
       EmbedderYamlLocator locator = new EmbedderYamlLocator(packageMap);
       Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
       EmbedderSdk embedderSdk =
@@ -276,7 +273,7 @@ class ContextBuilder {
         SdkDescription description = new SdkDescription(paths, options);
         DartSdk dartSdk = sdkManager.getSdk(description, () {
           if (extFilePaths.isNotEmpty) {
-            embedderSdk.addExtensions(extResolver.urlMappings);
+            embedderSdk.addExtensions(extFinder.urlMappings);
           }
           embedderSdk.analysisOptions = options;
           embedderSdk.useSummary = sdkManager.canUseSummaries;
@@ -295,7 +292,7 @@ class ContextBuilder {
           FolderBasedDartSdk sdk = new FolderBasedDartSdk(
               resourceProvider, resourceProvider.getFolder(sdkPath));
           if (extFilePaths.isNotEmpty) {
-            sdk.addExtensions(extResolver.urlMappings);
+            sdk.addExtensions(extFinder.urlMappings);
           }
           sdk.analysisOptions = options;
           sdk.useSummary = sdkManager.canUseSummaries;

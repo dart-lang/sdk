@@ -9,9 +9,9 @@ import 'dart:core' hide Resource;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -150,8 +150,8 @@ class PubSummaryManager {
     String libPath;
     {
       Map<String, List<Folder>> packageMap = context.sourceFactory.packageMap;
-      SdkExtUriResolver sdkExtUriResolver = new SdkExtUriResolver(packageMap);
-      Map<String, String> sdkExtMappings = sdkExtUriResolver.urlMappings;
+      SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
+      Map<String, String> sdkExtMappings = extFinder.urlMappings;
       if (sdkExtMappings.length == 1) {
         libUriStr = sdkExtMappings.keys.first;
         libPath = sdkExtMappings.values.first;
