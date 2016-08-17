@@ -554,7 +554,7 @@ class CodeChecker extends RecursiveAstVisitor {
   visitMethodInvocation(MethodInvocation node) {
     var target = node.realTarget;
     var element = node.methodName.staticElement;
-    if (element == null && !_isObjectMethod(node, node.methodName)) {
+    if (element == null && !typeProvider.isObjectMethod(node.methodName.name)) {
       _recordDynamicInvoke(node, target);
 
       // Mark the tear-off as being dynamic, too. This lets us distinguish
@@ -768,7 +768,8 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _checkFieldAccess(AstNode node, AstNode target, SimpleIdentifier field) {
-    if (field.staticElement == null && !_isObjectProperty(target, field)) {
+    if (field.staticElement == null &&
+        !typeProvider.isObjectMember(field.name)) {
       _recordDynamicInvoke(node, target);
     }
     node.visitChildren(this);
@@ -908,7 +909,8 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _checkUnary(
-      /*PrefixExpression|PostfixExpression*/ node, Element element) {
+      /*PrefixExpression|PostfixExpression*/ node,
+      Element element) {
     var op = node.operator;
     if (op.isUserDefinableOperator ||
         op.type == TokenType.PLUS_PLUS ||
@@ -1009,21 +1011,6 @@ class CodeChecker extends RecursiveAstVisitor {
       return false;
     }
     return rules.anyParameterType(ft, (pt) => pt.isDynamic);
-  }
-
-  bool _isObjectGetter(Expression target, SimpleIdentifier id) {
-    PropertyAccessorElement element =
-        typeProvider.objectType.element.getGetter(id.name);
-    return (element != null && !element.isStatic);
-  }
-
-  bool _isObjectMethod(Expression target, SimpleIdentifier id) {
-    MethodElement element = typeProvider.objectType.element.getMethod(id.name);
-    return (element != null && !element.isStatic);
-  }
-
-  bool _isObjectProperty(Expression target, SimpleIdentifier id) {
-    return _isObjectGetter(target, id) || _isObjectMethod(target, id);
   }
 
   void _recordDynamicInvoke(AstNode node, Expression target) {

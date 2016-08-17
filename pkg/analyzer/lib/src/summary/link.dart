@@ -1058,6 +1058,7 @@ abstract class CompilationUnitElementForLink
           return null;
         }
       }
+
       ReferenceableElementForLink element = resolveRef(type.reference);
       return element.buildType(
           getTypeArgument, type.implicitFunctionTypeIndices);
@@ -1364,6 +1365,7 @@ class ConstConstructorNode extends ConstNode {
         dependencies.add(target);
       }
     }
+
     UnlinkedExecutable unlinkedExecutable =
         constructorElement._unlinkedExecutable;
     ClassElementForLink_Class enclosingClass =
@@ -4175,8 +4177,10 @@ class PropertyAccessorElementForLink_Executable
   bool get isStatic => enclosingClass == null || super.isStatic;
 
   @override
-  ElementKind get kind => _unlinkedExecutable.kind ==
-      UnlinkedExecutableKind.getter ? ElementKind.GETTER : ElementKind.SETTER;
+  ElementKind get kind =>
+      _unlinkedExecutable.kind == UnlinkedExecutableKind.getter
+          ? ElementKind.GETTER
+          : ElementKind.SETTER;
 
   @override
   ReferenceableElementForLink getContainedName(String name) {
@@ -4656,7 +4660,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
   String toString() => 'TypeInferenceNode($functionElement)';
 }
 
-class TypeProviderForLink implements TypeProvider {
+class TypeProviderForLink extends TypeProviderBase {
   final Linker _linker;
 
   InterfaceType _boolType;
@@ -4736,16 +4740,6 @@ class TypeProviderForLink implements TypeProvider {
   @override
   InterfaceType get mapType =>
       _mapType ??= _buildInterfaceType(_linker.coreLibrary, 'Map');
-
-  @override
-  List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-        nullType,
-        numType,
-        intType,
-        doubleType,
-        boolType,
-        stringType
-      ];
 
   @override
   DartObjectImpl get nullObject {

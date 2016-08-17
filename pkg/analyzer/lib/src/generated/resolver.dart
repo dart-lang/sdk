@@ -9613,13 +9613,64 @@ abstract class TypeProvider {
    * Return the type representing typenames that can't be resolved.
    */
   DartType get undefinedType;
+
+  /**
+   * Return 'true' if [id] is the name of a getter on
+   * the Object type.
+   */
+  bool isObjectGetter(String id);
+
+  /**
+   * Return 'true' if [id] is the name of a method or getter on
+   * the Object type.
+   */
+  bool isObjectMember(String id);
+
+  /**
+   * Return 'true' if [id] is the name of a method on
+   * the Object type.
+   */
+  bool isObjectMethod(String id);
+}
+
+/**
+ * Provide common functionality shared by the various TypeProvider
+ * implementations.
+ */
+abstract class TypeProviderBase implements TypeProvider {
+  @override
+  List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
+        nullType,
+        numType,
+        intType,
+        doubleType,
+        boolType,
+        stringType
+      ];
+
+  @override
+  bool isObjectGetter(String id) {
+    PropertyAccessorElement element = objectType.element.getGetter(id);
+    return (element != null && !element.isStatic);
+  }
+
+  @override
+  bool isObjectMember(String id) {
+    return isObjectGetter(id) || isObjectMethod(id);
+  }
+
+  @override
+  bool isObjectMethod(String id) {
+    MethodElement element = objectType.element.getMethod(id);
+    return (element != null && !element.isStatic);
+  }
 }
 
 /**
  * Instances of the class `TypeProviderImpl` provide access to types defined by the language
  * by looking for those types in the element model for the core library.
  */
-class TypeProviderImpl implements TypeProvider {
+class TypeProviderImpl extends TypeProviderBase {
   /**
    * The type representing the built-in type 'bool'.
    */
@@ -9807,16 +9858,6 @@ class TypeProviderImpl implements TypeProvider {
 
   @override
   InterfaceType get mapType => _mapType;
-
-  @override
-  List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-        nullType,
-        numType,
-        intType,
-        doubleType,
-        boolType,
-        stringType
-      ];
 
   @override
   DartObjectImpl get nullObject {

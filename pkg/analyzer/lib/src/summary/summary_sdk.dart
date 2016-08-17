@@ -189,7 +189,7 @@ class SummaryBasedDartSdk implements DartSdk {
  * Implementation of [TypeProvider] which can be initialized separately with
  * `dart:core` and `dart:async` libraries.
  */
-class SummaryTypeProvider implements TypeProvider {
+class SummaryTypeProvider extends TypeProviderBase {
   LibraryElement _coreLibrary;
   LibraryElement _asyncLibrary;
 
@@ -305,16 +305,6 @@ class SummaryTypeProvider implements TypeProvider {
     _mapType ??= _getType(_coreLibrary, "Map");
     return _mapType;
   }
-
-  @override
-  List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-        nullType,
-        numType,
-        intType,
-        doubleType,
-        boolType,
-        stringType
-      ];
 
   @override
   DartObjectImpl get nullObject {
