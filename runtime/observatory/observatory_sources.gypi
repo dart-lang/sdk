@@ -5,6 +5,7 @@
 # This file contains all dart, css, and html sources for Observatory.
 {
   'sources': [
+    'lib/allocation_profile.dart',
     'lib/app.dart',
     'lib/cli.dart',
     'lib/cpu_profile.dart',
@@ -18,6 +19,7 @@
     'lib/service_common.dart',
     'lib/service_html.dart',
     'lib/service_io.dart',
+    'lib/src/allocation_profile/allocation_profile.dart',
     'lib/src/app/analytics.dart',
     'lib/src/app/application.dart',
     'lib/src/app/event.dart',
@@ -32,6 +34,7 @@
     'lib/src/debugger/debugger_location.dart',
     'lib/src/elements/action_link.dart',
     'lib/src/elements/action_link.html',
+    'lib/src/elements/allocation_profile.dart',
     'lib/src/elements/class_ref.dart',
     'lib/src/elements/class_ref_wrapper.dart',
     'lib/src/elements/class_ref_as_value.dart',
@@ -78,8 +81,6 @@
     'lib/src/elements/general_error.dart',
     'lib/src/elements/heap_map.dart',
     'lib/src/elements/heap_map.html',
-    'lib/src/elements/heap_profile.dart',
-    'lib/src/elements/heap_profile.html',
     'lib/src/elements/heap_snapshot.dart',
     'lib/src/elements/heap_snapshot.html',
     'lib/src/elements/helpers/any_ref.dart',
@@ -190,6 +191,7 @@
     'lib/src/elements/vm_view.dart',
     'lib/src/elements/vm_view.html',
     'lib/src/models/exceptions.dart',
+    'lib/src/models/objects/allocation_profile.dart',
     'lib/src/models/objects/bound_field.dart',
     'lib/src/models/objects/breakpoint.dart',
     'lib/src/models/objects/class.dart',
@@ -224,6 +226,7 @@
     'lib/src/models/objects/timeline_event.dart',
     'lib/src/models/objects/token_stream.dart',
     'lib/src/models/objects/vm.dart',
+    'lib/src/models/repositories/allocation_profile.dart',
     'lib/src/models/repositories/class.dart',
     'lib/src/models/repositories/event.dart',
     'lib/src/models/repositories/flag.dart',

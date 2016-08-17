@@ -7,4 +7,9 @@ part of models;
 abstract class HeapSpace {
   int get used;
   int get capacity;
+  int get collections;
+  int get external;
+  Duration get avgCollectionTime;
+  Duration get totalCollectionTime;
+  Duration get avgCollectionPeriod;
 }

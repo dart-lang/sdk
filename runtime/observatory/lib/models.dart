@@ -8,6 +8,7 @@ import 'dart:async';
 
 part 'src/models/exceptions.dart';
 
+part 'src/models/objects/allocation_profile.dart';
 part 'src/models/objects/breakpoint.dart';
 part 'src/models/objects/bound_field.dart';
 part 'src/models/objects/class.dart';
@@ -44,6 +45,7 @@ part 'src/models/objects/timeline_event.dart';
 part 'src/models/objects/unknown.dart';
 part 'src/models/objects/vm.dart';
 
+part 'src/models/repositories/allocation_profile.dart';
 part 'src/models/repositories/class.dart';
 part 'src/models/repositories/event.dart';
 part 'src/models/repositories/flag.dart';

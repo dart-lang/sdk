@@ -1089,6 +1089,23 @@ class HeapSpace extends Observable implements M.HeapSpace {
   @observable double totalCollectionTimeInSeconds = 0.0;
   @observable double averageCollectionPeriodInMillis = 0.0;
 
+  Duration get avgCollectionTime {
+    final mcs = totalCollectionTimeInSeconds * Duration.MICROSECONDS_PER_SECOND
+                / math.max(collections, 1);
+    return new Duration(microseconds: mcs.ceil());
+  }
+
+  Duration get totalCollectionTime {
+    final mcs = totalCollectionTimeInSeconds * Duration.MICROSECONDS_PER_SECOND;
+    return new Duration(microseconds: mcs.ceil());
+  }
+
+  Duration get avgCollectionPeriod {
+    final mcs = averageCollectionPeriodInMillis
+                * Duration.MICROSECONDS_PER_MILLISECOND;
+    return new Duration(microseconds: mcs.ceil());
+  }
+
   void update(Map heapMap) {
     used = heapMap['used'];
     capacity = heapMap['capacity'];
@@ -2226,7 +2243,7 @@ class Library extends HeapObject implements M.LibraryRef {
   String toString() => "Library($uri)";
 }
 
-class AllocationCount extends Observable {
+class AllocationCount extends Observable implements M.AllocationCount {
   @observable int instances = 0;
   @observable int bytes = 0;
 
@@ -2238,7 +2255,7 @@ class AllocationCount extends Observable {
   bool get empty => (instances == 0) && (bytes == 0);
 }
 
-class Allocations {
+class Allocations implements M.Allocations{
   // Indexes into VM provided array. (see vm/class_table.h).
   static const ALLOCATED_BEFORE_GC = 0;
   static const ALLOCATED_BEFORE_GC_SIZE = 1;

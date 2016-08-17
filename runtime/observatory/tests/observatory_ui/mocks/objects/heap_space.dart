@@ -7,5 +7,14 @@ part of mocks;
 class HeapSpaceMock implements M.HeapSpace {
   final int used;
   final int capacity;
-  const HeapSpaceMock({this.used: 0, this.capacity: 1});
+  final int collections;
+  final int external;
+  final Duration avgCollectionTime;
+  final Duration totalCollectionTime;
+  final Duration avgCollectionPeriod;
+  const HeapSpaceMock({this.used: 0, this.capacity: 1, this.collections: 0,
+                       this.external: 1,
+                       this.avgCollectionTime: const Duration(),
+                       this.totalCollectionTime: const Duration(),
+                       this.avgCollectionPeriod: const Duration()});
 }

@@ -14,7 +14,6 @@ export 'package:observatory/src/elements/eval_link.dart';
 export 'package:observatory/src/elements/field_view.dart';
 export 'package:observatory/src/elements/function_view.dart';
 export 'package:observatory/src/elements/heap_map.dart';
-export 'package:observatory/src/elements/heap_profile.dart';
 export 'package:observatory/src/elements/heap_snapshot.dart';
 export 'package:observatory/src/elements/icdata_view.dart';
 export 'package:observatory/src/elements/instance_view.dart';
@@ -45,6 +44,7 @@ export 'package:observatory/src/elements/vm_view.dart';
 
 import 'dart:async';
 
+import 'package:observatory/src/elements/allocation_profile.dart';
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/class_ref_wrapper.dart';
 import 'package:observatory/src/elements/class_tree.dart';
@@ -119,6 +119,7 @@ import 'package:observatory/src/elements/vm_connect.dart';
 
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
+export 'package:observatory/src/elements/allocation_profile.dart';
 export 'package:observatory/src/elements/class_ref.dart';
 export 'package:observatory/src/elements/class_tree.dart';
 export 'package:observatory/src/elements/code_ref.dart';
@@ -172,6 +173,7 @@ export 'package:observatory/src/elements/vm_connect.dart';
 // Even though this function does not invoke any asynchronous operation
 // it is marked as async to allow future backward compatible changes.
 Future initElements() async {
+  AllocationProfileElement.tag.ensureRegistration();
   ClassRefElement.tag.ensureRegistration();
   ClassRefElementWrapper.tag.ensureRegistration();
   ClassTreeElement.tag.ensureRegistration();

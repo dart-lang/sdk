@@ -29,7 +29,6 @@ class CpuProfileElement  extends HtmlElement implements Renderable {
                                               NavVMMenuElement.tag,
                                               NavIsolateMenuElement.tag,
                                               NavMenuElement.tag,
-                                              NavMenuElement.tag,
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
                                               SampleBufferControlElement.tag,
@@ -90,7 +89,8 @@ class CpuProfileElement  extends HtmlElement implements Renderable {
 
   @override
   detached() {
-    super.detached(); _r.disable(notify: true);
+    super.detached();
+    _r.disable(notify: true);
     children = [];
   }
 

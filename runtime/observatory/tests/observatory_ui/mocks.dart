@@ -10,6 +10,7 @@ import 'package:observatory/models.dart' as M;
 
 part 'mocks/exceptions/connection_exception.dart';
 
+part 'mocks/objects/allocation_profile.dart';
 part 'mocks/objects/error.dart';
 part 'mocks/objects/code.dart';
 part 'mocks/objects/context.dart';
@@ -38,6 +39,7 @@ part 'mocks/objects/token_stream.dart';
 part 'mocks/objects/unknown.dart';
 part 'mocks/objects/vm.dart';
 
+part 'mocks/repositories/allocation_profile.dart';
 part 'mocks/repositories/class.dart';
 part 'mocks/repositories/event.dart';
 part 'mocks/repositories/flag.dart';

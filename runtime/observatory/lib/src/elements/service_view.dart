@@ -22,10 +22,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
   ObservatoryElement _constructElementForObject() {
     var type = object.type;
     switch (type) {
-      case 'AllocationProfile':
-        HeapProfileElement element = new Element.tag('heap-profile');
-        element.profile = object;
-        return element;
       case 'Class':
         ClassViewElement element = new Element.tag('class-view');
         element.cls = object;
