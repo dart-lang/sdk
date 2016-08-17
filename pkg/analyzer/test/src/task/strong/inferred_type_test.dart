@@ -1545,6 +1545,22 @@ Future<int> t6 = f.then((x) {return x ? 2 : new Future<int>.value(3);});
 ''');
   }
 
+  void test_futureThen_upwards() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/27088.
+    checkFile(r'''
+import 'dart:async';
+main() {
+  var f = foo().then((_) => 2.3);
+  Future<int> f2 = /*error:INVALID_ASSIGNMENT*/f;
+
+  // The unnecessary cast is to illustrate that we inferred <double> for
+  // the generic type args, even though we had a return type context.
+  Future<num> f3 = /*info:UNNECESSARY_CAST*/foo().then((_) => 2.3) as Future<double>;
+}
+Future foo() async => 1;
+    ''');
+  }
+
   void test_futureUnion_asyncConditional() {
     checkFile('''
 import 'dart:async';
@@ -1693,7 +1709,7 @@ class D extends C {
   /*=T*/ g/*<T>*/(/*=T*/ x) => x;
 }
 main() {
-  int y = /*info:DYNAMIC_CAST*/(new D() as C).m(42);
+  int y = /*info:DYNAMIC_CAST*/(/*info:UNNECESSARY_CAST*/new D() as C).m(42);
   print(y);
 }
   ''');
@@ -2327,7 +2343,7 @@ var f = 2 + 3;          // binary expressions are OK if the left operand
 var g = -3;
 var h = new A() + 3;
 var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/- new A();
-var j = null as B;
+var j = /*info:UNNECESSARY_CAST*/null as B;
 
 test1() {
   a = /*error:INVALID_ASSIGNMENT*/"hi";

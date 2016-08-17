@@ -5758,6 +5758,18 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Returns true if this method is `Future.then`.
+   *
+   * If so we will apply special typing rules in strong mode, to handle the
+   * implicit union of `S | Future<S>`
+   */
+  bool isFutureThen(Element element) {
+    return element is MethodElement &&
+        element.name == 'then' &&
+        element.enclosingElement.type.isDartAsyncFuture;
+  }
+
+  /**
    * Given a downward inference type [fnType], and the declared
    * [typeParameterList] for a function expression, determines if we can enable
    * downward inference and if so, returns the function type to use for
@@ -6583,7 +6595,7 @@ class ResolverVisitor extends ScopedVisitor {
             _inferFormalParameterList(node.parameters, functionType);
 
             DartType returnType;
-            if (_isFutureThenLambda(node)) {
+            if (isFutureThen(node.staticParameterElement?.enclosingElement)) {
               var futureThenType =
                   InferenceContext.getContext(node.parent) as FunctionType;
 
@@ -7391,19 +7403,6 @@ class ResolverVisitor extends ScopedVisitor {
       return _isAbruptTerminationStatement(statements[size - 1]);
     }
     return false;
-  }
-
-  /**
-   * Returns true if this expression is being passed to `Future.then`.
-   *
-   * If so we will apply special typing rules in strong mode, to handle the
-   * implicit union of `S | Future<S>`
-   */
-  bool _isFutureThenLambda(FunctionExpression node) {
-    Element element = node.staticParameterElement?.enclosingElement;
-    return element is MethodElement &&
-        element.name == 'then' &&
-        element.enclosingElement.type.isDartAsyncFuture;
   }
 
   /**

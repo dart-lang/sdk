@@ -101,7 +101,6 @@ CompilationUnit check(
           // TODO(jmesserly): these are usually intentional dynamic calls.
           e.errorCode.name != 'UNDEFINED_METHOD' &&
           // We don't care about any of these:
-          e.errorCode != HintCode.UNNECESSARY_CAST &&
           e.errorCode != HintCode.UNUSED_ELEMENT &&
           e.errorCode != HintCode.UNUSED_FIELD &&
           e.errorCode != HintCode.UNUSED_IMPORT &&

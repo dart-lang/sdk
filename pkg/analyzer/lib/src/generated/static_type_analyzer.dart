@@ -1953,6 +1953,46 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       } else {
         returnType = returnContext;
       }
+
+      // Special case Future<T>.then upwards inference. It has signature:
+      //
+      //     <S>(T -> (S | Future<S>)) -> Future<S>
+      //
+      // Based on the first argument type, we'll pick one of these signatures:
+      //
+      //     <S>(T -> S) -> Future<S>
+      //     <S>(T -> Future<S>) -> Future<S>
+      //
+      // ... and finish the inference using that.
+      if (argTypes.isNotEmpty && _resolver.isFutureThen(fnType.element)) {
+        var firstArgType = argTypes[0];
+        var firstParamType = paramTypes[0] as FunctionType;
+        if (firstArgType is FunctionType) {
+          var argReturnType = firstArgType.returnType;
+          // Skip the inference if we have the top type. It can only lead to
+          // worse inference. For example, this happens when the lambda returns
+          // S or Future<S> in a conditional.
+          if (!argReturnType.isObject && !argReturnType.isDynamic) {
+            DartType paramReturnType = fnType.typeFormals[0].type;
+            if (argReturnType.isDartAsyncFuture) {
+              // Given an argument of (T) -> Future<S>, instantiate with <S>
+              paramReturnType =
+                  _typeProvider.futureType.instantiate([paramReturnType]);
+            }
+
+            // Adjust the expected parameter type to have this return type.
+            var function = new FunctionElementImpl(firstParamType.name, -1)
+              ..synthetic = true
+              ..shareParameters(firstParamType.parameters)
+              ..returnType = paramReturnType;
+            function.type = new FunctionTypeImpl(function);
+
+            // Use this as the expected 1st parameter type.
+            paramTypes[0] = function.type;
+          }
+        }
+      }
+
       return ts.inferGenericFunctionCall(
           _typeProvider, fnType, paramTypes, argTypes, returnType);
     }
