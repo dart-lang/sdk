@@ -361,7 +361,7 @@ class ResolverTask extends CompilerTask {
       ResolutionRegistry registry = visitor.registry;
       // TODO(johnniwinther): Maybe remove this when placeholderCollector migrates
       // to the backend ast.
-      registry.defineElement(tree.definitions.nodes.head, element);
+      registry.defineElement(element.definition, element);
       // TODO(johnniwinther): Share the resolved type between all variables
       // declared in the same declaration.
       if (tree.type != null) {

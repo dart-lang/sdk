@@ -673,6 +673,18 @@ class ConstClass {
 }
 ''',
   }),
+
+  const Test('Multi variable declaration', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() => y;
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+var x, y = 2;
+''',
+  }),
 ];
 
 class Test {
