@@ -105,7 +105,7 @@ class SdkSummaryResynthesizer extends SummaryResynthesizer {
 class SummaryBasedDartSdk implements DartSdk {
   final bool strongMode;
   SummaryDataStore _dataStore;
-  InSummaryPackageUriResolver _uriResolver;
+  InSummaryUriResolver _uriResolver;
   PackageBundle _bundle;
   ResourceProvider resourceProvider;
 
@@ -116,7 +116,7 @@ class SummaryBasedDartSdk implements DartSdk {
 
   SummaryBasedDartSdk(String summaryPath, this.strongMode) {
     _dataStore = new SummaryDataStore(<String>[summaryPath]);
-    _uriResolver = new InSummaryPackageUriResolver(_dataStore);
+    _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
     _bundle = _dataStore.bundles.single;
   }
 
@@ -124,7 +124,7 @@ class SummaryBasedDartSdk implements DartSdk {
       this.strongMode, PackageBundle bundle, this.resourceProvider) {
     _dataStore = new SummaryDataStore([]);
     _dataStore.addBundle('dart_sdk.sum', bundle);
-    _uriResolver = new InSummaryPackageUriResolver(_dataStore);
+    _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
     _bundle = bundle;
   }
 
