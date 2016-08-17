@@ -117,20 +117,19 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
 
   // Iterate the directory and post the directories and files to the
   // ports.
-  int status = 0;
-  dirent entry;
   dirent* result;
-  status = NO_RETRY_EXPECTED(readdir_r(
-      reinterpret_cast<DIR*>(lister_), &entry, &result));
-  if ((status == 0) && (result != NULL)) {
-    if (!listing->path_buffer().Add(entry.d_name)) {
+  errno = 0;
+  result = readdir(
+      reinterpret_cast<DIR*>(lister_));
+  if (result != NULL) {
+    if (!listing->path_buffer().Add(result->d_name)) {
       done_ = true;
       return kListError;
     }
-    switch (entry.d_type) {
+    switch (result->d_type) {
       case DT_DIR:
-        if ((strcmp(entry.d_name, ".") == 0) ||
-            (strcmp(entry.d_name, "..") == 0)) {
+        if ((strcmp(result->d_name, ".") == 0) ||
+            (strcmp(result->d_name, "..") == 0)) {
           return Next(listing);
         }
         return kListDirectory;
@@ -178,16 +177,16 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             // Recurse into the subdirectory with current_link added to the
             // linked list of seen file system links.
             link_ = new LinkList(current_link);
-            if ((strcmp(entry.d_name, ".") == 0) ||
-                (strcmp(entry.d_name, "..") == 0)) {
+            if ((strcmp(result->d_name, ".") == 0) ||
+                (strcmp(result->d_name, "..") == 0)) {
               return Next(listing);
             }
             return kListDirectory;
           }
         }
         if (S_ISDIR(entry_info.st_mode)) {
-          if ((strcmp(entry.d_name, ".") == 0) ||
-              (strcmp(entry.d_name, "..") == 0)) {
+          if ((strcmp(result->d_name, ".") == 0) ||
+              (strcmp(result->d_name, "..") == 0)) {
             return Next(listing);
           }
           return kListDirectory;
@@ -204,8 +203,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   }
   done_ = true;
 
-  if (status != 0) {
-    errno = status;
+  if (errno != 0) {
     return kListError;
   }
 
@@ -277,28 +275,27 @@ static bool DeleteRecursively(PathBuffer* path) {
 
   // Iterate the directory and delete all files and directories.
   int path_length = path->length();
-  dirent entry;
   dirent* result;
-  while (NO_RETRY_EXPECTED(readdir_r(dir_pointer, &entry, &result)) == 0) {
+  while ((result = readdir(dir_pointer)) != NULL) {
     if (result == NULL) {
       // End of directory.
       return (NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0) &&
              (NO_RETRY_EXPECTED(remove(path->AsString())) == 0);
     }
     bool ok = false;
-    switch (entry.d_type) {
+    switch (result->d_type) {
       case DT_DIR:
-        ok = DeleteDir(entry.d_name, path);
+        ok = DeleteDir(result->d_name, path);
         break;
       case DT_REG:
       case DT_LNK:
         // Treat all links as files. This will delete the link which
         // is what we want no matter if the link target is a file or a
         // directory.
-        ok = DeleteFile(entry.d_name, path);
+        ok = DeleteFile(result->d_name, path);
         break;
       case DT_UNKNOWN: {
-        if (!path->Add(entry.d_name)) {
+        if (!path->Add(result->d_name)) {
           break;
         }
         // On some file systems the entry type is not determined by
@@ -310,12 +307,12 @@ static bool DeleteRecursively(PathBuffer* path) {
         }
         path->Reset(path_length);
         if (S_ISDIR(entry_info.st_mode)) {
-          ok = DeleteDir(entry.d_name, path);
+          ok = DeleteDir(result->d_name, path);
         } else if (S_ISREG(entry_info.st_mode) || S_ISLNK(entry_info.st_mode)) {
           // Treat links as files. This will delete the link which is
           // what we want no matter if the link target is a file or a
           // directory.
-          ok = DeleteFile(entry.d_name, path);
+          ok = DeleteFile(result->d_name, path);
         }
         break;
       }
