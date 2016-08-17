@@ -236,7 +236,7 @@ int OS::NumberOfAvailableProcessors() {
 }
 
 
-uinptr_t OS::MaxRSS() {
+uintptr_t OS::MaxRSS() {
   PROCESS_MEMORY_COUNTERS pmc;
   GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
   return pmc.PeakWorkingSetSize;
