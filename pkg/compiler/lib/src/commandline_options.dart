@@ -73,4 +73,5 @@ class Option {
 
   // Experimental options.
   static const String resolutionInput = '--resolution-input=.+';
+  static const String bazelPaths = '--bazel-paths=.+';
 }

@@ -109,6 +109,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   Uri out = currentDirectory.resolve('out.js');
   Uri sourceMapOut = currentDirectory.resolve('out.js.map');
   List<Uri> resolutionInputs;
+  List<String> bazelPaths;
   Uri packageConfig = null;
   Uri packageRoot = null;
   List<String> options = new List<String>();
@@ -119,17 +120,20 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool analyzeAll = false;
   bool resolveOnly = false;
   Uri resolutionOutput = currentDirectory.resolve('out.data');
-  bool dumpInfo = false;
   bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
   bool trustJSInteropTypeAnnotations = false;
   bool checkedMode = false;
+  List<String> hints = <String>[];
+  bool verbose;
+  bool throwOnError;
+  int throwOnErrorCount;
+  bool showWarnings;
+  bool showHints;
+  bool enableColors;
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
   bool hasDisallowUnsafeEval = false;
-  // TODO(johnniwinther): Measure time for reading files.
-  SourceFileProvider inputProvider = new CompilerSourceFileProvider();
-  diagnosticHandler = new FormattingDiagnosticHandler(inputProvider);
   Map<String, dynamic> environment = new Map<String, dynamic>();
 
   void passThrough(String argument) => options.add(argument);
@@ -185,6 +189,11 @@ Future<api.CompilationResult> compile(List<String> argv) {
     }
   }
 
+  void setBazelPaths(String argument) {
+    String paths = extractParameter(argument);
+    bazelPaths = <String>[]..addAll(paths.split(','));
+  }
+
   void setResolveOnly(String argument) {
     resolveOnly = true;
     passThrough(argument);
@@ -222,13 +231,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   void setVerbose(_) {
-    diagnosticHandler.verbose = true;
+    verbose = true;
     passThrough('--verbose');
-  }
-
-  void setDumpInfo(String argument) {
-    implyCompilation(argument);
-    dumpInfo = true;
   }
 
   void setTrustTypeAnnotations(String argument) {
@@ -273,10 +277,11 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   void handleThrowOnError(String argument) {
-    diagnosticHandler.throwOnError = true;
+    throwOnError = true;
     String parameter = extractParameter(argument, isOptionalArgument: true);
     if (parameter != null) {
-      diagnosticHandler.throwOnErrorCount = int.parse(parameter);
+      var count = int.parse(parameter);
+      throwOnErrorCount = count;
     }
   }
 
@@ -308,12 +313,13 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('-[chvm?]+', handleShortOptions),
     new OptionHandler('--throw-on-error(?:=[0-9]+)?', handleThrowOnError),
     new OptionHandler(Flags.suppressWarnings, (_) {
-      diagnosticHandler.showWarnings = false;
+      showWarnings = false;
       passThrough(Flags.suppressWarnings);
     }),
     new OptionHandler(Flags.fatalWarnings, passThrough),
-    new OptionHandler(
-        Flags.suppressHints, (_) => diagnosticHandler.showHints = false),
+    new OptionHandler(Flags.suppressHints, (_) {
+      showHints = false;
+    }),
     // TODO(sigmund): remove entirely after Dart 1.20
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
@@ -330,10 +336,12 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('${Flags.minify}|-m', implyCompilation),
     new OptionHandler(Flags.preserveUris, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
-    new OptionHandler(Flags.disableDiagnosticColors,
-        (_) => diagnosticHandler.enableColors = false),
-    new OptionHandler(Flags.enableDiagnosticColors,
-        (_) => diagnosticHandler.enableColors = true),
+    new OptionHandler(Flags.disableDiagnosticColors, (_) {
+      enableColors = false;
+    }),
+    new OptionHandler(Flags.enableDiagnosticColors, (_) {
+      enableColors = true;
+    }),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
         (_) => setCheckedMode(Flags.enableCheckedMode)),
     new OptionHandler(Flags.trustTypeAnnotations,
@@ -351,6 +359,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.analyzeOnly, setAnalyzeOnly),
     new OptionHandler(Flags.noSourceMaps, passThrough),
     new OptionHandler(Option.resolutionInput, setResolutionInput),
+    new OptionHandler(Option.bazelPaths, setBazelPaths),
     new OptionHandler(Flags.resolveOnly, setResolveOnly),
     new OptionHandler(Flags.analyzeSignaturesOnly, setAnalyzeOnly),
     new OptionHandler(Flags.disableNativeLiveTypeAnalysis, passThrough),
@@ -371,22 +380,16 @@ Future<api.CompilationResult> compile(List<String> argv) {
     // launched the feature yet.
     new OptionHandler(Flags.conditionalDirectives, (_) {}),
     new OptionHandler('--enable-async', (_) {
-      diagnosticHandler.info(
-          "Option '--enable-async' is no longer needed. "
-          "Async-await is supported by default.",
-          api.Diagnostic.HINT);
+      hints.add("Option '--enable-async' is no longer needed. "
+          "Async-await is supported by default.");
     }),
     new OptionHandler('--enable-null-aware-operators', (_) {
-      diagnosticHandler.info(
-          "Option '--enable-null-aware-operators' is no longer needed. "
-          "Null aware operators are supported by default.",
-          api.Diagnostic.HINT);
+      hints.add("Option '--enable-null-aware-operators' is no longer needed. "
+          "Null aware operators are supported by default.");
     }),
     new OptionHandler('--enable-enum', (_) {
-      diagnosticHandler.info(
-          "Option '--enable-enum' is no longer needed. "
-          "Enums are supported by default.",
-          api.Diagnostic.HINT);
+      hints.add("Option '--enable-enum' is no longer needed. "
+          "Enums are supported by default.");
     }),
     new OptionHandler(Flags.allowNativeExtensions, setAllowNativeExtensions),
     new OptionHandler(Flags.generateCodeWithCompileTimeErrors, passThrough),
@@ -403,6 +406,38 @@ Future<api.CompilationResult> compile(List<String> argv) {
   ];
 
   parseCommandLine(handlers, argv);
+
+  // TODO(johnniwinther): Measure time for reading files.
+  SourceFileProvider inputProvider;
+  if (bazelPaths != null) {
+    inputProvider = new BazelInputProvider(bazelPaths);
+  } else {
+    inputProvider = new CompilerSourceFileProvider();
+  }
+
+  diagnosticHandler = new FormattingDiagnosticHandler(inputProvider);
+  if (verbose != null) {
+    diagnosticHandler.verbose = verbose;
+  }
+  if (throwOnError != null) {
+    diagnosticHandler.throwOnError = throwOnError;
+  }
+  if (throwOnErrorCount != null) {
+    diagnosticHandler.throwOnErrorCount = throwOnErrorCount;
+  }
+  if (showWarnings != null) {
+    diagnosticHandler.showWarnings = showWarnings;
+  }
+  if (showHints != null) {
+    diagnosticHandler.showHints = showHints;
+  }
+  if (enableColors != null) {
+    diagnosticHandler.enableColors = enableColors;
+  }
+  for (String hint in hints) {
+    diagnosticHandler.info(hint, api.Diagnostic.HINT);
+  }
+
   if (wantHelp || wantVersion) {
     helpAndExit(wantHelp, wantVersion, diagnosticHandler.verbose);
   }
@@ -851,10 +886,8 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
           }
         }
       }
-      options =
-          CompilerOptions.copy(options,
-              resolutionInputs: resolutionInputs,
-              compileOnly: compileOnly);
+      options = CompilerOptions.copy(options,
+          resolutionInputs: resolutionInputs, compileOnly: compileOnly);
     }
     return oldCompileFunc(options, input, compilerDiagnostics, compilerOutput);
   }
