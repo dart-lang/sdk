@@ -229,9 +229,7 @@ void ClassReasonForCancelling::AppendTo(JSONArray* array) {
 RawError* IsolateReloadContext::error() const {
   ASSERT(reload_aborted());
   // Report the first error to the surroundings.
-  const Error& error =
-      Error::Handle(reasons_to_cancel_reload_.At(0)->ToError());
-  return error.raw();
+  return reasons_to_cancel_reload_.At(0)->ToError();
 }
 
 
@@ -345,15 +343,15 @@ bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
   // TODO(turnidge): We need to look at generic type arguments for
   // synthetic mixin classes.  Their names are not necessarily unique
   // currently.
-  const String& a_name = String::Handle(Class::Cast(a).Name());
-  const String& b_name = String::Handle(Class::Cast(b).Name());
+  const String& a_name = String::Handle(a.Name());
+  const String& b_name = String::Handle(b.Name());
 
   if (!a_name.Equals(b_name)) {
     return false;
   }
 
-  const Library& a_lib = Library::Handle(Class::Cast(a).library());
-  const Library& b_lib = Library::Handle(Class::Cast(b).library());
+  const Library& a_lib = Library::Handle(a.library());
+  const Library& b_lib = Library::Handle(b.library());
   return IsSameLibrary(a_lib, b_lib);
 }
 
