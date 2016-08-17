@@ -432,7 +432,7 @@ abstract class Future<T> {
    * with a `test` parameter, instead of handling both value and error in a
    * single [then] call.
    */
-  Future/*<S>*/ then/*<S>*/(/*=S*/ onValue(T value), { Function onError });
+  Future/*<S>*/ then/*<S>*/(onValue(T value), { Function onError });
 
   /**
    * Handles errors emitted by this [Future].
