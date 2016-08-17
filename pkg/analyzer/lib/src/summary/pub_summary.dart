@@ -28,6 +28,7 @@ import 'package:analyzer/src/summary/summarize_ast.dart'
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/src/util/fast_uri.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
@@ -230,6 +231,19 @@ class PubSummaryManager {
   }
 
   /**
+   * Complete when the unlinked bundles for the package with the given [name]
+   * and the [libFolder] are computed and written to the files.
+   *
+   * This method is intended to be used for generating unlinked bundles for
+   * the `Flutter` packages.
+   */
+  Future<Null> computeUnlinkedForFolder(String name, Folder libFolder) async {
+    PubPackage package = new PubPackage(name, libFolder);
+    _scheduleUnlinked(package);
+    await onUnlinkedComplete;
+  }
+
+  /**
    * Return the list of linked [LinkedPubPackage]s that can be provided at this
    * time for a subset of the packages used by the given [context].  If
    * information about some of the used packages is not available yet, schedule
@@ -331,6 +345,7 @@ class PubSummaryManager {
    * Return all available unlinked [PackageBundle]s for the given [context],
    * maybe an empty map, but not `null`.
    */
+  @visibleForTesting
   Map<PubPackage, PackageBundle> getUnlinkedBundles(AnalysisContext context) {
     bool strong = context.analysisOptions.strongMode;
     Map<PubPackage, PackageBundle> unlinkedBundles =
@@ -483,10 +498,7 @@ class PubSummaryManager {
     // Schedule computation in the background, if in the pub cache.
     if (isPathInPubCache(pathContext, package.folder.path)) {
       if (seenPackages.add(package)) {
-        if (packagesToComputeUnlinked.isEmpty) {
-          _scheduleNextUnlinked();
-        }
-        packagesToComputeUnlinked.add(package);
+        _scheduleUnlinked(package);
       }
     }
     // The bundle is for available.
@@ -548,6 +560,16 @@ class PubSummaryManager {
    */
   void _scheduleNextUnlinked() {
     new Future.delayed(new Duration(milliseconds: 10), _computeNextUnlinked);
+  }
+
+  /**
+   * Schedule computing unlinked bundles for the given [package].
+   */
+  void _scheduleUnlinked(PubPackage package) {
+    if (packagesToComputeUnlinked.isEmpty) {
+      _scheduleNextUnlinked();
+    }
+    packagesToComputeUnlinked.add(package);
   }
 
   /**

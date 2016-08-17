@@ -4,7 +4,6 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -146,6 +145,41 @@ class B {}
       expect(linkedLibrary.dependencies[linkedReference.dependency].uri,
           'dart:async');
     }
+  }
+
+  test_computeUnlinkedForFolder() async {
+    // Create package files.
+    resourceProvider.newFile(
+        '/flutter/aaa/lib/a.dart',
+        '''
+class A {}
+''');
+    resourceProvider.newFile(
+        '/flutter/bbb/lib/b.dart',
+        '''
+class B {}
+''');
+
+    // Configure packages resolution.
+    Folder libFolderA = resourceProvider.newFolder('/flutter/aaa/lib');
+    Folder libFolderB = resourceProvider.newFolder('/flutter/bbb/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+        'bbb': [libFolderB],
+      })
+    ]);
+
+    await manager.computeUnlinkedForFolder('aaa', libFolderA);
+    await manager.computeUnlinkedForFolder('bbb', libFolderB);
+
+    // The files must be created.
+    _assertFileExists(libFolderA.parent, PubSummaryManager.UNLINKED_NAME);
+    _assertFileExists(libFolderA.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
+    _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_NAME);
+    _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
   }
 
   test_getLinkedBundles_cached() async {
@@ -1229,16 +1263,6 @@ class B {}
 
   void _createManager() {
     manager = new PubSummaryManager(resourceProvider, '_.temp');
-  }
-
-  List<File> _getLinkedFiles(Folder folder) {
-    List<File> linkedFiles = <File>[];
-    for (var child in folder.getChildren()) {
-      if (child is File && child.shortName.startsWith('linked_')) {
-        linkedFiles.add(child);
-      }
-    }
-    return linkedFiles;
   }
 
   LinkedPubPackage _getLinkedPackage(
