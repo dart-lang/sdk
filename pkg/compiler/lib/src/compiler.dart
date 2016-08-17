@@ -199,8 +199,6 @@ abstract class Compiler implements LibraryLoaderListener {
   // Initialized when dart:mirrors is loaded.
   ClassElement deferredLibraryClass;
 
-  /// Document class from dart:mirrors.
-  ClassElement documentClass;
   Element identicalFunction;
   Element loadLibraryFunction;
   Element functionApplyMethod;
@@ -564,14 +562,6 @@ abstract class Compiler implements LibraryLoaderListener {
       coreClasses.functionClass.ensureResolved(resolution);
       functionApplyMethod =
           coreClasses.functionClass.lookupLocalMember('apply');
-
-      if (options.preserveComments) {
-        return libraryLoader
-            .loadLibrary(Uris.dart_mirrors)
-            .then((LibraryElement libraryElement) {
-          documentClass = libraryElement.find('Comment');
-        });
-      }
     }).then((_) => backend.onLibrariesLoaded(loadedLibraries));
   }
 
