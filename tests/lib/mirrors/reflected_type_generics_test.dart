@@ -22,12 +22,12 @@ main() {
   expectReflectedType(reflectType(A, [P]), new A<P>().runtimeType);
   expectReflectedType(reflectType(C, [B, P]), new C<B, P>().runtimeType);
   expectReflectedType(reflectType(D, [P]), new D<P>().runtimeType);
-  // expectReflectedType(reflectType(E, [P, int]), new E<P>().runtimeType);
+  // expectReflectedType(reflectType(E, [P]), new E<P>().runtimeType);
 
   // Edge cases:
   Expect.throws(
     () => reflectType(P, []),
-    (e) => e is ArgumentError && e.invalidValue == P,
+    (e) => e is ArgumentError && e.invalidValue is List,
     "Should throw an ArgumentError if reflecting not a generic class with empty list of type arguments");
   Expect.throws(
     () => reflectType(P, [B]),

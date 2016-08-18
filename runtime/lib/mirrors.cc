@@ -849,7 +849,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirrorWithTypeArguments, 2) {
     const Array& errorArgs = Array::Handle(Array::New(3));
     errorArgs.SetAt(0, type);
     errorArgs.SetAt(1, String::Handle(String::New("key")));
-    errorArgs.SetAt(2, String::Handle(String::New("Type must be a generic class")));
+    errorArgs.SetAt(2, String::Handle(String::New("Type must be a generic class.")));
     Exceptions::ThrowByType(Exceptions::kArgumentValue, errorArgs);
     UNREACHABLE();
   }
@@ -857,7 +857,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirrorWithTypeArguments, 2) {
     const Array& errorArgs = Array::Handle(Array::New(3));
     errorArgs.SetAt(0, args);
     errorArgs.SetAt(1, String::Handle(String::New("typeArguments")));
-    errorArgs.SetAt(2, String::Handle(String::New("Number of type arguments does not match")));
+    errorArgs.SetAt(2, String::Handle(String::New("Number of type arguments does not match.")));
     Exceptions::ThrowByType(Exceptions::kArgumentValue, errorArgs);
     UNREACHABLE();
   }
@@ -866,7 +866,17 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirrorWithTypeArguments, 2) {
   TypeArguments& type_args_obj = TypeArguments::Handle();
   type_args_obj ^= TypeArguments::New(num_expected_type_arguments);
   AbstractType& type_arg = AbstractType::Handle();
+  Instance& instance = Instance::Handle();
   for (intptr_t i = 0; i < args.Length(); i++) {
+    instance ^= args.At(i);
+    if (!instance.IsType()) {
+      const Array& errorArgs = Array::Handle(Array::New(3));
+      errorArgs.SetAt(0, args);
+      errorArgs.SetAt(1, String::Handle(String::New("typeArguments")));
+      errorArgs.SetAt(2, String::Handle(String::New("Type arguments must be instances of Type.")));
+      Exceptions::ThrowByType(Exceptions::kArgumentValue, errorArgs);
+      UNREACHABLE();
+    }
     type_arg ^= args.At(i);
     type_args_obj.SetTypeAt(i, type_arg);
   }

@@ -590,13 +590,14 @@ InstanceMirror reflect(Object reflectee) {
 TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
   String mangledName = getMangledTypeName(key);
   if (typeArguments != null) {
-    if (!typeArguments.every((_) => _ is Type)) {
-      throw new ArgumentError.value(typeArguments, 'typeArguments');
+    if (typeArguments.isEmpty || !typeArguments.every((_) => _ is TypeImpl)) {
+      var message = typeArguments.isEmpty
+          ? 'Type arguments list can not be empty.'
+          : 'Type arguments list must contain only instances of Type.';
+      throw new ArgumentError.value(typeArguments, 'typeArguments', message);
     }
-    var mangledTypeArguments =
-        typeArguments.map((_) => getMangledTypeName(_));
-    mangledName =
-        "${mangledName}<${mangledTypeArguments.join(', ')}>";
+    var mangledTypeArguments = typeArguments.map(getMangledTypeName);
+    mangledName = "${mangledName}<${mangledTypeArguments.join(', ')}>";
   }
   return reflectClassByMangledName(mangledName);
 }
@@ -629,15 +630,10 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     }
     List<String> typeArguments = mangledName
         .substring(typeArgIndex + 1, mangledName.length - 1)
-        .split(', ')
-        .where((_) => _.isNotEmpty)
-        .toList();
-    if (typeArguments.isEmpty)
-      throw new ArgumentError.value(typeArguments, 'typeArguments',
-          'Type argument list can not be empty');
+        .split(', ');
     if (originalDeclaration.typeVariables.length != typeArguments.length) {
       throw new ArgumentError.value(typeArguments, 'typeArguments',
-          "Number of type arguments does not match");
+          "Number of type arguments does not match.");
     }
     mirror = new JsTypeBoundClassMirror(
         originalDeclaration,
@@ -1569,9 +1565,9 @@ class JsSyntheticAccessor implements MethodMirror {
   final bool isGetter;
   final bool isStatic;
   final bool isTopLevel;
-  final _target;
 
   /// The field or type that introduces the synthetic accessor.
+  final _target;
 
   JsSyntheticAccessor(this.owner, this.simpleName, this.isGetter, this.isStatic,
       this.isTopLevel, this._target);

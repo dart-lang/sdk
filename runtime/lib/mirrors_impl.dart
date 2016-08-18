@@ -1683,8 +1683,10 @@ class _Mirrors {
   }
 
   static Type _resolveType(Type key, List<Type> typeArguments) {
-    if (!typeArguments.every((_) => _ is Type)) {
-      throw new ArgumentError.value(typeArguments, 'typeArguments');
+    if (typeArguments.isEmpty) {
+      throw new ArgumentError.value(
+        typeArguments, 'typeArguments', 'Type arguments list can not be empty.'
+      );
     }
     var resolvedTypeMirror = makeLocalTypeMirrorWithTypeArguments(
       key, typeArguments.toList(growable: false));
