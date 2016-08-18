@@ -1,3 +1,10 @@
+## 1.20.0
+
+### Core library changes
+* `dart:async`
+  * `Future.wait` now catches synchronous errors and returns them in the
+    returned Future.
+
 ## 1.19.0
 
 ### Language changes
