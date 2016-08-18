@@ -20,9 +20,9 @@ import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
+import '../../embedder_tests.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
-import '../../source/embedder_test.dart';
 import '../../utils.dart';
 import 'mock_sdk.dart';
 

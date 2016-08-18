@@ -6,17 +6,14 @@ library analyzer.test.source.embedder_test;
 
 import 'dart:core' hide Resource;
 
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
+import '../embedder_tests.dart';
 import '../reflective_tests.dart';
 import '../resource_utils.dart';
-import '../utils.dart';
 
 main() {
   runReflectiveTests(DartUriResolverTest);
@@ -45,46 +42,6 @@ class DartUriResolverTest extends EmbedderRelatedTest {
     expectResolved('dart:bear', '/tmp/grizzly.dart');
     expectResolved('dart:relative', '/relative.dart');
     expectResolved('dart:deep', '/tmp/deep/directory/file.dart');
-  }
-}
-
-abstract class EmbedderRelatedTest {
-  TestPathTranslator pathTranslator;
-  ResourceProvider resourceProvider;
-
-  buildResourceProvider() {
-    MemoryResourceProvider rawProvider =
-        new MemoryResourceProvider(isWindows: isWindows);
-    resourceProvider = new TestResourceProvider(rawProvider);
-    pathTranslator = new TestPathTranslator(rawProvider)
-      ..newFolder('/empty')
-      ..newFolder('/tmp')
-      ..newFile(
-          '/tmp/_embedder.yaml',
-          r'''
-embedded_libs:
-  "dart:core" : "core.dart"
-  "dart:fox": "slippy.dart"
-  "dart:bear": "grizzly.dart"
-  "dart:relative": "../relative.dart"
-  "dart:deep": "deep/directory/file.dart"
-  "fart:loudly": "nomatter.dart"
-''');
-  }
-
-  clearResourceProvider() {
-    resourceProvider = null;
-    pathTranslator = null;
-  }
-
-  void setUp() {
-    initializeTestEnvironment(path.context);
-    buildResourceProvider();
-  }
-
-  void tearDown() {
-    initializeTestEnvironment();
-    clearResourceProvider();
   }
 }
 

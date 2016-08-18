@@ -14,10 +14,10 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../../embedder_tests.dart';
 import '../../../generated/test_support.dart';
 import '../../../reflective_tests.dart';
 import '../../../resource_utils.dart';
-import '../../../source/embedder_test.dart';
 import '../../../utils.dart';
 
 main() {
