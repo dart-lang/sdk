@@ -17,7 +17,7 @@ import 'package:path/path.dart' as p;
 
 final _identifier = new RegExp(r'^([_a-zA-Z]+([_a-zA-Z0-9])*)$');
 
-final _lowerCamelCase = new RegExp(r'^[_]*[a-z][a-z0-9]*([A-Z][a-z0-9]*)*$');
+final _lowerCamelCase = new RegExp(r'^[_]*[a-z][a-z0-9?$]*([A-Z][a-z0-9?$]*)*$');
 
 final _lowerCaseUnderScore = new RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
 

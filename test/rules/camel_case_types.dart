@@ -17,7 +17,7 @@ typedef bool predicate(); //LINT [14:9]
 class fooBar // LINT
 {}
 
-class Foo$Bar //LINT
+class Foo$Bar //OK
 {}
 
 class Foo_Bar //LINT

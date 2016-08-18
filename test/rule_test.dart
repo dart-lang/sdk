@@ -145,7 +145,9 @@ defineRuleUnitTests() {
           'F',
           'FB',
           'F1',
-          'FooBar1'
+          'FooBar1',
+          'Foo\$Generated',
+          'Foo\$Generated\$Bar'
         ];
         testEach(good, isUpperCamelCase, isTrue);
         var bad = ['fooBar', 'foo', 'f', '_f', 'F_B'];
@@ -166,7 +168,7 @@ defineRuleUnitTests() {
         'JS',
         'JSON',
         '1',
-        '1b'
+        '1b',
       ];
       testEach(bad, isLowerCaseUnderScore, isFalse);
     });
@@ -202,7 +204,9 @@ defineRuleUnitTests() {
         '_',
         'F',
         '__x',
-        '___x'
+        '___x',
+        'foo\$Generated',
+        'foo\$Generated\$Bar'
       ];
       testEach(good, isLowerCamelCase, isTrue);
 
