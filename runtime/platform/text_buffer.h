@@ -34,7 +34,7 @@ class TextBuffer : ValueObject {
 
   // Steal ownership of the buffer pointer.
   // NOTE: TextBuffer is empty afterwards.
-  const char* Steal();
+  char* Steal();
 
  private:
   void EnsureCapacity(intptr_t len);

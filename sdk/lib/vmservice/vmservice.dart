@@ -330,6 +330,15 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
+  static responseAsJson(portResponse) {
+    if (portResponse is String) {
+      return JSON.decode(portResponse);
+    } else {
+      var cstring = portResponse[0];
+      return JSON.fuse(UTF8).decode(cstring);
+    }
+  }
+
   // TODO(johnmccutchan): Turn this into a command line tool that uses the
   // service library.
   Future<String> _getCrashDump(Message message) async {
@@ -353,13 +362,13 @@ class VMService extends MessageRouter {
 
     // Request VM.
     var getVM = Uri.parse('getVM');
-    var getVmResponse = JSON.decode(
+    var getVmResponse = responseAsJson(
         await new Message.fromUri(client, getVM).sendToVM());
     responses[getVM.toString()] = getVmResponse['result'];
 
     // Request command line flags.
     var getFlagList = Uri.parse('getFlagList');
-    var getFlagListResponse = JSON.decode(
+    var getFlagListResponse = responseAsJson(
         await new Message.fromUri(client, getFlagList).sendToVM());
     responses[getFlagList.toString()] = getFlagListResponse['result'];
 
@@ -369,13 +378,13 @@ class VMService extends MessageRouter {
         var message = new Message.forIsolate(client, request, isolate);
         // Decode the JSON and and insert it into the map. The map key
         // is the request Uri.
-        var response = JSON.decode(await isolate.route(message));
+        var response = responseAsJson(await isolate.route(message));
         responses[message.toUri().toString()] = response['result'];
       }
       // Dump the object id ring requests.
       var message =
           new Message.forIsolate(client, Uri.parse('_dumpIdZone'), isolate);
-      var response = JSON.decode(await isolate.route(message));
+      var response = responseAsJson(await isolate.route(message));
       // Insert getObject requests into responses map.
       for (var object in response['result']['objects']) {
         final requestUri =

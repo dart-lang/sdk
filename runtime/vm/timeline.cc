@@ -1180,7 +1180,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   // Steal output from JSONStream.
   char* output = NULL;
   intptr_t output_length = 0;
-  js.Steal(const_cast<const char**>(&output), &output_length);
+  js.Steal(&output, &output_length);
   (*file_write)(output, output_length, file);
   // Free the stolen output.
   free(output);

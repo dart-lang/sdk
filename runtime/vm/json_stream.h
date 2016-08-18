@@ -97,7 +97,7 @@ class JSONStream : ValueObject {
   TextBuffer* buffer() { return &buffer_; }
   const char* ToCString() { return buffer_.buf(); }
 
-  void Steal(const char** buffer, intptr_t* buffer_length);
+  void Steal(char** buffer, intptr_t* buffer_length);
 
   void set_reply_port(Dart_Port port);
 

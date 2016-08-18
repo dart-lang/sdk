@@ -51,7 +51,17 @@ class WebSocketClient extends Client {
       return;
     }
     try {
-      socket.add(result);
+      if (result is String || result is Uint8List) {
+        socket.add(result);  // String or binary message.
+      } else {
+        // String message as external Uint8List.
+        assert(result is List);
+        Uint8List cstring = result[0];
+        // TODO(rmacnak): cstring may be large. Add a way to pass an encoded
+        // string to a web socket that will be sent as a text message to avoid
+        // the space overhead of converting cstring to a Dart string.
+        socket.add(UTF8.decode(cstring));
+      }
     } catch (_) {
       print("Ignoring error posting over WebSocket.");
     }
@@ -79,14 +89,21 @@ class HttpRequestClient extends Client {
     close();
   }
 
-  void post(String result) {
+  void post(dynamic result) {
     if (result == null) {
       close();
       return;
     }
-    request.response..headers.contentType = jsonContentType
-                    ..write(result)
-                    ..close();
+    HttpResponse response = request.response;
+    response.headers.contentType = jsonContentType;
+    if (result is String) {
+      response.write(result);
+    } else {
+      assert(result is List);
+      Uint8List cstring = result[0];  // Already in UTF-8.
+      response.add(cstring);
+    }
+    response.close();
     close();
   }
 

@@ -29,6 +29,7 @@
 #include "vm/port.h"
 #include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
+#include "vm/safepoint.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
 #include "vm/source_report.h"
@@ -838,6 +839,7 @@ void Service::InvokeMethod(Isolate* I,
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
+  ASSERT(T->execution_state() == Thread::kThreadInVM);
   ASSERT(!msg.IsNull());
   ASSERT(msg.Length() == 6);
 
@@ -1195,8 +1197,12 @@ void Service::EmbedderHandleMessage(EmbedderServiceHandler* handler,
   Dart_ServiceRequestCallback callback = handler->callback();
   ASSERT(callback != NULL);
   const char* response = NULL;
-  bool success = callback(js->method(), js->param_keys(), js->param_values(),
-                          js->num_params(), handler->user_data(), &response);
+  bool success;
+  {
+    TransitionVMToNative transition(Thread::Current());
+    success = callback(js->method(), js->param_keys(), js->param_values(),
+                       js->num_params(), handler->user_data(), &response);
+  }
   ASSERT(response != NULL);
   if (!success) {
     js->SetupError();

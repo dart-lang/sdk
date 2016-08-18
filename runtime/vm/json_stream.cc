@@ -4,12 +4,14 @@
 
 #include "platform/assert.h"
 
+#include "include/dart_native_api.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/json_stream.h"
 #include "vm/message.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
+#include "vm/safepoint.h"
 #include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/timeline.h"
@@ -193,15 +195,16 @@ void JSONStream::PrintError(intptr_t code,
 }
 
 
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-
 void JSONStream::PostNullReply(Dart_Port port) {
   PortMap::PostMessage(new Message(
       port, Object::null(), Message::kNormalPriority));
+}
+
+
+static void Finalizer(void* isolate_callback_data,
+                      Dart_WeakPersistentHandle handle,
+                      void* buffer) {
+  free(buffer);
 }
 
 
@@ -226,15 +229,33 @@ void JSONStream::PostReply() {
   }
   buffer_.AddChar('}');
 
-  const String& reply = String::Handle(String::New(ToCString()));
-  ASSERT(!reply.IsNull());
+  char* cstr;
+  intptr_t length;
+  Steal(&cstr, &length);
 
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(reply);
-  bool result = PortMap::PostMessage(new Message(port, data,
-                                                 writer.BytesWritten(),
-                                                 Message::kNormalPriority));
+  bool result;
+  {
+    TransitionVMToNative transition(Thread::Current());
+    Dart_CObject bytes;
+    bytes.type = Dart_CObject_kExternalTypedData;
+    bytes.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+    bytes.value.as_external_typed_data.length = length;
+    bytes.value.as_external_typed_data.data = reinterpret_cast<uint8_t*>(cstr);
+    bytes.value.as_external_typed_data.peer = cstr;
+    bytes.value.as_external_typed_data.callback = Finalizer;
+    Dart_CObject* elements[1];
+    elements[0] = &bytes;
+    Dart_CObject message;
+    message.type = Dart_CObject_kArray;
+    message.value.as_array.length = 1;
+    message.value.as_array.values = elements;
+    result = Dart_PostCObject(port, &message);
+  }
+
+  if (!result) {
+    free(cstr);
+  }
+
   if (FLAG_trace_service) {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
@@ -672,7 +693,7 @@ void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
 }
 
 
-void JSONStream::Steal(const char** buffer, intptr_t* buffer_length) {
+void JSONStream::Steal(char** buffer, intptr_t* buffer_length) {
   ASSERT(buffer != NULL);
   ASSERT(buffer_length != NULL);
   *buffer_length = buffer_.length();
