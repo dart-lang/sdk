@@ -6,7 +6,7 @@ library dart2js.resolution.members;
 
 import '../common.dart';
 import '../common/names.dart' show Selectors;
-import '../common/resolution.dart' show Feature, Resolution;
+import '../common/resolution.dart' show Resolution;
 import '../compile_time_constants.dart';
 import '../constants/constructors.dart'
     show RedirectingFactoryConstantConstructor;
@@ -30,6 +30,7 @@ import '../options.dart';
 import '../tokens/token.dart' show isUserDefinableOperator;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/feature.dart' show Feature;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart' show Link;

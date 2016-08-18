@@ -17,10 +17,7 @@ import '../common/names.dart' show Identifiers, Selectors, Uris;
 import '../common/registry.dart' show EagerRegistry, Registry;
 import '../common/resolution.dart'
     show
-        Feature,
         Frontend,
-        ListLiteralUse,
-        MapLiteralUse,
         Resolution,
         ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
@@ -55,6 +52,7 @@ import '../universe/selector.dart' show Selector, SelectorKind;
 import '../universe/universe.dart';
 import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+import '../universe/feature.dart';
 import '../universe/world_impact.dart'
     show
         ImpactStrategy,

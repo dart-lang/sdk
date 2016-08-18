@@ -6479,7 +6479,7 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 
 \begin{grammar}
 {\bf assertStatement:}
-   assert `(' conditionalExpression `)' `{\escapegrammar ;}'
+   assert `(' expression `)' `{\escapegrammar ;}'
       .
 \end{grammar}
 
@@ -6487,7 +6487,7 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 The assert statement has no effect in production mode. In checked mode, execution of an assert statement \code{\ASSERT{}($e$);} proceeds as follows:
 
 \LMHash{}
-The conditional expression $e$ is evaluated to an object $o$. If the class of $o$ is a subtype of \code{Function} then let $r$ be the result of invoking $o$ with no arguments. Otherwise, let $r$ be $o$.
+The expression $e$ is evaluated to an object $o$. If the class of $o$ is a subtype of \code{Function} then let $r$ be the result of invoking $o$ with no arguments. Otherwise, let $r$ be $o$.
 It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Function}, or if $r$ is not of type \code{bool}.  If $r$ is \FALSE{}, we say that the assertion failed. If $r$ is \TRUE{}, we say that the assertion succeeded. If the assertion succeeded, execution of the assert statement is complete. If the assertion failed, an \code{AssertionError} is thrown.
 
 %\Q{Might be cleaner to define it as \code{if (!$e$) \{\THROW{} \NEW{} AssertionError();\}} (in checked mode only).

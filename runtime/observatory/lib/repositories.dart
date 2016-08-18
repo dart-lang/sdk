@@ -7,12 +7,14 @@ library repositories;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
+import 'package:observatory/allocation_profile.dart';
 import 'package:observatory/cpu_profile.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/service_common.dart' as SC;
 import 'package:observatory/utils.dart';
 
+part 'src/repositories/allocation_profile.dart';
 part 'src/repositories/class.dart';
 part 'src/repositories/event.dart';
 part 'src/repositories/flag.dart';

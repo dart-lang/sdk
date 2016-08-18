@@ -19,13 +19,15 @@ class FunctionRefMock implements M.FunctionRef {
 class FunctionMock implements M.Function {
   final String id;
   final String name;
+  final M.ClassRef clazz;
+  final int size;
   final M.ObjectRef dartOwner;
   final bool isStatic;
   final bool isConst;
   final M.FunctionKind kind;
   final M.SourceLocation location;
   final M.CodeRef code;
-  const FunctionMock({this.id, this.name, this.dartOwner,
+  const FunctionMock({this.id, this.name, this.clazz, this.size, this.dartOwner,
       this.isStatic : false, this.isConst : false, this.kind, this.location,
       this.code});
 }

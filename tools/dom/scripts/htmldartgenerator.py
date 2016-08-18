@@ -83,7 +83,8 @@ class HtmlDartGenerator(object):
     element_type = None
     requires_indexer = False
     if self._interface_type_info.list_item_type():
-      self.AddIndexer(self._interface_type_info.list_item_type())
+      self.AddIndexer(self._interface_type_info.list_item_type(),
+                      self._interface_type_info.list_item_type_nullable())
     else:
       for parent in self._database.Hierarchy(self._interface):
         if parent == self._interface:
@@ -759,7 +760,7 @@ class HtmlDartGenerator(object):
              NAME=method_name,
              PARAMS=operation.ParametersAsDeclaration(self._DartType))
 
-  def EmitListMixin(self, element_name):
+  def EmitListMixin(self, element_name, nullable):
     # TODO(sra): Use separate mixins for mutable implementations of List<T>.
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     template_file = 'immutable_list_mixin.darttemplate'
@@ -795,7 +796,12 @@ class HtmlDartGenerator(object):
           'DEFINE_LENGTH_SETTER': not has_length_setter,
           'USE_NATIVE_INDEXED_GETTER': _HasNativeIndexedGetter(self) or _HasExplicitIndexedGetter(self),
         })
-    self._members_emitter.Emit(template, E=element_name, GETTER=getter_name)
+    if nullable:
+        element_js = element_name + "|Null"
+    else:
+        element_js = element_name
+    self._members_emitter.Emit(template, E=element_name, EJS=element_js,
+                               GETTER=getter_name)
 
   def SecureOutputType(self, type_name, is_dart_type=False,
       can_narrow_type=False):
@@ -870,7 +876,7 @@ class HtmlDartGenerator(object):
         else:
           param_type = self._NarrowInputType(arg.type.id)
           # Verified by argument checking on entry to the dispatcher.
-  
+
           verified_type = self._InputType(
               info.param_infos[position].type_id, info)
           # The native method does not need an argument type if we know the type.

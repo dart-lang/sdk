@@ -8,6 +8,17 @@ import '../elements/elements.dart' show Element;
 import '../util/util.dart' show Setlet;
 import 'use.dart' show DynamicUse, StaticUse, TypeUse;
 
+/// Describes how an element (e.g. a method) impacts the closed-world
+/// semantics of a program.
+///
+/// A [WorldImpact] contains information about how a program element affects our
+/// understanding of what's live in a program. For example, it can indicate
+/// that a method uses a certain feature, or allocates a specific type.
+///
+/// The impact object can be computed locally by inspecting just the resolution
+/// information of that element alone. The compiler uses [Universe] and
+/// [ClassWorld] to combine the information discovered in the impact objects of
+/// all elements reachable in an application.
 class WorldImpact {
   const WorldImpact();
 

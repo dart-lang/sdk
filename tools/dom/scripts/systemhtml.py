@@ -838,7 +838,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         break
     return has_indexed_getter
 
-  def AddIndexer(self, element_type):
+  def AddIndexer(self, element_type, nullable):
     """Adds all the methods required to complete implementation of List."""
     # We would like to simply inherit the implementation of everything except
     # length, [], and maybe []=.  It is possible to extend from a base
@@ -861,8 +861,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     has_indexed_getter = self.HasIndexedGetter()
 
     if has_indexed_getter:
-      indexed_getter = ('JS("%s", "#[#]", this, index)' %
-          self.SecureOutputType(element_type));
+      indexed_getter = ('JS("%s%s", "#[#]", this, index)' %
+          (self.SecureOutputType(element_type), "|Null" if nullable else ""));
     elif any(op.id == 'getItem' for op in self._interface.operations):
       indexed_getter = 'this.getItem(index)'
     elif any(op.id == 'item' for op in self._interface.operations):
@@ -894,7 +894,7 @@ class Dart2JSBackend(HtmlDartGenerator):
           '  }\n',
           TYPE=self._NarrowInputType(element_type))
 
-    self.EmitListMixin(self._DartType(element_type))
+    self.EmitListMixin(self._DartType(element_type), nullable)
 
   def EmitAttribute(self, attribute, html_name, read_only):
     if self._HasCustomImplementation(attribute.id):

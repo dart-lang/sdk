@@ -15,6 +15,7 @@ typedef int TokenToInt(int token);
 
 class ScriptMock implements M.Script {
   final String id;
+  final M.ClassRef clazz;
   final int size;
   final String uri;
   final String source;
@@ -25,7 +26,7 @@ class ScriptMock implements M.Script {
   int tokenToLine(int token) => _tokenToLine(token);
   int tokenToCol(int token) => _tokenToCol(token);
 
-  const ScriptMock({this.id, this.size, this.uri, this.source,
+  const ScriptMock({this.id, this.clazz, this.size, this.uri, this.source,
       TokenToInt tokenToLine, TokenToInt tokenToCol})
     : _tokenToLine = tokenToLine,
       _tokenToCol = tokenToCol;

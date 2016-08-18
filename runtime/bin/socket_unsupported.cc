@@ -11,6 +11,10 @@
 namespace dart {
 namespace bin {
 
+bool short_socket_read = false;
+
+bool short_socket_write = false;
+
 void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Sockets unsupported on this platform"));

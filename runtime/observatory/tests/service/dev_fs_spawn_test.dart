@@ -5,6 +5,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
@@ -142,7 +143,7 @@ main(args, msg) {
     // Make sure that we are running code from the spawned isolate.
     result = await spawnedIsolate.rootLibrary.evaluate('proofOfLife()');
     expect(result.type, equals('Instance'));
-    expect(result.kind, equals('String'));
+    expect(result.kind, equals(M.InstanceKind.string));
     expect(result.valueAsString, equals('I live!'));
 
     // Spawn the script with arguments.
@@ -173,7 +174,7 @@ main(args, msg) {
     // Make sure that we are running code from the spawned isolate.
     result = await spawnedIsolate.rootLibrary.evaluate('proofOfLife()');
     expect(result.type, equals('Instance'));
-    expect(result.kind, equals('String'));
+    expect(result.kind, equals(M.InstanceKind.string));
     expect(result.valueAsString, equals('I live, [one, two, three]!'));
 
     // Spawn the script with arguments and message
@@ -205,7 +206,7 @@ main(args, msg) {
     // Make sure that we are running code from the spawned isolate.
     result = await spawnedIsolate.rootLibrary.evaluate('proofOfLife()');
     expect(result.type, equals('Instance'));
-    expect(result.kind, equals('String'));
+    expect(result.kind, equals(M.InstanceKind.string));
     expect(result.valueAsString, equals('I live, [A, B, C], test!'));
 
     // Delete the fs.

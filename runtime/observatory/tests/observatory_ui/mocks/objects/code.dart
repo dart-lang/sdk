@@ -16,8 +16,11 @@ class CodeRefMock implements M.CodeRef {
 class CodeMock implements M.Code {
   final String id;
   final String name;
+  final M.ClassRef clazz;
+  final int size;
   final M.CodeKind kind;
   final bool isOptimized;
 
-  const CodeMock({this.id, this.name, this.kind, this.isOptimized: false });
+  const CodeMock({this.id, this.name, this.clazz, this.size, this.kind,
+                  this.isOptimized: false });
 }

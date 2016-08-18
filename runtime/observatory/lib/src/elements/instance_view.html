@@ -2,11 +2,8 @@
 <link rel="import" href="error_view.html">
 <link rel="import" href="eval_box.html">
 <link rel="import" href="eval_link.html">
-<link rel="import" href="field_ref.html">
 <link rel="import" href="inbound_reference.html">
-<link rel="import" href="instance_ref.html">
 <link rel="import" href="object_common.html">
-<link rel="import" href="context_ref.html">
 
 <polymer-element name="instance-view">
   <template>
@@ -195,10 +192,10 @@
               <template repeat="{{ field in instance.fields }}">
                 <div class="memberItem">
                   <div class="memberName">
-                    <field-ref ref="{{ field['decl'] }}"></field-ref>
+                    <field-ref ref="{{ field.decl }}"></field-ref>
                   </div>
                   <div class="memberValue">
-                    <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
+                    <any-service-ref ref="{{ field.value }}"></any-service-ref>
                   </div>
                 </div>
               </template>
@@ -238,10 +235,10 @@
               <template repeat="{{ association in instance.associations }}">
                 <div class="memberItem">
                   <div class="memberValue">
-                    [<any-service-ref ref="{{ association['key'] }}"></any-service-ref>]
+                    [<any-service-ref ref="{{ association.key }}"></any-service-ref>]
                   </div>
                   <div class="memberValue">
-                    <any-service-ref ref="{{ association['value'] }}"></any-service-ref>
+                    <any-service-ref ref="{{ association.value }}"></any-service-ref>
                   </div>
                 </div>
               </template>

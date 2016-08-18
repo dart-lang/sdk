@@ -2776,6 +2776,46 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat7) {
   EXPECT_VALID(lib);
 }
 
+
+// Regression for handle sharing bug: Change the shape of two classes and see
+// that their instances don't change class.
+TEST_CASE(IsolateReload_ChangeInstanceFormat8) {
+  const char* kScript =
+      "class A{\n"
+      "  var x;\n"
+      "}\n"
+      "class B {\n"
+      "  var x, y, z, w;\n"
+      "}\n"
+      "var a, b;\n"
+      "main() {\n"
+      "  a = new A();\n"
+      "  b = new B();\n"
+      "  return '$a $b';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of 'A' Instance of 'B'", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class A{\n"
+      "  var x, y;\n"
+      "}\n"
+      "class B {\n"
+      "  var x, y, z, w, v;\n"
+      "}\n"
+      "var a, b;\n"
+      "main() {\n"
+      "  return '$a $b';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of 'A' Instance of 'B'", SimpleInvokeStr(lib, "main"));
+}
+
+
 static bool NothingModifiedCallback(const char* url, int64_t since) {
   return false;
 }

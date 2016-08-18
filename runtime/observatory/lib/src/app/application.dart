@@ -25,6 +25,7 @@ class ObservatoryApplication extends Observable {
       return;
     }
     if (_vm != null) {
+      _gcSubscription = null;
       // Disconnect from current VM.
       notifications.deleteAll();
       _vm.disconnect();
@@ -51,6 +52,25 @@ class ObservatoryApplication extends Observable {
     }
     _vm = vm;
   }
+
+  StreamSubscription _gcSubscription;
+
+  Future startGCEventListener() async {
+    if (_gcSubscription != null || _vm == null) {
+      return;
+    }
+    _gcSubscription = await _vm.listenEventStream(VM.kGCStream, _onEvent);
+  }
+
+  Future stopGCEventListener() async {
+    if (_gcSubscription == null) {
+      return;
+    }
+    _gcSubscription.cancel();
+    _gcSubscription = null;
+  }
+
+
   @reflectable final ObservatoryApplicationElement rootElement;
 
   TraceViewElement _traceView = null;
@@ -137,6 +157,9 @@ class ObservatoryApplication extends Observable {
       case ServiceEvent.kInspect:
         e = new InspectEvent(event.timestamp, event.isolate,
             event.inspectee);
+        break;
+      case ServiceEvent.kGC:
+        e = new GCEvent(event.timestamp, event.isolate);
         break;
       default:
         // Ignore unrecognized events.

@@ -22,6 +22,7 @@ import '../resolution/tree_elements.dart';
 import '../tokens/token.dart';
 import '../tree/nodes.dart';
 import '../universe/selector.dart';
+import '../universe/feature.dart';
 import '../universe/use.dart';
 import '../util/util.dart';
 import 'resolved_ast_serialization.dart';

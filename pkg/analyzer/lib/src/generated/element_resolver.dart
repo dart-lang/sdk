@@ -2216,8 +2216,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   Element _resolveInvokedElementWithTarget(Expression target,
       DartType targetType, SimpleIdentifier methodName, bool isConditional) {
+    String name = methodName.name;
     if (targetType is InterfaceType) {
-      Element element = _lookUpMethod(target, targetType, methodName.name);
+      Element element = _lookUpMethod(target, targetType, name);
       if (element == null) {
         //
         // If there's no method, then it's possible that 'm' is a getter that
@@ -2225,13 +2226,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         //
         // TODO (collinsn): need to add union type support here too, in the
         // style of [lookUpMethod].
-        element = _lookUpGetter(target, targetType, methodName.name);
+        element = _lookUpGetter(target, targetType, name);
       }
       return element;
+    } else if (targetType is FunctionType &&
+        _resolver.typeProvider.isObjectMethod(name)) {
+      return _resolver.typeProvider.objectType.element.getMethod(name);
     } else if (target is SimpleIdentifier) {
       Element targetElement = target.staticElement;
       if (targetType is FunctionType &&
-          methodName.name == FunctionElement.CALL_METHOD_NAME) {
+          name == FunctionElement.CALL_METHOD_NAME) {
         return targetElement;
       }
       if (targetElement is PrefixElement) {

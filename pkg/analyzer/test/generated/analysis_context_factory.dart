@@ -212,7 +212,10 @@ class AnalysisContextFactory {
         futureThenR = ElementFactory.typeParameterWithType('R');
       }
       FunctionElementImpl thenOnValue = ElementFactory.functionElement3(
-          'onValue', futureThenR, [futureElement.typeParameters[0]], null);
+          'onValue',
+          DynamicElementImpl.instance,
+          [futureElement.typeParameters[0]],
+          null);
       thenOnValue.synthetic = true;
 
       DartType futureRType = futureElement.type.instantiate([futureThenR.type]);

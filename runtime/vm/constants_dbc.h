@@ -162,6 +162,15 @@ namespace dart {
 //
 //    Invoke native function SP[-1] with argc_tag SP[0].
 //
+//  - PushPolymorphicInstanceCall ArgC, D
+//
+//    Skips 2*D + 1 instructions and pushes a function object onto the stack
+//    if one can be found as follows. Otherwise skips only 2*D instructions.
+//    The function is looked up in the IC data encoded in the following 2*D
+//    Nop instructions. The Nop instructions should be arranged in pairs with
+//    the first being the cid, and the second being the function to push if
+//    the cid is the cid of the receiver found at SP[-(1 + ArgC)].
+//
 //  - OneByteStringFromCharCode rA, rX
 //
 //    Load the one-character symbol with the char code given by the Smi
@@ -565,6 +574,7 @@ namespace dart {
   V(InstanceCall2,                 A_D, num, num, ___) \
   V(InstanceCall1Opt,              A_D, num, num, ___) \
   V(InstanceCall2Opt,              A_D, num, num, ___) \
+  V(PushPolymorphicInstanceCall,   A_D, num, num, ___) \
   V(NativeCall,                      0, ___, ___, ___) \
   V(NativeBootstrapCall,             0, ___, ___, ___) \
   V(OneByteStringFromCharCode,     A_X, reg, xeg, ___) \
@@ -790,7 +800,11 @@ typedef int16_t Register;
 
 const int16_t FPREG = 0;
 const int16_t SPREG = 1;
+#if defined(ARCH_IS_64_BIT)
+const intptr_t kNumberOfCpuRegisters = 64;
+#else
 const intptr_t kNumberOfCpuRegisters = 32;
+#endif
 const intptr_t kDartAvailableCpuRegs = -1;
 const intptr_t kNoRegister = -1;
 const intptr_t kReservedCpuRegisters = 0;

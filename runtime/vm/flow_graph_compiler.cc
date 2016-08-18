@@ -990,12 +990,15 @@ void FlowGraphCompiler::EmitDeopt(intptr_t deopt_id,
                                   uint32_t flags) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
+  // The pending deoptimization environment may be changed after this deopt is
+  // emitted, so we need to make a copy.
+  Environment* env_copy =
+      pending_deoptimization_env_->DeepCopy(zone());
   CompilerDeoptInfo* info =
       new(zone()) CompilerDeoptInfo(deopt_id,
                                     reason,
                                     flags,
-                                    pending_deoptimization_env_);
-
+                                    env_copy);
   deopt_infos_.Add(info);
   assembler()->Deopt(0, /*is_eager =*/ 1);
   info->set_pc_offset(assembler()->CodeSize());

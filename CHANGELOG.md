@@ -8,13 +8,68 @@
  reordering lines. For details, see SDK issue
  [26644](https://github.com/dart-lang/sdk/issues/26644).
 
-### Core library changes
+### Tool Changes
 
-* `dart:io`
-  * `Socket.connect` with source-address argument is now non-blocking
-    on Mac. Was already non-blocking on all other platforms.
-  * Report a better error when a bind fails because of a bad source address.
-  * Handle HTTP header `charset` parameter with empty value.
+* `dartfmt` - upgraded to v0.2.9+1
+  * Support trailing commas in argument and parameter lists.
+  * Gracefully handle read-only files.
+  * About a dozen other bug fixes.
+
+* Pub
+  * Added a `--no-packages-dir` flag to `pub get`, `pub upgrade`, and `pub
+    downgrade`. When this flag is passed, pub will not generate a `packages/`
+    directory, and will remove that directory and any symlinks to it if they
+    exist. Note that this replaces the unsupported `--no-package-symlinks` flag.
+
+  * Added the ability for packages to declare a constraint on the [Flutter][]
+    SDK:
+
+    ```yaml
+    environment:
+      flutter: ^0.1.2
+      sdk: >=1.19.0 <2.0.0
+    ```
+
+    A Flutter constraint will only be satisfiable when pub is running in the
+    context of the `flutter` executable, and when the Flutter SDK version
+    matches the constraint.
+
+  * Added `sdk` as a new package source that fetches packages from a hard-coded
+    SDK. Currently only the `flutter` SDK is supported:
+
+    ```yaml
+    dependencies:
+      flutter_driver:
+        sdk: flutter
+        version: ^0.0.1
+    ```
+
+    A Flutter `sdk` dependency will only be satisfiable when pub is running in
+    the context of the `flutter` executable, and when the Flutter SDK contains a
+    package with the given name whose version matches the constraint.
+
+  * `tar` files on Linux are now created with `0` as the user and group IDs.
+    This fixes a crash when publishing packages while using Active Directory.
+
+  * Fixed a bug where packages from a hosted HTTP URL were considered the same
+    as packages from an otherwise-identical HTTPS URL.
+
+  * Fixed timer formatting for timers that lasted longer than a minute.
+
+  * Eliminate some false negatives when determining whether global executables
+    are on the user's executable path.
+
+* `dart2js`
+  * `dart2dart` (aka `dart2js --output-type=dart`) has been removed (this was deprecated in Dart 1.11).
+
+[Flutter]: https://flutter.io/
+
+### Dart VM
+
+*   The dependency on BoringSSL has been rolled forward. Going forward, builds
+    of the Dart VM including secure sockets will require a compiler with C++11
+    support. For details, see the
+    [Building wiki page](https://github.com/dart-lang/sdk/wiki/Building).
 
 ### Strong Mode
 
@@ -89,57 +144,6 @@
 * Breaking change - sideways casts are no longer allowed
     (SDK issue [26120](https://github.com/dart-lang/sdk/issues/26120)).
 
-### Dart VM
-
-*   The dependency on BoringSSL has been rolled forward. Going forward, builds
-    of the Dart VM including secure sockets will require a compiler with C++11
-    support, and to link against glibc 2.16 or newer. For details, see the
-    [Building wiki page](https://github.com/dart-lang/sdk/wiki/Building).
-
-### Tool Changes
-
-* `dartfmt` - upgraded to v0.2.9
-  * Support trailing commas in argument and parameter lists.
-  * Gracefully handle read-only files.
-  * About a dozen other bug fixes.
-
-* Pub
-  * Added the ability for packages to declare a constraint on the [Flutter][]
-    SDK:
-
-        environment:
-          flutter: ^0.1.2
-          sdk: >=1.19.0 <2.0.0
-
-    A Flutter constraint will only be satisfiable when pub is running in the
-    context of the `flutter` executable, and when the Flutter SDK version
-    matches the constraint.
-
-  * Added `sdk` as a new package source that fetches packages from a hard-coded
-    SDK. Currently only the `flutter` SDK is supported:
-
-        dependencies:
-          flutter_driver:
-            sdk: flutter
-            version: ^0.0.1
-
-    A Flutter `sdk` dependency will only be satisfiable when pub is running in
-    the context of the `flutter` executable, and when the Flutter SDK contains a
-    package with the given name whose version matches the constraint.
-
-  * Fixed a bug where packages from a hosted HTTP URL were considered the same
-    as packages from an otherwise-identical HTTPS URL.
-
-  * Fixed timer formatting for timers that lasted longer than a minute.
-
-  * Eliminate some false negatives when determining whether global executables
-    are on the user's executable path.
-
-* dart2dart (aka `dart2js --output-type=dart`) has been removed (this was
-  deprecated in Dart 1.11)
-
-[Flutter]: https://flutter.io/
-
 ## 1.18.1 - 2016-08-02
 
 Patch release, resolves two issues and improves performance:
@@ -157,6 +161,9 @@ Patch release, resolves two issues and improves performance:
 
 ### Core library changes
 
+* `dart:core`
+  * Improved performance when parsing some common URIs.
+  * Fixed bug in `Uri.resolve` (SDK issue [26804](https://github.com/dart-lang/sdk/issues/26804)).
 * `dart:io`
   * Adds file locking modes `FileLock.BLOCKING_SHARED` and
     `FileLock.BLOCKING_EXCLUSIVE`.

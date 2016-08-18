@@ -117,9 +117,7 @@ class ReasonForCancelling : public ZoneAllocated {
 // Abstract class for also capturing the from_ and to_ class.
 class ClassReasonForCancelling : public ReasonForCancelling {
  public:
-  ClassReasonForCancelling(Zone* zone, const Class& from, const Class& to)
-      : ReasonForCancelling(zone), from_(from), to_(to) { }
-
+  ClassReasonForCancelling(Zone* zone, const Class& from, const Class& to);
   void AppendTo(JSONArray* array);
 
  protected:

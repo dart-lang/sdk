@@ -370,6 +370,154 @@ select, button, input {
   -webkit-animation: shake 0.5s;
 }
 
+/* allocation-profile */
+
+allocation-profile .heap-space {
+  display: inline-block;
+  width: 50%;
+}
+
+allocation-profile .heap-space.right,
+allocation-profile .heap-space.right .memberList,
+allocation-profile .heap-space.right .legend * {
+  direction: rtl;
+}
+
+allocation-profile .heap-space.right * {
+  direction: ltr;
+  text-align: right;
+}
+
+allocation-profile div.chart {
+  display: block;
+  position: relative;
+  height: 150px;
+}
+allocation-profile div.chart > div.host {
+  display: inline-block;
+  position: absolute;
+  bottom: 0px;
+  top: 0;
+}
+allocation-profile div.chart > div.legend {
+  position: absolute;
+  width: 150px;
+  top: 25px;
+  bottom: 0;
+  overflow-y: auto;
+}
+allocation-profile .heap-space.left div.host {
+  left: 200px;
+  width: 180px;
+}
+allocation-profile .heap-space.right div.host {
+  right: 150px;
+  width: 180px;
+}
+allocation-profile .heap-space.left div.legend {
+  left: 0;
+}
+allocation-profile .heap-space.right div.legend {
+  right: 0;
+}
+
+allocation-profile .collection {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 560px;
+}
+
+allocation-profile .collection-item {
+  box-sizing: border-box;
+  line-height: 20px;
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+allocation-profile .header .collection-item:last-child {
+  margin-bottom: -3px;
+  border-bottom: solid 1px #AAAAAA;
+}
+
+allocation-profile .header .collection-item span {
+  font-weight: bolder;
+}
+
+allocation-profile .collection-item :nth-child(2n+2).group,
+allocation-profile .collection-item :nth-child(4n+3).bytes,
+allocation-profile .collection-item :nth-child(4n+3).instances,
+allocation-profile .collection-item :nth-child(4n+4).bytes,
+allocation-profile .collection-item :nth-child(4n+4).instances {
+  background-color: #EEEEEE;
+}
+
+allocation-profile .collection-item:hover :nth-child(2n+2).group,
+allocation-profile .collection-item:hover :nth-child(4n+3).bytes,
+allocation-profile .collection-item:hover :nth-child(4n+3).instances,
+allocation-profile .collection-item:hover :nth-child(4n+4).bytes,
+allocation-profile .collection-item:hover :nth-child(4n+4).instances {
+  background-color: #afd5fd;
+}
+
+allocation-profile .header .collection-item :nth-child(2n+2).group,
+allocation-profile .header .collection-item :nth-child(4n+3).bytes,
+allocation-profile .header .collection-item :nth-child(4n+3).instances,
+allocation-profile .header .collection-item :nth-child(4n+4).bytes,
+allocation-profile .header .collection-item :nth-child(4n+4).instances {
+  background-color: #DDDDDD;
+}
+
+allocation-profile .scroller .collection-item:hover {
+  background-color: #d2e7fe;
+}
+
+allocation-profile .collection-item .group {
+  background-color: white;
+  display: inline-block;
+  width: 12em;
+  text-align: right;
+  padding-right: 0.5em;
+  line-height: 20px;
+  border-right: solid 1px #AAAAAA;
+}
+
+allocation-profile .collection-item .bytes {
+  background-color: white;
+  display: inline-block;
+  width: 6em;
+  text-align: right;
+  line-height: 20px;
+  padding-right: 0.5em;
+}
+
+allocation-profile .collection-item .instances {
+  background-color: white;
+  display: inline-block;
+  width: 6em;
+  text-align: right;
+  padding-right: 0.5em;
+  line-height: 20px;
+  border-right: solid 1px #AAAAAA;
+}
+
+allocation-profile .collection-item .name {
+  background-color: white;
+  padding-left: 0.5em;
+}
+
+allocation-profile .collection-item > button,
+allocation-profile .collection-item > button:active {
+  background-color: transparent;
+  color: #0489c3;
+  border-style: none;
+}
+
+allocation-profile .collection-item > button:hover {
+  text-decoration: underline;
+}
+
 /* class-ref */
 /* TODO(cbernaschina) fix class-ref-wrapped to class-ref when wrapper
 removed */
@@ -518,6 +666,29 @@ function-ref-wrapped > a[href] {
   text-decoration: none;
 }
 
+/* instance-ref */
+/* TODO(cbernaschina) fix instance-ref-wrapped to instance-ref when wrapper
+removed */
+
+instance-ref-wrapped .empathize {
+  font-style: italic;
+}
+instance-ref-wrapped .indent {
+  margin-left: 1.5em;
+  font: 400 14px 'Montserrat', sans-serif;
+  line-height: 150%;
+}
+instance-ref-wrapped .stackTraceBox {
+  margin-left: 1.5em;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: consolas, courier, monospace;
+  font-size: 12px;
+  white-space: pre;
+  overflow-x: auto;
+}
+
 /* isolate-counter-chart */
 
 isolate-counter-chart {
@@ -602,6 +773,16 @@ library-ref-wrapped > a[href]:hover {
 library-ref-wrapped > a[href] {
   color: #0489c3;
   text-decoration: none;
+}
+
+.nav-option {
+  float: right;
+  margin: 3px;
+  padding: 8px;
+}
+
+.nav-option label {
+  color: white;
 }
 
 /* nav-notify */
@@ -812,10 +993,19 @@ view-footer > a {
 /* virtual-collection */
 
 virtual-collection {
+  position: relative;
   display: block;
-  overflow-y: scroll;
+  overflow-y: auto;
   width: 100%;
   height: 100%;
+}
+
+virtual-collection .header {
+  background: white;
+  position: relative;
+  display: inline-block;
+  min-width: 100%;
+  z-index: +1;
 }
 
 virtual-collection .scroller {
@@ -832,6 +1022,7 @@ virtual-collection .shifter {
   min-width: 100%;
 }
 
+virtual-collection .header > *,
 virtual-collection .shifter > * {
   display: inline-block;
   min-width: 100%;

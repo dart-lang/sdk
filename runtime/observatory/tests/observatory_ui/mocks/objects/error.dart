@@ -13,8 +13,9 @@ class ErrorRefMock implements M.ErrorRef {
 
 class ErrorMock implements M.Error {
   final String id;
+  final M.ClassRef clazz;
+  final int size;
   final M.ErrorKind kind;
   final String message;
-  final int size;
-  const ErrorMock({this.id, this.kind, this.message, this.size});
+  const ErrorMock({this.id, this.clazz, this.size, this.kind, this.message});
 }

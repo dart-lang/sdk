@@ -9,8 +9,8 @@ import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:isolate/isolate_runner.dart';
 import 'package:path/path.dart';
@@ -85,9 +85,7 @@ class PhysicalResourceProvider implements ResourceProvider {
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
-    List<String> paths = sources
-        .map((source) => source is FileBasedSource ? source.fullName : null)
-        .toList();
+    List<String> paths = sources.map((source) => source.fullName).toList();
     IsolateRunner runner = await pathsToTimesIsolateProvider.get();
     return runner.run(_pathsToTimes, paths);
   }
@@ -140,12 +138,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
 
   @override
   Source createSource([Uri uri]) {
-    io.File file = _entry as io.File;
-    JavaFile javaFile = new JavaFile(file.absolute.path);
-    if (uri == null) {
-      uri = javaFile.toURI();
-    }
-    return new FileBasedSource(javaFile, uri);
+    return new FileSource(this, uri ?? pathContext.toUri(path));
   }
 
   @override
@@ -298,6 +291,11 @@ abstract class _PhysicalResource implements Resource {
 
   @override
   String get path => _entry.absolute.path;
+
+  /**
+   * Return the path context used by this resource provider.
+   */
+  Context get pathContext => io.Platform.isWindows ? windows : posix;
 
   @override
   String get shortName => absolutePathContext.basename(path);

@@ -5,7 +5,7 @@
 library dart2js.resolution.class_hierarchy;
 
 import '../common.dart';
-import '../common/resolution.dart' show Feature, Resolution;
+import '../common/resolution.dart' show Resolution;
 import '../core_types.dart' show CoreClasses, CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
@@ -20,6 +20,7 @@ import '../elements/modelx.dart'
 import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/feature.dart' show Feature;
 import '../util/util.dart' show Link, Setlet;
 import 'enum_creator.dart';
 import 'members.dart' show lookupInScope;

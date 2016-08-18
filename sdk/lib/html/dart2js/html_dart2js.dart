@@ -17673,6 +17673,8 @@ class Gamepad extends Interceptor {
 
   @DomName('Gamepad.buttons')
   @DocsEditable()
+  @Creates('JSExtendableArray|GamepadButton')
+  @Returns('JSExtendableArray')
   final List<GamepadButton> buttons;
 
   @DomName('Gamepad.connected')
@@ -37900,7 +37902,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.index(index, this);
-    return JS("Gamepad", "#[#]", this, index);
+    return JS("Gamepad|Null", "#[#]", this, index);
   }
   void operator[]=(int index, Gamepad value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -37915,7 +37917,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
 
   Gamepad get first {
     if (this.length > 0) {
-      return JS('Gamepad', '#[0]', this);
+      return JS('Gamepad|Null', '#[0]', this);
     }
     throw new StateError("No elements");
   }
@@ -37923,7 +37925,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
   Gamepad get last {
     int len = this.length;
     if (len > 0) {
-      return JS('Gamepad', '#[#]', this, len - 1);
+      return JS('Gamepad|Null', '#[#]', this, len - 1);
     }
     throw new StateError("No elements");
   }
@@ -37931,7 +37933,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
   Gamepad get single {
     int len = this.length;
     if (len == 1) {
-      return JS('Gamepad', '#[0]', this);
+      return JS('Gamepad|Null', '#[0]', this);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");

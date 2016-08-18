@@ -9,8 +9,8 @@ import 'dart:collection';
 import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
@@ -279,10 +279,6 @@ class _MemoryDummyLink extends _MemoryResource implements File {
     return stamp;
   }
 
-  String get _content {
-    throw new FileSystemException(path, 'File could not be read');
-  }
-
   @override
   Source createSource([Uri uri]) {
     throw new FileSystemException(path, 'File could not be read');
@@ -341,20 +337,10 @@ class _MemoryFile extends _MemoryResource implements File {
     return stamp;
   }
 
-  String get _content {
-    String content = _provider._pathToContent[path];
-    if (content == null) {
-      throw new FileSystemException(path, 'File "$path" does not exist.');
-    }
-    return content;
-  }
-
   @override
   Source createSource([Uri uri]) {
-    if (uri == null) {
-      uri = _provider.pathContext.toUri(path);
-    }
-    return new _MemoryFileSource(this, uri);
+    uri ??= _provider.pathContext.toUri(path);
+    return new FileSource(this, uri);
   }
 
   @override
@@ -397,95 +383,6 @@ class _MemoryFile extends _MemoryResource implements File {
   void writeAsBytesSync(List<int> bytes) {
     _provider._setFileBytes(this, bytes);
   }
-}
-
-/**
- * An in-memory implementation of [Source].
- */
-class _MemoryFileSource extends Source {
-  /**
-   * Map from encoded URI/filepath pair to a unique integer identifier.  This
-   * identifier is used for equality tests and hash codes.
-   *
-   * The URI and filepath are joined into a pair by separating them with an '@'
-   * character.
-   */
-  static final Map<String, int> _idTable = new HashMap<String, int>();
-
-  final _MemoryFile file;
-
-  @override
-  final Uri uri;
-
-  /**
-   * The unique ID associated with this [_MemoryFileSource].
-   */
-  final int id;
-
-  _MemoryFileSource(_MemoryFile file, Uri uri)
-      : uri = uri,
-        file = file,
-        id = _idTable.putIfAbsent('$uri@${file.path}', () => _idTable.length);
-
-  @override
-  TimestampedData<String> get contents {
-    return new TimestampedData<String>(modificationStamp, file._content);
-  }
-
-  @override
-  String get encoding {
-    return uri.toString();
-  }
-
-  @override
-  String get fullName => file.path;
-
-  @override
-  int get hashCode => id;
-
-  @override
-  bool get isInSystemLibrary => uriKind == UriKind.DART_URI;
-
-  @override
-  int get modificationStamp {
-    try {
-      return file.modificationStamp;
-    } on FileSystemException {
-      return -1;
-    }
-  }
-
-  @override
-  String get shortName => file.shortName;
-
-  @override
-  UriKind get uriKind {
-    String scheme = uri.scheme;
-    if (scheme == PackageUriResolver.PACKAGE_SCHEME) {
-      return UriKind.PACKAGE_URI;
-    } else if (scheme == DartUriResolver.DART_SCHEME) {
-      return UriKind.DART_URI;
-    } else if (scheme == ResourceUriResolver.FILE_SCHEME) {
-      return UriKind.FILE_URI;
-    }
-    return UriKind.FILE_URI;
-  }
-
-  @override
-  bool operator ==(other) {
-    if (other is _MemoryFileSource) {
-      return id == other.id;
-    } else if (other is Source) {
-      return uri == other.uri;
-    }
-    return false;
-  }
-
-  @override
-  bool exists() => file.exists;
-
-  @override
-  String toString() => file.toString();
 }
 
 /**

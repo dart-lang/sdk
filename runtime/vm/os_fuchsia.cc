@@ -10,7 +10,6 @@
 #include <errno.h>
 #include <magenta/syscalls.h>
 #include <magenta/types.h>
-#include <runtime/sysinfo.h>
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -152,7 +151,13 @@ bool OS::AllowStackFrameIteratorFromAnotherThread() {
 
 
 int OS::NumberOfAvailableProcessors() {
-  return mxr_get_nprocs_conf();
+  return sysconf(_SC_NPROCESSORS_CONF);
+}
+
+
+uintptr_t OS::MaxRSS() {
+  UNIMPLEMENTED();
+  return 0;
 }
 
 

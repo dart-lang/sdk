@@ -7,3 +7,4 @@
 
 [ $runtime == dartium ]
 isolate/*: Skip
+allocation_profile: Skip

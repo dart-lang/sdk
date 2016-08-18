@@ -263,6 +263,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       CascadeExpression exp = decl.initializer;
       return exp;
     }
+
     Element elementA = AstFinder.getClass(unit, "A").element;
 
     CascadeExpression cascade = fetch(0);
@@ -383,6 +384,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       FunctionExpression exp = decl.initializer;
       return exp.element.type;
     }
+
     _isFunction2Of(_isInt, _isString)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
@@ -411,6 +413,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       FunctionExpression exp = decl.initializer;
       return exp.element.type;
     }
+
     _isFunction2Of(_isInt, _isString)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
@@ -444,6 +447,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
         return (stmt as ReturnStatement).expression;
       }
     }
+
     Asserter<InterfaceType> assertListOfString = _isListOf(_isString);
     assertListOfString(functionReturnValue(0).staticType);
     assertListOfString(functionReturnValue(1).staticType);
@@ -474,6 +478,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       FunctionExpression exp = invk.argumentList.arguments[0];
       return exp.element.type;
     }
+
     _isFunction2Of(_isInt, _isString)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
@@ -504,6 +509,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       FunctionExpression exp = invk.argumentList.arguments[0];
       return exp.element.type;
     }
+
     _isFunction2Of(_isInt, _isString)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
@@ -532,6 +538,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       FunctionExpression exp = invk.argumentList.arguments[0];
       return exp.element.type;
     }
+
     _isFunction2Of(_isInt, _isString)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
@@ -560,6 +567,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       FunctionExpression exp = invk.argumentList.arguments[0];
       return exp.element.type;
     }
+
     _isFunction2Of(_isInt, _isString)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
@@ -590,6 +598,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       FunctionExpression exp = invk.argumentList.arguments[0];
       return exp.element.type;
     }
+
     _isFunction2Of(_isInt, _isString)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
@@ -620,6 +629,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       FunctionExpression exp = invk.argumentList.arguments[0];
       return exp.element.type;
     }
+
     _isFunction2Of(_isInt, _isString)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
@@ -654,6 +664,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
         return (stmt as ReturnStatement).expression;
       }
     }
+
     expect(functionReturnValue(0).staticType, typeProvider.intType);
     expect(functionReturnValue(1).staticType, typeProvider.intType);
     expect(functionReturnValue(2).staticType, typeProvider.intType);
@@ -1178,6 +1189,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
         return (stmt as ReturnStatement).expression;
       }
     }
+
     Asserter<InterfaceType> assertListOfString = _isListOf(_isString);
     assertListOfString(methodReturnValue("m0").staticType);
     assertListOfString(methodReturnValue("m1").staticType);
@@ -1307,6 +1319,16 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
     expectIdentifierType('topFieldTearOffInst', "(int) → int");
     expectIdentifierType('localTearOffInst', "(int) → int");
     expectIdentifierType('paramTearOffInst', "(int) → int");
+  }
+
+  void objectMethodOnFunctions_helper(String code) {
+    resolveTestUnit(code);
+    expectIdentifierType('t0', "String");
+    expectIdentifierType('t1', "() → String");
+    expectIdentifierType('t2', "int");
+    expectIdentifierType('t3', "String");
+    expectIdentifierType('t4', "() → String");
+    expectIdentifierType('t5', "int");
   }
 
   void setUp() {
@@ -1961,6 +1983,116 @@ void test() {
     expectIdentifierType('cc', "C<int, B<int>, B<dynamic>>");
   }
 
+  void test_objectMethodOnFunctions_Anonymous() {
+    String code = r'''
+void main() {
+  var f = (x) => 3;
+  // No errors, correct type
+  var t0 = f.toString();
+  var t1 = f.toString;
+  var t2 = f.hashCode;
+
+  // Expressions, no errors, correct type
+  var t3 = (f).toString();
+  var t4 = (f).toString;
+  var t5 = (f).hashCode;
+
+  // Cascades, no errors
+  f..toString();
+  f..toString;
+  f..hashCode;
+
+  // Expression cascades, no errors
+  (f)..toString();
+  (f)..toString;
+  (f)..hashCode;
+}''';
+    objectMethodOnFunctions_helper(code);
+  }
+
+  void test_objectMethodOnFunctions_Function() {
+    String code = r'''
+void main() {
+  Function f;
+  // No errors, correct type
+  var t0 = f.toString();
+  var t1 = f.toString;
+  var t2 = f.hashCode;
+
+  // Expressions, no errors, correct type
+  var t3 = (f).toString();
+  var t4 = (f).toString;
+  var t5 = (f).hashCode;
+
+  // Cascades, no errors
+  f..toString();
+  f..toString;
+  f..hashCode;
+
+  // Expression cascades, no errors
+  (f)..toString();
+  (f)..toString;
+  (f)..hashCode;
+}''';
+    objectMethodOnFunctions_helper(code);
+  }
+
+  void test_objectMethodOnFunctions_Static() {
+    String code = r'''
+int f(int x) => null;
+void main() {
+  // No errors, correct type
+  var t0 = f.toString();
+  var t1 = f.toString;
+  var t2 = f.hashCode;
+
+  // Expressions, no errors, correct type
+  var t3 = (f).toString();
+  var t4 = (f).toString;
+  var t5 = (f).hashCode;
+
+  // Cascades, no errors
+  f..toString();
+  f..toString;
+  f..hashCode;
+
+  // Expression cascades, no errors
+  (f)..toString();
+  (f)..toString;
+  (f)..hashCode;
+}''';
+    objectMethodOnFunctions_helper(code);
+  }
+
+  void test_objectMethodOnFunctions_Typedef() {
+    String code = r'''
+typedef bool Predicate<T>(T object);
+
+void main() {
+  Predicate<int> f;
+  // No errors, correct type
+  var t0 = f.toString();
+  var t1 = f.toString;
+  var t2 = f.hashCode;
+
+  // Expressions, no errors, correct type
+  var t3 = (f).toString();
+  var t4 = (f).toString;
+  var t5 = (f).hashCode;
+
+  // Cascades, no errors
+  f..toString();
+  f..toString;
+  f..hashCode;
+
+  // Expression cascades, no errors
+  (f)..toString();
+  (f)..toString;
+  (f)..hashCode;
+}''';
+    objectMethodOnFunctions_helper(code);
+  }
+
   void test_setterWithDynamicTypeIsError() {
     Source source = addSource(r'''
 class A {
@@ -1999,7 +2131,9 @@ class A {
 set g(int x) => 42;
 ''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,]);
+    assertErrors(source, [
+      StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+    ]);
     verify([source]);
   }
 

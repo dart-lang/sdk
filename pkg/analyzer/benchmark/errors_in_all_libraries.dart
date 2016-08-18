@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:path/path.dart' as p;
 
 void main(List<String> args) {
@@ -47,7 +48,7 @@ void main(List<String> args) {
     options.strongModeHints = true;
 
     var mainSource =
-        new FileBasedSource(new JavaFile(p.fromUri(Platform.script)));
+        new FileSource(resourceProvider.getFile(p.fromUri(Platform.script)));
     context.applyChanges(new ChangeSet()..addedSource(mainSource));
 
     var initialLibrary =

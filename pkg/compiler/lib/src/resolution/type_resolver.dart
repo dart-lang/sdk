@@ -5,7 +5,7 @@
 library dart2js.resolution.types;
 
 import '../common.dart';
-import '../common/resolution.dart' show Feature, Resolution;
+import '../common/resolution.dart' show Resolution;
 import '../dart_types.dart';
 import '../elements/elements.dart'
     show
@@ -20,6 +20,7 @@ import '../elements/elements.dart'
 import '../elements/modelx.dart' show ErroneousElementX;
 import '../resolution/resolution.dart';
 import '../tree/tree.dart';
+import '../universe/feature.dart' show Feature;
 import '../util/util.dart' show Link;
 import 'members.dart' show lookupInScope;
 import 'registry.dart' show ResolutionRegistry;

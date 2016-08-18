@@ -540,12 +540,20 @@ abstract class AbstractDecoder<K> {
   /// If no value is associated with [key], then if [isOptional] is `true`,
   /// [defaultValue] is returned, otherwise an exception is thrown.
   double getDouble(K key, {bool isOptional: false, double defaultValue}) {
-    double value = _map[_getKeyValue(key)];
+    var value = _map[_getKeyValue(key)];
     if (value == null) {
       if (isOptional || defaultValue != null) {
         return defaultValue;
       }
       throw new StateError("double value '$key' not found in $_map.");
+    }
+    // Support alternative encoding of NaN and +/- infinity for JSON.
+    if (value == 'NaN') {
+      return double.NAN;
+    } else if (value == '-Infinity') {
+      return double.NEGATIVE_INFINITY;
+    } else if (value == 'Infinity') {
+      return double.INFINITY;
     }
     return value;
   }

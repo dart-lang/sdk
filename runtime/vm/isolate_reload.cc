@@ -48,7 +48,9 @@ DEFINE_FLAG(bool, check_reloaded, false,
 
 
 InstanceMorpher::InstanceMorpher(Zone* zone, const Class& from, const Class& to)
-  : from_(from), to_(to), mapping_(zone, 0) {
+    : from_(Class::Handle(zone, from.raw())),
+      to_(Class::Handle(zone, to.raw())),
+      mapping_(zone, 0) {
   ComputeMapping();
   before_ = new(zone) ZoneGrowableArray<const Instance*>(zone, 0);
   after_ = new(zone) ZoneGrowableArray<const Instance*>(zone, 0);
@@ -206,6 +208,15 @@ void ReasonForCancelling::AppendTo(JSONArray* array) {
 }
 
 
+ClassReasonForCancelling::ClassReasonForCancelling(Zone* zone,
+                                                   const Class& from,
+                                                   const Class& to)
+    : ReasonForCancelling(zone),
+      from_(Class::ZoneHandle(zone, from.raw())),
+      to_(Class::ZoneHandle(zone, to.raw())) {
+}
+
+
 void ClassReasonForCancelling::AppendTo(JSONArray* array) {
   JSONObject jsobj(array);
   jsobj.AddProperty("type", "ReasonForCancelling");
@@ -218,9 +229,7 @@ void ClassReasonForCancelling::AppendTo(JSONArray* array) {
 RawError* IsolateReloadContext::error() const {
   ASSERT(reload_aborted());
   // Report the first error to the surroundings.
-  const Error& error =
-      Error::Handle(reasons_to_cancel_reload_.At(0)->ToError());
-  return error.raw();
+  return reasons_to_cancel_reload_.At(0)->ToError();
 }
 
 
@@ -334,15 +343,15 @@ bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
   // TODO(turnidge): We need to look at generic type arguments for
   // synthetic mixin classes.  Their names are not necessarily unique
   // currently.
-  const String& a_name = String::Handle(Class::Cast(a).Name());
-  const String& b_name = String::Handle(Class::Cast(b).Name());
+  const String& a_name = String::Handle(a.Name());
+  const String& b_name = String::Handle(b.Name());
 
   if (!a_name.Equals(b_name)) {
     return false;
   }
 
-  const Library& a_lib = Library::Handle(Class::Cast(a).library());
-  const Library& b_lib = Library::Handle(Class::Cast(b).library());
+  const Library& a_lib = Library::Handle(a.library());
+  const Library& b_lib = Library::Handle(b.library());
   return IsSameLibrary(a_lib, b_lib);
 }
 
@@ -413,8 +422,10 @@ void IsolateReloadContext::ReportSuccess() {
 
 class Aborted : public ReasonForCancelling {
  public:
-  explicit Aborted(Zone* zone, const Error& error)
-      : ReasonForCancelling(zone), error_(error) { }
+  Aborted(Zone* zone, const Error& error)
+      : ReasonForCancelling(zone),
+        error_(Error::ZoneHandle(zone, error.raw())) {
+  }
 
  private:
   const Error& error_;
@@ -1324,10 +1335,11 @@ RawClass* IsolateReloadContext::FindOriginalClass(const Class& cls) {
 
 
 RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
-  if (saved_class_table_ != NULL) {
+  RawClass** class_table = AtomicOperations::LoadRelaxed(&saved_class_table_);
+  if (class_table != NULL) {
     ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
-    return saved_class_table_[cid];
+    return class_table[cid];
   } else {
     return isolate_->class_table()->At(cid);
   }

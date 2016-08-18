@@ -71,31 +71,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitBlock(Block node) {
-    for (Statement stmt in node.statements) {
-      if (stmt.offset < offset) {
-        if (stmt is VariableDeclarationStatement) {
-          VariableDeclarationList varList = stmt.variables;
-          if (varList != null) {
-            for (VariableDeclaration varDecl in varList.variables) {
-              if (varDecl.end < offset) {
-                declaredLocalVar(varDecl.name, varList.type);
-              }
-            }
-          }
-        } else if (stmt is FunctionDeclarationStatement) {
-          FunctionDeclaration declaration = stmt.functionDeclaration;
-          if (declaration != null && declaration.offset < offset) {
-            SimpleIdentifier id = declaration.name;
-            if (id != null) {
-              String name = id.name;
-              if (name != null && name.length > 0) {
-                declaredFunction(declaration);
-              }
-            }
-          }
-        }
-      }
-    }
+    _visitStatements(node.statements);
     visitNode(node);
   }
 
@@ -220,6 +196,12 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitSwitchMember(SwitchMember node) {
+    _visitStatements(node.statements);
+    visitNode(node);
+  }
+
+  @override
   void visitSwitchStatement(SwitchStatement node) {
     for (SwitchMember member in node.members) {
       for (Label label in member.labels) {
@@ -261,6 +243,34 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         SimpleIdentifier name = param.identifier;
         declaredParam(name, type);
       });
+    }
+  }
+
+  _visitStatements(NodeList<Statement> statements) {
+    for (Statement stmt in statements) {
+      if (stmt.offset < offset) {
+        if (stmt is VariableDeclarationStatement) {
+          VariableDeclarationList varList = stmt.variables;
+          if (varList != null) {
+            for (VariableDeclaration varDecl in varList.variables) {
+              if (varDecl.end < offset) {
+                declaredLocalVar(varDecl.name, varList.type);
+              }
+            }
+          }
+        } else if (stmt is FunctionDeclarationStatement) {
+          FunctionDeclaration declaration = stmt.functionDeclaration;
+          if (declaration != null && declaration.offset < offset) {
+            SimpleIdentifier id = declaration.name;
+            if (id != null) {
+              String name = id.name;
+              if (name != null && name.length > 0) {
+                declaredFunction(declaration);
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

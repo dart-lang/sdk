@@ -22,7 +22,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
  * A type provider that can be used by tests without creating the element model
  * for the core library.
  */
-class TestTypeProvider implements TypeProvider {
+class TestTypeProvider extends TypeProviderBase {
   /**
    * The type representing the built-in type 'bool'.
    */
@@ -386,16 +386,6 @@ class TestTypeProvider implements TypeProvider {
     }
     return _mapType;
   }
-
-  @override
-  List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-        nullType,
-        numType,
-        intType,
-        doubleType,
-        boolType,
-        stringType
-      ];
 
   @override
   DartObjectImpl get nullObject {

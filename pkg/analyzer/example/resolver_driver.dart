@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 
 void main(List<String> args) {
   print('working dir ${new File('.').resolveSymbolicLinksSync()}');
@@ -47,7 +48,7 @@ void main(List<String> args) {
   AnalysisContext context = AnalysisEngine.instance.createAnalysisContext()
     ..sourceFactory = new SourceFactory(resolvers);
 
-  Source source = new FileBasedSource(new JavaFile(args[1]));
+  Source source = new FileSource(resourceProvider.getFile(args[1]));
   ChangeSet changeSet = new ChangeSet()..addedSource(source);
   context.applyChanges(changeSet);
   LibraryElement libElement = context.computeLibraryElement(source);

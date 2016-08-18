@@ -587,15 +587,17 @@ class NoSuchMethodError {
 @patch
 class Uri {
   @patch
-  static bool get _isWindows => false;
-
-  @patch
   static Uri get base {
     String uri = Primitives.currentUri();
     if (uri != null) return Uri.parse(uri);
     throw new UnsupportedError("'Uri.base' is not supported");
   }
+}
 
+@patch
+class _Uri {
+  @patch
+  static bool get _isWindows => false;
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to [_unreservedTable], i.e. characters that

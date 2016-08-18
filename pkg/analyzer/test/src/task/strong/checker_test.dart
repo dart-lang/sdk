@@ -979,7 +979,7 @@ void main() {
         (dynamic x) => new A(),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
         (A x) => x,
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => (x as Object),
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object),
         botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                     );
@@ -1004,7 +1004,7 @@ void main() {
         (dynamic x) => new A(),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
         (A x) => x,
-        /*error:STATIC_TYPE_ERROR*/(A x) => (x as Object), // known function
+        /*error:STATIC_TYPE_ERROR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         /*warning:DOWN_CAST_COMPOSITE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                   );
@@ -1029,7 +1029,7 @@ void main() {
         (dynamic x) => new A(),
         (dynamic x) => (x as Object),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
-        /*error:STATIC_TYPE_ERROR*/(A x) => (x as Object), // known function
+        /*error:STATIC_TYPE_ERROR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                       );
@@ -1054,7 +1054,7 @@ void main() {
         (dynamic x) => new A(),
         /*error:STATIC_TYPE_ERROR*/(dynamic x) => (x as Object), // known function
         /*error:STATIC_TYPE_ERROR*/(A x) => x, // known function
-        /*error:STATIC_TYPE_ERROR*/(A x) => (x as Object), // known function
+        /*error:STATIC_TYPE_ERROR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         /*warning:DOWN_CAST_COMPOSITE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                     );
@@ -1633,8 +1633,8 @@ void main() {
      f = /*error:INVALID_ASSIGNMENT*/new B();
      f = i2i;
      f = /*error:INVALID_ASSIGNMENT*/n2n;
-     f = /*warning:DOWN_CAST_COMPOSITE*/i2i as Object;
-     f = /*warning:DOWN_CAST_COMPOSITE*/n2n as Function;
+     f = /*info:UNNECESSARY_CAST,warning:DOWN_CAST_COMPOSITE*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST,warning:DOWN_CAST_COMPOSITE*/n2n as Function;
    }
    {
      N2N f;
@@ -1642,8 +1642,8 @@ void main() {
      f = new B();
      f = /*error:INVALID_ASSIGNMENT*/i2i;
      f = n2n;
-     f = /*warning:DOWN_CAST_COMPOSITE*/i2i as Object;
-     f = /*warning:DOWN_CAST_COMPOSITE*/n2n as Function;
+     f = /*info:UNNECESSARY_CAST,warning:DOWN_CAST_COMPOSITE*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST,warning:DOWN_CAST_COMPOSITE*/n2n as Function;
    }
    {
      A f;
@@ -1651,8 +1651,8 @@ void main() {
      f = /*error:INVALID_ASSIGNMENT*/new B();
      f = /*error:INVALID_ASSIGNMENT*/i2i;
      f = /*error:INVALID_ASSIGNMENT*/n2n;
-     f = /*info:DOWN_CAST_IMPLICIT*/i2i as Object;
-     f = /*info:DOWN_CAST_IMPLICIT*/n2n as Function;
+     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/n2n as Function;
    }
    {
      B f;
@@ -1660,8 +1660,8 @@ void main() {
      f = new B();
      f = /*error:INVALID_ASSIGNMENT*/i2i;
      f = /*error:INVALID_ASSIGNMENT*/n2n;
-     f = /*info:DOWN_CAST_IMPLICIT*/i2i as Object;
-     f = /*info:DOWN_CAST_IMPLICIT*/n2n as Function;
+     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/n2n as Function;
    }
    {
      Function f;
@@ -1669,8 +1669,8 @@ void main() {
      f = new B();
      f = i2i;
      f = n2n;
-     f = /*info:DOWN_CAST_IMPLICIT*/i2i as Object;
-     f = (n2n as Function);
+     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST*/n2n as Function;
    }
 }
 ''');
@@ -1988,7 +1988,7 @@ void main/*<S>*/() {
 
   /*error:IMPLICIT_DYNAMIC_INVOKE*/(/*<T>*/(/*=T*/ t) => t)(d);
   (/*<T>*/(/*=T*/ t) => t)(42);
-  (/*<T>*/() => null as dynamic/*=T*/)/*<int>*/();
+  (/*<T>*/() => /*info:UNNECESSARY_CAST*/null as dynamic/*=T*/)/*<int>*/();
 }
     ''');
     check(implicitDynamic: false);
@@ -2555,19 +2555,19 @@ void main() {
 
   // For as, the validity of checks is deferred to runtime.
   Function f;
-  f = foo as I2I;
-  f = foo as D2I;
-  f = foo as I2D;
-  f = foo as D2D;
+  f = /*info:UNNECESSARY_CAST*/foo as I2I;
+  f = /*info:UNNECESSARY_CAST*/foo as D2I;
+  f = /*info:UNNECESSARY_CAST*/foo as I2D;
+  f = /*info:UNNECESSARY_CAST*/foo as D2D;
 
-  f = bar as II2I;
-  f = bar as DI2I;
-  f = bar as ID2I;
-  f = bar as II2D;
-  f = bar as DD2I;
-  f = bar as DI2D;
-  f = bar as ID2D;
-  f = bar as DD2D;
+  f = /*info:UNNECESSARY_CAST*/bar as II2I;
+  f = /*info:UNNECESSARY_CAST*/bar as DI2I;
+  f = /*info:UNNECESSARY_CAST*/bar as ID2I;
+  f = /*info:UNNECESSARY_CAST*/bar as II2D;
+  f = /*info:UNNECESSARY_CAST*/bar as DD2I;
+  f = /*info:UNNECESSARY_CAST*/bar as DI2D;
+  f = /*info:UNNECESSARY_CAST*/bar as ID2D;
+  f = /*info:UNNECESSARY_CAST*/bar as DD2D;
 }
 ''');
   }

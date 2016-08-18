@@ -1011,8 +1011,7 @@ main() {
 class A {
   int field;
 
-  A(int i, double d) {
-  }
+  A(int i, double d);
 
   method() {}
 }
@@ -1035,13 +1034,32 @@ main() {
         DartFixKind.CREATE_CONSTRUCTOR,
         '''
 class A {
-  A.named(int i, double d) {
-  }
+  A.named(int i, double d);
 
   method() {}
 }
 main() {
   new A.named(1, 2.0);
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
+  }
+
+  test_createConstructor_named_emptyClassBody() async {
+    resolveTestUnit('''
+class A {}
+main() {
+  new A.named(1);
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_CONSTRUCTOR,
+        '''
+class A {
+  A.named(int i);
+}
+main() {
+  new A.named(1);
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
@@ -2567,6 +2585,30 @@ class B extends A {
       expect(endString, isNot(contains('m5')));
       expect(endString, isNot(contains('m6')));
     }
+  }
+
+  test_createMissingOverrides_method_emptyClassBody() async {
+    resolveTestUnit('''
+abstract class A {
+  void foo();
+}
+
+class B extends A {}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_MISSING_OVERRIDES,
+        '''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  @override
+  void foo() {
+    // TODO: implement foo
+  }
+}
+''');
   }
 
   test_createMissingOverrides_operator() async {

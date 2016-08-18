@@ -149,7 +149,8 @@ class SerializationResult {
 Future<SerializationResult> serialize(Uri entryPoint,
     {Map<String, String> memorySourceFiles: const <String, String>{},
      List<Uri> resolutionInputs: const <Uri>[],
-     Uri dataUri}) async {
+     Uri dataUri,
+     bool deserializeCompilationDataForTesting: false}) async {
   if (dataUri == null) {
     dataUri = Uri.parse('memory:${DEFAULT_DATA_FILE_NAME}');
   }
@@ -159,6 +160,8 @@ Future<SerializationResult> serialize(Uri entryPoint,
       memorySourceFiles: memorySourceFiles,
       resolutionInputs: resolutionInputs,
       outputProvider: outputCollector);
+  compiler.serialization.deserializeCompilationDataForTesting =
+      deserializeCompilationDataForTesting;
   await compiler.run(entryPoint);
   SerializedData serializedData = new SerializedData(
       dataUri, outputCollector.getOutput('', 'data'));

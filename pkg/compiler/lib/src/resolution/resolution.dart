@@ -9,7 +9,7 @@ import 'dart:collection' show Queue;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart'
-    show Feature, ParsingContext, Resolution, ResolutionImpact, Target;
+    show ParsingContext, Resolution, ResolutionImpact, Target;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../compile_time_constants.dart' show ConstantCompiler;
 import '../constants/expressions.dart'
@@ -46,6 +46,7 @@ import '../tokens/token.dart'
         isUserDefinableOperator;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/feature.dart' show Feature;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../util/util.dart' show Link, Setlet;
@@ -360,7 +361,7 @@ class ResolverTask extends CompilerTask {
       ResolutionRegistry registry = visitor.registry;
       // TODO(johnniwinther): Maybe remove this when placeholderCollector migrates
       // to the backend ast.
-      registry.defineElement(tree.definitions.nodes.head, element);
+      registry.defineElement(element.definition, element);
       // TODO(johnniwinther): Share the resolved type between all variables
       // declared in the same declaration.
       if (tree.type != null) {

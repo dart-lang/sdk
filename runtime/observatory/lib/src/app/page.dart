@@ -4,6 +4,8 @@
 
 part of app;
 
+AllocationProfileRepository _allocationProfileRepository
+    = new AllocationProfileRepository();
 IsolateSampleProfileRepository _isolateSampleProfileRepository
     = new IsolateSampleProfileRepository();
 
@@ -269,19 +271,33 @@ class TableCpuProfilerPage extends SimplePage {
   }
 }
 
-class AllocationProfilerPage extends SimplePage {
-  AllocationProfilerPage(app)
-      : super('allocation-profiler', 'heap-profile', app);
+class AllocationProfilerPage extends MatchingPage {
+  AllocationProfilerPage(app) : super('allocation-profiler', app);
+
+  DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        HeapProfileElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new AllocationProfileElement(isolate.vm, isolate, app.events,
+                                     app.notifications,
+                                     _allocationProfileRepository,
+                                     queue: app.queue)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    app.startGCEventListener();
+  }
+
+  void onUninstall() {
+    super.onUninstall();
+    app.stopGCEventListener();
   }
 }
 

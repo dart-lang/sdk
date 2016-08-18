@@ -5905,6 +5905,9 @@ bool Function::IsOptimizable() const {
     // Native methods don't need to be optimized.
     return false;
   }
+  if (FLAG_precompiled_mode) {
+    return true;
+  }
   const intptr_t function_length = end_token_pos().Pos() - token_pos().Pos();
   if (is_optimizable() && (script() != Script::null()) &&
       (function_length < FLAG_huge_method_cutoff_in_tokens)) {
@@ -11496,7 +11499,7 @@ static intptr_t DecodeSLEB128(const uint8_t* data,
   } while ((part & 0x80) != 0);
 
   if ((shift < (sizeof(value) * 8)) && ((part & 0x40) != 0)) {
-    value |= static_cast<intptr_t>(-1) << shift;
+    value |= static_cast<intptr_t>(kUwordMax << shift);
   }
   return value;
 }
@@ -12487,6 +12490,12 @@ bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
     ASSERT(unpacked[i]->Equals(*original[i]));
   }
   return true;
+}
+
+
+void ICData::ResetSwitchable(Zone* zone) const {
+  ASSERT(NumArgsTested() == 1);
+  set_ic_data_array(Array::Handle(zone, CachedEmptyICDataArray(1)));
 }
 
 

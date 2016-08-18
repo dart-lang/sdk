@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
@@ -41,9 +43,8 @@ class InputPackagesResultProvider extends ResynthesizerResultProvider {
 /**
  * The [UriResolver] that knows about sources that are served from their
  * summaries.
- *
- * TODO(scheglov) rename to `InSummaryUriResolver` - it's not `package:` specific.
  */
+@deprecated
 class InSummaryPackageUriResolver extends UriResolver {
   final SummaryDataStore _dataStore;
 
@@ -114,6 +115,36 @@ class InSummarySource extends Source {
 
   @override
   String toString() => uri.toString();
+}
+
+/**
+ * The [UriResolver] that knows about sources that are served from their
+ * summaries.
+ */
+class InSummaryUriResolver extends UriResolver {
+  ResourceProvider resourceProvider;
+  final SummaryDataStore _dataStore;
+
+  InSummaryUriResolver(this.resourceProvider, this._dataStore);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    actualUri ??= uri;
+    String uriString = uri.toString();
+    UnlinkedUnit unit = _dataStore.unlinkedMap[uriString];
+    if (unit != null) {
+      String summaryPath = _dataStore.uriToSummaryPath[uriString];
+      if (unit.fallbackModePath.isNotEmpty) {
+        return new _InSummaryFallbackFileSource(
+            resourceProvider.getFile(unit.fallbackModePath),
+            actualUri,
+            summaryPath);
+      } else {
+        return new InSummarySource(actualUri, summaryPath);
+      }
+    }
+    return null;
+  }
 }
 
 /**
@@ -427,9 +458,24 @@ class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
 
 /**
  * A source that is part of a package whose summary was generated in fallback
- * mode.  This source behaves identically to a [FileBasedSource] except that it
+ * mode. This source behaves identically to a [FileSource] except that it also
+ * provides [summaryPath].
+ */
+class _InSummaryFallbackFileSource extends FileSource
+    implements InSummarySource {
+  @override
+  final String summaryPath;
+
+  _InSummaryFallbackFileSource(File file, Uri uri, this.summaryPath)
+      : super(file, uri);
+}
+
+/**
+ * A source that is part of a package whose summary was generated in fallback
+ * mode. This source behaves identically to a [FileBasedSource] except that it
  * also provides [summaryPath].
  */
+@deprecated
 class _InSummaryFallbackSource extends FileBasedSource
     implements InSummarySource {
   @override

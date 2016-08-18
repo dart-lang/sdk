@@ -24,6 +24,7 @@ main() {
   initializeTestEnvironment();
   runReflectiveTests(EmbedderSdkTest);
   runReflectiveTests(FolderBasedDartSdkTest);
+  runReflectiveTests(SdkExtensionFinderTest);
   runReflectiveTests(SDKLibrariesReaderTest);
 }
 
@@ -95,6 +96,17 @@ class FolderBasedDartSdkTest {
    * The resource provider used by these tests.
    */
   MemoryResourceProvider resourceProvider;
+
+  void test_addExtensions() {
+    FolderBasedDartSdk sdk = _createDartSdk();
+    String uri = 'dart:my.internal';
+    sdk.addExtensions({uri: '/Users/user/dart/my.dart'});
+    expect(sdk.mapDartUri(uri), isNotNull);
+    // The `shortName` property must include the `dart:` prefix.
+    expect(sdk.sdkLibraries, contains(predicate((SdkLibrary library) {
+      return library.shortName == uri;
+    })));
+  }
 
   void test_analysisOptions_afterContextCreation() {
     FolderBasedDartSdk sdk = _createDartSdk();
@@ -279,6 +291,53 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
       implementation: true),
 };
 ''';
+}
+
+@reflectiveTest
+class SdkExtensionFinderTest {
+  MemoryResourceProvider resourceProvider;
+
+  void setUp() {
+    resourceProvider = new MemoryResourceProvider();
+    resourceProvider.newFolder('/empty');
+    resourceProvider.newFolder('/tmp');
+    resourceProvider.newFile(
+        '/tmp/_sdkext',
+        r'''
+{
+  "dart:fox": "slippy.dart",
+  "dart:bear": "grizzly.dart",
+  "dart:relative": "../relative.dart",
+  "dart:deep": "deep/directory/file.dart",
+  "fart:loudly": "nomatter.dart"
+}''');
+  }
+
+  test_create_noSdkExtPackageMap() {
+    var resolver = new SdkExtensionFinder({
+      'fox': [resourceProvider.getResource('/empty')]
+    });
+    expect(resolver.urlMappings.length, equals(0));
+  }
+
+  test_create_nullPackageMap() {
+    var resolver = new SdkExtensionFinder(null);
+    expect(resolver.urlMappings.length, equals(0));
+  }
+
+  test_create_sdkExtPackageMap() {
+    var resolver = new SdkExtensionFinder({
+      'fox': [resourceProvider.getResource('/tmp')]
+    });
+    // We have four mappings.
+    Map<String, String> urlMappings = resolver.urlMappings;
+    expect(urlMappings.length, equals(4));
+    // Check that they map to the correct paths.
+    expect(urlMappings['dart:fox'], equals("/tmp/slippy.dart"));
+    expect(urlMappings['dart:bear'], equals("/tmp/grizzly.dart"));
+    expect(urlMappings['dart:relative'], equals("/relative.dart"));
+    expect(urlMappings['dart:deep'], equals("/tmp/deep/directory/file.dart"));
+  }
 }
 
 @reflectiveTest

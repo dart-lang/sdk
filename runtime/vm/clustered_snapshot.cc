@@ -2126,29 +2126,6 @@ class ICDataDeserializationCluster : public DeserializationCluster {
 #endif
     }
   }
-
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    NOT_IN_PRODUCT(TimelineDurationScope tds(Thread::Current(),
-        Timeline::GetIsolateStream(), "PostLoadICData"));
-
-    if (kind == Snapshot::kAppNoJIT) {
-      ICData& ic = ICData::Handle(zone);
-      Object& funcOrCode = Object::Handle(zone);
-      Code& code = Code::Handle(zone);
-      Smi& entry_point = Smi::Handle(zone);
-      for (intptr_t i = start_index_; i < stop_index_; i++) {
-        ic ^= refs.At(i);
-        for (intptr_t j = 0; j < ic.NumberOfChecks(); j++) {
-          funcOrCode = ic.GetTargetOrCodeAt(j);
-          if (funcOrCode.IsCode()) {
-            code ^= funcOrCode.raw();
-            entry_point = Smi::FromAlignedAddress(code.UncheckedEntryPoint());
-            ic.SetEntryPointAt(j, entry_point);
-          }
-        }
-      }
-    }
-  }
 };
 
 

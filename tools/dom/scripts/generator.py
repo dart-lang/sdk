@@ -1136,6 +1136,9 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
   def list_item_type(self):
     return self._data.item_type
 
+  def list_item_type_nullable(self):
+    return self._data.item_type_nullable
+
   def merged_interface(self):
     # All constants, attributes, and operations of merged interface should be
     # added to this interface. Merged idl interface does not have corresponding
@@ -1390,7 +1393,8 @@ class TypeData(object):
                conversion_includes=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
-               item_type=None, suppress_interface=False):
+               item_type=None, item_type_nullable=False,
+               suppress_interface=False):
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
@@ -1402,6 +1406,7 @@ class TypeData(object):
     self.webcore_getter_name = webcore_getter_name
     self.webcore_setter_name = webcore_setter_name
     self.item_type = item_type
+    self.item_type_nullable = item_type_nullable
     self.suppress_interface = suppress_interface
 
 
@@ -1488,7 +1493,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         dart_type='List<File>'),
     'Future': TypeData(clazz='Interface', dart_type='Future'),
     'GamepadList': TypeData(clazz='Interface', item_type='Gamepad',
-        suppress_interface=True),
+        item_type_nullable=True, suppress_interface=True),
     'GLenum': TypeData(clazz='Primitive', dart_type='int',
         native_type='unsigned'),
     'GLboolean': TypeData(clazz='Primitive', dart_type='bool',

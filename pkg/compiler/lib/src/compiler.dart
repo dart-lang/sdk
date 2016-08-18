@@ -199,8 +199,6 @@ abstract class Compiler implements LibraryLoaderListener {
   // Initialized when dart:mirrors is loaded.
   ClassElement deferredLibraryClass;
 
-  /// Document class from dart:mirrors.
-  ClassElement documentClass;
   Element identicalFunction;
   Element loadLibraryFunction;
   Element functionApplyMethod;
@@ -322,7 +320,8 @@ abstract class Compiler implements LibraryLoaderListener {
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(
           resolvedUriTranslator,
-          new _ScriptLoader(this),
+          options.compileOnly
+              ? new _NoScriptLoader(this) : new _ScriptLoader(this),
           new _ElementScanner(scanner),
           serialization,
           this,
@@ -563,14 +562,6 @@ abstract class Compiler implements LibraryLoaderListener {
       coreClasses.functionClass.ensureResolved(resolution);
       functionApplyMethod =
           coreClasses.functionClass.lookupLocalMember('apply');
-
-      if (options.preserveComments) {
-        return libraryLoader
-            .loadLibrary(Uris.dart_mirrors)
-            .then((LibraryElement libraryElement) {
-          documentClass = libraryElement.find('Comment');
-        });
-      }
     }).then((_) => backend.onLibrariesLoaded(loadedLibraries));
   }
 
@@ -2166,6 +2157,18 @@ class _ScriptLoader implements ScriptLoader {
 
   Future<Script> readScript(Uri uri, [Spannable spannable]) =>
       compiler.readScript(uri, spannable);
+}
+
+/// [ScriptLoader] used to ensure that scripts are not loaded accidentally
+/// through the [LibraryLoader] when `CompilerOptions.compileOnly` is `true`.
+class _NoScriptLoader implements ScriptLoader {
+  Compiler compiler;
+  _NoScriptLoader(this.compiler);
+
+  Future<Script> readScript(Uri uri, [Spannable spannable]) {
+    compiler.reporter.internalError(spannable,
+        "Script loading of '$uri' is not enabled.");
+  }
 }
 
 class _ElementScanner implements ElementScanner {

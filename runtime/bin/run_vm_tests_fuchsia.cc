@@ -7,7 +7,6 @@
 #include <magenta/syscalls.h>
 #include <mxio/util.h>
 #include <pthread.h>
-#include <runtime/sysinfo.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -305,7 +304,7 @@ int main(int argc, char** argv) {
   args.test_list_length = lines_count;
   args.test_list_index = &test_list_index;
 
-  const intptr_t num_cpus = mxr_get_nprocs_conf();
+  const intptr_t num_cpus = sysconf(_SC_NPROCESSORS_CONF);
   pthread_t* threads =
     reinterpret_cast<pthread_t*>(malloc(num_cpus * sizeof(pthread_t)));
   for (int i = 0; i < num_cpus; i++) {

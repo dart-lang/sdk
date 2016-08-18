@@ -1854,6 +1854,7 @@ class ICData : public Object {
   bool IsImmutable() const;
 
   void Reset(Zone* zone) const;
+  void ResetSwitchable(Zone* zone) const;
 
   // Note: only deopts with reasons before Unknown in this list are recorded in
   // the ICData. All other reasons are used purely for informational messages

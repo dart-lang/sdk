@@ -555,7 +555,7 @@ class Isolate : public BaseIsolate {
   // True during top level parsing.
   bool IsTopLevelParsing() {
     const intptr_t value =
-        AtomicOperations::LoadRelaxedIntPtr(&top_level_parsing_count_);
+        AtomicOperations::LoadRelaxed(&top_level_parsing_count_);
     ASSERT(value >= 0);
     return value > 0;
   }
@@ -576,7 +576,7 @@ class Isolate : public BaseIsolate {
     }
   }
   intptr_t loading_invalidation_gen() {
-    return AtomicOperations::LoadRelaxedIntPtr(&loading_invalidation_gen_);
+    return AtomicOperations::LoadRelaxed(&loading_invalidation_gen_);
   }
 
   // Used by background compiler which field became boxed and must trigger
@@ -837,7 +837,6 @@ class Isolate : public BaseIsolate {
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
-  static Dart_IsolateInterruptCallback vmstats_callback_;
 
   static void WakePauseEventHandler(Dart_Isolate isolate);
 

@@ -692,13 +692,6 @@ typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
                                                    char** error);
 
 /**
- * An isolate interrupt callback function.
- *
- * This callback has been DEPRECATED.
- */
-typedef bool (*Dart_IsolateInterruptCallback)();
-
-/**
  * An isolate unhandled exception callback function.
  *
  * This callback has been DEPRECATED.
@@ -1042,7 +1035,7 @@ DART_EXPORT Dart_Handle Dart_CreateLibrarySnapshot(Dart_Handle library,
  *
  * When the isolate is interrupted, the isolate interrupt callback
  * will be invoked with 'isolate' as the current isolate (see
- * Dart_IsolateInterruptCallback).
+ * Dart_SetIsolateEventHandler).
  *
  * \param isolate The isolate to be interrupted.
  */

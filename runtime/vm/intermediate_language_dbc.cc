@@ -234,33 +234,56 @@ EMIT_NATIVE_CODE(AssertBoolean,
 }
 
 
-LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
-    Zone* zone, bool optimizing) const {
-  return MakeCallSummary(zone);
-}
-
-
-void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+EMIT_NATIVE_CODE(PolymorphicInstanceCall,
+                 0, Location::RegisterLocation(0),
+                 LocationSummary::kCall) {
   ASSERT(ic_data().NumArgsTested() == 1);
-  if (!with_checks()) {
+  const Array& arguments_descriptor =
+      Array::Handle(ArgumentsDescriptor::New(
+          instance_call()->ArgumentCount(),
+          instance_call()->argument_names()));
+  const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
+
+  // Push the target onto the stack.
+  if (with_checks()) {
+    const intptr_t may_be_smi =
+        (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? 1 : 0;
+    GrowableArray<CidTarget> sorted_ic_data;
+    FlowGraphCompiler::SortICDataByCount(ic_data(),
+                                         &sorted_ic_data,
+                                         /* drop_smi = */ true);
+    const intptr_t sorted_length = sorted_ic_data.length();
+    if (!Utils::IsUint(8, sorted_length)) {
+      Unsupported(compiler);
+      UNREACHABLE();
+    }
+    __ PushPolymorphicInstanceCall(
+        instance_call()->ArgumentCount(), sorted_length + may_be_smi);
+    if (may_be_smi == 1) {
+      const Function& target = Function::ZoneHandle(
+          compiler->zone(), ic_data().GetTargetAt(0));
+      __ Nop(compiler->ToEmbeddableCid(kSmiCid, this));
+      __ Nop(__ AddConstant(target));
+    }
+    for (intptr_t i = 0; i < sorted_length; i++) {
+      const Function& target = *sorted_ic_data[i].target;
+      __ Nop(compiler->ToEmbeddableCid(sorted_ic_data[i].cid, this));
+      __ Nop(__ AddConstant(target));
+    }
+    compiler->EmitDeopt(
+        deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail, 0);
+  } else {
     ASSERT(ic_data().HasOneTarget());
     const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
-    const Array& arguments_descriptor =
-        Array::Handle(ArgumentsDescriptor::New(
-            instance_call()->ArgumentCount(),
-            instance_call()->argument_names()));
-    const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
-
     __ PushConstant(target);
-    __ StaticCall(instance_call()->ArgumentCount(), argdesc_kidx);
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
-        deopt_id(), instance_call()->token_pos());
-    compiler->RecordAfterCall(this);
-    __ PopLocal(locs()->out(0).reg());
-    return;
   }
-  Unsupported(compiler);
-  UNREACHABLE();
+
+  // Call the function.
+  __ StaticCall(instance_call()->ArgumentCount(), argdesc_kidx);
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+      deopt_id(), instance_call()->token_pos());
+  compiler->RecordAfterCall(this);
+  __ PopLocal(locs()->out(0).reg());
 }
 
 
@@ -1146,12 +1169,9 @@ void Environment::DropArguments(intptr_t argc) {
     // Check that we are in the backend - register allocation has been run.
     ASSERT(locations_ != NULL);
 
-    // Check that we are only dropping PushArgument instructions from the
+    // Check that we are only dropping a valid number of instructions from the
     // environment.
     ASSERT(argc <= values_.length());
-    for (intptr_t i = 0; i < argc; i++) {
-      ASSERT(values_[values_.length() - i - 1]->definition()->IsPushArgument());
-    }
 #endif
     values_.TruncateTo(values_.length() - argc);
 }
