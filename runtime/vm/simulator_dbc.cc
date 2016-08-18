@@ -1930,7 +1930,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadFloat64Indexed, A_B_C);
+    BYTECODE(LoadIndexedFloat64, A_B_C);
     ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
     RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
@@ -1941,7 +1941,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(StoreFloat64Indexed, A_B_C);
+    BYTECODE(StoreIndexedFloat64, A_B_C);
     ASSERT(RawObject::IsTypedDataClassId(FP[rA]->GetClassId()));
     RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
@@ -2054,13 +2054,13 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadFloat64Indexed, A_B_C);
+    BYTECODE(LoadIndexedFloat64, A_B_C);
     UNREACHABLE();
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreFloat64Indexed, A_B_C);
+    BYTECODE(StoreIndexedFloat64, A_B_C);
     UNREACHABLE();
     DISPATCH();
   }
@@ -2162,6 +2162,15 @@ RawObject* Simulator::Call(const Code& code,
     const uint16_t offset_in_words = rC;
     RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
     FP[rA] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadUntagged, A_B_C);
+    const uint16_t instance_reg = rB;
+    const uint16_t offset_in_words = rC;
+    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
+    FP[rA] = reinterpret_cast<RawObject**>(instance)[offset_in_words];
     DISPATCH();
   }
 
@@ -2844,6 +2853,27 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(StoreIndexedUint8, A_B_C);
+    ASSERT(RawObject::IsTypedDataClassId(FP[rA]->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    RawSmi* value = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    uint8_t* data = reinterpret_cast<uint8_t*>(array->ptr()->data());
+    data[Smi::Value(index)] = static_cast<uint8_t>(Smi::Value(value));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedExternalUint8, A_B_C);
+    uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    RawSmi* value = RAW_CAST(Smi, FP[rC]);
+    array[Smi::Value(index)] = static_cast<uint8_t>(Smi::Value(value));
+    DISPATCH();
+  }
+
+  {
     BYTECODE(LoadIndexed, A_B_C);
     RawArray* array = RAW_CAST(Array, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
@@ -2853,7 +2883,45 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadOneByteStringIndexed, A_B_C);
+    BYTECODE(LoadIndexedUint8, A_B_C);
+    ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    uint8_t* data = reinterpret_cast<uint8_t*>(array->ptr()->data());
+    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedInt8, A_B_C);
+    ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    int8_t* data = reinterpret_cast<int8_t*>(array->ptr()->data());
+    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedExternalUint8, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedExternalInt8, A_B_C);
+    int8_t* data = reinterpret_cast<int8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedOneByteString, A_B_C);
     RawOneByteString* array = RAW_CAST(OneByteString, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
@@ -2862,7 +2930,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadTwoByteStringIndexed, A_B_C);
+    BYTECODE(LoadIndexedTwoByteString, A_B_C);
     RawTwoByteString* array = RAW_CAST(TwoByteString, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));

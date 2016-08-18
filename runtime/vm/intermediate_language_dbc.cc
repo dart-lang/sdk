@@ -31,8 +31,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 // List of instructions that are still unimplemented by DBC backend.
 #define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M)                                  \
   M(LoadCodeUnits)                                                             \
-  M(LoadUntagged)                                                              \
-  M(AllocateUninitializedContext)                                              \
   M(BinaryInt32Op)                                                             \
   M(Int32ToDouble)                                                             \
   M(DoubleToInteger)                                                           \
@@ -700,55 +698,91 @@ EMIT_NATIVE_CODE(CreateArray,
 
 EMIT_NATIVE_CODE(StoreIndexed, 3, Location::NoLocation(),
                  LocationSummary::kNoCall, 1) {
-  if (compiler->is_optimizing()) {
-    if (IsExternal()) {
-      Unsupported(compiler);
-      UNREACHABLE();
-    }
-    const Register array = locs()->in(kArrayPos).reg();
-    const Register index = locs()->in(kIndexPos).reg();
-    const Register value = locs()->in(kValuePos).reg();
-    const Register temp = locs()->temp(0).reg();
-    switch (class_id()) {
-      case kArrayCid:
-        __ StoreIndexed(array, index, value);
-        break;
-      case kTypedDataFloat64ArrayCid:
-        if ((index_scale() != 8) && (index_scale() != 1)) {
-          Unsupported(compiler);
-          UNREACHABLE();
-        }
-        if (index_scale() == 1) {
-          __ ShrImm(temp, index, 3);
-        } else {
-          __ Move(temp, index);
-        }
-        __ StoreFloat64Indexed(array, temp, value);
-        break;
-      default:
-        Unsupported(compiler);
-        UNREACHABLE();
-        break;
-    }
-  } else {
+  if (!compiler->is_optimizing()) {
     ASSERT(class_id() == kArrayCid);
     __ StoreIndexedTOS();
+    return;
+  }
+
+  const Register array = locs()->in(kArrayPos).reg();
+  const Register index = locs()->in(kIndexPos).reg();
+  const Register value = locs()->in(kValuePos).reg();
+  const Register temp = locs()->temp(0).reg();
+  switch (class_id()) {
+    case kArrayCid:
+      __ StoreIndexed(array, index, value);
+      break;
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kExternalOneByteStringCid:
+    case kExternalTypedDataUint8ArrayCid:
+      ASSERT(index_scale() == 1);
+      if (IsExternal()) {
+        __ StoreIndexedExternalUint8(array, index, value);
+      } else {
+        __ StoreIndexedUint8(array, index, value);
+      }
+      break;
+    case kTypedDataFloat64ArrayCid:
+      if (IsExternal() || ((index_scale() != 8) && (index_scale() != 1))) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() == 1) {
+        __ ShrImm(temp, index, 3);
+      } else {
+        __ Move(temp, index);
+      }
+      __ StoreIndexedFloat64(array, temp, value);
+      break;
+    default:
+      Unsupported(compiler);
+      UNREACHABLE();
+      break;
   }
 }
 
 
 EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister()) {
   ASSERT(compiler->is_optimizing());
-  if (IsExternal()) {
-    Unsupported(compiler);
-    UNREACHABLE();
-  }
   const Register array = locs()->in(0).reg();
   const Register index = locs()->in(1).reg();
   const Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kArrayCid:
       __ LoadIndexed(result, array, index);
+      break;
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalOneByteStringCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      ASSERT(index_scale() == 1);
+      if (IsExternal()) {
+        __ LoadIndexedExternalUint8(result, array, index);
+      } else {
+        __ LoadIndexedUint8(result, array, index);
+      }
+      break;
+    case kTypedDataInt8ArrayCid:
+      ASSERT(index_scale() == 1);
+      if (IsExternal()) {
+        __ LoadIndexedExternalInt8(result, array, index);
+      } else {
+        __ LoadIndexedInt8(result, array, index);
+      }
+      break;
+    case kOneByteStringCid:
+      ASSERT(index_scale() == 1);
+      __ LoadIndexedOneByteString(result, array, index);
+      break;
+    case kTwoByteStringCid:
+      if (index_scale() != 2) {
+        // TODO(zra): Fix-up index.
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      __ LoadIndexedTwoByteString(result, array, index);
       break;
     case kTypedDataFloat64ArrayCid:
       if ((index_scale() != 8) && (index_scale() != 1)) {
@@ -758,19 +792,7 @@ EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister()) {
       if (index_scale() == 1) {
         __ ShrImm(index, index, 3);
       }
-      __ LoadFloat64Indexed(result, array, index);
-      break;
-    case kOneByteStringCid:
-      ASSERT(index_scale() == 1);
-      __ LoadOneByteStringIndexed(result, array, index);
-      break;
-    case kTwoByteStringCid:
-      if (index_scale() != 2) {
-        // TODO(zra): Fix-up index.
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      __ LoadTwoByteStringIndexed(result, array, index);
+      __ LoadIndexedFloat64(result, array, index);
       break;
     default:
       Unsupported(compiler);
@@ -894,6 +916,18 @@ EMIT_NATIVE_CODE(LoadField, 1, Location::RequiresRegister()) {
 }
 
 
+EMIT_NATIVE_CODE(LoadUntagged, 1, Location::RequiresRegister()) {
+  const Register obj = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  if (object()->definition()->representation() == kUntagged) {
+    __ LoadUntagged(result, obj, offset() / kWordSize);
+  } else {
+    ASSERT(object()->definition()->representation() == kTagged);
+    __ LoadField(result, obj, offset() / kWordSize);
+  }
+}
+
+
 EMIT_NATIVE_CODE(BooleanNegate, 1, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
     __ BooleanNegate(locs()->out(0).reg(), locs()->in(0).reg());
@@ -915,15 +949,33 @@ EMIT_NATIVE_CODE(AllocateContext,
 }
 
 
+EMIT_NATIVE_CODE(AllocateUninitializedContext,
+                 0, Location::RequiresRegister(),
+                 LocationSummary::kCall) {
+  ASSERT(compiler->is_optimizing());
+  __ AllocateContext(num_context_variables());
+  compiler->RecordSafepoint(locs());
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                 Thread::kNoDeoptId,
+                                 token_pos());
+  __ PopLocal(locs()->out(0).reg());
+}
+
+
 EMIT_NATIVE_CODE(CloneContext,
                  1, Location::RequiresRegister(),
                  LocationSummary::kCall) {
-  ASSERT(!compiler->is_optimizing());
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());
+  }
   __ CloneContext();
   compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  Thread::kNoDeoptId,
                                  token_pos());
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
 }
 
 
