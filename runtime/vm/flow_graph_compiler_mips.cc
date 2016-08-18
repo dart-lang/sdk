@@ -381,11 +381,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   } else {
     __ beq(T0, ZR, is_not_instance_lbl);
   }
-  // Compare if the classes are equal.
   const Register kClassIdReg = T0;
   __ LoadClassId(kClassIdReg, kInstanceReg);
-  __ BranchEqual(kClassIdReg, Immediate(type_class.id()), is_instance_lbl);
-
   // See ClassFinalizer::ResolveSuperTypeAndInterfaces for list of restricted
   // interfaces.
   // Bool interface can be implemented only by core class Bool.
@@ -393,10 +390,6 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ BranchEqual(kClassIdReg, Immediate(kBoolCid), is_instance_lbl);
     __ b(is_not_instance_lbl);
     return false;
-  }
-  if (type.IsDartFunctionType()) {
-    // Check if instance is a closure.
-    __ BranchEqual(kClassIdReg, Immediate(kClosureCid), is_instance_lbl);
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
@@ -409,6 +402,15 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   if (type.IsStringType()) {
     GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
     return false;
+  }
+  if (type.IsDartFunctionType()) {
+    // Check if instance is a closure.
+    __ BranchEqual(kClassIdReg, Immediate(kClosureCid), is_instance_lbl);
+    return true;  // Fall through
+  }
+  // Compare if the classes are equal.
+  if (!type_class.is_abstract()) {
+  __ BranchEqual(kClassIdReg, Immediate(type_class.id()), is_instance_lbl);
   }
   // Otherwise fallthrough.
   return true;
