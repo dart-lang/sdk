@@ -22,7 +22,7 @@ main() {
   expectReflectedType(reflectType(A, [P]), new A<P>().runtimeType);
   expectReflectedType(reflectType(C, [B, P]), new C<B, P>().runtimeType);
   expectReflectedType(reflectType(D, [P]), new D<P>().runtimeType);
-  // expectReflectedType(reflectType(E, [P]), new E<P>().runtimeType);
+  expectReflectedType(reflectType(E, [P]), new E<P>().runtimeType);
 
   // Edge cases:
   Expect.throws(

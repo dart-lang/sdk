@@ -853,7 +853,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirrorWithTypeArguments, 2) {
     Exceptions::ThrowByType(Exceptions::kArgumentValue, errorArgs);
     UNREACHABLE();
   }
-  if (clz.NumTypeArguments() != args.Length()) {
+  if (clz.NumTypeParameters() != args.Length()) {
     const Array& errorArgs = Array::Handle(Array::New(3));
     errorArgs.SetAt(0, args);
     errorArgs.SetAt(1, String::Handle(String::New("typeArguments")));
