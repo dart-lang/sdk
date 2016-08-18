@@ -8,7 +8,7 @@ import 'unicode_tests.dart';
 
 List<int> encode(String str) {
   List<int> bytes;
-  ChunkedConversionSink byteSink =
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   stringConversionSink.add(str);
@@ -18,7 +18,7 @@ List<int> encode(String str) {
 
 List<int> encode2(String str) {
   List<int> bytes;
-  ChunkedConversionSink byteSink =
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ClosableStringSink stringSink = stringConversionSink.asStringSink();
@@ -29,7 +29,7 @@ List<int> encode2(String str) {
 
 List<int> encode3(String str) {
   List<int> bytes;
-  ChunkedConversionSink byteSink =
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ClosableStringSink stringSink = stringConversionSink.asStringSink();
@@ -40,7 +40,7 @@ List<int> encode3(String str) {
 
 List<int> encode4(String str) {
   List<int> bytes;
-  ChunkedConversionSink byteSink =
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ClosableStringSink stringSink = stringConversionSink.asStringSink();
@@ -51,7 +51,7 @@ List<int> encode4(String str) {
 
 List<int> encode5(String str) {
   List<int> bytes;
-  ChunkedConversionSink byteSink =
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
@@ -63,7 +63,7 @@ List<int> encode5(String str) {
 
 List<int> encode6(String str) {
   List<int> bytes;
-  ChunkedConversionSink byteSink =
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
@@ -75,7 +75,7 @@ List<int> encode6(String str) {
 
 List<int> encode7(String str) {
   List<int> bytes;
-  ChunkedConversionSink byteSink =
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   stringConversionSink.addSlice("1" + str + "2", 1, str.length + 1, false);

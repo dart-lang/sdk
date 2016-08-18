@@ -89,8 +89,7 @@ void testDirectConversions() {
 List<int> encode(String str, int chunkSize,
                  Converter<String, List<int>> converter) {
   List<int> bytes = <int>[];
-  ChunkedConversionSink byteSink =
-      new ByteConversionSink.withCallback(bytes.addAll);
+  var byteSink = new ByteConversionSink.withCallback(bytes.addAll);
   var stringConversionSink = converter.startChunkedConversion(byteSink);
   for (int i = 0; i < str.length; i += chunkSize) {
     if (i + chunkSize <= str.length) {

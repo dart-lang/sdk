@@ -311,7 +311,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let SplayTreeSet = () => (SplayTreeSet = dart.constFn(collection.SplayTreeSet$()))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let MappedIterableOfString$dynamic = () => (MappedIterableOfString$dynamic = dart.constFn(_internal.MappedIterable$(core.String, dart.dynamic)))();
-  let FutureOfString = () => (FutureOfString = dart.constFn(async.Future$(core.String)))();
   let Codec = () => (Codec = dart.constFn(convert.Codec$()))();
   let ComparableOfString = () => (ComparableOfString = dart.constFn(core.Comparable$(core.String)))();
   let List = () => (List = dart.constFn(core.List$()))();
@@ -662,6 +661,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let PositionErrorTovoid = () => (PositionErrorTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html$.PositionError])))();
   let HttpRequestToString = () => (HttpRequestToString = dart.constFn(dart.definiteFunctionType(core.String, [html$.HttpRequest])))();
   let ProgressEventTovoid$ = () => (ProgressEventTovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [html$.ProgressEvent])))();
+  let HttpRequestTodynamic = () => (HttpRequestTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [html$.HttpRequest])))();
   let ListOfSourceInfoTovoid = () => (ListOfSourceInfoTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [ListOfSourceInfo()])))();
   let MediaStreamTovoid = () => (MediaStreamTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html$.MediaStream])))();
   let NavigatorUserMediaErrorTovoid = () => (NavigatorUserMediaErrorTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html$.NavigatorUserMediaError])))();
@@ -19668,13 +19668,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._HandlerEventSink = _HandlerEventSink();
   async._StreamHandlerTransformer$ = dart.generic((S, T) => {
     let _HandlerEventSinkOfS$T = () => (_HandlerEventSinkOfS$T = dart.constFn(async._HandlerEventSink$(S, T)))();
-    let EventSinkOfS = () => (EventSinkOfS = dart.constFn(async.EventSink$(S)))();
     let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
     let SAndEventSinkOfTTovoid = () => (SAndEventSinkOfTTovoid = dart.constFn(dart.functionType(dart.void, [S, EventSinkOfT()])))();
     let EventSinkOfT = () => (EventSinkOfT = dart.constFn(async.EventSink$(T)))();
     let ObjectAndStackTraceAndEventSinkOfTTovoid = () => (ObjectAndStackTraceAndEventSinkOfTTovoid = dart.constFn(dart.functionType(dart.void, [core.Object, core.StackTrace, EventSinkOfT()])))();
     let EventSinkOfTTovoid = () => (EventSinkOfTTovoid = dart.constFn(dart.functionType(dart.void, [EventSinkOfT()])))();
-    let EventSinkOfTToEventSinkOfS = () => (EventSinkOfTToEventSinkOfS = dart.constFn(dart.definiteFunctionType(EventSinkOfS(), [EventSinkOfT()])))();
+    let EventSinkOfTTo_HandlerEventSinkOfS$T = () => (EventSinkOfTTo_HandlerEventSinkOfS$T = dart.constFn(dart.definiteFunctionType(_HandlerEventSinkOfS$T(), [EventSinkOfT()])))();
     class _StreamHandlerTransformer extends async._StreamSinkTransformer$(S, T) {
       new(opts) {
         let handleData = opts && 'handleData' in opts ? opts.handleData : null;
@@ -19685,7 +19684,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           if (handleError == null) handleError = async._StreamHandlerTransformer._defaultHandleError;
           if (handleDone == null) handleDone = async._StreamHandlerTransformer._defaultHandleDone;
           return new (_HandlerEventSinkOfS$T())(handleData, handleError, handleDone, outputSink);
-        }, EventSinkOfTToEventSinkOfS()));
+        }, EventSinkOfTTo_HandlerEventSinkOfS$T()));
       }
       bind(stream) {
         StreamOfS()._check(stream);
@@ -26396,10 +26395,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     decodeStream(byteStream) {
-      return FutureOfString()._check(byteStream.transform(core.String)(this.decoder).fold(dart.dynamic)(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
+      return byteStream.transform(core.String)(this.decoder).fold(dart.dynamic)(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
         dart.dsend(buffer, 'write', string);
         return buffer;
-      })()), dynamicAndStringTodynamic())).then(dart.dynamic)(dart.fn(buffer => dart.toString(buffer), dynamicToString())));
+      })()), dynamicAndStringTodynamic())).then(core.String)(dart.fn(buffer => dart.toString(buffer), dynamicToString()));
     }
     static getByName(name) {
       if (name == null) return null;
@@ -33146,7 +33145,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static spawn(entryPoint, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;
       try {
-        return FutureOfIsolate()._check(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.dynamic)(dart.fn(msg => new isolate.Isolate(isolate.SendPort._check(msg[dartx.get](1)), {pauseCapability: isolate.Capability._check(msg[dartx.get](2)), terminateCapability: isolate.Capability._check(msg[dartx.get](3))}), ListToIsolate())));
+        return _isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(isolate.Isolate)(dart.fn(msg => new isolate.Isolate(isolate.SendPort._check(msg[dartx.get](1)), {pauseCapability: isolate.Capability._check(msg[dartx.get](2)), terminateCapability: isolate.Capability._check(msg[dartx.get](3))}), ListToIsolate()));
       } catch (e) {
         let st = dart.stackTrace(e);
         return FutureOfIsolate().error(e, st);
@@ -33167,7 +33166,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         } else if (args != null) {
           dart.throw(new core.ArgumentError(dart.str`Args must be a list of Strings ${args}`));
         }
-        return FutureOfIsolate()._check(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.dynamic)(dart.fn(msg => new isolate.Isolate(isolate.SendPort._check(msg[dartx.get](1)), {pauseCapability: isolate.Capability._check(msg[dartx.get](2)), terminateCapability: isolate.Capability._check(msg[dartx.get](3))}), ListToIsolate())));
+        return _isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(isolate.Isolate)(dart.fn(msg => new isolate.Isolate(isolate.SendPort._check(msg[dartx.get](1)), {pauseCapability: isolate.Capability._check(msg[dartx.get](2)), terminateCapability: isolate.Capability._check(msg[dartx.get](3))}), ListToIsolate()));
       } catch (e) {
         let st = dart.stackTrace(e);
         return FutureOfIsolate().error(e, st);
@@ -54096,7 +54095,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static getString(url, opts) {
       let withCredentials = opts && 'withCredentials' in opts ? opts.withCredentials : null;
       let onProgress = opts && 'onProgress' in opts ? opts.onProgress : null;
-      return FutureOfString()._check(html$.HttpRequest.request(url, {withCredentials: withCredentials, onProgress: onProgress}).then(dart.dynamic)(dart.fn(xhr => xhr[dartx.responseText], HttpRequestToString())));
+      return html$.HttpRequest.request(url, {withCredentials: withCredentials, onProgress: onProgress}).then(core.String)(dart.fn(xhr => xhr[dartx.responseText], HttpRequestToString()));
     }
     static postFormData(url, data, opts) {
       let withCredentials = opts && 'withCredentials' in opts ? opts.withCredentials : null;
@@ -54184,7 +54183,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let method = opts && 'method' in opts ? opts.method : null;
       let sendData = opts && 'sendData' in opts ? opts.sendData : null;
       if (dart.test(html$.HttpRequest.supportsCrossOrigin)) {
-        return FutureOfString()._check(html$.HttpRequest.request(url, {method: method, sendData: sendData}).then(dart.dynamic)(dart.fn(xhr => xhr[dartx.responseText], HttpRequestToString())));
+        return html$.HttpRequest.request(url, {method: method, sendData: sendData}).then(core.String)(dart.fn(xhr => xhr[dartx.responseText], HttpRequestTodynamic()));
       }
       let completer = CompleterOfString().new();
       if (method == null) {

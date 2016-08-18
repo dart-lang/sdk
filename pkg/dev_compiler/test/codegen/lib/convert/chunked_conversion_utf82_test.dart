@@ -8,8 +8,7 @@ import 'dart:convert';
 
 String decode(List<int> bytes, int chunkSize) {
   StringBuffer buffer = new StringBuffer();
-  ChunkedConversionSink stringSink =
-      new StringConversionSink.fromStringSink(buffer);
+  var stringSink = new StringConversionSink.fromStringSink(buffer);
   var byteSink = new Utf8Decoder().startChunkedConversion(stringSink);
   int i = 0;
   while (i < bytes.length) {
@@ -28,8 +27,7 @@ String decode(List<int> bytes, int chunkSize) {
 
 String decodeAllowMalformed(List<int> bytes, int chunkSize) {
   StringBuffer buffer = new StringBuffer();
-  ChunkedConversionSink stringSink =
-      new StringConversionSink.fromStringSink(buffer);
+  var stringSink = new StringConversionSink.fromStringSink(buffer);
   var decoder = new Utf8Decoder(allowMalformed: true);
   var byteSink = decoder.startChunkedConversion(stringSink);
   int i = 0;

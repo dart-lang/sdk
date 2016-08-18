@@ -19,7 +19,7 @@ main() {
   // Make sure the UTF-8 decoder works eagerly.
   String lastString;
   bool isClosed = false;
-  ChunkedConversionSink sink = new MySink((x) => lastString = x,
+  var sink = new MySink((x) => lastString = x,
                                           () => isClosed = true);
   var byteSink = new Utf8Decoder().startChunkedConversion(sink);
   byteSink.add("abc".codeUnits);
