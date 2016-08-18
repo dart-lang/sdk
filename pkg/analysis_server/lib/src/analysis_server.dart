@@ -1713,11 +1713,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
 
     resolvers.addAll(packageUriResolvers);
-    if (context.fileResolverProvider == null) {
-      resolvers.add(new ResourceUriResolver(resourceProvider));
-    } else {
-      resolvers.add(context.fileResolverProvider(folder));
+    UriResolver fileResolver;
+    if (context.fileResolverProvider != null) {
+      fileResolver = context.fileResolverProvider(folder);
     }
+    resolvers.add(fileResolver ?? new ResourceUriResolver(resourceProvider));
     return new SourceFactory(resolvers, disposition.packages);
   }
 }
