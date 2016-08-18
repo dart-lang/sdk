@@ -450,26 +450,6 @@ source_set("dart_snapshot_cc") {
 }
 
 if (defined(is_fuchsia) && is_fuchsia) {
-  executable("fuchsia_test") {
-    configs += ["..:dart_config",
-                "..:dart_product_config",
-                "..:dart_precompiled_runtime_config"]
-    sources = [
-      "fuchsia_test.cc",
-      "log_fuchsia.cc",
-    ]
-
-    include_dirs = [
-      "..",
-      "../include"
-    ]
-
-    deps = [
-      ":dart_snapshot_cc",
-      ":libdart_embedder_noio",
-    ]
-  }
-
   copy("hello_fuchsia") {
     sources = [ "../tests/vm/dart/hello_fuchsia_test.dart" ]
     outputs = [ "$root_out_dir/hello_fuchsia.dart" ]
