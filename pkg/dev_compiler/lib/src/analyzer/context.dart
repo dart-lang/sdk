@@ -9,10 +9,10 @@ import 'package:analyzer/file_system/file_system.dart'
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
+import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
-import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart'
     show
@@ -183,9 +183,10 @@ List<UriResolver> createFileResolvers(AnalyzerOptions options) {
   ];
 }
 
-DirectoryBasedDartSdk _createDirectoryBasedDartSdk(String sdkPath) {
-  var sdk = new DirectoryBasedDartSdk(
-      new JavaFile(sdkPath), /*useDart2jsPaths:*/ true);
+FolderBasedDartSdk _createFolderBasedDartSdk(String sdkPath) {
+  var resourceProvider = PhysicalResourceProvider.INSTANCE;
+  var sdk = new FolderBasedDartSdk(resourceProvider,
+      resourceProvider.getFolder(sdkPath), /*useDart2jsPaths:*/ true);
   sdk.useSummary = true;
   sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
   return sdk;
@@ -195,6 +196,6 @@ DirectoryBasedDartSdk _createDirectoryBasedDartSdk(String sdkPath) {
 DartUriResolver createSdkPathResolver(String sdkSummaryPath, String sdkPath) {
   var sdk = (sdkSummaryPath != null)
       ? new SummaryBasedDartSdk(sdkSummaryPath, true)
-      : _createDirectoryBasedDartSdk(sdkPath);
+      : _createFolderBasedDartSdk(sdkPath);
   return new DartUriResolver(sdk);
 }
