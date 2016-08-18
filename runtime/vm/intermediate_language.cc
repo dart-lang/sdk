@@ -469,40 +469,6 @@ UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
 }
 
 
-bool Value::BindsTo32BitMaskConstant() const {
-  if (!definition()->IsUnboxInt64() || !definition()->IsUnboxUint32()) {
-    return false;
-  }
-  // Two cases to consider: UnboxInt64 and UnboxUint32.
-  if (definition()->IsUnboxInt64()) {
-    UnboxInt64Instr* instr = definition()->AsUnboxInt64();
-    if (!instr->value()->BindsToConstant()) {
-      return false;
-    }
-    const Object& obj = instr->value()->BoundConstant();
-    if (!obj.IsMint()) {
-      return false;
-    }
-    Mint& mint = Mint::Handle();
-    mint ^= obj.raw();
-    return mint.value() == kMaxUint32;
-  } else if (definition()->IsUnboxUint32()) {
-    UnboxUint32Instr* instr = definition()->AsUnboxUint32();
-    if (!instr->value()->BindsToConstant()) {
-      return false;
-    }
-    const Object& obj = instr->value()->BoundConstant();
-    if (!obj.IsMint()) {
-      return false;
-    }
-    Mint& mint = Mint::Handle();
-    mint ^= obj.raw();
-    return mint.value() == kMaxUint32;
-  }
-  return false;
-}
-
-
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
   return definition()->IsConstant();

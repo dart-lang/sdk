@@ -1332,182 +1332,6 @@ bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-bool AotOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
-                                         MethodRecognizer::Kind getter) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  AddCheckClass(call->ArgumentAt(0),
-                ICData::ZoneHandle(
-                    Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(),
-                call->env(),
-                call);
-  intptr_t mask = 0;
-  if ((getter == MethodRecognizer::kFloat32x4Shuffle) ||
-      (getter == MethodRecognizer::kFloat32x4ShuffleMix)) {
-    // Extract shuffle mask.
-    Definition* mask_definition = NULL;
-    if (getter == MethodRecognizer::kFloat32x4Shuffle) {
-      ASSERT(call->ArgumentCount() == 2);
-      mask_definition = call->ArgumentAt(1);
-    } else {
-      ASSERT(getter == MethodRecognizer::kFloat32x4ShuffleMix);
-      ASSERT(call->ArgumentCount() == 3);
-      mask_definition = call->ArgumentAt(2);
-    }
-    if (!mask_definition->IsConstant()) {
-      return false;
-    }
-    ASSERT(mask_definition->IsConstant());
-    ConstantInstr* constant_instruction = mask_definition->AsConstant();
-    const Object& constant_mask = constant_instruction->value();
-    if (!constant_mask.IsSmi()) {
-      return false;
-    }
-    ASSERT(constant_mask.IsSmi());
-    mask = Smi::Cast(constant_mask).Value();
-    if ((mask < 0) || (mask > 255)) {
-      // Not a valid mask.
-      return false;
-    }
-  }
-  if (getter == MethodRecognizer::kFloat32x4GetSignMask) {
-    Simd32x4GetSignMaskInstr* instr = new(Z) Simd32x4GetSignMaskInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  } else if (getter == MethodRecognizer::kFloat32x4ShuffleMix) {
-    Simd32x4ShuffleMixInstr* instr = new(Z) Simd32x4ShuffleMixInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        new(Z) Value(call->ArgumentAt(1)),
-        mask,
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  } else {
-    ASSERT((getter == MethodRecognizer::kFloat32x4Shuffle)  ||
-           (getter == MethodRecognizer::kFloat32x4ShuffleX) ||
-           (getter == MethodRecognizer::kFloat32x4ShuffleY) ||
-           (getter == MethodRecognizer::kFloat32x4ShuffleZ) ||
-           (getter == MethodRecognizer::kFloat32x4ShuffleW));
-    Simd32x4ShuffleInstr* instr = new(Z) Simd32x4ShuffleInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        mask,
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  }
-  UNREACHABLE();
-  return false;
-}
-
-
-bool AotOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
-                                         MethodRecognizer::Kind getter) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  AddCheckClass(call->ArgumentAt(0),
-                ICData::ZoneHandle(
-                    Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(),
-                call->env(),
-                call);
-  if ((getter == MethodRecognizer::kFloat64x2GetX) ||
-      (getter == MethodRecognizer::kFloat64x2GetY)) {
-    Simd64x2ShuffleInstr* instr = new(Z) Simd64x2ShuffleInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        0,
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  }
-  UNREACHABLE();
-  return false;
-}
-
-
-bool AotOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
-                                       MethodRecognizer::Kind getter) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  AddCheckClass(call->ArgumentAt(0),
-                ICData::ZoneHandle(
-                    Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(),
-                call->env(),
-                call);
-  intptr_t mask = 0;
-  if ((getter == MethodRecognizer::kInt32x4Shuffle) ||
-      (getter == MethodRecognizer::kInt32x4ShuffleMix)) {
-    // Extract shuffle mask.
-    Definition* mask_definition = NULL;
-    if (getter == MethodRecognizer::kInt32x4Shuffle) {
-      ASSERT(call->ArgumentCount() == 2);
-      mask_definition = call->ArgumentAt(1);
-    } else {
-      ASSERT(getter == MethodRecognizer::kInt32x4ShuffleMix);
-      ASSERT(call->ArgumentCount() == 3);
-      mask_definition = call->ArgumentAt(2);
-    }
-    if (!mask_definition->IsConstant()) {
-      return false;
-    }
-    ASSERT(mask_definition->IsConstant());
-    ConstantInstr* constant_instruction = mask_definition->AsConstant();
-    const Object& constant_mask = constant_instruction->value();
-    if (!constant_mask.IsSmi()) {
-      return false;
-    }
-    ASSERT(constant_mask.IsSmi());
-    mask = Smi::Cast(constant_mask).Value();
-    if ((mask < 0) || (mask > 255)) {
-      // Not a valid mask.
-      return false;
-    }
-  }
-  if (getter == MethodRecognizer::kInt32x4GetSignMask) {
-    Simd32x4GetSignMaskInstr* instr = new(Z) Simd32x4GetSignMaskInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  } else if (getter == MethodRecognizer::kInt32x4ShuffleMix) {
-    Simd32x4ShuffleMixInstr* instr = new(Z) Simd32x4ShuffleMixInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        new(Z) Value(call->ArgumentAt(1)),
-        mask,
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  } else if (getter == MethodRecognizer::kInt32x4Shuffle) {
-    Simd32x4ShuffleInstr* instr = new(Z) Simd32x4ShuffleInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        mask,
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  } else {
-    Int32x4GetFlagInstr* instr = new(Z) Int32x4GetFlagInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  }
-}
-
-
 bool AotOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
                                            Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
@@ -1797,74 +1621,14 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
   }
 
-  if (IsSupportedByteArrayViewCid(class_ids[0])) {
+  if (IsSupportedByteArrayViewCid(class_ids[0]) ||
+      (class_ids[0] == kFloat32x4Cid) ||
+      (class_ids[0] == kInt32x4Cid) ||
+      (class_ids[0] == kFloat64x2Cid)) {
     return FlowGraphInliner::TryReplaceInstanceCallWithInline(
         flow_graph_, current_iterator(), call);
   }
 
-  if (class_ids[0] == kFloat32x4Cid) {
-    return TryInlineFloat32x4Method(call, recognized_kind);
-  }
-
-  if (class_ids[0] == kInt32x4Cid) {
-    return TryInlineInt32x4Method(call, recognized_kind);
-  }
-
-  if (class_ids[0] == kFloat64x2Cid) {
-    return TryInlineFloat64x2Method(call, recognized_kind);
-  }
-
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineFloat32x4Constructor(
-    StaticCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  ASSERT(FLAG_precompiled_mode);
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineFloat64x2Constructor(
-    StaticCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  ASSERT(FLAG_precompiled_mode);
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineInt32x4Constructor(
-    StaticCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  ASSERT(FLAG_precompiled_mode);
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineFloat32x4Method(
-    InstanceCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineFloat64x2Method(
-    InstanceCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineInt32x4Method(
-    InstanceCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
   return false;
 }
 
@@ -2553,17 +2317,17 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
     case MethodRecognizer::kFloat32x4Splat:
     case MethodRecognizer::kFloat32x4Constructor:
     case MethodRecognizer::kFloat32x4FromFloat64x2:
-      TryInlineFloat32x4Constructor(call, recognized_kind);
-      break;
     case MethodRecognizer::kFloat64x2Constructor:
     case MethodRecognizer::kFloat64x2Zero:
     case MethodRecognizer::kFloat64x2Splat:
     case MethodRecognizer::kFloat64x2FromFloat32x4:
-      TryInlineFloat64x2Constructor(call, recognized_kind);
-      break;
     case MethodRecognizer::kInt32x4BoolConstructor:
     case MethodRecognizer::kInt32x4Constructor:
-      TryInlineInt32x4Constructor(call, recognized_kind);
+      if (!ShouldInlineSimd() || !IsAllowedForInlining(call->deopt_id())) {
+        return;
+      }
+      FlowGraphInliner::TryReplaceStaticCallWithInline(
+          flow_graph_, current_iterator(), call);
       break;
     case MethodRecognizer::kObjectConstructor: {
       // Remove the original push arguments.

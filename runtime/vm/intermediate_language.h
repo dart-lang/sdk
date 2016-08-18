@@ -341,9 +341,6 @@ class Value : public ZoneAllocated {
 
   bool IsSmiValue() { return Type()->ToCid() == kSmiCid; }
 
-  // Returns true if this value binds to the constant: 0xFFFFFFFF.
-  bool BindsTo32BitMaskConstant() const;
-
   // Return true if the value represents a constant.
   bool BindsToConstant() const;
 

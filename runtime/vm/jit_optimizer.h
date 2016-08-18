@@ -69,18 +69,6 @@ class JitOptimizer : public FlowGraphVisitor {
                                const ICData& unary_ic_data);
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
-  bool TryInlineFloat32x4Constructor(StaticCallInstr* call,
-                                     MethodRecognizer::Kind recognized_kind);
-  bool TryInlineFloat64x2Constructor(StaticCallInstr* call,
-                                     MethodRecognizer::Kind recognized_kind);
-  bool TryInlineInt32x4Constructor(StaticCallInstr* call,
-                                    MethodRecognizer::Kind recognized_kind);
-  bool TryInlineFloat32x4Method(InstanceCallInstr* call,
-                                MethodRecognizer::Kind recognized_kind);
-  bool TryInlineFloat64x2Method(InstanceCallInstr* call,
-                                MethodRecognizer::Kind recognized_kind);
-  bool TryInlineInt32x4Method(InstanceCallInstr* call,
-                               MethodRecognizer::Kind recognized_kind);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
   bool TypeCheckAsClassEquality(const AbstractType& type);
   void ReplaceWithTypeCast(InstanceCallInstr* instr);

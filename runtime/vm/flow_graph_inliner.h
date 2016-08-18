@@ -17,6 +17,7 @@ class ForwardInstructionIterator;
 class Function;
 class InstanceCallInstr;
 class Instruction;
+class StaticCallInstr;
 class TargetEntryInstr;
 
 class FlowGraphInliner : ValueObject {
@@ -48,6 +49,11 @@ class FlowGraphInliner : ValueObject {
       FlowGraph* flow_graph,
       ForwardInstructionIterator* iterator,
       InstanceCallInstr* call);
+
+  static bool TryReplaceStaticCallWithInline(
+      FlowGraph* flow_graph,
+      ForwardInstructionIterator* iterator,
+      StaticCallInstr* call);
 
   static bool TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                         intptr_t receiver_cid,
