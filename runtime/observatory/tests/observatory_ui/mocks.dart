@@ -22,7 +22,6 @@ part 'mocks/objects/function.dart';
 part 'mocks/objects/heap_space.dart';
 part 'mocks/objects/icdata.dart';
 part 'mocks/objects/instance.dart';
-part 'mocks/objects/instructions.dart';
 part 'mocks/objects/isolate.dart';
 part 'mocks/objects/library.dart';
 part 'mocks/objects/local_var_descriptors.dart';

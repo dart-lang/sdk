@@ -238,9 +238,6 @@ abstract class ServiceObject extends Observable implements M.ObjectRef {
           case 'ICData':
             obj = new ICData._empty(owner);
             break;
-          case 'Instructions':
-            obj = new Instructions._empty(owner);
-            break;
           case 'LocalVarDescriptors':
             obj = new LocalVarDescriptors._empty(owner);
             break;
@@ -3601,26 +3598,6 @@ class MegamorphicCache extends HeapObject implements M.MegamorphicCacheRef {
     mask = map['_mask'];
     buckets = map['_buckets'];
     argumentsDescriptor = map['_argumentsDescriptor'];
-  }
-}
-
-class Instructions extends HeapObject implements M.InstructionsRef {
-  bool get immutable => true;
-
-  @observable Code code;
-  @observable ObjectPool objectPool;
-
-  Instructions._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  void _update(ObservableMap map, bool mapIsRef) {
-    _upgradeCollection(map, isolate);
-    super._update(map, mapIsRef);
-
-    code = map['_code'];
-    if (mapIsRef) {
-      return;
-    }
-    objectPool = map['_objectPool'];
   }
 }
 

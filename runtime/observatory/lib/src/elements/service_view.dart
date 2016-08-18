@@ -57,11 +57,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
               ICDataViewElement element = new Element.tag('icdata-view');
               element.icData = object;
               return element;
-            case 'Instructions':
-              InstructionsViewElement element =
-                  new Element.tag('instructions-view');
-              element.instructions = object;
-              return element;
             case 'MegamorphicCache':
               MegamorphicCacheViewElement element =
                   new Element.tag('megamorphiccache-view');

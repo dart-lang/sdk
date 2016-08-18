@@ -25,7 +25,6 @@ part 'src/models/objects/guarded.dart';
 part 'src/models/objects/heap_space.dart';
 part 'src/models/objects/icdata.dart';
 part 'src/models/objects/instance.dart';
-part 'src/models/objects/instructions.dart';
 part 'src/models/objects/isolate.dart';
 part 'src/models/objects/library.dart';
 part 'src/models/objects/local_var_descriptors.dart';

@@ -13,7 +13,6 @@ import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/icdata_ref.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
-import 'package:observatory/src/elements/instructions_ref.dart';
 import 'package:observatory/src/elements/megamorphiccache_ref.dart';
 import 'package:observatory/src/elements/library_ref.dart';
 import 'package:observatory/src/elements/local_var_descriptors_ref.dart';
@@ -45,8 +44,6 @@ Element anyRef(M.Isolate isolate, ref, M.InstanceRepository instances,
     return new ICDataRefElement(isolate, ref, queue: queue);
   } else if (ref is M.InstanceRef) {
     return new InstanceRefElement(isolate, ref, instances, queue: queue);
-  } else if (ref is M.InstructionsRef) {
-    return new InstructionsRefElement(isolate, ref, queue: queue);
   } else if (ref is M.LibraryRef) {
     return new LibraryRefElement(isolate, ref, queue: queue);
   } else if (ref is M.LocalVarDescriptorsRef) {
