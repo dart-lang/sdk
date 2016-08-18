@@ -11,12 +11,12 @@ dart_library.library('varargs', null, /* Imports */[
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   varargs.varargsTest = function(x, ...others) {
     let args = [1, others];
-    dart.dsend(x, 'call', ...args);
+    dart.dcall(x, ...args);
   };
   dart.fn(varargs.varargsTest, dynamicAnddynamicTodynamic());
   varargs.varargsTest2 = function(x, ...others) {
     let args = [1, others];
-    dart.dsend(x, 'call', ...args);
+    dart.dcall(x, ...args);
   };
   dart.fn(varargs.varargsTest2, dynamicAnddynamicTodynamic());
   src__varargs._Rest = class _Rest extends core.Object {

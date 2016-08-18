@@ -3180,6 +3180,19 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (target == null || isLibraryPrefix(target)) {
       return _emitFunctionCall(node);
     }
+    if (node.methodName.name == 'call') {
+      var targetType = target.staticType;
+      if (targetType is FunctionType) {
+        // Call methods on function types should be handled as regular function
+        // invocations.
+        return _emitFunctionCall(node);
+      }
+      if (targetType.isDartCoreFunction || targetType.isDynamic) {
+        // TODO(vsm): Can a call method take generic type parameters?
+        return _emitDynamicInvoke(node, _visit(target),
+            _visit(node.argumentList) as List<JS.Expression>);
+      }
+    }
 
     return _emitMethodCall(target, node);
   }
@@ -3273,22 +3286,27 @@ class CodeGenerator extends GeneralizingAstVisitor
     return new JS.Call(jsTarget, args);
   }
 
+  JS.Expression _emitDynamicInvoke(
+      InvocationExpression node, JS.Expression fn, List<JS.Expression> args) {
+    var typeArgs = _emitInvokeTypeArguments(node);
+    if (typeArgs != null) {
+      return js.call('dart.dgcall(#, #, #)',
+          [fn, new JS.ArrayInitializer(typeArgs), args]);
+    } else {
+      if (_inWhitelistCode(node, isCall: true)) {
+        return new JS.Call(fn, args);
+      }
+      return js.call('dart.dcall(#, #)', [fn, args]);
+    }
+  }
+
   /// Emits a function call, to a top-level function, local function, or
   /// an expression.
   JS.Expression _emitFunctionCall(InvocationExpression node) {
     var fn = _visit(node.function);
     var args = _visit(node.argumentList) as List<JS.Expression>;
     if (isDynamicInvoke(node.function)) {
-      var typeArgs = _emitInvokeTypeArguments(node);
-      if (typeArgs != null) {
-        return js.call('dart.dgcall(#, #, #)',
-            [fn, new JS.ArrayInitializer(typeArgs), args]);
-      } else {
-        if (_inWhitelistCode(node, isCall: true)) {
-          return new JS.Call(fn, args);
-        }
-        return js.call('dart.dcall(#, #)', [fn, args]);
-      }
+      return _emitDynamicInvoke(node, fn, args);
     } else {
       return new JS.Call(_applyInvokeTypeArguments(fn, node), args);
     }
