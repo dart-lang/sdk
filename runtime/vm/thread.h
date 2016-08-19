@@ -329,6 +329,9 @@ class Thread : public BaseThread {
   uword top_exit_frame_info() const {
     return top_exit_frame_info_;
   }
+  void set_top_exit_frame_info(uword top_exit_frame_info) {
+    top_exit_frame_info_ = top_exit_frame_info;
+  }
   static intptr_t top_exit_frame_info_offset() {
     return OFFSET_OF(Thread, top_exit_frame_info_);
   }
@@ -725,10 +728,6 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
   void set_zone(Zone* zone) {
     zone_ = zone;
-  }
-
-  void set_top_exit_frame_info(uword top_exit_frame_info) {
-    top_exit_frame_info_ = top_exit_frame_info;
   }
 
   void set_safepoint_state(uint32_t value) {

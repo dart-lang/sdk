@@ -529,8 +529,9 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       return NextExit();
     }
     uword* new_fp = CallerFP();
-    if (new_fp <= fp_) {
-      // FP didn't move to a higher address.
+    if (!IsCalleeFrameOf(reinterpret_cast<uword>(new_fp),
+                         reinterpret_cast<uword>(fp_))) {
+      // FP didn't move to a caller (higher address on most architectures).
       return false;
     }
     // Success, update fp and pc.
@@ -859,10 +860,18 @@ static bool GetAndValidateIsolateStackBounds(Thread* thread,
     return false;
   }
 #endif
+
+#if defined(TARGET_ARCH_DBC)
+  if (!in_dart_code && (sp > *stack_lower)) {
+    // The stack pointer gives us a tighter lower bound.
+    *stack_lower = sp;
+  }
+#else
   if (sp > *stack_lower) {
     // The stack pointer gives us a tighter lower bound.
     *stack_lower = sp;
   }
+#endif
 
   if (*stack_lower >= *stack_upper) {
     // Stack boundary is invalid.
@@ -1125,11 +1134,6 @@ void Profiler::SampleThreadSingleFrame(Thread* thread, uintptr_t pc) {
 
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
-#if defined(TARGET_ARCH_DBC)
-  // TODO(vegorov) implement simulator stack sampling.
-  return;
-#endif
-
   ASSERT(thread != NULL);
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
@@ -1155,14 +1159,17 @@ void Profiler::SampleThread(Thread* thread,
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
   uintptr_t pc = state.pc;
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
+#if defined(USING_SIMULATOR)
   Simulator* simulator = NULL;
 #endif
 
   if (in_dart_code) {
     // If we're in Dart code, use the Dart stack pointer.
 #if defined(TARGET_ARCH_DBC)
-    UNIMPLEMENTED();
+    simulator = isolate->simulator();
+    sp = simulator->get_sp();
+    fp = simulator->get_fp();
+    pc = simulator->get_pc();
 #elif defined(USING_SIMULATOR)
     simulator = isolate->simulator();
     sp = simulator->get_register(SPREG);

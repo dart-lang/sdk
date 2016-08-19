@@ -553,6 +553,7 @@ DART_FORCE_INLINE void Simulator::Invoke(Thread* thread,
   callee_fp[kSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
   *pp = code->ptr()->object_pool_->ptr();
   *pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+  pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
   *FP = callee_fp;
   *SP = *FP - 1;
 }
@@ -705,6 +706,7 @@ static DART_NOINLINE bool InvokeRuntime(
     thread->set_vm_tag(reinterpret_cast<uword>(drt));
     drt(args);
     thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_top_exit_frame_info(0);
     return true;
   } else {
     return false;
@@ -722,6 +724,7 @@ static DART_NOINLINE bool InvokeNative(
     thread->set_vm_tag(reinterpret_cast<uword>(f));
     f(args);
     thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_top_exit_frame_info(0);
     return true;
   } else {
     return false;
@@ -740,6 +743,7 @@ static DART_NOINLINE bool InvokeNativeWrapper(
     NativeEntry::NativeCallWrapper(reinterpret_cast<Dart_NativeArguments>(args),
                                    f);
     thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_top_exit_frame_info(0);
     return true;
   } else {
     return false;
@@ -941,6 +945,7 @@ RawObject* Simulator::Call(const Code& code,
 
   // Save outer top_exit_frame_info.
   fp_[0] = reinterpret_cast<RawObject*>(thread->top_exit_frame_info());
+  thread->set_top_exit_frame_info(0);
 
   // Copy arguments and setup the Dart frame.
   const intptr_t argc = arguments.Length();
@@ -959,6 +964,7 @@ RawObject* Simulator::Call(const Code& code,
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
   pc = reinterpret_cast<uint32_t*>(code.raw()->ptr()->entry_point_);
+  pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
   pp = code.object_pool()->ptr();
 
   // Cache some frequently used values in the frame.
@@ -1180,6 +1186,7 @@ RawObject* Simulator::Call(const Code& code,
       SimulatorHelpers::SetFrameCode(FP, code);
       pp = code->ptr()->object_pool_->ptr();
       pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+      pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
     }
     DISPATCH();
   }
@@ -1209,6 +1216,7 @@ RawObject* Simulator::Call(const Code& code,
         SimulatorHelpers::SetFrameCode(FP, code);
         pp = code->ptr()->object_pool_->ptr();
         pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+        pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
       }
     }
     DISPATCH();
@@ -2146,6 +2154,7 @@ RawObject* Simulator::Call(const Code& code,
   ReturnImpl:
     // Restore caller PC.
     pc = SavedCallerPC(FP);
+    pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
 
     // Check if it is a fake PC marking the entry frame.
     if ((reinterpret_cast<uword>(pc) & 2) != 0) {
@@ -3050,6 +3059,7 @@ RawObject* Simulator::Call(const Code& code,
 
     // Restore caller PC.
     pc = SavedCallerPC(FP);
+    pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
 
     // Check if it is a fake PC marking the entry frame.
     ASSERT((reinterpret_cast<uword>(pc) & 2) == 0);

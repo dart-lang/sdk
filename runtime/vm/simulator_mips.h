@@ -99,7 +99,7 @@ class Simulator {
   // Accessor to the instruction counter.
   uint64_t get_icount() const { return icount_; }
 
-  // The isolate's top_exit_frame_info refers to a Dart frame in the simulator
+  // The thread's top_exit_frame_info refers to a Dart frame in the simulator
   // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
   // native stack.
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
