@@ -209,6 +209,36 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_futureThen() {
+    super.test_futureThen();
+  }
+
+  @override
+  @failingTest
+  void test_futureThen_conditional() {
+    super.test_futureThen_conditional();
+  }
+
+  @override
+  @failingTest
+  void test_futureThen_upwards() {
+    super.test_futureThen_upwards();
+  }
+
+  @override
+  @failingTest
+  void test_futureUnion_asyncConditional() {
+    super.test_futureUnion_asyncConditional();
+  }
+
+  @override
+  @failingTest
+  void test_futureUnion_downwards() {
+    super.test_futureUnion_downwards();
+  }
+
+  @override
+  @failingTest
   void test_genericMethods_inferJSBuiltin() {
     super.test_genericMethods_inferJSBuiltin();
   }

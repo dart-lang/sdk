@@ -1520,73 +1520,202 @@ int get y => null;
   }
 
   void test_futureThen() {
-    checkFile('''
+    String build({String declared, String downwards, String upwards}) => '''
 import 'dart:async';
-Future f;
-Future<int> t1 = f.then((_) async => await new Future<int>.value(3));
-Future<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {return await new Future<int>.value(3);});
-Future<int> t3 = f.then((_) async => 3);
-Future<int> t4 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {return 3;});
-Future<int> t5 = f.then((_) => new Future<int>.value(3));
-Future<int> t6 = f.then((_) {return new Future<int>.value(3);});
-Future<int> t7 = f.then((_) async => new Future<int>.value(3));
-Future<int> t8 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {return new Future<int>.value(3);});
-''');
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation);
+  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+}
+
+void main() {
+  $declared f;
+  $downwards<int> t1 = f.then((_) async => await new $upwards<int>.value(3));
+  $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
+     return await new $upwards<int>.value(3);});
+  $downwards<int> t3 = f.then((_) async => 3);
+  $downwards<int> t4 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
+    return 3;});
+  $downwards<int> t5 = f.then((_) => new $upwards<int>.value(3));
+  $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) {return new $upwards<int>.value(3);});
+  $downwards<int> t7 = f.then((_) async => new $upwards<int>.value(3));
+  $downwards<int> t8 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
+    return new $upwards<int>.value(3);});
+}
+''';
+
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
+    checkFile(build(
+        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "Future"));
   }
 
   void test_futureThen_conditional() {
-    checkFile('''
+    String build({String declared, String downwards, String upwards}) => '''
 import 'dart:async';
-Future<bool> f;
-Future<int> t1 = f.then((x) async => x ? 2 : await new Future<int>.value(3));
-Future<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(x) async {return await x ? 2 : new Future<int>.value(3);});
-Future<int> t5 = f.then((x) => x ? 2 : new Future<int>.value(3));
-Future<int> t6 = f.then((x) {return x ? 2 : new Future<int>.value(3);});
-''');
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation);
+  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+}
+
+void main() {
+  $declared<bool> f;
+  $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
+      (x) async => x ? 2 : await new $upwards<int>.value(3));
+  $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) async { // TODO(leafp): Why the duplicate here?
+    return await x ? 2 : new $upwards<int>.value(3);});
+  $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
+      (x) => x ? 2 : new $upwards<int>.value(3));
+  $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
+      (x) {return x ? 2 : new $upwards<int>.value(3);});
+}
+''';
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
+    checkFile(build(
+        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "Future"));
+  }
+
+  void test_futureThen_downwardsMethodTarget() {
+    // Not working yet, see: https://github.com/dart-lang/sdk/issues/27114
+    checkFile(r'''
+import 'dart:async';
+main() {
+  Future<int> f;
+  Future<List<int>> b = /*info:ASSIGNMENT_CAST should be pass*/f
+      .then(/*info:INFERRED_TYPE_CLOSURE*/(x) => [])
+      .whenComplete(/*pass should be info:INFERRED_TYPE_LITERAL*/() {});
+  b = f.then(/*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
+}
+    ''');
   }
 
   void test_futureThen_upwards() {
     // Regression test for https://github.com/dart-lang/sdk/issues/27088.
-    checkFile(r'''
+    String build({String declared, String downwards, String upwards}) => '''
 import 'dart:async';
-main() {
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation);
+  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+}
+
+void main() {
   var f = foo().then((_) => 2.3);
-  Future<int> f2 = /*error:INVALID_ASSIGNMENT*/f;
+  $downwards<int> f2 = /*error:INVALID_ASSIGNMENT*/f;
 
   // The unnecessary cast is to illustrate that we inferred <double> for
   // the generic type args, even though we had a return type context.
-  Future<num> f3 = /*info:UNNECESSARY_CAST*/foo().then((_) => 2.3) as Future<double>;
+  $downwards<num> f3 = /*info:UNNECESSARY_CAST*/foo().then(
+      (_) => 2.3) as $upwards<double>;
 }
-Future foo() async => 1;
+$declared foo() => new $declared<int>.value(1);
+    ''';
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
+    checkFile(build(
+        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "Future"));
+  }
+
+  void test_futureThen_upwardsFromBlock() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/27113.
+    checkFile(r'''
+import 'dart:async';
+main() {
+  Future<int> base;
+  var f = base.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) { return x == 0; });
+  var g = base.then(/*info:INFERRED_TYPE_CLOSURE*/(x) => x == 0);
+  Future<bool> b = f;
+  b = g;
+}
     ''');
   }
 
   void test_futureUnion_asyncConditional() {
-    checkFile('''
+    String build({String declared, String downwards, String upwards}) => '''
 import 'dart:async';
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation);
+  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+}
 
-Future<int> g1(bool x) async { return x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(42); }
-Future<int> g2(bool x) async => x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(42);
-
-Future<int> g3(bool x) async {
-  var y = x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(42);
+$downwards<int> g1(bool x) async {
+  return x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
+$downwards<int> g2(bool x) async =>
+  x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
+$downwards<int> g3(bool x) async {
+  var y = x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
   return y;
 }
-    ''');
+    ''';
+    checkFile(build(downwards: "Future", upwards: "Future"));
+    checkFile(build(downwards: "Future", upwards: "MyFuture"));
   }
 
   void test_futureUnion_downwards() {
-    checkFile('''
+    String build({String declared, String downwards, String upwards}) {
+      // TODO(leafp): The use of matchTypes in visitInstanceCreationExpression
+      // in the resolver visitor isn't powerful enough to catch this for the
+      // subclass.  See the TODO there.
+      var allocInfo =
+          (upwards == "Future") ? "/*info:INFERRED_TYPE_ALLOCATION*/" : "";
+      return '''
 import 'dart:async';
-Future f;
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value([T x]) {}
+  dynamic noSuchMethod(invocation);
+  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+}
+
+$declared f;
 // Instantiates Future<int>
-Future<int> t1 = f.then((_) => /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'));
+$downwards<int> t1 = f.then((_) =>
+   ${allocInfo}new $upwards.value(
+     /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'));
 
 // Instantiates List<int>
-Future<List<int>> t2 = f.then((_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
-Future<List<int>> g2() async { return /*info:INFERRED_TYPE_LITERAL*/[3]; }
-Future<List<int>> g3() async { return /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL*/[3]); }
-''');
+$downwards<List<int>> t2 = f.then((_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
+$downwards<List<int>> g2() async { return /*info:INFERRED_TYPE_LITERAL*/[3]; }
+$downwards<List<int>> g3() async {
+  return /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(
+      /*info:INFERRED_TYPE_LITERAL*/[3]); }
+''';
+    }
+
+    ;
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "Future"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
   }
 
   void test_genericMethods_basicDownwardInference() {
@@ -2616,18 +2745,6 @@ main() {
     expect(fns[9].type.toString(), '() → Stream<int>');
   }
 
-  void test_inferReturnOfStatementLambda() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26139
-    checkFile(r'''
-List<String> strings() {
-  var stuff = [].expand(/*info:INFERRED_TYPE_CLOSURE*/(i) {
-    return <String>[];
-  });
-  return stuff.toList();
-}
-    ''');
-  }
-
   void test_inferred_nonstatic_field_depends_on_static_field_complex() {
     var mainUnit = checkFile('''
 class C {
@@ -3008,6 +3125,18 @@ class C {
     var mainUnit = checkFile('final f = (bool b) => 1;');
     var f = mainUnit.topLevelVariables[0];
     expect(f.type.toString(), '(bool) → int');
+  }
+
+  void test_inferReturnOfStatementLambda() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26139
+    checkFile(r'''
+List<String> strings() {
+  var stuff = [].expand(/*info:INFERRED_TYPE_CLOSURE*/(i) {
+    return <String>[];
+  });
+  return stuff.toList();
+}
+    ''');
   }
 
   void test_inferStaticsTransitively() {

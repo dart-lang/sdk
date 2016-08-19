@@ -1947,7 +1947,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       DartType returnContext = InferenceContext.getContext(node);
       DartType returnType;
       if (returnContext is FutureUnionType) {
-        returnType = fnType.returnType.isDartAsyncFuture
+        returnType = _resolver.isSubtypeOfFuture(fnType.returnType)
             ? returnContext.futureOfType
             : returnContext.type;
       } else {
@@ -1974,7 +1974,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           // S or Future<S> in a conditional.
           if (!argReturnType.isObject && !argReturnType.isDynamic) {
             DartType paramReturnType = fnType.typeFormals[0].type;
-            if (argReturnType.isDartAsyncFuture) {
+            if (_resolver.isSubtypeOfFuture(argReturnType)) {
               // Given an argument of (T) -> Future<S>, instantiate with <S>
               paramReturnType =
                   _typeProvider.futureType.instantiate([paramReturnType]);
@@ -1986,13 +1986,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
               ..shareParameters(firstParamType.parameters)
               ..returnType = paramReturnType;
             function.type = new FunctionTypeImpl(function);
-
             // Use this as the expected 1st parameter type.
             paramTypes[0] = function.type;
           }
         }
       }
-
       return ts.inferGenericFunctionCall(
           _typeProvider, fnType, paramTypes, argTypes, returnType);
     }
@@ -2015,6 +2013,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (originalElement is! ConstructorMember) {
       return;
     }
+
+    // TODO(leafp): Currently, we may re-infer types here, since we
+    // sometimes resolve multiple times.  We should really check that we
+    // have not already inferred something.  However, the obvious ways to
+    // check this don't work, since we may have been instantiated
+    // to bounds in an earlier phase, and we *do* want to do inference
+    // in that case.
 
     // Get back to the uninstantiated generic constructor.
     // TODO(jmesserly): should we store this earlier in resolution?
@@ -2076,7 +2081,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
 
     computedType = _computeReturnTypeOfFunction(body, computedType);
-
     functionElement.returnType = computedType;
     _recordPropagatedTypeOfFunction(functionElement, node.body);
     _recordStaticType(node, functionElement.type);
