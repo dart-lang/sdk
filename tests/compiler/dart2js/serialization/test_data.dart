@@ -718,6 +718,36 @@ export 'main.dart';
 main() {}
 '''}),
 
+  const Test('Metadata on part tags', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+library main;
+
+@deprecated
+part 'a.dart';
+
+main() {}
+'''},
+      unserializedSourceFiles: const {
+        'a.dart': '''
+part of main;
+'''}),
+
+  const Test('Metadata on part-of tags', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+library main;
+
+part 'a.dart';
+
+main() {}
+'''},
+      unserializedSourceFiles: const {
+        'a.dart': '''
+@deprecated
+part of main;
+'''}),
+
   const Test('Ambiguous elements', const {},
       preserializedSourceFiles: const {
         'main.dart': '''

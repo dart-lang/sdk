@@ -916,6 +916,11 @@ abstract class Compiler implements LibraryLoaderListener {
           metadata.ensureResolved(resolution);
         }
       });
+      library.compilationUnits.forEach((CompilationUnitElement unit) {
+        for (MetadataAnnotation metadata in unit.metadata) {
+          metadata.ensureResolved(resolution);
+        }
+      });
     }
   }
 
