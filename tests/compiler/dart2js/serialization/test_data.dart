@@ -717,6 +717,21 @@ export 'main.dart';
 
 main() {}
 '''}),
+
+  const Test('Ambiguous elements', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+import 'a.dart';
+import 'b.dart';
+
+main() => new foo();
+''',
+        'a.dart': '''
+var foo;
+''',
+        'b.dart': '''
+var foo;
+''',}),
 ];
 
 class Test {
