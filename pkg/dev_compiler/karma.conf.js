@@ -23,6 +23,7 @@ module.exports = function(config) {
       'gen/codegen_output/lib/convert/**.js',
       'gen/codegen_output/lib/html/**.js',
       'gen/codegen_output/lib/math/**.js',
+      'gen/codegen_output/lib/mirrors/**.js',
       'gen/codegen_output/lib/typed_data/**.js',
       'gen/codegen_output/lib/*/**.err',
       'test/browser/*.js',

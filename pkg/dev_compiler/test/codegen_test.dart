@@ -85,6 +85,7 @@ main(List<String> arguments) {
     path.join('lib', 'convert'),
     path.join('lib', 'html'),
     path.join('lib', 'math'),
+    path.join('lib', 'mirrors'),
     path.join('lib', 'typed_data'),
   ];
 
