@@ -197,10 +197,10 @@ namespace dart {
 //    the immediately following instruction is skipped. These instructions
 //    expect their operands to be Smis, but don't check that they are.
 //
-//  - ShrImm rA, rB, rC
+//  - ShlImm rA, rB, rC
 //
-//    FP[rA] <- FP[rB] >> rC. Shifts the Smi in FP[rB] right by rC. rC is
-//    assumed to be a legal positive number by which righ-shifting is possible.
+//    FP[rA] <- FP[rB] << rC. Shifts the Smi in FP[rB] left by rC. rC is
+//    assumed to be a legal positive number by which left-shifting is possible.
 //
 //  - Min, Max rA, rB, rC
 //
@@ -242,6 +242,20 @@ namespace dart {
 //    Unboxes FP[rD] into FP[rA] and skips the following instruction unless
 //    FP[rD] is not a double or a Smi. When FP[rD] is a Smi, converts it to a
 //    double.
+//
+//  - UnboxInt32 rA, rB, C
+//
+//    Unboxes the integer in FP[rB] into FP[rA]. If C == 1, the value may be
+//    truncated. If FP[rA] is successfully unboxed the following instruction is
+//    skipped.
+//
+//  - BoxInt32 rA, rD
+//
+//    Boxes the unboxed signed 32-bit integer in FP[rD] into FP[rA].
+//
+//  - BoxUint32 rA, rD
+//
+//    Boxes the unboxed unsigned 32-bit integer in FP[rD] into FP[rA].
 //
 //  - SmiToDouble rA, rD
 //
@@ -607,7 +621,7 @@ namespace dart {
   V(Mod,                         A_B_C, reg, reg, reg) \
   V(Shl,                         A_B_C, reg, reg, reg) \
   V(Shr,                         A_B_C, reg, reg, reg) \
-  V(ShrImm,                      A_B_C, reg, reg, num) \
+  V(ShlImm,                      A_B_C, reg, reg, num) \
   V(Neg,                           A_D, reg, reg, ___) \
   V(BitOr,                       A_B_C, reg, reg, reg) \
   V(BitAnd,                      A_B_C, reg, reg, reg) \
@@ -618,6 +632,9 @@ namespace dart {
   V(WriteIntoDouble,               A_D, reg, reg, ___) \
   V(UnboxDouble,                   A_D, reg, reg, ___) \
   V(CheckedUnboxDouble,            A_D, reg, reg, ___) \
+  V(UnboxInt32,                  A_B_C, reg, reg, num) \
+  V(BoxInt32,                      A_D, reg, reg, ___) \
+  V(BoxUint32,                     A_D, reg, reg, ___) \
   V(SmiToDouble,                   A_D, reg, reg, ___) \
   V(DoubleToSmi,                   A_D, reg, reg, ___) \
   V(DAdd,                        A_B_C, reg, reg, reg) \
@@ -666,10 +683,13 @@ namespace dart {
   V(StoreIndexed,                A_B_C, reg, reg, reg) \
   V(StoreIndexedUint8,           A_B_C, reg, reg, reg) \
   V(StoreIndexedExternalUint8,   A_B_C, reg, reg, reg) \
+  V(StoreIndexedUint32,          A_B_C, reg, reg, reg) \
   V(StoreIndexedFloat64,         A_B_C, reg, reg, reg) \
   V(LoadIndexed,                 A_B_C, reg, reg, reg) \
   V(LoadIndexedUint8,            A_B_C, reg, reg, reg) \
   V(LoadIndexedInt8,             A_B_C, reg, reg, reg) \
+  V(LoadIndexedInt32,            A_B_C, reg, reg, reg) \
+  V(LoadIndexedUint32,           A_B_C, reg, reg, reg) \
   V(LoadIndexedExternalUint8,    A_B_C, reg, reg, reg) \
   V(LoadIndexedExternalInt8,     A_B_C, reg, reg, reg) \
   V(LoadIndexedFloat64,          A_B_C, reg, reg, reg) \

@@ -47,8 +47,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(ShiftUint32Op)                                                             \
   M(UnaryUint32Op)                                                             \
   M(UnboxedIntConverter)                                                       \
-  M(BoxInteger32)                                                              \
-  M(UnboxInteger32)                                                            \
 
 // List of instructions that are not used by DBC.
 // Things we aren't planning to implement for DBC:
@@ -703,7 +701,6 @@ EMIT_NATIVE_CODE(StoreIndexed, 3, Location::NoLocation(),
     __ StoreIndexedTOS();
     return;
   }
-
   const Register array = locs()->in(kArrayPos).reg();
   const Register index = locs()->in(kIndexPos).reg();
   const Register value = locs()->in(kValuePos).reg();
@@ -723,13 +720,27 @@ EMIT_NATIVE_CODE(StoreIndexed, 3, Location::NoLocation(),
         __ StoreIndexedUint8(array, index, value);
       }
       break;
-    case kTypedDataFloat64ArrayCid:
-      if (IsExternal() || ((index_scale() != 8) && (index_scale() != 1))) {
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid: {
+      if (IsExternal()) {
         Unsupported(compiler);
         UNREACHABLE();
       }
-      if (index_scale() == 1) {
-        __ ShrImm(temp, index, 3);
+      if (index_scale() != 1) {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+      } else {
+        __ Move(temp, index);
+      }
+      __ StoreIndexedUint32(array, temp, value);
+      break;
+    }
+    case kTypedDataFloat64ArrayCid:
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() != 1) {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
       } else {
         __ Move(temp, index);
       }
@@ -743,10 +754,12 @@ EMIT_NATIVE_CODE(StoreIndexed, 3, Location::NoLocation(),
 }
 
 
-EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister()) {
+EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister(),
+                 LocationSummary::kNoCall, 1) {
   ASSERT(compiler->is_optimizing());
   const Register array = locs()->in(0).reg();
   const Register index = locs()->in(1).reg();
+  const Register temp = locs()->temp(0).reg();
   const Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kArrayCid:
@@ -784,15 +797,31 @@ EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister()) {
       }
       __ LoadIndexedTwoByteString(result, array, index);
       break;
+    case kTypedDataInt32ArrayCid:
+      ASSERT(representation() == kUnboxedInt32);
+      if (index_scale() != 1) {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+      } else {
+        __ Move(temp, index);
+      }
+      __ LoadIndexedInt32(result, array, temp);
+      break;
+    case kTypedDataUint32ArrayCid:
+      ASSERT(representation() == kUnboxedUint32);
+      if (index_scale() != 1) {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+      } else {
+        __ Move(temp, index);
+      }
+      __ LoadIndexedUint32(result, array, temp);
+      break;
     case kTypedDataFloat64ArrayCid:
-      if ((index_scale() != 8) && (index_scale() != 1)) {
-        Unsupported(compiler);
-        UNREACHABLE();
+      if (index_scale() != 1) {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+      } else {
+        __ Move(temp, index);
       }
-      if (index_scale() == 1) {
-        __ ShrImm(index, index, 3);
-      }
-      __ LoadIndexedFloat64(result, array, index);
+      __ LoadIndexedFloat64(result, array, temp);
       break;
     default:
       Unsupported(compiler);
@@ -1405,6 +1434,41 @@ EMIT_NATIVE_CODE(Unbox, 1, Location::RequiresRegister()) {
     __ CheckedUnboxDouble(result, box);
     compiler->EmitDeopt(GetDeoptId(), ICData::kDeoptCheckClass);
   }
+}
+
+
+EMIT_NATIVE_CODE(UnboxInteger32, 1, Location::RequiresRegister()) {
+#if defined(ARCH_IS_64_BIT)
+  const Register out = locs()->out(0).reg();
+  const Register value = locs()->in(0).reg();
+  const bool may_truncate = is_truncating() || !CanDeoptimize();
+  __ UnboxInt32(out, value, may_truncate);
+  if (CanDeoptimize()) {
+    compiler->EmitDeopt(GetDeoptId(), ICData::kDeoptUnboxInteger);
+  } else {
+    __ Nop(0);
+  }
+#else
+  Unsupported(compiler);
+  UNREACHABLE();
+#endif  // defined(ARCH_IS_64_BIT)
+}
+
+
+EMIT_NATIVE_CODE(BoxInteger32, 1, Location::RequiresRegister()) {
+#if defined(ARCH_IS_64_BIT)
+  const Register out = locs()->out(0).reg();
+  const Register value = locs()->in(0).reg();
+  if (from_representation() == kUnboxedInt32) {
+    __ BoxInt32(out, value);
+  } else {
+    ASSERT(from_representation() == kUnboxedUint32);
+    __ BoxUint32(out, value);
+  }
+#else
+  Unsupported(compiler);
+  UNREACHABLE();
+#endif  // defined(ARCH_IS_64_BIT)
 }
 
 
