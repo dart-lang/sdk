@@ -904,7 +904,19 @@ abstract class Compiler implements LibraryLoaderListener {
           world.addToWorkList(loadLibrary);
         }
       }
+      if (serialization.supportSerialization) {
+        for (MetadataAnnotation metadata in import.metadata) {
+          metadata.ensureResolved(resolution);
+        }
+      }
     });
+    if (serialization.supportSerialization) {
+      library.exports.forEach((ExportElement export) {
+        for (MetadataAnnotation metadata in export.metadata) {
+          metadata.ensureResolved(resolution);
+        }
+      });
+    }
   }
 
   void fullyEnqueueTopLevelElement(Element element, Enqueuer world) {

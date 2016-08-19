@@ -699,6 +699,24 @@ main() => a;
     'main.dart': '''
 main() => new Null();
 '''}),
+
+  const Test('Metadata on imports', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+@deprecated
+import 'main.dart';
+
+main() {}
+'''}),
+
+  const Test('Metadata on exports', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+@deprecated
+export 'main.dart';
+
+main() {}
+'''}),
 ];
 
 class Test {
