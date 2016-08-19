@@ -48,6 +48,8 @@ class Future<T> {
   static Future<List/*<T>*/> wait/*<T>*/(
       Iterable<Future/*<T>*/> futures) => null;
   Future/*<R>*/ then/*<R>*/(onValue(T value)) => null;
+
+  Future<T> whenComplete(action());
 }
 
 abstract class Completer<T> {

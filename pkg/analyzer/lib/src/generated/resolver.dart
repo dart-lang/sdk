@@ -4726,12 +4726,10 @@ class InferenceContext {
     if (_returnStack.isEmpty) {
       return;
     }
-    DartType context = _returnStack.last;
-    if (context is! FutureUnionType) {
-      DartType inferred = _inferredReturn.last;
-      inferred = _typeSystem.getLeastUpperBound(_typeProvider, type, inferred);
-      _inferredReturn[_inferredReturn.length - 1] = inferred;
-    }
+
+    DartType inferred = _inferredReturn.last;
+    inferred = _typeSystem.getLeastUpperBound(_typeProvider, type, inferred);
+    _inferredReturn[_inferredReturn.length - 1] = inferred;
   }
 
   /**
@@ -4756,7 +4754,17 @@ class InferenceContext {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
       DartType inferred = _inferredReturn.removeLast();
-      if (!inferred.isBottom && _typeSystem.isSubtypeOf(inferred, context)) {
+      if (inferred.isBottom) {
+        return;
+      }
+
+      if (context is FutureUnionType) {
+        // Try and match the Future type first.
+        if (_typeSystem.isSubtypeOf(inferred, context.futureOfType) ||
+            _typeSystem.isSubtypeOf(inferred, context.type)) {
+          setType(node, inferred);
+        }
+      } else if (_typeSystem.isSubtypeOf(inferred, context)) {
         setType(node, inferred);
       }
     } else {

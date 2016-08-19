@@ -1528,7 +1528,7 @@ Future<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {return await ne
 Future<int> t3 = f.then((_) async => 3);
 Future<int> t4 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {return 3;});
 Future<int> t5 = f.then((_) => new Future<int>.value(3));
-Future<int> t6 = f.then((_) {return new Future<int>.value(3);});
+Future<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) {return new Future<int>.value(3);});
 Future<int> t7 = f.then((_) async => new Future<int>.value(3));
 Future<int> t8 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {return new Future<int>.value(3);});
 ''');
@@ -1545,6 +1545,20 @@ Future<int> t6 = f.then((x) {return x ? 2 : new Future<int>.value(3);});
 ''');
   }
 
+  void test_futureThen_downwardsMethodTarget() {
+    // Not working yet, see: https://github.com/dart-lang/sdk/issues/27114
+    checkFile(r'''
+import 'dart:async';
+main() {
+  Future<int> f;
+  Future<List<int>> b = /*info:ASSIGNMENT_CAST should be pass*/f
+      .then(/*info:INFERRED_TYPE_CLOSURE*/(x) => [])
+      .whenComplete(/*pass should be info:INFERRED_TYPE_LITERAL*/() {});
+  b = f.then(/*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
+}
+    ''');
+  }
+
   void test_futureThen_upwards() {
     // Regression test for https://github.com/dart-lang/sdk/issues/27088.
     checkFile(r'''
@@ -1558,6 +1572,20 @@ main() {
   Future<num> f3 = /*info:UNNECESSARY_CAST*/foo().then((_) => 2.3) as Future<double>;
 }
 Future foo() async => 1;
+    ''');
+  }
+
+  void test_futureThen_upwardsFromBlock() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/27113.
+    checkFile(r'''
+import 'dart:async';
+main() {
+  Future<int> base;
+  var f = base.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) { return x == 0; });
+  var g = base.then(/*info:INFERRED_TYPE_CLOSURE*/(x) => x == 0);
+  Future<bool> b = f;
+  b = g;
+}
     ''');
   }
 
