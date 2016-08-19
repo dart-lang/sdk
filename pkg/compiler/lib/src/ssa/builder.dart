@@ -3798,38 +3798,22 @@ class SsaBuilder extends ast.Visitor
     return new HLiteralList(inputs, backend.extendableArrayType);
   }
 
-  // TODO(karlklose): change construction of the representations to be GVN'able
-  // (dartbug.com/7182).
   HInstruction buildTypeArgumentRepresentations(DartType type) {
+    assert(!type.isTypeVariable);
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
-    if (type.isTypeVariable) {
-      return buildLiteralList(<HInstruction>[addTypeVariableReference(type)]);
-    } else {
-      assert(type.element.isClass);
-      InterfaceType interface = type;
-      List<HInstruction> inputs = <HInstruction>[];
-      List<js.Expression> templates = <js.Expression>[];
-      for (DartType argument in interface.typeArguments) {
-        // As we construct the template in stages, we have to make sure that for
-        // each part the generated sub-template's holes match the index of the
-        // inputs that are later used to instantiate it. We do this by starting
-        // the indexing with the number of inputs from previous sub-templates.
-        templates.add(rtiEncoder.getTypeRepresentationWithPlaceholders(argument,
-            (variable) {
-          HInstruction runtimeType = addTypeVariableReference(variable);
-          inputs.add(runtimeType);
-        }, firstPlaceholderIndex: inputs.length));
-      }
-      // TODO(sra): This is a fresh template each time.  We can't let the
-      // template manager build them.
-      js.Template code =
-          new js.Template(null, new js.ArrayInitializer(templates));
-      HInstruction representation = new HForeignCode(
-          code, backend.readableArrayType, inputs,
-          nativeBehavior: native.NativeBehavior.PURE_ALLOCATION);
-      return representation;
+    assert(type.element.isClass);
+    InterfaceType interface = type;
+    List<HInstruction> inputs = <HInstruction>[];
+    for (DartType argument in interface.typeArguments) {
+      inputs.add(analyzeTypeArgument(argument));
     }
+    HInstruction representation = new HTypeInfoExpression(
+        TypeInfoExpressionKind.INSTANCE,
+        interface.element.thisType,
+        inputs,
+        backend.dynamicType);
+    return representation;
   }
 
   @override
