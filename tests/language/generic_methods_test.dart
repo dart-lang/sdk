@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // DartOptions=--generic-method-syntax
-// VMOptions=--generic-method-syntax
 
 /// Dart test verifying that the parser can handle type parameterization of
 /// method declarations and method invocations. Slightly adjusted version of
