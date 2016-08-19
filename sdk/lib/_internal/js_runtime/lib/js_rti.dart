@@ -134,10 +134,6 @@ getTypeArgumentByIndex(Object target, int index) {
   return rti == null ? null : getIndex(rti, index);
 }
 
-void copyTypeArguments(Object source, Object target) {
-  JS('var', r'#.$builtinTypeInfo = #.$builtinTypeInfo', target, source);
-}
-
 /**
  * Retrieves the class name from type information stored on the constructor
  * of [object].

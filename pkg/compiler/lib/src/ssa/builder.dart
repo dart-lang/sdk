@@ -2327,10 +2327,12 @@ class SsaBuilder extends ast.Visitor
     removeInlinedInstantiation(type);
     // Create the runtime type information, if needed.
     if (backend.classNeedsRti(classElement)) {
-      // Read the values of the type arguments and create a list to set on the
-      // newly create object.  We can identify the case where the new list
-      // would be of the form:
+      // Read the values of the type arguments and create a HTypeInfoExpression
+      // to set on the newly create object.  We can identify the case where the
+      // expression would be of the form:
+      //
       //  [getTypeArgumentByIndex(this, 0), .., getTypeArgumentByIndex(this, k)]
+      //
       // and k is the number of type arguments of this.  If this is the case,
       // we can simply copy the list from this.
 
@@ -2343,41 +2345,42 @@ class SsaBuilder extends ast.Visitor
       // of `this`.
 
       /// Helper to identify instructions that read a type variable without
-      /// substitution (that is, directly use the index). These instructions
-      /// are of the form:
-      ///   HInvokeStatic(getTypeArgumentByIndex, this, index)
+      /// substitution (that is, directly use the index). These are
+      /// HTypeInfoReadVariable instructions that require no substitution.
       ///
       /// Return `true` if [instruction] is of that form and the index is the
       /// next index in the sequence (held in [expectedIndex]).
+
+      /// TODO: Move this to a simplifier optimization of HTypeInfoExpression.
       bool isIndexedTypeArgumentGet(HInstruction instruction) {
-        if (instruction is! HInvokeStatic) return false;
-        HInvokeStatic invoke = instruction;
-        if (invoke.element != helpers.getTypeArgumentByIndex) {
-          return false;
+        if (instruction is HTypeInfoReadVariable) {
+          HInstruction newSource = instruction.inputs[0];
+          if (newSource is! HThis) {
+            return false;
+          }
+          if (source == null) {
+            // This is the first match. Extract the context class for the type
+            // variables and get the list of type variables to keep track of how
+            // many arguments we need to process.
+            source = newSource;
+            contextClass = source.sourceElement.enclosingClass;
+            if (needsSubstitutionForTypeVariableAccess(contextClass)) {
+              return false;
+            }
+            remainingTypeVariables = contextClass.typeVariables.length;
+          } else {
+            assert(source == newSource);
+          }
+          // If there are no more type variables, then there are more type
+          // arguments for the new object than the source has, and it can't be
+          // a copy.  Otherwise remove one argument.
+          if (remainingTypeVariables == 0) return false;
+          remainingTypeVariables--;
+          // Check that the index is the one we expect.
+          int index = instruction.variable.element.index;
+          return index == expectedIndex++;
         }
-        HConstant index = invoke.inputs[1];
-        HInstruction newSource = invoke.inputs[0];
-        if (newSource is! HThis) {
-          return false;
-        }
-        if (source == null) {
-          // This is the first match. Extract the context class for the type
-          // variables and get the list of type variables to keep track of how
-          // many arguments we need to process.
-          source = newSource;
-          contextClass = source.sourceElement.enclosingClass;
-          remainingTypeVariables = contextClass.typeVariables.length;
-        } else {
-          assert(source == newSource);
-        }
-        // If there are no more type variables, then there are more type
-        // arguments for the new object than the source has, and it can't be
-        // a copy.  Otherwise remove one argument.
-        if (remainingTypeVariables == 0) return false;
-        remainingTypeVariables--;
-        // Check that the index is the one we expect.
-        IntConstantValue constant = index.constant;
-        return constant.primitiveValue == expectedIndex++;
+        return false;
       }
 
       List<HInstruction> typeArguments = <HInstruction>[];
@@ -2391,10 +2394,18 @@ class SsaBuilder extends ast.Visitor
       });
 
       if (source != null && allIndexed && remainingTypeVariables == 0) {
-        copyRuntimeTypeInfo(source, newObject);
+        HInstruction typeInfo =
+            new HTypeInfoReadRaw(source, backend.dynamicType);
+        add(typeInfo);
+        newObject = callSetRuntimeTypeInfo(typeInfo, newObject);
       } else {
-        newObject =
-            callSetRuntimeTypeInfo(classElement, typeArguments, newObject);
+        HInstruction typeInfo = new HTypeInfoExpression(
+            TypeInfoExpressionKind.INSTANCE,
+            classElement.thisType,
+            typeArguments,
+            backend.dynamicType);
+        add(typeInfo);
+        newObject = callSetRuntimeTypeInfo(typeInfo, newObject);
       }
     }
 
@@ -4710,32 +4721,15 @@ class SsaBuilder extends ast.Visitor
   }
 
   /**
-   * Generate code to extract the type arguments from the object, substitute
-   * them as an instance of the type we are testing against (if necessary), and
-   * extract the type argument by the index of the variable in the list of type
-   * variables for that class.
+   * Generate code to extract the type argument from the object.
    */
-  HInstruction readTypeVariable(ClassElement cls, TypeVariableElement variable,
+  HInstruction readTypeVariable(TypeVariableType variable,
       {SourceInformation sourceInformation}) {
     assert(sourceElement.isInstanceMember);
-
+    assert(variable is! MethodTypeVariableType);
     HInstruction target = localsHandler.readThis();
-    HConstant index = graph.addConstantInt(variable.index, compiler);
-
-    if (needsSubstitutionForTypeVariableAccess(cls)) {
-      // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
-      // string concatenation in the implementation), and may prevent
-      // segmentation of '$'.
-      js.Name substitutionName = backend.namer.runtimeTypeName(cls);
-      HInstruction substitutionNameInstr =
-          graph.addConstantStringFromName(substitutionName, compiler);
-      pushInvokeStatic(null, helpers.getRuntimeTypeArgument,
-          [target, substitutionNameInstr, index],
-          typeMask: backend.dynamicType, sourceInformation: sourceInformation);
-    } else {
-      pushInvokeStatic(null, helpers.getTypeArgumentByIndex, [target, index],
-          typeMask: backend.dynamicType, sourceInformation: sourceInformation);
-    }
+    push(new HTypeInfoReadVariable(variable, target, backend.dynamicType)
+      ..sourceInformation = sourceInformation);
     return pop();
   }
 
@@ -4753,6 +4747,9 @@ class SsaBuilder extends ast.Visitor
   HInstruction addTypeVariableReference(TypeVariableType type,
       {SourceInformation sourceInformation}) {
     assert(assertTypeInContext(type));
+    if (type is MethodTypeVariableType) {
+      return graph.addConstantNull(compiler);
+    }
     Element member = sourceElement;
     bool isClosure = member.enclosingElement.isClosure;
     if (isClosure) {
@@ -4777,8 +4774,7 @@ class SsaBuilder extends ast.Visitor
           isInConstructorContext) {
         // The type variable is stored on the "enclosing object" and needs to be
         // accessed using the this-reference in the closure.
-        return readTypeVariable(member.enclosingClass, type.element,
-            sourceInformation: sourceInformation);
+        return readTypeVariable(type, sourceInformation: sourceInformation);
       } else {
         assert(member.isField);
         // The type variable is stored in a parameter of the method.
@@ -4796,8 +4792,7 @@ class SsaBuilder extends ast.Visitor
           sourceInformation: sourceInformation);
     } else if (member.isInstanceMember) {
       // The type variable is stored on the object.
-      return readTypeVariable(member.enclosingClass, type.element,
-          sourceInformation: sourceInformation);
+      return readTypeVariable(type, sourceInformation: sourceInformation);
     } else {
       reporter.internalError(
           type.element, 'Unexpected type variable in static context.');
@@ -4819,15 +4814,14 @@ class SsaBuilder extends ast.Visitor
     }
 
     List<HInstruction> inputs = <HInstruction>[];
-
-    js.Expression template =
-        rtiEncoder.getTypeRepresentationWithPlaceholders(argument, (variable) {
-      inputs.add(addTypeVariableReference(variable));
+    argument.forEachTypeVariable((variable) {
+      if (variable is! MethodTypeVariableType) {
+        inputs.add(analyzeTypeArgument(variable));
+      }
     });
-
-    js.Template code = new js.Template(null, template);
-    HInstruction result = new HForeignCode(code, backend.stringType, inputs,
-        nativeBehavior: native.NativeBehavior.PURE);
+    HInstruction result = new HTypeInfoExpression(
+        TypeInfoExpressionKind.COMPLETE, argument, inputs, backend.dynamicType)
+      ..sourceInformation = sourceInformation;
     add(result);
     return result;
   }
@@ -4844,25 +4838,27 @@ class SsaBuilder extends ast.Visitor
     });
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfo(type.element, inputs, newObject);
+    return callSetRuntimeTypeInfoWithTypeArguments(
+        type.element, inputs, newObject);
   }
 
-  void copyRuntimeTypeInfo(HInstruction source, HInstruction target) {
-    Element copyHelper = helpers.copyTypeArguments;
-    pushInvokeStatic(null, copyHelper, [source, target],
-        sourceInformation: target.sourceInformation);
-    pop();
-  }
-
-  HInstruction callSetRuntimeTypeInfo(ClassElement element,
+  HInstruction callSetRuntimeTypeInfoWithTypeArguments(ClassElement element,
       List<HInstruction> rtiInputs, HInstruction newObject) {
-    if (!backend.classNeedsRti(element) || element.typeVariables.isEmpty) {
+    if (!backend.classNeedsRti(element)) {
       return newObject;
     }
 
-    HInstruction typeInfo = buildLiteralList(rtiInputs);
+    HInstruction typeInfo = new HTypeInfoExpression(
+        TypeInfoExpressionKind.INSTANCE,
+        element.thisType,
+        rtiInputs,
+        backend.dynamicType);
     add(typeInfo);
+    return callSetRuntimeTypeInfo(typeInfo, newObject);
+  }
 
+  HInstruction callSetRuntimeTypeInfo(
+      HInstruction typeInfo, HInstruction newObject) {
     // Set the runtime type information on the object.
     Element typeInfoSetterElement = helpers.setRuntimeTypeInfo;
     pushInvokeStatic(
@@ -4877,7 +4873,7 @@ class SsaBuilder extends ast.Visitor
         stack.last is HInvokeStatic || stack.last == newObject,
         message: "Unexpected `stack.last`: Found ${stack.last}, "
             "expected ${newObject} or an HInvokeStatic. "
-            "State: element=$element, rtiInputs=$rtiInputs, stack=$stack."));
+            "State: typeInfo=$typeInfo, stack=$stack."));
     stack.last.instructionType = newObject.instructionType;
     return pop();
   }
@@ -5103,8 +5099,7 @@ class SsaBuilder extends ast.Visitor
       List<HInstruction> inputs, ClassElement cls, InterfaceType expectedType,
       {SourceInformation sourceInformation}) {
     if (!backend.classNeedsRti(cls)) return;
-    assert(expectedType.typeArguments.isEmpty ||
-        cls.typeVariables.length == expectedType.typeArguments.length);
+    assert(cls.typeVariables.length == expectedType.typeArguments.length);
     expectedType.typeArguments.forEach((DartType argument) {
       inputs.add(
           analyzeTypeArgument(argument, sourceInformation: sourceInformation));
@@ -6814,7 +6809,8 @@ class SsaBuilder extends ast.Visitor
     }
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfo(type.element, arguments, object);
+    return callSetRuntimeTypeInfoWithTypeArguments(
+        type.element, arguments, object);
   }
 
   visitLiteralList(ast.LiteralList node) {

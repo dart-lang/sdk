@@ -488,10 +488,6 @@ class BackendHelpers {
     return findHelper('getTypeArgumentByIndex');
   }
 
-  Element get copyTypeArguments {
-    return findHelper('copyTypeArguments');
-  }
-
   Element get computeSignature {
     return findHelper('computeSignature');
   }

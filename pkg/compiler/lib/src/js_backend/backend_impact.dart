@@ -45,7 +45,6 @@ class BackendImpacts {
       _getRuntimeTypeArgument = new BackendImpact(staticUses: [
         helpers.getRuntimeTypeArgument,
         helpers.getTypeArgumentByIndex,
-        helpers.copyTypeArguments
       ]);
     }
     return _getRuntimeTypeArgument;

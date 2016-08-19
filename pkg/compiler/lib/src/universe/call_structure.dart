@@ -19,6 +19,7 @@ class CallStructure {
   static const CallStructure NO_ARGS = const CallStructure.unnamed(0);
   static const CallStructure ONE_ARG = const CallStructure.unnamed(1);
   static const CallStructure TWO_ARGS = const CallStructure.unnamed(2);
+  static const CallStructure THREE_ARGS = const CallStructure.unnamed(3);
 
   /// The numbers of arguments of the call. Includes named arguments.
   final int argumentCount;
