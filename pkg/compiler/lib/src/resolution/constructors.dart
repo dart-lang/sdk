@@ -481,6 +481,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
   ResolutionRegistry get registry => resolver.registry;
 
+  Element get context => resolver.enclosingElement;
+
   visitNode(Node node) {
     throw 'not supported';
   }
@@ -489,7 +491,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       Spannable diagnosticNode,
       ConstructorResultKind resultKind,
       DartType type,
-      Element enclosing,
       String name,
       MessageKind kind,
       Map arguments,
@@ -509,7 +510,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       reporter.reportWarning(message, infos);
     }
     ErroneousElement error =
-        new ErroneousConstructorElementX(kind, arguments, name, enclosing);
+        new ErroneousConstructorElementX(kind, arguments, name, context);
     if (type == null) {
       type = new MalformedType(error, null);
     }
@@ -521,7 +522,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     ClassElement cls = type.element;
     cls.ensureResolved(resolution);
     ConstructorElement constructor = findConstructor(
-        resolver.enclosingElement.library, cls, constructorName);
+        context.library, cls, constructorName);
     if (constructor == null) {
       MessageKind kind = constructorName.isEmpty
           ? MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR
@@ -530,7 +531,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           diagnosticNode,
           ConstructorResultKind.UNRESOLVED_CONSTRUCTOR,
           type,
-          cls,
           constructorName,
           kind,
           {'className': cls.name, 'constructorName': constructorName},
@@ -546,7 +546,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
             diagnosticNode,
             ConstructorResultKind.INVALID_TYPE,
             type,
-            cls,
             constructorName,
             MessageKind.CANNOT_INSTANTIATE_ENUM,
             {'enumName': cls.name},
@@ -607,7 +606,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
             diagnosticNode,
             ConstructorResultKind.INVALID_TYPE,
             null,
-            element,
             element.name,
             MessageKind.NOT_A_TYPE,
             {'node': diagnosticNode});
@@ -661,7 +659,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
             name,
             ConstructorResultKind.INVALID_TYPE,
             null,
-            resolver.enclosingElement,
             name.source,
             MessageKind.NOT_A_TYPE,
             {'node': name});
@@ -700,7 +697,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           node,
           ConstructorResultKind.INVALID_TYPE,
           null,
-          resolver.enclosingElement,
           name,
           MessageKind.CANNOT_RESOLVE,
           {'name': name});
@@ -710,11 +706,10 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           node,
           ConstructorResultKind.INVALID_TYPE,
           null,
-          resolver.enclosingElement,
           name,
           ambiguous.messageKind,
           ambiguous.messageArguments,
-          infos: ambiguous.computeInfos(resolver.enclosingElement, reporter));
+          infos: ambiguous.computeInfos(context, reporter));
     } else if (element.isMalformed) {
       return constructorResultForErroneous(node, element);
     } else if (element.isClass) {
@@ -735,7 +730,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           node,
           ConstructorResultKind.INVALID_TYPE,
           null,
-          resolver.enclosingElement,
           name,
           MessageKind.NOT_A_TYPE,
           {'node': name});
@@ -761,7 +755,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           node,
           ConstructorResultKind.INVALID_TYPE,
           type,
-          resolver.enclosingElement,
           name,
           MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
           {'typeVariableName': name});
@@ -776,7 +769,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           node,
           ConstructorResultKind.INVALID_TYPE,
           type,
-          resolver.enclosingElement,
           name,
           MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
           {'typedefName': name});

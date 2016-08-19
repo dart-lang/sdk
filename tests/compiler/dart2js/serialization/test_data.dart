@@ -693,6 +693,12 @@ const a = 1e+400;
 main() => a;
 ''',
   }),
+
+  const Test('Erroneous constructor', const {},
+      preserializedSourceFiles: const {
+    'main.dart': '''
+main() => new Null();
+'''}),
 ];
 
 class Test {
