@@ -195,11 +195,23 @@ class FileTest extends _BaseTest {
   }
 
   void test_writeAsBytesSync() {
-    new io.File(path).writeAsBytesSync(<int>[1, 2]);
-    expect(file.readAsBytesSync(), <int>[1, 2]);
+    List<int> content = <int>[1, 2];
+    new io.File(path).writeAsBytesSync(content);
+    expect(file.readAsBytesSync(), content);
     // write new bytes
-    file.writeAsBytesSync(<int>[10, 20]);
-    expect(file.readAsBytesSync(), <int>[10, 20]);
+    content = <int>[10, 20];
+    file.writeAsBytesSync(content);
+    expect(file.readAsBytesSync(), content);
+  }
+
+  void test_writeAsStringSync() {
+    String content = 'ab';
+    new io.File(path).writeAsStringSync(content);
+    expect(file.readAsStringSync(), content);
+    // write new bytes
+    content = 'CD';
+    file.writeAsStringSync(content);
+    expect(file.readAsStringSync(), content);
   }
 }
 

@@ -189,6 +189,16 @@ class _PhysicalFile extends _PhysicalResource implements File {
       throw new FileSystemException(exception.path, exception.message);
     }
   }
+
+  @override
+  void writeAsStringSync(String content) {
+    try {
+      io.File file = _entry as io.File;
+      file.writeAsStringSync(content);
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
 }
 
 /**
