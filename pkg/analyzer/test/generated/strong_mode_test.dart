@@ -1801,23 +1801,7 @@ class C {
 class D extends C {
   String f/*<S>*/(/*=S*/ x) => null;
 }''');
-    // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
-    // from CodeChecker don't have working equality.
-    List<AnalysisError> errors = analysisContext2.computeErrors(source);
-
-    // Sort errors by name.
-    errors.sort((AnalysisError e1, AnalysisError e2) =>
-        e1.errorCode.name.compareTo(e2.errorCode.name));
-
-    expect(
-        errors.map((e) => e.errorCode.name),
-        unorderedEquals([
-          'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
-          'STRONG_MODE_INVALID_METHOD_OVERRIDE'
-        ]));
-    expect(errors[0].message, contains('Iterable<S>'),
-        reason: 'errors should be in terms of the type parameters '
-            'at the error location');
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
@@ -1831,15 +1815,7 @@ class C {
 class D extends C {
   /*=T*/ f/*<T extends B>*/(/*=T*/ x) => null;
 }''');
-    // TODO(jmesserly): this is modified code from assertErrors, which we can't
-    // use directly because STRONG_MODE_* errors don't have working equality.
-    List<AnalysisError> errors = analysisContext2.computeErrors(source);
-    expect(
-        errors.map((e) => e.errorCode.name),
-        unorderedEquals([
-          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
-          'STRONG_MODE_INVALID_METHOD_OVERRIDE'
-        ]));
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
@@ -1851,15 +1827,7 @@ class C {
 class D extends C {
   /*=S*/ f/*<T, S>*/(/*=T*/ x) => null;
 }''');
-    // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
-    // from CodeChecker don't have working equality.
-    List<AnalysisError> errors = analysisContext2.computeErrors(source);
-    expect(
-        errors.map((e) => e.errorCode.name),
-        unorderedEquals([
-          'STRONG_MODE_INVALID_METHOD_OVERRIDE',
-          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS'
-        ]));
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
