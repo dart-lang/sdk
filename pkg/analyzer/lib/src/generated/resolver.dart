@@ -5766,16 +5766,26 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Returns true if this method is `Future.then`.
+   * Returns true if this method is `Future.then` or an override thereof.
    *
    * If so we will apply special typing rules in strong mode, to handle the
    * implicit union of `S | Future<S>`
    */
   bool isFutureThen(Element element) {
-    return element is MethodElement &&
-        element.name == 'then' &&
-        element.enclosingElement.type.isDartAsyncFuture;
+    // If we are a method named then
+    if (element is MethodElement && element.name == 'then') {
+      DartType type = element.enclosingElement.type;
+      // On Future or a subtype, then we're good.
+      return (type.isDartAsyncFuture || isSubtypeOfFuture(type));
+    }
+    return false;
   }
+
+  /**
+   * Returns true if this type is any subtype of the built in Future type.
+   */
+  bool isSubtypeOfFuture(DartType type) =>
+      typeSystem.isSubtypeOf(type, typeProvider.futureDynamicType);
 
   /**
    * Given a downward inference type [fnType], and the declared
@@ -6733,6 +6743,12 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     TypeName classTypeName = node.constructorName.type;
+    // TODO(leafp): Currently, we may re-infer types here, since we
+    // sometimes resolve multiple times.  We should really check that we
+    // have not already inferred something.  However, the obvious ways to
+    // check this don't work, since we may have been instantiated
+    // to bounds in an earlier phase, and we *do* want to do inference
+    // in that case.
     if (classTypeName.typeArguments == null) {
       // Given a union of context types ` T0 | T1 | ... | Tn`, find the first
       // valid instantiation `new C<Ti>`, if it exists.
