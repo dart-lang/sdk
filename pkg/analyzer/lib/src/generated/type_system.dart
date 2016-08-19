@@ -1666,8 +1666,8 @@ class FutureUnionType extends TypeImpl {
       throw new UnsupportedError('Future unions are not used in typedefs');
 
   /**
-   * Creates a union of `T | Future<T>`, unless `T` is already a future-union,
-   * in which case it simply returns `T`
+   * Creates a union of `flatten(T) | Future<flatten(T)>`, unless `T` is
+   * already a future-union, in which case it simply returns `T`
    */
   static DartType from(
       DartType type, TypeProvider provider, TypeSystem system) {
