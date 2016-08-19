@@ -1871,6 +1871,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           CacheEntry unitEntry =
               getCacheEntry(new LibrarySpecificUnit(librarySource, source));
           CompilationUnit oldUnit = RESOLVED_UNIT_RESULTS
+              .skipWhile((result) => result != RESOLVED_UNIT2)
               .map(unitEntry.getValue)
               .firstWhere((unit) => unit != null, orElse: () => null);
           // If we have the old unit, we can try to update it.

@@ -4624,6 +4624,31 @@ class B2 {}
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_sequence_useAnyResolvedUnit_needsLibraryElement() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+class B {}
+''');
+    // Perform analysis until we get RESOLVED_UNIT1.
+    // But it does not have 'library' set, so `unitElement.context` is `null`.
+    LibrarySpecificUnit aUnitTarget = new LibrarySpecificUnit(a, a);
+    while (context.getResult(aUnitTarget, RESOLVED_UNIT1) == null) {
+      context.performAnalysisTask();
+    }
+    // There was a bug with exception in incremental element builder.
+    // We should not attempt to use `unitElement.context`.
+    // It calls `unitElement.library`, which might be not set yet.
+    context.setContents(
+        a,
+        r'''
+class A {}
+class B2 {}
+''');
+    // OK, no exceptions.
+  }
+
   void test_unusedName_class_add() {
     Source a = addSource(
         '/a.dart',
