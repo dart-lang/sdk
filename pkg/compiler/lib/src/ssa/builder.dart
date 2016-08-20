@@ -2326,7 +2326,8 @@ class SsaBuilder extends ast.Visitor
     }
     removeInlinedInstantiation(type);
     // Create the runtime type information, if needed.
-    if (backend.classNeedsRti(classElement)) {
+    if (classElement.typeVariables.isNotEmpty &&
+        backend.classNeedsRti(classElement)) {
       // Read the values of the type arguments and create a HTypeInfoExpression
       // to set on the newly create object.  We can identify the case where the
       // expression would be of the form:
