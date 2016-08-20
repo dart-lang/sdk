@@ -10,7 +10,7 @@ import '../mocks.dart';
 main() {
   SentinelValueElement.tag.ensureRegistration();
 
-  const sentinel = const Sentinel();
+  const sentinel = const SentinelMock();
   test('instantiation', () {
     final e = new SentinelValueElement(sentinel);
     expect(e, isNotNull, reason: 'element correctly created');

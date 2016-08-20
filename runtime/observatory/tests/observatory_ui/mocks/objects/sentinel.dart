@@ -4,10 +4,10 @@
 
 part of mocks;
 
-class Sentinel implements M.Sentinel {
+class SentinelMock implements M.Sentinel {
   final M.SentinelKind kind;
   final String valueAsString;
 
-  const Sentinel({this.kind: M.SentinelKind.collected,
+  const SentinelMock({this.kind: M.SentinelKind.collected,
                   this.valueAsString: 'sentinel-value'});
 }

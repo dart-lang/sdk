@@ -666,6 +666,32 @@ function-ref-wrapped > a[href] {
   text-decoration: none;
 }
 
+/* inbound-reference */
+
+inbound-reference > a[href]:hover {
+  text-decoration: underline;
+}
+inbound-reference > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+inbound-reference .indent {
+  margin-left: 1.5em;
+  font: 400 14px 'Montserrat', sans-serif;
+  line-height: 150%;
+}
+inbound-reference .stackTraceBox {
+  margin-left: 1.5em;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: consolas, courier, monospace;
+  font-size: 12px;
+  white-space: pre;
+  overflow-x: auto;
+}
+
 /* instance-ref */
 /* TODO(cbernaschina) fix instance-ref-wrapped to instance-ref when wrapper
 removed */
@@ -880,6 +906,25 @@ nav-refresh-wrapped > li > button[disabled] {
 nav-refresh-wrapped > li {
   float: right;
   margin: 0;
+}
+
+/* object-common */
+/* TODO(cbernaschina) fix object-common-wrapped to object-common when wrapper
+removed */
+
+object-common-wrapped button:hover {
+  background-color: transparent;
+  border: none;
+  text-decoration: underline;
+}
+object-common-wrapped button {
+  background-color: transparent;
+  border: none;
+  color: #0489c3;
+  padding: 0;
+  margin: -8px 4px;
+  font-size: 20px;
+  text-decoration: none;
 }
 
 /* observatory-application */

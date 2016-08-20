@@ -93,7 +93,7 @@ class FakeVMRpcException extends RpcException {
 }
 
 /// A [ServiceObject] represents a persistent object within the vm.
-abstract class ServiceObject extends Observable implements M.ObjectRef {
+abstract class ServiceObject extends Observable {
   static int LexicalSortName(ServiceObject o1, ServiceObject o2) {
     return o1.name.compareTo(o2.name);
   }
@@ -380,7 +380,7 @@ abstract class ServiceObject extends Observable implements M.ObjectRef {
   }
 }
 
-abstract class HeapObject extends ServiceObject {
+abstract class HeapObject extends ServiceObject implements M.Object {
   @observable Class clazz;
   @observable int size;
   @observable int retainedSize;
@@ -1076,6 +1076,48 @@ class TagProfile {
       snapshots.removeAt(0);
     }
   }
+}
+
+class InboundReferences implements M.InboundReferences {
+  final Iterable<InboundReference> elements;
+
+  InboundReferences(ServiceMap map)
+    : this.elements = map['references']
+        .map((rmap) => new InboundReference(rmap));
+}
+
+class InboundReference implements M.InboundReference {
+  final HeapObject source;
+  final Instance parentField;
+  final int parentListIndex;
+  final int parentWordOffset;
+
+  InboundReference(ServiceMap map)
+    : source = map['source'],
+      parentField = map['parentField'],
+      parentListIndex = map['parentListIndex'],
+      parentWordOffset = map['_parentWordOffset'];
+}
+
+class RetainingPath implements M.RetainingPath {
+  final Iterable<RetainingPathItem> elements;
+
+  RetainingPath(ServiceMap map)
+    : this.elements = map['elements']
+        .map((rmap) => new RetainingPathItem(rmap));
+}
+
+class RetainingPathItem implements M.RetainingPathItem {
+  final HeapObject source;
+  final Instance parentField;
+  final int parentListIndex;
+  final int parentWordOffset;
+
+  RetainingPathItem(ServiceMap map)
+    : source = map['value'],
+      parentField = map['parentField'],
+      parentListIndex = map['parentListIndex'],
+      parentWordOffset = map['_parentWordOffset'];
 }
 
 class HeapSpace extends Observable implements M.HeapSpace {
@@ -2546,10 +2588,10 @@ class Instance extends HeapObject implements M.Instance {
 
   @observable Iterable<BoundField> fields;
   @observable var nativeFields;
-  @observable Iterable<Guarded<ServiceObject>> elements;  // If a List.
+  @observable Iterable<Guarded<HeapObject>> elements;  // If a List.
   @observable Iterable<MapAssociation> associations;  // If a Map.
   @observable Iterable<dynamic> typedElements;  // If a TypedData.
-  @observable ServiceObject referent;  // If a MirrorReference.
+  @observable HeapObject referent;  // If a MirrorReference.
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
   @observable Breakpoint activationBreakpoint;  // If a Closure.
@@ -2904,7 +2946,7 @@ class Sentinel extends ServiceObject implements M.Sentinel {
 
 class Field extends HeapObject implements M.FieldRef {
   // Library or Class.
-  @observable ServiceObject dartOwner;
+  @observable HeapObject dartOwner;
   @observable Library library;
   @observable Instance declaredType;
   @observable bool isStatic;
