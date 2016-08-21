@@ -1596,52 +1596,14 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   AnalysisContext addContext(
       Folder folder, AnalysisOptions options, FolderDisposition disposition) {
-    String defaultPackageFilePath = null;
-    String defaultPackagesDirectoryPath = null;
-    String path = (analysisServer.contextManager as ContextManagerImpl)
-        .normalizedPackageRoots[folder.toString()];
-    if (path != null) {
-      Resource resource = resourceProvider.getResource(path);
-      if (resource.exists) {
-        if (resource is File) {
-          defaultPackageFilePath = path;
-        } else {
-          defaultPackagesDirectoryPath = path;
-        }
-      }
-    }
-    StringBuffer buffer = new StringBuffer();
-    buffer.writeln('normalizedPackageRoots:');
-    (analysisServer.contextManager as ContextManagerImpl)
-        .normalizedPackageRoots
-        .forEach((String key, String value) {
-      buffer.writeln('  "$key" --> "$value"');
-    });
-    buffer.writeln('folder = $folder');
-    buffer.writeln('defaultPackageFilePath = $defaultPackageFilePath');
-    buffer.writeln(
-        'defaultPackagesDirectoryPath = $defaultPackagesDirectoryPath');
-    buffer.writeln('disposition.packageRoot = ${disposition.packageRoot}');
-    new io.File('/Users/brianwilkerson/temp/debug.txt')
-        .writeAsStringSync(buffer.toString());
-
-    ContextBuilder builder = new ContextBuilder(resourceProvider,
-        analysisServer.sdkManager, analysisServer.overlayState);
-    builder.defaultOptions = options;
-    builder.fileResolverProvider = analysisServer.fileResolverProvider;
-    builder.defaultPackageFilePath = defaultPackageFilePath;
-    builder.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    AnalysisContext context = builder.buildContext(folder.path);
-
-//    InternalAnalysisContext context =
-//        AnalysisEngine.instance.createAnalysisContext();
-//    context.contentCache = analysisServer.overlayState;
-//    context.fileResolverProvider = analysisServer.fileResolverProvider;
-//    context.sourceFactory =
-//        _createSourceFactory(context, options, disposition, folder);
-//    context.analysisOptions = options;
-
-    // TODO(brianwilkerson) Move bundle discovery into ContextBuilder
+    InternalAnalysisContext context =
+        AnalysisEngine.instance.createAnalysisContext();
+    context.contentCache = analysisServer.overlayState;
+    analysisServer.folderMap[folder] = context;
+    context.fileResolverProvider = analysisServer.fileResolverProvider;
+    context.sourceFactory =
+        _createSourceFactory(context, options, disposition, folder);
+    context.analysisOptions = options;
     if (analysisServer.options.enablePubSummaryManager) {
       List<LinkedPubPackage> linkedBundles =
           analysisServer.pubSummaryManager.getLinkedBundles(context);
@@ -1651,12 +1613,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           store.addBundle(null, package.unlinked);
           store.addBundle(null, package.linked);
         }
-        (context as InternalAnalysisContext).resultProvider =
+        context.resultProvider =
             new InputPackagesResultProvider(context, store);
       }
     }
 
-    analysisServer.folderMap[folder] = context;
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);

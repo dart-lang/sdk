@@ -321,23 +321,6 @@ import "../foo/foo.dart";
     expect(source.fullName, filePath);
   }
 
-  test_getContextSourcePair_withPackagesFile() {
-    String dirPath = '/dir';
-    String packagesFilePath = dirPath + '/.packages';
-    resourceProvider.newFile(packagesFilePath, 'dir:lib/');
-    String filePath = dirPath + '/lib/file.dart';
-    resourceProvider.newFile(filePath, 'library lib;');
-    // create contexts
-    server.setAnalysisRoots('0', [dirPath], [], {});
-    // get pair
-    ContextSourcePair pair = server.getContextSourcePair(filePath);
-    _assertContextOfFolder(pair.context, dirPath);
-    Source source = pair.source;
-    expect(source, isNotNull);
-    expect(source.uri.scheme, 'package');
-    expect(source.fullName, filePath);
-  }
-
   /**
    * Test that having multiple analysis contexts analyze the same file doesn't
    * cause that file to receive duplicate notifications when it's modified.
