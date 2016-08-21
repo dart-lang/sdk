@@ -265,8 +265,8 @@ import "../foo/foo.dart";
     server.setAnalysisRoots('0', [dir1Path], [], {});
     // get pair
     ContextSourcePair pair = server.getContextSourcePair(filePath);
-    Source source = pair.source;
     _assertContextOfFolder(pair.context, dir2Path);
+    Source source = pair.source;
     expect(source, isNotNull);
     expect(source.uri.scheme, 'file');
     expect(source.fullName, filePath);
@@ -299,8 +299,8 @@ import "../foo/foo.dart";
     server.setAnalysisRoots('0', [rootPath], [], {});
     // get pair
     ContextSourcePair pair = server.getContextSourcePair(filePath);
-    Source source = pair.source;
     _assertContextOfFolder(pair.context, rootPath);
+    Source source = pair.source;
     expect(source, isNotNull);
     expect(source.uri.scheme, 'package');
     expect(source.fullName, filePath);
@@ -314,10 +314,27 @@ import "../foo/foo.dart";
     server.setAnalysisRoots('0', [dirPath], [], {});
     // get pair
     ContextSourcePair pair = server.getContextSourcePair(filePath);
-    Source source = pair.source;
     _assertContextOfFolder(pair.context, dirPath);
+    Source source = pair.source;
     expect(source, isNotNull);
     expect(source.uri.scheme, 'file');
+    expect(source.fullName, filePath);
+  }
+
+  test_getContextSourcePair_withPackagesFile() {
+    String dirPath = '/dir';
+    String packagesFilePath = dirPath + '/.packages';
+    resourceProvider.newFile(packagesFilePath, 'dir:lib/');
+    String filePath = dirPath + '/lib/file.dart';
+    resourceProvider.newFile(filePath, 'library lib;');
+    // create contexts
+    server.setAnalysisRoots('0', [dirPath], [], {});
+    // get pair
+    ContextSourcePair pair = server.getContextSourcePair(filePath);
+    _assertContextOfFolder(pair.context, dirPath);
+    Source source = pair.source;
+    expect(source, isNotNull);
+    expect(source.uri.scheme, 'package');
     expect(source.fullName, filePath);
   }
 

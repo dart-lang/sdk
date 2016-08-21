@@ -56,7 +56,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * A flag indicating whether a surrounding member (compilation unit or class)
    * is deprecated.
    */
-  bool inDeprecatedMember = false;
+  bool inDeprecatedMember;
 
   /**
    * The error reporter by which errors will be reported.
@@ -88,7 +88,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       this._errorReporter, TypeProvider typeProvider, this._currentLibrary,
       {TypeSystem typeSystem})
       : _futureNullType = typeProvider.futureNullType,
-        _typeSystem = typeSystem ?? new TypeSystemImpl();
+        _typeSystem = typeSystem ?? new TypeSystemImpl() {
+    inDeprecatedMember = _currentLibrary.isDeprecated;
+  }
 
   @override
   Object visitAnnotation(Annotation node) {

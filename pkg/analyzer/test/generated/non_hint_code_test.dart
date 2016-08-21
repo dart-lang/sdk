@@ -242,6 +242,25 @@ g() {
     verify([source]);
   }
 
+  void test_deprecatedMemberUse_inDeprecatedLibrary() {
+    Source source = addSource(r'''
+@deprecated
+library lib;
+
+@deprecated
+f() {}
+
+class C {
+  m() {
+    f();
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deprecatedMemberUse_inDeprecatedMethod() {
     Source source = addSource(r'''
 @deprecated
