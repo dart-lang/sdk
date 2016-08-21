@@ -146,7 +146,7 @@ quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
           expect(
               () => resolvePackageUri(
                   config: 'foo:<:&%>', uri: 'package:foo/bar.dart'),
-              throwsA(new isInstanceOf('FormatException')));
+              throwsA(new isInstanceOf<FormatException>()));
         });
         test('Valid URI that cannot be further resolved', () {
           String uri = resolvePackageUri(

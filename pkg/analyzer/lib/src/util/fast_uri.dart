@@ -30,11 +30,6 @@ class FastUri implements Uri {
    */
   final int _lastSlashIndex;
 
-  /**
-   * The cached hashcode.
-   */
-  int _hashCode;
-
   Uri _cachedFallbackUri;
 
   FastUri._(this._cacheGeneration, this._text, this._scheme,

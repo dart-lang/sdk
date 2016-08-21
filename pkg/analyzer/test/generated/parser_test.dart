@@ -29,6 +29,7 @@ main() {
   initializeTestEnvironment();
   runReflectiveTests(ComplexParserTest);
   runReflectiveTests(ErrorParserTest);
+  // ignore: deprecated_member_use
   runReflectiveTests(IncrementalParserTest);
   runReflectiveTests(NonErrorParserTest);
   runReflectiveTests(RecoveryParserTest);
@@ -2366,6 +2367,7 @@ void main() {
   }
 }
 
+@deprecated
 @reflectiveTest
 class IncrementalParserTest extends EngineTestCase {
   void fail_replace_identifier_with_functionLiteral_in_initializer_interp() {
