@@ -6,7 +6,6 @@ library analyzer.src.context.context_builder;
 
 import 'dart:collection';
 import 'dart:core' hide Resource;
-import 'dart:io' as io;
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -18,7 +17,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:package_config/discovery.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -60,7 +58,7 @@ class ContextBuilder {
   final DartSdkManager sdkManager;
 
   /**
-   * The cache containing the contents of overlayed files.
+   * The cache containing the contents of overlaid files.
    */
   final ContentCache contentCache;
 
@@ -183,30 +181,29 @@ class ContextBuilder {
 
   Packages createPackageMap(String rootDirectoryPath) {
     if (defaultPackageFilePath != null) {
-      // TODO(brianwilkerson) Figure out why we're going through Uri rather than
-      // just creating the file from the path.
-      Uri fileUri = new Uri.file(defaultPackageFilePath);
-      io.File configFile = new io.File.fromUri(fileUri).absolute;
+      File configFile = resourceProvider.getFile(defaultPackageFilePath);
       List<int> bytes = configFile.readAsBytesSync();
-      Map<String, Uri> map = parse(bytes, configFile.uri);
+      Map<String, Uri> map = parse(bytes, configFile.toUri());
       return new MapPackages(map);
     } else if (defaultPackagesDirectoryPath != null) {
-      return getPackagesDirectory(
-          new Uri.directory(defaultPackagesDirectoryPath));
+      Folder folder = resourceProvider.getFolder(defaultPackagesDirectoryPath);
+      return getPackagesFromFolder(folder);
     }
-    return findPackagesFromFile(new Uri.directory(rootDirectoryPath));
+    return findPackagesFromFile(rootDirectoryPath);
   }
 
   SourceFactory createSourceFactory(
       String rootDirectoryPath, AnalysisOptions options) {
     Folder _folder = null;
     Folder folder() {
-      return _folder ??= resourceProvider.getResource('.');
+      return _folder ??= resourceProvider.getFolder(rootDirectoryPath);
     }
 
-    UriResolver fileResolver = fileResolverProvider == null
-        ? new ResourceUriResolver(resourceProvider)
-        : fileResolverProvider(folder());
+    UriResolver fileResolver;
+    if (fileResolverProvider != null) {
+      fileResolver = fileResolverProvider(folder());
+    }
+    fileResolver ??= new ResourceUriResolver(resourceProvider);
     if (packageResolverProvider != null) {
       UriResolver packageResolver = packageResolverProvider(folder());
       if (packageResolver != null) {
@@ -243,6 +240,29 @@ class ContextBuilder {
         contextVariables.define(variableName, value);
       });
     }
+  }
+
+  /**
+   * Finds a package resolution strategy for the directory at the given absolute
+   * [path].
+   *
+   * This function first tries to locate a `.packages` file in the directory. If
+   * that is not found, it instead checks for the presence of a `packages/`
+   * directory in the same place. If that also fails, it starts checking parent
+   * directories for a `.packages` file, and stops if it finds it. Otherwise it
+   * gives up and returns [Packages.noPackages].
+   */
+  Packages findPackagesFromFile(String path) {
+    Resource location = _findPackagesLocation(path);
+    if (location is File) {
+      List<int> fileBytes = location.readAsBytesSync();
+      Map<String, Uri> map =
+          parse(fileBytes, resourceProvider.pathContext.toUri(location.path));
+      return new MapPackages(map);
+    } else if (location is Folder) {
+      return getPackagesFromFolder(location);
+    }
+    return Packages.noPackages;
   }
 
   /**
@@ -349,6 +369,77 @@ class ContextBuilder {
     }
     return null;
   }
+
+  /**
+   * Create a [Packages] object for a 'package' directory ([folder]).
+   *
+   * Package names are resolved as relative to sub-directories of the package
+   * directory.
+   */
+  Packages getPackagesFromFolder(Folder folder) {
+    Map<String, Uri> map = new HashMap<String, Uri>();
+    for (Resource child in folder.getChildren()) {
+      if (child is Folder) {
+        String packageName = resourceProvider.pathContext.basename(child.path);
+        // Create a file URI (rather than a directory URI) and add a '.' so that
+        // the URI is suitable for resolving relative URI's against it.
+        //
+        // TODO(brianwilkerson) Decide whether we need to pass in a 'windows:'
+        // argument for testing purposes.
+        map[packageName] = resourceProvider.pathContext.toUri(
+            resourceProvider.pathContext.join(folder.path, packageName, '.'));
+      }
+    }
+    return new MapPackages(map);
+  }
+
+  /**
+   * Find the location of the package resolution file/directory for the
+   * directory at the given absolute [path].
+   *
+   * Checks for a `.packages` file in the [path]. If not found,
+   * checks for a `packages` directory in the same directory. If still not
+   * found, starts checking parent directories for `.packages` until reaching
+   * the root directory.
+   *
+   * Return a [File] object representing a `.packages` file if one is found, a
+   * [Folder] object for the `packages/` directory if that is found, or `null`
+   * if neither is found.
+   */
+  Resource _findPackagesLocation(String path) {
+    Folder folder = resourceProvider.getFolder(path);
+    if (!folder.exists) {
+      throw new ArgumentError.value(path, "path", "Directory does not exist.");
+    }
+    File checkForConfigFile(Folder folder) {
+      File file = folder.getChildAssumingFile('.packages');
+      if (file.exists) {
+        return file;
+      }
+      return null;
+    }
+
+    // Check for $cwd/.packages
+    File packagesCfgFile = checkForConfigFile(folder);
+    if (packagesCfgFile != null) {
+      return packagesCfgFile;
+    }
+    // Check for $cwd/packages/
+    Folder packagesDir = folder.getChildAssumingFolder("packages");
+    if (packagesDir.exists) {
+      return packagesDir;
+    }
+    // Check for cwd(/..)+/.packages
+    Folder parentDir = folder.parent;
+    while (parentDir != null) {
+      packagesCfgFile = checkForConfigFile(parentDir);
+      if (packagesCfgFile != null) {
+        return packagesCfgFile;
+      }
+      parentDir = parentDir.parent;
+    }
+    return null;
+  }
 }
 
 /**
@@ -378,7 +469,7 @@ class EmbedderYamlLocator {
   }
 
   /**
-   * Programatically add an `_embedder.yaml` mapping.
+   * Programmatically add an `_embedder.yaml` mapping.
    */
   void addEmbedderYaml(Folder libDir, String embedderYaml) {
     _processEmbedderYaml(libDir, embedderYaml);
