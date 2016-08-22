@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' hide ConstantEvaluator;
@@ -30,6 +31,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:path/path.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
@@ -313,16 +315,15 @@ class DirectoryBasedDartSdkTest {
 @reflectiveTest
 class DirectoryBasedSourceContainerTest {
   void test_contains() {
-    JavaFile dir = FileUtilities2.createFile("/does/not/exist");
-    JavaFile file1 = FileUtilities2.createFile("/does/not/exist/some.dart");
-    JavaFile file2 =
-        FileUtilities2.createFile("/does/not/exist/folder/some2.dart");
-    JavaFile file3 = FileUtilities2.createFile("/does/not/exist3/some3.dart");
-    FileBasedSource source1 = new FileBasedSource(file1);
-    FileBasedSource source2 = new FileBasedSource(file2);
-    FileBasedSource source3 = new FileBasedSource(file3);
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    File file1 = resourceProvider.getFile('/does/not/exist/some.dart');
+    File file2 = resourceProvider.getFile('/does/not/exist/folder/some2.dart');
+    File file3 = resourceProvider.getFile('/does/not/exist3/some3.dart');
+    Source source1 = new FileSource(file1);
+    Source source2 = new FileSource(file2);
+    Source source3 = new FileSource(file3);
     DirectoryBasedSourceContainer container =
-        new DirectoryBasedSourceContainer.con1(dir);
+        new DirectoryBasedSourceContainer.con2('/does/not/exist');
     expect(container.contains(source1), isTrue);
     expect(container.contains(source2), isTrue);
     expect(container.contains(source3), isFalse);

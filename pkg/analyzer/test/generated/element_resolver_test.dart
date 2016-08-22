@@ -8,17 +8,18 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -868,20 +869,18 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   /**
-   * Create the resolver used by the tests.
-   *
-   * @return the resolver that was created
+   * Create and return the resolver used by the tests.
    */
   ElementResolver _createResolver() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    FileBasedSource source =
-        new FileBasedSource(FileUtilities2.createFile("/test.dart"));
-    CompilationUnitElementImpl definingCompilationUnit =
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
+    Source source = new FileSource(resourceProvider.getFile("/test.dart"));
+    CompilationUnitElementImpl unit =
         new CompilationUnitElementImpl("test.dart");
-    definingCompilationUnit.librarySource =
-        definingCompilationUnit.source = source;
+    unit.librarySource = unit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
-    _definingLibrary.definingCompilationUnit = definingCompilationUnit;
+    _definingLibrary.definingCompilationUnit = unit;
     _visitor = new ResolverVisitor(
         _definingLibrary, source, _typeProvider, _listener,
         nameScope: new LibraryScope(_definingLibrary, _listener));

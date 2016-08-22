@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -25,6 +26,7 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:unittest/unittest.dart';
 
@@ -499,21 +501,25 @@ class AnalysisContextForTests extends AnalysisContextImpl {
  * Helper for creating and managing single [AnalysisContext].
  */
 class AnalysisContextHelper {
+  ResourceProvider resourceProvider;
   AnalysisContext context;
 
   /**
    * Creates new [AnalysisContext] using [AnalysisContextFactory].
    */
-  AnalysisContextHelper([AnalysisOptionsImpl options]) {
+  AnalysisContextHelper(
+      [AnalysisOptionsImpl options, ResourceProvider provider]) {
+    resourceProvider = provider ?? new MemoryResourceProvider();
     if (options == null) {
       options = new AnalysisOptionsImpl();
     }
     options.cacheSize = 256;
-    context = AnalysisContextFactory.contextWithCoreAndOptions(options);
+    context = AnalysisContextFactory.contextWithCoreAndOptions(options,
+        resourceProvider: resourceProvider);
   }
 
   Source addSource(String path, String code) {
-    Source source = new FileBasedSource(FileUtilities2.createFile(path));
+    Source source = new FileSource(resourceProvider.getFile(path));
     if (path.endsWith(".dart") || path.endsWith(".html")) {
       ChangeSet changeSet = new ChangeSet();
       changeSet.addedSource(source);
