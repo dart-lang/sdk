@@ -15,11 +15,7 @@ import '../common/backend_api.dart'
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Identifiers, Selectors, Uris;
 import '../common/registry.dart' show EagerRegistry, Registry;
-import '../common/resolution.dart'
-    show
-        Frontend,
-        Resolution,
-        ResolutionImpact;
+import '../common/resolution.dart' show Frontend, Resolution, ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show ItemCompilationContext;
 import '../compiler.dart' show Compiler;
@@ -522,6 +518,9 @@ class JavaScriptBackend extends Backend {
   /// True if the html library has been loaded.
   bool htmlLibraryIsLoaded = false;
 
+  /// True when we enqueue the loadLibrary code.
+  bool isLoadLibraryFunctionResolved = false;
+
   /// List of constants from metadata.  If metadata must be preserved,
   /// these constants must be registered.
   final List<Dependency> metadataConstants = <Dependency>[];
@@ -701,7 +700,7 @@ class JavaScriptBackend extends Backend {
   bool _isValidBackendUse(Element element) {
     assert(invariant(element, element.isDeclaration, message: ""));
     if (element == helpers.streamIteratorConstructor ||
-        element == helpers.compiler.symbolConstructor ||
+        compiler.commonElements.isSymbolConstructor(element) ||
         helpers.isSymbolValidatedConstructor(element) ||
         element == helpers.syncCompleterConstructor ||
         element == coreClasses.symbolClass ||
@@ -1685,7 +1684,8 @@ class JavaScriptBackend extends Backend {
         if (library.isInternalLibrary) continue;
         for (ImportElement import in library.imports) {
           LibraryElement importedLibrary = import.importedLibrary;
-          if (importedLibrary != compiler.mirrorsLibrary) continue;
+          if (importedLibrary != compiler.commonElements.mirrorsLibrary)
+            continue;
           MessageKind kind =
               compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(library)
                   ? MessageKind.MIRROR_IMPORT
@@ -1917,10 +1917,10 @@ class JavaScriptBackend extends Backend {
       needToInitializeIsolateAffinityTag = true;
     } else if (element.isDeferredLoaderGetter) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
-      if (compiler.loadLibraryFunction == null) {
-        compiler.loadLibraryFunction = helpers.loadLibraryWrapper;
+      if (!isLoadLibraryFunctionResolved) {
+        isLoadLibraryFunctionResolved = true;
         enqueueInResolution(
-            compiler.loadLibraryFunction, compiler.globalDependencies);
+            helpers.loadLibraryWrapper, compiler.globalDependencies);
       }
     } else if (element == helpers.requiresPreambleMarker) {
       requiresPreamble = true;
@@ -2132,7 +2132,7 @@ class JavaScriptBackend extends Backend {
    */
   computeMembersNeededForReflection() {
     if (_membersNeededForReflection != null) return;
-    if (compiler.mirrorsLibrary == null) {
+    if (compiler.commonElements.mirrorsLibrary == null) {
       _membersNeededForReflection = const ImmutableEmptySet<Element>();
       return;
     }
@@ -2290,9 +2290,10 @@ class JavaScriptBackend extends Backend {
     // Just checking for [:TypedData:] is not sufficient, as it is an
     // abstract class any user-defined class can implement. So we also
     // check for the interface [JavaScriptIndexingBehavior].
-    return compiler.typedDataClass != null &&
-        compiler.world.isInstantiated(compiler.typedDataClass) &&
-        mask.satisfies(compiler.typedDataClass, compiler.world) &&
+    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
+    return typedDataClass != null &&
+        compiler.world.isInstantiated(typedDataClass) &&
+        mask.satisfies(typedDataClass, compiler.world) &&
         mask.satisfies(helpers.jsIndexingBehaviorInterface, compiler.world);
   }
 
@@ -2301,10 +2302,11 @@ class JavaScriptBackend extends Backend {
         !type1.intersection(type2, compiler.world).isEmpty;
     // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
     //               jsIndexingBehaviourInterface.
-    return compiler.typedDataClass != null &&
-        compiler.world.isInstantiated(compiler.typedDataClass) &&
-        intersects(mask,
-            new TypeMask.subtype(compiler.typedDataClass, compiler.world)) &&
+    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
+    return typedDataClass != null &&
+        compiler.world.isInstantiated(typedDataClass) &&
+        intersects(
+            mask, new TypeMask.subtype(typedDataClass, compiler.world)) &&
         intersects(
             mask,
             new TypeMask.subtype(

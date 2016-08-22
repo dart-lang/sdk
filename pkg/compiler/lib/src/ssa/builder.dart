@@ -206,10 +206,8 @@ class LocalsHandler {
 
   LocalsHandler(
       this.builder, this.executableContext, InterfaceType instanceType)
-      : this.instanceType =
-            instanceType == null || instanceType.containsTypeVariables
-                ? null
-                : instanceType;
+      : this.instanceType = instanceType == null ||
+            instanceType.containsTypeVariables ? null : instanceType;
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
@@ -4457,7 +4455,7 @@ class SsaBuilder extends ast.Visitor
       SourceInformation sourceInformation) {
     // Until now we only handle these as getters.
     invariant(node, deferredLoader.isDeferredLoaderGetter);
-    Element loadFunction = compiler.loadLibraryFunction;
+    Element loadFunction = helpers.loadLibraryWrapper;
     PrefixElement prefixElement = deferredLoader.enclosingElement;
     String loadId =
         compiler.deferredLoadTask.getImportDeferName(node, prefixElement);
@@ -4922,7 +4920,7 @@ class SsaBuilder extends ast.Visitor
     constructor = constructorImplementation.effectiveTarget;
 
     final bool isSymbolConstructor =
-        constructorDeclaration == compiler.symbolConstructor;
+        compiler.commonElements.isSymbolConstructor(constructorDeclaration);
     final bool isJSArrayTypedConstructor =
         constructorDeclaration == helpers.jsArrayTypedConstructor;
 
@@ -5155,7 +5153,7 @@ class SsaBuilder extends ast.Visitor
     List<HInstruction> inputs = makeStaticArgumentList(
         callStructure, node.arguments, function.implementation);
 
-    if (function == compiler.identicalFunction) {
+    if (function == compiler.commonElements.identicalFunction) {
       pushWithPosition(
           new HIdentity(inputs[0], inputs[1], null, backend.boolType), node);
       return;
@@ -5479,7 +5477,8 @@ class SsaBuilder extends ast.Visitor
   @override
   void bulkHandleNew(ast.NewExpression node, [_]) {
     Element element = elements[node.send];
-    final bool isSymbolConstructor = element == compiler.symbolConstructor;
+    final bool isSymbolConstructor =
+        element == compiler.commonElements.symbolConstructor;
     if (!Elements.isMalformed(element)) {
       ConstructorElement function = element;
       element = function.effectiveTarget;
@@ -5655,10 +5654,8 @@ class SsaBuilder extends ast.Visitor
     // Native behavior effects here are similar to native/behavior.dart.
     // The return type is dynamic if we don't trust js-interop type
     // declarations.
-    nativeBehavior.typesReturned.add(
-        compiler.options.trustJSInteropTypeAnnotations
-            ? type
-            : const DynamicType());
+    nativeBehavior.typesReturned.add(compiler
+        .options.trustJSInteropTypeAnnotations ? type : const DynamicType());
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).

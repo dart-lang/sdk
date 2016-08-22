@@ -213,7 +213,7 @@ types.TypeMask findTypeMask(compiler, String name,
     element = compiler.backend.helpers.interceptorsLibrary.find(sourceName);
   }
   if (element == null) {
-    element = compiler.coreLibrary.find(sourceName);
+    element = compiler.commonElements.coreLibrary.find(sourceName);
   }
   Expect.isNotNull(element, 'Could not locate $name');
   switch (how) {

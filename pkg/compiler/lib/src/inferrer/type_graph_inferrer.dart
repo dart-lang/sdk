@@ -367,9 +367,10 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   TypeInformation allocateList(
       TypeInformation type, ast.Node node, Element enclosing,
       [TypeInformation elementType, int length]) {
-    bool isTypedArray = compiler.typedDataClass != null &&
-        classWorld.isInstantiated(compiler.typedDataClass) &&
-        type.type.satisfies(compiler.typedDataClass, classWorld);
+    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
+    bool isTypedArray = typedDataClass != null &&
+        classWorld.isInstantiated(typedDataClass) &&
+        type.type.satisfies(typedDataClass, classWorld);
     bool isConst = (type.type == compiler.typesTask.constListType);
     bool isFixed = (type.type == compiler.typesTask.fixedListType) ||
         isConst ||

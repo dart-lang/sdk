@@ -26,7 +26,7 @@ import 'common/work.dart' show ItemCompilationContext, WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
-import 'core_types.dart' show CoreClasses, CoreTypes;
+import 'core_types.dart' show CoreClasses, CommonElements, CoreTypes;
 import 'dart_types.dart' show DartType, DynamicType, InterfaceType, Types;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
@@ -145,63 +145,15 @@ abstract class Compiler implements LibraryLoaderListener {
 
   Tracer tracer;
 
-  LibraryElement coreLibrary;
-  LibraryElement asyncLibrary;
-
   LibraryElement mainApp;
   FunctionElement mainFunction;
 
-  /// Initialized when dart:mirrors is loaded.
-  LibraryElement mirrorsLibrary;
-
-  /// Initialized when dart:typed_data is loaded.
-  LibraryElement typedDataLibrary;
-
   DiagnosticReporter get reporter => _reporter;
+  CommonElements get commonElements => _coreTypes;
   CoreClasses get coreClasses => _coreTypes;
   CoreTypes get coreTypes => _coreTypes;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
-
-  ClassElement typedDataClass;
-
-  // TODO(johnniwinther): Move this to the JavaScriptBackend.
-  /// The class for patch annotation defined in dart:_js_helper.
-  ClassElement patchAnnotationClass;
-
-  // TODO(johnniwinther): Move this to the JavaScriptBackend.
-  ClassElement nativeAnnotationClass;
-
-  ConstructorElement _symbolConstructor;
-  ConstructorElement get symbolConstructor {
-    if (_symbolConstructor == null) {
-      ClassElement symbolClass = coreClasses.symbolClass;
-      symbolClass.ensureResolved(resolution);
-      _symbolConstructor = symbolClass.lookupConstructor('');
-      assert(invariant(symbolClass, _symbolConstructor != null,
-          message: "Default constructor not found ${symbolClass}."));
-    }
-    return _symbolConstructor;
-  }
-
-  // Initialized when dart:mirrors is loaded.
-  ClassElement mirrorSystemClass;
-
-  // Initialized when dart:mirrors is loaded.
-  ClassElement mirrorsUsedClass;
-
-  // Initialized after mirrorSystemClass has been resolved.
-  FunctionElement mirrorSystemGetNameFunction;
-
-  // Initialized when mirrorsUsedClass has been resolved.
-  FunctionElement mirrorsUsedConstructor;
-
-  // Initialized when dart:mirrors is loaded.
-  ClassElement deferredLibraryClass;
-
-  Element identicalFunction;
-  Element loadLibraryFunction;
-  Element functionApplyMethod;
 
   // TODO(zarah): Remove this map and incorporate compile-time errors
   // in the model.
@@ -285,7 +237,7 @@ abstract class Compiler implements LibraryLoaderListener {
     _resolution = new _CompilerResolution(this);
     // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
     // make its field final.
-    _coreTypes = new _CompilerCoreTypes(_resolution);
+    _coreTypes = new _CompilerCoreTypes(_resolution, reporter);
     types = new Types(_resolution);
     tracer = new Tracer(this, this.outputProvider);
 
@@ -321,7 +273,8 @@ abstract class Compiler implements LibraryLoaderListener {
       libraryLoader = new LibraryLoaderTask(
           resolvedUriTranslator,
           options.compileOnly
-              ? new _NoScriptLoader(this) : new _ScriptLoader(this),
+              ? new _NoScriptLoader(this)
+              : new _ScriptLoader(this),
           new _ElementScanner(scanner),
           serialization,
           this,
@@ -406,14 +359,7 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Note that [library] has not been scanned yet, nor has its imports/exports
   /// been resolved.
   void onLibraryCreated(LibraryElement library) {
-    Uri uri = library.canonicalUri;
-    if (uri == Uris.dart_core) {
-      coreLibrary = library;
-    } else if (uri == Uris.dart__native_typed_data) {
-      typedDataLibrary = library;
-    } else if (uri == Uris.dart_mirrors) {
-      mirrorsLibrary = library;
-    }
+    _coreTypes.onLibraryCreated(library);
     backend.onLibraryCreated(library);
   }
 
@@ -427,31 +373,6 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Use [loader] to register the creation and scanning of a patch library
   /// for [library].
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
-    Uri uri = library.canonicalUri;
-    // If the script of the library is synthesized, the library does not exist
-    // and we do not try to load the helpers.
-    //
-    // This could for example happen if dart:async is disabled, then loading it
-    // should not try to find the given element.
-    if (!library.isSynthesized) {
-      if (uri == Uris.dart_core) {
-        initializeCoreClasses();
-        identicalFunction = coreLibrary.find('identical');
-      } else if (uri == Uris.dart_mirrors) {
-        mirrorSystemClass = findRequiredElement(library, 'MirrorSystem');
-        mirrorsUsedClass = findRequiredElement(library, 'MirrorsUsed');
-      } else if (uri == Uris.dart_async) {
-        asyncLibrary = library;
-        deferredLibraryClass = findRequiredElement(library, 'DeferredLibrary');
-        _coreTypes.futureClass = findRequiredElement(library, 'Future');
-        _coreTypes.streamClass = findRequiredElement(library, 'Stream');
-      } else if (uri == Uris.dart__native_typed_data) {
-        typedDataClass = findRequiredElement(library, 'NativeTypedData');
-      } else if (uri == js_backend.BackendHelpers.DART_JS_HELPER) {
-        patchAnnotationClass = findRequiredElement(library, '_Patch');
-        nativeAnnotationClass = findRequiredElement(library, 'Native');
-      }
-    }
     return backend.onLibraryScanned(library, loader);
   }
 
@@ -558,70 +479,12 @@ abstract class Compiler implements LibraryLoaderListener {
               .join(MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)
         });
       }
-
-      coreClasses.functionClass.ensureResolved(resolution);
-      functionApplyMethod =
-          coreClasses.functionClass.lookupLocalMember('apply');
     }).then((_) => backend.onLibrariesLoaded(loadedLibraries));
-  }
-
-  Element findRequiredElement(LibraryElement library, String name) {
-    var element = library.find(name);
-    if (element == null) {
-      reporter.internalError(
-          library,
-          "The library '${library.canonicalUri}' does not contain required "
-          "element: '$name'.");
-    }
-    return element;
   }
 
   // TODO(johnniwinther): Move this to [PatchParser] when it is moved to the
   // [JavaScriptBackend]. Currently needed for testing.
   String get patchVersion => backend.patchVersion;
-
-  // TODO(johnniwinther): Remove this. All elements should be looked up on
-  // demand.
-  void onClassResolved(ClassElement cls) {
-    if (mirrorSystemClass == cls) {
-      mirrorSystemGetNameFunction = cls.lookupLocalMember('getName');
-    } else if (mirrorsUsedClass == cls) {
-      mirrorsUsedConstructor = cls.constructors.head;
-    }
-  }
-
-  void initializeCoreClasses() {
-    final List missingCoreClasses = [];
-    ClassElement lookupCoreClass(String name) {
-      ClassElement result = coreLibrary.find(name);
-      if (result == null) {
-        missingCoreClasses.add(name);
-      }
-      return result;
-    }
-
-    _coreTypes.objectClass = lookupCoreClass('Object');
-    _coreTypes.boolClass = lookupCoreClass('bool');
-    _coreTypes.numClass = lookupCoreClass('num');
-    _coreTypes.intClass = lookupCoreClass('int');
-    _coreTypes.doubleClass = lookupCoreClass('double');
-    _coreTypes.resourceClass = lookupCoreClass('Resource');
-    _coreTypes.stringClass = lookupCoreClass('String');
-    _coreTypes.functionClass = lookupCoreClass('Function');
-    _coreTypes.listClass = lookupCoreClass('List');
-    _coreTypes.typeClass = lookupCoreClass('Type');
-    _coreTypes.mapClass = lookupCoreClass('Map');
-    _coreTypes.nullClass = lookupCoreClass('Null');
-    _coreTypes.stackTraceClass = lookupCoreClass('StackTrace');
-    _coreTypes.iterableClass = lookupCoreClass('Iterable');
-    _coreTypes.symbolClass = lookupCoreClass('Symbol');
-    if (!missingCoreClasses.isEmpty) {
-      reporter.internalError(
-          coreLibrary,
-          'dart:core library does not contain required classes: '
-          '$missingCoreClasses');
-    }
-  }
 
   Element _unnamedListConstructor;
   Element get unnamedListConstructor {
@@ -1299,28 +1162,188 @@ class SuppressionInfo {
   int hints = 0;
 }
 
-class _CompilerCoreTypes implements CoreTypes, CoreClasses {
+class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
   final Resolution resolution;
+  final DiagnosticReporter reporter;
 
-  ClassElement objectClass;
-  ClassElement boolClass;
-  ClassElement numClass;
-  ClassElement intClass;
-  ClassElement doubleClass;
-  ClassElement stringClass;
-  ClassElement functionClass;
-  ClassElement nullClass;
-  ClassElement listClass;
-  ClassElement typeClass;
-  ClassElement mapClass;
-  ClassElement symbolClass;
-  ClassElement stackTraceClass;
-  ClassElement futureClass;
-  ClassElement iterableClass;
-  ClassElement streamClass;
-  ClassElement resourceClass;
+  LibraryElement coreLibrary;
+  LibraryElement asyncLibrary;
+  LibraryElement mirrorsLibrary;
+  LibraryElement typedDataLibrary;
 
-  _CompilerCoreTypes(this.resolution);
+  // TODO(sigmund): possibly move this to target-specific collection of
+  // elements, or refactor the library so that the helpers we need are in a
+  // target-agnostic place.  Currently we are using @patch and @Native from
+  // here. We hope we can make those independent of the backend and generic
+  // enough so the patching algorithm can work without being configured for a
+  // specific backend.
+  LibraryElement jsHelperLibrary;
+
+  _CompilerCoreTypes(this.resolution, this.reporter);
+
+  // From dart:core
+
+  ClassElement _objectClass;
+  ClassElement get objectClass =>
+      _objectClass ??= _findRequired(coreLibrary, 'Object');
+
+  ClassElement _boolClass;
+  ClassElement get boolClass =>
+      _boolClass ??= _findRequired(coreLibrary, 'bool');
+
+  ClassElement _numClass;
+  ClassElement get numClass => _numClass ??= _findRequired(coreLibrary, 'num');
+
+  ClassElement _intClass;
+  ClassElement get intClass => _intClass ??= _findRequired(coreLibrary, 'int');
+
+  ClassElement _doubleClass;
+  ClassElement get doubleClass =>
+      _doubleClass ??= _findRequired(coreLibrary, 'double');
+
+  ClassElement _stringClass;
+  ClassElement get stringClass =>
+      _stringClass ??= _findRequired(coreLibrary, 'String');
+
+  ClassElement _functionClass;
+  ClassElement get functionClass =>
+      _functionClass ??= _findRequired(coreLibrary, 'Function');
+
+  Element _functionApplyMethod;
+  Element get functionApplyMethod {
+    if (_functionApplyMethod == null) {
+      functionClass.ensureResolved(resolution);
+      _functionApplyMethod = functionClass.lookupLocalMember('apply');
+      assert(invariant(functionClass, _functionApplyMethod != null,
+          message: "Member `apply` not found in ${functionClass}."));
+    }
+    return _functionApplyMethod;
+  }
+
+  bool isFunctionApplyMethod(Element element) =>
+    element.name == 'apply' && element.enclosingClass == functionClass;
+
+  ClassElement _nullClass;
+  ClassElement get nullClass =>
+      _nullClass ??= _findRequired(coreLibrary, 'Null');
+
+  ClassElement _listClass;
+  ClassElement get listClass =>
+      _listClass ??= _findRequired(coreLibrary, 'List');
+
+  ClassElement _typeClass;
+  ClassElement get typeClass =>
+      _typeClass ??= _findRequired(coreLibrary, 'Type');
+
+  ClassElement _mapClass;
+  ClassElement get mapClass => _mapClass ??= _findRequired(coreLibrary, 'Map');
+
+  ClassElement _symbolClass;
+  ClassElement get symbolClass =>
+      _symbolClass ??= _findRequired(coreLibrary, 'Symbol');
+
+  ConstructorElement _symbolConstructor;
+  ConstructorElement get symbolConstructor {
+    if (_symbolConstructor == null) {
+      symbolClass.ensureResolved(resolution);
+      _symbolConstructor = symbolClass.lookupConstructor('');
+      assert(invariant(symbolClass, _symbolConstructor != null,
+          message: "Default constructor not found ${symbolClass}."));
+    }
+    return _symbolConstructor;
+  }
+
+  bool isSymbolConstructor(Element e) =>
+      e.enclosingClass == symbolClass && e == symbolConstructor;
+
+  ClassElement _stackTraceClass;
+  ClassElement get stackTraceClass =>
+      _stackTraceClass ??= _findRequired(coreLibrary, 'StackTrace');
+
+  ClassElement _iterableClass;
+  ClassElement get iterableClass =>
+      _iterableClass ??= _findRequired(coreLibrary, 'Iterable');
+
+  ClassElement _resourceClass;
+  ClassElement get resourceClass =>
+      _resourceClass ??= _findRequired(coreLibrary, 'Resource');
+
+  Element _identicalFunction;
+  Element get identicalFunction =>
+      _identicalFunction ??= coreLibrary.find('identical');
+
+  // From dart:async
+
+  ClassElement _futureClass;
+  ClassElement get futureClass =>
+      _futureClass ??= _findRequired(asyncLibrary, 'Future');
+
+  ClassElement _streamClass;
+  ClassElement get streamClass =>
+      _streamClass ??= _findRequired(asyncLibrary, 'Stream');
+
+  ClassElement _deferredLibraryClass;
+  ClassElement get deferredLibraryClass =>
+      _deferredLibraryClass ??= _findRequired(asyncLibrary, "DeferredLibrary");
+
+  // From dart:mirrors
+
+  ClassElement _mirrorSystemClass;
+  ClassElement get mirrorSystemClass =>
+      _mirrorSystemClass ??= _findRequired(mirrorsLibrary, 'MirrorSystem');
+
+  FunctionElement _mirrorSystemGetNameFunction;
+  bool isMirrorSystemGetNameFunction(Element element) {
+    if (_mirrorSystemGetNameFunction == null) {
+      if (!element.isFunction || mirrorsLibrary == null) return false;
+      ClassElement cls = mirrorSystemClass;
+      if (element.enclosingClass != cls) return false;
+      if (cls != null) {
+        cls.ensureResolved(resolution);
+        _mirrorSystemGetNameFunction = cls.lookupLocalMember('getName');
+      }
+    }
+    return element == _mirrorSystemGetNameFunction;
+  }
+
+  ClassElement _mirrorsUsedClass;
+  ClassElement get mirrorsUsedClass =>
+      _mirrorsUsedClass ??= _findRequired(mirrorsLibrary, 'MirrorsUsed');
+
+  bool isMirrorsUsedConstructor(ConstructorElement element) =>
+      mirrorsLibrary != null && mirrorsUsedClass == element.enclosingClass;
+
+  ConstructorElement _mirrorsUsedConstructor;
+  @override
+  ConstructorElement get mirrorsUsedConstructor {
+    if (_mirrorsUsedConstructor == null) {
+      ClassElement cls = mirrorsUsedClass;
+      if (cls != null) {
+        cls.ensureResolved(resolution);
+        _mirrorsUsedConstructor = cls.constructors.head;
+      }
+    }
+    return _mirrorsUsedConstructor;
+  }
+
+  // From dart:typed_data
+
+  ClassElement _typedDataClass;
+  ClassElement get typedDataClass =>
+      _typedDataClass ??= _findRequired(typedDataLibrary, 'NativeTypedData');
+
+  // From dart:_js_helper
+  // TODO(sigmund,johnniwinther): refactor needed: either these move to a
+  // backend-specific collection of helpers, or the helper code moves to a
+  // backend agnostic library (see commend above on [jsHelperLibrary].
+
+  ClassElement _patchAnnotationClass;
+  ClassElement get patchAnnotationClass =>
+      _patchAnnotationClass ??= _findRequired(jsHelperLibrary, '_Patch');
+
+  ClassElement _nativeAnnotationClass;
+  ClassElement get nativeAnnotationClass =>
+      _nativeAnnotationClass ??= _findRequired(jsHelperLibrary, 'Native');
 
   @override
   InterfaceType get objectType {
@@ -1446,6 +1469,39 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses {
       return type;
     }
     return type.createInstantiation([elementType]);
+  }
+
+  void onLibraryCreated(LibraryElement library) {
+    Uri uri = library.canonicalUri;
+    if (uri == Uris.dart_core) {
+      coreLibrary = library;
+    } else if (uri == Uris.dart_async) {
+      asyncLibrary = library;
+    } else if (uri == Uris.dart__native_typed_data) {
+      typedDataLibrary = library;
+    } else if (uri == Uris.dart_mirrors) {
+      mirrorsLibrary = library;
+    } else if (uri == js_backend.BackendHelpers.DART_JS_HELPER) {
+      jsHelperLibrary = library;
+    }
+  }
+
+  Element _findRequired(LibraryElement library, String name) {
+    // If the script of the library is synthesized, the library does not exist
+    // and we do not try to load the helpers.
+    //
+    // This could for example happen if dart:async is disabled, then loading it
+    // should not try to find the given element.
+    if (library == null || library.isSynthesized) return null;
+
+    var element = library.find(name);
+    if (element == null) {
+      reporter.internalError(
+          library,
+          "The library '${library.canonicalUri}' does not contain required "
+          "element: '$name'.");
+    }
+    return element;
   }
 }
 
@@ -1893,6 +1949,9 @@ class _CompilerResolution implements Resolution {
   CoreTypes get coreTypes => compiler.coreTypes;
 
   @override
+  CommonElements get commonElements => compiler.commonElements;
+
+  @override
   Types get types => compiler.types;
 
   @override
@@ -1918,27 +1977,10 @@ class _CompilerResolution implements Resolution {
       compiler.mirrorUsageAnalyzerTask;
 
   @override
-  LibraryElement get coreLibrary => compiler.coreLibrary;
+  LibraryElement get coreLibrary => compiler._coreTypes.coreLibrary;
 
   @override
-  FunctionElement get identicalFunction => compiler.identicalFunction;
-
-  @override
-  ClassElement get mirrorSystemClass => compiler.mirrorSystemClass;
-
-  @override
-  FunctionElement get mirrorSystemGetNameFunction =>
-      compiler.mirrorSystemGetNameFunction;
-
-  @override
-  ConstructorElement get mirrorsUsedConstructor =>
-      compiler.mirrorsUsedConstructor;
-
-  @override
-  ConstructorElement get symbolConstructor => compiler.symbolConstructor;
-
-  @override
-  ConstantValue proxyConstant;
+  bool get wasProxyConstantComputedTestingOnly => _proxyConstant != null;
 
   @override
   void registerClass(ClassElement cls) {
@@ -1977,10 +2019,6 @@ class _CompilerResolution implements Resolution {
     }
     computeWorldImpact(element);
   }
-
-  @override
-  void onClassResolved(ClassElement element) =>
-      compiler.onClassResolved(element);
 
   @override
   void registerCompileTimeError(Element element, DiagnosticMessage message) =>
@@ -2131,16 +2169,18 @@ class _CompilerResolution implements Resolution {
     _resolutionImpactCache.remove(element);
   }
 
+  ConstantValue _proxyConstant;
+
   @override
   bool isProxyConstant(ConstantValue value) {
     FieldElement field = coreLibrary.find('proxy');
     if (field == null) return false;
     if (!hasBeenResolved(field)) return false;
-    if (proxyConstant == null) {
-      proxyConstant = constants
+    if (_proxyConstant == null) {
+      _proxyConstant = constants
           .getConstantValue(resolver.constantCompiler.compileConstant(field));
     }
-    return proxyConstant == value;
+    return _proxyConstant == value;
   }
 }
 
@@ -2183,8 +2223,8 @@ class _NoScriptLoader implements ScriptLoader {
   _NoScriptLoader(this.compiler);
 
   Future<Script> readScript(Uri uri, [Spannable spannable]) {
-    compiler.reporter.internalError(spannable,
-        "Script loading of '$uri' is not enabled.");
+    compiler.reporter
+        .internalError(spannable, "Script loading of '$uri' is not enabled.");
   }
 }
 

@@ -159,8 +159,6 @@ CompilerImpl compilerFor(
           packagesDiscoveryProvider: packagesDiscoveryProvider));
 
   if (cachedCompiler != null) {
-    compiler.coreLibrary =
-        cachedCompiler.libraryLoader.lookupLibrary(Uri.parse('dart:core'));
     compiler.types = cachedCompiler.types.copy(compiler.resolution);
     Map copiedLibraries = {};
     cachedCompiler.libraryLoader.libraries.forEach((library) {
@@ -183,12 +181,6 @@ CompilerImpl compilerFor(
 
     compiler.backend.constantCompilerTask.copyConstantValues(
         cachedCompiler.backend.constantCompilerTask);
-    compiler.mirrorSystemClass = cachedCompiler.mirrorSystemClass;
-    compiler.mirrorsUsedClass = cachedCompiler.mirrorsUsedClass;
-    compiler.mirrorSystemGetNameFunction =
-        cachedCompiler.mirrorSystemGetNameFunction;
-    compiler.mirrorsUsedConstructor = cachedCompiler.mirrorsUsedConstructor;
-    compiler.deferredLibraryClass = cachedCompiler.deferredLibraryClass;
 
     Iterable cachedTreeElements =
         cachedCompiler.enqueuer.resolution.processedElements;

@@ -675,17 +675,17 @@ class Elements {
   }
 
   static bool isNumberOrStringSupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.coreLibrary;
+    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
     return (element == coreLibrary.find('Comparable'));
   }
 
   static bool isStringOnlySupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.coreLibrary;
+    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
     return element == coreLibrary.find('Pattern');
   }
 
   static bool isListSupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.coreLibrary;
+    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
     return element == coreLibrary.find('Iterable');
   }
 
@@ -794,14 +794,15 @@ class Elements {
 
   static bool isConstructorOfTypedArraySubclass(
       Element element, Compiler compiler) {
-    if (compiler.typedDataLibrary == null) return false;
+    if (compiler.commonElements.typedDataLibrary == null) return false;
     if (!element.isConstructor) return false;
     ConstructorElement constructor = element.implementation;
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
-    return cls.library == compiler.typedDataLibrary &&
+    return cls.library == compiler.commonElements.typedDataLibrary &&
         compiler.backend.isNative(cls) &&
-        compiler.world.isSubtypeOf(cls, compiler.typedDataClass) &&
+        compiler.world
+            .isSubtypeOf(cls, compiler.commonElements.typedDataClass) &&
         compiler.world.isSubtypeOf(cls, compiler.coreClasses.listClass) &&
         constructor.name == '';
   }
