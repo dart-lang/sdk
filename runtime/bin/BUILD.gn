@@ -560,11 +560,6 @@ if (defined(is_fuchsia) && is_fuchsia) {
     ] + builtin_impl_tests_list.sources + vm_tests
   }
 
-  copy("fuchsia_vm_tests") {
-    sources = [ "fuchsia_vm_tests.txt" ]
-    outputs = [ "$root_out_dir/fuchsia_vm_tests.txt" ]
-  }
-
   executable("run_vm_tests_fuchsia") {
     testonly = true
     configs += ["..:dart_config"]

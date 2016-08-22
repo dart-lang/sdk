@@ -34,8 +34,6 @@ const char* kSkip[] = {
   // Crash and then Hang.
   "ArrayLengthMaxElements",
   "Int8ListLengthMaxElements",
-  // Crashes in realloc.
-  "LargeMap",
   // The profiler is turned off.
   "Profiler_AllocationSampleTest",
   "Profiler_ArrayAllocation",
@@ -88,8 +86,6 @@ const char* kExpectFail[] = {
 
 // Bugs to fix, or things that are not yet impelemnted.
 const char* kBugs[] = {
-  // pthreads not using specified stack size?
-  "StackOverflowStacktraceInfo",
   // Needs OS::GetCurrentThreadCPUMicros.
   "Timeline_Dart_TimelineGetTrace",
   "Timeline_Dart_TimelineGetTraceOnlyDartEvents",
@@ -107,9 +103,6 @@ const char* kBugs[] = {
   "TimelinePauses_BeginEnd",
   // Needs NativeSymbolResolver
   "Service_PersistentHandles",
-  // Crashes in realloc:
-  "FindCodeObject",
-  "SourceReport_Coverage_AllFunctions_ForceCompile",
   // pthread TLS destructors are not run.
   "ThreadIterator_AddFindRemove",
 };
