@@ -60,6 +60,7 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
     for (Source otherSource in otherLibrarySources) {
       _checkSource(resynthesizer, otherSource);
     }
+    _reset();
     return resynthesized.definingCompilationUnit;
   }
 
@@ -205,36 +206,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_constructors_inferFromArguments_redirectingFactory() {
     super.test_constructors_inferFromArguments_redirectingFactory();
-  }
-
-  @override
-  @failingTest
-  void test_futureThen() {
-    super.test_futureThen();
-  }
-
-  @override
-  @failingTest
-  void test_futureThen_conditional() {
-    super.test_futureThen_conditional();
-  }
-
-  @override
-  @failingTest
-  void test_futureThen_upwards() {
-    super.test_futureThen_upwards();
-  }
-
-  @override
-  @failingTest
-  void test_futureUnion_asyncConditional() {
-    super.test_futureUnion_asyncConditional();
-  }
-
-  @override
-  @failingTest
-  void test_futureUnion_downwards() {
-    super.test_futureUnion_downwards();
   }
 
   @override
@@ -748,7 +719,7 @@ class ResynthesizeAstTest extends ResynthesizeTest
 abstract class _AstResynthesizeTestMixin
     implements _AstResynthesizeTestMixinInterface {
   final Set<Source> serializedSources = new Set<Source>();
-  final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
+  PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
   final Map<String, UnlinkedUnitBuilder> uriToUnit =
       <String, UnlinkedUnitBuilder>{};
 
@@ -836,6 +807,12 @@ abstract class _AstResynthesizeTestMixin
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
       return unlinkedUnit;
     });
+  }
+
+  void _reset() {
+    serializedSources.clear();
+    bundleAssembler = new PackageBundleAssembler();
+    uriToUnit.clear();
   }
 
   void _serializeLibrary(Source librarySource) {
