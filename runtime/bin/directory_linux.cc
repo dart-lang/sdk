@@ -313,7 +313,7 @@ static bool DeleteRecursively(PathBuffer* path) {
           break;
         }
         // On some file systems the entry type is not determined by
-        // readdir_r. For those we use lstat to determine the entry
+        // readdir. For those we use lstat to determine the entry
         // type.
         struct stat64 entry_info;
         if (TEMP_FAILURE_RETRY(lstat64(path->AsString(), &entry_info)) == -1) {
