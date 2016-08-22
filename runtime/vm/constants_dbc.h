@@ -327,10 +327,13 @@ namespace dart {
 //    Store FP[rC] into array FP[rA] at index FP[rB]. No typechecking is done.
 //    FP[rA] is assumed to be a RawArray, FP[rB] to be a smi.
 //
-//  - StoreIndexed{Float64, Uint8} rA, rB, rC
+//  - StoreIndexed{N}{Float64, Uint8} rA, rB, rC
+//
+//    Where N is '' or '8'. N may only be '8' for Float64.
 //
 //    Store the unboxed double or tagged Smi in FP[rC] into the typed data array
-//    at FP[rA] at index FP[rB].
+//    at FP[rA] at index FP[rB]. If N is not '', the index is assumed to be
+//    already scaled by N.
 //
 //  - StoreIndexedExternalUint8 rA, rB, rC
 //
@@ -341,10 +344,14 @@ namespace dart {
 //    Loads from array FP[rB] at index FP[rC] into FP[rA]. No typechecking is
 //    done. FP[rB] is assumed to be a RawArray, and to contain a Smi at FP[rC].
 //
-//  - LoadIndexed{Float64, OneByteString, TwoByteString, Uint8, Int8} rA, rB, rC
+//  - LoadIndexed{N}{Type} rA, rB, rC
+//
+//    Where Type is Float64, OneByteString, TwoByteString, Uint8, or Int8,
+//    and N is '' or '8'. N may only be '8' for Float64.
 //
 //    Loads from typed data array FP[rB] at index FP[rC] into an unboxed double,
-//    or tagged Smi in FP[rA] as indicated by the type in the name.
+//    or tagged Smi in FP[rA] as indicated by the type in the name. If N is not
+//    '', the index is assumed to be already scaled by N.
 //
 //  - LoadIndexedExternal{Int8, Uint8} rA, rB, rC
 //
@@ -685,6 +692,7 @@ namespace dart {
   V(StoreIndexedExternalUint8,   A_B_C, reg, reg, reg) \
   V(StoreIndexedUint32,          A_B_C, reg, reg, reg) \
   V(StoreIndexedFloat64,         A_B_C, reg, reg, reg) \
+  V(StoreIndexed8Float64,        A_B_C, reg, reg, reg) \
   V(LoadIndexed,                 A_B_C, reg, reg, reg) \
   V(LoadIndexedUint8,            A_B_C, reg, reg, reg) \
   V(LoadIndexedInt8,             A_B_C, reg, reg, reg) \
@@ -693,6 +701,7 @@ namespace dart {
   V(LoadIndexedExternalUint8,    A_B_C, reg, reg, reg) \
   V(LoadIndexedExternalInt8,     A_B_C, reg, reg, reg) \
   V(LoadIndexedFloat64,          A_B_C, reg, reg, reg) \
+  V(LoadIndexed8Float64,         A_B_C, reg, reg, reg) \
   V(LoadIndexedOneByteString,    A_B_C, reg, reg, reg) \
   V(LoadIndexedTwoByteString,    A_B_C, reg, reg, reg) \
   V(StoreField,                  A_B_C, reg, num, reg) \

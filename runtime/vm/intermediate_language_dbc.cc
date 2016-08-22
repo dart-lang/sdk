@@ -726,12 +726,12 @@ EMIT_NATIVE_CODE(StoreIndexed, 3, Location::NoLocation(),
         Unsupported(compiler);
         UNREACHABLE();
       }
-      if (index_scale() != 1) {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+      if (index_scale() == 1) {
+        __ StoreIndexedUint32(array, index, value);
       } else {
-        __ Move(temp, index);
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ StoreIndexedUint32(array, temp, value);
       }
-      __ StoreIndexedUint32(array, temp, value);
       break;
     }
     case kTypedDataFloat64ArrayCid:
@@ -739,12 +739,14 @@ EMIT_NATIVE_CODE(StoreIndexed, 3, Location::NoLocation(),
         Unsupported(compiler);
         UNREACHABLE();
       }
-      if (index_scale() != 1) {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+      if (index_scale() == 1) {
+        __ StoreIndexedFloat64(array, index, value);
+      } else if (index_scale() == 8) {
+        __ StoreIndexed8Float64(array, index, value);
       } else {
-        __ Move(temp, index);
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ StoreIndexedFloat64(array, temp, value);
       }
-      __ StoreIndexedFloat64(array, temp, value);
       break;
     default:
       Unsupported(compiler);
@@ -799,29 +801,31 @@ EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister(),
       break;
     case kTypedDataInt32ArrayCid:
       ASSERT(representation() == kUnboxedInt32);
-      if (index_scale() != 1) {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+      if (index_scale() == 1) {
+        __ LoadIndexedInt32(result, array, index);
       } else {
-        __ Move(temp, index);
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ LoadIndexedInt32(result, array, temp);
       }
-      __ LoadIndexedInt32(result, array, temp);
       break;
     case kTypedDataUint32ArrayCid:
       ASSERT(representation() == kUnboxedUint32);
-      if (index_scale() != 1) {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+      if (index_scale() == 1) {
+        __ LoadIndexedUint32(result, array, index);
       } else {
-        __ Move(temp, index);
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ LoadIndexedUint32(result, array, temp);
       }
-      __ LoadIndexedUint32(result, array, temp);
       break;
     case kTypedDataFloat64ArrayCid:
-      if (index_scale() != 1) {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+      if (index_scale() == 1) {
+        __ LoadIndexedFloat64(result, array, index);
+      } else if (index_scale() == 8) {
+        __ LoadIndexed8Float64(result, array, index);
       } else {
-        __ Move(temp, index);
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ LoadIndexedFloat64(result, array, temp);
       }
-      __ LoadIndexedFloat64(result, array, temp);
       break;
     default:
       Unsupported(compiler);
