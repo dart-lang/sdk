@@ -17,7 +17,8 @@ class SsaKernelBuilderTask extends CompilerTask {
   String get name => 'SSA kernel builder';
 
   SsaKernelBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
-      : super(backend.compiler.measurer);
+      : backend = backend,
+        super(backend.compiler.measurer);
 
   HGraph build(CodegenWorkItem work) {
     return measure(() {
