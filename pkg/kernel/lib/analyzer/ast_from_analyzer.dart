@@ -2461,7 +2461,7 @@ ast.NamedExpression _makeNamedExpressionFrom(ast.VariableDeclaration variable) {
 /// A [StaticAccessor] that throws a NoSuchMethodError when a suitable target
 /// could not be resolved.
 class _StaticAccessor extends StaticAccessor {
-  final MemberScope scope;
+  final ExpressionScope scope;
   final String name;
 
   _StaticAccessor(
