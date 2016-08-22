@@ -844,7 +844,7 @@ class CallSiteInliner : public ValueObject {
 
             // Optimize (a << b) & c patterns, merge instructions. Must occur
             // before 'SelectRepresentations' which inserts conversion nodes.
-            optimizer.TryOptimizePatterns();
+            callee_graph->TryOptimizePatterns();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
           } else {
             JitOptimizer optimizer(callee_graph);
@@ -860,7 +860,7 @@ class CallSiteInliner : public ValueObject {
 
             // Optimize (a << b) & c patterns, merge instructions. Must occur
             // before 'SelectRepresentations' which inserts conversion nodes.
-            optimizer.TryOptimizePatterns();
+            callee_graph->TryOptimizePatterns();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
           }
         }
