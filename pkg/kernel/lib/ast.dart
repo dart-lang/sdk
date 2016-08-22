@@ -172,7 +172,7 @@ class Library extends TreeNode implements Comparable<Library> {
   /// not been loaded yet.
   ///
   /// The [importUri] is always set on an unloaded library, and can be used
-  /// as they key to load the library.
+  /// as the key to load the library.
   ///
   /// Unloaded libraries may contain arbitrary classes and members for use by
   /// the frontend until the library is loaded.  Clients should not rely
@@ -402,7 +402,7 @@ class Class extends TreeNode {
 // ------------------------------------------------------------------------
 
 abstract class Member extends TreeNode {
-  /// List of metadata annotations on the class.
+  /// List of metadata annotations on the member.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
@@ -489,7 +489,7 @@ class Field extends Member {
   }
 
   /// True if the field is neither final nor const.
-  bool get isMutable => flags & (FlagStatic | FlagConst) == 0;
+  bool get isMutable => flags & (FlagFinal | FlagConst) == 0;
   bool get isInstanceMember => !isStatic;
 
   bool get isExternal => false;
@@ -696,7 +696,7 @@ class InvalidInitializer extends Initializer {
   transformChildren(Transformer v) {}
 }
 
-/// A field assignment `field = value` occuring in the initializer list of
+/// A field assignment `field = value` occurring in the initializer list of
 /// a constructor.
 ///
 /// This node has nothing to do with declaration-site field initializers; those
@@ -728,7 +728,8 @@ class FieldInitializer extends Initializer {
   }
 }
 
-/// A super call `super(x,y)` occuring in the initializer list of a constructor.
+/// A super call `super(x,y)` occurring in the initializer list of a
+/// constructor.
 ///
 /// There are no type arguments on this call.
 //
@@ -760,7 +761,7 @@ class SuperInitializer extends Initializer {
   }
 }
 
-/// A redirecting call `this(x,y)` occuring in the initializer list of
+/// A redirecting call `this(x,y)` occurring in the initializer list of
 /// a constructor.
 //
 // TODO: The frontend should check that this is the only initializer and if the

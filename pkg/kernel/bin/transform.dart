@@ -65,10 +65,10 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   var program = loadProgramFromBinary(input);
   switch (result['transformation']) {
     case 'continuation':
-      program = cont.tranformProgram(program);
+      program = cont.transformProgram(program);
       break;
     case 'infervalues':
-      program = infer_values.tranformProgram(program);
+      program = infer_values.transformProgram(program);
       break;
     default: throw 'Unknown transformation';
   }

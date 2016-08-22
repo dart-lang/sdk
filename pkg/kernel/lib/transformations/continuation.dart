@@ -11,7 +11,7 @@ import '../visitor.dart';
 
 import 'async.dart';
 
-Program tranformProgram(Program program) {
+Program transformProgram(Program program) {
   var helper = new HelperNodes.fromProgram(program);
   var rewriter = new RecursiveContinuationRewriter(helper);
   return rewriter.rewriteProgram(program);

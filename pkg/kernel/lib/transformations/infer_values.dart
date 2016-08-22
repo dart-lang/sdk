@@ -7,7 +7,7 @@ library kernel.transformations.infer_types;
 import '../ast.dart';
 import '../type_propagation/type_propagation.dart';
 
-Program tranformProgram(Program program) {
+Program transformProgram(Program program) {
   TypePropagation propagation = new TypePropagation(program);
 
   var attacher = new InferredValueAttacher(propagation, program);
