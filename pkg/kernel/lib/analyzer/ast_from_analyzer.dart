@@ -1416,11 +1416,11 @@ class ExpressionBuilder
         return inferredType.typeArguments;
       }
       var classElement = element?.enclosingElement;
-      int numberOfTypeArguments = classElement == null
-          ? 0
-          : classElement.typeParameters.length;
-      return new List<ast.DartType>.filled(numberOfTypeArguments,
-          const ast.DynamicType(), growable: true);
+      int numberOfTypeArguments =
+          classElement == null ? 0 : classElement.typeParameters.length;
+      return new List<ast.DartType>.filled(
+          numberOfTypeArguments, const ast.DynamicType(),
+          growable: true);
     }
     var arguments = buildArguments(node.argumentList,
         explicitTypeArguments: type.typeArguments,
@@ -2009,9 +2009,11 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         return result;
       }
       var freshTypes = getFreshTypeParameters(currentClass.typeParameters);
-      var mixinClass = new ast.MixinClass(
-          freshTypes.substitute(result), freshTypes.substitute(mixin),
-          typeParameters: freshTypes.freshTypeParameters, isAbstract: true);
+      var mixinClass = new ast.Class(
+          supertype: freshTypes.substitute(result),
+          mixedInType: freshTypes.substitute(mixin),
+          typeParameters: freshTypes.freshTypeParameters,
+          isAbstract: true);
       currentLibrary.addClass(mixinClass);
       result = new ast.InterfaceType(
           mixinClass,
@@ -2024,7 +2026,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
 
   visitClassDeclaration(ClassDeclaration node) {
     addAnnotations(node.metadata);
-    ast.NormalClass classNode = currentClass;
+    ast.Class classNode = currentClass;
     addTypeParameterBounds(node.typeParameters);
     // Build the super class reference and expand the 'with' clause into
     // separate mixin classes.
@@ -2071,7 +2073,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
 
   visitEnumDeclaration(EnumDeclaration node) {
     addAnnotations(node.metadata);
-    ast.NormalClass classNode = currentClass;
+    ast.Class classNode = currentClass;
     classNode.supertype = new ast.InterfaceType(scope.getRootClassReference());
     var intType =
         new ast.InterfaceType(scope.loader.getCoreClassReference('int'));
@@ -2119,7 +2121,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   visitClassTypeAlias(ClassTypeAlias node) {
     addAnnotations(node.metadata);
     assert(node.withClause != null && node.withClause.mixinTypes.isNotEmpty);
-    ast.MixinClass classNode = currentClass;
+    ast.Class classNode = currentClass;
     addTypeParameterBounds(node.typeParameters);
     var baseType = scope.buildTypeAnnotation(node.superclass);
     if (node.withClause != null) {
@@ -2337,7 +2339,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     addAnnotations(node.metadata);
     ast.Procedure procedure = currentMember;
     ClassElement classElement = node.element.enclosingElement;
-    ast.NormalClass classNode = procedure.enclosingClass;
+    ast.Class classNode = procedure.enclosingClass;
     var types = getFreshTypeParameters(classNode.typeParameters);
     for (int i = 0; i < classElement.typeParameters.length; ++i) {
       scope.localTypeParameters[classElement.typeParameters[i]] =

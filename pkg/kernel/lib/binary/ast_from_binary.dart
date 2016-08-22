@@ -328,7 +328,7 @@ class BinaryBuilder {
     }
   }
 
-  void readNormalClass(NormalClass node) {
+  void readNormalClass(Class node) {
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     node.name = readStringOrNullIfEmpty();
@@ -350,7 +350,7 @@ class BinaryBuilder {
     debugPath.removeLast();
   }
 
-  void readMixinClass(MixinClass node) {
+  void readMixinClass(Class node) {
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     node.name = readStringOrNullIfEmpty();

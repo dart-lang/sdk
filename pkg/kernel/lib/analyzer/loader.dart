@@ -114,11 +114,10 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     return getClassReference(getDartCoreLibrary().getType(className));
   }
 
-  ast.Constructor getCoreClassConstructorReference(
-      String className, {String constructorName, String library}) {
-    LibraryElement libraryElement = library != null
-        ? _findLibraryElement(library)
-        : getDartCoreLibrary();
+  ast.Constructor getCoreClassConstructorReference(String className,
+      {String constructorName, String library}) {
+    LibraryElement libraryElement =
+        library != null ? _findLibraryElement(library) : getDartCoreLibrary();
     ClassElement element = libraryElement.getType(className);
     if (element == null) {
       throw 'Missing core class $className from ${libraryElement.name}';
@@ -140,11 +139,8 @@ class AnalyzerLoader implements ReferenceLevelLoader {
   }
 
   ast.Class _buildClassReference(ClassElement element) {
-    var classNode = element.isMixinApplication
-        ? new ast.MixinClass(null, null,
-            name: element.name, isAbstract: element.isAbstract)
-        : new ast.NormalClass(null,
-            name: element.name, isAbstract: element.isAbstract);
+    var classNode =
+        new ast.Class(name: element.name, isAbstract: element.isAbstract);
     for (TypeParameterElement parameter in element.typeParameters) {
       var parameterNode = new ast.TypeParameter(parameter.name);
       _classTypeParameters[parameter] = parameterNode;

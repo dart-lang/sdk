@@ -269,7 +269,7 @@ class LazyTypeEnvironment {
         name,
         () => name.length == 1
             ? new TypeParameter(name)
-            : new NormalClass(null, name: name));
+            : new Class(name: name));
   }
 
   DartType parse(String type) => parseDartType(type, lookup);

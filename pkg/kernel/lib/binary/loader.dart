@@ -53,17 +53,7 @@ class BinaryLoader implements BinaryReferenceLoader {
   }
 
   Class _buildClassReference(int tag) {
-    switch (tag) {
-      case Tag.NormalClassReference:
-      case Tag.NormalClass:
-        return new NormalClass(null);
-
-      case Tag.MixinClassReference:
-      case Tag.MixinClass:
-        return new MixinClass(null, null);
-      default:
-        throw 'Invalid class reference tag: $tag';
-    }
+    return new Class();
   }
 
   Field _buildFieldReference() {
@@ -105,18 +95,16 @@ class BinaryLoader implements BinaryReferenceLoader {
     switch (tag) {
       case Tag.ClassFieldReference:
       case Tag.Field:
-        NormalClass class_ = classNode;
         return _extendList(
-            classNode, class_.fields, index, _buildFieldReference);
+            classNode, classNode.fields, index, _buildFieldReference);
       case Tag.ClassConstructorReference:
       case Tag.Constructor:
         return _extendList(classNode, classNode.constructors, index,
             _buildConstructorReference);
       case Tag.ClassProcedureReference:
       case Tag.Procedure:
-        NormalClass class_ = classNode;
         return _extendList(
-            classNode, class_.procedures, index, _buildProcedureReference);
+            classNode, classNode.procedures, index, _buildProcedureReference);
       default:
         throw 'Invalid library member reference tag: $tag';
     }

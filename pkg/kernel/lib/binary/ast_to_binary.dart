@@ -184,16 +184,11 @@ class BinaryPrinter extends Visitor {
     node.acceptReference(this);
   }
 
-  void visitNormalClassReference(NormalClass node) {
+  void visitClassReference(Class node) {
     var library = node.enclosingLibrary;
-    writeByte(Tag.NormalClassReference);
-    writeLibraryReference(library);
-    writeClassIndex(node);
-  }
-
-  void visitMixinClassReference(MixinClass node) {
-    var library = node.enclosingLibrary;
-    writeByte(Tag.MixinClassReference);
+    writeByte(node.isMixinApplication
+        ? Tag.MixinClassReference
+        : Tag.NormalClassReference);
     writeLibraryReference(library);
     writeClassIndex(node);
   }
@@ -201,7 +196,7 @@ class BinaryPrinter extends Visitor {
   void visitFieldReference(Field node) {
     if (node.enclosingClass != null) {
       writeByte(Tag.ClassFieldReference);
-      NormalClass classNode = node.enclosingClass;
+      Class classNode = node.enclosingClass;
       writeClassReference(classNode);
       writeUInt30(_globalIndexer[node]);
     } else {
@@ -220,7 +215,7 @@ class BinaryPrinter extends Visitor {
   void visitProcedureReference(Procedure node) {
     if (node.enclosingClass != null) {
       writeByte(Tag.ClassProcedureReference);
-      NormalClass classNode = node.enclosingClass;
+      Class classNode = node.enclosingClass;
       writeClassReference(classNode);
       writeUInt30(_globalIndexer[node]);
     } else {
@@ -247,33 +242,33 @@ class BinaryPrinter extends Visitor {
     writeNodeList(node.procedures);
   }
 
-  visitNormalClass(NormalClass node) {
-    writeByte(Tag.NormalClass);
-    writeByte(node.isAbstract ? 1 : 0);
-    writeStringReference(node.name ?? '');
-    writeNodeList(node.annotations);
-    _typeParameterIndexer.push(node.typeParameters);
-    writeNodeList(node.typeParameters);
-    writeOptionalNode(node.supertype);
-    writeNodeList(node.implementedTypes);
-    writeNodeList(node.fields);
-    writeNodeList(node.constructors);
-    writeNodeList(node.procedures);
-    _typeParameterIndexer.pop(node.typeParameters);
-  }
-
-  visitMixinClass(MixinClass node) {
-    writeByte(Tag.MixinClass);
-    writeByte(node.isAbstract ? 1 : 0);
-    writeStringReference(node.name ?? '');
-    writeNodeList(node.annotations);
-    _typeParameterIndexer.push(node.typeParameters);
-    writeNodeList(node.typeParameters);
-    writeNode(node.supertype);
-    writeNode(node.mixedInType);
-    writeNodeList(node.implementedTypes);
-    writeNodeList(node.constructors);
-    _typeParameterIndexer.pop(node.typeParameters);
+  visitClass(Class node) {
+    if (node.isMixinApplication) {
+      writeByte(Tag.MixinClass);
+      writeByte(node.isAbstract ? 1 : 0);
+      writeStringReference(node.name ?? '');
+      writeNodeList(node.annotations);
+      _typeParameterIndexer.push(node.typeParameters);
+      writeNodeList(node.typeParameters);
+      writeNode(node.supertype);
+      writeNode(node.mixedInType);
+      writeNodeList(node.implementedTypes);
+      writeNodeList(node.constructors);
+      _typeParameterIndexer.pop(node.typeParameters);
+    } else {
+      writeByte(Tag.NormalClass);
+      writeByte(node.isAbstract ? 1 : 0);
+      writeStringReference(node.name ?? '');
+      writeNodeList(node.annotations);
+      _typeParameterIndexer.push(node.typeParameters);
+      writeNodeList(node.typeParameters);
+      writeOptionalNode(node.supertype);
+      writeNodeList(node.implementedTypes);
+      writeNodeList(node.fields);
+      writeNodeList(node.constructors);
+      writeNodeList(node.procedures);
+      _typeParameterIndexer.pop(node.typeParameters);
+    }
   }
 
   static final Name _emptyName = new Name('');
@@ -1017,12 +1012,7 @@ class StringIndexer extends RecursiveVisitor<Null> {
     node.visitChildren(this);
   }
 
-  visitNormalClass(NormalClass node) {
-    putOptional(node.name);
-    node.visitChildren(this);
-  }
-
-  visitMixinClass(MixinClass node) {
+  visitClass(Class node) {
     putOptional(node.name);
     node.visitChildren(this);
   }
@@ -1094,14 +1084,10 @@ class GlobalIndexer extends TreeVisitor {
     buildIndexForList(node.procedures);
   }
 
-  visitNormalClass(NormalClass node) {
+  visitClass(Class node) {
     buildIndexForList(node.fields);
     buildIndexForList(node.constructors);
     buildIndexForList(node.procedures);
-  }
-
-  visitMixinClass(MixinClass node) {
-    buildIndexForList(node.constructors);
   }
 
   int operator [](TreeNode memberOrLibraryOrClass) {

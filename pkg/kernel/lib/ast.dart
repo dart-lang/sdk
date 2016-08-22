@@ -244,16 +244,13 @@ class Library extends TreeNode implements Comparable<Library> {
   String toString() => debugLibraryName(this);
 }
 
-/// A class declaration.
+/// Declaration of a regular class or a mixin application.
 ///
-/// There are two kinds of classes: [MixinClass] is a mixin application and
-/// a [NormalClass] is any other kind of class.
-///
-/// The two subclasses enforce the runtime invariant that mixin applications
-/// can never declare fields or procedures.  Code that relies on this invariant
-/// should treat the two kinds of classes separately, but otherwise it is
-/// recommended to interface against [Class].
-abstract class Class extends TreeNode {
+/// Mixin applications may not contain fields or procedures, as they implicitly
+/// use those from its mixed-in type.  However, the IR does not enforce this
+/// rule directly, as doing so can obstruct transformations.  It is possible to
+/// transform a mixin application to become a regular class, and vice versa.
+class Class extends TreeNode {
   /// List of metadata annotations on the class.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
@@ -267,12 +264,15 @@ abstract class Class extends TreeNode {
   /// The immediate super type, or `null` if this is the root class.
   InterfaceType supertype;
 
+  /// The mixed-in type if this is a mixin application, otherwise `null`.
+  InterfaceType mixedInType;
+
   /// The types from the `implements` clause.
   final List<InterfaceType> implementedTypes;
 
   /// Fields declared in the class.
   ///
-  /// For mixin applications this is an immutable empty list.
+  /// For mixin applications this should be empty.
   final List<Field> fields;
 
   /// Constructors declared in the class.
@@ -280,22 +280,31 @@ abstract class Class extends TreeNode {
 
   /// Procedures declared in the class.
   ///
-  /// For mixin applications this is an immutable empty list.
+  /// For mixin applications this should be empty.
   final List<Procedure> procedures;
 
-  Class(this.name, this.isAbstract, this.typeParameters, this.supertype,
-      this.implementedTypes, this.fields, this.constructors, this.procedures) {
-    setParents(typeParameters, this);
-    setParents(constructors, this);
-    setParents(procedures, this);
-    setParents(fields, this);
+  Class({this.name,
+      this.isAbstract: false,
+      this.supertype,
+      this.mixedInType,
+      List<TypeParameter> typeParameters,
+      List<InterfaceType> implementedTypes,
+      List<Constructor> constructors,
+      List<Procedure> procedures,
+      List<Field> fields})
+      : this.typeParameters = typeParameters ?? <TypeParameter>[],
+        this.implementedTypes = implementedTypes ?? <InterfaceType>[],
+        this.fields = fields ?? <Field>[],
+        this.constructors = constructors ?? <Constructor>[],
+        this.procedures = procedures ?? <Procedure>[] {
+    setParents(this.typeParameters, this);
+    setParents(this.constructors, this);
+    setParents(this.procedures, this);
+    setParents(this.fields, this);
   }
 
   /// The immediate super class, or `null` if this is the root class.
   Class get superclass => supertype?.classNode;
-
-  /// The mixed-in type if this is a mixin application, otherwise `null`.
-  InterfaceType get mixedInType => null;
 
   /// The mixed-in class if this is a mixin application, otherwise `null`.
   Class get mixedInClass => mixedInType?.classNode;
@@ -303,7 +312,7 @@ abstract class Class extends TreeNode {
   /// The class itself or the mixed-in class if this is a mixin application.
   Class get mixin => mixedInClass ?? this;
 
-  bool get isMixinApplication => false;
+  bool get isMixinApplication => mixedInType != null;
 
   /// Members declared in this class.
   ///
@@ -350,8 +359,8 @@ abstract class Class extends TreeNode {
     node.parent = this;
   }
 
-  accept(ClassVisitor v);
-  acceptReference(ClassReferenceVisitor v);
+  accept(TreeVisitor v) => v.visitClass(this);
+  acceptReference(Visitor v) => v.visitClassReference(this);
 
   bool get isLoaded => enclosingLibrary.isLoaded;
 
@@ -367,36 +376,12 @@ abstract class Class extends TreeNode {
   /// Returns a possibly synthesized name for this class, consistent with
   /// the names used across all [toString] calls.
   String toString() => debugQualifiedClassName(this);
-}
-
-/// A class that is not a mixin application.
-class NormalClass extends Class {
-  NormalClass(InterfaceType supertype,
-      {String name,
-      bool isAbstract: false,
-      List<TypeParameter> typeParameters,
-      List<InterfaceType> implementedClasses,
-      List<Constructor> constructors,
-      List<Procedure> procedures,
-      List<Field> fields})
-      : super(
-            name,
-            isAbstract,
-            typeParameters ?? <TypeParameter>[],
-            supertype,
-            implementedClasses ?? <InterfaceType>[],
-            fields ?? <Field>[],
-            constructors ?? <Constructor>[],
-            procedures ?? <Procedure>[]);
-
-  accept(ClassVisitor v) => v.visitNormalClass(this);
-
-  acceptReference(ClassReferenceVisitor v) => v.visitNormalClassReference(this);
 
   visitChildren(Visitor v) {
     visitList(annotations, v);
     visitList(typeParameters, v);
     supertype?.accept(v);
+    mixedInType?.accept(v);
     visitList(implementedTypes, v);
     visitList(constructors, v);
     visitList(procedures, v);
@@ -409,58 +394,6 @@ class NormalClass extends Class {
     transformList(constructors, v, this);
     transformList(procedures, v, this);
     transformList(fields, v, this);
-  }
-}
-
-/// The result of mixing two classes [supertype] and [mixedInType].
-///
-/// A class declaration `class A extends B with C` is represented as a
-/// normal class `A` with the mixin class `B with C` as its super class.
-///
-/// A mixin with multiple classes `A with B, C` is represented as a left-leaning
-/// tree of mixin classes `(A with B) with C`.  Each mixin will have an entry
-/// in [Library.classes].
-///
-/// Mixin applications cannot declare any fields or procedures, as it implicitly
-/// uses those from the mixed-in class.
-class MixinClass extends Class {
-  InterfaceType mixedInType;
-
-  MixinClass(InterfaceType supertype, this.mixedInType,
-      {String name,
-      bool isAbstract: false,
-      List<TypeParameter> typeParameters,
-      List<InterfaceType> implementedClasses,
-      List<Constructor> constructors})
-      : super(
-            name,
-            isAbstract,
-            typeParameters ?? <TypeParameter>[],
-            supertype,
-            implementedClasses ?? <InterfaceType>[],
-            const <Field>[],
-            constructors ?? <Constructor>[],
-            const <Procedure>[]);
-
-  bool get isMixinApplication => true;
-
-  accept(ClassVisitor v) => v.visitMixinClass(this);
-
-  acceptReference(ClassReferenceVisitor v) => v.visitMixinClassReference(this);
-
-  visitChildren(Visitor v) {
-    visitList(annotations, v);
-    visitList(typeParameters, v);
-    supertype?.accept(v);
-    mixedInType?.accept(v);
-    visitList(implementedTypes, v);
-    visitList(constructors, v);
-  }
-
-  transformChildren(Transformer v) {
-    transformList(annotations, v, this);
-    transformList(typeParameters, v, this);
-    transformList(constructors, v, this);
   }
 }
 
@@ -2321,8 +2254,7 @@ class YieldStatement extends Statement {
   int flags = 0;
 
   YieldStatement(this.expression,
-      {bool isYieldStar: false,
-       bool isNative: false}) {
+      {bool isYieldStar: false, bool isNative: false}) {
     expression?.parent = this;
     this.isYieldStar = isYieldStar;
     this.isNative = isNative;

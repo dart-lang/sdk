@@ -87,13 +87,6 @@ abstract class MemberVisitor<R> {
   R visitField(Field node) => defaultMember(node);
 }
 
-abstract class ClassVisitor<R> {
-  R defaultClass(Class node) => null;
-
-  R visitNormalClass(NormalClass node) => defaultClass(node);
-  R visitMixinClass(MixinClass node) => defaultClass(node);
-}
-
 abstract class InitializerVisitor<R> {
   R defaultInitializer(Initializer node) => null;
 
@@ -109,7 +102,6 @@ abstract class InitializerVisitor<R> {
 class TreeVisitor<R> implements ExpressionVisitor<R>,
         StatementVisitor<R>,
         MemberVisitor<R>,
-        ClassVisitor<R>,
         InitializerVisitor<R> {
   R defaultTreeNode(TreeNode node) => null;
 
@@ -190,9 +182,7 @@ class TreeVisitor<R> implements ExpressionVisitor<R>,
   R visitField(Field node) => defaultMember(node);
 
   // Classes
-  R defaultClass(Class node) => defaultTreeNode(node);
-  R visitNormalClass(NormalClass node) => defaultClass(node);
-  R visitMixinClass(MixinClass node) => defaultClass(node);
+  R visitClass(Class node) => defaultTreeNode(node);
 
   // Initializers
   R defaultInitializer(Initializer node) => defaultTreeNode(node);
@@ -227,13 +217,6 @@ class DartTypeVisitor<R> {
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
 }
 
-class ClassReferenceVisitor<R> {
-  R defaultClassReference(Class node) => null;
-
-  R visitNormalClassReference(NormalClass node) => defaultClassReference(node);
-  R visitMixinClassReference(MixinClass node) => defaultClassReference(node);
-}
-
 class MemberReferenceVisitor<R> {
   R defaultMemberReference(Member node) => null;
 
@@ -245,7 +228,6 @@ class MemberReferenceVisitor<R> {
 class Visitor<R> extends TreeVisitor<R>
     implements
         DartTypeVisitor<R>,
-        ClassReferenceVisitor<R>,
         MemberReferenceVisitor<R> {
   /// The catch-all case, except for references.
   R defaultNode(Node node) => null;
@@ -264,9 +246,7 @@ class Visitor<R> extends TreeVisitor<R>
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
 
   // Class references
-  R defaultClassReference(Class node) => null;
-  R visitNormalClassReference(NormalClass node) => defaultClassReference(node);
-  R visitMixinClassReference(MixinClass node) => defaultClassReference(node);
+  R visitClassReference(Class node) => null;
 
   // Member references
   R defaultMemberReference(Member node) => null;

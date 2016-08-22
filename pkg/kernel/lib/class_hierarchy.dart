@@ -20,7 +20,7 @@ class ClassHierarchy {
   ClassHierarchy(Program program)
       : this._internal(program, _countClasses(program));
 
-  NormalClass get rootClass => classes[0];
+  Class get rootClass => classes[0];
 
   /// Returns the index of [class_] in the [classes] list.
   int getClassIndex(Class class_) => _infoFor[class_].topologicalIndex;

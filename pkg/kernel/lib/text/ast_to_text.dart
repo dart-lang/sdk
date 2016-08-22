@@ -665,14 +665,19 @@ class Printer extends Visitor<Null> {
         name: node.name, initializers: node.initializers);
   }
 
-  visitNormalClass(NormalClass node) {
+  visitClass(Class node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isAbstract, 'abstract');
     writeWord('class');
     writeWord(getClassName(node));
     writeTypeParameterList(node.typeParameters);
-    if (node.supertype != null) {
+    if (node.isMixinApplication) {
+      writeSpaced('=');
+      writeType(node.supertype);
+      writeSpaced('with');
+      writeType(node.mixedInType);
+    } else if (node.supertype != null) {
       writeWord('extends');
       writeType(node.supertype);
     }
@@ -688,32 +693,6 @@ class Printer extends Visitor<Null> {
     --indentation;
     writeIndentation();
     endLine('}');
-  }
-
-  visitMixinClass(MixinClass node) {
-    writeAnnotationList(node.annotations);
-    writeIndentation();
-    writeModifier(node.isAbstract, 'abstract');
-    writeWord('mixin');
-    writeWord(getClassName(node));
-    writeTypeParameterList(node.typeParameters);
-    writeSpaced('=');
-    writeType(node.supertype);
-    writeSpaced('with');
-    writeType(node.mixedInType);
-    if (node.implementedTypes.isNotEmpty) {
-      writeWord('implements');
-      writeList(node.implementedTypes, writeType);
-    }
-    if (node.constructors.isEmpty) {
-      endLine(';');
-    } else {
-      endLine(' {');
-      ++indentation;
-      node.constructors.forEach(writeNode);
-      --indentation;
-      endLine('}');
-    }
   }
 
   visitInvalidExpression(InvalidExpression node) {

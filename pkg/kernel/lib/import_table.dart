@@ -98,7 +98,7 @@ class _ImportTableBuilder extends RecursiveVisitor {
     }
   }
 
-  defaultClassReference(Class node) {
+  visitClassReference(Class node) {
     addLibraryImport(node.enclosingLibrary);
   }
 
