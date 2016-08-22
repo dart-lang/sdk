@@ -597,7 +597,8 @@ class JavaScriptBackend extends Backend {
   JavaScriptBackend(Compiler compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
-      bool useNewSourceInfo: false})
+      bool useNewSourceInfo: false,
+      bool useKernel: false})
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<jsAst.Name, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
@@ -625,6 +626,7 @@ class JavaScriptBackend extends Backend {
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
+    // TODO(sigmund): pass along the kernel flag.
     functionCompiler = new SsaFunctionCompiler(this, sourceInformationStrategy);
     serialization = new JavaScriptBackendSerialization(this);
   }

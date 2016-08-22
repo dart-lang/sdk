@@ -256,7 +256,8 @@ abstract class Compiler implements LibraryLoaderListener {
           this,
           generateSourceMap: options.generateSourceMap,
           useStartupEmitter: options.useStartupEmitter,
-          useNewSourceInfo: options.useNewSourceInfo);
+          useNewSourceInfo: options.useNewSourceInfo,
+          useKernel: options.useKernel);
       backend = jsBackend;
     }
 
