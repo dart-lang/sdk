@@ -1120,6 +1120,23 @@ class RetainingPathItem implements M.RetainingPathItem {
       parentWordOffset = map['_parentWordOffset'];
 }
 
+class Ports implements M.Ports {
+  final Iterable<Port> elements;
+
+  Ports(ServiceMap map)
+    : this.elements = map['ports']
+        .map((rmap) => new Port(rmap));
+}
+
+class Port implements M.Port {
+  final String name;
+  final HeapObject handler;
+
+  Port(ServiceMap map)
+    : name = map['name'],
+      handler = map['handler'];
+}
+
 class HeapSpace extends Observable implements M.HeapSpace {
   @observable int used = 0;
   @observable int capacity = 0;

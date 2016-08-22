@@ -104,7 +104,7 @@ class ObjectCommonElementWrapper extends HtmlElement {
                           new ReachableSizeRepository(),
                           new InboundReferencesRepository(),
                           new RetainingPathRepository(),
-                          new InstanceRepository(_object.isolate),
+                          new InstanceRepository(),
                           queue: ObservatoryApplication.app.queue)
     ];
   }

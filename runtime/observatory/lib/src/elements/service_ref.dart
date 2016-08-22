@@ -153,7 +153,7 @@ class AnyServiceRefElement extends ObservatoryElement {
         break;
       default:
         element = anyRef(obj.isolate, obj,
-            new InstanceRepository(obj.isolate), queue: app.queue);
+            new InstanceRepository(), queue: app.queue);
         break;
     }
     if (element == null) {

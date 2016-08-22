@@ -6,8 +6,10 @@ part of app;
 
 AllocationProfileRepository _allocationProfileRepository
     = new AllocationProfileRepository();
+InstanceRepository _instanceRepository = new InstanceRepository();
 IsolateSampleProfileRepository _isolateSampleProfileRepository
     = new IsolateSampleProfileRepository();
+PortsRepository _portsRepository = new PortsRepository();
 
 class IsolateNotFound implements Exception {
   String isolateId;
@@ -301,18 +303,26 @@ class AllocationProfilerPage extends MatchingPage {
   }
 }
 
-class PortsPage extends SimplePage {
-  PortsPage(app)
-      : super('ports', 'ports-page', app);
+class PortsPage extends MatchingPage {
+  PortsPage(app) : super('ports', app);
+
+  DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        PortsPageElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new PortsElement(isolate.vm, isolate, app.events, app.notifications,
+                         _portsRepository, _instanceRepository,
+                         queue: app.queue)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
   }
 }
 

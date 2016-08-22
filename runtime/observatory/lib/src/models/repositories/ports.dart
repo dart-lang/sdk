@@ -4,6 +4,6 @@
 
 part of models;
 
-abstract class InstanceRepository{
-  Future<Instance> get(IsolateRef isolate, String id, {int count});
+abstract class PortsRepository {
+  Future<Ports> get(IsolateRef isolate);
 }

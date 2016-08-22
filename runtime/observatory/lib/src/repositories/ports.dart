@@ -4,14 +4,11 @@
 
 part of repositories;
 
-class InstanceRepository extends M.InstanceRepository {
-  InstanceRepository();
-
-  Future<M.Instance> get(M.IsolateRef i, String id,
-                         {int count: S.kDefaultFieldLimit}) async{
+class PortsRepository implements M.PortsRepository {
+  Future<M.Ports> get(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
-    assert(count != null);
-    return (await isolate.getObject(id, count: count)) as S.Instance;
+    final response = await isolate.invokeRpc('_getPorts', {});
+    return new S.Ports(response);
   }
 }

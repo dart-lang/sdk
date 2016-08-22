@@ -5,8 +5,6 @@
 part of repositories;
 
 class InboundReferencesRepository implements M.InboundReferencesRepository {
-  static const _api = '_getAllocationProfile';
-
   Future<M.InboundReferences> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);

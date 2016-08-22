@@ -83,7 +83,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
   }
 
   Future _refresh() async {
-    _loadedInstance = await _instances.get(_instance.id);
+    _loadedInstance = await _instances.get(_isolate, _instance.id);
     _r.dirty();
   }
 
@@ -96,7 +96,8 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       ..text = 'show next ${count}';
     button.onClick.listen((_) async {
       button.disabled = true;
-      _loadedInstance = await _instances.get(_instance.id, count: count * 2);
+      _loadedInstance = await _instances.get(_isolate, _instance.id,
+                                             count: count * 2);
       _r.dirty();
     });
     return [button];

@@ -696,6 +696,16 @@ inbound-reference .stackTraceBox {
 /* TODO(cbernaschina) fix instance-ref-wrapped to instance-ref when wrapper
 removed */
 
+instance-ref-wrapped > a[href]:hover {
+  text-decoration: underline;
+}
+instance-ref-wrapped > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+instance-ref-wrapped > a[href] * {
+  color: inherit;
+}
 instance-ref-wrapped .empathize {
   font-style: italic;
 }
@@ -937,6 +947,12 @@ observatory-application {
 observatory-application > div {
   display: block;
   height: 100%;
+}
+
+/* ports-page */
+
+ports-page .port-number {
+  font-weight: bold;
 }
 
 /* script-ref */
