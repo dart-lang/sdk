@@ -43,37 +43,6 @@ import 'nodes.dart';
 import 'optimize.dart';
 import 'types.dart';
 
-class SsaFunctionCompiler implements FunctionCompiler {
-  final SsaCodeGeneratorTask generator;
-  final SsaBuilderTask builder;
-  final SsaOptimizerTask optimizer;
-  final JavaScriptBackend backend;
-
-  SsaFunctionCompiler(JavaScriptBackend backend,
-      SourceInformationStrategy sourceInformationFactory)
-      : generator = new SsaCodeGeneratorTask(backend, sourceInformationFactory),
-        builder = new SsaBuilderTask(backend, sourceInformationFactory),
-        optimizer = new SsaOptimizerTask(backend),
-        backend = backend;
-
-  /// Generates JavaScript code for `work.element`.
-  /// Using the ssa builder, optimizer and codegenerator.
-  js.Fun compile(CodegenWorkItem work) {
-    HGraph graph = builder.build(work);
-    optimizer.optimize(work, graph);
-    Element element = work.element;
-    js.Expression result = generator.generateCode(work, graph);
-    if (element is FunctionElement) {
-      result = backend.rewriteAsync(element, result);
-    }
-    return result;
-  }
-
-  Iterable<CompilerTask> get tasks {
-    return <CompilerTask>[builder, optimizer, generator];
-  }
-}
-
 /// A synthetic local variable only used with the SSA graph.
 ///
 /// For instance used for holding return value of function or the exception of a

@@ -39,7 +39,7 @@ import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
-import '../ssa/builder.dart' show SsaFunctionCompiler;
+import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../ssa/nodes.dart' show HInstruction;
 import '../tree/tree.dart';
 import '../types/types.dart';
@@ -626,8 +626,8 @@ class JavaScriptBackend extends Backend {
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
-    // TODO(sigmund): pass along the kernel flag.
-    functionCompiler = new SsaFunctionCompiler(this, sourceInformationStrategy);
+    functionCompiler = new SsaFunctionCompiler(
+        this, sourceInformationStrategy, useKernel);
     serialization = new JavaScriptBackendSerialization(this);
   }
 
