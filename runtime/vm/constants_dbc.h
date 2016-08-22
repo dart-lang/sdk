@@ -327,7 +327,7 @@ namespace dart {
 //    Store FP[rC] into array FP[rA] at index FP[rB]. No typechecking is done.
 //    FP[rA] is assumed to be a RawArray, FP[rB] to be a smi.
 //
-//  - StoreIndexed{N}{Float64, Uint8} rA, rB, rC
+//  - StoreIndexed{N}{Float64, Uint8, OneByteString} rA, rB, rC
 //
 //    Where N is '' or '8'. N may only be '8' for Float64.
 //
@@ -690,6 +690,7 @@ namespace dart {
   V(StoreIndexed,                A_B_C, reg, reg, reg) \
   V(StoreIndexedUint8,           A_B_C, reg, reg, reg) \
   V(StoreIndexedExternalUint8,   A_B_C, reg, reg, reg) \
+  V(StoreIndexedOneByteString,   A_B_C, reg, reg, reg) \
   V(StoreIndexedUint32,          A_B_C, reg, reg, reg) \
   V(StoreIndexedFloat64,         A_B_C, reg, reg, reg) \
   V(StoreIndexed8Float64,        A_B_C, reg, reg, reg) \

@@ -720,6 +720,10 @@ EMIT_NATIVE_CODE(StoreIndexed, 3, Location::NoLocation(),
         __ StoreIndexedUint8(array, index, value);
       }
       break;
+    case kOneByteStringCid:
+      ASSERT(index_scale() == 1);
+      __ StoreIndexedOneByteString(array, index, value);
+      break;
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
       if (IsExternal()) {
@@ -765,6 +769,7 @@ EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister(),
   const Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kArrayCid:
+    case kImmutableArrayCid:
       __ LoadIndexed(result, array, index);
       break;
     case kTypedDataUint8ArrayCid:
