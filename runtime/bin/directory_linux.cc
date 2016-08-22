@@ -141,7 +141,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
         // Fall through.
       case DT_UNKNOWN: {
         // On some file systems the entry type is not determined by
-        // readdir_r. For those and for links we use stat to determine
+        // readdir. For those and for links we use stat to determine
         // the actual entry type. Notice that stat returns the type of
         // the file pointed to.
         struct stat64 entry_info;
@@ -277,15 +277,15 @@ static bool DeleteRecursively(PathBuffer* path) {
     // In case `readdir()` returns `NULL` we distinguish between end-of-stream and error
     // by looking if `errno` was updated.
     errno = 0;
-    //In glibc 2.24+, readdir_r is deprecated.
-    //According to the man page for readdir:
-    //"readdir(3) is not required to be thread-safe. However, in modern
-    //implementations (including the glibc implementation), concurrent calls to
-    //readdir(3) that specify different directory streams are thread-safe.
-    //Therefore, the use of readdir_r() is generally unnecessary in multithreaded
-    //programs. In cases where multiple threads must read from the same directory
-    //stream, using readdir(3) with external synchronization is still preferable
-    //to the use of readdir_r(), for the reasons given in the points above."
+    // In glibc 2.24+, readdir_r is deprecated.
+    // According to the man page for readdir:
+    // "readdir(3) is not required to be thread-safe. However, in modern
+    // implementations (including the glibc implementation), concurrent calls to
+    // readdir(3) that specify different directory streams are thread-safe.
+    // Therefore, the use of readdir_r() is generally unnecessary in multithreaded
+    // programs. In cases where multiple threads must read from the same directory
+    // stream, using readdir(3) with external synchronization is still preferable
+    // to the use of readdir_r(), for the reasons given in the points above."
     dirent* entry = readdir(dir_pointer);
     if (entry == NULL) {
       // Failed to read next directory entry.
