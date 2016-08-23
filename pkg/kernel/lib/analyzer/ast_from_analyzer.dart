@@ -1413,7 +1413,7 @@ class ExpressionBuilder
     List<ast.DartType> inferTypeArguments() {
       var inferredType = scope.getInferredType(node);
       if (inferredType is ast.InterfaceType) {
-        return inferredType.typeArguments;
+        return inferredType.typeArguments.toList();
       }
       var classElement = element?.enclosingElement;
       int numberOfTypeArguments =
@@ -2098,7 +2098,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
       ast.Field field = scope.getMemberReference(constant.element);
       field.initializer = new ast.ConstructorInvocation(
           constructor, new ast.Arguments([new ast.IntLiteral(index)]),
-          isConst: true);
+          isConst: true)..parent = field;
       field.type = new ast.InterfaceType(classNode);
       classNode.addMember(field);
       ++index;
@@ -2113,7 +2113,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     valuesField.initializer = new ast.ListLiteral(
         enumConstantFields.map(_makeStaticGet).toList(),
         isConst: true,
-        typeArgument: enumType);
+        typeArgument: enumType)..parent = valuesField;
     classNode.addMember(valuesField);
     // TODO: Add the toString method.
   }
