@@ -6,6 +6,8 @@ part of app;
 
 AllocationProfileRepository _allocationProfileRepository
     = new AllocationProfileRepository();
+HeapSnapshotRepository _heapSnapshotRepository
+    = new HeapSnapshotRepository();
 InstanceRepository _instanceRepository = new InstanceRepository();
 IsolateSampleProfileRepository _isolateSampleProfileRepository
     = new IsolateSampleProfileRepository();
@@ -356,18 +358,26 @@ class HeapMapPage extends SimplePage {
   }
 }
 
-class HeapSnapshotPage extends SimplePage {
-  HeapSnapshotPage(app) : super('heap-snapshot', 'heap-snapshot', app);
+class HeapSnapshotPage extends MatchingPage {
+  HeapSnapshotPage(app) : super('heap-snapshot', app);
+
+  DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        HeapSnapshotElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new HeapSnapshotElement(isolate.vm, isolate, app.events,
+                                app.notifications, _heapSnapshotRepository,
+                                _instanceRepository, queue: app.queue)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
   }
 }
 

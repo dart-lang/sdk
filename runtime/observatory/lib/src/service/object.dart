@@ -1172,31 +1172,10 @@ class HeapSpace extends Observable implements M.HeapSpace {
   }
 }
 
-class HeapSnapshot {
-  final ObjectGraph graph;
-  final DateTime timeStamp;
-  final Isolate isolate;
-
-  HeapSnapshot(this.isolate, chunks, nodeCount) :
-      graph = new ObjectGraph(chunks, nodeCount),
-      timeStamp = new DateTime.now();
-
-  List<Future<ServiceObject>> getMostRetained({int classId, int limit}) {
-    var result = [];
-    for (ObjectVertex v in graph.getMostRetained(classId: classId,
-                                                 limit: limit)) {
-      result.add(isolate.getObjectByAddress(v.address)
-                        .then((ServiceObject obj) {
-        if (obj is HeapObject) {
-          obj.retainedSize = v.retainedSize;
-        } else {
-          print("${obj.runtimeType} should be a HeapObject");
-        }
-        return obj;
-      }));
-    }
-    return result;
-  }
+class RawHeapSnapshot {
+  final chunks;
+  final count;
+  RawHeapSnapshot(this.chunks, this.count);
 }
 
 /// State for a running isolate.
@@ -1435,7 +1414,6 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   @observable String fileAndLine;
 
   @observable DartError error;
-  @observable HeapSnapshot latestSnapshot;
   StreamController _snapshotFetch;
 
   List<ByteData> _chunksInProgress;
@@ -1455,8 +1433,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       _chunksInProgress = new List(chunkCount);
     }
     _chunksInProgress[chunkIndex] = event.data;
-    _snapshotFetch.add("Receiving snapshot chunk ${chunkIndex + 1}"
-                       " of $chunkCount...");
+    _snapshotFetch.add([chunkIndex, chunkCount]);
 
     for (var i = 0; i < chunkCount; i++) {
       if (_chunksInProgress[i] == null) return;
@@ -1465,18 +1442,16 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     var loadedChunks = _chunksInProgress;
     _chunksInProgress = null;
 
-    latestSnapshot = new HeapSnapshot(this, loadedChunks, event.nodeCount);
     if (_snapshotFetch != null) {
-      latestSnapshot.graph.process(_snapshotFetch).then((graph) {
-        _snapshotFetch.add(latestSnapshot);
-        _snapshotFetch.close();
-      });
+      _snapshotFetch.add(
+          new RawHeapSnapshot(loadedChunks, event.nodeCount));
+      _snapshotFetch.close();
     }
   }
 
   Stream fetchHeapSnapshot(collectGarbage) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
-      _snapshotFetch = new StreamController();
+      _snapshotFetch = new StreamController.broadcast();
       // isolate.vm.streamListen('_Graph');
       isolate.invokeRpcNoUpgrade('_requestHeapSnapshot',
                                  {'collectGarbage': collectGarbage});

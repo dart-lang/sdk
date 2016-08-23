@@ -9,6 +9,7 @@ import 'observatory_element.dart';
 import 'sample_buffer_control.dart';
 import 'stack_trace_tree_config.dart';
 import 'cpu_profile/virtual_tree.dart';
+import 'package:observatory/heap_snapshot.dart';
 import 'package:observatory/elements.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart';
@@ -42,8 +43,13 @@ class ClassViewElement extends ObservatoryElement {
 
   Future<ServiceObject> retainedToplist(var limit) {
     return cls.isolate.fetchHeapSnapshot(true).last
+      .then((RawHeapSnapshot raw) async {
+        final snapshot = new HeapSnapshot();
+        await snapshot.loadProgress(cls.isolate, raw);
+        return snapshot;
+      })
       .then((HeapSnapshot snapshot) =>
-          Future.wait(snapshot.getMostRetained(classId: cls.vmCid,
+          Future.wait(snapshot.getMostRetained(cls.isolate, classId: cls.vmCid,
                                                limit: 10)))
       .then((List<ServiceObject> most) {
         mostRetained = new ObservableList.from(most);

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
+import 'package:observatory/heap_snapshot.dart';
 import 'package:observatory/object_graph.dart';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -42,7 +43,9 @@ var tests = [
   Class fooClass = lib.classes.first;
   fooId = fooClass.vmCid;
 
-  HeapSnapshot snapshot = await isolate.fetchHeapSnapshot(false).last;
+  RawHeapSnapshot raw = await isolate.fetchHeapSnapshot(false).last;
+  HeapSnapshot snapshot = new HeapSnapshot();
+  await snapshot.loadProgress(isolate, raw).last;
   ObjectGraph graph = snapshot.graph;
 
   expect(fooId, isNotNull);
