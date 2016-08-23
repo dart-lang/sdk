@@ -2071,14 +2071,18 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   /// True for the `values` field of an `enum` class.
   static bool _isValuesField(FieldElement field) => field.name == 'values';
 
+  /// True for the `index` field of an `enum` class.
+  static bool _isIndexField(FieldElement field) => field.name == 'index';
+
   visitEnumDeclaration(EnumDeclaration node) {
     addAnnotations(node.metadata);
     ast.Class classNode = currentClass;
     classNode.supertype = new ast.InterfaceType(scope.getRootClassReference());
     var intType =
         new ast.InterfaceType(scope.loader.getCoreClassReference('int'));
-    var indexField =
-        new ast.Field(new ast.Name('index'), isFinal: true, type: intType);
+    var indexFieldElement = element.fields.firstWhere(_isIndexField);
+    var indexField = scope.getMemberReference(indexFieldElement);
+    indexField.type = intType;
     classNode.addMember(indexField);
     var parameter = new ast.VariableDeclaration('index', type: intType);
     var function = new ast.FunctionNode(new ast.EmptyStatement(),
