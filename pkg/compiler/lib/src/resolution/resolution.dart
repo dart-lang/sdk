@@ -1066,7 +1066,8 @@ class ResolverTask extends CompilerTask {
               switch (constant.kind) {
                 case ConstantExpressionKind.CONSTRUCTED:
                   ConstructedConstantExpression constructedConstant = constant;
-                  if (constructedConstant.type.isGeneric) {
+                  if (constructedConstant.type.isGeneric &&
+                      !constructedConstant.type.isRaw) {
                     // Const constructor calls cannot have type arguments.
                     // TODO(24312): Remove this.
                     reporter.reportErrorMessage(
