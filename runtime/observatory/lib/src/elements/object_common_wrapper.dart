@@ -11,6 +11,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/shims/binding.dart';
 
+@bindable
 class ObjectCommonElementWrapper extends HtmlElement {
 
   static const binder = const Binder<ObjectCommonElementWrapper>(const {
