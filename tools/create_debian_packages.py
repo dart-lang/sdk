@@ -101,7 +101,7 @@ def BuildDebianPackage(tarball, out_dir, arch, toolchain):
     source_package = [
       '%s-1.dsc' % debbase,
       '%s.orig.tar.gz' % debbase,
-      '%s-1.debian.tar.gz' % debbase
+      '%s-1.debian.tar.xz' % debbase
     ]
     i386_package = [
       '%s-1_i386.deb' % debbase
