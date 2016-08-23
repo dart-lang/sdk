@@ -30,6 +30,7 @@ class MemoryResourceProvider implements ResourceProvider {
   int nextStamp = 0;
 
   final Context _pathContext;
+
   @override
   final AbsolutePathContext absolutePathContext;
 
@@ -309,6 +310,11 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
+  File resolveSymbolicLinksSync() {
+    return throw new FileSystemException(path, "File does not exist");
+  }
+
+  @override
   Uri toUri() => new Uri.file(path, windows: _provider.pathContext == windows);
 
   @override
@@ -379,6 +385,9 @@ class _MemoryFile extends _MemoryResource implements File {
   File renameSync(String newPath) {
     return _provider.renameFileSync(this, newPath);
   }
+
+  @override
+  File resolveSymbolicLinksSync() => this;
 
   @override
   Uri toUri() => new Uri.file(path, windows: _provider.pathContext == windows);

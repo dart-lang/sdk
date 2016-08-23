@@ -180,6 +180,43 @@ class FileTest extends _BaseTest {
     expect(file.exists, isTrue);
   }
 
+  void test_resolveSymbolicLinksSync_links() {
+    Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    String pathA = pathContext.join(tempPath, 'a');
+    String pathB = pathContext.join(pathA, 'b');
+    new io.Directory(pathB).createSync(recursive: true);
+    String filePath = pathContext.join(pathB, 'test.txt');
+    io.File testFile = new io.File(filePath);
+    testFile.writeAsStringSync('test');
+
+    String pathC = pathContext.join(tempPath, 'c');
+    String pathD = pathContext.join(pathC, 'd');
+    new io.Link(pathD).createSync(pathA, recursive: true);
+
+    String pathE = pathContext.join(tempPath, 'e');
+    String pathF = pathContext.join(pathE, 'f');
+    new io.Link(pathF).createSync(pathC, recursive: true);
+
+    String linkPath =
+        pathContext.join(tempPath, 'e', 'f', 'd', 'b', 'test.txt');
+    File file = PhysicalResourceProvider.INSTANCE.getFile(linkPath);
+    expect(file.resolveSymbolicLinksSync().path,
+        testFile.resolveSymbolicLinksSync());
+  }
+
+  void test_resolveSymbolicLinksSync_noLinks() {
+    //
+    // On some platforms the path to the temp directory includes a symbolic
+    // link. We remove that from the equation before creating the File in order
+    // to show that the operation works as expected without symbolic links.
+    //
+    io.File ioFile = new io.File(path);
+    ioFile.writeAsStringSync('test');
+    file = PhysicalResourceProvider.INSTANCE
+        .getFile(ioFile.resolveSymbolicLinksSync());
+    expect(file.resolveSymbolicLinksSync(), file);
+  }
+
   void test_shortName() {
     expect(file.shortName, 'file.txt');
   }

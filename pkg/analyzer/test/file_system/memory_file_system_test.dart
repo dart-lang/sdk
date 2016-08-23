@@ -194,6 +194,11 @@ class FileTest {
     expect(file.exists, isTrue);
   }
 
+  void test_resolveSymbolicLinksSync() {
+    File file = provider.newFile('/test.txt', 'text');
+    expect(file.resolveSymbolicLinksSync(), file);
+  }
+
   void test_shortName() {
     File file = provider.getResource('/foo/bar/file.txt');
     expect(file.shortName, 'file.txt');
