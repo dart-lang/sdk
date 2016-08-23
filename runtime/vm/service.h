@@ -180,16 +180,19 @@ class Service : public AllStatic {
                                        const Array& parameter_values,
                                        const Instance& reply_port,
                                        const Instance& id);
+  // Takes ownership of 'bytes'.
   static void SendEvent(const char* stream_id,
                         const char* event_type,
-                        const Object& eventMessage);
+                        uint8_t* bytes,
+                        intptr_t bytes_length);
 
   // Does not take ownership of 'data'.
   static void SendEventWithData(const char* stream_id,
                                 const char* event_type,
-                                const String& meta,
+                                const char* metadata,
+                                intptr_t metadata_size,
                                 const uint8_t* data,
-                                intptr_t size);
+                                intptr_t data_size);
 
   static void PostEvent(Isolate* isolate,
                         const char* stream_id,

@@ -966,69 +966,86 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
 }
 
 
+static void Finalizer(void* isolate_callback_data,
+                      Dart_WeakPersistentHandle handle,
+                      void* buffer) {
+  free(buffer);
+}
+
+
 void Service::SendEvent(const char* stream_id,
                         const char* event_type,
-                        const Object& event_message) {
+                        uint8_t* bytes,
+                        intptr_t bytes_length) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(isolate));
-  if (!ServiceIsolate::IsRunning()) {
-    return;
-  }
-  HANDLESCOPE(thread);
 
-  const Array& list = Array::Handle(Array::New(2));
-  ASSERT(!list.IsNull());
-  const String& stream_id_str = String::Handle(String::New(stream_id));
-  list.SetAt(0, stream_id_str);
-  list.SetAt(1, event_message);
-
-  // Push the event to port_.
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(list);
-  intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
     OS::Print("vm-service: Pushing ServiceEvent(isolate='%s', kind='%s',"
               " len=%" Pd ") to stream %s\n",
-              isolate->name(), event_type, len, stream_id);
+              isolate->name(), event_type, bytes_length, stream_id);
   }
-  // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
-  PortMap::PostMessage(
-      new Message(ServiceIsolate::Port(), data, len, Message::kNormalPriority));
+
+  bool result;
+  {
+    TransitionVMToNative transition(thread);
+    Dart_CObject cbytes;
+    cbytes.type = Dart_CObject_kExternalTypedData;
+    cbytes.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+    cbytes.value.as_external_typed_data.length = bytes_length;
+    cbytes.value.as_external_typed_data.data = bytes;
+    cbytes.value.as_external_typed_data.peer = bytes;
+    cbytes.value.as_external_typed_data.callback = Finalizer;
+
+    Dart_CObject cstream_id;
+    cstream_id.type = Dart_CObject_kString;
+    cstream_id.value.as_string = const_cast<char*>(stream_id);
+
+    Dart_CObject* elements[2];
+    elements[0] = &cstream_id;
+    elements[1] = &cbytes;
+    Dart_CObject message;
+    message.type = Dart_CObject_kArray;
+    message.value.as_array.length = 2;
+    message.value.as_array.values = elements;
+    result = Dart_PostCObject(ServiceIsolate::Port(), &message);
+  }
+
+  if (!result) {
+    free(bytes);
+  }
 }
 
 
-// TODO(turnidge): Rewrite this method to use Post_CObject instead.
 void Service::SendEventWithData(const char* stream_id,
                                 const char* event_type,
-                                const String& meta,
+                                const char* metadata,
+                                intptr_t metadata_size,
                                 const uint8_t* data,
-                                intptr_t size) {
-  // Bitstream: [meta data size (big-endian 64 bit)] [meta data (UTF-8)] [data]
-  const intptr_t meta_bytes = Utf8::Length(meta);
-  const intptr_t total_bytes = sizeof(uint64_t) + meta_bytes + size;
-  const TypedData& message = TypedData::Handle(
-      TypedData::New(kTypedDataUint8ArrayCid, total_bytes));
+                                intptr_t data_size) {
+  // Bitstream: [metadata size (big-endian 64 bit)] [metadata (UTF-8)] [data]
+  const intptr_t total_bytes = sizeof(uint64_t) + metadata_size + data_size;
+
+  uint8_t* message = static_cast<uint8_t*>(malloc(total_bytes));
   intptr_t offset = 0;
-  // TODO(koda): Rename these methods SetHostUint64, etc.
-  message.SetUint64(0, Utils::HostToBigEndian64(meta_bytes));
+
+  // Metadata size.
+  reinterpret_cast<uint64_t*>(message)[0] =
+      Utils::HostToBigEndian64(metadata_size);
   offset += sizeof(uint64_t);
-  {
-    NoSafepointScope no_safepoint;
-    meta.ToUTF8(static_cast<uint8_t*>(message.DataAddr(offset)), meta_bytes);
-    offset += meta_bytes;
-  }
-  // TODO(koda): It would be nice to avoid this copy (requires changes to
-  // MessageWriter code).
-  {
-    NoSafepointScope no_safepoint;
-    memmove(message.DataAddr(offset), data, size);
-    offset += size;
-  }
+
+  // Metadata.
+  memmove(&message[offset], metadata, metadata_size);
+  offset += metadata_size;
+
+  // Data.
+  memmove(&message[offset], data, data_size);
+  offset += data_size;
+
   ASSERT(offset == total_bytes);
-  SendEvent(stream_id, event_type, message);
+  SendEvent(stream_id, event_type, message, total_bytes);
 }
 
 
@@ -1409,9 +1426,10 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
       }
     }
   }
-  const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
-  SendEventWithData(echo_stream.id(), "_Echo", message, data, sizeof(data));
+  SendEventWithData(echo_stream.id(), "_Echo",
+                    js.buffer()->buf(), js.buffer()->length(),
+                    data, sizeof(data));
 }
 
 
@@ -3341,14 +3359,13 @@ void Service::SendGraphEvent(Thread* thread, bool collect_garbage) {
       }
     }
 
-    const String& message = String::Handle(String::New(js.ToCString()));
-
     uint8_t* chunk_start = buffer + (i * kChunkSize);
     intptr_t chunk_size = (i + 1 == num_chunks)
         ? stream.bytes_written() - (i * kChunkSize)
         : kChunkSize;
 
-    SendEventWithData(graph_stream.id(), "_Graph", message,
+    SendEventWithData(graph_stream.id(), "_Graph",
+                      js.buffer()->buf(), js.buffer()->length(),
                       chunk_start, chunk_size);
   }
 }
