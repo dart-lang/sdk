@@ -882,6 +882,42 @@ enum AsyncMarker {
   SyncStar,
   Async,
   AsyncStar,
+
+  // `SyncYielding` is a marker that tells Dart VM that this function is an
+  // artificial closure introduced by an async transformer which desugared all
+  // async syntax into a combination of native yields and helper method calls.
+  //
+  // Native yields (formatted as `[yield]`) are semantically close to
+  // `yield x` statement: they denote a yield/resume point within a function
+  // but are completely decoupled from the notion of iterators. When
+  // execution of the closure reaches `[yield] x` it stops and return the
+  // value of `x` to the caller. If closure is called again it continues
+  // to the next statement after this yield as if it was suspended and resumed.
+  //
+  // Consider this example:
+  //
+  //   g() {
+  //     var :await_jump_var = 0;
+  //     var :await_ctx_var;
+  //
+  //     f(x) yielding {
+  //       [yield] '${x}:0';
+  //       [yield] '${x}:1';
+  //       [yield] '${x}:2';
+  //     }
+  //
+  //     return f;
+  //   }
+  //
+  //   print(f('a'));  /* prints 'a:0', :await_jump_var = 1  */
+  //   print(f('b'));  /* prints 'b:1', :await_jump_var = 2  */
+  //   print(f('c'));  /* prints 'c:2', :await_jump_var = 3  */
+  //
+  // Note: currently Dart VM implicitly relies on async transformer to
+  // inject certain artificial variables into g (like `:await_jump_var`).
+  // As such SyncYielding and native yield are not intended to be used on their
+  // own, but are rather an implementation artifact of the async transformer
+  // itself.
   SyncYielding,
 }
 
@@ -2250,6 +2286,8 @@ class TryFinally extends Statement {
 }
 
 /// Statement of form `yield x` or `yield* x`.
+///
+/// For native yield semantics see `AsyncMarker.SyncYielding`.
 class YieldStatement extends Statement {
   Expression expression;
   int flags = 0;
