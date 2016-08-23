@@ -247,9 +247,26 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitParameterValue(HParameterValue node) {
+    // [HParameterValue]s are either the value of the parameter (in fully SSA
+    // converted code), or the mutable variable containing the value (in
+    // incompletely SSA converted code, e.g. methods containing exceptions).
+    //
     // If the parameter is used as a mutable variable we cannot replace the
     // variable with a value.
-    if (node.usedAsVariable()) return node;
+    //
+    // If the parameter is used as a mutable variable but never written, first
+    // convert to a value parameter.
+
+    if (node.usedAsVariable()) {
+      if (!node.usedBy.every((user) => user is HLocalGet)) return node;
+      // Trivial SSA-conversion. Replace all HLocalGet instructions with the
+      // parameter.
+      for (HLocalGet user in node.usedBy.toList()) {
+        user.block.rewrite(user, node);
+        user.block.remove(user);
+      }
+    }
+
     propagateConstantValueToUses(node);
     return node;
   }
