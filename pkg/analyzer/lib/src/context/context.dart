@@ -1856,6 +1856,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return;
     }
 
+    // We're going to update the cache, so reset the driver.
+    driver.reset();
+
     // We need to invalidate the cache.
     {
       if (analysisOptions.finerGrainedInvalidation &&
@@ -1898,7 +1901,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(MODIFICATION_TIME, CacheState.INVALID);
       entry.setState(SOURCE_KIND, CacheState.INVALID);
     }
-    driver.reset();
     for (WorkManager workManager in workManagers) {
       workManager.applyChange(
           Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
