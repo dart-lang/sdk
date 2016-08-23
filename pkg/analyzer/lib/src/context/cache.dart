@@ -409,8 +409,10 @@ class CacheEntry {
    */
   void flush(FlushResultFilter filter) {
     _resultMap.forEach((ResultDescriptor result, ResultData data) {
-      if (filter(target, result)) {
-        data.flush();
+      if (data.state == CacheState.VALID) {
+        if (filter(target, result)) {
+          data.flush();
+        }
       }
     });
   }
