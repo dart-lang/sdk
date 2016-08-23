@@ -4,9 +4,12 @@
 
 import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
+import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
-import '../elements/elements.dart';
+import '../kernel/kernel.dart';
+import '../kernel/kernel_visitor.dart';
+import '../resolution/tree_elements.dart';
 
 import 'nodes.dart';
 
@@ -22,8 +25,17 @@ class SsaKernelBuilderTask extends CompilerTask {
 
   HGraph build(CodegenWorkItem work) {
     return measure(() {
-      Element element = work.element.implementation;
-      throw "unimplemented";
+      AstElement element = work.element.implementation;
+      TreeElements treeElements = work.resolvedAst.elements;
+      Kernel kernel = new Kernel(backend.compiler);
+      KernelVisitor visitor = new KernelVisitor(element, treeElements, kernel);
+      IrFunction function;
+      try {
+        function = visitor.buildFunction();
+      } catch(e) {
+        throw "Failed to convert to Kernel IR: $e";
+      }
+      throw "Successfully converted to Kernel IR: $function";
     });
   }
 }

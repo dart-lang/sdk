@@ -146,7 +146,7 @@ import 'error.dart' show KernelError;
 import 'fall_through_visitor.dart' show fallsThrough;
 import 'kernel.dart' show ConstructorTarget, Kernel;
 import 'unavailable.dart' show UnavailableVisitor;
-import 'unresolved.dart' show RastaUnresolved;
+import 'unresolved.dart' show UnresolvedVisitor;
 
 /// Translates dart2js AST nodes [Node] into Kernel IR [ir.TreeNode].
 ///
@@ -173,7 +173,7 @@ class KernelVisitor extends Object
         SemanticDeclarationResolvedMixin,
         DeclarationResolverMixin,
         UnavailableVisitor,
-        RastaUnresolved,
+        UnresolvedVisitor,
         KernelError
     implements
         SemanticVisitor,
