@@ -33,6 +33,13 @@ class TypeValue<X> {
 
 Type f8<T>() => new TypeValue<List<T>>().value;
 
+bool f9<T>(Object o) => o is Map<T, String>;
+
+class IsMap<A> {
+  @NoInline()
+  bool check<B>(o) => o is Map<A, B>;
+}
+
 main() {
   String s = "Hello!";
   List<String> ss = <String>[s];
@@ -50,4 +57,11 @@ main() {
   Expect.equals(f6<int>(ss), ss); // `as List<dynamic>` succeeds.
   Expect.throws(() => f7<int>(), (e) => e is TypeError);
   Expect.equals(f8<int>(), List); // Returns `List<dynamic>`.
+
+  Expect.isTrue(f9<int>(<int,String>{}));
+  Expect.isTrue(f9<int>(<bool,String>{})); // `is Map<dynamic, String>` is true.
+  Expect.isFalse(f9<int>(<int,int>{}));
+
+  Expect.isTrue(new IsMap<int>().check<String>(<int,String>{}));
+  Expect.isTrue(new IsMap<int>().check<int>(<int,String>{}));
 }
