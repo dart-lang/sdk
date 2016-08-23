@@ -2792,7 +2792,7 @@ class Context extends HeapObject implements M.Context {
 class ContextElement extends M.ContextElement {
   final Guarded<Instance> value;
 
-  ContextElement(ServiceMap map)
+  ContextElement(ObservableMap map)
     : value = new Guarded<Instance>(map['value']);
 }
 
