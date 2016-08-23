@@ -1227,7 +1227,15 @@ A {\em constructor parameter list} is a parenthesized, comma-separated list of f
 If an explicit type is attached to the initializing formal, that is its static type. Otherwise, the type of an initializing formal named \code{id} is $T_{id}$, where $T_{id}$ is the type of the field named \code{id} in the immediately enclosing class. It is a static warning if the static type of \code{id} is not assignable to $T_{id}$.
 
 \LMHash{}
-Using an initializing formal \code{\THIS{}.id} in a formal parameter list does not introduce a formal parameter name into the scope of the constructor. However, the initializing formal does effect the type of the constructor function exactly as if a formal parameter  named \code{id}  of the same type were introduced in the same position.
+Initializing formals constitute an exception to the rule that every formal parameter introduces a local variable into the formal parameter scope (\ref{formalParameters}).
+When the formal parameter list of a non-redirecting generative constructor contains any initializing formals, a new scope is introduced, the {\em formal parameter initializer scope}, which is the current scope of the initializer list of the constructor, and which is enclosed in the scope where the constructor is declared.
+Each initializing formal in the formal parameter list introduces a final local variable into the formal parameter initializer scope, but not into the formal parameter scope; every other formal parameter introduces a local variable into both the formal parameter scope and the formal parameter initializer scope.
+
+\commentary{
+This means that formal parameters, including initializing formals, must have distinct names, and that initializing formals are in scope for the initializer list, but they are not in scope for the body of the constructor.
+When a formal parameter introduces a local variable into two scopes, it is still one variable and hence one storage location.
+The type of the constructor is defined in terms of its formal parameters, including the initializing formals.
+}
 
 \LMHash{}
 Initializing formals are executed during the execution of generative constructors detailed below. Executing an initializing formal  \code{\THIS{}.id} causes the field \code{id} of the immediately surrounding class to be assigned the value of the corresponding actual parameter, unless $id$ is a final variable that has already been initialized, in which case a runtime error occurs.
