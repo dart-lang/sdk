@@ -9,7 +9,9 @@ useCallback(callback) {
 }
 
 main() {
+  var x;
   inner() {
+    x = new Foo();
     return new Foo();
   }
   useCallback(inner);

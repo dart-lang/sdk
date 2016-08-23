@@ -1151,16 +1151,17 @@ class TypeEnvironment {
 }
 
 class Environment extends TypeEnvironment {
-  final Map<VariableDeclaration, int> localVariables =
-      <VariableDeclaration, int>{};
+  final Map<VariableDeclaration, int> localVariables;
   int returnVariable;
 
   Environment(Builder builder, Class host, Member member,
       {int thisVariable, this.returnVariable})
-      : super(builder, host, member, thisVariable: thisVariable);
+      : localVariables = <VariableDeclaration, int>{},
+        super(builder, host, member, thisVariable: thisVariable);
 
   Environment.inner(Environment outer, {this.returnVariable})
-      : super(outer.builder, outer.host, outer.member,
+      : localVariables = outer.localVariables,
+        super(outer.builder, outer.host, outer.member,
             thisVariable: outer.thisVariable);
 
   int getVariable(VariableDeclaration variable) {
