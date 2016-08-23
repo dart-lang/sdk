@@ -2763,7 +2763,7 @@ class Instance extends HeapObject implements M.Instance {
 class Context extends HeapObject implements M.Context {
   @observable Context parentContext;
   @observable int length;
-  @observable var variables;
+  @observable Iterable<ContextElement> variables;
 
   Context._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2779,13 +2779,21 @@ class Context extends HeapObject implements M.Context {
       return;
     }
 
-    variables = map['variables'];
+    variables = (map['variables'] ?? const []).map((element) =>
+      new ContextElement(element));
 
     // We are fully loaded.
     _loaded = true;
   }
 
   String toString() => 'Context($length)';
+}
+
+class ContextElement extends M.ContextElement {
+  final Guarded<Instance> value;
+
+  ContextElement(ServiceMap map)
+    : value = new Guarded<Instance>(map['value']);
 }
 
 M.FunctionKind stringToFunctionKind(String value) {

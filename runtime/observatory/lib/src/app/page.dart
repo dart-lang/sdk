@@ -6,8 +6,11 @@ part of app;
 
 AllocationProfileRepository _allocationProfileRepository
     = new AllocationProfileRepository();
+ContextRepository _contextRepository = new ContextRepository();
 HeapSnapshotRepository _heapSnapshotRepository
     = new HeapSnapshotRepository();
+InboundReferencesRepository _inboundReferencesRepository
+    = new InboundReferencesRepository();
 InstanceRepository _instanceRepository = new InstanceRepository();
 IsolateSampleProfileRepository _isolateSampleProfileRepository
     = new IsolateSampleProfileRepository();
@@ -18,6 +21,11 @@ class IsolateNotFound implements Exception {
   IsolateNotFound(this.isolateId);
   String toString() => "IsolateNotFound: $isolateId";
 }
+RetainedSizeRepository _retainedSizeRepository = new RetainedSizeRepository();
+ReachableSizeRepository _reachableSizeRepository
+    = new ReachableSizeRepository();
+RetainingPathRepository _retainingPathRepository
+    = new RetainingPathRepository();
 
 /// A [Page] controls the user interface of Observatory. At any given time
 /// one page will be the current page. Pages are registered at startup.
@@ -148,8 +156,10 @@ class FlagsPage extends SimplePage {
   }
 }
 
-class InspectPage extends SimplePage {
-  InspectPage(app) : super('inspect', 'service-view', app);
+class InspectPage extends MatchingPage {
+  InspectPage(app) : super('inspect', app);
+
+  DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
@@ -163,10 +173,30 @@ class InspectPage extends SimplePage {
     });
   }
 
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    assert(element != null);
+  }
+
   void _visitObject(obj) {
-    if (element != null) {
-      ServiceObjectViewElement serviceElement = element;
+    if (obj is Context) {
+      container.children = [
+        new ContextViewElement(app.vm, obj.isolate, obj, app.events,
+                               app.notifications,
+                               _contextRepository,
+                               _retainedSizeRepository,
+                               _reachableSizeRepository,
+                               _inboundReferencesRepository,
+                               _retainingPathRepository,
+                               _instanceRepository,
+                               queue: app.queue)
+      ];
+    } else {
+      ServiceObjectViewElement serviceElement =new Element.tag('service-view');
       serviceElement.object = obj;
+      container.children = [serviceElement];
     }
   }
 }

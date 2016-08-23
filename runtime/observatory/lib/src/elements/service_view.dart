@@ -30,10 +30,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         CodeViewElement element = new Element.tag('code-view');
         element.code = object;
         return element;
-      case 'Context':
-        ContextViewElement element = new Element.tag('context-view');
-        element.context = object;
-        return element;
       case 'Error':
         ErrorViewElement element = new Element.tag('error-view');
         element.error = object;

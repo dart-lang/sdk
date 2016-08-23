@@ -116,7 +116,7 @@
             <div class="memberItem">
               <div class="memberName">closure function</div>
               <div class="memberValue">
-                <function-ref ref="{{ instance.function }}">
+                <function-ref ref="{{ instance.closureFunction }}">
                 </function-ref>
               </div>
             </div>
@@ -358,7 +358,7 @@
 
       <div class="content-centered-big">
         <template if="{{ instance.isClosure }}">
-          <source-inset location="{{ instance.function.location }}"></source-inset>
+          <source-inset location="{{ instance.closureFunction.location }}"></source-inset>
         </template>
         <template if="{{ instance.typeClass != null }}">
           <source-inset location="{{ instance.typeClass.location }}"></source-inset>

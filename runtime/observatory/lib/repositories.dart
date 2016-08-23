@@ -17,6 +17,7 @@ import 'package:observatory/utils.dart';
 
 part 'src/repositories/allocation_profile.dart';
 part 'src/repositories/class.dart';
+part 'src/repositories/context.dart';
 part 'src/repositories/event.dart';
 part 'src/repositories/flag.dart';
 part 'src/repositories/heap_snapshot.dart';

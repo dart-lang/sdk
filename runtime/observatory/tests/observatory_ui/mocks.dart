@@ -45,6 +45,7 @@ part 'mocks/objects/vm.dart';
 
 part 'mocks/repositories/allocation_profile.dart';
 part 'mocks/repositories/class.dart';
+part 'mocks/repositories/context.dart';
 part 'mocks/repositories/event.dart';
 part 'mocks/repositories/flag.dart';
 part 'mocks/repositories/heap_snapshot.dart';
