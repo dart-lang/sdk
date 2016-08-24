@@ -41,19 +41,14 @@ class ClassViewElement extends ObservatoryElement {
     });
   }
 
-  Future<ServiceObject> retainedToplist(var limit) {
-    return cls.isolate.fetchHeapSnapshot(true).last
-      .then((RawHeapSnapshot raw) async {
-        final snapshot = new HeapSnapshot();
-        await snapshot.loadProgress(cls.isolate, raw);
-        return snapshot;
-      })
-      .then((HeapSnapshot snapshot) =>
-          Future.wait(snapshot.getMostRetained(cls.isolate, classId: cls.vmCid,
-                                               limit: 10)))
-      .then((List<ServiceObject> most) {
-        mostRetained = new ObservableList.from(most);
-      });
+  Future retainedToplist(var limit) async {
+      final raw = await cls.isolate.fetchHeapSnapshot(true).last;
+      final snapshot = new HeapSnapshot();
+      await snapshot.loadProgress(cls.isolate, raw).last;
+      final most = await Future.wait(snapshot.getMostRetained(cls.isolate,
+                                                              classId: cls.vmCid,
+                                                              limit: 10));
+      mostRetained = new ObservableList.from(most);
   }
 
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
