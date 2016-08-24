@@ -1316,7 +1316,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   }
 
   __ LoadObject(R5, cache);
-  __ ldr(LR, Address(THR, Thread::megamorphic_lookup_checked_entry_offset()));
+  __ ldr(LR, Address(THR, Thread::megamorphic_call_checked_entry_offset()));
   __ blr(LR);
 
   __ Bind(&done);
@@ -1356,7 +1356,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
     LocationSummary* locs) {
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub = Code::ZoneHandle(
-      StubCode::ICLookupThroughFunction_entry()->code());
+      StubCode::ICCallThroughFunction_entry()->code());
   __ Comment("SwitchableCall");
 
   __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);

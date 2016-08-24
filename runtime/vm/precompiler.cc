@@ -1905,7 +1905,7 @@ void Precompiler::SwitchICCalls() {
   // the ic data array instead indirectly through a Function in the ic data
   // array. Iterate all the object pools and rewrite the ic data from
   // (cid, target function, count) to (cid, target code, entry point), and
-  // replace the ICLookupThroughFunction stub with ICLookupThroughCode.
+  // replace the ICCallThroughFunction stub with ICCallThroughCode.
 
   class SwitchICCallsVisitor : public FunctionVisitor {
    public:
@@ -1934,8 +1934,8 @@ void Precompiler::SwitchICCalls() {
           ic_ ^= entry_.raw();
           ic_.ResetSwitchable(zone_);
         } else if (entry_.raw() ==
-                   StubCode::ICLookupThroughFunction_entry()->code()) {
-          target_code_ = StubCode::ICLookupThroughCode_entry()->code();
+                   StubCode::ICCallThroughFunction_entry()->code()) {
+          target_code_ = StubCode::ICCallThroughCode_entry()->code();
           pool_.SetObjectAt(i, target_code_);
         }
       }

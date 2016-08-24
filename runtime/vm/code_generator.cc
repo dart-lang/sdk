@@ -1086,7 +1086,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
 
   // Patch to call through stub.
   const Code& stub =
-      Code::Handle(zone, StubCode::ICLookupThroughCode_entry()->code());
+      Code::Handle(zone, StubCode::ICCallThroughCode_entry()->code());
   ASSERT(!Isolate::Current()->compilation_allowed());
   CodePatcher::PatchSwitchableCallAt(caller_frame->pc(),
                                      caller_code,
@@ -1190,7 +1190,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
         const Code& caller_code =
             Code::Handle(zone, caller_frame->LookupDartCode());
         const Code& stub =
-            Code::Handle(zone, StubCode::MegamorphicLookup_entry()->code());
+            Code::Handle(zone, StubCode::MegamorphicCall_entry()->code());
 
         CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code,
                                            cache, stub);

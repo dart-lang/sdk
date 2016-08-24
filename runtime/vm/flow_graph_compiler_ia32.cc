@@ -1311,7 +1311,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     __ Comment("Slow case: megamorphic call");
   }
   __ LoadObject(ECX, cache);
-  __ call(Address(THR, Thread::megamorphic_lookup_checked_entry_offset()));
+  __ call(Address(THR, Thread::megamorphic_call_checked_entry_offset()));
   __ call(EBX);
 
   __ Bind(&done);
