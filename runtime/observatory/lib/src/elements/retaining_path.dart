@@ -99,11 +99,10 @@ class RetainingPathElement extends HtmlElement implements Renderable {
 
     if (item.parentField != null) {
       content.add(
-        new DivElement()
+        new SpanElement()
           ..children = [
               new SpanElement()..text = 'from ',
-                new InstanceRefElement(_isolate, item.parentField, _instances,
-                                       queue: _r.queue),
+              anyRef(_isolate, item.parentField, _instances, queue: _r.queue),
               new SpanElement()..text = ' of ',
           ]);
     } else if (item.parentListIndex != null) {

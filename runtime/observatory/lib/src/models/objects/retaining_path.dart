@@ -11,7 +11,8 @@ abstract class RetainingPath {
 abstract class RetainingPathItem {
   ObjectRef get source;
   /// [optional]
-  InstanceRef get parentField;
+  /// FieldRef or InstanceRef (null)
+  ObjectRef get parentField;
   /// [optional]
   int get parentListIndex;
   /// [optional]

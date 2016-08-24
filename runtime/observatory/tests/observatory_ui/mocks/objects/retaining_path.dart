@@ -12,7 +12,7 @@ class RetainingPathMock implements M.RetainingPath {
 
 class RetainingPathItemMock implements M.RetainingPathItem {
   final M.ObjectRef source;
-  final M.InstanceRef parentField;
+  final M.ObjectRef parentField;
   final int parentListIndex;
   final int parentWordOffset;
 
