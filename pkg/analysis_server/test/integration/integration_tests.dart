@@ -597,11 +597,12 @@ class Server {
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
   Future start(
-      {bool debugServer: false,
+      {bool checked: true,
+      bool debugServer: false,
       int diagnosticPort,
       bool profileServer: false,
+      String sdkPath,
       int servicesPort,
-      bool checked: true,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -612,6 +613,9 @@ class Server {
         findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
     String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     List<String> arguments = [];
+    //
+    // Add VM arguments.
+    //
     if (debugServer) {
       arguments.add('--debug');
     }
@@ -631,10 +635,19 @@ class Server {
     if (checked) {
       arguments.add('--checked');
     }
+    //
+    // Add the server executable.
+    //
     arguments.add(serverPath);
+    //
+    // Add server arguments.
+    //
     if (diagnosticPort != null) {
       arguments.add('--port');
       arguments.add(diagnosticPort.toString());
+    }
+    if (sdkPath != null) {
+      arguments.add('--sdk=$sdkPath');
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');

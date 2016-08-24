@@ -425,8 +425,8 @@ class Driver implements ServerStarter {
     SdkCreator defaultSdkCreator = (AnalysisOptions options) {
       PhysicalResourceProvider resourceProvider =
           PhysicalResourceProvider.INSTANCE;
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
-          FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+          resourceProvider, resourceProvider.getFolder(defaultSdkPath));
       sdk.analysisOptions = options;
       sdk.useSummary = useSummaries;
       return sdk;
