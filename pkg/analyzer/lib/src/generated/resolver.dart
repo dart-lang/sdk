@@ -7260,7 +7260,7 @@ class ResolverVisitor extends ScopedVisitor {
     DartType contextType = node.staticInvokeType;
     if (contextType is FunctionType) {
       DartType originalType = node.function.staticType;
-      DartType returnContextType = InferenceContext.getType(node);
+      DartType returnContextType = InferenceContext.getContext(node);
       TypeSystem ts = typeSystem;
       if (returnContextType != null &&
           node.typeArguments == null &&
