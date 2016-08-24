@@ -278,3 +278,15 @@ issue_1751477_test: Crash # Requires deferred libraries
 regress_23408_test: Crash # Requires deferred libraries
 regress_22443_test: Crash # Requires deferred libraries
 tearoff_basic_test: Crash # Requires deferred libraries
+
+[$runtime != vm || $compiler != none]
+assert_initializer_test: SKIP  # not implemented yet, experiment is VM only.
+
+[$runtime == vm && $compiler == none && $unchecked]
+assert_initializer_test/*: MissingCompileTimeError, OK  # asserts shouldn't fail in unchecked mode.
+assert_initializer_test/none: pass
+
+[$runtime == vm && $compiler == none && $checked]
+# The VM doesn't enforce that potentially const expressions are actually
+# const expressions when the constructor is called with `const`.
+assert_initializer_test/4*: MissingCompileTimeError # Issue 392.

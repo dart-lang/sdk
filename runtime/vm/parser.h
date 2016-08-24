@@ -668,7 +668,7 @@ class Parser : public ValueObject {
                                  AstNode* object,
                                  const String& name);
 
-  AstNode* ParseAssertStatement();
+  AstNode* ParseAssertStatement(bool is_const = false);
   AstNode* ParseJump(String* label_name);
   AstNode* ParseIfStatement(String* label_name);
   AstNode* ParseWhileStatement(String* label_name);

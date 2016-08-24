@@ -56,6 +56,8 @@ DEFINE_FLAG(bool, warn_super, false,
 DEFINE_FLAG(bool, warn_patch, false, "Warn on old-style patch syntax.");
 DEFINE_FLAG(bool, await_is_keyword, false,
     "await and yield are treated as proper keywords in synchronous code.");
+DEFINE_FLAG(bool, assert_initializer, false,
+    "Allow asserts in initializer lists.");
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, trace_service);
@@ -2700,6 +2702,9 @@ AstNode* Parser::ParseInitializer(const Class& cls,
                                   GrowableArray<Field*>* initialized_fields) {
   TRACE_PARSER("ParseInitializer");
   const TokenPosition field_pos = TokenPos();
+  if (FLAG_assert_initializer && CurrentToken() == Token::kASSERT) {
+    return ParseAssertStatement(current_function().is_const());
+  }
   if (CurrentToken() == Token::kTHIS) {
     ConsumeToken();
     ExpectToken(Token::kPERIOD);
@@ -2989,7 +2994,9 @@ void Parser::ParseInitializers(const Class& cls,
         AstNode* init_statement =
             ParseInitializer(cls, receiver, initialized_fields);
         super_init_is_last = false;
-        current_block_->statements->Add(init_statement);
+        if (init_statement != NULL) {
+          current_block_->statements->Add(init_statement);
+        }
       }
     } while (CurrentToken() == Token::kCOMMA);
   }
@@ -3689,6 +3696,10 @@ void Parser::SkipInitializers() {
         ConsumeToken();
         ExpectIdentifier("identifier expected");
       }
+      CheckToken(Token::kLPAREN);
+      SkipToMatchingParenthesis();
+    } else if (FLAG_assert_initializer && (CurrentToken() == Token::kASSERT)) {
+      ConsumeToken();
       CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
     } else {
@@ -9454,7 +9465,7 @@ AstNode* Parser::MakeStaticCall(const String& cls_name,
 }
 
 
-AstNode* Parser::ParseAssertStatement() {
+AstNode* Parser::ParseAssertStatement(bool is_const) {
   TRACE_PARSER("ParseAssertStatement");
   ConsumeToken();  // Consume assert keyword.
   ExpectToken(Token::kLPAREN);
@@ -9465,6 +9476,10 @@ AstNode* Parser::ParseAssertStatement() {
     return NULL;
   }
   AstNode* condition = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
+  if (is_const && !condition->IsPotentiallyConst()) {
+    ReportError(condition_pos,
+                "initializer assert expression must be compile time constant.");
+  }
   const TokenPosition condition_end = TokenPos();
   ExpectToken(Token::kRPAREN);
 
@@ -9474,9 +9489,12 @@ AstNode* Parser::ParseAssertStatement() {
       Integer::ZoneHandle(Z, Integer::New(condition_pos.value(), Heap::kOld))));
   arguments->Add(new(Z) LiteralNode(condition_end,
       Integer::ZoneHandle(Z, Integer::New(condition_end.value(), Heap::kOld))));
-  return MakeStaticCall(Symbols::AssertionError(),
-                        Library::PrivateCoreLibName(Symbols::CheckAssertion()),
-                        arguments);
+  AstNode* assert_throw = MakeStaticCall(Symbols::AssertionError(),
+      Library::PrivateCoreLibName(is_const ? Symbols::CheckConstAssertion()
+                                           : Symbols::CheckAssertion()),
+      arguments);
+
+  return assert_throw;
 }
 
 
