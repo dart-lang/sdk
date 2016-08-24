@@ -721,9 +721,7 @@ class _CompilationUnitSerializer {
       return null;
     }
     return new UnlinkedDocumentationCommentBuilder(
-        text: element.documentationComment,
-        offset: element.docRange.offset,
-        length: element.docRange.length);
+        text: element.documentationComment);
   }
 
   /**

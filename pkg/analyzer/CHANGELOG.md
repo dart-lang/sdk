@@ -1,3 +1,6 @@
+## 0.29.0-alpha.0
+* Removed `Element.docRange`.
+
 ## 0.28.0-alpha.2
 * Fixed PubSummaryManager linking when a listed package does not have the unlinked bundle.
 

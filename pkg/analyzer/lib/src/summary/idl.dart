@@ -1674,6 +1674,7 @@ abstract class UnlinkedDocumentationComment extends base.SummaryClass {
    * Length of the documentation comment (prior to replacing '\r\n' with '\n').
    */
   @Id(0)
+  @deprecated
   int get length;
 
   /**
@@ -1681,6 +1682,7 @@ abstract class UnlinkedDocumentationComment extends base.SummaryClass {
    * beginning of the file.
    */
   @Id(2)
+  @deprecated
   int get offset;
 
   /**
