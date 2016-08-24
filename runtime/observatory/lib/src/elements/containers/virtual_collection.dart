@@ -24,6 +24,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   VirtualCollectionCreateCallback _createHeader;
   VirtualCollectionUpdateCallback _update;
   double _itemHeight;
+  double _headerHeight = 0.0;
   int _top;
   double _height;
   List _items;
@@ -106,6 +107,13 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   /// tail = l / _preload = L * 1 / (_preload + 2) = L * _inverse_preload
   static const double _inverse_preload = 1 / (_preload + 2);
 
+  var _takeIntoView;
+
+  void takeIntoView(item) {
+    _takeIntoView = item;
+    _r.dirty();
+  }
+
   void render() {
     if (children.isEmpty) {
       children = [
@@ -118,14 +126,26 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       if (_createHeader != null) {
         _header.children = [_createHeader()];
         _scroller.children.insert(0, _header);
+        _headerHeight = _header.children[0].getBoundingClientRect().height;
       }
       _itemHeight = _shifter.children[0].getBoundingClientRect().height;
       _height = getBoundingClientRect().height;
     }
+
+    if (_takeIntoView != null) {
+      final index = items.indexOf(_takeIntoView);
+      if (index >= 0) {
+        final minScrollTop = _itemHeight * (index + 1) - _height;
+        final maxScrollTop = _itemHeight * index;
+        scrollTop = ((maxScrollTop - minScrollTop) / 2 + minScrollTop).floor();
+      }
+      _takeIntoView = null;
+    }
+
     final top = (scrollTop / _itemHeight).floor();
 
     _header.style.top = '${scrollTop}px';
-    _scroller.style.height = '${_itemHeight*(_items.length)}px';
+    _scroller.style.height = '${_itemHeight*(_items.length)+_headerHeight}px';
     final tail_length = (_height / _itemHeight / _preload).ceil();
     final length = tail_length * 2 + tail_length * _preload;
 

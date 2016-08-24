@@ -587,6 +587,139 @@ cpu-profile > cpu-profile-virtual-tree {
   right: 0;
 }
 
+/* cpu-profile-table */
+
+cpu-profile-table {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+cpu-profile-table cpu-profile-virtual-tree {
+  height: 100%;
+  min-height: 600px;
+  padding-top: 250px;
+  margin-top: -250px;
+}
+cpu-profile-table .profile-trees {
+  vertical-align: text-top;
+  min-width: 100%;
+  height: 100%;
+  padding-top: 160px;
+  margin-top: -160px;
+  padding-bottom: 100px;
+  margin-bottom: -100px;
+  padding-left: 5%;
+  padding-right: 5%;
+  min-height: 600px;
+}
+cpu-profile-table .profile-trees virtual-collection {
+  height: 100%;
+  width: 100%;
+  border: solid 1px #888888;
+  box-shadow: 2px 2px 5px #888888;
+}
+cpu-profile-table .profile-trees > .profile-trees-all {
+  vertical-align: text-top;
+  display: inline-block;
+  width: 50%;
+  height: 100%;
+  padding: 5px;
+}
+cpu-profile-table .profile-trees > .profile-trees-current {
+  vertical-align: text-top;
+  display: inline-block;
+  width: 50%;
+  height: 100%;
+}
+cpu-profile-table .profile-trees .profile-trees-caller {
+  vertical-align: text-top;
+  display: inline-block;
+  width: 100%;
+  height: 50%;
+  padding: 5px;
+  margin-top: -17px;
+  padding-top: 22px;
+}
+cpu-profile-table .profile-trees .profile-trees-selected {
+  vertical-align: text-top;
+  display: block;
+  height: 24px;
+  line-height: 24px;
+  margin: 5px;
+  border: solid 1px #888888;
+  box-shadow: 2px 2px 5px #888888;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+cpu-profile-table .profile-trees .profile-trees-selected > * {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: inline-block;
+  width: 100%;
+}
+cpu-profile-table .profile-trees .profile-trees-callee {
+  vertical-align: text-top;
+  display: inline-block;
+  width: 100%;
+  height: 50%;
+  padding: 5px;
+  margin-bottom: -17px;
+  padding-bottom: 22px;
+}
+cpu-profile-table .function-item {
+  box-sizing: border-box;
+  line-height: 20px;
+}
+cpu-profile-table .header {
+  box-sizing: border-box;
+  line-height: 20px;
+}
+cpu-profile-table .header .function-item:last-child {
+  margin-bottom: -3px;
+  border-bottom: solid 1px #AAAAAA;
+}
+cpu-profile-table .function-item .inclusive,
+cpu-profile-table .function-item .exclusive {
+  display: inline-block;
+  width: 7em;
+  text-align: right;
+  padding-right: 0.5em;
+  line-height: 20px;
+}
+cpu-profile-table .shifter .function-item .inclusive {
+  background-color: #EEEEEE;
+}
+cpu-profile-table .shifter .function-item.selected .inclusive {
+  background-color: #51a3fb;
+}
+cpu-profile-table .shifter .function-item:hover .inclusive {
+  background-color: #afd5fd;
+}
+cpu-profile-table .header .function-item .inclusive {
+  background-color: #DDDDDD;
+}
+cpu-profile-table .shifter .function-item.selected {
+  background-color: #60abfb;
+}
+cpu-profile-table .shifter .function-item:hover {
+  background-color: #d2e7fe;
+}
+cpu-profile-table .function-item .exclusive {
+}
+cpu-profile-table .function-item .name {
+  padding-left: 0.5em;
+}
+cpu-profile-table .function-item > button,
+cpu-profile-table .function-item > button:active {
+  background-color: transparent;
+  color: #0489c3;
+  border-style: none;
+}
+cpu-profile-table .function-item > button:hover {
+  text-decoration: underline;
+}
+
 /* cpu-profile-virtual-tree */
 
 cpu-profile-virtual-tree {

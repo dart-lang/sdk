@@ -55,7 +55,6 @@
     'lib/src/elements/cpu_profile.dart',
     'lib/src/elements/cpu_profile/virtual_tree.dart',
     'lib/src/elements/cpu_profile_table.dart',
-    'lib/src/elements/cpu_profile_table.html',
     'lib/src/elements/css/shared.css',
     'lib/src/elements/curly_block.dart',
     'lib/src/elements/curly_block_wrapper.dart',

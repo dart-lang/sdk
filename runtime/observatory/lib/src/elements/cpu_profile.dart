@@ -131,9 +131,9 @@ class CpuProfileElement  extends HtmlElement implements Renderable {
             })
             ..onFilterChange.listen((e) {
               _filter = e.element.filter.trim();
-              tree.filter = _filter.isNotEmpty
-                ? (node) { return node.name.contains(_filter); }
-                : null;
+              tree.filters = _filter.isNotEmpty
+                ? [(node) { return node.name.contains(_filter); }]
+                : const [];
             })
             ..onDirectionChange.listen((e) {
               _direction = tree.direction = e.element.direction;

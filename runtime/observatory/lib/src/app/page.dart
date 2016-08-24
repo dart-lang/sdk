@@ -159,7 +159,7 @@ class FlagsPage extends SimplePage {
 class InspectPage extends MatchingPage {
   InspectPage(app) : super('inspect', app);
 
-  DivElement container = new DivElement();
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
@@ -263,7 +263,7 @@ class ObjectStorePage extends SimplePage {
 class CpuProfilerPage extends MatchingPage {
   CpuProfilerPage(app) : super('profiler', app);
 
-  DivElement container = new DivElement();
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
@@ -284,31 +284,34 @@ class CpuProfilerPage extends MatchingPage {
   }
 }
 
-class TableCpuProfilerPage extends SimplePage {
-  TableCpuProfilerPage(app)
-      : super('profiler-table', 'cpu-profile-table', app);
+class TableCpuProfilerPage extends MatchingPage {
+  TableCpuProfilerPage(app) : super('profiler-table', app);
+
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        CpuProfileTableElement page = element;
-        page.isolate = isolate;
-        // TODO(johnmccutchan): Provide a more general mechanism to notify
-        // elements of URI parameter changes. Possibly via a stream off of
-        // LocationManager. With a stream individual elements (not just pages)
-        // could be notified.
-        page.checkParameters();
-      }
+      container.children = [
+        new CpuProfileTableElement(isolate.vm, isolate, app.events,
+                                   app.notifications,
+                                   _isolateSampleProfileRepository)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    assert(element != null);
   }
 }
 
 class AllocationProfilerPage extends MatchingPage {
   AllocationProfilerPage(app) : super('allocation-profiler', app);
 
-  DivElement container = new DivElement();
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
@@ -338,7 +341,7 @@ class AllocationProfilerPage extends MatchingPage {
 class PortsPage extends MatchingPage {
   PortsPage(app) : super('ports', app);
 
-  DivElement container = new DivElement();
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
@@ -391,7 +394,7 @@ class HeapMapPage extends SimplePage {
 class HeapSnapshotPage extends MatchingPage {
   HeapSnapshotPage(app) : super('heap-snapshot', app);
 
-  DivElement container = new DivElement();
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
@@ -472,7 +475,7 @@ class VMConnectPage extends Page {
 class IsolateReconnectPage extends Page {
   IsolateReconnectPage(app) : super(app);
 
-  DivElement container = new DivElement();
+  final DivElement container = new DivElement();
 
   void onInstall() {
     element = container;
