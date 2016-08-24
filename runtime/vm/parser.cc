@@ -4634,6 +4634,14 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
     declaration_pos = TokenPos();
+  } else if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch")) {
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
+    ConsumeToken();
+    is_patch = true;
   } else if (CurrentToken() == Token::kABSTRACT) {
     is_abstract = true;
     ConsumeToken();
@@ -4818,7 +4826,11 @@ void Parser::ParseClassDefinition(const Class& cls) {
   is_top_level_ = true;
   String& class_name = String::Handle(Z, cls.Name());
   SkipMetadata();
-  if (CurrentToken() == Token::kABSTRACT) {
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch")) {
+    ConsumeToken();
+  } else if (CurrentToken() == Token::kABSTRACT) {
     ConsumeToken();
   }
   ExpectToken(Token::kCLASS);
@@ -5695,6 +5707,15 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
+  } else if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch") &&
+      (LookaheadToken(1) != Token::kLPAREN)) {
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
+    ConsumeToken();
+    is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
     is_external = true;
@@ -5826,6 +5847,14 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
+  } else if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch")) {
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
+    ConsumeToken();
+    is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
     is_external = true;
@@ -6368,6 +6397,9 @@ void Parser::ParseTopLevel() {
       ParseTypedef(pending_classes, tl_owner, metadata_pos);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
+      ParseClassDeclaration(pending_classes, tl_owner, metadata_pos);
+    } else if (is_patch_source() && IsSymbol(Symbols::Patch()) &&
+               (LookaheadToken(1) == Token::kCLASS)) {
       ParseClassDeclaration(pending_classes, tl_owner, metadata_pos);
     } else {
       set_current_class(toplevel_class);
@@ -8334,10 +8366,18 @@ bool Parser::IsFunctionDeclaration() {
   bool is_external = false;
   TokenPosScope decl_pos(this);
   SkipMetadata();
-  if ((is_top_level_) && (CurrentToken() == Token::kEXTERNAL)) {
-    // Skip over 'external' for top-level function declarations.
-    is_external = true;
-    ConsumeToken();
+  if (is_top_level_) {
+    if (is_patch_source() &&
+        (CurrentToken() == Token::kIDENT) &&
+        CurrentLiteral()->Equals("patch") &&
+        (LookaheadToken(1) != Token::kLPAREN)) {
+      // Skip over 'patch' for top-level function declarations in patch sources.
+      ConsumeToken();
+    } else if (CurrentToken() == Token::kEXTERNAL) {
+      // Skip over 'external' for top-level function declarations.
+      is_external = true;
+      ConsumeToken();
+    }
   }
   const TokenPosition type_or_name_pos = TokenPos();
   if (TryParseReturnType()) {
@@ -8377,7 +8417,9 @@ bool Parser::IsFunctionDeclaration() {
 
 bool Parser::IsTopLevelAccessor() {
   const TokenPosScope saved_pos(this);
-  if (CurrentToken() == Token::kEXTERNAL) {
+  if (is_patch_source() && IsSymbol(Symbols::Patch())) {
+    ConsumeToken();
+  } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
   }
   if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {
