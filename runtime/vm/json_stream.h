@@ -60,6 +60,7 @@ enum JSONRpcErrorCode {
   kFileSystemDoesNotExist    = 1002,
   kFileDoesNotExist          = 1003,
   kIsolateReloadFailed       = 1004,
+  kIsolateReloadBarred       = 1005,
 };
 
 // Expected that user_data is a JSONStream*.
