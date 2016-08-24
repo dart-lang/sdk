@@ -5266,21 +5266,6 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
-  if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
-    const intptr_t kNumInputs = 1;
-    const intptr_t kNumTemps = TargetCPUFeatures::hardfp_supported() ? 0 : 4;
-    LocationSummary* summary = new(zone) LocationSummary(
-        zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-    summary->set_in(0, Location::FpuRegisterLocation(Q0));
-    summary->set_out(0, Location::FpuRegisterLocation(Q0));
-    if (!TargetCPUFeatures::hardfp_supported()) {
-      summary->set_temp(0, Location::RegisterLocation(R0));
-      summary->set_temp(1, Location::RegisterLocation(R1));
-      summary->set_temp(2, Location::RegisterLocation(R2));
-      summary->set_temp(3, Location::RegisterLocation(R3));
-    }
-    return summary;
-  }
   ASSERT((kind() == MathUnaryInstr::kSqrt) ||
          (kind() == MathUnaryInstr::kDoubleSquare));
   const intptr_t kNumInputs = 1;
@@ -5303,20 +5288,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
     __ vmuld(result, val, val);
   } else {
-    ASSERT((kind() == MathUnaryInstr::kSin) ||
-           (kind() == MathUnaryInstr::kCos));
-    if (TargetCPUFeatures::hardfp_supported()) {
-      __ CallRuntime(TargetFunction(), InputCount());
-    } else {
-      // If we aren't doing "hardfp", then we have to move the double arguments
-      // to the integer registers, and take the results from the integer
-      // registers.
-      __ vmovrrd(R0, R1, D0);
-      __ vmovrrd(R2, R3, D1);
-      __ CallRuntime(TargetFunction(), InputCount());
-      __ vmovdrr(D0, R0, R1);
-      __ vmovdrr(D1, R2, R3);
-    }
+    UNREACHABLE();
   }
 }
 

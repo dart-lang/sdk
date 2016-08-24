@@ -58,7 +58,7 @@ class FlowGraphInliner : ValueObject {
   static bool TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                         intptr_t receiver_cid,
                                         const Function& target,
-                                        Instruction* call,
+                                        Definition* call,
                                         Definition* receiver,
                                         TokenPosition token_pos,
                                         const ICData& ic_data,

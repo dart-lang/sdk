@@ -2060,7 +2060,7 @@ bool FlowGraph::Canonicalize() {
 void FlowGraph::TryOptimizePatterns() {
   if (!FLAG_truncating_left_shift) return;
   GrowableArray<BinarySmiOpInstr*> div_mod_merge;
-  GrowableArray<MathUnaryInstr*> sin_cos_merge;
+  GrowableArray<InvokeMathCFunctionInstr*> sin_cos_merge;
   for (BlockIterator block_it = reverse_postorder_iterator();
        !block_it.Done();
        block_it.Advance()) {
@@ -2090,10 +2090,11 @@ void FlowGraph::TryOptimizePatterns() {
                                        mintop->left()->definition(),
                                        mintop->right()->definition());
         }
-      } else if (it.Current()->IsMathUnary()) {
-        MathUnaryInstr* math_unary = it.Current()->AsMathUnary();
-        if ((math_unary->kind() == MathUnaryInstr::kSin) ||
-            (math_unary->kind() == MathUnaryInstr::kCos)) {
+      } else if (it.Current()->IsInvokeMathCFunction()) {
+        InvokeMathCFunctionInstr* math_unary =
+            it.Current()->AsInvokeMathCFunction();
+        if ((math_unary->recognized_kind() == MethodRecognizer::kMathSin) ||
+            (math_unary->recognized_kind() == MethodRecognizer::kMathCos)) {
           if (math_unary->HasUses()) {
             sin_cos_merge.Add(math_unary);
           }
@@ -2195,7 +2196,7 @@ void FlowGraph::TryMergeTruncDivMod(
     ASSERT((curr_instr->op_kind() == Token::kTRUNCDIV) ||
            (curr_instr->op_kind() == Token::kMOD));
     // Check if there is kMOD/kTRUNDIV binop with same inputs.
-    const intptr_t other_kind = (curr_instr->op_kind() == Token::kTRUNCDIV) ?
+    const Token::Kind other_kind = (curr_instr->op_kind() == Token::kTRUNCDIV) ?
         Token::kMOD : Token::kTRUNCDIV;
     Definition* left_def = curr_instr->left()->definition();
     Definition* right_def = curr_instr->right()->definition();
@@ -2242,7 +2243,7 @@ void FlowGraph::TryMergeTruncDivMod(
 
 // Tries to merge MathUnary operations, in this case sine and cosine.
 void FlowGraph::TryMergeMathUnary(
-    GrowableArray<MathUnaryInstr*>* merge_candidates) {
+    GrowableArray<InvokeMathCFunctionInstr*>* merge_candidates) {
   if (!FlowGraphCompiler::SupportsSinCos() || !CanUnboxDouble() ||
       !FLAG_merge_sin_cos) {
     return;
@@ -2252,23 +2253,24 @@ void FlowGraph::TryMergeMathUnary(
     return;
   }
   for (intptr_t i = 0; i < merge_candidates->length(); i++) {
-    MathUnaryInstr* curr_instr = (*merge_candidates)[i];
+    InvokeMathCFunctionInstr* curr_instr = (*merge_candidates)[i];
     if (curr_instr == NULL) {
       // Instruction was merged already.
       continue;
     }
-    const intptr_t kind = curr_instr->kind();
-    ASSERT((kind == MathUnaryInstr::kSin) ||
-           (kind == MathUnaryInstr::kCos));
+    const MethodRecognizer::Kind kind = curr_instr->recognized_kind();
+    ASSERT((kind == MethodRecognizer::kMathSin) ||
+           (kind == MethodRecognizer::kMathCos));
     // Check if there is sin/cos binop with same inputs.
-    const intptr_t other_kind = (kind == MathUnaryInstr::kSin) ?
-        MathUnaryInstr::kCos : MathUnaryInstr::kSin;
-    Definition* def = curr_instr->value()->definition();
+    const MethodRecognizer::Kind other_kind =
+        (kind == MethodRecognizer::kMathSin)
+        ? MethodRecognizer::kMathCos : MethodRecognizer::kMathSin;
+    Definition* def = curr_instr->InputAt(0)->definition();
     for (intptr_t k = i + 1; k < merge_candidates->length(); k++) {
-      MathUnaryInstr* other_op = (*merge_candidates)[k];
+      InvokeMathCFunctionInstr* other_op = (*merge_candidates)[k];
       // 'other_op' can be NULL if it was already merged.
-      if ((other_op != NULL) && (other_op->kind() == other_kind) &&
-          (other_op->value()->definition() == def)) {
+      if ((other_op != NULL) && (other_op->recognized_kind() == other_kind) &&
+          (other_op->InputAt(0)->definition() == def)) {
         (*merge_candidates)[k] = NULL;  // Clear it.
         ASSERT(curr_instr->HasUses());
         AppendExtractNthOutputForMerged(curr_instr,
@@ -2280,7 +2282,7 @@ void FlowGraph::TryMergeMathUnary(
             MergedMathInstr::OutputIndexOf(other_kind),
             kUnboxedDouble, kDoubleCid);
         ZoneGrowableArray<Value*>* args = new(Z) ZoneGrowableArray<Value*>(1);
-        args->Add(new(Z) Value(curr_instr->value()->definition()));
+        args->Add(new(Z) Value(curr_instr->InputAt(0)->definition()));
         // Replace with SinCos.
         MergedMathInstr* sin_cos =
             new(Z) MergedMathInstr(args,

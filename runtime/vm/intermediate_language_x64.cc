@@ -4747,22 +4747,6 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
-  if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
-    // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
-    // double arguments and XMM0 to return the result. Unfortunately
-    // currently we can't specify these registers because ParallelMoveResolver
-    // assumes that XMM0 is free at all times.
-    // TODO(vegorov): allow XMM0 to be used.
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new(zone) LocationSummary(
-        zone, InputCount(), kNumTemps, LocationSummary::kCall);
-    summary->set_in(0, Location::FpuRegisterLocation(XMM1));
-    // R13 is chosen because it is callee saved so we do not need to back it
-    // up before calling into the runtime.
-    summary->set_temp(0, Location::RegisterLocation(R13));
-    summary->set_out(0, Location::FpuRegisterLocation(XMM1));
-    return summary;
-  }
   ASSERT((kind() == MathUnaryInstr::kSqrt) ||
          (kind() == MathUnaryInstr::kDoubleSquare));
   const intptr_t kNumInputs = 1;
@@ -4787,16 +4771,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ mulsd(value_reg, value_reg);
     ASSERT(value_reg == locs()->out(0).fpu_reg());
   } else {
-    ASSERT((kind() == MathUnaryInstr::kSin) ||
-           (kind() == MathUnaryInstr::kCos));
-    // Save RSP.
-    __ movq(locs()->temp(0).reg(), RSP);
-    __ ReserveAlignedFrameSpace(0);
-    __ movaps(XMM0, locs()->in(0).fpu_reg());
-    __ CallRuntime(TargetFunction(), InputCount());
-    __ movaps(locs()->out(0).fpu_reg(), XMM0);
-    // Restore RSP.
-    __ movq(RSP, locs()->temp(0).reg());
+    UNREACHABLE();
   }
 }
 

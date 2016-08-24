@@ -373,7 +373,8 @@ class FlowGraph : public ZoneAllocated {
       Definition* right_instr);
 
   void TryMergeTruncDivMod(GrowableArray<BinarySmiOpInstr*>* merge_candidates);
-  void TryMergeMathUnary(GrowableArray<MathUnaryInstr*>* merge_candidates);
+  void TryMergeMathUnary(
+      GrowableArray<InvokeMathCFunctionInstr*>* merge_candidates);
 
   void AppendExtractNthOutputForMerged(Definition* instr, intptr_t ix,
                                        Representation rep, intptr_t cid);

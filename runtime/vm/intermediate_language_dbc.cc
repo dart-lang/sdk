@@ -1524,10 +1524,6 @@ EMIT_NATIVE_CODE(MathUnary, 1, Location::RequiresRegister()) {
     __ DSqrt(result, value);
   } else if (kind() == MathUnaryInstr::kDoubleSquare) {
     __ DMul(result, value, value);
-  } else if (kind() == MathUnaryInstr::kSin) {
-    __ DSin(result, value);
-  } else if (kind() == MathUnaryInstr::kCos) {
-    __ DCos(result, value);
   } else {
     Unsupported(compiler);
     UNREACHABLE();
@@ -1545,6 +1541,10 @@ EMIT_NATIVE_CODE(InvokeMathCFunction,
   } else if (recognized_kind() == MethodRecognizer::kDoubleMod) {
     const Register right = locs()->in(1).reg();
     __ DMod(result, left, right);
+  } else if (recognized_kind() == MethodRecognizer::kMathSin) {
+    __ DSin(result, left);
+  } else if (recognized_kind() == MethodRecognizer::kMathCos) {
+    __ DCos(result, left);
   } else {
     Unsupported(compiler);
     UNREACHABLE();

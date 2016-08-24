@@ -3807,24 +3807,9 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
 }
 
 
-const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
-  switch (kind()) {
-    case MathUnaryInstr::kSin:
-      return kLibcSinRuntimeEntry;
-    case MathUnaryInstr::kCos:
-      return kLibcCosRuntimeEntry;
-    default:
-      UNREACHABLE();
-  }
-  return kLibcSinRuntimeEntry;
-}
-
-
 const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
   switch (kind) {
     case kIllegal:       return "illegal";
-    case kSin:           return "sin";
-    case kCos:           return "cos";
     case kSqrt:          return "sqrt";
     case kDoubleSquare:  return "double-square";
   }
@@ -3853,10 +3838,10 @@ MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
 }
 
 
-intptr_t MergedMathInstr::OutputIndexOf(intptr_t kind) {
+intptr_t MergedMathInstr::OutputIndexOf(MethodRecognizer::Kind kind) {
   switch (kind) {
-    case MathUnaryInstr::kSin: return 1;
-    case MathUnaryInstr::kCos: return 0;
+    case MethodRecognizer::kMathSin: return 1;
+    case MethodRecognizer::kMathCos: return 0;
     default: UNIMPLEMENTED(); return -1;
   }
 }

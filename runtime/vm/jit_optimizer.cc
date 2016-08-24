@@ -1222,28 +1222,6 @@ void JitOptimizer::ReplaceWithMathCFunction(
 }
 
 
-static bool IsSupportedByteArrayViewCid(intptr_t cid) {
-  switch (cid) {
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-    case kTypedDataFloat32x4ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-      return true;
-    default:
-      return false;
-  }
-}
-
-
 // Inline only simple, frequently called core library methods.
 bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -1258,48 +1236,6 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ic_data.GetCheckAt(0, &class_ids, &target);
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
-
-  if ((recognized_kind == MethodRecognizer::kOneByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kTwoByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kExternalOneByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kGrowableArraySetData) ||
-      (recognized_kind == MethodRecognizer::kGrowableArraySetLength) ||
-      (recognized_kind == MethodRecognizer::kSmi_bitAndFromSmi)) {
-    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-        flow_graph_, current_iterator(), call);
-  }
-
-  if (recognized_kind == MethodRecognizer::kStringBaseCharAt) {
-      ASSERT((class_ids[0] == kOneByteStringCid) ||
-             (class_ids[0] == kTwoByteStringCid) ||
-             (class_ids[0] == kExternalOneByteStringCid) ||
-             (class_ids[0] == kExternalTwoByteStringCid));
-    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-        flow_graph_, current_iterator(), call);
-  }
-
-  if (class_ids[0] == kOneByteStringCid) {
-    if (recognized_kind == MethodRecognizer::kOneByteStringSetAt) {
-      // This is an internal method, no need to check argument types nor
-      // range.
-      Definition* str = call->ArgumentAt(0);
-      Definition* index = call->ArgumentAt(1);
-      Definition* value = call->ArgumentAt(2);
-      StoreIndexedInstr* store_op = new(Z) StoreIndexedInstr(
-          new(Z) Value(str),
-          new(Z) Value(index),
-          new(Z) Value(value),
-          kNoStoreBarrier,
-          1,  // Index scale
-          kOneByteStringCid,
-          call->deopt_id(),
-          call->token_pos());
-      ReplaceCall(call, store_op);
-      return true;
-    }
-    return false;
-  }
 
   if (CanUnboxDouble() &&
       (recognized_kind == MethodRecognizer::kIntegerToDouble)) {
@@ -1359,27 +1295,13 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
           ReplaceCall(call, d2d_instr);
         }
         return true;
-      case MethodRecognizer::kDoubleAdd:
-      case MethodRecognizer::kDoubleSub:
-      case MethodRecognizer::kDoubleMul:
-      case MethodRecognizer::kDoubleDiv:
-        return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-            flow_graph_, current_iterator(), call);
       default:
-        // Unsupported method.
-        return false;
+        break;
     }
   }
 
-  if (IsSupportedByteArrayViewCid(class_ids[0]) ||
-      (class_ids[0] == kFloat32x4Cid) ||
-      (class_ids[0] == kInt32x4Cid) ||
-      (class_ids[0] == kFloat64x2Cid)) {
-    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-        flow_graph_, current_iterator(), call);
-  }
-
-  return false;
+  return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+      flow_graph_, current_iterator(), call);
 }
 
 
@@ -1823,35 +1745,11 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
 
 void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
-  if (!CanUnboxDouble()) {
-    return;
-  }
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(call->function());
-  MathUnaryInstr::MathUnaryKind unary_kind;
   switch (recognized_kind) {
-    case MethodRecognizer::kMathSqrt:
-      unary_kind = MathUnaryInstr::kSqrt;
-      break;
-    case MethodRecognizer::kMathSin:
-      unary_kind = MathUnaryInstr::kSin;
-      break;
-    case MethodRecognizer::kMathCos:
-      unary_kind = MathUnaryInstr::kCos;
-      break;
-    default:
-      unary_kind = MathUnaryInstr::kIllegal;
-      break;
-  }
-  if (unary_kind != MathUnaryInstr::kIllegal) {
-    MathUnaryInstr* math_unary =
-        new(Z) MathUnaryInstr(unary_kind,
-                              new(Z) Value(call->ArgumentAt(0)),
-                              call->deopt_id());
-    ReplaceCall(call, math_unary);
-    return;
-  }
-  switch (recognized_kind) {
+    case MethodRecognizer::kObjectConstructor:
+    case MethodRecognizer::kObjectArrayAllocate:
     case MethodRecognizer::kFloat32x4Zero:
     case MethodRecognizer::kFloat32x4Splat:
     case MethodRecognizer::kFloat32x4Constructor:
@@ -1862,28 +1760,25 @@ void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
     case MethodRecognizer::kFloat64x2FromFloat32x4:
     case MethodRecognizer::kInt32x4BoolConstructor:
     case MethodRecognizer::kInt32x4Constructor:
+    case MethodRecognizer::kMathSqrt:
+    case MethodRecognizer::kMathDoublePow:
+    case MethodRecognizer::kMathSin:
+    case MethodRecognizer::kMathCos:
+    case MethodRecognizer::kMathTan:
+    case MethodRecognizer::kMathAsin:
+    case MethodRecognizer::kMathAcos:
+    case MethodRecognizer::kMathAtan:
+    case MethodRecognizer::kMathAtan2:
       FlowGraphInliner::TryReplaceStaticCallWithInline(
           flow_graph_, current_iterator(), call);
       break;
-    case MethodRecognizer::kObjectConstructor: {
-      // Remove the original push arguments.
-      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-        PushArgumentInstr* push = call->PushArgumentAt(i);
-        push->ReplaceUsesWith(push->value()->definition());
-        push->RemoveFromGraph();
-      }
-      // Manually replace call with global null constant. ReplaceCall can't
-      // be used for definitions that are already in the graph.
-      call->ReplaceUsesWith(flow_graph_->constant_null());
-      ASSERT(current_iterator()->Current() == call);
-      current_iterator()->RemoveCurrentFromGraph();
-      break;
-    }
     case MethodRecognizer::kMathMin:
     case MethodRecognizer::kMathMax: {
       // We can handle only monomorphic min/max call sites with both arguments
       // being either doubles or smis.
-      if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
+      if (CanUnboxDouble() &&
+          call->HasICData() &&
+          (call->ic_data()->NumberOfChecks() == 1)) {
         const ICData& ic_data = *call->ic_data();
         intptr_t result_cid = kIllegalCid;
         if (ICDataHasReceiverArgumentClassIds(ic_data,
@@ -1917,27 +1812,7 @@ void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
       }
       break;
     }
-    case MethodRecognizer::kMathDoublePow:
-    case MethodRecognizer::kMathTan:
-    case MethodRecognizer::kMathAsin:
-    case MethodRecognizer::kMathAcos:
-    case MethodRecognizer::kMathAtan:
-    case MethodRecognizer::kMathAtan2: {
-      // InvokeMathCFunctionInstr requires unboxed doubles. UnboxDouble
-      // instructions contain type checks and conversions to double.
-      ZoneGrowableArray<Value*>* args =
-          new(Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
-      for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-        args->Add(new(Z) Value(call->ArgumentAt(i)));
-      }
-      InvokeMathCFunctionInstr* invoke =
-          new(Z) InvokeMathCFunctionInstr(args,
-                                          call->deopt_id(),
-                                          recognized_kind,
-                                          call->token_pos());
-      ReplaceCall(call, invoke);
-      break;
-    }
+
     case MethodRecognizer::kDoubleFromInteger: {
       if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
         const ICData& ic_data = *call->ic_data();
@@ -1959,35 +1834,8 @@ void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
       }
       break;
     }
-    default: {
-      if (call->function().IsFactory()) {
-        const Class& function_class =
-            Class::Handle(Z, call->function().Owner());
-        if ((function_class.library() == Library::CoreLibrary()) ||
-            (function_class.library() == Library::TypedDataLibrary())) {
-          intptr_t cid = FactoryRecognizer::ResultCid(call->function());
-          switch (cid) {
-            case kArrayCid: {
-              Value* type = new(Z) Value(call->ArgumentAt(0));
-              Value* num_elements = new(Z) Value(call->ArgumentAt(1));
-              if (num_elements->BindsToConstant() &&
-                  num_elements->BoundConstant().IsSmi()) {
-                intptr_t length =
-                    Smi::Cast(num_elements->BoundConstant()).Value();
-                if (length >= 0 && length <= Array::kMaxElements) {
-                  CreateArrayInstr* create_array =
-                      new(Z) CreateArrayInstr(
-                          call->token_pos(), type, num_elements);
-                  ReplaceCall(call, create_array);
-                }
-              }
-            }
-            default:
-              break;
-          }
-        }
-      }
-    }
+    default:
+      break;
   }
 }
 
