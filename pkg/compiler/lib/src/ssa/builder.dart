@@ -38,7 +38,7 @@ import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
 import '../world.dart' show ClassWorld;
-import 'codegen.dart';
+import 'graph_builder.dart';
 import 'nodes.dart';
 import 'optimize.dart';
 import 'types.dart';
@@ -979,7 +979,8 @@ class SsaBuilder extends ast.Visitor
         BaseImplementationOfSuperIndexSetIfNullMixin,
         SemanticSendResolvedMixin,
         NewBulkMixin,
-        ErrorBulkMixin
+        ErrorBulkMixin,
+        GraphBuilder
     implements SemanticSendVisitor {
   /// The element for which this SSA builder is being used.
   final Element target;
@@ -1015,38 +1016,6 @@ class SsaBuilder extends ast.Visitor
   // TODO(sigmund): make all comments /// instead of /* */
   /* This field is used by the native handler. */
   final NativeEmitter nativeEmitter;
-
-  /// Holds the resulting SSA graph.
-  final HGraph graph = new HGraph();
-
-  /**
-   * The current block to add instructions to. Might be null, if we are
-   * visiting dead code, but see [isReachable].
-   */
-  HBasicBlock _current;
-
-  HBasicBlock get current => _current;
-
-  void set current(c) {
-    isReachable = c != null;
-    _current = c;
-  }
-
-  /**
-   * The most recently opened block. Has the same value as [current] while
-   * the block is open, but unlike [current], it isn't cleared when the
-   * current block is closed.
-   */
-  HBasicBlock lastOpenedBlock;
-
-  /**
-   * Indicates whether the current block is dead (because it has a throw or a
-   * return further up). If this is false, then [current] may be null. If the
-   * block is dead then it may also be aborted, but for simplicity we only
-   * abort on statement boundaries, not in the middle of expressions. See
-   * isAborted.
-   */
-  bool isReachable = true;
 
   /**
    * True if we are visiting the expression of a throw statement; we assume this
@@ -1181,58 +1150,6 @@ class SsaBuilder extends ast.Visitor
     }
     assert(result.isValid());
     return result;
-  }
-
-  HBasicBlock addNewBlock() {
-    HBasicBlock block = graph.addNewBlock();
-    // If adding a new block during building of an expression, it is due to
-    // conditional expressions or short-circuit logical operators.
-    return block;
-  }
-
-  void open(HBasicBlock block) {
-    block.open();
-    current = block;
-    lastOpenedBlock = block;
-  }
-
-  HBasicBlock close(HControlFlow end) {
-    HBasicBlock result = current;
-    current.close(end);
-    current = null;
-    return result;
-  }
-
-  HBasicBlock closeAndGotoExit(HControlFlow end) {
-    HBasicBlock result = current;
-    current.close(end);
-    current = null;
-    result.addSuccessor(graph.exit);
-    return result;
-  }
-
-  void goto(HBasicBlock from, HBasicBlock to) {
-    from.close(new HGoto());
-    from.addSuccessor(to);
-  }
-
-  bool isAborted() {
-    return current == null;
-  }
-
-  /**
-   * Creates a new block, transitions to it from any current block, and
-   * opens the new block.
-   */
-  HBasicBlock openNewBlock() {
-    HBasicBlock newBlock = addNewBlock();
-    if (!isAborted()) goto(current, newBlock);
-    open(newBlock);
-    return newBlock;
-  }
-
-  void add(HInstruction instruction) {
-    current.add(instruction);
   }
 
   void addWithPosition(HInstruction instruction, ast.Node node) {
@@ -1676,7 +1593,7 @@ class SsaBuilder extends ast.Visitor
     }
     assert(invariant(functionElement, !function.modifiers.isExternal));
 
-    // If [functionElement] is `operator==` we explicitely add a null check at
+    // If [functionElement] is `operator==` we explicitly add a null check at
     // the beginning of the method. This is to avoid having call sites do the
     // null check.
     if (name == '==') {
@@ -1693,7 +1610,7 @@ class SsaBuilder extends ast.Visitor
             sourceInformation: sourceInformationBuilder.buildIf(function.body));
       }
     }
-    if (const bool.fromEnvironment('unreachable-throw') == true) {
+    if (const bool.fromEnvironment('unreachable-throw')) {
       var emptyParameters =
           parameters.values.where((p) => p.instructionType.isEmpty);
       if (emptyParameters.length > 0) {
