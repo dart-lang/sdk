@@ -2629,6 +2629,7 @@
       'js_function_getter_trust_types_test': 'unittest',
       'js_interop_1_test': 'unittest',
       'js_test': 'unittest',
+      'js_util_test': 'unittest',
       'js_typed_interop_anonymous2_exp_test': 'unittest',
       'js_typed_interop_anonymous2_test': 'unittest',
       'js_typed_interop_anonymous_exp_test': 'unittest',

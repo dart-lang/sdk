@@ -37,6 +37,7 @@ main(List<String> arguments) {
     'dart:core',
     'dart:isolate',
     'dart:js',
+    'dart:js_util',
     'dart:math',
     'dart:mirrors',
     'dart:typed_data',

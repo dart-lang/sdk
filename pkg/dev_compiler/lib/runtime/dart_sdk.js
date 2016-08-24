@@ -20,6 +20,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const core = Object.create(null);
   const isolate = Object.create(null);
   const js = Object.create(null);
+  const js_util = Object.create(null);
   const math = Object.create(null);
   const mirrors = Object.create(null);
   const typed_data = Object.create(null);
@@ -629,6 +630,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let dynamicAnddynamicAndFnToObject = () => (dynamicAnddynamicAndFnToObject = dart.constFn(dart.definiteFunctionType(core.Object, [dart.dynamic, dart.dynamic, dynamicTodynamic()])))();
   let FToF = () => (FToF = dart.constFn(dart.definiteFunctionType(F => [F, [F]])))();
   let FunctionToFunction = () => (FunctionToFunction = dart.constFn(dart.definiteFunctionType(core.Function, [core.Function])))();
+  let FunctionAndListTodynamic = () => (FunctionAndListTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.Function, core.List])))();
   let TAndTToT = () => (TAndTToT = dart.constFn(dart.definiteFunctionType(T => [T, [T, T]])))();
   let TAndTToT$ = () => (TAndTToT$ = dart.constFn(dart.definiteFunctionType(T => [T, [T, T]])))();
   let numAndnumTodouble = () => (numAndnumTodouble = dart.constFn(dart.definiteFunctionType(core.double, [core.num, core.num])))();
@@ -33773,6 +33775,109 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return ret;
   };
   dart.fn(js.allowInteropCaptureThis, FunctionToFunction());
+  js_util.jsify = function(object) {
+    if (!core.Map.is(object) && !core.Iterable.is(object)) {
+      dart.throw(new core.ArgumentError("object must be a Map or Iterable"));
+    }
+    return js_util._convertDataTree(object);
+  };
+  dart.fn(js_util.jsify, dynamicTodynamic$());
+  js_util._convertDataTree = function(data) {
+    let _convertedObjects = collection.HashMap.identity();
+    function _convert(o) {
+      if (dart.test(_convertedObjects.containsKey(o))) {
+        return _convertedObjects.get(o);
+      }
+      if (core.Map.is(o)) {
+        let convertedMap = {};
+        _convertedObjects.set(o, convertedMap);
+        for (let key of o[dartx.keys]) {
+          convertedMap[key] = _convert(o[dartx.get](key));
+        }
+        return convertedMap;
+      } else if (core.Iterable.is(o)) {
+        let convertedList = [];
+        _convertedObjects.set(o, convertedList);
+        convertedList[dartx.addAll](o[dartx.map](dart.dynamic)(_convert));
+        return convertedList;
+      } else {
+        return o;
+      }
+    }
+    dart.fn(_convert, dynamicTodynamic$());
+    return _convert(data);
+  };
+  dart.fn(js_util._convertDataTree, dynamicTodynamic$());
+  js_util.newObject = function() {
+    return {};
+  };
+  dart.fn(js_util.newObject, VoidTodynamic$());
+  js_util.hasProperty = function(o, name) {
+    return name in o;
+  };
+  dart.fn(js_util.hasProperty, dynamicAnddynamicTodynamic$());
+  js_util.getProperty = function(o, name) {
+    return o[name];
+  };
+  dart.fn(js_util.getProperty, dynamicAnddynamicTodynamic$());
+  js_util.setProperty = function(o, name, value) {
+    return o[name] = value;
+  };
+  dart.fn(js_util.setProperty, dynamicAnddynamicAnddynamicTodynamic());
+  js_util.callMethod = function(o, method, args) {
+    return o[method].apply(o, args);
+  };
+  dart.fn(js_util.callMethod, dynamicAndStringAndListTodynamic());
+  js_util.instanceof = function(o, type) {
+    return o instanceof type;
+  };
+  dart.fn(js_util.instanceof, dynamicAndFunctionTodynamic());
+  js_util.callConstructor = function(constr, arguments$) {
+    if (arguments$ == null) {
+      return new constr();
+    }
+    if (arguments$ instanceof Array) {
+      let argumentCount = arguments$.length;
+      switch (argumentCount) {
+        case 0:
+        {
+          return new constr();
+        }
+        case 1:
+        {
+          let arg0 = arguments$[0];
+          return new constr(arg0);
+        }
+        case 2:
+        {
+          let arg0 = arguments$[0];
+          let arg1 = arguments$[1];
+          return new constr(arg0, arg1);
+        }
+        case 3:
+        {
+          let arg0 = arguments$[0];
+          let arg1 = arguments$[1];
+          let arg2 = arguments$[2];
+          return new constr(arg0, arg1, arg2);
+        }
+        case 4:
+        {
+          let arg0 = arguments$[0];
+          let arg1 = arguments$[1];
+          let arg2 = arguments$[2];
+          let arg3 = arguments$[3];
+          return new constr(arg0, arg1, arg2, arg3);
+        }
+      }
+    }
+    let args = [null];
+    args[dartx.addAll](arguments$);
+    let factoryFunction = constr.bind.apply(constr, args);
+    String(factoryFunction);
+    return new factoryFunction();
+  };
+  dart.fn(js_util.callConstructor, FunctionAndListTodynamic());
   math.E = 2.718281828459045;
   math.LN10 = 2.302585092994046;
   math.LN2 = 0.6931471805599453;
@@ -84098,6 +84203,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   exports.core = core;
   exports.isolate = isolate;
   exports.js = js;
+  exports.js_util = js_util;
   exports.math = math;
   exports.mirrors = mirrors;
   exports.typed_data = typed_data;
