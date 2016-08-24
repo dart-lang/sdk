@@ -3226,6 +3226,8 @@ class HTypeInfoReadVariable extends HInstruction {
     setUseGvn();
   }
 
+  HInstruction get object => inputs.single;
+
   accept(HVisitor visitor) => visitor.visitTypeInfoReadVariable(this);
 
   bool canThrow() => false;
