@@ -443,7 +443,7 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
   static double _getExclusiveT(M.ProfileFunction f) =>
       f.normalizedExclusiveTicks;
   static double _getInclusiveT(M.ProfileFunction f) =>
-      f.normalizedExclusiveTicks;
+      f.normalizedInclusiveTicks;
   double _getCalleeT(M.ProfileFunction f) =>
       _selected.callees[f] / _selected.callees.values.reduce((a, b) => a + b);
   double _getCallerT(M.ProfileFunction f) =>
