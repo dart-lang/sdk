@@ -177,7 +177,9 @@ class MergedVertex implements M.HeapSnapshotClassReferences {
     if (_inbounds != null) {
       return _inbounds;
     } else {
-      return _inbounds = new List.unmodifiable(
+      // It is important to keep the template.
+      // https://github.com/dart-lang/sdk/issues/27144
+      return _inbounds = new List<HeapSnapshotClassInbound>.unmodifiable(
         incomingEdges.map((edge) {
           return new HeapSnapshotClassInbound(this, edge);
         })
@@ -190,7 +192,9 @@ class MergedVertex implements M.HeapSnapshotClassReferences {
     if (_outbounds != null) {
       return _outbounds;
     } else {
-      return _outbounds = new List.unmodifiable(
+      // It is important to keep the template.
+      // https://github.com/dart-lang/sdk/issues/27144
+      return _outbounds = new List<HeapSnapshotClassOutbound>.unmodifiable(
         outgoingEdges.values.map((edge) {
           return new HeapSnapshotClassInbound(this, edge);
         })
