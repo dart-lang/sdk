@@ -198,6 +198,13 @@ class KernelVisitor extends Object
   final Map<CascadeReceiver, ir.VariableGet> cascadeReceivers =
       <CascadeReceiver, ir.VariableGet>{};
 
+  final Map<ir.Node, Element> nodeToElement = <ir.Node, Element>{};
+
+  ir.Node associate(ir.Node node, Element element) {
+    nodeToElement[node] = element;
+    return node;
+  }
+
   bool isVoidContext = false;
 
   KernelVisitor(this.currentElement, this.elements, this.kernel);
@@ -1911,11 +1918,13 @@ class KernelVisitor extends Object
 
   ir.VariableDeclaration getLocal(LocalElement local) {
     return locals.putIfAbsent(local, () {
-      return new ir.VariableDeclaration(local.name,
-          initializer: null,
-          type: typeToIrHack(local.type),
-          isFinal: local.isFinal,
-          isConst: local.isConst);
+      return associate(
+          new ir.VariableDeclaration(local.name,
+              initializer: null,
+              type: typeToIrHack(local.type),
+              isFinal: local.isFinal,
+              isConst: local.isConst),
+          local);
     });
   }
 
@@ -1985,13 +1994,15 @@ class KernelVisitor extends Object
     }
     ir.Statement body =
         (bodyNode == null) ? null : buildStatementInBlock(bodyNode);
-    return new ir.FunctionNode(body,
-        asyncMarker: asyncMarker,
-        returnType: returnType,
-        typeParameters: typeParameters,
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        requiredParameterCount: requiredParameterCount);
+    return associate(
+        new ir.FunctionNode(body,
+            asyncMarker: asyncMarker,
+            returnType: returnType,
+            typeParameters: typeParameters,
+            positionalParameters: positionalParameters,
+            namedParameters: namedParameters,
+            requiredParameterCount: requiredParameterCount),
+        function);
   }
 
   @override
