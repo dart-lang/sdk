@@ -1036,44 +1036,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
     return handleInterceptedCall(node);
   }
-
-  HInstruction visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    TypeVariableType variable = node.variable;
-    HInstruction object = node.object;
-
-    HInstruction finishGroundType(DartType groundType) {
-      DartType typeAtVariable =
-          groundType.asInstanceOf(variable.element.enclosingClass);
-      if (typeAtVariable != null) {
-        int index = variable.element.index;
-        DartType typeArgument = typeAtVariable.typeArguments[index];
-        HInstruction replacement = new HTypeInfoExpression(
-            TypeInfoExpressionKind.COMPLETE,
-            typeArgument,
-            const <HInstruction>[],
-            backend.dynamicType);
-        return replacement;
-      }
-      return node;
-    }
-
-    // Type variable evaluated in the context of a constant can be replaced with
-    // a ground term type.
-    if (object is HConstant) {
-      ConstantValue value = object.constant;
-      if (value is ConstructedConstantValue) {
-        return finishGroundType(value.type);
-      }
-      return node;
-    }
-
-    // TODO(sra): HTypeInfoReadVariable on an instance creation can be replaced
-    // with an input of the instance creation's HTypeInfoExpression (or a
-    // HTypeInfoExpression of an input).  This would in effect store-forward the
-    // type parameters.
-
-    return node;
-  }
 }
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
