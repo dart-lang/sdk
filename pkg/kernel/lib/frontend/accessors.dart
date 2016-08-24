@@ -159,19 +159,14 @@ class NullAwarePropertyAccessor extends Accessor {
 }
 
 class SuperPropertyAccessor extends Accessor {
-  Member readTarget;
-  Member writeTarget;
+  Name name;
 
-  SuperPropertyAccessor(this.readTarget, this.writeTarget);
+  SuperPropertyAccessor(this.name);
 
-  _makeRead() => readTarget == null
-      ? makeInvalidRead()
-      : new SuperPropertyGet(readTarget);
+  _makeRead() => new SuperPropertyGet(name);
 
   _makeWrite(Expression value, bool voidContext) {
-    return writeTarget == null
-        ? makeInvalidWrite(value)
-        : new SuperPropertySet(writeTarget, value);
+    return new SuperPropertySet(name, value);
   }
 }
 
@@ -293,41 +288,31 @@ class ThisIndexAccessor extends Accessor {
 
 class SuperIndexAccessor extends Accessor {
   Expression index;
-  Member readTarget;
-  Member writeTarget;
   VariableDeclaration indexVariable;
 
-  SuperIndexAccessor(this.index, this.readTarget, this.writeTarget);
+  SuperIndexAccessor(this.index);
 
   indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
     return new VariableGet(indexVariable);
   }
 
-  _makeSimpleRead() => readTarget == null
-      ? makeInvalidRead()
-      : new SuperMethodInvocation(
-          readTarget, new Arguments(<Expression>[index]));
+  _makeSimpleRead() => new SuperMethodInvocation(
+          _indexGet, new Arguments(<Expression>[index]));
 
   _makeSimpleWrite(Expression value, bool voidContext) {
-    return writeTarget == null
-        ? makeInvalidWrite(value)
-        : new SuperMethodInvocation(
-            writeTarget, new Arguments(<Expression>[index, value]));
+    return new SuperMethodInvocation(
+            _indexSet, new Arguments(<Expression>[index, value]));
   }
 
   _makeRead() {
-    return readTarget == null
-        ? makeInvalidRead()
-        : new SuperMethodInvocation(
-            readTarget, new Arguments(<Expression>[indexAccess()]));
+    return new SuperMethodInvocation(
+            _indexGet, new Arguments(<Expression>[indexAccess()]));
   }
 
   _makeWrite(Expression value, bool voidContext) {
-    return writeTarget == null
-        ? makeInvalidWrite(value)
-        : new SuperMethodInvocation(
-            writeTarget, new Arguments(<Expression>[indexAccess(), value]));
+    return new SuperMethodInvocation(
+            _indexSet, new Arguments(<Expression>[indexAccess(), value]));
   }
 
   Expression _finish(Expression body) {

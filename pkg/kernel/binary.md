@@ -349,11 +349,24 @@ type PropertySet extends Expression {
 
 type SuperPropertyGet extends Expression {
   Byte tag = 24;
-  MemberReference target;
+  Name name;
 }
 
 type SuperPropertySet extends Expression {
   Byte tag = 25;
+  Name name;
+  Expression value;
+}
+
+type DirectPropertyGet extends Expression {
+  Byte tag = 15; // Note: tag is out of order
+  Expression receiver;
+  MemberReference target;
+}
+
+type DirectPropertySet extends Expression {
+  Byte tag = 16; // Note: tag is out of order
+  Expression receiver;
   MemberReference target;
   Expression value;
 }
@@ -391,6 +404,13 @@ type MethodInvocation extends Expression {
 
 type SuperMethodInvocation extends Expression {
   Byte tag = 29;
+  Name name;
+  Arguments arguments;
+}
+
+type DirectMethodInvocation extends Expression {
+  Byte tag = 17; // Note: tag is out of order
+  Expression receiver;
   MemberReference target;
   Arguments arguments;
 }

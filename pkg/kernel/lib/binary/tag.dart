@@ -20,6 +20,9 @@ class Tag {
   static const int RedirectingInitializer = 10;
   static const int LocalInitializer = 11;
 
+  static const int DirectPropertyGet = 15;
+  static const int DirectPropertySet = 16;
+  static const int DirectMethodInvocation = 17;
   static const int ConstStaticInvocation = 18;
   static const int InvalidExpression = 19;
   static const int VariableGet = 20;

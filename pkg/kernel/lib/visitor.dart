@@ -14,11 +14,15 @@ abstract class ExpressionVisitor<R> {
   R visitVariableSet(VariableSet node) => defaultExpression(node);
   R visitPropertyGet(PropertyGet node) => defaultExpression(node);
   R visitPropertySet(PropertySet node) => defaultExpression(node);
+  R visitDirectPropertyGet(DirectPropertyGet node) => defaultExpression(node);
+  R visitDirectPropertySet(DirectPropertySet node) => defaultExpression(node);
   R visitSuperPropertyGet(SuperPropertyGet node) => defaultExpression(node);
   R visitSuperPropertySet(SuperPropertySet node) => defaultExpression(node);
   R visitStaticGet(StaticGet node) => defaultExpression(node);
   R visitStaticSet(StaticSet node) => defaultExpression(node);
   R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
+  R visitDirectMethodInvocation(DirectMethodInvocation node) =>
+      defaultExpression(node);
   R visitSuperMethodInvocation(SuperMethodInvocation node) =>
       defaultExpression(node);
   R visitStaticInvocation(StaticInvocation node) => defaultExpression(node);
@@ -99,7 +103,9 @@ abstract class InitializerVisitor<R> {
   R visitLocalInitializer(LocalInitializer node) => defaultInitializer(node);
 }
 
-class TreeVisitor<R> implements ExpressionVisitor<R>,
+class TreeVisitor<R>
+    implements
+        ExpressionVisitor<R>,
         StatementVisitor<R>,
         MemberVisitor<R>,
         InitializerVisitor<R> {
@@ -113,11 +119,15 @@ class TreeVisitor<R> implements ExpressionVisitor<R>,
   R visitVariableSet(VariableSet node) => defaultExpression(node);
   R visitPropertyGet(PropertyGet node) => defaultExpression(node);
   R visitPropertySet(PropertySet node) => defaultExpression(node);
+  R visitDirectPropertyGet(DirectPropertyGet node) => defaultExpression(node);
+  R visitDirectPropertySet(DirectPropertySet node) => defaultExpression(node);
   R visitSuperPropertyGet(SuperPropertyGet node) => defaultExpression(node);
   R visitSuperPropertySet(SuperPropertySet node) => defaultExpression(node);
   R visitStaticGet(StaticGet node) => defaultExpression(node);
   R visitStaticSet(StaticSet node) => defaultExpression(node);
   R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
+  R visitDirectMethodInvocation(DirectMethodInvocation node) =>
+      defaultExpression(node);
   R visitSuperMethodInvocation(SuperMethodInvocation node) =>
       defaultExpression(node);
   R visitStaticInvocation(StaticInvocation node) => defaultExpression(node);
@@ -289,6 +299,11 @@ class RecursiveVisitor<R> extends Visitor<R> {
 ///     }
 ///
 class Transformer extends TreeVisitor<TreeNode> {
+  /// Replaces a use of a type.
+  ///
+  /// By default, recursion stops at this point.
+  DartType visitDartType(DartType node) => node;
+
   TreeNode defaultTreeNode(TreeNode node) {
     node.transformChildren(this);
     return node;

@@ -179,7 +179,7 @@ class Builder {
         supers.add(getLatticePointForSubtypesOfClass(supertype.classNode));
       }
       int subtypePoint = newLatticePoint(supers, class_,
-            i == 0 ? BaseClassKind.Subclass : BaseClassKind.Subtype);
+          i == 0 ? BaseClassKind.Subclass : BaseClassKind.Subtype);
       lattice.subtypesOfClass[i] = subtypePoint;
       visualizer?.annotateLatticePoint(subtypePoint, class_, 'subtype');
     }
@@ -1190,6 +1190,10 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     return builder.unsupported(node);
   }
 
+  defaultExpression(Expression node) {
+    return unsupported(node);
+  }
+
   int visitInvalidExpression(InvalidExpression node) {
     return builder.bottomNode;
   }
@@ -1235,17 +1239,26 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     return rightHandSide;
   }
 
-  int visitSuperPropertyGet(SuperPropertyGet node) {
+  int visitDirectPropertyGet(DirectPropertyGet node) {
     return builder.getMemberGetter(environment.host, node.target);
   }
 
-  int visitSuperPropertySet(SuperPropertySet node) {
+  int visitDirectPropertySet(DirectPropertySet node) {
     int rightHandSide = build(node.value);
     int destination = builder.getMemberSetter(environment.host, node.target);
     if (destination != null) {
       environment.addAssign(rightHandSide, destination);
     }
     return rightHandSide;
+  }
+
+  int visitSuperPropertyGet(SuperPropertyGet node) {
+    return unsupported(node);
+  }
+
+  int visitSuperPropertySet(SuperPropertySet node) {
+    build(node.value);
+    return unsupported(node);
   }
 
   int visitStaticGet(StaticGet node) {
@@ -1325,6 +1338,13 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
         }
       }
     }
+  }
+
+  int visitDirectMethodInvocation(DirectMethodInvocation node) {
+    // TODO(asgerf): Support cases where the receiver is not 'this'.
+    passArgumentsToFunction(
+        node.arguments, environment.host, node.target.function);
+    return builder.getReturnVariable(environment.host, node.target);
   }
 
   int visitSuperMethodInvocation(SuperMethodInvocation node) {

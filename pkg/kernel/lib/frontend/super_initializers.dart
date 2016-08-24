@@ -7,11 +7,11 @@ library kernel.frontend.super_calls;
 
 import '../ast.dart';
 
-/// Mutates the initializer list of [node] so that its super call occurs last,
-/// while its arguments are evaluated at the correct place.
+/// Mutates the initializer list of [node] so that its super initializer occurs
+/// last, while its arguments are evaluated at the correct place.
 ///
-/// Does nothing if there is no super call or if the super call is already last.
-void moveSuperCallLast(Constructor node) {
+/// Does nothing if there is no super initializer or if it is already last.
+void moveSuperInitializerLast(Constructor node) {
   List<Initializer> initializers = node.initializers;
   if (initializers.isEmpty) return;
   if (initializers.last is SuperInitializer) return;
@@ -54,4 +54,3 @@ void moveSuperCallLast(Constructor node) {
     initializers[storeIndex++] = new LocalInitializer(variable)..parent = node;
   }
 }
-

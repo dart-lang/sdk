@@ -11,6 +11,7 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/checks.dart' as checks;
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/infer_values.dart' as infer_values;
+import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 
 import 'batch_util.dart';
 
@@ -47,28 +48,31 @@ main(List<String> arguments) async {
 }
 
 Future<CompilerOutcome> runTransformation(List<String> arguments) async {
-  ArgResults result = parser.parse(arguments);
+  ArgResults options = parser.parse(arguments);
 
-  if (result.rest.length != 1) {
+  if (options.rest.length != 1) {
     throw 'Usage:\n${parser.usage}';
   }
 
-  var input = result.rest.first;
-  var output = result['out'];
-  var format = result['format'];
-  var verbose = result['verbose'];
+  var input = options.rest.first;
+  var output = options['out'];
+  var format = options['format'];
+  var verbose = options['verbose'];
 
   if (output == null) {
     output = '${input.substring(0, input.lastIndexOf('.'))}.transformed.dill';
   }
 
   var program = loadProgramFromBinary(input);
-  switch (result['transformation']) {
+  switch (options['transformation']) {
     case 'continuation':
       program = cont.transformProgram(program);
       break;
     case 'infervalues':
       program = infer_values.transformProgram(program);
+      break;
+    case 'resolve-mixins':
+      program = mix.transformProgram(program);
       break;
     default: throw 'Unknown transformation';
   }

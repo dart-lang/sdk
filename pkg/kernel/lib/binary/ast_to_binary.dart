@@ -396,11 +396,24 @@ class BinaryPrinter extends Visitor {
 
   visitSuperPropertyGet(SuperPropertyGet node) {
     writeByte(Tag.SuperPropertyGet);
-    writeMemberReference(node.target);
+    writeName(node.name);
   }
 
   visitSuperPropertySet(SuperPropertySet node) {
     writeByte(Tag.SuperPropertySet);
+    writeName(node.name);
+    writeNode(node.value);
+  }
+
+  visitDirectPropertyGet(DirectPropertyGet node) {
+    writeByte(Tag.DirectPropertyGet);
+    writeNode(node.receiver);
+    writeMemberReference(node.target);
+  }
+
+  visitDirectPropertySet(DirectPropertySet node) {
+    writeByte(Tag.DirectPropertySet);
+    writeNode(node.receiver);
     writeMemberReference(node.target);
     writeNode(node.value);
   }
@@ -425,6 +438,13 @@ class BinaryPrinter extends Visitor {
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeByte(Tag.SuperMethodInvocation);
+    writeName(node.name);
+    writeNode(node.arguments);
+  }
+
+  visitDirectMethodInvocation(DirectMethodInvocation node) {
+    writeByte(Tag.DirectMethodInvocation);
+    writeNode(node.receiver);
     writeMemberReference(node.target);
     writeNode(node.arguments);
   }

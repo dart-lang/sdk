@@ -402,7 +402,8 @@ AnalysisContext createContext(String sdk, String packageRoot, bool strongMode) {
     ..strongMode = strongMode
     ..preserveComments = false
     ..hint = false
-    ..generateImplicitErrors = false;
+    ..generateImplicitErrors = false
+    ..enableSuperMixins = true;
 
   return context;
 }

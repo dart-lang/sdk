@@ -706,10 +706,18 @@ class Printer extends Visitor<Null> {
     writeNode(node.arguments);
   }
 
+  visitDirectMethodInvocation(DirectMethodInvocation node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.{');
+    writeMemberReference(node.target);
+    writeSymbol('}');
+    writeNode(node.arguments);
+  }
+
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeWord('super');
     writeSymbol('.');
-    writeMemberReference(node.target);
+    writeName(node.name);
     writeNode(node.arguments);
   }
 
@@ -966,13 +974,29 @@ class Printer extends Visitor<Null> {
   visitSuperPropertyGet(SuperPropertyGet node) {
     writeWord('super');
     writeSymbol('.');
-    writeMemberReference(node.target);
+    writeName(node.name);
   }
 
   visitSuperPropertySet(SuperPropertySet node) {
     writeWord('super');
     writeSymbol('.');
+    writeName(node.name);
+    writeSpaced('=');
+    writeExpression(node.value);
+  }
+
+  visitDirectPropertyGet(DirectPropertyGet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.{');
     writeMemberReference(node.target);
+    writeSymbol('}');
+  }
+
+  visitDirectPropertySet(DirectPropertySet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.{');
+    writeMemberReference(node.target);
+    writeSymbol('}');
     writeSpaced('=');
     writeExpression(node.value);
   }
@@ -1407,9 +1431,11 @@ class Precedence extends ExpressionVisitor<int> {
     return precedence != EQUALITY && precedence != RELATIONAL;
   }
 
+  int defaultExpression(Expression node) => EXPRESSION;
   int visitInvalidExpression(InvalidExpression node) => CALLEE;
   int visitMethodInvocation(MethodInvocation node) => CALLEE;
   int visitSuperMethodInvocation(SuperMethodInvocation node) => CALLEE;
+  int visitDirectMethodInvocation(DirectMethodInvocation node) => CALLEE;
   int visitStaticInvocation(StaticInvocation node) => CALLEE;
   int visitConstructorInvocation(ConstructorInvocation node) => CALLEE;
   int visitNot(Not node) => PREFIX;
@@ -1439,6 +1465,8 @@ class Precedence extends ExpressionVisitor<int> {
   int visitPropertySet(PropertySet node) => EXPRESSION;
   int visitSuperPropertyGet(SuperPropertyGet node) => PRIMARY;
   int visitSuperPropertySet(SuperPropertySet node) => EXPRESSION;
+  int visitDirectPropertyGet(DirectPropertyGet node) => PRIMARY;
+  int visitDirectPropertySet(DirectPropertySet node) => EXPRESSION;
   int visitStaticGet(StaticGet node) => PRIMARY;
   int visitStaticSet(StaticSet node) => EXPRESSION;
   int visitLet(Let node) => EXPRESSION;

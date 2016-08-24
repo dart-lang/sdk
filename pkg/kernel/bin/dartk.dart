@@ -14,6 +14,7 @@ import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/checks.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 
 // Returns the path to the current sdk based on `Platform.resolvedExecutable`.
@@ -32,13 +33,15 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       abbr: 'o',
       help: 'Output file.\n'
           '(defaults to "out.dill" if format is "bin", otherwise stdout)')
-  ..addOption('sdk',
-      defaultsTo: currentSdk(),
-      help: 'Path to the Dart SDK.')
+  ..addOption('sdk', defaultsTo: currentSdk(), help: 'Path to the Dart SDK.')
   ..addOption('package-root',
       abbr: 'p',
       help: 'Path to the packages folder.\n'
           'The .packages file is not yet supported.')
+  ..addOption('target',
+      abbr: 't',
+      help: 'Tailor the IR to the given target.',
+      allowed: targetNames)
   ..addFlag('strong',
       help: 'Load .dart files in strong mode.\n'
           'Does not affect loading of binary files. Strong mode support is very\n'
@@ -238,6 +241,8 @@ Future<CompilerOutcome> batchMain(
   List<String> loadedFiles;
   Function getLoadedFiles;
   List errors = const [];
+  Target target =
+      options['target'] != null ? getTargetByName(options['target']) : null;
 
   if (file.endsWith('.dill')) {
     var node = loadProgramOrLibraryFromBinary(file, repository);
@@ -261,14 +266,20 @@ Future<CompilerOutcome> batchMain(
     getLoadedFiles = () => loadedFiles ??= loader.getLoadedFileNames();
   }
 
+  bool canContinueCompilation = errors.isEmpty || options['tolerant'];
+
   int loadTime = watch.elapsedMilliseconds;
   if (shouldReportMetrics) {
     print('loader.time = $loadTime ms');
   }
 
-  if (options['sanity-check']) {
-    CheckParentPointers.check(program ?? library);
+  void sanityCheck() {
+    if (options['sanity-check']) {
+      CheckParentPointers.check(program ?? library);
+    }
   }
+
+  sanityCheck();
 
   String outputDependencies = options['write-dependencies'];
   if (outputDependencies != null) {
@@ -280,6 +291,15 @@ Future<CompilerOutcome> batchMain(
       program == null ||
       program.libraries.contains(library));
 
+  // Apply target-specific transformations.
+  if (target != null && canContinueCompilation) {
+    if (program == null) {
+      fail('Only whole programs can have a target');
+    }
+    target.transformProgram(program);
+    sanityCheck();
+  }
+
   if (options['no-output']) {
     return CompilerOutcome.Ok;
   }
@@ -287,7 +307,7 @@ Future<CompilerOutcome> batchMain(
   watch.reset();
 
   Future ioFuture;
-  if (errors.isEmpty || options['tolerant']) {
+  if (canContinueCompilation) {
     switch (format) {
       case 'text':
         if (program != null) {

@@ -7,6 +7,7 @@ import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_propagation/builder.dart';
 import 'package:kernel/type_propagation/solver.dart';
 import 'package:kernel/type_propagation/visualizer.dart';
+import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:path/path.dart' as pathlib;
 import 'package:test/test.dart';
 
@@ -44,6 +45,7 @@ void main() {
         } else {
           Repository repository = new Repository(sdk: sdk);
           program = loadProgramFromDart(dartPath, repository);
+          mix.transformProgram(program);
           writeProgramToBinary(program, binaryPath);
         }
 

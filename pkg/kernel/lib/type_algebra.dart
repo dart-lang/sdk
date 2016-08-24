@@ -20,6 +20,17 @@ DartType substitute(DartType type, Map<TypeParameter, DartType> substitution) {
   return new _TypeSubstitutor(substitution).visit(type);
 }
 
+/// Returns a mapping from the type parameters declared on the class of [type]
+/// to the actual type arguments provided in [type].
+///
+/// This can be passed as argument to [substitute].
+Map<TypeParameter, DartType> getSubstitutionMap(InterfaceType type) {
+  return type.typeArguments.isEmpty
+      ? const <TypeParameter, DartType>{}
+      : new Map<TypeParameter, DartType>.fromIterables(
+          type.classNode.typeParameters, type.typeArguments);
+}
+
 /// Like [substitute], but the substitution map is given as a list of keys
 /// and a list of values.
 DartType substitutePairwise(DartType type, List<TypeParameter> typeParameters,

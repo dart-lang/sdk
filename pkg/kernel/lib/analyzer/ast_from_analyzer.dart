@@ -5,9 +5,10 @@ library kernel.analyzer.ast_from_analyzer;
 
 import '../ast.dart' as ast;
 import '../frontend/accessors.dart';
-import '../frontend/super_calls.dart';
+import '../frontend/super_initializers.dart';
 import '../log.dart';
 import '../type_algebra.dart';
+import '../transformations/flags.dart';
 import 'analyzer.dart';
 import 'loader.dart';
 import 'package:analyzer/analyzer.dart';
@@ -628,6 +629,10 @@ class ExpressionScope extends TypeScope {
       return new ast.InvalidExpression();
     }
   }
+
+  void addTransformerFlag(int flags) {
+    // Overridden by MemberScope.
+  }
 }
 
 /// Translates expressions, statements, and other constructs into [ast] nodes.
@@ -665,6 +670,10 @@ class MemberScope extends ExpressionScope {
   bool _memberHasThis(ast.Member member) {
     return member is ast.Procedure && !member.isStatic ||
         member is ast.Constructor;
+  }
+
+  void addTransformerFlag(int flags) {
+    currentMember.transformerFlags |= flags;
   }
 }
 
@@ -1122,8 +1131,9 @@ class ExpressionBuilder
         // TODO: Invoke super.noSuchMethod.
         return new ast.InvalidExpression();
       }
+      scope.addTransformerFlag(TransformerFlag.superCalls);
       expression = new ast.SuperMethodInvocation(
-          method, buildSingleArgument(node.rightOperand));
+          new ast.Name(operator), buildSingleArgument(node.rightOperand));
     } else {
       expression = new ast.MethodInvocation(build(node.leftOperand),
           new ast.Name(operator), buildSingleArgument(node.rightOperand));
@@ -1353,14 +1363,8 @@ class ExpressionBuilder
     if (node.isCascaded) {
       return IndexAccessor.make(makeCascadeReceiver(), build(node.index));
     } else if (node.target is SuperExpression) {
-      Element element = node.staticElement;
-      Element auxiliary = node.auxiliaryElements?.staticElement;
-      // TODO: If the getter and/or setter is unresolved, redirect to
-      //   super.noSuchMethod.
-      return new SuperIndexAccessor(
-          build(node.index),
-          scope.resolveIndexGet(element, auxiliary),
-          scope.resolveIndexSet(element, auxiliary));
+      scope.addTransformerFlag(TransformerFlag.superCalls);
+      return new SuperIndexAccessor(build(node.index));
     } else {
       return IndexAccessor.make(build(node.target), build(node.index));
     }
@@ -1493,13 +1497,9 @@ class ExpressionBuilder
       return new ast.MethodInvocation(makeCascadeReceiver(),
           scope.buildName(node.methodName), buildArgumentsForInvocation(node));
     } else if (target is SuperExpression) {
-      var method = scope.resolveMethod(element);
-      if (method == null) {
-        // TODO: Redirect to super.noSuchMethod.
-        return new ast.InvalidExpression();
-      }
+      scope.addTransformerFlag(TransformerFlag.superCalls);
       return new ast.SuperMethodInvocation(
-          method, buildArgumentsForInvocation(node));
+          scope.buildName(node.methodName), buildArgumentsForInvocation(node));
     } else if (scope.isLocal(element)) {
       return new ast.MethodInvocation(
           new ast.VariableGet(scope.getVariableReference(element)),
@@ -1584,16 +1584,11 @@ class ExpressionBuilder
     switch (operator) {
       case '-':
       case '~':
-        if (node.operand is SuperExpression) {
-          var target = scope.resolveMethod(node.staticElement);
-          if (target == null) {
-            // TODO: Redirect to super.noSuchMethod.
-            return new ast.InvalidExpression();
-          }
-          return new ast.SuperMethodInvocation(
-              target, new ast.Arguments.empty());
-        }
         var name = new ast.Name(operator == '-' ? 'unary-' : '~');
+        if (node.operand is SuperExpression) {
+          scope.addTransformerFlag(TransformerFlag.superCalls);
+          return new ast.SuperMethodInvocation(name, new ast.Arguments.empty());
+        }
         return new ast.MethodInvocation(
             build(node.operand), name, new ast.Arguments.empty());
 
@@ -1616,13 +1611,9 @@ class ExpressionBuilder
     if (node.isCascaded) {
       return PropertyAccessor.make(
           makeCascadeReceiver(), scope.buildName(node.propertyName));
-    } else if (target is SuperExpression) {
-      Element element = node.propertyName.staticElement;
-      Element auxiliary = node.propertyName.auxiliaryElements?.staticElement;
-      // TODO: If the getter and/or setter is unresolved, redirect to
-      //   super.noSuchMethod.
-      return new SuperPropertyAccessor(scope.resolveGet(element, auxiliary),
-          scope.resolveSet(element, auxiliary));
+    } else if (node.target is SuperExpression) {
+      scope.addTransformerFlag(TransformerFlag.superCalls);
+      return new SuperPropertyAccessor(scope.buildName(node.propertyName));
     } else if (target is Identifier && target.staticElement is ClassElement) {
       // Note that this case also covers null-aware static access on a class,
       // which is equivalent to a regular static access.
@@ -1914,6 +1905,7 @@ class InitializerBuilder extends GeneralizingAstVisitor<ast.Initializer> {
     if (target == null) {
       return new ast.InvalidInitializer();
     }
+    scope.addTransformerFlag(TransformerFlag.superCalls);
     return new ast.SuperInitializer(
         target, scope._expressionBuilder.buildArguments(node.argumentList));
   }
@@ -2008,8 +2000,14 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         log.warning('Invalid mixin application in ${scope.location}');
         return result;
       }
+      String name1 = result.classNode.name;
+      String name2 = mixin.classNode.name;
+      String name = name1 != null && name2 != null
+          ? '$name1&$name2'
+          : null;
       var freshTypes = getFreshTypeParameters(currentClass.typeParameters);
       var mixinClass = new ast.Class(
+          name: name,
           supertype: freshTypes.substitute(result),
           mixedInType: freshTypes.substitute(mixin),
           typeParameters: freshTypes.freshTypeParameters,
@@ -2335,7 +2333,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
               target, new ast.Arguments(<ast.Expression>[]));
       constructor.initializers.add(initializer..parent = constructor);
     } else {
-      moveSuperCallLast(constructor);
+      moveSuperInitializerLast(constructor);
     }
   }
 

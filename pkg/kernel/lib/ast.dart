@@ -83,6 +83,7 @@ export 'visitor.dart';
 import 'type_propagation/type_propagation.dart';
 export 'type_propagation/type_propagation.dart';
 
+import 'transformations/flags.dart';
 import 'text/ast_to_text.dart';
 import 'type_algebra.dart';
 
@@ -307,10 +308,13 @@ class Class extends TreeNode {
   Class get superclass => supertype?.classNode;
 
   /// The mixed-in class if this is a mixin application, otherwise `null`.
+  ///
+  /// Note that this may itself be a mixin application.  Use [mixin] to get the
+  /// class that has the fields and procedures.
   Class get mixedInClass => mixedInType?.classNode;
 
-  /// The class itself or the mixed-in class if this is a mixin application.
-  Class get mixin => mixedInClass ?? this;
+  /// The class that declares the field and procedures of this class.
+  Class get mixin => mixedInClass?.mixin ?? this;
 
   bool get isMixinApplication => mixedInType != null;
 
@@ -391,6 +395,13 @@ class Class extends TreeNode {
   transformChildren(Transformer v) {
     transformList(annotations, v, this);
     transformList(typeParameters, v, this);
+    if (supertype != null) {
+      supertype = v.visitDartType(supertype);
+    }
+    if (mixedInType != null) {
+      mixedInType = v.visitDartType(mixedInType);
+    }
+    transformTypeList(implementedTypes, v);
     transformList(constructors, v, this);
     transformList(procedures, v, this);
     transformList(fields, v, this);
@@ -408,6 +419,23 @@ abstract class Member extends TreeNode {
   /// annotations if needed.
   List<Expression> annotations = const <Expression>[];
   Name name;
+
+  /// Flags summarizing the kinds of AST nodes contained in this member, for
+  /// speeding up transformations that only affect certain types of nodes.
+  ///
+  /// See [TransformerFlag] for the meaning of each bit.
+  ///
+  /// These should not be used for any purpose other than skipping certain
+  /// members if it can be determined that no work is needed in there.
+  ///
+  /// It is valid for these flags to be false positives in rare cases, so
+  /// transformers must tolerate the case where a flag is spuriously set.
+  ///
+  /// This value is not serialized; it is populated by the frontend and the
+  /// deserializer.
+  //
+  // TODO(asgerf): It might be worthwhile to put this on classes as well.
+  int transformerFlags = 0;
 
   Member(this.name);
 
@@ -442,6 +470,10 @@ abstract class Member extends TreeNode {
     annotations.add(node);
     node.parent = this;
   }
+
+  bool get containsSuperCalls {
+    return transformerFlags & TransformerFlag.superCalls != 0;
+  }
 }
 
 /// A field declaration.
@@ -459,13 +491,15 @@ class Field extends Member {
       this.initializer,
       bool isFinal: false,
       bool isConst: false,
-      bool isStatic: false})
+      bool isStatic: false,
+      int transformerFlags: 0})
       : super(name) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isStatic = isStatic;
+    this.transformerFlags = transformerFlags;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
@@ -510,6 +544,7 @@ class Field extends Member {
   }
 
   transformChildren(Transformer v) {
+    type = v.visitDartType(type);
     transformList(annotations, v, this);
     if (initializer != null) {
       initializer = initializer.accept(v);
@@ -536,13 +571,15 @@ class Constructor extends Member {
       {Name name,
       bool isConst: false,
       bool isExternal: false,
-      List<Initializer> initializers})
+      List<Initializer> initializers,
+      int transformerFlags: 0})
       : this.initializers = initializers ?? <Initializer>[],
         super(name) {
     function?.parent = this;
     setParents(this.initializers, this);
     this.isConst = isConst;
     this.isExternal = isExternal;
+    this.transformerFlags = transformerFlags;
   }
 
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
@@ -610,13 +647,15 @@ class Procedure extends Member {
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
-      bool isConst: false})
+      bool isConst: false,
+      int transformerFlags: 0})
       : super(name) {
     function?.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
     this.isExternal = isExternal;
     this.isConst = isConst;
+    this.transformerFlags = transformerFlags;
   }
 
   static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
@@ -869,6 +908,7 @@ class FunctionNode extends TreeNode {
     transformList(typeParameters, v, this);
     transformList(positionalParameters, v, this);
     transformList(namedParameters, v, this);
+    returnType = v.visitDartType(returnType);
     if (body != null) {
       body = body.accept(v);
       body?.parent = this;
@@ -1033,22 +1073,103 @@ class PropertySet extends Expression {
   }
 }
 
+/// Directly read a field, call a getter, or tear off a method.
+class DirectPropertyGet extends Expression {
+  Expression receiver;
+  Member target;
+
+  DirectPropertyGet(this.receiver, this.target) {
+    receiver?.parent = this;
+  }
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    target?.acceptReference(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept(v);
+      receiver?.parent = this;
+    }
+  }
+
+  accept(ExpressionVisitor v) => v.visitDirectPropertyGet(this);
+}
+
+/// Directly assign a field, or call a setter.
+class DirectPropertySet extends Expression {
+  Expression receiver;
+  Member target;
+  Expression value;
+
+  DirectPropertySet(this.receiver, this.target, this.value) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    target?.acceptReference(v);
+    value?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept(v);
+      value?.parent = this;
+    }
+  }
+
+  accept(ExpressionVisitor v) => v.visitDirectPropertySet(this);
+}
+
+/// Directly call an instance method, bypassing ordinary dispatch.
+class DirectMethodInvocation extends Expression {
+  Expression receiver;
+  Procedure target;
+  Arguments arguments;
+
+  DirectMethodInvocation(this.receiver, this.target, this.arguments) {
+    receiver?.parent = this;
+    arguments?.parent = this;
+  }
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    target?.acceptReference(v);
+    arguments?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept(v);
+      receiver?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = arguments.accept(v);
+      arguments?.parent = this;
+    }
+  }
+
+  accept(ExpressionVisitor v) => v.visitDirectMethodInvocation(this);
+}
+
 /// Expression of form `super.field`.
 ///
 /// This may invoke a getter, read a field, or tear off a method.
 class SuperPropertyGet extends Expression {
-  /// A field or a getter, or a method (for tear-off) in a super class.
-  ///
-  /// Cannot be static or abstract.
-  Member target;
+  Name name;
 
-  SuperPropertyGet(this.target);
+  SuperPropertyGet(this.name);
 
   accept(ExpressionVisitor v) => v.visitSuperPropertyGet(this);
 
-  visitChildren(Visitor v) {
-    target?.acceptReference(v);
-  }
+  visitChildren(Visitor v) {}
 
   transformChildren(Transformer v) {}
 }
@@ -1057,18 +1178,16 @@ class SuperPropertyGet extends Expression {
 ///
 /// This may invoke a setter or assign a field.
 class SuperPropertySet extends Expression {
-  /// A mutable field or a non-abstract getter in a super class.
-  Member target;
+  Name name;
   Expression value;
 
-  SuperPropertySet(this.target, this.value) {
+  SuperPropertySet(this.name, this.value) {
     value?.parent = this;
   }
 
   accept(ExpressionVisitor v) => v.visitSuperPropertySet(this);
 
   visitChildren(Visitor v) {
-    target?.acceptReference(v);
     value?.accept(v);
   }
 
@@ -1150,6 +1269,7 @@ class Arguments extends TreeNode {
   }
 
   transformChildren(Transformer v) {
+    transformTypeList(types, v);
     transformList(positional, v, this);
     transformList(named, v, this);
   }
@@ -1184,8 +1304,8 @@ abstract class InvocationExpression extends Expression {
   Arguments get arguments;
   set arguments(Arguments value);
 
-  /// The static target of the invocation, or `null` if this is a dynamic
-  /// dispatch invocation.
+  /// The static target of the invocation, or `null` if this is a dynamic or
+  /// super dispatch invocation.
   Member get target;
 
   /// Name of the invoked method.
@@ -1231,19 +1351,18 @@ class MethodInvocation extends InvocationExpression {
 ///
 /// The provided arguments might not match the parameters of the target.
 class SuperMethodInvocation extends InvocationExpression {
-  Procedure target; // Non-abstract, non-static method in a super class.
+  Name name;
   Arguments arguments;
 
-  Name get name => target?.name;
-
-  SuperMethodInvocation(this.target, this.arguments) {
+  SuperMethodInvocation(this.name, this.arguments) {
     arguments?.parent = this;
   }
+
+  Member get target => null;
 
   accept(ExpressionVisitor v) => v.visitSuperMethodInvocation(this);
 
   visitChildren(Visitor v) {
-    target?.acceptReference(v);
     arguments?.accept(v);
   }
 
@@ -1463,6 +1582,7 @@ class IsExpression extends Expression {
       operand = operand.accept(v);
       operand?.parent = this;
     }
+      type = v.visitDartType(type);
   }
 }
 
@@ -1487,6 +1607,7 @@ class AsExpression extends Expression {
       operand = operand.accept(v);
       operand?.parent = this;
     }
+    type = v.visitDartType(type);
   }
 }
 
@@ -1558,7 +1679,9 @@ class TypeLiteral extends Expression {
     type?.accept(v);
   }
 
-  transformChildren(Transformer v) {}
+  transformChildren(Transformer v) {
+    type = v.visitDartType(type);
+  }
 }
 
 class ThisExpression extends Expression {
@@ -1615,6 +1738,7 @@ class ListLiteral extends Expression {
   }
 
   transformChildren(Transformer v) {
+    typeArgument = v.visitDartType(typeArgument);
     transformList(expressions, v, this);
   }
 }
@@ -1643,6 +1767,8 @@ class MapLiteral extends Expression {
   }
 
   transformChildren(Transformer v) {
+    keyType = v.visitDartType(keyType);
+    valueType = v.visitDartType(valueType);
     transformList(entries, v, this);
   }
 }
@@ -2242,6 +2368,7 @@ class Catch extends TreeNode {
   }
 
   transformChildren(Transformer v) {
+    guard = v.visitDartType(guard);
     if (exception != null) {
       exception = exception.accept(v);
       exception?.parent = this;
@@ -2398,6 +2525,7 @@ class VariableDeclaration extends Statement {
   }
 
   transformChildren(Transformer v) {
+    type = v.visitDartType(type);
     if (initializer != null) {
       initializer = initializer.accept(v);
       initializer?.parent = this;
@@ -2766,7 +2894,9 @@ class TypeParameter extends TreeNode {
     bound.accept(v);
   }
 
-  transformChildren(Transformer v) {}
+  transformChildren(Transformer v) {
+    bound = v.visitDartType(bound);
+  }
 
   /// Returns a possibly synthesized name for this type parameter, consistent
   /// with the names used across all [toString] calls.
@@ -2819,6 +2949,20 @@ void visitList(List<Node> nodes, Visitor visitor) {
 void visitIterable(Iterable<Node> nodes, Visitor visitor) {
   for (var node in nodes) {
     node.accept(visitor);
+  }
+}
+
+void transformTypeList(List<DartType> nodes, Transformer visitor) {
+  int storeIndex = 0;
+  for (int i = 0; i < nodes.length; ++i) {
+    var result = visitor.visitDartType(nodes[i]);
+    if (result != null) {
+      nodes[storeIndex] = result;
+      ++storeIndex;
+    }
+  }
+  if (storeIndex < nodes.length) {
+    nodes.length = storeIndex;
   }
 }
 

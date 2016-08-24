@@ -7,6 +7,7 @@ import '../ast.dart';
 import 'tag.dart';
 import 'loader.dart';
 import 'dart:convert';
+import 'package:kernel/transformations/flags.dart';
 
 class ParseError {
   String filename;
@@ -32,6 +33,7 @@ class BinaryBuilder {
   int _byteIndex = 0;
   Library _currentLibrary;
   List<String> _stringTable;
+  int _transformerFlags = 0;
 
   // If something goes wrong, this list should indicate what library,
   // class, and member was being built.
@@ -367,6 +369,17 @@ class BinaryBuilder {
     debugPath.removeLast();
   }
 
+  int getAndResetTransformerFlags() {
+    int flags = _transformerFlags;
+    _transformerFlags = 0;
+    return flags;
+  }
+
+  /// Adds the given flag to the current [Member.transformerFlags].
+  void addTransformerFlag(int flags) {
+    _transformerFlags |= flags;
+  }
+
   void readField(Field node, int tag) {
     // Note: as with readProcedure and readConstructor, the tag parameter
     // is unused, but we pass it in to clarify that the tag has already been
@@ -380,6 +393,7 @@ class BinaryBuilder {
     node.inferredValue = readOptionalInferredValue();
     node.initializer = readExpressionOption();
     node.initializer?.parent = node;
+    node.transformerFlags = getAndResetTransformerFlags();
     debugPath.removeLast();
   }
 
@@ -394,6 +408,7 @@ class BinaryBuilder {
     pushVariableDeclarations(node.function.namedParameters);
     _fillTreeNodeList(node.initializers, readInitializer, node);
     variableStack.length = 0;
+    node.transformerFlags = getAndResetTransformerFlags();
     debugPath.removeLast();
   }
 
@@ -407,6 +422,7 @@ class BinaryBuilder {
     debugPath.add(node.name?.name ?? 'procedure');
     node.function = readFunctionNodeOption();
     node.function?.parent = node;
+    node.transformerFlags = getAndResetTransformerFlags();
     debugPath.removeLast();
   }
 
@@ -519,9 +535,16 @@ class BinaryBuilder {
       case Tag.PropertySet:
         return new PropertySet(readExpression(), readName(), readExpression());
       case Tag.SuperPropertyGet:
-        return new SuperPropertyGet(readMemberReference());
+        addTransformerFlag(TransformerFlag.superCalls);
+        return new SuperPropertyGet(readName());
       case Tag.SuperPropertySet:
-        return new SuperPropertySet(readMemberReference(), readExpression());
+        addTransformerFlag(TransformerFlag.superCalls);
+        return new SuperPropertySet(readName(), readExpression());
+      case Tag.DirectPropertyGet:
+        return new DirectPropertyGet(readExpression(), readMemberReference());
+      case Tag.DirectPropertySet:
+        return new DirectPropertySet(
+            readExpression(), readMemberReference(), readExpression());
       case Tag.StaticGet:
         return new StaticGet(readMemberReference());
       case Tag.StaticSet:
@@ -530,8 +553,11 @@ class BinaryBuilder {
         return new MethodInvocation(
             readExpression(), readName(), readArguments());
       case Tag.SuperMethodInvocation:
-        return new SuperMethodInvocation(
-            readMemberReference(), readArguments());
+        addTransformerFlag(TransformerFlag.superCalls);
+        return new SuperMethodInvocation(readName(), readArguments());
+      case Tag.DirectMethodInvocation:
+        return new DirectMethodInvocation(
+            readExpression(), readMemberReference(), readArguments());
       case Tag.StaticInvocation:
         return new StaticInvocation(readMemberReference(), readArguments(),
             isConst: false);
