@@ -21,6 +21,7 @@ part 'src/repositories/context.dart';
 part 'src/repositories/event.dart';
 part 'src/repositories/flag.dart';
 part 'src/repositories/heap_snapshot.dart';
+part 'src/repositories/icdata.dart';
 part 'src/repositories/inbound_references.dart';
 part 'src/repositories/instance.dart';
 part 'src/repositories/notification.dart';

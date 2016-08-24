@@ -49,10 +49,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Object':
         return (object) {
           switch (object.vmType) {
-            case 'ICData':
-              ICDataViewElement element = new Element.tag('icdata-view');
-              element.icData = object;
-              return element;
             case 'MegamorphicCache':
               MegamorphicCacheViewElement element =
                   new Element.tag('megamorphiccache-view');

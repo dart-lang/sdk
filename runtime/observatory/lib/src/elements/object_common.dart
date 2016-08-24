@@ -111,7 +111,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
               new DivElement()..classes = const ['memberName']
                 ..text = 'Shallow size ',
               new DivElement()..classes = const ['memberValue']
-                ..text = Utils.formatSize(_object.size)
+                ..text = Utils.formatSize(_object.size ?? 0)
             ],
           new DivElement()..classes = const ['memberItem']
             ..title = 'Space reachable from this object, '

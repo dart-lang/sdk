@@ -3594,8 +3594,8 @@ class ObjectPool extends HeapObject implements M.ObjectPoolRef {
   }
 }
 
-class ICData extends HeapObject implements M.ICDataRef {
-  @observable ServiceObject dartOwner;
+class ICData extends HeapObject implements M.ICData {
+  @observable HeapObject dartOwner;
   @observable String selector;
   @observable Instance argumentsDescriptor;
   @observable Instance entries;

@@ -54,6 +54,7 @@ part 'src/models/repositories/context.dart';
 part 'src/models/repositories/event.dart';
 part 'src/models/repositories/flag.dart';
 part 'src/models/repositories/heap_snapshot.dart';
+part 'src/models/repositories/icdata.dart';
 part 'src/models/repositories/inbound_references.dart';
 part 'src/models/repositories/instance.dart';
 part 'src/models/repositories/notification.dart';

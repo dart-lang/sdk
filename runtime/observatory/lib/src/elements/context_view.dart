@@ -19,6 +19,7 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
+import 'package:observatory/src/elements/view_footer.dart';
 
 class ContextViewElement  extends HtmlElement implements Renderable {
   static const tag = const Tag<ContextViewElement>('context-view',
@@ -33,7 +34,8 @@ class ContextViewElement  extends HtmlElement implements Renderable {
                                               NavMenuElement.tag,
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
-                                              ObjectCommonElement.tag
+                                              ObjectCommonElement.tag,
+                                              ViewFooterElement.tag
                                             ]);
 
   RenderingScheduler<ContextViewElement> _r;
@@ -183,6 +185,8 @@ class ContextViewElement  extends HtmlElement implements Renderable {
           ]
       ]);
     }
+    content.add(new DivElement()..classes = const ['content-centered-big']
+      ..children = [new ViewFooterElement(queue: _r.queue)]);
     children = content;
   }
 }

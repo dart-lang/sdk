@@ -850,6 +850,21 @@ heap-snapshot .tree-item > .name {
 }
 
 
+/* icdata-ref */
+
+icdata-ref > a[href]:hover {
+    text-decoration: underline;
+}
+
+icdata-ref > a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+
+icdata-ref > a[href] * {
+    color: inherit;
+}
+
 /* inbound-reference */
 
 inbound-reference > a[href]:hover {

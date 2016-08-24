@@ -9,6 +9,7 @@ AllocationProfileRepository _allocationProfileRepository
 ContextRepository _contextRepository = new ContextRepository();
 HeapSnapshotRepository _heapSnapshotRepository
     = new HeapSnapshotRepository();
+ICDataRepository _icdataRepository = new ICDataRepository();
 InboundReferencesRepository _inboundReferencesRepository
     = new InboundReferencesRepository();
 InstanceRepository _instanceRepository = new InstanceRepository();
@@ -186,6 +187,18 @@ class InspectPage extends MatchingPage {
         new ContextViewElement(app.vm, obj.isolate, obj, app.events,
                                app.notifications,
                                _contextRepository,
+                               _retainedSizeRepository,
+                               _reachableSizeRepository,
+                               _inboundReferencesRepository,
+                               _retainingPathRepository,
+                               _instanceRepository,
+                               queue: app.queue)
+      ];
+    } else if (obj is ICData) {
+      container.children = [
+        new ICDataViewElement(app.vm, obj.isolate, obj, app.events,
+                               app.notifications,
+                               _icdataRepository,
                                _retainedSizeRepository,
                                _reachableSizeRepository,
                                _inboundReferencesRepository,
