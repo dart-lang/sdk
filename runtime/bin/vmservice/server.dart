@@ -57,10 +57,7 @@ class WebSocketClient extends Client {
         // String message as external Uint8List.
         assert(result is List);
         Uint8List cstring = result[0];
-        // TODO(rmacnak): cstring may be large. Add a way to pass an encoded
-        // string to a web socket that will be sent as a text message to avoid
-        // the space overhead of converting cstring to a Dart string.
-        socket.add(UTF8.decode(cstring));
+        socket.addUtf8Text(cstring);
       }
     } catch (_) {
       print("Ignoring error posting over WebSocket.");
