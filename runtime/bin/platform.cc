@@ -103,15 +103,19 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
-    for (intptr_t i = 0; i < count; i++) {
-      Dart_Handle str = DartUtils::NewString(env[i]);
+    intptr_t result_idx = 0;
+    for (intptr_t env_idx = 0; env_idx < count; env_idx++) {
+      Dart_Handle str = DartUtils::NewString(env[env_idx]);
       if (Dart_IsError(str)) {
-        Dart_PropagateError(str);
+        // Silently skip over environment entries that are not valid UTF8
+        // strings.
+        continue;
       }
-      Dart_Handle error = Dart_ListSetAt(result, i, str);
+      Dart_Handle error = Dart_ListSetAt(result, result_idx, str);
       if (Dart_IsError(error)) {
         Dart_PropagateError(error);
       }
+      result_idx++;
     }
     Dart_SetReturnValue(args, result);
   }
