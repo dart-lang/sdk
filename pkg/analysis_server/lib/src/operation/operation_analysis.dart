@@ -22,6 +22,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
@@ -399,15 +400,15 @@ class PerformAnalysisOperation extends ServerOperation {
       InternalAnalysisContext context = this.context;
       // Flush AST results for source outside of the analysis roots.
       ContextManager contextManager = server.contextManager;
-      context.analysisCache.flush((target, result) {
-        Source targetSource = target.source;
-        if (result is ResultDescriptor<CompilationUnit> &&
-            targetSource != null &&
-            !context.prioritySources.contains(targetSource) &&
-            !contextManager.isInAnalysisRoot(targetSource.fullName)) {
-          return true;
+      context.analysisCache.flush((target) {
+        if (target is Source || target is LibrarySpecificUnit) {
+          Source targetSource = target.source;
+          return !context.prioritySources.contains(targetSource) &&
+              !contextManager.isInAnalysisRoot(targetSource.fullName);
         }
         return false;
+      }, (target, result) {
+        return result is ResultDescriptor<CompilationUnit>;
       });
     }
   }

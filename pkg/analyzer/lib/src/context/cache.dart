@@ -27,6 +27,11 @@ typedef bool FlushResultFilter<V>(
     AnalysisTarget target, ResultDescriptor<V> result);
 
 /**
+ * Return `true` if some results of the [target] should be flushed.
+ */
+typedef bool FlushTargetFilter<V>(AnalysisTarget target);
+
+/**
  * Return `true` if the given [target] is a priority one.
  */
 typedef bool IsPriorityAnalysisTarget(AnalysisTarget target);
@@ -113,11 +118,11 @@ class AnalysisCache {
   }
 
   /**
-   * Flush results that satisfy the given [filter].
+   * Flush results that satisfy the given [targetFilter] and [resultFilter].
    */
-  void flush(FlushResultFilter filter) {
+  void flush(FlushTargetFilter targetFilter, FlushResultFilter resultFilter) {
     for (CachePartition partition in _partitions) {
-      partition.flush(filter);
+      partition.flush(targetFilter, resultFilter);
     }
   }
 
@@ -405,16 +410,18 @@ class CacheEntry {
   }
 
   /**
-   * Flush results that satisfy the given [filter].
+   * Flush results that satisfy the given [targetFilter] and [resultFilter].
    */
-  void flush(FlushResultFilter filter) {
-    _resultMap.forEach((ResultDescriptor result, ResultData data) {
-      if (data.state == CacheState.VALID) {
-        if (filter(target, result)) {
-          data.flush();
+  void flush(FlushTargetFilter targetFilter, FlushResultFilter resultFilter) {
+    if (targetFilter(target)) {
+      _resultMap.forEach((ResultDescriptor result, ResultData data) {
+        if (data.state == CacheState.VALID) {
+          if (resultFilter(target, result)) {
+            data.flush();
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   /**
@@ -1092,11 +1099,11 @@ abstract class CachePartition {
   }
 
   /**
-   * Flush results that satisfy the given [filter].
+   * Flush results that satisfy the given [targetFilter] and [resultFilter].
    */
-  void flush(FlushResultFilter filter) {
+  void flush(FlushTargetFilter targetFilter, FlushResultFilter resultFilter) {
     for (CacheEntry entry in entryMap.values) {
-      entry.flush(filter);
+      entry.flush(targetFilter, resultFilter);
     }
   }
 

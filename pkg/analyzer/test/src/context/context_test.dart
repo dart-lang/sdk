@@ -1122,7 +1122,7 @@ import 'dart:async';
     context.applyChanges(new ChangeSet()..addedSource(source));
     context.resolveCompilationUnit2(source, source);
     // Flush all results units.
-    context.analysisCache.flush((target, result) {
+    context.analysisCache.flush((target) => true, (target, result) {
       if (target.source == source) {
         return RESOLVED_UNIT_RESULTS.contains(result);
       }
@@ -1148,7 +1148,7 @@ main() {}
     context.applyChanges(new ChangeSet()..addedSource(source));
     context.resolveCompilationUnit2(source, source);
     // Flush all results units.
-    context.analysisCache.flush((target, result) {
+    context.analysisCache.flush((target) => true, (target, result) {
       if (target.source == source) {
         if (target.source == source) {
           return RESOLVED_UNIT_RESULTS.contains(result);
