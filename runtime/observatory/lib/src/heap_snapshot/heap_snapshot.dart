@@ -196,7 +196,7 @@ class MergedVertex implements M.HeapSnapshotClassReferences {
       // https://github.com/dart-lang/sdk/issues/27144
       return _outbounds = new List<HeapSnapshotClassOutbound>.unmodifiable(
         outgoingEdges.values.map((edge) {
-          return new HeapSnapshotClassInbound(this, edge);
+          return new HeapSnapshotClassOutbound(this, edge);
         })
       );
     }
