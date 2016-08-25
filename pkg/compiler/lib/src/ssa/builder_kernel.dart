@@ -39,31 +39,37 @@ class SsaKernelBuilderTask extends CompilerTask {
       } catch (e) {
         throw "Failed to convert to Kernel IR: $e";
       }
-      KernelSsaBuilder builder = new KernelSsaBuilder(function, element,
-          work.resolvedAst, backend.compiler, sourceInformationFactory);
+      KernelSsaBuilder builder = new KernelSsaBuilder(
+          function,
+          element,
+          work.resolvedAst,
+          backend.compiler,
+          sourceInformationFactory,
+          visitor.nodeToElement);
       return builder.build();
     });
   }
 }
 
-// DESIGN NOTE: I am implementing this by essentially copying the methods in
-// [SsaBuilder], but trying to use Kernel IR instead of our AST nodes. In places
-// where there is functionality in the [SsaBuilder] that is not yet needed in
-// this builder, I am adding a comment that tells what the [SsaBuilder] does at
-// that location.
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final IrFunction function;
   final FunctionElement functionElement;
   final ResolvedAst resolvedAst;
   final Compiler compiler;
+  final Map<ir.Node, Element> nodeToElement;
 
   JavaScriptBackend get backend => compiler.backend;
 
   LocalsHandler localsHandler;
   SourceInformationBuilder sourceInformationBuilder;
 
-  KernelSsaBuilder(this.function, this.functionElement, this.resolvedAst,
-      this.compiler, SourceInformationStrategy sourceInformationFactory) {
+  KernelSsaBuilder(
+      this.function,
+      this.functionElement,
+      this.resolvedAst,
+      this.compiler,
+      SourceInformationStrategy sourceInformationFactory,
+      this.nodeToElement) {
     graph.element = functionElement;
     // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
     this.sourceInformationBuilder =
@@ -75,6 +81,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   HGraph build() {
+    // TODO(het): no reason to do this here...
+    HInstruction.idCounter = 0;
     if (function.kind == ir.ProcedureKind.Method) {
       buildMethod(function, functionElement);
     } else {
@@ -89,9 +97,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   /// Builds a SSA graph for [method].
   void buildMethod(IrFunction method, FunctionElement functionElement) {
-    // TODO(het): Determine whether or not this method is called in a loop and
-    // set [graph.isCalledInLoop].
     openFunction(method, functionElement);
+    method.node.body.accept(this);
+    closeFunction();
   }
 
   void openFunction(IrFunction method, FunctionElement functionElement) {
@@ -102,10 +110,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     close(new HGoto()).addSuccessor(block);
 
     open(block);
+  }
 
-    // TODO(het): If this is a constructor then add the type parameters of the
-    // enclosing class as parameters to the method. This must be done before
-    // adding normal parameters because their types may contain references to
-    // the class type parameters.
+  void closeFunction() {
+    if (!isAborted()) closeAndGotoExit(new HGoto());
+    graph.finalize();
   }
 }
