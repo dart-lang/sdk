@@ -361,31 +361,48 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     TypeMask receiverType = receiver.instructionType;
     instruction.mask = receiverType;
 
-    // Try to specialize the receiver after this call.
-    if (receiver.dominatedUsers(instruction).length != 1 &&
-        !instruction.selector.isClosureCall) {
-      TypeMask newType = compiler.world.allFunctions
-          .receiverType(instruction.selector, instruction.mask);
-      newType = newType.intersection(receiverType, classWorld);
-      var next = instruction.next;
-      if (next is HTypeKnown && next.checkedInput == receiver) {
-        // We already have refined [receiver]. We still update the
-        // type of the [HTypeKnown] instruction because it may have
-        // been refined with a correct type at the time, but
-        // incorrect now.
-        if (next.instructionType != newType) {
-          next.knownType = next.instructionType = newType;
-          addDependentInstructionsToWorkList(next);
+    // Try to specialize the receiver after this call. There are two potentially
+    // expensive tests - are there any uses of the receiver dominated by and
+    // following this call?, and what is the refined type? The first is
+    // expensive if the receiver has many uses, the second is expensive if many
+    // classes implement the selector. So we try to do the least expensive test
+    // first.
+    const int _MAX_QUICK_USERS = 50;
+    if (!instruction.selector.isClosureCall) {
+      TypeMask newType;
+      bool newTypeChanged() {
+        newType = compiler.world.allFunctions
+            .receiverType(instruction.selector, instruction.mask);
+        newType = newType.intersection(receiverType, classWorld);
+        return newType != receiverType;
+      }
+
+      bool hasCandidates() => receiver.dominatedUsers(instruction).length > 1;
+
+      if ((receiver.usedBy.length <= _MAX_QUICK_USERS)
+          ? (hasCandidates() && newTypeChanged())
+          : (newTypeChanged() && hasCandidates())) {
+        var next = instruction.next;
+        if (next is HTypeKnown && next.checkedInput == receiver) {
+          // We already have refined [receiver]. We still update the
+          // type of the [HTypeKnown] instruction because it may have
+          // been refined with a correct type at the time, but
+          // incorrect now.
+          if (next.instructionType != newType) {
+            next.knownType = next.instructionType = newType;
+            addDependentInstructionsToWorkList(next);
+          }
+        } else {
+          assert(newType != receiverType);
+          // Insert a refinement node after the call and update all
+          // users dominated by the call to use that node instead of
+          // [receiver].
+          HTypeKnown converted =
+              new HTypeKnown.witnessed(newType, receiver, instruction);
+          instruction.block.addBefore(instruction.next, converted);
+          receiver.replaceAllUsersDominatedBy(converted.next, converted);
+          addDependentInstructionsToWorkList(converted);
         }
-      } else if (newType != receiverType) {
-        // Insert a refinement node after the call and update all
-        // users dominated by the call to use that node instead of
-        // [receiver].
-        HTypeKnown converted =
-            new HTypeKnown.witnessed(newType, receiver, instruction);
-        instruction.block.addBefore(instruction.next, converted);
-        receiver.replaceAllUsersDominatedBy(converted.next, converted);
-        addDependentInstructionsToWorkList(converted);
       }
     }
 
