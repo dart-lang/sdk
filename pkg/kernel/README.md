@@ -59,12 +59,3 @@ URI equivalent to how imports work in a .dart file.
 Library files are a provisional concept and should not be used for anything
 serious yet, but can be used for quick experiments, like measuring the binary
 file size on a per-library basis.
-
-
-
-Performance
------------
-
-The current frontend based on the analyzer is quite slow, probably because it
-computes a lot more information than we need.  This frontend is temporary.
-The plan is to get a fast frontend before kernel is used for real.
