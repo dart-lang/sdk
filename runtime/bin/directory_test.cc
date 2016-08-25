@@ -18,21 +18,19 @@ UNIT_TEST_CASE(DirectoryCurrentNoScope) {
 }
 
 
-UNIT_TEST_CASE(DirectoryExists) {
-  char* current_dir = dart::bin::Directory::CurrentNoScope();
-  EXPECT_NOTNULL(current_dir);
-
-  dart::bin::Directory::ExistsResult r =
-      dart::bin::Directory::Exists(current_dir);
-  EXPECT_EQ(dart::bin::Directory::EXISTS, r);
-
-  free(current_dir);
-}
-
-
 TEST_CASE(DirectoryCurrent) {
   const char* current = dart::bin::Directory::Current();
   EXPECT_NOTNULL(current);
+}
+
+
+TEST_CASE(DirectoryExists) {
+  const char* current = dart::bin::Directory::Current();
+  EXPECT_NOTNULL(current);
+
+  dart::bin::Directory::ExistsResult r =
+      dart::bin::Directory::Exists(current);
+  EXPECT_EQ(dart::bin::Directory::EXISTS, r);
 }
 
 
