@@ -2925,7 +2925,7 @@ UNIT_TEST_CASE(PostCObject) {
       "  var port = new RawReceivePort();\n"
       "  var sendPort = port.sendPort;\n"
       "  port.handler = (message) {\n"
-      "    if (messageCount < 8) {\n"
+      "    if (messageCount < 9) {\n"
       "      exception = '$exception${message}';\n"
       "    } else {\n"
       "      exception = '$exception${message.length}';\n"
@@ -2934,7 +2934,7 @@ UNIT_TEST_CASE(PostCObject) {
       "      }\n"
       "    }\n"
       "    messageCount++;\n"
-      "    if (messageCount == 9) throw new Exception(exception);\n"
+      "    if (messageCount == 10) throw new Exception(exception);\n"
       "  };\n"
       "  return sendPort;\n"
       "}\n";
@@ -2971,6 +2971,10 @@ UNIT_TEST_CASE(PostCObject) {
 
   object.type = Dart_CObject_kString;
   object.value.as_string = const_cast<char*>("æøå");
+  EXPECT(Dart_PostCObject(port_id, &object));
+
+  object.type = Dart_CObject_kString;
+  object.value.as_string = const_cast<char*>("");
   EXPECT(Dart_PostCObject(port_id, &object));
 
   object.type = Dart_CObject_kDouble;
