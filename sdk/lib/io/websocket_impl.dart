@@ -1184,7 +1184,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   void add(data) { _sink.add(data); }
   void addUtf8Text(List<int> bytes) {
     if (bytes is! List<int>) {
-      throw new ArgumentError(bytes, "bytes", "Is not a list of bytes");
+      throw new ArgumentError.value(bytes, "bytes", "Is not a list of bytes");
     }
     _sink.add(new _EncodedString(bytes));
   }
