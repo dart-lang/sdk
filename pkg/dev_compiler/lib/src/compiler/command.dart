@@ -11,8 +11,7 @@ import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
 
 import '../analyzer/context.dart' show AnalyzerOptions;
-import 'compiler.dart'
-    show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
+import 'compiler.dart' show BuildUnit, CompilerOptions, ModuleCompiler;
 import 'module_builder.dart';
 
 final ArgParser _argParser = () {

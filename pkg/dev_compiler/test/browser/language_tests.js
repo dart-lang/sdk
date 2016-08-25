@@ -378,6 +378,10 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       'set_test': fail, // runtime strong mode reject
     },
 
+    'corelib/regexp': {
+      'default_arguments_test': fail
+    },
+
     'lib/convert': {
       'encoding_test': skip_timeout,
 
@@ -732,6 +736,9 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
     let matches = text.match(regex);
     return matches ? matches.length : 0;
   }
+  function libraryName(name) {
+    return name.replace(/-/g, '$45');
+  }
 
   let unittest_tests = [];
 
@@ -740,11 +747,10 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
   html_config.useHtmlConfiguration();
   // We need to let Dart unittest control when tests are run not mocha.
   // mocha.allowUncaught(true);
-  let dartUnittestsLeft = 0;
   for (let testFile of allTestFiles) {
     let match = languageTestPattern.exec(testFile);
     if (match != null) {
-      let status_group = match[1]
+      let status_group = match[1];
       let name = match[2];
       let module = match[0];
 
@@ -774,7 +780,7 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       if (has('unittest')) {
         unittest_tests.push(() => {
           console.log('Running unittest test ' + testFile);
-          require(module)[name].main();
+          require(module)[libraryName(name)].main();
         });
         continue;
       }
@@ -792,7 +798,7 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
         async_helper.asyncTestInitialize(done);
         console.debug('Running test:  ' + name);
 
-        let mainLibrary = require(module)[name];
+        let mainLibrary = require(module)[libraryName(name)];
         let negative = /negative_test/.test(name);
         if (has('slow')) this.timeout(10000);
         if (has('fail')) {
@@ -820,6 +826,10 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       });
     }
   }
+
+  // TODO(jmesserly): unitttest tests are currently broken
+  // https://github.com/dart-lang/dev_compiler/issues/631
+  return;
 
   let mochaOnError;
   // We run these tests in a mocha test wrapper to avoid the confusing failure

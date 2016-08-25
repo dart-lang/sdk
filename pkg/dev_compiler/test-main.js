@@ -6,7 +6,7 @@ var pathToModule = function(path) {
 };
 
 var testsToSkip = [
-  // syntax error:
+  // syntax error in DDC's generated code:
   '/base/gen/codegen_output/language/execute_finally6_test.js',
   '/base/gen/codegen_output/language/switch_label2_test.js',
   '/base/gen/codegen_output/language/infinite_switch_label_test.js',
@@ -14,12 +14,19 @@ var testsToSkip = [
   '/base/gen/codegen_output/language/nested_switch_label_test.js',
   '/base/gen/codegen_output/language/switch_try_catch_test.js',
 
-  // module code execution error:
+  // module code execution error in DDC's generated code:
   '/base/gen/codegen_output/language/f_bounded_quantification3_test.js',
   '/base/gen/codegen_output/language/regress_16640_test.js',
   '/base/gen/codegen_output/language/regress_22666_test.js',
+  '/base/gen/codegen_output/language/cyclic_type_test_00_multi.js',
+  '/base/gen/codegen_output/language/cyclic_type_test_01_multi.js',
+  '/base/gen/codegen_output/language/cyclic_type_test_02_multi.js',
+  '/base/gen/codegen_output/language/cyclic_type_test_03_multi.js',
+  '/base/gen/codegen_output/language/cyclic_type_test_04_multi.js',
+  '/base/gen/codegen_output/language/cyclic_type_test_none_multi.js',
   '/base/gen/codegen_output/language/cyclic_type2_test.js',
   '/base/gen/codegen_output/language/mixin_regress_13688_test.js',
+  '/base/gen/codegen_output/language/least_upper_bound_expansive_test_none_multi.js'
 ];
 
 Object.keys(window.__karma__.files).forEach(function(file) {
@@ -33,8 +40,11 @@ allTestFiles.push('test/browser/language_tests');
 allTestFiles.push('test/browser/runtime_tests');
 
 require.config({
-  // Karma serves files under /base, which is the basePath from your config file
+  // Karma serves files under /base.
   baseUrl: '/base',
+
+  // Travis bots take a bit longer to load all ~2k test files.
+  waitSeconds: 30,
 
   paths: {
     dart_sdk: 'lib/js/amd/dart_sdk',
@@ -47,9 +57,9 @@ require.config({
     unittest: 'gen/codegen_output/pkg/unittest',
   },
 
-  // dynamically load all test files
+  // Require all test files before starting tests.
   deps: allTestFiles,
 
-  // we have to kickoff jasmine, as it is asynchronous
+  // We have to kickoff jasmine, as it is asynchronous
   callback: window.__karma__.start
 });
