@@ -34,10 +34,10 @@ void main() {
       expectedErrors: 0, expectedWarnings: 0);
   compiler.stopAfterTypeInference = true;
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesTask = compiler.typesTask;
-    var typesInferrer = typesTask.typesInferrer;
+    var commonMasks = compiler.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrer;
     var element = findElement(compiler, 'closure');
     var mask = typesInferrer.getReturnTypeOfElement(element);
-    Expect.equals(typesTask.numType, simplify(mask, compiler));
+    Expect.equals(commonMasks.numType, simplify(mask, compiler));
   }));
 }

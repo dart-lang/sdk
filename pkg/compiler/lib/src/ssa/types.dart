@@ -5,7 +5,6 @@
 import '../compiler.dart' show Compiler;
 import '../core_types.dart' show CoreClasses;
 import '../elements/elements.dart';
-import '../js_backend/js_backend.dart';
 import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
@@ -13,65 +12,56 @@ import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClassWorld;
 
 class TypeMaskFactory {
-  static TypeMask fromInferredType(TypeMask mask, Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    if (mask == null) return backend.dynamicType;
-    return mask;
-  }
-
   static TypeMask inferredReturnTypeForElement(
       Element element, Compiler compiler) {
-    return fromInferredType(
-        compiler.typesTask.getGuaranteedReturnTypeOfElement(element), compiler);
+    return compiler.globalInference.getGuaranteedReturnTypeOfElement(element) ??
+        compiler.commonMasks.dynamicType;
   }
 
   static TypeMask inferredTypeForElement(Element element, Compiler compiler) {
-    return fromInferredType(
-        compiler.typesTask.getGuaranteedTypeOfElement(element), compiler);
+    return compiler.globalInference.getGuaranteedTypeOfElement(element) ??
+        compiler.commonMasks.dynamicType;
   }
 
   static TypeMask inferredTypeForSelector(
       Selector selector, TypeMask mask, Compiler compiler) {
-    return fromInferredType(
-        compiler.typesTask.getGuaranteedTypeOfSelector(selector, mask),
-        compiler);
+    return compiler.globalInference
+            .getGuaranteedTypeOfSelector(selector, mask) ??
+        compiler.commonMasks.dynamicType;
   }
 
   static TypeMask inferredForNode(
       Element owner, ast.Node node, Compiler compiler) {
-    return fromInferredType(
-        compiler.typesTask.getGuaranteedTypeOfNode(owner, node), compiler);
+    return compiler.globalInference.getGuaranteedTypeOfNode(owner, node) ??
+        compiler.commonMasks.dynamicType;
   }
 
   static TypeMask fromNativeBehavior(
       native.NativeBehavior nativeBehavior, Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    JavaScriptBackend backend = compiler.backend;
-    if (nativeBehavior.typesReturned.isEmpty) return backend.dynamicType;
+    var typesReturned = nativeBehavior.typesReturned;
+    if (typesReturned.isEmpty) return compiler.commonMasks.dynamicType;
 
-    TypeMask result = nativeBehavior.typesReturned
-        .map((type) => fromNativeType(type, compiler))
-        .reduce((t1, t2) => t1.union(t2, classWorld));
+    ClassWorld world = compiler.world;
+    CommonMasks commonMasks = compiler.commonMasks;
+    CoreClasses coreClasses = compiler.coreClasses;
+
+    // [type] is either an instance of [DartType] or special objects
+    // like [native.SpecialType.JsObject].
+    TypeMask fromNativeType(dynamic type) {
+      if (type == native.SpecialType.JsObject) {
+        return new TypeMask.nonNullExact(coreClasses.objectClass, world);
+      }
+
+      if (type.isVoid) return commonMasks.nullType;
+      if (type.element == coreClasses.nullClass) return commonMasks.nullType;
+      if (type.treatAsDynamic) return commonMasks.dynamicType;
+      return new TypeMask.nonNullSubtype(type.element, world);
+    }
+
+    TypeMask result = typesReturned
+        .map(fromNativeType)
+        .reduce((t1, t2) => t1.union(t2, compiler.world));
     assert(!result.isEmpty);
     return result;
-  }
-
-  // [type] is either an instance of [DartType] or special objects
-  // like [native.SpecialType.JsObject].
-  static TypeMask fromNativeType(type, Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    JavaScriptBackend backend = compiler.backend;
-    CoreClasses coreClasses = compiler.coreClasses;
-    if (type == native.SpecialType.JsObject) {
-      return new TypeMask.nonNullExact(coreClasses.objectClass, classWorld);
-    } else if (type.isVoid) {
-      return backend.nullType;
-    } else if (type.element == coreClasses.nullClass) {
-      return backend.nullType;
-    } else if (type.treatAsDynamic) {
-      return backend.dynamicType;
-    } else {
-      return new TypeMask.nonNullSubtype(type.element, classWorld);
-    }
   }
 }

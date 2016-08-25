@@ -333,17 +333,18 @@ class JavaScriptBackend extends Backend {
       TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
   Element traceHelper;
 
-  TypeMask get stringType => compiler.typesTask.stringType;
-  TypeMask get doubleType => compiler.typesTask.doubleType;
-  TypeMask get intType => compiler.typesTask.intType;
-  TypeMask get uint32Type => compiler.typesTask.uint32Type;
-  TypeMask get uint31Type => compiler.typesTask.uint31Type;
-  TypeMask get positiveIntType => compiler.typesTask.positiveIntType;
-  TypeMask get numType => compiler.typesTask.numType;
-  TypeMask get boolType => compiler.typesTask.boolType;
-  TypeMask get dynamicType => compiler.typesTask.dynamicType;
-  TypeMask get nullType => compiler.typesTask.nullType;
+  TypeMask get stringType => compiler.commonMasks.stringType;
+  TypeMask get doubleType => compiler.commonMasks.doubleType;
+  TypeMask get intType => compiler.commonMasks.intType;
+  TypeMask get uint32Type => compiler.commonMasks.uint32Type;
+  TypeMask get uint31Type => compiler.commonMasks.uint31Type;
+  TypeMask get positiveIntType => compiler.commonMasks.positiveIntType;
+  TypeMask get numType => compiler.commonMasks.numType;
+  TypeMask get boolType => compiler.commonMasks.boolType;
+  TypeMask get dynamicType => compiler.commonMasks.dynamicType;
+  TypeMask get nullType => compiler.commonMasks.nullType;
   TypeMask get emptyType => const TypeMask.nonNullEmpty();
+  TypeMask get nonNullType => compiler.commonMasks.nonNullType;
 
   TypeMask _indexablePrimitiveTypeCache;
   TypeMask get indexablePrimitiveType {
@@ -399,13 +400,6 @@ class JavaScriptBackend extends Backend {
     return _fixedArrayTypeCache;
   }
 
-  TypeMask _nonNullTypeCache;
-  TypeMask get nonNullType {
-    if (_nonNullTypeCache == null) {
-      _nonNullTypeCache = compiler.typesTask.dynamicType.nonNullable();
-    }
-    return _nonNullTypeCache;
-  }
 
   /// Maps special classes to their implementation (JSXxx) class.
   Map<ClassElement, ClassElement> implementationClasses;
@@ -626,8 +620,8 @@ class JavaScriptBackend extends Backend {
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
-    functionCompiler = new SsaFunctionCompiler(
-        this, sourceInformationStrategy, useKernel);
+    functionCompiler =
+        new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
     serialization = new JavaScriptBackendSerialization(this);
   }
 

@@ -683,11 +683,7 @@ class SsaBuilder extends ast.Visitor
       // A generative constructor body is not seen by global analysis,
       // so we should not query for its type.
       if (!element.isGenerativeConstructorBody) {
-        // Don't inline if the return type was inferred to be non-null empty.
-        // This means that the function always throws an exception.
-        TypeMask returnType =
-            compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
-        if (returnType != null && returnType.isEmpty) {
+        if (compiler.globalInference.throwsAlways(element)) {
           isReachable = false;
           return false;
         }
@@ -824,8 +820,7 @@ class SsaBuilder extends ast.Visitor
       // ConstructorBodyElements are not in the type inference graph.
       return false;
     }
-    TypesInferrer inferrer = compiler.typesTask.typesInferrer;
-    return inferrer.isCalledOnce(element);
+    return compiler.globalInference.isCalledOnce(element);
   }
 
   bool isCalledOnce(Element element) {
@@ -4229,8 +4224,7 @@ class SsaBuilder extends ast.Visitor
               ? native.NativeThrowBehavior.MAY
               : native.NativeThrowBehavior.NEVER);
       push(foreign);
-      TypesInferrer inferrer = compiler.typesTask.typesInferrer;
-      if (inferrer.isFixedArrayCheckedForGrowable(send)) {
+      if (compiler.globalInference.isFixedArrayCheckedForGrowable(send)) {
         js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
         // We set the instruction as [canThrow] to avoid it being dead code.
         // We need a finer grained side effect.

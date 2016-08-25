@@ -14,8 +14,9 @@ import '../dart_types.dart' show DartType, FunctionType, TypeKind;
 import '../elements/elements.dart';
 import '../tree/dartstring.dart' show DartString;
 import '../tree/tree.dart' as ast show Node, LiteralBool, Send;
-import '../types/types.dart'
+import '../types/masks.dart'
     show
+        CommonMasks,
         ContainerTypeMask,
         DictionaryTypeMask,
         MapTypeMask,
@@ -491,18 +492,18 @@ class MemberTypeInformation extends ElementTypeInformation
       }
     }
 
-    Compiler compiler = inferrer.compiler;
+    CommonMasks commonMasks = inferrer.commonMasks;
     if (element.isConstructor) {
       ConstructorElement constructor = element;
       if (constructor.isIntFromEnvironmentConstructor) {
         giveUp(inferrer);
-        return compiler.typesTask.intType.nullable();
+        return commonMasks.intType.nullable();
       } else if (constructor.isBoolFromEnvironmentConstructor) {
         giveUp(inferrer);
-        return compiler.typesTask.boolType.nullable();
+        return commonMasks.boolType.nullable();
       } else if (constructor.isStringFromEnvironmentConstructor) {
         giveUp(inferrer);
-        return compiler.typesTask.stringType.nullable();
+        return commonMasks.stringType.nullable();
       }
     }
     return null;
@@ -836,7 +837,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     TypeMask receiverType = receiver.type;
 
     if (mask != receiverType) {
-      return receiverType == inferrer.compiler.typesTask.dynamicType
+      return receiverType == inferrer.commonMasks.dynamicType
           ? null
           : receiverType;
     } else {
@@ -1725,12 +1726,12 @@ TypeMask _narrowType(Compiler compiler, TypeMask type, DartType annotation,
   if (annotation.isObject) return type;
   TypeMask otherType;
   if (annotation.isTypedef || annotation.isFunctionType) {
-    otherType = compiler.typesTask.functionType;
+    otherType = compiler.commonMasks.functionType;
   } else if (annotation.isTypeVariable) {
     // TODO(ngeoffray): Narrow to bound.
     return type;
   } else if (annotation.isVoid) {
-    otherType = compiler.typesTask.nullType;
+    otherType = compiler.commonMasks.nullType;
   } else {
     assert(annotation.isInterfaceType);
     otherType = new TypeMask.nonNullSubtype(annotation.element, compiler.world);

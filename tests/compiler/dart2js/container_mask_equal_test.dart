@@ -30,7 +30,7 @@ main() {
   asyncTest(() async {
     var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     var compiler = result.compiler;
-    var typesInferrer = compiler.typesTask.typesInferrer;
+    var typesInferrer = compiler.globalInference.typesInferrer;
 
     var element = compiler.mainApp.find('a');
     var mask1 = typesInferrer.getReturnTypeOfElement(element);

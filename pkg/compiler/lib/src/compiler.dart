@@ -75,7 +75,8 @@ import 'tokens/token_map.dart' show TokenMap;
 import 'tracer.dart' show Tracer;
 import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
-import 'types/types.dart' as ti;
+import 'types/types.dart' show GlobalTypeInferenceTask;
+import 'types/masks.dart' show CommonMasks;
 import 'universe/selector.dart' show Selector;
 import 'universe/universe.dart' show Universe;
 import 'universe/use.dart' show StaticUse;
@@ -152,6 +153,7 @@ abstract class Compiler implements LibraryLoaderListener {
   CommonElements get commonElements => _coreTypes;
   CoreClasses get coreClasses => _coreTypes;
   CoreTypes get coreTypes => _coreTypes;
+  CommonMasks get commonMasks => globalInference.masks;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
 
@@ -179,7 +181,7 @@ abstract class Compiler implements LibraryLoaderListener {
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
-  ti.TypesTask typesTask;
+  GlobalTypeInferenceTask globalInference;
   Backend backend;
 
   GenericTask selfTask;
@@ -287,7 +289,7 @@ abstract class Compiler implements LibraryLoaderListener {
       resolver = createResolverTask(),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
-      typesTask = new ti.TypesTask(this),
+      globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
@@ -720,7 +722,7 @@ abstract class Compiler implements LibraryLoaderListener {
         deferredLoadTask.onResolutionComplete(mainFunction);
 
         reporter.log('Inferring types...');
-        typesTask.onResolutionComplete(mainFunction);
+        globalInference.runGlobalTypeInference(mainFunction);
 
         if (stopAfterTypeInference) return;
 
@@ -1222,7 +1224,7 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
   }
 
   bool isFunctionApplyMethod(Element element) =>
-    element.name == 'apply' && element.enclosingClass == functionClass;
+      element.name == 'apply' && element.enclosingClass == functionClass;
 
   ClassElement _nullClass;
   ClassElement get nullClass =>

@@ -217,8 +217,8 @@ void doTest(String allocation, [String keyElement,
   var classWorld = compiler.world;
   asyncTest(() => compiler.run(uri).then((_) {
     var keyType, valueType;
-    var typesTask = compiler.typesTask;
-    var typesInferrer = typesTask.typesInferrer;
+    var commonMasks = compiler.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrer;
     var emptyType = new TypeMask.nonNullEmpty();
     var aKeyType =
         typesInferrer.getTypeOfElement(findElement(compiler, 'aKey'));
@@ -244,39 +244,40 @@ void doTest(String allocation, [String keyElement,
     V(TypeMask other) =>
         simplify(valueType.union(other, classWorld), compiler).nullable();
 
-    checkType('mapInField', K(aKeyType), V(typesTask.numType));
-    checkType('mapPassedToMethod', K(aKeyType), V(typesTask.numType));
-    checkType('mapReturnedFromMethod', K(aKeyType), V(typesTask.numType));
-    checkType('mapUsedWithCascade', K(aKeyType), V(typesTask.numType));
-    checkType('mapUsedInClosure', K(aKeyType), V(typesTask.numType));
-    checkType('mapPassedToSelector', K(aKeyType), V(typesTask.numType));
-    checkType('mapReturnedFromSelector', K(aKeyType), V(typesTask.numType));
-    checkType('mapUsedWithConstraint', K(aKeyType), V(typesTask.uint31Type));
-    checkType('mapEscapingFromSetter', K(aKeyType), V(typesTask.numType));
-    checkType('mapUsedInLocal', K(aKeyType), V(typesTask.numType));
-    checkType('mapEscapingInSetterValue', K(aKeyType), V(typesTask.numType));
-    checkType('mapEscapingInIndex', K(aKeyType), V(typesTask.numType));
-    checkType('mapEscapingInIndexSet', K(aKeyType), V(typesTask.uint31Type));
-    checkType('mapEscapingTwiceInIndexSet', K(aKeyType), V(typesTask.numType));
-    checkType('mapSetInNonFinalField', K(aKeyType), V(typesTask.numType));
+    checkType('mapInField', K(aKeyType), V(commonMasks.numType));
+    checkType('mapPassedToMethod', K(aKeyType), V(commonMasks.numType));
+    checkType('mapReturnedFromMethod', K(aKeyType), V(commonMasks.numType));
+    checkType('mapUsedWithCascade', K(aKeyType), V(commonMasks.numType));
+    checkType('mapUsedInClosure', K(aKeyType), V(commonMasks.numType));
+    checkType('mapPassedToSelector', K(aKeyType), V(commonMasks.numType));
+    checkType('mapReturnedFromSelector', K(aKeyType), V(commonMasks.numType));
+    checkType('mapUsedWithConstraint', K(aKeyType), V(commonMasks.uint31Type));
+    checkType('mapEscapingFromSetter', K(aKeyType), V(commonMasks.numType));
+    checkType('mapUsedInLocal', K(aKeyType), V(commonMasks.numType));
+    checkType('mapEscapingInSetterValue', K(aKeyType), V(commonMasks.numType));
+    checkType('mapEscapingInIndex', K(aKeyType), V(commonMasks.numType));
+    checkType('mapEscapingInIndexSet', K(aKeyType), V(commonMasks.uint31Type));
+    checkType('mapEscapingTwiceInIndexSet',
+        K(aKeyType), V(commonMasks.numType));
+    checkType('mapSetInNonFinalField', K(aKeyType), V(commonMasks.numType));
 
-    checkType('mapPassedToClosure', K(typesTask.dynamicType),
-                                    V(typesTask.dynamicType));
-    checkType('mapReturnedFromClosure', K(typesTask.dynamicType),
-                                        V(typesTask.dynamicType));
-    checkType('mapUsedWithNonOkSelector', K(typesTask.dynamicType),
-                                          V(typesTask.dynamicType));
+    checkType('mapPassedToClosure', K(commonMasks.dynamicType),
+                                    V(commonMasks.dynamicType));
+    checkType('mapReturnedFromClosure', K(commonMasks.dynamicType),
+                                        V(commonMasks.dynamicType));
+    checkType('mapUsedWithNonOkSelector', K(commonMasks.dynamicType),
+                                          V(commonMasks.dynamicType));
     checkType('mapPassedAsOptionalParameter', K(aKeyType),
-                                              V(typesTask.numType));
+                                              V(commonMasks.numType));
     checkType('mapPassedAsNamedParameter', K(aKeyType),
-                                           V(typesTask.numType));
+                                           V(commonMasks.numType));
     checkType('mapStoredInList', K(aKeyType),
-                                 V(typesTask.uint31Type));
-    checkType('mapStoredInListButEscapes', K(typesTask.dynamicType),
-                                           V(typesTask.dynamicType));
-    checkType('mapStoredInMap', K(aKeyType), V(typesTask.uint31Type));
-    checkType('mapStoredInMapButEscapes', K(typesTask.dynamicType),
-                                          V(typesTask.dynamicType));
+                                 V(commonMasks.uint31Type));
+    checkType('mapStoredInListButEscapes', K(commonMasks.dynamicType),
+                                           V(commonMasks.dynamicType));
+    checkType('mapStoredInMap', K(aKeyType), V(commonMasks.uint31Type));
+    checkType('mapStoredInMapButEscapes', K(commonMasks.dynamicType),
+                                          V(commonMasks.dynamicType));
 
     checkType('mapUnset', K(emptyType), V(emptyType));
     checkType('mapOnlySetWithConstraint', K(aKeyType), V(emptyType));

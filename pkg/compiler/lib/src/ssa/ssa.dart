@@ -16,7 +16,6 @@ import 'builder_kernel.dart';
 import 'codegen.dart';
 import 'nodes.dart';
 import 'optimize.dart';
-import 'types.dart';
 
 class SsaFunctionCompiler implements FunctionCompiler {
   final SsaCodeGeneratorTask generator;

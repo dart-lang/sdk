@@ -30,7 +30,7 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.typesTask.typesInferrer;
+    var typesInferrer = compiler.globalInference.typesInferrer;
 
     checkArgument(String functionName, type) {
       var functionElement = findElement(compiler, functionName);
@@ -41,7 +41,7 @@ void main() {
           functionName);
     }
 
-    checkArgument('method', compiler.typesTask.numType);
-    checkArgument('returnNum', compiler.typesTask.numType);
+    checkArgument('method', compiler.commonMasks.numType);
+    checkArgument('returnNum', compiler.commonMasks.numType);
   }));
 }

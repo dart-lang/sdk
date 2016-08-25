@@ -29,15 +29,15 @@ main() {
 // Create our own type inferrer to avoid clearing out the internal
 // data structures.
 class MyInferrer extends TypeGraphInferrer {
-  MyInferrer(compiler) : super(compiler);
+  MyInferrer(compiler, commonMasks) : super(compiler, commonMasks);
   clear() {}
 }
 
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  var inferrer = new MyInferrer(compiler);
-  compiler.typesTask.typesInferrer = inferrer;
+  var inferrer = new MyInferrer(compiler, compiler.commonMasks);
+  compiler.globalInference.typesInferrer = inferrer;
   asyncTest(() => compiler.run(uri).then((_) {
     var mainElement = findElement(compiler, 'main');
     var classA = findElement(compiler, 'A');

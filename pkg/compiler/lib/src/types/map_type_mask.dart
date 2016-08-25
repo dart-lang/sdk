@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of types;
+part of masks;
 
 /**
  * A [MapTypeMask] is a [TypeMask] for a specific allocation
@@ -77,7 +77,7 @@ class MapTypeMask extends ForwardingTypeMask {
       return new MapTypeMask(
           newForwardTo, null, null, newKeyType, newValueType);
     } else if (other.isDictionary) {
-      assert(other.keyType == classWorld.compiler.typesTask.stringType);
+      assert(other.keyType == classWorld.compiler.commonMasks.stringType);
       TypeMask newKeyType = keyType.union(other.keyType, classWorld);
       TypeMask newValueType =
           other.typeMap.values.fold(keyType, (p, n) => p.union(n, classWorld));

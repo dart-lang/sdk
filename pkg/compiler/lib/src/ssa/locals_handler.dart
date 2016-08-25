@@ -85,8 +85,6 @@ class LocalsHandler {
     return type;
   }
 
-  get typesTask => compiler.typesTask;
-
   /// Creates a new [LocalsHandler] based on [other]. We only need to
   /// copy the [directLocals], since the other fields can be shared
   /// throughout the AST visit.

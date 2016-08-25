@@ -24,11 +24,11 @@ Future runTest() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   return compiler.run(uri).then((_) {
-    var typesTask = compiler.typesTask;
-    var typesInferrer = typesTask.typesInferrer;
+    var commonMasks = compiler.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrer;
     var element = findElement(compiler, "foo");
     var mask = typesInferrer.getReturnTypeOfElement(element);
-    Expect.equals(typesTask.uint31Type, simplify(mask, compiler));
+    Expect.equals(commonMasks.uint31Type, simplify(mask, compiler));
   });
 }
 

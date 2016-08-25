@@ -205,7 +205,7 @@ CompilerImpl compilerFor(
     cachedCompiler.resolver = null;
     cachedCompiler.closureToClassMapper = null;
     cachedCompiler.checker = null;
-    cachedCompiler.typesTask = null;
+    cachedCompiler.globalInference = null;
     cachedCompiler.backend = null;
     // Don't null out the enqueuer as it prevents us from using cachedCompiler
     // more than once.

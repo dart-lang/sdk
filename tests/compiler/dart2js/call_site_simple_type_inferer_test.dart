@@ -219,7 +219,7 @@ void doTest(String test, bool enableInlining, Function f) {
       var expectedTypes = f(compiler);
       var signature = element.functionSignature;
       int index = 0;
-      var inferrer = compiler.typesTask.typesInferrer;
+      var inferrer = compiler.globalInference.typesInferrer;
       signature.forEachParameter((Element element) {
         Expect.equals(expectedTypes[index++],
             simplify(inferrer.getTypeOfElement(element), compiler),
@@ -239,47 +239,47 @@ subclassOfInterceptor(compiler) {
 }
 
 void test() {
-  runTest(TEST_1, (compiler) => [compiler.typesTask.stringType]);
-  runTest(TEST_2, (compiler) => [compiler.typesTask.uint31Type]);
-  runTest(TEST_3, (compiler) => [compiler.typesTask.intType]);
-  runTest(TEST_4, (compiler) => [compiler.typesTask.numType]);
-  runTest(TEST_5, (compiler) => [compiler.typesTask.numType]);
-  runTest(TEST_6, (compiler) => [compiler.typesTask.numType]);
+  runTest(TEST_1, (compiler) => [compiler.commonMasks.stringType]);
+  runTest(TEST_2, (compiler) => [compiler.commonMasks.uint31Type]);
+  runTest(TEST_3, (compiler) => [compiler.commonMasks.intType]);
+  runTest(TEST_4, (compiler) => [compiler.commonMasks.numType]);
+  runTest(TEST_5, (compiler) => [compiler.commonMasks.numType]);
+  runTest(TEST_6, (compiler) => [compiler.commonMasks.numType]);
   runTest(TEST_7a, (compiler) => [subclassOfInterceptor(compiler)]);
   runTest(TEST_7b,
-      (compiler) => [compiler.typesTask.dynamicType.nonNullable()]);
+      (compiler) => [compiler.commonMasks.dynamicType.nonNullable()]);
 
-  runTest(TEST_8, (compiler) => [compiler.typesTask.uint31Type,
-                                 subclassOfInterceptor(compiler),
-                                 compiler.typesTask.dynamicType.nonNullable()]);
-  runTest(TEST_9, (compiler) => [compiler.typesTask.uint31Type,
-                                 compiler.typesTask.uint31Type]);
-  runTest(TEST_10, (compiler) => [compiler.typesTask.uint31Type,
-                                 compiler.typesTask.uint31Type]);
+  runTest(TEST_8, (compiler) => [compiler.commonMasks.uint31Type,
+      subclassOfInterceptor(compiler),
+      compiler.commonMasks.dynamicType.nonNullable()]);
+  runTest(TEST_9, (compiler) => [compiler.commonMasks.uint31Type,
+      compiler.commonMasks.uint31Type]);
+  runTest(TEST_10, (compiler) => [compiler.commonMasks.uint31Type,
+      compiler.commonMasks.uint31Type]);
   runTest(TEST_11, (compiler) => [subclassOfInterceptor(compiler),
-                                  subclassOfInterceptor(compiler)]);
+      subclassOfInterceptor(compiler)]);
 
-  runTest(TEST_12, (compiler) => [compiler.typesTask.stringType,
-                                  compiler.typesTask.uint31Type]);
+  runTest(TEST_12, (compiler) => [compiler.commonMasks.stringType,
+      compiler.commonMasks.uint31Type]);
 
-  runTest(TEST_13, (compiler) => [compiler.typesTask.numType]);
+  runTest(TEST_13, (compiler) => [compiler.commonMasks.numType]);
 
-  runTest(TEST_14, (compiler) => [compiler.typesTask.uint31Type,
-                                  compiler.typesTask.stringType]);
+  runTest(TEST_14, (compiler) => [compiler.commonMasks.uint31Type,
+      compiler.commonMasks.stringType]);
 
-  runTest(TEST_15, (compiler) => [compiler.typesTask.stringType,
-                                  compiler.typesTask.boolType]);
+  runTest(TEST_15, (compiler) => [compiler.commonMasks.stringType,
+      compiler.commonMasks.boolType]);
 
-  runTest(TEST_16, (compiler) => [compiler.typesTask.uint31Type,
-                                  compiler.typesTask.uint31Type,
-                                  compiler.typesTask.stringType]);
+  runTest(TEST_16, (compiler) => [compiler.commonMasks.uint31Type,
+      compiler.commonMasks.uint31Type,
+      compiler.commonMasks.stringType]);
 
-  runTest(TEST_17, (compiler) => [compiler.typesTask.uint31Type,
-                                  compiler.typesTask.boolType,
-                                  compiler.typesTask.doubleType]);
+  runTest(TEST_17, (compiler) => [compiler.commonMasks.uint31Type,
+      compiler.commonMasks.boolType,
+      compiler.commonMasks.doubleType]);
 
   runTest(TEST_18, (compiler) => [subclassOfInterceptor(compiler),
-                                  subclassOfInterceptor(compiler)]);
+      subclassOfInterceptor(compiler)]);
 }
 
 void main() {

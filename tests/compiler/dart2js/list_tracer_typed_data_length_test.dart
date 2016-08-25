@@ -29,7 +29,7 @@ void main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(memorySourceFiles: TEST);
     Compiler compiler = result.compiler;
-    var typesInferrer = compiler.typesTask.typesInferrer;
+    var typesInferrer = compiler.globalInference.typesInferrer;
 
     checkType(String name, type, length) {
       var element = findElement(compiler, name);
@@ -40,7 +40,7 @@ void main() {
       Expect.equals(container.length, length);
     }
 
-    checkType('myList', compiler.typesTask.numType, 42);
-    checkType('myOtherList', compiler.typesTask.uint31Type, 32);
+    checkType('myList', compiler.commonMasks.numType, 42);
+    checkType('myOtherList', compiler.commonMasks.uint31Type, 32);
   });
 }

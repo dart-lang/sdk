@@ -125,9 +125,7 @@ class NoSuchMethodRegistry {
   }
 
   _subcategorizeOther(FunctionElement element) {
-    TypeMask returnType =
-        _compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
-    if (returnType == const TypeMask.nonNullEmpty()) {
+    if (_compiler.globalInference.throwsAlways(element)) {
       complexNoReturnImpls.add(element);
     } else {
       complexReturningImpls.add(element);

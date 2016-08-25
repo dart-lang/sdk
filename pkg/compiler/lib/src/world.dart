@@ -19,7 +19,7 @@ import 'elements/elements.dart'
         TypedefElement,
         VariableElement;
 import 'ordered_typeset.dart';
-import 'types/types.dart' as ti;
+import 'types/masks.dart' show TypeMask, FlatTypeMask;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
@@ -190,10 +190,10 @@ class World implements ClassWorld {
   ClassElement get stringClass => coreClasses.stringClass;
   ClassElement get nullClass => coreClasses.nullClass;
 
-  /// Cache of [ti.FlatTypeMask]s grouped by the 8 possible values of the
-  /// [ti.FlatTypeMask.flags] property.
-  List<Map<ClassElement, ti.TypeMask>> canonicalizedTypeMasks =
-      new List<Map<ClassElement, ti.TypeMask>>.filled(8, null);
+  /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
+  /// `FlatTypeMask.flags` property.
+  List<Map<ClassElement, TypeMask>> canonicalizedTypeMasks =
+      new List<Map<ClassElement, TypeMask>>.filled(8, null);
 
   bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
     return invariant(cls, cls.isDeclaration,
@@ -710,7 +710,7 @@ class World implements ClassWorld {
     users.add(mixinApplication);
   }
 
-  bool hasAnyUserDefinedGetter(Selector selector, ti.TypeMask mask) {
+  bool hasAnyUserDefinedGetter(Selector selector, TypeMask mask) {
     return allFunctions.filter(selector, mask).any((each) => each.isGetter);
   }
 
@@ -720,23 +720,23 @@ class World implements ClassWorld {
     }
   }
 
-  VariableElement locateSingleField(Selector selector, ti.TypeMask mask) {
+  VariableElement locateSingleField(Selector selector, TypeMask mask) {
     Element result = locateSingleElement(selector, mask);
     return (result != null && result.isField) ? result : null;
   }
 
-  Element locateSingleElement(Selector selector, ti.TypeMask mask) {
-    mask = mask == null ? compiler.typesTask.dynamicType : mask;
+  Element locateSingleElement(Selector selector, TypeMask mask) {
+    mask ??= compiler.commonMasks.dynamicType;
     return mask.locateSingleElement(selector, mask, compiler);
   }
 
-  ti.TypeMask extendMaskIfReachesAll(Selector selector, ti.TypeMask mask) {
+  TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
     bool canReachAll = true;
     if (mask != null) {
       canReachAll = compiler.enabledInvokeOn &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
-    return canReachAll ? compiler.typesTask.dynamicType : mask;
+    return canReachAll ? compiler.commonMasks.dynamicType : mask;
   }
 
   void addFunctionCalledInLoop(Element element) {
@@ -791,7 +791,7 @@ class World implements ClassWorld {
     sideEffectsFreeElements.add(element);
   }
 
-  SideEffects getSideEffectsOfSelector(Selector selector, ti.TypeMask mask) {
+  SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask) {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();

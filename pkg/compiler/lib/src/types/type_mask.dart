@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of types;
+part of masks;
 
 /// An implementation of a [UniverseSelectorConstraints] that is consists if an only
 /// increasing set of [TypeMask]s, that is, once a mask is added it cannot be
