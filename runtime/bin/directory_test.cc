@@ -70,7 +70,7 @@ TEST_CASE(DirectorySetCurrent) {
   const char* new_current = dart::bin::Directory::Current();
   EXPECT_NOTNULL(new_current);
 
-  EXPECT_EQ(0, strcmp(system_temp, new_current));
+  EXPECT_NOTNULL(strstr(new_current, system_temp));
 
   EXPECT(dart::bin::Directory::SetCurrent(current));
 }
