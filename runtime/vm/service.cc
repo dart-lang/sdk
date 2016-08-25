@@ -1961,13 +1961,16 @@ static bool PrintInboundReferences(Thread* thread,
         intptr_t element_index = slot_offset.Value();
         jselement.AddProperty("_parentWordOffset", element_index);
       }
-
-      // We nil out the array after generating the response to prevent
-      // reporting suprious references when repeatedly looking for the
-      // references to an object.
-      path.SetAt(i * 2, Object::null_object());
     }
   }
+
+  // We nil out the array after generating the response to prevent
+  // reporting suprious references when repeatedly looking for the
+  // references to an object.
+  for (intptr_t i = 0; i < path.Length(); i++) {
+    path.SetAt(i, Object::null_object());
+  }
+
   return true;
 }
 
@@ -2079,8 +2082,8 @@ static bool PrintRetainingPath(Thread* thread,
   // We nil out the array after generating the response to prevent
   // reporting spurious references when looking for inbound references
   // after looking for a retaining path.
-  for (intptr_t i = 0; i < limit; ++i) {
-    path.SetAt(i * 2, Object::null_object());
+  for (intptr_t i = 0; i < path.Length(); i++) {
+    path.SetAt(i, Object::null_object());
   }
 
   return true;
@@ -2386,23 +2389,24 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   ObjectGraph graph(thread);
   graph.IterateObjects(&visitor);
   intptr_t count = visitor.count();
-  if (count < limit) {
-    // Truncate the list using utility method for GrowableObjectArray.
-    GrowableObjectArray& wrapper = GrowableObjectArray::Handle(
-        GrowableObjectArray::New(storage));
-    wrapper.SetLength(count);
-    storage = Array::MakeArray(wrapper);
-  }
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "InstanceSet");
   jsobj.AddProperty("totalCount", count);
   {
     JSONArray samples(&jsobj, "samples");
-    for (int i = 0; i < storage.Length(); i++) {
+    for (int i = 0; (i < storage.Length()) && (i < count); i++) {
       const Object& sample = Object::Handle(storage.At(i));
       samples.AddValue(sample);
     }
   }
+
+  // We nil out the array after generating the response to prevent
+  // reporting spurious references when looking for inbound references
+  // after looking at allInstances.
+  for (intptr_t i = 0; i < storage.Length(); i++) {
+    storage.SetAt(i, Object::null_object());
+  }
+
   return true;
 }
 

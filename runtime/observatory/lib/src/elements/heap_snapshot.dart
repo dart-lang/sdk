@@ -353,7 +353,7 @@ class HeapSnapshotElement  extends HtmlElement implements Renderable {
       element.children[3].text = '';
       if (item is Iterable<M.HeapSnapshotClassInbound>) {
         element.children[4] = new SpanElement()..classes = const ['name']
-            ..text = '${item.length} Ingoing references';
+            ..text = '${item.length} Incoming references';
       } else {
         element.children[4] = new SpanElement()..classes = const ['name']
             ..text = '${item.length} Outgoing references';
