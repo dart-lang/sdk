@@ -5,6 +5,7 @@
 #include "vm/megamorphic_cache_table.h"
 
 #include <stdlib.h>
+#include "vm/handles_impl.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/stub_code.h"

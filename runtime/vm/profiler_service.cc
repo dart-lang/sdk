@@ -5,6 +5,7 @@
 #include "vm/profiler_service.h"
 
 #include "vm/growable_array.h"
+#include "vm/handles_impl.h"
 #include "vm/hash_map.h"
 #include "vm/log.h"
 #include "vm/native_symbol.h"
