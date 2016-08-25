@@ -14,6 +14,10 @@ import 'resource_utils.dart';
 import 'utils.dart';
 
 abstract class EmbedderRelatedTest {
+  final String emptyPath = '/home/.pub-cache/empty';
+  final String foxPath = '/home/.pub-cache/fox';
+  final String foxLib = '/home/.pub-cache/fox/lib';
+
   TestPathTranslator pathTranslator;
   ResourceProvider resourceProvider;
 
@@ -22,10 +26,10 @@ abstract class EmbedderRelatedTest {
         new MemoryResourceProvider(isWindows: isWindows);
     resourceProvider = new TestResourceProvider(rawProvider);
     pathTranslator = new TestPathTranslator(rawProvider)
-      ..newFolder('/empty')
-      ..newFolder('/tmp')
+      ..newFolder('/home/.pub-cache/empty')
+      ..newFolder('/home/.pub-cache/fox/lib')
       ..newFile(
-          '/tmp/_embedder.yaml',
+          '/home/.pub-cache/fox/lib/_embedder.yaml',
           r'''
 embedded_libs:
   "dart:core" : "core.dart"

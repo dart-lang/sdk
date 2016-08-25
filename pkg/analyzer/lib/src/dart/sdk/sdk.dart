@@ -265,10 +265,16 @@ class EmbedderSdk extends AbstractDartSdk {
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
   final Map<String, String> _urlMappings = new HashMap<String, String>();
 
+  PackageBundle _embedderBundle;
+
   EmbedderSdk(
       ResourceProvider resourceProvider, Map<Folder, YamlMap> embedderYamls) {
     this.resourceProvider = resourceProvider;
     embedderYamls?.forEach(_processEmbedderYaml);
+    if (embedderYamls?.length == 1) {
+      Folder libFolder = embedderYamls.keys.first;
+      _loadEmbedderBundle(libFolder);
+    }
   }
 
   @override
@@ -281,13 +287,15 @@ class EmbedderSdk extends AbstractDartSdk {
   Map<String, String> get urlMappings => _urlMappings;
 
   @override
-  PackageBundle getLinkedBundle() => null;
-
-  @override
   String getRelativePathFromFile(File file) => file.path;
 
   @override
-  PackageBundle getSummarySdkBundle(bool strongMode) => null;
+  PackageBundle getSummarySdkBundle(bool strongMode) {
+    if (strongMode) {
+      return _embedderBundle;
+    }
+    return null;
+  }
 
   @override
   Source internalMapDartUri(String dartUri) {
@@ -326,6 +334,16 @@ class EmbedderSdk extends AbstractDartSdk {
       return file.createSource(parseUriWithException(dartUri));
     } on URISyntaxException {
       return null;
+    }
+  }
+
+  void _loadEmbedderBundle(Folder libFolder) {
+    File bundleFile = libFolder.parent.getChildAssumingFile('sdk.ds');
+    if (bundleFile.exists) {
+      try {
+        List<int> bytes = bundleFile.readAsBytesSync();
+        _embedderBundle = new PackageBundle.fromBuffer(bytes);
+      } on FileSystemException {}
     }
   }
 

@@ -633,7 +633,7 @@ analyzer:
 class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
   void test_empty() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/empty')]
+      'fox': [pathTranslator.getResource(emptyPath)]
     });
     expect(locator.embedderYamls, hasLength(0));
   }
@@ -646,7 +646,7 @@ class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
 
   void test_valid() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': [pathTranslator.getResource(foxLib)]
     });
     expect(locator.embedderYamls, hasLength(1));
   }
