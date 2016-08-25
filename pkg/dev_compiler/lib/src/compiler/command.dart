@@ -103,7 +103,7 @@ void _compile(ArgResults argResults, void printFn(Object obj)) {
 
   // TODO(jmesserly): for now the first one is special. This will go away once
   // we've removed the "root" and "module name" variables.
-  var outPath = outPaths[0];
+  var firstOutPath = outPaths[0];
 
   var libraryRoot = argResults['library-root'] as String;
   libraryRoot ??= argResults['build-root'] as String;
@@ -116,35 +116,35 @@ void _compile(ArgResults argResults, void printFn(Object obj)) {
   String modulePath;
   if (moduleRoot != null) {
     moduleRoot = path.absolute(moduleRoot);
-    if (!path.isWithin(moduleRoot, outPath)) {
-      _usageException('Output file $outPath must be within the module root '
-          'directory $moduleRoot');
+    if (!path.isWithin(moduleRoot, firstOutPath)) {
+      _usageException('Output file $firstOutPath must be within the module '
+          'root directory $moduleRoot');
     }
     modulePath =
-        path.withoutExtension(path.relative(outPath, from: moduleRoot));
+        path.withoutExtension(path.relative(firstOutPath, from: moduleRoot));
   } else {
-    moduleRoot = path.dirname(outPath);
-    modulePath = path.basenameWithoutExtension(outPath);
+    moduleRoot = path.dirname(firstOutPath);
+    modulePath = path.basenameWithoutExtension(firstOutPath);
   }
 
   var unit = new BuildUnit(modulePath, libraryRoot, argResults.rest,
       (source) => _moduleForLibrary(moduleRoot, source, compilerOpts));
 
-  JSModuleFile module = compiler.compile(unit, compilerOpts);
+  var module = compiler.compile(unit, compilerOpts);
   module.errors.forEach(printFn);
 
   if (!module.isValid) throw new CompileErrorException();
 
   // Write JS file, as well as source map and summary (if requested).
   for (var i = 0; i < outPaths.length; i++) {
-    module.writeCodeSync(moduleFormats[i], outPaths[i]);
+    var outPath = outPaths[i];
+    module.writeCodeSync(moduleFormats[i], outPath);
     if (module.summaryBytes != null) {
       var summaryPath =
           path.withoutExtension(outPath) + '.${compilerOpts.summaryExtension}';
       new File(summaryPath).writeAsBytesSync(module.summaryBytes);
     }
   }
-
 }
 
 String _moduleForLibrary(
