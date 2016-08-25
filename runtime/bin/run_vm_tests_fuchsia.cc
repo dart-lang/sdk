@@ -31,9 +31,17 @@ const char* kSkip[] = {
   "Read",
   "FileLength",
   "FilePosition",
-  // Crash and then Hang.
+  // Crash in abort() and then hang. (MG-252)
   "ArrayLengthMaxElements",
   "Int8ListLengthMaxElements",
+  "ArrayNew_Overflow_Crash",
+  "SNPrint_BadArgs",
+  "IsolateReload_PendingUnqualifiedCall_InstanceToStatic",
+  "IsolateReload_PendingUnqualifiedCall_StaticToInstance",
+  "IsolateReload_PendingConstructorCall_AbstractToConcrete",
+  "IsolateReload_PendingConstructorCall_ConcreteToAbstract",
+  "IsolateReload_PendingStaticCall_DefinedToNSM",
+  "IsolateReload_PendingStaticCall_NSMToDefined",
   // The profiler is turned off.
   "Profiler_AllocationSampleTest",
   "Profiler_ArrayAllocation",
@@ -65,28 +73,8 @@ const char* kSkip[] = {
   "Dart2JSCompileAll",
   // Uses too much memory.
   "PrintJSON",
-};
-
-// Expected to fail/crash.
-const char* kExpectFail[] = {
-  "Fail0",
-  "Fail1",
-  "Fail2",
-  "IsolateReload_PendingUnqualifiedCall_InstanceToStatic",
-  "IsolateReload_PendingUnqualifiedCall_StaticToInstance",
-  "IsolateReload_PendingConstructorCall_AbstractToConcrete",
-  "IsolateReload_PendingConstructorCall_ConcreteToAbstract",
-  "IsolateReload_PendingStaticCall_DefinedToNSM",
-  "IsolateReload_PendingStaticCall_NSMToDefined",
-  "ArrayNew_Overflow_Crash",
-  "AllocGeneric_Overflow",
-  "CodeImmutability",
-  "SNPrint_BadArgs",
-};
-
-// Bugs to fix, or things that are not yet impelemnted.
-const char* kBugs[] = {
-  // Needs OS::GetCurrentThreadCPUMicros.
+  // Need OS::GetCurrentThreadCPUMicros.
+  // Skipping because they crash and hang. (MG-252)
   "Timeline_Dart_TimelineGetTrace",
   "Timeline_Dart_TimelineGetTraceOnlyDartEvents",
   "Timeline_Dart_TimelineGetTraceWithDartEvents",
@@ -101,10 +89,21 @@ const char* kBugs[] = {
   "TimelineAnalysis_ThreadBlockCount",
   "TimelineRingRecorderJSONOrder",
   "TimelinePauses_BeginEnd",
+};
+
+// Expected to fail/crash.
+const char* kExpectFail[] = {
+  "Fail0",
+  "Fail1",
+  "Fail2",
+  "AllocGeneric_Overflow",
+  "CodeImmutability",
+};
+
+// Bugs to fix, or things that are not yet implemented.
+const char* kBugs[] = {
   // Needs NativeSymbolResolver
   "Service_PersistentHandles",
-  // pthread TLS destructors are not run.
-  "ThreadIterator_AddFindRemove",
 };
 
 
@@ -165,6 +164,8 @@ static mx_status_t lp_setup(launchpad_t** lp_out, mx_handle_t binary_vmo,
   status = launchpad_add_pipe(lp, stderr_out, 2);
   RETURN_IF_ERROR(status);
   status = launchpad_elf_load(lp, binary_vmo);
+  RETURN_IF_ERROR(status);
+  status = launchpad_load_vdso(lp, MX_HANDLE_INVALID);
   RETURN_IF_ERROR(status);
   *lp_out = lp;
   return status;
