@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../elements/elements.dart';
+import '../types/types.dart';
 import 'nodes.dart';
 
 /// Base class for objects that build up an SSA graph.
@@ -34,6 +36,11 @@ abstract class GraphBuilder {
   /// abort on statement boundaries, not in the middle of expressions. See
   /// [isAborted].
   bool isReachable = true;
+
+  HParameterValue lastAddedParameter;
+
+  Map<ParameterElement, HInstruction> parameters =
+      <ParameterElement, HInstruction>{};
 
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();
@@ -83,5 +90,16 @@ abstract class GraphBuilder {
 
   void add(HInstruction instruction) {
     current.add(instruction);
+  }
+
+  HParameterValue addParameter(Entity parameter, TypeMask type) {
+    HParameterValue result = new HParameterValue(parameter, type);
+    if (lastAddedParameter == null) {
+      graph.entry.addBefore(graph.entry.first, result);
+    } else {
+      graph.entry.addAfter(lastAddedParameter, result);
+    }
+    lastAddedParameter = result;
+    return result;
   }
 }

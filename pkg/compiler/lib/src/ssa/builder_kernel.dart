@@ -14,6 +14,7 @@ import '../kernel/kernel.dart';
 import '../kernel/kernel_visitor.dart';
 import '../resolution/tree_elements.dart';
 import 'graph_builder.dart';
+import 'locals_handler.dart';
 import 'nodes.dart';
 
 class SsaKernelBuilderTask extends CompilerTask {
@@ -38,8 +39,8 @@ class SsaKernelBuilderTask extends CompilerTask {
       } catch (e) {
         throw "Failed to convert to Kernel IR: $e";
       }
-      KernelSsaBuilder builder =
-          new KernelSsaBuilder(function, element, backend.compiler);
+      KernelSsaBuilder builder = new KernelSsaBuilder(function, element,
+          work.resolvedAst, backend.compiler, sourceInformationFactory);
       return builder.build();
     });
   }
@@ -53,13 +54,29 @@ class SsaKernelBuilderTask extends CompilerTask {
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final IrFunction function;
   final FunctionElement functionElement;
+  final ResolvedAst resolvedAst;
   final Compiler compiler;
 
-  KernelSsaBuilder(this.function, this.functionElement, this.compiler);
+  JavaScriptBackend get backend => compiler.backend;
+
+  LocalsHandler localsHandler;
+  SourceInformationBuilder sourceInformationBuilder;
+
+  KernelSsaBuilder(this.function, this.functionElement, this.resolvedAst,
+      this.compiler, SourceInformationStrategy sourceInformationFactory) {
+    graph.element = functionElement;
+    // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
+    this.sourceInformationBuilder =
+        sourceInformationFactory.createBuilderForContext(resolvedAst);
+    graph.sourceInformation =
+        sourceInformationBuilder.buildVariableDeclaration();
+    this.localsHandler =
+        new LocalsHandler(this, functionElement, null, compiler);
+  }
 
   HGraph build() {
     if (function.kind == ir.ProcedureKind.Method) {
-      buildMethod(function);
+      buildMethod(function, functionElement);
     } else {
       compiler.reporter.internalError(
           functionElement,
@@ -71,16 +88,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   /// Builds a SSA graph for [method].
-  void buildMethod(IrFunction method) {
+  void buildMethod(IrFunction method, FunctionElement functionElement) {
     // TODO(het): Determine whether or not this method is called in a loop and
-    //     set [graph.isCalledInLoop].
-    openFunction(method);
+    // set [graph.isCalledInLoop].
+    openFunction(method, functionElement);
   }
 
-  void openFunction(IrFunction method) {
+  void openFunction(IrFunction method, FunctionElement functionElement) {
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
     // TODO(het): Register parameters with a locals handler
+    localsHandler.startFunction(functionElement, resolvedAst.node);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
@@ -89,6 +107,5 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // enclosing class as parameters to the method. This must be done before
     // adding normal parameters because their types may contain references to
     // the class type parameters.
-
   }
 }
