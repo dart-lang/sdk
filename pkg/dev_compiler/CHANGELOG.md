@@ -1,5 +1,10 @@
 # dev_compiler changelog
 
+## next release
+- add support for AMD modules and make it the default.
+- precompile the SDK in AMD, CommonJS, and ES6 flavors.
+- legacy module format is deprecated.
+
 ## 0.1.24
 - workaround breaking change on requestAnimationFrame
 

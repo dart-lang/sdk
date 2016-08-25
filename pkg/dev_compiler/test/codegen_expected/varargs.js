@@ -1,6 +1,4 @@
-dart_library.library('varargs', null, /* Imports */[
-  'dart_sdk'
-], function load__varargs(exports, dart_sdk) {
+define(['dart_sdk'], function(dart_sdk) {
   'use strict';
   const core = dart_sdk.core;
   const dart = dart_sdk.dart;
@@ -32,6 +30,8 @@ dart_library.library('varargs', null, /* Imports */[
   };
   dart.fn(src__varargs.spread, dynamicTodynamic());
   // Exports:
-  exports.varargs = varargs;
-  exports.src__varargs = src__varargs;
+  return {
+    varargs: varargs,
+    src__varargs: src__varargs
+  };
 });

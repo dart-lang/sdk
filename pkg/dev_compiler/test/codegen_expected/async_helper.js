@@ -1,6 +1,4 @@
-dart_library.library('async_helper', null, /* Imports */[
-  'dart_sdk'
-], function load__async_helper(exports, dart_sdk) {
+define(['dart_sdk'], function(dart_sdk) {
   'use strict';
   const core = dart_sdk.core;
   const dart = dart_sdk.dart;
@@ -72,5 +70,7 @@ dart_library.library('async_helper', null, /* Imports */[
   };
   dart.fn(async_helper.asyncTest, FnTovoid());
   // Exports:
-  exports.async_helper = async_helper;
+  return {
+    async_helper: async_helper
+  };
 });

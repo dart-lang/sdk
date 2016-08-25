@@ -5,7 +5,7 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 mkdir -p gen/codegen_output/pkg/
 
-SDK=--dart-sdk-summary=lib/runtime/dart_sdk.sum
+SDK=--dart-sdk-summary=lib/js/amd/dart_sdk.sum
 
 ./bin/dartdevc.dart $SDK -o gen/codegen_output/pkg/expect.js \
     --url-mapping=package:expect/expect.dart,test/codegen/expect.dart \
@@ -29,6 +29,9 @@ SDK=--dart-sdk-summary=lib/runtime/dart_sdk.sum
     package:stack_trace/stack_trace.dart
 
 ./bin/dartdevc.dart $SDK -o gen/codegen_output/pkg/unittest.js \
+    -s gen/codegen_output/pkg/matcher.sum \
+    -s gen/codegen_output/pkg/path.sum \
+    -s gen/codegen_output/pkg/stack_trace.sum \
     package:unittest/unittest.dart \
     package:unittest/html_config.dart \
     package:unittest/html_individual_config.dart \

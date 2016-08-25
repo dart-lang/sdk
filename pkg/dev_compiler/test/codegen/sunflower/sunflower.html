@@ -31,10 +31,18 @@
 <!--
     <script type="application/dart" src="sunflower.dart"></script>
 -->
-    <script src="../../../lib/runtime/dart_library.js"></script>
-    <script src="../../../lib/runtime/dart_sdk.js"></script>
-    <script src="../expect/js/js.js"></script>
-    <script src="../expect/sunflower/sunflower.js"></script>
-    <script>dart_library.start('sunflower')</script>
+    <script src="../../../node_modules/requirejs/require.js"></script>
+    <script>
+      require.config({
+        paths: {
+          dart_sdk: "../../../lib/js/amd/dart_sdk",
+          js: "../../../gen/codegen_output/pkg/js",
+        }
+      });
+      require(["../../../gen/codegen_output/sunflower/sunflower"],
+          (sunflower) => {
+        sunflower.sunflower.main();
+      });
+    </script>
   </body>
 </html>

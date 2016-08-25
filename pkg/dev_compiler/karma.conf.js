@@ -13,26 +13,17 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'lib/runtime/dart_*.js',
-      // {pattern: 'test/browser/*.js', included: false}
-      'gen/codegen_output/pkg/*.js',
-      'gen/codegen_output/language/**.js',
-      'gen/codegen_output/language/**.err',
-      'gen/codegen_output/corelib/**.js',
-      'gen/codegen_output/corelib/**.err',
-      'gen/codegen_output/lib/convert/**.js',
-      'gen/codegen_output/lib/html/**.js',
-      'gen/codegen_output/lib/math/**.js',
-      'gen/codegen_output/lib/mirrors/**.js',
-      'gen/codegen_output/lib/typed_data/**.js',
-      'gen/codegen_output/lib/*/**.err',
-      'test/browser/*.js',
+      {pattern: 'lib/js/amd/dart_sdk.js', included: false},
+      {pattern: 'gen/codegen_output/pkg/*.js', included: false},
+      {pattern: 'gen/codegen_output/language/**/*.js', included: false},
+      {pattern: 'gen/codegen_output/corelib/**/*.js', included: false},
+      {pattern: 'gen/codegen_output/lib/**/*.js', included: false},
+      {pattern: 'test/browser/*.js', included: false},
       'test-main.js',
     ],
 
     // list of files to exclude
-    exclude: [
-    ],
+    exclude: [],
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor

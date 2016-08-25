@@ -1,6 +1,4 @@
-dart_library.library('expect', null, /* Imports */[
-  'dart_sdk'
-], function load__expect(exports, dart_sdk) {
+define(['dart_sdk'], function(dart_sdk) {
   'use strict';
   const core = dart_sdk.core;
   const dart = dart_sdk.dart;
@@ -300,5 +298,7 @@ dart_library.library('expect', null, /* Imports */[
     constructors: () => ({new: dart.definiteFunctionType(expect.AssumeDynamic, [])})
   });
   // Exports:
-  exports.expect = expect;
+  return {
+    expect: expect
+  };
 });

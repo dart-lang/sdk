@@ -1536,11 +1536,12 @@ main() {
     });
 
     // Equality and identity.
-    test("Identical and equals", () {
+    // TODO(jmesserly): https://github.com/dart-lang/dev_compiler/issues/265
+    skip_test("Identical and equals", () {
       expect(async.instanceMethod, equals(async.instanceMethod));
       expect(Async.staticMethod, same(Async.staticMethod));
       expect(topMethod, same(topMethod));
-    }, skip: 'https://github.com/dart-lang/dev_compiler/issues/265');
+    });
   });
 
   group("await expression", () {
@@ -1623,13 +1624,14 @@ main() {
       return expect42(f());
     });
 
-    test("suffix operator + pre-increment", () {
+    // TODO(jmesserly): https://github.com/dart-lang/dev_compiler/issues/265
+    skip_test("suffix operator + pre-increment", () {
       f() async {
         var v = [41];
         return await ++v[0];
       }
       return expect42(f());
-    }, skip: 'https://github.com/dart-lang/dev_compiler/issues/267');
+    });
 
     test("assignment operator", () {
       f() async {
@@ -1963,8 +1965,8 @@ Future syncInAsync(f) async {
 class FakeValueFuture implements Future {
   final _value;
   FakeValueFuture(this._value);
-  Future/*<S>*/ then/*<S>*/(/*=S*/ callback(value), {Function onError}) {
-    return new Future<dynamic /*=S*/>.microtask(() => callback(_value));
+  Future/*<S>*/ then/*<S>*/(callback(value), {Function onError}) {
+    return new Future/*<S>*/.microtask(() => callback(_value));
   }
   Future whenComplete(callback()) {
     return new Future.microtask(() { callback(); });
@@ -1982,7 +1984,7 @@ typedef BinaryFunction(a, b);
 class FakeErrorFuture implements Future {
   final _error;
   FakeErrorFuture(this._error);
-  Future/*<S>*/ then/*<S>*/(/*=S*/ callback(value), {Function onError}) {
+  Future/*<S>*/ then/*<S>*/(callback(value), {Function onError}) {
     if (onError != null) {
       if (onError is BinaryFunction) {
         return new Future/*<S>*/.microtask(() => onError(_error, null));

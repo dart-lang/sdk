@@ -304,6 +304,7 @@ abstract class Node {
   }
 }
 
+// TODO(jmesserly): rename to Module.
 class Program extends Node {
   /// Script tag hash-bang, e.g. `#!/usr/bin/env node`
   final String scriptTag;

@@ -5,7 +5,7 @@
 part of js_ast;
 
 /**
- * Transforms EcmaScript 6 modules to an ES 5 file using a module pattern.
+ * Transforms ECMAScript 6 modules to an ES 5 file using a module pattern.
  *
  * There are various module patterns in JavaScript, see
  * <http://babeljs.io/docs/usage/modules/> for some examples.

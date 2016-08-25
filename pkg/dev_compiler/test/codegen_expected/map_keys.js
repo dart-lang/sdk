@@ -1,6 +1,4 @@
-dart_library.library('map_keys', null, /* Imports */[
-  'dart_sdk'
-], function load__map_keys(exports, dart_sdk) {
+define(['dart_sdk'], function(dart_sdk) {
   'use strict';
   const core = dart_sdk.core;
   const math = dart_sdk.math;
@@ -18,7 +16,9 @@ dart_library.library('map_keys', null, /* Imports */[
   };
   dart.fn(map_keys.main, VoidTodynamic());
   // Exports:
-  exports.map_keys = map_keys;
+  return {
+    map_keys: map_keys
+  };
 });
 
-//# sourceMappingURL=map_keys.js.map
+//# sourceMappingURL=/Users/jmesserly/src/dev_compiler/test/codegen_expected/map_keys.js.map

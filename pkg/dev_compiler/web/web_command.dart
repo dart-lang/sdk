@@ -8,20 +8,18 @@ import 'dart:async';
 import 'dart:html' show HttpRequest;
 import 'dart:convert' show BASE64;
 
-import 'package:analyzer/file_system/file_system.dart'
-    show ResourceUriResolver;
+import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
 import 'package:analyzer/file_system/memory_file_system.dart'
     show MemoryResourceProvider;
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
-import 'package:analyzer/src/generated/source.dart'
-    show DartUriResolver;
+import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show
-    SummaryDataStore,
-    InSummaryPackageUriResolver,
-    InputPackagesResultProvider,
-    InSummarySource;
+        SummaryDataStore,
+        InSummaryPackageUriResolver,
+        InputPackagesResultProvider,
+        InSummarySource;
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 
 import 'package:args/command_runner.dart';
@@ -30,6 +28,7 @@ import 'package:dev_compiler/src/analyzer/context.dart' show AnalyzerOptions;
 import 'package:dev_compiler/src/compiler/compiler.dart'
     show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
 
+import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:js/js.dart';
 
 typedef void MessageHandler(Object message);
@@ -104,7 +103,7 @@ class WebCompileCommand extends Command {
         resourceProvider: resourceProvider);
 
     (compiler.context as AnalysisContextImpl).resultProvider =
-    new InputPackagesResultProvider(compiler.context, summaryDataStore);
+        new InputPackagesResultProvider(compiler.context, summaryDataStore);
 
     var compilerOptions = new CompilerOptions.fromArguments(argResults);
 
@@ -119,7 +118,10 @@ class WebCompileCommand extends Command {
       module.errors.forEach(messageHandler);
 
       if (!module.isValid) throw new CompileErrorException();
-      return module.code;
+
+      var code =
+          module.getCode(ModuleFormat.amd, unit.name, unit.name + '.map');
+      return code.code;
     };
 
     return allowInterop(compileFn);

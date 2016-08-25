@@ -23,7 +23,6 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/src/task/strong/ast_properties.dart'
     show isDynamicInvoke, setIsDynamicInvoke;
-import 'package:source_maps/source_maps.dart';
 import 'package:path/path.dart' show separator;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
@@ -31,7 +30,7 @@ import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import 'ast_builder.dart' show AstBuilder;
 import 'compiler.dart'
-    show BuildUnit, CompilerOptions, JSModuleFile, ModuleFormat;
+    show BuildUnit, CompilerOptions, JSModuleFile;
 import 'element_helpers.dart';
 import 'element_loader.dart' show ElementLoader;
 import 'extension_types.dart' show ExtensionTypeSet;
@@ -40,12 +39,10 @@ import 'js_interop.dart';
 import 'js_metalet.dart' as JS;
 import 'js_names.dart' as JS;
 import 'js_typeref_codegen.dart' show JsTypeRefCodegen;
-import 'module_builder.dart'
-    show LegacyModuleBuilder, NodeModuleBuilder, pathToJSIdentifier;
+import 'module_builder.dart' show pathToJSIdentifier;
 import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'reify_coercions.dart' show CoercionReifier;
 import 'side_effect_analysis.dart' show ConstFieldVisitor, isStateless;
-import 'source_map_printer.dart' show SourceMapPrintingContext;
 import 'type_utilities.dart';
 
 class CodeGenerator extends GeneralizingAstVisitor
@@ -173,46 +170,21 @@ class CodeGenerator extends GeneralizingAstVisitor
       _libraryRoot = '$_libraryRoot${separator}';
     }
 
-    var jsTree = _emitModule(compilationUnits);
-    var codeAndSourceMap = _writeJSText(unit, jsTree);
+    var module = _emitModule(compilationUnits);
+    var dartApiSummary = _summarizeModule(compilationUnits);
 
-    List<int> summary;
-    if (options.summarizeApi) {
-      var assembler = new PackageBundleAssembler();
-      compilationUnits
-          .map((u) => u.element.library)
-          .toSet()
-          .forEach(assembler.serializeLibraryElement);
-      summary = assembler.assemble().toBuffer();
-    }
-
-    return new JSModuleFile(
-        unit.name, errors, codeAndSourceMap.e0, codeAndSourceMap.e1, summary);
+    return new JSModuleFile(unit.name, errors, options, module, dartApiSummary);
   }
 
-  Tuple2<String, Map> _writeJSText(BuildUnit unit, JS.Program jsTree) {
-    var opts = new JS.JavaScriptPrintingOptions(
-        emitTypes: options.closure,
-        allowKeywordsInProperties: true,
-        allowSingleLineIfStatements: true);
-    JS.SimpleJavaScriptPrintingContext printer;
-    SourceMapBuilder sourceMap;
-    if (options.sourceMap) {
-      var sourceMapContext = new SourceMapPrintingContext();
-      sourceMap = sourceMapContext.sourceMap;
-      printer = sourceMapContext;
-    } else {
-      printer = new JS.SimpleJavaScriptPrintingContext();
-    }
+  List<int> _summarizeModule(List<CompilationUnit> compilationUnits) {
+    if (!options.summarizeApi) return null;
 
-    jsTree.accept(new JS.Printer(opts, printer,
-        localNamer: new JS.TemporaryNamer(jsTree)));
-
-    if (options.sourceMap && options.sourceMapComment) {
-      printer.emit('\n//# sourceMappingURL=${unit.name}.js.map\n');
-    }
-
-    return new Tuple2(printer.getText(), sourceMap?.build(unit.name + '.js'));
+    var assembler = new PackageBundleAssembler();
+    compilationUnits
+        .map((u) => u.element.library)
+        .toSet()
+        .forEach(assembler.serializeLibraryElement);
+    return assembler.assemble().toBuffer();
   }
 
   JS.Program _emitModule(List<CompilationUnit> compilationUnits) {
@@ -284,18 +256,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     _copyAndFlattenBlocks(items, _moduleItems);
 
     // Build the module.
-    var module = new JS.Program(items, name: _buildUnit.name);
-
-    // Optional: lower module format. Otherwise just return it.
-    switch (options.moduleFormat) {
-      case ModuleFormat.legacy:
-        return new LegacyModuleBuilder().build(module);
-      case ModuleFormat.node:
-        return new NodeModuleBuilder().build(module);
-      case ModuleFormat.es6:
-        return module;
-    }
-    return null; // unreachable. It is here to suppress a bogus Analyzer message
+    return new JS.Program(items, name: _buildUnit.name);
   }
 
   List<String> _getJSName(Element e) {
@@ -1750,6 +1711,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       var e = js.call('() => #', o);
       return new JS.Property(_propertyName(name), e);
     }
+
     var sigFields = <JS.Property>[];
     if (!tCtors.isEmpty) sigFields.add(build('constructors', tCtors));
     if (!tMethods.isEmpty) sigFields.add(build('methods', tMethods));
@@ -3262,8 +3224,12 @@ class CodeGenerator extends GeneralizingAstVisitor
         var vars = <JS.MetaLetVariable, JS.Expression>{};
         var l = _visit(_bindValue(vars, 'l', target));
         jsTarget = new JS.MetaLet(vars, [
-          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #])',
-              [l, l, memberName, memberName,])
+          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #])', [
+            l,
+            l,
+            memberName,
+            memberName,
+          ])
         ]);
         if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
         return new JS.Call(jsTarget, args);
@@ -3806,6 +3772,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       var args = _visit(argumentList) as List<JS.Expression>;
       return isFactory ? new JS.Call(ctor, args) : new JS.New(ctor, args);
     }
+
     if (element != null && _isObjectLiteral(element.enclosingElement)) {
       return _emitObjectLiteral(argumentList);
     }
@@ -4047,6 +4014,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
       return null;
     }
+
     if (expr is SimpleIdentifier) {
       return finishIdentifier(expr);
     } else if (expr is PrefixedIdentifier && !expr.isDeferred) {
@@ -4134,6 +4102,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (value != null) return value.bitLength;
       return MAX;
     }
+
     return bitWidth(expr, 0) < 32;
   }
 
@@ -4924,6 +4893,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       var name = js.string(node.components.join('.'), "'");
       return js.call('#.new(#)', [_emitType(types.symbolType), name]);
     }
+
     return _emitConst(emitSymbol);
   }
 
@@ -4952,6 +4922,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
       return list;
     }
+
     if (isConst) return _cacheConst(emitList);
     return emitList();
   }
@@ -4990,6 +4961,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
       return js.call('dart.map(#, #)', [mapArguments, types]);
     }
+
     if (node.constKeyword != null) return _emitConst(emitMap);
     return emitMap();
   }
@@ -5066,6 +5038,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     JS.Expression finish(JS.Expression result) {
       return annotate(result, node);
     }
+
     if (node is PrefixExpression && node.operator.lexeme == '!') {
       return finish(js.call('!#', _visitTest(node.operand)));
     }
@@ -5077,6 +5050,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         return finish(js.call(code,
             [_visitTest(node.leftOperand), _visitTest(node.rightOperand)]));
       }
+
       var op = node.operator.type.lexeme;
       if (op == '&&') return shortCircuit('# && #');
       if (op == '||') return shortCircuit('# || #');
@@ -5141,7 +5115,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///     x.get('hi')
   ///     x.set('hi', 123)
   ///
-  /// This follows the same pattern as EcmaScript 6 Map:
+  /// This follows the same pattern as ECMAScript 6 Map:
   /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map>
   ///
   /// Unary minus looks like: `x['unary-']()`. Note that [unary] must be passed
@@ -5294,8 +5268,16 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// within the file.
   ///
   /// If the value is null, the entire file is whitelisted.
+  ///
+  // TODO(jmesserly): why is this here, and what can we do to remove it?
+  //
+  // Hard coded lists are completely unnecessary -- if a feature is needed,
+  // metadata, type system features, or command line options are the right way
+  // to express it.
+  //
+  // As it is this is completely unsound and unmaintainable.
   static Map<String, List<String>> _uncheckedWhitelist = {
-    'dom_renderer.dart': ['moveNodesAfterSibling',],
+    'dom_renderer.dart': ['moveNodesAfterSibling'],
     'template_ref.dart': ['createEmbeddedView'],
     'ng_class.dart': ['_applyIterableChanges'],
     'ng_for.dart': ['_bulkRemove', '_bulkInsert'],
@@ -5335,7 +5317,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 }
 
-/// Choose a canonical name from the library element.
+/// Choose a canonical name from the [library] element.
+///
 /// This never uses the library's name (the identifier in the `library`
 /// declaration) as it doesn't have any meaningful rules enforced.
 String jsLibraryName(String libraryRoot, LibraryElement library) {

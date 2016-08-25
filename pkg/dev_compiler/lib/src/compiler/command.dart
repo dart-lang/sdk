@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show JSON;
 import 'dart:io';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
@@ -11,14 +10,16 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
 
+import '../analyzer/context.dart' show AnalyzerOptions;
 import 'compiler.dart'
     show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
-import '../analyzer/context.dart' show AnalyzerOptions;
+import 'module_builder.dart';
 
 final ArgParser _argParser = () {
   var argParser = new ArgParser()
     ..addFlag('help', abbr: 'h', help: 'Display this message.')
-    ..addOption('out', abbr: 'o', help: 'Output file (required).')
+    ..addOption('out',
+        abbr: 'o', allowMultiple: true, help: 'Output file (required).')
     ..addOption('module-root',
         help: 'Root module directory.\n'
             'Generated module paths are relative to this root.')
@@ -27,6 +28,7 @@ final ArgParser _argParser = () {
             'Generated library names are relative to this root.')
     ..addOption('build-root',
         help: 'Deprecated in favor of --library-root', hide: true);
+  addModuleFormatOptions(argParser, allowMultiple: true);
   AnalyzerOptions.addArguments(argParser);
   CompilerOptions.addArguments(argParser);
   return argParser;
@@ -88,12 +90,20 @@ void _compile(ArgResults argResults, void printFn(Object obj)) {
     printFn(_usageMessage);
     return;
   }
-  var outPath = argResults['out'];
+  var outPaths = argResults['out'] as List<String>;
+  var moduleFormats = parseModuleFormatOption(argResults);
 
-  if (outPath == null) {
+  if (outPaths.isEmpty) {
     _usageException('Please include the output file location. For example:\n'
         '    -o PATH/TO/OUTPUT_FILE.js');
+  } else if (outPaths.length != moduleFormats.length) {
+    _usageException('Number of output files (${outPaths.length}) must match '
+        'number of module formats (${moduleFormats.length}).');
   }
+
+  // TODO(jmesserly): for now the first one is special. This will go away once
+  // we've removed the "root" and "module name" variables.
+  var outPath = outPaths[0];
 
   var libraryRoot = argResults['library-root'] as String;
   libraryRoot ??= argResults['build-root'] as String;
@@ -126,17 +136,15 @@ void _compile(ArgResults argResults, void printFn(Object obj)) {
   if (!module.isValid) throw new CompileErrorException();
 
   // Write JS file, as well as source map and summary (if requested).
-  new File(outPath).writeAsStringSync(module.code);
-  if (module.sourceMap != null) {
-    var mapPath = outPath + '.map';
-    new File(mapPath)
-        .writeAsStringSync(JSON.encode(module.placeSourceMap(mapPath)));
+  for (var i = 0; i < outPaths.length; i++) {
+    module.writeCodeSync(moduleFormats[i], outPaths[i]);
+    if (module.summaryBytes != null) {
+      var summaryPath =
+          path.withoutExtension(outPath) + '.${compilerOpts.summaryExtension}';
+      new File(summaryPath).writeAsBytesSync(module.summaryBytes);
+    }
   }
-  if (module.summaryBytes != null) {
-    var summaryPath =
-        path.withoutExtension(outPath) + '.${compilerOpts.summaryExtension}';
-    new File(summaryPath).writeAsBytesSync(module.summaryBytes);
-  }
+
 }
 
 String _moduleForLibrary(

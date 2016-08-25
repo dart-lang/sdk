@@ -1,6 +1,4 @@
-dart_library.library('sunflower', null, /* Imports */[
-  'dart_sdk'
-], function load__sunflower(exports, dart_sdk) {
+define(['dart_sdk'], function(dart_sdk) {
   'use strict';
   const core = dart_sdk.core;
   const html = dart_sdk.html;
@@ -124,9 +122,11 @@ dart_library.library('sunflower', null, /* Imports */[
     }
   });
   // Exports:
-  exports.sunflower = sunflower;
-  exports.circle = circle;
-  exports.painter = painter;
+  return {
+    sunflower: sunflower,
+    circle: circle,
+    painter: painter
+  };
 });
 
-//# sourceMappingURL=sunflower.js.map
+//# sourceMappingURL=/Users/jmesserly/src/dev_compiler/test/codegen_expected/sunflower/sunflower.js.map

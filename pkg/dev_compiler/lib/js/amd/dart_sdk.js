@@ -1,5 +1,4 @@
-dart_library.library('dart_sdk', null, /* Imports */[
-], function load__dart_sdk(exports) {
+define([], function() {
   'use strict';
   const dart = Object.create(null);
   const dartx = Object.create(null);
@@ -1466,7 +1465,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let src = '';
     for (let i = 2; i < dart.notNull(stack[dartx.length]); ++i) {
       let frame = stack[dartx.get](i);
-      if (!dart.test(frame[dartx.contains]('dev_compiler/lib/runtime/dart_sdk.js'))) {
+      if (!dart.test(frame[dartx.contains]('dart_sdk.js'))) {
         src = frame;
         break;
       }
@@ -84184,34 +84183,36 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   dart.registerExtension(dart.global.SQLTransaction, web_sql.SqlTransaction);
   // Exports:
-  exports.dart = dart;
-  exports.dartx = dartx;
-  exports._debugger = _debugger;
-  exports._foreign_helper = _foreign_helper;
-  exports._interceptors = _interceptors;
-  exports._internal = _internal;
-  exports._isolate_helper = _isolate_helper;
-  exports._js_embedded_names = _js_embedded_names;
-  exports._js_helper = _js_helper;
-  exports._js_mirrors = _js_mirrors;
-  exports._js_primitives = _js_primitives;
-  exports._metadata = _metadata;
-  exports._native_typed_data = _native_typed_data;
-  exports.async = async;
-  exports.collection = collection;
-  exports.convert = convert;
-  exports.core = core;
-  exports.isolate = isolate;
-  exports.js = js;
-  exports.js_util = js_util;
-  exports.math = math;
-  exports.mirrors = mirrors;
-  exports.typed_data = typed_data;
-  exports.indexed_db = indexed_db;
-  exports.html = html$;
-  exports.html_common = html_common;
-  exports.svg = svg$;
-  exports.web_audio = web_audio;
-  exports.web_gl = web_gl;
-  exports.web_sql = web_sql;
+  return {
+    dart: dart,
+    dartx: dartx,
+    _debugger: _debugger,
+    _foreign_helper: _foreign_helper,
+    _interceptors: _interceptors,
+    _internal: _internal,
+    _isolate_helper: _isolate_helper,
+    _js_embedded_names: _js_embedded_names,
+    _js_helper: _js_helper,
+    _js_mirrors: _js_mirrors,
+    _js_primitives: _js_primitives,
+    _metadata: _metadata,
+    _native_typed_data: _native_typed_data,
+    async: async,
+    collection: collection,
+    convert: convert,
+    core: core,
+    isolate: isolate,
+    js: js,
+    js_util: js_util,
+    math: math,
+    mirrors: mirrors,
+    typed_data: typed_data,
+    indexed_db: indexed_db,
+    html: html$,
+    html_common: html_common,
+    svg: svg$,
+    web_audio: web_audio,
+    web_gl: web_gl,
+    web_sql: web_sql
+  };
 });

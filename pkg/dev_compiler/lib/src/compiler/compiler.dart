@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashSet, Queue;
+import 'dart:convert' show JSON;
+import 'dart:io' show File;
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/analyzer.dart'
     show AnalysisError, CompilationUnit, ErrorSeverity;
@@ -17,12 +19,17 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/src/usage_exception.dart' show UsageException;
 import 'package:func/func.dart' show Func1;
 import 'package:path/path.dart' as path;
+import 'package:source_maps/source_maps.dart';
 
 import '../analyzer/context.dart'
     show AnalyzerOptions, createAnalysisContextWithSources;
-import 'extension_types.dart' show ExtensionTypeSet;
+import '../js_ast/js_ast.dart' as JS;
 import 'code_generator.dart' show CodeGenerator;
 import 'error_helpers.dart' show errorSeverity, formatError, sortErrors;
+import 'extension_types.dart' show ExtensionTypeSet;
+import 'js_names.dart' as JS;
+import 'module_builder.dart' show transformModuleFormat, ModuleFormat;
+import 'source_map_printer.dart' show SourceMapPrintingContext;
 
 /// Compiles a set of Dart files into a single JavaScript module.
 ///
@@ -135,21 +142,13 @@ class ModuleCompiler {
 
     if (!options.unsafeForceCompile &&
         errors.any((e) => errorSeverity(context, e) == ErrorSeverity.ERROR)) {
-      return new JSModuleFile.invalid(unit.name, messages);
+      return new JSModuleFile.invalid(unit.name, messages, options);
     }
 
     var codeGenerator = new CodeGenerator(context, options, _extensionTypes);
     return codeGenerator.compile(unit, trees, messages);
   }
 }
-
-enum ModuleFormat { es6, legacy, node }
-
-ModuleFormat parseModuleFormat(String s) => {
-      'es6': ModuleFormat.es6,
-      'node': ModuleFormat.node,
-      'legacy': ModuleFormat.legacy
-    }[s];
 
 class CompilerOptions {
   /// Whether to emit the source mapping file.
@@ -209,10 +208,6 @@ class CompilerOptions {
   // TODO(ochafik): Simplify this code when our target platforms catch up.
   final bool destructureNamedParams;
 
-  /// Which module format to support.
-  /// Currently 'es6' and 'legacy' are supported.
-  final ModuleFormat moduleFormat;
-
   const CompilerOptions(
       {this.sourceMap: true,
       this.sourceMapComment: true,
@@ -222,7 +217,6 @@ class CompilerOptions {
       this.emitMetadata: false,
       this.closure: false,
       this.destructureNamedParams: false,
-      this.moduleFormat: ModuleFormat.legacy,
       this.hoistInstanceCreation: true,
       this.hoistSignatureTypes: false,
       this.nameTypeTests: true,
@@ -238,7 +232,6 @@ class CompilerOptions {
         emitMetadata = args['emit-metadata'],
         closure = args['closure-experimental'],
         destructureNamedParams = args['destructure-named-params'],
-        moduleFormat = parseModuleFormat(args['modules']),
         hoistInstanceCreation = args['hoist-instance-creation'],
         hoistSignatureTypes = args['hoist-signature-types'],
         nameTypeTests = args['name-type-tests'],
@@ -258,15 +251,6 @@ class CompilerOptions {
               'disable if using X-SourceMap header',
           defaultsTo: true,
           hide: true)
-      ..addOption('modules',
-          help: 'module pattern to emit',
-          allowed: ['es6', 'legacy', 'node'],
-          allowedHelp: {
-            'es6': 'es6 modules',
-            'legacy': 'a custom format used by dartdevc, similar to AMD',
-            'node': 'node.js modules (https://nodejs.org/api/modules.html)'
-          },
-          defaultsTo: 'legacy')
       ..addFlag('emit-metadata',
           help: 'emit metadata annotations queriable via mirrors',
           defaultsTo: false)
@@ -301,7 +285,7 @@ class BuildUnit {
   /// The name of this module.
   final String name;
 
-  /// Library root.  All library names are relative to this path/prefix.
+  /// All library names are relative to this path/prefix.
   final String libraryRoot;
 
   /// The list of sources in this module.
@@ -331,6 +315,80 @@ class JSModuleFile {
   /// The list of messages (errors and warnings)
   final List<String> errors;
 
+  /// The AST that will be used to generate the [code] and [sourceMap] for this
+  /// module.
+  final JS.Program moduleTree;
+
+  /// The compiler options used to generate this module.
+  final CompilerOptions options;
+
+  /// The binary contents of the API summary file, including APIs from each of
+  /// the libraries in this module.
+  final List<int> summaryBytes;
+
+  JSModuleFile(
+      this.name, this.errors, this.options, this.moduleTree, this.summaryBytes);
+
+  JSModuleFile.invalid(this.name, this.errors, this.options)
+      : moduleTree = null,
+        summaryBytes = null;
+
+  /// True if this library was successfully compiled.
+  bool get isValid => moduleTree != null;
+
+  /// Gets the source code and source map for this JS module, given the
+  /// locations where the JS file and map file will be served from.
+  ///
+  /// Relative URLs will be used to point from the .js file to the .map file
+  //
+  // TODO(jmesserly): this should match our old logic, but I'm not sure we are
+  // correctly handling the pointer from the .js file to the .map file.
+  JSModuleCode getCode(ModuleFormat format, String jsUrl, String mapUrl) {
+    var opts = new JS.JavaScriptPrintingOptions(
+        emitTypes: options.closure,
+        allowKeywordsInProperties: true,
+        allowSingleLineIfStatements: true);
+    JS.SimpleJavaScriptPrintingContext printer;
+    SourceMapBuilder sourceMap;
+    if (options.sourceMap) {
+      var sourceMapContext = new SourceMapPrintingContext();
+      sourceMap = sourceMapContext.sourceMap;
+      printer = sourceMapContext;
+    } else {
+      printer = new JS.SimpleJavaScriptPrintingContext();
+    }
+
+    var tree = transformModuleFormat(format, moduleTree);
+    tree.accept(
+        new JS.Printer(opts, printer, localNamer: new JS.TemporaryNamer(tree)));
+
+    if (options.sourceMap && options.sourceMapComment) {
+      printer.emit('\n//# sourceMappingURL=$mapUrl\n');
+    }
+
+    Map builtMap;
+    if (sourceMap != null) {
+      builtMap = placeSourceMap(sourceMap.build(jsUrl), mapUrl);
+    }
+    return new JSModuleCode(printer.getText(), builtMap);
+  }
+
+  /// Similar to [getCode] but immediately writes the resulting files.
+  ///
+  /// If [mapPath] is not supplied but [options.sourceMap] is set, mapPath
+  /// will default to [jsPath].map.
+  void writeCodeSync(ModuleFormat format, String jsPath, [String mapPath]) {
+    if (mapPath == null) mapPath = jsPath + '.map';
+    var code = getCode(format, jsPath, mapPath);
+    new File(jsPath).writeAsStringSync(code.code);
+    if (code.sourceMap != null) {
+      new File(mapPath).writeAsStringSync(JSON.encode(code.sourceMap));
+    }
+  }
+}
+
+/// The output of compiling a JavaScript module in a particular format.
+class JSModuleCode {
   /// The JavaScript code for this module.
   ///
   /// If a [sourceMap] is available, this will include the `sourceMappingURL`
@@ -343,34 +401,21 @@ class JSModuleFile {
   /// using [placeSourceMap].
   final Map sourceMap;
 
-  /// The binary contents of the API summary file, including APIs from each of
-  /// the [libraries] in this module.
-  final List<int> summaryBytes;
+  JSModuleCode(this.code, this.sourceMap);
+}
 
-  JSModuleFile(
-      this.name, this.errors, this.code, this.sourceMap, this.summaryBytes);
+/// Adjusts the source paths in [sourceMap] to be relative to [sourceMapPath],
+/// and returns the new map.
+// TODO(jmesserly): find a new home for this.
+Map placeSourceMap(Map sourceMap, String sourceMapPath) {
+  var dir = path.dirname(sourceMapPath);
 
-  JSModuleFile.invalid(this.name, this.errors)
-      : code = null,
-        sourceMap = null,
-        summaryBytes = null;
-
-  /// True if this library was successfully compiled.
-  bool get isValid => code != null;
-
-  /// Adjusts the source paths in [sourceMap] to be relative to [sourceMapPath],
-  /// and returns the new map.
-  ///
-  /// See also [writeSourceMap].
-  Map placeSourceMap(String sourceMapPath) {
-    var dir = path.dirname(sourceMapPath);
-
-    var map = new Map.from(this.sourceMap);
-    List list = new List.from(map['sources']);
-    map['sources'] = list;
-    for (int i = 0; i < list.length; i++) {
-      list[i] = path.relative(list[i], from: dir);
-    }
-    return map;
+  var map = new Map.from(sourceMap);
+  List list = new List.from(map['sources']);
+  map['sources'] = list;
+  for (int i = 0; i < list.length; i++) {
+    list[i] =
+        path.toUri(path.relative(path.fromUri(list[i]), from: dir)).toString();
   }
+  return map;
 }

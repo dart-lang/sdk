@@ -12,12 +12,7 @@ library dev_compiler.test.codegen_test;
 // compiles stuff. This should be changed to not use unittest and just be a
 // regular program that outputs files.
 
-import 'dart:convert' show JSON;
 import 'dart:io' show Directory, File, Platform;
-import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:path/path.dart' as path;
-import 'package:test/test.dart' show test;
-
 import 'package:analyzer/analyzer.dart'
     show
         ExportDirective,
@@ -26,13 +21,23 @@ import 'package:analyzer/analyzer.dart'
         UriBasedDirective,
         parseDirectives;
 import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:dev_compiler/src/analyzer/context.dart' show AnalyzerOptions;
 import 'package:dev_compiler/src/compiler/compiler.dart'
-    show BuildUnit, CompilerOptions, ModuleCompiler;
+    show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
+import 'package:dev_compiler/src/compiler/module_builder.dart'
+    show
+        ModuleFormat,
+        addModuleFormatOptions,
+        parseModuleFormatOption,
+        pathToJSIdentifier;
+import 'package:path/path.dart' as path;
+import 'package:test/test.dart' show expect, isFalse, isTrue, test;
+
+import '../tool/build_sdk.dart' as build_sdk;
 import 'testing.dart' show repoDirectory, testDirectory;
 import 'multitest.dart' show extractTestsFromMultitest, isMultiTest;
-import '../tool/build_sdk.dart' as build_sdk;
-import 'package:dev_compiler/src/compiler/compiler.dart';
+import 'not_yet_strong_tests.dart';
 
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null);
@@ -67,7 +72,7 @@ main(List<String> arguments) {
 
   var sdkDir = path.join(repoDirectory, 'gen', 'patched_sdk');
   var sdkSummaryFile =
-      path.join(testDirectory, '..', 'lib', 'runtime', 'dart_sdk.sum');
+      path.join(testDirectory, '..', 'lib', 'js', 'amd', 'dart_sdk.sum');
 
   var summaryPaths = new Directory(path.join(codegenOutputDir, 'pkg'))
       .listSync()
@@ -97,6 +102,7 @@ main(List<String> arguments) {
   var defaultOptions = ['--no-source-map', '--no-summarize'];
   var compilerArgParser = new ArgParser();
   CompilerOptions.addArguments(compilerArgParser);
+  addModuleFormatOptions(compilerArgParser);
 
   // Compile each test file to JS and put the result in gen/codegen_output.
   for (var testFile in testFiles) {
@@ -117,8 +123,10 @@ main(List<String> arguments) {
       if (match != null) {
         args.addAll(match.group(1).split(' '));
       }
-      var options =
-          new CompilerOptions.fromArguments(compilerArgParser.parse(args));
+
+      var argResults = compilerArgParser.parse(args);
+      var options = new CompilerOptions.fromArguments(argResults);
+      var moduleFormat = parseModuleFormatOption(argResults).first;
 
       // Collect any other files we've imported.
       var files = new Set<String>();
@@ -126,13 +134,29 @@ main(List<String> arguments) {
       var unit = new BuildUnit(
           name, path.dirname(testFile), files.toList(), _moduleForLibrary);
       var module = compiler.compile(unit, options);
-      _writeModule(path.join(codegenOutputDir, name),
-          isTopLevelTest ? path.join(codegenExpectDir, name) : null, module);
+
+      bool notStrong = notYetStrongTests.contains(name);
+      if (module.isValid) {
+        _writeModule(
+            path.join(codegenOutputDir, name),
+            isTopLevelTest ? path.join(codegenExpectDir, name) : null,
+            moduleFormat,
+            module);
+
+        expect(notStrong, isFalse,
+            reason: "test $name expected strong mode errors, but compiled.");
+      } else {
+        expect(notStrong, isTrue,
+            reason: "test $name failed to compile due to strong mode errors:"
+                "\n\n${module.errors.join('\n')}.");
+      }
     });
   }
 
   if (filePattern.hasMatch('sunflower')) {
-    _buildSunflower(compiler, codegenOutputDir, codegenExpectDir);
+    test('sunflower', () {
+      _buildSunflower(compiler, codegenOutputDir, codegenExpectDir);
+    });
   }
 
   if (codeCoverage) {
@@ -142,56 +166,18 @@ main(List<String> arguments) {
   }
 }
 
-void _writeModule(String outPath, String expectPath, JSModuleFile result) {
+void _writeModule(String outPath, String expectPath, ModuleFormat format,
+    JSModuleFile result) {
   _ensureDirectory(path.dirname(outPath));
 
   String errors = result.errors.join('\n');
   if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
   new File(outPath + '.txt').writeAsStringSync(errors);
 
-  var jsFile = new File(outPath + '.js');
-  var summaryFile = new File(outPath + '.sum');
-  var errorFile = new File(outPath + '.err');
+  result.writeCodeSync(format, outPath + '.js');
 
-  if (result.isValid) {
-    jsFile.writeAsStringSync(result.code);
-    if (result.summaryBytes != null) {
-      summaryFile.writeAsBytesSync(result.summaryBytes);
-    }
-    if (result.sourceMap != null) {
-      var mapPath = outPath + '.js.map';
-      new File(mapPath)
-          .writeAsStringSync(JSON.encode(result.placeSourceMap(mapPath)));
-    }
-
-    // There are no errors, so delete any stale ".err" file.
-    if (errorFile.existsSync()) {
-      errorFile.deleteSync();
-    }
-  } else {
-    // Also write the errors to a '.err' file for easy counting.
-    var moduleName = result.name;
-    var libraryName = path.split(moduleName).last;
-    var count = "[error]".allMatches(errors).length;
-    var text = '''
-dart_library.library('$moduleName', null, [
-  'dart_sdk',
-  'expect'
-], function(exports, dart_sdk, expect) {
-  const message = `DDC Compilation Error: $moduleName has $count errors`;
-  const error = new Error(message);
-  exports.$libraryName = Object.create(null);
-  exports.$libraryName.main = function() {
-    throw error;
-  }
-});
-    ''';
-    errorFile.writeAsStringSync(text);
-
-    // There are errors, so delete any stale ".js" file.
-    if (jsFile.existsSync()) {
-      jsFile.deleteSync();
-    }
+  if (result.summaryBytes != null) {
+    new File(outPath + '.sum').writeAsBytesSync(result.summaryBytes);
   }
 
   // Write the expectation file if needed.
@@ -202,12 +188,8 @@ dart_library.library('$moduleName', null, [
 
     var expectFile = new File(expectPath + '.js');
     if (result.isValid) {
-      expectFile.writeAsStringSync(result.code);
+      result.writeCodeSync(format, expectFile.path);
     } else {
-      // There are errors, so delete any stale expect ".js" file.
-      if (expectFile.existsSync()) {
-        expectFile.deleteSync();
-      }
       expectFile.writeAsStringSync("//FAILED TO COMPILE");
     }
   }
@@ -224,7 +206,7 @@ void _buildSunflower(
 
   var built = compiler.compile(input, options);
   _writeModule(path.join(outputDir, 'sunflower', 'sunflower'),
-      path.join(expectDir, 'sunflower', 'sunflower'), built);
+      path.join(expectDir, 'sunflower', 'sunflower'), ModuleFormat.amd, built);
 }
 
 String _moduleForLibrary(Source source) {

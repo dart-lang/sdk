@@ -1,6 +1,4 @@
-dart_library.library('destructuring', null, /* Imports */[
-  'dart_sdk'
-], function load__destructuring(exports, dart_sdk) {
+define(['dart_sdk'], function(dart_sdk) {
   'use strict';
   const core = dart_sdk.core;
   const dart = dart_sdk.dart;
@@ -86,6 +84,8 @@ dart_library.library('destructuring', null, /* Imports */[
   };
   dart.fn(src__varargs.spread, dynamicTodynamic());
   // Exports:
-  exports.destructuring = destructuring;
-  exports.src__varargs = src__varargs;
+  return {
+    destructuring: destructuring,
+    src__varargs: src__varargs
+  };
 });

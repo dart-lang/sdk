@@ -213,7 +213,7 @@ _trackCall(obj, name) {
   var src = '';
   for (int i = 2; i < stack.length; ++i) {
     var frame = stack[i];
-    if (!frame.contains('dev_compiler/lib/runtime/dart_sdk.js')) {
+    if (!frame.contains('dart_sdk.js')) {
       src = frame;
       break;
     }

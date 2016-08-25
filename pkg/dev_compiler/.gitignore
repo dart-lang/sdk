@@ -17,8 +17,8 @@ doc/api/
 # Generated files go here.
 gen/
 
-# Ignore generated summary.
-lib/runtime/dart_sdk.sum
+# Ignore generated SDK summary.
+lib/js/*/*.sum
 
 # Created by ./tool/dependency_overrides.sh.
 dependency_overrides/

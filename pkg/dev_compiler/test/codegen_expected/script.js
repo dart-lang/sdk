@@ -1,6 +1,4 @@
-dart_library.library('script', null, /* Imports */[
-  'dart_sdk'
-], function load__script(exports, dart_sdk) {
+define(['dart_sdk'], function(dart_sdk) {
   'use strict';
   const core = dart_sdk.core;
   const dart = dart_sdk.dart;
@@ -15,5 +13,7 @@ dart_library.library('script', null, /* Imports */[
   };
   dart.fn(script.main, ListOfStringTovoid());
   // Exports:
-  exports.script = script;
+  return {
+    script: script
+  };
 });
