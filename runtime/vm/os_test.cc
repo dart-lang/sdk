@@ -53,28 +53,4 @@ UNIT_TEST_CASE(OsFuncs) {
   EXPECT_LE(1, procs);
 }
 
-
-UNIT_TEST_CASE(OSAlignedAllocate) {
-  // TODO(johnmccutchan): Test other alignments, once we support
-  // alignments != 16 on Mac.
-  void* p1 = OS::AlignedAllocate(1023, 16);
-  void* p2 = OS::AlignedAllocate(1025, 16);
-  void* p3 = OS::AlignedAllocate(1025, 16);
-  void* p4 = OS::AlignedAllocate(1, 16);
-  void* p5 = OS::AlignedAllocate(2, 16);
-  void* p6 = OS::AlignedAllocate(4, 16);
-  EXPECT((reinterpret_cast<intptr_t>(p1) & 15) == 0);
-  EXPECT((reinterpret_cast<intptr_t>(p2) & 15) == 0);
-  EXPECT((reinterpret_cast<intptr_t>(p3) & 15) == 0);
-  EXPECT((reinterpret_cast<intptr_t>(p4) & 15) == 0);
-  EXPECT((reinterpret_cast<intptr_t>(p5) & 15) == 0);
-  EXPECT((reinterpret_cast<intptr_t>(p6) & 15) == 0);
-  OS::AlignedFree(p1);
-  OS::AlignedFree(p2);
-  OS::AlignedFree(p3);
-  OS::AlignedFree(p4);
-  OS::AlignedFree(p5);
-  OS::AlignedFree(p6);
-}
-
 }  // namespace dart

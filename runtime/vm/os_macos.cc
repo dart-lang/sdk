@@ -166,24 +166,6 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 }
 
 
-void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
-  const int kMinimumAlignment = 16;
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  // Temporary workaround until xcode is upgraded.
-  // Mac guarantees malloc returns a 16 byte aligned memory chunk.
-  // Currently we only allocate with 16-bye alignment.
-  ASSERT(alignment == 16);
-  // TODO(johnmccutchan): Remove hack and switch to posix_memalign.
-  return malloc(size);
-}
-
-
-void OS::AlignedFree(void* ptr) {
-  free(ptr);
-}
-
-
 intptr_t OS::ActivationFrameAlignment() {
 #if TARGET_OS_IOS
 #if TARGET_ARCH_ARM
