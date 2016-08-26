@@ -35,6 +35,12 @@ class _AssertionError extends Error implements AssertionError {
     }
   }
 
+  static void _checkConstAssertion(bool condition, int start, int end) {
+    if (!condition) {
+      _throwNew(start, end);
+    }
+  }
+
   String toString() {
     if (_url == null) {
       return _failedAssertion;

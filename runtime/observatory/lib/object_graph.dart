@@ -362,41 +362,45 @@ class ObjectGraph {
     return result;
   }
 
-  Future process(statusReporter) async {
-    // We build futures here instead of marking the steps as async to avoid the
-    // heavy lifting being inside a transformed method.
+  Stream<List> process() {
+    final controller = new StreamController<List>.broadcast();
+    (() async {
+      // We build futures here instead of marking the steps as async to avoid the
+      // heavy lifting being inside a transformed method.
 
-    statusReporter.add("Remapping $_N objects...");
-    await new Future(() => _remapNodes());
+      controller.add(["Remapping $_N objects...", 0.0]);
+      await new Future(() => _remapNodes());
 
-    statusReporter.add("Remapping $_E references...");
-    await new Future(() => _remapEdges());
+      controller.add(["Remapping $_E references...", 15.0]);
+      await new Future(() => _remapEdges());
 
-    _addrToId = null;
-    _chunks = null;
+      _addrToId = null;
+      _chunks = null;
 
-    statusReporter.add("Finding depth-first order...");
-    await new Future(() => _dfs());
+      controller.add(["Finding depth-first order...", 30.0]);
+      await new Future(() => _dfs());
 
-    statusReporter.add("Finding predecessors...");
-    await new Future(() => _buildPredecessors());
+      controller.add(["Finding predecessors...", 45.0]);
+      await new Future(() => _buildPredecessors());
 
-    statusReporter.add("Finding dominators...");
-    await new Future(() => _buildDominators());
+      controller.add(["Finding dominators...", 60.0]);
+      await new Future(() => _buildDominators());
 
-    _firstPreds = null;
-    _preds = null;
+      _firstPreds = null;
+      _preds = null;
 
-    _semi = null;
-    _parent = null;
+      _semi = null;
+      _parent = null;
 
-    statusReporter.add("Finding retained sizes...");
-    await new Future(() => _calculateRetainedSizes());
+      controller.add(["Finding retained sizes...", 75.0]);
+      await new Future(() => _calculateRetainedSizes());
 
-    _vertex = null;
+      _vertex = null;
 
-    statusReporter.add("Loaded");
-    return this;
+      controller.add(["Loaded", 100.0]);
+      controller.close();
+    }());
+    return controller.stream;
   }
 
   List<ByteData> _chunks;

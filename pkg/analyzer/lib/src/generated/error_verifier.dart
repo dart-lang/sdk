@@ -1439,6 +1439,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       List<ParameterElement> parameters,
       List<AstNode> parameterLocations,
       SimpleIdentifier errorNameTarget) {
+    if (_options.strongMode) {
+      return false; // strong mode already checked for this
+    }
+
     bool isGetter = false;
     bool isSetter = false;
     if (derivedElement is PropertyAccessorElement) {
@@ -1778,6 +1782,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       List<ParameterElement> parameters,
       List<AstNode> parameterLocations,
       SimpleIdentifier errorNameTarget) {
+    assert(!_options.strongMode); // strong mode already checked for these
     //
     // Compute the overridden executable from the InheritanceManager
     //
@@ -1802,6 +1807,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForAllInvalidOverrideErrorCodesForField(
       FieldDeclaration declaration) {
+    if (_options.strongMode) {
+      return; // strong mode already checked for this
+    }
+
     if (_enclosingClass == null || declaration.isStatic) {
       return;
     }
@@ -1833,6 +1842,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForAllInvalidOverrideErrorCodesForMethod(
       MethodDeclaration method) {
+    if (_options.strongMode) {
+      return; // strong mode already checked for this
+    }
     if (_enclosingClass == null ||
         method.isStatic ||
         method.body is NativeFunctionBody) {

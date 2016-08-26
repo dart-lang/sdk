@@ -5,7 +5,7 @@
 library dart2js.js_helpers.impact;
 
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CoreClasses;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart' show InterfaceType;
 import '../elements/elements.dart' show ClassElement, Element;
 import 'backend_helpers.dart';
@@ -36,7 +36,7 @@ class BackendImpacts {
 
   BackendHelpers get helpers => backend.helpers;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => compiler.commonElements;
 
   BackendImpact _getRuntimeTypeArgument;
 
@@ -45,7 +45,6 @@ class BackendImpacts {
       _getRuntimeTypeArgument = new BackendImpact(staticUses: [
         helpers.getRuntimeTypeArgument,
         helpers.getTypeArgumentByIndex,
-        helpers.copyTypeArguments
       ]);
     }
     return _getRuntimeTypeArgument;
@@ -301,8 +300,8 @@ class BackendImpacts {
   BackendImpact get constSymbol {
     if (_constSymbol == null) {
       _constSymbol = new BackendImpact(
-          instantiatedClasses: [coreClasses.symbolClass],
-          staticUses: [compiler.symbolConstructor.declaration]);
+          instantiatedClasses: [commonElements.symbolClass],
+          staticUses: [commonElements.symbolConstructor.declaration]);
     }
     return _constSymbol;
   }
@@ -599,8 +598,8 @@ class BackendImpacts {
 
   BackendImpact get closure {
     if (_closure == null) {
-      _closure =
-          new BackendImpact(instantiatedClasses: [coreClasses.functionClass]);
+      _closure = new BackendImpact(
+          instantiatedClasses: [commonElements.functionClass]);
     }
     return _closure;
   }

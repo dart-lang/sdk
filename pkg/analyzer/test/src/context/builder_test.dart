@@ -4,11 +4,8 @@
 
 library analyzer.test.src.context.context_builder_test;
 
-import 'dart:io' as io;
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -20,25 +17,24 @@ import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
+import '../../embedder_tests.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
-import '../../source/embedder_test.dart';
 import '../../utils.dart';
 import 'mock_sdk.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(ContextBuilderTest_WithDisk);
-  runReflectiveTests(ContextBuilderTest_WithoutDisk);
+  runReflectiveTests(ContextBuilderTest);
   runReflectiveTests(EmbedderYamlLocatorTest);
 }
 
 @reflectiveTest
-class ContextBuilderTest_WithDisk extends EngineTestCase {
+class ContextBuilderTest extends EngineTestCase {
   /**
    * The resource provider to be used by tests.
    */
-  PhysicalResourceProvider resourceProvider;
+  MemoryResourceProvider resourceProvider;
 
   /**
    * The path context used to manipulate file paths.
@@ -66,11 +62,11 @@ class ContextBuilderTest_WithDisk extends EngineTestCase {
    */
   String defaultSdkPath = null;
 
-  void createDefaultSdk(io.Directory tempDir) {
-    defaultSdkPath = pathContext.join(tempDir.path, 'default', 'sdk');
+  void createDefaultSdk(Folder sdkDir) {
+    defaultSdkPath = pathContext.join(sdkDir.path, 'default', 'sdk');
     String librariesFilePath = pathContext.join(defaultSdkPath, 'lib',
         '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart');
-    createFile(
+    resourceProvider.newFile(
         librariesFilePath,
         r'''
 const Map<String, LibraryInfo> libraries = const {
@@ -83,21 +79,18 @@ const Map<String, LibraryInfo> libraries = const {
     builder = new ContextBuilder(resourceProvider, sdkManager, contentCache);
   }
 
-  void createDirectory(String path) {
-    new io.Directory(path).createSync(recursive: true);
-  }
-
   void createFile(String path, String content) {
-    new io.File(path)
-      ..createSync(recursive: true)
-      ..writeAsStringSync(content);
+    resourceProvider.newFile(path, content);
   }
 
   @override
   void setUp() {
-    resourceProvider = PhysicalResourceProvider.INSTANCE;
+    resourceProvider = new MemoryResourceProvider();
     pathContext = resourceProvider.pathContext;
-    sdkManager = new DartSdkManager('', false, (_) => new MockSdk());
+    new MockSdk(resourceProvider: resourceProvider);
+    sdkManager = new DartSdkManager('/', false, (_) {
+      fail('Should not be used to create an SDK');
+    });
     contentCache = new ContentCache();
     builder = new ContextBuilder(resourceProvider, sdkManager, contentCache);
   }
@@ -105,364 +98,6 @@ const Map<String, LibraryInfo> libraries = const {
   @failingTest
   void test_buildContext() {
     fail('Incomplete test');
-  }
-
-  void test_createPackageMap_fromPackageDirectory_explicit() {
-    withTempDir((io.Directory tempDir) {
-      // Use a package directory that is outside the project directory.
-      String rootPath = tempDir.path;
-      String projectPath = pathContext.join(rootPath, 'project');
-      String packageDirPath = pathContext.join(rootPath, 'packages');
-      String fooName = 'foo';
-      String fooPath = pathContext.join(packageDirPath, fooName);
-      String barName = 'bar';
-      String barPath = pathContext.join(packageDirPath, barName);
-      createDirectory(projectPath);
-      createDirectory(fooPath);
-      createDirectory(barPath);
-
-      builder.defaultPackagesDirectoryPath = packageDirPath;
-
-      Packages packages = builder.createPackageMap(projectPath);
-      expect(packages, isNotNull);
-      Map<String, Uri> map = packages.asMap();
-      expect(map, hasLength(2));
-      expect(map[fooName], new Uri.directory(fooPath));
-      expect(map[barName], new Uri.directory(barPath));
-    });
-  }
-
-  void test_createPackageMap_fromPackageDirectory_inRoot() {
-    withTempDir((io.Directory tempDir) {
-      // Use a package directory that is inside the project directory.
-      String projectPath = tempDir.path;
-      String packageDirPath = pathContext.join(projectPath, 'packages');
-      String fooName = 'foo';
-      String fooPath = pathContext.join(packageDirPath, fooName);
-      String barName = 'bar';
-      String barPath = pathContext.join(packageDirPath, barName);
-      createDirectory(fooPath);
-      createDirectory(barPath);
-
-      Packages packages = builder.createPackageMap(projectPath);
-      expect(packages, isNotNull);
-      Map<String, Uri> map = packages.asMap();
-      expect(map, hasLength(2));
-      expect(map[fooName], new Uri.directory(fooPath));
-      expect(map[barName], new Uri.directory(barPath));
-    });
-  }
-
-  void test_createPackageMap_fromPackageFile_explicit() {
-    withTempDir((io.Directory tempDir) {
-      // Use a package file that is outside the project directory's hierarchy.
-      String rootPath = tempDir.path;
-      String projectPath = pathContext.join(rootPath, 'project');
-      String packageFilePath = pathContext.join(rootPath, 'child', '.packages');
-      createDirectory(projectPath);
-      createFile(
-          packageFilePath,
-          r'''
-foo:/pkg/foo
-bar:/pkg/bar
-''');
-
-      builder.defaultPackageFilePath = packageFilePath;
-      Packages packages = builder.createPackageMap(projectPath);
-      expect(packages, isNotNull);
-      Map<String, Uri> map = packages.asMap();
-      expect(map, hasLength(2));
-      expect(map['foo'], new Uri.directory('/pkg/foo'));
-      expect(map['bar'], new Uri.directory('/pkg/bar'));
-    });
-  }
-
-  void test_createPackageMap_fromPackageFile_inParentOfRoot() {
-    withTempDir((io.Directory tempDir) {
-      // Use a package file that is inside the parent of the project directory.
-      String rootPath = tempDir.path;
-      String projectPath = pathContext.join(rootPath, 'project');
-      String packageFilePath = pathContext.join(rootPath, '.packages');
-      createDirectory(projectPath);
-      createFile(
-          packageFilePath,
-          r'''
-foo:/pkg/foo
-bar:/pkg/bar
-''');
-
-      Packages packages = builder.createPackageMap(projectPath);
-      expect(packages, isNotNull);
-      Map<String, Uri> map = packages.asMap();
-      expect(map, hasLength(2));
-      expect(map['foo'], new Uri.directory('/pkg/foo'));
-      expect(map['bar'], new Uri.directory('/pkg/bar'));
-    });
-  }
-
-  void test_createPackageMap_fromPackageFile_inRoot() {
-    withTempDir((io.Directory tempDir) {
-      // Use a package file that is inside the project directory.
-      String rootPath = tempDir.path;
-      String projectPath = pathContext.join(rootPath, 'project');
-      String packageFilePath = pathContext.join(projectPath, '.packages');
-      createDirectory(projectPath);
-      createFile(
-          packageFilePath,
-          r'''
-foo:/pkg/foo
-bar:/pkg/bar
-''');
-
-      Packages packages = builder.createPackageMap(projectPath);
-      expect(packages, isNotNull);
-      Map<String, Uri> map = packages.asMap();
-      expect(map, hasLength(2));
-      expect(map['foo'], new Uri.directory('/pkg/foo'));
-      expect(map['bar'], new Uri.directory('/pkg/bar'));
-    });
-  }
-
-  void test_createPackageMap_none() {
-    withTempDir((io.Directory tempDir) {
-      Packages packages = builder.createPackageMap(tempDir.path);
-      expect(packages, same(Packages.noPackages));
-    });
-  }
-
-  void test_createSourceFactory_fileProvider() {
-    withTempDir((io.Directory tempDir) {
-      createDefaultSdk(tempDir);
-      String rootPath = tempDir.path;
-      String projectPath = pathContext.join(rootPath, 'project');
-      String packageFilePath = pathContext.join(projectPath, '.packages');
-      String packageA = pathContext.join(rootPath, 'pkgs', 'a');
-      String packageB = pathContext.join(rootPath, 'pkgs', 'b');
-      createFile(
-          packageFilePath,
-          '''
-a:${pathContext.toUri(packageA)}
-b:${pathContext.toUri(packageB)}
-''');
-      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-      UriResolver resolver = new ResourceUriResolver(resourceProvider);
-      builder.fileResolverProvider = (folder) => resolver;
-      SourceFactoryImpl factory =
-          builder.createSourceFactory(projectPath, options);
-      expect(factory.resolvers, contains(same(resolver)));
-    });
-  }
-
-  void test_createSourceFactory_noProvider_packages_embedder_extensions() {
-    withTempDir((io.Directory tempDir) {
-      createDefaultSdk(tempDir);
-      String rootPath = tempDir.path;
-      String projectPath = pathContext.join(rootPath, 'project');
-      String packageFilePath = pathContext.join(projectPath, '.packages');
-      String packageA = pathContext.join(rootPath, 'pkgs', 'a');
-      String embedderPath = pathContext.join(packageA, '_embedder.yaml');
-      String packageB = pathContext.join(rootPath, 'pkgs', 'b');
-      String extensionPath = pathContext.join(packageB, '_sdkext');
-      createFile(
-          packageFilePath,
-          '''
-a:${pathContext.toUri(packageA)}
-b:${pathContext.toUri(packageB)}
-''');
-      String asyncPath = pathContext.join(packageA, 'sdk', 'async.dart');
-      String corePath = pathContext.join(packageA, 'sdk', 'core.dart');
-      createFile(
-          embedderPath,
-          '''
-embedded_libs:
-  "dart:async": ${_relativeUri(asyncPath, from: packageA)}
-  "dart:core": ${_relativeUri(corePath, from: packageA)}
-''');
-      String fooPath = pathContext.join(packageB, 'ext', 'foo.dart');
-      createFile(
-          extensionPath,
-          '''{
-"dart:foo": "${_relativeUri(fooPath, from: packageB)}"
-}''');
-      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-
-      SourceFactory factory = builder.createSourceFactory(projectPath, options);
-
-      Source asyncSource = factory.forUri('dart:async');
-      expect(asyncSource, isNotNull);
-      expect(asyncSource.fullName, asyncPath);
-
-      Source fooSource = factory.forUri('dart:foo');
-      expect(fooSource, isNotNull);
-      expect(fooSource.fullName, fooPath);
-
-      Source packageSource = factory.forUri('package:b/b.dart');
-      expect(packageSource, isNotNull);
-      expect(packageSource.fullName, pathContext.join(packageB, 'b.dart'));
-    });
-  }
-
-  void test_createSourceFactory_noProvider_packages_embedder_noExtensions() {
-    withTempDir((io.Directory tempDir) {
-      createDefaultSdk(tempDir);
-      String rootPath = tempDir.path;
-      String projectPath = pathContext.join(rootPath, 'project');
-      String packageFilePath = pathContext.join(projectPath, '.packages');
-      String packageA = pathContext.join(rootPath, 'pkgs', 'a');
-      String embedderPath = pathContext.join(packageA, '_embedder.yaml');
-      String packageB = pathContext.join(rootPath, 'pkgs', 'b');
-      createFile(
-          packageFilePath,
-          '''
-a:${pathContext.toUri(packageA)}
-b:${pathContext.toUri(packageB)}
-''');
-      String asyncPath = pathContext.join(packageA, 'sdk', 'async.dart');
-      String corePath = pathContext.join(packageA, 'sdk', 'core.dart');
-      createFile(
-          embedderPath,
-          '''
-embedded_libs:
-  "dart:async": ${_relativeUri(asyncPath, from: packageA)}
-  "dart:core": ${_relativeUri(corePath, from: packageA)}
-''');
-      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-
-      SourceFactory factory = builder.createSourceFactory(projectPath, options);
-
-      Source dartSource = factory.forUri('dart:async');
-      expect(dartSource, isNotNull);
-      expect(dartSource.fullName, asyncPath);
-
-      Source packageSource = factory.forUri('package:b/b.dart');
-      expect(packageSource, isNotNull);
-      expect(packageSource.fullName, pathContext.join(packageB, 'b.dart'));
-    });
-  }
-
-  @failingTest
-  void test_createSourceFactory_noProvider_packages_noEmbedder_extensions() {
-    fail('Incomplete test');
-  }
-
-  void test_createSourceFactory_noProvider_packages_noEmbedder_noExtensions() {
-    withTempDir((io.Directory tempDir) {
-      createDefaultSdk(tempDir);
-      String rootPath = tempDir.path;
-      String projectPath = pathContext.join(rootPath, 'project');
-      String packageFilePath = pathContext.join(projectPath, '.packages');
-      String packageA = pathContext.join(rootPath, 'pkgs', 'a');
-      String packageB = pathContext.join(rootPath, 'pkgs', 'b');
-      createFile(
-          packageFilePath,
-          '''
-a:${pathContext.toUri(packageA)}
-b:${pathContext.toUri(packageB)}
-''');
-      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-
-      SourceFactory factory = builder.createSourceFactory(projectPath, options);
-
-      Source dartSource = factory.forUri('dart:core');
-      expect(dartSource, isNotNull);
-      expect(dartSource.fullName, '$defaultSdkPath/lib/core/core.dart');
-
-      Source packageSource = factory.forUri('package:a/a.dart');
-      expect(packageSource, isNotNull);
-      expect(packageSource.fullName, pathContext.join(packageA, 'a.dart'));
-    });
-  }
-
-  void test_createSourceFactory_packageProvider() {
-    withTempDir((io.Directory tempDir) {
-      createDefaultSdk(tempDir);
-      String rootPath = tempDir.path;
-      String projectPath = pathContext.join(rootPath, 'project');
-      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-      UriResolver resolver = new PackageMapUriResolver(resourceProvider, {});
-      builder.packageResolverProvider = (folder) => resolver;
-      SourceFactoryImpl factory =
-          builder.createSourceFactory(projectPath, options);
-      expect(factory.resolvers, contains(same(resolver)));
-    });
-  }
-
-  @failingTest
-  void test_findSdk_embedder_extensions() {
-    // See test_createSourceFactory_noProvider_packages_embedder_extensions
-    fail('Incomplete test');
-  }
-
-  @failingTest
-  void test_findSdk_embedder_noExtensions() {
-    // See test_createSourceFactory_noProvider_packages_embedder_noExtensions
-    fail('Incomplete test');
-  }
-
-  @failingTest
-  void test_findSdk_noEmbedder_extensions() {
-    // See test_createSourceFactory_noProvider_packages_noEmbedder_extensions
-    fail('Incomplete test');
-  }
-
-  @failingTest
-  void test_findSdk_noEmbedder_noExtensions() {
-    // See test_createSourceFactory_noProvider_packages_noEmbedder_noExtensions
-    fail('Incomplete test');
-  }
-
-  /**
-   * Execute the [test] function with a temporary [directory]. The test function
-   * can perform any disk operations within the directory and the directory (and
-   * its content) will be removed after the function returns.
-   */
-  void withTempDir(test(io.Directory directory)) {
-    io.Directory directory =
-        io.Directory.systemTemp.createTempSync('analyzer_');
-    try {
-      test(directory);
-    } finally {
-      directory.deleteSync(recursive: true);
-    }
-  }
-
-  Uri _relativeUri(String path, {String from}) {
-    String relativePath = pathContext.relative(path, from: from);
-    return pathContext.toUri(relativePath);
-  }
-}
-
-@reflectiveTest
-class ContextBuilderTest_WithoutDisk extends EngineTestCase {
-  /**
-   * The resource provider to be used by tests.
-   */
-  MemoryResourceProvider resourceProvider;
-
-  /**
-   * The SDK manager used by the tests;
-   */
-  DartSdkManager sdkManager;
-
-  /**
-   * The content cache used by the tests.
-   */
-  ContentCache contentCache;
-
-  /**
-   * The context builder to be used in the test.
-   */
-  ContextBuilder builder;
-
-  @override
-  void setUp() {
-    resourceProvider = new MemoryResourceProvider();
-    new MockSdk(resourceProvider: resourceProvider);
-    sdkManager = new DartSdkManager('/', false, (_) {
-      fail('Should not be used to create an SDK');
-    });
-    contentCache = new ContentCache();
-    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache);
   }
 
   void test_convertPackagesToMap_noPackages() {
@@ -512,6 +147,270 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
     _expectEqualOptions(options, new AnalysisOptionsImpl());
   }
 
+  void test_createPackageMap_fromPackageDirectory_explicit() {
+    // Use a package directory that is outside the project directory.
+    String rootPath = '/root';
+    String projectPath = pathContext.join(rootPath, 'project');
+    String packageDirPath = pathContext.join(rootPath, 'packages');
+    String fooName = 'foo';
+    String fooPath = pathContext.join(packageDirPath, fooName);
+    String barName = 'bar';
+    String barPath = pathContext.join(packageDirPath, barName);
+    resourceProvider.newFolder(projectPath);
+    resourceProvider.newFolder(fooPath);
+    resourceProvider.newFolder(barPath);
+
+    builder.defaultPackagesDirectoryPath = packageDirPath;
+
+    Packages packages = builder.createPackageMap(projectPath);
+    expect(packages, isNotNull);
+    Map<String, Uri> map = packages.asMap();
+    expect(map, hasLength(2));
+    expect(map[fooName], new Uri.directory(fooPath));
+    expect(map[barName], new Uri.directory(barPath));
+  }
+
+  void test_createPackageMap_fromPackageDirectory_inRoot() {
+    // Use a package directory that is inside the project directory.
+    String projectPath = '/root/project';
+    String packageDirPath = pathContext.join(projectPath, 'packages');
+    String fooName = 'foo';
+    String fooPath = pathContext.join(packageDirPath, fooName);
+    String barName = 'bar';
+    String barPath = pathContext.join(packageDirPath, barName);
+    resourceProvider.newFolder(fooPath);
+    resourceProvider.newFolder(barPath);
+
+    Packages packages = builder.createPackageMap(projectPath);
+    expect(packages, isNotNull);
+    Map<String, Uri> map = packages.asMap();
+    expect(map, hasLength(2));
+    expect(map[fooName], new Uri.directory(fooPath));
+    expect(map[barName], new Uri.directory(barPath));
+  }
+
+  void test_createPackageMap_fromPackageFile_explicit() {
+    // Use a package file that is outside the project directory's hierarchy.
+    String rootPath = '/root';
+    String projectPath = pathContext.join(rootPath, 'project');
+    String packageFilePath = pathContext.join(rootPath, 'child', '.packages');
+    resourceProvider.newFolder(projectPath);
+    createFile(
+        packageFilePath,
+        r'''
+foo:/pkg/foo
+bar:/pkg/bar
+''');
+
+    builder.defaultPackageFilePath = packageFilePath;
+    Packages packages = builder.createPackageMap(projectPath);
+    expect(packages, isNotNull);
+    Map<String, Uri> map = packages.asMap();
+    expect(map, hasLength(2));
+    expect(map['foo'], new Uri.directory('/pkg/foo'));
+    expect(map['bar'], new Uri.directory('/pkg/bar'));
+  }
+
+  void test_createPackageMap_fromPackageFile_inParentOfRoot() {
+    // Use a package file that is inside the parent of the project directory.
+    String rootPath = '/root';
+    String projectPath = pathContext.join(rootPath, 'project');
+    String packageFilePath = pathContext.join(rootPath, '.packages');
+    resourceProvider.newFolder(projectPath);
+    createFile(
+        packageFilePath,
+        r'''
+foo:/pkg/foo
+bar:/pkg/bar
+''');
+
+    Packages packages = builder.createPackageMap(projectPath);
+    expect(packages, isNotNull);
+    Map<String, Uri> map = packages.asMap();
+    expect(map, hasLength(2));
+    expect(map['foo'], new Uri.directory('/pkg/foo'));
+    expect(map['bar'], new Uri.directory('/pkg/bar'));
+  }
+
+  void test_createPackageMap_fromPackageFile_inRoot() {
+    // Use a package file that is inside the project directory.
+    String rootPath = '/root';
+    String projectPath = pathContext.join(rootPath, 'project');
+    String packageFilePath = pathContext.join(projectPath, '.packages');
+    resourceProvider.newFolder(projectPath);
+    createFile(
+        packageFilePath,
+        r'''
+foo:/pkg/foo
+bar:/pkg/bar
+''');
+
+    Packages packages = builder.createPackageMap(projectPath);
+    expect(packages, isNotNull);
+    Map<String, Uri> map = packages.asMap();
+    expect(map, hasLength(2));
+    expect(map['foo'], new Uri.directory('/pkg/foo'));
+    expect(map['bar'], new Uri.directory('/pkg/bar'));
+  }
+
+  void test_createPackageMap_none() {
+    String rootPath = '/root';
+    Packages packages = builder.createPackageMap(rootPath);
+    expect(packages, same(Packages.noPackages));
+  }
+
+  void test_createSourceFactory_fileProvider() {
+    String rootPath = '/root';
+    Folder rootFolder = resourceProvider.getFolder(rootPath);
+    createDefaultSdk(rootFolder);
+    String projectPath = pathContext.join(rootPath, 'project');
+    String packageFilePath = pathContext.join(projectPath, '.packages');
+    String packageA = pathContext.join(rootPath, 'pkgs', 'a');
+    String packageB = pathContext.join(rootPath, 'pkgs', 'b');
+    createFile(
+        packageFilePath,
+        '''
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
+''');
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    UriResolver resolver = new ResourceUriResolver(resourceProvider);
+    builder.fileResolverProvider = (folder) => resolver;
+    SourceFactoryImpl factory =
+        builder.createSourceFactory(projectPath, options);
+    expect(factory.resolvers, contains(same(resolver)));
+  }
+
+  void test_createSourceFactory_noProvider_packages_embedder_extensions() {
+    String rootPath = '/root';
+    Folder rootFolder = resourceProvider.getFolder(rootPath);
+    createDefaultSdk(rootFolder);
+    String projectPath = pathContext.join(rootPath, 'project');
+    String packageFilePath = pathContext.join(projectPath, '.packages');
+    String packageA = pathContext.join(rootPath, 'pkgs', 'a');
+    String embedderPath = pathContext.join(packageA, '_embedder.yaml');
+    String packageB = pathContext.join(rootPath, 'pkgs', 'b');
+    String extensionPath = pathContext.join(packageB, '_sdkext');
+    createFile(
+        packageFilePath,
+        '''
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
+''');
+    String asyncPath = pathContext.join(packageA, 'sdk', 'async.dart');
+    String corePath = pathContext.join(packageA, 'sdk', 'core.dart');
+    createFile(
+        embedderPath,
+        '''
+embedded_libs:
+  "dart:async": ${_relativeUri(asyncPath, from: packageA)}
+  "dart:core": ${_relativeUri(corePath, from: packageA)}
+''');
+    String fooPath = pathContext.join(packageB, 'ext', 'foo.dart');
+    createFile(
+        extensionPath,
+        '''{
+"dart:foo": "${_relativeUri(fooPath, from: packageB)}"
+}''');
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+
+    SourceFactory factory = builder.createSourceFactory(projectPath, options);
+
+    Source asyncSource = factory.forUri('dart:async');
+    expect(asyncSource, isNotNull);
+    expect(asyncSource.fullName, asyncPath);
+
+    Source fooSource = factory.forUri('dart:foo');
+    expect(fooSource, isNotNull);
+    expect(fooSource.fullName, fooPath);
+
+    Source packageSource = factory.forUri('package:b/b.dart');
+    expect(packageSource, isNotNull);
+    expect(packageSource.fullName, pathContext.join(packageB, 'b.dart'));
+  }
+
+  void test_createSourceFactory_noProvider_packages_embedder_noExtensions() {
+    String rootPath = '/root';
+    Folder rootFolder = resourceProvider.getFolder(rootPath);
+    createDefaultSdk(rootFolder);
+    String projectPath = pathContext.join(rootPath, 'project');
+    String packageFilePath = pathContext.join(projectPath, '.packages');
+    String packageA = pathContext.join(rootPath, 'pkgs', 'a');
+    String embedderPath = pathContext.join(packageA, '_embedder.yaml');
+    String packageB = pathContext.join(rootPath, 'pkgs', 'b');
+    createFile(
+        packageFilePath,
+        '''
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
+''');
+    String asyncPath = pathContext.join(packageA, 'sdk', 'async.dart');
+    String corePath = pathContext.join(packageA, 'sdk', 'core.dart');
+    createFile(
+        embedderPath,
+        '''
+embedded_libs:
+  "dart:async": ${_relativeUri(asyncPath, from: packageA)}
+  "dart:core": ${_relativeUri(corePath, from: packageA)}
+''');
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+
+    SourceFactory factory = builder.createSourceFactory(projectPath, options);
+
+    Source dartSource = factory.forUri('dart:async');
+    expect(dartSource, isNotNull);
+    expect(dartSource.fullName, asyncPath);
+
+    Source packageSource = factory.forUri('package:b/b.dart');
+    expect(packageSource, isNotNull);
+    expect(packageSource.fullName, pathContext.join(packageB, 'b.dart'));
+  }
+
+  @failingTest
+  void test_createSourceFactory_noProvider_packages_noEmbedder_extensions() {
+    fail('Incomplete test');
+  }
+
+  void test_createSourceFactory_noProvider_packages_noEmbedder_noExtensions() {
+    String rootPath = '/root';
+    Folder rootFolder = resourceProvider.getFolder(rootPath);
+    createDefaultSdk(rootFolder);
+    String projectPath = pathContext.join(rootPath, 'project');
+    String packageFilePath = pathContext.join(projectPath, '.packages');
+    String packageA = pathContext.join(rootPath, 'pkgs', 'a');
+    String packageB = pathContext.join(rootPath, 'pkgs', 'b');
+    createFile(
+        packageFilePath,
+        '''
+a:${pathContext.toUri(packageA)}
+b:${pathContext.toUri(packageB)}
+''');
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+
+    SourceFactory factory = builder.createSourceFactory(projectPath, options);
+
+    Source dartSource = factory.forUri('dart:core');
+    expect(dartSource, isNotNull);
+    expect(dartSource.fullName, '$defaultSdkPath/lib/core/core.dart');
+
+    Source packageSource = factory.forUri('package:a/a.dart');
+    expect(packageSource, isNotNull);
+    expect(packageSource.fullName, pathContext.join(packageA, 'a.dart'));
+  }
+
+  void test_createSourceFactory_packageProvider() {
+    String rootPath = '/root';
+    Folder rootFolder = resourceProvider.getFolder(rootPath);
+    createDefaultSdk(rootFolder);
+    String projectPath = pathContext.join(rootPath, 'project');
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    UriResolver resolver = new PackageMapUriResolver(resourceProvider, {});
+    builder.packageResolverProvider = (folder) => resolver;
+    SourceFactoryImpl factory =
+        builder.createSourceFactory(projectPath, options);
+    expect(factory.resolvers, contains(same(resolver)));
+  }
+
   void test_declareVariables_emptyMap() {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     Iterable<String> expected = context.declaredVariables.variableNames;
@@ -539,6 +438,30 @@ class ContextBuilderTest_WithoutDisk extends EngineTestCase {
 
     builder.declareVariables(context);
     expect(context.declaredVariables.variableNames, unorderedEquals(expected));
+  }
+
+  @failingTest
+  void test_findSdk_embedder_extensions() {
+    // See test_createSourceFactory_noProvider_packages_embedder_extensions
+    fail('Incomplete test');
+  }
+
+  @failingTest
+  void test_findSdk_embedder_noExtensions() {
+    // See test_createSourceFactory_noProvider_packages_embedder_noExtensions
+    fail('Incomplete test');
+  }
+
+  @failingTest
+  void test_findSdk_noEmbedder_extensions() {
+    // See test_createSourceFactory_noProvider_packages_noEmbedder_extensions
+    fail('Incomplete test');
+  }
+
+  @failingTest
+  void test_findSdk_noEmbedder_noExtensions() {
+    // See test_createSourceFactory_noProvider_packages_noEmbedder_noExtensions
+    fail('Incomplete test');
   }
 
   void test_findSdk_noPackageMap() {
@@ -699,13 +622,18 @@ analyzer:
     expect(actual.trackCacheDependencies, expected.trackCacheDependencies);
     expect(actual.finerGrainedInvalidation, expected.finerGrainedInvalidation);
   }
+
+  Uri _relativeUri(String path, {String from}) {
+    String relativePath = pathContext.relative(path, from: from);
+    return pathContext.toUri(relativePath);
+  }
 }
 
 @reflectiveTest
 class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
   void test_empty() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/empty')]
+      'fox': [pathTranslator.getResource(emptyPath)]
     });
     expect(locator.embedderYamls, hasLength(0));
   }
@@ -718,7 +646,7 @@ class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
 
   void test_valid() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': [pathTranslator.getResource(foxLib)]
     });
     expect(locator.embedderYamls, hasLength(1));
   }

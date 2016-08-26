@@ -2112,7 +2112,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
   jsAst.Comment buildGeneratedBy() {
     List<String> options = [];
-    if (compiler.mirrorsLibrary != null) options.add('mirrors');
+    if (compiler.commonElements.mirrorsLibrary != null) options.add('mirrors');
     if (compiler.options.useContentSecurityPolicy) options.add("CSP");
     return new jsAst.Comment(generatedBy(compiler, flavor: options.join(", ")));
   }

@@ -9,6 +9,7 @@ import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
@@ -21,6 +22,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/model.dart';
 
 /**
  * Runs the given function [f] with the working cache size in [context].
@@ -376,6 +379,7 @@ class PerformAnalysisOperation extends ServerOperation {
       setCacheSize(context, IDLE_CACHE_SIZE);
       server.sendContextAnalysisDoneNotifications(
           context, AnalysisDoneReason.COMPLETE);
+      _flushCache(server);
       return;
     }
     // process results
@@ -385,6 +389,28 @@ class PerformAnalysisOperation extends ServerOperation {
     });
     // continue analysis
     server.addOperation(new PerformAnalysisOperation(context, true));
+  }
+
+  /**
+   * Flush some of the [context] cache results, which we probably not
+   * going to use anymore.
+   */
+  void _flushCache(AnalysisServer server) {
+    if (context is InternalAnalysisContext) {
+      InternalAnalysisContext context = this.context;
+      // Flush AST results for source outside of the analysis roots.
+      ContextManager contextManager = server.contextManager;
+      context.analysisCache.flush((target) {
+        if (target is Source || target is LibrarySpecificUnit) {
+          Source targetSource = target.source;
+          return !context.prioritySources.contains(targetSource) &&
+              !contextManager.isInAnalysisRoot(targetSource.fullName);
+        }
+        return false;
+      }, (target, result) {
+        return result is ResultDescriptor<CompilationUnit>;
+      });
+    }
   }
 
   /**

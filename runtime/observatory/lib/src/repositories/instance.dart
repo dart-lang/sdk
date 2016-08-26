@@ -5,11 +5,12 @@
 part of repositories;
 
 class InstanceRepository extends M.InstanceRepository {
-  final S.Isolate isolate;
+  InstanceRepository();
 
-  InstanceRepository(this.isolate);
-
-  Future<M.Instance> get(String id, {int count: S.kDefaultFieldLimit}) async{
+  Future<M.Instance> get(M.IsolateRef i, String id,
+                         {int count: S.kDefaultFieldLimit}) async{
+    S.Isolate isolate = i as S.Isolate;
+    assert(isolate != null);
     assert(count != null);
     return (await isolate.getObject(id, count: count)) as S.Instance;
   }

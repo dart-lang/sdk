@@ -8,3 +8,7 @@
 [ $runtime == dartium ]
 isolate/*: Skip
 allocation_profile: Skip
+
+[ $runtime == ff || $runtime == safari ]
+allocation_profile: Skip
+cpu_profile_table: Skip

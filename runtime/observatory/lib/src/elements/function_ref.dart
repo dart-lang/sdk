@@ -7,7 +7,8 @@ library function_ref_element;
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M
-  show IsolateRef, FunctionRef, isSyntheticFunction, ClassRef, ObjectRef;
+  show IsolateRef, FunctionRef, isSyntheticFunction, ClassRef, ObjectRef,
+       getFunctionFullName;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
@@ -53,12 +54,13 @@ class FunctionRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     children = [];
+    title = '';
     _r.disable(notify: true);
   }
 
   void render() {
     var content = <Element>[
-      new AnchorElement(href: M.isSyntheticFunction(function.kind) ? null
+      new AnchorElement(href: M.isSyntheticFunction(_function.kind) ? null
         : Uris.inspect(_isolate, object: _function))
         ..text = _function.name
     ];
@@ -82,5 +84,6 @@ class FunctionRefElement extends HtmlElement implements Renderable {
       }
     }
     children = content.reversed.toList(growable: false);
+    title = M.getFunctionFullName(_function);
   }
 }

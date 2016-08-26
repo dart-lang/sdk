@@ -91,7 +91,9 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
   /// Collect @MirrorsUsed annotations in all libraries.  Called by the
   /// compiler after all libraries are loaded, but before resolution.
   void analyzeUsage(LibraryElement mainApp) {
-    if (mainApp == null || compiler.mirrorsLibrary == null) return;
+    if (mainApp == null || compiler.commonElements.mirrorsLibrary == null) {
+      return;
+    }
     measure(analyzer.run);
     List<String> symbols = analyzer.mergedMirrorUsage.symbols;
     List<Element> targets = analyzer.mergedMirrorUsage.targets;
@@ -241,7 +243,7 @@ class MirrorUsageAnalyzer {
   List<MirrorUsage> mirrorsUsedOnLibraryTag(
       LibraryElement library, ImportElement import) {
     LibraryElement importedLibrary = import.importedLibrary;
-    if (importedLibrary != compiler.mirrorsLibrary) {
+    if (importedLibrary != compiler.commonElements.mirrorsLibrary) {
       return null;
     }
     List<MirrorUsage> result = <MirrorUsage>[];
@@ -250,7 +252,7 @@ class MirrorUsageAnalyzer {
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
       Element element = value.getType(compiler.coreTypes).element;
-      if (element == compiler.mirrorsUsedClass) {
+      if (element == compiler.commonElements.mirrorsUsedClass) {
         result.add(buildUsage(value));
       }
     }
@@ -313,14 +315,11 @@ class MirrorUsageAnalyzer {
   /// that was resolved during [MirrorUsageAnalyzerTask.validate].
   MirrorUsage buildUsage(ConstructedConstantValue constant) {
     Map<Element, ConstantValue> fields = constant.fields;
-    VariableElement symbolsField =
-        compiler.mirrorsUsedClass.lookupLocalMember('symbols');
-    VariableElement targetsField =
-        compiler.mirrorsUsedClass.lookupLocalMember('targets');
-    VariableElement metaTargetsField =
-        compiler.mirrorsUsedClass.lookupLocalMember('metaTargets');
-    VariableElement overrideField =
-        compiler.mirrorsUsedClass.lookupLocalMember('override');
+    ClassElement cls = compiler.commonElements.mirrorsUsedClass;
+    VariableElement symbolsField = cls.lookupLocalMember('symbols');
+    VariableElement targetsField = cls.lookupLocalMember('targets');
+    VariableElement metaTargetsField = cls.lookupLocalMember('metaTargets');
+    VariableElement overrideField = cls.lookupLocalMember('override');
 
     return new MirrorUsage(
         cachedStrings[fields[symbolsField]],

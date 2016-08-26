@@ -320,18 +320,27 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     if (type is InterfaceType &&
         !type.treatAsRaw &&
         backend.classNeedsRti(type.element)) {
-      InterfaceType interface = type;
-      RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
-      Iterable<jsAst.Expression> arguments = interface.typeArguments.map(
-          (DartType type) =>
-              rtiEncoder.getTypeRepresentationWithPlaceholders(type, (_) {}));
-      jsAst.Expression argumentList =
-          new jsAst.ArrayInitializer(arguments.toList());
       return new jsAst.Call(
           getHelperProperty(backend.helpers.setRuntimeTypeInfo),
-          [value, argumentList]);
+          [value, _reifiedTypeArguments(type)]);
     }
     return value;
+  }
+
+  jsAst.Expression _reifiedTypeArguments(InterfaceType type) {
+    jsAst.Expression unexpected(TypeVariableType variable) {
+      reporter.internalError(
+          NO_LOCATION_SPANNABLE,
+          "Unexpected type variable '${variable.getStringAsDeclared(null)}'"
+          " in constant type '${type.getStringAsDeclared(null)}'");
+      return null;
+    }
+    List<jsAst.Expression> arguments = <jsAst.Expression>[];
+    RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
+    for (DartType argument in type.typeArguments) {
+      arguments.add(rtiEncoder.getTypeRepresentation(argument, unexpected));
+    }
+    return new jsAst.ArrayInitializer(arguments);
   }
 
   @override

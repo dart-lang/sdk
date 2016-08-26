@@ -341,9 +341,6 @@ class Value : public ZoneAllocated {
 
   bool IsSmiValue() { return Type()->ToCid() == kSmiCid; }
 
-  // Returns true if this value binds to the constant: 0xFFFFFFFF.
-  bool BindsTo32BitMaskConstant() const;
-
   // Return true if the value represents a constant.
   bool BindsToConstant() const;
 
@@ -5103,8 +5100,6 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   enum MathUnaryKind {
     kIllegal,
-    kSin,
-    kCos,
     kSqrt,
     kDoubleSquare,
   };
@@ -5115,7 +5110,6 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* value() const { return inputs_[0]; }
   MathUnaryKind kind() const { return kind_; }
-  const RuntimeEntry& TargetFunction() const;
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -7697,7 +7691,7 @@ class MergedMathInstr : public PureDefinition {
     return (*inputs_)[i];
   }
 
-  static intptr_t OutputIndexOf(intptr_t kind);
+  static intptr_t OutputIndexOf(MethodRecognizer::Kind kind);
   static intptr_t OutputIndexOf(Token::Kind token);
 
   virtual CompileType ComputeType() const;

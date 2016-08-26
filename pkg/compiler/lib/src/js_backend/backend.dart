@@ -15,11 +15,7 @@ import '../common/backend_api.dart'
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Identifiers, Selectors, Uris;
 import '../common/registry.dart' show EagerRegistry, Registry;
-import '../common/resolution.dart'
-    show
-        Frontend,
-        Resolution,
-        ResolutionImpact;
+import '../common/resolution.dart' show Frontend, Resolution, ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show ItemCompilationContext;
 import '../compiler.dart' show Compiler;
@@ -43,7 +39,7 @@ import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
-import '../ssa/builder.dart' show SsaFunctionCompiler;
+import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../ssa/nodes.dart' show HInstruction;
 import '../tree/tree.dart';
 import '../types/types.dart';
@@ -337,17 +333,18 @@ class JavaScriptBackend extends Backend {
       TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
   Element traceHelper;
 
-  TypeMask get stringType => compiler.typesTask.stringType;
-  TypeMask get doubleType => compiler.typesTask.doubleType;
-  TypeMask get intType => compiler.typesTask.intType;
-  TypeMask get uint32Type => compiler.typesTask.uint32Type;
-  TypeMask get uint31Type => compiler.typesTask.uint31Type;
-  TypeMask get positiveIntType => compiler.typesTask.positiveIntType;
-  TypeMask get numType => compiler.typesTask.numType;
-  TypeMask get boolType => compiler.typesTask.boolType;
-  TypeMask get dynamicType => compiler.typesTask.dynamicType;
-  TypeMask get nullType => compiler.typesTask.nullType;
+  TypeMask get stringType => compiler.commonMasks.stringType;
+  TypeMask get doubleType => compiler.commonMasks.doubleType;
+  TypeMask get intType => compiler.commonMasks.intType;
+  TypeMask get uint32Type => compiler.commonMasks.uint32Type;
+  TypeMask get uint31Type => compiler.commonMasks.uint31Type;
+  TypeMask get positiveIntType => compiler.commonMasks.positiveIntType;
+  TypeMask get numType => compiler.commonMasks.numType;
+  TypeMask get boolType => compiler.commonMasks.boolType;
+  TypeMask get dynamicType => compiler.commonMasks.dynamicType;
+  TypeMask get nullType => compiler.commonMasks.nullType;
   TypeMask get emptyType => const TypeMask.nonNullEmpty();
+  TypeMask get nonNullType => compiler.commonMasks.nonNullType;
 
   TypeMask _indexablePrimitiveTypeCache;
   TypeMask get indexablePrimitiveType {
@@ -403,13 +400,6 @@ class JavaScriptBackend extends Backend {
     return _fixedArrayTypeCache;
   }
 
-  TypeMask _nonNullTypeCache;
-  TypeMask get nonNullType {
-    if (_nonNullTypeCache == null) {
-      _nonNullTypeCache = compiler.typesTask.dynamicType.nonNullable();
-    }
-    return _nonNullTypeCache;
-  }
 
   /// Maps special classes to their implementation (JSXxx) class.
   Map<ClassElement, ClassElement> implementationClasses;
@@ -522,6 +512,9 @@ class JavaScriptBackend extends Backend {
   /// True if the html library has been loaded.
   bool htmlLibraryIsLoaded = false;
 
+  /// True when we enqueue the loadLibrary code.
+  bool isLoadLibraryFunctionResolved = false;
+
   /// List of constants from metadata.  If metadata must be preserved,
   /// these constants must be registered.
   final List<Dependency> metadataConstants = <Dependency>[];
@@ -598,7 +591,8 @@ class JavaScriptBackend extends Backend {
   JavaScriptBackend(Compiler compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
-      bool useNewSourceInfo: false})
+      bool useNewSourceInfo: false,
+      bool useKernel: false})
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<jsAst.Name, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
@@ -626,7 +620,8 @@ class JavaScriptBackend extends Backend {
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
-    functionCompiler = new SsaFunctionCompiler(this, sourceInformationStrategy);
+    functionCompiler =
+        new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
     serialization = new JavaScriptBackendSerialization(this);
   }
 
@@ -701,7 +696,7 @@ class JavaScriptBackend extends Backend {
   bool _isValidBackendUse(Element element) {
     assert(invariant(element, element.isDeclaration, message: ""));
     if (element == helpers.streamIteratorConstructor ||
-        element == helpers.compiler.symbolConstructor ||
+        compiler.commonElements.isSymbolConstructor(element) ||
         helpers.isSymbolValidatedConstructor(element) ||
         element == helpers.syncCompleterConstructor ||
         element == coreClasses.symbolClass ||
@@ -1685,7 +1680,8 @@ class JavaScriptBackend extends Backend {
         if (library.isInternalLibrary) continue;
         for (ImportElement import in library.imports) {
           LibraryElement importedLibrary = import.importedLibrary;
-          if (importedLibrary != compiler.mirrorsLibrary) continue;
+          if (importedLibrary != compiler.commonElements.mirrorsLibrary)
+            continue;
           MessageKind kind =
               compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(library)
                   ? MessageKind.MIRROR_IMPORT
@@ -1917,10 +1913,10 @@ class JavaScriptBackend extends Backend {
       needToInitializeIsolateAffinityTag = true;
     } else if (element.isDeferredLoaderGetter) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
-      if (compiler.loadLibraryFunction == null) {
-        compiler.loadLibraryFunction = helpers.loadLibraryWrapper;
+      if (!isLoadLibraryFunctionResolved) {
+        isLoadLibraryFunctionResolved = true;
         enqueueInResolution(
-            compiler.loadLibraryFunction, compiler.globalDependencies);
+            helpers.loadLibraryWrapper, compiler.globalDependencies);
       }
     } else if (element == helpers.requiresPreambleMarker) {
       requiresPreamble = true;
@@ -2132,7 +2128,7 @@ class JavaScriptBackend extends Backend {
    */
   computeMembersNeededForReflection() {
     if (_membersNeededForReflection != null) return;
-    if (compiler.mirrorsLibrary == null) {
+    if (compiler.commonElements.mirrorsLibrary == null) {
       _membersNeededForReflection = const ImmutableEmptySet<Element>();
       return;
     }
@@ -2290,9 +2286,10 @@ class JavaScriptBackend extends Backend {
     // Just checking for [:TypedData:] is not sufficient, as it is an
     // abstract class any user-defined class can implement. So we also
     // check for the interface [JavaScriptIndexingBehavior].
-    return compiler.typedDataClass != null &&
-        compiler.world.isInstantiated(compiler.typedDataClass) &&
-        mask.satisfies(compiler.typedDataClass, compiler.world) &&
+    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
+    return typedDataClass != null &&
+        compiler.world.isInstantiated(typedDataClass) &&
+        mask.satisfies(typedDataClass, compiler.world) &&
         mask.satisfies(helpers.jsIndexingBehaviorInterface, compiler.world);
   }
 
@@ -2301,10 +2298,11 @@ class JavaScriptBackend extends Backend {
         !type1.intersection(type2, compiler.world).isEmpty;
     // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
     //               jsIndexingBehaviourInterface.
-    return compiler.typedDataClass != null &&
-        compiler.world.isInstantiated(compiler.typedDataClass) &&
-        intersects(mask,
-            new TypeMask.subtype(compiler.typedDataClass, compiler.world)) &&
+    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
+    return typedDataClass != null &&
+        compiler.world.isInstantiated(typedDataClass) &&
+        intersects(
+            mask, new TypeMask.subtype(typedDataClass, compiler.world)) &&
         intersects(
             mask,
             new TypeMask.subtype(

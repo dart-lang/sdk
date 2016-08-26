@@ -1604,7 +1604,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     context.sourceFactory =
         _createSourceFactory(context, options, disposition, folder);
     context.analysisOptions = options;
-
     if (analysisServer.options.enablePubSummaryManager) {
       List<LinkedPubPackage> linkedBundles =
           analysisServer.pubSummaryManager.getLinkedBundles(context);
@@ -1684,6 +1683,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         disposition.createPackageUriResolvers(resourceProvider);
 
     // If no embedded URI resolver was provided, defer to a locator-backed one.
+    SdkExtensionFinder extFinder =
+        disposition.getSdkExtensionFinder(resourceProvider);
+    List<String> extFilePaths = extFinder.extensionFilePaths;
     EmbedderYamlLocator locator =
         disposition.getEmbedderLocator(resourceProvider);
     Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
@@ -1701,8 +1703,12 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
             .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
             .path);
       }
+      paths.addAll(extFilePaths);
       DartSdk dartSdk = analysisServer.sdkManager
           .getSdk(new SdkDescription(paths, options), () {
+        if (extFilePaths.isNotEmpty) {
+          embedderSdk.addExtensions(extFinder.urlMappings);
+        }
         embedderSdk.analysisOptions = options;
         // TODO(brianwilkerson) Enable summary use after we have decided where
         // summary files for embedder files will live.
@@ -1713,11 +1719,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
 
     resolvers.addAll(packageUriResolvers);
-    if (context.fileResolverProvider == null) {
-      resolvers.add(new ResourceUriResolver(resourceProvider));
-    } else {
-      resolvers.add(context.fileResolverProvider(folder));
+    UriResolver fileResolver;
+    if (context.fileResolverProvider != null) {
+      fileResolver = context.fileResolverProvider(folder);
     }
+    resolvers.add(fileResolver ?? new ResourceUriResolver(resourceProvider));
     return new SourceFactory(resolvers, disposition.packages);
   }
 }

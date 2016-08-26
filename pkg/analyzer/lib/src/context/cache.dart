@@ -27,6 +27,11 @@ typedef bool FlushResultFilter<V>(
     AnalysisTarget target, ResultDescriptor<V> result);
 
 /**
+ * Return `true` if some results of the [target] should be flushed.
+ */
+typedef bool FlushTargetFilter<V>(AnalysisTarget target);
+
+/**
  * Return `true` if the given [target] is a priority one.
  */
 typedef bool IsPriorityAnalysisTarget(AnalysisTarget target);
@@ -113,11 +118,11 @@ class AnalysisCache {
   }
 
   /**
-   * Flush results that satisfy the given [filter].
+   * Flush results that satisfy the given [targetFilter] and [resultFilter].
    */
-  void flush(FlushResultFilter filter) {
+  void flush(FlushTargetFilter targetFilter, FlushResultFilter resultFilter) {
     for (CachePartition partition in _partitions) {
-      partition.flush(filter);
+      partition.flush(targetFilter, resultFilter);
     }
   }
 
@@ -405,14 +410,18 @@ class CacheEntry {
   }
 
   /**
-   * Flush results that satisfy the given [filter].
+   * Flush results that satisfy the given [targetFilter] and [resultFilter].
    */
-  void flush(FlushResultFilter filter) {
-    _resultMap.forEach((ResultDescriptor result, ResultData data) {
-      if (filter(target, result)) {
-        data.flush();
-      }
-    });
+  void flush(FlushTargetFilter targetFilter, FlushResultFilter resultFilter) {
+    if (targetFilter(target)) {
+      _resultMap.forEach((ResultDescriptor result, ResultData data) {
+        if (data.state == CacheState.VALID) {
+          if (resultFilter(target, result)) {
+            data.flush();
+          }
+        }
+      });
+    }
   }
 
   /**
@@ -607,6 +616,9 @@ class CacheEntry {
       ResultDescriptor result, Delta delta, int level) {
     if (delta == null) {
       return false;
+    }
+    if (!delta.shouldGatherChanges) {
+      return true;
     }
     for (int i = 0; i < 64; i++) {
       bool hasVisitChanges = false;
@@ -1090,11 +1102,11 @@ abstract class CachePartition {
   }
 
   /**
-   * Flush results that satisfy the given [filter].
+   * Flush results that satisfy the given [targetFilter] and [resultFilter].
    */
-  void flush(FlushResultFilter filter) {
+  void flush(FlushTargetFilter targetFilter, FlushResultFilter resultFilter) {
     for (CacheEntry entry in entryMap.values) {
-      entry.flush(filter);
+      entry.flush(targetFilter, resultFilter);
     }
   }
 
@@ -1246,6 +1258,21 @@ class Delta {
 
   Delta(this.source);
 
+  /**
+   * Return `true` if this delta needs cache walking to gather additional
+   * changes before it can be used to [validate].  In this case [gatherChanges]
+   * is invoked for every targeted result in transitive dependencies, and
+   * [gatherEnd] is invoked after cache walking is done.
+   */
+  bool get shouldGatherChanges => false;
+
+  /**
+   * This method is called during a cache walk, so that the delta can gather
+   * additional changes to which are caused by the changes it already knows
+   * about.  Return `true` if a new change was added, so that one more cache
+   * walk will be performed (to include changes that depend on results which we
+   * decided to be changed later in the previous cache walk).
+   */
   bool gatherChanges(InternalAnalysisContext context, AnalysisTarget target,
       ResultDescriptor descriptor, Object value) {
     return false;

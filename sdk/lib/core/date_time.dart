@@ -664,10 +664,14 @@ class DateTime implements Comparable<DateTime> {
   external int get microsecondsSinceEpoch;
 
   /**
-   * The time zone name provided by the platform.
+   * The time zone name.
    *
-   * On Unix-like systems this will probably be an abbreviation. On Windows
-   * this will probably be the full-name, e.g. "Pacific Standard Time".
+   * This value is provided by the operating system and may be an
+   * abbreviation or a full name.
+   *
+   * In the browser or on Unix-like systems commonly returns abbreviations,
+   * such as "CET" or "CEST". On Windows returns the full name, for example
+   * "Pacific Standard Time".
    */
   external String get timeZoneName;
 

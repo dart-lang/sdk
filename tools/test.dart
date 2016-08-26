@@ -41,7 +41,8 @@ Future _deleteTemporaryDartDirectories() {
   var environment = Platform.environment;
   if (environment['DART_TESTING_DELETE_TEMPORARY_DIRECTORIES'] == '1') {
     LeftOverTempDirPrinter.getLeftOverTemporaryDirectories().listen(
-        (Directory tempDirectory) {
+        (FileSystemEntity tempEntity) {
+          Directory tempDirectory = tempEntity as Directory;
           try {
             tempDirectory.deleteSync(recursive: true);
           } catch (error) {

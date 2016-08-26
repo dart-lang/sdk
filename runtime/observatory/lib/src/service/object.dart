@@ -93,7 +93,7 @@ class FakeVMRpcException extends RpcException {
 }
 
 /// A [ServiceObject] represents a persistent object within the vm.
-abstract class ServiceObject extends Observable implements M.ObjectRef {
+abstract class ServiceObject extends Observable {
   static int LexicalSortName(ServiceObject o1, ServiceObject o2) {
     return o1.name.compareTo(o2.name);
   }
@@ -380,7 +380,7 @@ abstract class ServiceObject extends Observable implements M.ObjectRef {
   }
 }
 
-abstract class HeapObject extends ServiceObject {
+abstract class HeapObject extends ServiceObject implements M.Object {
   @observable Class clazz;
   @observable int size;
   @observable int retainedSize;
@@ -1078,6 +1078,65 @@ class TagProfile {
   }
 }
 
+class InboundReferences implements M.InboundReferences {
+  final Iterable<InboundReference> elements;
+
+  InboundReferences(ServiceMap map)
+    : this.elements = map['references']
+        .map((rmap) => new InboundReference(rmap));
+}
+
+class InboundReference implements M.InboundReference {
+  final HeapObject source;
+  final Instance parentField;
+  final int parentListIndex;
+  final int parentWordOffset;
+
+  InboundReference(ServiceMap map)
+    : source = map['source'],
+      parentField = map['parentField'],
+      parentListIndex = map['parentListIndex'],
+      parentWordOffset = map['_parentWordOffset'];
+}
+
+class RetainingPath implements M.RetainingPath {
+  final Iterable<RetainingPathItem> elements;
+
+  RetainingPath(ServiceMap map)
+    : this.elements = map['elements']
+        .map((rmap) => new RetainingPathItem(rmap));
+}
+
+class RetainingPathItem implements M.RetainingPathItem {
+  final HeapObject source;
+  final Instance parentField;
+  final int parentListIndex;
+  final int parentWordOffset;
+
+  RetainingPathItem(ServiceMap map)
+    : source = map['value'],
+      parentField = map['parentField'],
+      parentListIndex = map['parentListIndex'],
+      parentWordOffset = map['_parentWordOffset'];
+}
+
+class Ports implements M.Ports {
+  final Iterable<Port> elements;
+
+  Ports(ServiceMap map)
+    : this.elements = map['ports']
+        .map((rmap) => new Port(rmap));
+}
+
+class Port implements M.Port {
+  final String name;
+  final HeapObject handler;
+
+  Port(ServiceMap map)
+    : name = map['name'],
+      handler = map['handler'];
+}
+
 class HeapSpace extends Observable implements M.HeapSpace {
   @observable int used = 0;
   @observable int capacity = 0;
@@ -1113,31 +1172,10 @@ class HeapSpace extends Observable implements M.HeapSpace {
   }
 }
 
-class HeapSnapshot {
-  final ObjectGraph graph;
-  final DateTime timeStamp;
-  final Isolate isolate;
-
-  HeapSnapshot(this.isolate, chunks, nodeCount) :
-      graph = new ObjectGraph(chunks, nodeCount),
-      timeStamp = new DateTime.now();
-
-  List<Future<ServiceObject>> getMostRetained({int classId, int limit}) {
-    var result = [];
-    for (ObjectVertex v in graph.getMostRetained(classId: classId,
-                                                 limit: limit)) {
-      result.add(isolate.getObjectByAddress(v.address)
-                        .then((ServiceObject obj) {
-        if (obj is HeapObject) {
-          obj.retainedSize = v.retainedSize;
-        } else {
-          print("${obj.runtimeType} should be a HeapObject");
-        }
-        return obj;
-      }));
-    }
-    return result;
-  }
+class RawHeapSnapshot {
+  final chunks;
+  final count;
+  RawHeapSnapshot(this.chunks, this.count);
 }
 
 /// State for a running isolate.
@@ -1376,7 +1414,6 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   @observable String fileAndLine;
 
   @observable DartError error;
-  @observable HeapSnapshot latestSnapshot;
   StreamController _snapshotFetch;
 
   List<ByteData> _chunksInProgress;
@@ -1396,8 +1433,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       _chunksInProgress = new List(chunkCount);
     }
     _chunksInProgress[chunkIndex] = event.data;
-    _snapshotFetch.add("Receiving snapshot chunk ${chunkIndex + 1}"
-                       " of $chunkCount...");
+    _snapshotFetch.add([chunkIndex, chunkCount]);
 
     for (var i = 0; i < chunkCount; i++) {
       if (_chunksInProgress[i] == null) return;
@@ -1406,18 +1442,16 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     var loadedChunks = _chunksInProgress;
     _chunksInProgress = null;
 
-    latestSnapshot = new HeapSnapshot(this, loadedChunks, event.nodeCount);
     if (_snapshotFetch != null) {
-      latestSnapshot.graph.process(_snapshotFetch).then((graph) {
-        _snapshotFetch.add(latestSnapshot);
-        _snapshotFetch.close();
-      });
+      _snapshotFetch.add(
+          new RawHeapSnapshot(loadedChunks, event.nodeCount));
+      _snapshotFetch.close();
     }
   }
 
   Stream fetchHeapSnapshot(collectGarbage) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
-      _snapshotFetch = new StreamController();
+      _snapshotFetch = new StreamController.broadcast();
       // isolate.vm.streamListen('_Graph');
       isolate.invokeRpcNoUpgrade('_requestHeapSnapshot',
                                  {'collectGarbage': collectGarbage});
@@ -2546,10 +2580,10 @@ class Instance extends HeapObject implements M.Instance {
 
   @observable Iterable<BoundField> fields;
   @observable var nativeFields;
-  @observable Iterable<Guarded<ServiceObject>> elements;  // If a List.
+  @observable Iterable<Guarded<HeapObject>> elements;  // If a List.
   @observable Iterable<MapAssociation> associations;  // If a Map.
   @observable Iterable<dynamic> typedElements;  // If a TypedData.
-  @observable ServiceObject referent;  // If a MirrorReference.
+  @observable HeapObject referent;  // If a MirrorReference.
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
   @observable Breakpoint activationBreakpoint;  // If a Closure.
@@ -2729,7 +2763,7 @@ class Instance extends HeapObject implements M.Instance {
 class Context extends HeapObject implements M.Context {
   @observable Context parentContext;
   @observable int length;
-  @observable var variables;
+  @observable Iterable<ContextElement> variables;
 
   Context._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2745,13 +2779,21 @@ class Context extends HeapObject implements M.Context {
       return;
     }
 
-    variables = map['variables'];
+    variables = (map['variables'] ?? const []).map((element) =>
+      new ContextElement(element));
 
     // We are fully loaded.
     _loaded = true;
   }
 
   String toString() => 'Context($length)';
+}
+
+class ContextElement extends M.ContextElement {
+  final Guarded<Instance> value;
+
+  ContextElement(ObservableMap map)
+    : value = new Guarded<Instance>(map['value']);
 }
 
 M.FunctionKind stringToFunctionKind(String value) {
@@ -2904,7 +2946,7 @@ class Sentinel extends ServiceObject implements M.Sentinel {
 
 class Field extends HeapObject implements M.FieldRef {
   // Library or Class.
-  @observable ServiceObject dartOwner;
+  @observable HeapObject dartOwner;
   @observable Library library;
   @observable Instance declaredType;
   @observable bool isStatic;
@@ -3552,8 +3594,8 @@ class ObjectPool extends HeapObject implements M.ObjectPoolRef {
   }
 }
 
-class ICData extends HeapObject implements M.ICDataRef {
-  @observable ServiceObject dartOwner;
+class ICData extends HeapObject implements M.ICData {
+  @observable HeapObject dartOwner;
   @observable String selector;
   @observable Instance argumentsDescriptor;
   @observable Instance entries;

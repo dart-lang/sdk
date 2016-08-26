@@ -14,5 +14,9 @@ abstract class Context extends Object implements ContextRef {
   Context get parentContext;
 
   // The variables in this context object.
-  //Iterable<ContextElement> get variables;
+  Iterable<ContextElement> get variables;
+}
+
+abstract class ContextElement {
+  Guarded<InstanceRef> get value;
 }

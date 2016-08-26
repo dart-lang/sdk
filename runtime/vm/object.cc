@@ -51,8 +51,6 @@ namespace dart {
 
 DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 200000,
     "Huge method cutoff in unoptimized code size (in bytes).");
-DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
-    "Huge method cutoff in tokens: Disables optimizations for huge methods.");
 DEFINE_FLAG(bool, overlap_type_arguments, true,
     "When possible, partially or fully overlap the type arguments of a type "
     "with the type arguments of its super type.");

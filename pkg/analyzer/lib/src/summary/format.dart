@@ -4795,32 +4795,13 @@ abstract class _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConst
 }
 
 class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumentationComment {
-  int _length;
-  int _offset;
   String _text;
 
   @override
-  int get length => _length ??= 0;
-
-  /**
-   * Length of the documentation comment (prior to replacing '\r\n' with '\n').
-   */
-  void set length(int _value) {
-    assert(_value == null || _value >= 0);
-    _length = _value;
-  }
+  int get length => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get offset => _offset ??= 0;
-
-  /**
-   * Offset of the beginning of the documentation comment relative to the
-   * beginning of the file.
-   */
-  void set offset(int _value) {
-    assert(_value == null || _value >= 0);
-    _offset = _value;
-  }
+  int get offset => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   String get text => _text ??= '';
@@ -4835,10 +4816,8 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
     _text = _value;
   }
 
-  UnlinkedDocumentationCommentBuilder({int length, int offset, String text})
-    : _length = length,
-      _offset = offset,
-      _text = text;
+  UnlinkedDocumentationCommentBuilder({String text})
+    : _text = text;
 
   /**
    * Flush [informative] data recursively.
@@ -4850,9 +4829,7 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
    * Accumulate non-[informative] data into [signature].
    */
   void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._length ?? 0);
     signature.addString(this._text ?? '');
-    signature.addInt(this._offset ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -4861,12 +4838,6 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
       offset_text = fbBuilder.writeString(_text);
     }
     fbBuilder.startTable();
-    if (_length != null && _length != 0) {
-      fbBuilder.addUint32(0, _length);
-    }
-    if (_offset != null && _offset != 0) {
-      fbBuilder.addUint32(2, _offset);
-    }
     if (offset_text != null) {
       fbBuilder.addOffset(1, offset_text);
     }
@@ -4887,21 +4858,13 @@ class _UnlinkedDocumentationCommentImpl extends Object with _UnlinkedDocumentati
 
   _UnlinkedDocumentationCommentImpl(this._bc, this._bcOffset);
 
-  int _length;
-  int _offset;
   String _text;
 
   @override
-  int get length {
-    _length ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
-    return _length;
-  }
+  int get length => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
-    return _offset;
-  }
+  int get offset => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   String get text {
@@ -4914,16 +4877,12 @@ abstract class _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumen
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (length != 0) _result["length"] = length;
-    if (offset != 0) _result["offset"] = offset;
     if (text != '') _result["text"] = text;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "length": length,
-    "offset": offset,
     "text": text,
   };
 

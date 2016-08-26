@@ -1,0 +1,33 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+action("pkg") {
+  # TODO(zra): Add third_party/pkg, third_party/pkg_tested, and
+  # third_party/observatory_pub_packages/packages/charted/lib.
+  list_script = "../tools/list_pkg_directories.py"
+  pkg_list = exec_script(list_script, [rebase_path(".")], "list lines")
+  runtime_list = exec_script(
+      list_script, [rebase_path("../runtime")], "list lines")
+
+  inputs = pkg_list +
+           runtime_list +
+           [rebase_path("../sdk/lib/_internal/js_runtime/lib"),
+            rebase_path("../sdk/lib/_internal/sdk_library_metadata/lib"),]
+
+  timestamp_file = "$target_gen_dir/packages.stamp"
+  outputs = [
+    timestamp_file,
+  ]
+
+  script = "../tools/make_links.py"
+  args = [
+    "--quiet",
+    "--timestamp_file",
+    rebase_path(timestamp_file),
+    rebase_path("$root_out_dir/packages"),] +
+    inputs +
+    # Pub imports dart2js as compiler_unsupported so it can work outside
+    # the SDK. Map that to the compiler package.
+    [rebase_path("compiler/lib") + ":compiler_unsupported",]
+}

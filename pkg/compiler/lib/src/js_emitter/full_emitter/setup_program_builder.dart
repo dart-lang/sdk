@@ -137,8 +137,8 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'objectClassName':
         js.quoteName(namer.runtimeTypeName(compiler.coreClasses.objectClass)),
     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
-    'usesMangledNames':
-        compiler.mirrorsLibrary != null || compiler.enabledFunctionApply,
+    'usesMangledNames': compiler.commonElements.mirrorsLibrary != null ||
+        compiler.enabledFunctionApply,
     'tearOffCode': buildTearOffCode(backend),
     'nativeInfoHandler': nativeInfoHandler,
     'operatorIsPrefix': js.string(namer.operatorIsPrefix),

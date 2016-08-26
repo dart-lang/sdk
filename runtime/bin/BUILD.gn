@@ -450,26 +450,6 @@ source_set("dart_snapshot_cc") {
 }
 
 if (defined(is_fuchsia) && is_fuchsia) {
-  executable("fuchsia_test") {
-    configs += ["..:dart_config",
-                "..:dart_product_config",
-                "..:dart_precompiled_runtime_config"]
-    sources = [
-      "fuchsia_test.cc",
-      "log_fuchsia.cc",
-    ]
-
-    include_dirs = [
-      "..",
-      "../include"
-    ]
-
-    deps = [
-      ":dart_snapshot_cc",
-      ":libdart_embedder_noio",
-    ]
-  }
-
   copy("hello_fuchsia") {
     sources = [ "../tests/vm/dart/hello_fuchsia_test.dart" ]
     outputs = [ "$root_out_dir/hello_fuchsia.dart" ]
@@ -487,6 +467,7 @@ if (defined(is_fuchsia) && is_fuchsia) {
       "../vm:libdart_platform",
       "..:libdart",
       ":dart_snapshot_cc",
+      "../../pkg:pkg",  # Pull this out to top-level for a real SDK build.
       "//third_party/zlib",
     ]
 
@@ -579,17 +560,15 @@ if (defined(is_fuchsia) && is_fuchsia) {
     ] + builtin_impl_tests_list.sources + vm_tests
   }
 
-  copy("fuchsia_vm_tests") {
-    sources = [ "fuchsia_vm_tests.txt" ]
-    outputs = [ "$root_out_dir/fuchsia_vm_tests.txt" ]
-  }
-
   executable("run_vm_tests_fuchsia") {
     testonly = true
     configs += ["..:dart_config"]
     sources = [
       "run_vm_tests_fuchsia.cc"
     ]
-    libs = [ "launchpad" ]
+    libs = [
+      "launchpad",
+      "runtime",
+    ]
   }
 }  # defined(is_fuchsia) && is_fuchsia

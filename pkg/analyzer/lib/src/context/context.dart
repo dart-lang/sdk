@@ -1856,6 +1856,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return;
     }
 
+    // We're going to update the cache, so reset the driver.
+    driver.reset();
+
     // We need to invalidate the cache.
     {
       if (analysisOptions.finerGrainedInvalidation &&
@@ -1871,6 +1874,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           CacheEntry unitEntry =
               getCacheEntry(new LibrarySpecificUnit(librarySource, source));
           CompilationUnit oldUnit = RESOLVED_UNIT_RESULTS
+              .skipWhile((result) => result != RESOLVED_UNIT2)
               .map(unitEntry.getValue)
               .firstWhere((unit) => unit != null, orElse: () => null);
           // If we have the old unit, we can try to update it.
@@ -1897,7 +1901,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(MODIFICATION_TIME, CacheState.INVALID);
       entry.setState(SOURCE_KIND, CacheState.INVALID);
     }
-    driver.reset();
     for (WorkManager workManager in workManagers) {
       workManager.applyChange(
           Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);

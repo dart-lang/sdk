@@ -137,14 +137,14 @@ compileAndTest(source, checker, {createCode: false}) async {
       memorySourceFiles: SOURCES,
       beforeRun: (compiler) { compiler.stopAfterTypeInference = !createCode; });
   var compiler = result.compiler;
-  var typesTask = compiler.typesTask;
-  var typesInferrer = typesTask.typesInferrer;
+  var commonMasks = compiler.commonMasks;
+  var typesInferrer = compiler.globalInference.typesInferrer;
   getType(String name) {
     var element = findElement(compiler, name);
     return typesInferrer.getTypeOfElement(element);
   }
   if (!createCode) {
-    checker(typesTask, getType, compiler);
+    checker(commonMasks, getType, compiler);
   } else {
     var element = compiler.mainFunction;
     var code = compiler.backend.getGeneratedCode(element);

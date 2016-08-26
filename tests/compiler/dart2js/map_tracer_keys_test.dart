@@ -55,21 +55,21 @@ void doTest({String key: "'d'", String value: "5.5", bool bail: false,
   var compiler = compilerFor(generateTest(key, value, initial), uri,
       expectedErrors: 0, expectedWarnings: 0);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesTask = compiler.typesTask;
-    var typesInferrer = typesTask.typesInferrer;
+    var commonMasks = compiler.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrer;
     var aDoubleType =
         typesInferrer.getTypeOfElement(findElement(compiler, 'aDouble'));
     var aListType =
         typesInferrer.getTypeOfElement(findElement(compiler, 'aList'));
 
-    Expect.equals(aDoubleType, typesTask.doubleType);
+    Expect.equals(aDoubleType, commonMasks.doubleType);
     Expect.isTrue(aListType is ContainerTypeMask);
     ContainerTypeMask container = aListType;
     TypeMask elementType = container.elementType;
     if (bail) {
-      Expect.equals(elementType, typesTask.dynamicType);
+      Expect.equals(elementType, commonMasks.dynamicType);
     } else {
-      Expect.equals(elementType, typesTask.uint31Type);
+      Expect.equals(elementType, commonMasks.uint31Type);
     }
   }));
 }

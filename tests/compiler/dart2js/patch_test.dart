@@ -130,9 +130,9 @@ Future testPatchFunction() async {
   var compiler = await applyPatch(
       "external test();",
       "@patch test() { return 'string'; } ");
-  ensure(compiler, "test", compiler.coreLibrary.find,
+  ensure(compiler, "test", compiler.commonElements.coreLibrary.find,
          expectIsPatched: true, checkHasBody: true);
-  ensure(compiler, "test", compiler.coreLibrary.patch.find,
+  ensure(compiler, "test", compiler.commonElements.coreLibrary.patch.find,
          expectIsPatch: true, checkHasBody: true);
 
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -152,10 +152,12 @@ Future testPatchFunctionMetadata() async {
       const _b = 1;
       @patch @_b test() {}
       """);
-  Element origin = ensure(compiler, "test", compiler.coreLibrary.find,
-         expectIsPatched: true, checkHasBody: true);
-  Element patch = ensure(compiler, "test", compiler.coreLibrary.patch.find,
-         expectIsPatch: true, checkHasBody: true);
+  Element origin = ensure(compiler, "test",
+      compiler.commonElements.coreLibrary.find,
+      expectIsPatched: true, checkHasBody: true);
+  Element patch = ensure(compiler, "test",
+      compiler.commonElements.coreLibrary.patch.find,
+      expectIsPatch: true, checkHasBody: true);
 
   DiagnosticCollector collector = compiler.diagnosticCollector;
   Expect.isTrue(collector.warnings.isEmpty,
@@ -193,13 +195,13 @@ Future testPatchVersioned() async {
         $patchSource
         """,
         patchVersion: patchVersion).then((compiler) {
-        Element origin =
-            ensure(compiler, "test", compiler.coreLibrary.find,
-                 expectIsPatched: expectIsPatched, checkHasBody: true);
+        Element origin = ensure(compiler, "test",
+            compiler.commonElements.coreLibrary.find,
+            expectIsPatched: expectIsPatched, checkHasBody: true);
         if (expectIsPatched) {
-          AstElement patch =
-              ensure(compiler, "test", compiler.coreLibrary.patch.find,
-                  expectIsPatch: true, checkHasBody: true);
+          AstElement patch = ensure(compiler, "test",
+              compiler.commonElements.coreLibrary.patch.find,
+              expectIsPatch: true, checkHasBody: true);
           Expect.equals(origin.patch, patch);
           Expect.equals(patch.origin, origin);
           Expect.equals(patchText, patch.node.toString());
@@ -249,11 +251,11 @@ Future testPatchConstructor() async {
         @patch Class();
       }
       """);
-  var classOrigin = ensure(compiler, "Class", compiler.coreLibrary.find,
-                           expectIsPatched: true);
+  var classOrigin = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   classOrigin.ensureResolved(compiler.resolution);
-  var classPatch = ensure(compiler, "Class", compiler.coreLibrary.patch.find,
-                          expectIsPatch: true);
+  var classPatch = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.patch.find, expectIsPatch: true);
 
   Expect.equals(classPatch, classOrigin.patch);
   Expect.equals(classOrigin, classPatch.origin);
@@ -289,12 +291,12 @@ Future testPatchRedirectingConstructor() async {
         @patch Class._(x, y) { print('$x,$y'); }
       }
       """);
-  var classOrigin = ensure(compiler, "Class", compiler.coreLibrary.find,
-                           expectIsPatched: true);
+  var classOrigin = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   classOrigin.ensureResolved(compiler.resolution);
 
-  var classPatch = ensure(compiler, "Class", compiler.coreLibrary.patch.find,
-                          expectIsPatch: true);
+  var classPatch = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.patch.find, expectIsPatch: true);
 
   Expect.equals(classOrigin, classPatch.origin);
   Expect.equals(classPatch, classOrigin.patch);
@@ -334,10 +336,10 @@ Future testPatchMember() async {
         @patch String toString() => 'string';
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         expectIsPatched: true);
+  var container = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
-  ensure(compiler, "Class", compiler.coreLibrary.patch.find,
+  ensure(compiler, "Class", compiler.commonElements.coreLibrary.patch.find,
          expectIsPatch: true);
 
   ensure(compiler, "toString", container.lookupLocalMember,
@@ -364,8 +366,8 @@ Future testPatchGetter() async {
         @patch int get field => 5;
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         expectIsPatched: true);
+  var container = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
   ensure(compiler,
          "field",
@@ -398,10 +400,10 @@ Future testRegularMember() async {
       @patch class Class {
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         expectIsPatched: true);
+  var container = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
-  ensure(compiler, "Class", compiler.coreLibrary.patch.find,
+  ensure(compiler, "Class", compiler.commonElements.coreLibrary.patch.find,
          expectIsPatch: true);
 
   ensure(compiler, "regular", container.lookupLocalMember,
@@ -427,10 +429,10 @@ Future testInjectedMember() async {
         void _injected() {}
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         expectIsPatched: true);
+  var container = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
-  ensure(compiler, "Class", compiler.coreLibrary.patch.find,
+  ensure(compiler, "Class", compiler.commonElements.coreLibrary.patch.find,
          expectIsPatch: true);
 
   ensure(compiler, "_injected", container.lookupLocalMember,
@@ -456,10 +458,10 @@ Future testInjectedPublicMember() async {
         void injected() {}
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         expectIsPatched: true);
+  var container = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
-  ensure(compiler, "Class", compiler.coreLibrary.patch.find,
+  ensure(compiler, "Class", compiler.commonElements.coreLibrary.patch.find,
          expectIsPatch: true);
 
   ensure(compiler, "injected", container.lookupLocalMember,
@@ -483,11 +485,11 @@ Future testInjectedFunction() async {
       "int _function() => 5;");
   ensure(compiler,
          "_function",
-         compiler.coreLibrary.find,
+         compiler.commonElements.coreLibrary.find,
          expectIsFound: false);
   ensure(compiler,
          "_function",
-         compiler.coreLibrary.patch.find,
+         compiler.commonElements.coreLibrary.patch.find,
          checkHasBody: true, expectIsRegular: true);
 
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -503,11 +505,11 @@ Future testInjectedPublicFunction() async {
       "int function() => 5;");
   ensure(compiler,
          "function",
-         compiler.coreLibrary.find,
+         compiler.commonElements.coreLibrary.find,
          expectIsFound: false);
   ensure(compiler,
          "function",
-         compiler.coreLibrary.patch.find,
+         compiler.commonElements.coreLibrary.patch.find,
          checkHasBody: true, expectIsRegular: true);
 
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -552,8 +554,8 @@ Future testPatchSignatureCheck() async {
         @patch void method11({int str}) {}
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         expectIsPatched: true);
+  var container = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   container.ensureResolved(compiler.resolution);
   container.parseNode(compiler.parsingContext);
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -607,7 +609,8 @@ Future testExternalWithoutImplementationTopLevel() async {
       """
       // @patch void foo() {}
       """);
-  var function = ensure(compiler, "foo", compiler.coreLibrary.find);
+  var function = ensure(compiler, "foo",
+      compiler.commonElements.coreLibrary.find);
   compiler.resolver.resolve(function);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   Expect.isTrue(collector.warnings.isEmpty,
@@ -633,8 +636,8 @@ Future testExternalWithoutImplementationMember() async {
         // @patch void foo() {}
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         expectIsPatched: true);
+  var container = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
@@ -659,8 +662,8 @@ Future testIsSubclass() async {
       """
       @patch class A {}
       """);
-  ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
-                            expectIsPatched: true);
+  ClassElement cls = ensure(compiler, "A",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   ClassElement patch = cls.patch;
   Expect.isTrue(cls != patch);
   Expect.isTrue(cls.isSubclassOf(patch));
@@ -694,8 +697,8 @@ Future testPatchNonExistingMember() async {
         @patch void foo() {}
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         expectIsPatched: true);
+  var container = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
   DiagnosticCollector collector = compiler.diagnosticCollector;
 
@@ -715,7 +718,7 @@ Future testPatchNonPatchablePatch() async {
       """
       @patch var foo;
       """);
-  ensure(compiler, "foo", compiler.coreLibrary.find);
+  ensure(compiler, "foo", compiler.commonElements.coreLibrary.find);
 
   DiagnosticCollector collector = compiler.diagnosticCollector;
   Expect.isTrue(collector.warnings.isEmpty,
@@ -734,7 +737,7 @@ Future testPatchNonPatchableOrigin() async {
       """
       @patch get foo => 0;
       """);
-  ensure(compiler, "foo", compiler.coreLibrary.find);
+  ensure(compiler, "foo", compiler.commonElements.coreLibrary.find);
 
   DiagnosticCollector collector = compiler.diagnosticCollector;
   Expect.isTrue(collector.warnings.isEmpty,
@@ -782,8 +785,8 @@ Future testPatchNonExternalMember() async {
         @patch void foo() {}
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         expectIsPatched: true);
+  var container = ensure(compiler, "Class",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
 
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -944,8 +947,8 @@ Future testPatchAndSelector() async {
   World world = compiler.world;
   world.populate();
 
-  ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
-                            expectIsPatched: true);
+  ClassElement cls = ensure(compiler, "A",
+      compiler.commonElements.coreLibrary.find, expectIsPatched: true);
   cls.ensureResolved(compiler.resolution);
 
   ensure(compiler, "method", cls.patch.lookupLocalMember,
@@ -978,7 +981,7 @@ Future testPatchAndSelector() async {
 
   // Check that the declaration method in the declaration class is a target
   // for a typed selector on a subclass.
-  cls = ensure(compiler, "B", compiler.coreLibrary.find);
+  cls = ensure(compiler, "B", compiler.commonElements.coreLibrary.find);
   cls.ensureResolved(compiler.resolution);
   typeMask = new TypeMask.exact(cls, world);
   Expect.isTrue(selector.applies(method, world));
@@ -1054,8 +1057,8 @@ Future testEffectiveTarget() async {
 
   var compiler = await applyPatch(origin, patch, analyzeAll: true,
                  analyzeOnly: true, runCompiler: true);
-  ClassElement clsA = compiler.coreLibrary.find("A");
-  ClassElement clsB = compiler.coreLibrary.find("B");
+  ClassElement clsA = compiler.commonElements.coreLibrary.find("A");
+  ClassElement clsB = compiler.commonElements.coreLibrary.find("B");
 
   ConstructorElement forward = clsA.lookupConstructor("forward");
   ConstructorElement target = forward.effectiveTarget;

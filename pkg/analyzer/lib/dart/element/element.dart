@@ -590,15 +590,6 @@ abstract class Element implements AnalysisTarget {
   String get displayName;
 
   /**
-   * Return the source range of the documentation comment for this element,
-   * or `null` if this element does not or cannot have a documentation.
-   *
-   * Deprecated.  Use [documentationComment] instead.
-   */
-  @deprecated
-  SourceRange get docRange;
-
-  /**
    * Return the content of the documentation comment (including delimiters) for
    * this element, or `null` if this element does not or cannot have
    * documentation.

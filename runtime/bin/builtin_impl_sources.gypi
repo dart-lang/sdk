@@ -24,6 +24,7 @@
     'directory_fuchsia.cc',
     'directory_linux.cc',
     'directory_macos.cc',
+    'directory_test.cc',
     'directory_unsupported.cc',
     'directory_win.cc',
     'eventhandler_test.cc',

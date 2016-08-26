@@ -48,6 +48,7 @@ DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 // committed to the current version.
 DEFINE_FLAG(bool, conditional_directives, true,
     "Enable conditional directives");
+DEFINE_FLAG(bool, generic_method_syntax, false, "Enable generic functions.");
 DEFINE_FLAG(bool, initializing_formal_access, false,
     "Make initializing formal parameters visible in initializer list.");
 DEFINE_FLAG(bool, warn_super, false,
@@ -55,6 +56,8 @@ DEFINE_FLAG(bool, warn_super, false,
 DEFINE_FLAG(bool, warn_patch, false, "Warn on old-style patch syntax.");
 DEFINE_FLAG(bool, await_is_keyword, false,
     "await and yield are treated as proper keywords in synchronous code.");
+DEFINE_FLAG(bool, assert_initializer, false,
+    "Allow asserts in initializer lists.");
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, trace_service);
@@ -122,6 +125,25 @@ class BoolScope : public ValueObject {
  private:
   bool* _addr;
   bool _saved_value;
+};
+
+
+// Helper class to save and restore token position.
+class Parser::TokenPosScope : public ValueObject {
+ public:
+  explicit TokenPosScope(Parser *p) : p_(p) {
+    saved_pos_ = p_->TokenPos();
+  }
+  TokenPosScope(Parser *p, TokenPosition pos) : p_(p), saved_pos_(pos) {
+  }
+  ~TokenPosScope() {
+    p_->SetPosition(saved_pos_);
+  }
+
+ private:
+  Parser* p_;
+  TokenPosition saved_pos_;
+  DISALLOW_COPY_AND_ASSIGN(TokenPosScope);
 };
 
 
@@ -2065,7 +2087,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     }
   }
 
-  if (CurrentToken() == Token::kLPAREN) {
+  if (IsParameterPart()) {
     // This parameter is probably a closure. If we saw the keyword 'var'
     // or 'final', a closure is not legal here and we ignore the
     // opening parens.
@@ -2079,6 +2101,18 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
           AbstractType::Handle(Z, parameter.type->raw());
 
       // Finish parsing the function type parameter.
+      if (CurrentToken() == Token::kLT) {
+        // TODO(hausner): handle generic function types.
+        if (!FLAG_generic_method_syntax) {
+          ReportError("generic function types not supported");
+        }
+        TokenPosition type_param_pos = TokenPos();
+        if (!TryParseTypeParameters()) {
+          ReportError(type_param_pos, "error in type parameters");
+        }
+      }
+
+      ASSERT(CurrentToken() == Token::kLPAREN);
       ParamList func_params;
 
       // Add implicit closure object parameter.
@@ -2668,6 +2702,9 @@ AstNode* Parser::ParseInitializer(const Class& cls,
                                   GrowableArray<Field*>* initialized_fields) {
   TRACE_PARSER("ParseInitializer");
   const TokenPosition field_pos = TokenPos();
+  if (FLAG_assert_initializer && CurrentToken() == Token::kASSERT) {
+    return ParseAssertStatement(current_function().is_const());
+  }
   if (CurrentToken() == Token::kTHIS) {
     ConsumeToken();
     ExpectToken(Token::kPERIOD);
@@ -2957,7 +2994,9 @@ void Parser::ParseInitializers(const Class& cls,
         AstNode* init_statement =
             ParseInitializer(cls, receiver, initialized_fields);
         super_init_is_last = false;
-        current_block_->statements->Add(init_statement);
+        if (init_statement != NULL) {
+          current_block_->statements->Add(init_statement);
+        }
       }
     } while (CurrentToken() == Token::kCOMMA);
   }
@@ -3659,6 +3698,10 @@ void Parser::SkipInitializers() {
       }
       CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
+    } else if (FLAG_assert_initializer && (CurrentToken() == Token::kASSERT)) {
+      ConsumeToken();
+      CheckToken(Token::kLPAREN);
+      SkipToMatchingParenthesis();
     } else {
       SkipIf(Token::kTHIS);
       SkipIf(Token::kPERIOD);
@@ -3716,7 +3759,10 @@ RawLibraryPrefix* Parser::ParsePrefix() {
 
 void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   TRACE_PARSER("ParseMethodOrConstructor");
-  ASSERT(CurrentToken() == Token::kLPAREN || method->IsGetter());
+  // We are at the beginning of the formal parameters list.
+  ASSERT(CurrentToken() == Token::kLPAREN ||
+         CurrentToken() == Token::kLT ||
+         method->IsGetter());
   ASSERT(method->type != NULL);
   ASSERT(current_member_ == method);
 
@@ -3739,6 +3785,25 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   }
   if (method->has_const && method->IsConstructor()) {
     current_class().set_is_const();
+  }
+
+  if (CurrentToken() == Token::kLT) {
+    // Parse type parameters, but ignore them.
+    // TODO(hausner): handle type parameters.
+    if (!FLAG_generic_method_syntax) {
+      ReportError("generic type arguments not supported.");
+    }
+    TokenPosition type_param_pos = TokenPos();
+    if (method->IsFactoryOrConstructor()) {
+      ReportError(method->name_pos, "constructor cannot be generic");
+    }
+    if (method->IsGetter() || method->IsSetter()) {
+      ReportError(type_param_pos, "%s cannot be generic",
+          method->IsGetter() ? "getter" : "setter");
+    }
+    if (!TryParseTypeParameters()) {
+      ReportError(type_param_pos, "error in type parameters");
+    }
   }
 
   // Parse the formal parameters.
@@ -4341,6 +4406,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     member.has_static = true;
     // The result type depends on the name of the factory method.
   }
+
   // Optionally parse a type.
   if (CurrentToken() == Token::kVOID) {
     if (member.has_var || member.has_factory) {
@@ -4349,28 +4415,23 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     ConsumeToken();
     ASSERT(member.type == NULL);
     member.type = &Object::void_type();
-  } else if (CurrentToken() == Token::kIDENT) {
-    // This is either a type name or the name of a method/constructor/field.
-    if ((member.type == NULL) && !member.has_factory) {
-      // We have not seen a member type yet, so we check if the next
-      // identifier could represent a type before parsing it.
-      Token::Kind follower = LookaheadToken(1);
-      // We have an identifier followed by a 'follower' token.
-      // We either parse a type or assume that no type is specified.
-      if ((follower == Token::kLT) ||  // Parameterized type.
-          (follower == Token::kGET) ||  // Getter following a type.
-          (follower == Token::kSET) ||  // Setter following a type.
-          (follower == Token::kOPERATOR) ||  // Operator following a type.
-          (Token::IsIdentifier(follower)) ||  // Member name following a type.
-          ((follower == Token::kPERIOD) &&    // Qualified class name of type,
-           (LookaheadToken(3) != Token::kLPAREN))) {  // but not a named constr.
-        ASSERT(is_top_level_);
-        // The declared type of fields is never ignored, even in unchecked mode,
-        // because getters and setters could be closurized at some time (not
-        // supported yet).
-        member.type = &AbstractType::ZoneHandle(Z,
-            ParseType(ClassFinalizer::kResolveTypeParameters));
+  } else {
+    bool found_type = false;
+    {
+      // Lookahead to determine whether the next tokens are a return type.
+      TokenPosScope saved_pos(this);
+      if (TryParseReturnType()) {
+        if (IsIdentifier() ||
+           (CurrentToken() == Token::kGET) ||
+           (CurrentToken() == Token::kSET) ||
+           (CurrentToken() == Token::kOPERATOR)) {
+          found_type = true;
+        }
       }
+    }
+    if (found_type) {
+      member.type = &AbstractType::ZoneHandle(Z,
+          ParseType(ClassFinalizer::kResolveTypeParameters));
     }
   }
 
@@ -4422,6 +4483,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     CheckToken(Token::kLPAREN);
   } else if ((CurrentToken() == Token::kGET) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
+             (LookaheadToken(1) != Token::kLT) &&
              (LookaheadToken(1) != Token::kASSIGN) &&
              (LookaheadToken(1) != Token::kCOMMA)  &&
              (LookaheadToken(1) != Token::kSEMICOLON)) {
@@ -4432,6 +4494,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     // If the result type was not specified, it will be set to DynamicType.
   } else if ((CurrentToken() == Token::kSET) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
+             (LookaheadToken(1) != Token::kLT) &&
              (LookaheadToken(1) != Token::kASSIGN) &&
              (LookaheadToken(1) != Token::kCOMMA)  &&
              (LookaheadToken(1) != Token::kSEMICOLON))  {
@@ -4450,6 +4513,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
              (LookaheadToken(1) != Token::kASSIGN) &&
              (LookaheadToken(1) != Token::kCOMMA)  &&
              (LookaheadToken(1) != Token::kSEMICOLON)) {
+    // TODO(hausner): handle the case of a generic function named 'operator':
+    // eg: T operator<T>(a, b) => ...
     ConsumeToken();
     if (!Token::CanBeOverloaded(CurrentToken())) {
       ReportError("invalid operator overloading");
@@ -4473,7 +4538,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   }
 
   ASSERT(member.name != NULL);
-  if (CurrentToken() == Token::kLPAREN || member.IsGetter()) {
+  if (IsParameterPart() || member.IsGetter()) {
     // Constructor or method.
     if (member.type == NULL) {
       member.type = &Object::dynamic_type();
@@ -4569,6 +4634,14 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
     declaration_pos = TokenPos();
+  } else if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch")) {
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
+    ConsumeToken();
+    is_patch = true;
   } else if (CurrentToken() == Token::kABSTRACT) {
     is_abstract = true;
     ConsumeToken();
@@ -4753,7 +4826,11 @@ void Parser::ParseClassDefinition(const Class& cls) {
   is_top_level_ = true;
   String& class_name = String::Handle(Z, cls.Name());
   SkipMetadata();
-  if (CurrentToken() == Token::kABSTRACT) {
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch")) {
+    ConsumeToken();
+  } else if (CurrentToken() == Token::kABSTRACT) {
     ConsumeToken();
   }
   ExpectToken(Token::kCLASS);
@@ -5128,16 +5205,14 @@ bool Parser::IsFunctionTypeAliasName() {
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
     return true;
   }
-  const TokenPosition saved_pos = TokenPos();
-  bool is_alias_name = false;
+  const TokenPosScope saved_pos(this);
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLT)) {
     ConsumeToken();
     if (TryParseTypeParameters() && (CurrentToken() == Token::kLPAREN)) {
-      is_alias_name = true;
+      return true;
     }
   }
-  SetPosition(saved_pos);
-  return is_alias_name;
+  return false;
 }
 
 
@@ -5147,16 +5222,14 @@ bool Parser::IsMixinAppAlias() {
   if (IsIdentifier() && (LookaheadToken(1) == Token::kASSIGN)) {
     return true;
   }
-  const TokenPosition saved_pos = TokenPos();
-  bool is_mixin_def = false;
+  const TokenPosScope saved_pos(this);
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLT)) {
     ConsumeToken();
     if (TryParseTypeParameters() && (CurrentToken() == Token::kASSIGN)) {
-      is_mixin_def = true;
+      return true;
     }
   }
-  SetPosition(saved_pos);
-  return is_mixin_def;
+  return false;
 }
 
 
@@ -5263,9 +5336,9 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
 }
 
 
-// Consumes exactly one right angle bracket. If the current token is a single
-// bracket token, it is consumed normally. However, if it is a double or triple
-// bracket, it is replaced by a single or double bracket token without
+// Consumes exactly one right angle bracket. If the current token is
+// a single bracket token, it is consumed normally. However, if it is
+// a double bracket, it is replaced by a single bracket token without
 // incrementing the token index.
 void Parser::ConsumeRightAngleBracket() {
   if (token_kind_ == Token::kGT) {
@@ -5282,12 +5355,10 @@ bool Parser::IsPatchAnnotation(TokenPosition pos) {
   if (pos == TokenPosition::kNoSource) {
     return false;
   }
-  TokenPosition saved_pos = TokenPos();
+  TokenPosScope saved_pos(this);
   SetPosition(pos);
   ExpectToken(Token::kAT);
-  bool is_patch = IsSymbol(Symbols::Patch());
-  SetPosition(saved_pos);
-  return is_patch;
+  return IsSymbol(Symbols::Patch());
 }
 
 
@@ -5636,6 +5707,15 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
+  } else if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch") &&
+      (LookaheadToken(1) != Token::kLPAREN)) {
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
+    ConsumeToken();
+    is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
     is_external = true;
@@ -5645,8 +5725,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     result_type = Type::VoidType();
   } else {
     // Parse optional type.
-    if ((CurrentToken() == Token::kIDENT) &&
-        (LookaheadToken(1) != Token::kLPAREN)) {
+    if (IsFunctionReturnType()) {
       result_type = ParseType(ClassFinalizer::kResolveTypeParameters);
     }
   }
@@ -5667,6 +5746,18 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   }
   // A setter named x= may co-exist with a function named x, thus we do
   // not need to check setters.
+
+  if (CurrentToken() == Token::kLT) {
+    // Type parameters of generic function.
+    // TODO(hausner): handle type parameters.
+    if (!FLAG_generic_method_syntax) {
+      ReportError("generic functions not supported");
+    }
+    TokenPosition type_arg_pos = TokenPos();
+    if (!TryParseTypeParameters()) {
+      ReportError(type_arg_pos, "error in type parameters");
+    }
+  }
 
   CheckToken(Token::kLPAREN);
   const TokenPosition function_pos = TokenPos();
@@ -5756,6 +5847,14 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
+  } else if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch")) {
+    if (FLAG_warn_patch) {
+      ReportWarning("deprecated use of patch 'keyword'");
+    }
+    ConsumeToken();
+    is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
     is_external = true;
@@ -6298,6 +6397,9 @@ void Parser::ParseTopLevel() {
       ParseTypedef(pending_classes, tl_owner, metadata_pos);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
+      ParseClassDeclaration(pending_classes, tl_owner, metadata_pos);
+    } else if (is_patch_source() && IsSymbol(Symbols::Patch()) &&
+               (LookaheadToken(1) == Token::kCLASS)) {
       ParseClassDeclaration(pending_classes, tl_owner, metadata_pos);
     } else {
       set_current_class(toplevel_class);
@@ -7760,15 +7862,14 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   const TokenPosition function_pos = TokenPos();
   TokenPosition metadata_pos = TokenPosition::kNoSource;
   if (is_literal) {
-    ASSERT(CurrentToken() == Token::kLPAREN);
+    ASSERT(CurrentToken() == Token::kLPAREN || CurrentToken() == Token::kLT);
     function_name = &Symbols::AnonymousClosure();
   } else {
     metadata_pos = SkipMetadata();
     if (CurrentToken() == Token::kVOID) {
       ConsumeToken();
       result_type = Type::VoidType();
-    } else if ((CurrentToken() == Token::kIDENT) &&
-               (LookaheadToken(1) != Token::kLPAREN)) {
+    } else if (IsFunctionReturnType()) {
       result_type = ParseType(ClassFinalizer::kCanonicalize);
     }
     const TokenPosition name_pos = TokenPos();
@@ -7790,6 +7891,18 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                   line_number);
     }
   }
+
+  if (CurrentToken() == Token::kLT) {
+    if (!FLAG_generic_method_syntax) {
+      ReportError("generic functions not supported");
+    }
+    TokenPosition type_arg_pos = TokenPos();
+    // TODO(hausner): handle type parameters of generic function.
+    if (!TryParseTypeParameters()) {
+      ReportError(type_arg_pos, "error in type parameters");
+    }
+  }
+
   CheckToken(Token::kLPAREN);
 
   // Check whether we have parsed this closure function before, in a previous
@@ -7963,34 +8076,110 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 // Returns true if the current and next tokens can be parsed as type
 // parameters. Current token position is not saved and restored.
 bool Parser::TryParseTypeParameters() {
-  if (CurrentToken() == Token::kLT) {
-    // We are possibly looking at type parameters. Find closing ">".
-    int nesting_level = 0;
-    do {
-      if (CurrentToken() == Token::kLT) {
-        nesting_level++;
-      } else if (CurrentToken() == Token::kGT) {
-        nesting_level--;
-      } else if (CurrentToken() == Token::kSHR) {
-        nesting_level -= 2;
-      } else if (CurrentToken() == Token::kIDENT) {
-        // Check to see if it is a qualified identifier.
-        if (LookaheadToken(1) == Token::kPERIOD) {
-          // Consume the identifier, the period will be consumed below.
-          ConsumeToken();
-        }
-      } else if (CurrentToken() != Token::kCOMMA &&
-                 CurrentToken() != Token::kEXTENDS) {
-        // We are looking at something other than type parameters.
-        return false;
+  ASSERT(CurrentToken() == Token::kLT);
+  int nesting_level = 0;
+  do {
+    Token::Kind ct = CurrentToken();
+    if (ct == Token::kLT) {
+      nesting_level++;
+    } else if (ct == Token::kGT) {
+      nesting_level--;
+    } else if (ct == Token::kSHR) {
+      nesting_level -= 2;
+    } else if (ct == Token::kIDENT) {
+      // Check to see if it is a qualified identifier.
+      if (LookaheadToken(1) == Token::kPERIOD) {
+        // Consume the identifier, the period will be consumed below.
+        ConsumeToken();
       }
-      ConsumeToken();
-    } while (nesting_level > 0);
-    if (nesting_level < 0) {
+    } else if ((ct != Token::kCOMMA) &&
+               (ct != Token::kEXTENDS) &&
+               (!FLAG_generic_method_syntax || (ct != Token::kSUPER))) {
+      // We are looking at something other than type parameters.
       return false;
     }
+    ConsumeToken();
+  } while (nesting_level > 0);
+  if (nesting_level < 0) {
+    return false;
   }
   return true;
+}
+
+
+// Returns true if the next tokens can be parsed as type parameters.
+bool Parser::IsTypeParameters() {
+  if (CurrentToken() == Token::kLT) {
+    TokenPosScope param_pos(this);
+    if (!TryParseTypeParameters()) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+
+// Returns true if the next tokens are [ typeParameters ] '('.
+bool Parser::IsParameterPart() {
+  if (CurrentToken() == Token::kLPAREN) {
+    return true;
+  }
+  if (CurrentToken() == Token::kLT) {
+    TokenPosScope type_arg_pos(this);
+    if (!TryParseTypeParameters()) {
+      return false;
+    }
+    return CurrentToken() == Token::kLPAREN;
+  }
+  return false;
+}
+
+
+// Returns true if the current and next tokens can be parsed as type
+// arguments. Current token position is not saved and restored.
+bool Parser::TryParseTypeArguments() {
+  ASSERT(CurrentToken() == Token::kLT);
+  int nesting_level = 0;
+  do {
+    Token::Kind ct = CurrentToken();
+    if (ct == Token::kLT) {
+      nesting_level++;
+    } else if (ct == Token::kGT) {
+      nesting_level--;
+    } else if (ct == Token::kSHR) {
+      nesting_level -= 2;
+    } else if (ct == Token::kIDENT) {
+      // Check to see if it is a qualified identifier.
+      if (LookaheadToken(1) == Token::kPERIOD) {
+        // Consume the identifier, the period will be consumed below.
+        ConsumeToken();
+      }
+    } else if (ct != Token::kCOMMA) {
+      return false;
+    }
+    ConsumeToken();
+  } while (nesting_level > 0);
+  if (nesting_level < 0) {
+    return false;
+  }
+  return true;
+}
+
+
+// Returns true if the next tokens are [ typeArguments ] '('.
+bool Parser::IsArgumentPart() {
+  if (CurrentToken() == Token::kLPAREN) {
+    return true;
+  }
+  if (CurrentToken() == Token::kLT) {
+    TokenPosScope type_arg_pos(this);
+    if (!TryParseTypeArguments()) {
+      return false;
+    }
+    return CurrentToken() == Token::kLPAREN;
+  }
+  return false;
 }
 
 
@@ -8157,84 +8346,116 @@ bool Parser::IsVariableDeclaration() {
 }
 
 
-// Look ahead to detect whether the next tokens should be parsed as
-// a function declaration. Token position remains unchanged.
-bool Parser::IsFunctionDeclaration() {
-  const TokenPosition saved_pos = TokenPos();
-  bool is_external = false;
-  SkipMetadata();
-  if (is_top_level_ && (CurrentToken() == Token::kEXTERNAL)) {
-    // Skip over 'external' for top-level function declarations.
-    is_external = true;
-    ConsumeToken();
-  }
-  if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
-    // Possibly a function without explicit return type.
-    ConsumeToken();  // Consume function identifier.
-  } else if (TryParseReturnType()) {
-    if (!IsIdentifier()) {
-      SetPosition(saved_pos);
-      return false;
-    }
-    ConsumeToken();  // Consume function identifier.
-  } else {
-    SetPosition(saved_pos);
-    return false;
-  }
-  // Check parameter list and the following token.
-  if (CurrentToken() == Token::kLPAREN) {
-    SkipToMatchingParenthesis();
-    if ((CurrentToken() == Token::kLBRACE) ||
-        (CurrentToken() == Token::kARROW) ||
-        (is_top_level_ && IsSymbol(Symbols::Native())) ||
-        is_external ||
-        IsSymbol(Symbols::Async()) ||
-        IsSymbol(Symbols::Sync())) {
-      SetPosition(saved_pos);
+// Look ahead to see if the following tokens are a return type followed
+// by an identifier.
+bool Parser::IsFunctionReturnType() {
+  TokenPosScope decl_pos(this);
+  if (TryParseReturnType()) {
+    if (IsIdentifier()) {
+      // Return type followed by function name.
       return true;
     }
   }
-  SetPosition(saved_pos);
+  return false;
+}
+
+
+// Look ahead to detect whether the next tokens should be parsed as
+// a function declaration. Token position remains unchanged.
+bool Parser::IsFunctionDeclaration() {
+  bool is_external = false;
+  TokenPosScope decl_pos(this);
+  SkipMetadata();
+  if (is_top_level_) {
+    if (is_patch_source() &&
+        (CurrentToken() == Token::kIDENT) &&
+        CurrentLiteral()->Equals("patch") &&
+        (LookaheadToken(1) != Token::kLPAREN)) {
+      // Skip over 'patch' for top-level function declarations in patch sources.
+      ConsumeToken();
+    } else if (CurrentToken() == Token::kEXTERNAL) {
+      // Skip over 'external' for top-level function declarations.
+      is_external = true;
+      ConsumeToken();
+    }
+  }
+  const TokenPosition type_or_name_pos = TokenPos();
+  if (TryParseReturnType()) {
+    if (!IsIdentifier()) {
+      SetPosition(type_or_name_pos);
+    }
+  } else {
+    SetPosition(type_or_name_pos);
+  }
+  // Check for function name followed by optional type parameters.
+  if (!IsIdentifier()) {
+    return false;
+  }
+  ConsumeToken();
+  if ((CurrentToken() == Token::kLT) && !TryParseTypeParameters()) {
+    return false;
+  }
+
+  // Optional type, function name and optinal type parameters are parsed.
+  if (CurrentToken() != Token::kLPAREN) {
+    return false;
+  }
+
+  // Check parameter list and the following token.
+  SkipToMatchingParenthesis();
+  if ((CurrentToken() == Token::kLBRACE) ||
+      (CurrentToken() == Token::kARROW) ||
+      (is_top_level_ && IsSymbol(Symbols::Native())) ||
+      is_external ||
+      IsSymbol(Symbols::Async()) ||
+      IsSymbol(Symbols::Sync())) {
+    return true;
+  }
   return false;
 }
 
 
 bool Parser::IsTopLevelAccessor() {
-  const TokenPosition saved_pos = TokenPos();
-  if (CurrentToken() == Token::kEXTERNAL) {
+  const TokenPosScope saved_pos(this);
+  if (is_patch_source() && IsSymbol(Symbols::Patch())) {
+    ConsumeToken();
+  } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
   }
   if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {
-    SetPosition(saved_pos);
     return true;
   }
   if (TryParseReturnType()) {
     if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {
       if (Token::IsIdentifier(LookaheadToken(1))) {  // Accessor name.
-        SetPosition(saved_pos);
         return true;
       }
     }
   }
-  SetPosition(saved_pos);
   return false;
 }
 
 
 bool Parser::IsFunctionLiteral() {
-  if (CurrentToken() != Token::kLPAREN || !allow_function_literals_) {
+  if (!allow_function_literals_) {
     return false;
   }
-  const TokenPosition saved_pos = TokenPos();
-  bool is_function_literal = false;
-  SkipToMatchingParenthesis();
-  ParseFunctionModifier();
-  if ((CurrentToken() == Token::kLBRACE) ||
-      (CurrentToken() == Token::kARROW)) {
-    is_function_literal = true;
+  if ((CurrentToken() == Token::kLPAREN) || (CurrentToken() == Token::kLT)) {
+    TokenPosScope saved_pos(this);
+    if ((CurrentToken() == Token::kLT) && !TryParseTypeParameters()) {
+      return false;
+    }
+    if (CurrentToken() != Token::kLPAREN) {
+      return false;
+    }
+    SkipToMatchingParenthesis();
+    ParseFunctionModifier();
+    if ((CurrentToken() == Token::kLBRACE) ||
+        (CurrentToken() == Token::kARROW)) {
+       return true;
+    }
   }
-  SetPosition(saved_pos);
-  return is_function_literal;
+  return false;
 }
 
 
@@ -8242,8 +8463,7 @@ bool Parser::IsFunctionLiteral() {
 // statement. Returns true if we recognize a for ( .. in expr)
 // statement.
 bool Parser::IsForInStatement() {
-  const TokenPosition saved_pos = TokenPos();
-  bool result = false;
+  const TokenPosScope saved_pos(this);
   // Allow const modifier as well when recognizing a for-in statement
   // pattern. We will get an error later if the loop variable is
   // declared with const.
@@ -8254,16 +8474,15 @@ bool Parser::IsForInStatement() {
   }
   if (IsIdentifier()) {
     if (LookaheadToken(1) == Token::kIN) {
-      result = true;
+      return true;
     } else if (TryParseOptionalType()) {
       if (IsIdentifier()) {
         ConsumeToken();
       }
-      result = (CurrentToken() == Token::kIN);
+      return CurrentToken() == Token::kIN;
     }
   }
-  SetPosition(saved_pos);
-  return result;
+  return false;
 }
 
 
@@ -9288,7 +9507,7 @@ AstNode* Parser::MakeStaticCall(const String& cls_name,
 }
 
 
-AstNode* Parser::ParseAssertStatement() {
+AstNode* Parser::ParseAssertStatement(bool is_const) {
   TRACE_PARSER("ParseAssertStatement");
   ConsumeToken();  // Consume assert keyword.
   ExpectToken(Token::kLPAREN);
@@ -9299,6 +9518,10 @@ AstNode* Parser::ParseAssertStatement() {
     return NULL;
   }
   AstNode* condition = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
+  if (is_const && !condition->IsPotentiallyConst()) {
+    ReportError(condition_pos,
+                "initializer assert expression must be compile time constant.");
+  }
   const TokenPosition condition_end = TokenPos();
   ExpectToken(Token::kRPAREN);
 
@@ -9308,9 +9531,12 @@ AstNode* Parser::ParseAssertStatement() {
       Integer::ZoneHandle(Z, Integer::New(condition_pos.value(), Heap::kOld))));
   arguments->Add(new(Z) LiteralNode(condition_end,
       Integer::ZoneHandle(Z, Integer::New(condition_end.value(), Heap::kOld))));
-  return MakeStaticCall(Symbols::AssertionError(),
-                        Library::PrivateCoreLibName(Symbols::CheckAssertion()),
-                        arguments);
+  AstNode* assert_throw = MakeStaticCall(Symbols::AssertionError(),
+      Library::PrivateCoreLibName(is_const ? Symbols::CheckConstAssertion()
+                                           : Symbols::CheckAssertion()),
+      arguments);
+
+  return assert_throw;
 }
 
 
@@ -11663,8 +11889,17 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       }
       const TokenPosition ident_pos = TokenPos();
       String* ident = ExpectIdentifier("identifier expected");
-      if (CurrentToken() == Token::kLPAREN) {
-        // Identifier followed by a opening paren: method call.
+      if (IsArgumentPart()) {
+        // Identifier followed by optional type arguments and opening paren:
+        // method call.
+        if (CurrentToken() == Token::kLT) {
+          // Type arguments.
+          if (!FLAG_generic_method_syntax) {
+            ReportError("generic type arguments not supported.");
+          }
+          // TODO(hausner): handle type arguments.
+          ParseTypeArguments(ClassFinalizer::kIgnore);
+        }
         if (left->IsPrimaryNode() &&
             left->AsPrimaryNode()->primary().IsClass()) {
           // Static method call prefixed with class name.
@@ -11756,7 +11991,15 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       }
       selector =  new(Z) LoadIndexedNode(
           bracket_pos, array, index, Class::ZoneHandle(Z));
-    } else if (CurrentToken() == Token::kLPAREN) {
+    } else if (IsArgumentPart()) {
+      if (CurrentToken() == Token::kLT) {
+        // Type arguments.
+        if (!FLAG_generic_method_syntax) {
+          ReportError("generic type arguments not supported.");
+        }
+        // TODO(hausner): handle type arguments.
+        ParseTypeArguments(ClassFinalizer::kIgnore);
+      }
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary_node = left->AsPrimaryNode();
         const TokenPosition primary_pos = primary_node->token_pos();
@@ -14377,6 +14620,9 @@ void Parser::SkipMapLiteral() {
 
 
 void Parser::SkipActualParameters() {
+  if (CurrentToken() == Token::kLT) {
+    SkipTypeArguments();
+  }
   ExpectToken(Token::kLPAREN);
   while (CurrentToken() != Token::kRPAREN) {
     if (IsIdentifier() && (LookaheadToken(1) == Token::kCOLON)) {
@@ -14544,7 +14790,7 @@ void Parser::SkipSelectors() {
       ConsumeToken();
       SkipNestedExpr();
       ExpectToken(Token::kRBRACK);
-    } else if (current_token == Token::kLPAREN) {
+    } else if (IsArgumentPart()) {
       SkipActualParameters();
     } else {
       break;

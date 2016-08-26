@@ -129,12 +129,16 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   int get modificationStamp {
     try {
-      io.File file = _entry as io.File;
-      return file.lastModifiedSync().millisecondsSinceEpoch;
+      return _file.lastModifiedSync().millisecondsSinceEpoch;
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
   }
+
+  /**
+   * Return the underlying file being represented by this wrapper.
+   */
+  io.File get _file => _entry as io.File;
 
   @override
   Source createSource([Uri uri]) {
@@ -149,8 +153,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   List<int> readAsBytesSync() {
     try {
-      io.File file = _entry as io.File;
-      return file.readAsBytesSync();
+      return _file.readAsBytesSync();
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
@@ -159,8 +162,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   String readAsStringSync() {
     try {
-      io.File file = _entry as io.File;
-      return FileBasedSource.fileReadMode(file.readAsStringSync());
+      return FileBasedSource.fileReadMode(_file.readAsStringSync());
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
@@ -169,9 +171,16 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   File renameSync(String newPath) {
     try {
-      io.File file = _entry as io.File;
-      io.File newFile = file.renameSync(newPath);
-      return new _PhysicalFile(newFile);
+      return new _PhysicalFile(_file.renameSync(newPath));
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
+
+  @override
+  File resolveSymbolicLinksSync() {
+    try {
+      return new _PhysicalFile(new io.File(_file.resolveSymbolicLinksSync()));
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
@@ -183,8 +192,16 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   void writeAsBytesSync(List<int> bytes) {
     try {
-      io.File file = _entry as io.File;
-      file.writeAsBytesSync(bytes);
+      _file.writeAsBytesSync(bytes);
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
+
+  @override
+  void writeAsStringSync(String content) {
+    try {
+      _file.writeAsStringSync(content);
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }

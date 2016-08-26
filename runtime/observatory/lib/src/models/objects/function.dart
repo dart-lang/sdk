@@ -42,6 +42,22 @@ bool isStubFunction(FunctionKind kind) => kind == FunctionKind.stub;
 bool hasDartCode(FunctionKind kind) =>
     isDartFunction(kind) || isStubFunction(kind);
 
+String getFunctionFullName(FunctionRef function) {
+  var content = <String>[
+    function.name
+  ];
+  ObjectRef owner = function.dartOwner;
+  while (owner is FunctionRef) {
+    FunctionRef function = (owner as FunctionRef);
+    content.add(function.name);
+    owner = function.dartOwner;
+  }
+  if (owner is ClassRef) {
+    content.add(owner.name);
+  }
+  return content.reversed.join('.');
+}
+
 abstract class FunctionRef extends ObjectRef {
   /// The name of this class.
   String get name;

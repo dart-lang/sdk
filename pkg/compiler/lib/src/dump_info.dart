@@ -116,7 +116,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
   FieldInfo visitFieldElement(FieldElement element, _) {
     TypeMask inferredType =
-        compiler.typesTask.getGuaranteedTypeOfElement(element);
+        compiler.globalInference.getGuaranteedTypeOfElement(element);
     // If a field has an empty inferred type it is never used.
     if (inferredType == null || inferredType.isEmpty) return null;
 
@@ -257,7 +257,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       signature.forEachParameter((parameter) {
         parameters.add(new ParameterInfo(
             parameter.name,
-            '${compiler.typesTask.getGuaranteedTypeOfElement(parameter)}',
+            '${compiler.globalInference.getGuaranteedTypeOfElement(parameter)}',
             '${parameter.node.type}'));
       });
     }
@@ -270,7 +270,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       returnType = '${element.type.returnType}';
     }
     String inferredReturnType =
-        '${compiler.typesTask.getGuaranteedReturnTypeOfElement(element)}';
+        '${compiler.globalInference.getGuaranteedReturnTypeOfElement(element)}';
     String sideEffects = '${compiler.world.getSideEffectsOfElement(element)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[element];

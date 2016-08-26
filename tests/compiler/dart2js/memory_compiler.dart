@@ -120,7 +120,11 @@ CompilerImpl compilerFor(
   if (packageRoot == null &&
       packageConfig == null &&
       packagesDiscoveryProvider == null) {
-    packageRoot = Uri.base.resolve(Platform.packageRoot);
+    if (Platform.packageRoot != null) {
+      packageRoot = Uri.base.resolve(Platform.packageRoot);
+    } else if (Platform.packageConfig != null) {
+      packageConfig = Uri.base.resolve(Platform.packageConfig);
+    }
   }
 
   MemorySourceFileProvider provider;
@@ -159,8 +163,6 @@ CompilerImpl compilerFor(
           packagesDiscoveryProvider: packagesDiscoveryProvider));
 
   if (cachedCompiler != null) {
-    compiler.coreLibrary =
-        cachedCompiler.libraryLoader.lookupLibrary(Uri.parse('dart:core'));
     compiler.types = cachedCompiler.types.copy(compiler.resolution);
     Map copiedLibraries = {};
     cachedCompiler.libraryLoader.libraries.forEach((library) {
@@ -183,12 +185,6 @@ CompilerImpl compilerFor(
 
     compiler.backend.constantCompilerTask.copyConstantValues(
         cachedCompiler.backend.constantCompilerTask);
-    compiler.mirrorSystemClass = cachedCompiler.mirrorSystemClass;
-    compiler.mirrorsUsedClass = cachedCompiler.mirrorsUsedClass;
-    compiler.mirrorSystemGetNameFunction =
-        cachedCompiler.mirrorSystemGetNameFunction;
-    compiler.mirrorsUsedConstructor = cachedCompiler.mirrorsUsedConstructor;
-    compiler.deferredLibraryClass = cachedCompiler.deferredLibraryClass;
 
     Iterable cachedTreeElements =
         cachedCompiler.enqueuer.resolution.processedElements;
@@ -209,7 +205,7 @@ CompilerImpl compilerFor(
     cachedCompiler.resolver = null;
     cachedCompiler.closureToClassMapper = null;
     cachedCompiler.checker = null;
-    cachedCompiler.typesTask = null;
+    cachedCompiler.globalInference = null;
     cachedCompiler.backend = null;
     // Don't null out the enqueuer as it prevents us from using cachedCompiler
     // more than once.

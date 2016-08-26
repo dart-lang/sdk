@@ -38,26 +38,35 @@ def get_options():
   result.add_option("--timestamp_file", "",
       help='Create a timestamp file when done creating the links.',
       default='')
+  result.add_option("-q", "--quiet",
+      help="Don't print any messages",
+      action="store_true",
+      dest="quiet",
+      default=False)
   return result.parse_args()
 
-def make_link(source, target, orig_source):
+def make_link(quiet, source, target, orig_source):
   if os.path.islink(target):
-    print 'Removing %s' % target
+    if not quiet:
+      print 'Removing %s' % target
     sys.stdout.flush()
     os.unlink(target)
 
   if os.path.isdir(target):
-    print 'Removing %s' % target
+    if not quiet:
+      print 'Removing %s' % target
     sys.stdout.flush()
     os.rmdir(target)
 
   if os.path.isfile(orig_source):
-    print 'Copying file from %s to %s' % (orig_source, target)
+    if not quiet:
+      print 'Copying file from %s to %s' % (orig_source, target)
     sys.stdout.flush()
     shutil.copyfile(orig_source, target)
     return 0
   else:
-    print 'Creating link from %s to %s' % (source, target)
+    if not quiet:
+      print 'Creating link from %s to %s' % (source, target)
     sys.stdout.flush()
 
     if utils.GuessOS() == 'win32':
@@ -90,7 +99,7 @@ def main(argv):
         os.remove(full_link)
   else:
     os.makedirs(target)
-  linked_names = {}; 
+  linked_names = {};
   for source in args[1:]:
     # Assume the source directory is named ".../NAME/lib".
     split = source.split(':')
@@ -117,7 +126,8 @@ def main(argv):
       source = os.path.relpath(source)
     else:
       source = os.path.relpath(source, start=target)
-    exit_code = make_link(source, os.path.join(target, name), orig_source)
+    exit_code = make_link(
+        options.quiet, source, os.path.join(target, name), orig_source)
     if exit_code != 0:
       return exit_code
   create_timestamp_file(options)

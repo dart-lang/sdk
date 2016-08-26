@@ -6,14 +6,27 @@ part of app;
 
 AllocationProfileRepository _allocationProfileRepository
     = new AllocationProfileRepository();
+ContextRepository _contextRepository = new ContextRepository();
+HeapSnapshotRepository _heapSnapshotRepository
+    = new HeapSnapshotRepository();
+ICDataRepository _icdataRepository = new ICDataRepository();
+InboundReferencesRepository _inboundReferencesRepository
+    = new InboundReferencesRepository();
+InstanceRepository _instanceRepository = new InstanceRepository();
 IsolateSampleProfileRepository _isolateSampleProfileRepository
     = new IsolateSampleProfileRepository();
+PortsRepository _portsRepository = new PortsRepository();
 
 class IsolateNotFound implements Exception {
   String isolateId;
   IsolateNotFound(this.isolateId);
   String toString() => "IsolateNotFound: $isolateId";
 }
+RetainedSizeRepository _retainedSizeRepository = new RetainedSizeRepository();
+ReachableSizeRepository _reachableSizeRepository
+    = new ReachableSizeRepository();
+RetainingPathRepository _retainingPathRepository
+    = new RetainingPathRepository();
 
 /// A [Page] controls the user interface of Observatory. At any given time
 /// one page will be the current page. Pages are registered at startup.
@@ -144,8 +157,10 @@ class FlagsPage extends SimplePage {
   }
 }
 
-class InspectPage extends SimplePage {
-  InspectPage(app) : super('inspect', 'service-view', app);
+class InspectPage extends MatchingPage {
+  InspectPage(app) : super('inspect', app);
+
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
@@ -159,10 +174,42 @@ class InspectPage extends SimplePage {
     });
   }
 
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    assert(element != null);
+  }
+
   void _visitObject(obj) {
-    if (element != null) {
-      ServiceObjectViewElement serviceElement = element;
+    if (obj is Context) {
+      container.children = [
+        new ContextViewElement(app.vm, obj.isolate, obj, app.events,
+                               app.notifications,
+                               _contextRepository,
+                               _retainedSizeRepository,
+                               _reachableSizeRepository,
+                               _inboundReferencesRepository,
+                               _retainingPathRepository,
+                               _instanceRepository,
+                               queue: app.queue)
+      ];
+    } else if (obj is ICData) {
+      container.children = [
+        new ICDataViewElement(app.vm, obj.isolate, obj, app.events,
+                               app.notifications,
+                               _icdataRepository,
+                               _retainedSizeRepository,
+                               _reachableSizeRepository,
+                               _inboundReferencesRepository,
+                               _retainingPathRepository,
+                               _instanceRepository,
+                               queue: app.queue)
+      ];
+    } else {
+      ServiceObjectViewElement serviceElement =new Element.tag('service-view');
       serviceElement.object = obj;
+      container.children = [serviceElement];
     }
   }
 }
@@ -229,7 +276,7 @@ class ObjectStorePage extends SimplePage {
 class CpuProfilerPage extends MatchingPage {
   CpuProfilerPage(app) : super('profiler', app);
 
-  DivElement container = new DivElement();
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
@@ -250,31 +297,34 @@ class CpuProfilerPage extends MatchingPage {
   }
 }
 
-class TableCpuProfilerPage extends SimplePage {
-  TableCpuProfilerPage(app)
-      : super('profiler-table', 'cpu-profile-table', app);
+class TableCpuProfilerPage extends MatchingPage {
+  TableCpuProfilerPage(app) : super('profiler-table', app);
+
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        CpuProfileTableElement page = element;
-        page.isolate = isolate;
-        // TODO(johnmccutchan): Provide a more general mechanism to notify
-        // elements of URI parameter changes. Possibly via a stream off of
-        // LocationManager. With a stream individual elements (not just pages)
-        // could be notified.
-        page.checkParameters();
-      }
+      container.children = [
+        new CpuProfileTableElement(isolate.vm, isolate, app.events,
+                                   app.notifications,
+                                   _isolateSampleProfileRepository)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    assert(element != null);
   }
 }
 
 class AllocationProfilerPage extends MatchingPage {
   AllocationProfilerPage(app) : super('allocation-profiler', app);
 
-  DivElement container = new DivElement();
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
@@ -301,18 +351,26 @@ class AllocationProfilerPage extends MatchingPage {
   }
 }
 
-class PortsPage extends SimplePage {
-  PortsPage(app)
-      : super('ports', 'ports-page', app);
+class PortsPage extends MatchingPage {
+  PortsPage(app) : super('ports', app);
+
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        PortsPageElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new PortsElement(isolate.vm, isolate, app.events, app.notifications,
+                         _portsRepository, _instanceRepository,
+                         queue: app.queue)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
   }
 }
 
@@ -346,18 +404,26 @@ class HeapMapPage extends SimplePage {
   }
 }
 
-class HeapSnapshotPage extends SimplePage {
-  HeapSnapshotPage(app) : super('heap-snapshot', 'heap-snapshot', app);
+class HeapSnapshotPage extends MatchingPage {
+  HeapSnapshotPage(app) : super('heap-snapshot', app);
+
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        HeapSnapshotElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new HeapSnapshotElement(isolate.vm, isolate, app.events,
+                                app.notifications, _heapSnapshotRepository,
+                                _instanceRepository, queue: app.queue)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
   }
 }
 
@@ -422,7 +488,7 @@ class VMConnectPage extends Page {
 class IsolateReconnectPage extends Page {
   IsolateReconnectPage(app) : super(app);
 
-  DivElement container = new DivElement();
+  final DivElement container = new DivElement();
 
   void onInstall() {
     element = container;

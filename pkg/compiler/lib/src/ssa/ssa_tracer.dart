@@ -506,6 +506,18 @@ class HInstructionStringifier implements HVisitor<String> {
     return "RangeConversion: ${node.checkedInput}";
   }
 
+  String visitTypeInfoReadRaw(HTypeInfoReadRaw node) {
+    return "TypeInfoReadRaw";
+  }
+
+  String visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
+    return "TypeInfoReadVariable ${node.variable}";
+  }
+
+  String visitTypeInfoExpression(HTypeInfoExpression node) {
+    return "TypeInfoExpression ${node.kindAsString} ${node.dartType}";
+  }
+
   String visitReadTypeVariable(HReadTypeVariable node) {
     return "ReadTypeVariable: ${node.dartType} ${node.hasReceiver}";
   }

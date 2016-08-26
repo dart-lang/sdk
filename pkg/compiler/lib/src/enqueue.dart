@@ -776,7 +776,7 @@ class ResolutionEnqueuer extends Enqueuer {
       compiler.enabledRuntimeType = true;
       // TODO(ahe): Record precise dependency here.
       compiler.backend.registerRuntimeType(this, compiler.globalDependencies);
-    } else if (element == compiler.functionApplyMethod) {
+    } else if (compiler.commonElements.isFunctionApplyMethod(element)) {
       compiler.enabledFunctionApply = true;
     }
 

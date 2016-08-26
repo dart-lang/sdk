@@ -483,8 +483,8 @@ void doTest(String test, bool disableInlining, Map<String, Function> fields) {
       name,
       disableInlining,
       (compiler, field) {
-        TypeMask type = f(compiler.typesTask);
-        var inferrer = compiler.typesTask.typesInferrer;
+        TypeMask type = f(compiler.commonMasks);
+        var inferrer = compiler.globalInference.typesInferrer;
         TypeMask inferredType =
             simplify(inferrer.getTypeOfElement(field), inferrer.compiler);
         Expect.equals(type, inferredType, test);

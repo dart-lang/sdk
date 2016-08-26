@@ -6,6 +6,7 @@ library analyzer.file_system.memory_file_system;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
@@ -22,7 +23,6 @@ import 'package:watcher/watcher.dart';
 class MemoryResourceProvider implements ResourceProvider {
   final Map<String, _MemoryResource> _pathToResource =
       new HashMap<String, _MemoryResource>();
-  final Map<String, String> _pathToContent = new HashMap<String, String>();
   final Map<String, List<int>> _pathToBytes = new HashMap<String, List<int>>();
   final Map<String, int> _pathToTimestamp = new HashMap<String, int>();
   final Map<String, List<StreamController<WatchEvent>>> _pathToWatchers =
@@ -30,6 +30,7 @@ class MemoryResourceProvider implements ResourceProvider {
   int nextStamp = 0;
 
   final Context _pathContext;
+
   @override
   final AbsolutePathContext absolutePathContext;
 
@@ -46,7 +47,7 @@ class MemoryResourceProvider implements ResourceProvider {
   void deleteFile(String path) {
     _checkFileAtPath(path);
     _pathToResource.remove(path);
-    _pathToContent.remove(path);
+    _pathToBytes.remove(path);
     _pathToTimestamp.remove(path);
     _notifyWatchers(path, ChangeType.REMOVE);
   }
@@ -68,7 +69,7 @@ class MemoryResourceProvider implements ResourceProvider {
       }
     }
     _pathToResource.remove(path);
-    _pathToContent.remove(path);
+    _pathToBytes.remove(path);
     _pathToTimestamp.remove(path);
     _notifyWatchers(path, ChangeType.REMOVE);
   }
@@ -104,7 +105,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   void modifyFile(String path, String content) {
     _checkFileAtPath(path);
-    _pathToContent[path] = content;
+    _pathToBytes[path] = UTF8.encode(content);
     _pathToTimestamp[path] = nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
   }
@@ -126,7 +127,7 @@ class MemoryResourceProvider implements ResourceProvider {
   File newFile(String path, String content, [int stamp]) {
     path = pathContext.normalize(path);
     _MemoryFile file = _newFile(path);
-    _pathToContent[path] = content;
+    _pathToBytes[path] = UTF8.encode(content);
     _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
     return file;
@@ -179,7 +180,6 @@ class MemoryResourceProvider implements ResourceProvider {
     }
     _MemoryFile newFile = _newFile(newPath);
     _pathToResource.remove(path);
-    _pathToContent[newPath] = _pathToContent.remove(path);
     _pathToBytes[newPath] = _pathToBytes.remove(path);
     _pathToTimestamp[newPath] = _pathToTimestamp.remove(path);
     if (existingNewResource != null) {
@@ -195,7 +195,7 @@ class MemoryResourceProvider implements ResourceProvider {
     newFolder(pathContext.dirname(path));
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
-    _pathToContent[path] = content;
+    _pathToBytes[path] = UTF8.encode(content);
     _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
     return file;
@@ -245,7 +245,7 @@ class MemoryResourceProvider implements ResourceProvider {
     });
   }
 
-  void _setFileBytes(_MemoryFile file, List<int> bytes) {
+  void _setFileContent(_MemoryFile file, List<int> bytes) {
     String path = file.path;
     _pathToResource[path] = file;
     _pathToBytes[path] = bytes;
@@ -310,10 +310,20 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
+  File resolveSymbolicLinksSync() {
+    return throw new FileSystemException(path, "File does not exist");
+  }
+
+  @override
   Uri toUri() => new Uri.file(path, windows: _provider.pathContext == windows);
 
   @override
   void writeAsBytesSync(List<int> bytes) {
+    throw new FileSystemException(path, 'File could not be written');
+  }
+
+  @override
+  void writeAsStringSync(String content) {
     throw new FileSystemException(path, 'File could not be written');
   }
 }
@@ -355,20 +365,20 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   List<int> readAsBytesSync() {
-    List<int> bytes = _provider._pathToBytes[path];
-    if (bytes == null) {
-      throw new FileSystemException(path, 'File "$path" is not binary.');
-    }
-    return bytes;
-  }
-
-  @override
-  String readAsStringSync() {
-    String content = _provider._pathToContent[path];
+    List<int> content = _provider._pathToBytes[path];
     if (content == null) {
       throw new FileSystemException(path, 'File "$path" does not exist.');
     }
     return content;
+  }
+
+  @override
+  String readAsStringSync() {
+    List<int> content = _provider._pathToBytes[path];
+    if (content == null) {
+      throw new FileSystemException(path, 'File "$path" does not exist.');
+    }
+    return UTF8.decode(content);
   }
 
   @override
@@ -377,11 +387,19 @@ class _MemoryFile extends _MemoryResource implements File {
   }
 
   @override
+  File resolveSymbolicLinksSync() => this;
+
+  @override
   Uri toUri() => new Uri.file(path, windows: _provider.pathContext == windows);
 
   @override
   void writeAsBytesSync(List<int> bytes) {
-    _provider._setFileBytes(this, bytes);
+    _provider._setFileContent(this, bytes);
+  }
+
+  @override
+  void writeAsStringSync(String content) {
+    _provider._setFileContent(this, UTF8.encode(content));
   }
 }
 

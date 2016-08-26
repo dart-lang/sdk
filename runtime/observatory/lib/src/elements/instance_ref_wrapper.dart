@@ -72,7 +72,7 @@ class InstanceRefElementWrapper extends HtmlElement {
           overflow-x: auto;
         }''',
       new InstanceRefElement(_instance.isolate, _instance,
-                             new InstanceRepository(_instance.isolate),
+                             new InstanceRepository(),
                              queue: ObservatoryApplication.app.queue)
     ];
   }

@@ -1944,16 +1944,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       }
 
-      DartType returnContext = InferenceContext.getContext(node);
-      DartType returnType;
-      if (returnContext is FutureUnionType) {
-        returnType = _resolver.isSubtypeOfFuture(fnType.returnType)
-            ? returnContext.futureOfType
-            : returnContext.type;
-      } else {
-        returnType = returnContext;
-      }
-
       // Special case Future<T>.then upwards inference. It has signature:
       //
       //     <S>(T -> (S | Future<S>)) -> Future<S>
@@ -1991,8 +1981,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           }
         }
       }
-      return ts.inferGenericFunctionCall(
-          _typeProvider, fnType, paramTypes, argTypes, returnType);
+      return ts.inferGenericFunctionCall(_typeProvider, fnType, paramTypes,
+          argTypes, InferenceContext.getContext(node));
     }
     return null;
   }

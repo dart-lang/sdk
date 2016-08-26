@@ -45,13 +45,16 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runti
 async_star_cancel_while_paused_test: RuntimeError
 
 # Experimental feature: Syntactic support for generic methods.
-generic_methods_test: CompiletimeError # Issue 25869
-generic_functions_test: CompiletimeError # Issue 25869
-generic_local_functions_test: CompiletimeError # Issue 25869
-generic_sends_test: CompiletimeError # Issue 25869
-generic_methods_new_test: CompiletimeError # Issue 25869
-generic_methods_function_type_test: CompiletimeError # Issue 25869
-generic_methods_type_expression_test: CompiletimeError # Issue 25869
+generic_methods_type_expression_test: RuntimeError # Issue 25869
+
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $checked ]
+# The generic functions tests fail in checked mode because the parsed type parameters
+# are ignored.
+generic_methods_function_type_test: RuntimeError # Issue 25869
+generic_methods_test: RuntimeError # Issue 25869
+generic_methods_new_test: RuntimeError # Issue 25869
+generic_local_functions_test: RuntimeError # Issue 25869
+generic_functions_test: RuntimeError # Issue 25869
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 
@@ -100,13 +103,14 @@ initializing_formal_final_test: Skip
 initializing_formal_type_test: Skip
 
 # Experimental feature: Syntactic support for generic methods.
-generic_methods_test: RuntimeError # Issue 25869
-generic_functions_test: RuntimeError # Issue 25869
-generic_local_functions_test: RuntimeError # Issue 25869
-generic_sends_test: RuntimeError # Issue 25869
-generic_methods_new_test: RuntimeError # Issue 25869
-generic_methods_function_type_test: RuntimeError # Issue 25869
-generic_methods_type_expression_test: RuntimeError # Issue 25869
+# Skip these in dartium, because the test framework can't pass VM flags to
+generic_methods_test: Skip # Issue 25869
+generic_functions_test: Skip # Issue 25869
+generic_local_functions_test: Skip # Issue 25869
+generic_sends_test: Skip # Issue 25869
+generic_methods_new_test: Skip # Issue 25869
+generic_methods_function_type_test: Skip # Issue 25869
+generic_methods_type_expression_test: Skip # Issue 25869
 
 config_import_test: Skip  # Issue 26250
 
@@ -274,3 +278,15 @@ issue_1751477_test: Crash # Requires deferred libraries
 regress_23408_test: Crash # Requires deferred libraries
 regress_22443_test: Crash # Requires deferred libraries
 tearoff_basic_test: Crash # Requires deferred libraries
+
+[$runtime != vm || $compiler != none]
+assert_initializer_test: SKIP  # not implemented yet, experiment is VM only.
+
+[$runtime == vm && $compiler == none && $unchecked]
+assert_initializer_test/*: MissingCompileTimeError, OK  # asserts shouldn't fail in unchecked mode.
+assert_initializer_test/none: pass
+
+[$runtime == vm && $compiler == none && $checked]
+# The VM doesn't enforce that potentially const expressions are actually
+# const expressions when the constructor is called with `const`.
+assert_initializer_test/4*: MissingCompileTimeError # Issue 392.

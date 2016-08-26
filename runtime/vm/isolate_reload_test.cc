@@ -2816,6 +2816,65 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat8) {
 }
 
 
+TEST_CASE(IsolateReload_ShapeChangeRetainsHash) {
+  const char* kScript =
+      "class A{\n"
+      "  var x;\n"
+      "}\n"
+      "var a, hash1, hash2;\n"
+      "main() {\n"
+      "  a = new A();\n"
+      "  hash1 = a.hashCode;\n"
+      "  return 'okay';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class A{\n"
+      "  var x, y, z;\n"
+      "}\n"
+      "var a, hash1, hash2;\n"
+      "main() {\n"
+      "  hash2 = a.hashCode;\n"
+      "  return (hash1 == hash2).toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_StaticTearOffRetainsHash) {
+  const char* kScript =
+      "foo() {}\n"
+      "var hash1, hash2;\n"
+      "main() {\n"
+      "  hash1 = foo.hashCode;\n"
+      "  return 'okay';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "foo() {}\n"
+      "var hash1, hash2;\n"
+      "main() {\n"
+      "  hash2 = foo.hashCode;\n"
+      "  return (hash1 == hash2).toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+}
+
+
 static bool NothingModifiedCallback(const char* url, int64_t since) {
   return false;
 }

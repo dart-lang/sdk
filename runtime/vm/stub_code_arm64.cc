@@ -2031,10 +2031,10 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 // Called from megamorphic calls.
 //  R0: receiver
 //  R5: MegamorphicCache (preserved)
-// Result:
+// Passed to target:
 //  CODE_REG: target Code
 //  R4: arguments descriptor
-void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ NoMonomorphicCheckedEntry();
 
   // Jump if receiver is a smi.
@@ -2106,10 +2106,10 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 // Called from switchable IC calls.
 //  R0: receiver
 //  R5: ICData (preserved)
-// Result:
+// Passed to target:
 //  CODE_REG: target Code object
 //  R4: arguments descriptor
-void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
+void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ NoMonomorphicCheckedEntry();
 
   Label loop, found, miss;
@@ -2146,7 +2146,7 @@ void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ NoMonomorphicCheckedEntry();
 
   Label loop, found, miss;

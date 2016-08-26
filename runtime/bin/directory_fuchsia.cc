@@ -10,7 +10,13 @@
 #include <errno.h>  // NOLINT
 #include <stdlib.h>  // NOLINT
 #include <string.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
+
+#include "bin/dartutils.h"
+#include "bin/file.h"
+#include "bin/platform.h"
+#include "platform/signal_blocker.h"
 
 namespace dart {
 namespace bin {
@@ -94,8 +100,31 @@ void DirectoryListingEntry::ResetLink() {
 
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
-  UNIMPLEMENTED();
-  return UNKNOWN;
+  struct stat entry_info;
+  int success = NO_RETRY_EXPECTED(stat(dir_name, &entry_info));
+  if (success == 0) {
+    if (S_ISDIR(entry_info.st_mode)) {
+      return EXISTS;
+    } else {
+      return DOES_NOT_EXIST;
+    }
+  } else {
+    if ((errno == EACCES) ||
+        (errno == EBADF) ||
+        (errno == EFAULT) ||
+        (errno == ENOMEM) ||
+        (errno == EOVERFLOW)) {
+      // Search permissions denied for one of the directories in the
+      // path or a low level error occured. We do not know if the
+      // directory exists.
+      return UNKNOWN;
+    }
+    ASSERT((errno == ELOOP) ||
+           (errno == ENAMETOOLONG) ||
+           (errno == ENOENT) ||
+           (errno == ENOTDIR));
+    return DOES_NOT_EXIST;
+  }
 }
 
 

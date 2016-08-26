@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // DartOptions=--generic-method-syntax
+// VMOptions=--generic-method-syntax
 
 /// Dart test verifying that the parser can handle certain cases where
 /// grammar ambiguity is resolved in favor of generic sends, not

@@ -34,6 +34,8 @@ external String stringify(obj);
 @JS('google.maps')
 library maps;
 
+import "package:js/js.dart";
+
 // Invokes the JavaScript getter `google.maps.map`.
 external Map get map;
 

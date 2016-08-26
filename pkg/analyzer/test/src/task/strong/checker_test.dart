@@ -164,8 +164,7 @@ abstract class I1 {
 abstract class Base implements I1 {}
 
 class T1 extends Base {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -186,7 +185,7 @@ class T1 extends Base {
     // not reported technically because if the class is concrete,
     // it should implement all its interfaces and hence it is
     // sufficient to check overrides against it.
-    m(/*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+    m(B a) {}
 }
 ''');
   }
@@ -202,8 +201,7 @@ abstract class I1 {
 abstract class I2 implements I1 {}
 
 class T1 implements I2 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -219,8 +217,7 @@ abstract class M1 {
 abstract class I2 extends Object with M1 {}
 
 class T1 implements I2 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -236,8 +233,7 @@ abstract class I1 {
 abstract class I2 extends I1 {}
 
 class T1 implements I2 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -273,7 +269,7 @@ foo() => new A();
 test() {
   int x = 0;
   x += 5;
-  /*error:STATIC_TYPE_ERROR*/x += /*error:INVALID_ASSIGNMENT*/3.14;
+  x += /*error:INVALID_ASSIGNMENT*/3.14;
 
   double y = 0.0;
   y += 5;
@@ -284,12 +280,12 @@ test() {
   z += 3.14;
 
   x = /*info:DOWN_CAST_IMPLICIT*/x + z;
-  x += /*info:DOWN_CAST_IMPLICIT*/z;
+  /*info:DOWN_CAST_IMPLICIT*/x += z;
   y = y + z;
   y += z;
 
   dynamic w = 42;
-  x += /*info:DYNAMIC_CAST*/w;
+  /*info:DOWN_CAST_IMPLICIT*/x += /*info:DYNAMIC_CAST*/w;
   y += /*info:DYNAMIC_CAST*/w;
   z += /*info:DYNAMIC_CAST*/w;
 
@@ -305,7 +301,7 @@ test() {
   a += b;
   a += /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/a;
   a -= b;
-  /*error:STATIC_TYPE_ERROR*/b -= /*error:INVALID_ASSIGNMENT*/b;
+  b -= /*error:INVALID_ASSIGNMENT*/b;
   a <<= b;
   a >>= b;
   a &= b;
@@ -322,6 +318,20 @@ test() {
   /*info:DYNAMIC_INVOKE,info:DYNAMIC_INVOKE*/c[b] += d;
 }
 ''');
+  }
+
+  void test_compoundAssignment_returnsDynamic() {
+    checkFile(r'''
+class Foo {
+  operator +(other) => null;
+}
+
+main() {
+  var foo = new Foo();
+  foo = /*info:DYNAMIC_CAST*/foo + 1;
+  /*info:DYNAMIC_CAST*/foo += 1;
+}
+    ''');
   }
 
   void test_constructorInvalid() {
@@ -1787,8 +1797,7 @@ class Base<T extends B> {
 }
 
 class Derived<S extends A> extends Base<B> {
-  /*error:INVALID_METHOD_OVERRIDE*/S
-      /*error:INVALID_METHOD_OVERRIDE_RETURN_TYPE*/foo() => null;
+  /*error:INVALID_METHOD_OVERRIDE*/S foo() => null;
 }
 
 class Derived2<S extends B> extends Base<B> {
@@ -2253,43 +2262,37 @@ class Base {
 }
 
 class T1 extends Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B get
-      /*error:INVALID_GETTER_OVERRIDE_RETURN_TYPE*/f => null;
+  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B get f => null;
 }
 
 class T2 extends Base {
   /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/set f(
-      /*error:INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE*/B b) => null;
+      B b) => null;
 }
 
 class T3 extends Base {
   /*error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/final B
-      /*warning:FINAL_NOT_INITIALIZED, error:INVALID_GETTER_OVERRIDE_RETURN_TYPE*/f;
+      /*warning:FINAL_NOT_INITIALIZED*/f;
 }
 class T4 extends Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B
-      /*error:INVALID_GETTER_OVERRIDE_RETURN_TYPE, error:INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE*/f;
+  /*error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B f;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T5 implements Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/B get
-      /*error:INVALID_GETTER_OVERRIDE_RETURN_TYPE*/f => null;
+  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/B get f => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T6 implements Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/set f(
-      /*error:INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE*/B b) => null;
+  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/set f(B b) => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T7 implements Base {
-  /*error:INVALID_METHOD_OVERRIDE*/final B
-      /*error:INVALID_GETTER_OVERRIDE_RETURN_TYPE*/f = null;
+  /*error:INVALID_METHOD_OVERRIDE*/final B f = null;
 }
 class T8 implements Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_METHOD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B
-      /*error:INVALID_GETTER_OVERRIDE_RETURN_TYPE, error:INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE*/f;
+  /*error:INVALID_METHOD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B f;
 }
 ''');
   }
@@ -2304,8 +2307,7 @@ class Base {
 }
 
 class Test extends Base {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-        /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -2320,8 +2322,7 @@ abstract class I {
 }
 
 class T1 implements I {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -2340,8 +2341,7 @@ class Parent extends Grandparent {
 
 class Test extends Parent {
     // Reported only once
-    /*error:INVALID_METHOD_OVERRIDE*/m(
-        /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+    /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -2355,8 +2355,7 @@ class Grandparent {
     m(A a) {}
 }
 class Parent extends Grandparent {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 
 class Test extends Parent {
@@ -2378,8 +2377,7 @@ class Parent extends Grandparent {
 }
 
 class Test extends Parent {
-    /*error:INVALID_METHOD_OVERRIDE*/m(
-          /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+    /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
     /*error:INVALID_FIELD_OVERRIDE*/int x;
 }
 ''');
@@ -2910,8 +2908,7 @@ class Base {
 // Note: no error reported in `extends Base` to avoid duplicating
 // the error in T1.
 class T1 extends Base implements I1 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 
 // If there is no error in the class, we do report the error at
@@ -2937,8 +2934,7 @@ class M {
 }
 
 class T1 extends Object with M implements I1 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T2
@@ -2963,8 +2959,7 @@ abstract class I2 implements I1 {
 class Base {}
 
 class T1 implements I2 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -3019,7 +3014,7 @@ abstract class C {
   n(B b);
 }
 abstract class D extends C {
-  /*error:INVALID_METHOD_OVERRIDE*/m(/*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B b);
+  /*error:INVALID_METHOD_OVERRIDE*/m(B b);
   n(A a);
 }
     ''');
@@ -3045,8 +3040,7 @@ class GrandChild extends main.Child {
   /*error:INVALID_FIELD_OVERRIDE*/var _f3;
   var _f4;
 
-  /*error:INVALID_METHOD_OVERRIDE*/String
-      /*error:INVALID_METHOD_OVERRIDE_RETURN_TYPE*/_m1() => null;
+  /*error:INVALID_METHOD_OVERRIDE*/String _m1() => null;
 }
 ''',
         name: '/helper.dart');
@@ -3304,8 +3298,7 @@ abstract class I1 {
 }
 
 abstract class Base implements I1 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 
 class T1 extends Base {
@@ -3329,8 +3322,7 @@ abstract class I1 {
 }
 
 class Base implements I1 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 
 class T1 extends Base {

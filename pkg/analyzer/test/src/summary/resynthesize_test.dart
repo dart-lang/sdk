@@ -696,7 +696,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(rImpl.codeLength, oImpl.codeLength, reason: desc);
     expect(resynthesized.documentationComment, original.documentationComment,
         reason: desc);
-    expect(resynthesized.docRange, original.docRange, reason: desc);
     compareMetadata(resynthesized.metadata, original.metadata, desc);
 
     // Validate modifiers.

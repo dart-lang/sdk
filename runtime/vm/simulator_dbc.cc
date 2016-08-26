@@ -249,6 +249,17 @@ class SimulatorHelpers {
     ASSERT(GetClassId(code) == kCodeCid);
     FP[kPcMarkerSlotFromFp] = code;
   }
+
+  DART_FORCE_INLINE static uint8_t* GetTypedData(
+      RawObject* obj, RawObject* index, intptr_t scale) {
+    ASSERT(RawObject::IsTypedDataClassId(obj->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(obj);
+    const intptr_t byte_offset = Smi::Value(RAW_CAST(Smi, index));
+    ASSERT(byte_offset >= 0);
+    ASSERT(((byte_offset + (1 << scale)) >> scale) <=
+               Smi::Value(array->ptr()->length_));
+    return array->ptr()->data() + byte_offset;
+  }
 };
 
 
@@ -542,6 +553,7 @@ DART_FORCE_INLINE void Simulator::Invoke(Thread* thread,
   callee_fp[kSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
   *pp = code->ptr()->object_pool_->ptr();
   *pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+  pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
   *FP = callee_fp;
   *SP = *FP - 1;
 }
@@ -694,6 +706,7 @@ static DART_NOINLINE bool InvokeRuntime(
     thread->set_vm_tag(reinterpret_cast<uword>(drt));
     drt(args);
     thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_top_exit_frame_info(0);
     return true;
   } else {
     return false;
@@ -711,6 +724,7 @@ static DART_NOINLINE bool InvokeNative(
     thread->set_vm_tag(reinterpret_cast<uword>(f));
     f(args);
     thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_top_exit_frame_info(0);
     return true;
   } else {
     return false;
@@ -729,6 +743,7 @@ static DART_NOINLINE bool InvokeNativeWrapper(
     NativeEntry::NativeCallWrapper(reinterpret_cast<Dart_NativeArguments>(args),
                                    f);
     thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_top_exit_frame_info(0);
     return true;
   } else {
     return false;
@@ -930,6 +945,7 @@ RawObject* Simulator::Call(const Code& code,
 
   // Save outer top_exit_frame_info.
   fp_[0] = reinterpret_cast<RawObject*>(thread->top_exit_frame_info());
+  thread->set_top_exit_frame_info(0);
 
   // Copy arguments and setup the Dart frame.
   const intptr_t argc = arguments.Length();
@@ -948,6 +964,7 @@ RawObject* Simulator::Call(const Code& code,
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
   pc = reinterpret_cast<uint32_t*>(code.raw()->ptr()->entry_point_);
+  pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
   pp = code.object_pool()->ptr();
 
   // Cache some frequently used values in the frame.
@@ -1169,6 +1186,7 @@ RawObject* Simulator::Call(const Code& code,
       SimulatorHelpers::SetFrameCode(FP, code);
       pp = code->ptr()->object_pool_->ptr();
       pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+      pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
     }
     DISPATCH();
   }
@@ -1198,6 +1216,7 @@ RawObject* Simulator::Call(const Code& code,
         SimulatorHelpers::SetFrameCode(FP, code);
         pp = code->ptr()->object_pool_->ptr();
         pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+        pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
       }
     }
     DISPATCH();
@@ -1757,10 +1776,10 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(ShrImm, A_B_C);
+    BYTECODE(ShlImm, A_B_C);
     const uint8_t shift = rC;
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]) >> kSmiTagSize;
-    *reinterpret_cast<intptr_t*>(&FP[rA]) = (lhs >> shift) << kSmiTagSize;
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+    FP[rA] = reinterpret_cast<RawObject*>(lhs << shift);
     DISPATCH();
   }
 
@@ -1777,6 +1796,29 @@ RawObject* Simulator::Call(const Code& code,
     const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
     const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]);
     FP[rA] = reinterpret_cast<RawObject*>((lhs > rhs) ? lhs : rhs);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(UnboxInt32, A_B_C);
+    const intptr_t box_cid = SimulatorHelpers::GetClassId(FP[rB]);
+    const bool may_truncate = rC == 1;
+    if (box_cid == kSmiCid) {
+      const intptr_t value = reinterpret_cast<intptr_t>(FP[rB]) >> kSmiTagSize;
+      const int32_t value32 = static_cast<int32_t>(value);
+      if (may_truncate || (value == static_cast<intptr_t>(value32))) {
+        FP[rA] = reinterpret_cast<RawObject*>(value);
+        pc++;
+      }
+    } else if (box_cid == kMintCid) {
+      RawMint* mint = RAW_CAST(Mint, FP[rB]);
+      const int64_t value = mint->ptr()->value_;
+      const int32_t value32 = static_cast<int32_t>(value);
+      if (may_truncate || (value == static_cast<int64_t>(value32))) {
+        FP[rA] = reinterpret_cast<RawObject*>(value);
+        pc++;
+      }
+    }
     DISPATCH();
   }
 
@@ -1930,24 +1972,57 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadFloat64Indexed, A_B_C);
-    ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
-    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
-    RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    double* data = reinterpret_cast<double*>(array->ptr()->data());
-    FP[rA] = bit_cast<RawObject*, double>(data[Smi::Value(index)]);
+    BYTECODE(LoadIndexedFloat64, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC], 3);
+    *reinterpret_cast<uint64_t*>(&FP[rA]) = *reinterpret_cast<uint64_t*>(data);
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreFloat64Indexed, A_B_C);
+    BYTECODE(LoadIndexed8Float64, A_B_C);
+    ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    const int64_t value =
+        reinterpret_cast<int64_t*>(array->ptr()->data())[Smi::Value(index)];
+    FP[rA] = reinterpret_cast<RawObject*>(value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedFloat64, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB], 3);
+    *reinterpret_cast<uint64_t*>(data) = reinterpret_cast<uint64_t>(FP[rC]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexed8Float64, A_B_C);
     ASSERT(RawObject::IsTypedDataClassId(FP[rA]->GetClassId()));
     RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    double* data = reinterpret_cast<double*>(array->ptr()->data());
-    data[Smi::Value(index)] = bit_cast<double, RawObject*>(FP[rC]);
+    const int64_t value = reinterpret_cast<int64_t>(FP[rC]);
+    reinterpret_cast<int64_t*>(array->ptr()->data())[Smi::Value(index)] = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxInt32, A_D);
+    // Casts sign-extend high 32 bits from low 32 bits.
+    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]);
+    const int32_t value32 = static_cast<int32_t>(value);
+    FP[rA] = Smi::New(static_cast<intptr_t>(value32));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxUint32, A_D);
+    // Casts to zero out high 32 bits.
+    const uintptr_t value = reinterpret_cast<uintptr_t>(FP[rD]);
+    const uint32_t value32 = static_cast<uint32_t>(value);
+    FP[rA] = Smi::New(static_cast<intptr_t>(value32));
     DISPATCH();
   }
 #else  // defined(ARCH_IS_64_BIT)
@@ -2054,13 +2129,37 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadFloat64Indexed, A_B_C);
+    BYTECODE(LoadIndexedFloat64, A_B_C);
     UNREACHABLE();
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreFloat64Indexed, A_B_C);
+    BYTECODE(LoadIndexed8Float64, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedFloat64, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexed8Float64, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxInt32, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxUint32, A_D);
     UNREACHABLE();
     DISPATCH();
   }
@@ -2090,6 +2189,7 @@ RawObject* Simulator::Call(const Code& code,
   ReturnImpl:
     // Restore caller PC.
     pc = SavedCallerPC(FP);
+    pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
 
     // Check if it is a fake PC marking the entry frame.
     if ((reinterpret_cast<uword>(pc) & 2) != 0) {
@@ -2162,6 +2262,15 @@ RawObject* Simulator::Call(const Code& code,
     const uint16_t offset_in_words = rC;
     RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
     FP[rA] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadUntagged, A_B_C);
+    const uint16_t instance_reg = rB;
+    const uint16_t offset_in_words = rC;
+    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
+    FP[rA] = reinterpret_cast<RawObject**>(instance)[offset_in_words];
     DISPATCH();
   }
 
@@ -2844,8 +2953,44 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(StoreIndexedUint8, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB], 0);
+    *data = Smi::Value(RAW_CAST(Smi, FP[rC]));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedExternalUint8, A_B_C);
+    uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    RawSmi* value = RAW_CAST(Smi, FP[rC]);
+    array[Smi::Value(index)] = Smi::Value(value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedOneByteString, A_B_C);
+    RawOneByteString* array = RAW_CAST(OneByteString, FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    RawSmi* value = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    array->ptr()->data()[Smi::Value(index)] = Smi::Value(value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedUint32, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB], 2);
+    const uintptr_t value = reinterpret_cast<uintptr_t>(FP[rC]);
+    *reinterpret_cast<uint32_t*>(data) = static_cast<uint32_t>(value);
+    DISPATCH();
+  }
+
+  {
     BYTECODE(LoadIndexed, A_B_C);
-    RawArray* array = RAW_CAST(Array, FP[rB]);
+    RawObject* obj = FP[rB];
+    ASSERT(obj->IsArray() || obj->IsImmutableArray());
+    RawArray* array = reinterpret_cast<RawArray*>(obj);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
     FP[rA] = array->ptr()->data()[Smi::Value(index)];
@@ -2853,7 +2998,51 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadOneByteStringIndexed, A_B_C);
+    BYTECODE(LoadIndexedUint8, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC], 0);
+    FP[rA] = Smi::New(*data);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedInt8, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC], 0);
+    FP[rA] = Smi::New(*reinterpret_cast<int8_t*>(data));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedUint32, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC], 2);
+    FP[rA] = reinterpret_cast<RawObject*>(*reinterpret_cast<uintptr_t*>(data));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedInt32, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC], 2);
+    FP[rA] = reinterpret_cast<RawObject*>(*reinterpret_cast<intptr_t*>(data));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedExternalUint8, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedExternalInt8, A_B_C);
+    int8_t* data = reinterpret_cast<int8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedOneByteString, A_B_C);
     RawOneByteString* array = RAW_CAST(OneByteString, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
@@ -2862,7 +3051,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadTwoByteStringIndexed, A_B_C);
+    BYTECODE(LoadIndexedTwoByteString, A_B_C);
     RawTwoByteString* array = RAW_CAST(TwoByteString, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
@@ -2917,6 +3106,7 @@ RawObject* Simulator::Call(const Code& code,
 
     // Restore caller PC.
     pc = SavedCallerPC(FP);
+    pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
 
     // Check if it is a fake PC marking the entry frame.
     ASSERT((reinterpret_cast<uword>(pc) & 2) == 0);

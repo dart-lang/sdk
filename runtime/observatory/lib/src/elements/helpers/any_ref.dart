@@ -23,7 +23,7 @@ import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/src/elements/token_stream_ref.dart';
 import 'package:observatory/src/elements/unknown_ref.dart';
 
-Element anyRef(M.Isolate isolate, ref, M.InstanceRepository instances,
+Element anyRef(M.IsolateRef isolate, ref, M.InstanceRepository instances,
     {RenderingQueue queue}) {
   if (ref is M.Guarded) {
     return anyRef(isolate, ref.asSentinel ?? ref.asValue, instances,

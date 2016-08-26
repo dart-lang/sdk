@@ -96,49 +96,61 @@ class SsaInstructionSelection extends HBaseVisitor {
 
   HInstruction visitInvokeDynamic(HInvokeDynamic node) {
     if (node.isInterceptedCall) {
-      // Calls of the form
-      //
-      //     a.foo$1(a, x)
-      //
-      // where the interceptor calling convention is used come from recognizing
-      // that 'a' is a 'self-interceptor'.  If the selector matches only methods
-      // that ignore the explicit receiver parameter, replace occurences of the
-      // receiver argument with a dummy receiver '0':
-      //
-      //     a.foo$1(a, x)   --->   a.foo$1(0, x)
-      //
-      // This often reduces the number of references to 'a' to one, allowing 'a'
-      // to be generated at use to avoid a temporary, e.g.
-      //
-      //     t1 = b.get$thing();
-      //     t1.foo$1(t1, x)
-      // --->
-      //     b.get$thing().foo$1(0, x)
-      //
-      Selector selector = node.selector;
-      TypeMask mask = node.mask;
+      tryReplaceInterceptorWithDummy(node, node.selector, node.mask);
+    }
+    return node;
+  }
+
+  HInstruction visitInvokeSuper(HInvokeSuper node) {
+    if (node.isInterceptedCall) {
+      TypeMask mask = node.getDartReceiver(compiler).instructionType;
+      tryReplaceInterceptorWithDummy(node, node.selector, mask);
+    }
+    return node;
+  }
+
+  void tryReplaceInterceptorWithDummy(
+      HInvoke node, Selector selector, TypeMask mask) {
+    // Calls of the form
+    //
+    //     a.foo$1(a, x)
+    //
+    // where the interceptor calling convention is used come from recognizing
+    // that 'a' is a 'self-interceptor'.  If the selector matches only methods
+    // that ignore the explicit receiver parameter, replace occurences of the
+    // receiver argument with a dummy receiver '0':
+    //
+    //     a.foo$1(a, x)   --->   a.foo$1(0, x)
+    //
+    // This often reduces the number of references to 'a' to one, allowing 'a'
+    // to be generated at use to avoid a temporary, e.g.
+    //
+    //     t1 = b.get$thing();
+    //     t1.foo$1(t1, x)
+    // --->
+    //     b.get$thing().foo$1(0, x)
+    //
+
+    // TODO(15933): Make automatically generated property extraction closures
+    // work with the dummy receiver optimization.
+    if (selector.isGetter) return;
+
+    // This assignment of inputs is uniform for HInvokeDynamic and HInvokeSuper.
+    HInstruction interceptor = node.inputs[0];
+    HInstruction receiverArgument = node.inputs[1];
+
+    if (interceptor.nonCheck() == receiverArgument.nonCheck()) {
       if (backend.isInterceptedSelector(selector) &&
           !backend.isInterceptedMixinSelector(selector, mask)) {
-        HInstruction interceptor = node.inputs[0];
-        HInstruction receiverArgument = node.inputs[1];
-
-        if (interceptor.nonCheck() == receiverArgument.nonCheck()) {
-          // TODO(15933): Make automatically generated property extraction
-          // closures work with the dummy receiver optimization.
-          if (!selector.isGetter) {
-            ConstantValue constant = new SyntheticConstantValue(
-                SyntheticConstantKind.DUMMY_INTERCEPTOR,
-                receiverArgument.instructionType);
-            HConstant dummy = graph.addConstant(constant, compiler);
-            receiverArgument.usedBy.remove(node);
-            node.inputs[1] = dummy;
-            dummy.usedBy.add(node);
-          }
-        }
+        ConstantValue constant = new SyntheticConstantValue(
+            SyntheticConstantKind.DUMMY_INTERCEPTOR,
+            receiverArgument.instructionType);
+        HConstant dummy = graph.addConstant(constant, compiler);
+        receiverArgument.usedBy.remove(node);
+        node.inputs[1] = dummy;
+        dummy.usedBy.add(node);
       }
     }
-
-    return node;
   }
 
   HInstruction visitFieldSet(HFieldSet setter) {

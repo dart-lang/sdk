@@ -78,6 +78,9 @@ class TestPathTranslator {
   File newFile(String posixPath, String content) =>
       _provider.newFile(posixToOSPath(posixPath), content);
 
+  File newFileWithBytes(String posixPath, List<int> bytes) =>
+      _provider.newFileWithBytes(posixToOSPath(posixPath), bytes);
+
   Folder newFolder(String posixPath) =>
       _provider.newFolder(posixToOSPath(posixPath));
 }

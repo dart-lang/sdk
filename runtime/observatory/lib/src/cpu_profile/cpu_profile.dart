@@ -104,7 +104,7 @@ class FunctionCallTreeNode extends CallTreeNode {
   int _totalCodeTicks = 0;
   int get totalCodesTicks => _totalCodeTicks;
 
-  String get name => profileFunction.function.name;
+  String get name => M.getFunctionFullName(profileFunction.function);
   Object get profileData => profileFunction;
 
   FunctionCallTreeNode(this.profileFunction, int count)

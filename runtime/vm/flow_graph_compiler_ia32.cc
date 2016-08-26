@@ -390,11 +390,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   } else {
     __ j(ZERO, is_not_instance_lbl);
   }
-  // Compare if the classes are equal.
   const Register kClassIdReg = ECX;
   __ LoadClassId(kClassIdReg, kInstanceReg);
-  __ cmpl(kClassIdReg, Immediate(type_class.id()));
-  __ j(EQUAL, is_instance_lbl);
   // See ClassFinalizer::ResolveSuperTypeAndInterfaces for list of restricted
   // interfaces.
   // Bool interface can be implemented only by core class Bool.
@@ -404,15 +401,9 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ jmp(is_not_instance_lbl);
     return false;
   }
-  if (type.IsDartFunctionType()) {
-    // Check if instance is a closure.
-    __ cmpl(kClassIdReg, Immediate(kClosureCid));
-    __ j(EQUAL, is_instance_lbl);
-  }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
-  if (type.IsSubtypeOf(
-          Type::Handle(zone(), Type::Number()), NULL, NULL, Heap::kOld)) {
+  if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType()) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
@@ -420,6 +411,17 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   if (type.IsStringType()) {
     GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
     return false;
+  }
+  if (type.IsDartFunctionType()) {
+    // Check if instance is a closure.
+    __ cmpl(kClassIdReg, Immediate(kClosureCid));
+    __ j(EQUAL, is_instance_lbl);
+    return true;  // Fall through
+  }
+  // Compare if the classes are equal.
+  if (!type_class.is_abstract()) {
+    __ cmpl(kClassIdReg, Immediate(type_class.id()));
+    __ j(EQUAL, is_instance_lbl);
   }
   // Otherwise fallthrough.
   return true;
@@ -1309,7 +1311,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     __ Comment("Slow case: megamorphic call");
   }
   __ LoadObject(ECX, cache);
-  __ call(Address(THR, Thread::megamorphic_lookup_checked_entry_offset()));
+  __ call(Address(THR, Thread::megamorphic_call_checked_entry_offset()));
   __ call(EBX);
 
   __ Bind(&done);

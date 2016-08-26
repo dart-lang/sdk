@@ -12,10 +12,11 @@ not have a human-friendly user interface.
 
 Clients (typically tools, such as an editor) are expected to run the analysis
 server in a separate process and communicate with it using a JSON protocol. The
-protocol is specified in the file `analysis_server/doc/api.html`.
+protocol is specified in the file [`analysis_server/doc/api.html`][api].
 
 ## Features and bugs
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://code.google.com/p/dart/issues
+[api]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html

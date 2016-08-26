@@ -266,262 +266,6 @@ const ICData& AotOptimizer::TrySpecializeICData(const ICData& ic_data,
 }
 
 
-static BinarySmiOpInstr* AsSmiShiftLeftInstruction(Definition* d) {
-  BinarySmiOpInstr* instr = d->AsBinarySmiOp();
-  if ((instr != NULL) && (instr->op_kind() == Token::kSHL)) {
-    return instr;
-  }
-  return NULL;
-}
-
-
-static bool IsPositiveOrZeroSmiConst(Definition* d) {
-  ConstantInstr* const_instr = d->AsConstant();
-  if ((const_instr != NULL) && (const_instr->value().IsSmi())) {
-    return Smi::Cast(const_instr->value()).Value() >= 0;
-  }
-  return false;
-}
-
-
-void AotOptimizer::OptimizeLeftShiftBitAndSmiOp(
-    Definition* bit_and_instr,
-    Definition* left_instr,
-    Definition* right_instr) {
-  ASSERT(bit_and_instr != NULL);
-  ASSERT((left_instr != NULL) && (right_instr != NULL));
-
-  // Check for pattern, smi_shift_left must be single-use.
-  bool is_positive_or_zero = IsPositiveOrZeroSmiConst(left_instr);
-  if (!is_positive_or_zero) {
-    is_positive_or_zero = IsPositiveOrZeroSmiConst(right_instr);
-  }
-  if (!is_positive_or_zero) return;
-
-  BinarySmiOpInstr* smi_shift_left = NULL;
-  if (bit_and_instr->InputAt(0)->IsSingleUse()) {
-    smi_shift_left = AsSmiShiftLeftInstruction(left_instr);
-  }
-  if ((smi_shift_left == NULL) && (bit_and_instr->InputAt(1)->IsSingleUse())) {
-    smi_shift_left = AsSmiShiftLeftInstruction(right_instr);
-  }
-  if (smi_shift_left == NULL) return;
-
-  // Pattern recognized.
-  smi_shift_left->mark_truncating();
-  ASSERT(bit_and_instr->IsBinarySmiOp() || bit_and_instr->IsBinaryMintOp());
-  if (bit_and_instr->IsBinaryMintOp()) {
-    // Replace Mint op with Smi op.
-    BinarySmiOpInstr* smi_op = new(Z) BinarySmiOpInstr(
-        Token::kBIT_AND,
-        new(Z) Value(left_instr),
-        new(Z) Value(right_instr),
-        Thread::kNoDeoptId);  // BIT_AND cannot deoptimize.
-    bit_and_instr->ReplaceWith(smi_op, current_iterator());
-  }
-}
-
-
-void AotOptimizer::AppendExtractNthOutputForMerged(Definition* instr,
-                                                   intptr_t index,
-                                                   Representation rep,
-                                                   intptr_t cid) {
-  ExtractNthOutputInstr* extract =
-      new(Z) ExtractNthOutputInstr(new(Z) Value(instr), index, rep, cid);
-  instr->ReplaceUsesWith(extract);
-  flow_graph()->InsertAfter(instr, extract, NULL, FlowGraph::kValue);
-}
-
-
-// Dart:
-//  var x = d % 10;
-//  var y = d ~/ 10;
-//  var z = x + y;
-//
-// IL:
-//  v4 <- %(v2, v3)
-//  v5 <- ~/(v2, v3)
-//  v6 <- +(v4, v5)
-//
-// IL optimized:
-//  v4 <- DIVMOD(v2, v3);
-//  v5 <- LoadIndexed(v4, 0); // ~/ result
-//  v6 <- LoadIndexed(v4, 1); // % result
-//  v7 <- +(v5, v6)
-// Because of the environment it is important that merged instruction replaces
-// first original instruction encountered.
-void AotOptimizer::TryMergeTruncDivMod(
-    GrowableArray<BinarySmiOpInstr*>* merge_candidates) {
-  if (merge_candidates->length() < 2) {
-    // Need at least a TRUNCDIV and a MOD.
-    return;
-  }
-  for (intptr_t i = 0; i < merge_candidates->length(); i++) {
-    BinarySmiOpInstr* curr_instr = (*merge_candidates)[i];
-    if (curr_instr == NULL) {
-      // Instruction was merged already.
-      continue;
-    }
-    ASSERT((curr_instr->op_kind() == Token::kTRUNCDIV) ||
-           (curr_instr->op_kind() == Token::kMOD));
-    // Check if there is kMOD/kTRUNDIV binop with same inputs.
-    const intptr_t other_kind = (curr_instr->op_kind() == Token::kTRUNCDIV) ?
-        Token::kMOD : Token::kTRUNCDIV;
-    Definition* left_def = curr_instr->left()->definition();
-    Definition* right_def = curr_instr->right()->definition();
-    for (intptr_t k = i + 1; k < merge_candidates->length(); k++) {
-      BinarySmiOpInstr* other_binop = (*merge_candidates)[k];
-      // 'other_binop' can be NULL if it was already merged.
-      if ((other_binop != NULL) &&
-          (other_binop->op_kind() == other_kind) &&
-          (other_binop->left()->definition() == left_def) &&
-          (other_binop->right()->definition() == right_def)) {
-        (*merge_candidates)[k] = NULL;  // Clear it.
-        ASSERT(curr_instr->HasUses());
-        AppendExtractNthOutputForMerged(
-            curr_instr,
-            MergedMathInstr::OutputIndexOf(curr_instr->op_kind()),
-            kTagged, kSmiCid);
-        ASSERT(other_binop->HasUses());
-        AppendExtractNthOutputForMerged(
-            other_binop,
-            MergedMathInstr::OutputIndexOf(other_binop->op_kind()),
-            kTagged, kSmiCid);
-
-        ZoneGrowableArray<Value*>* args = new(Z) ZoneGrowableArray<Value*>(2);
-        args->Add(new(Z) Value(curr_instr->left()->definition()));
-        args->Add(new(Z) Value(curr_instr->right()->definition()));
-
-        // Replace with TruncDivMod.
-        MergedMathInstr* div_mod = new(Z) MergedMathInstr(
-            args,
-            curr_instr->deopt_id(),
-            MergedMathInstr::kTruncDivMod);
-        curr_instr->ReplaceWith(div_mod, current_iterator());
-        other_binop->ReplaceUsesWith(div_mod);
-        other_binop->RemoveFromGraph();
-        // Only one merge possible. Because canonicalization happens later,
-        // more candidates are possible.
-        // TODO(srdjan): Allow merging of trunc-div/mod into truncDivMod.
-        break;
-      }
-    }
-  }
-}
-
-
-// Tries to merge MathUnary operations, in this case sinus and cosinus.
-void AotOptimizer::TryMergeMathUnary(
-    GrowableArray<MathUnaryInstr*>* merge_candidates) {
-  if (!FlowGraphCompiler::SupportsSinCos() || !CanUnboxDouble() ||
-      !FLAG_merge_sin_cos) {
-    return;
-  }
-  if (merge_candidates->length() < 2) {
-    // Need at least a SIN and a COS.
-    return;
-  }
-  for (intptr_t i = 0; i < merge_candidates->length(); i++) {
-    MathUnaryInstr* curr_instr = (*merge_candidates)[i];
-    if (curr_instr == NULL) {
-      // Instruction was merged already.
-      continue;
-    }
-    const intptr_t kind = curr_instr->kind();
-    ASSERT((kind == MathUnaryInstr::kSin) ||
-           (kind == MathUnaryInstr::kCos));
-    // Check if there is sin/cos binop with same inputs.
-    const intptr_t other_kind = (kind == MathUnaryInstr::kSin) ?
-        MathUnaryInstr::kCos : MathUnaryInstr::kSin;
-    Definition* def = curr_instr->value()->definition();
-    for (intptr_t k = i + 1; k < merge_candidates->length(); k++) {
-      MathUnaryInstr* other_op = (*merge_candidates)[k];
-      // 'other_op' can be NULL if it was already merged.
-      if ((other_op != NULL) && (other_op->kind() == other_kind) &&
-          (other_op->value()->definition() == def)) {
-        (*merge_candidates)[k] = NULL;  // Clear it.
-        ASSERT(curr_instr->HasUses());
-        AppendExtractNthOutputForMerged(curr_instr,
-                                        MergedMathInstr::OutputIndexOf(kind),
-                                        kUnboxedDouble, kDoubleCid);
-        ASSERT(other_op->HasUses());
-        AppendExtractNthOutputForMerged(
-            other_op,
-            MergedMathInstr::OutputIndexOf(other_kind),
-            kUnboxedDouble, kDoubleCid);
-        ZoneGrowableArray<Value*>* args = new(Z) ZoneGrowableArray<Value*>(1);
-        args->Add(new(Z) Value(curr_instr->value()->definition()));
-        // Replace with SinCos.
-        MergedMathInstr* sin_cos =
-            new(Z) MergedMathInstr(args,
-                                   curr_instr->DeoptimizationTarget(),
-                                   MergedMathInstr::kSinCos);
-        curr_instr->ReplaceWith(sin_cos, current_iterator());
-        other_op->ReplaceUsesWith(sin_cos);
-        other_op->RemoveFromGraph();
-        // Only one merge possible. Because canonicalization happens later,
-        // more candidates are possible.
-        // TODO(srdjan): Allow merging of sin/cos into sincos.
-        break;
-      }
-    }
-  }
-}
-
-
-// Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
-// shift can be a truncating Smi shift-left and result is always Smi.
-// Merging occurs only per basic-block.
-void AotOptimizer::TryOptimizePatterns() {
-  if (!FLAG_truncating_left_shift) return;
-  ASSERT(current_iterator_ == NULL);
-  GrowableArray<BinarySmiOpInstr*> div_mod_merge;
-  GrowableArray<MathUnaryInstr*> sin_cos_merge;
-  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
-    // Merging only per basic-block.
-    div_mod_merge.Clear();
-    sin_cos_merge.Clear();
-    ForwardInstructionIterator it(block_it.Current());
-    current_iterator_ = &it;
-    for (; !it.Done(); it.Advance()) {
-      if (it.Current()->IsBinarySmiOp()) {
-        BinarySmiOpInstr* binop = it.Current()->AsBinarySmiOp();
-        if (binop->op_kind() == Token::kBIT_AND) {
-          OptimizeLeftShiftBitAndSmiOp(binop,
-                                       binop->left()->definition(),
-                                       binop->right()->definition());
-        } else if ((binop->op_kind() == Token::kTRUNCDIV) ||
-                   (binop->op_kind() == Token::kMOD)) {
-          if (binop->HasUses()) {
-            div_mod_merge.Add(binop);
-          }
-        }
-      } else if (it.Current()->IsBinaryMintOp()) {
-        BinaryMintOpInstr* mintop = it.Current()->AsBinaryMintOp();
-        if (mintop->op_kind() == Token::kBIT_AND) {
-          OptimizeLeftShiftBitAndSmiOp(mintop,
-                                       mintop->left()->definition(),
-                                       mintop->right()->definition());
-        }
-      } else if (it.Current()->IsMathUnary()) {
-        MathUnaryInstr* math_unary = it.Current()->AsMathUnary();
-        if ((math_unary->kind() == MathUnaryInstr::kSin) ||
-            (math_unary->kind() == MathUnaryInstr::kCos)) {
-          if (math_unary->HasUses()) {
-            sin_cos_merge.Add(math_unary);
-          }
-        }
-      }
-    }
-    TryMergeTruncDivMod(&div_mod_merge);
-    TryMergeMathUnary(&sin_cos_merge);
-    current_iterator_ = NULL;
-  }
-}
-
-
 static bool ClassIdIsOneOf(intptr_t class_id,
                            const GrowableArray<intptr_t>& class_ids) {
   for (intptr_t i = 0; i < class_ids.length(); i++) {
@@ -1332,182 +1076,6 @@ bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-bool AotOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
-                                         MethodRecognizer::Kind getter) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  AddCheckClass(call->ArgumentAt(0),
-                ICData::ZoneHandle(
-                    Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(),
-                call->env(),
-                call);
-  intptr_t mask = 0;
-  if ((getter == MethodRecognizer::kFloat32x4Shuffle) ||
-      (getter == MethodRecognizer::kFloat32x4ShuffleMix)) {
-    // Extract shuffle mask.
-    Definition* mask_definition = NULL;
-    if (getter == MethodRecognizer::kFloat32x4Shuffle) {
-      ASSERT(call->ArgumentCount() == 2);
-      mask_definition = call->ArgumentAt(1);
-    } else {
-      ASSERT(getter == MethodRecognizer::kFloat32x4ShuffleMix);
-      ASSERT(call->ArgumentCount() == 3);
-      mask_definition = call->ArgumentAt(2);
-    }
-    if (!mask_definition->IsConstant()) {
-      return false;
-    }
-    ASSERT(mask_definition->IsConstant());
-    ConstantInstr* constant_instruction = mask_definition->AsConstant();
-    const Object& constant_mask = constant_instruction->value();
-    if (!constant_mask.IsSmi()) {
-      return false;
-    }
-    ASSERT(constant_mask.IsSmi());
-    mask = Smi::Cast(constant_mask).Value();
-    if ((mask < 0) || (mask > 255)) {
-      // Not a valid mask.
-      return false;
-    }
-  }
-  if (getter == MethodRecognizer::kFloat32x4GetSignMask) {
-    Simd32x4GetSignMaskInstr* instr = new(Z) Simd32x4GetSignMaskInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  } else if (getter == MethodRecognizer::kFloat32x4ShuffleMix) {
-    Simd32x4ShuffleMixInstr* instr = new(Z) Simd32x4ShuffleMixInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        new(Z) Value(call->ArgumentAt(1)),
-        mask,
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  } else {
-    ASSERT((getter == MethodRecognizer::kFloat32x4Shuffle)  ||
-           (getter == MethodRecognizer::kFloat32x4ShuffleX) ||
-           (getter == MethodRecognizer::kFloat32x4ShuffleY) ||
-           (getter == MethodRecognizer::kFloat32x4ShuffleZ) ||
-           (getter == MethodRecognizer::kFloat32x4ShuffleW));
-    Simd32x4ShuffleInstr* instr = new(Z) Simd32x4ShuffleInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        mask,
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  }
-  UNREACHABLE();
-  return false;
-}
-
-
-bool AotOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
-                                         MethodRecognizer::Kind getter) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  AddCheckClass(call->ArgumentAt(0),
-                ICData::ZoneHandle(
-                    Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(),
-                call->env(),
-                call);
-  if ((getter == MethodRecognizer::kFloat64x2GetX) ||
-      (getter == MethodRecognizer::kFloat64x2GetY)) {
-    Simd64x2ShuffleInstr* instr = new(Z) Simd64x2ShuffleInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        0,
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  }
-  UNREACHABLE();
-  return false;
-}
-
-
-bool AotOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
-                                       MethodRecognizer::Kind getter) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  AddCheckClass(call->ArgumentAt(0),
-                ICData::ZoneHandle(
-                    Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(),
-                call->env(),
-                call);
-  intptr_t mask = 0;
-  if ((getter == MethodRecognizer::kInt32x4Shuffle) ||
-      (getter == MethodRecognizer::kInt32x4ShuffleMix)) {
-    // Extract shuffle mask.
-    Definition* mask_definition = NULL;
-    if (getter == MethodRecognizer::kInt32x4Shuffle) {
-      ASSERT(call->ArgumentCount() == 2);
-      mask_definition = call->ArgumentAt(1);
-    } else {
-      ASSERT(getter == MethodRecognizer::kInt32x4ShuffleMix);
-      ASSERT(call->ArgumentCount() == 3);
-      mask_definition = call->ArgumentAt(2);
-    }
-    if (!mask_definition->IsConstant()) {
-      return false;
-    }
-    ASSERT(mask_definition->IsConstant());
-    ConstantInstr* constant_instruction = mask_definition->AsConstant();
-    const Object& constant_mask = constant_instruction->value();
-    if (!constant_mask.IsSmi()) {
-      return false;
-    }
-    ASSERT(constant_mask.IsSmi());
-    mask = Smi::Cast(constant_mask).Value();
-    if ((mask < 0) || (mask > 255)) {
-      // Not a valid mask.
-      return false;
-    }
-  }
-  if (getter == MethodRecognizer::kInt32x4GetSignMask) {
-    Simd32x4GetSignMaskInstr* instr = new(Z) Simd32x4GetSignMaskInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  } else if (getter == MethodRecognizer::kInt32x4ShuffleMix) {
-    Simd32x4ShuffleMixInstr* instr = new(Z) Simd32x4ShuffleMixInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        new(Z) Value(call->ArgumentAt(1)),
-        mask,
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  } else if (getter == MethodRecognizer::kInt32x4Shuffle) {
-    Simd32x4ShuffleInstr* instr = new(Z) Simd32x4ShuffleInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        mask,
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  } else {
-    Int32x4GetFlagInstr* instr = new(Z) Int32x4GetFlagInstr(
-        getter,
-        new(Z) Value(call->ArgumentAt(0)),
-        call->deopt_id());
-    ReplaceCall(call, instr);
-    return true;
-  }
-}
-
-
 bool AotOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
                                            Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
@@ -1648,28 +1216,6 @@ void AotOptimizer::ReplaceWithMathCFunction(
 }
 
 
-static bool IsSupportedByteArrayViewCid(intptr_t cid) {
-  switch (cid) {
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-    case kTypedDataFloat32x4ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-      return true;
-    default:
-      return false;
-  }
-}
-
-
 // Inline only simple, frequently called core library methods.
 bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -1684,48 +1230,6 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ic_data.GetCheckAt(0, &class_ids, &target);
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
-
-  if ((recognized_kind == MethodRecognizer::kOneByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kTwoByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kExternalOneByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt) ||
-      (recognized_kind == MethodRecognizer::kGrowableArraySetData) ||
-      (recognized_kind == MethodRecognizer::kGrowableArraySetLength) ||
-      (recognized_kind == MethodRecognizer::kSmi_bitAndFromSmi)) {
-    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-        flow_graph_, current_iterator(), call);
-  }
-
-  if (recognized_kind == MethodRecognizer::kStringBaseCharAt) {
-      ASSERT((class_ids[0] == kOneByteStringCid) ||
-             (class_ids[0] == kTwoByteStringCid) ||
-             (class_ids[0] == kExternalOneByteStringCid) ||
-             (class_ids[0] == kExternalTwoByteStringCid));
-    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-        flow_graph_, current_iterator(), call);
-  }
-
-  if (class_ids[0] == kOneByteStringCid) {
-    if (recognized_kind == MethodRecognizer::kOneByteStringSetAt) {
-      // This is an internal method, no need to check argument types nor
-      // range.
-      Definition* str = call->ArgumentAt(0);
-      Definition* index = call->ArgumentAt(1);
-      Definition* value = call->ArgumentAt(2);
-      StoreIndexedInstr* store_op = new(Z) StoreIndexedInstr(
-          new(Z) Value(str),
-          new(Z) Value(index),
-          new(Z) Value(value),
-          kNoStoreBarrier,
-          1,  // Index scale
-          kOneByteStringCid,
-          call->deopt_id(),
-          call->token_pos());
-      ReplaceCall(call, store_op);
-      return true;
-    }
-    return false;
-  }
 
   if (CanUnboxDouble() &&
       (recognized_kind == MethodRecognizer::kIntegerToDouble)) {
@@ -1785,87 +1289,13 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
           ReplaceCall(call, d2d_instr);
         }
         return true;
-      case MethodRecognizer::kDoubleAdd:
-      case MethodRecognizer::kDoubleSub:
-      case MethodRecognizer::kDoubleMul:
-      case MethodRecognizer::kDoubleDiv:
-        return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-            flow_graph_, current_iterator(), call);
       default:
-        // Unsupported method.
-        return false;
+        break;
     }
   }
 
-  if (IsSupportedByteArrayViewCid(class_ids[0])) {
-    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-        flow_graph_, current_iterator(), call);
-  }
-
-  if (class_ids[0] == kFloat32x4Cid) {
-    return TryInlineFloat32x4Method(call, recognized_kind);
-  }
-
-  if (class_ids[0] == kInt32x4Cid) {
-    return TryInlineInt32x4Method(call, recognized_kind);
-  }
-
-  if (class_ids[0] == kFloat64x2Cid) {
-    return TryInlineFloat64x2Method(call, recognized_kind);
-  }
-
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineFloat32x4Constructor(
-    StaticCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  ASSERT(FLAG_precompiled_mode);
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineFloat64x2Constructor(
-    StaticCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  ASSERT(FLAG_precompiled_mode);
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineInt32x4Constructor(
-    StaticCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  ASSERT(FLAG_precompiled_mode);
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineFloat32x4Method(
-    InstanceCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineFloat64x2Method(
-    InstanceCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  return false;
-}
-
-
-bool AotOptimizer::TryInlineInt32x4Method(
-    InstanceCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  // Cannot handle unboxed instructions.
-  return false;
+  return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+      flow_graph_, current_iterator(), call);
 }
 
 
@@ -2522,68 +1952,44 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
 
 void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
-  if (!CanUnboxDouble()) {
+  if (!IsAllowedForInlining(call->deopt_id())) {
+    // Inlining disabled after a speculative inlining attempt.
     return;
   }
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(call->function());
-  MathUnaryInstr::MathUnaryKind unary_kind;
   switch (recognized_kind) {
-    case MethodRecognizer::kMathSqrt:
-      unary_kind = MathUnaryInstr::kSqrt;
-      break;
-    case MethodRecognizer::kMathSin:
-      unary_kind = MathUnaryInstr::kSin;
-      break;
-    case MethodRecognizer::kMathCos:
-      unary_kind = MathUnaryInstr::kCos;
-      break;
-    default:
-      unary_kind = MathUnaryInstr::kIllegal;
-      break;
-  }
-  if (unary_kind != MathUnaryInstr::kIllegal) {
-    ASSERT(FLAG_precompiled_mode);
-    // TODO(srdjan): Adapt MathUnaryInstr to allow tagged inputs as well.
-    return;
-  }
-
-  switch (recognized_kind) {
+    case MethodRecognizer::kObjectConstructor:
+    case MethodRecognizer::kObjectArrayAllocate:
     case MethodRecognizer::kFloat32x4Zero:
     case MethodRecognizer::kFloat32x4Splat:
     case MethodRecognizer::kFloat32x4Constructor:
     case MethodRecognizer::kFloat32x4FromFloat64x2:
-      TryInlineFloat32x4Constructor(call, recognized_kind);
-      break;
     case MethodRecognizer::kFloat64x2Constructor:
     case MethodRecognizer::kFloat64x2Zero:
     case MethodRecognizer::kFloat64x2Splat:
     case MethodRecognizer::kFloat64x2FromFloat32x4:
-      TryInlineFloat64x2Constructor(call, recognized_kind);
-      break;
     case MethodRecognizer::kInt32x4BoolConstructor:
     case MethodRecognizer::kInt32x4Constructor:
-      TryInlineInt32x4Constructor(call, recognized_kind);
+    case MethodRecognizer::kMathSqrt:
+    case MethodRecognizer::kMathDoublePow:
+    case MethodRecognizer::kMathSin:
+    case MethodRecognizer::kMathCos:
+    case MethodRecognizer::kMathTan:
+    case MethodRecognizer::kMathAsin:
+    case MethodRecognizer::kMathAcos:
+    case MethodRecognizer::kMathAtan:
+    case MethodRecognizer::kMathAtan2:
+      FlowGraphInliner::TryReplaceStaticCallWithInline(
+          flow_graph_, current_iterator(), call);
       break;
-    case MethodRecognizer::kObjectConstructor: {
-      // Remove the original push arguments.
-      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-        PushArgumentInstr* push = call->PushArgumentAt(i);
-        push->ReplaceUsesWith(push->value()->definition());
-        push->RemoveFromGraph();
-      }
-      // Manually replace call with global null constant. ReplaceCall can't
-      // be used for definitions that are already in the graph.
-      call->ReplaceUsesWith(flow_graph_->constant_null());
-      ASSERT(current_iterator()->Current() == call);
-      current_iterator()->RemoveCurrentFromGraph();
-      break;
-    }
     case MethodRecognizer::kMathMin:
     case MethodRecognizer::kMathMax: {
       // We can handle only monomorphic min/max call sites with both arguments
       // being either doubles or smis.
-      if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
+      if (CanUnboxDouble() &&
+          call->HasICData() &&
+          (call->ic_data()->NumberOfChecks() == 1)) {
         const ICData& ic_data = *call->ic_data();
         intptr_t result_cid = kIllegalCid;
         if (ICDataHasReceiverArgumentClassIds(ic_data,
@@ -2617,16 +2023,6 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
       }
       break;
     }
-    case MethodRecognizer::kMathDoublePow:
-    case MethodRecognizer::kMathTan:
-    case MethodRecognizer::kMathAsin:
-    case MethodRecognizer::kMathAcos:
-    case MethodRecognizer::kMathAtan:
-    case MethodRecognizer::kMathAtan2: {
-      ASSERT(FLAG_precompiled_mode);
-      // No UnboxDouble instructions allowed.
-      return;
-    }
     case MethodRecognizer::kDoubleFromInteger: {
       if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
         const ICData& ic_data = *call->ic_data();
@@ -2648,35 +2044,8 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
       }
       break;
     }
-    default: {
-      if (call->function().IsFactory()) {
-        const Class& function_class =
-            Class::Handle(Z, call->function().Owner());
-        if ((function_class.library() == Library::CoreLibrary()) ||
-            (function_class.library() == Library::TypedDataLibrary())) {
-          intptr_t cid = FactoryRecognizer::ResultCid(call->function());
-          switch (cid) {
-            case kArrayCid: {
-              Value* type = new(Z) Value(call->ArgumentAt(0));
-              Value* num_elements = new(Z) Value(call->ArgumentAt(1));
-              if (num_elements->BindsToConstant() &&
-                  num_elements->BoundConstant().IsSmi()) {
-                intptr_t length =
-                    Smi::Cast(num_elements->BoundConstant()).Value();
-                if (length >= 0 && length <= Array::kMaxElements) {
-                  CreateArrayInstr* create_array =
-                      new(Z) CreateArrayInstr(
-                          call->token_pos(), type, num_elements);
-                  ReplaceCall(call, create_array);
-                }
-              }
-            }
-            default:
-              break;
-          }
-        }
-      }
-    }
+    default:
+      break;
   }
 }
 

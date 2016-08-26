@@ -402,6 +402,14 @@ abstract class WebSocket
    * must be either `String`s, or `List<int>`s holding bytes.
    */
   Future addStream(Stream stream);
+
+  /**
+   * Sends a text message with the text represented by [bytes].
+   *
+   * The [bytes] should be valid UTF-8 encoded Unicode characters. If they are
+   * not, the receiving end will close the connection.
+   */
+  void addUtf8Text(List<int> bytes);
 }
 
 class WebSocketException implements IOException {

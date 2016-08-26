@@ -51,7 +51,6 @@ void setElementDocumentationComment(ElementImpl element, AnnotatedNode node) {
   if (comment != null && comment.isDocumentation) {
     element.documentationComment =
         comment.tokens.map((Token t) => t.lexeme).join('\n');
-    element.setDocRange(comment.offset, comment.length);
   }
 }
 

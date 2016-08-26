@@ -975,7 +975,7 @@ final ListResultDescriptor<AnalysisError> STATIC_VARIABLE_RESOLUTION_ERRORS =
 final ListResultDescriptor<AnalysisError>
     STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT =
     new ListResultDescriptor<AnalysisError>(
-        'STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT', null);
+        'STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT', AnalysisError.NO_ERRORS);
 
 /**
  * The additional strong mode errors produced while verifying a
@@ -2562,6 +2562,9 @@ class DartDelta extends Delta {
   final Set<Source> currentVisitUnits = new Set<Source>();
 
   DartDelta(Source source) : super(source);
+
+  @override
+  bool get shouldGatherChanges => true;
 
   /**
    * Add names that are changed in the given [references].

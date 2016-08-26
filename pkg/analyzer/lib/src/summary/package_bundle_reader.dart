@@ -207,6 +207,9 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           result == READY_LIBRARY_ELEMENT7) {
         entry.setValue(result, true, TargetedResult.EMPTY_LIST);
         return true;
+      } else if (result == MODIFICATION_TIME) {
+        entry.setValue(result, 0, TargetedResult.EMPTY_LIST);
+        return true;
       } else if (result == SOURCE_KIND) {
         if (_dataStore.linkedMap.containsKey(uriString)) {
           entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);

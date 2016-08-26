@@ -693,6 +693,75 @@ const a = 1e+400;
 main() => a;
 ''',
   }),
+
+  const Test('Erroneous constructor', const {},
+      preserializedSourceFiles: const {
+    'main.dart': '''
+main() => new Null();
+'''}),
+
+  const Test('Metadata on imports', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+@deprecated
+import 'main.dart';
+
+main() {}
+'''}),
+
+  const Test('Metadata on exports', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+@deprecated
+export 'main.dart';
+
+main() {}
+'''}),
+
+  const Test('Metadata on part tags', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+library main;
+
+@deprecated
+part 'a.dart';
+
+main() {}
+'''},
+      unserializedSourceFiles: const {
+        'a.dart': '''
+part of main;
+'''}),
+
+  const Test('Metadata on part-of tags', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+library main;
+
+part 'a.dart';
+
+main() {}
+'''},
+      unserializedSourceFiles: const {
+        'a.dart': '''
+@deprecated
+part of main;
+'''}),
+
+  const Test('Ambiguous elements', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+import 'a.dart';
+import 'b.dart';
+
+main() => new foo();
+''',
+        'a.dart': '''
+var foo;
+''',
+        'b.dart': '''
+var foo;
+''',}),
 ];
 
 class Test {

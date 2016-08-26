@@ -77,6 +77,7 @@ class IncrementalBodyDelta extends Delta {
     bool isByTask(TaskDescriptor taskDescriptor) {
       return taskDescriptor.results.contains(descriptor);
     }
+
     if (descriptor == CONTENT) {
       return DeltaResult.KEEP_CONTINUE;
     }
@@ -809,6 +810,7 @@ class PoorMansIncrementalResolver {
             }
           }
         }
+
         Element parentElement = ElementLocator.locate(newComment.parent);
         if (parentElement is ElementImpl) {
           setElementDocumentationComment(parentElement, parent);

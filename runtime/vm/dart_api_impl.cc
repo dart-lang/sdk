@@ -6127,7 +6127,7 @@ static bool StreamTraceEvents(Dart_StreamConsumer consumer,
   // Steal output from JSONStream.
   char* output = NULL;
   intptr_t output_length = 0;
-  js->Steal(const_cast<const char**>(&output), &output_length);
+  js->Steal(&output, &output_length);
   if (output_length < 3) {
     // Empty JSON array.
     free(output);

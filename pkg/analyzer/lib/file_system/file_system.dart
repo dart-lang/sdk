@@ -54,11 +54,26 @@ abstract class File implements Resource {
   File renameSync(String newPath);
 
   /**
-   * Synchronously write a list of bytes to the file.
+   * Return a file that refers to the same file as this file, but whose path
+   * does not contain any symbolic links.
+   */
+  File resolveSymbolicLinksSync();
+
+  /**
+   * Synchronously write the given [bytes] to the file. The new content will
+   * replace any existing content.
    *
    * Throws a [FileSystemException] if the operation fails.
    */
   void writeAsBytesSync(List<int> bytes);
+
+  /**
+   * Synchronously write the given [content] to the file. The new content will
+   * replace any existing content.
+   *
+   * Throws a [FileSystemException] if the operation fails.
+   */
+  void writeAsStringSync(String content);
 }
 
 /**

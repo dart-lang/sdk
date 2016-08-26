@@ -2001,7 +2001,7 @@ main() {
       unitDelta = builder.unitDelta;
       expect(newUnit.element, unitElement);
       // Flush all tokens, ASTs and elements.
-      context.analysisCache.flush((target, result) {
+      context.analysisCache.flush((target) => true, (target, result) {
         return result == TOKEN_STREAM ||
             result == PARSED_UNIT ||
             RESOLVED_UNIT_RESULTS.contains(result) ||

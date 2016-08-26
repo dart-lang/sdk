@@ -49,7 +49,8 @@ class InstanceMock implements M.Instance {
   final M.InstanceRef referent;
 
   const InstanceMock({this.id: 'instance-id', this.name: 'instance-name',
-                      this.kind: M.InstanceKind.vNull, this.clazz, this.size,
+                      this.kind: M.InstanceKind.vNull,
+                      this.clazz: const ClassRefMock(), this.size: 0,
                       this.valueAsString: 'null', this.valueAsStringIsTruncated,
                       this.length, this.typeClass, this.parameterizedClass,
                       this.pattern, this.closureFunction, this.offset,

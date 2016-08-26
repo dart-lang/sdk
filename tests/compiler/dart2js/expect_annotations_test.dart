@@ -94,17 +94,18 @@ main() {
            expectAssumeDynamic,
            backend.annotations.assumeDynamic(method),
            "Unexpected annotation of @AssumeDynamic on '$method'.");
-       TypesInferrer inferrer = compiler.typesTask.typesInferrer;
+       TypesInferrer inferrer = compiler.globalInference.typesInferrer;
        if (expectTrustTypeAnnotations && expectedParameterType != null) {
          testTypeMatch(method, expectedParameterType, expectedReturnType,
              inferrer);
        } else if (expectAssumeDynamic) {
-         testTypeMatch(method, compiler.typesTask.dynamicType, null, inferrer);
+         testTypeMatch(method,
+             compiler.commonMasks.dynamicType, null, inferrer);
        }
     }
 
-    TypeMask jsStringType = compiler.typesTask.stringType;
-    TypeMask jsIntType = compiler.typesTask.intType;
+    TypeMask jsStringType = compiler.commonMasks.stringType;
+    TypeMask jsIntType = compiler.commonMasks.intType;
     TypeMask coreStringType = new TypeMask.subtype(
         compiler.coreClasses.stringClass, compiler.world);
 

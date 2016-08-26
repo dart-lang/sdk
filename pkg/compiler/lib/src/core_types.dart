@@ -2,10 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(sigmund): rename and move to common/elements.dart
 library dart2js.type_system;
 
 import 'dart_types.dart';
-import 'elements/elements.dart' show ClassElement;
+import 'elements/elements.dart'
+    show
+        ClassElement,
+        ConstructorElement,
+        FunctionElement,
+        LibraryElement,
+        Element;
 
 /// The core classes in Dart.
 abstract class CoreClasses {
@@ -59,6 +66,70 @@ abstract class CoreClasses {
 
   /// The `Stream` class defined in 'async';
   ClassElement get streamClass;
+}
+
+/// TODO(sigmund): delete CoreClasses and merge it here.
+abstract class CommonElements extends CoreClasses {
+  /// The dart:core library.
+  LibraryElement get coreLibrary;
+
+  /// The dart:async library.
+  LibraryElement get asyncLibrary;
+
+  /// The dart:mirrors library. Null if the program doesn't access dart:mirrors.
+  LibraryElement get mirrorsLibrary;
+
+  /// The dart:typed_data library.
+  LibraryElement get typedDataLibrary;
+
+  /// The `NativeTypedData` class from dart:typed_data.
+  ClassElement get typedDataClass;
+
+  // TODO(johnniwinther): Move this to the JavaScriptBackend.
+  /// The class for patch annotation defined in dart:_js_helper.
+  ClassElement get patchAnnotationClass;
+
+  // TODO(johnniwinther): Move this to the JavaScriptBackend.
+  ClassElement get nativeAnnotationClass;
+
+  /// Constructor of the `Symbol` class. This getter will ensure that `Symbol`
+  /// is resolved and lookup the constructor on demand.
+  ConstructorElement get symbolConstructor;
+
+  /// Whether [element] is the same as [symbolConstructor]. Used to check
+  /// for the constructor without computing it until it is likely to be seen.
+  bool isSymbolConstructor(Element e);
+
+  /// The `MirrorSystem` class in dart:mirrors.
+  ClassElement get mirrorSystemClass;
+
+  /// Whether [element] is `MirrorClass.getName`. Used to check for the use of
+  /// that static method without forcing the resolution of the `MirrorSystem`
+  /// class until it is necessary.
+  bool isMirrorSystemGetNameFunction(Element element);
+
+  /// The `MirrorsUsed` annotation in dart:mirrors.
+  ClassElement get mirrorsUsedClass;
+
+  /// Whether [element] is the constructor of the `MirrorsUsed` class. Used to
+  /// check for the constructor without forcing the resolution of the
+  /// `MirrorsUsed` class until it is necessary.
+  bool isMirrorsUsedConstructor(ConstructorElement element);
+
+  /// The `DeferredLibrary` annotation in dart:async that was used before the
+  /// deferred import syntax was introduced.
+  // TODO(sigmund): drop support for this old syntax?
+  ClassElement get deferredLibraryClass;
+
+  /// The function `identical` in dart:core.
+  FunctionElement get identicalFunction;
+
+  /// The method `Function.apply`.
+  FunctionElement get functionApplyMethod;
+
+  /// Whether [element] is the same as [functionApplyMethod]. This will not
+  /// resolve the apply method if it hasn't been seen yet during compilation.
+  bool isFunctionApplyMethod(Element element);
 }
 
 /// The core types in Dart.

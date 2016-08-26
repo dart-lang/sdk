@@ -28,9 +28,9 @@ void main() {
     var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     var compiler = result.compiler;
     var element = findElement(compiler, 'field');
-    var typesTask = compiler.typesTask;
-    var typesInferrer = typesTask.typesInferrer;
-    Expect.equals(typesTask.uint31Type,
+    var commonMasks = compiler.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrer;
+    Expect.equals(commonMasks.uint31Type,
                   simplify(typesInferrer.getTypeOfElement(element), compiler),
                   'field');
   });

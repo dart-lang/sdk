@@ -19,7 +19,7 @@ import '../constants/expressions.dart'
         ConstructedConstantExpression,
         ErroneousConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../core_types.dart' show CoreClasses, CoreTypes, CommonElements;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
@@ -76,6 +76,7 @@ class ResolverTask extends CompilerTask {
   Target get target => resolution.target;
   CoreTypes get coreTypes => resolution.coreTypes;
   CoreClasses get coreClasses => resolution.coreClasses;
+  CommonElements get commonElements => resolution.commonElements;
   ParsingContext get parsingContext => resolution.parsingContext;
   CompilerOptions get options => resolution.options;
   ResolutionEnqueuer get enqueuer => resolution.enqueuer;
@@ -634,7 +635,6 @@ class ResolverTask extends CompilerTask {
                     new ClassResolverVisitor(resolution, element, registry);
                 visitor.visit(tree);
                 element.resolutionState = STATE_DONE;
-                resolution.onClassResolved(element);
                 pendingClassesToBePostProcessed.add(element);
               }));
       if (element.isPatched) {
@@ -1066,7 +1066,8 @@ class ResolverTask extends CompilerTask {
               switch (constant.kind) {
                 case ConstantExpressionKind.CONSTRUCTED:
                   ConstructedConstantExpression constructedConstant = constant;
-                  if (constructedConstant.type.isGeneric) {
+                  if (constructedConstant.type.isGeneric &&
+                      !constructedConstant.type.isRaw) {
                     // Const constructor calls cannot have type arguments.
                     // TODO(24312): Remove this.
                     reporter.reportErrorMessage(

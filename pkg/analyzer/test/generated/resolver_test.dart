@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -25,6 +26,7 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -1035,9 +1037,10 @@ class SubtypeManagerTest {
   CompilationUnitElementImpl _definingCompilationUnit;
 
   void setUp() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    FileBasedSource source =
-        new FileBasedSource(FileUtilities2.createFile("/test.dart"));
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
+    Source source = new FileSource(resourceProvider.getFile("/test.dart"));
     _definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
     _definingCompilationUnit.librarySource =
         _definingCompilationUnit.source = source;
@@ -3022,9 +3025,11 @@ class TypeResolverVisitorTest {
 
   void setUp() {
     _listener = new GatheringErrorListener();
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
     Source librarySource =
-        new FileBasedSource(FileUtilities2.createFile("/lib.dart"));
+        new FileSource(resourceProvider.getFile("/lib.dart"));
     LibraryElementImpl element = new LibraryElementImpl.forNode(
         context, AstFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit =

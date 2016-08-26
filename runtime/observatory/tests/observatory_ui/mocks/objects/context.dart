@@ -8,7 +8,7 @@ class ContextRefMock implements M.ContextRef {
   final String id;
   final int length;
 
-  const ContextRefMock({this.id, this.length: 0});
+  const ContextRefMock({this.id: 'context-id', this.length});
 }
 
 class ContextMock implements M.Context {
@@ -17,7 +17,16 @@ class ContextMock implements M.Context {
   final int size;
   final int length;
   final M.Context parentContext;
+  final Iterable<M.ContextElement> variables;
 
-  const ContextMock({this.id, this.clazz, this.size, this.length: 0,
-                     this.parentContext});
+  const ContextMock({this.id: 'context-id', this.clazz: const ClassMock(),
+                     this.size: 0, this.length, this.parentContext,
+                     this.variables: const []});
+}
+
+class ContextElementMock implements M.ContextElement {
+  final GuardedMock<M.InstanceRef> value;
+
+  const ContextElementMock({this.value: const GuardedMock.fromValue(
+      const InstanceRefMock())});
 }

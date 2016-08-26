@@ -277,6 +277,16 @@ class StrongTypeSystemImpl extends TypeSystem {
       return fnType;
     }
 
+    // If we're in a future union context, choose either the Future<T> or the T
+    // based on the function's return type.
+    if (returnContextType is FutureUnionType) {
+      var futureUnion = returnContextType as FutureUnionType;
+      returnContextType =
+          isSubtypeOf(fnType.returnType, typeProvider.futureDynamicType)
+              ? futureUnion.futureOfType
+              : futureUnion.type;
+    }
+
     // Create a TypeSystem that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that

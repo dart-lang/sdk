@@ -112,8 +112,8 @@ int a = 1 + 2;
     // check conditions
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'Expression inside of function must be selected to activate this refactoring.');
+        expectedMessage: 'An expression inside a function must be selected '
+            'to activate this refactoring.');
   }
 
   test_checkInitialConditions_stringSelection_leadingQuote() async {
@@ -953,7 +953,7 @@ main(p) {
 ''');
   }
 
-  test_singleExpression_inExpressionBody() async {
+  test_singleExpression_inExpressionBody_ofClosure() async {
     indexTestUnit('''
 main() {
   print((x) => x.y * x.y + 1);
@@ -971,6 +971,46 @@ main() {
 ''');
     _assertSingleLinkedEditGroup(
         length: 3, offsets: [31, 53, 59], names: ['y']);
+  }
+
+  test_singleExpression_inExpressionBody_ofFunction() async {
+    indexTestUnit('''
+foo(Point p) => p.x * p.x + p.y * p.y;
+class Point {int x; int y;}
+''');
+    _createRefactoringForString('p.x');
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+foo(Point p) {
+  var res = p.x;
+  return res * res + p.y * p.y;
+}
+class Point {int x; int y;}
+''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [21, 41, 47], names: ['x', 'i']);
+  }
+
+  test_singleExpression_inExpressionBody_ofMethod() async {
+    indexTestUnit('''
+class A {
+  foo(Point p) => p.x * p.x + p.y * p.y;
+}
+class Point {int x; int y;}
+''');
+    _createRefactoringForString('p.x');
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+class A {
+  foo(Point p) {
+    var res = p.x;
+    return res * res + p.y * p.y;
+  }
+}
+class Point {int x; int y;}
+''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [35, 57, 63], names: ['x', 'i']);
   }
 
   test_singleExpression_inIfElseIf() {

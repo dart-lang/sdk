@@ -310,7 +310,7 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     expect(suggestions, isEmpty);
   }
 
-  test_inDartDoc_reference1() async {
+  fail_inDartDoc_reference1() async {
     addFile(
         '/testA.dart',
         '''
@@ -498,7 +498,7 @@ class B extends A {m() {^}}
     });
   }
 
-  test_partFile2() {
+  fail_partFile2() {
     addFile(
         '/testA.dart',
         '''

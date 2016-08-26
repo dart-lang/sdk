@@ -54,7 +54,7 @@ class FieldRefElementWrapper extends HtmlElement {
             text-decoration: none;
         }''',
       new FieldRefElement(_field.isolate, _field,
-                          new InstanceRepository(_field.isolate),
+                          new InstanceRepository(),
                           queue: ObservatoryApplication.app.queue)
     ];
   }

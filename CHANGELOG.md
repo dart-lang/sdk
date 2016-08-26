@@ -1,3 +1,15 @@
+## 1.20.0
+
+### Core library changes
+* `dart:core`: Remove deprecated `Resource` class.
+  Use the class in `package:resource` instead.
+* `dart:async`
+  * `Future.wait` now catches synchronous errors and returns them in the
+    returned Future.
+* `dart:io`
+  * Added `WebSocket.addUtf8Text` to allow sending a pre-encoded text message
+    without a round-trip UTF-8 conversion.
+
 ## 1.19.0
 
 ### Language changes

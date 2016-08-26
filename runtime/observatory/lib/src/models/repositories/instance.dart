@@ -5,5 +5,5 @@
 part of models;
 
 abstract class InstanceRepository{
-  Future<Instance> get(String id, {int count});
+  Future<Instance> get(IsolateRef isolate, String id, {int count});
 }

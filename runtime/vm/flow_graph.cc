@@ -2054,4 +2054,264 @@ bool FlowGraph::Canonicalize() {
 }
 
 
+// Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
+// shift can be a truncating Smi shift-left and result is always Smi.
+// Merging occurs only per basic-block.
+void FlowGraph::TryOptimizePatterns() {
+  if (!FLAG_truncating_left_shift) return;
+  GrowableArray<BinarySmiOpInstr*> div_mod_merge;
+  GrowableArray<InvokeMathCFunctionInstr*> sin_cos_merge;
+  for (BlockIterator block_it = reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    // Merging only per basic-block.
+    div_mod_merge.Clear();
+    sin_cos_merge.Clear();
+    ForwardInstructionIterator it(block_it.Current());
+    for (; !it.Done(); it.Advance()) {
+      if (it.Current()->IsBinarySmiOp()) {
+        BinarySmiOpInstr* binop = it.Current()->AsBinarySmiOp();
+        if (binop->op_kind() == Token::kBIT_AND) {
+          OptimizeLeftShiftBitAndSmiOp(&it,
+                                       binop,
+                                       binop->left()->definition(),
+                                       binop->right()->definition());
+        } else if ((binop->op_kind() == Token::kTRUNCDIV) ||
+                   (binop->op_kind() == Token::kMOD)) {
+          if (binop->HasUses()) {
+            div_mod_merge.Add(binop);
+          }
+        }
+      } else if (it.Current()->IsBinaryMintOp()) {
+        BinaryMintOpInstr* mintop = it.Current()->AsBinaryMintOp();
+        if (mintop->op_kind() == Token::kBIT_AND) {
+          OptimizeLeftShiftBitAndSmiOp(&it,
+                                       mintop,
+                                       mintop->left()->definition(),
+                                       mintop->right()->definition());
+        }
+      } else if (it.Current()->IsInvokeMathCFunction()) {
+        InvokeMathCFunctionInstr* math_unary =
+            it.Current()->AsInvokeMathCFunction();
+        if ((math_unary->recognized_kind() == MethodRecognizer::kMathSin) ||
+            (math_unary->recognized_kind() == MethodRecognizer::kMathCos)) {
+          if (math_unary->HasUses()) {
+            sin_cos_merge.Add(math_unary);
+          }
+        }
+      }
+    }
+    TryMergeTruncDivMod(&div_mod_merge);
+    TryMergeMathUnary(&sin_cos_merge);
+  }
+}
+
+
+static bool IsPositiveOrZeroSmiConst(Definition* d) {
+  ConstantInstr* const_instr = d->AsConstant();
+  if ((const_instr != NULL) && (const_instr->value().IsSmi())) {
+    return Smi::Cast(const_instr->value()).Value() >= 0;
+  }
+  return false;
+}
+
+
+static BinarySmiOpInstr* AsSmiShiftLeftInstruction(Definition* d) {
+  BinarySmiOpInstr* instr = d->AsBinarySmiOp();
+  if ((instr != NULL) && (instr->op_kind() == Token::kSHL)) {
+    return instr;
+  }
+  return NULL;
+}
+
+
+void FlowGraph::OptimizeLeftShiftBitAndSmiOp(
+    ForwardInstructionIterator* current_iterator,
+    Definition* bit_and_instr,
+    Definition* left_instr,
+    Definition* right_instr) {
+  ASSERT(bit_and_instr != NULL);
+  ASSERT((left_instr != NULL) && (right_instr != NULL));
+
+  // Check for pattern, smi_shift_left must be single-use.
+  bool is_positive_or_zero = IsPositiveOrZeroSmiConst(left_instr);
+  if (!is_positive_or_zero) {
+    is_positive_or_zero = IsPositiveOrZeroSmiConst(right_instr);
+  }
+  if (!is_positive_or_zero) return;
+
+  BinarySmiOpInstr* smi_shift_left = NULL;
+  if (bit_and_instr->InputAt(0)->IsSingleUse()) {
+    smi_shift_left = AsSmiShiftLeftInstruction(left_instr);
+  }
+  if ((smi_shift_left == NULL) && (bit_and_instr->InputAt(1)->IsSingleUse())) {
+    smi_shift_left = AsSmiShiftLeftInstruction(right_instr);
+  }
+  if (smi_shift_left == NULL) return;
+
+  // Pattern recognized.
+  smi_shift_left->mark_truncating();
+  ASSERT(bit_and_instr->IsBinarySmiOp() || bit_and_instr->IsBinaryMintOp());
+  if (bit_and_instr->IsBinaryMintOp()) {
+    // Replace Mint op with Smi op.
+    BinarySmiOpInstr* smi_op = new(Z) BinarySmiOpInstr(
+        Token::kBIT_AND,
+        new(Z) Value(left_instr),
+        new(Z) Value(right_instr),
+        Thread::kNoDeoptId);  // BIT_AND cannot deoptimize.
+    bit_and_instr->ReplaceWith(smi_op, current_iterator);
+  }
+}
+
+
+// Dart:
+//  var x = d % 10;
+//  var y = d ~/ 10;
+//  var z = x + y;
+//
+// IL:
+//  v4 <- %(v2, v3)
+//  v5 <- ~/(v2, v3)
+//  v6 <- +(v4, v5)
+//
+// IL optimized:
+//  v4 <- DIVMOD(v2, v3);
+//  v5 <- LoadIndexed(v4, 0); // ~/ result
+//  v6 <- LoadIndexed(v4, 1); // % result
+//  v7 <- +(v5, v6)
+// Because of the environment it is important that merged instruction replaces
+// first original instruction encountered.
+void FlowGraph::TryMergeTruncDivMod(
+    GrowableArray<BinarySmiOpInstr*>* merge_candidates) {
+  if (merge_candidates->length() < 2) {
+    // Need at least a TRUNCDIV and a MOD.
+    return;
+  }
+  for (intptr_t i = 0; i < merge_candidates->length(); i++) {
+    BinarySmiOpInstr* curr_instr = (*merge_candidates)[i];
+    if (curr_instr == NULL) {
+      // Instruction was merged already.
+      continue;
+    }
+    ASSERT((curr_instr->op_kind() == Token::kTRUNCDIV) ||
+           (curr_instr->op_kind() == Token::kMOD));
+    // Check if there is kMOD/kTRUNDIV binop with same inputs.
+    const Token::Kind other_kind = (curr_instr->op_kind() == Token::kTRUNCDIV) ?
+        Token::kMOD : Token::kTRUNCDIV;
+    Definition* left_def = curr_instr->left()->definition();
+    Definition* right_def = curr_instr->right()->definition();
+    for (intptr_t k = i + 1; k < merge_candidates->length(); k++) {
+      BinarySmiOpInstr* other_binop = (*merge_candidates)[k];
+      // 'other_binop' can be NULL if it was already merged.
+      if ((other_binop != NULL) &&
+          (other_binop->op_kind() == other_kind) &&
+          (other_binop->left()->definition() == left_def) &&
+          (other_binop->right()->definition() == right_def)) {
+        (*merge_candidates)[k] = NULL;  // Clear it.
+        ASSERT(curr_instr->HasUses());
+        AppendExtractNthOutputForMerged(
+            curr_instr,
+            MergedMathInstr::OutputIndexOf(curr_instr->op_kind()),
+            kTagged, kSmiCid);
+        ASSERT(other_binop->HasUses());
+        AppendExtractNthOutputForMerged(
+            other_binop,
+            MergedMathInstr::OutputIndexOf(other_binop->op_kind()),
+            kTagged, kSmiCid);
+
+        ZoneGrowableArray<Value*>* args = new(Z) ZoneGrowableArray<Value*>(2);
+        args->Add(new(Z) Value(curr_instr->left()->definition()));
+        args->Add(new(Z) Value(curr_instr->right()->definition()));
+
+        // Replace with TruncDivMod.
+        MergedMathInstr* div_mod = new(Z) MergedMathInstr(
+            args,
+            curr_instr->deopt_id(),
+            MergedMathInstr::kTruncDivMod);
+        curr_instr->ReplaceWith(div_mod, NULL);
+        other_binop->ReplaceUsesWith(div_mod);
+        other_binop->RemoveFromGraph();
+        // Only one merge possible. Because canonicalization happens later,
+        // more candidates are possible.
+        // TODO(srdjan): Allow merging of trunc-div/mod into truncDivMod.
+        break;
+      }
+    }
+  }
+}
+
+
+// Tries to merge MathUnary operations, in this case sine and cosine.
+void FlowGraph::TryMergeMathUnary(
+    GrowableArray<InvokeMathCFunctionInstr*>* merge_candidates) {
+  if (!FlowGraphCompiler::SupportsSinCos() || !CanUnboxDouble() ||
+      !FLAG_merge_sin_cos) {
+    return;
+  }
+  if (merge_candidates->length() < 2) {
+    // Need at least a SIN and a COS.
+    return;
+  }
+  for (intptr_t i = 0; i < merge_candidates->length(); i++) {
+    InvokeMathCFunctionInstr* curr_instr = (*merge_candidates)[i];
+    if (curr_instr == NULL) {
+      // Instruction was merged already.
+      continue;
+    }
+    const MethodRecognizer::Kind kind = curr_instr->recognized_kind();
+    ASSERT((kind == MethodRecognizer::kMathSin) ||
+           (kind == MethodRecognizer::kMathCos));
+    // Check if there is sin/cos binop with same inputs.
+    const MethodRecognizer::Kind other_kind =
+        (kind == MethodRecognizer::kMathSin)
+        ? MethodRecognizer::kMathCos : MethodRecognizer::kMathSin;
+    Definition* def = curr_instr->InputAt(0)->definition();
+    for (intptr_t k = i + 1; k < merge_candidates->length(); k++) {
+      InvokeMathCFunctionInstr* other_op = (*merge_candidates)[k];
+      // 'other_op' can be NULL if it was already merged.
+      if ((other_op != NULL) && (other_op->recognized_kind() == other_kind) &&
+          (other_op->InputAt(0)->definition() == def)) {
+        (*merge_candidates)[k] = NULL;  // Clear it.
+        ASSERT(curr_instr->HasUses());
+        AppendExtractNthOutputForMerged(curr_instr,
+                                        MergedMathInstr::OutputIndexOf(kind),
+                                        kUnboxedDouble, kDoubleCid);
+        ASSERT(other_op->HasUses());
+        AppendExtractNthOutputForMerged(
+            other_op,
+            MergedMathInstr::OutputIndexOf(other_kind),
+            kUnboxedDouble, kDoubleCid);
+        ZoneGrowableArray<Value*>* args = new(Z) ZoneGrowableArray<Value*>(1);
+        args->Add(new(Z) Value(curr_instr->InputAt(0)->definition()));
+        // Replace with SinCos.
+        MergedMathInstr* sin_cos =
+            new(Z) MergedMathInstr(args,
+                                   curr_instr->DeoptimizationTarget(),
+                                   MergedMathInstr::kSinCos);
+        curr_instr->ReplaceWith(sin_cos, NULL);
+        other_op->ReplaceUsesWith(sin_cos);
+        other_op->RemoveFromGraph();
+        // Only one merge possible. Because canonicalization happens later,
+        // more candidates are possible.
+        // TODO(srdjan): Allow merging of sin/cos into sincos.
+        break;
+      }
+    }
+  }
+}
+
+
+void FlowGraph::AppendExtractNthOutputForMerged(Definition* instr,
+                                                intptr_t index,
+                                                Representation rep,
+                                                intptr_t cid) {
+  ExtractNthOutputInstr* extract =
+      new(Z) ExtractNthOutputInstr(new(Z) Value(instr), index, rep, cid);
+  instr->ReplaceUsesWith(extract);
+  InsertAfter(instr, extract, NULL, FlowGraph::kValue);
+}
+
+
+
+
 }  // namespace dart

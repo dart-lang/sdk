@@ -30,10 +30,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         CodeViewElement element = new Element.tag('code-view');
         element.code = object;
         return element;
-      case 'Context':
-        ContextViewElement element = new Element.tag('context-view');
-        element.context = object;
-        return element;
       case 'Error':
         ErrorViewElement element = new Element.tag('error-view');
         element.error = object;
@@ -53,10 +49,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Object':
         return (object) {
           switch (object.vmType) {
-            case 'ICData':
-              ICDataViewElement element = new Element.tag('icdata-view');
-              element.icData = object;
-              return element;
             case 'MegamorphicCache':
               MegamorphicCacheViewElement element =
                   new Element.tag('megamorphiccache-view');

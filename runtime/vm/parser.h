@@ -285,6 +285,7 @@ class Parser : public ValueObject {
 
   struct Block;
   class TryStack;
+  class TokenPosScope;
 
   Parser(const Script& script,
          const Library& library,
@@ -667,7 +668,7 @@ class Parser : public ValueObject {
                                  AstNode* object,
                                  const String& name);
 
-  AstNode* ParseAssertStatement();
+  AstNode* ParseAssertStatement(bool is_const = false);
   AstNode* ParseJump(String* label_name);
   AstNode* ParseIfStatement(String* label_name);
   AstNode* ParseWhileStatement(String* label_name);
@@ -752,9 +753,14 @@ class Parser : public ValueObject {
   bool IsMixinAppAlias();
   bool TryParseQualIdent();
   bool TryParseTypeParameters();
+  bool TryParseTypeArguments();
+  bool IsTypeParameters();
+  bool IsArgumentPart();
+  bool IsParameterPart();
   bool TryParseOptionalType();
   bool TryParseReturnType();
   bool IsVariableDeclaration();
+  bool IsFunctionReturnType();
   bool IsFunctionDeclaration();
   bool IsFunctionLiteral();
   bool IsForInStatement();

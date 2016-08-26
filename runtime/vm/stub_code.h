@@ -37,9 +37,9 @@ class Deserializer;
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
   V(DebugStepCheck)                                                            \
-  V(ICLookupThroughFunction)                                                   \
-  V(ICLookupThroughCode)                                                       \
-  V(MegamorphicLookup)                                                         \
+  V(ICCallThroughFunction)                                                     \
+  V(ICCallThroughCode)                                                         \
+  V(MegamorphicCall)                                                           \
   V(MonomorphicMiss)                                                           \
   V(FixAllocationStubTarget)                                                   \
   V(Deoptimize)                                                                \

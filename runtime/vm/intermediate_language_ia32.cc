@@ -4904,18 +4904,6 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
-  if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
-    const intptr_t kNumInputs = 1;
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new(zone) LocationSummary(
-        zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-    summary->set_in(0, Location::FpuRegisterLocation(XMM1));
-    // EDI is chosen because it is callee saved so we do not need to back it
-    // up before calling into the runtime.
-    summary->set_temp(0, Location::RegisterLocation(EDI));
-    summary->set_out(0, Location::FpuRegisterLocation(XMM1));
-    return summary;
-  }
   ASSERT((kind() == MathUnaryInstr::kSqrt) ||
          (kind() == MathUnaryInstr::kDoubleSquare));
   const intptr_t kNumInputs = 1;
@@ -4940,17 +4928,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ mulsd(value_reg, value_reg);
     ASSERT(value_reg == locs()->out(0).fpu_reg());
   } else {
-    ASSERT((kind() == MathUnaryInstr::kSin) ||
-           (kind() == MathUnaryInstr::kCos));
-    // Save ESP.
-    __ movl(locs()->temp(0).reg(), ESP);
-    __ ReserveAlignedFrameSpace(kDoubleSize * InputCount());
-    __ movsd(Address(ESP, 0), locs()->in(0).fpu_reg());
-    __ CallRuntime(TargetFunction(), InputCount());
-    __ fstpl(Address(ESP, 0));
-    __ movsd(locs()->out(0).fpu_reg(), Address(ESP, 0));
-    // Restore ESP.
-    __ movl(ESP, locs()->temp(0).reg());
+    UNREACHABLE();
   }
 }
 

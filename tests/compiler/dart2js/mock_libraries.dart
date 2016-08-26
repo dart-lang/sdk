@@ -166,7 +166,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'ConstantMap': 'class ConstantMap<K, V> {}',
   'ConstantProtoMap': 'class ConstantProtoMap<K, V> {}',
   'ConstantStringMap': 'class ConstantStringMap<K, V> {}',
-  'copyTypeArguments': 'copyTypeArguments(source, target) {}',
   'createInvocationMirror': 'createInvocationMirror(a0, a1, a2, a3, a4, a5) {}',
   'createRuntimeType': 'createRuntimeType(a) {}',
   'doubleTypeCast': 'doubleTypeCast(value) {}',

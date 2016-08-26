@@ -116,7 +116,8 @@ void testSimpleConnectFail(SecurityContext serverContext,
       // TODO(whesse): When null context is supported, disallow
       // the ArgumentError type here.
       Expect.isTrue(error is ArgumentError ||
-                    error is HandshakeException);
+                    error is HandshakeException ||
+                    error is SocketException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
         asyncEnd();

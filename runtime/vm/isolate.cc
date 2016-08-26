@@ -2192,12 +2192,10 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
           "[+%" Pd64 "ms] Isolate %s : _runExtension complete for %s\n",
           Dart::timestamp(), name(), method_name.ToCString());
     }
+    // Propagate the error.
     if (result.IsError()) {
-      if (result.IsUnwindError()) {
-        // Propagate the unwind error. Remaining service extension calls
-        // are dropped.
-        return result.raw();
-      } else {
+      // Remaining service extension calls are dropped.
+      if (!result.IsUnwindError()) {
         // Send error back over the protocol.
         Service::PostError(method_name,
                            parameter_keys,
@@ -2206,9 +2204,13 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
                            id,
                            Error::Cast(result));
       }
+      return result.raw();
     }
+    // Drain the microtask queue.
     result = DartLibraryCalls::DrainMicrotaskQueue();
+    // Propagate the error.
     if (result.IsError()) {
+      // Remaining service extension calls are dropped.
       return result.raw();
     }
   }

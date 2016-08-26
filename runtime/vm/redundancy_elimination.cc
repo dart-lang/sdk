@@ -1549,6 +1549,15 @@ class LoadOptimizer : public ValueObject {
       FlowGraphPrinter::PrintGraph("Before LoadOptimizer", graph);
     }
 
+    // For now, bail out for large functions to avoid OOM situations.
+    // TODO(fschneider): Fix the memory consumption issue.
+    intptr_t function_length =
+        graph->function().end_token_pos().Pos() -
+        graph->function().token_pos().Pos();
+    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+      return false;
+    }
+
     DirectChainedHashMap<PointerKeyValueTrait<Place> > map;
     AliasedSet* aliased_set = NumberPlaces(graph, &map, kOptimizeLoads);
     if ((aliased_set != NULL) && !aliased_set->IsEmpty()) {
@@ -2512,6 +2521,15 @@ class StoreOptimizer : public LivenessAnalysis {
     ASSERT(FLAG_load_cse);
     if (FLAG_trace_load_optimization) {
       FlowGraphPrinter::PrintGraph("Before StoreOptimizer", graph);
+    }
+
+    // For now, bail out for large functions to avoid OOM situations.
+    // TODO(fschneider): Fix the memory consumption issue.
+    intptr_t function_length =
+        graph->function().end_token_pos().Pos() -
+        graph->function().token_pos().Pos();
+    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+      return;
     }
 
     DirectChainedHashMap<PointerKeyValueTrait<Place> > map;

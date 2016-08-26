@@ -123,7 +123,13 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
     with MapMixin<K, V>, _LinkedHashMapMixin<K, V>, _HashBase,
          _OperatorEqualsAndHashCode
     implements LinkedHashMap<K, V> {
-  factory _InternalLinkedHashMap() native "LinkedHashMap_allocate";
+  _InternalLinkedHashMap() {
+    _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
+    _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
+    _data = new List(_HashBase._INITIAL_INDEX_SIZE);
+    _usedData = 0;
+    _deletedKeys = 0;
+  }
 }
 
 class _LinkedHashMapMixin<K, V> {  

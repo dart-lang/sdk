@@ -67,6 +67,8 @@ class AbstractAnalysisTest {
   AnalysisDomainHandler get analysisHandler => server.handlers
       .singleWhere((handler) => handler is AnalysisDomainHandler);
 
+  AnalysisContext get testContext => server.getAnalysisContext(testFile);
+
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
     var files = analysisSubscriptions[service];
