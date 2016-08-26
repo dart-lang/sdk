@@ -198,6 +198,10 @@ class InspectPage extends MatchingPage {
                                _instanceRepository,
                                queue: app.queue)
       ];
+    } else if (obj is DartError) {
+      container.children = [
+        new ErrorViewElement(app.notifications, obj, queue: app.queue)
+      ];
     } else if (obj is ICData) {
       container.children = [
         new ICDataViewElement(app.vm, obj.isolate, obj, app.events,
