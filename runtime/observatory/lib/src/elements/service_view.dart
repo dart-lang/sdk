@@ -42,10 +42,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         FunctionViewElement element = new Element.tag('function-view');
         element.function = object;
         return element;
-      case 'HeapMap':
-        HeapMapElement element = new Element.tag('heap-map');
-        element.fragmentation = object;
-        return element;
       case 'Object':
         return (object) {
           switch (object.vmType) {

@@ -399,18 +399,25 @@ class PersistentHandlesPage extends SimplePage {
   }
 }
 
-class HeapMapPage extends SimplePage {
-  HeapMapPage(app) : super('heap-map', 'heap-map', app);
+class HeapMapPage extends MatchingPage {
+  HeapMapPage(app) : super('heap-map', app);
+
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        HeapMapElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new HeapMapElement(isolate.vm, isolate, app.events, app.notifications,
+                           queue: app.queue)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
   }
 }
 

@@ -79,7 +79,6 @@
     'lib/src/elements/function_view.html',
     'lib/src/elements/general_error.dart',
     'lib/src/elements/heap_map.dart',
-    'lib/src/elements/heap_map.html',
     'lib/src/elements/heap_snapshot.dart',
     'lib/src/elements/helpers/any_ref.dart',
     'lib/src/elements/helpers/rendering_queue.dart',

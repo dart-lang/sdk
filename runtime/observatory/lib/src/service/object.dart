@@ -1823,7 +1823,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
 class NamedField implements M.NamedField {
   final String name;
-  final HeapObject value;
+  final M.ObjectRef value;
   NamedField(this.name, this.value);
 }
 
