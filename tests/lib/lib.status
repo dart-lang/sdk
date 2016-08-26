@@ -106,6 +106,23 @@ mirrors/regress_26187_test: RuntimeError # Issue 6490
 
 [ $compiler == dart2js && $fast_startup ]
 mirrors/*: Fail # mirrors not supported
+mirrors/circular_factory_redirection_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/library_imports_bad_metadata_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/library_metadata2_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/1*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/2*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/3*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_constructor_arguments_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_nested_constructor_call_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_scope_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/mirror_in_static_init_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/parameter_is_const_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/syntax_error_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/variable_is_const_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/model_test: Pass # this is ok
+
+
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).

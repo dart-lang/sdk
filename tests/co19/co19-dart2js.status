@@ -499,9 +499,6 @@ LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 [ $compiler == dart2js && $fast_startup ]
 Language/Classes/Instance_Methods/Operators/unary_minus: Fail # mirrors not supported
 Language/Expressions/Null/instance_of_class_null_t01: Fail # mirrors not supported
-Language/Expressions/Symbols/syntax_t01: Fail # mirrors not supported
-Language/Expressions/Symbols/syntax_t02: Fail # mirrors not supported
-Language/Expressions/Symbols/syntax_t03: Fail # mirrors not supported
 Language/Metadata/before_class_t01: Fail # mirrors not supported
 Language/Metadata/before_ctor_t01: Fail # mirrors not supported
 Language/Metadata/before_ctor_t02: Fail # mirrors not supported
@@ -529,62 +526,114 @@ Language/Metadata/before_type_param_t01: Fail # mirrors not supported
 Language/Metadata/before_typedef_t01: Fail # mirrors not supported
 Language/Metadata/before_variable_t01: Fail # mirrors not supported
 Language/Metadata/before_variable_t02: Fail # mirrors not supported
-Language/Metadata/compilation_t01: Fail # mirrors not supported
-Language/Metadata/compilation_t02: Fail # mirrors not supported
-Language/Metadata/compilation_t03: Fail # mirrors not supported
-Language/Metadata/compilation_t04: Fail # mirrors not supported
-Language/Metadata/compilation_t05: Fail # mirrors not supported
-Language/Metadata/compilation_t06: Fail # mirrors not supported
-Language/Metadata/compilation_t07: Fail # mirrors not supported
-Language/Metadata/compilation_t08: Fail # mirrors not supported
-Language/Metadata/compilation_t09: Fail # mirrors not supported
-Language/Metadata/compilation_t10: Fail # mirrors not supported
-Language/Metadata/compilation_t11: Fail # mirrors not supported
+Language/Metadata/compilation_t01: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t02: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t03: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t04: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t05: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t06: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t07: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t08: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t09: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t10: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t11: Pass # mirrors not supported, fails for the wrong reason
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t02: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-005_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/elements-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-003_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-event-interface/event-path-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-007_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-008_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-009_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-010_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-011_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-012_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-013_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-007_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-010_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-004_t02: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-005_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t02: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-dispatch/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/event-dispatch/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/event-dispatch/test-003_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/event-retargeting/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/event-retargeting/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-retargeting/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-003_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-006_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-007_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-008_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-009_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t02: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t03: Fail # please triage
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t04: Fail # please triage
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t05: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t06: Fail # please triage
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-003_t01: Fail # please triage
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/inert-html-elements/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/composition/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/custom-pseudo-elements/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/hosting-multiple-shadow-trees/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/hosting-multiple-shadow-trees/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/hosting-multiple-shadow-trees/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/distribution-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-005_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/nested-shadow-trees/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/rendering-shadow-trees/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/reprojection/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-003_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-017_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/dom-tree-accessors-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/shadow-root-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t01: Fail # please triage
 WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
