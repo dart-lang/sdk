@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:compiler/src/ssa/kernel_ast_adapter.dart';
 import 'package:kernel/ast.dart' as ir;
 
-import '../common/codegen.dart' show CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
 import '../diagnostics/spannable.dart';
@@ -14,6 +15,7 @@ import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/kernel.dart';
 import '../kernel/kernel_visitor.dart';
 import '../resolution/tree_elements.dart';
+import '../tree/dartstring.dart';
 import 'graph_builder.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
@@ -45,8 +47,9 @@ class SsaKernelBuilderTask extends CompilerTask {
           element,
           work.resolvedAst,
           backend.compiler,
+          work.registry,
           sourceInformationFactory,
-          visitor.nodeToElement);
+          visitor);
       return builder.build();
     });
   }
@@ -57,20 +60,22 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final FunctionElement functionElement;
   final ResolvedAst resolvedAst;
   final Compiler compiler;
-  final Map<ir.Node, Element> nodeToElement;
+  final CodegenRegistry registry;
 
   JavaScriptBackend get backend => compiler.backend;
 
   LocalsHandler localsHandler;
   SourceInformationBuilder sourceInformationBuilder;
+  KernelAstAdapter astAdapter;
 
   KernelSsaBuilder(
       this.function,
       this.functionElement,
       this.resolvedAst,
       this.compiler,
+      this.registry,
       SourceInformationStrategy sourceInformationFactory,
-      this.nodeToElement) {
+      KernelVisitor visitor) {
     graph.element = functionElement;
     // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
     this.sourceInformationBuilder =
@@ -79,6 +84,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler =
         new LocalsHandler(this, functionElement, null, compiler);
+    this.astAdapter =
+        new KernelAstAdapter(compiler.backend, resolvedAst, visitor.nodeToAst);
   }
 
   HGraph build() {
@@ -158,5 +165,33 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   void visitIntLiteral(ir.IntLiteral intLiteral) {
     stack.add(graph.addConstantInt(intLiteral.value, compiler));
+  }
+
+  @override
+  visitDoubleLiteral(ir.DoubleLiteral doubleLiteral) {
+    stack.add(graph.addConstantDouble(doubleLiteral.value, compiler));
+  }
+
+  @override
+  visitBoolLiteral(ir.BoolLiteral boolLiteral) {
+    stack.add(graph.addConstantBool(boolLiteral.value, compiler));
+  }
+
+  @override
+  visitStringLiteral(ir.StringLiteral stringLiteral) {
+    stack.add(graph.addConstantString(
+        new DartString.literal(stringLiteral.value), compiler));
+  }
+
+  @override
+  visitSymbolLiteral(ir.SymbolLiteral symbolLiteral) {
+    stack.add(
+        graph.addConstant(astAdapter.getConstantFor(symbolLiteral), compiler));
+    registry?.registerConstSymbol(symbolLiteral.value);
+  }
+
+  @override
+  visitNullLiteral(ir.NullLiteral nullLiteral) {
+    stack.add(graph.addConstantNull(compiler));
   }
 }
