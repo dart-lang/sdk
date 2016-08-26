@@ -570,6 +570,21 @@ class-tree virtual-tree .class-tree-item .name {
   margin-left: 0.5em;
 }
 
+/* context-ref */
+/* TODO(cbernaschina) fix context-ref-wrapped to context-ref when wrapper
+removed */
+
+context-ref-wrapped > a[href]:hover {
+    text-decoration: underline;
+}
+context-ref-wrapped > a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+context-ref-wrapped > a[href] * {
+    color: inherit;
+}
+
 /* cpu-profile */
 
 cpu-profile {

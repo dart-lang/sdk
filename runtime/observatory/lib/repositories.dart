@@ -26,6 +26,7 @@ part 'src/repositories/icdata.dart';
 part 'src/repositories/inbound_references.dart';
 part 'src/repositories/instance.dart';
 part 'src/repositories/notification.dart';
+part 'src/repositories/objectstore.dart';
 part 'src/repositories/ports.dart';
 part 'src/repositories/reachable_size.dart';
 part 'src/repositories/retaining_path.dart';

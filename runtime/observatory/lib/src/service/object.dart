@@ -1821,14 +1821,14 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 }
 
 
-class NamedField {
+class NamedField implements M.NamedField {
   final String name;
-  final ServiceObject value;
+  final HeapObject value;
   NamedField(this.name, this.value);
 }
 
 
-class ObjectStore extends ServiceObject {
+class ObjectStore extends ServiceObject implements M.ObjectStore {
   @observable List<NamedField> fields = new List<NamedField>();
 
   ObjectStore._empty(ServiceObjectOwner owner) : super._empty(owner);

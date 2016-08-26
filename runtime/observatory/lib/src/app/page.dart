@@ -15,6 +15,8 @@ InboundReferencesRepository _inboundReferencesRepository
 InstanceRepository _instanceRepository = new InstanceRepository();
 IsolateSampleProfileRepository _isolateSampleProfileRepository
     = new IsolateSampleProfileRepository();
+ObjectStoreRepository _objectstoreRepository
+    = new ObjectStoreRepository();
 PortsRepository _portsRepository = new PortsRepository();
 
 class IsolateNotFound implements Exception {
@@ -255,21 +257,29 @@ class DebuggerPage extends SimplePage {
   }
 }
 
+class ObjectStorePage extends MatchingPage {
+  ObjectStorePage(app) : super('object-store', app);
 
-class ObjectStorePage extends SimplePage {
-  ObjectStorePage(app) : super('object-store', 'objectstore-view', app);
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
-    getIsolate(uri).then((isolate) {
-      isolate.getObjectStore().then((objectStore) {
-        if (element != null) {
-          /// Update the page.
-          ObjectStoreViewElement page = element;
-          page.objectStore = objectStore;
-        }
-      });
+    getIsolate(uri).then((isolate) async {
+      container.children = [
+        new ObjectStoreViewElement(isolate.vm, isolate,
+                                   app.events,
+                                   app.notifications,
+                                   _objectstoreRepository,
+                                   _instanceRepository)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    assert(element != null);
   }
 }
 
