@@ -1139,6 +1139,39 @@ class Port implements M.Port {
       handler = map['handler'];
 }
 
+class PersistentHandles implements M.PersistentHandles {
+  final Iterable<PersistentHandle> elements;
+  final Iterable<WeakPersistentHandle> weakElements;
+
+  PersistentHandles(ServiceMap map)
+    : this.elements = map['persistentHandles']
+        .map((rmap) => new PersistentHandle(rmap)),
+      this.weakElements = map['weakPersistentHandles']
+          .map((rmap) => new WeakPersistentHandle(rmap));
+}
+
+class PersistentHandle implements M.PersistentHandle {
+  final HeapObject object;
+
+  PersistentHandle(ServiceMap map)
+    : object = map['object'];
+}
+
+class WeakPersistentHandle implements M.WeakPersistentHandle {
+  final int externalSize;
+  final String peer;
+  final String callbackSymbolName;
+  final String callbackAddress;
+  final HeapObject object;
+
+  WeakPersistentHandle(ServiceMap map)
+    : externalSize = int.parse(map['externalSize']),
+      peer = map['peer'],
+      callbackSymbolName = map['callbackSymbolName'],
+      callbackAddress = map['callbackAddress'],
+      object = map['object'];
+}
+
 class HeapSpace extends Observable implements M.HeapSpace {
   @observable int used = 0;
   @observable int capacity = 0;

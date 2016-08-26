@@ -776,7 +776,8 @@ removed */
 error-ref-wrapped > pre {
   background-color: #f5f5f5;
   border: 1px solid #ccc;
-  padding: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
   font-family: consolas, courier, monospace;
   font-size: 1em;
   line-height: 1.2em;
@@ -1250,6 +1251,69 @@ observatory-application {
 observatory-application > div {
   display: block;
   height: 100%;
+}
+
+/* persistent-handles-page */
+
+persistent-handles-page {
+  display: block;
+  height: 100%;
+}
+persistent-handles-page .persistent-handles,
+persistent-handles-page .weak-persistent-handles {
+  margin-top: -70px;
+  padding-top: 70px;
+  height: 50%;
+}
+persistent-handles-page virtual-collection {
+  overflow-y: scroll;
+}
+persistent-handles-page .weak-item,
+persistent-handles-page .collection-item {
+  box-sizing: border-box;
+  line-height: 20px;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+persistent-handles-page .header {
+  box-sizing: border-box;
+  line-height: 20px;
+}
+persistent-handles-page .header .weak-item:last-child {
+  margin-bottom: -3px;
+  border-bottom: solid 1px #AAAAAA;
+}
+persistent-handles-page .weak-item .external-size,
+persistent-handles-page .weak-item .peer,
+persistent-handles-page .weak-item .object {
+  display: inline-block;
+  width: 7em;
+  text-align: right;
+  padding-right: 0.5em;
+  line-height: 20px;
+}
+persistent-handles-page .weak-item .peer {
+  width: 11em;
+  font-family: monospace;
+}
+persistent-handles-page .weak-item .object {
+  text-align: left;
+  width: 25em;
+}
+persistent-handles-page .shifter .weak-item:hover {
+  background-color: #d2e7fe;
+}
+persistent-handles-page .weak-item .finalizer {
+  padding-left: 0.5em;
+}
+persistent-handles-page .weak-item > button,
+persistent-handles-page .weak-item > button:active {
+  background-color: transparent;
+  color: #0489c3;
+  border-style: none;
+}
+persistent-handles-page .weak-item > button:hover {
+  text-decoration: underline;
 }
 
 /* ports-page */

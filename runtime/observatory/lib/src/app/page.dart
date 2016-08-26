@@ -17,6 +17,8 @@ IsolateSampleProfileRepository _isolateSampleProfileRepository
     = new IsolateSampleProfileRepository();
 ObjectStoreRepository _objectstoreRepository
     = new ObjectStoreRepository();
+PersistentHandlesRepository _persistentHandlesRepository
+    = new PersistentHandlesRepository();
 PortsRepository _portsRepository = new PortsRepository();
 
 class IsolateNotFound implements Exception {
@@ -384,18 +386,27 @@ class PortsPage extends MatchingPage {
   }
 }
 
-class PersistentHandlesPage extends SimplePage {
-  PersistentHandlesPage(app)
-      : super('persistent-handles', 'persistent-handles-page', app);
+class PersistentHandlesPage extends MatchingPage {
+  PersistentHandlesPage(app) : super('persistent-handles', app);
+
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        PersistentHandlesPageElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new PersistentHandlesPageElement(isolate.vm, isolate, app.events,
+                                         app.notifications,
+                                         _persistentHandlesRepository,
+                                         _instanceRepository, queue: app.queue)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
   }
 }
 
