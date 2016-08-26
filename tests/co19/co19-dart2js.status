@@ -537,6 +537,18 @@ Language/Metadata/compilation_t08: Pass # mirrors not supported, fails for the w
 Language/Metadata/compilation_t09: Pass # mirrors not supported, fails for the wrong reason
 Language/Metadata/compilation_t10: Pass # mirrors not supported, fails for the wrong reason
 Language/Metadata/compilation_t11: Pass # mirrors not supported, fails for the wrong reason
+LayoutTests/fast/dom/custom/created-callback_t01: Fail # please triage
+LayoutTests/fast/dom/custom/document-register-namespace_t01: Fail # please triage
+LayoutTests/fast/dom/custom/document-register-on-create-callback_t01: Fail # please triage
+LayoutTests/fast/dom/custom/document-register-type-extensions_t01: Fail # please triage
+LayoutTests/fast/dom/custom/element-upgrade_t01: Fail # please triage
+LayoutTests/fast/dom/custom/unresolved-pseudoclass_t01: Fail # please triage
+WebPlatformTest/custom-elements/concepts/type_A08_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/createElementNS_A01_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/createElement_A01_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/isAttribute_A03_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/localName_A01_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t02: Fail # please triage
@@ -637,6 +649,8 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t0
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t01: Fail # please triage
 WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
+
+
 
 [ $compiler == dart2js && $checked != true ]
 Language/Expressions/Property_Extraction/General_Super_Property_Extraction/getter_lookup_t02: Timeout, Skip # Please triage this failure

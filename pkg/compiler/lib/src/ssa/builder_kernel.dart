@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:compiler/src/ssa/kernel_ast_adapter.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
@@ -16,7 +15,9 @@ import '../kernel/kernel.dart';
 import '../kernel/kernel_visitor.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
+
 import 'graph_builder.dart';
+import 'kernel_ast_adapter.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
 

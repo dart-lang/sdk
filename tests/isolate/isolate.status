@@ -69,7 +69,6 @@ cross_isolate_message_test: Fail # mirrors not supported
 illegal_msg_function_test: Fail # mirrors not supported
 illegal_msg_mirror_test: Fail # mirrors not supported
 isolate_complex_messages_test: Fail # mirrors not supported
-isolate_current_test: Fail # mirrors not supported
 mandel_isolate_test: Fail # mirrors not supported
 message2_test: Fail # mirrors not supported
 message_test: Fail # mirrors not supported
