@@ -223,7 +223,7 @@ class CloneVisitor extends TreeVisitor {
   visitLabeledStatement(LabeledStatement node) {
     LabeledStatement newNode = new LabeledStatement(null);
     labels[node] = newNode;
-    newNode.body = clone(node.body);
+    newNode.body = clone(node.body)..parent = newNode;
     return newNode;
   }
 
@@ -261,7 +261,9 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitSwitchCase(SwitchCase node) {
-    return switchCases[node]..body = clone(node.body);
+    var switchCase = switchCases[node];
+    switchCase.body = clone(node.body)..parent = switchCase;
+    return switchCase;
   }
 
   visitContinueSwitchStatement(ContinueSwitchStatement node) {
