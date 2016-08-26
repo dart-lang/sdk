@@ -59,8 +59,10 @@ class WebSocketClient extends Client {
         Uint8List cstring = result[0];
         socket.addUtf8Text(cstring);
       }
-    } catch (_) {
+    } catch (e, st) {
       print("Ignoring error posting over WebSocket.");
+      print(e);
+      print(st);
     }
   }
 
