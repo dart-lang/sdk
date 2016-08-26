@@ -14,6 +14,25 @@ abstract class GraphBuilder {
   /// Holds the resulting SSA graph.
   final HGraph graph = new HGraph();
 
+  /// A stack of instructions.
+  ///
+  /// We build the SSA graph by simulating a stack machine.
+  List<HInstruction> stack = <HInstruction>[];
+
+
+  void push(HInstruction instruction) {
+    add(instruction);
+    stack.add(instruction);
+  }
+
+  HInstruction pop() {
+    return stack.removeLast();
+  }
+
+  void dup() {
+    stack.add(stack.last);
+  }
+
   HBasicBlock _current;
 
   /// The current block to add instructions to. Might be null, if we are

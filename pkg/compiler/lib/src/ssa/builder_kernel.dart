@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
+import '../diagnostics/spannable.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
@@ -115,5 +116,47 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void closeFunction() {
     if (!isAborted()) closeAndGotoExit(new HGoto());
     graph.finalize();
+  }
+
+  @override
+  void visitBlock(ir.Block block) {
+    assert(!isAborted());
+    for (ir.Statement statement in block.statements) {
+      statement.accept(this);
+      if (!isReachable) {
+        // The block has been aborted by a return or a throw.
+        if (stack.isNotEmpty) {
+          compiler.reporter.internalError(
+              NO_LOCATION_SPANNABLE, 'Non-empty instruction stack.');
+        }
+        return;
+      }
+    }
+    assert(!current.isClosed());
+    if (stack.isNotEmpty) {
+      compiler.reporter
+          .internalError(NO_LOCATION_SPANNABLE, 'Non-empty instruction stack');
+    }
+  }
+
+  @override
+  void visitReturnStatement(ir.ReturnStatement returnStatement) {
+    HInstruction value;
+    if (returnStatement.expression == null) {
+      value = graph.addConstantNull(compiler);
+    } else {
+      returnStatement.expression.accept(this);
+      value = pop();
+      // TODO(het): Check or trust the type of value
+    }
+    // TODO(het): Add source information
+    // TODO(het): Set a return value instead of closing the function when we
+    // support inlining.
+    closeAndGotoExit(new HReturn(value, null));
+  }
+
+  @override
+  void visitIntLiteral(ir.IntLiteral intLiteral) {
+    stack.add(graph.addConstantInt(intLiteral.value, compiler));
   }
 }

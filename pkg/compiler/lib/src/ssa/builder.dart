@@ -417,9 +417,6 @@ class SsaBuilder extends ast.Visitor
 
   Map<JumpTarget, JumpHandler> jumpTargets = <JumpTarget, JumpHandler>{};
 
-  // We build the Ssa graph by simulating a stack machine.
-  List<HInstruction> stack = <HInstruction>[];
-
   /// Returns `true` if the current element is an `async` function.
   bool get isBuildingAsyncFunction {
     Element element = sourceElement;
@@ -1906,21 +1903,8 @@ class SsaBuilder extends ast.Visitor
     return graph;
   }
 
-  void push(HInstruction instruction) {
-    add(instruction);
-    stack.add(instruction);
-  }
-
   void pushWithPosition(HInstruction instruction, ast.Node node) {
     push(attachPosition(instruction, node));
-  }
-
-  HInstruction pop() {
-    return stack.removeLast();
-  }
-
-  void dup() {
-    stack.add(stack.last);
   }
 
   HInstruction popBoolified() {
