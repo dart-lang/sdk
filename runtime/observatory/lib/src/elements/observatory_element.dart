@@ -189,35 +189,4 @@ class ObservatoryElement extends PolymerElement {
     anchorElement.onClick.listen(onClickGoto);
     shadowRoot.children.add(anchorElement);
   }
-
-
-  var _onCopySubscription;
-  /// Exclude nodes from being copied, for example the line numbers and
-  /// breakpoint toggles in script insets. Must be called after [root]'s
-  /// children have been added, and only supports one node at a time.
-  void makeCssClassUncopyable(Element root, String className) {
-    var noCopyNodes = root.getElementsByClassName(className);
-    for (var node in noCopyNodes) {
-      node.style.setProperty('-moz-user-select', 'none');
-      node.style.setProperty('-khtml-user-select', 'none');
-      node.style.setProperty('-webkit-user-select', 'none');
-      node.style.setProperty('-ms-user-select', 'none');
-      node.style.setProperty('user-select', 'none');
-    }
-    if (_onCopySubscription != null) {
-      _onCopySubscription.cancel();
-    }
-    _onCopySubscription = root.onCopy.listen((event) {
-      // Mark the nodes as hidden before the copy happens, then mark them as
-      // visible on the next event loop turn.
-      for (var node in noCopyNodes) {
-        node.style.visibility = 'hidden';
-      }
-      Timer.run(() {
-        for (var node in noCopyNodes) {
-          node.style.visibility = 'visible';
-        }
-      });
-    });
-  }
 }

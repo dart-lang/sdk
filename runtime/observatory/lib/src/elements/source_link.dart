@@ -44,7 +44,7 @@ class SourceLinkElement extends HtmlElement implements Renderable {
   @override
   void attached() {
     super.attached();
-    _repository.get(_location.script.id).then((script) {
+    _repository.get(_isolate, _location.script.id).then((script) {
       _script = script;
       _r.dirty();
     });

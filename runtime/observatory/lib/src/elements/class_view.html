@@ -1,8 +1,6 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="action_link.html">
-<link rel="import" href="eval_box.html">
 <link rel="import" href="eval_link.html">
-<link rel="import" href="script_inset.html">
 
 <polymer-element name="class-view">
   <template>
@@ -114,7 +112,7 @@
     <hr>
 
     <div class="content">
-      <eval-box callback="{{ evaluate }}"></eval-box>
+      <eval-box context="{{ cls }}"></eval-box>
     </div>
 
     <hr>

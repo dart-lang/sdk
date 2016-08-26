@@ -5,11 +5,11 @@
 part of repositories;
 
 class ScriptRepository implements M.ScriptRepository {
-  final S.Isolate isolate;
 
-  ScriptRepository(this.isolate);
-
-  Future<M.Script> get(String id) async {
+  Future<M.Script> get(M.IsolateRef i, String id) async {
+    S.Isolate isolate = i as S.Isolate;
+    assert(i != null);
+    assert(id != null);
     return (await isolate.getObject(id)) as M.Script;
   }
 }

@@ -1,6 +1,5 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="error_view.html">
-<link rel="import" href="eval_box.html">
 <link rel="import" href="eval_link.html">
 
 <polymer-element name="instance-view">
@@ -163,7 +162,7 @@
       <hr>
 
       <div class="content">
-        <eval-box callback="{{ evaluate }}"></eval-box>
+        <eval-box context="{{ instance }}"></eval-box>
       </div>
 
       <hr>

@@ -1,8 +1,6 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="action_link.html">
-<link rel="import" href="eval_box.html">
 <link rel="import" href="isolate_summary.html">
-<link rel="import" href="script_inset.html">
 
 <polymer-element name="isolate-view">
   <template>
@@ -126,7 +124,7 @@
 
     <div class="content-centered">
       <hr>
-      <eval-box callback="{{ evaluate }}"></eval-box>
+      <eval-box context="{{ isolate.rootLibrary }}"></eval-box>
     </div>
 
     <div class="content-centered">

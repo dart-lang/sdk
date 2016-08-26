@@ -418,7 +418,7 @@ abstract class ServiceObjectOwner extends ServiceObject {
   ServiceObject getFromMap(ObservableMap map);
 }
 
-abstract class Location  {
+abstract class Location implements M.Location {
   Script get script;
   int get tokenPos;
 }
@@ -469,7 +469,9 @@ class SourceLocation extends ServiceObject implements Location,
 
 /// An [UnresolvedSourceLocation] represents a location in the source
 // code which has not been precisely mapped to a token position.
-class UnresolvedSourceLocation extends ServiceObject implements Location {
+class UnresolvedSourceLocation extends ServiceObject
+                               implements Location,
+                                          M.UnresolvedSourceLocation {
   Script script;
   String scriptUri;
   int line;
@@ -1710,7 +1712,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     });
   }
 
-  Future<ServiceObject> _eval(ServiceObject target,
+  Future<ServiceObject> eval(ServiceObject target,
                               String expression) {
     Map params = {
       'targetId': target.id,
@@ -2209,7 +2211,7 @@ class LibraryDependency {
 }
 
 
-class Library extends HeapObject implements M.LibraryRef {
+class Library extends HeapObject implements M.Library {
   @observable String uri;
   @reflectable final dependencies = new ObservableList<LibraryDependency>();
   @reflectable final scripts = new ObservableList<Script>();
@@ -2261,7 +2263,7 @@ class Library extends HeapObject implements M.LibraryRef {
   }
 
   Future<ServiceObject> evaluate(String expression) {
-    return isolate._eval(this, expression);
+    return isolate.eval(this, expression);
   }
 
   Script get rootScript {
@@ -2429,7 +2431,7 @@ class Class extends HeapObject implements M.Class {
   }
 
   Future<ServiceObject> evaluate(String expression) {
-    return isolate._eval(this, expression);
+    return isolate.eval(this, expression);
   }
 
   Future<ServiceObject> setTraceAllocations(bool enable) {
@@ -2753,7 +2755,7 @@ class Instance extends HeapObject implements M.Instance {
   }
 
   Future<ServiceObject> evaluate(String expression) {
-    return isolate._eval(this, expression);
+    return isolate.eval(this, expression);
   }
 
   String toString() => 'Instance($shortName)';
