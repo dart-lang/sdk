@@ -13,16 +13,6 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_allocate, 1) {
-  const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments->NativeArgAt(0));
-  const LinkedHashMap& map =
-    LinkedHashMap::Handle(LinkedHashMap::NewDefault());
-  map.SetTypeArguments(type_arguments);
-  return map.raw();
-}
-
-
 DEFINE_NATIVE_ENTRY(LinkedHashMap_getIndex, 1) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));

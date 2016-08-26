@@ -316,7 +316,6 @@ namespace dart {
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_inquireIs64Bit, 0)                                                \
-  V(LinkedHashMap_allocate, 1)                                                 \
   V(LinkedHashMap_getIndex, 1)                                                 \
   V(LinkedHashMap_setIndex, 2)                                                 \
   V(LinkedHashMap_getData, 1)                                                  \
