@@ -38,6 +38,29 @@ accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
 
+[ $compiler == dart2js && $fast_startup ]
+const_evaluation_test/*: Fail # mirrors not supported
+deferred_constraints_constants_test: Fail # mirrors not supported
+enum_mirror_test: Fail # mirrors not supported
+field_increment_bailout_test: Fail # mirrors not supported
+instance_creation_in_function_annotation_test: Fail # mirrors not supported
+invocation_mirror2_test: Fail # mirrors not supported
+invocation_mirror_invoke_on2_test: Fail # mirrors not supported
+invocation_mirror_invoke_on_test: Fail # mirrors not supported
+issue21079_test: Fail # mirrors not supported
+many_overridden_no_such_method_test: Fail # mirrors not supported
+no_such_method_test: Fail # mirrors not supported
+null_test: Fail # mirrors not supported
+overridden_no_such_method_test: Fail # mirrors not supported
+redirecting_factory_reflection_test: Fail # mirrors not supported
+regress_13462_0_test: Fail # mirrors not supported
+regress_13462_1_test: Fail # mirrors not supported
+regress_18535_test: Fail # mirrors not supported
+super_call4_test: Fail # mirrors not supported
+super_getter_setter_test: Fail # mirrors not supported
+vm/reflect_core_vm_test: Fail # mirrors not supported
+
+
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728

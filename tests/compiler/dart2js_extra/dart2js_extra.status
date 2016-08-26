@@ -14,6 +14,43 @@ mirrors_used_closure_test: Fail # Issue 17939
 variable_type_test/03: Fail, OK
 variable_type_test/01: Fail, OK
 
+[ $compiler == dartj2s && $fast_startup ]
+21666_test: Fail # mirrors not supported
+23056_test: Fail # mirrors not supported
+closure_type_reflection2_test: Fail # mirrors not supported
+closure_type_reflection_test: Fail # mirrors not supported
+deferred/deferred_mirrors1_lib: Fail # mirrors not supported
+deferred/deferred_mirrors1_test: Fail # mirrors not supported
+deferred/deferred_mirrors2_lazy: Fail # mirrors not supported
+deferred/deferred_mirrors2_lib3: Fail # mirrors not supported
+deferred/deferred_mirrors2_test: Fail # mirrors not supported
+inference_nsm_mirrors_test: Fail # mirrors not supported
+invalid_annotation2_test: Fail # mirrors not supported
+lookup_map/dead_entry_through_mirrors_test: Fail # mirrors not supported
+lookup_map/live_entry_through_mirrors_test: Fail # mirrors not supported
+lookup_map/live_entry_through_mirrors_used_test: Fail # mirrors not supported
+mirror_enqueuer_regression_test: Fail # mirrors not supported
+mirror_invalid_field_access2_test: Fail # mirrors not supported
+mirror_invalid_field_access3_test: Fail # mirrors not supported
+mirror_invalid_field_access4_test: Fail # mirrors not supported
+mirror_invalid_field_access_test: Fail # mirrors not supported
+mirror_invalid_invoke2_test: Fail # mirrors not supported
+mirror_invalid_invoke3_test: Fail # mirrors not supported
+mirror_invalid_invoke_test: Fail # mirrors not supported
+mirror_printer_test: Fail # mirrors not supported
+mirror_test: Fail # mirrors not supported
+mirror_type_inference_field2_test: Fail # mirrors not supported
+mirror_type_inference_field_test: Fail # mirrors not supported
+mirror_type_inference_function_test: Fail # mirrors not supported
+mirrors_declarations_filtering_test: Fail # mirrors not supported
+mirrors_used_closure_test: Fail # mirrors not supported
+mirrors_used_metatargets_test: Fail # mirrors not supported
+mirrors_used_native_test: Fail # mirrors not supported
+mirrors_used_warning2_test: Fail # mirrors not supported
+mirrors_used_warning_test: Fail # mirrors not supported
+no_such_method_mirrors_test: Fail # mirrors not supported
+reflect_native_types_test: Fail # mirrors not supported
+
 [ $compiler == dart2js && ($runtime == d8 || $runtime == chrome || $runtime == drt) ]
 bound_closure_interceptor_type_test: Fail, Pass # v8 issue 3084. https://code.google.com/p/v8/issues/detail?id=3084
 

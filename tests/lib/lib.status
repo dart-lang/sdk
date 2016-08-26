@@ -104,6 +104,9 @@ mirrors/raw_type_test/01: RuntimeError # Issue 6490
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 mirrors/regress_26187_test: RuntimeError # Issue 6490
 
+[ $compiler == dart2js && $fast_startup ]
+mirrors/*: Fail # mirrors not supported
+
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).

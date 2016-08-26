@@ -58,6 +58,9 @@ integer_to_radix_string_test: RuntimeError # issue 22045
 int_modulo_arith_test/bignum: RuntimeError # No bigints.
 int_modulo_arith_test/modPow: RuntimeError # No bigints.
 
+[ $compiler == dart2js && $fast_startup ]
+apply3_test: Fail # mirrors not supported
+
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $runtime != dartium && $runtime != drt ]
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
