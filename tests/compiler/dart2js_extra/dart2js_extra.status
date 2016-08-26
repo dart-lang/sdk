@@ -14,7 +14,7 @@ mirrors_used_closure_test: Fail # Issue 17939
 variable_type_test/03: Fail, OK
 variable_type_test/01: Fail, OK
 
-[ $compiler == dartj2s && $fast_startup ]
+[ $compiler == dart2js && $fast_startup ]
 21666_test: Fail # mirrors not supported
 23056_test: Fail # mirrors not supported
 closure_type_reflection2_test: Fail # mirrors not supported
