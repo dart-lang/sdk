@@ -363,7 +363,11 @@ class JSModuleFile {
         new JS.Printer(opts, printer, localNamer: new JS.TemporaryNamer(tree)));
 
     if (options.sourceMap && options.sourceMapComment) {
-      printer.emit('\n//# sourceMappingURL=$mapUrl\n');
+      var relativeMapUrl = path
+          .toUri(path.relative(path.fromUri(mapUrl), from: path.dirname(jsUrl)))
+          .toString();
+      assert(path.dirname(jsUrl) == path.dirname(mapUrl));
+      printer.emit('\n//# sourceMappingURL=$relativeMapUrl\n');
     }
 
     Map builtMap;
@@ -413,9 +417,11 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath) {
   var map = new Map.from(sourceMap);
   List list = new List.from(map['sources']);
   map['sources'] = list;
+  String relative(String uri) =>
+      path.toUri(path.relative(path.fromUri(uri), from: dir)).toString();
   for (int i = 0; i < list.length; i++) {
-    list[i] =
-        path.toUri(path.relative(path.fromUri(list[i]), from: dir)).toString();
+    list[i] = relative(list[i]);
   }
+  map['file'] = relative(map['file']);
   return map;
 }

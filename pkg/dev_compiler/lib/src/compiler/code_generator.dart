@@ -29,8 +29,7 @@ import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import 'ast_builder.dart' show AstBuilder;
-import 'compiler.dart'
-    show BuildUnit, CompilerOptions, JSModuleFile;
+import 'compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
 import 'element_helpers.dart';
 import 'element_loader.dart' show ElementLoader;
 import 'extension_types.dart' show ExtensionTypeSet;
@@ -3224,12 +3223,8 @@ class CodeGenerator extends GeneralizingAstVisitor
         var vars = <JS.MetaLetVariable, JS.Expression>{};
         var l = _visit(_bindValue(vars, 'l', target));
         jsTarget = new JS.MetaLet(vars, [
-          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #])', [
-            l,
-            l,
-            memberName,
-            memberName,
-          ])
+          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #])',
+              [l, l, memberName, memberName,])
         ]);
         if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
         return new JS.Call(jsTarget, args);

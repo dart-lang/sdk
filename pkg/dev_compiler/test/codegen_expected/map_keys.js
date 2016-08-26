@@ -21,4 +21,4 @@ define(['dart_sdk'], function(dart_sdk) {
   };
 });
 
-//# sourceMappingURL=/Users/jmesserly/src/dev_compiler/test/codegen_expected/map_keys.js.map
+//# sourceMappingURL=map_keys.js.map
