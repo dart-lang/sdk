@@ -1,8 +1,6 @@
 ## 1.20.0
 
 ### Core library changes
-* `dart:core`: Remove deprecated `Resource` class.
-  Use the class in `package:resource` instead.
 * `dart:async`
   * `Future.wait` now catches synchronous errors and returns them in the
     returned Future.
