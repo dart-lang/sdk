@@ -1895,7 +1895,8 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   raw_class = class_table()->At(cid);
 #endif  // !PRODUCT
   ASSERT(raw_class != NULL);
-  ASSERT(raw_class->ptr()->id_ == cid);
+  // This is temporarily untrue during a class id remap.
+  // ASSERT(raw_class->ptr()->id_ == cid);
   return raw_class;
 }
 

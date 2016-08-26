@@ -211,6 +211,21 @@ void ClassTable::Unregister(intptr_t index) {
 #endif
 
 
+#if defined(DART_PRECOMPILER)
+void ClassTable::Remap(intptr_t* old_to_new_cid) {
+  intptr_t num_cids = NumCids();
+  RawClass** cls_by_old_cid = new RawClass*[num_cids];
+  for (intptr_t i = 0; i < num_cids; i++) {
+    cls_by_old_cid[i] = table_[i];
+  }
+  for (intptr_t i = 0; i < num_cids; i++) {
+    table_[old_to_new_cid[i]] = cls_by_old_cid[i];
+  }
+  delete[] cls_by_old_cid;
+}
+#endif
+
+
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->VisitPointers(reinterpret_cast<RawObject**>(&table_[0]), top_);
@@ -219,7 +234,7 @@ void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 void ClassTable::Validate() {
   Class& cls = Class::Handle();
-  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+  for (intptr_t cid = kNumPredefinedCids; cid < top_; cid++) {
     // Some of the class table entries maybe NULL as we create some
     // top level classes but do not add them to the list of anonymous
     // classes in a library if there are no top level fields or functions.
@@ -227,9 +242,10 @@ void ClassTable::Validate() {
     // not written into a full snapshot and will not be recreated when
     // we read back the full snapshot. These class slots end up with NULL
     // entries.
-    if (HasValidClassAt(i)) {
-      cls = At(i);
+    if (HasValidClassAt(cid)) {
+      cls = At(cid);
       ASSERT(cls.IsClass());
+      ASSERT(cls.id() == cid);
     }
   }
 }
