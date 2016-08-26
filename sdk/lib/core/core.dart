@@ -157,9 +157,8 @@ import "dart:_internal" hide Symbol;
 import "dart:_internal" as internal show Symbol;
 import "dart:convert" show
   Encoding, ASCII, LATIN1, UTF8,
-  BASE64, StringConversionSink, ChunkedConversionSink;
+  BASE64, StringConversionSink;
 import "dart:math" show Random;  // Used by List.shuffle.
-import "dart:async" show Stream, Future;  // Used by Resource.
 import "dart:typed_data" show Uint8List;
 
 part "annotations.dart";
@@ -185,7 +184,6 @@ part "object.dart";
 part "pattern.dart";
 part "print.dart";
 part "regexp.dart";
-part "resource.dart";
 part "set.dart";
 part "sink.dart";
 part "stacktrace.dart";

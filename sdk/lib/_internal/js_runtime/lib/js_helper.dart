@@ -4024,58 +4024,6 @@ Future<Null> _loadHunk(String hunkName) {
   return completer.future;
 }
 
-// Performs an HTTP GET of the given URI and returns the response. The response
-// is either a String or a ByteBuffer.
-Future<dynamic> readHttp(String uri) {
-  Completer completer = new Completer();
-
-  void failure([error, StackTrace stackTrace]) {
-    completer.completeError(
-        new Exception("Loading $uri failed: $error"),
-        stackTrace);
-  }
-
-  enterJsAsync();
-  completer.future.whenComplete(leaveJsAsync);
-
-  var xhr = JS('var', 'new XMLHttpRequest()');
-  JS('void', '#.open("GET", #)', xhr, uri);
-  JS('void', '#.addEventListener("load", #, false)',
-     xhr, convertDartClosureToJS((event) {
-    int status = JS('int', '#.status', xhr);
-    if (status != 200) {
-      failure("Status code: $status");
-      return;
-    }
-    String responseType = JS('String', '#.responseType', xhr);
-    var data;
-    if (responseType.isEmpty || responseType == 'text') {
-      data = JS('String', '#.response', xhr);
-      completer.complete(data);
-    } else if (responseType == 'document' || responseType == 'json') {
-      data = JS('String', '#.responseText', xhr);
-      completer.complete(data);
-    } else if (responseType == 'arraybuffer') {
-      data = JS('var', '#.response', xhr);
-      completer.complete(data);
-    } else if (responseType == 'blob') {
-      var reader = JS('var', 'new FileReader()');
-      JS('void', '#.addEventListener("loadend", #, false)',
-          reader, convertDartClosureToJS((event) {
-            data = JS('var', '#.result', reader);
-            completer.complete(data);
-          }, 1));
-    } else {
-      failure('Result had unexpected type: $responseType');
-    }
-  }, 1));
-
-  JS('void', '#.addEventListener("error", #, false)', xhr, failure);
-  JS('void', '#.addEventListener("abort", #, false)', xhr, failure);
-  JS('void', '#.send()', xhr);
-  return completer.future;
-}
-
 class MainError extends Error implements NoSuchMethodError {
   final String _message;
 
