@@ -1262,9 +1262,8 @@ abstract class HInstruction implements Spannable {
     HBasicBlock otherBlock = other.block;
     for (int i = 0, length = usedBy.length; i < length; i++) {
       HInstruction current = usedBy[i];
-      HBasicBlock currentBlock = current.block;
-      if (otherBlock.dominates(currentBlock)) {
-        if (identical(currentBlock, otherBlock)) usersInCurrentBlock++;
+      if (otherBlock.dominates(current.block)) {
+        if (identical(current.block, otherBlock)) usersInCurrentBlock++;
         users.add(current);
       }
     }
