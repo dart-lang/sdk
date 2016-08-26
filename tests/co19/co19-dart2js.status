@@ -537,23 +537,32 @@ Language/Metadata/compilation_t08: Pass # mirrors not supported, fails for the w
 Language/Metadata/compilation_t09: Pass # mirrors not supported, fails for the wrong reason
 Language/Metadata/compilation_t10: Pass # mirrors not supported, fails for the wrong reason
 Language/Metadata/compilation_t11: Pass # mirrors not supported, fails for the wrong reason
+LayoutTests/fast/dom/custom/attribute-changed-callback_t01: Fail # custom elements not supported
 LayoutTests/fast/dom/custom/created-callback_t01: Fail # please triage
 LayoutTests/fast/dom/custom/document-register-namespace_t01: Fail # please triage
 LayoutTests/fast/dom/custom/document-register-on-create-callback_t01: Fail # please triage
 LayoutTests/fast/dom/custom/document-register-type-extensions_t01: Fail # please triage
+LayoutTests/fast/dom/custom/element-type_t01: Fail # custom elements not supported
 LayoutTests/fast/dom/custom/element-upgrade_t01: Fail # please triage
+LayoutTests/fast/dom/custom/type-extensions_t01: Fail # custom elements not supported
 LayoutTests/fast/dom/custom/unresolved-pseudoclass_t01: Fail # please triage
+WebPlatformTest/custom-elements/concepts/type_A01_t01: Fail # custom elements not supported
+WebPlatformTest/custom-elements/concepts/type_A07_t01: Fail # custom elements not supported
 WebPlatformTest/custom-elements/concepts/type_A08_t01: Fail # please triage
 WebPlatformTest/custom-elements/instantiating/createElementNS_A01_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: Fail # custom elements not supported
+WebPlatformTest/custom-elements/instantiating/createElementNS_A05_t01: Fail # custom elements not supported
 WebPlatformTest/custom-elements/instantiating/createElement_A01_t01: Fail # please triage
 WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: Fail # please triage
 WebPlatformTest/custom-elements/instantiating/isAttribute_A03_t01: Fail # please triage
 WebPlatformTest/custom-elements/instantiating/localName_A01_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-001_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t02: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-005_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/elements-001_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/elements-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-002_t01: Fail # please triage
@@ -566,8 +575,11 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-011_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-012_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-013_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-001_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-006_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-007_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-007_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-010_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-001_t01: Fail # please triage
@@ -580,6 +592,7 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/tes
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t02: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t02: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-005_t01: Fail # please triage
@@ -587,6 +600,7 @@ WebPlatformTest/shadow-dom/events/event-dispatch/test-001_t01: Fail # please tri
 WebPlatformTest/shadow-dom/events/event-dispatch/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/event-dispatch/test-003_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/event-retargeting/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/event-retargeting/test-003_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/event-retargeting/test-004_t01: Fail # please triage
@@ -594,6 +608,7 @@ WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-001_t01: F
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-003_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-005_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-005_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-006_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-007_t01: Fail # please triage
@@ -613,7 +628,9 @@ WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-003_t01: Fail #
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-004_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/inert-html-elements/test-002_t01: Fail # please triage
@@ -637,6 +654,7 @@ WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-003_t0
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-005_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-017_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-017_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/dom-tree-accessors-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: Fail # please triage
@@ -649,7 +667,6 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t0
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t01: Fail # please triage
 WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
-
 
 
 [ $compiler == dart2js && $checked != true ]

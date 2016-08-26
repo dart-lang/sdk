@@ -420,6 +420,13 @@ custom/document_register_type_extensions_test/functional: Fail # custom elements
 custom/document_register_type_extensions_test/namespaces: Fail # custom elements not supported
 custom/document_register_type_extensions_test/parsing: Fail # custom elements not supported
 custom/document_register_type_extensions_test/registration: Fail # custom elements not supported
+custom/entered_left_view_test: Fail # custom elements not supported
+custom/element_upgrade_test: Fail # custom elements not supported
+custom/document_register_basic_test: Fail # custom elements not supported
+custom/document_register_type_extensions: Fail # custom elements not supported
+custom_elements_23127_test/baseline: Fail # custom elements not supported
+custom_elements_23127_test/c1t: Fail # custom elements not supported
+custom_elements_23127_test/c2: Fail # custom elements not supported
 custom/js_custom_test: Fail # mirrors not supported
 custom/mirrors_test: Fail # mirrors not supported
 js_typed_interop_callable_object_test: Fail # js-interop function's not supported
