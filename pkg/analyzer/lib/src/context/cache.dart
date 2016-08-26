@@ -617,6 +617,9 @@ class CacheEntry {
     if (delta == null) {
       return false;
     }
+    if (!delta.shouldGatherChanges) {
+      return true;
+    }
     for (int i = 0; i < 64; i++) {
       bool hasVisitChanges = false;
       _visitResults(nextVisitId++, result,
@@ -1255,6 +1258,21 @@ class Delta {
 
   Delta(this.source);
 
+  /**
+   * Return `true` if this delta needs cache walking to gather additional
+   * changes before it can be used to [validate].  In this case [gatherChanges]
+   * is invoked for every targeted result in transitive dependencies, and
+   * [gatherEnd] is invoked after cache walking is done.
+   */
+  bool get shouldGatherChanges => false;
+
+  /**
+   * This method is called during a cache walk, so that the delta can gather
+   * additional changes to which are caused by the changes it already knows
+   * about.  Return `true` if a new change was added, so that one more cache
+   * walk will be performed (to include changes that depend on results which we
+   * decided to be changed later in the previous cache walk).
+   */
   bool gatherChanges(InternalAnalysisContext context, AnalysisTarget target,
       ResultDescriptor descriptor, Object value) {
     return false;

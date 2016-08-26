@@ -1244,6 +1244,9 @@ class _KeepContinueDelta implements Delta {
   _KeepContinueDelta(this.source, this.keepDescriptor);
 
   @override
+  bool get shouldGatherChanges => false;
+
+  @override
   bool gatherChanges(InternalAnalysisContext context, AnalysisTarget target,
       ResultDescriptor descriptor, Object value) {
     return false;
