@@ -14,33 +14,33 @@ allocation_profile: Skip
 cpu_profile_table: Skip
 
 [ $compiler == dart2js && $fast_startup ]
-observatory_ui/isolate/counter_chart/element_test: Fail # mirrors not supported
-observatory_ui/isolate/isolate-shared-summary/element_test: Fail # mirrors not supported
-observatory_ui/class_tree/element_test: Fail # custom elements not supported
-observatory_ui/ports/element_test: Fail # custom elements not supported
-observatory_ui/icdata_ref/element_test: Fail # custom elements not supported
-observatory_ui/inbound_references/element_test: Fail # custom elements not supported
-observatory_ui/isolate_reconnect/element_test: Fail # custom elements not supported
-observatory_ui/retaining_path/element_test: Fail # custom elements not supported
-observatory_ui/general_error/element_test: Fail # custom elements not supported
-observatory_ui/field_ref/element_test: Fail # custom elements not supported
-observatory_ui/error_view/element_test: Fail # custom elements not supported
-observatory_ui/objectstore_view/element_test: Fail # custom elements not supported
-observatory_ui/vm_connect/element_test: Fail # custom elements not supported
-observatory_ui/persistent_handles_page/element_test: Fail # custom elements not supported
-observatory_ui/context_view/element_test: Fail # custom elements not supported
-observatory_ui/cpu_profile_table/element_test: Fail # custom elements not supported
-observatory_ui/nav/vm_menu/element_test: Fail # custom elements not supported
-observatory_ui/nav/top-menu/element_test: Fail # custom elements not supported
-observatory_ui/nav/class-menu/element_test: Fail # custom elements not supported
-observatory_ui/nav/library-menu/element_test: Fail # custom elements not supported
-observatory_ui/nav/notify_event/element_test: Fail # custom elements not supported
-observatory_ui/nav/isolate-menu/element_test: Fail # custom elements not supported
-observatory_ui/nav/notify/element_test: Fail # custom elements not supported
-observatory_ui/object_common/element_test: Fail # custom elements not supported
-observatory_ui/cpu_profile/virtual-tree/element_test: Fail # custom elements not supported
-observatory_ui/icdata_view/element_test: Fail # custom elements not supported
-observatory_ui/allocation_profile/element_test: Fail # mirrors not supported
-observatory_ui/cpu_profile/element_test: Fail # custom elements not supported
-observatory_ui/flag_list/element_test: Fail # custom elements not supported
-observatory_ui/heap_snapshot/element_test: Fail # custom elements not supported
+isolate/counter_chart/element_test: Fail # mirrors not supported
+isolate/isolate-shared-summary/element_test: Fail # mirrors not supported
+class_tree/element_test: Fail # custom elements not supported
+ports/element_test: Fail # custom elements not supported
+icdata_ref/element_test: Fail # custom elements not supported
+inbound_references/element_test: Fail # custom elements not supported
+isolate_reconnect/element_test: Fail # custom elements not supported
+retaining_path/element_test: Fail # custom elements not supported
+general_error/element_test: Fail # custom elements not supported
+field_ref/element_test: Fail # custom elements not supported
+error_view/element_test: Fail # custom elements not supported
+objectstore_view/element_test: Fail # custom elements not supported
+vm_connect/element_test: Fail # custom elements not supported
+persistent_handles_page/element_test: Fail # custom elements not supported
+context_view/element_test: Fail # custom elements not supported
+cpu_profile_table/element_test: Fail # custom elements not supported
+nav/vm_menu/element_test: Fail # custom elements not supported
+nav/top-menu/element_test: Fail # custom elements not supported
+nav/class-menu/element_test: Fail # custom elements not supported
+nav/library-menu/element_test: Fail # custom elements not supported
+nav/notify_event/element_test: Fail # custom elements not supported
+nav/isolate-menu/element_test: Fail # custom elements not supported
+nav/notify/element_test: Fail # custom elements not supported
+object_common/element_test: Fail # custom elements not supported
+cpu_profile/virtual-tree/element_test: Fail # custom elements not supported
+icdata_view/element_test: Fail # custom elements not supported
+allocation_profile/element_test: Fail # mirrors not supported
+cpu_profile/element_test: Fail # custom elements not supported
+flag_list/element_test: Fail # custom elements not supported
+heap_snapshot/element_test: Fail # custom elements not supported
