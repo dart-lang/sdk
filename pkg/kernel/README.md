@@ -7,19 +7,22 @@ and transformations, and as a frontend for codegen and execution backends.
 The kernel language has in-memory representations in Dart and C++, and
 can be serialized as binary or text.
 
-Both the kernel language and its implementations are very early in development.
+Both the kernel language and its implementations are unstable and are under development.
 
 This package contains the Dart part of the implementation and contains:
 - A transformable IR for the kernel language
 - A frontend based on the analyzer
 - Serialization of kernel code
 
-Planned or work-in-progress:
-- Deserialization of text format
-- More essential infrastructure
-- Global type propagation
-- Transformations
+Getting Kernel
+------------
 
+Checkout the repository and run pub get:
+```bash
+git clone https://github.com/dart-lang/kernel
+cd kernel
+pub get
+```
 
 Command-Line Tool
 -----------------
@@ -46,6 +49,16 @@ dartk myapp.dill # Print it back out in a (very, very long) textual format.
 See [ast.dart](lib/ast.dart) for the in-memory IR, or [binary.md](binary.md) for
 a description of the binary format.  For now, the textual format is very ad-hoc
 and cannot be parsed back in.
+
+
+Testing
+-------
+
+If you plan to make changes to kernel, get a checkout of the Dartk SDK and run:
+```bash
+tool/regenerate_dill_files.dart --sdk <path to SDK checkout>
+pub run test
+```
 
 
 Library and Program Files
