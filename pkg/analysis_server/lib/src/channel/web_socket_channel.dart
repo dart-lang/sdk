@@ -55,10 +55,11 @@ class WebSocketClientChannel implements ClientCommunicationChannel {
   }
 
   @override
-  Future<Response> sendRequest(Request request) {
+  Future<Response> sendRequest(Request request) async {
     String id = request.id;
     socket.add(JSON.encode(request.toJson()));
-    return responseStream.firstWhere((Response response) => response.id == id);
+    return await responseStream
+        .firstWhere((Response response) => response.id == id);
   }
 }
 

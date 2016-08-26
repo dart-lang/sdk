@@ -177,15 +177,7 @@ class Isolate : public BaseIsolate {
     message_notify_callback_ = value;
   }
 
-  // Limited public access to BaseIsolate::mutator_thread_ for code that
-  // must treat the mutator as the default or a special case. Prefer code
-  // that works uniformly across all threads.
-  bool HasMutatorThread() {
-    return mutator_thread_ != NULL;
-  }
-  Thread* mutator_thread() const {
-    return mutator_thread_;
-  }
+  Thread* mutator_thread() const;
 
   const char* name() const { return name_; }
   const char* debugger_name() const { return debugger_name_; }
@@ -255,7 +247,11 @@ class Isolate : public BaseIsolate {
   void DoneLoading();
   void DoneFinalizing();
 
-  void ReloadSources(bool test_mode = false);
+  // By default the reload context is deleted. This parameter allows
+  // the caller to delete is separately if it is still needed.
+  bool ReloadSources(JSONStream* js,
+                     bool force_reload,
+                     bool dont_delete_reload_context = false);
 
   bool MakeRunnable();
   void Run();
@@ -464,8 +460,7 @@ class Isolate : public BaseIsolate {
 
   // Mutator thread is used to aggregate compiler stats.
   CompilerStats* aggregate_compiler_stats() {
-    ASSERT(HasMutatorThread());
-    return mutator_thread_->compiler_stats();
+    return mutator_thread()->compiler_stats();
   }
 
   VMTagCounters* vm_tag_counters() {
@@ -480,13 +475,20 @@ class Isolate : public BaseIsolate {
     return reload_context_;
   }
 
+  void DeleteReloadContext();
+
   bool HasAttemptedReload() const {
     return has_attempted_reload_;
   }
 
   bool CanReload() const;
 
-  void ReportReloadError(const Error& error);
+  void set_last_reload_timestamp(int64_t value) {
+    last_reload_timestamp_ = value;
+  }
+  int64_t last_reload_timestamp() const {
+    return last_reload_timestamp_;
+  }
 
   uword user_tag() const {
     return user_tag_;
@@ -533,11 +535,11 @@ class Isolate : public BaseIsolate {
   void set_deoptimized_code_array(const GrowableObjectArray& value);
   void TrackDeoptimizedCode(const Code& code);
 
+  // Also sends a paused at exit event over the service protocol.
+  void SetStickyError(RawError* sticky_error);
+
   RawError* sticky_error() const { return sticky_error_; }
   void clear_sticky_error();
-
-  RawError* sticky_reload_error() const { return sticky_reload_error_; }
-  void clear_sticky_reload_error();
 
   bool compilation_allowed() const { return compilation_allowed_; }
   void set_compilation_allowed(bool allowed) {
@@ -553,7 +555,7 @@ class Isolate : public BaseIsolate {
   // True during top level parsing.
   bool IsTopLevelParsing() {
     const intptr_t value =
-        AtomicOperations::LoadRelaxedIntPtr(&top_level_parsing_count_);
+        AtomicOperations::LoadRelaxed(&top_level_parsing_count_);
     ASSERT(value >= 0);
     return value > 0;
   }
@@ -574,7 +576,7 @@ class Isolate : public BaseIsolate {
     }
   }
   intptr_t loading_invalidation_gen() {
-    return AtomicOperations::LoadRelaxedIntPtr(&loading_invalidation_gen_);
+    return AtomicOperations::LoadRelaxed(&loading_invalidation_gen_);
   }
 
   // Used by background compiler which field became boxed and must trigger
@@ -583,6 +585,7 @@ class Isolate : public BaseIsolate {
   // Returns Field::null() if none available in the list.
   RawField* GetDeoptimizingBoxedField();
 
+#ifndef PRODUCT
   RawObject* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
                            const String& method_name,
@@ -593,6 +596,7 @@ class Isolate : public BaseIsolate {
   void RegisterServiceExtensionHandler(const String& name,
                                        const Instance& closure);
   RawInstance* LookupServiceExtensionHandler(const String& name);
+#endif
 
   static void VisitIsolates(IsolateVisitor* visitor);
 
@@ -629,8 +633,15 @@ class Isolate : public BaseIsolate {
 
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
+  static bool IsolateCreationEnabled();
 
   void StopBackgroundCompiler();
+
+  intptr_t reload_every_n_stack_overflow_checks() const {
+    return reload_every_n_stack_overflow_checks_;
+  }
+
+  void MaybeIncreaseReloadEveryNStackOverflowChecks();
 
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
@@ -680,8 +691,8 @@ class Isolate : public BaseIsolate {
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).
   Zone* current_zone() const {
-    ASSERT(Thread::Current() == mutator_thread_);
-    return mutator_thread_->zone();
+    ASSERT(Thread::Current() == mutator_thread());
+    return mutator_thread()->zone();
   }
 
   // Accessed from generated code:
@@ -759,8 +770,6 @@ class Isolate : public BaseIsolate {
 
   RawError* sticky_error_;
 
-  RawError* sticky_reload_error_;
-
   // Background compilation.
   BackgroundCompiler* background_compiler_;
   intptr_t background_compiler_disabled_depth_;
@@ -815,7 +824,10 @@ class Isolate : public BaseIsolate {
   // Has a reload ever been attempted?
   bool has_attempted_reload_;
   intptr_t no_reload_scope_depth_;  // we can only reload when this is 0.
+  // Per-isolate copy of FLAG_reload_every.
+  intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_;
+  int64_t last_reload_timestamp_;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
@@ -825,7 +837,6 @@ class Isolate : public BaseIsolate {
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
-  static Dart_IsolateInterruptCallback vmstats_callback_;
 
   static void WakePauseEventHandler(Dart_Isolate isolate);
 

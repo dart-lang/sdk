@@ -5,7 +5,6 @@
 library dart2js.tokens.keywords;
 
 import '../util/characters.dart' as Characters show $a;
-
 import 'precedence.dart' show PrecedenceInfo;
 import 'precedence_constants.dart' as Precedence
     show AS_INFO, IS_INFO, KEYWORD_INFO;

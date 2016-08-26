@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:unittest/unittest.dart';
@@ -12,9 +13,13 @@ import 'package:unittest/unittest.dart';
 import '../../test/integration/integration_tests.dart';
 
 void printMemoryResults(String id, String description, List<int> sizes) {
+  int minMemory = sizes.fold(sizes.first, min);
+  int maxMemory = sizes.fold(sizes.first, max);
   String now = new DateTime.now().toUtc().toIso8601String();
   print('$now ========== $id');
   print('memory: $sizes');
+  print('min_memory: $minMemory');
+  print('max_memory: $maxMemory');
   print(description.trim());
   print('--------------------');
   print('');
@@ -98,7 +103,7 @@ class AnalysisServerMemoryUsageTest
    *  1. Start Analysis Server.
    *  2. Set the analysis [roots].
    *  3. Wait for analysis to complete.
-   *  4. Record the time to finish analysis.
+   *  4. Record the heap size after analysis is finished.
    *  5. Shutdown.
    *  6. Go to (1).
    */

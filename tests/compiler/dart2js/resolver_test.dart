@@ -223,9 +223,11 @@ Future testSuperCalls() {
     FunctionElement fooA = classA.lookupLocalMember("foo");
 
     ResolverVisitor visitor = new ResolverVisitor(
-        compiler,
+        compiler.resolution,
         fooB,
-        new ResolutionRegistry(compiler, new CollectingTreeElements(fooB)),
+        new ResolutionRegistry(
+            compiler.backend,
+            new CollectingTreeElements(fooB)),
         scope: new MockTypeVariablesScope(classB.buildScope()));
     FunctionExpression node =
         (fooB as FunctionElementX).parseNode(compiler.parsingContext);
@@ -268,10 +270,10 @@ Future testThis() {
       ClassElement fooElement = compiler.mainApp.find("Foo");
       FunctionElement funElement = fooElement.lookupLocalMember("foo");
       ResolverVisitor visitor = new ResolverVisitor(
-          compiler,
+          compiler.resolution,
           funElement,
           new ResolutionRegistry(
-              compiler, new CollectingTreeElements(funElement)),
+              compiler.backend, new CollectingTreeElements(funElement)),
           scope: new MockTypeVariablesScope(fooElement.buildScope()));
       FunctionExpression function =
           (funElement as FunctionElementX).parseNode(compiler.parsingContext);
@@ -296,10 +298,10 @@ Future testThis() {
       ClassElement fooElement = compiler.mainApp.find("Foo");
       FunctionElement funElement = fooElement.lookupLocalMember("foo");
       ResolverVisitor visitor = new ResolverVisitor(
-          compiler,
+          compiler.resolution,
           funElement,
           new ResolutionRegistry(
-              compiler, new CollectingTreeElements(funElement)),
+              compiler.backend, new CollectingTreeElements(funElement)),
           scope: new MockTypeVariablesScope(fooElement.buildScope()));
       FunctionExpression function =
           (funElement as FunctionElementX).parseNode(compiler.parsingContext);
@@ -588,9 +590,11 @@ Future testOneInterface() {
     compiler.parseScript("abstract class Bar {}");
 
     ResolverVisitor visitor = new ResolverVisitor(
-        compiler,
+        compiler.resolution,
         null,
-        new ResolutionRegistry(compiler, new CollectingTreeElements(null)));
+        new ResolutionRegistry(
+            compiler.backend,
+            new CollectingTreeElements(null)));
     compiler.resolveStatement("Foo bar;");
 
     ClassElement fooElement = compiler.mainApp.find('Foo');
@@ -707,9 +711,11 @@ Future resolveConstructor(
     element = classElement.lookupConstructor(constructor);
     FunctionExpression tree = (element as FunctionElement).node;
     ResolverVisitor visitor = new ResolverVisitor(
-        compiler,
+        compiler.resolution,
         element,
-        new ResolutionRegistry(compiler, new CollectingTreeElements(element)),
+        new ResolutionRegistry(
+            compiler.backend,
+            new CollectingTreeElements(element)),
         scope: classElement.buildScope());
     new InitializerResolver(visitor, element, tree).resolveInitializers();
     visitor.visit(tree.body);

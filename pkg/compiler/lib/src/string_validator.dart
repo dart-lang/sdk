@@ -10,7 +10,8 @@ import 'dart:collection';
 
 import 'common.dart';
 import 'tokens/token.dart' show Token;
-import 'tree/tree.dart';
+import 'tree/dartstring.dart' show DartString;
+import 'tree/nodes.dart' show StringQuoting;
 import 'util/characters.dart';
 
 class StringValidator {

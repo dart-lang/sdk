@@ -2521,12 +2521,15 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 // getter function object for each enumeration value and for the
 // values field. We also don't have to generate the code for these getters
 // from thin air (no source code is available).
-void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
+void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Field& index_field =
       Field::Handle(zone, enum_cls.LookupInstanceField(Symbols::Index()));
   ASSERT(!index_field.IsNull());
+  const Field& name_field = Field::Handle(zone,
+        enum_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+  ASSERT(!name_field.IsNull());
   const Field& values_field =
       Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
   ASSERT(!values_field.IsNull());
@@ -2539,6 +2542,11 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
   Instance& ordinal_value = Instance::Handle(zone);
   Instance& enum_value = Instance::Handle(zone);
 
+  const String& enum_name = String::Handle(enum_cls.ScrubbedName());
+  const String& name_prefix =
+      String::Handle(String::Concat(enum_name, Symbols::Dot()));
+
+  String& enum_ident = String::Handle();
   for (intptr_t i = 0; i < fields.Length(); i++) {
     field = Field::RawCast(fields.At(i));
     if (!field.is_static()) continue;
@@ -2547,8 +2555,18 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
     // contain the smi value of the ordinal number, which was stored in
     // the field by the parser. Other fields contain non-smi values.
     if (!ordinal_value.IsSmi()) continue;
+    enum_ident = field.name();
+    // Construct the string returned by toString.
+    ASSERT(!enum_ident.IsNull());
+    // For the user-visible name of the enumeration value, we need to
+    // unmangle private names.
+    if (enum_ident.CharAt(0) == '_') {
+      enum_ident = String::ScrubName(enum_ident);
+    }
+    enum_ident = Symbols::FromConcat(thread, name_prefix, enum_ident);
     enum_value = Instance::New(enum_cls, Heap::kOld);
     enum_value.SetField(index_field, ordinal_value);
+    enum_value.SetField(name_field, enum_ident);
     const char* error_msg = "";
     enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
     ASSERT(!enum_value.IsNull());

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@deprecated
 library analyzer.src.generated.sdk_io;
 
 import 'dart:collection';
@@ -29,6 +30,7 @@ import 'package:path/path.dart' as pathos;
  * stored in a library map. Subclasses are responsible for populating the
  * library map.
  */
+@deprecated
 abstract class AbstractDartSdk implements DartSdk {
   /**
    * A mapping from Dart library URI's to the library represented by that URI.
@@ -106,6 +108,20 @@ abstract class AbstractDartSdk implements DartSdk {
           'The "useSummary" flag cannot be changed after context creation.');
     }
     _useSummary = use;
+  }
+
+  /**
+   * Add the extensions from one or more sdk extension files to this sdk. The
+   * [extensions] should be a table mapping the names of extensions to the paths
+   * where those extensions can be found.
+   */
+  void addExtensions(Map<String, String> extensions) {
+    extensions.forEach((String uri, String path) {
+      String shortName = uri.substring(uri.indexOf(':') + 1);
+      SdkLibraryImpl library = new SdkLibraryImpl(shortName);
+      library.path = path;
+      libraryMap.setLibrary(uri, library);
+    });
   }
 
   @override
@@ -238,7 +254,10 @@ abstract class AbstractDartSdk implements DartSdk {
  *        util/
  *           ... Dart utilities ...
  *     Chromium/   <-- Dartium typically exists in a sibling directory
+ *
+ * This class is deprecated. Please use FolderBasedDartSdk instead.
  */
+@deprecated
 class DirectoryBasedDartSdk extends AbstractDartSdk {
   /**
    * The default SDK, or `null` if the default SDK either has not yet been
@@ -619,6 +638,9 @@ class DirectoryBasedDartSdk extends AbstractDartSdk {
   }
 
   @override
+  PackageBundle getLinkedBundle() => null;
+
+  @override
   String getRelativePathFromFile(JavaFile file) {
     String filePath = file.getAbsolutePath();
     String libPath = libraryDirectory.getAbsolutePath();
@@ -736,6 +758,7 @@ class DirectoryBasedDartSdk extends AbstractDartSdk {
  *         platforms: 0),
  *     };
  */
+@deprecated
 class SdkLibrariesReader {
   /**
    * A flag indicating whether the dart2js path should be used when it is

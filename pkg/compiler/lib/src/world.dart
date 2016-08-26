@@ -5,8 +5,8 @@
 library dart2js.world;
 
 import 'closure.dart' show SynthesizedCallMethodElementX;
-import 'common.dart';
 import 'common/backend_api.dart' show Backend;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'core_types.dart' show CoreClasses;
 import 'dart_types.dart';
@@ -26,6 +26,14 @@ import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
 import 'util/util.dart' show Link;
 
+/// The [ClassWorld] represents the information known about a program when
+/// compiling with closed-world semantics.
+///
+/// Given the entrypoint of an application, we can track what's reachable from
+/// it, what functions are called, what classes are allocated, which native
+/// JavaScript types are touched, what language features are used, and so on.
+/// This precise knowledge about what's live in the program is later used in
+/// optimizations and other compiler decisions during code generation.
 abstract class ClassWorld {
   // TODO(johnniwinther): Refine this into a `BackendClasses` interface.
   Backend get backend;
@@ -425,7 +433,8 @@ class World implements ClassWorld {
     } while (iterator.moveNext());
 
     List<ClassElement> commonSupertypes = <ClassElement>[];
-    OUTER: for (Link<DartType> link = typeSet[depth];
+    OUTER:
+    for (Link<DartType> link = typeSet[depth];
         link.head.element != objectClass;
         link = link.tail) {
       ClassElement cls = link.head.element;

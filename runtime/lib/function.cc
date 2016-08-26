@@ -47,6 +47,19 @@ DEFINE_NATIVE_ENTRY(Closure_equals, 2) {
         const Object& receiver_b = Object::Handle(context_b.At(0));
         if (receiver_a.raw() == receiver_b.raw()) return Bool::True().raw();
       }
+    } else if (func_a.IsImplicitInstanceClosureFunction() &&
+               func_b.IsImplicitInstanceClosureFunction()) {
+      // TODO(rmacnak): Patch existing tears off during reload instead.
+      const Context& context_a = Context::Handle(receiver.context());
+      const Context& context_b = Context::Handle(
+          Closure::Cast(other).context());
+      const Object& receiver_a = Object::Handle(context_a.At(0));
+      const Object& receiver_b = Object::Handle(context_b.At(0));
+      if ((receiver_a.raw() == receiver_b.raw()) &&
+          (func_a.name() == func_b.name()) &&
+          (func_a.Owner() == func_b.Owner())) {
+        return Bool::True().raw();
+      }
     }
   }
   return Bool::False().raw();

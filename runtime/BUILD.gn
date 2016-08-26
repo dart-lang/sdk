@@ -77,11 +77,6 @@ config("dart_precompiled_runtime_config") {
       defines += ["DART_PRECOMPILED_RUNTIME"]
     }
   } else if (dart_runtime_mode == "profile") {
-    if (dart_debug) {
-      print("Debug and profile mode are mutually exclusive.")
-    }
-    assert(!dart_debug)
-
     if (!dart_experimental_interpreter) {
       defines += ["DART_PRECOMPILED_RUNTIME"]
     }
@@ -156,7 +151,7 @@ config("dart_config") {
     ]
   }
 
-  if (is_asan) {
+  if (defined(is_asan) && is_asan) {
     ldflags = [
       "-Wl,-u_sanitizer_options_link_helper",
       "-fsanitize=address",
@@ -210,7 +205,6 @@ action("generate_version_cc_file") {
     "--quiet",
     "--output", rebase_path(output, root_build_dir),
     "--input", rebase_path("vm/version_in.cc", root_build_dir),
-    "--ignore_svn_revision",
   ]
 }
 

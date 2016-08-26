@@ -63,11 +63,9 @@
 library dart2js.messages;
 
 import '../tokens/token.dart' show ErrorToken, Token;
-
+import 'generated/shared_messages.dart' as shared_messages;
 import 'invariant.dart' show invariant;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
-
-import 'generated/shared_messages.dart' as shared_messages;
 
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
@@ -100,7 +98,6 @@ enum MessageKind {
   BEFORE_TOP_LEVEL,
   BINARY_OPERATOR_BAD_ARITY,
   BODY_EXPECTED,
-  CALL_NOT_SUPPORTED_ON_NATIVE_CLASS,
   CANNOT_EXTEND,
   CANNOT_EXTEND_ENUM,
   CANNOT_EXTEND_MALFORMED,
@@ -186,9 +183,11 @@ enum MessageKind {
   DUPLICATED_RESOURCE,
   EMPTY_CATCH_DECLARATION,
   EMPTY_ENUM_DECLARATION,
+  EMPTY_NAMED_PARAMETER_LIST,
+  EMPTY_OPTIONAL_PARAMETER_LIST,
   EMPTY_HIDE,
-  EQUAL_MAP_ENTRY_KEY,
   EMPTY_SHOW,
+  EQUAL_MAP_ENTRY_KEY,
   EXISTING_DEFINITION,
   EXISTING_LABEL,
   EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
@@ -610,7 +609,9 @@ main() => new A().m();
           "Cannot resolve '#{name}'.",
           howToFix: "Did you mean to add the 'async' marker "
               "to the enclosing function?",
-          examples: const ["main() { (() => await -3)(); }",]),
+          examples: const [
+            "main() { (() => await -3)(); }",
+          ]),
 
       MessageKind.CANNOT_RESOLVE_IN_INITIALIZER: const MessageTemplate(
           MessageKind.CANNOT_RESOLVE_IN_INITIALIZER,
@@ -876,6 +877,36 @@ export 'dart:core' show Foo;
 
 main() {}"""
             },
+          ]),
+
+      MessageKind.EMPTY_OPTIONAL_PARAMETER_LIST: const MessageTemplate(
+          MessageKind.EMPTY_OPTIONAL_PARAMETER_LIST,
+          "Optional parameter lists cannot be empty.",
+          howToFix: "Try adding an optional parameter to the list.",
+          examples: const [
+            const {
+              'main.dart': """
+foo([]) {}
+
+main() {
+  foo();
+}"""
+            }
+          ]),
+
+      MessageKind.EMPTY_NAMED_PARAMETER_LIST: const MessageTemplate(
+          MessageKind.EMPTY_NAMED_PARAMETER_LIST,
+          "Named parameter lists cannot be empty.",
+          howToFix: "Try adding a named parameter to the list.",
+          examples: const [
+            const {
+              'main.dart': """
+foo({}) {}
+
+main() {
+  foo();
+}"""
+            }
           ]),
 
       MessageKind.NOT_A_TYPE: const MessageTemplate(
@@ -1967,7 +1998,9 @@ main() => new C();"""
           "Cannot assign a value to a type. Note that types are never null, "
           "so this ??= assignment has no effect.",
           howToFix: "Try removing the '??=' assignment.",
-          examples: const ["class A {} main() { print(A ??= 3);}",]),
+          examples: const [
+            "class A {} main() { print(A ??= 3);}",
+          ]),
 
       MessageKind.VOID_NOT_ALLOWED: const MessageTemplate(
           MessageKind.VOID_NOT_ALLOWED,
@@ -3056,7 +3089,11 @@ main() => r\"\"\"
           MessageKind.UNMATCHED_TOKEN,
           "Can't find '#{end}' to match '#{begin}'.",
           howToFix: DONT_KNOW_HOW_TO_FIX,
-          examples: const ["main(", "main(){", "main(){]}",]),
+          examples: const [
+            "main(",
+            "main(){",
+            "main(){]}",
+          ]),
 
       MessageKind.UNTERMINATED_TOKEN: const MessageTemplate(
           MessageKind.UNTERMINATED_TOKEN,
@@ -3180,7 +3217,8 @@ main() => new A();
       MessageKind.MAIN_WITH_EXTRA_PARAMETER: const MessageTemplate(
           MessageKind.MAIN_WITH_EXTRA_PARAMETER,
           "'#{main}' cannot have more than two parameters.",
-          howToFix: DONT_KNOW_HOW_TO_FIX, /* Don't state the obvious. */
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          /* Don't state the obvious. */
           examples: const ['main(a, b, c) {}']),
 
       MessageKind.COMPILER_CRASHED: const MessageTemplate(
@@ -3595,15 +3633,18 @@ part of test.main;
       MessageKind.EXTERNAL_WITH_BODY: const MessageTemplate(
           MessageKind.EXTERNAL_WITH_BODY,
           "External function '#{functionName}' cannot have a function body.",
-          options: const ["--output-type=dart"],
           howToFix:
               "Try removing the 'external' modifier or the function body.",
           examples: const [
             """
+import 'package:js/js.dart';
+@JS()
 external foo() => 0;
 main() => foo();
 """,
             """
+import 'package:js/js.dart';
+@JS()
 external foo() {}
 main() => foo();
 """
@@ -3670,11 +3711,6 @@ dart:mirrors library is not supported when using this backend.
 Your app imports dart:mirrors via:"""
           """
 $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
-
-      MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS: const MessageTemplate(
-          MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS,
-          "Non-supported 'call' member on a native class, or a "
-          "subclass of a native class."),
 
       MessageKind.DIRECTLY_THROWING_NSM: const MessageTemplate(
           MessageKind.DIRECTLY_THROWING_NSM,

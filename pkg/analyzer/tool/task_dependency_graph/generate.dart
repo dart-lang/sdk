@@ -26,11 +26,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as path;
@@ -150,7 +150,8 @@ ${generateGraphData()}
     }
     List<String> lines = <String>[];
     resourceProvider = PhysicalResourceProvider.INSTANCE;
-    DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
+    DartSdk sdk = new FolderBasedDartSdk(resourceProvider,
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
     context = AnalysisEngine.instance.createAnalysisContext();
     String packageRootPath;
     if (Platform.packageRoot != null) {

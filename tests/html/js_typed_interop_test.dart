@@ -71,12 +71,38 @@ _injectJs() {
     getA: function() { return this.a;}
   };
 
+  function _PrivateClass(a, b) {
+    this._a = a;
+    this._b = b;
+  };
+
+  _PrivateClass.prototype = {
+    _getA: function() { return this._a;}
+  };
+
   var selection = ["a", "b", "c", foo, bar];  
 
   function returnNumArgs() { return arguments.length; };
   function returnLastArg() { return arguments[arguments.length-1]; };
 
   function confuse(obj) { return obj; }
+
+  window['class'] = function() { return 42; };
+  window['delete'] = 100;
+  window['JS$hasJsInName'] = 'unicorn';
+  window['JS$hasJsInNameMethod'] = function(x) { return x*5; };
+
+  function JS$ClassWithJSInName(x) {
+    this.x = x;
+    this.JS$hasJsInName = 73;
+    this.$JS$doesNotNeedEscape = 103;
+  };
+
+  JS$ClassWithJSInName.prototype = {
+    JS$getXwithJsInName: function() { return this.x;}
+  };
+
+  JS$ClassWithJSInName.JS$staticMethod = function(x) { return x * 3; };
 
   function StringWrapper(str) {
     this.str = str;
@@ -110,6 +136,49 @@ class ClassWithConstructor {
   external get b;
 }
 
+@JS('ClassWithConstructor')
+class _ClassWithConstructor {
+  external _ClassWithConstructor(aParam, bParam);
+  external getA();
+  external get a;
+  external get b;
+}
+
+@JS()
+class JS$_PrivateClass {
+  external JS$_PrivateClass(aParam, bParam);
+  external JS$_getA();
+  external get JS$_a;
+  external get JS$_b;
+  // Equivalent to JS$_a but only visible within
+  // the class.
+  external get _a;
+}
+
+@JS()
+external String get JS$JS$hasJsInName;
+
+@JS()
+external int JS$JS$hasJsInNameMethod(int x);
+
+// This is the prefered way to handle static or top level members that start
+// with JS$. We verify that JS$JS$ works purely to prevent bugs.
+@JS(r'JS$hasJsInName')
+external String get JS$hasJsInName;
+
+@JS(r'JS$hasJsInNameMethod')
+external int JS$hasJsInNameMethod(int x);
+
+@JS()
+class JS$JS$ClassWithJSInName {
+  external JS$JS$ClassWithJSInName(x);
+  external int get x;
+  external int get JS$JS$hasJsInName;
+  external int get $JS$doesNotNeedEscape;
+  external int JS$JS$getXwithJsInName();
+  external static int JS$JS$staticMethod(x);
+}
+
 typedef num MultiplyWithDefault(num a, [num b]);
 
 @JS()
@@ -118,6 +187,7 @@ class Foo {
   external set x(int v);
   external num multiplyByX(num y);
   external num multiplyBy2(num y);
+  external num JS$multiplyBy2(num y);
   external MultiplyWithDefault get multiplyDefault2Function;
 
   external callClosureWithArgAndThis(Function closure, arg);
@@ -126,14 +196,17 @@ class Foo {
   external Bar getBar();
 
   external static num multiplyDefault2(num a, [num b]);
+  // Should desugar to multiplyDefault2.
+  external static num JS$multiplyDefault2(num a, [num b]);
 }
 
 @anonymous
 @JS()
 class ExampleLiteral {
-  external factory ExampleLiteral({int x, String y, num z});
+  external factory ExampleLiteral({int x, String y, num z, JS$class});
 
   external int get x;
+  external int get JS$class;
   external String get y;
   external num get z;
 }
@@ -182,6 +255,13 @@ class StringWrapper {
 @JS()
 external confuse(obj);
 
+/// Desugars to calling the js method named class.
+@JS()
+external JS$class();
+
+@JS()
+external get JS$delete;
+
 @JS()
 external CanvasRenderingContext2D getCanvasContext();
 
@@ -190,6 +270,16 @@ external num get propertyOnDocument;
 
 @JS('window.self.window.window.windowProperty')
 external num get propertyOnWindow;
+
+@JS()
+@anonymous
+class Simple
+{
+    external List<int> get numbers;
+    external set numbers(List<int> numbers);
+
+    external factory Simple({ List<int> numbers });
+}
 
 main() {
   _injectJs();
@@ -210,6 +300,17 @@ main() {
       expect(stringify(l), equals('{"z":100}'));
     });
 
+    test('with array', () {
+      // Repro for https://github.com/dart-lang/sdk/issues/26768
+       var simple = new Simple(numbers: [ 1, 2, 3 ]);
+       expect(stringify(simple), equals('{"numbers":[1,2,3]}'));
+    });
+
+    test(r'JS$ escaped name', () {
+      var l = new ExampleLiteral(JS$class: 3, y: "foo");
+      expect(l.JS$class, equals(3));
+    });
+
     test('empty', () {
       var l = new EmptyLiteral();
       expect(stringify(l), equals('{}'));
@@ -222,6 +323,25 @@ main() {
       expect(o.a, equals("foo"));
       expect(o.b, equals("bar"));
       expect(o.getA(), equals("foo"));
+    });
+  });
+
+  group('private class', () {
+    test('simple', () {
+      var o = new _ClassWithConstructor("foo", "bar");
+      expect(o.a, equals("foo"));
+      expect(o.b, equals("bar"));
+      expect(o.getA(), equals("foo"));
+    });
+  });
+
+  group('private class', () {
+    test('simple', () {
+      var o = new JS$_PrivateClass("foo", "bar");
+      expect(o.JS$_a, equals("foo"));
+      expect(o.JS$_b, equals("bar"));
+      expect(o._a, equals("foo"));
+      expect(o.JS$_getA(), equals("foo"));
     });
   });
 
@@ -276,12 +396,37 @@ main() {
       expect(untypedFunction(), isNaN);
 
     });
+
+    test(r'JS$ escaped name', () {
+      foo.x = 10;
+      expect(foo.JS$multiplyBy2(5), equals(10));
+
+      Function multiplyBy2 = foo.JS$multiplyBy2;
+      expect(multiplyBy2(5), equals(10));
+    });
+
+    test(r'JS$ double escaped name', () {
+      var obj = new JS$JS$ClassWithJSInName(42);
+      expect(obj.x, equals(42));
+      expect(obj.JS$JS$getXwithJsInName(), equals(42));
+      expect(obj.JS$JS$hasJsInName, equals(73));
+      expect(obj.$JS$doesNotNeedEscape, equals(103));
+    });
   });
 
   group('static_method_call', () {
     test('call directly from dart', () {
       expect(Foo.multiplyDefault2(6, 7), equals(42));
       expect(Foo.multiplyDefault2(6), equals(12));
+    });
+
+    test(r'JS$ escaped name', () {
+      expect(Foo.JS$multiplyDefault2(6, 7), equals(42));
+      expect(Foo.JS$multiplyDefault2(6), equals(12));
+    });
+
+    test(r'JS$ double escaped name', () {
+      expect(JS$JS$ClassWithJSInName.JS$JS$staticMethod(4), equals(12));
     });
   });
 
@@ -381,6 +526,17 @@ main() {
       // Make sure we don't allow calling JavaScript methods on String.
       expect(() => s.charCodeAt(0), throws);
       expect(stringWrapper.charCodeAt(0), equals(72));
+    });
+  });
+
+  group(r'JS$ escaped', () {
+    test('top level', () {
+      expect(JS$class(), equals(42));
+      expect(JS$delete, equals(100));
+    });
+    test('top level double escaped', () {
+      expect(JS$JS$hasJsInName, equals('unicorn'));
+      expect(JS$JS$hasJsInNameMethod(4), equals(20));
     });
   });
 

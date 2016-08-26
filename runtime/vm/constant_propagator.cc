@@ -253,6 +253,10 @@ void ConstantPropagator::VisitGuardFieldLength(GuardFieldLengthInstr* instr) { }
 void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) { }
 
 
+void ConstantPropagator::VisitGenericCheckBound(GenericCheckBoundInstr* instr) {
+}
+
+
 void ConstantPropagator::VisitCheckEitherNonSmi(
     CheckEitherNonSmiInstr* instr) { }
 

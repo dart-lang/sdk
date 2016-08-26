@@ -2782,6 +2782,31 @@ class InterfaceTypeImplTest extends EngineTestCase {
     expect(parameterTypes[0], same(typeI));
   }
 
+  void test_getMethod_parameterized_flushCached_whenVersionChanges() {
+    //
+    // class A<E> { E m(E p) {} }
+    //
+    ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
+    DartType typeE = classA.type.typeArguments[0];
+    String methodName = "m";
+    MethodElementImpl methodM =
+        ElementFactory.methodElement(methodName, typeE, [typeE]);
+    classA.methods = <MethodElement>[methodM];
+    methodM.type = new FunctionTypeImpl(methodM);
+    //
+    // A<I>
+    //
+    InterfaceType typeI = ElementFactory.classElement2("I").type;
+    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
+    typeAI.typeArguments = <DartType>[typeI];
+    // Methods list is cached.
+    MethodElement method = typeAI.methods.single;
+    expect(typeAI.methods.single, same(method));
+    // Methods list is flushed on version change.
+    classA.version++;
+    expect(typeAI.methods.single, isNot(same(method)));
+  }
+
   void test_getMethod_unimplemented() {
     //
     // class A {}

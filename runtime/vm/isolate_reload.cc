@@ -5,6 +5,7 @@
 #include "vm/isolate_reload.h"
 
 #include "vm/become.h"
+#include "vm/bit_vector.h"
 #include "vm/code_generator.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
@@ -24,11 +25,15 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trace_reload, false, "Trace isolate reloading");
+DEFINE_FLAG(bool, trace_reload_verbose, false,
+            "trace isolate reloading verbose");
 DEFINE_FLAG(bool, identity_reload, false, "Enable checks for identity reload.");
 DEFINE_FLAG(int, reload_every, 0, "Reload every N stack overflow checks.");
 DEFINE_FLAG(bool, reload_every_optimized, true, "Only from optimized code.");
 DEFINE_FLAG(bool, reload_every_back_off, false,
             "Double the --reload-every value after each reload.");
+DEFINE_FLAG(bool, reload_force_rollback, false,
+            "Force all reloads to fail and rollback.");
 DEFINE_FLAG(bool, check_reloaded, false,
             "Assert that an isolate has reloaded at least once.")
 #ifndef PRODUCT
@@ -40,6 +45,192 @@ DEFINE_FLAG(bool, check_reloaded, false,
     TimelineDurationScope tds##name(Thread::Current(),                         \
                                    Timeline::GetIsolateStream(),               \
                                    #name)
+
+
+InstanceMorpher::InstanceMorpher(Zone* zone, const Class& from, const Class& to)
+    : from_(Class::Handle(zone, from.raw())),
+      to_(Class::Handle(zone, to.raw())),
+      mapping_(zone, 0) {
+  ComputeMapping();
+  before_ = new(zone) ZoneGrowableArray<const Instance*>(zone, 0);
+  after_ = new(zone) ZoneGrowableArray<const Instance*>(zone, 0);
+  ASSERT(from_.id() == to_.id());
+  cid_ = from_.id();
+}
+
+
+void InstanceMorpher::AddObject(RawObject* object) const {
+  ASSERT(object->GetClassId() == cid());
+  const Instance& instance = Instance::Cast(Object::Handle(object));
+  before_->Add(&instance);
+}
+
+
+void InstanceMorpher::ComputeMapping() {
+  if (from_.NumTypeArguments()) {
+    // Add copying of the optional type argument field.
+    intptr_t from_offset = from_.type_arguments_field_offset();
+    ASSERT(from_offset != Class::kNoTypeArguments);
+    intptr_t to_offset = to_.type_arguments_field_offset();
+    ASSERT(to_offset != Class::kNoTypeArguments);
+    mapping_.Add(from_offset);
+    mapping_.Add(to_offset);
+  }
+
+  // Add copying of the instance fields if matching by name.
+  // Note: currently the type of the fields are ignored.
+  const Array& from_fields = Array::Handle(from_.OffsetToFieldMap());
+  const Array& to_fields = Array::Handle(to_.OffsetToFieldMap());
+  Field& from_field = Field::Handle();
+  Field& to_field = Field::Handle();
+  String& from_name = String::Handle();
+  String& to_name = String::Handle();
+  for (intptr_t i = 0; i < from_fields.Length(); i++) {
+    if (from_fields.At(i) == Field::null()) continue;  // Ignore non-fields.
+    from_field = Field::RawCast(from_fields.At(i));
+    ASSERT(from_field.is_instance());
+    from_name = from_field.name();
+    // We now have to find where this field is in the to class.
+    for (intptr_t j = 0; j < to_fields.Length(); j++) {
+      if (to_fields.At(j) == Field::null()) continue;  // Ignore non-fields.
+      to_field = Field::RawCast(to_fields.At(j));
+      ASSERT(to_field.is_instance());
+      to_name = to_field.name();
+      if (from_name.Equals(to_name)) {
+        // Success
+        mapping_.Add(from_field.Offset());
+        mapping_.Add(to_field.Offset());
+      }
+    }
+  }
+}
+
+
+RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
+  const Instance& result = Instance::Handle(Instance::New(to_));
+  // Morph the context from instance to result using mapping_.
+  for (intptr_t i = 0; i < mapping_.length(); i +=2) {
+    intptr_t from_offset = mapping_.At(i);
+    intptr_t to_offset = mapping_.At(i+1);
+    const Object& value =
+        Object::Handle(instance.RawGetFieldAtOffset(from_offset));
+    result.RawSetFieldAtOffset(to_offset, value);
+  }
+  // Convert the instance into a filler object.
+  Become::MakeDummyObject(instance);
+  return result.raw();
+}
+
+
+void InstanceMorpher::CreateMorphedCopies() const {
+  for (intptr_t i = 0; i < before()->length(); i++) {
+    const Instance& copy = Instance::Handle(Morph(*before()->At(i)));
+    after()->Add(&copy);
+  }
+}
+
+
+void InstanceMorpher::DumpFormatFor(const Class& cls) const {
+  THR_Print("%s\n", cls.ToCString());
+  if (cls.NumTypeArguments()) {
+    intptr_t field_offset = cls.type_arguments_field_offset();
+    ASSERT(field_offset != Class::kNoTypeArguments);
+    THR_Print("  - @%" Pd " <type arguments>\n", field_offset);
+  }
+  const Array& fields = Array::Handle(cls.OffsetToFieldMap());
+  Field& field = Field::Handle();
+  String& name = String::Handle();
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    if (fields.At(i) != Field::null()) {
+      field = Field::RawCast(fields.At(i));
+      ASSERT(field.is_instance());
+      name = field.name();
+      THR_Print("  - @%" Pd " %s\n", field.Offset(), name.ToCString());
+    }
+  }
+
+  THR_Print("Mapping: ");
+  for (int i = 0; i < mapping_.length(); i +=2) {
+    THR_Print(" %" Pd "->%" Pd,  mapping_.At(i),  mapping_.At(i+1));
+  }
+  THR_Print("\n");
+}
+
+
+void InstanceMorpher::Dump() const {
+  LogBlock blocker;
+  THR_Print("Morphing from ");
+  DumpFormatFor(from_);
+  THR_Print("To ");
+  DumpFormatFor(to_);
+  THR_Print("\n");
+}
+
+
+void InstanceMorpher::AppendTo(JSONArray* array) {
+  JSONObject jsobj(array);
+  jsobj.AddProperty("type", "ShapeChangeMapping");
+  jsobj.AddProperty("class", to_);
+  jsobj.AddProperty("instanceCount", before()->length());
+  JSONArray map(&jsobj, "fieldOffsetMappings");
+  for (int i = 0; i < mapping_.length(); i += 2) {
+    JSONArray pair(&map);
+    pair.AddValue(mapping_.At(i));
+    pair.AddValue(mapping_.At(i+1));
+  }
+}
+
+
+void ReasonForCancelling::Report(IsolateReloadContext* context) {
+  const Error& error = Error::Handle(ToError());
+  context->ReportError(error);
+}
+
+
+RawError* ReasonForCancelling::ToError() {
+  // By default create the error returned from ToString.
+  const String& message = String::Handle(ToString());
+  return LanguageError::New(message);
+}
+
+
+RawString* ReasonForCancelling::ToString() {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void ReasonForCancelling::AppendTo(JSONArray* array) {
+  JSONObject jsobj(array);
+  jsobj.AddProperty("type", "ReasonForCancelling");
+  const String& message = String::Handle(ToString());
+  jsobj.AddProperty("message", message.ToCString());
+}
+
+
+ClassReasonForCancelling::ClassReasonForCancelling(Zone* zone,
+                                                   const Class& from,
+                                                   const Class& to)
+    : ReasonForCancelling(zone),
+      from_(Class::ZoneHandle(zone, from.raw())),
+      to_(Class::ZoneHandle(zone, to.raw())) {
+}
+
+
+void ClassReasonForCancelling::AppendTo(JSONArray* array) {
+  JSONObject jsobj(array);
+  jsobj.AddProperty("type", "ReasonForCancelling");
+  jsobj.AddProperty("class", from_);
+  const String& message = String::Handle(ToString());
+  jsobj.AddProperty("message", message.ToCString());
+}
+
+
+RawError* IsolateReloadContext::error() const {
+  ASSERT(reload_aborted());
+  // Report the first error to the surroundings.
+  return reasons_to_cancel_reload_.At(0)->ToError();
+}
 
 
 class ScriptUrlSetTraits {
@@ -117,6 +308,8 @@ class BecomeMapTraits {
       return String::HashRawSymbol(Class::Cast(obj).Name());
     } else if (obj.IsField()) {
       return String::HashRawSymbol(Field::Cast(obj).name());
+    } else if (obj.IsInstance()) {
+      return Smi::Handle(Smi::RawCast(Instance::Cast(obj).HashCode())).Value();
     }
     return 0;
   }
@@ -150,15 +343,15 @@ bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
   // TODO(turnidge): We need to look at generic type arguments for
   // synthetic mixin classes.  Their names are not necessarily unique
   // currently.
-  const String& a_name = String::Handle(Class::Cast(a).Name());
-  const String& b_name = String::Handle(Class::Cast(b).Name());
+  const String& a_name = String::Handle(a.Name());
+  const String& b_name = String::Handle(b.Name());
 
   if (!a_name.Equals(b_name)) {
     return false;
   }
 
-  const Library& a_lib = Library::Handle(Class::Cast(a).library());
-  const Library& b_lib = Library::Handle(Class::Cast(b).library());
+  const Library& a_lib = Library::Handle(a.library());
+  const Library& b_lib = Library::Handle(b.library());
   return IsSameLibrary(a_lib, b_lib);
 }
 
@@ -173,28 +366,101 @@ bool IsolateReloadContext::IsSameLibrary(
 }
 
 
-IsolateReloadContext::IsolateReloadContext(Isolate* isolate, bool test_mode)
-    : start_time_micros_(OS::GetCurrentMonotonicMicros()),
+IsolateReloadContext::IsolateReloadContext(Isolate* isolate,
+                                           JSONStream* js)
+    : zone_(Thread::Current()->zone()),
+      start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      reload_timestamp_(OS::GetCurrentTimeMillis()),
       isolate_(isolate),
-      test_mode_(test_mode),
-      has_error_(false),
+      reload_skipped_(false),
+      reload_aborted_(false),
+      reload_finalized_(false),
+      js_(js),
       saved_num_cids_(-1),
       saved_class_table_(NULL),
       num_saved_libs_(-1),
+      instance_morphers_(zone_, 0),
+      reasons_to_cancel_reload_(zone_, 0),
+      cid_mapper_(),
+      modified_libs_(NULL),
       script_uri_(String::null()),
       error_(Error::null()),
-      clean_scripts_set_storage_(Array::null()),
-      compile_time_constants_(Array::null()),
       old_classes_set_storage_(Array::null()),
       class_map_storage_(Array::null()),
       old_libraries_set_storage_(Array::null()),
       library_map_storage_(Array::null()),
       become_map_storage_(Array::null()),
+      become_enum_mappings_(GrowableObjectArray::null()),
       saved_root_library_(Library::null()),
       saved_libraries_(GrowableObjectArray::null()) {
+  // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The IsolateReloadContext is not
+  // associated with the isolate yet and if a GC is triggered here the raw
+  // objects will not be properly accounted for.
+  ASSERT(zone_ != NULL);
+}
+
+
+IsolateReloadContext::~IsolateReloadContext() {
+}
+
+
+void IsolateReloadContext::ReportError(const Error& error) {
+  if (FLAG_trace_reload) {
+    THR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
+  }
+  ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
+  service_event.set_reload_error(&error);
+  Service::HandleEvent(&service_event);
+}
+
+
+void IsolateReloadContext::ReportSuccess() {
+  ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
+  Service::HandleEvent(&service_event);
+}
+
+
+class Aborted : public ReasonForCancelling {
+ public:
+  Aborted(Zone* zone, const Error& error)
+      : ReasonForCancelling(zone),
+        error_(Error::ZoneHandle(zone, error.raw())) {
+  }
+
+ private:
+  const Error& error_;
+
+  RawError* ToError() { return error_.raw(); }
+  RawString* ToString() {
+    return String::NewFormatted("%s", error_.ToErrorCString());
+  }
+};
+
+
+// NOTE: This function returns *after* FinalizeLoading is called.
+void IsolateReloadContext::Reload(bool force_reload) {
+  TIMELINE_SCOPE(Reload);
+  Thread* thread = Thread::Current();
+  ASSERT(isolate() == thread->isolate());
+
+  // Grab root library before calling CheckpointBeforeReload.
+  const Library& root_lib = Library::Handle(object_store()->root_library());
+  ASSERT(!root_lib.IsNull());
+  const String& root_lib_url = String::Handle(root_lib.url());
+
+  // Check to see which libraries have been modified.
+  modified_libs_ = FindModifiedLibraries(force_reload);
+  if (!modified_libs_->Contains(root_lib.index())) {
+    ASSERT(modified_libs_->IsEmpty());
+    reload_skipped_ = true;
+    ReportOnJSON(js_);
+    TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
+    return;
+  }
+
+  TIR_Print("---- STARTING RELOAD\n");
+
   // Preallocate storage for maps.
-  clean_scripts_set_storage_ =
-      HashTables::New<UnorderedHashSet<ScriptUrlSetTraits> >(4);
   old_classes_set_storage_ =
       HashTables::New<UnorderedHashSet<ClassMapTraits> >(4);
   class_map_storage_ =
@@ -205,52 +471,12 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, bool test_mode)
       HashTables::New<UnorderedHashMap<LibraryMapTraits> >(4);
   become_map_storage_ =
       HashTables::New<UnorderedHashMap<BecomeMapTraits> >(4);
-}
-
-
-IsolateReloadContext::~IsolateReloadContext() {
-}
-
-
-void IsolateReloadContext::ReportError(const Error& error) {
-  has_error_ = true;
-  error_ = error.raw();
-  if (FLAG_trace_reload) {
-    THR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
-  }
-  ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
-  service_event.set_reload_error(&error);
-  Service::HandleEvent(&service_event);
-}
-
-
-void IsolateReloadContext::ReportError(const String& error_msg) {
-  ReportError(LanguageError::Handle(LanguageError::New(error_msg)));
-}
-
-
-void IsolateReloadContext::ReportSuccess() {
-  ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
-  Service::HandleEvent(&service_event);
-}
-
-
-void IsolateReloadContext::StartReload() {
-  TIMELINE_SCOPE(Reload);
-  Thread* thread = Thread::Current();
-
-  // Grab root library before calling CheckpointBeforeReload.
-  const Library& root_lib = Library::Handle(object_store()->root_library());
-  ASSERT(!root_lib.IsNull());
-  const String& root_lib_url = String::Handle(root_lib.url());
+  // Keep a separate array for enum mappings to avoid having to invoke
+  // hashCode on the instances.
+  become_enum_mappings_ = GrowableObjectArray::New(Heap::kOld);
 
   // Disable the background compiler while we are performing the reload.
   BackgroundCompiler::Disable();
-
-  if (FLAG_write_protect_code) {
-    // Disable code page write protection while we are reloading.
-    I->heap()->WriteProtectCode(false);
-  }
 
   // Ensure all functions on the stack have unoptimized code.
   EnsuredUnoptimizedCodeForStack();
@@ -261,6 +487,25 @@ void IsolateReloadContext::StartReload() {
   DeoptimizeDependentCode();
   Checkpoint();
 
+  // WEIRD CONTROL FLOW BEGINS.
+  //
+  // The flow of execution until we return from the tag handler can be complex.
+  //
+  // On a successful load, the following will occur:
+  //   1) Tag Handler is invoked and the embedder is in control.
+  //   2) All sources and libraries are loaded.
+  //   3) Dart_FinalizeLoading is called by the embedder.
+  //   4) Dart_FinalizeLoading invokes IsolateReloadContext::FinalizeLoading
+  //      and we are temporarily back in control.
+  //      This is where we validate the reload and commit or reject.
+  //   5) Dart_FinalizeLoading invokes Dart code related to deferred libraries.
+  //   6) The tag handler returns and we move on.
+  //
+  // Even after a successful reload the Dart code invoked in (5) can result
+  // in an Unwind error or an UnhandledException error. This error will be
+  // returned by the tag handler. The tag handler can return other errors,
+  // for example, top level parse errors. We want to capture these errors while
+  // propagating the UnwindError or an UnhandledException error.
   Object& result = Object::Handle(thread->zone());
   {
     TransitionVMToNative transition(thread);
@@ -272,8 +517,22 @@ void IsolateReloadContext::StartReload() {
                                    Api::NewHandle(thread, root_lib_url.raw()));
     result = Api::UnwrapHandle(retval);
   }
+  //
+  // WEIRD CONTROL FLOW ENDS.
+
+  BackgroundCompiler::Enable();
+
+  if (result.IsUnwindError() ||
+      result.IsUnhandledException()) {
+    // If the tag handler returns with an UnwindError or an UnhandledException
+    // error, propagate it and give up.
+    Exceptions::PropagateError(Error::Cast(result));
+    UNREACHABLE();
+  }
+
+  // Other errors (e.g. a parse error) are captured by the reload system.
   if (result.IsError()) {
-    ReportError(Error::Cast(result));
+    FinalizeFailedLoad(Error::Cast(result));
   }
 }
 
@@ -304,32 +563,87 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
 }
 
 
-void IsolateReloadContext::FinishReload() {
+// FinalizeLoading will be called *before* Reload() returns but will not be
+// called if the embedder fails to load sources.
+void IsolateReloadContext::FinalizeLoading() {
+  if (reload_skipped_) {
+    return;
+  }
+  ASSERT(!reload_finalized_);
   BuildLibraryMapping();
-  TIR_Print("---- DONE FINALIZING\n");
+  TIR_Print("---- LOAD SUCCEEDED\n");
   if (ValidateReload()) {
     Commit();
     PostCommit();
+    isolate()->set_last_reload_timestamp(reload_timestamp_);
   } else {
+    ReportReasonsForCancelling();
     Rollback();
   }
   // ValidateReload mutates the direct subclass information and does
   // not remove dead subclasses.  Rebuild the direct subclass
   // information from scratch.
   RebuildDirectSubclasses();
-
-  if (FLAG_write_protect_code) {
-    // Disable code page write protection while we are reloading.
-    I->heap()->WriteProtectCode(true);
-  }
-
-  BackgroundCompiler::Enable();
+  CommonFinalizeTail();
 }
 
 
-void IsolateReloadContext::AbortReload(const Error& error) {
-  ReportError(error);
-  Rollback();
+// FinalizeFailedLoad will be called *before* Reload() returns and will only
+// be called if the embedder fails to load sources.
+void IsolateReloadContext::FinalizeFailedLoad(const Error& error) {
+  TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
+  AddReasonForCancelling(new Aborted(zone_, error));
+  ReportReasonsForCancelling();
+  if (!reload_finalized_) {
+    Rollback();
+  }
+  CommonFinalizeTail();
+}
+
+
+void IsolateReloadContext::CommonFinalizeTail() {
+  ReportOnJSON(js_);
+  reload_finalized_ = true;
+}
+
+
+void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "ReloadReport");
+  jsobj.AddProperty("success", reload_skipped_ || !HasReasonsForCancelling());
+  {
+    JSONObject details(&jsobj, "details");
+    if (reload_skipped_) {
+      // Reload was skipped.
+      const GrowableObjectArray& libs =
+          GrowableObjectArray::Handle(object_store()->libraries());
+      const intptr_t final_library_count = libs.Length();
+      details.AddProperty("savedLibraryCount", final_library_count);
+      details.AddProperty("loadedLibraryCount", static_cast<intptr_t>(0));
+      details.AddProperty("finalLibraryCount", final_library_count);
+    } else if (HasReasonsForCancelling()) {
+      // Reload was rejected.
+      JSONArray array(&jsobj, "notices");
+      for (intptr_t i = 0; i < reasons_to_cancel_reload_.length(); i++) {
+        ReasonForCancelling* reason = reasons_to_cancel_reload_.At(i);
+        reason->AppendTo(&array);
+      }
+    } else {
+      // Reload was successful.
+      const GrowableObjectArray& libs =
+          GrowableObjectArray::Handle(object_store()->libraries());
+      const intptr_t final_library_count = libs.Length();
+      const intptr_t loaded_library_count =
+          final_library_count - num_saved_libs_;
+      details.AddProperty("savedLibraryCount", num_saved_libs_);
+      details.AddProperty("loadedLibraryCount", loaded_library_count);
+      details.AddProperty("finalLibraryCount", final_library_count);
+      JSONArray array(&jsobj, "shapeChangeMappings");
+      for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+        instance_morphers_.At(i)->AppendTo(&array);
+      }
+    }
+  }
 }
 
 
@@ -426,14 +740,136 @@ void IsolateReloadContext::CheckpointClasses() {
 }
 
 
-bool IsolateReloadContext::IsCleanLibrary(const Library& lib) {
-  return lib.is_dart_scheme();
+Dart_FileModifiedCallback IsolateReloadContext::file_modified_callback_ = NULL;
+
+
+bool IsolateReloadContext::ScriptModifiedSince(const Script& script,
+                                               int64_t since) {
+  if (file_modified_callback_ == NULL) {
+    return true;
+  }
+  // We use the resolved url to determine if the script has been modified.
+  const String& url = String::Handle(script.resolved_url());
+  const char* url_chars = url.ToCString();
+  return (*file_modified_callback_)(url_chars, since);
+}
+
+
+static void PropagateLibraryModified(
+    const ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >* imported_by,
+    intptr_t lib_index,
+    BitVector* modified_libs) {
+  ZoneGrowableArray<intptr_t>* dep_libs = (*imported_by)[lib_index];
+  for (intptr_t i = 0; i < dep_libs->length(); i++) {
+    intptr_t dep_lib_index = (*dep_libs)[i];
+    if (!modified_libs->Contains(dep_lib_index)) {
+      modified_libs->Add(dep_lib_index);
+      PropagateLibraryModified(imported_by, dep_lib_index, modified_libs);
+    }
+  }
+}
+
+
+BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
+  Thread* thread = Thread::Current();
+  int64_t last_reload = I->last_reload_timestamp();
+
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(object_store()->libraries());
+  Library& lib = Library::Handle();
+  Array& scripts = Array::Handle();
+  Script& script = Script::Handle();
+  intptr_t num_libs = libs.Length();
+
+  // Construct the imported-by graph.
+  ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >* imported_by =
+      new(zone_) ZoneGrowableArray<ZoneGrowableArray<intptr_t>* >(
+          zone_, num_libs);
+  imported_by->SetLength(num_libs);
+  for (intptr_t i = 0; i < num_libs; i++) {
+    (*imported_by)[i] = new(zone_) ZoneGrowableArray<intptr_t>(zone_, 0);
+  }
+  Array& ports = Array::Handle();
+  Namespace& ns = Namespace::Handle();
+  Library& target = Library::Handle();
+
+  for (intptr_t lib_idx = 0; lib_idx < num_libs; lib_idx++) {
+    lib ^= libs.At(lib_idx);
+    ASSERT(lib_idx == lib.index());
+    if (lib.is_dart_scheme()) {
+      // We don't care about imports among dart scheme libraries.
+      continue;
+    }
+
+    // Add imports to the import-by graph.
+    ports = lib.imports();
+    for (intptr_t import_idx = 0; import_idx < ports.Length(); import_idx++) {
+      ns ^= ports.At(import_idx);
+      if (!ns.IsNull()) {
+        target = ns.library();
+        (*imported_by)[target.index()]->Add(lib.index());
+      }
+    }
+
+    // Add exports to the import-by graph.
+    ports = lib.exports();
+    for (intptr_t export_idx = 0; export_idx < ports.Length(); export_idx++) {
+      ns ^= ports.At(export_idx);
+      if (!ns.IsNull()) {
+        target = ns.library();
+        (*imported_by)[target.index()]->Add(lib.index());
+      }
+    }
+
+    // Add prefixed imports to the import-by graph.
+    DictionaryIterator entries(lib);
+    Object& entry = Object::Handle();
+    LibraryPrefix& prefix = LibraryPrefix::Handle();
+    while (entries.HasNext()) {
+      entry = entries.GetNext();
+      if (entry.IsLibraryPrefix()) {
+        prefix ^= entry.raw();
+        ports = prefix.imports();
+        for (intptr_t import_idx = 0; import_idx < ports.Length();
+             import_idx++) {
+          ns ^= ports.At(import_idx);
+          if (!ns.IsNull()) {
+            target = ns.library();
+            (*imported_by)[target.index()]->Add(lib.index());
+          }
+        }
+      }
+    }
+  }
+
+  BitVector* modified_libs = new(Z) BitVector(Z, num_libs);
+
+  for (intptr_t lib_idx = 0; lib_idx < num_libs; lib_idx++) {
+    lib ^= libs.At(lib_idx);
+    if (lib.is_dart_scheme() || modified_libs->Contains(lib_idx)) {
+      // We don't consider dart scheme libraries during reload.  If
+      // the modified libs set already contains this library, then we
+      // have already visited it.
+      continue;
+    }
+    scripts = lib.LoadedScripts();
+    for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
+      script ^= scripts.At(script_idx);
+      if (force_reload || ScriptModifiedSince(script, last_reload)) {
+        modified_libs->Add(lib_idx);
+        PropagateLibraryModified(imported_by, lib_idx, modified_libs);
+        break;
+      }
+    }
+  }
+
+  return modified_libs;
 }
 
 
 void IsolateReloadContext::CheckpointLibraries() {
   TIMELINE_SCOPE(CheckpointLibraries);
-
+  TIR_Print("---- CHECKPOINTING LIBRARIES\n");
   // Save the root library in case we abort the reload.
   const Library& root_lib =
       Library::Handle(object_store()->root_library());
@@ -454,105 +890,26 @@ void IsolateReloadContext::CheckpointLibraries() {
   num_saved_libs_ = 0;
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
-    if (IsCleanLibrary(lib)) {
+    if (modified_libs_->Contains(i)) {
+      // We are going to reload this library. Clear the index.
+      lib.set_index(-1);
+    } else {
       // We are preserving this library across the reload, assign its new index
       lib.set_index(new_libs.Length());
       new_libs.Add(lib, Heap::kOld);
       num_saved_libs_++;
-    } else {
-      // We are going to reload this library. Clear the index.
-      lib.set_index(-1);
     }
     // Add old library to old libraries set.
     bool already_present = old_libraries_set.Insert(lib);
     ASSERT(!already_present);
   }
+  modified_libs_ = NULL;  // Renumbering the libraries has invalidated this.
   old_libraries_set_storage_ = old_libraries_set.Release().raw();
 
   // Reset the registered libraries to the filtered array.
   Library::RegisterLibraries(Thread::Current(), new_libs);
   // Reset the root library to null.
   object_store()->set_root_library(Library::Handle());
-}
-
-
-void IsolateReloadContext::BuildCleanScriptSet() {
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(object_store()->libraries());
-
-  UnorderedHashSet<ScriptUrlSetTraits>
-      clean_scripts_set(clean_scripts_set_storage_);
-
-  Library& lib = Library::Handle();
-  Array& scripts = Array::Handle();
-  Script& script = Script::Handle();
-  String& script_url = String::Handle();
-  for (intptr_t lib_idx = 0; lib_idx < libs.Length(); lib_idx++) {
-    lib = Library::RawCast(libs.At(lib_idx));
-    ASSERT(!lib.IsNull());
-    ASSERT(IsCleanLibrary(lib));
-    scripts = lib.LoadedScripts();
-    ASSERT(!scripts.IsNull());
-    for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
-      script = Script::RawCast(scripts.At(script_idx));
-      ASSERT(!script.IsNull());
-      script_url = script.url();
-      ASSERT(!script_url.IsNull());
-      bool already_present = clean_scripts_set.Insert(script_url);
-      ASSERT(!already_present);
-    }
-  }
-
-  clean_scripts_set_storage_ = clean_scripts_set.Release().raw();
-}
-
-
-void IsolateReloadContext::FilterCompileTimeConstants() {
-  // Save the compile time constants array.
-  compile_time_constants_ = I->object_store()->compile_time_constants();
-  // Clear the compile time constants array. This will be repopulated
-  // in the loop below.
-  I->object_store()->set_compile_time_constants(Array::Handle());
-
-  if (compile_time_constants_ == Array::null()) {
-    // Nothing to do.
-    return;
-  }
-
-  // Iterate over the saved compile time constants map.
-  ConstantsMap old_constants(compile_time_constants_);
-  ConstantsMap::Iterator it(&old_constants);
-
-  Array& key = Array::Handle();
-  String& url = String::Handle();
-  Smi& token_pos = Smi::Handle();
-  Instance& value = Instance::Handle();
-
-  // We filter the compile time constants map so that after it only contains
-  // constants from scripts contained in this set.
-  UnorderedHashSet<ScriptUrlSetTraits>
-      clean_scripts_set(clean_scripts_set_storage_);
-
-  while (it.MoveNext()) {
-    const intptr_t entry = it.Current();
-    ASSERT(entry != -1);
-    key = Array::RawCast(old_constants.GetKey(entry));
-    ASSERT(!key.IsNull());
-    url = String::RawCast(key.At(0));
-    ASSERT(!url.IsNull());
-    if (clean_scripts_set.ContainsKey(url)) {
-      // We've found a cached constant from a clean script, add it to the
-      // compile time constants map again.
-      token_pos = Smi::RawCast(key.At(1));
-      TokenPosition tp(token_pos.Value());
-      // Use ^= because this might be null.
-      value ^= old_constants.GetPayload(entry, 0);
-      Parser::InsertCachedConstantValue(url, tp, value);
-    }
-  }
-
-  old_constants.Release();
-  clean_scripts_set.Release();
 }
 
 
@@ -563,8 +920,6 @@ void IsolateReloadContext::Checkpoint() {
   TIMELINE_SCOPE(Checkpoint);
   CheckpointClasses();
   CheckpointLibraries();
-  BuildCleanScriptSet();
-  FilterCompileTimeConstants();
 }
 
 
@@ -580,9 +935,13 @@ void IsolateReloadContext::RollbackClasses() {
       class_table->SetAt(i, saved_class_table_[i]);
     }
   }
-  free(saved_class_table_);
+
+  RawClass** local_saved_class_table = saved_class_table_;
   saved_class_table_ = NULL;
-  saved_num_cids_ = 0;
+  // Can't free this table immediately as another thread (e.g., the sweeper) may
+  // be suspended between loading the table pointer and loading the table
+  // element. Table will be freed at the next major GC or isolate shutdown.
+  class_table->AddOldTable(local_saved_class_table);
 }
 
 
@@ -614,8 +973,7 @@ void IsolateReloadContext::RollbackLibraries() {
 
 
 void IsolateReloadContext::Rollback() {
-  I->object_store()->set_compile_time_constants(
-      Array::Handle(compile_time_constants_));
+  TIR_Print("---- ROLLING BACK");
   RollbackClasses();
   RollbackLibraries();
 }
@@ -659,7 +1017,16 @@ void IsolateReloadContext::VerifyMaps() {
 
 void IsolateReloadContext::Commit() {
   TIMELINE_SCOPE(Commit);
-  TIR_Print("---- COMMITTING REVERSE MAP\n");
+  TIR_Print("---- COMMITTING RELOAD\n");
+
+  // Note that the object heap contains before and after instances
+  // used for morphing. It is therefore important that morphing takes
+  // place prior to any heap walking.
+  // So please keep this code at the top of Commit().
+  if (HasInstanceMorphers()) {
+    // Perform shape shifting of instances if necessary.
+    MorphInstances();
+  }
 
 #ifdef DEBUG
   VerifyMaps();
@@ -670,9 +1037,8 @@ void IsolateReloadContext::Commit() {
     // Copy static field values from the old classes to the new classes.
     // Patch fields and functions in the old classes so that they retain
     // the old script.
-    Class& cls = Class::Handle();
+    Class& old_cls = Class::Handle();
     Class& new_cls = Class::Handle();
-
     UnorderedHashMap<ClassMapTraits> class_map(class_map_storage_);
 
     {
@@ -680,14 +1046,16 @@ void IsolateReloadContext::Commit() {
       while (it.MoveNext()) {
         const intptr_t entry = it.Current();
         new_cls = Class::RawCast(class_map.GetKey(entry));
-        cls = Class::RawCast(class_map.GetPayload(entry, 0));
-        if (new_cls.raw() != cls.raw()) {
-          ASSERT(new_cls.is_enum_class() == cls.is_enum_class());
+        old_cls = Class::RawCast(class_map.GetPayload(entry, 0));
+        if (new_cls.raw() != old_cls.raw()) {
+          ASSERT(new_cls.is_enum_class() == old_cls.is_enum_class());
           if (new_cls.is_enum_class() && new_cls.is_finalized()) {
-            new_cls.ReplaceEnum(cls);
+            new_cls.ReplaceEnum(old_cls);
+          } else {
+            new_cls.CopyStaticFieldValues(old_cls);
           }
-          new_cls.CopyStaticFieldValues(cls);
-          cls.PatchFieldsAndFunctions();
+          old_cls.PatchFieldsAndFunctions();
+          old_cls.MigrateImplicitStaticClosures(this, new_cls);
         }
       }
     }
@@ -729,7 +1097,7 @@ void IsolateReloadContext::Commit() {
         I->object_store()->libraries());
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib = Library::RawCast(libs.At(i));
-      TIR_Print("Lib '%s' at index %" Pd "\n", lib.ToCString(), i);
+      VTIR_Print("Lib '%s' at index %" Pd "\n", lib.ToCString(), i);
       lib.set_index(i);
     }
 
@@ -743,8 +1111,11 @@ void IsolateReloadContext::Commit() {
   }
 
   {
+    const GrowableObjectArray& become_enum_mappings =
+        GrowableObjectArray::Handle(become_enum_mappings_);
     UnorderedHashMap<BecomeMapTraits> become_map(become_map_storage_);
-    intptr_t replacement_count = become_map.NumOccupied();
+    intptr_t replacement_count = become_map.NumOccupied() +
+                                 become_enum_mappings.Length() / 2;
     const Array& before =
         Array::Handle(Array::New(replacement_count, Heap::kOld));
     const Array& after =
@@ -757,6 +1128,13 @@ void IsolateReloadContext::Commit() {
       obj = become_map.GetKey(entry);
       before.SetAt(replacement_index, obj);
       obj = become_map.GetPayload(entry, 0);
+      after.SetAt(replacement_index, obj);
+      replacement_index++;
+    }
+    for (intptr_t i = 0; i < become_enum_mappings.Length(); i += 2) {
+      obj = become_enum_mappings.At(i);
+      before.SetAt(replacement_index, obj);
+      obj = become_enum_mappings.At(i + 1);
       after.SetAt(replacement_index, obj);
       replacement_index++;
     }
@@ -801,34 +1179,153 @@ void IsolateReloadContext::PostCommit() {
   set_saved_root_library(Library::Handle());
   set_saved_libraries(GrowableObjectArray::Handle());
   InvalidateWorld();
+  TIR_Print("---- DONE COMMIT\n");
+}
+
+
+void IsolateReloadContext::AddReasonForCancelling(ReasonForCancelling* reason) {
+  reload_aborted_ = true;
+  reasons_to_cancel_reload_.Add(reason);
+}
+
+
+void IsolateReloadContext::AddInstanceMorpher(InstanceMorpher* morpher) {
+  instance_morphers_.Add(morpher);
+  cid_mapper_.Insert(morpher);
+}
+
+
+void IsolateReloadContext::ReportReasonsForCancelling() {
+  ASSERT(FLAG_reload_force_rollback || HasReasonsForCancelling());
+  for (int i = 0; i < reasons_to_cancel_reload_.length(); i++) {
+    reasons_to_cancel_reload_.At(i)->Report(this);
+  }
+}
+
+
+// The ObjectLocator is used for collecting instances that
+// needs to be morphed.
+class ObjectLocator : public ObjectVisitor {
+ public:
+  explicit ObjectLocator(IsolateReloadContext* context)
+      : context_(context), count_(0) {
+  }
+
+  void VisitObject(RawObject* obj) {
+    InstanceMorpher* morpher =
+        context_->cid_mapper_.LookupValue(obj->GetClassId());
+    if (morpher != NULL) {
+      morpher->AddObject(obj);
+      count_++;
+    }
+  }
+
+  // Return the number of located objects for morphing.
+  intptr_t count() { return count_; }
+
+ private:
+  IsolateReloadContext* context_;
+  intptr_t count_;
+};
+
+
+void IsolateReloadContext::MorphInstances() {
+  TIMELINE_SCOPE(MorphInstances);
+  ASSERT(HasInstanceMorphers());
+  if (FLAG_trace_reload) {
+    LogBlock blocker;
+    TIR_Print("MorphInstance: \n");
+    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+      instance_morphers_.At(i)->Dump();
+    }
+  }
+
+  // Find all objects that need to be morphed.
+  ObjectLocator locator(this);
+  isolate()->heap()->VisitObjects(&locator);
+
+  // Return if no objects are located.
+  intptr_t count = locator.count();
+  if (count == 0) return;
+
+  TIR_Print("Found %" Pd " object%s subject to morphing.\n",
+            count, (count > 1) ? "s" : "");
+
+  Array& before = Array::Handle();
+  Array& after = Array::Handle();
+  { // Prevent GC to take place due object format confusion.
+    // Hint: More than one class share the same cid.
+    NoHeapGrowthControlScope scope;
+    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+      instance_morphers_.At(i)->CreateMorphedCopies();
+    }
+    // Create the inputs for Become.
+    intptr_t index = 0;
+    before = Array::New(count);
+    after = Array::New(count);
+    for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+      InstanceMorpher* morpher = instance_morphers_.At(i);
+      for (intptr_t j = 0; j < morpher->before()->length(); j++) {
+        before.SetAt(index, *morpher->before()->At(j));
+        after.SetAt(index, *morpher->after()->At(j));
+        index++;
+      }
+    }
+    ASSERT(index == count);
+  }
+
+  // This is important: The saved class table (describing before objects)
+  // must be zapped to prevent the forwarding in GetClassForHeapWalkAt.
+  // Instance will from now be described by the isolate's class table.
+  free(saved_class_table_);
+  saved_class_table_ = NULL;
+  Become::ElementsForwardIdentity(before, after);
 }
 
 
 bool IsolateReloadContext::ValidateReload() {
   TIMELINE_SCOPE(ValidateReload);
-  if (has_error_) {
-    return false;
-  }
+  if (reload_aborted()) return false;
 
-  // Already built.
-  ASSERT(class_map_storage_ != Array::null());
-  UnorderedHashMap<ClassMapTraits> map(class_map_storage_);
-  UnorderedHashMap<ClassMapTraits>::Iterator it(&map);
-  Class& cls = Class::Handle();
-  Class& new_cls = Class::Handle();
-  while (it.MoveNext()) {
-    const intptr_t entry = it.Current();
-    new_cls = Class::RawCast(map.GetKey(entry));
-    cls = Class::RawCast(map.GetPayload(entry, 0));
-    if (new_cls.raw() != cls.raw()) {
-      if (!cls.CanReload(new_cls)) {
-        map.Release();
-        return false;
+  TIR_Print("---- VALIDATING RELOAD\n");
+
+  // Validate libraries.
+  {
+    ASSERT(library_map_storage_ != Array::null());
+    UnorderedHashMap<LibraryMapTraits> map(library_map_storage_);
+    UnorderedHashMap<LibraryMapTraits>::Iterator it(&map);
+    Library& lib = Library::Handle();
+    Library& new_lib = Library::Handle();
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      new_lib = Library::RawCast(map.GetKey(entry));
+      lib = Library::RawCast(map.GetPayload(entry, 0));
+      if (new_lib.raw() != lib.raw()) {
+        lib.CheckReload(new_lib, this);
       }
     }
+    map.Release();
   }
-  map.Release();
-  return true;
+
+  // Validate classes.
+  {
+    ASSERT(class_map_storage_ != Array::null());
+    UnorderedHashMap<ClassMapTraits> map(class_map_storage_);
+    UnorderedHashMap<ClassMapTraits>::Iterator it(&map);
+    Class& cls = Class::Handle();
+    Class& new_cls = Class::Handle();
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      new_cls = Class::RawCast(map.GetKey(entry));
+      cls = Class::RawCast(map.GetPayload(entry, 0));
+      if (new_cls.raw() != cls.raw()) {
+        cls.CheckReload(new_cls, this);
+      }
+    }
+    map.Release();
+  }
+
+  return !FLAG_reload_force_rollback && !HasReasonsForCancelling();
 }
 
 
@@ -838,10 +1335,11 @@ RawClass* IsolateReloadContext::FindOriginalClass(const Class& cls) {
 
 
 RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
-  if (saved_class_table_ != NULL) {
+  RawClass** class_table = AtomicOperations::LoadRelaxed(&saved_class_table_);
+  if (class_table != NULL) {
     ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
-    return saved_class_table_[cid];
+    return class_table[cid];
   } else {
     return isolate_->class_table()->At(cid);
   }
@@ -884,8 +1382,12 @@ ObjectStore* IsolateReloadContext::object_store() {
 
 
 void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
-  Code& code = Code::Handle();
-  Function& function = Function::Handle();
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
+
+  Code& code = Code::Handle(zone);
+  Function& function = Function::Handle(zone);
   DartFrameIterator iterator;
   StackFrame* frame = iterator.NextFrame();
   while (frame != NULL) {
@@ -897,9 +1399,9 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
       function = code.function();
       code = function.unoptimized_code();
       ASSERT(!code.IsNull());
-      code.ResetICDatas();
+      code.ResetICDatas(zone);
     } else {
-      code.ResetICDatas();
+      code.ResetICDatas(zone);
     }
     frame = iterator.NextFrame();
   }
@@ -918,13 +1420,15 @@ void IsolateReloadContext::ResetMegamorphicCaches() {
 class MarkFunctionsForRecompilation : public ObjectVisitor {
  public:
   MarkFunctionsForRecompilation(Isolate* isolate,
-                                IsolateReloadContext* reload_context)
+                                IsolateReloadContext* reload_context,
+                                Zone* zone)
     : ObjectVisitor(),
-      handle_(Object::Handle()),
-      owning_class_(Class::Handle()),
-      owning_lib_(Library::Handle()),
-      code_(Code::Handle()),
-      reload_context_(reload_context) {
+      handle_(Object::Handle(zone)),
+      owning_class_(Class::Handle(zone)),
+      owning_lib_(Library::Handle(zone)),
+      code_(Code::Handle(zone)),
+      reload_context_(reload_context),
+      zone_(zone) {
   }
 
   virtual void VisitObject(RawObject* obj) {
@@ -950,6 +1454,8 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
 
       if (!stub_code) {
         if (clear_code) {
+          VTIR_Print("Marking %s for recompilation, clearning code\n",
+              func.ToCString());
           ClearAllCode(func);
         } else {
           PreserveUnoptimizedCode();
@@ -976,7 +1482,7 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
     ASSERT(!code_.IsNull());
     // We are preserving the unoptimized code, fill all ICData arrays with
     // the sentinel values so that we have no stale type feedback.
-    code_.ResetICDatas();
+    code_.ResetICDatas(zone_);
   }
 
   bool IsFromDirtyLibrary(const Function& func) {
@@ -990,19 +1496,25 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
   Library& owning_lib_;
   Code& code_;
   IsolateReloadContext* reload_context_;
+  Zone* zone_;
 };
 
 
 void IsolateReloadContext::MarkAllFunctionsForRecompilation() {
   TIMELINE_SCOPE(MarkAllFunctionsForRecompilation);
+  TIR_Print("---- MARKING ALL FUNCTIONS FOR RECOMPILATION\n");
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
   NoSafepointScope no_safepoint;
   HeapIterationScope heap_iteration_scope;
-  MarkFunctionsForRecompilation visitor(isolate_, this);
+  MarkFunctionsForRecompilation visitor(isolate_, this, zone);
   isolate_->heap()->VisitObjects(&visitor);
 }
 
 
 void IsolateReloadContext::InvalidateWorld() {
+  TIR_Print("---- INVALIDATING WORLD\n");
   ResetMegamorphicCaches();
   DeoptimizeFunctionsOnStack();
   ResetUnoptimizedICsOnStack();
@@ -1063,11 +1575,8 @@ void IsolateReloadContext::BuildLibraryMapping() {
 
   Library& replacement_or_new = Library::Handle();
   Library& old = Library::Handle();
-  for (intptr_t i = 0; i < libs.Length(); i++) {
+  for (intptr_t i = num_saved_libs_; i < libs.Length(); i++) {
     replacement_or_new = Library::RawCast(libs.At(i));
-    if (IsCleanLibrary(replacement_or_new)) {
-      continue;
-    }
     old ^= OldLibraryOrNull(replacement_or_new);
     if (old.IsNull()) {
       if (FLAG_identity_reload) {
@@ -1126,6 +1635,16 @@ void IsolateReloadContext::AddBecomeMapping(const Object& old,
   bool update = become_map.UpdateOrInsert(old, neu);
   ASSERT(!update);
   become_map_storage_ = become_map.Release().raw();
+}
+
+
+void IsolateReloadContext::AddEnumBecomeMapping(const Object& old,
+                                                const Object& neu) {
+  const GrowableObjectArray& become_enum_mappings =
+      GrowableObjectArray::Handle(become_enum_mappings_);
+  become_enum_mappings.Add(old);
+  become_enum_mappings.Add(neu);
+  ASSERT((become_enum_mappings.Length() % 2) == 0);
 }
 
 

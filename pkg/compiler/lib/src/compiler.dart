@@ -27,7 +27,6 @@ import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'core_types.dart' show CoreClasses, CoreTypes;
-import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'dart_types.dart' show DartType, DynamicType, InterfaceType, Types;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
@@ -166,9 +165,6 @@ abstract class Compiler implements LibraryLoaderListener {
 
   ClassElement typedDataClass;
 
-  /// The constant for the [proxy] variable defined in dart:core.
-  ConstantValue proxyConstant;
-
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   /// The class for patch annotation defined in dart:_js_helper.
   ClassElement patchAnnotationClass;
@@ -203,8 +199,6 @@ abstract class Compiler implements LibraryLoaderListener {
   // Initialized when dart:mirrors is loaded.
   ClassElement deferredLibraryClass;
 
-  /// Document class from dart:mirrors.
-  ClassElement documentClass;
   Element identicalFunction;
   Element loadLibraryFunction;
   Element functionApplyMethod;
@@ -305,19 +299,13 @@ abstract class Compiler implements LibraryLoaderListener {
 
     if (makeBackend != null) {
       backend = makeBackend(this);
-    } else if (options.emitJavaScript) {
+    } else {
       js_backend.JavaScriptBackend jsBackend = new js_backend.JavaScriptBackend(
           this,
           generateSourceMap: options.generateSourceMap,
           useStartupEmitter: options.useStartupEmitter,
           useNewSourceInfo: options.useNewSourceInfo);
       backend = jsBackend;
-    } else {
-      backend = new dart_backend.DartBackend(this, options.strips,
-          multiFile: options.dart2dartMultiFile);
-      if (options.dumpInfo) {
-        throw new ArgumentError('--dump-info is not supported for dart2dart.');
-      }
     }
 
     if (options.dumpInfo && options.useStartupEmitter) {
@@ -332,7 +320,8 @@ abstract class Compiler implements LibraryLoaderListener {
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(
           resolvedUriTranslator,
-          new _ScriptLoader(this),
+          options.compileOnly
+              ? new _NoScriptLoader(this) : new _ScriptLoader(this),
           new _ElementScanner(scanner),
           serialization,
           this,
@@ -373,7 +362,8 @@ abstract class Compiler implements LibraryLoaderListener {
   ///
   /// Override this to mock the resolver for testing.
   ResolverTask createResolverTask() {
-    return new ResolverTask(this, backend.constantCompilerTask);
+    return new ResolverTask(
+        resolution, backend.constantCompilerTask, world, measurer);
   }
 
   Universe get resolverWorld => enqueuer.resolution.universe;
@@ -386,6 +376,8 @@ abstract class Compiler implements LibraryLoaderListener {
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
+  // TODO(het): remove this from here. Either inline at all use sites or add it
+  // to Reporter.
   void unimplemented(Spannable spannable, String methodName) {
     reporter.internalError(spannable, "$methodName not implemented.");
   }
@@ -570,26 +562,7 @@ abstract class Compiler implements LibraryLoaderListener {
       coreClasses.functionClass.ensureResolved(resolution);
       functionApplyMethod =
           coreClasses.functionClass.lookupLocalMember('apply');
-
-      if (options.preserveComments) {
-        return libraryLoader
-            .loadLibrary(Uris.dart_mirrors)
-            .then((LibraryElement libraryElement) {
-          documentClass = libraryElement.find('Comment');
-        });
-      }
     }).then((_) => backend.onLibrariesLoaded(loadedLibraries));
-  }
-
-  bool isProxyConstant(ConstantValue value) {
-    FieldElement field = coreLibrary.find('proxy');
-    if (field == null) return false;
-    if (!resolution.hasBeenResolved(field)) return false;
-    if (proxyConstant == null) {
-      proxyConstant = constants
-          .getConstantValue(resolver.constantCompiler.compileConstant(field));
-    }
-    return proxyConstant == value;
   }
 
   Element findRequiredElement(LibraryElement library, String name) {
@@ -626,6 +599,7 @@ abstract class Compiler implements LibraryLoaderListener {
       }
       return result;
     }
+
     _coreTypes.objectClass = lookupCoreClass('Object');
     _coreTypes.boolClass = lookupCoreClass('bool');
     _coreTypes.numClass = lookupCoreClass('num');
@@ -851,7 +825,7 @@ abstract class Compiler implements LibraryLoaderListener {
           }
         }
 
-        if (options.resolveOnly) {
+        if (options.resolveOnly && !compilationFailed) {
           reporter.log('Serializing to ${options.resolutionOutput}');
           serialization
               .serializeToSink(userOutputProvider.createEventSink('', 'data'),
@@ -919,6 +893,7 @@ abstract class Compiler implements LibraryLoaderListener {
     void enqueueAll(Element element) {
       fullyEnqueueTopLevelElement(element, world);
     }
+
     library.implementation.forEachLocalMember(enqueueAll);
     library.imports.forEach((ImportElement import) {
       if (import.isDeferred) {
@@ -1129,7 +1104,7 @@ abstract class Compiler implements LibraryLoaderListener {
     if (markCompilationAsFailed(message, kind)) {
       compilationFailed = true;
     }
-    registerCompiletimeError(currentElement, message);
+    registerCompileTimeError(currentElement, message);
   }
 
   /**
@@ -1174,6 +1149,7 @@ abstract class Compiler implements LibraryLoaderListener {
         }
       }
     }
+
     libraryLoader.libraries.forEach((LibraryElement library) {
       // TODO(ahe): Implement better heuristics to discover entry points of
       // packages and use that to discover unused implementation details in
@@ -1272,7 +1248,7 @@ abstract class Compiler implements LibraryLoaderListener {
   }
 
   /// Associate [element] with a compile-time error [message].
-  void registerCompiletimeError(Element element, DiagnosticMessage message) {
+  void registerCompileTimeError(Element element, DiagnosticMessage message) {
     // The information is only needed if [generateCodeWithCompileTimeErrors].
     if (options.generateCodeWithCompileTimeErrors) {
       if (element == null) {
@@ -1553,7 +1529,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
       } else {
         errorElement = currentElement;
       }
-      compiler.registerCompiletimeError(errorElement, message);
+      compiler.registerCompileTimeError(errorElement, message);
       compiler.fatalDiagnosticReported(message, infos, kind);
     }
   }
@@ -1906,6 +1882,48 @@ class _CompilerResolution implements Resolution {
   Target get target => compiler.backend;
 
   @override
+  ResolverTask get resolver => compiler.resolver;
+
+  @override
+  ResolutionEnqueuer get enqueuer => compiler.enqueuer.resolution;
+
+  @override
+  CompilerOptions get options => compiler.options;
+
+  @override
+  IdGenerator get idGenerator => compiler.idGenerator;
+
+  @override
+  ConstantEnvironment get constants => compiler.constants;
+
+  @override
+  MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask =>
+      compiler.mirrorUsageAnalyzerTask;
+
+  @override
+  LibraryElement get coreLibrary => compiler.coreLibrary;
+
+  @override
+  FunctionElement get identicalFunction => compiler.identicalFunction;
+
+  @override
+  ClassElement get mirrorSystemClass => compiler.mirrorSystemClass;
+
+  @override
+  FunctionElement get mirrorSystemGetNameFunction =>
+      compiler.mirrorSystemGetNameFunction;
+
+  @override
+  ConstructorElement get mirrorsUsedConstructor =>
+      compiler.mirrorsUsedConstructor;
+
+  @override
+  ConstructorElement get symbolConstructor => compiler.symbolConstructor;
+
+  @override
+  ConstantValue proxyConstant;
+
+  @override
   void registerClass(ClassElement cls) {
     compiler.world.registerClass(cls);
   }
@@ -1944,6 +1962,14 @@ class _CompilerResolution implements Resolution {
   }
 
   @override
+  void onClassResolved(ClassElement element) =>
+      compiler.onClassResolved(element);
+
+  @override
+  void registerCompileTimeError(Element element, DiagnosticMessage message) =>
+      compiler.registerCompileTimeError(element, message);
+
+  @override
   bool hasResolvedAst(ExecutableElement element) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
@@ -1960,6 +1986,9 @@ class _CompilerResolution implements Resolution {
         message: "Element $element must be the declaration."));
     assert(invariant(element, hasResolvedAst(element),
         message: "ResolvedAst not available for $element."));
+    if (compiler.serialization.isDeserialized(element)) {
+      return compiler.serialization.getResolvedAst(element);
+    }
     return element.resolvedAst;
   }
 
@@ -2084,6 +2113,18 @@ class _CompilerResolution implements Resolution {
     _worldImpactCache.remove(element);
     _resolutionImpactCache.remove(element);
   }
+
+  @override
+  bool isProxyConstant(ConstantValue value) {
+    FieldElement field = coreLibrary.find('proxy');
+    if (field == null) return false;
+    if (!hasBeenResolved(field)) return false;
+    if (proxyConstant == null) {
+      proxyConstant = constants
+          .getConstantValue(resolver.constantCompiler.compileConstant(field));
+    }
+    return proxyConstant == value;
+  }
 }
 
 class GlobalDependencyRegistry extends EagerRegistry {
@@ -2116,6 +2157,18 @@ class _ScriptLoader implements ScriptLoader {
 
   Future<Script> readScript(Uri uri, [Spannable spannable]) =>
       compiler.readScript(uri, spannable);
+}
+
+/// [ScriptLoader] used to ensure that scripts are not loaded accidentally
+/// through the [LibraryLoader] when `CompilerOptions.compileOnly` is `true`.
+class _NoScriptLoader implements ScriptLoader {
+  Compiler compiler;
+  _NoScriptLoader(this.compiler);
+
+  Future<Script> readScript(Uri uri, [Spannable spannable]) {
+    compiler.reporter.internalError(spannable,
+        "Script loading of '$uri' is not enabled.");
+  }
 }
 
 class _ElementScanner implements ElementScanner {

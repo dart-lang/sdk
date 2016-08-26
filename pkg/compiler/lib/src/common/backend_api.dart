@@ -17,15 +17,8 @@ import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        FunctionElement,
-        LibraryElement,
-        MetadataAnnotation,
-        MethodElement;
-import '../enqueue.dart'
-    show Enqueuer, EnqueueTask, CodegenEnqueuer, ResolutionEnqueuer;
+    show ClassElement, Element, FunctionElement, LibraryElement;
+import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../js_backend/backend_helpers.dart' as js_backend show BackendHelpers;
@@ -36,8 +29,7 @@ import '../patch_parser.dart'
     show checkNativeAnnotation, checkJsInteropAnnotation;
 import '../serialization/serialization.dart'
     show DeserializerPlugin, SerializerPlugin;
-import '../tree/tree.dart' show Node, Send;
-import '../universe/call_structure.dart' show CallStructure;
+import '../tree/tree.dart' show Node;
 import '../universe/world_impact.dart' show ImpactStrategy, WorldImpact;
 import 'codegen.dart' show CodegenWorkItem;
 import 'registry.dart' show Registry;
@@ -51,9 +43,6 @@ abstract class Backend extends Target {
 
   /// Returns true if the backend supports reflection.
   bool get supportsReflection;
-
-  /// Returns true if the backend supports reflection.
-  bool get supportsAsyncAwait;
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
   /// backend.
@@ -229,14 +218,6 @@ abstract class Backend extends Target {
 
   bool isInterceptorClass(ClassElement element) => false;
 
-  /// Returns `true` if [element] is a foreign element, that is, that the
-  /// backend has specialized handling for the element.
-  bool isForeign(Element element) => false;
-
-  /// Returns `true` if [element] is a native element, that is, that the
-  /// corresponding entity already exists in the target language.
-  bool isNative(Element element) => false;
-
   /// Returns `true` if [element] is implemented via typed JavaScript interop.
   // TODO(johnniwinther): Move this to [JavaScriptBackend].
   bool isJsInterop(Element element) => false;
@@ -246,10 +227,6 @@ abstract class Backend extends Target {
     // TODO(johnniwinther): Move this to [JavaScriptBackend].
     return native.maybeEnableNative(compiler, library);
   }
-
-  /// Processes [element] for resolution and returns the [MethodElement] that
-  /// defines the implementation of [element].
-  MethodElement resolveExternalFunction(MethodElement element) => element;
 
   @override
   bool isTargetSpecificLibrary(LibraryElement library) {
@@ -374,12 +351,6 @@ abstract class Backend extends Target {
 
   void registerAsyncMarker(
       FunctionElement element, Enqueuer enqueuer, Registry registry) {}
-
-  /// Called when resolving a call to a foreign function. If a non-null value
-  /// is returned, this is stored as native data for [node] in the resolved
-  /// AST.
-  dynamic resolveForeignCall(Send node, Element element,
-      CallStructure callStructure, ForeignResolver resolver) {}
 
   /// Returns the location of the patch-file associated with [libraryName]
   /// resolved from [plaformConfigUri].

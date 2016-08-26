@@ -13,12 +13,6 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
-// An extra check since we are assuming the existence of /proc/cpuinfo below.
-#if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) && \
-    !TARGET_OS_IOS
-#error ARM64 cross-compile only supported on Linux
-#endif
-
 namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
@@ -33,6 +27,7 @@ Assembler::Assembler(bool use_far_branches)
       use_far_branches_(use_far_branches),
       comments_(),
       constant_pool_allowed_(false) {
+  MonomorphicCheckedEntry();
 }
 
 
@@ -1036,51 +1031,6 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 }
 
 
-void Assembler::ComputeRange(Register result,
-                             Register value,
-                             Register scratch,
-                             Label* not_mint) {
-  Label done, not_smi;
-  tsti(value, Immediate(kSmiTagMask));
-  b(&not_smi, NE);
-
-  AsrImmediate(scratch, value, 32);
-  LoadImmediate(result, ICData::kUint32RangeBit);
-  cmp(scratch, Operand(1));
-  b(&done, EQ);
-
-  neg(scratch, scratch);
-  add(result, scratch, Operand(ICData::kInt32RangeBit));
-  cmp(scratch, Operand(1));
-  LoadImmediate(TMP, ICData::kSignedRangeBit);
-  csel(result, result, TMP, LS);
-  b(&done);
-
-  Bind(&not_smi);
-  CompareClassId(value, kMintCid);
-  b(not_mint, NE);
-
-  LoadImmediate(result, ICData::kInt64RangeBit);
-  Bind(&done);
-}
-
-
-void Assembler::UpdateRangeFeedback(Register value,
-                                    intptr_t index,
-                                    Register ic_data,
-                                    Register scratch1,
-                                    Register scratch2,
-                                    Label* miss) {
-  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
-  ComputeRange(scratch1, value, scratch2, miss);
-  ldr(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()), kWord);
-  orrw(scratch2,
-       scratch2,
-       Operand(scratch1, LSL, ICData::RangeFeedbackShift(index)));
-  str(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()), kWord);
-}
-
-
 // Frame entry and exit.
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
@@ -1288,6 +1238,70 @@ void Assembler::LeaveStubFrame() {
 }
 
 
+void Assembler::NoMonomorphicCheckedEntry() {
+  buffer_.Reset();
+  brk(0);
+  brk(0);
+  brk(0);
+  brk(0);
+  brk(0);
+  brk(0);
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+}
+
+
+// R0 receiver, R5 guarded cid as Smi
+void Assembler::MonomorphicCheckedEntry() {
+  bool saved_use_far_branches = use_far_branches();
+  set_use_far_branches(false);
+
+  Label immediate, have_cid, miss;
+  Bind(&miss);
+  ldr(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
+  ldr(IP0, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  br(IP0);
+  brk(0);
+
+  Bind(&immediate);
+  movz(R4, Immediate(kSmiCid), 0);
+  b(&have_cid);
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  tsti(R0, Immediate(kSmiTagMask));
+  SmiUntag(R5);
+  b(&immediate, EQ);
+
+  LoadClassId(R4, R0);
+
+  Bind(&have_cid);
+  cmp(R4, Operand(R5));
+  b(&miss, NE);
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+
+  set_use_far_branches(saved_use_far_branches);
+}
+
+
+#ifndef PRODUCT
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace) {
+  ASSERT(cid > 0);
+  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
+  LoadIsolate(temp_reg);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  ldr(temp_reg, Address(temp_reg, table_offset));
+  AddImmediate(temp_reg, temp_reg, state_offset);
+  ldr(temp_reg, Address(temp_reg, 0));
+  tsti(temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
+  b(trace, NE);
+}
+
+
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Heap::Space space) {
   ASSERT(cid > 0);
@@ -1327,22 +1341,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   add(TMP, TMP, Operand(size_reg));
   str(TMP, Address(TMP2, size_field_offset));
 }
-
-
-void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
-                                     Label* trace) {
-  ASSERT(cid > 0);
-  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
-  LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-  ldr(temp_reg, Address(temp_reg, table_offset));
-  AddImmediate(temp_reg, temp_reg, state_offset);
-  ldr(temp_reg, Address(temp_reg, 0));
-  tsti(temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
-  b(trace, NE);
-}
+#endif  // !PRODUCT
 
 
 void Assembler::TryAllocate(const Class& cls,

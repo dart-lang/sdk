@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-
 #if defined(TARGET_ARCH_ARM64)
 
 #include "vm/cpu.h"
+#include "vm/cpu_arm64.h"
+
 #include "vm/cpuinfo.h"
 #include "vm/simulator.h"
 
@@ -31,13 +32,15 @@ void CPU::FlushICache(uword start, uword size) {
 
   // ARM recommends using the gcc intrinsic __clear_cache on Linux and Android.
   // blogs.arm.com/software-enablement/141-caches-and-self-modifying-code/
-  #if defined(__linux__) || defined(ANDROID)
+  #if defined(TARGET_OS_ANDROID) || \
+      defined(TARGET_OS_FUCHSIA) || \
+      defined(TARGET_OS_LINUX)
     extern void __clear_cache(char*, char*);
     char* beg = reinterpret_cast<char*>(start);
     char* end = reinterpret_cast<char*>(start + size);
     ::__clear_cache(beg, end);
   #else
-    #error FlushICache only tested/supported on Linux and Android
+    #error FlushICache only tested/supported on Android, Fuchsia, and Linux
   #endif
 
 #endif

@@ -6,6 +6,7 @@
 
 #include "platform/globals.h"
 #include "vm/os.h"
+#include "vm/profiler.h"
 
 namespace dart {
 
@@ -34,16 +35,14 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
             arguments);
   va_end(arguments);
 
-  // Print the buffer on stderr.
-  fprintf(stderr, "%s\n", buffer);
-  fflush(stderr);
+  // Print the buffer on stderr and/or syslog.
+  OS::PrintErr("%s\n", buffer);
 
   // In case of failed assertions, abort right away. Otherwise, wait
   // until the program is exiting before producing a non-zero exit
   // code through abort.
-  // TODO(5411324): replace std::abort with OS::Abort so that we can handle
-  // restoring of signal handlers before aborting.
   if (kind_ == ASSERT) {
+    NOT_IN_PRODUCT(Profiler::DumpStackTrace(true /* native_stack_trace */));
     OS::Abort();
   }
   static bool failed = false;

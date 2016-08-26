@@ -274,6 +274,8 @@ class Directory {
   static const char* Current();
   static const char* SystemTemp();
   static const char* CreateTemp(const char* path);
+  // Set the system temporary directory.
+  static void SetSystemTemp(const char* path);
   static bool SetCurrent(const char* path);
   static bool Create(const char* path);
   static bool Delete(const char* path, bool recursive);
@@ -290,6 +292,7 @@ class Directory {
   static CObject* RenameRequest(const CObjectArray& request);
 
  private:
+  static char* system_temp_path_override_;
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Directory);
 };

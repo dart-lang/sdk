@@ -5,10 +5,12 @@
 library compiler;
 
 import 'dart:async';
+
 import 'package:package_config/packages.dart';
+
 import 'compiler_new.dart' as new_api;
-import 'src/options.dart' show CompilerOptions;
 import 'src/old_to_new_api.dart';
+import 'src/options.dart' show CompilerOptions;
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
 // methods of library will result in an Error being thrown.

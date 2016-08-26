@@ -4,8 +4,8 @@
 
 library dart2js.io.source_file;
 
-import 'dart:math';
 import 'dart:convert' show UTF8;
+import 'dart:math';
 import 'dart:typed_data' show Uint8List;
 
 import 'line_column_provider.dart';

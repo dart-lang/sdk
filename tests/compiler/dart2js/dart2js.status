@@ -37,20 +37,8 @@ mirrors/library_imports_shown_test: Fail
 patch_test/bug: RuntimeError # Issue 21132
 
 quarantined/http_test: Pass, Slow
-inference_stats_test: Pass, Slow
-
-# These tests are for the now-deleted dart2dart variant of the CPS IR.
-# We want to adapt them to test the JS variant of the CPS IR instead,
-# but for now they are disabled.
-backend_dart/end2end_test: Skip
-backend_dart/sexpr2_test: Skip
-backend_dart/sexpr_test: Skip
-backend_dart/opt_constprop_test: Skip
-backend_dart/opt_shrinking_test: Skip
-backend_dart/opt_redundant_phi_test: Skip
 
 # Source information is not correct due to inlining.
-js_backend_cps_ir_source_information_test: Fail
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_invokes_test: Pass, Slow
 
@@ -60,6 +48,7 @@ uri_retention_test: Fail # Issue 26504
 
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
+serialization*: Slow, Pass
 
 [ $checked ]
 analyze_dart2js_helpers_test: Pass, Slow
@@ -75,6 +64,7 @@ source_map_pub_build_validity_test: Pass, Slow
 serialization*: Slow, Pass
 uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
+jsinterop/world_test: Pass, Slow
 
 [ $mode == debug ]
 check_elements_invariants_test: Skip # Slow and only needs to be run in one

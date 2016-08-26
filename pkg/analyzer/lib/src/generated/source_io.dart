@@ -221,7 +221,7 @@ class FileBasedSource extends Source {
   }
 
   @override
-  int get hashCode => id;
+  int get hashCode => uri.hashCode;
 
   @override
   bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;

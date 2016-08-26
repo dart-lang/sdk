@@ -25,7 +25,6 @@ import 'keys.dart';
 import 'modelz.dart';
 import 'serialization.dart';
 import 'serialization_util.dart';
-import 'modelz.dart';
 
 /// Visitor that computes a node-index mapping.
 class AstIndexComputer extends Visitor {
@@ -166,19 +165,23 @@ class ResolvedAstSerializer extends Visitor {
         serializeLabelDefinition(labelDefinition, list.createObject());
       }
     }
+
     if (element is FunctionElement) {
-      FunctionElement function = element;
-      function.functionSignature.forEachParameter((ParameterElement parameter) {
-        ParameterElement parameterImpl = parameter.implementation;
-        // TODO(johnniwinther): Should we support element->node mapping as well?
-        getNodeDataEncoder(parameterImpl.node)
-            .setElement(PARAMETER_NODE, parameter);
-        if (parameter.initializer != null) {
-          getNodeDataEncoder(parameterImpl.initializer)
-              .setElement(PARAMETER_INITIALIZER, parameter);
-        }
-      });
+      serializeParameterNodes(element);
     }
+  }
+
+  void serializeParameterNodes(FunctionElement function) {
+    function.functionSignature.forEachParameter((ParameterElement parameter) {
+      ParameterElement parameterImpl = parameter.implementation;
+      // TODO(johnniwinther): Should we support element->node mapping as well?
+      getNodeDataEncoder(parameterImpl.node)
+          .setElement(PARAMETER_NODE, parameter);
+      if (parameter.initializer != null) {
+        getNodeDataEncoder(parameterImpl.initializer)
+            .setElement(PARAMETER_INITIALIZER, parameter);
+      }
+    });
   }
 
   /// Serialize [target] into [encoder].
@@ -318,6 +321,7 @@ class ResolvedAstSerializer extends Visitor {
     if (function != null && function.isFunction && function.isLocal) {
       // Mark root nodes of local functions; these need their own ResolvedAst.
       getNodeDataEncoder(node).setElement(Key.FUNCTION, function);
+      serializeParameterNodes(function);
     }
   }
 }

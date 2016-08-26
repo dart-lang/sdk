@@ -7,6 +7,10 @@
   box-sizing: border-box;
 }
 
+body {
+  padding-top: 56px;
+}
+
 .content {
   padding-left: 10%;
   font: 400 14px 'Montserrat', sans-serif;
@@ -57,12 +61,12 @@ h1 {
   white-space: nowrap;
 }
 
-a {
+a[href] {
   color: #0489c3;
   text-decoration: none;
 }
 
-a:hover {
+a[href]:hover {
   text-decoration: underline;
 }
 
@@ -298,6 +302,17 @@ body.busy, body.busy * {
               0 2px 5px 0 rgba(0, 0, 0, 0.26);
 }
 
+input.textbox {
+  width: 20em;
+  font: 400 16px 'Montserrat', sans-serif;
+}
+
+select, button, input {
+  border-radius: 0px;
+  border-style: solid;
+  border-width: 1px;
+}
+
 @-webkit-keyframes fadeIn {
   0%   { opacity: 0; }
   100% { opacity: 1; }
@@ -353,4 +368,738 @@ body.busy, body.busy * {
 .shake {
   animation: shake 0.5s;
   -webkit-animation: shake 0.5s;
+}
+
+/* allocation-profile */
+
+allocation-profile .heap-space {
+  display: inline-block;
+  width: 50%;
+}
+
+allocation-profile .heap-space.right,
+allocation-profile .heap-space.right .memberList,
+allocation-profile .heap-space.right .legend * {
+  direction: rtl;
+}
+
+allocation-profile .heap-space.right * {
+  direction: ltr;
+  text-align: right;
+}
+
+allocation-profile div.chart {
+  display: block;
+  position: relative;
+  height: 150px;
+}
+allocation-profile div.chart > div.host {
+  display: inline-block;
+  position: absolute;
+  bottom: 0px;
+  top: 0;
+}
+allocation-profile div.chart > div.legend {
+  position: absolute;
+  width: 150px;
+  top: 25px;
+  bottom: 0;
+  overflow-y: auto;
+}
+allocation-profile .heap-space.left div.host {
+  left: 200px;
+  width: 180px;
+}
+allocation-profile .heap-space.right div.host {
+  right: 150px;
+  width: 180px;
+}
+allocation-profile .heap-space.left div.legend {
+  left: 0;
+}
+allocation-profile .heap-space.right div.legend {
+  right: 0;
+}
+
+allocation-profile .collection {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 560px;
+}
+
+allocation-profile .collection-item {
+  box-sizing: border-box;
+  line-height: 20px;
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+allocation-profile .header .collection-item:last-child {
+  margin-bottom: -3px;
+  border-bottom: solid 1px #AAAAAA;
+}
+
+allocation-profile .header .collection-item span {
+  font-weight: bolder;
+}
+
+allocation-profile .collection-item :nth-child(2n+2).group,
+allocation-profile .collection-item :nth-child(4n+3).bytes,
+allocation-profile .collection-item :nth-child(4n+3).instances,
+allocation-profile .collection-item :nth-child(4n+4).bytes,
+allocation-profile .collection-item :nth-child(4n+4).instances {
+  background-color: #EEEEEE;
+}
+
+allocation-profile .collection-item:hover :nth-child(2n+2).group,
+allocation-profile .collection-item:hover :nth-child(4n+3).bytes,
+allocation-profile .collection-item:hover :nth-child(4n+3).instances,
+allocation-profile .collection-item:hover :nth-child(4n+4).bytes,
+allocation-profile .collection-item:hover :nth-child(4n+4).instances {
+  background-color: #afd5fd;
+}
+
+allocation-profile .header .collection-item :nth-child(2n+2).group,
+allocation-profile .header .collection-item :nth-child(4n+3).bytes,
+allocation-profile .header .collection-item :nth-child(4n+3).instances,
+allocation-profile .header .collection-item :nth-child(4n+4).bytes,
+allocation-profile .header .collection-item :nth-child(4n+4).instances {
+  background-color: #DDDDDD;
+}
+
+allocation-profile .scroller .collection-item:hover {
+  background-color: #d2e7fe;
+}
+
+allocation-profile .collection-item .group {
+  background-color: white;
+  display: inline-block;
+  width: 12em;
+  text-align: right;
+  padding-right: 0.5em;
+  line-height: 20px;
+  border-right: solid 1px #AAAAAA;
+}
+
+allocation-profile .collection-item .bytes {
+  background-color: white;
+  display: inline-block;
+  width: 6em;
+  text-align: right;
+  line-height: 20px;
+  padding-right: 0.5em;
+}
+
+allocation-profile .collection-item .instances {
+  background-color: white;
+  display: inline-block;
+  width: 6em;
+  text-align: right;
+  padding-right: 0.5em;
+  line-height: 20px;
+  border-right: solid 1px #AAAAAA;
+}
+
+allocation-profile .collection-item .name {
+  background-color: white;
+  padding-left: 0.5em;
+}
+
+allocation-profile .collection-item > button,
+allocation-profile .collection-item > button:active {
+  background-color: transparent;
+  color: #0489c3;
+  border-style: none;
+}
+
+allocation-profile .collection-item > button:hover {
+  text-decoration: underline;
+}
+
+/* class-ref */
+/* TODO(cbernaschina) fix class-ref-wrapped to class-ref when wrapper
+removed */
+
+class-ref-wrapped > a[href]:hover {
+    text-decoration: underline;
+}
+class-ref-wrapped > a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+
+/* code-ref */
+/* TODO(cbernaschina) fix code-ref-wrapped to code-ref when wrapper
+removed */
+
+code-ref-wrapped > a[href]:hover {
+  text-decoration: underline;
+}
+code-ref-wrapped > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+/* class-tree */
+
+class-tree {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+
+class-tree virtual-tree {
+  position: absolute;
+  height: auto;
+  top: 60px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+class-tree virtual-tree .class-tree-item {
+  line-height: 25px;
+  height: 25px;
+  padding-left: 10%;
+  padding-right: 10%;
+}
+
+class-tree virtual-tree .class-tree-item .name {
+  margin-left: 0.5em;
+}
+
+/* cpu-profile */
+
+cpu-profile {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+
+cpu-profile > cpu-profile-virtual-tree {
+  position: absolute;
+  height: auto;
+  top: 320px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* cpu-profile-virtual-tree */
+
+cpu-profile-virtual-tree {
+  display: block;
+  height: 600px;
+}
+
+cpu-profile-virtual-tree .tree-item {
+  box-sizing: border-box;
+  line-height: 30px;
+  height: 30px;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+cpu-profile-virtual-tree .tree-item > .inclusive,
+cpu-profile-virtual-tree .tree-item > .exclusive,
+cpu-profile-virtual-tree .tree-item > .percentage {
+  display: inline-block;
+  text-align: right;
+  width: 4em;
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+}
+
+cpu-profile-virtual-tree .tree-item > .exclusive {
+  margin-right: 1.5em;
+}
+
+cpu-profile-virtual-tree .tree-item > .name {
+  display: inline;
+  margin-left: 0.5em;
+}
+
+/* error-ref */
+/* TODO(cbernaschina) fix error-ref-wrapped to error-ref when wrapper
+removed */
+
+error-ref-wrapped > pre {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: pre;
+}
+
+/* flag-list */
+
+flag-list .comment {
+  color: #aaa;
+}
+
+flag-list .flag {
+  padding: 3px 0;
+}
+
+flag-list .name {
+  font-weight: bold;
+  margin-right: 0.7em;
+}
+
+flag-list .value {
+  margin-left: 0.7em;
+}
+
+/* function-ref */
+/* TODO(cbernaschina) fix function-ref-wrapped to function-ref when wrapper
+removed */
+
+function-ref-wrapped > a[href]:hover {
+  text-decoration: underline;
+}
+function-ref-wrapped > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+/* instance-ref */
+/* TODO(cbernaschina) fix instance-ref-wrapped to instance-ref when wrapper
+removed */
+
+instance-ref-wrapped .empathize {
+  font-style: italic;
+}
+instance-ref-wrapped .indent {
+  margin-left: 1.5em;
+  font: 400 14px 'Montserrat', sans-serif;
+  line-height: 150%;
+}
+instance-ref-wrapped .stackTraceBox {
+  margin-left: 1.5em;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: consolas, courier, monospace;
+  font-size: 12px;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* isolate-counter-chart */
+
+isolate-counter-chart {
+  display: block;
+  position: relative;
+  height: 300px;
+  min-width: 350px;
+}
+isolate-counter-chart > div.host {
+  position: absolute;
+  left: 0;
+  bottom: 20px;
+  top: 5px;
+  right: 250px;
+}
+isolate-counter-chart > div.legend {
+  position: absolute;
+  width: 250px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+
+/* isolate-reconnect */
+
+isolate-reconnect div.doubleSpaced {
+  line-height: 2em;
+}
+
+/* isolate-ref */
+/* TODO(cbernaschina) fix isolate-ref-wrapped to isolate-ref when wrapper
+removed */
+
+isolate-ref-wrapped > a[href]:hover {
+  text-decoration: underline;
+}
+isolate-ref-wrapped > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+/* isolate-shared-summary */
+/* TODO(cbernaschina) fix isolate-shared-summary-wrapped
+to isolate-shared-summary when wrapper removed */
+
+isolate-shared-summary,
+isolate-shared-summary-wrapped {
+  display: block;
+  height: 300px;
+  position: relative;
+}
+isolate-shared-summary-wrapped > .menu {
+  float: right;
+  top: 0;
+  right: 0;
+}
+isolate-shared-summary-wrapped > isolate-counter-chart {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 230px;
+  clear: both;
+}
+isolate-shared-summary-wrapped .errorBox {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 2em;
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: pre;
+}
+
+/* library-ref */
+/* TODO(cbernaschina) fix library-ref-wrapped to library-ref when wrapper
+removed */
+
+library-ref-wrapped > a[href]:hover {
+  text-decoration: underline;
+}
+library-ref-wrapped > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+.nav-option {
+  float: right;
+  margin: 3px;
+  padding: 8px;
+}
+
+.nav-option label {
+  color: white;
+}
+
+/* nav-notify */
+/* TODO(cbernaschina) fix nav-notify-wrapped to nav-notify when wrapper
+removed */
+nav-notify-wrapped > div {
+  float: right;
+}
+nav-notify-wrapped > div > div {
+  display: block;
+  position: absolute;
+  top: 98%;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  width: auto;
+  z-index: 1000;
+  background: none;
+}
+
+/* nav-exception & nav-event */
+
+nav-exception > div, nav-event > div {
+  position: relative;
+  padding: 16px;
+  margin-top: 10px;
+  margin-right: 10px;
+  padding-right: 25px;
+  width: 500px;
+  color: #ddd;
+  background: rgba(0,0,0,.6);
+  border: solid 2px white;
+  box-shadow: 0 0 5px black;
+  border-radius: 5px;
+  animation: fadein 1s;
+}
+
+nav-exception *, nav-event * {
+  color: #ddd;
+  font-size: 12px;
+}
+
+nav-exception > div > a, nav-event > div > a {
+  color: white;
+  text-decoration: none;
+}
+
+nav-exception > div > a:hover, nav-event > div > a:hover {
+  text-decoration: underline;
+}
+
+nav-exception > div > div {
+  margin-left:20px;
+  white-space: pre
+}
+
+nav-exception > div > button, nav-event > div > button {
+  background: transparent;
+  border: none;
+  position: absolute;
+  display: block;
+  top: 4px;
+  right: 4px;
+  height: 18px;
+  width: 18px;
+  line-height: 16px;
+  border-radius: 9px;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  text-align: center;
+}
+
+nav-exception > div > button:hover, nav-event > div > button:hover {
+  background: rgba(255,255,255,0.5);
+}
+
+/* nav-refresh */
+/* TODO(cbernaschina) fix nav-refresh-wrapped to nav-refresh when wrapper
+removed */
+
+nav-refresh-wrapped > li > button {
+  color: #000;
+  margin: 3px;
+  padding: 8px;
+  border-width: 2px;
+  line-height: 13px;
+  font-size: 13px;
+  font: 400 'Montserrat', sans-serif;
+}
+nav-refresh-wrapped > li > button[disabled] {
+  color: #aaa;
+  cursor: wait;
+}
+nav-refresh-wrapped > li {
+  float: right;
+  margin: 0;
+}
+
+/* observatory-application */
+
+observatory-application {
+  display: block;
+  height: 100%;
+}
+
+observatory-application > div {
+  display: block;
+  height: 100%;
+}
+
+/* script-ref */
+/* TODO(cbernaschina) fix script-ref-wrapped to script-ref when wrapper
+removed */
+
+script-ref-wrapped > a[href]:hover {
+    text-decoration: underline;
+}
+
+script-ref-wrapped > a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+
+/* source-link */
+/* TODO(cbernaschina) fix source-link-wrapped to source-link when wrapper
+removed */
+
+source-link-wrapped > a[href]:hover {
+    text-decoration: underline;
+}
+
+source-link-wrapped > a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+
+
+/* observatory-application */
+
+observatory-application {
+  display: block;
+  height: 100%;
+}
+
+observatory-application > div {
+  display: block;
+  height: 100%;
+}
+
+/* sample-buffer-control */
+
+sample-buffer-control {
+  white-space: nowrap;
+}
+
+sample-buffer-control .statusMessage {
+  font-size: 150%;
+  font-weight: bold;
+}
+
+sample-buffer-control .statusBox {
+  height: 100%;
+  padding: 1em;
+}
+
+sample-buffer-control .center {
+  align-items: center;
+  justify-content: center;
+}
+
+sample-buffer-control .notice {
+  background-color: #fcf8e3;
+}
+
+sample-buffer-control .red {
+  background-color: #f2dede;
+}
+
+sample-buffer-control .shadow {
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.16),
+              0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+/* stack-trace-tree-config */
+
+stack-trace-tree-config {
+  white-space: nowrap;
+}
+
+/* view-footer */
+
+view-footer {
+  padding: 1em;
+  padding-top: 10.3em;
+  float: right;
+  align-content: right;
+}
+
+view-footer > a {
+  margin-bottom: 0.17em;
+  font-size: 90%;
+  float: right;
+  clear: both;
+  display: block;
+}
+
+/* virtual-collection */
+
+virtual-collection {
+  position: relative;
+  display: block;
+  overflow-y: auto;
+  width: 100%;
+  height: 100%;
+}
+
+virtual-collection .header {
+  background: white;
+  position: relative;
+  display: inline-block;
+  min-width: 100%;
+  z-index: +1;
+}
+
+virtual-collection .scroller {
+  overflow: hidden;
+  background: transparent;
+  display: inline-block;
+  min-width: 100%;
+}
+
+virtual-collection .shifter {
+  background: transparent;
+  position: relative;
+  display: inline-block;
+  min-width: 100%;
+}
+
+virtual-collection .header > *,
+virtual-collection .shifter > * {
+  display: inline-block;
+  min-width: 100%;
+  white-space: nowrap;
+}
+
+/* virtual-tree */
+
+virtual-tree .expander {
+  display: inline-block;
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+  width: 19px;
+  border: none;
+  background-color: transparent;
+}
+
+virtual-tree .expander:focus {
+  outline: none;
+}
+
+virtual-tree .lines,
+virtual-tree .lines > span {
+  display: inline-block;
+  vertical-align: top;
+  height: 100%;
+  line-height: 100%;
+}
+
+virtual-tree .lines:before,
+virtual-tree .lines > span:before {
+  display: inline-block;
+  content: '';
+}
+
+virtual-tree .lines > span {
+  width: 3px;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+virtual-tree .lines > span:nth-child(5n) {
+  background-color: #673AB7;
+}
+
+virtual-tree .lines > span:nth-child(5n+1) {
+  background-color: #F44336;
+}
+
+virtual-tree .lines > span:nth-child(5n+2) {
+  background-color: #4CAF50;
+}
+
+virtual-tree .lines > span:nth-child(5n+3) {
+  background-color: #3F51B5;
+}
+
+virtual-tree .lines > span:nth-child(5n+4) {
+  background-color: #FF9800;
+}
+
+/* vm-connect-target */
+
+vm-connect-target > button.delete-button {
+  margin-left: 0.28em;
+  padding: 4px;
+  background: transparent;
+  border: none !important;
+}
+
+vm-connect-target > button.delete-button:hover {
+  background: #ff0000;
+}
+
+/* vm-connect */
+
+vm-connect ul {
+  list-style-type: none;
 }

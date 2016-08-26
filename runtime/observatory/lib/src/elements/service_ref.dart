@@ -8,13 +8,12 @@ import 'dart:html';
 
 import 'package:logging/logging.dart';
 import 'package:observatory/service.dart';
+import 'package:observatory/repositories.dart';
 import 'package:polymer/polymer.dart';
 
-import 'class_ref.dart';
-import 'library_ref.dart';
+import 'helpers/any_ref.dart';
 import 'observatory_element.dart';
 
-@CustomTag('service-ref')
 class ServiceRefElement extends ObservatoryElement {
   @published ServiceObject ref;
   @published bool internal = false;
@@ -88,62 +87,6 @@ class AnyServiceRefElement extends ObservatoryElement {
   @published bool asValue = false;
   AnyServiceRefElement.created() : super.created();
 
-  Element _constructElementForRef() {
-    var type = ref.type;
-    switch (type) {
-     case 'Class':
-        ClassRefElement element = new Element.tag('class-ref');
-        element.ref = ref;
-        element.asValue = asValue;
-        return element;
-      case 'Code':
-        ServiceRefElement element = new Element.tag('code-ref');
-        element.ref = ref;
-        return element;
-      case 'Context':
-        ServiceRefElement element = new Element.tag('context-ref');
-        element.ref = ref;
-        return element;
-      case 'Error':
-        ServiceRefElement element = new Element.tag('error-ref');
-        element.ref = ref;
-        return element;
-      case 'Field':
-        ServiceRefElement element = new Element.tag('field-ref');
-        element.ref = ref;
-        return element;
-      case 'Function':
-        ServiceRefElement element = new Element.tag('function-ref');
-        element.ref = ref;
-        return element;
-      case 'Library':
-        LibraryRefElement element = new Element.tag('library-ref');
-        element.ref = ref;
-        element.asValue = asValue;
-        return element;
-      case 'Object':
-        ServiceRefElement element = new Element.tag('object-ref');
-        element.ref = ref;
-        return element;
-      case 'Script':
-        ServiceRefElement element = new Element.tag('script-ref');
-        element.ref = ref;
-        return element;
-      case 'Instance':
-      case 'Sentinel':
-        ServiceRefElement element = new Element.tag('instance-ref');
-        element.ref = ref;
-        if (expandKey != null) {
-          element.expandKey = expandKey;
-        }
-        return element;
-      default:
-        SpanElement element = new Element.tag('span');
-        element.text = "<<Unknown service ref: $ref>>";
-        return element;
-    }
-  }
-
   refChanged(oldValue) {
     // Remove the current view.
     children.clear();
@@ -151,17 +94,74 @@ class AnyServiceRefElement extends ObservatoryElement {
       Logger.root.info('Viewing null object.');
       return;
     }
-    var type = ref.type;
-    var element = _constructElementForRef();
+    var obj;
+    if (ref is Guarded) {
+      var g = ref as Guarded;
+      obj = g.asValue ?? g.asSentinel;
+    } else {
+      obj = ref;
+    }
+    var element;
+    switch (obj.type) {
+      case 'Class':
+        if (asValue) {
+          element = new Element.tag('class-ref-as-value');
+          element.ref = obj;
+        } else {
+          element = new Element.tag('class-ref');
+          element.ref = obj;
+        }
+        break;
+      case 'Code':
+        element = new Element.tag('code-ref');
+        element.ref = obj;
+        break;
+      case 'Context':
+        element = new Element.tag('context-ref');
+        element.ref = obj;
+        break;
+      case 'Error':
+        element = new Element.tag('error-ref');
+        element.ref = obj;
+        break;
+      case 'Field':
+        element = new Element.tag('field-ref');
+        element.ref = obj;
+        break;
+      case 'Function':
+        element = new Element.tag('function-ref');
+        element.ref = obj;
+        break;
+      case 'Instance':
+        element = new Element.tag('instance-ref');
+        element.ref = obj;
+        break;
+      case 'Library':
+        if (asValue) {
+          element =
+              new Element.tag('library-ref-as-value');
+          element.ref = obj;
+        } else {
+          element =
+              new Element.tag('library-ref');
+          element.ref = obj;
+        }
+        break;
+      case 'Script':
+        element = new Element.tag('script-ref');
+        element.ref = obj;
+        break;
+      default:
+        element = anyRef(obj.isolate, obj,
+            new InstanceRepository(obj.isolate), queue: app.queue);
+        break;
+    }
     if (element == null) {
-      Logger.root.info('Unable to find a ref element for \'${type}\'');
+      Logger.root.info('Unable to find a ref element for \'${ref.type}\'');
+      element = new Element.tag('span');
+      element.text = "<<Unknown service ref: $ref>>";
       return;
     }
     children.add(element);
   }
-}
-
-@CustomTag('object-ref')
-class ObjectRefElement extends ServiceRefElement {
-  ObjectRefElement.created() : super.created();
 }

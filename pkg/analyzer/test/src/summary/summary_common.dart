@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -21,16 +20,17 @@ import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:analyzer/src/summary/summarize_elements.dart'
     as summarize_elements;
+import 'package:path/path.dart' show posix;
 import 'package:unittest/unittest.dart';
 
 import '../context/mock_sdk.dart';
 
 /**
- * Convert [path] to a suitably formatted absolute path URI for the current
- * platform.
+ * Convert the given Posix style file [path] to the corresponding absolute URI.
  */
 String absUri(String path) {
-  return FileUtilities2.createFile(path).toURI().toString();
+  String absolutePath = posix.absolute(path);
+  return posix.toUri(absolutePath).toString();
 }
 
 /**
@@ -1307,6 +1307,35 @@ class E {}
   test_class_no_interface() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.interfaces, isEmpty);
+  }
+
+  test_unresolved_import() {
+    allowMissingFiles = true;
+    serializeLibraryText("import 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].uri, 'foo.dart');
+    // Note: imports[1] is the implicit import of dart:core.
+    expect(unlinkedUnits[0].imports[1].isImplicit, true);
+    expect(linked.importDependencies, hasLength(2));
+    checkDependency(
+        linked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
+  test_unresolved_export() {
+    allowMissingFiles = true;
+    serializeLibraryText("export 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, 'foo.dart');
+    expect(linked.exportDependencies, hasLength(1));
+    checkDependency(
+        linked.exportDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
+  test_unresolved_part() {
+    allowMissingFiles = true;
+    serializeLibraryText("part 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0], 'foo.dart');
   }
 
   test_class_no_mixins() {
@@ -2702,8 +2731,11 @@ const int v = p.a.length;
 
   test_constExpr_pushInt_max() {
     UnlinkedVariable variable = serializeVariableText('const v = 0xFFFFFFFF;');
-    _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt,], ints: [0xFFFFFFFF]);
+    _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+    ], ints: [
+      0xFFFFFFFF
+    ]);
   }
 
   test_constExpr_pushInt_negative() {
@@ -2726,15 +2758,26 @@ const int v = p.a.length;
 
   test_constExpr_pushLongInt_min2() {
     UnlinkedVariable variable = serializeVariableText('const v = 0x100000000;');
-    _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushLongInt], ints: [2, 1, 0,]);
+    _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedConstOperation.pushLongInt
+    ], ints: [
+      2,
+      1,
+      0,
+    ]);
   }
 
   test_constExpr_pushLongInt_min3() {
     UnlinkedVariable variable =
         serializeVariableText('const v = 0x10000000000000000;');
-    _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushLongInt], ints: [3, 1, 0, 0,]);
+    _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedConstOperation.pushLongInt
+    ], ints: [
+      3,
+      1,
+      0,
+      0,
+    ]);
   }
 
   test_constExpr_pushNull() {
@@ -8657,6 +8700,17 @@ library foo;''';
         allowErrors: true);
     checkTypeRef(findVariable('c').type, null, null, 'C',
         expectedTargetUnit: 2);
+  }
+
+  test_lineStarts() {
+    String text = '''
+int foo;
+class Test {}
+
+int bar;'''
+        .replaceAll('\r\n', '\n');
+    serializeLibraryText(text);
+    expect(unlinkedUnits[0].lineStarts, [0, 9, 23, 24]);
   }
 
   test_linked_reference_reuse() {

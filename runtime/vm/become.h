@@ -80,6 +80,14 @@ class Become : public AllStatic {
   // in 'after'. Every element in 'before' is guaranteed to be not reachable.
   // Useful for atomically applying behavior and schema changes.
   static void ElementsForwardIdentity(const Array& before, const Array& after);
+
+  // Convert and instance object into a dummy object,
+  // making the instance independent of its class.
+  // (used for morphic instances during reload).
+  static void MakeDummyObject(const Instance& instance);
+
+ private:
+  static void CrashDump(RawObject* before_obj, RawObject* after_obj);
 };
 
 }  // namespace dart

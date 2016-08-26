@@ -336,6 +336,7 @@ class InlinedFunctionsIterator : public ValueObject {
 
   intptr_t index_;
   intptr_t num_materializations_;
+  intptr_t dest_frame_size_;
   Code& code_;
   TypedData& deopt_info_;
   Function& function_;
@@ -346,9 +347,11 @@ class InlinedFunctionsIterator : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(InlinedFunctionsIterator);
 };
 
+
 #if !defined(TARGET_ARCH_DBC)
-DART_FORCE_INLINE static uword LocalVarAddress(uword fp, intptr_t index) {
-  return fp + (index * kWordSize);
+DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
+                                                intptr_t var_index) {
+  return fp_offset + var_index;
 }
 
 
@@ -366,6 +369,12 @@ DART_FORCE_INLINE static bool IsCalleeFrameOf(uword fp, uword other_fp) {
 // on all other architectures.
 static const uword kInterruptStackLimit = ~static_cast<uword>(0);
 #endif
+
+
+DART_FORCE_INLINE static uword LocalVarAddress(uword fp, intptr_t index) {
+  return fp + LocalVarIndex(0, index) * kWordSize;
+}
+
 
 }  // namespace dart
 

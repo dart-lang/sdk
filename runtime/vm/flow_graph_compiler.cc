@@ -43,7 +43,6 @@ DEFINE_FLAG(int, optimization_counter_scale, 2000,
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
-DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(charp, deoptimize_filter);
@@ -85,9 +84,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_constant_arguments_min_size_threshold = 30;
 
     FLAG_background_compilation = false;
-    FLAG_always_megamorphic_calls = true;
     FLAG_fields_may_be_reset = true;
-    FLAG_ic_range_profiling = false;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
     FLAG_link_natives_lazily = true;
@@ -356,7 +353,7 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
   if ((FLAG_stacktrace_every > 0) ||
       (FLAG_deoptimize_every > 0) ||
-      (FLAG_reload_every > 0)) {
+      (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
     return true;
   }
   if (FLAG_stacktrace_filter != NULL &&
@@ -993,12 +990,15 @@ void FlowGraphCompiler::EmitDeopt(intptr_t deopt_id,
                                   uint32_t flags) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
+  // The pending deoptimization environment may be changed after this deopt is
+  // emitted, so we need to make a copy.
+  Environment* env_copy =
+      pending_deoptimization_env_->DeepCopy(zone());
   CompilerDeoptInfo* info =
       new(zone()) CompilerDeoptInfo(deopt_id,
                                     reason,
                                     flags,
-                                    pending_deoptimization_env_);
-
+                                    env_copy);
   deopt_infos_.Add(info);
   assembler()->Deopt(0, /*is_eager =*/ 1);
   info->set_pc_offset(assembler()->CodeSize());
@@ -1009,7 +1009,7 @@ void FlowGraphCompiler::EmitDeopt(intptr_t deopt_id,
 void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   ASSERT(exception_handlers_list_ != NULL);
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
-      exception_handlers_list_->FinalizeExceptionHandlers(code.EntryPoint()));
+      exception_handlers_list_->FinalizeExceptionHandlers(code.PayloadStart()));
   code.set_exception_handlers(handlers);
   if (FLAG_compiler_stats) {
     Thread* thread = Thread::Current();
@@ -1023,7 +1023,7 @@ void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
 void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
-      pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
+      pc_descriptors_list_->FinalizePcDescriptors(code.PayloadStart()));
   if (!is_optimizing_) descriptors.Verify(parsed_function_.function());
   code.set_pc_descriptors(descriptors);
   code.set_lazy_deopt_pc_offset(lazy_deopt_pc_offset_);
@@ -1196,12 +1196,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     ic_data = ic_data.AsUnaryClassChecks();
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
-    return;
-  }
-  if (FLAG_always_megamorphic_calls) {
-    EmitMegamorphicInstanceCall(ic_data_in, argument_count,
-                                deopt_id, token_pos, locs,
-                                CatchClauseNode::kInvalidTryIndex);
     return;
   }
   ASSERT(!ic_data.IsNull());

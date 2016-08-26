@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _AsyncRun {
-  /* patch */ static void _scheduleImmediate(void callback()) {
+@patch class _AsyncRun {
+  @patch static void _scheduleImmediate(void callback()) {
     if (_ScheduleImmediate._closure == null) {
       throw new UnsupportedError("Microtasks are not supported");
     }

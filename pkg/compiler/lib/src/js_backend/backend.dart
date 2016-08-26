@@ -2,7 +2,81 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+library js_backend.backend;
+
+import 'dart:async' show Future;
+
+import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+
+import '../closure.dart';
+import '../common.dart';
+import '../common/backend_api.dart'
+    show Backend, ImpactTransformer, ForeignResolver, NativeRegistry;
+import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
+import '../common/names.dart' show Identifiers, Selectors, Uris;
+import '../common/registry.dart' show EagerRegistry, Registry;
+import '../common/resolution.dart'
+    show
+        Frontend,
+        Resolution,
+        ResolutionImpact;
+import '../common/tasks.dart' show CompilerTask;
+import '../common/work.dart' show ItemCompilationContext;
+import '../compiler.dart' show Compiler;
+import '../constants/constant_system.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart';
+import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../dart_types.dart';
+import '../deferred_load.dart' show DeferredLoadTask;
+import '../dump_info.dart' show DumpInfoTask;
+import '../elements/elements.dart';
+import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
+import '../io/position_information.dart' show PositionSourceInformationStrategy;
+import '../io/source_information.dart' show SourceInformationStrategy;
+import '../io/start_end_information.dart'
+    show StartEndSourceInformationStrategy;
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
+import '../js/rewrite_async.dart';
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
+import '../native/native.dart' as native;
+import '../ssa/builder.dart' show SsaFunctionCompiler;
+import '../ssa/nodes.dart' show HInstruction;
+import '../tree/tree.dart';
+import '../types/types.dart';
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector, SelectorKind;
+import '../universe/universe.dart';
+import '../universe/use.dart'
+    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+import '../universe/feature.dart';
+import '../universe/world_impact.dart'
+    show
+        ImpactStrategy,
+        ImpactUseCase,
+        TransformedWorldImpact,
+        WorldImpact,
+        WorldImpactVisitor;
+import '../util/util.dart';
+import '../world.dart' show ClassWorld;
+import 'backend_helpers.dart';
+import 'backend_impact.dart';
+import 'backend_serialization.dart' show JavaScriptBackendSerialization;
+import 'checked_mode_helpers.dart';
+import 'constant_handler_javascript.dart';
+import 'custom_elements_analysis.dart';
+import 'js_interop_analysis.dart' show JsInteropAnalysis;
+import 'lookup_map_analysis.dart' show LookupMapAnalysis;
+import 'namer.dart';
+import 'native_data.dart' show NativeData;
+import 'no_such_method_registry.dart';
+import 'patch_resolver.dart';
+import 'type_variable_handler.dart';
+
+part 'runtime_types.dart';
 
 const VERBOSE_OPTIMIZER_HINTS = false;
 
@@ -231,8 +305,6 @@ class JavaScriptBackend extends Backend {
   String get patchVersion => emitter.patchVersion;
 
   bool get supportsReflection => emitter.emitter.supportsReflection;
-
-  bool get supportsAsyncAwait => true;
 
   final Annotations annotations;
 
@@ -554,9 +626,7 @@ class JavaScriptBackend extends Backend {
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
-    functionCompiler = compiler.options.useCpsIr
-        ? new CpsFunctionCompiler(compiler, this, sourceInformationStrategy)
-        : new SsaFunctionCompiler(this, sourceInformationStrategy);
+    functionCompiler = new SsaFunctionCompiler(this, sourceInformationStrategy);
     serialization = new JavaScriptBackendSerialization(this);
   }
 
@@ -660,7 +730,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool usedByBackend(Element element) {
-    if (element.isParameter ||
+    if (element.isRegularParameter ||
         element.isInitializingFormal ||
         element.isField) {
       if (usedByBackend(element.enclosingElement)) return true;
@@ -669,7 +739,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool invokedReflectively(Element element) {
-    if (element.isParameter || element.isInitializingFormal) {
+    if (element.isRegularParameter || element.isInitializingFormal) {
       ParameterElement parameter = element;
       if (invokedReflectively(parameter.functionDeclaration)) return true;
     }
@@ -947,8 +1017,6 @@ class JavaScriptBackend extends Backend {
       cls.ensureResolved(resolution);
       cls.forEachMember((ClassElement classElement, Element member) {
         if (member.name == Identifiers.call) {
-          reporter.reportErrorMessage(
-              member, MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS);
           return;
         }
         if (member.isSynthesized) return;
@@ -1130,6 +1198,7 @@ class JavaScriptBackend extends Backend {
           }
           return ctor;
         }
+
         Element getMember(String name) {
           // The constructor is on the patch class, but dart2js unit tests don't
           // have a patch class.
@@ -1143,6 +1212,7 @@ class JavaScriptBackend extends Backend {
           }
           return element;
         }
+
         helpers.mapLiteralConstructor = getFactory('_literal', 1);
         helpers.mapLiteralConstructorEmpty = getFactory('_empty', 0);
         enqueueInResolution(helpers.mapLiteralConstructor, registry);
@@ -2509,17 +2579,7 @@ class JavaScriptBackend extends Backend {
   }
 
   @override
-  bool enableCodegenWithErrorsIfSupported(Spannable node) {
-    if (compiler.options.useCpsIr) {
-      // TODO(25747): Support code generation with compile-time errors.
-      reporter.reportHintMessage(node, MessageKind.GENERIC, {
-        'text': "Generation of code with compile time errors is currently "
-            "not supported with the CPS IR."
-      });
-      return false;
-    }
-    return true;
-  }
+  bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
   jsAst.Expression rewriteAsync(
       FunctionElement element, jsAst.Expression code) {

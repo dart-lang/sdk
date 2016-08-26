@@ -77,9 +77,9 @@ class Arguments {
       TestFunction testFunction) async {
     Uri entryPoint = Uri.parse('memory:main.dart');
     int first = start ?? 0;
-    int last = end ?? tests.length - 1;
+    int last = end ?? tests.length;
 
-    for (int index = first; index <= last; index++) {
+    for (int index = first; index < last; index++) {
       Test test = TESTS[index];
       List<SerializedData> dataList =
           await preserializeData(serializedData, test);
@@ -115,28 +115,28 @@ typedef Future TestFunction(
      bool verbose});
 
 Future<SerializedData> serializeDartCore(
-    {Arguments arguments: const Arguments()}) async {
-  Uri uri = Uri.parse('memory:${arguments.serializedDataFileName}');
-  print('------------------------------------------------------------------');
-  print('serialize dart:core');
-  print('------------------------------------------------------------------');
-  SerializedData serializedData;
-  if (arguments.loadSerializedData) {
-    File file = new File(arguments.serializedDataFileName);
-    if (file.existsSync()) {
-      print('Loading data from $file');
-      serializedData = new SerializedData(uri, file.readAsStringSync());
+    {Arguments arguments: const Arguments()}) {
+  return measure('dart:core', 'serialize', () async {
+    Uri uri = Uri.parse('memory:${arguments.serializedDataFileName}');
+    SerializedData serializedData;
+    if (arguments.loadSerializedData) {
+      File file = new File(arguments.serializedDataFileName);
+      if (file.existsSync()) {
+        print('Loading data from $file');
+        serializedData = new SerializedData(uri, file.readAsStringSync());
+      }
+    } else {
+      SerializationResult result =
+          await serialize(Uris.dart_core, dataUri: uri);
+      serializedData = result.serializedData;
     }
-  } else {
-    SerializationResult result = await serialize(Uris.dart_core, dataUri: uri);
-    serializedData = result.serializedData;
-  }
-  if (arguments.saveSerializedData) {
-    File file = new File(arguments.serializedDataFileName);
-    print('Saving data to $file');
-    file.writeAsStringSync(serializedData.data);
-  }
-  return serializedData;
+    if (arguments.saveSerializedData) {
+      File file = new File(arguments.serializedDataFileName);
+      print('Saving data to $file');
+      file.writeAsStringSync(serializedData.data);
+    }
+    return serializedData;
+  });
 }
 
 class SerializationResult {
@@ -149,20 +149,22 @@ class SerializationResult {
 Future<SerializationResult> serialize(Uri entryPoint,
     {Map<String, String> memorySourceFiles: const <String, String>{},
      List<Uri> resolutionInputs: const <Uri>[],
-     Uri dataUri}) async {
+     Uri dataUri,
+     bool deserializeCompilationDataForTesting: false}) async {
   if (dataUri == null) {
     dataUri = Uri.parse('memory:${DEFAULT_DATA_FILE_NAME}');
   }
+  OutputCollector outputCollector = new OutputCollector();
   Compiler compiler = compilerFor(
-      options: [Flags.analyzeAll],
+      options: [Flags.resolveOnly],
       memorySourceFiles: memorySourceFiles,
-      resolutionInputs: resolutionInputs);
-  compiler.serialization.supportSerialization = true;
+      resolutionInputs: resolutionInputs,
+      outputProvider: outputCollector);
+  compiler.serialization.deserializeCompilationDataForTesting =
+      deserializeCompilationDataForTesting;
   await compiler.run(entryPoint);
-  BufferedEventSink sink = new BufferedEventSink();
-  compiler.serialization.serializeToSink(
-      sink, compiler.libraryLoader.libraries);
-  SerializedData serializedData = new SerializedData(dataUri, sink.text);
+  SerializedData serializedData = new SerializedData(
+      dataUri, outputCollector.getOutput('', 'data'));
   return new SerializationResult(compiler, serializedData);
 }
 
@@ -170,7 +172,10 @@ class SerializedData {
   final Uri uri;
   final String data;
 
-  SerializedData(this.uri, this.data);
+  SerializedData(this.uri, this.data) {
+    assert(uri != null);
+    assert(data != null);
+  }
 
   Map<String, String> toMemorySourceFiles([Map<String, String> input]) {
     Map<String, String> sourceFiles = <String, String>{};
@@ -201,13 +206,6 @@ class SerializedData {
   }
 }
 
-String extractSerializedData(
-    Compiler compiler, Iterable<LibraryElement> libraries) {
-  BufferedEventSink sink = new BufferedEventSink();
-  compiler.serialization.serializeToSink(sink, libraries);
-  return sink.text;
-}
-
 Future<List<SerializedData>> preserializeData(
     SerializedData serializedData, Test test) async {
   if (test == null ||
@@ -224,19 +222,76 @@ Future<List<SerializedData>> preserializeData(
   if (test.unserializedSourceFiles != null) {
     sourceFiles.addAll(test.unserializedSourceFiles);
   }
+  OutputCollector outputCollector = new OutputCollector();
   Compiler compiler = compilerFor(
       memorySourceFiles: sourceFiles,
       resolutionInputs: serializedData.toUris(),
-      options: [Flags.analyzeOnly, Flags.analyzeMain]);
+      options: [Flags.resolveOnly],
+      outputProvider: outputCollector);
   compiler.librariesToAnalyzeWhenRun = uriList;
-  compiler.serialization.supportSerialization = true;
   await compiler.run(null);
   List<LibraryElement> libraries = <LibraryElement>[];
   for (Uri uri in uriList) {
     libraries.add(compiler.libraryLoader.lookupLibrary(uri));
   }
-  SerializedData additionalSerializedData =
-      new SerializedData(Uri.parse('memory:additional.data'),
-      extractSerializedData(compiler, libraries));
+  SerializedData additionalSerializedData = new SerializedData(
+      Uri.parse('memory:additional.data'),
+      outputCollector.getOutput('', 'data'));
   return <SerializedData>[serializedData, additionalSerializedData];
+}
+
+class MeasurementResult {
+  final String title;
+  final String taskTitle;
+  final int elapsedMilliseconds;
+
+  MeasurementResult(this.title, this.taskTitle, this.elapsedMilliseconds);
+}
+
+final List<MeasurementResult> measurementResults = <MeasurementResult>[];
+
+/// Print all store [measurementResults] grouped by title and sorted by
+/// decreasing execution time.
+void printMeasurementResults() {
+  Map<String, int> totals = <String, int>{};
+
+  for (MeasurementResult result in measurementResults) {
+    totals.putIfAbsent(result.title, () => 0);
+    totals[result.title] += result.elapsedMilliseconds;
+  }
+
+  List<String> sorted = totals.keys.toList();
+  sorted.sort((a, b) => -totals[a].compareTo(totals[b]));
+
+  int paddingLength = '${totals[sorted.first]}'.length;
+
+  String pad(int value) {
+    String text = '$value';
+    return '${' ' * (paddingLength - text.length)}$text';
+  }
+
+  print('================================================================');
+  print('Summary:');
+  for (String task in sorted) {
+    int time = totals[task];
+    print('${pad(time)}ms $task');
+  }
+
+  measurementResults.clear();
+}
+
+/// Measure execution of [task], print the result and store it in
+/// [measurementResults] for a summary.
+Future measure(String title, String taskTitle, Future task()) async {
+  Stopwatch stopwatch = new Stopwatch()..start();
+  print('================================================================');
+  print('$taskTitle: $title');
+  print('----------------------------------------------------------------');
+  var result = await task();
+  stopwatch.stop();
+  int elapsedMilliseconds = stopwatch.elapsedMilliseconds;
+  print('$taskTitle: $title: ${elapsedMilliseconds}ms');
+  measurementResults.add(
+      new MeasurementResult(title, taskTitle, elapsedMilliseconds));
+  return result;
 }

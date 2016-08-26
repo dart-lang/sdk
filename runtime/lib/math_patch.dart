@@ -8,7 +8,7 @@ import "dart:typed_data";
 
 // If [x] is an [int] and [exponent] is a non-negative [int], the result is
 // an [int], otherwise the result is a [double].
-patch num pow(num x, num exponent) {
+@patch num pow(num x, num exponent) {
   if ((x is int) && (exponent is int) && (exponent >= 0)) {
     return _intPow(x, exponent);
   }
@@ -23,7 +23,7 @@ double _doublePow(double base, double exponent) {
   if (exponent == 1.0) return base;
   if (exponent == 2.0) return base * base;
   if (exponent == 3.0) return base * base * base;
-  
+
   if (base == 1.0) return 1.0;
 
   if (base.isNaN || exponent.isNaN) {
@@ -56,16 +56,16 @@ int _intPow(int base, int exponent) {
   return result;
 }
 
-patch double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
-patch double sin(num value) => _sin(value.toDouble());
-patch double cos(num value) => _cos(value.toDouble());
-patch double tan(num value) => _tan(value.toDouble());
-patch double acos(num value) => _acos(value.toDouble());
-patch double asin(num value) => _asin(value.toDouble());
-patch double atan(num value) => _atan(value.toDouble());
-patch double sqrt(num value) => _sqrt(value.toDouble());
-patch double exp(num value) => _exp(value.toDouble());
-patch double log(num value) => _log(value.toDouble());
+@patch double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
+@patch double sin(num value) => _sin(value.toDouble());
+@patch double cos(num value) => _cos(value.toDouble());
+@patch double tan(num value) => _tan(value.toDouble());
+@patch double acos(num value) => _acos(value.toDouble());
+@patch double asin(num value) => _asin(value.toDouble());
+@patch double atan(num value) => _atan(value.toDouble());
+@patch double sqrt(num value) => _sqrt(value.toDouble());
+@patch double exp(num value) => _exp(value.toDouble());
+@patch double log(num value) => _log(value.toDouble());
 
 double _atan2(double a, double b) native "Math_atan2";
 double _sin(double x) native "Math_sin";
@@ -80,9 +80,9 @@ double _log(double x) native "Math_log";
 
 
 // TODO(iposva): Handle patch methods within a patch class correctly.
-patch class Random {
+@patch class Random {
 
-  /*patch*/ factory Random([int seed]) {
+  @patch factory Random([int seed]) {
     var state = _Random._setupSeed((seed == null) ? _Random._nextSeed() : seed);
     // Crank a couple of times to distribute the seed bits a bit further.
     return new _Random._withState(state).._nextState()
@@ -91,7 +91,7 @@ patch class Random {
                                         .._nextState();
   }
 
-  /*patch*/ factory Random.secure() {
+  @patch factory Random.secure() {
     return new _SecureRandom();
   }
 }

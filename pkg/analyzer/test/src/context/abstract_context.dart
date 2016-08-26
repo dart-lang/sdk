@@ -123,7 +123,7 @@ class AbstractContextTest {
     return new AnalysisContextImpl();
   }
 
-  DartSdk createDartSdk() => new MockSdk();
+  DartSdk createDartSdk() => new MockSdk(resourceProvider: resourceProvider);
 
   Source newSource(String path, [String content = '']) {
     File file = resourceProvider.newFile(path, content);
@@ -143,8 +143,8 @@ class AbstractContextTest {
     sdk = createDartSdk();
     sdkResolver = new DartUriResolver(sdk);
     resourceResolver = new ResourceUriResolver(resourceProvider);
-    sourceFactory =
-        new SourceFactory(<UriResolver>[sdkResolver, resourceResolver]);
+    sourceFactory = new SourceFactory(
+        <UriResolver>[sdkResolver, resourceResolver], null, resourceProvider);
     context = createAnalysisContext();
     if (options != null) {
       context.analysisOptions = options;

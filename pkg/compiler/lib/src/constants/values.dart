@@ -9,8 +9,25 @@ import '../core_types.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart'
     show FieldElement, FunctionElement, PrefixElement;
-import '../tree/tree.dart' hide unparse;
+import '../tree/dartstring.dart';
 import '../util/util.dart' show Hashing;
+
+enum ConstantValueKind {
+  FUNCTION,
+  NULL,
+  INT,
+  DOUBLE,
+  BOOL,
+  STRING,
+  LIST,
+  MAP,
+  CONSTRUCTED,
+  TYPE,
+  INTERCEPTOR,
+  SYNTHETIC,
+  DEFERRED,
+  NON_CONSTANT,
+}
 
 abstract class ConstantValueVisitor<R, A> {
   const ConstantValueVisitor();
@@ -84,6 +101,8 @@ abstract class ConstantValue {
   /// Returns a structured representation of this constant suited for debugging.
   String toStructuredText();
 
+  ConstantValueKind get kind;
+
   String toString() {
     assertDebugMode("Use ConstantValue.toDartText() or "
         "ConstantValue.toStructuredText() "
@@ -117,6 +136,8 @@ class FunctionConstantValue extends ConstantValue {
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitFunction(this, arg);
+
+  ConstantValueKind get kind => ConstantValueKind.FUNCTION;
 
   String toDartText() {
     if (element.isStatic) {
@@ -176,6 +197,8 @@ class NullConstantValue extends PrimitiveConstantValue {
   DartString toDartString() => const LiteralDartString("null");
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitNull(this, arg);
+
+  ConstantValueKind get kind => ConstantValueKind.NULL;
 
   String toStructuredText() => 'NullConstant';
 }
@@ -258,6 +281,8 @@ class IntConstantValue extends NumConstantValue {
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitInt(this, arg);
 
+  ConstantValueKind get kind => ConstantValueKind.INT;
+
   String toStructuredText() => 'IntConstant(${toDartText()})';
 }
 
@@ -320,6 +345,8 @@ class DoubleConstantValue extends NumConstantValue {
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitDouble(this, arg);
 
+  ConstantValueKind get kind => ConstantValueKind.DOUBLE;
+
   String toStructuredText() => 'DoubleConstant(${toDartText()})';
 }
 
@@ -337,6 +364,8 @@ abstract class BoolConstantValue extends PrimitiveConstantValue {
   BoolConstantValue negate();
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitBool(this, arg);
+
+  ConstantValueKind get kind => ConstantValueKind.BOOL;
 
   String toStructuredText() => 'BoolConstant(${toDartText()})';
 }
@@ -414,6 +443,8 @@ class StringConstantValue extends PrimitiveConstantValue {
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitString(this, arg);
 
+  ConstantValueKind get kind => ConstantValueKind.STRING;
+
   // TODO(johnniwinther): Ensure correct escaping.
   String toDartText() => '"${primitiveValue.slowToString()}"';
 
@@ -457,6 +488,8 @@ class TypeConstantValue extends ObjectConstantValue {
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitType(this, arg);
 
+  ConstantValueKind get kind => ConstantValueKind.TYPE;
+
   String toDartText() => '$representedType';
 
   String toStructuredText() => 'TypeConstant(${representedType})';
@@ -491,6 +524,8 @@ class ListConstantValue extends ObjectConstantValue {
   int get length => entries.length;
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitList(this, arg);
+
+  ConstantValueKind get kind => ConstantValueKind.LIST;
 
   String toDartText() {
     StringBuffer sb = new StringBuffer();
@@ -567,6 +602,8 @@ class MapConstantValue extends ObjectConstantValue {
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitMap(this, arg);
 
+  ConstantValueKind get kind => ConstantValueKind.MAP;
+
   String toDartText() {
     StringBuffer sb = new StringBuffer();
     _unparseTypeArguments(sb);
@@ -621,6 +658,8 @@ class InterceptorConstantValue extends ConstantValue {
 
   DartType getType(CoreTypes types) => const DynamicType();
 
+  ConstantValueKind get kind => ConstantValueKind.INTERCEPTOR;
+
   String toDartText() {
     return 'interceptor($dispatchedType)';
   }
@@ -632,9 +671,9 @@ class InterceptorConstantValue extends ConstantValue {
 
 class SyntheticConstantValue extends ConstantValue {
   final payload;
-  final kind;
+  final valueKind;
 
-  SyntheticConstantValue(this.kind, this.payload);
+  SyntheticConstantValue(this.valueKind, this.payload);
 
   bool get isDummy => true;
 
@@ -642,7 +681,7 @@ class SyntheticConstantValue extends ConstantValue {
     return other is SyntheticConstantValue && payload == other.payload;
   }
 
-  get hashCode => payload.hashCode * 17 + kind.hashCode;
+  get hashCode => payload.hashCode * 17 + valueKind.hashCode;
 
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
@@ -652,9 +691,11 @@ class SyntheticConstantValue extends ConstantValue {
 
   DartType getType(CoreTypes types) => const DynamicType();
 
-  String toDartText() => 'synthetic($kind, $payload)';
+  ConstantValueKind get kind => ConstantValueKind.SYNTHETIC;
 
-  String toStructuredText() => 'SyntheticConstant($kind, $payload)';
+  String toDartText() => 'synthetic($valueKind, $payload)';
+
+  String toStructuredText() => 'SyntheticConstant($valueKind, $payload)';
 }
 
 class ConstructedConstantValue extends ObjectConstantValue {
@@ -692,6 +733,8 @@ class ConstructedConstantValue extends ObjectConstantValue {
   accept(ConstantValueVisitor visitor, arg) {
     return visitor.visitConstructed(this, arg);
   }
+
+  ConstantValueKind get kind => ConstantValueKind.CONSTRUCTED;
 
   String toDartText() {
     StringBuffer sb = new StringBuffer();
@@ -752,6 +795,8 @@ class DeferredConstantValue extends ConstantValue {
 
   DartType getType(CoreTypes types) => referenced.getType(types);
 
+  ConstantValueKind get kind => ConstantValueKind.DEFERRED;
+
   String toDartText() => 'deferred(${referenced.toDartText()})';
 
   String toStructuredText() {
@@ -775,6 +820,8 @@ class NonConstantValue extends ConstantValue {
 
   @override
   DartType getType(CoreTypes types) => const DynamicType();
+
+  ConstantValueKind get kind => ConstantValueKind.NON_CONSTANT;
 
   @override
   String toStructuredText() => 'NonConstant';

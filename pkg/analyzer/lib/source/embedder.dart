@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@deprecated
 library analyzer.source.embedder;
 
 import 'dart:collection' show HashMap;
@@ -16,16 +17,20 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:yaml/yaml.dart';
+
+export 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 
 const String _DART_COLON_PREFIX = 'dart:';
 const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
 
 /// Check if this map defines embedded libraries.
+@deprecated
 bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
 /// An SDK backed by URI mappings derived from an `_embedder.yaml` file.
+@deprecated
 class EmbedderSdk extends AbstractDartSdk {
   final Map<String, String> _urlMappings = new HashMap<String, String>();
 
@@ -39,6 +44,9 @@ class EmbedderSdk extends AbstractDartSdk {
 
   /// The url mappings for this SDK.
   Map<String, String> get urlMappings => _urlMappings;
+
+  @override
+  PackageBundle getLinkedBundle() => null;
 
   @override
   String getRelativePathFromFile(JavaFile file) => file.getAbsolutePath();
@@ -173,76 +181,5 @@ class EmbedderUriResolver implements DartUriResolver {
     }
     Source sdkSource = dartSdk.fromFileUri(Uri.parse('file://$path'));
     return sdkSource?.uri;
-  }
-}
-
-/// Given a packageMap, check in each package's lib directory for the
-/// existence of an `_embedder.yaml` file. If the file contains a top level
-/// YamlMap, it will be added to the [embedderYamls] map.
-class EmbedderYamlLocator {
-  static const String EMBEDDER_FILE_NAME = '_embedder.yaml';
-
-  /// Map from package's library directory to the parsed YamlMap.
-  final Map<Folder, YamlMap> embedderYamls = new HashMap<Folder, YamlMap>();
-
-  EmbedderYamlLocator(Map<String, List<Folder>> packageMap) {
-    if (packageMap != null) {
-      _processPackageMap(packageMap);
-    }
-  }
-
-  /// Programatically add an _embedder.yaml mapping.
-  void addEmbedderYaml(Folder libDir, String embedderYaml) {
-    _processEmbedderYaml(libDir, embedderYaml);
-  }
-
-  void refresh(Map<String, List<Folder>> packageMap) {
-    // Clear existing.
-    embedderYamls.clear();
-    if (packageMap != null) {
-      _processPackageMap(packageMap);
-    }
-  }
-
-  /// Given the yaml for an embedder ([embedderYaml]) and a folder
-  /// ([libDir]), setup the uri mapping.
-  void _processEmbedderYaml(Folder libDir, String embedderYaml) {
-    YamlNode yaml;
-    try {
-      yaml = loadYaml(embedderYaml);
-    } catch (_) {
-      return;
-    }
-    if (yaml is! YamlMap) {
-      return;
-    }
-    embedderYamls[libDir] = yaml;
-  }
-
-  /// Given a package [name] and a list of folders ([libDirs]),
-  /// add any found `_embedder.yaml` files.
-  void _processPackage(String name, List<Folder> libDirs) {
-    for (Folder libDir in libDirs) {
-      String embedderYaml = _readEmbedderYaml(libDir);
-      if (embedderYaml != null) {
-        _processEmbedderYaml(libDir, embedderYaml);
-      }
-    }
-  }
-
-  void _processPackageMap(Map<String, List<Folder>> packageMap) {
-    packageMap.forEach(_processPackage);
-  }
-
-  /// Read the contents of [libDir]/[EMBEDDER_FILE_NAME] as a string.
-  /// Returns null if the file doesn't exist.
-  String _readEmbedderYaml(Folder libDir) {
-    File file = libDir.getChild(EMBEDDER_FILE_NAME);
-    try {
-      return file.readAsStringSync();
-    } on FileSystemException {
-      // File can't be read.
-      return null;
-    }
   }
 }

@@ -15,9 +15,9 @@ import '../dart_types.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/class_members.dart' show ClassMemberMixin;
+import '../resolution/resolution.dart' show AnalyzableElementX;
 import '../resolution/scope.dart'
     show ClassScope, LibraryScope, Scope, TypeDeclarationScope;
-import '../resolution/resolution.dart' show AnalyzableElementX;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../resolution/typedefs.dart' show TypedefCyclicVisitor;
 import '../script.dart';
@@ -25,7 +25,6 @@ import '../tokens/token.dart' show ErrorToken, Token;
 import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
 import '../util/util.dart';
-
 import 'common.dart';
 import 'elements.dart';
 import 'visitor.dart' show ElementVisitor;
@@ -39,12 +38,14 @@ import 'visitor.dart' show ElementVisitor;
 abstract class DeclarationSite {}
 
 abstract class ElementX extends Element with ElementCommon {
-  static int elementHashCode = 0;
+  static int _elementHashCode = 0;
+  static int newHashCode() =>
+      _elementHashCode = (_elementHashCode + 1).toUnsigned(30);
 
   final String name;
   final ElementKind kind;
   final Element enclosingElement;
-  final int hashCode = ++elementHashCode;
+  final int hashCode = newHashCode();
   List<MetadataAnnotation> metadataInternal;
 
   ElementX(this.name, this.kind, this.enclosingElement) {
@@ -398,8 +399,18 @@ class ErroneousConstructorElementX extends ErroneousElementX
   }
 
   @override
-  set immediateRedirectionTarget(_) {
-    throw new UnsupportedError("immediateRedirectionTarget=");
+  get _immediateRedirectionTarget {
+    throw new UnsupportedError("_immediateRedirectionTarget");
+  }
+
+  @override
+  set _immediateRedirectionTarget(_) {
+    throw new UnsupportedError("_immediateRedirectionTarget=");
+  }
+
+  @override
+  setImmediateRedirectionTarget(a, b) {
+    throw new UnsupportedError("setImmediateRedirectionTarget");
   }
 
   @override
@@ -428,8 +439,13 @@ class ErroneousConstructorElementX extends ErroneousElementX
   }
 
   @override
-  set redirectionDeferredPrefix(_) {
-    throw new UnsupportedError("redirectionDeferredPrefix=");
+  get _redirectionDeferredPrefix {
+    throw new UnsupportedError("_redirectionDeferredPrefix");
+  }
+
+  @override
+  set _redirectionDeferredPrefix(_) {
+    throw new UnsupportedError("_redirectionDeferredPrefix=");
   }
 }
 
@@ -437,7 +453,7 @@ class ErroneousConstructorElementX extends ErroneousElementX
 class WrappedMessage {
   /// The message position. If [:null:] the position of the reference to the
   /// [WarnOnUseElementX] is used.
-  final Spannable spannable;
+  final SourceSpan sourceSpan;
 
   /**
    * The message to report on resolving a wrapped element.
@@ -449,7 +465,7 @@ class WrappedMessage {
    */
   final Map messageArguments;
 
-  WrappedMessage(this.spannable, this.messageKind, this.messageArguments);
+  WrappedMessage(this.sourceSpan, this.messageKind, this.messageArguments);
 }
 
 class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
@@ -462,21 +478,21 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
   /// The element whose usage cause a warning.
   final Element wrappedElement;
 
-  WarnOnUseElementX(WrappedMessage this.warning, WrappedMessage this.info,
-      Element enclosingElement, Element wrappedElement)
+  WarnOnUseElementX(
+      this.warning, this.info, Element enclosingElement, Element wrappedElement)
       : this.wrappedElement = wrappedElement,
         super(wrappedElement.name, ElementKind.WARN_ON_USE, enclosingElement);
 
   Element unwrap(DiagnosticReporter reporter, Spannable usageSpannable) {
     var unwrapped = wrappedElement;
     if (warning != null) {
-      Spannable spannable = warning.spannable;
+      Spannable spannable = warning.sourceSpan;
       if (spannable == null) spannable = usageSpannable;
       DiagnosticMessage warningMessage = reporter.createMessage(
           spannable, warning.messageKind, warning.messageArguments);
       List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       if (info != null) {
-        Spannable spannable = info.spannable;
+        Spannable spannable = info.sourceSpan;
         if (spannable == null) spannable = usageSpannable;
         infos.add(reporter.createMessage(
             spannable, info.messageKind, info.messageArguments));
@@ -930,8 +946,11 @@ class ImportElementX extends LibraryDependencyElementX
 }
 
 class SyntheticImportElement extends ImportElementX {
-  SyntheticImportElement(CompilationUnitElement enclosingElement, Uri uri)
-      : super(enclosingElement, null, uri);
+  SyntheticImportElement(CompilationUnitElement enclosingElement, Uri uri,
+      LibraryElement libraryDependency)
+      : super(enclosingElement, null, uri) {
+    this.libraryDependency = libraryDependency;
+  }
 
   @override
   Token get position => library.position;
@@ -1177,6 +1196,7 @@ class LibraryElementX extends ElementX
           f(element);
         }
       }
+
       localMembers.forEach(filterPatch);
     } else {
       localMembers.forEach(f);
@@ -1246,6 +1266,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
   bool get isTopLevel => false;
 
   Element lookupLocalMember(String memberName) => importScope[memberName];
+
+  void forEachLocalMember(f(Element member)) => importScope.forEach(f);
 
   DartType computeType(Resolution resolution) => const DynamicType();
 
@@ -1451,6 +1473,7 @@ abstract class VariableElementX extends ElementX
   final Token token;
   final VariableList variables;
   VariableDefinitions definitionsCache;
+  Expression definitionCache;
   Expression initializerCache;
 
   Modifiers get modifiers => variables.modifiers;
@@ -1483,6 +1506,16 @@ abstract class VariableElementX extends ElementX
     return definitionsCache;
   }
 
+  /// Returns the node that defines this field.
+  ///
+  /// For instance in `var a, b = true`, the definitions nodes for fields 'a'
+  /// and 'b' are the nodes for `a` and `b = true`, respectively.
+  Expression get definition {
+    assert(invariant(this, definitionCache != null,
+        message: "Definition node has not been computed for $this."));
+    return definitionCache;
+  }
+
   Expression get initializer {
     assert(invariant(this, definitionsCache != null,
         message: "Initializer has not been computed for $this."));
@@ -1500,8 +1533,6 @@ abstract class VariableElementX extends ElementX
   void createDefinitions(VariableDefinitions definitions) {
     assert(invariant(this, definitionsCache == null,
         message: "VariableDefinitions has already been computed for $this."));
-    Expression node;
-    int count = 0;
     for (Link<Node> link = definitions.definitions.nodes;
         !link.isEmpty;
         link = link.tail) {
@@ -1511,28 +1542,16 @@ abstract class VariableElementX extends ElementX
         SendSet sendSet = initializedIdentifier.asSendSet();
         identifier = sendSet.selector.asIdentifier();
         if (identical(name, identifier.source)) {
-          node = initializedIdentifier;
+          definitionCache = initializedIdentifier;
           initializerCache = sendSet.arguments.first;
         }
       } else if (identical(name, identifier.source)) {
-        node = initializedIdentifier;
+        definitionCache = initializedIdentifier;
       }
-      count++;
     }
-    invariant(definitions, node != null, message: "Could not find '$name'.");
-    if (count == 1) {
-      definitionsCache = definitions;
-    } else {
-      // Create a [VariableDefinitions] node for the single definition of
-      // [node].
-      definitionsCache = new VariableDefinitions(
-          definitions.type,
-          definitions.modifiers,
-          new NodeList(
-              definitions.definitions.beginToken,
-              const Link<Node>().prepend(node),
-              definitions.definitions.endToken));
-    }
+    invariant(definitions, definitionCache != null,
+        message: "Could not find '$name'.");
+    definitionsCache = definitions;
   }
 
   DartType computeType(Resolution resolution) {
@@ -1637,6 +1656,14 @@ class ErroneousFieldElementX extends ElementX
 
   Token get token => node.getBeginToken();
 
+  get definitionCache {
+    throw new UnsupportedError("definitionCache");
+  }
+
+  set definitionCache(_) {
+    throw new UnsupportedError("definitionCache=");
+  }
+
   get initializerCache {
     throw new UnsupportedError("initializerCache");
   }
@@ -1650,6 +1677,8 @@ class ErroneousFieldElementX extends ElementX
   }
 
   get initializer => null;
+
+  get definition => null;
 
   bool get isMalformed => true;
 
@@ -2197,8 +2226,10 @@ abstract class ConstructorElementX extends FunctionElementX
       String name, ElementKind kind, Modifiers modifiers, Element enclosing)
       : super(name, kind, modifiers, enclosing);
 
-  FunctionElement immediateRedirectionTarget;
-  PrefixElement redirectionDeferredPrefix;
+  ConstructorElement _immediateRedirectionTarget;
+  PrefixElement _redirectionDeferredPrefix;
+
+  ConstructorElementX get patch => super.patch;
 
   bool get isRedirectingFactory => immediateRedirectionTarget != null;
 
@@ -2211,45 +2242,93 @@ abstract class ConstructorElementX extends FunctionElementX
   DartType _effectiveTargetType;
   bool _isEffectiveTargetMalformed;
 
-  bool get hasEffectiveTarget => effectiveTargetInternal != null;
+  bool get hasEffectiveTarget {
+    if (isPatched) {
+      return patch.hasEffectiveTarget;
+    }
+    return effectiveTargetInternal != null;
+  }
+
+  void setImmediateRedirectionTarget(
+      ConstructorElement target, PrefixElement prefix) {
+    if (isPatched) {
+      patch.setImmediateRedirectionTarget(target, prefix);
+    } else {
+      assert(invariant(this, _immediateRedirectionTarget == null,
+          message: "Immediate redirection target has already been "
+              "set on $this."));
+      _immediateRedirectionTarget = target;
+      _redirectionDeferredPrefix = prefix;
+    }
+  }
+
+  ConstructorElement get immediateRedirectionTarget {
+    if (isPatched) {
+      return patch.immediateRedirectionTarget;
+    }
+    return _immediateRedirectionTarget;
+  }
+
+  PrefixElement get redirectionDeferredPrefix {
+    if (isPatched) {
+      return patch.redirectionDeferredPrefix;
+    }
+    return _redirectionDeferredPrefix;
+  }
 
   void setEffectiveTarget(ConstructorElement target, DartType type,
       {bool isMalformed: false}) {
-    assert(invariant(this, target != null,
-        message: 'No effective target provided for $this.'));
-    assert(invariant(this, effectiveTargetInternal == null,
-        message: 'Effective target has already been computed for $this.'));
-    effectiveTargetInternal = target;
-    _effectiveTargetType = type;
-    _isEffectiveTargetMalformed = isMalformed;
+    if (isPatched) {
+      patch.setEffectiveTarget(target, type, isMalformed: isMalformed);
+    } else {
+      assert(invariant(this, target != null,
+          message: 'No effective target provided for $this.'));
+      assert(invariant(this, effectiveTargetInternal == null,
+          message: 'Effective target has already been computed for $this.'));
+      assert(invariant(this, !target.isMalformed || isMalformed,
+          message: 'Effective target is not marked as malformed for $this: '
+              'target=$target, type=$type, isMalformed: $isMalformed'));
+      assert(invariant(this, isMalformed || type.isInterfaceType,
+          message: 'Effective target type is not an interface type for $this: '
+              'target=$target, type=$type, isMalformed: $isMalformed'));
+      effectiveTargetInternal = target;
+      _effectiveTargetType = type;
+      _isEffectiveTargetMalformed = isMalformed;
+    }
   }
 
   ConstructorElement get effectiveTarget {
-    if (Elements.isMalformed(immediateRedirectionTarget)) {
-      return immediateRedirectionTarget;
-    }
-    assert(!isRedirectingFactory || effectiveTargetInternal != null);
-    if (isRedirectingFactory) {
-      return effectiveTargetInternal;
-    }
     if (isPatched) {
-      return effectiveTargetInternal ?? this;
+      return patch.effectiveTarget;
+    }
+    if (isRedirectingFactory) {
+      assert(effectiveTargetInternal != null);
+      return effectiveTargetInternal;
     }
     return this;
   }
 
-  InterfaceType get effectiveTargetType {
+  DartType get effectiveTargetType {
+    if (isPatched) {
+      return patch.effectiveTargetType;
+    }
     assert(invariant(this, _effectiveTargetType != null,
         message: 'Effective target type has not yet been computed for $this.'));
     return _effectiveTargetType;
   }
 
-  InterfaceType computeEffectiveTargetType(InterfaceType newType) {
+  DartType computeEffectiveTargetType(InterfaceType newType) {
+    if (isPatched) {
+      return patch.computeEffectiveTargetType(newType);
+    }
     if (!isRedirectingFactory) return newType;
     return effectiveTargetType.substByContext(newType);
   }
 
   bool get isEffectiveTargetMalformed {
+    if (isPatched) {
+      return patch.isEffectiveTargetMalformed;
+    }
     if (!isRedirectingFactory) return false;
     assert(invariant(this, _isEffectiveTargetMalformed != null,
         message: 'Malformedness has not yet been computed for $this.'));
@@ -2944,6 +3023,7 @@ class EnumFieldElementX extends FieldElementX {
     definitionsCache = new VariableDefinitions(
         null, variableList.modifiers, new NodeList.singleton(definition));
     initializerCache = initializer;
+    definitionCache = definition;
   }
 
   @override
@@ -3121,6 +3201,8 @@ class JumpTargetX implements JumpTarget {
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
+  final int hashCode = ElementX.newHashCode();
+
   JumpTargetX(this.statement, this.nestingLevel, this.executableContext);
 
   String get name => "target";
@@ -3219,6 +3301,8 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
   Token get beginToken;
 
   Token get endToken;
+
+  final int hashCode = ElementX.newHashCode();
 
   MetadataAnnotationX([this.resolutionState = STATE_NOT_STARTED]);
 

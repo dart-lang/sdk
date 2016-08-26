@@ -70,7 +70,7 @@ class RuntimeConfiguration {
   RuntimeConfiguration._subclass();
 
   int computeTimeoutMultiplier(
-      {String mode, bool isChecked: false, String arch}) {
+      {String mode, bool isChecked: false, bool isReload: false, String arch}) {
     return 1;
   }
 
@@ -164,7 +164,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
   DartVmRuntimeConfiguration() : super._subclass();
 
   int computeTimeoutMultiplier(
-      {String mode, bool isChecked: false, String arch}) {
+      {String mode, bool isChecked: false, bool isReload: false, String arch}) {
     int multiplier = 1;
     switch (arch) {
       case 'simarm':
@@ -183,6 +183,9 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     }
     if (mode == 'debug') {
       multiplier *= 2;
+      if (isReload) {
+        multiplier *= 2;
+      }
     }
     return multiplier;
   }
@@ -192,13 +195,14 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 /// program named Dump Render Tree, hence the name.
 class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
   int computeTimeoutMultiplier(
-      {String mode, bool isChecked: false, String arch}) {
+      {String mode, bool isChecked: false, bool isReload: false, String arch}) {
     return 4 // Allow additional time for browser testing to run.
         // TODO(ahe): We might need to distinquish between DRT for running
         // JavaScript and Dart code.  I'm not convinced the inherited timeout
         // multiplier is relevant for JavaScript.
         *
-        super.computeTimeoutMultiplier(mode: mode, isChecked: isChecked);
+        super.computeTimeoutMultiplier(
+            mode: mode, isChecked: isChecked, isReload: isReload);
   }
 }
 

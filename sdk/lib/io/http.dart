@@ -400,7 +400,7 @@ class HttpConnectionsInfo {
  * To set the value of a header use the `set()` method:
  *
  *     request.headers.set(HttpHeaders.CACHE_CONTROL,
-                           'max-age=3600, must-revalidate');
+ *                         'max-age=3600, must-revalidate');
  *
  * To retrieve the value of a header use the `value()` method:
  *

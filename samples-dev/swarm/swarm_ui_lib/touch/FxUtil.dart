@@ -68,11 +68,18 @@ class FxUtil {
    */
   static Coordinate computeRelativePosition(Element element, Element target) {
     final testPoint = new Point(0, 0);
+    /*
     final pagePoint =
         window.convertPointFromNodeToPage(element, testPoint);
     final pointRelativeToTarget =
         window.convertPointFromPageToNode(target, pagePoint);
     return new Coordinate(pointRelativeToTarget.x, pointRelativeToTarget.y);
+    */
+    // TODO(sra): Test this version that avoids the nonstandard
+    // `convertPointFromPageToNode`.
+    var eRect = element.getBoundingClientRect();
+    var tRect = target.getBoundingClientRect();
+    return new Coordinate(eRect.left - tRect.left, eRect.top - tRect.top);
   }
 
   /** Clear a -webkit-transform from an element. */

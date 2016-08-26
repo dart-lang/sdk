@@ -11,7 +11,6 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../library_loader.dart' show LibraryProvider;
 import '../util/enumset.dart';
-
 import 'constant_serialization.dart';
 import 'element_serialization.dart';
 import 'json_serializer.dart';
@@ -541,12 +540,20 @@ abstract class AbstractDecoder<K> {
   /// If no value is associated with [key], then if [isOptional] is `true`,
   /// [defaultValue] is returned, otherwise an exception is thrown.
   double getDouble(K key, {bool isOptional: false, double defaultValue}) {
-    double value = _map[_getKeyValue(key)];
+    var value = _map[_getKeyValue(key)];
     if (value == null) {
       if (isOptional || defaultValue != null) {
         return defaultValue;
       }
       throw new StateError("double value '$key' not found in $_map.");
+    }
+    // Support alternative encoding of NaN and +/- infinity for JSON.
+    if (value == 'NaN') {
+      return double.NAN;
+    } else if (value == '-Infinity') {
+      return double.NEGATIVE_INFINITY;
+    } else if (value == 'Infinity') {
+      return double.INFINITY;
     }
     return value;
   }
@@ -692,6 +699,7 @@ class Serializer {
         /// Helper used to check that external references are serialized by
         /// the right kind.
         bool verifyElement(var found, var expected) {
+          if (found == null) return false;
           found = found.declaration;
           if (found == expected) return true;
           if (found.isAbstractField && expected.isGetter) {

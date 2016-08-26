@@ -349,34 +349,5 @@ L$013exit:
 	pop	ebx
 	pop	ebp
 	ret
-global	_RC4_options
-align	16
-_RC4_options:
-L$_RC4_options_begin:
-	call	L$016pic_point
-L$016pic_point:
-	pop	eax
-	lea	eax,[(L$017opts-L$016pic_point)+eax]
-	lea	edx,[_OPENSSL_ia32cap_P]
-	mov	edx,DWORD [edx]
-	bt	edx,20
-	jc	NEAR L$0181xchar
-	bt	edx,26
-	jnc	NEAR L$019ret
-	add	eax,25
-	ret
-L$0181xchar:
-	add	eax,12
-L$019ret:
-	ret
-align	64
-L$017opts:
-db	114,99,52,40,52,120,44,105,110,116,41,0
-db	114,99,52,40,49,120,44,99,104,97,114,41,0
-db	114,99,52,40,56,120,44,109,109,120,41,0
-db	82,67,52,32,102,111,114,32,120,56,54,44,32,67,82,89
-db	80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114
-db	111,64,111,112,101,110,115,115,108,46,111,114,103,62,0
-align	64
 segment	.bss
 common	_OPENSSL_ia32cap_P 16

@@ -1,8 +1,6 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
 
-<polymer-element name="timeline-page" extends="observatory-element">
+<polymer-element name="timeline-page">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
@@ -13,6 +11,7 @@
       <nav-refresh callback="{{ clear }}" label="Clear"></nav-refresh>
       <nav-refresh callback="{{ saveTimeline }}" label="Save"></nav-refresh>
       <nav-refresh callback="{{ loadTimeline }}" label="Load"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
     <div id="control" class="content-centered-big">
       <h2>Timeline settings</h2>

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors[.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -67,7 +67,9 @@ class Flags {
 
   static bool Initialized() { return initialized_; }
 
+#ifndef PRODUCT
   static void PrintJSON(JSONStream* js);
+#endif  // !PRODUCT
 
   static bool SetFlag(const char* name,
                       const char* value,
@@ -90,7 +92,9 @@ class Flags {
 
   static void PrintFlags();
 
+#ifndef PRODUCT
   static void PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag);
+#endif  // !PRODUCT
 
   // Testing needs direct access to private methods.
   friend void Dart_TestParseFlags();

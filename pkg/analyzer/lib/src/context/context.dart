@@ -13,8 +13,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/plugin/task.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -34,11 +34,19 @@ import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/manager.dart';
+import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
+
+/**
+ * The descriptor used to associate exclude patterns with an analysis context in
+ * configuration data.
+ */
+final ListResultDescriptor<String> CONTEXT_EXCLUDES =
+    new ListResultDescriptorImpl('CONTEXT_EXCLUDES', const <String>[]);
 
 /**
  * Type of callback functions used by PendingFuture. Functions of this type
@@ -157,6 +165,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * A list containing sources for which data should not be flushed.
    */
   List<Source> _priorityOrder = <Source>[];
+
+  CacheConsistencyValidatorImpl _cacheConsistencyValidator;
 
   /**
    * A map from all sources for which there are futures pending to a list of
@@ -282,14 +292,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             ? this._options.implicitCasts != options.implicitCasts
             : false) ||
         ((options is AnalysisOptionsImpl)
+            ? this._options.nonnullableTypes != options.nonnullableTypes
+            : false) ||
+        ((options is AnalysisOptionsImpl)
             ? this._options.implicitDynamic != options.implicitDynamic
             : false) ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
         this._options.enableAsync != options.enableAsync ||
-        this._options.enableSuperMixins != options.enableSuperMixins ||
-        this._options.enableTrailingCommas != options.enableTrailingCommas;
+        this._options.enableSuperMixins != options.enableSuperMixins;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
       this._options.cacheSize = cacheSize;
@@ -305,7 +317,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableAsync = options.enableAsync;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
-    this._options.enableTrailingCommas = options.enableTrailingCommas;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
     this._options.incrementalApi = options.incrementalApi;
@@ -318,6 +329,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
       this._options.implicitCasts = options.implicitCasts;
+      this._options.nonnullableTypes = options.nonnullableTypes;
       this._options.implicitDynamic = options.implicitDynamic;
     }
     if (needsRecompute) {
@@ -346,6 +358,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     driver.reset();
   }
+
+  CacheConsistencyValidator get cacheConsistencyValidator =>
+      _cacheConsistencyValidator ??= new CacheConsistencyValidatorImpl(this);
 
   @override
   set contentCache(ContentCache value) {
@@ -1236,6 +1251,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(ResultDescriptor result, value) {
         entry.setValue(result, value, TargetedResult.EMPTY_LIST);
       }
+
       setValue(BUILD_DIRECTIVES_ERRORS, AnalysisError.NO_ERRORS);
       setValue(BUILD_LIBRARY_ERRORS, AnalysisError.NO_ERRORS);
       // CLASS_ELEMENTS
@@ -1372,57 +1388,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT13, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
-  }
-
-  @override
-  bool validateCacheConsistency() {
-    int consistencyCheckStart = JavaSystem.nanoTime();
-    HashSet<Source> changedSources = new HashSet<Source>();
-    HashSet<Source> missingSources = new HashSet<Source>();
-    for (Source source in _cache.sources) {
-      CacheEntry entry = _cache.get(source);
-      int sourceTime = getModificationStamp(source);
-      if (sourceTime != entry.modificationTime) {
-        changedSources.add(source);
-      }
-      if (entry.exception != null) {
-        if (!exists(source)) {
-          missingSources.add(source);
-        }
-      }
-    }
-    for (Source source in changedSources) {
-      _sourceChanged(source);
-    }
-    int removalCount = 0;
-    for (Source source in missingSources) {
-      if (getLibrariesContaining(source).isEmpty &&
-          getLibrariesDependingOn(source).isEmpty) {
-        _removeFromCache(source);
-        removalCount++;
-      }
-    }
-    int consistencyCheckEnd = JavaSystem.nanoTime();
-    if (changedSources.length > 0 || missingSources.length > 0) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write("Consistency check took ");
-      buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
-      buffer.writeln(" ms and found");
-      buffer.write("  ");
-      buffer.write(changedSources.length);
-      buffer.writeln(" inconsistent entries");
-      buffer.write("  ");
-      buffer.write(missingSources.length);
-      buffer.write(" missing sources (");
-      buffer.write(removalCount);
-      buffer.writeln(" removed");
-      for (Source source in missingSources) {
-        buffer.write("    ");
-        buffer.writeln(source.fullName);
-      }
-      _logInformation(buffer.toString());
-    }
-    return changedSources.length > 0;
   }
 
   @override
@@ -1803,6 +1768,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       return false;
     }
+
     return _refHtml(librarySource);
   }
 
@@ -1871,21 +1837,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // (For example, in getLibrariesContaining.)
     entry.setState(CONTENT, CacheState.FLUSHED);
 
-    if (oldContents != null) {
-      // Fast path if the content is the same as it was last time.
-      try {
-        TimestampedData<String> fileContents = getContents(source);
-        if (fileContents.data == oldContents) {
-          int time = fileContents.modificationTime;
-          for (CacheEntry entry in _entriesFor(source)) {
-            entry.modificationTime = time;
-          }
-          return;
-        }
-      } catch (e) {
-        entry.modificationTime = -1;
+    // Prepare the new contents.
+    TimestampedData<String> fileContents;
+    try {
+      fileContents = getContents(source);
+    } catch (e) {}
+
+    // Update 'modificationTime' - we are going to update the entry.
+    {
+      int time = fileContents?.modificationTime ?? -1;
+      for (CacheEntry entry in _entriesFor(source)) {
+        entry.modificationTime = time;
       }
     }
+
+    // Fast path if the contents is the same as it was last time.
+    if (oldContents != null && fileContents?.data == oldContents) {
+      return;
+    }
+
     // We need to invalidate the cache.
     {
       if (analysisOptions.finerGrainedInvalidation &&
@@ -1893,9 +1863,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // TODO(scheglov) Incorrect implementation in general.
         entry.setState(TOKEN_STREAM, CacheState.FLUSHED);
         entry.setState(PARSED_UNIT, CacheState.FLUSHED);
-        List<Source> librarySources = getLibrariesContaining(source);
-        if (librarySources.length == 1) {
-          Source librarySource = librarySources[0];
+        SourceKind sourceKind = getKindOf(source);
+        List<Source> partSources = getResult(source, INCLUDED_PARTS);
+        if (sourceKind == SourceKind.LIBRARY && partSources.isEmpty) {
+          Source librarySource = source;
           // Try to find an old unit which has element model.
           CacheEntry unitEntry =
               getCacheEntry(new LibrarySpecificUnit(librarySource, source));
@@ -1910,18 +1881,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             builder.build();
             CompilationUnitElementDelta unitDelta = builder.unitDelta;
             if (!unitDelta.hasDirectiveChange) {
+              unitEntry.setValueIncremental(
+                  COMPILATION_UNIT_CONSTANTS, builder.unitConstants, false);
               DartDelta dartDelta = new DartDelta(source);
-              dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
               unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
               unitDelta.removedDeclarations.forEach(dartDelta.elementChanged);
               unitDelta.classDeltas.values.forEach(dartDelta.classChanged);
-              // Add other names in the library that are changed transitively.
-              {
-                ReferencedNames referencedNames = new ReferencedNames(source);
-                new ReferencedNamesBuilder(referencedNames).build(oldUnit);
-                dartDelta.addChangedElements(referencedNames);
-              }
-              // Invalidate using the prepared DartDelta.
               entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
               return;
             }
@@ -2046,6 +2011,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // schedule
       dartWorkManager.unitIncrementallyResolved(librarySource, unitSource);
       // OK
+      driver.reset();
       return true;
     });
   }
@@ -2094,6 +2060,73 @@ class AnalysisFutureHelper<T> {
       _context.dartWorkManager.addPriorityResult(_target, _descriptor);
     }
     return pendingFuture.future;
+  }
+}
+
+class CacheConsistencyValidatorImpl implements CacheConsistencyValidator {
+  final AnalysisContextImpl context;
+
+  CacheConsistencyValidatorImpl(this.context);
+
+  @override
+  List<Source> getSourcesToComputeModificationTimes() {
+    return context._privatePartition.sources.toList();
+  }
+
+  @override
+  bool sourceModificationTimesComputed(List<Source> sources, List<int> times) {
+    Stopwatch timer = new Stopwatch()..start();
+    HashSet<Source> changedSources = new HashSet<Source>();
+    HashSet<Source> removedSources = new HashSet<Source>();
+    for (int i = 0; i < sources.length; i++) {
+      Source source = sources[i];
+      // When a source is in the content cache,
+      // its modification time in the file system does not matter.
+      if (context._contentCache.getModificationStamp(source) != null) {
+        continue;
+      }
+      // When we were not able to compute the modification time in the
+      // file system, there is nothing to compare with, so skip the source.
+      int sourceTime = times[i];
+      if (sourceTime == null) {
+        continue;
+      }
+      // Compare with the modification time in the cache entry.
+      CacheEntry entry = context._privatePartition.get(source);
+      if (entry != null) {
+        if (entry.modificationTime != sourceTime) {
+          if (sourceTime == -1) {
+            removedSources.add(source);
+            PerformanceStatistics
+                .cacheConsistencyValidationStatistics.numOfRemoved++;
+          } else {
+            changedSources.add(source);
+            PerformanceStatistics
+                .cacheConsistencyValidationStatistics.numOfChanged++;
+          }
+        }
+      }
+    }
+    for (Source source in changedSources) {
+      context._sourceChanged(source);
+    }
+    for (Source source in removedSources) {
+      context._sourceRemoved(source);
+    }
+    if (changedSources.length > 0 || removedSources.length > 0) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Consistency check took ");
+      buffer.write(timer.elapsedMilliseconds);
+      buffer.writeln(" ms and found");
+      buffer.write("  ");
+      buffer.write(changedSources.length);
+      buffer.writeln(" changed sources");
+      buffer.write("  ");
+      buffer.write(removedSources.length);
+      buffer.write(" removed sources.");
+      context._logInformation(buffer.toString());
+    }
+    return changedSources.isNotEmpty || removedSources.isNotEmpty;
   }
 }
 

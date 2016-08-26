@@ -9,6 +9,7 @@
 
 #include <malloc.h>  // NOLINT
 #include <process.h>  // NOLINT
+#include <psapi.h>  // NOLINT
 #include <time.h>  // NOLINT
 
 #include "platform/utils.h"
@@ -232,6 +233,13 @@ int OS::NumberOfAvailableProcessors() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
   return info.dwNumberOfProcessors;
+}
+
+
+uintptr_t OS::MaxRSS() {
+  PROCESS_MEMORY_COUNTERS pmc;
+  GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+  return pmc.PeakWorkingSetSize;
 }
 
 

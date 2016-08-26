@@ -26,6 +26,9 @@ input_element_test/attributes: Fail # Issue 21555
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 mirrors_js_typed_interop_test: Pass, Slow
+js_type_test/dynamic-null-not-Foo: Fail  # Issue 26838
+js_type_test/dynamic-String-not-Foo: Fail  # Issue 26838
+js_type_test/dynamic-String-not-dynamic-Foo: Fail  # Issue 26838
 
 
 [ $compiler == dart2js && $checked ]
@@ -47,7 +50,6 @@ js_test/JsArray: RuntimeError # Issue 26197
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 fontface_test: Fail # Fontface not supported on these.
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
-element_animate_test: Fail # Element.animate not supported on these browsers.
 
 [ $compiler == none && $runtime == dartium && $system == macos]
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
@@ -112,6 +114,9 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out.
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 custom/*: Pass, Timeout # Issue 26789
+custom_elements_test: Pass, Timeout # Issue 26789
+custom_element_method_clash_test: Pass, Timeout # Issue 26789
+custom_element_name_clash_test: Pass, Timeout # Issue 26789
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
@@ -144,6 +149,9 @@ wheelevent_test: RuntimeError # Issue 23437
 text_event_test: RuntimeError # Issue 23437
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
+js_util_test/callConstructor: RuntimeError # Issue 26978
+element_animate_test: Fail # Element.animate not supported on these browsers.
+gamepad_test: Fail # IE does not support Navigator.getGamepads()
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
@@ -167,6 +175,8 @@ input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
+js_util_test/hasProperty: RuntimeError # Issue 26978
+js_util_test/getProperty: RuntimeError # Issue 26978
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
@@ -260,6 +270,8 @@ canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not su
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 element_test: Pass, Fail # Issue 21434
 mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
+element_animate_test: Fail # Element.animate not supported on these browsers.
+gamepad_test: Fail # Safari does not support Navigator.getGamepads()
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -309,6 +321,7 @@ xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 webgl_1_test: Pass, Fail   # Issue 8219
 text_event_test: Fail # Issue 17893
+element_animate_test/timing_dict: RuntimeError # Issue 26730
 
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -338,14 +351,29 @@ websql_test/supported: Fail
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
 
+[ $runtime == drt ]
+webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.
+
+[ $runtime == dartium && ($system == windows || $system == linux) ]
+webgl_extensions_test: Fail # WebGL extension tests fail on Dartium without graphics. This is dependent on our bot configuration.
+
+[ $runtime == chrome && ($system == windows || $system == linux) ]
+webgl_extensions_test: Fail # WebGL extension tests fail without graphics. This is dependent on our bot configuration.
+
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
+# TODO(sra): Change these tests to use a same-origin JavaScript script file.
 event_customevent_test: SkipByDesign
 js_interop_1_test: SkipByDesign
 js_test: SkipByDesign
 js_array_test: SkipByDesign
+js_util_test: SkipByDesign
+js_typed_interop_bind_this_test: SkipByDesign
+js_typed_interop_callable_object_test: SkipByDesign
 js_typed_interop_test: SkipByDesign
 js_typed_interop_default_arg_test: SkipByDesign
+js_typed_interop_type_test: SkipByDesign
+js_typed_interop_window_property_test: SkipByDesign
 js_function_getter_test: SkipByDesign
 js_function_getter_trust_types_test: SkipByDesign
 js_dart_to_string_test: SkipByDesign

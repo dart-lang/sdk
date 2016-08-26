@@ -15,9 +15,11 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -137,7 +139,11 @@ class PackageBundleAssembler {
   final List<LinkedLibraryBuilder> _linkedLibraries = <LinkedLibraryBuilder>[];
   final List<String> _unlinkedUnitUris = <String>[];
   final List<UnlinkedUnitBuilder> _unlinkedUnits = <UnlinkedUnitBuilder>[];
+  final Map<String, UnlinkedUnitBuilder> _unlinkedUnitMap =
+      <String, UnlinkedUnitBuilder>{};
   final List<String> _unlinkedUnitHashes;
+  final List<PackageDependencyInfoBuilder> _dependencies =
+      <PackageDependencyInfoBuilder>[];
   final bool _excludeHashes;
 
   /**
@@ -166,9 +172,11 @@ class PackageBundleAssembler {
    */
   void addFallbackUnit(Source source) {
     String uri = source.uri.toString();
+    UnlinkedUnitBuilder unit = new UnlinkedUnitBuilder(
+        fallbackModePath: path.relative(source.fullName));
     _unlinkedUnitUris.add(uri);
-    _unlinkedUnits.add(new UnlinkedUnitBuilder(
-        fallbackModePath: path.relative(source.fullName)));
+    _unlinkedUnits.add(unit);
+    _unlinkedUnitMap[uri] = unit;
   }
 
   void addLinkedLibrary(String uri, LinkedLibraryBuilder library) {
@@ -185,6 +193,7 @@ class PackageBundleAssembler {
       String uri, UnlinkedUnitBuilder unit, String hash) {
     _unlinkedUnitUris.add(uri);
     _unlinkedUnits.add(unit);
+    _unlinkedUnitMap[uri] = unit;
     _unlinkedUnitHashes?.add(hash);
   }
 
@@ -199,7 +208,17 @@ class PackageBundleAssembler {
         unlinkedUnits: _unlinkedUnits,
         unlinkedUnitHashes: _unlinkedUnitHashes,
         majorVersion: currentMajorVersion,
-        minorVersion: currentMinorVersion);
+        minorVersion: currentMinorVersion,
+        dependencies: _dependencies,
+        apiSignature: _computeApiSignature());
+  }
+
+  /**
+   * Use the dependency information in [summaryDataStore] to populate the
+   * dependencies in the package bundle being assembled.
+   */
+  void recordDependencies(SummaryDataStore summaryDataStore) {
+    _dependencies.addAll(summaryDataStore.dependencies);
   }
 
   /**
@@ -215,9 +234,25 @@ class PackageBundleAssembler {
     _linkedLibraries.add(libraryResult.linked);
     _unlinkedUnitUris.addAll(libraryResult.unitUris);
     _unlinkedUnits.addAll(libraryResult.unlinkedUnits);
+    for (int i = 0; i < libraryResult.unitUris.length; i++) {
+      _unlinkedUnitMap[libraryResult.unitUris[i]] =
+          libraryResult.unlinkedUnits[i];
+    }
     for (Source source in libraryResult.unitSources) {
       _unlinkedUnitHashes?.add(_hash(source.contents.data));
     }
+  }
+
+  /**
+   * Compute the API signature for this package bundle.
+   */
+  String _computeApiSignature() {
+    ApiSignature apiSignature = new ApiSignature();
+    for (String unitUri in _unlinkedUnitMap.keys.toList()..sort()) {
+      apiSignature.addString(unitUri);
+      _unlinkedUnitMap[unitUri].collectApiSignature(apiSignature);
+    }
+    return apiSignature.toHex();
   }
 
   /**
@@ -445,6 +480,8 @@ class _CompilationUnitSerializer {
     }
     unlinkedUnit.variables = variables;
     unlinkedUnit.references = unlinkedReferences;
+    unlinkedUnit.lineStarts =
+        compilationUnit.context?.computeLineInfo(unitSource)?.lineStarts;
     linkedUnit.references = linkedReferences;
     unitUri = compilationUnit.source.uri.toString();
   }

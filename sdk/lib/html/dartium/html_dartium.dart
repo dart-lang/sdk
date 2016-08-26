@@ -12112,11 +12112,11 @@ class DomRectReadOnly extends DartHtmlDomObject implements Rectangle {
            another.y <= top + height;
   }
 
-  Point get topLeft => new Point(this.left, this.top);
-  Point get topRight => new Point(this.left + this.width, this.top);
-  Point get bottomRight => new Point(this.left + this.width,
+  Point get topLeft => new Point/*<num>*/(this.left, this.top);
+  Point get topRight => new Point/*<num>*/(this.left + this.width, this.top);
+  Point get bottomRight => new Point/*<num>*/(this.left + this.width,
       this.top + this.height);
-  Point get bottomLeft => new Point(this.left,
+  Point get bottomLeft => new Point/*<num>*/(this.left,
       this.top + this.height);
 
     // To suppress missing implicit constructor warnings.
@@ -14449,13 +14449,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
     bool sameAsParent = current == parent;
     bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
     if (current == null || sameAsParent) {
-      if (foundAsParent) return new Point(0, 0);
+      if (foundAsParent) return new Point/*<num>*/(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
     }
     Element parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
-    return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
+    return new Point/*<num>*/(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
 
   static HtmlDocument _parseDocument;
@@ -26837,14 +26837,14 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.clientX')
   @DomName('MouseEvent.clientY')
-  Point get client => new Point(_clientX, _clientY);
+  Point get client => new Point/*<num>*/(_clientX, _clientY);
 
   @DomName('MouseEvent.movementX')
   @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()
-  Point get movement => new Point(_movementX, _movementY);
+  Point get movement => new Point/*<num>*/(_movementX, _movementY);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -26853,19 +26853,19 @@ class MouseEvent extends UIEvent {
    * after the event has fired or if the element has CSS transforms affecting
    * it.
    */
-  Point get offset => new Point(_offsetX, _offsetY);
+  Point get offset => new Point/*<num>*/(_offsetX, _offsetY);
 
   @DomName('MouseEvent.screenX')
   @DomName('MouseEvent.screenY')
-  Point get screen => new Point(_screenX, _screenY);
+  Point get screen => new Point/*<num>*/(_screenX, _screenY);
 
   @DomName('MouseEvent.layerX')
   @DomName('MouseEvent.layerY')
-  Point get layer => new Point(_layerX, _layerY);
+  Point get layer => new Point/*<num>*/(_layerX, _layerY);
 
   @DomName('MouseEvent.pageX')
   @DomName('MouseEvent.pageY')
-  Point get page => new Point(_pageX, _pageY);
+  Point get page => new Point/*<num>*/(_pageX, _pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36962,15 +36962,15 @@ class Touch extends DartHtmlDomObject {
 
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
-  Point get client => new Point(__clientX, __clientY);
+  Point get client => new Point/*<num>*/(__clientX, __clientY);
 
   @DomName('Touch.pageX')
   @DomName('Touch.pageY')
-  Point get page => new Point(__pageX, __pageY);
+  Point get page => new Point/*<num>*/(__pageX, __pageY);
 
   @DomName('Touch.screenX')
   @DomName('Touch.screenY')
-  Point get screen => new Point(__screenX, __screenY);
+  Point get screen => new Point/*<num>*/(__screenX, __screenY);
 
   @DomName('Touch.radiusX')
   @DocsEditable()
@@ -41794,11 +41794,11 @@ class _ClientRect extends DartHtmlDomObject implements Rectangle {
            another.y <= top + height;
   }
 
-  Point get topLeft => new Point(this.left, this.top);
-  Point get topRight => new Point(this.left + this.width, this.top);
-  Point get bottomRight => new Point(this.left + this.width,
+  Point get topLeft => new Point/*<num>*/(this.left, this.top);
+  Point get topRight => new Point/*<num>*/(this.left + this.width, this.top);
+  Point get bottomRight => new Point/*<num>*/(this.left + this.width,
       this.top + this.height);
-  Point get bottomLeft => new Point(this.left,
+  Point get bottomLeft => new Point/*<num>*/(this.left,
       this.top + this.height);
 
     // To suppress missing implicit constructor warnings.

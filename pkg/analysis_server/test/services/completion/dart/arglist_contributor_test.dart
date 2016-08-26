@@ -81,10 +81,11 @@ class ArgListContributorTest extends DartCompletionContributorTest {
    * the only suggestions.
    */
   void assertSuggestArgumentsAndTypes(
-      {Map<String, String> namedArgumentsWithTypes}) {
+      {Map<String, String> namedArgumentsWithTypes, bool includeColon: true}) {
     List<CompletionSuggestion> expected = new List<CompletionSuggestion>();
     namedArgumentsWithTypes.forEach((String name, String type) {
-      expected.add(assertSuggest('$name: ',
+      String completion = includeColon ? '$name: ' : name;
+      expected.add(assertSuggest(completion,
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
           relevance: DART_RELEVANCE_NAMED_PARAMETER,
           paramName: name,
@@ -432,7 +433,8 @@ class A { const A(int one, int two, int three, {int four, String five:
     addTestSource('main() { int.parse("16", r^: 16);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'},
+        includeColon: false);
   }
 
   test_ArgumentList_imported_function_named_param_label2() async {

@@ -491,9 +491,9 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
     return source;
   }
   if (IsSnapshottingForPrecompilation()) {
-    return Dart_LoadScript(resolved_uri, source, 0, 0);
+    return Dart_LoadScript(resolved_uri, Dart_Null(), source, 0, 0);
   } else {
-    return Dart_LoadLibrary(resolved_uri, source, 0, 0);
+    return Dart_LoadLibrary(resolved_uri, Dart_Null(), source, 0, 0);
   }
 }
 
@@ -558,7 +558,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   if (libraryBuiltinId != Builtin::kInvalidLibrary) {
     // Special case for parting sources of a builtin library.
     if (tag == Dart_kSourceTag) {
-      return Dart_LoadSource(library, url,
+      return Dart_LoadSource(library, url, Dart_Null(),
           Builtin::PartSource(libraryBuiltinId, url_string), 0, 0);
     }
     ASSERT(tag == Dart_kImportTag);
@@ -579,10 +579,10 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     return source;
   }
   if (tag == Dart_kImportTag) {
-    return Dart_LoadLibrary(url, source, 0, 0);
+    return Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
   } else {
     ASSERT(tag == Dart_kSourceTag);
-    return Dart_LoadSource(library, url, source, 0, 0);
+    return Dart_LoadSource(library, url, Dart_Null(), source, 0, 0);
   }
 }
 
@@ -721,7 +721,8 @@ static void SetupStubNativeResolver(size_t lib_index,
              lib_index);
     Dart_Handle script_url = Dart_NewStringFromCString(load_buffer);
     free(load_buffer);
-    Dart_Handle loaded = Dart_LoadLibrary(script_url, script_handle, 0, 0);
+    Dart_Handle loaded = Dart_LoadLibrary(script_url, Dart_Null(),
+                                          script_handle, 0, 0);
     DART_CHECK_VALID(loaded);
 
     // Do a fresh lookup
@@ -1169,7 +1170,10 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   CHECK_RESULT(result);
   ASSERT(Dart_IsServiceIsolate(isolate));
   // Load embedder specific bits and return. Will not start http server.
-  if (!VmService::Setup("127.0.0.1", -1, false /* running_precompiled */)) {
+  if (!VmService::Setup("127.0.0.1",
+                        -1,
+                        false /* running_precompiled */,
+                        false /* server dev mode */)) {
     *error = strdup(VmService::GetErrorMessage());
     return NULL;
   }
@@ -1201,6 +1205,7 @@ int main(int argc, char** argv) {
   }
 
   Thread::InitOnce();
+  Loader::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
   // Start event handler.
   TimerUtils::InitOnce();
@@ -1226,21 +1231,20 @@ int main(int argc, char** argv) {
   // core library snapshot generation. However for the case when a full
   // snasphot is generated from a script (app_script_name != NULL) we will
   // need the service isolate to resolve URI and load code.
-  char* error = Dart_Initialize(
-      NULL,
-      NULL,
-      NULL,
-      (app_script_name != NULL) ? CreateServiceIsolate : NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      DartUtils::OpenFile,
-      DartUtils::ReadFile,
-      DartUtils::WriteFile,
-      DartUtils::CloseFile,
-      DartUtils::EntropySource,
-      NULL);
+
+  Dart_InitializeParams init_params;
+  memset(&init_params, 0, sizeof(init_params));
+  init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  if (app_script_name != NULL) {
+    init_params.create = CreateServiceIsolate;
+  }
+  init_params.file_open = DartUtils::OpenFile;
+  init_params.file_read = DartUtils::ReadFile;
+  init_params.file_write = DartUtils::WriteFile;
+  init_params.file_close = DartUtils::CloseFile;
+  init_params.entropy_source = DartUtils::EntropySource;
+
+  char* error = Dart_Initialize(&init_params);
   if (error != NULL) {
     Log::PrintErr("VM initialization failed: %s\n", error);
     free(error);

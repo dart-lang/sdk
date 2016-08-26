@@ -58,15 +58,9 @@ List<Element> getClassMembers(ClassElement clazz, [String name]) {
  * Returns a [Set] with direct subclasses of [seed].
  */
 Future<Set<ClassElement>> getDirectSubClasses(
-    SearchEngine searchEngine, ClassElement seed) {
-  return searchEngine.searchSubtypes(seed).then((List<SearchMatch> matches) {
-    Set<ClassElement> subClasses = new HashSet<ClassElement>();
-    for (SearchMatch match in matches) {
-      ClassElement subClass = match.element;
-      subClasses.add(subClass);
-    }
-    return subClasses;
-  });
+    SearchEngine searchEngine, ClassElement seed) async {
+  List<SearchMatch> matches = await searchEngine.searchSubtypes(seed);
+  return matches.map((match) => match.element).toSet();
 }
 
 /**
@@ -74,17 +68,16 @@ Future<Set<ClassElement>> getDirectSubClasses(
  *         their subclasses.
  */
 Future<Set<ClassMemberElement>> getHierarchyMembers(
-    SearchEngine searchEngine, ClassMemberElement member) {
+    SearchEngine searchEngine, ClassMemberElement member) async {
   Set<ClassMemberElement> result = new HashSet<ClassMemberElement>();
-  // constructor
-  if (member is ConstructorElement) {
+  // static elements
+  if (member.isStatic || member is ConstructorElement) {
     result.add(member);
     return new Future.value(result);
   }
   // method, field, etc
   String name = member.displayName;
   ClassElement memberClass = member.enclosingElement;
-  List<Future> futures = <Future>[];
   Set<ClassElement> searchClasses = getSuperClasses(memberClass);
   searchClasses.add(memberClass);
   for (ClassElement superClass in searchClasses) {
@@ -93,23 +86,19 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
       continue;
     }
     // check all sub- classes
-    var subClassFuture = getSubClasses(searchEngine, superClass);
-    var membersFuture = subClassFuture.then((Set<ClassElement> subClasses) {
-      subClasses.add(superClass);
-      for (ClassElement subClass in subClasses) {
-        List<Element> subClassMembers = getChildren(subClass, name);
-        for (Element member in subClassMembers) {
-          if (member is ClassMemberElement) {
-            result.add(member);
-          }
+    Set<ClassElement> subClasses =
+        await getSubClasses(searchEngine, superClass);
+    subClasses.add(superClass);
+    for (ClassElement subClass in subClasses) {
+      List<Element> subClassMembers = getChildren(subClass, name);
+      for (Element member in subClassMembers) {
+        if (member is ClassMemberElement) {
+          result.add(member);
         }
       }
-    });
-    futures.add(membersFuture);
+    }
   }
-  return Future.wait(futures).then((_) {
-    return result;
-  });
+  return result;
 }
 
 /**
@@ -133,15 +122,9 @@ List<Element> getMembers(ClassElement clazz) {
  * Returns a [Set] with all direct and indirect subclasses of [seed].
  */
 Future<Set<ClassElement>> getSubClasses(
-    SearchEngine searchEngine, ClassElement seed) {
-  return searchEngine.searchAllSubtypes(seed).then((List<SearchMatch> matches) {
-    Set<ClassElement> ancestors = new HashSet<ClassElement>();
-    for (SearchMatch match in matches) {
-      ClassElement ancestor = match.element;
-      ancestors.add(ancestor);
-    }
-    return ancestors;
-  });
+    SearchEngine searchEngine, ClassElement seed) async {
+  List<SearchMatch> matches = await searchEngine.searchAllSubtypes(seed);
+  return matches.map((match) => match.element).toSet();
 }
 
 /**
@@ -167,8 +150,8 @@ Set<ClassElement> getSuperClasses(ClassElement seed) {
       }
     }
     // append interfaces
-    for (InterfaceType intf in current.interfaces) {
-      queue.add(intf.element);
+    for (InterfaceType interface in current.interfaces) {
+      queue.add(interface.element);
     }
   }
   // we don't need "seed" itself

@@ -27,9 +27,34 @@ import 'test_helper.dart';
 
 const TEST_SOURCES = const <String, String>{
   'main.dart': '''
-import 'a.dart' deferred as a;
+import 'library.dart';
+import 'deferred_library.dart' deferred as prefix;
+
+asyncMethod() async {}
+asyncStarMethod() async* {}
+syncStarMethod() sync* {}
+get asyncGetter async {}
+get asyncStarGetter async* {}
+get syncStarGetter sync* {}
+
+genericMethod<T>() {}
+
+class Class1 {
+  factory Class1.deferred() = prefix.DeferredClass;
+  factory Class1.unresolved() = Unresolved;
+}
 ''',
-  'a.dart': '''
+  'deferred_library.dart': '''
+class DeferredClass {
+}
+
+get getter => 0;
+set setter(_) {}
+get property => 0;
+set property(_) {}
+''',
+  'library.dart': '''
+class Type {}
 ''',
 };
 
@@ -65,7 +90,7 @@ main(List<String> arguments) {
     CompilationResult result = await runCompiler(
         memorySourceFiles: sourceFiles,
         entryPoint: entryPoint,
-        options: [Flags.analyzeAll]);
+        options: [Flags.analyzeAll, Flags.genericMethodSyntax]);
     Compiler compiler = result.compiler;
     testSerialization(
         compiler.libraryLoader.libraries,
@@ -277,6 +302,9 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
 
   void visit(Element element1, Element element2) {
     if (element1 == null && element2 == null) return;
+    if (element1 == null || element2 == null) {
+      throw currentCheck;
+    }
     element1 = element1.declaration;
     element2 = element2.declaration;
     if (element1 == element2) return;
@@ -333,22 +361,35 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         LibrarySerializer.getCompilationUnits(element1),
         LibrarySerializer.getCompilationUnits(element2));
 
-    checkElementListIdentities(
+    checkElementLists(
         element1, element2, 'imports',
         LibrarySerializer.getImports(element1),
         LibrarySerializer.getImports(element2));
-    checkElementListIdentities(
+    checkElementLists(
         element1, element2, 'exports', element1.exports, element2.exports);
 
+    List<Element> imported1 = LibrarySerializer.getImportedElements(element1);
+    List<Element> imported2 = LibrarySerializer.getImportedElements(element2);
     checkElementListIdentities(
-        element1, element2, 'importScope',
-        LibrarySerializer.getImportedElements(element1),
-        LibrarySerializer.getImportedElements(element2));
+        element1, element2, 'importScope', imported1, imported2);
 
     checkElementListIdentities(
         element1, element2, 'exportScope',
         LibrarySerializer.getExportedElements(element1),
         LibrarySerializer.getExportedElements(element2));
+
+    for (int index = 0; index < imported1.length; index++) {
+      checkImportsFor(element1, element2, imported1[index], imported2[index]);
+    }
+  }
+
+  void checkImportsFor(Element element1, Element element2,
+      Element import1, Element import2) {
+    List<ImportElement> imports1 = element1.library.getImportsFor(import1);
+    List<ImportElement> imports2 = element2.library.getImportsFor(import2);
+    checkElementListIdentities(
+        element1, element2, 'importsFor($import1/$import2)',
+        imports1, imports2);
   }
 
   @override
@@ -639,6 +680,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'functionSignature.orderedOptionalParameters',
         element1.functionSignature.orderedOptionalParameters,
         element2.functionSignature.orderedOptionalParameters);
+    checkTypeLists(element1, element2, 'typeVariables',
+        element1.typeVariables, element2.typeVariables);
   }
 
   @override
@@ -678,6 +721,17 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.isRedirectingFactory, element2.isRedirectingFactory);
     checkElementIdentities(element1, element2, 'effectiveTarget',
         element1.effectiveTarget, element2.effectiveTarget);
+    if (element1.isRedirectingFactory) {
+      checkElementIdentities(element1, element2, 'immediateRedirectionTarget',
+          element1.immediateRedirectionTarget,
+          element2.immediateRedirectionTarget);
+      checkElementIdentities(element1, element2, 'redirectionDeferredPrefix',
+          element1.redirectionDeferredPrefix,
+          element2.redirectionDeferredPrefix);
+      check(element1, element2, 'isEffectiveTargetMalformed',
+          element1.isEffectiveTargetMalformed,
+          element2.isEffectiveTargetMalformed);
+    }
     checkElementIdentities(element1, element2, 'definingConstructor',
         element1.definingConstructor, element2.definingConstructor);
     check(
@@ -817,6 +871,19 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
       checkElementProperties(element1, element2,
           'loadLibrary', element1.loadLibrary, element2.loadLibrary);
     }
-    // TODO(johnniwinther): Check members.
+    element1.forEachLocalMember((Element member1) {
+      String name = member1.name;
+      Element member2 = element2.lookupLocalMember(name);
+      checkElementIdentities(element1, element2, 'lookupLocalMember:$name',
+          member1, member2);
+      checkImportsFor(element1, element2, member1, member2);
+    });
+  }
+
+  @override
+  void visitErroneousElement(
+      ErroneousElement element1, ErroneousElement element2) {
+    check(element1, element2, 'messageKind',
+        element1.messageKind, element2.messageKind);
   }
 }

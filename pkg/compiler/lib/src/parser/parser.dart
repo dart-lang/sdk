@@ -4,8 +4,8 @@
 
 library dart2js.parser;
 
-import '../options.dart' show ParserOptions;
 import '../common.dart';
+import '../options.dart' show ParserOptions;
 import '../tokens/keyword.dart' show Keyword;
 import '../tokens/precedence.dart' show PrecedenceInfo;
 import '../tokens/precedence_constants.dart'
@@ -58,7 +58,6 @@ import '../tokens/token_constants.dart'
         STRING_TOKEN;
 import '../util/characters.dart' as Characters show $CLOSE_CURLY_BRACKET;
 import '../util/util.dart' show Link;
-
 import 'listener.dart' show Listener;
 
 class FormalParameterType {
@@ -424,13 +423,12 @@ class Parser {
     listener.beginFormalParameters(begin);
     expect('(', token);
     int parameterCount = 0;
-    if (optional(')', token.next)) {
-      listener.endFormalParameters(parameterCount, begin, token.next);
-      return token.next.next;
-    }
     do {
-      ++parameterCount;
       token = token.next;
+      if (optional(')', token)) {
+        break;
+      }
+      ++parameterCount;
       String value = token.stringValue;
       if (identical(value, '[')) {
         token = parseOptionalFormalParameters(token, false);
@@ -495,11 +493,23 @@ class Parser {
     int parameterCount = 0;
     do {
       token = token.next;
+      if (isNamed && optional('}', token)) {
+        break;
+      } else if (!isNamed && optional(']', token)) {
+        break;
+      }
       var type =
           isNamed ? FormalParameterType.NAMED : FormalParameterType.POSITIONAL;
       token = parseFormalParameter(token, type);
       ++parameterCount;
     } while (optional(',', token));
+    if (parameterCount == 0) {
+      listener.reportError(
+          token,
+          isNamed
+              ? MessageKind.EMPTY_NAMED_PARAMETER_LIST
+              : MessageKind.EMPTY_OPTIONAL_PARAMETER_LIST);
+    }
     listener.endOptionalFormalParameters(parameterCount, begin, token);
     if (isNamed) {
       return expect('}', token);
@@ -2565,6 +2575,10 @@ class Parser {
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     do {
+      if (optional(')', token.next)) {
+        token = token.next;
+        break;
+      }
       Token colon = null;
       if (optional(':', token.next.next)) {
         token = parseIdentifier(token.next);

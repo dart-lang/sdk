@@ -12,7 +12,6 @@ import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-
 import 'access_semantics.dart';
 import 'operators.dart';
 import 'semantic_visitor.dart';
@@ -1504,7 +1503,7 @@ class IndexSetIfNullStructure<R, A> implements SendStructure<R, A> {
   IndexSetIfNullStructure(this.semantics);
 
   @override
-  SendStructureKind get kind => SendStructureKind.INDEX_SET;
+  SendStructureKind get kind => SendStructureKind.INDEX_SET_IF_NULL;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {

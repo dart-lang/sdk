@@ -655,9 +655,11 @@ The body of a function introduces a new scope known as the function's {\em  body
 It is a compile-time error if a formal parameter is declared as a constant variable (\ref{variables}).
 
 \begin{grammar}
-{\bf formalParameterList:}`(' `)';
- `(' normalFormalParameters ( `,'  optionalFormalParameters)? `)';
-  `(' optionalFormalParameters `)'
+{\bf formalParameterList:}
+     `(' `)';
+     `(' normalFormalParameters `,'? `)';
+     `(' normalFormalParameters `,'  optionalFormalParameters `)';
+     `(' optionalFormalParameters `)'
    .
 %\end{grammar}
 %}
@@ -673,17 +675,20 @@ It is a compile-time error if a formal parameter is declared as a constant varia
       normalFormalParameter (`,' normalFormalParameter)*
     .
 
-{\bf optionalFormalParameters:}optionalPositionalFormalParameters;
+{\bf optionalFormalParameters:}
+      optionalPositionalFormalParameters;
       namedFormalParameters
     .
 
 {\bf optionalPositionalFormalParameters:}
-      `[' defaultFormalParameter (`,' defaultFormalParameter)* `]'
+      `[' defaultFormalParameter (`,' defaultFormalParameter)* `,'? `]'
     .
 {\bf namedFormalParameters:}
-      `\{' defaultNamedParameter (`,' defaultNamedParameter)* `\}'
+      `\{' defaultNamedParameter (`,' defaultNamedParameter)* `,'? `\}'
     .
 \end{grammar}
+
+Formal parameter lists allow an optional trailing comma after the last parameter ($`,'?$). A parameter list with such a trailing comma is equivalent in all ways to the same parameter list without the trailing comma. All parameter lists in this specification are shown without a trailing comma, but the rules and semantics apply equally to the corresponding parameter list with a trailing comma.
 
 %Formal parameters are always \FINAL{}.
 %\Q{We're awaiting some data on whether enforcing this would cause widespread pain.}
@@ -3608,10 +3613,11 @@ Function invocation involves evaluation of the list of actual arguments to the f
 
 \begin{grammar}
 {\bf arguments:}
-      `(' argumentList? `)'
+      `(' (argumentList  `,'?)? `)'
     .
 
-{\bf argumentList:}namedArgument (`,' namedArgument)*;
+{\bf argumentList:}
+      namedArgument (`,' namedArgument)*;
   %    expressionList ',' spreadArgument;
       expressionList (`,' namedArgument)*
 %      spreadArgument
@@ -3621,6 +3627,8 @@ Function invocation involves evaluation of the list of actual arguments to the f
       label expression % could be top level expression?
     .
  \end{grammar}
+
+Argument lists allow an optional trailing comma after the last argument ($`,'?$). An argument list with such a trailing comma is equivalent in all ways to the same parameter list without the trailing comma. All argument lists in this specification are shown without a trailing comma, but the rules and semantics apply equally to the corresponding argument list with a trailing comma.
 
 \LMHash{}
 Evaluation of an actual argument list of the form
@@ -6471,7 +6479,7 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 
 \begin{grammar}
 {\bf assertStatement:}
-   assert `(' conditionalExpression `)' `{\escapegrammar ;}'
+   assert `(' expression `)' `{\escapegrammar ;}'
       .
 \end{grammar}
 
@@ -6479,7 +6487,7 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 The assert statement has no effect in production mode. In checked mode, execution of an assert statement \code{\ASSERT{}($e$);} proceeds as follows:
 
 \LMHash{}
-The conditional expression $e$ is evaluated to an object $o$. If the class of $o$ is a subtype of \code{Function} then let $r$ be the result of invoking $o$ with no arguments. Otherwise, let $r$ be $o$.
+The expression $e$ is evaluated to an object $o$. If the class of $o$ is a subtype of \code{Function} then let $r$ be the result of invoking $o$ with no arguments. Otherwise, let $r$ be $o$.
 It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Function}, or if $r$ is not of type \code{bool}.  If $r$ is \FALSE{}, we say that the assertion failed. If $r$ is \TRUE{}, we say that the assertion succeeded. If the assertion succeeded, execution of the assert statement is complete. If the assertion failed, an \code{AssertionError} is thrown.
 
 %\Q{Might be cleaner to define it as \code{if (!$e$) \{\THROW{} \NEW{} AssertionError();\}} (in checked mode only).

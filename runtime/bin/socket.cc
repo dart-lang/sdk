@@ -23,9 +23,11 @@ namespace bin {
 
 static const int kSocketIdNativeField = 0;
 
-
 ListeningSocketRegistry *globalTcpListeningSocketRegistry = NULL;
 
+bool short_socket_read = false;
+
+bool short_socket_write = false;
 
 void ListeningSocketRegistry::Initialize() {
   ASSERT(globalTcpListeningSocketRegistry == NULL);
@@ -44,6 +46,60 @@ void ListeningSocketRegistry::Cleanup() {
 }
 
 
+ListeningSocketRegistry::OSSocket* ListeningSocketRegistry::LookupByPort(
+    intptr_t port) {
+  HashMap::Entry* entry =
+     sockets_by_port_.Lookup(GetHashmapKeyFromIntptr(port),
+                             GetHashmapHashFromIntptr(port), false);
+  if (entry == NULL) {
+    return NULL;
+  }
+  return reinterpret_cast<OSSocket*>(entry->value);
+}
+
+
+void ListeningSocketRegistry::InsertByPort(intptr_t port, OSSocket* socket) {
+  HashMap::Entry* entry =
+     sockets_by_port_.Lookup(GetHashmapKeyFromIntptr(port),
+                             GetHashmapHashFromIntptr(port), true);
+  ASSERT(entry != NULL);
+  entry->value = reinterpret_cast<void*>(socket);
+}
+
+
+void ListeningSocketRegistry::RemoveByPort(intptr_t port) {
+  sockets_by_port_.Remove(
+      GetHashmapKeyFromIntptr(port), GetHashmapHashFromIntptr(port));
+}
+
+
+ListeningSocketRegistry::OSSocket* ListeningSocketRegistry::LookupByFd(
+    intptr_t fd) {
+  HashMap::Entry* entry =
+     sockets_by_fd_.Lookup(GetHashmapKeyFromIntptr(fd),
+                           GetHashmapHashFromIntptr(fd), false);
+  if (entry == NULL) {
+    return NULL;
+  }
+  return reinterpret_cast<OSSocket*>(entry->value);
+}
+
+
+void ListeningSocketRegistry::InsertByFd(intptr_t fd, OSSocket* socket) {
+  HashMap::Entry* entry =
+     sockets_by_fd_.Lookup(GetHashmapKeyFromIntptr(fd),
+                           GetHashmapHashFromIntptr(fd), true);
+  ASSERT(entry != NULL);
+  entry->value = reinterpret_cast<void*>(socket);
+}
+
+
+void ListeningSocketRegistry::RemoveByFd(intptr_t fd) {
+  sockets_by_fd_.Remove(
+      GetHashmapKeyFromIntptr(fd), GetHashmapHashFromIntptr(fd));
+}
+
+
 Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
                                                       RawAddr addr,
                                                       intptr_t backlog,
@@ -52,18 +108,12 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
   MutexLocker ml(ListeningSocketRegistry::mutex_);
 
   intptr_t port = SocketAddress::GetAddrPort(addr);
-
-  SocketsIterator it = sockets_by_port_.find(port);
-  OSSocket *first_os_socket = NULL;
-  if (it != sockets_by_port_.end()) {
-    first_os_socket = it->second;
-  }
-
+  OSSocket* first_os_socket = LookupByPort(port);
   if (first_os_socket != NULL) {
     // There is already a socket listening on this port. We need to ensure
     // that if there is one also listening on the same address, it was created
     // with `shared = true`, ...
-    OSSocket *os_socket = it->second;
+    OSSocket *os_socket = first_os_socket;
     OSSocket *os_socket_same_addr = findOSSocketWithAddress(os_socket, addr);
 
     if (os_socket_same_addr != NULL) {
@@ -117,8 +167,9 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
       new OSSocket(addr, allocated_port, v6_only, shared, socketfd);
   os_socket->ref_count = 1;
   os_socket->next = first_os_socket;
-  sockets_by_port_[allocated_port] = os_socket;
-  sockets_by_fd_[socketfd] = os_socket;
+
+  InsertByPort(allocated_port, os_socket);
+  InsertByFd(socketfd, os_socket);
 
   // We set as a side-effect the port on the dart socket_object.
   Socket::SetSocketIdNativeField(socket_object, socketfd);
@@ -127,42 +178,57 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
 }
 
 
+bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket) {
+  ASSERT(!mutex_->TryLock());
+  ASSERT(os_socket != NULL);
+  ASSERT(os_socket->ref_count > 0);
+  os_socket->ref_count--;
+  if (os_socket->ref_count > 0) {
+    return false;
+  }
+  // We free the OS socket by removing it from two datastructures.
+  RemoveByFd(os_socket->socketfd);
+
+  OSSocket* prev = NULL;
+  OSSocket* current = LookupByPort(os_socket->port);
+  while (current != os_socket) {
+    ASSERT(current != NULL);
+    prev = current;
+    current = current->next;
+  }
+
+  if ((prev == NULL) && (current->next == NULL)) {
+    // Remove last element from the list.
+    RemoveByPort(os_socket->port);
+  } else if (prev == NULL) {
+    // Remove first element of the list.
+    InsertByPort(os_socket->port, current->next);
+  } else {
+    // Remove element from the list which is not the first one.
+    prev->next = os_socket->next;
+  }
+
+  ASSERT(os_socket->ref_count == 0);
+  delete os_socket;
+  return true;
+}
+
+
+void ListeningSocketRegistry::CloseAllSafe() {
+  MutexLocker ml(mutex_);
+  for (HashMap::Entry* p = sockets_by_fd_.Start();
+       p != NULL;
+       p = sockets_by_fd_.Next(p)) {
+    CloseOneSafe(reinterpret_cast<OSSocket*>(p->value));
+  }
+}
+
+
 bool ListeningSocketRegistry::CloseSafe(intptr_t socketfd) {
   ASSERT(!mutex_->TryLock());
-
-  SocketsIterator it = sockets_by_fd_.find(socketfd);
-  if (it != sockets_by_fd_.end()) {
-    OSSocket *os_socket = it->second;
-
-    ASSERT(os_socket->ref_count > 0);
-    os_socket->ref_count--;
-    if (os_socket->ref_count == 0) {
-      // We free the OS socket by removing it from two datastructures.
-      sockets_by_fd_.erase(socketfd);
-
-      OSSocket *prev = NULL;
-      OSSocket *current = sockets_by_port_[os_socket->port];
-      while (current != os_socket) {
-        ASSERT(current != NULL);
-        prev = current;
-        current = current->next;
-      }
-
-      if ((prev == NULL) && (current->next == NULL)) {
-        // Remove last element from the list.
-        sockets_by_port_.erase(os_socket->port);
-      } else if (prev == NULL) {
-        // Remove first element of the list.
-        sockets_by_port_[os_socket->port] = current->next;
-      } else {
-        // Remove element from the list which is not the first one.
-        prev->next = os_socket->next;
-      }
-
-      delete os_socket;
-      return true;
-    }
-    return false;
+  OSSocket* os_socket = LookupByFd(socketfd);
+  if (os_socket != NULL) {
+    return CloseOneSafe(os_socket);
   } else {
     // It should be impossible for the event handler to close something that
     // hasn't been created before.
@@ -234,6 +300,12 @@ void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
   }
 }
 
+void FUNCTION_NAME(Socket_IsBindError)(Dart_NativeArguments args) {
+  intptr_t error_number =
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
+  bool is_bind_error = Socket::IsBindError(error_number);
+  Dart_SetReturnValue(args, is_bind_error ? Dart_True() : Dart_False());
+}
 
 void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   RawAddr addr;
@@ -268,12 +340,11 @@ void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
-  static bool short_socket_reads = Dart_IsVMFlagSet("short_socket_read");
   intptr_t socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   int64_t length = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
-    if (short_socket_reads) {
+    if (short_socket_read) {
       length = (length + 1) / 2;
     }
     uint8_t* buffer = NULL;
@@ -384,7 +455,6 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
-  static bool short_socket_writes = Dart_IsVMFlagSet("short_socket_write");
   intptr_t socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
@@ -394,7 +464,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   intptr_t length =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
   bool short_write = false;
-  if (short_socket_writes) {
+  if (short_socket_write) {
     if (length > 1) {
       short_write = true;
     }

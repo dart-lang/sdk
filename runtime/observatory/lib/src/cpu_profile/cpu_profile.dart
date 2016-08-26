@@ -4,8 +4,9 @@
 
 part of cpu_profiler;
 
-abstract class CallTreeNode {
-  final List<CallTreeNode> children;
+abstract class CallTreeNode<NodeT extends M.CallTreeNode>
+    implements M.CallTreeNode {
+  final List<NodeT> children;
   final int count;
   double get percentage => _percentage;
   double _percentage = 0.0;
@@ -18,7 +19,8 @@ abstract class CallTreeNode {
   CallTreeNode(this.children, this.count);
 }
 
-class CodeCallTreeNode extends CallTreeNode {
+class CodeCallTreeNode extends CallTreeNode<CodeCallTreeNode>
+    implements M.CodeCallTreeNode {
   final ProfileCode profileCode;
 
   Object get profileData => profileCode;
@@ -32,14 +34,15 @@ class CodeCallTreeNode extends CallTreeNode {
   }
 }
 
-class CallTree {
+class CallTree<NodeT extends CallTreeNode> {
   final bool inclusive;
-  final CallTreeNode root;
+  final NodeT root;
 
   CallTree(this.inclusive, this.root);
 }
 
-class CodeCallTree extends CallTree {
+class CodeCallTree extends CallTree<CodeCallTreeNode>
+    implements M.CodeCallTree {
   CodeCallTree(bool inclusive, CodeCallTreeNode root)
       : super(inclusive, root) {
     _setCodePercentage(null, root);
@@ -133,7 +136,7 @@ class FunctionCallTreeNode extends CallTreeNode {
       if (!profileCode.code.isDartCode) {
         continue;
       }
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       if (!profileCode.code.isOptimized) {
@@ -150,7 +153,7 @@ class FunctionCallTreeNode extends CallTreeNode {
       if (!profileCode.code.isDartCode) {
         continue;
       }
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       // If the code's function isn't this function.
@@ -305,7 +308,7 @@ class _FilteredCodeCallTreeBuilder extends _FilteredCallTreeBuilder {
   }
 }
 
-class FunctionCallTree extends CallTree {
+class FunctionCallTree extends CallTree implements M.FunctionCallTree {
   FunctionCallTree(bool inclusive, FunctionCallTreeNode root)
       : super(inclusive, root) {
     _setFunctionPercentage(null, root);
@@ -370,7 +373,7 @@ class InlineIntervalTick {
   InlineIntervalTick(this.startAddress);
 }
 
-class ProfileCode {
+class ProfileCode implements M.ProfileCode {
   final CpuProfile profile;
   final Code code;
   int exclusiveTicks;
@@ -418,9 +421,9 @@ class ProfileCode {
 
     code.profile = this;
 
-    if (code.kind == CodeKind.Stub) {
+    if (code.kind == M.CodeKind.stub) {
       attributes.add('stub');
-    } else if (code.kind == CodeKind.Dart) {
+    } else if (code.kind == M.CodeKind.dart) {
       if (code.isNative) {
         attributes.add('ffi');  // Not to be confused with a C function.
       } else {
@@ -434,9 +437,9 @@ class ProfileCode {
       } else {
         attributes.add('unoptimized');
       }
-    } else if (code.kind == CodeKind.Tag) {
+    } else if (code.kind == M.CodeKind.tag) {
       attributes.add('tag');
-    } else if (code.kind == CodeKind.Native) {
+    } else if (code.kind == M.CodeKind.native) {
       attributes.add('native');
     }
     inclusiveTicks = int.parse(data['inclusiveTicks']);
@@ -488,7 +491,7 @@ class ProfileCode {
   }
 }
 
-class ProfileFunction {
+class ProfileFunction implements M.ProfileFunction {
   final CpuProfile profile;
   final ServiceFunction function;
   // List of compiled code objects containing this function.
@@ -537,7 +540,7 @@ class ProfileFunction {
   // Does this function have an unoptimized version of itself?
   bool hasUnoptimizedCode() {
     for (var profileCode in profileCodes) {
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       if (!profileCode.code.isDartCode) {
@@ -553,7 +556,7 @@ class ProfileFunction {
   // Has this function been inlined in another function?
   bool isInlined() {
     for (var profileCode in profileCodes) {
-      if (profileCode.code.kind == CodeKind.Stub) {
+      if (profileCode.code.kind == M.CodeKind.stub) {
         continue;
       }
       if (!profileCode.code.isDartCode) {
@@ -568,13 +571,13 @@ class ProfileFunction {
   }
 
   void _addKindBasedAttributes(Set<String> attribs) {
-    if (function.kind == FunctionKind.kTag) {
+    if (function.kind == M.FunctionKind.tag) {
       attribs.add('tag');
-    } else if (function.kind == FunctionKind.kStub) {
+    } else if (function.kind == M.FunctionKind.stub) {
       attribs.add('stub');
-    } else if (function.kind == FunctionKind.kNative) {
+    } else if (function.kind == M.FunctionKind.native) {
       attribs.add('native');
-    } else if (function.kind.isSynthetic()) {
+    } else if (M.isSyntheticFunction(function.kind)) {
       attribs.add('synthetic');
     } else if (function.isNative) {
       attribs.add('ffi');  // Not to be confused with a C function.
@@ -640,9 +643,7 @@ class ProfileFunction {
 
 
 // TODO(johnmccutchan): Rename to SampleProfile
-class CpuProfile {
-  final double MICROSECONDS_PER_SECOND = 1000000.0;
-  final double displayThreshold = 0.0002; // 0.02%.
+class CpuProfile extends M.SampleProfile {
 
   Isolate isolate;
 
@@ -660,20 +661,24 @@ class CpuProfile {
   final List<ProfileFunction> functions = new List<ProfileFunction>();
   bool _builtFunctionCalls = false;
 
-  CodeCallTree loadCodeTree(String name) {
-    if (name == 'inclusive') {
-      return _loadCodeTree(true, tries['inclusiveCodeTrie']);
-    } else {
-      return _loadCodeTree(false, tries['exclusiveCodeTrie']);
+  CodeCallTree loadCodeTree(M.ProfileTreeDirection direction) {
+    switch (direction) {
+      case M.ProfileTreeDirection.inclusive:
+        return _loadCodeTree(true, tries['inclusiveCodeTrie']);
+      case M.ProfileTreeDirection.exclusive:
+        return _loadCodeTree(false, tries['exclusiveCodeTrie']);
     }
+    throw new Exception('Unknown ProfileTreeDirection');
   }
 
-  FunctionCallTree loadFunctionTree(String name) {
-    if (name == 'inclusive') {
-      return _loadFunctionTree(true, tries['inclusiveFunctionTrie']);
-    } else {
-      return _loadFunctionTree(false, tries['exclusiveFunctionTrie']);
+  FunctionCallTree loadFunctionTree(M.ProfileTreeDirection direction) {
+    switch (direction) {
+      case M.ProfileTreeDirection.inclusive:
+        return _loadFunctionTree(true, tries['inclusiveFunctionTrie']);
+      case M.ProfileTreeDirection.exclusive:
+        return _loadFunctionTree(false, tries['exclusiveFunctionTrie']);
     }
+    throw new Exception('Unknown ProfileTreeDirection');
   }
 
   buildCodeCallerAndCallees() {
@@ -681,7 +686,7 @@ class CpuProfile {
       return;
     }
     _builtCodeCalls = true;
-    var tree = loadCodeTree('inclusive');
+    var tree = loadCodeTree(M.ProfileTreeDirection.inclusive);
     tree._recordCallerAndCallees();
   }
 
@@ -690,7 +695,7 @@ class CpuProfile {
       return;
     }
     _builtFunctionCalls = true;
-    var tree = loadFunctionTree('inclusive');
+    var tree = loadFunctionTree(M.ProfileTreeDirection.inclusive);
     tree._markFunctionCalls();
   }
 
@@ -707,44 +712,87 @@ class CpuProfile {
     _builtFunctionCalls = false;
   }
 
-  load(Isolate isolate, ServiceMap profile) {
-    clear();
-    if ((isolate == null) || (profile == null)) {
-      return;
-    }
+  Future load(Isolate isolate, ServiceMap profile) async {
+    await loadProgress(isolate, profile).last;
+  }
 
-    this.isolate = isolate;
-    isolate.resetCachedProfileData();
+  static Future sleep([Duration duration = const Duration(microseconds: 0)]) {
+    final Completer completer = new Completer();
+    new Timer(duration, () => completer.complete() );
+    return completer.future;
+  }
 
-    sampleCount = profile['sampleCount'];
-    samplePeriod = profile['samplePeriod'];
-    sampleRate = (MICROSECONDS_PER_SECOND / samplePeriod);
-    stackDepth = profile['stackDepth'];
-    timeSpan = profile['timeSpan'];
+  Stream<double> loadProgress(Isolate isolate, ServiceMap profile) {
+    var progress = new StreamController<double>.broadcast();
 
-    // Process code table.
-    for (var codeRegion in profile['codes']) {
-      Code code = codeRegion['code'];
-      assert(code != null);
-      codes.add(new ProfileCode.fromMap(this, code, codeRegion));
-    }
+    (() async {
+      final Stopwatch watch = new Stopwatch();
+      watch.start();
+      int count = 0;
+      var needToUpdate = () {
+        count++;
+        if (((count % 256) == 0) && (watch.elapsedMilliseconds > 16)) {
+          watch.reset();
+          return true;
+        }
+        return false;
+      };
+      var signal = (double p) {
+        progress.add(p);
+        return sleep();
+      };
+      try {
+        clear();
+        progress.add(0.0);
+        if ((isolate == null) || (profile == null)) {
+          return;
+        }
 
-    // Process function table.
-    for (var profileFunction in profile['functions']) {
-      ServiceFunction function = profileFunction['function'];
-      assert(function != null);
-      functions.add(
-          new ProfileFunction.fromMap(this, function, profileFunction));
-    }
+        this.isolate = isolate;
+        isolate.resetCachedProfileData();
 
-    tries['exclusiveCodeTrie'] =
-        new Uint32List.fromList(profile['exclusiveCodeTrie']);
-    tries['inclusiveCodeTrie'] =
-        new Uint32List.fromList(profile['inclusiveCodeTrie']);
-    tries['exclusiveFunctionTrie'] =
-        new Uint32List.fromList(profile['exclusiveFunctionTrie']);
-    tries['inclusiveFunctionTrie'] =
-        new Uint32List.fromList(profile['inclusiveFunctionTrie']);
+        sampleCount = profile['sampleCount'];
+        samplePeriod = profile['samplePeriod'];
+        sampleRate = (Duration.MICROSECONDS_PER_SECOND / samplePeriod);
+        stackDepth = profile['stackDepth'];
+        timeSpan = profile['timeSpan'];
+
+        num length = profile['codes'].length +
+                        profile['functions'].length;
+
+        // Process code table.
+        for (var codeRegion in profile['codes']) {
+          if (needToUpdate()) {
+            await signal(count * 100.0 / length);
+          }
+          Code code = codeRegion['code'];
+          assert(code != null);
+          codes.add(new ProfileCode.fromMap(this, code, codeRegion));
+        }
+        // Process function table.
+        for (var profileFunction in profile['functions']) {
+          if (needToUpdate()) {
+            await signal(count * 100 / length);
+          }
+          ServiceFunction function = profileFunction['function'];
+          assert(function != null);
+          functions.add(
+              new ProfileFunction.fromMap(this, function, profileFunction));
+        }
+
+        tries['exclusiveCodeTrie'] =
+            new Uint32List.fromList(profile['exclusiveCodeTrie']);
+        tries['inclusiveCodeTrie'] =
+            new Uint32List.fromList(profile['inclusiveCodeTrie']);
+        tries['exclusiveFunctionTrie'] =
+            new Uint32List.fromList(profile['exclusiveFunctionTrie']);
+        tries['inclusiveFunctionTrie'] =
+            new Uint32List.fromList(profile['inclusiveFunctionTrie']);
+      } finally {
+        progress.close();
+      }
+    }());
+    return progress.stream;
   }
 
   // Data shared across calls to _read*TrieNode.
@@ -918,12 +966,10 @@ class CpuProfile {
   }
 
   int approximateMillisecondsForCount(count) {
-    var MICROSECONDS_PER_MILLISECOND = 1000.0;
-    return (count * samplePeriod) ~/ MICROSECONDS_PER_MILLISECOND;
+    return (count * samplePeriod) ~/ Duration.MICROSECONDS_PER_MILLISECOND;
   }
 
   double approximateSecondsForCount(count) {
-    var MICROSECONDS_PER_SECOND = 1000000.0;
-    return (count * samplePeriod) / MICROSECONDS_PER_SECOND;
+    return (count * samplePeriod) / Duration.MICROSECONDS_PER_SECOND;
   }
 }

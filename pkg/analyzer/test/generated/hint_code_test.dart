@@ -6,6 +6,7 @@ library analyzer.test.generated.hint_code_test;
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart';
 
@@ -21,54 +22,6 @@ main() {
 
 @reflectiveTest
 class HintCodeTest extends ResolverTestCase {
-  void fail_isInt() {
-    Source source = addSource("var v = 1 is int;");
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.IS_INT]);
-    verify([source]);
-  }
-
-  void fail_isNotInt() {
-    Source source = addSource("var v = 1 is! int;");
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.IS_NOT_INT]);
-    verify([source]);
-  }
-
-  void fail_overrideEqualsButNotHashCode() {
-    Source source = addSource(r'''
-class A {
-  bool operator ==(x) {}
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE]);
-    verify([source]);
-  }
-
-  void fail_unusedImport_as_equalPrefixes() {
-    // See todo at ImportsVerifier.prefixElementMap.
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' as one;
-import 'lib2.dart' as one;
-one.A a;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
-library lib1;
-class A {}''');
-    Source source3 = addNamedSource(
-        "/lib2.dart",
-        r'''
-library lib2;
-class B {}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    assertNoErrors(source3);
-    verify([source, source2, source3]);
-  }
-
   @override
   void reset() {
     analysisContext2 = AnalysisContextFactory.contextWithCoreAndPackages({
@@ -78,7 +31,6 @@ library meta;
 const _Factory factory = const _Factory();
 const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
-const _Override override = const _Override();
 const _Protected protected = const _Protected();
 const Required required = const Required();
 class Required {
@@ -94,9 +46,6 @@ class _Literal {
 }
 class _MustCallSuper {
   const _MustCallSuper();
-}
-class _Override {
-  const _Override();
 }
 class _Protected {
   const _Protected();
@@ -1359,21 +1308,6 @@ main() {
     verify([source, source2]);
   }
 
-  void test_invalidUseOfProtectedMember_function_OK2() {
-    Source source = addSource(r'''
-import 'package:meta/meta.dart';
-class A {
-  @protected
-  void a(){ }
-}
-main() {
-  new A().a();
-}''');
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_invalidUseOfProtectedMember_function_OK() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -1384,6 +1318,21 @@ class A {
 
 abstract class B implements A {
   int b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_function_OK2() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+main() {
+  new A().a();
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -1726,6 +1675,14 @@ main() {
     verify([source]);
   }
 
+  @failingTest
+  void test_isInt() {
+    Source source = addSource("var v = 1 is int;");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.IS_INT]);
+    verify([source]);
+  }
+
   void test_isNotDouble() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.dart2jsHint = true;
@@ -1733,6 +1690,14 @@ main() {
     Source source = addSource("var v = 1 is! double;");
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_NOT_DOUBLE]);
+    verify([source]);
+  }
+
+  @failingTest
+  void test_isNotInt() {
+    Source source = addSource("var v = 1 is! int;");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.IS_NOT_INT]);
     verify([source]);
   }
 
@@ -1751,7 +1716,7 @@ class A { }
     verify([source]);
   }
 
-  void test_missing_js_lib_on_class_decl() {
+  void test_missingJsLibAnnotation_class() {
     Source source = addSource(r'''
 library foo;
 
@@ -1765,7 +1730,21 @@ class A { }
     verify([source]);
   }
 
-  void test_missing_js_lib_on_function() {
+  void test_missingJsLibAnnotation_externalField() {
+    // https://github.com/dart-lang/sdk/issues/26987
+    Source source = addSource(r'''
+import 'package:js/js.dart';
+
+@JS()
+external dynamic exports;
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [ParserErrorCode.EXTERNAL_FIELD, HintCode.MISSING_JS_LIB_ANNOTATION]);
+    verify([source]);
+  }
+
+  void test_missingJsLibAnnotation_function() {
     Source source = addSource(r'''
 library foo;
 
@@ -1779,7 +1758,7 @@ set _currentZIndex(int value) { }
     verify([source]);
   }
 
-  void test_missing_js_lib_on_member() {
+  void test_missingJsLibAnnotation_method() {
     Source source = addSource(r'''
 library foo;
 
@@ -1789,6 +1768,18 @@ class A {
   @JS()
   void a() { }
 }
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
+    verify([source]);
+  }
+
+  void test_missingJsLibAnnotation_variable() {
+    Source source = addSource(r'''
+import 'package:js/js.dart';
+
+@JS()
+dynamic variable;
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
@@ -2047,10 +2038,32 @@ m(x) {
     verify([source]);
   }
 
+  @failingTest
+  void test_overrideEqualsButNotHashCode() {
+    Source source = addSource(r'''
+class A {
+  bool operator ==(x) {}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE]);
+    verify([source]);
+  }
+
+  void test_overrideOnNonOverridingField_invalid() {
+    Source source = addSource(r'''
+class A {
+}
+class B extends A {
+  @override
+  final int m = 1;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD]);
+    verify([source]);
+  }
+
   void test_overrideOnNonOverridingGetter_invalid() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
 }
 class B extends A {
@@ -2064,8 +2077,6 @@ class B extends A {
 
   void test_overrideOnNonOverridingMethod_invalid() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
 }
 class B extends A {
@@ -2079,8 +2090,6 @@ class B extends A {
 
   void test_overrideOnNonOverridingSetter_invalid() {
     Source source = addSource(r'''
-library dart.core;
-const override = null;
 class A {
 }
 class B extends A {
@@ -3494,6 +3503,31 @@ class A {}''');
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
+  }
+
+  @failingTest
+  void test_unusedImport_as_equalPrefixes() {
+    // See todo at ImportsVerifier.prefixElementMap.
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' as one;
+import 'lib2.dart' as one;
+one.A a;''');
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
+library lib1;
+class A {}''');
+    Source source3 = addNamedSource(
+        "/lib2.dart",
+        r'''
+library lib2;
+class B {}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
+    assertNoErrors(source2);
+    assertNoErrors(source3);
+    verify([source, source2, source3]);
   }
 
   void test_unusedImport_hide() {

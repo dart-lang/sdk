@@ -102,10 +102,6 @@ class _ServiceTesteeLauncher {
     assert(trace_service != null);
     assert(trace_compiler != null);
 
-    // TODO(turnidge): I have temporarily turned on service tracing for
-    // all tests to help diagnose flaky tests.
-    trace_service = true;
-
     if (_shouldLaunchSkyShell()) {
       return _spawnSkyProcess(pause_on_start,
                               pause_on_exit,
@@ -195,8 +191,11 @@ class _ServiceTesteeLauncher {
   }
 
   Future<Process> _spawnCommon(String executable, List<String> arguments) {
-    print('** Launching $executable ${arguments.join(' ')}');
-    return Process.start(executable, arguments, environment: _TESTEE_SPAWN_ENV);
+    var environment = _TESTEE_SPAWN_ENV;
+    var bashEnvironment = new StringBuffer();
+    environment.forEach((k, v) => bashEnvironment.write("$k=$v "));
+    print('** Launching $bashEnvironment$executable ${arguments.join(' ')}');
+    return Process.start(executable, arguments, environment: environment);
   }
 
   Future<int> launch(bool pause_on_start,
@@ -255,6 +254,67 @@ class _ServiceTesteeLauncher {
   }
 }
 
+// A tester runner that doesn't spawn a process but instead connects to
+// an already running flutter application running on a device. Assumes
+// port 8100. This is only useful for debugging.
+class _FlutterDeviceServiceTesterRunner {
+  void run({List<String> mainArgs,
+            List<VMTest> vmTests,
+            List<IsolateTest> isolateTests,
+            bool pause_on_start: false,
+            bool pause_on_exit: false,
+            bool trace_service: false,
+            bool trace_compiler: false,
+            bool verbose_vm: false,
+            bool pause_on_unhandled_exceptions: false}) {
+    var port = 8100;
+    serviceWebsocketAddress = 'ws://localhost:$port/ws';
+    serviceHttpAddress = 'http://localhost:$port';
+    var name = Platform.script.pathSegments.last;
+    runZoned(() async {
+      var vm =
+          new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
+      print('Loading VM...');
+      await vm.load();
+      print('Done loading VM');
+
+      // Run vm tests.
+      if (vmTests != null) {
+        var testIndex = 1;
+        var totalTests = vmTests.length;
+        for (var test in vmTests) {
+          vm.verbose = verbose_vm;
+          print('Running $name [$testIndex/$totalTests]');
+          testIndex++;
+          await test(vm);
+        }
+      }
+
+      // Run isolate tests.
+      if (isolateTests != null) {
+        var isolate = await vm.isolates.first.load();
+        var testIndex = 1;
+        var totalTests = isolateTests.length;
+        for (var test in isolateTests) {
+          vm.verbose = verbose_vm;
+          print('Running $name [$testIndex/$totalTests]');
+          testIndex++;
+          await test(isolate);
+        }
+      }
+    }, onError: (e, st) {
+        if (!_isWebSocketDisconnect(e)) {
+          print('Unexpected exception in service tests: $e $st');
+          throw e;
+        }
+    });
+  }
+}
+
+void suppressWarning() {
+  new _FlutterDeviceServiceTesterRunner();
+}
+
 class _ServiceTesterRunner {
   void run({List<String> mainArgs,
             List<VMTest> vmTests,
@@ -270,7 +330,10 @@ class _ServiceTesterRunner {
                    pause_on_unhandled_exceptions,
                    trace_service, trace_compiler).then((port) async {
       if (mainArgs.contains("--gdb")) {
-        port = 8181;
+        var pid = process.process.pid;
+        var wait = new Duration(seconds: 10);
+        print("Testee has pid $pid, waiting $wait before continuing");
+        sleep(wait);
       }
       serviceWebsocketAddress = 'ws://localhost:$port/ws';
       serviceHttpAddress = 'http://localhost:$port';

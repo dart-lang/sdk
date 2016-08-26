@@ -4,23 +4,23 @@
 
 library closureToClassMapper;
 
-import 'common.dart';
 import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show ParsingContext, Resolution;
 import 'common/tasks.dart' show CompilerTask;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
 import 'dart_types.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
-    show BaseFunctionElementX, ClassElementX, ElementX, LocalFunctionElementX;
+    show BaseFunctionElementX, ClassElementX, ElementX;
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tokens/token.dart' show Token;
 import 'tree/tree.dart';
-import 'util/util.dart';
 import 'universe/universe.dart' show Universe;
+import 'util/util.dart';
 
 class ClosureTask extends CompilerTask {
   Map<Node, ClosureClassMap> closureMappingCache;
@@ -255,6 +255,9 @@ class BoxLocal extends Local {
   final String name;
   final ExecutableElement executableContext;
 
+  final int hashCode = _nextHashCode = (_nextHashCode + 10007).toUnsigned(30);
+  static int _nextHashCode = 0;
+
   BoxLocal(this.name, this.executableContext);
 
   String toString() => 'BoxLocal($name)';
@@ -326,7 +329,7 @@ class BoxFieldElement extends ElementX
 /// A local variable used encode the direct (uncaptured) references to [this].
 class ThisLocal extends Local {
   final ExecutableElement executableContext;
-  final hashCode = ++ElementX.elementHashCode;
+  final hashCode = ElementX.newHashCode();
 
   ThisLocal(this.executableContext);
 
@@ -1125,7 +1128,7 @@ class ClosureTranslator extends Visitor {
   visitFunctionExpression(FunctionExpression node) {
     Element element = elements[node];
 
-    if (element.isParameter) {
+    if (element.isRegularParameter) {
       // TODO(ahe): This is a hack. This method should *not* call
       // visitChildren.
       return node.name.accept(this);

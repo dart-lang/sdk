@@ -11,7 +11,6 @@ import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 /// Base class for all Observatory custom elements.
-@CustomTag('observatory-element')
 class ObservatoryElement extends PolymerElement {
   ObservatoryElement.created() : super.created();
 

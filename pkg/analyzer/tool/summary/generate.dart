@@ -451,6 +451,7 @@ class _CodeGenerator {
     out("import 'flat_buffers.dart' as fb;");
     out("import 'idl.dart' as idl;");
     out("import 'dart:convert' as convert;");
+    out("import 'api_signature.dart' as api_sig;");
     out();
     for (idlModel.EnumDeclaration enm in _idl.enums.values) {
       _generateEnumReader(enm);
@@ -613,6 +614,44 @@ class _CodeGenerator {
               } else {
                 out('$valueName?.flushInformative();');
               }
+            }
+          }
+        });
+        out('}');
+      }
+      // Generate collectApiSignature().
+      {
+        out();
+        out('/**');
+        out(' * Accumulate non-[informative] data into [signature].');
+        out(' */');
+        out('void collectApiSignature(api_sig.ApiSignature signature) {');
+        indent(() {
+          List<idlModel.FieldDeclaration> sortedFields = cls.fields.toList()
+            ..sort((idlModel.FieldDeclaration a, idlModel.FieldDeclaration b) =>
+                a.id.compareTo(b.id));
+          for (idlModel.FieldDeclaration field in sortedFields) {
+            if (field.isInformative) {
+              continue;
+            }
+            String ref = 'this._${field.name}';
+            if (field.type.isList) {
+              out('if ($ref == null) {');
+              indent(() {
+                out('signature.addInt(0);');
+              });
+              out('} else {');
+              indent(() {
+                out('signature.addInt($ref.length);');
+                out('for (var x in $ref) {');
+                indent(() {
+                  _generateSignatureCall(field.type.typeName, 'x', false);
+                });
+                out('}');
+              });
+              out('}');
+            } else {
+              _generateSignatureCall(field.type.typeName, ref, true);
             }
           }
         });
@@ -820,7 +859,8 @@ class _CodeGenerator {
         } else {
           out('$returnType get $fieldName {');
           indent(() {
-            String readExpr = '$readCode.vTableGet(_bc, _bcOffset, $index, $def)';
+            String readExpr =
+                '$readCode.vTableGet(_bc, _bcOffset, $index, $def)';
             out('_$fieldName ??= $readExpr;');
             out('return _$fieldName;');
           });
@@ -915,6 +955,56 @@ class _CodeGenerator {
       out('return const _${name}Reader().read(rootRef, 0);');
     });
     out('}');
+  }
+
+  /**
+   * Generate a call to the appropriate method of [ApiSignature] for the type
+   * [typeName], using the data named by [ref].  If [couldBeNull] is `true`,
+   * generate code to handle the possibility that [ref] is `null` (substituting
+   * in the appropriate default value).
+   */
+  void _generateSignatureCall(String typeName, String ref, bool couldBeNull) {
+    if (_idl.enums.containsKey(typeName)) {
+      if (couldBeNull) {
+        out('signature.addInt($ref == null ? 0 : $ref.index);');
+      } else {
+        out('signature.addInt($ref.index);');
+      }
+    } else if (_idl.classes.containsKey(typeName)) {
+      if (couldBeNull) {
+        out('signature.addBool($ref != null);');
+      }
+      out('$ref?.collectApiSignature(signature);');
+    } else {
+      switch (typeName) {
+        case 'String':
+          if (couldBeNull) {
+            ref += " ?? ''";
+          }
+          out("signature.addString($ref);");
+          break;
+        case 'int':
+          if (couldBeNull) {
+            ref += ' ?? 0';
+          }
+          out('signature.addInt($ref);');
+          break;
+        case 'bool':
+          if (couldBeNull) {
+            ref += ' == true';
+          }
+          out('signature.addBool($ref);');
+          break;
+        case 'double':
+          if (couldBeNull) {
+            ref += ' ?? 0.0';
+          }
+          out('signature.addDouble($ref);');
+          break;
+        default:
+          throw "Don't know how to generate signature call for $typeName";
+      }
+    }
   }
 
   /**

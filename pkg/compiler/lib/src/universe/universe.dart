@@ -8,11 +8,10 @@ import 'dart:collection';
 
 import '../common.dart';
 import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
 import '../dart_types.dart';
+import '../elements/elements.dart';
 import '../util/util.dart';
 import '../world.dart' show ClassWorld, World;
-
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 
@@ -103,6 +102,11 @@ abstract class SelectorConstraintsStrategy {
   UniverseSelectorConstraints createSelectorConstraints(Selector selector);
 }
 
+/// The [Universe] is an auxiliary class used in the process of computing the
+/// [ClassWorld]. The concepts here and in [ClassWorld] are very similar -- in
+/// the same way that the "universe expands" you can think of this as a mutable
+/// world that is expanding as we visit and discover parts of the program.
+/// TODO(sigmund): rename to "growing/expanding/mutable world"?
 class Universe {
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through

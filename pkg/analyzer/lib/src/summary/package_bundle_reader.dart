@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -9,10 +10,15 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:path/path.dart' as pathos;
 
@@ -37,9 +43,8 @@ class InputPackagesResultProvider extends ResynthesizerResultProvider {
 /**
  * The [UriResolver] that knows about sources that are served from their
  * summaries.
- *
- * TODO(scheglov) rename to `InSummaryUriResolver` - it's not `package:` specific.
  */
+@deprecated
 class InSummaryPackageUriResolver extends UriResolver {
   final SummaryDataStore _dataStore;
 
@@ -113,6 +118,36 @@ class InSummarySource extends Source {
 }
 
 /**
+ * The [UriResolver] that knows about sources that are served from their
+ * summaries.
+ */
+class InSummaryUriResolver extends UriResolver {
+  ResourceProvider resourceProvider;
+  final SummaryDataStore _dataStore;
+
+  InSummaryUriResolver(this.resourceProvider, this._dataStore);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    actualUri ??= uri;
+    String uriString = uri.toString();
+    UnlinkedUnit unit = _dataStore.unlinkedMap[uriString];
+    if (unit != null) {
+      String summaryPath = _dataStore.uriToSummaryPath[uriString];
+      if (unit.fallbackModePath.isNotEmpty) {
+        return new _InSummaryFallbackFileSource(
+            resourceProvider.getFile(unit.fallbackModePath),
+            actualUri,
+            summaryPath);
+      } else {
+        return new InSummarySource(actualUri, summaryPath);
+      }
+    }
+    return null;
+  }
+}
+
+/**
  * The [ResultProvider] that provides results using summary resynthesizer.
  */
 abstract class ResynthesizerResultProvider extends ResultProvider {
@@ -179,6 +214,27 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         }
         if (_dataStore.unlinkedMap.containsKey(uriString)) {
           entry.setValue(result, SourceKind.PART, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+        return false;
+      } else if (result == CONTAINING_LIBRARIES) {
+        List<String> libraryUriStrings =
+            _dataStore.getContainingLibraryUris(uriString);
+        if (libraryUriStrings != null) {
+          List<Source> librarySources = libraryUriStrings
+              .map((libraryUriString) =>
+                  context.sourceFactory.resolveUri(target, libraryUriString))
+              .toList(growable: false);
+          entry.setValue(result, librarySources, TargetedResult.EMPTY_LIST);
+          return true;
+        }
+        return false;
+      } else if (result == LINE_INFO) {
+        UnlinkedUnit unlinkedUnit = _dataStore.unlinkedMap[uriString];
+        List<int> lineStarts = unlinkedUnit.lineStarts;
+        if (lineStarts.isNotEmpty) {
+          LineInfo lineInfo = new LineInfo(lineStarts);
+          entry.setValue(result, lineInfo, TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
@@ -259,6 +315,15 @@ class SummaryDataStore {
   final List<PackageBundle> bundles = <PackageBundle>[];
 
   /**
+   * List of dependency information for the package bundles in this
+   * [SummaryDataStore], in a form that is ready to store in a newly generated
+   * summary.  Computing this information has nonzero cost, so it is only
+   * recorded if the [SummaryDataStore] is constructed with the argument
+   * `recordDependencies`.  Otherwise `null`.
+   */
+  final List<PackageDependencyInfoBuilder> dependencies;
+
+  /**
    * Map from the URI of a compilation unit to the unlinked summary of that
    * compilation unit.
    */
@@ -274,7 +339,16 @@ class SummaryDataStore {
    */
   final Map<String, String> uriToSummaryPath = <String, String>{};
 
-  SummaryDataStore(Iterable<String> summaryPaths) {
+  /**
+   * Create a [SummaryDataStore] and populate it with the summaries in
+   * [summaryPaths].  If [recordDependencyInfo] is `true`, record
+   * [PackageDependencyInfo] for each summary, for later access via
+   * [dependencies].
+   */
+  SummaryDataStore(Iterable<String> summaryPaths,
+      {bool recordDependencyInfo: false})
+      : dependencies =
+            recordDependencyInfo ? <PackageDependencyInfoBuilder>[] : null {
     summaryPaths.forEach(_fillMaps);
   }
 
@@ -283,6 +357,29 @@ class SummaryDataStore {
    */
   void addBundle(String path, PackageBundle bundle) {
     bundles.add(bundle);
+    if (dependencies != null) {
+      Set<String> includedPackageNames = new Set<String>();
+      bool includesDartUris = false;
+      bool includesFileUris = false;
+      for (String uriString in bundle.unlinkedUnitUris) {
+        Uri uri = FastUri.parse(uriString);
+        String scheme = uri.scheme;
+        if (scheme == 'package') {
+          List<String> pathSegments = uri.pathSegments;
+          includedPackageNames.add(pathSegments.isEmpty ? '' : pathSegments[0]);
+        } else if (scheme == 'file') {
+          includesFileUris = true;
+        } else if (scheme == 'dart') {
+          includesDartUris = true;
+        }
+      }
+      dependencies.add(new PackageDependencyInfoBuilder(
+          includedPackageNames: includedPackageNames.toList()..sort(),
+          includesDartUris: includesDartUris,
+          includesFileUris: includesFileUris,
+          apiSignature: bundle.apiSignature,
+          summaryPath: path));
+    }
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       String uri = bundle.unlinkedUnitUris[i];
       uriToSummaryPath[uri] = path;
@@ -292,6 +389,31 @@ class SummaryDataStore {
       String uri = bundle.linkedLibraryUris[i];
       linkedMap[uri] = bundle.linkedLibraries[i];
     }
+  }
+
+  /**
+   * Return a list of absolute URIs of the libraries that contain the unit with
+   * the given [unitUriString], or `null` if no such library is in the store.
+   */
+  List<String> getContainingLibraryUris(String unitUriString) {
+    // The unit is the defining unit of a library.
+    if (linkedMap.containsKey(unitUriString)) {
+      return <String>[unitUriString];
+    }
+    // Check every unlinked unit whether it uses [unitUri] as a part.
+    List<String> libraryUriStrings = <String>[];
+    unlinkedMap.forEach((unlinkedUnitUriString, unlinkedUnit) {
+      Uri libraryUri = FastUri.parse(unlinkedUnitUriString);
+      for (String partUriString in unlinkedUnit.publicNamespace.parts) {
+        Uri partUri = FastUri.parse(partUriString);
+        String partAbsoluteUriString =
+            resolveRelativeUri(libraryUri, partUri).toString();
+        if (partAbsoluteUriString == unitUriString) {
+          libraryUriStrings.add(unlinkedUnitUriString);
+        }
+      }
+    });
+    return libraryUriStrings.isNotEmpty ? libraryUriStrings : null;
   }
 
   void _fillMaps(String path) {
@@ -336,9 +458,24 @@ class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
 
 /**
  * A source that is part of a package whose summary was generated in fallback
- * mode.  This source behaves identically to a [FileBasedSource] except that it
+ * mode. This source behaves identically to a [FileSource] except that it also
+ * provides [summaryPath].
+ */
+class _InSummaryFallbackFileSource extends FileSource
+    implements InSummarySource {
+  @override
+  final String summaryPath;
+
+  _InSummaryFallbackFileSource(File file, Uri uri, this.summaryPath)
+      : super(file, uri);
+}
+
+/**
+ * A source that is part of a package whose summary was generated in fallback
+ * mode. This source behaves identically to a [FileBasedSource] except that it
  * also provides [summaryPath].
  */
+@deprecated
 class _InSummaryFallbackSource extends FileBasedSource
     implements InSummarySource {
   @override

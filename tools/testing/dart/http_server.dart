@@ -85,6 +85,7 @@ main(List<String> arguments) {
       abbr: 'h', negatable: false, help: 'Print this usage information.');
   parser.addOption('build-directory', help: 'The build directory to use.');
   parser.addOption('package-root', help: 'The package root to use.');
+  parser.addOption('packages', help: 'The package spec file to use.');
   parser.addOption('network',
       help: 'The network interface to use.', defaultsTo: '0.0.0.0');
   parser.addFlag('csp',
@@ -97,7 +98,8 @@ main(List<String> arguments) {
     print(parser.getUsage());
   } else {
     var servers = new TestingServers(new Path(args['build-directory']),
-        args['csp'], args['runtime'], null, args['package-root']);
+        args['csp'], args['runtime'], null, args['package-root'],
+        args['packages']);
     var port = int.parse(args['port']);
     var crossOriginPort = int.parse(args['crossOriginPort']);
     servers
@@ -130,6 +132,7 @@ class TestingServers {
   Path _buildDirectory = null;
   Path _dartDirectory = null;
   Path _packageRoot;
+  Path _packages;
   final bool useContentSecurityPolicy;
   final String runtime;
   DispatchingServer _server;
@@ -137,13 +140,15 @@ class TestingServers {
   TestingServers(Path buildDirectory, this.useContentSecurityPolicy,
       [String this.runtime = 'none',
       String dartDirectory,
-      String packageRoot]) {
+      String packageRoot,
+      String packages]) {
     _buildDirectory = TestUtils.absolutePath(buildDirectory);
     _dartDirectory =
         dartDirectory == null ? TestUtils.dartDir : new Path(dartDirectory);
     _packageRoot = packageRoot == null
-        ? _buildDirectory.append('packages')
-        : new Path(packageRoot);
+      ? (packages == null ? _buildDirectory.append('packages') : null)
+      : new Path(packageRoot);
+    _packages = packages == null ? null : new Path(packages);
   }
 
   int get port => _serverList[0].port;
@@ -288,6 +293,10 @@ class TestingServers {
       }
       var packagesIndex = pathSegments.indexOf('packages');
       if (packagesIndex != -1) {
+        if (_packages != null) {
+          // TODO(27065): Package spec file not supported by http server yet
+          return null;
+        }
         var start = packagesIndex + 1;
         basePath = _packageRoot;
         relativePath = new Path(pathSegments.skip(start).join('/'));

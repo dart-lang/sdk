@@ -7,26 +7,22 @@ library dart2js.resolution.registry;
 import '../common.dart';
 import '../common/backend_api.dart'
     show Backend, ForeignResolver, NativeRegistry;
-import '../common/resolution.dart'
-    show Feature, ListLiteralUse, MapLiteralUse, ResolutionImpact;
 import '../common/registry.dart' show Registry;
-import '../compiler.dart' show Compiler;
+import '../common/resolution.dart' show ResolutionImpact, Target;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/source_span.dart';
-import '../enqueue.dart' show ResolutionEnqueuer;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-import '../util/util.dart' show Setlet;
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/feature.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilder;
 import '../util/enumset.dart' show EnumSet;
-
-import 'send_structure.dart';
-
+import '../util/util.dart' show Setlet;
 import 'members.dart' show ResolverVisitor;
+import 'send_structure.dart';
 import 'tree_elements.dart' show TreeElementMapping;
 
 class _ResolutionWorldImpact extends ResolutionImpact
@@ -160,19 +156,16 @@ class _ResolutionWorldImpact extends ResolutionImpact
 /// [Backend], [World] and [Enqueuer].
 // TODO(johnniwinther): Split this into an interface and implementation class.
 class ResolutionRegistry extends Registry {
-  final Compiler compiler;
+  final Target target;
   final TreeElementMapping mapping;
   final _ResolutionWorldImpact worldImpact;
 
-  ResolutionRegistry(Compiler compiler, TreeElementMapping mapping)
-      : this.compiler = compiler,
-        this.mapping = mapping,
+  ResolutionRegistry(this.target, TreeElementMapping mapping)
+      : this.mapping = mapping,
         this.worldImpact =
             new _ResolutionWorldImpact(mapping.analyzedElement.toString());
 
   bool get isForResolution => true;
-
-  Backend get backend => compiler.backend;
 
   String toString() => 'ResolutionRegistry for ${mapping.analyzedElement}';
 
@@ -364,7 +357,7 @@ class ResolutionRegistry extends Registry {
 
   void registerForeignCall(Node node, Element element,
       CallStructure callStructure, ResolverVisitor visitor) {
-    var nativeData = backend.resolveForeignCall(node, element, callStructure,
+    var nativeData = target.resolveForeignCall(node, element, callStructure,
         new ForeignResolutionResolver(visitor, this));
     if (nativeData != null) {
       // Split impact from resolution result.
@@ -390,7 +383,7 @@ class ResolutionRegistry extends Registry {
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
-    return backend.defaultSuperclass(element);
+    return target.defaultSuperclass(element);
   }
 
   void registerInstantiation(InterfaceType type) {

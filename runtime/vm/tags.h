@@ -98,7 +98,9 @@ class VMTagCounters {
 
   int64_t count(uword tag);
 
+#ifndef PRODUCT
   void PrintToJSONObject(JSONObject* obj);
+#endif  // !PRODUCT
 
  private:
   int64_t counters_[VMTag::kNumVMTags];

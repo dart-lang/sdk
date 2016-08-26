@@ -4,14 +4,8 @@
 
 library analyzer.test.generated.sdk_test;
 
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -72,7 +66,7 @@ class DartSdkManagerTest extends EngineTestCase {
     return null;
   }
 
-  DartSdk _failIfCreated(_) {
+  DartSdk _failIfCreated(AnalysisOptions _) {
     fail('Use of sdkCreator');
     return null;
   }

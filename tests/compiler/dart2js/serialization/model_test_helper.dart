@@ -10,7 +10,10 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common.dart';
+import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
@@ -22,6 +25,12 @@ import 'helper.dart';
 import 'test_data.dart';
 import 'test_helper.dart';
 
+/// Number of tests that are not part of the automatic test grouping.
+int SKIP_COUNT = 2;
+
+/// Number of groups that the [TESTS] are split into.
+int SPLIT_COUNT = 5;
+
 main(List<String> args) {
   asyncTest(() async {
     Arguments arguments = new Arguments.from(args);
@@ -29,13 +38,24 @@ main(List<String> args) {
         await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
+      SerializationResult result = await measure(
+          '${entryPoint}', 'serialize', () {
+        return serialize(
+            entryPoint,
+            memorySourceFiles: serializedData.toMemorySourceFiles(),
+            resolutionInputs: serializedData.toUris(),
+            dataUri: Uri.parse('memory:test.data'));
+      });
       await checkModels(entryPoint,
-          sourceFiles: serializedData.toMemorySourceFiles(),
-          resolutionInputs: serializedData.toUris());
+          sourceFiles: serializedData.toMemorySourceFiles(
+              result.serializedData.toMemorySourceFiles()),
+          resolutionInputs: serializedData.toUris(
+              result.serializedData.toUris()));
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       await arguments.forEachTest(serializedData, TESTS, checkModels);
     }
+    printMeasurementResults();
   });
 }
 
@@ -48,88 +68,133 @@ Future checkModels(
      bool verbose: false}) async {
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
-  print('------------------------------------------------------------------');
-  print('compile normal ${id}${testDescription}');
-  print('------------------------------------------------------------------');
-  Compiler compilerNormal = compilerFor(
-      memorySourceFiles: sourceFiles,
-      options: [Flags.analyzeOnly]);
-  compilerNormal.resolution.retainCachesForTesting = true;
-  await compilerNormal.run(entryPoint);
-  compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
-  compilerNormal.world.populate();
-  compilerNormal.backend.onResolutionComplete();
+  String title = '${id}${testDescription}';
+  Compiler compilerNormal = await measure(
+      title, 'compile normal', () async {
+    Compiler compilerNormal = compilerFor(
+        memorySourceFiles: sourceFiles,
+        options: [Flags.analyzeOnly]);
+    compilerNormal.resolution.retainCachesForTesting = true;
+    await compilerNormal.run(entryPoint);
+    compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
+    compilerNormal.world.populate();
+    compilerNormal.backend.onResolutionComplete();
+    compilerNormal.deferredLoadTask.onResolutionComplete(
+        compilerNormal.mainFunction);
+    return compilerNormal;
+  });
 
-  print('------------------------------------------------------------------');
-  print('compile deserialized ${id}${testDescription}');
-  print('------------------------------------------------------------------');
-  Compiler compilerDeserialized = compilerFor(
-      memorySourceFiles: sourceFiles,
-      resolutionInputs: resolutionInputs,
-      options: [Flags.analyzeOnly]);
-  compilerDeserialized.resolution.retainCachesForTesting = true;
-  await compilerDeserialized.run(entryPoint);
-  compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
-  compilerDeserialized.world.populate();
-  compilerDeserialized.backend.onResolutionComplete();
+  Compiler compilerDeserialized = await measure(
+      title, 'compile deserialized', () async {
+    Compiler compilerDeserialized = compilerFor(
+        memorySourceFiles: sourceFiles,
+        resolutionInputs: resolutionInputs,
+        options: [Flags.analyzeOnly]);
+    compilerDeserialized.resolution.retainCachesForTesting = true;
+    await compilerDeserialized.run(entryPoint);
+    compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
+    compilerDeserialized.world.populate();
+    compilerDeserialized.backend.onResolutionComplete();
+    compilerDeserialized.deferredLoadTask.onResolutionComplete(
+        compilerDeserialized.mainFunction);
+    return compilerDeserialized;
+  });
 
-  checkAllImpacts(
-      compilerNormal, compilerDeserialized,
-      verbose: verbose);
+  return measure(title, 'check models', () async {
+    checkAllImpacts(
+        compilerNormal, compilerDeserialized,
+        verbose: verbose);
 
-  checkSets(
-      compilerNormal.resolverWorld.directlyInstantiatedClasses,
-      compilerDeserialized.resolverWorld.directlyInstantiatedClasses,
-      "Directly instantiated classes mismatch",
-      areElementsEquivalent,
-      verbose: verbose);
+    checkSets(
+        compilerNormal.resolverWorld.directlyInstantiatedClasses,
+        compilerDeserialized.resolverWorld.directlyInstantiatedClasses,
+        "Directly instantiated classes mismatch",
+        areElementsEquivalent,
+        verbose: verbose);
 
-  checkSets(
-      compilerNormal.resolverWorld.instantiatedTypes,
-      compilerDeserialized.resolverWorld.instantiatedTypes,
-      "Instantiated types mismatch",
-      areTypesEquivalent,
-      verbose: verbose);
+    checkSets(
+        compilerNormal.resolverWorld.instantiatedTypes,
+        compilerDeserialized.resolverWorld.instantiatedTypes,
+        "Instantiated types mismatch",
+        areTypesEquivalent,
+        verbose: verbose);
 
-  checkSets(
-      compilerNormal.resolverWorld.isChecks,
-      compilerDeserialized.resolverWorld.isChecks,
-      "Is-check mismatch",
-      areTypesEquivalent,
-      verbose: verbose);
+    checkSets(
+        compilerNormal.resolverWorld.isChecks,
+        compilerDeserialized.resolverWorld.isChecks,
+        "Is-check mismatch",
+        areTypesEquivalent,
+        verbose: verbose);
 
-  checkSets(
-      compilerNormal.enqueuer.resolution.processedElements,
-      compilerDeserialized.enqueuer.resolution.processedElements,
-      "Processed element mismatch",
-      areElementsEquivalent,
-      onSameElement: (a, b) {
-        checkElements(
-            compilerNormal, compilerDeserialized, a, b, verbose: verbose);
-      },
-      verbose: verbose);
+    checkSets(
+        compilerNormal.enqueuer.resolution.processedElements,
+        compilerDeserialized.enqueuer.resolution.processedElements,
+        "Processed element mismatch",
+        areElementsEquivalent,
+        onSameElement: (a, b) {
+          checkElements(
+              compilerNormal, compilerDeserialized, a, b, verbose: verbose);
+        },
+        verbose: verbose);
 
-  checkClassHierarchyNodes(
-      compilerNormal,
-      compilerDeserialized,
-      compilerNormal.world.getClassHierarchyNode(
-          compilerNormal.coreClasses.objectClass),
-      compilerDeserialized.world.getClassHierarchyNode(
-          compilerDeserialized.coreClasses.objectClass),
-      verbose: verbose);
+    checkClassHierarchyNodes(
+        compilerNormal,
+        compilerDeserialized,
+        compilerNormal.world.getClassHierarchyNode(
+            compilerNormal.coreClasses.objectClass),
+        compilerDeserialized.world.getClassHierarchyNode(
+            compilerDeserialized.coreClasses.objectClass),
+        verbose: verbose);
 
-  Expect.equals(compilerNormal.enabledInvokeOn,
-      compilerDeserialized.enabledInvokeOn,
-      "Compiler.enabledInvokeOn mismatch");
-  Expect.equals(compilerNormal.enabledFunctionApply,
-      compilerDeserialized.enabledFunctionApply,
-      "Compiler.enabledFunctionApply mismatch");
-  Expect.equals(compilerNormal.enabledRuntimeType,
-      compilerDeserialized.enabledRuntimeType,
-      "Compiler.enabledRuntimeType mismatch");
-  Expect.equals(compilerNormal.hasIsolateSupport,
-      compilerDeserialized.hasIsolateSupport,
-      "Compiler.hasIsolateSupport mismatch");
+    Expect.equals(compilerNormal.enabledInvokeOn,
+        compilerDeserialized.enabledInvokeOn,
+        "Compiler.enabledInvokeOn mismatch");
+    Expect.equals(compilerNormal.enabledFunctionApply,
+        compilerDeserialized.enabledFunctionApply,
+        "Compiler.enabledFunctionApply mismatch");
+    Expect.equals(compilerNormal.enabledRuntimeType,
+        compilerDeserialized.enabledRuntimeType,
+        "Compiler.enabledRuntimeType mismatch");
+    Expect.equals(compilerNormal.hasIsolateSupport,
+        compilerDeserialized.hasIsolateSupport,
+        "Compiler.hasIsolateSupport mismatch");
+    Expect.equals(
+        compilerNormal.deferredLoadTask.isProgramSplit,
+        compilerDeserialized.deferredLoadTask.isProgramSplit,
+        "isProgramSplit mismatch");
+
+    Map<ConstantValue, OutputUnit> constants1 =
+        compilerNormal.deferredLoadTask.outputUnitForConstantsForTesting;
+    Map<ConstantValue, OutputUnit> constants2 =
+        compilerDeserialized.deferredLoadTask.outputUnitForConstantsForTesting;
+    checkSets(
+        constants1.keys,
+        constants2.keys,
+        'deferredLoadTask._outputUnitForConstants.keys',
+        areConstantValuesEquivalent,
+        failOnUnfound: false,
+        failOnExtra: false,
+        onSameElement: (ConstantValue value1, ConstantValue value2) {
+          OutputUnit outputUnit1 = constants1[value1];
+          OutputUnit outputUnit2 = constants2[value2];
+          checkOutputUnits(outputUnit1, outputUnit2,
+              'for ${value1.toStructuredText()} '
+                  'vs ${value2.toStructuredText()}');
+        },
+        onUnfoundElement: (ConstantValue value1) {
+          OutputUnit outputUnit1 = constants1[value1];
+          Expect.isTrue(outputUnit1.isMainOutput,
+              "Missing deferred constant: ${value1.toStructuredText()}");
+        },
+        onExtraElement: (ConstantValue value2) {
+          OutputUnit outputUnit2 = constants2[value2];
+          Expect.isTrue(outputUnit2.isMainOutput,
+              "Extra deferred constant: ${value2.toStructuredText()}");
+        },
+        elementToString: (a) {
+          return '${a.toStructuredText()} -> ${constants1[a]}/${constants2[a]}';
+        });
+  });
 }
 
 void checkElements(
@@ -182,6 +247,28 @@ void checkElements(
         "$element1.variablesUsedInTryOrGenerator",
         areLocalsEquivalent,
         verbose: verbose);
+    if (element1 is MemberElement && element2 is MemberElement) {
+      MemberElement member1 = element1.implementation;
+      MemberElement member2 = element2.implementation;
+      checkSets(
+          member1.nestedClosures,
+          member2.nestedClosures,
+          "$member1.nestedClosures",
+          areElementsEquivalent,
+          verbose: verbose,
+          onSameElement: (a, b) {
+            LocalFunctionElement localFunction1 = a.expression;
+            LocalFunctionElement localFunction2 = b.expression;
+            checkElementIdentities(
+                localFunction1, localFunction2,
+                'enclosingClass',
+                localFunction1.enclosingClass, localFunction2.enclosingClass);
+            testResolvedAstEquivalence(
+                localFunction1.resolvedAst,
+                localFunction2.resolvedAst,
+                const CheckStrategy());
+          });
+    }
   }
   JavaScriptBackend backend1 = compiler1.backend;
   JavaScriptBackend backend2 = compiler2.backend;
@@ -189,6 +276,8 @@ void checkElements(
       backend1.inlineCache.getCurrentCacheDecisionForTesting(element1),
       backend2.inlineCache.getCurrentCacheDecisionForTesting(element2),
       "Inline cache decision mismatch for $element1 vs $element2");
+
+  checkElementOutputUnits(compiler1, compiler2, element1, element2);
 }
 
 void checkMixinUses(
@@ -302,4 +391,26 @@ String nodeToString(Node node) {
     return '(${node.runtimeType}) ${text.substring(0, 37)}...';
   }
   return '(${node.runtimeType}) $text';
+}
+
+void checkElementOutputUnits(
+    Compiler compiler1, Compiler compiler2,
+    Element element1, Element element2) {
+  OutputUnit outputUnit1 =
+      compiler1.deferredLoadTask.getOutputUnitForElementForTesting(element1);
+  OutputUnit outputUnit2 =
+      compiler2.deferredLoadTask.getOutputUnitForElementForTesting(element2);
+  checkOutputUnits(outputUnit1, outputUnit2, 'for $element1 vs $element2');
+}
+
+void checkOutputUnits(
+    OutputUnit outputUnit1, OutputUnit outputUnit2, String message) {
+  if (outputUnit1 == null && outputUnit2 == null) return;
+  check(outputUnit1, outputUnit2,
+      'OutputUnit.isMainOutput $message',
+      outputUnit1.isMainOutput, outputUnit2.isMainOutput);
+  checkSetEquivalence(outputUnit1, outputUnit2,
+      'OutputUnit.imports $message',
+      outputUnit1.imports, outputUnit2.imports,
+      (a, b) => areElementsEquivalent(a.declaration, b.declaration));
 }

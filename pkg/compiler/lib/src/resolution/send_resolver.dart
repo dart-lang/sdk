@@ -9,7 +9,6 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-
 import 'semantic_visitor.dart';
 import 'send_structure.dart';
 import 'tree_elements.dart';

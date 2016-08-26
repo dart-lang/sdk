@@ -28,9 +28,10 @@ VM_STUB_CODE_LIST(STUB_CODE_DECLARE);
 
 StubEntry::StubEntry(const Code& code)
     : code_(code.raw()),
-      entry_point_(code.EntryPoint()),
+      entry_point_(code.UncheckedEntryPoint()),
+      checked_entry_point_(code.CheckedEntryPoint()),
       size_(code.Size()),
-      label_(code.EntryPoint()) {
+      label_(code.UncheckedEntryPoint()) {
 }
 
 
@@ -183,20 +184,20 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
         isolate->heap()->CollectAllGarbage();
       }
     }
+#ifndef PRODUCT
     if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
       LogBlock lb;
       THR_Print("Code for allocation stub '%s': {\n", name);
-#ifndef PRODUCT
       DisassembleToStdout formatter;
       stub.Disassemble(&formatter);
-#endif
       THR_Print("}\n");
       const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
       object_pool.DebugPrint();
     }
+#endif  // !PRODUCT
   }
   return stub.raw();
-#endif
+#endif  // !DBC
   UNIMPLEMENTED();
   return Code::null();
 }
@@ -229,6 +230,7 @@ RawCode* StubCode::Generate(const char* name,
   GenerateStub(&assembler);
   const Code& code = Code::Handle(
       Code::FinalizeCode(name, &assembler, false /* optimized */));
+#ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;
     THR_Print("Code for stub '%s': {\n", name);
@@ -238,6 +240,7 @@ RawCode* StubCode::Generate(const char* name,
     const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
     object_pool.DebugPrint();
   }
+#endif  // !PRODUCT
   return code.raw();
 }
 

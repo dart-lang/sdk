@@ -82,4 +82,22 @@ void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
   delete allocated_set;
 }
 
+
+#if defined(DEBUG)
+VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
+    : thread_(thread),
+      instanceHandle_(Instance::Handle(thread->zone())) {
+}
+
+
+void VerifyCanonicalVisitor::VisitObject(RawObject* obj) {
+  if (obj->GetClassId() >= kInstanceCid) {
+    if (obj->IsCanonical()) {
+      instanceHandle_ ^= obj;
+      ASSERT(instanceHandle_.CheckIsCanonical(thread_));
+    }
+  }
+}
+#endif  // defined(DEBUG)
+
 }  // namespace dart

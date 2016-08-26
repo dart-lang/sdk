@@ -17,3 +17,5 @@ Purple is the new green.
 googlecode back up
 CIT outage - all slaves rebooted
 Authentication failure flake - rerun all bots
+Trigger bots after master restart - switch dart2js bots to use downloaded sdk.
+Trigger bots after master restart.

@@ -19,6 +19,7 @@ const Iterable<String> _allowedDartSchemePaths = const <String>[
   'html_common',
   'indexed_db',
   'js',
+  'js_util',
   'svg',
   '_native_typed_data',
   'web_audio',
@@ -32,6 +33,7 @@ bool maybeEnableNative(Compiler compiler, LibraryElement library) {
     return scriptName.contains('sdk/tests/compiler/dart2js_native') ||
         scriptName.contains('sdk/tests/compiler/dart2js_extra');
   }
+
   bool allowedDartLibary() {
     Uri uri = library.canonicalUri;
     if (uri.scheme != 'dart') return false;

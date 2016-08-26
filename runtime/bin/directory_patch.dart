@@ -2,25 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _Directory {
-  /* patch */ static _current() native "Directory_Current";
-  /* patch */ static _setCurrent(path) native "Directory_SetCurrent";
-  /* patch */ static _createTemp(String path) native "Directory_CreateTemp";
-  /* patch */ static String _systemTemp() native "Directory_SystemTemp";
-  /* patch */ static _exists(String path) native "Directory_Exists";
-  /* patch */ static _create(String path) native "Directory_Create";
-  /* patch */ static _deleteNative(String path, bool recursive)
+@patch class _Directory {
+  @patch static _current() native "Directory_Current";
+  @patch static _setCurrent(path) native "Directory_SetCurrent";
+  @patch static _createTemp(String path) native "Directory_CreateTemp";
+  @patch static String _systemTemp() native "Directory_SystemTemp";
+  @patch static _exists(String path) native "Directory_Exists";
+  @patch static _create(String path) native "Directory_Create";
+  @patch static _deleteNative(String path, bool recursive)
       native "Directory_Delete";
-  /* patch */ static _rename(String path, String newPath)
+  @patch static _rename(String path, String newPath)
       native "Directory_Rename";
-  /* patch */ static void _fillWithDirectoryListing(
+  @patch static void _fillWithDirectoryListing(
       List<FileSystemEntity> list, String path, bool recursive,
       bool followLinks)
       native "Directory_FillWithDirectoryListing";
 }
 
-patch class _AsyncDirectoryListerOps {
-  /* patch */ factory _AsyncDirectoryListerOps(int pointer) =>
+@patch class _AsyncDirectoryListerOps {
+  @patch factory _AsyncDirectoryListerOps(int pointer) =>
       new _AsyncDirectoryListerOpsImpl(pointer);
 }
 

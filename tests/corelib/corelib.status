@@ -41,6 +41,7 @@ symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+package_resource_test: RuntimeError # Issue 26842
 symbol_reserved_word_test/02: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/05: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/04: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
@@ -138,8 +139,6 @@ from_environment_const_type_undefined_test/16: CompileTimeError
 
 [ $compiler == dart2analyzer ]
 int_parse_radix_bad_handler_test: fail
-list_insert_test: fail
-list_removeat_test: fail
 hash_set_type_check_test: StaticWarning, OK # Tests failing type tests.
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
 iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
@@ -162,8 +161,8 @@ data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 file_resource_test: Skip, OK # VM specific test, uses dart:io.
 http_resource_test: Skip, OK # VM specific test, uses dart:io.
 
-[ $runtime != vm && $runtime != dart_precompiled && $compiler != dart2analyzer && $cps_ir == false ]
-package_resource_test: RuntimeError # Issue 23825 (not implemented yet).
+[ $compiler == dart2js && $browser == false ]
+package_resource_test: RuntimeError # Issue 26842
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
@@ -173,7 +172,6 @@ int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
-package_resource_test: Crash # Surprisingly null object in type propagation.
 regexp/pcre_test: Crash # Stack Overflow in LoopHierarchy.
 core_runtime_types_test: Pass, RuntimeError # Issue 25795.
 
@@ -183,9 +181,6 @@ core_runtime_types_test: Pass, RuntimeError # Issue 25795.
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 regexp/pcre_test: Crash # Stack Overflow
 collection_removes_test: Crash # Issue 25911
-
-[ $compiler == dart2js && $host_checked ]
-package_resource_test: Crash # Issue 25911
 
 [ $noopt || $compiler == precompiler ]
 # Stacktraces in precompilation omit inlined frames.
@@ -209,15 +204,3 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-
-[ $hot_reload ]
-big_integer_huge_mul_vm_test: Pass, Timeout
-big_integer_parsed_mul_div_vm_test: Pass, Timeout
-collection_length_test: Fail, Crash
-hash_map2_test: Pass, Crash
-queue_test: Pass, Crash
-regexp/regexp_test: Pass, Fail, Crash
-uri_parse_test: Pass, Timeout
-uri_test: Pass, RuntimeError
-data_uri_test: Pass, RuntimeError
-int_parse_radix_test: Pass, Timeout

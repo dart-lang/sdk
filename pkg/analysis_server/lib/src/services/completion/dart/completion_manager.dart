@@ -286,7 +286,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     }
     _resolvedImports = <ImportElement>[];
     for (ImportElement importElem in libElem.imports) {
-      if (importElem.importedLibrary.exportNamespace == null) {
+      if (importElem.importedLibrary?.exportNamespace == null) {
         await _computeAsync(this, importElem.importedLibrary.source,
             LIBRARY_ELEMENT4, performance, 'resolve imported library');
         checkAborted();

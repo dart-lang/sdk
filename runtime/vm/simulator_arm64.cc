@@ -265,7 +265,7 @@ bool SimulatorDebugger::GetQValue(char* desc, simd_value_t* value) {
 TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
                                                             uword pc) {
   TokenPosition token_pos = TokenPosition::kNoSource;
-  uword pc_offset = pc - code.EntryPoint();
+  uword pc_offset = pc - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
@@ -1603,7 +1603,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
     Redirection* redirection = Redirection::FromHltInstruction(instr);
     uword external = redirection->external_function();
     if (IsTracingExecution()) {
-      OS::Print("Call to host function at 0x%" Pd "\n", external);
+      THR_Print("Call to host function at 0x%" Pd "\n", external);
     }
 
     if ((redirection->call_kind() == kRuntimeCall) ||
@@ -3406,13 +3406,13 @@ void Simulator::DecodeDPSimd2(Instr* instr) {
 void Simulator::InstructionDecode(Instr* instr) {
   pc_modified_ = false;
   if (IsTracingExecution()) {
-    OS::Print("%" Pu64 " ", icount_);
+    THR_Print("%" Pu64 " ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     if (FLAG_support_disassembler) {
       Disassembler::Disassemble(start, end);
     } else {
-      OS::Print("Disassembler not supported in this mode.\n");
+      THR_Print("Disassembler not supported in this mode.\n");
     }
   }
 

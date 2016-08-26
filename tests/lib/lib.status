@@ -374,7 +374,23 @@ convert/utf85_test: Pass, Timeout
 # version.
 mirrors/accessor_cache_overflow_test: Skip
 
+[ $hot_reload || $hot_reload_rollback ]
+async/multiple_timer_test: Pass, Fail # Timing related
+async/stream_transformer_test: Pass, Fail # Closure identity
+mirrors/closurization_equivalence_test: SkipByDesign # Method equality
+mirrors/fake_function_with_call_test: SkipByDesign # Method equality
+
+mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading
+mirrors/library_imports_deferred_test: Crash # Deferred loading
+mirrors/library_import_deferred_loading_test: Crash # Deferred loading
+mirrors/typedef_deferred_library_test: Crash # Deferred loading
+mirrors/deferred_mirrors_update_test: Crash # Deferred loading
+mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
+mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
+mirrors/load_library_test: Crash # Deferred loading
+
 [ $hot_reload ]
-convert/chunked_conversion_utf88_test: Pass, Timeout
-convert/streamed_conversion_json_utf8_decode_test: Fail, Crash
-convert/utf85_test: Fail, Crash
+mirrors/metadata_scope_test/none: Fail # Constant equality - Issue 26868
+mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
+mirrors/typedef_reflected_type_test/01: Fail # Type equality - Issue 26869
+mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869

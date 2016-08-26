@@ -30,7 +30,7 @@ void CodeBreakpoint::PatchCode() {
   const Instructions& instrs = Instructions::Handle(code.instructions());
   Code& stub_target = Code::Handle();
   {
-    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
     switch (breakpoint_kind_) {
       case RawPcDescriptors::kIcCall:
       case RawPcDescriptors::kUnoptStaticCall: {
@@ -57,7 +57,7 @@ void CodeBreakpoint::RestoreCode() {
   const Code& code = Code::Handle(code_);
   const Instructions& instrs = Instructions::Handle(code.instructions());
   {
-    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
     switch (breakpoint_kind_) {
       case RawPcDescriptors::kIcCall:
       case RawPcDescriptors::kUnoptStaticCall:

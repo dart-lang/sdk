@@ -1535,7 +1535,7 @@ class @Instance extends @Object {
   //   Type
   string name [optional];
 
-  // The corresponding Class if this Type is canonical.
+  // The corresponding Class if this Type has a resolved typeClass.
   //
   // Provided for instance kinds:
   //   Type

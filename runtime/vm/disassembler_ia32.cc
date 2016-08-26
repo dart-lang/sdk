@@ -465,69 +465,17 @@ void X86Decoder::PrintXmmComparison(int comparison) {
 }
 
 
-static const char* ObjectToCStringNoGC(const Object& obj) {
-  if (obj.IsSmi() ||
-      obj.IsMint() ||
-      obj.IsDouble() ||
-      obj.IsString() ||
-      obj.IsNull() ||
-      obj.IsBool() ||
-      obj.IsClass() ||
-      obj.IsFunction() ||
-      obj.IsICData() ||
-      obj.IsField() ||
-      obj.IsCode()) {
-    return obj.ToCString();
-  }
-
-  const Class& clazz = Class::Handle(obj.clazz());
-  const char* full_class_name = clazz.ToCString();
-  return OS::SCreate(Thread::Current()->zone(),
-      "instance of %s", full_class_name);
-}
-
-
 void X86Decoder::PrintAddress(uword addr) {
   char addr_buffer[32];
   OS::SNPrint(addr_buffer, sizeof(addr_buffer), "%#" Px "", addr);
   Print(addr_buffer);
-  // Try to print as heap object or stub name
-  if (((addr & kSmiTagMask) == kHeapObjectTag) &&
-      reinterpret_cast<RawObject*>(addr)->IsWellFormed() &&
-      reinterpret_cast<RawObject*>(addr)->IsOldObject() &&
-      !Isolate::Current()->heap()->CodeContains(addr) &&
-      !Dart::vm_isolate()->heap()->CodeContains(addr) &&
-      Disassembler::CanFindOldObject(addr)) {
-    NoSafepointScope no_safepoint;
-    const Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
-    if (obj.IsArray()) {
-      const Array& arr = Array::Cast(obj);
-      intptr_t len = arr.Length();
-      if (len > 5) len = 5;  // Print a max of 5 elements.
-      Print("  Array[");
-      int i = 0;
-      Object& element = Object::Handle();
-      while (i < len) {
-        element = arr.At(i);
-        if (i > 0) Print(", ");
-        Print(ObjectToCStringNoGC(element));
-        i++;
-      }
-      if (i < arr.Length()) Print(", ...");
-      Print("]");
-      return;
-    }
-    Print("  '");
-    Print(ObjectToCStringNoGC(obj));
-    Print("'");
-  } else {
-    // 'addr' is not an object, but probably a code address.
-    const char* name_of_stub = StubCode::NameOfStub(addr);
-    if (name_of_stub != NULL) {
-      Print("  [stub: ");
-      Print(name_of_stub);
-      Print("]");
-    }
+
+  // Try to print as  stub name.
+  const char* name_of_stub = StubCode::NameOfStub(addr);
+  if (name_of_stub != NULL) {
+    Print("  [stub: ");
+    Print(name_of_stub);
+    Print("]");
   }
 }
 
@@ -1845,7 +1793,8 @@ int X86Decoder::InstructionDecode(uword pc) {
 
 void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                      char* human_buffer, intptr_t human_size,
-                                     int* out_instr_len, uword pc) {
+                                     int* out_instr_len, const Code& code,
+                                     Object** object, uword pc) {
   ASSERT(hex_size > 0);
   ASSERT(human_size > 0);
   X86Decoder decoder(human_buffer, human_size);
@@ -1861,6 +1810,18 @@ void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
   hex_buffer[hex_index] = '\0';
   if (out_instr_len) {
     *out_instr_len = instruction_length;
+  }
+
+  *object = NULL;
+  if (!code.IsNull() && code.is_alive()) {
+    intptr_t offsets_length = code.pointer_offsets_length();
+    for (intptr_t i = 0; i < offsets_length; i++) {
+      uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
+      if ((pc <= addr) && (addr < (pc + instruction_length))) {
+        *object = &Object::Handle(*reinterpret_cast<RawObject**>(addr));
+        break;
+      }
+    }
   }
 }
 

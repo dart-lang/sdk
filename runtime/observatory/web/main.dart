@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:html';
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
+import 'package:observatory/elements.dart';
 
-main() {
+main() async {
   Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((LogRecord rec) {
       if (rec.level == Level.WARNING &&
@@ -17,13 +19,12 @@ main() {
       }
       print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
+  await initElements();
   Logger.root.info('Starting Observatory');
-  initPolymer().then((zone) {
-    Logger.root.info('Polymer initialized');
-    // Code here is in the polymer Zone, which ensures that
-    // @observable properties work correctly.
-    Polymer.onReady.then((_) {
-      Logger.root.info('Polymer elements have been upgraded');
-    });
-  });
+  await initPolymer();
+  Logger.root.info('Polymer initialized');
+  await Polymer.onReady;
+  Logger.root.info('Polymer elements have been upgraded');
+  document.body.children
+      .insert(0, document.createElement('observatory-application'));
 }

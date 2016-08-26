@@ -1,3 +1,6 @@
+## 1.0.2
+* Introduce `@visibleForTesting` annotation for declarations that may be referenced only in the library or in a test.
+
 ## 1.0.1
 * Updated `@factory` to allow statics and methods returning `null`.
 

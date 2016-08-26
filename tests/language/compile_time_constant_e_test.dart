@@ -19,7 +19,6 @@ class A {
 }
 
 const a1 = const A(99, 100);
-const a1n = const A.n(99, 100);
 const a2 = const A.named(z: 99, t: 100);
 const a3 = const A.named2(t: 1, z: 2, y: 3, x: 4);
 const a4 = const A();

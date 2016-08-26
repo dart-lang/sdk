@@ -482,8 +482,8 @@ abstract class FileSystemEntity {
   /**
    * Returns a [bool] indicating whether this object's path is absolute.
    *
-   * On Windows, a path is absolute if it starts with \\ or a drive letter
-   * between a and z (upper or lower case) followed by :\ or :/.
+   * On Windows, a path is absolute if it starts with \\\\ or a drive letter
+   * between a and z (upper or lower case) followed by :\\ or :/.
    * On non-Windows, a path is absolute if it starts with /.
    */
   bool get isAbsolute {
@@ -624,7 +624,7 @@ abstract class FileSystemEntity {
   /**
    * Removes the final path component of a path, using the platform's
    * path separator to split the path.  Will not remove the root component
-   * of a Windows path, like "C:\" or "\\server_name\".
+   * of a Windows path, like "C:\\" or "\\\\server_name\\".
    * Ignores trailing path separators, and leaves no trailing path separators.
    */
   static String parentOf(String path) {

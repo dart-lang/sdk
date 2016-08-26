@@ -6,6 +6,7 @@ library server.performance.scenarios;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:unittest/unittest.dart';
@@ -13,9 +14,11 @@ import 'package:unittest/unittest.dart';
 import 'performance_tests.dart';
 
 void printBenchmarkResults(String id, String description, List<int> times) {
+  int minTime = times.fold(1 << 20, min);
   String now = new DateTime.now().toUtc().toIso8601String();
   print('$now ========== $id');
   print('times: $times');
+  print('min_time: $minTime');
   print(description.trim());
   print('--------------------');
   print('');
@@ -185,11 +188,19 @@ class BenchmarkScenario extends AbstractTimingTest {
    */
   Future<String> _applyFileChange(String file, FileChange desc) async {
     String originalContent = _getFileContent(file);
-    int offset = _indexOfEnd(file, originalContent, desc.afterStr);
-    offset -= desc.afterStrBack;
-    String updatedContent = originalContent.substring(0, offset) +
-        desc.insertStr +
-        originalContent.substring(offset);
+    String updatedContent;
+    if (desc.afterStr != null) {
+      int offset = _indexOfEnd(file, originalContent, desc.afterStr);
+      offset -= desc.afterStrBack;
+      updatedContent = originalContent.substring(0, offset) +
+          desc.insertStr +
+          originalContent.substring(offset);
+    } else if (desc.replaceWhat != null) {
+      int offset = _indexOf(file, originalContent, desc.replaceWhat);
+      updatedContent = originalContent.substring(0, offset) +
+          desc.replaceWith +
+          originalContent.substring(offset + desc.replaceWhat.length);
+    }
     await sendAnalysisUpdateContent(
         {file: new AddContentOverlay(updatedContent)});
     return updatedContent;
@@ -279,9 +290,14 @@ class FileChange {
   final String afterStr;
   final int afterStrBack;
   final String insertStr;
+  final String replaceWhat;
+  final String replaceWith;
 
-  FileChange({this.afterStr, this.afterStrBack: 0, this.insertStr}) {
-    expect(afterStr, isNotNull, reason: 'afterStr');
-    expect(insertStr, isNotNull, reason: 'insertStr');
+  FileChange({this.afterStr, this.afterStrBack: 0, this.insertStr, this.replaceWhat, this.replaceWith}) {
+    if (afterStr != null) {
+      expect(insertStr, isNotNull, reason: 'insertStr');
+    } else if (replaceWhat != null) {
+      expect(replaceWith, isNotNull, reason: 'replaceWith');
+    }
   }
 }

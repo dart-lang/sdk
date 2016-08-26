@@ -4,33 +4,58 @@
 
 library library_ref_element;
 
-import 'package:observatory/service.dart';
-import 'package:polymer/polymer.dart';
-import 'service_ref.dart';
+import 'dart:html';
 import 'dart:async';
+import 'package:observatory/models.dart' as M
+  show IsolateRef, LibraryRef;
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 
-@CustomTag('library-ref')
-class LibraryRefElement extends ServiceRefElement {
-  @observable bool asValue = false;
+class LibraryRefElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<LibraryRefElement>('library-ref-wrapped');
+
+  RenderingScheduler<LibraryRefElement> _r;
+
+  Stream<RenderedEvent<LibraryRefElement>> get onRendered => _r.onRendered;
+
+  M.IsolateRef _isolate;
+  M.LibraryRef _library;
+
+  M.IsolateRef get isolate => _isolate;
+  M.LibraryRef get library => _library;
+
+  factory LibraryRefElement(M.IsolateRef isolate, M.LibraryRef library,
+      {RenderingQueue queue}) {
+    assert(isolate != null);
+    assert(library != null);
+    LibraryRefElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._isolate = isolate;
+    e._library = library;
+    return e;
+  }
 
   LibraryRefElement.created() : super.created();
 
-  String makeExpandKey(String key) {
-    return '${expandKey}/${key}';
+  @override
+  void attached() {
+    super.attached();
+    _r.enable();
   }
 
-  dynamic expander() {
-    return expandEvent;
+  @override
+  void detached() {
+    super.detached();
+    _r.disable(notify: true);
+    children = [];
   }
 
-  void expandEvent(bool expand, Function onDone) {
-    if (expand) {
-      Library lib = ref;
-      lib.reload().then((result) {
-        return Future.wait(lib.variables.map((field) => field.reload()));
-      }).whenComplete(onDone);
-    } else {
-      onDone();
-    }
+  void render() {
+    final name = _library.name;
+    children = [
+      new AnchorElement(href: Uris.inspect(_isolate, object: _library))
+        ..text = (name == null || name.isEmpty) ? 'unnamed' : name
+    ];
   }
 }

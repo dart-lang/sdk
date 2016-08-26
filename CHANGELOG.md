@@ -1,6 +1,152 @@
-## 1.18.0 - 2016-08-02
+## 1.19.0 - 2016-08-26
 
-Patch release, resolves two issues:
+### Language changes
+
+* The language now allows a trailing comma after the last argument of a call and
+ the last parameter of a function declaration. This can make long argument or
+ parameter lists easier to maintain, as commas can be left as-is when
+ reordering lines. For details, see SDK issue
+ [26644](https://github.com/dart-lang/sdk/issues/26644).
+
+### Tool Changes
+
+* `dartfmt` - upgraded to v0.2.9+1
+  * Support trailing commas in argument and parameter lists.
+  * Gracefully handle read-only files.
+  * About a dozen other bug fixes.
+
+* Pub
+  * Added a `--no-packages-dir` flag to `pub get`, `pub upgrade`, and `pub
+    downgrade`. When this flag is passed, pub will not generate a `packages/`
+    directory, and will remove that directory and any symlinks to it if they
+    exist. Note that this replaces the unsupported `--no-package-symlinks` flag.
+
+  * Added the ability for packages to declare a constraint on the [Flutter][]
+    SDK:
+
+    ```yaml
+    environment:
+      flutter: ^0.1.2
+      sdk: >=1.19.0 <2.0.0
+    ```
+
+    A Flutter constraint will only be satisfiable when pub is running in the
+    context of the `flutter` executable, and when the Flutter SDK version
+    matches the constraint.
+
+  * Added `sdk` as a new package source that fetches packages from a hard-coded
+    SDK. Currently only the `flutter` SDK is supported:
+
+    ```yaml
+    dependencies:
+      flutter_driver:
+        sdk: flutter
+        version: ^0.0.1
+    ```
+
+    A Flutter `sdk` dependency will only be satisfiable when pub is running in
+    the context of the `flutter` executable, and when the Flutter SDK contains a
+    package with the given name whose version matches the constraint.
+
+  * `tar` files on Linux are now created with `0` as the user and group IDs.
+    This fixes a crash when publishing packages while using Active Directory.
+
+  * Fixed a bug where packages from a hosted HTTP URL were considered the same
+    as packages from an otherwise-identical HTTPS URL.
+
+  * Fixed timer formatting for timers that lasted longer than a minute.
+
+  * Eliminate some false negatives when determining whether global executables
+    are on the user's executable path.
+
+* `dart2js`
+  * `dart2dart` (aka `dart2js --output-type=dart`) has been removed (this was deprecated in Dart 1.11).
+
+[Flutter]: https://flutter.io/
+
+### Dart VM
+
+*   The dependency on BoringSSL has been rolled forward. Going forward, builds
+    of the Dart VM including secure sockets will require a compiler with C++11
+    support. For details, see the
+    [Building wiki page](https://github.com/dart-lang/sdk/wiki/Building).
+
+### Strong Mode
+
+*   New feature - an option to disable implicit casts
+    (SDK issue [26583](https://github.com/dart-lang/sdk/issues/26583)),
+    see the [documentation](https://github.com/dart-lang/dev_compiler/blob/master/doc/STATIC_SAFETY.md#disable-implicit-casts)
+    for usage instructions and examples.
+
+*   New feature - an option to disable implicit dynamic
+    (SDK issue [25573](https://github.com/dart-lang/sdk/issues/25573)),
+    see the [documentation](https://github.com/dart-lang/dev_compiler/blob/master/doc/STATIC_SAFETY.md#disable-implicit-dynamic)
+    for usage instructions and examples.
+
+*   Breaking change - infer generic type arguments from the
+    constructor invocation arguments
+    (SDK issue [25220](https://github.com/dart-lang/sdk/issues/25220)).
+
+    ```dart
+    var map = new Map<String, String>();
+
+    // infer: Map<String, String>
+    var otherMap = new Map.from(map);
+    ```
+
+*   Breaking change - infer local function return type
+    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26414)).
+
+    ```dart
+    void main() {
+      // infer: return type is int
+      f() { return 40; }
+      int y = f() + 2; // type checks
+      print(y);
+    }
+    ```
+
+*   Breaking change - allow type promotion from a generic type parameter
+    (SDK issue [26414](https://github.com/dart-lang/sdk/issues/26965)).
+
+    ```dart
+    void fn/*<T>*/(/*=T*/ object) {
+      if (object is String) {
+        // Treat `object` as `String` inside this block.
+        // But it will require a cast to pass it to something that expects `T`.
+        print(object.substring(1));
+      }
+    }
+    ```
+
+* Breaking change - smarter inference for Future.then
+    (SDK issue [25944](https://github.com/dart-lang/sdk/issues/25944)).
+    Previous workarounds that use async/await or `.then/*<Future<SomeType>>*/`
+    should no longer be necessary.
+
+    ```dart
+    // This will now infer correctly.
+    Future<List<int>> t2 = f.then((_) => [3]);
+    // This infers too.
+    Future<int> t2 = f.then((_) => new Future.value(42));
+    ```
+
+* Breaking change - smarter inference for async functions
+    (SDK issue [25322](https://github.com/dart-lang/sdk/issues/25322)).
+
+    ```dart
+    void test() async {
+      List<int> x = await [4]; // was previously inferred
+      List<int> y = await new Future.value([4]); // now inferred too
+    }
+    ```
+
+* Breaking change - sideways casts are no longer allowed
+    (SDK issue [26120](https://github.com/dart-lang/sdk/issues/26120)).
+
+## 1.18.1 - 2016-08-02
+
+Patch release, resolves two issues and improves performance:
 
 * Debugger: Fixes a bug that crashes the VM
 (SDK issue [26941](https://github.com/dart-lang/sdk/issues/26941))
@@ -15,6 +161,9 @@ Patch release, resolves two issues:
 
 ### Core library changes
 
+* `dart:core`
+  * Improved performance when parsing some common URIs.
+  * Fixed bug in `Uri.resolve` (SDK issue [26804](https://github.com/dart-lang/sdk/issues/26804)).
 * `dart:io`
   * Adds file locking modes `FileLock.BLOCKING_SHARED` and
     `FileLock.BLOCKING_EXCLUSIVE`.

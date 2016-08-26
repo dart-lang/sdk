@@ -772,11 +772,10 @@ part of lib;
 part of lib;
 '''
     });
-    expect(outputs, hasLength(4));
+    expect(outputs, hasLength(3));
     // simple outputs
     expect(outputs[BUILD_LIBRARY_ERRORS], isEmpty);
     expect(outputs[IS_LAUNCHABLE], isFalse);
-    expect(outputs[REFERENCED_NAMES], isNotNull);
     // LibraryElement output
     expect(libraryElement, isNotNull);
     expect(libraryElement.entryPoint, isNull);
@@ -1557,113 +1556,143 @@ class ComputeLibraryCycleTaskTest extends _AbstractDartTaskTest {
 
   void test_library_cycle_incremental() {
     enableStrongMode();
-    Source lib1Source = newSource(
-        '/my_lib1.dart',
+    Source a = newSource(
+        '/a.dart',
         '''
-library my_lib1;
+library a;
 ''');
-    Source lib2Source = newSource(
-        '/my_lib2.dart',
+    Source b = newSource(
+        '/b.dart',
         '''
-library my_lib2;
-import 'my_lib1.dart';
+library b;
+import 'a.dart';
 ''');
-    Source lib3Source = newSource(
-        '/my_lib3.dart',
+    Source c = newSource(
+        '/c.dart',
         '''
-library my_lib3;
-import 'my_lib2.dart';
+library c;
+import 'b.dart';
 ''');
 
-    computeResult(lib1Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib2Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib3Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+    _assertLibraryCycle(a, [a]);
+    _assertLibraryCycle(b, [b]);
+    _assertLibraryCycle(c, [c]);
 
-    // create a cycle
+    // Create a cycle.
     context.setContents(
-        lib1Source,
+        a,
         '''
-library my_lib1;
-import 'my_lib3.dart';
+library a;
+import 'c.dart';
 ''');
-    _expectInvalid(lib1Source);
-    _expectInvalid(lib2Source);
-    _expectInvalid(lib3Source);
+    _expectInvalid(a);
+    _expectInvalid(b);
+    _expectInvalid(c);
 
-    computeResult(lib1Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib2Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib3Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
+    _assertLibraryCycle(a, [a, b, c]);
+    _assertLibraryCycle(b, [a, b, c]);
+    _assertLibraryCycle(c, [a, b, c]);
 
-    // break the cycle again
+    // Break the cycle again.
     context.setContents(
-        lib1Source,
+        a,
         '''
-library my_lib1;
+library a;
 ''');
-    _expectInvalid(lib1Source);
-    _expectInvalid(lib2Source);
-    _expectInvalid(lib3Source);
+    _expectInvalid(a);
+    _expectInvalid(b);
+    _expectInvalid(c);
 
-    computeResult(lib1Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib2Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib3Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+    _assertLibraryCycle(a, [a]);
+    _assertLibraryCycle(b, [b]);
+    _assertLibraryCycle(c, [c]);
   }
 
   void test_library_cycle_incremental_partial() {
     enableStrongMode();
-    Source lib1Source = newSource(
-        '/my_lib1.dart',
-        '''
-library my_lib1;
+    Source a = newSource(
+        '/a.dart',
+        r'''
+library a;
 ''');
-    Source lib2Source = newSource(
-        '/my_lib2.dart',
-        '''
-library my_lib2;
-import 'my_lib1.dart';
+    Source b = newSource(
+        '/b.dart',
+        r'''
+library b;
+import 'a.dart';
 ''');
-    Source lib3Source = newSource(
-        '/my_lib3.dart',
-        '''
-library my_lib3;
-import 'my_lib2.dart';
+    Source c = newSource(
+        '/c.dart',
+        r'''
+library c;
+import 'b.dart';
 ''');
 
-    computeResult(lib1Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    computeResult(lib2Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(1));
-    // lib3 is not reachable, so we have not yet computed its library
-    // cycles
+    _assertLibraryCycle(a, [a]);
+    _assertLibraryCycle(b, [b]);
+    // 'c' is not reachable, so we have not yet computed its library cycles.
 
-    // complete the cycle, via lib3
+    // Complete the cycle, via 'c'.
     context.setContents(
-        lib1Source,
-        '''
-library my_lib1;
-import 'my_lib3.dart';
+        a,
+        r'''
+library a;
+import 'c.dart';
 ''');
-    _expectInvalid(lib1Source);
-    _expectInvalid(lib2Source);
-    _expectInvalid(lib3Source);
+    _expectInvalid(a);
+    _expectInvalid(b);
+    _expectInvalid(c);
 
-    // Ensure that invalidation correctly invalidated everything reachable
-    // through lib3
-    computeResult(lib1Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib2Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
-    computeResult(lib3Source, LIBRARY_CYCLE);
-    expect(outputs[LIBRARY_CYCLE], hasLength(3));
+    // Ensure that everything reachable through 'c' was invalidated,
+    // and recomputed to include all three sources.
+    _assertLibraryCycle(a, [a, b, c]);
+    _assertLibraryCycle(b, [a, b, c]);
+    _assertLibraryCycle(c, [a, b, c]);
+  }
+
+  void test_library_cycle_incremental_partial2() {
+    enableStrongMode();
+    Source a = newSource(
+        '/a.dart',
+        r'''
+library a;
+import 'b.dart';
+''');
+    Source b = newSource(
+        '/b.dart',
+        r'''
+library b;
+import 'a.dart';
+''');
+    Source c = newSource(
+        '/c.dart',
+        r'''
+library c;
+import 'b.dart';
+''');
+
+    _assertLibraryCycle(a, [a, b]);
+    _assertLibraryCycle(b, [a, b]);
+    _assertLibraryCycle(c, [c]);
+
+    // Include 'c' into the cycle.
+    context.setContents(
+        a,
+        r'''
+library a;
+import 'b.dart';
+import 'c.dart';
+''');
+    _expectInvalid(a);
+    _expectInvalid(b);
+    _expectInvalid(c);
+
+    // Start processing with 'b', so that when we resolve 'b' directives,
+    // and invalidate library cycles, the 'a' directives are not resolved yet,
+    // so we don't know that the cycle must include 'c'.
+    _assertLibraryCycle(b, [a, b, c]);
+    _assertLibraryCycle(a, [a, b, c]);
+    _assertLibraryCycle(c, [a, b, c]);
   }
 
   void test_library_cycle_linear() {
@@ -1973,6 +2002,12 @@ import 'dart:core';
     expect(dep1, hasLength(1)); // dart:core
     expect(dep4, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
     expect(dep5, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
+  }
+
+  void _assertLibraryCycle(Source source, List<Source> expected) {
+    computeResult(source, LIBRARY_CYCLE);
+    List<LibraryElement> cycle = outputs[LIBRARY_CYCLE] as List<LibraryElement>;
+    expect(cycle.map((e) => e.source), unorderedEquals(expected));
   }
 
   void _expectInvalid(Source librarySource) {
@@ -2964,6 +2999,26 @@ var Y = () {
     InterfaceType intType = context.typeProvider.intType;
     expect(expression.staticType, intType);
   }
+
+  test_staticModeHints_forStaticVariableInference() {
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(context.analysisOptions)
+          ..strongModeHints = true;
+    Source source = newSource(
+        '/test.dart',
+        r'''
+var V = [42];
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT9);
+    expect(outputs[RESOLVED_UNIT9], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT9], isTrue);
+    // An INFERRED_TYPE_LITERAL error should be generated.
+    List<AnalysisError> errors = outputs[
+        STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT] as List<AnalysisError>;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, StrongModeCode.INFERRED_TYPE_LITERAL);
+  }
 }
 
 @reflectiveTest
@@ -3185,7 +3240,7 @@ class ParseDartTaskTest extends _AbstractDartTaskTest {
     _performParseTask(r'''
 part of lib;
 class B {}''');
-    expect(outputs, hasLength(10));
+    expect(outputs, hasLength(11));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
@@ -3193,9 +3248,10 @@ class B {}''');
     expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(2));
     expect(outputs[SOURCE_KIND], SourceKind.PART);
     expect(outputs[UNITS], hasLength(1));
-    expect(outputs[REFERENCED_SOURCES], hasLength(2));
   }
 
   test_perform_computeSourceKind_noDirectives_hasContainingLibrary() {
@@ -3220,7 +3276,7 @@ part 'test.dart';
 
   test_perform_doesNotExist() {
     _performParseTask(null);
-    expect(outputs, hasLength(10));
+    expect(outputs, hasLength(11));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
@@ -3228,9 +3284,10 @@ part 'test.dart';
     expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(2));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(1));
-    expect(outputs[REFERENCED_SOURCES], hasLength(2));
   }
 
   test_perform_enableAsync_false() {
@@ -3240,7 +3297,7 @@ part 'test.dart';
     _performParseTask(r'''
 import 'dart:async';
 class B {void foo() async {}}''');
-    expect(outputs, hasLength(10));
+    expect(outputs, hasLength(11));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
@@ -3248,16 +3305,17 @@ class B {void foo() async {}}''');
     expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(1));
     expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(3));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(1));
-    expect(outputs[REFERENCED_SOURCES], hasLength(3));
   }
 
   test_perform_enableAsync_true() {
     _performParseTask(r'''
 import 'dart:async';
 class B {void foo() async {}}''');
-    expect(outputs, hasLength(10));
+    expect(outputs, hasLength(11));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
@@ -3265,9 +3323,10 @@ class B {void foo() async {}}''');
     expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(3));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(1));
-    expect(outputs[REFERENCED_SOURCES], hasLength(3));
   }
 
   test_perform_flushTokenStream() {
@@ -3285,7 +3344,7 @@ import '://invaliduri.dart';
 export '${a}lib3.dart';
 part 'part.dart';
 class A {}''');
-    expect(outputs, hasLength(10));
+    expect(outputs, hasLength(11));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
@@ -3293,9 +3352,10 @@ class A {}''');
     expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(2));
     expect(outputs[PARSE_ERRORS], hasLength(2));
     expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(4));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(2));
-    expect(outputs[REFERENCED_SOURCES], hasLength(4));
   }
 
   test_perform_library() {
@@ -3305,7 +3365,7 @@ import 'lib2.dart';
 export 'lib3.dart';
 part 'part.dart';
 class A {''');
-    expect(outputs, hasLength(10));
+    expect(outputs, hasLength(11));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(1));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
@@ -3313,9 +3373,10 @@ class A {''');
     expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(2));
     expect(outputs[PARSE_ERRORS], hasLength(1));
     expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(5));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(2));
-    expect(outputs[REFERENCED_SOURCES], hasLength(5));
   }
 
   test_perform_library_selfReferenceAsPart() {
@@ -3330,7 +3391,7 @@ part 'test.dart';
     _performParseTask(r'''
 part of lib;
 class B {}''');
-    expect(outputs, hasLength(10));
+    expect(outputs, hasLength(11));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
@@ -3338,9 +3399,10 @@ class B {}''');
     expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[REFERENCED_NAMES], isNotNull);
+    expect(outputs[REFERENCED_SOURCES], hasLength(2));
     expect(outputs[SOURCE_KIND], SourceKind.PART);
     expect(outputs[UNITS], hasLength(1));
-    expect(outputs[REFERENCED_SOURCES], hasLength(2));
   }
 
   void _performParseTask(String content) {
@@ -3502,6 +3564,7 @@ class C {
       SimpleIdentifier reference = statement.expression;
       expect(reference.staticElement, isResolved ? isNotNull : isNull);
     }
+
     //
     // The reference to 'A' in 'f1' should not be resolved.
     //
@@ -3687,6 +3750,22 @@ class U {
     expect(info.instantiatedNames, isEmpty);
     expect(info.userToDependsOn.keys, unorderedEquals(['U']));
     expect(info.userToDependsOn['U'], unorderedEquals(['A', 'B']));
+  }
+
+  test_class_extendedUsedUnnamedConstructorNames() {
+    ReferencedNames info = _computeReferencedNames('''
+class U1 extends A {
+  U1() : super();
+}
+class U2 extends p.B {
+  U2() : super();
+}
+class U3 extends p.C {
+  U3() : super.named();
+}
+''');
+    expect(
+        info.extendedUsedUnnamedConstructorNames, unorderedEquals(['A', 'B']));
   }
 
   test_class_field() {
@@ -4106,7 +4185,7 @@ set aaa(A a) {
 
   ReferencedNames _computeReferencedNames(String code) {
     Source source = newSource('/test.dart', code);
-    computeResult(source, REFERENCED_NAMES, matcher: isBuildLibraryElementTask);
+    computeResult(source, REFERENCED_NAMES, matcher: isParseDartTask);
     return outputs[REFERENCED_NAMES];
   }
 }
@@ -5624,7 +5703,21 @@ const int x = p.y;
     ]);
   }
 
-  test_perform_directiveError() {
+  test_perform_directiveError_generated() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+import 'generated-file.g.dart';
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED]);
+  }
+
+  test_perform_directiveError_nonGenerated() {
     Source source = newSource(
         '/test.dart',
         '''
@@ -5727,6 +5820,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
           matcher: matcher);
       return outputs[result];
     }
+
     return sources.map(compute).toList();
   }
 
@@ -5737,6 +5831,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
       computeResult(source, result, matcher: matcher);
       return outputs;
     }
+
     return sources.map(compute).toList();
   }
 

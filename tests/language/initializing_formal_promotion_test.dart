@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // DartOptions=--initializing-formal-access
+// VMOptions=--initializing-formal-access
 
 import "package:expect/expect.dart";
 

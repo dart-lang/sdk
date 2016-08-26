@@ -13,6 +13,8 @@
 // Declare the OS-specific types ahead of defining the generic class.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/socket_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "bin/socket_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "bin/socket_linux.h"
 #elif defined(TARGET_OS_MACOS)
@@ -23,12 +25,11 @@
 #error Unknown target os.
 #endif
 
-#include <map>
-
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+#include "platform/hashmap.h"
 
 namespace dart {
 namespace bin {
@@ -276,6 +277,9 @@ class Socket {
   // specified as the port component of the passed RawAddr structure.
   static intptr_t CreateBindConnect(const RawAddr& addr,
                                     const RawAddr& source_addr);
+  // Returns true if the given error-number is because the system was not able
+  // to bind the socket to a specific IP.
+  static bool IsBindError(intptr_t error_number);
   // Creates a datagram socket which is bound. The port to bind
   // to is specified as the port component of the RawAddr structure.
   static intptr_t CreateBindDatagram(const RawAddr& addr, bool reuseAddress);
@@ -367,39 +371,23 @@ class ServerSocket {
 
 
 class ListeningSocketRegistry {
- private:
-  struct OSSocket {
-    RawAddr address;
-    int port;
-    bool v6_only;
-    bool shared;
-    int ref_count;
-    intptr_t socketfd;
-
-    // Singly linked lists of OSSocket instances which listen on the same port
-    // but on different addresses.
-    OSSocket *next;
-
-    OSSocket(RawAddr address, int port, bool v6_only, bool shared,
-             intptr_t socketfd)
-        : address(address), port(port), v6_only(v6_only), shared(shared),
-          ref_count(0), socketfd(socketfd), next(NULL) {}
-  };
-
  public:
+  ListeningSocketRegistry() :
+      sockets_by_port_(SameIntptrValue, kInitialSocketsCount),
+      sockets_by_fd_(SameIntptrValue, kInitialSocketsCount),
+      mutex_(new Mutex()) {}
+
+  ~ListeningSocketRegistry() {
+    CloseAllSafe();
+    delete mutex_;
+    mutex_ = NULL;
+  }
+
   static void Initialize();
 
   static ListeningSocketRegistry *Instance();
 
   static void Cleanup();
-
-
-  ListeningSocketRegistry() : mutex_(new Mutex()) {}
-
-  ~ListeningSocketRegistry() {
-    delete mutex_;
-    mutex_ = NULL;
-  }
 
   // This function should be called from a dart runtime call in order to create
   // a new (potentially shared) socket.
@@ -422,6 +410,26 @@ class ListeningSocketRegistry {
   Mutex *mutex() { return mutex_; }
 
  private:
+  struct OSSocket {
+    RawAddr address;
+    int port;
+    bool v6_only;
+    bool shared;
+    int ref_count;
+    intptr_t socketfd;
+
+    // Singly linked lists of OSSocket instances which listen on the same port
+    // but on different addresses.
+    OSSocket *next;
+
+    OSSocket(RawAddr address, int port, bool v6_only, bool shared,
+             intptr_t socketfd)
+        : address(address), port(port), v6_only(v6_only), shared(shared),
+          ref_count(0), socketfd(socketfd), next(NULL) {}
+  };
+
+  static const intptr_t kInitialSocketsCount = 8;
+
   OSSocket *findOSSocketWithAddress(OSSocket *current, const RawAddr& addr) {
     while (current != NULL) {
       if (SocketAddress::AreAddressesEqual(current->address, addr)) {
@@ -432,13 +440,35 @@ class ListeningSocketRegistry {
     return NULL;
   }
 
-  std::map<intptr_t, OSSocket*> sockets_by_port_;
-  std::map<intptr_t, OSSocket*> sockets_by_fd_;
+  static bool SameIntptrValue(void* key1, void* key2) {
+    return reinterpret_cast<intptr_t>(key1) == reinterpret_cast<intptr_t>(key2);
+  }
+
+  static uint32_t GetHashmapHashFromIntptr(intptr_t i) {
+    return static_cast<uint32_t>((i + 1) & 0xFFFFFFFF);
+  }
+
+
+  static void* GetHashmapKeyFromIntptr(intptr_t i) {
+    return reinterpret_cast<void*>(i + 1);
+  }
+
+  OSSocket* LookupByPort(intptr_t port);
+  void InsertByPort(intptr_t port, OSSocket* socket);
+  void RemoveByPort(intptr_t port);
+
+  OSSocket* LookupByFd(intptr_t fd);
+  void InsertByFd(intptr_t fd, OSSocket* socket);
+  void RemoveByFd(intptr_t fd);
+
+  bool CloseOneSafe(OSSocket* os_socket);
+  void CloseAllSafe();
+
+  HashMap sockets_by_port_;
+  HashMap sockets_by_fd_;
+
   Mutex *mutex_;
 
-  typedef std::map<intptr_t, OSSocket*>::iterator SocketsIterator;
-
- private:
   DISALLOW_COPY_AND_ASSIGN(ListeningSocketRegistry);
 };
 

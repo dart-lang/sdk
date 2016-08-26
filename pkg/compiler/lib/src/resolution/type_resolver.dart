@@ -5,9 +5,7 @@
 library dart2js.resolution.types;
 
 import '../common.dart';
-import '../common/resolution.dart' show Feature, Resolution;
-import '../compiler.dart' show Compiler;
-import '../dart_backend/dart_backend.dart' show DartBackend;
+import '../common/resolution.dart' show Resolution;
 import '../dart_types.dart';
 import '../elements/elements.dart'
     show
@@ -18,25 +16,25 @@ import '../elements/elements.dart'
         ErroneousElement,
         PrefixElement,
         TypedefElement,
-        TypeDeclarationElement,
         TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousElementX;
+import '../resolution/resolution.dart';
 import '../tree/tree.dart';
+import '../universe/feature.dart' show Feature;
 import '../util/util.dart' show Link;
-
 import 'members.dart' show lookupInScope;
 import 'registry.dart' show ResolutionRegistry;
 import 'resolution_common.dart' show MappingVisitor;
 import 'scope.dart' show Scope;
 
 class TypeResolver {
-  final Compiler compiler;
+  final Resolution resolution;
 
-  TypeResolver(this.compiler);
+  TypeResolver(this.resolution);
 
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  Resolution get resolution => compiler.resolution;
+  ResolverTask get resolver => resolution.resolver;
+  DiagnosticReporter get reporter => resolution.reporter;
+  Types get types => resolution.types;
 
   /// Tries to resolve the type name as an element.
   Element resolveTypeName(
@@ -50,12 +48,7 @@ class TypeResolver {
         // The receiver is a prefix. Lookup in the imported members.
         PrefixElement prefix = prefixElement;
         element = prefix.lookupLocalMember(typeName.source);
-        // TODO(17260, sigurdm): The test for DartBackend is there because
-        // dart2dart outputs malformed types with prefix.
-        if (element != null &&
-            prefix.isDeferred &&
-            deferredIsMalformed &&
-            compiler.backend is! DartBackend) {
+        if (element != null && prefix.isDeferred && deferredIsMalformed) {
           element = new ErroneousElementX(MessageKind.DEFERRED_TYPE_ANNOTATION,
               {'node': typeName}, element.name, element);
         }
@@ -167,7 +160,7 @@ class TypeResolver {
         ClassElement cls = element;
         // TODO(johnniwinther): [ensureClassWillBeResolvedInternal] should imply
         // [computeType].
-        compiler.resolver.ensureClassWillBeResolvedInternal(cls);
+        resolver.ensureClassWillBeResolvedInternal(cls);
         cls.computeType(resolution);
         List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch =
@@ -240,7 +233,7 @@ class TypeResolver {
   void checkTypeVariableBounds(TypeAnnotation node, GenericType type) {
     void checkTypeVariableBound(_, DartType typeArgument,
         TypeVariableType typeVariable, DartType bound) {
-      if (!compiler.types.isSubtype(typeArgument, bound)) {
+      if (!types.isSubtype(typeArgument, bound)) {
         reporter.reportWarningMessage(
             node, MessageKind.INVALID_TYPE_VARIABLE_BOUND, {
           'typeVariable': typeVariable,
@@ -250,9 +243,8 @@ class TypeResolver {
         });
       }
     }
-    ;
 
-    compiler.types.checkTypeVariableBounds(type, checkTypeVariableBound);
+    types.checkTypeVariableBounds(type, checkTypeVariableBound);
   }
 
   /**

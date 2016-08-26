@@ -12,13 +12,13 @@ library generic_local_functions_test;
 import "package:expect/expect.dart";
 
 // Declare a generic function parameter.
-String f(int g<X, Y>(Map<X, Y> arg)) => null;
+int f(Y g<X, Y>(Map<X, Y> arg, X x)) => g<int, int>(<int, int>{1: 42}, 1);
 
 main() {
   // Declare a generic local function
-  int h<X extends Y, Y>(Map<X, Y> arg) => null;
+  Y h<X, Y>(Map<X, Y> m, X x) => m[x];
   // Pass a generic local function as an argument.
-  f(h);
+  Expect.equals(f(h), 42);
   // Pass a function expression as an argument.
-  f(<X, Y super X>(Map<X, Y> arg) => 42);
+  Expect.equals(f(<X, Y>(Map<X, Y> m, X x) => m[x]), 42);
 }

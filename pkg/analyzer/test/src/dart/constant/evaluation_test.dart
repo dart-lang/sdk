@@ -30,6 +30,7 @@ main() {
   initializeTestEnvironment();
   runReflectiveTests(ConstantValueComputerTest);
   runReflectiveTests(ConstantVisitorTest);
+  runReflectiveTests(StrongConstantValueComputerTest);
 }
 
 /**
@@ -275,7 +276,7 @@ class C {
       analysisContext.computeErrors(source);
       expect(unit, isNotNull);
       ConstantValueComputer computer = _makeConstantValueComputer();
-      computer.add(unit, source, source);
+      computer.add(unit);
       computer.computeValues();
       NodeList<CompilationUnitMember> members = unit.declarations;
       expect(members, hasLength(3));
@@ -296,7 +297,7 @@ const int a = 0;''');
         analysisContext.resolveCompilationUnit(source, libraryElement);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit, source, source);
+    computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
     expect(members, hasLength(2));
@@ -331,8 +332,8 @@ const int d = c;''');
         analysisContext.resolveCompilationUnit(partSource, libraryElement);
     expect(partUnit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(libraryUnit, librarySource, librarySource);
-    computer.add(partUnit, partSource, librarySource);
+    computer.add(libraryUnit);
+    computer.add(partUnit);
     computer.computeValues();
     NodeList<CompilationUnitMember> libraryMembers = libraryUnit.declarations;
     expect(libraryMembers, hasLength(2));
@@ -353,7 +354,7 @@ const int d = c;''');
         analysisContext.resolveCompilationUnit(source, libraryElement);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit, source, source);
+    computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
     expect(members, hasLength(1));
@@ -370,7 +371,7 @@ const E e = E.id0;
         analysisContext.resolveCompilationUnit(source, libraryElement);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit, source, source);
+    computer.add(unit);
     computer.computeValues();
     TopLevelVariableDeclaration declaration = unit.declarations
         .firstWhere((member) => member is TopLevelVariableDeclaration);
@@ -1200,7 +1201,7 @@ const A a = const A();
         analysisContext.resolveCompilationUnit(source, element);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit, source, source);
+    computer.add(unit);
     computer.computeValues();
     assertErrors(source, expectedErrorCodes);
   }
@@ -1380,7 +1381,6 @@ class A {
     ConstantEvaluationValidator_ForTest validator =
         new ConstantEvaluationValidator_ForTest(analysisContext2);
     validator.computer = new ConstantValueComputer(
-        analysisContext2,
         analysisContext2.typeProvider,
         analysisContext2.declaredVariables,
         validator,
@@ -1599,5 +1599,13 @@ const b = 3;''');
         lexicalEnvironment: lexicalEnvironment));
     errorListener.assertNoErrors();
     return result;
+  }
+}
+
+@reflectiveTest
+class StrongConstantValueComputerTest extends ConstantValueComputerTest {
+  void setUp() {
+    super.setUp();
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
   }
 }

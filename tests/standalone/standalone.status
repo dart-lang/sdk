@@ -78,6 +78,7 @@ regress_26031_test: SkipByDesign # Standalone only test
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
+fixed_precision_double_test: Skip # double p getter only implemented in VM.
 
 # test issue https://code.google.com/p/dart/issues/detail?id=11518
 io/file_constructor_test: fail
@@ -114,6 +115,7 @@ unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 regress_25335_test: Skip # Int64List not supported.
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
+fixed_precision_double_test: Skip # double p getter only implemented in VM.
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
@@ -252,6 +254,7 @@ io/http_server_close_response_after_error_test: Skip # Platform.executable
 io/http_client_stays_alive_test: Skip # Platform.executable
 io/print_sync_test: Skip # Platform.executable
 io/signals_test: Skip # Platform.executable
+io/stdio_implicit_close_test: Skip # Platform.executable
 io/stdio_nonblocking_test: Skip # Platform.executable
 io/regress_7191_test: Skip # Platform.executable
 io/secure_unauthorized_test: Skip # Platform.executable
@@ -287,6 +290,7 @@ no_support_disassembler_test: SkipByDesign
 no_support_il_printer_test: SkipByDesign
 no_support_service_test: SkipByDesign
 no_support_timeline_test: SkipByDesign
+io/stdio_implicit_close_test: Skip # SkipByDesign
 
 # Following tests are skipped on dart_app as package mapping is not supported.
 [ $runtime == dart_precompiled || $runtime == dart_app ]
@@ -319,13 +323,18 @@ typed_array_int64_uint64_test: Skip # Issue #26376
 oom_error_stacktrace_test: Skip # Issue #26377
 out_of_memory_test: Skip # Issue #26377
 
-[ $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == dart_app || $runtime == dart_precompiled ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
-[ $hot_reload ]
-io/bytes_builder_test: RuntimeError
-io/file_input_stream_test: Crash
-io/file_test: Pass, Crash
-io/web_socket_protocol_processor_test: Pass, Crash
-map_insert_remove_oom_test: Crash
-priority_queue_stress_test: Crash
+[ $hot_reload || $hot_reload_rollback ]
+deferred_transitive_import_error_test: Crash # Uses deferred imports.
+package/*: SkipByDesign # Launches VMs in interesting ways.
+
+[ $builder_tag == no_ipv6 ]
+io/http_bind_test: Skip
+io/raw_datagram_socket_test: Skip
+io/socket_source_address_test: Skip
+io/socket_bind_test: Skip
+io/http_proxy_advanced_test: Skip
+io/http_ipv6_test: Skip
+io/socket_ipv6_test: Skip

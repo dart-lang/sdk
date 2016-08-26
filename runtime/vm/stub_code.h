@@ -40,6 +40,7 @@ class Deserializer;
   V(ICLookupThroughFunction)                                                   \
   V(ICLookupThroughCode)                                                       \
   V(MegamorphicLookup)                                                         \
+  V(MonomorphicMiss)                                                           \
   V(FixAllocationStubTarget)                                                   \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
@@ -54,8 +55,6 @@ class Deserializer;
   V(SmiAddInlineCache)                                                         \
   V(SmiSubInlineCache)                                                         \
   V(SmiEqualInlineCache)                                                       \
-  V(UnaryRangeCollectingInlineCache)                                           \
-  V(BinaryRangeCollectingInlineCache)                                          \
   V(OneArgOptimizedCheckInlineCache)                                           \
   V(TwoArgsOptimizedCheckInlineCache)                                          \
   V(ZeroArgsUnoptimizedStaticCall)                                             \
@@ -92,6 +91,7 @@ class StubEntry {
 
   const ExternalLabel& label() const { return label_; }
   uword EntryPoint() const { return entry_point_; }
+  uword CheckedEntryPoint() const { return checked_entry_point_; }
   RawCode* code() const { return code_; }
   intptr_t Size() const { return size_; }
 
@@ -101,6 +101,7 @@ class StubEntry {
  private:
   RawCode* code_;
   uword entry_point_;
+  uword checked_entry_point_;
   intptr_t size_;
   ExternalLabel label_;
 
@@ -155,8 +156,6 @@ class StubCode : public AllStatic {
 
   static const intptr_t kNoInstantiator = 0;
 
-  static void EmitMegamorphicLookup(Assembler* assembler);
-
  private:
   friend class MegamorphicCacheTable;
 
@@ -172,11 +171,6 @@ class StubCode : public AllStatic {
   VM_STUB_CODE_LIST(STUB_CODE_ENTRY);
 #undef STUB_CODE_ENTRY
 
-  enum RangeCollectionMode {
-    kCollectRanges,
-    kIgnoreRanges
-  };
-
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
   static RawCode* Generate(const char* name,
@@ -190,7 +184,6 @@ class StubCode : public AllStatic {
       intptr_t num_args,
       const RuntimeEntry& handle_ic_miss,
       Token::Kind kind,
-      RangeCollectionMode range_collection_mode,
       bool optimized = false);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);

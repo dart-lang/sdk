@@ -2,18 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// This library defined `uses`. A `use` is a single impact of the world, for
-/// instance an invocation of a top level function or a call to the `foo()`
-/// method on an unknown class.
+/// This library defines individual world impacts.
+///
+/// We call these building blocks `uses`. Each `use` is a single impact of the
+/// world. Some example uses are:
+///
+///  * an invocation of a top level function
+///  * a call to the `foo()` method on an unknown class.
+///  * an instantiation of class T
+///
+/// The different compiler stages combine these uses into `WorldImpact` objects,
+/// which are later used to construct a closed-world understanding of the
+/// program.
 library dart2js.universe.use;
 
 import '../closure.dart' show BoxFieldElement;
 import '../common.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../world.dart' show ClassWorld;
 import '../util/util.dart' show Hashing;
-
+import '../world.dart' show ClassWorld;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
 import 'universe.dart' show ReceiverConstraint;

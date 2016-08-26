@@ -74,23 +74,44 @@ static bool IsPackageSchemeURL(const char* url_name) {
 }
 
 
-static bool IsImportableTestLib(const char* url_name) {
-  const char* kImportTestLibUri = "test:importable_lib";
-  static const intptr_t kImportTestLibUriLen = strlen(kImportTestLibUri);
-  return (strncmp(url_name, kImportTestLibUri, kImportTestLibUriLen) == 0);
+struct TestLibEntry {
+  const char* url;
+  const char* source;
+};
+
+
+static MallocGrowableArray<TestLibEntry>* test_libs_ = NULL;
+
+
+void TestCase::AddTestLib(const char* url, const char* source) {
+  if (test_libs_ == NULL) {
+    test_libs_ = new MallocGrowableArray<TestLibEntry>();
+  }
+  // If the test lib is already added, replace the source.
+  for (intptr_t i = 0; i < test_libs_->length(); i++) {
+    if (strcmp(url, (*test_libs_)[i].url) == 0) {
+      (*test_libs_)[i].source = source;
+      return;
+    }
+  }
+  TestLibEntry entry;
+  entry.url = url;
+  entry.source = source;
+  test_libs_->Add(entry);
 }
 
 
-static Dart_Handle ImportableTestLibSource() {
-  const char* kScript =
-      "importedFunc() => 'a';\n"
-      "importedIntFunc() => 4;\n"
-      "class ImportedMixin {\n"
-      "  mixinFunc() => 'mixin';\n"
-      "}\n";
-  return DartUtils::NewString(kScript);
+const char* TestCase::GetTestLib(const char* url) {
+  if (test_libs_ == NULL) {
+    return NULL;
+  }
+  for (intptr_t i = 0; i < test_libs_->length(); i++) {
+    if (strcmp(url, (*test_libs_)[i].url) == 0) {
+      return (*test_libs_)[i].source;
+    }
+  }
+  return NULL;
 }
-
 
 #ifndef PRODUCT
 static bool IsIsolateReloadTestLib(const char* url_name) {
@@ -155,6 +176,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     ASSERT(script_source != NULL);
     OSThread::SetThreadLocal(script_reload_key, 0);
     return Dart_LoadScript(url,
+                           Dart_Null(),
                            NewString(script_source),
                            0,
                            0);
@@ -190,13 +212,15 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return DartUtils::NewError("Do not know how to load '%s'", url_chars);
     }
   }
-  if (IsImportableTestLib(url_chars)) {
-    return Dart_LoadLibrary(url, ImportableTestLibSource(), 0, 0);
+  const char* lib_source = TestCase::GetTestLib(url_chars);
+  if (lib_source != NULL) {
+    Dart_Handle source = Dart_NewStringFromCString(lib_source);
+    return Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
   }
   NOT_IN_PRODUCT(
   if (IsIsolateReloadTestLib(url_chars)) {
     Dart_Handle library =
-        Dart_LoadLibrary(url, IsolateReloadTestLibSource(), 0, 0);
+        Dart_LoadLibrary(url, Dart_Null(), IsolateReloadTestLibSource(), 0, 0);
     DART_CHECK_VALID(library);
     Dart_SetNativeResolver(library, IsolateReloadTestNativeResolver, 0);
     return library;
@@ -204,28 +228,28 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   if (is_io_library) {
     ASSERT(tag == Dart_kSourceTag);
     return Dart_LoadSource(library,
-                           url,
+                           url, Dart_Null(),
                            Builtin::PartSource(Builtin::kIOLibrary,
                                                url_chars),
                            0, 0);
   }
+  Dart_Handle resolved_url = url;
+  const char* resolved_url_chars = url_chars;
   if (IsPackageSchemeURL(url_chars)) {
-    Dart_Handle resolved_uri = ResolvePackageUri(url_chars);
-    DART_CHECK_VALID(resolved_uri);
-    url_chars = NULL;
-    Dart_Handle result = Dart_StringToCString(resolved_uri, &url_chars);
-    if (Dart_IsError(result)) {
-      return Dart_NewApiError("accessing url characters failed");
+    resolved_url = ResolvePackageUri(url_chars);
+    DART_CHECK_VALID(resolved_url);
+    if (Dart_IsError(Dart_StringToCString(resolved_url, &resolved_url_chars))) {
+      return Dart_NewApiError("unable to convert resolved uri to string");
     }
   }
   // Do sync loading since unit_test doesn't support async.
-  Dart_Handle source = DartUtils::ReadStringFromFile(url_chars);
+  Dart_Handle source = DartUtils::ReadStringFromFile(resolved_url_chars);
   EXPECT_VALID(source);
   if (tag == Dart_kImportTag) {
-    return Dart_LoadLibrary(url, source, 0, 0);
+    return Dart_LoadLibrary(url, resolved_url, source, 0, 0);
   } else {
     ASSERT(tag == Dart_kSourceTag);
-    return Dart_LoadSource(library, url, source, 0, 0);
+    return Dart_LoadSource(library, url, resolved_url, source, 0, 0);
   }
 }
 
@@ -238,7 +262,7 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   Dart_Handle source = NewString(script);
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
+  Dart_Handle lib = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
   DART_CHECK_VALID(lib);
   result = Dart_SetNativeResolver(lib, resolver, NULL);
   DART_CHECK_VALID(result);
@@ -266,22 +290,29 @@ void TestCase::SetReloadTestScript(const char* script) {
 
 Dart_Handle TestCase::TriggerReload() {
   Isolate* isolate = Isolate::Current();
-
+  JSONStream js;
+  bool success = false;
   {
     TransitionNativeToVM transition(Thread::Current());
-    isolate->ReloadSources(/* test_mode = */ true);
+    success = isolate->ReloadSources(&js,
+                                     false,  // force_reload
+                                     true);  // dont_delete_reload_context
+    fprintf(stderr, "RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
-  return Dart_FinalizeLoading(false);
+  if (success) {
+    return Dart_FinalizeLoading(false);
+  } else {
+    return Dart_Null();
+  }
 }
 
 
 Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
   Isolate* isolate = Isolate::Current();
 
-  if (isolate->reload_context() != NULL) {
-    // We should only have a reload context hanging around if an error occurred.
-    ASSERT(isolate->reload_context()->has_error());
+  if (isolate->reload_context() != NULL &&
+      isolate->reload_context()->reload_aborted()) {
     // Return a handle to the error.
     return Api::NewHandle(Thread::Current(),
                           isolate->reload_context()->error());
@@ -298,7 +329,18 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
     return result;
   }
 
-  return GetReloadErrorOrRootLibrary();
+  result = GetReloadErrorOrRootLibrary();
+
+  {
+    Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
+    Isolate* isolate = thread->isolate();
+    if (isolate->reload_context() != NULL) {
+      isolate->DeleteReloadContext();
+    }
+  }
+
+  return result;
 }
 
 
@@ -360,14 +402,16 @@ void AssemblerTest::Assemble() {
   code_ = Code::FinalizeCode(function, assembler_);
   code_.set_owner(function);
   code_.set_exception_handlers(Object::empty_exception_handlers());
+#ifndef PRODUCT
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
     const Instructions& instructions =
         Instructions::Handle(code_.instructions());
-    uword start = instructions.EntryPoint();
+    uword start = instructions.PayloadStart();
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
     OS::Print("}\n");
   }
+#endif  // !PRODUCT
 }
 
 

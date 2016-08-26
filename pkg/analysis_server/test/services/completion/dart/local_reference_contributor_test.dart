@@ -4043,6 +4043,21 @@ class X {foo(){A^.bar}}''');
     assertNotSuggested('String');
   }
 
+  test_SwitchStatement_case_var() async {
+    // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('g(int x) {var t; switch(x) {case 0: var bar; b^}}');
+    await computeSuggestions();
+
+    assertSuggestFunction('g', 'dynamic',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertSuggestLocalVariable('t', 'dynamic',
+        relevance: DART_RELEVANCE_LOCAL_VARIABLE);
+    assertSuggestParameter('x', 'int', relevance: DART_RELEVANCE_PARAMETER);
+    assertSuggestLocalVariable('bar', 'dynamic',
+        relevance: DART_RELEVANCE_LOCAL_VARIABLE);
+    assertNotSuggested('String');
+  }
+
   test_SwitchStatement_empty() async {
     // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {String g(int x) {switch(x) {^}}}');

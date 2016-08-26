@@ -10,6 +10,8 @@ import 'package:path/path.dart' as path;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
+import 'launch_helper.dart' show dart2JsCommand;
+
 var tmpDir;
 
 copyDirectory(Directory sourceDir, Directory destinationDir) {
@@ -51,12 +53,11 @@ void cleanUp() {
 }
 
 Future launchDart2Js(_) {
-  String ext = Platform.isWindows ? '.bat' : '';
-  String command =
-      path.normalize(path.join(path.fromUri(Platform.script),
-                    '../../../../sdk/bin/dart2js${ext}'));
-  print("Running '$command --batch' from '${tmpDir}'.");
-  return Process.start(command, ['--batch'], workingDirectory: tmpDir.path);
+  return Process.start(
+      // Use an absolute path because we are changing the cwd below.
+      path.fromUri(Uri.base.resolve(Platform.executable)),
+      dart2JsCommand(['--batch']),
+      workingDirectory: tmpDir.path);
 }
 
 Future runTests(Process process) {

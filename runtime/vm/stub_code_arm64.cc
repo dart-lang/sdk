@@ -1293,8 +1293,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 static void EmitFastSmiOp(Assembler* assembler,
                           Token::Kind kind,
                           intptr_t num_args,
-                          Label* not_smi_or_overflow,
-                          bool should_update_result_range) {
+                          Label* not_smi_or_overflow) {
   __ Comment("Fast Smi op");
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Right.
   __ ldr(R1, Address(SP, + 1 * kWordSize));  // Left.
@@ -1320,12 +1319,6 @@ static void EmitFastSmiOp(Assembler* assembler,
       break;
     }
     default: UNIMPLEMENTED();
-  }
-
-  if (should_update_result_range) {
-    Label done;
-    __ UpdateRangeFeedback(R0, 2, R5, R1, R6, &done);
-    __ Bind(&done);
   }
 
   // R5: IC data object (preserved).
@@ -1376,7 +1369,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    RangeCollectionMode range_collection_mode,
     bool optimized) {
   ASSERT(num_args > 0);
 #if defined(DEBUG)
@@ -1405,24 +1397,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ Bind(&done_stepping);
   }
 
-  __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
-  if (range_collection_mode == kCollectRanges) {
-    ASSERT((num_args == 1) || (num_args == 2));
-    if (num_args == 2) {
-      __ ldr(R0, Address(SP, 1 * kWordSize));
-      __ UpdateRangeFeedback(R0, 0, R5, R1, R4, &not_smi_or_overflow);
-    }
-
-    __ ldr(R0, Address(SP, 0 * kWordSize));
-    __ UpdateRangeFeedback(R0, num_args - 1, R5, R1, R4, &not_smi_or_overflow);
-  }
   if (kind != Token::kILLEGAL) {
     EmitFastSmiOp(assembler,
                   kind,
                   num_args,
-                  &not_smi_or_overflow,
-                  (range_collection_mode == kCollectRanges));
+                  &not_smi_or_overflow);
   }
   __ Bind(&not_smi_or_overflow);
 
@@ -1546,32 +1526,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Comment("Call target");
   __ Bind(&call_target_function);
   // R0: target function.
-  if (range_collection_mode == kCollectRanges) {
-    __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
-    __ ldr(R1, Address(SP, 0 * kWordSize));
-    if (num_args == 2) {
-      __ ldr(R3, Address(SP, 1 * kWordSize));
-    }
-    __ EnterStubFrame();
-    __ Push(R5);
-    if (num_args == 2) {
-      __ Push(R3);
-    }
-    __ Push(R1);
-    __ LoadFieldFromOffset(CODE_REG, R0, Function::code_offset());
-    __ blr(R2);
-
-    Label done;
-    __ ldr(R5, Address(FP, kFirstLocalSlotFromFp * kWordSize));
-    __ UpdateRangeFeedback(R0, 2, R5, R1, R4, &done);
-    __ Bind(&done);
-    __ LeaveStubFrame();
-    __ ret();
-  } else {
-    __ LoadFieldFromOffset(CODE_REG, R0, Function::code_offset());
-    __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
-    __ br(R2);
-  }
+  __ LoadFieldFromOffset(CODE_REG, R0, Function::code_offset());
+  __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
+  __ br(R2);
 
   if (FLAG_support_debugger && !optimized) {
     __ Bind(&stepping);
@@ -1599,60 +1556,35 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges);
+      kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges);
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD,
-      kCollectRanges);
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD);
 }
 
 
 void StubCode::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kSUB,
-      kCollectRanges);
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kSUB);
 }
 
 
 void StubCode::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ,
-      kIgnoreRanges);
-}
-
-
-void StubCode::GenerateUnaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, R6);
-  GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL,
-      kCollectRanges);
-}
-
-
-void StubCode::GenerateBinaryRangeCollectingInlineCacheStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, R6);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kCollectRanges);
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ);
 }
 
 
@@ -1661,7 +1593,7 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
       kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges, true /* optimized */);
+      true /* optimized */);
 }
 
 
@@ -1670,7 +1602,7 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges, true /* optimized */);
+      true /* optimized */);
 }
 
 
@@ -1744,16 +1676,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges);
+      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges);
+      kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
 }
 
 
@@ -2098,58 +2028,78 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
-  __ LoadTaggedClassIdMayBeSmi(R0, R0);
-  // R0: class ID of the receiver (smi).
-  __ ldr(R4, FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
-  __ ldr(R2, FieldAddress(R5, MegamorphicCache::buckets_offset()));
-  __ ldr(R1, FieldAddress(R5, MegamorphicCache::mask_offset()));
-  // R2: cache buckets array.
-  // R1: mask.
-  __ LoadImmediate(TMP, MegamorphicCache::kSpreadFactor);
-  __ mul(R3, R0, TMP);
-  // R3: probe.
-
-  Label loop, update, load_target_function;
-  __ b(&loop);
-
-  __ Bind(&update);
-  __ add(R3, R3, Operand(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ and_(R3, R3, Operand(R1));
-  const intptr_t base = Array::data_offset();
-  // R3 is smi tagged, but table entries are 16 bytes, so LSL 3.
-  __ add(TMP, R2, Operand(R3, LSL, 3));
-  __ ldr(R6, FieldAddress(TMP, base));
-
-  ASSERT(kIllegalCid == 0);
-  __ tst(R6, Operand(R6));
-  __ b(&load_target_function, EQ);
-  __ CompareRegisters(R6, R0);
-  __ b(&update, NE);
-
-  __ Bind(&load_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ add(TMP, R2, Operand(R3, LSL, 3));
-  __ ldr(R0, FieldAddress(TMP, base + kWordSize));
-  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
-  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-}
-
-
 // Called from megamorphic calls.
 //  R0: receiver
 //  R5: MegamorphicCache (preserved)
 // Result:
-//  R1: target entry point
 //  CODE_REG: target Code
 //  R4: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler);
-  __ ret();
+  __ NoMonomorphicCheckedEntry();
+
+  // Jump if receiver is a smi.
+  Label smi_case;
+  __ TestImmediate(R0, kSmiTagMask);
+  __ b(&smi_case, EQ);
+
+  // Loads the cid of the object.
+  __ LoadClassId(R0, R0);
+
+  Label cid_loaded;
+  __ Bind(&cid_loaded);
+  __ ldr(R2, FieldAddress(R5, MegamorphicCache::buckets_offset()));
+  __ ldr(R1, FieldAddress(R5, MegamorphicCache::mask_offset()));
+  // R2: cache buckets array.
+  // R1: mask.
+
+  // Make the cid into a smi.
+  __ SmiTag(R0);
+  // R0: class ID of the receiver (smi).
+
+  // Compute the table index.
+  ASSERT(MegamorphicCache::kSpreadFactor == 7);
+  // Use lsl and sub to multiply with 7 == 8 - 1.
+  __ LslImmediate(R3, R0, 3);
+  __ sub(R3, R3, Operand(R0));
+  // R3: probe.
+  Label loop;
+  __ Bind(&loop);
+  __ and_(R3, R3, Operand(R1));
+
+  const intptr_t base = Array::data_offset();
+  // R3 is smi tagged, but table entries are 16 bytes, so LSL 3.
+  __ add(TMP, R2, Operand(R3, LSL, 3));
+  __ ldr(R6, FieldAddress(TMP, base));
+  Label probe_failed;
+  __ CompareRegisters(R6, R0);
+  __ b(&probe_failed, NE);
+
+  Label load_target;
+  __ Bind(&load_target);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ ldr(R0, FieldAddress(TMP, base + kWordSize));
+  __ ldr(R4, FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
+  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
+  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  __ br(R1);
+
+  // Probe failed, check if it is a miss.
+  __ Bind(&probe_failed);
+  ASSERT(kIllegalCid == 0);
+  __ tst(R6, Operand(R6));
+  __ b(&load_target, EQ);  // branch if miss.
+
+  // Try next extry in the table.
+  __ AddImmediate(R3, R3, Smi::RawValue(1));
+  __ b(&loop);
+
+  // Load cid for the Smi case.
+  __ Bind(&smi_case);
+  __ LoadImmediate(R0, kSmiCid);
+  __ b(&cid_loaded);
 }
 
 
@@ -2157,10 +2107,11 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 //  R0: receiver
 //  R5: ICData (preserved)
 // Result:
-//  R1: target entry point
 //  CODE_REG: target Code object
 //  R4: arguments descriptor
 void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
@@ -2185,17 +2136,19 @@ void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
   __ ldr(R0, Address(R8, target_offset));
   __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
-  __ ret();
+  __ br(R1);
 
   __ Bind(&miss);
   __ LoadIsolate(R2);
   __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
   __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ ret();
+  __ br(R1);
 }
 
 
 void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
@@ -2220,13 +2173,34 @@ void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
   const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
   __ ldr(R1, Address(R8, entry_offset));
   __ ldr(CODE_REG, Address(R8, code_offset));
-  __ ret();
+  __ br(R1);
 
   __ Bind(&miss);
   __ LoadIsolate(R2);
   __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
   __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ ret();
+  __ br(R1);
+}
+
+
+// Called from the monomorphic checked entry.
+//  R0: receiver
+void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ Push(R0);  // Preserve receiver.
+
+  __ PushObject(Object::null_object());  // Result.
+  __ Push(R0);                           // Arg0: Receiver
+  __ CallRuntime(kMonomorphicMissRuntimeEntry, 1);
+  __ Drop(1);
+  __ Pop(R5);  // result = IC
+
+  __ Pop(R0);  // Restore receiver.
+  __ LeaveStubFrame();
+
+  __ ldr(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
+  __ ldr(R1, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ br(R1);
 }
 
 

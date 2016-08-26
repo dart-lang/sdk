@@ -27,6 +27,23 @@ class Sample;
 class SampleBuffer;
 class ProfileTrieNode;
 
+struct ProfilerCounters {
+  // Count of bail out reasons:
+  int64_t bail_out_unknown_task;
+  int64_t bail_out_jump_to_exception_handler;
+  int64_t bail_out_check_isolate;
+  // Count of single frame sampling reasons:
+  int64_t single_frame_sample_deoptimizing;
+  int64_t single_frame_sample_register_check;
+  int64_t single_frame_sample_get_and_validate_stack_bounds;
+  // Count of stack walkers used:
+  int64_t stack_walker_native;
+  int64_t stack_walker_dart_exit;
+  int64_t stack_walker_dart;
+  int64_t stack_walker_none;
+};
+
+
 class Profiler : public AllStatic {
  public:
   static void InitOnce();
@@ -54,12 +71,19 @@ class Profiler : public AllStatic {
   static void SampleThread(Thread* thread,
                            const InterruptedThreadState& state);
 
+  static ProfilerCounters counters() {
+    // Copies the counter values.
+    return counters_;
+  }
+
  private:
   // Does not walk the thread's stack.
   static void SampleThreadSingleFrame(Thread* thread, uintptr_t pc);
   static bool initialized_;
 
   static SampleBuffer* sample_buffer_;
+
+  static ProfilerCounters counters_;
 
   friend class Thread;
 };
@@ -399,7 +423,7 @@ class CodeDescriptor : public ZoneAllocated {
  public:
   explicit CodeDescriptor(const Code& code);
 
-  uword Entry() const;
+  uword Start() const;
 
   uword Size() const;
 
@@ -415,8 +439,8 @@ class CodeDescriptor : public ZoneAllocated {
   }
 
   bool Contains(uword pc) const {
-    uword end = Entry() + Size();
-    return (pc >= Entry()) && (pc < end);
+    uword end = Start() + Size();
+    return (pc >= Start()) && (pc < end);
   }
 
   static int Compare(CodeDescriptor* const* a,
@@ -424,12 +448,12 @@ class CodeDescriptor : public ZoneAllocated {
     ASSERT(a != NULL);
     ASSERT(b != NULL);
 
-    uword a_entry = (*a)->Entry();
-    uword b_entry = (*b)->Entry();
+    uword a_start = (*a)->Start();
+    uword b_start = (*b)->Start();
 
-    if (a_entry < b_entry) {
+    if (a_start < b_start) {
       return -1;
-    } else if (a_entry > b_entry) {
+    } else if (a_start > b_start) {
       return 1;
     } else {
       return 0;

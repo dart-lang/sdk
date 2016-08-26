@@ -35,7 +35,7 @@ class Zone::Segment {
   // Computes the address of the nth byte in this segment.
   uword address(int n) { return reinterpret_cast<uword>(this) + n; }
 
-  static void Delete(Segment* segment) { delete[] segment; }
+  static void Delete(Segment* segment) { free(segment); }
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Segment);
 };
@@ -57,16 +57,17 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
 
 Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   ASSERT(size >= 0);
-  Segment* result = reinterpret_cast<Segment*>(new uint8_t[size]);
-  ASSERT(Utils::IsAligned(result->start(), Zone::kAlignment));
-  if (result != NULL) {
-#ifdef DEBUG
-    // Zap the entire allocated segment (including the header).
-    memset(result, kZapUninitializedByte, size);
-#endif
-    result->next_ = next;
-    result->size_ = size;
+  Segment* result = reinterpret_cast<Segment*>(malloc(size));
+  if (result == NULL) {
+    FATAL("Out of memory.\n");
   }
+  ASSERT(Utils::IsAligned(result->start(), Zone::kAlignment));
+#ifdef DEBUG
+  // Zap the entire allocated segment (including the header).
+  memset(result, kZapUninitializedByte, size);
+#endif
+  result->next_ = next;
+  result->size_ = size;
   return result;
 }
 

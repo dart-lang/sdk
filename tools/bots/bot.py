@@ -271,14 +271,17 @@ def RunTestRunner(build_info, path):
     RunProcess(args)
 
 
-def RunProcess(command):
+def RunProcess(command, env=None):
   """
   Runs command.
 
   If a non-zero exit code is returned, raises an OSError with errno as the exit
   code.
   """
-  no_color_env = dict(os.environ)
+  if env is None:
+    no_color_env = dict(os.environ)
+  else:
+    no_color_env = env
   no_color_env['TERM'] = 'nocolor'
 
   exit_code = subprocess.call(command, env=no_color_env)

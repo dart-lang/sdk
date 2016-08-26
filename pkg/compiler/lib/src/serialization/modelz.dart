@@ -10,7 +10,6 @@
 library dart2js.serialization.modelz;
 
 import '../common.dart';
-import '../common/names.dart';
 import '../common/resolution.dart' show Resolution;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
@@ -31,7 +30,6 @@ import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'keys.dart';
 import 'serialization.dart';
-import 'serialization_util.dart';
 
 /// Compute a [Link] from an [Iterable].
 Link toLink(Iterable iterable) {
@@ -196,7 +194,7 @@ class MappedContainer {
     String setterName = '$name,=';
     bool hasSetterId = members.containsKey(setterName);
     Element element;
-    Element setterElement;
+    SetterElement setterElement;
     if (!hasId && !hasSetterId) {
       _lookupCache[name] = null;
       return null;
@@ -236,7 +234,12 @@ class ListedContainer {
     Map<String, Element> setters = <String, Element>{};
     for (Element element in elements) {
       String name = element.name;
-      if (element.isGetter) {
+      if (element.isDeferredLoaderGetter) {
+        // Store directly.
+        // TODO(johnniwinther): Should modelx be normalized to put `loadLibrary`
+        // in an [AbstractFieldElement] instead?
+        _lookupMap[name] = element;
+      } else if (element.isGetter) {
         accessorNames.add(name);
         getters[name] = element;
         // Inserting [element] here to ensure insert order of [name].
@@ -329,7 +332,18 @@ class AbstractFieldElementZ extends ElementZ
   final GetterElementZ getter;
   final SetterElementZ setter;
 
-  AbstractFieldElementZ(this.name, this.getter, this.setter) {
+  factory AbstractFieldElementZ(
+      String name, GetterElement getter, SetterElement setter) {
+    if (getter?.abstractField != null) {
+      return getter.abstractField;
+    } else if (setter?.abstractField != null) {
+      return setter.abstractField;
+    } else {
+      return new AbstractFieldElementZ._(name, getter, setter);
+    }
+  }
+
+  AbstractFieldElementZ._(this.name, this.getter, this.setter) {
     if (getter != null) {
       getter.abstractField = this;
       getter.setter = setter;
@@ -393,6 +407,7 @@ class LibraryElementZ extends DeserializedElementZ
   List<ExportElement> _exports;
   ListedContainer _exportsMap;
   ListedContainer _importsMap;
+  Map<Element, List<ImportElement>> _importsFor;
 
   LibraryElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -492,7 +507,28 @@ class LibraryElementZ extends DeserializedElementZ
 
   void _ensureImports() {
     if (_importsMap == null) {
-      _importsMap = new ListedContainer(_decoder.getElements(Key.IMPORT_SCOPE));
+      _importsMap = new ListedContainer(
+          _decoder.getElements(Key.IMPORT_SCOPE, isOptional: true));
+      _importsFor = <Element, List<ImportElement>>{};
+
+      ListDecoder importsDecoder = _decoder.getList(Key.IMPORTS_FOR);
+      for (int index = 0; index < importsDecoder.length; index++) {
+        ObjectDecoder objectDecoder = importsDecoder.getObject(index);
+        Element key = objectDecoder.getElement(Key.ELEMENT);
+        List<ImportElement> imports =
+            objectDecoder.getElements(Key.IMPORTS, isOptional: true);
+
+        // Imports are mapped to [AbstractFieldElement] which are not serialized
+        // so we use getter (or setter if there is no getter) as the key.
+        Element importedElement = key;
+        if (key.isDeferredLoaderGetter) {
+          // Use as [importedElement].
+        } else if (key.isAccessor) {
+          AccessorElement accessor = key;
+          importedElement = accessor.abstractField;
+        }
+        _importsFor[importedElement] = imports;
+      }
     }
   }
 
@@ -504,9 +540,8 @@ class LibraryElementZ extends DeserializedElementZ
 
   @override
   Iterable<ImportElement> getImportsFor(Element element) {
-    // TODO(johnniwinther): Serialize this to support deferred access to
-    // serialized entities.
-    return <ImportElement>[];
+    _ensureImports();
+    return _importsFor[element] ?? const <ImportElement>[];
   }
 
   String toString() {
@@ -788,6 +823,8 @@ abstract class ParametersMixin
           namedParameterTypes.add(parameter.type);
         }
       }
+      List<DartType> typeVariables =
+          _decoder.getTypes(Key.TYPE_VARIABLES, isOptional: true);
 
       FunctionType type = new FunctionType(
           this,
@@ -797,6 +834,7 @@ abstract class ParametersMixin
           namedParameters,
           namedParameterTypes);
       _functionSignature = new FunctionSignatureX(
+          typeVariables: typeVariables,
           requiredParameters: requiredParameters,
           requiredParameterCount: requiredParameterCount,
           optionalParameters: optionalParameters,
@@ -1295,9 +1333,10 @@ class FactoryConstructorElementZ extends ConstructorElementZ {
 }
 
 class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
-  InterfaceType _effectiveTargetType;
+  DartType _effectiveTargetType;
   ConstructorElement _immediateRedirectionTarget;
   PrefixElement _redirectionDeferredPrefix;
+  bool _effectiveTargetIsMalformed;
 
   RedirectingFactoryConstructorElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -1314,10 +1353,18 @@ class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
       if (_effectiveTarget == null) {
         _effectiveTarget = this;
         _effectiveTargetType = enclosingClass.thisType;
+        _effectiveTargetIsMalformed = false;
       } else {
         _effectiveTargetType = _decoder.getType(Key.EFFECTIVE_TARGET_TYPE);
+        _effectiveTargetIsMalformed =
+            _decoder.getBool(Key.EFFECTIVE_TARGET_IS_MALFORMED);
       }
     }
+  }
+
+  bool get isEffectiveTargetMalformed {
+    _ensureEffectiveTarget();
+    return _effectiveTargetIsMalformed;
   }
 
   @override
@@ -1327,7 +1374,7 @@ class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
   }
 
   @override
-  InterfaceType computeEffectiveTargetType(InterfaceType newType) {
+  DartType computeEffectiveTargetType(InterfaceType newType) {
     _ensureEffectiveTarget();
     return _effectiveTargetType.substByContext(newType);
   }
@@ -1497,6 +1544,8 @@ class ForwardingConstructorElementZ extends ElementZ
 
 abstract class MemberElementMixin
     implements DeserializedElementZ, MemberElement {
+  final List<FunctionElement> nestedClosures = <FunctionElement>[];
+
   @override
   MemberElement get memberContext => this;
 
@@ -1504,10 +1553,12 @@ abstract class MemberElementMixin
   Name get memberName => new Name(name, library);
 
   @override
-  List<FunctionElement> get nestedClosures => <FunctionElement>[];
+  bool get isInjected => _decoder.getBool(Key.IS_INJECTED);
 
   @override
-  bool get isInjected => _decoder.getBool(Key.IS_INJECTED);
+  void forgetElement() {
+    nestedClosures.clear();
+  }
 }
 
 abstract class FieldElementZ extends DeserializedElementZ
@@ -1634,6 +1685,9 @@ abstract class LocalExecutableMixin
   Element get enclosingElement => executableContext;
 
   @override
+  Element get enclosingClass => memberContext.enclosingClass;
+
+  @override
   ExecutableElement get executableContext {
     if (_executableContext == null) {
       _executableContext = _decoder.getElement(Key.EXECUTABLE_CONTEXT);
@@ -1712,7 +1766,9 @@ abstract class GetterElementZ extends DeserializedElementZ
   bool get isAbstract => _decoder.getBool(Key.IS_ABSTRACT);
 
   @override
-  AsyncMarker get asyncMarker => AsyncMarker.SYNC;
+  AsyncMarker get asyncMarker {
+    return _decoder.getEnum(Key.ASYNC_MARKER, AsyncMarker.values);
+  }
 }
 
 class TopLevelGetterElementZ extends GetterElementZ with LibraryMemberMixin {
@@ -1871,7 +1927,7 @@ class TypedefElementZ extends DeserializedElementZ
 class TypeVariableElementZ extends DeserializedElementZ
     with AnalyzableElementMixin, AstElementMixinZ, TypedElementMixin
     implements TypeVariableElement {
-  TypeDeclarationElement _typeDeclaration;
+  GenericElement _typeDeclaration;
   TypeVariableType _type;
   DartType _bound;
   Name _memberName;
@@ -1908,7 +1964,7 @@ class TypeVariableElementZ extends DeserializedElementZ
   int get index => _decoder.getInt(Key.INDEX);
 
   @override
-  TypeDeclarationElement get typeDeclaration {
+  GenericElement get typeDeclaration {
     if (_typeDeclaration == null) {
       _typeDeclaration = _decoder.getElement(Key.TYPE_DECLARATION);
     }
@@ -2259,11 +2315,15 @@ class PrefixElementZ extends DeserializedElementZ
   bool _isDeferred;
   ImportElement _deferredImport;
   GetterElement _loadLibrary;
+  ListedContainer _members;
 
   PrefixElementZ(ObjectDecoder decoder) : super(decoder);
 
   @override
   accept(ElementVisitor visitor, arg) => visitor.visitPrefixElement(this, arg);
+
+  @override
+  bool get isTopLevel => false;
 
   void _ensureDeferred() {
     if (_isDeferred == null) {
@@ -2295,9 +2355,23 @@ class PrefixElementZ extends DeserializedElementZ
   @override
   ElementKind get kind => ElementKind.PREFIX;
 
+  void _ensureMembers() {
+    if (_members == null) {
+      _members = new ListedContainer(
+          _decoder.getElements(Key.MEMBERS, isOptional: true));
+    }
+  }
+
   @override
   Element lookupLocalMember(String memberName) {
-    return _unsupported('lookupLocalMember');
+    _ensureMembers();
+    return _members.lookup(memberName);
+  }
+
+  @override
+  void forEachLocalMember(void f(Element member)) {
+    _ensureMembers();
+    _members.forEach(f);
   }
 }
 

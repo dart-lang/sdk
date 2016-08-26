@@ -9,10 +9,9 @@ import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../types/types.dart' show ContainerTypeMask, MapTypeMask;
 import '../util/util.dart' show Setlet;
-
+import 'debug.dart' as debug;
 import 'type_graph_inferrer.dart' show TypeGraphInferrerEngine;
 import 'type_graph_nodes.dart';
-import 'debug.dart' as debug;
 
 // A set of selectors we know do not escape the elements inside the
 // list.
@@ -333,7 +332,7 @@ abstract class TracerVisitor<T extends TypeInformation>
    * [isAddedToContainer].
    */
   bool isParameterOfListAddingMethod(Element element) {
-    if (!element.isParameter) return false;
+    if (!element.isRegularParameter) return false;
     if (element.enclosingClass != compiler.backend.listImplementation) {
       return false;
     }
@@ -349,7 +348,7 @@ abstract class TracerVisitor<T extends TypeInformation>
    * [isValueAddedToMap] and [isKeyAddedToMap].
    */
   bool isParameterOfMapAddingMethod(Element element) {
-    if (!element.isParameter) return false;
+    if (!element.isRegularParameter) return false;
     if (element.enclosingClass != compiler.backend.mapImplementation) {
       return false;
     }

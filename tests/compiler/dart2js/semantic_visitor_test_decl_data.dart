@@ -661,6 +661,8 @@ const Map<String, List<Test>> DECL_TESTS = const {
         const [
           const Visit(VisitKind.VISIT_INSTANCE_FIELD_DECL,
               element: 'field(C#m)'),
+          const Visit(VisitKind.VISIT_INSTANCE_FIELD_DECL,
+              element: 'field(C#n)'),
         ]),
     const Test.clazz(
         '''
@@ -787,7 +789,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
-                element: 'field(C#m)'),
+              element: 'field(C#m)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+              element: 'field(C#n)'),
         ]),
     const Test.clazz(
         '''
@@ -797,7 +801,13 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
-                element: 'field(C#m)'),
+              element: 'field(C#k)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+              element: 'field(C#l)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+              element: 'field(C#m)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+              element: 'field(C#n)'),
         ]),
     const Test.clazz(
         '''
@@ -820,6 +830,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
           const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
                 element: 'field(C#m)',
                 rhs: 42),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+              element: 'field(C#n)',
+              rhs: true),
         ]),
     const Test.clazz(
         '''
@@ -846,7 +859,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
-                element: 'field(m)'),
+              element: 'field(m)'),
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
+              element: 'field(n)'),
         ]),
     const Test(
         '''

@@ -5,7 +5,7 @@
 library dart2js.serialization.task;
 
 import 'dart:async' show EventSink, Future;
-import '../common.dart';
+
 import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show ItemCompilationContext;
@@ -40,6 +40,10 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
   // TODO(johnniwinther): Make this more precise in terms of what needs to be
   // retained, for instance impacts, resolution data etc.
   bool supportSerialization = false;
+
+  /// Set this flag to also deserialize [ResolvedAst]s and [ResolutionImpact]s
+  /// in `resolveOnly` mode. Use this for testing only.
+  bool deserializeCompilationDataForTesting = false;
 
   /// If `true`, deserialized data is supported.
   bool get supportsDeserialization => deserializer != null;
@@ -117,9 +121,11 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
   void deserializeFromText(Uri sourceUri, String serializedData) {
     measure(() {
       if (deserializer == null) {
-        deserializer = new DeserializerSystemImpl(compiler);
+        deserializer = new ResolutionDeserializerSystem(compiler,
+            deserializeCompilationDataForTesting:
+                deserializeCompilationDataForTesting);
       }
-      DeserializerSystemImpl deserializerImpl = deserializer;
+      ResolutionDeserializerSystem deserializerImpl = deserializer;
       DeserializationContext context = deserializerImpl.deserializationContext;
       Deserializer dataDeserializer = new Deserializer.fromText(
           context, sourceUri, serializedData, const JsonSerializationDecoder());

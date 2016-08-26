@@ -13,46 +13,78 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
- * Information about an element referenced in index.
+ * Information about an element that is actually put into index for some other
+ * related element. For example for a synthetic getter this is the corresponding
+ * non-synthetic field and [IndexSyntheticElementKind.getter] as the [kind].
  */
-class ElementInfo {
-  /**
-   * The identifier of the [CompilationUnitElement] containing this element.
-   */
-  final int unitId;
-
-  /**
-   * The name offset of the element.
-   */
-  final int offset;
-
-  /**
-   * The kind of the element.
-   */
+class IndexElementInfo {
+  final Element element;
   final IndexSyntheticElementKind kind;
 
-  /**
-   * The unique id of the element.  It is set after indexing of the whole
-   * package is done and we are assembling the full package index.
-   */
-  int id;
-
-  ElementInfo(this.unitId, this.offset, this.kind) {
-    assert(offset >= 0);
+  factory IndexElementInfo(Element element) {
+    IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
+    if (element is LibraryElement || element is CompilationUnitElement) {
+      kind = IndexSyntheticElementKind.unit;
+    } else if (element.isSynthetic) {
+      if (element is ConstructorElement) {
+        kind = IndexSyntheticElementKind.constructor;
+        element = element.enclosingElement;
+      } else if (element is FunctionElement && element.name == 'loadLibrary') {
+        kind = IndexSyntheticElementKind.loadLibrary;
+        element = element.library;
+      } else if (element is FieldElement) {
+        FieldElement field = element;
+        kind = IndexSyntheticElementKind.field;
+        element = field.getter;
+        element ??= field.setter;
+      } else if (element is PropertyAccessorElement) {
+        PropertyAccessorElement accessor = element;
+        Element enclosing = element.enclosingElement;
+        bool isEnumGetter = enclosing is ClassElement && enclosing.isEnum;
+        if (isEnumGetter && accessor.name == 'index') {
+          kind = IndexSyntheticElementKind.enumIndex;
+          element = enclosing;
+        } else if (isEnumGetter && accessor.name == 'values') {
+          kind = IndexSyntheticElementKind.enumValues;
+          element = enclosing;
+        } else {
+          kind = accessor.isGetter
+              ? IndexSyntheticElementKind.getter
+              : IndexSyntheticElementKind.setter;
+          element = accessor.variable;
+        }
+      } else if (element is TopLevelVariableElement) {
+        TopLevelVariableElement property = element;
+        kind = IndexSyntheticElementKind.topLevelVariable;
+        element = property.getter;
+        element ??= property.setter;
+      } else {
+        throw new ArgumentError(
+            'Unsupported synthetic element ${element.runtimeType}');
+      }
+    }
+    return new IndexElementInfo._(element, kind);
   }
+
+  IndexElementInfo._(this.element, this.kind);
 }
 
 /**
  * Object that gathers information about the whole package index and then uses
- * it to assemble a new [PackageIndexBuilder].  Call [index] on each compilation
- * unit to be indexed, then call [assemble] to retrieve the complete index for
- * the package.
+ * it to assemble a new [PackageIndexBuilder].  Call [indexUnit] on each
+ * compilation unit to be indexed, then call [assemble] to retrieve the
+ * complete index for the package.
  */
 class PackageIndexAssembler {
   /**
-   * Map associating referenced elements with their [ElementInfo]s.
+   * The string to use place of the `null` string.
    */
-  final Map<Element, ElementInfo> _elementMap = <Element, ElementInfo>{};
+  static const NULL_STRING = '--nullString--';
+
+  /**
+   * Map associating referenced elements with their [_ElementInfo]s.
+   */
+  final Map<Element, _ElementInfo> _elementMap = <Element, _ElementInfo>{};
 
   /**
    * Map associating [CompilationUnitElement]s with their identifiers, which
@@ -84,6 +116,15 @@ class PackageIndexAssembler {
   final List<_UnitIndexAssembler> _units = <_UnitIndexAssembler>[];
 
   /**
+   * The [_StringInfo] to use for `null` strings.
+   */
+  _StringInfo _nullString;
+
+  PackageIndexAssembler() {
+    _nullString = _getStringInfo(NULL_STRING);
+  }
+
+  /**
    * Assemble a new [PackageIndexBuilder] using the information gathered by
    * [indexDeclarations] or [indexUnit].
    */
@@ -97,9 +138,18 @@ class PackageIndexAssembler {
       stringInfoList[i].id = i;
     }
     // sort elements and set IDs
-    List<ElementInfo> elementInfoList = _elementMap.values.toList();
+    List<_ElementInfo> elementInfoList = _elementMap.values.toList();
     elementInfoList.sort((a, b) {
-      return a.offset - b.offset;
+      int delta;
+      delta = a.nameIdUnitMember.id - b.nameIdUnitMember.id;
+      if (delta != null) {
+        return delta;
+      }
+      delta = a.nameIdClassMember.id - b.nameIdClassMember.id;
+      if (delta != null) {
+        return delta;
+      }
+      return a.nameIdParameter.id - b.nameIdParameter.id;
     });
     for (int i = 0; i < elementInfoList.length; i++) {
       elementInfoList[i].id = i;
@@ -108,7 +158,12 @@ class PackageIndexAssembler {
         unitLibraryUris: _unitLibraryUris.map((s) => s.id).toList(),
         unitUnitUris: _unitUnitUris.map((s) => s.id).toList(),
         elementUnits: elementInfoList.map((e) => e.unitId).toList(),
-        elementOffsets: elementInfoList.map((e) => e.offset).toList(),
+        elementNameUnitMemberIds:
+            elementInfoList.map((e) => e.nameIdUnitMember.id).toList(),
+        elementNameClassMemberIds:
+            elementInfoList.map((e) => e.nameIdClassMember.id).toList(),
+        elementNameParameterIds:
+            elementInfoList.map((e) => e.nameIdParameter.id).toList(),
         elementKinds: elementInfoList.map((e) => e.kind).toList(),
         strings: stringInfoList.map((s) => s.value).toList(),
         units: _units.map((unit) => unit.assemble()).toList());
@@ -135,17 +190,17 @@ class PackageIndexAssembler {
   }
 
   /**
-   * Return the unique [ElementInfo] corresponding the [element].  The field
-   * [ElementInfo.id] is filled by [assemble] during final sorting.
+   * Return the unique [_ElementInfo] corresponding the [element].  The field
+   * [_ElementInfo.id] is filled by [assemble] during final sorting.
    */
-  ElementInfo _getElementInfo(Element element) {
+  _ElementInfo _getElementInfo(Element element) {
     if (element is Member) {
       element = (element as Member).baseElement;
     }
     return _elementMap.putIfAbsent(element, () {
       CompilationUnitElement unitElement = getUnitElement(element);
       int unitId = _getUnitId(unitElement);
-      return newElementInfo(unitId, element);
+      return _newElementInfo(unitId, element);
     });
   }
 
@@ -184,6 +239,32 @@ class PackageIndexAssembler {
   }
 
   /**
+   * Return a new [_ElementInfo] for the given [element] in the given [unitId].
+   * This method is static, so it cannot add any information to the index.
+   */
+  _ElementInfo _newElementInfo(int unitId, Element element) {
+    IndexElementInfo info = new IndexElementInfo(element);
+    element = info.element;
+    // Prepare name identifiers.
+    _StringInfo nameIdParameter = _nullString;
+    _StringInfo nameIdClassMember = _nullString;
+    _StringInfo nameIdUnitMember = _nullString;
+    if (element is ParameterElement) {
+      nameIdParameter = _getStringInfo(element.name);
+      element = element.enclosingElement;
+    }
+    if (element?.enclosingElement is ClassElement) {
+      nameIdClassMember = _getStringInfo(element.name);
+      element = element.enclosingElement;
+    }
+    if (element?.enclosingElement is CompilationUnitElement) {
+      nameIdUnitMember = _getStringInfo(element.name);
+    }
+    return new _ElementInfo(unitId, nameIdUnitMember, nameIdClassMember,
+        nameIdParameter, info.kind);
+  }
+
+  /**
    * Return the [CompilationUnitElement] that should be used for [element].
    * Throw [StateError] if the [element] is not linked into a unit.
    */
@@ -197,58 +278,6 @@ class PackageIndexAssembler {
       }
     }
     throw new StateError(element.toString());
-  }
-
-  /**
-   * Return a new [ElementInfo] for the given [element] in the given [unitId].
-   * This method is static, so it cannot add any information to the index.
-   */
-  static ElementInfo newElementInfo(int unitId, Element element) {
-    int offset = null;
-    IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
-    if (element.isSynthetic) {
-      if (element is ConstructorElement) {
-        kind = IndexSyntheticElementKind.constructor;
-        element = element.enclosingElement;
-      } else if (element is FunctionElement && element.name == 'loadLibrary') {
-        kind = IndexSyntheticElementKind.loadLibrary;
-        element = element.library;
-      } else if (element is FieldElement) {
-        FieldElement field = element;
-        kind = IndexSyntheticElementKind.field;
-        element = field.getter;
-        element ??= field.setter;
-      } else if (element is PropertyAccessorElement) {
-        PropertyAccessorElement accessor = element;
-        Element enclosing = element.enclosingElement;
-        bool isEnumGetter = enclosing is ClassElement && enclosing.isEnum;
-        if (isEnumGetter && accessor.name == 'index') {
-          kind = IndexSyntheticElementKind.enumIndex;
-          element = enclosing;
-        } else if (isEnumGetter && accessor.name == 'values') {
-          kind = IndexSyntheticElementKind.enumValues;
-          element = enclosing;
-        } else {
-          kind = accessor.isGetter
-              ? IndexSyntheticElementKind.getter
-              : IndexSyntheticElementKind.setter;
-          element = accessor.variable;
-        }
-      } else if (element is TopLevelVariableElement) {
-        TopLevelVariableElement property = element;
-        kind = IndexSyntheticElementKind.topLevelVariable;
-        element = property.getter;
-        element ??= property.setter;
-      } else {
-        throw new ArgumentError(
-            'Unsupported synthetic element ${element.runtimeType}');
-      }
-    } else if (element is LibraryElement || element is CompilationUnitElement) {
-      kind = IndexSyntheticElementKind.unit;
-      offset = 0;
-    }
-    offset ??= element.nameOffset;
-    return new ElementInfo(unitId, offset, kind);
   }
 }
 
@@ -278,13 +307,55 @@ class _DefinedNameInfo {
 }
 
 /**
+ * Information about an element referenced in index.
+ */
+class _ElementInfo {
+  /**
+   * The identifier of the [CompilationUnitElement] containing this element.
+   */
+  final int unitId;
+
+  /**
+   * The identifier of the top-level name, or `null` if the element is a
+   * reference to the unit.
+   */
+  final _StringInfo nameIdUnitMember;
+
+  /**
+   * The identifier of the class member name, or `null` if the element is not a
+   * class member or a named parameter of a class member.
+   */
+  final _StringInfo nameIdClassMember;
+
+  /**
+   * The identifier of the named parameter name, or `null` if the element is not
+   * a named parameter.
+   */
+  final _StringInfo nameIdParameter;
+
+  /**
+   * The kind of the element.
+   */
+  final IndexSyntheticElementKind kind;
+
+  /**
+   * The unique id of the element.  It is set after indexing of the whole
+   * package is done and we are assembling the full package index.
+   */
+  int id;
+
+  _ElementInfo(this.unitId, this.nameIdUnitMember, this.nameIdClassMember,
+      this.nameIdParameter, this.kind);
+}
+
+/**
  * Information about a single relation.  Any [_ElementRelationInfo] is always
  * part of a [_UnitIndexAssembler], so [offset] and [length] should be
  * understood within the context of the compilation unit pointed to by the
  * [_UnitIndexAssembler].
  */
 class _ElementRelationInfo {
-  final ElementInfo elementInfo;
+  final _ElementInfo elementInfo;
   final IndexRelationKind kind;
   final int offset;
   final int length;
@@ -770,7 +841,7 @@ class _StringInfo {
  *    compilation unit.
  *  - Call [addNameRelation] for each name relation found in the
  *    compilation unit.
- *  - Assign ids to all the [ElementInfo] objects reachable from
+ *  - Assign ids to all the [_ElementInfo] objects reachable from
  *    [elementRelations].
  *  - Call [assemble] to produce the final unit index.
  */
@@ -786,7 +857,7 @@ class _UnitIndexAssembler {
   void addElementRelation(Element element, IndexRelationKind kind, int offset,
       int length, bool isQualified) {
     try {
-      ElementInfo elementInfo = pkg._getElementInfo(element);
+      _ElementInfo elementInfo = pkg._getElementInfo(element);
       elementRelations.add(new _ElementRelationInfo(
           elementInfo, kind, offset, length, isQualified));
     } on StateError {}

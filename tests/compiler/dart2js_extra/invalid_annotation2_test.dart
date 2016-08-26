@@ -14,7 +14,7 @@
 import 'dart:mirrors';
 
 @Deprecated("m"
-,                                /// 01: compile-time error
+,,                                /// 01: compile-time error
 )
 class A {
 }

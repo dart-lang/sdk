@@ -204,6 +204,12 @@ class FileTest {
     expect(file.toString(), '/foo/bar/file.txt');
   }
 
+  void test_toUri() {
+    String path = '/foo/file.txt';
+    File file = provider.newFile(path, '');
+    expect(file.toUri(), new Uri.file(path, windows: false));
+  }
+
   void test_writeAsBytesSync_existing() {
     File file = provider.newFileWithBytes('/foo/file.bin', <int>[1, 2]);
     expect(file.readAsBytesSync(), <int>[1, 2]);
@@ -387,6 +393,12 @@ class FolderTest {
     expect(parent2.path, equals('/'));
     expect(parent2.parent, isNull);
   }
+
+  void test_toUri() {
+    String path = '/foo/directory';
+    Folder folder = provider.newFolder(path);
+    expect(folder.toUri(), new Uri.directory(path, windows: false));
+  }
 }
 
 @reflectiveTest
@@ -537,6 +549,13 @@ class MemoryResourceProviderTest {
     expect(file.exists, isTrue);
     provider.deleteFile(path);
     expect(file.exists, isFalse);
+  }
+
+  test_getModificationTimes() async {
+    File file = provider.newFile('/test.dart', '');
+    Source source = file.createSource();
+    List<int> times = await provider.getModificationTimes([source]);
+    expect(times, [source.modificationStamp]);
   }
 
   void test_getStateLocation_uniqueness() {

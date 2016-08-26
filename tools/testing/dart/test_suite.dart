@@ -300,6 +300,15 @@ abstract class TestSuite {
       return;
     }
 
+    if (configuration['hot_reload'] || configuration['hot_reload_rollback']) {
+      // Handle reload special cases.
+      if (expectations.contains(Expectation.COMPILETIME_ERROR)) {
+        // Running a test that expects a compilation error with hot reloading
+        // is redundant with a regular run of the test.
+        return;
+      }
+    }
+
     // Update Summary report
     if (configuration['report']) {
       if (testCase.expectCompileError &&
@@ -368,25 +377,27 @@ abstract class TestSuite {
 
   String createOutputDirectory(Path testPath, String optionsName) {
     var checked = configuration['checked'] ? '-checked' : '';
+    var strong =  configuration['strong'] ? '-strong' : '';
     var minified = configuration['minified'] ? '-minified' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var packages =
         configuration['use_public_packages'] ? '-public_packages' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
-        "$checked$minified$packages$sdk";
+        "$checked$strong$minified$packages$sdk";
     return createGeneratedTestDirectoryHelper(
         "tests", dirName, testPath, optionsName);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
     var checked = configuration['checked'] ? '-checked' : '';
+    var strong =  configuration['strong'] ? '-strong' : '';
     var minified = configuration['minified'] ? '-minified' : '';
     var csp = configuration['csp'] ? '-csp' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var packages =
         configuration['use_public_packages'] ? '-public_packages' : '';
     var dirName = "${configuration['compiler']}"
-        "$checked$minified$csp$packages$sdk";
+        "$checked$strong$minified$csp$packages$sdk";
     return createGeneratedTestDirectoryHelper(
         "compilations", dirName, testPath, "");
   }
@@ -837,7 +848,12 @@ class StandardTestSuite extends TestSuite {
     CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
-      group.add(doMultitest(filePath, buildDir, suiteDir, createTestCase));
+      group.add(doMultitest(filePath,
+                            buildDir,
+                            suiteDir,
+                            createTestCase,
+                            (configuration['hot_reload'] ||
+                             configuration['hot_reload_rollback'])));
     } else {
       createTestCase(filePath, filePath, optionsFromFile['hasCompileError'],
           optionsFromFile['hasRuntimeError'],
@@ -956,6 +972,10 @@ class StandardTestSuite extends TestSuite {
     if (configuration['package_root'] != null) {
       packageRoot = new Path(configuration['package_root']);
       optionsFromFile['packageRoot'] = packageRoot.toNativePath();
+    }
+    if (configuration['packages'] != null) {
+      Path packages = new Path(configuration['packages']);
+      optionsFromFile['packages'] = packages.toNativePath();
     }
 
     if (new CompilerConfiguration(configuration).hasCompiler &&
@@ -1455,9 +1475,8 @@ class StandardTestSuite extends TestSuite {
       args = [];
     }
     args.addAll(TestUtils.standardOptions(configuration));
-    String packageRoot = packageRootArgument(optionsFromFile['packageRoot']);
-    if (packageRoot != null) args.add(packageRoot);
-    String packages = packagesArgument(optionsFromFile['packages']);
+    String packages = packagesArgument(optionsFromFile['packageRoot'],
+                                       optionsFromFile['packages']);
     if (packages != null) args.add(packages);
     args.add('--out=$outputFile');
     args.add(inputFile);
@@ -1477,9 +1496,8 @@ class StandardTestSuite extends TestSuite {
   Command _polymerDeployCommand(
       String inputFile, String outputDir, optionsFromFile) {
     List<String> args = [];
-    String packageRoot = packageRootArgument(optionsFromFile['packageRoot']);
-    if (packageRoot != null) args.add(packageRoot);
-    String packages = packagesArgument(optionsFromFile['packages']);
+    String packages = packagesArgument(optionsFromFile['packageRoot'],
+                                       optionsFromFile['packages']);
     if (packages != null) args.add(packages);
     args
       ..add('package:polymer/deploy.dart')
@@ -1534,11 +1552,8 @@ class StandardTestSuite extends TestSuite {
   List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
 
-    String packageRoot = packageRootArgument(optionsFromFile['packageRoot']);
-    if (packageRoot != null) {
-      args.add(packageRoot);
-    }
-    String packages = packagesArgument(optionsFromFile['packages']);
+    String packages = packagesArgument(optionsFromFile['packageRoot'],
+                                       optionsFromFile['packages']);
     if (packages != null) {
       args.add(packages);
     }
@@ -1566,30 +1581,16 @@ class StandardTestSuite extends TestSuite {
     return args;
   }
 
-  String packageRoot(String packageRootFromFile) {
+  String packagesArgument(String packageRootFromFile,
+                             String packagesFromFile) {
+    if (packagesFromFile != null) {
+      return "--packages=$packagesFromFile";
+    }
     if (packageRootFromFile == "none") {
       return null;
     }
-    String packageRoot = packageRootFromFile;
-    if (packageRootFromFile == null) {
-      packageRoot = "$buildDir/packages/";
-    }
-    return packageRoot;
-  }
-
-  String packageRootArgument(String packageRootFromFile) {
-    var packageRootPath = packageRoot(packageRootFromFile);
-    if (packageRootPath == null) {
-      return null;
-    }
-    return "--package-root=$packageRootPath";
-  }
-
-  String packagesArgument(String packagesFromFile) {
-    if (packagesFromFile == null || packagesFromFile == "none") {
-      return null;
-    }
-    return "--packages=$packagesFromFile";
+    packageRootFromFile ??= "$buildDir/packages/";
+    return "--package-root=$packageRootFromFile";
   }
 
   /**
@@ -2197,13 +2198,14 @@ class TestUtils {
         configuration['compiler'] == 'dart2appjit' ||
         configuration['compiler'] == 'precompiler') {
       var checked = configuration['checked'] ? '-checked' : '';
+      var strong =  configuration['strong'] ? '-strong' : '';
       var minified = configuration['minified'] ? '-minified' : '';
       var csp = configuration['csp'] ? '-csp' : '';
       var sdk = configuration['use_sdk'] ? '-sdk' : '';
       var packages =
           configuration['use_public_packages'] ? '-public_packages' : '';
       var dirName = "${configuration['compiler']}"
-          "$checked$minified$csp$packages$sdk";
+          "$checked$strong$minified$csp$packages$sdk";
       String generatedPath = "${TestUtils.buildDir(configuration)}"
           "/generated_compilations/$dirName";
       TestUtils.deleteDirectory(generatedPath);

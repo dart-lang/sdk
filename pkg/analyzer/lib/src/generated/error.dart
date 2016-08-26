@@ -2223,7 +2223,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode REFERENCED_BEFORE_DECLARATION =
       const CompileTimeErrorCode('REFERENCED_BEFORE_DECLARATION',
-          "Local variables cannot be referenced before they are declared");
+          "Local variable '{0}' cannot be referenced before it is declared");
 
   /**
    * 12.8.1 Rethrow: It is a compile-time error if an expression of the form
@@ -2373,11 +2373,24 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the URI pointing to a non-existent file
    *
-   * See [INVALID_URI].
+   * See [INVALID_URI], [URI_HAS_NOT_BEEN_GENERATED].
    */
   static const CompileTimeErrorCode URI_DOES_NOT_EXIST =
       const CompileTimeErrorCode(
           'URI_DOES_NOT_EXIST', "Target of URI does not exist: '{0}'");
+
+  /**
+   * Just like [URI_DOES_NOT_EXIST], but used when the URI refers to a file that
+   * is expected to be generated.
+   *
+   * Parameters:
+   * 0: the URI pointing to a non-existent file
+   *
+   * See [INVALID_URI], [URI_DOES_NOT_EXIST].
+   */
+  static const CompileTimeErrorCode URI_HAS_NOT_BEEN_GENERATED =
+      const CompileTimeErrorCode('URI_HAS_NOT_BEEN_GENERATED',
+          "Target of URI has not been generated: '{0}'");
 
   /**
    * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time
@@ -2698,6 +2711,7 @@ abstract class ErrorCode {
     HintCode.MISSING_RETURN,
     HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
     HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
@@ -2742,6 +2756,7 @@ abstract class ErrorCode {
     StaticTypeWarningCode.NON_BOOL_EXPRESSION,
     StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION,
     StaticTypeWarningCode.NON_BOOL_OPERAND,
+    StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
     StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
     StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
     StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
@@ -2881,6 +2896,7 @@ abstract class ErrorCode {
     StrongModeCode.INVALID_SUPER_INVOCATION,
     StrongModeCode.NON_GROUND_TYPE_CHECK_INFO,
     StrongModeCode.STATIC_TYPE_ERROR,
+    StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
 
     TodoCode.TODO,
 
@@ -2894,10 +2910,6 @@ abstract class ErrorCode {
     ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE,
     ParserErrorCode.ABSTRACT_TYPEDEF,
     ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT,
-    ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT,
-    ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE,
-    ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW,
-    ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW,
     ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
     ParserErrorCode.ASYNC_NOT_SUPPORTED,
     ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
@@ -3318,6 +3330,7 @@ class ErrorReporter {
       }
       return type.displayName;
     }
+
     if (_hasEqualTypeNames(arguments)) {
       int count = arguments.length;
       for (int i = 0; i < count; i++) {
@@ -3732,6 +3745,13 @@ class HintCode extends ErrorCode {
   static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = const HintCode(
       'OVERRIDE_ON_NON_OVERRIDING_GETTER',
       "Getter does not override an inherited getter");
+
+  /**
+   * A field with the override annotation does not override a getter or setter.
+   */
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD = const HintCode(
+      'OVERRIDE_ON_NON_OVERRIDING_FIELD',
+      "Field does not override an inherited getter or setter");
 
   /**
    * A method with the override annotation does not override an existing method.
@@ -4274,6 +4294,13 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode NON_BOOL_OPERAND =
       const StaticTypeWarningCode('NON_BOOL_OPERAND',
           "The operands of the '{0}' operator must be assignable to 'bool'");
+
+  /**
+   *
+   */
+  static const StaticTypeWarningCode NON_NULLABLE_FIELD_NOT_INITIALIZED =
+      const StaticTypeWarningCode('NON_NULLABLE_FIELD_NOT_INITIALIZED',
+          "Variable '{0}' of non-nullable type '{1}' must be initialized");
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>A<sub>i</sub>,
@@ -5324,6 +5351,26 @@ class StaticWarningCode extends ErrorCode {
           false);
 
   /**
+   * 17.9 Switch: It is a static warning if all of the following conditions
+   * hold:
+   * * The switch statement does not have a 'default' clause.
+   * * The static type of <i>e</i> is an enumerated typed with elements
+   *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
+   * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
+   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
+   *   same.
+   *
+   * Parameters:
+   * 0: the name of the constant that is missing
+   */
+  static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
+      const StaticWarningCode(
+          'MISSING_ENUM_CONSTANT_IN_SWITCH',
+          "Missing case clause for '{0}'",
+          "Add a case clause for the missing constant or add a default clause.",
+          false);
+
+  /**
    * 13.12 Return: It is a static warning if a function contains both one or
    * more return statements of the form <i>return;</i> and one or more return
    * statements of the form <i>return e;</i>.
@@ -5760,6 +5807,13 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('UNDEFINED_IDENTIFIER', "Undefined name '{0}'");
 
   /**
+   * If the identifier is 'await', be helpful about it.
+   */
+  static const StaticWarningCode UNDEFINED_IDENTIFIER_AWAIT =
+      const StaticWarningCode('UNDEFINED_IDENTIFIER_AWAIT',
+          "Undefined name 'await'; did you mean to add the 'async' marker to '{0}'?");
+
+  /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>,
    * <i>1<=i<=l</i>, must have a corresponding named parameter in the set
    * {<i>p<sub>n+1</sub></i> &hellip; <i>p<sub>n+k</sub></i>} or a static
@@ -5840,26 +5894,6 @@ class StaticWarningCode extends ErrorCode {
           "The return type of the getter must not be 'void'", null, false);
 
   /**
-   * 17.9 Switch: It is a static warning if all of the following conditions
-   * hold:
-   * * The switch statement does not have a 'default' clause.
-   * * The static type of <i>e</i> is an enumerated typed with elements
-   *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
-   * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
-   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
-   *   same.
-   *
-   * Parameters:
-   * 0: the name of the constant that is missing
-   */
-  static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
-      const StaticWarningCode(
-          'MISSING_ENUM_CONSTANT_IN_SWITCH',
-          "Missing case clause for '{0}'",
-          "Add a case clause for the missing constant or add a default clause.",
-          false);
-
-  /**
    * A flag indicating whether this warning is an error when running with strong
    * mode enabled.
    */
@@ -5893,6 +5927,11 @@ class StaticWarningCode extends ErrorCode {
 class StrongModeCode extends ErrorCode {
   static const String _implicitCastMessage =
       'Unsound implicit cast from {0} to {1}';
+
+  static const String _unsafeBlockClosureInferenceMessage =
+      'Unsafe use of block closure in a type-inferred variable outside a '
+      'function body.  Workaround: add a type annotation for `{0}`.  See '
+      'dartbug.com/26947';
 
   static const String _typeCheckMessage =
       'Type check failed: {0} is not of type {1}';
@@ -6040,6 +6079,12 @@ class StrongModeCode extends ErrorCode {
       'IMPLICIT_DYNAMIC_INVOKE',
       "Missing type arguments for calling generic function type '{0}'"
       "$_implicitDynamicTip");
+
+  static const StrongModeCode UNSAFE_BLOCK_CLOSURE_INFERENCE =
+      const StrongModeCode(
+          ErrorType.STATIC_WARNING,
+          'UNSAFE_BLOCK_CLOSURE_INFERENCE',
+          _unsafeBlockClosureInferenceMessage);
 
   @override
   final ErrorType type;

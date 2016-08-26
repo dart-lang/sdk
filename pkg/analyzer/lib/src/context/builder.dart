@@ -8,24 +8,20 @@ import 'dart:collection';
 import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
+import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/discovery.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
-import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /**
@@ -75,28 +71,44 @@ class ContextBuilder {
   ResolverProvider packageResolverProvider;
 
   /**
+   * The resolver provider used to create a file: URI resolver, or `null` if
+   * the normal file URI resolver is to be used.
+   */
+  ResolverProvider fileResolverProvider;
+
+  /**
    * The file path of the .packages file that should be used in place of any
-   * file found using the normal (Package Specification DEP) lookup mechanism.
+   * file found using the normal (Package Specification DEP) lookup mechanism,
+   * or `null` if the normal lookup mechanism should be used.
    */
   String defaultPackageFilePath;
 
   /**
    * The file path of the packages directory that should be used in place of any
-   * file found using the normal (Package Specification DEP) lookup mechanism.
+   * file found using the normal (Package Specification DEP) lookup mechanism,
+   * or `null` if the normal lookup mechanism should be used.
    */
   String defaultPackagesDirectoryPath;
 
   /**
    * The file path of the analysis options file that should be used in place of
-   * any file in the root directory.
+   * any file in the root directory or a parent of the root directory, or `null`
+   * if the normal lookup mechanism should be used.
    */
   String defaultAnalysisOptionsFilePath;
 
   /**
    * The default analysis options that should be used unless some or all of them
-   * are overridden in the analysis options file.
+   * are overridden in the analysis options file, or `null` if the default
+   * defaults should be used.
    */
   AnalysisOptions defaultOptions;
+
+  /**
+   * A table mapping variable names to values for the declared variables, or
+   * `null` if no additional variables should be declared.
+   */
+  Map<String, String> declaredVariables;
 
   /**
    * Initialize a newly created builder to be ready to build a context rooted in
@@ -104,17 +116,36 @@ class ContextBuilder {
    */
   ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache);
 
-  AnalysisContext buildContext(String rootDirectoryPath) {
+  /**
+   * Return an analysis context that is configured correctly to analyze code in
+   * the directory with the given [path].
+   *
+   * *Note:* This method is not yet fully implemented and should not be used.
+   */
+  AnalysisContext buildContext(String path) {
     // TODO(brianwilkerson) Split getAnalysisOptions so we can capture the
     // option map and use it to run the options processors.
-    AnalysisOptions options = getAnalysisOptions(rootDirectoryPath);
+    AnalysisOptions options = getAnalysisOptions(path);
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = contentCache;
-    context.sourceFactory = createSourceFactory(rootDirectoryPath, options);
+    context.sourceFactory = createSourceFactory(path, options);
     context.analysisOptions = options;
     //_processAnalysisOptions(context, optionMap);
+    declareVariables(context);
     return context;
+  }
+
+  Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
+    if (packages == null || packages == Packages.noPackages) {
+      return null;
+    }
+    Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
+    packages.asMap().forEach((String packagePath, Uri uri) {
+      String path = resourceProvider.pathContext.fromUri(uri);
+      folderMap[packagePath] = [resourceProvider.getFolder(path)];
+    });
+    return folderMap;
   }
 
 //  void _processAnalysisOptions(
@@ -140,15 +171,14 @@ class ContextBuilder {
 //    }
 //  }
 
-  Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
-    if (packages == null || packages == Packages.noPackages) {
-      return null;
+  /**
+   * Return an analysis options object containing the default option values.
+   */
+  AnalysisOptions createDefaultOptions() {
+    if (defaultOptions == null) {
+      return new AnalysisOptionsImpl();
     }
-    Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
-    packages.asMap().forEach((String packagePath, Uri uri) {
-      folderMap[packagePath] = [resourceProvider.getFolder(path.fromUri(uri))];
-    });
-    return folderMap;
+    return new AnalysisOptionsImpl.from(defaultOptions);
   }
 
   Packages createPackageMap(String rootDirectoryPath) {
@@ -169,17 +199,24 @@ class ContextBuilder {
 
   SourceFactory createSourceFactory(
       String rootDirectoryPath, AnalysisOptions options) {
+    Folder _folder = null;
+    Folder folder() {
+      return _folder ??= resourceProvider.getResource('.');
+    }
+
+    UriResolver fileResolver = fileResolverProvider == null
+        ? new ResourceUriResolver(resourceProvider)
+        : fileResolverProvider(folder());
     if (packageResolverProvider != null) {
-      Folder folder = resourceProvider.getResource('.');
-      UriResolver resolver = packageResolverProvider(folder);
-      if (resolver != null) {
+      UriResolver packageResolver = packageResolverProvider(folder());
+      if (packageResolver != null) {
         // TODO(brianwilkerson) This doesn't support either embedder files or
         // sdk extensions because we don't have a way to get the package map
         // from the resolver.
         List<UriResolver> resolvers = <UriResolver>[
           new DartUriResolver(findSdk(null, options)),
-          resolver,
-          new ResourceUriResolver(resourceProvider)
+          packageResolver,
+          fileResolver
         ];
         return new SourceFactory(resolvers);
       }
@@ -189,52 +226,98 @@ class ContextBuilder {
     List<UriResolver> resolvers = <UriResolver>[];
     resolvers.add(new DartUriResolver(findSdk(packageMap, options)));
     if (packageMap != null) {
-      resolvers.add(new SdkExtUriResolver(packageMap));
       resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
     }
-    resolvers.add(new ResourceUriResolver(resourceProvider));
+    resolvers.add(fileResolver);
     return new SourceFactory(resolvers);
   }
 
   /**
-   * Use the given [packageMap] and [options] to locate the SDK.
+   * Add any [declaredVariables] to the list of declared variables used by the
+   * given [context].
+   */
+  void declareVariables(InternalAnalysisContext context) {
+    if (declaredVariables != null && declaredVariables.isNotEmpty) {
+      DeclaredVariables contextVariables = context.declaredVariables;
+      declaredVariables.forEach((String variableName, String value) {
+        contextVariables.define(variableName, value);
+      });
+    }
+  }
+
+  /**
+   * Return the SDK that should be used to analyze code. Use the given
+   * [packageMap] and [options] to locate the SDK.
    */
   DartSdk findSdk(
       Map<String, List<Folder>> packageMap, AnalysisOptions options) {
     if (packageMap != null) {
+      SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
+      List<String> extFilePaths = extFinder.extensionFilePaths;
       EmbedderYamlLocator locator = new EmbedderYamlLocator(packageMap);
       Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
-      EmbedderSdk embedderSdk = new EmbedderSdk(embedderYamls);
+      EmbedderSdk embedderSdk =
+          new EmbedderSdk(resourceProvider, embedderYamls);
       if (embedderSdk.sdkLibraries.length > 0) {
+        //
+        // There is an embedder file that defines the content of the SDK and
+        // there might be an extension file that extends it.
+        //
         List<String> paths = <String>[];
         for (Folder folder in embedderYamls.keys) {
           paths.add(folder
               .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
               .path);
         }
+        paths.addAll(extFilePaths);
         SdkDescription description = new SdkDescription(paths, options);
         DartSdk dartSdk = sdkManager.getSdk(description, () {
+          if (extFilePaths.isNotEmpty) {
+            embedderSdk.addExtensions(extFinder.urlMappings);
+          }
           embedderSdk.analysisOptions = options;
           embedderSdk.useSummary = sdkManager.canUseSummaries;
           return embedderSdk;
         });
         return dartSdk;
+      } else if (extFilePaths != null && extFilePaths.isNotEmpty) {
+        //
+        // We have an extension file, but no embedder file.
+        //
+        String sdkPath = sdkManager.defaultSdkDirectory;
+        List<String> paths = <String>[sdkPath];
+        paths.addAll(extFilePaths);
+        SdkDescription description = new SdkDescription(paths, options);
+        return sdkManager.getSdk(description, () {
+          FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+              resourceProvider, resourceProvider.getFolder(sdkPath));
+          if (extFilePaths.isNotEmpty) {
+            sdk.addExtensions(extFinder.urlMappings);
+          }
+          sdk.analysisOptions = options;
+          sdk.useSummary = sdkManager.canUseSummaries;
+          return sdk;
+        });
       }
     }
     String sdkPath = sdkManager.defaultSdkDirectory;
     SdkDescription description = new SdkDescription(<String>[sdkPath], options);
     return sdkManager.getSdk(description, () {
-      DirectoryBasedDartSdk sdk =
-          new DirectoryBasedDartSdk(new JavaFile(sdkPath));
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+          resourceProvider, resourceProvider.getFolder(sdkPath));
       sdk.analysisOptions = options;
       sdk.useSummary = sdkManager.canUseSummaries;
       return sdk;
     });
   }
 
-  AnalysisOptions getAnalysisOptions(String rootDirectoryPath) {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl.from(defaultOptions);
-    File optionsFile = getOptionsFile(rootDirectoryPath);
+  /**
+   * Return the analysis options that should be used when analyzing code in the
+   * directory with the given [path].
+   */
+  AnalysisOptions getAnalysisOptions(String path) {
+    AnalysisOptionsImpl options = createDefaultOptions();
+    File optionsFile = getOptionsFile(path);
     if (optionsFile != null) {
       Map<String, YamlNode> fileOptions =
           new AnalysisOptionsProvider().getOptionsFromFile(optionsFile);
@@ -243,11 +326,15 @@ class ContextBuilder {
     return options;
   }
 
-  File getOptionsFile(String rootDirectoryPath) {
+  /**
+   * Return the analysis options file that should be used when analyzing code in
+   * the directory with the given [path].
+   */
+  File getOptionsFile(String path) {
     if (defaultAnalysisOptionsFilePath != null) {
       return resourceProvider.getFile(defaultAnalysisOptionsFilePath);
     }
-    Folder root = resourceProvider.getFolder(rootDirectoryPath);
+    Folder root = resourceProvider.getFolder(path);
     for (Folder folder = root; folder != null; folder = folder.parent) {
       File file =
           folder.getChildAssumingFile(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
@@ -261,5 +348,100 @@ class ContextBuilder {
       }
     }
     return null;
+  }
+}
+
+/**
+ * Given a package map, check in each package's lib directory for the existence
+ * of an `_embedder.yaml` file. If the file contains a top level YamlMap, it
+ * will be added to the [embedderYamls] map.
+ */
+class EmbedderYamlLocator {
+  /**
+   * The name of the embedder files being searched for.
+   */
+  static const String EMBEDDER_FILE_NAME = '_embedder.yaml';
+
+  /**
+   * A mapping from a package's library directory to the parsed YamlMap.
+   */
+  final Map<Folder, YamlMap> embedderYamls = new HashMap<Folder, YamlMap>();
+
+  /**
+   * Initialize a newly created locator by processing the packages in the given
+   * [packageMap].
+   */
+  EmbedderYamlLocator(Map<String, List<Folder>> packageMap) {
+    if (packageMap != null) {
+      _processPackageMap(packageMap);
+    }
+  }
+
+  /**
+   * Programatically add an `_embedder.yaml` mapping.
+   */
+  void addEmbedderYaml(Folder libDir, String embedderYaml) {
+    _processEmbedderYaml(libDir, embedderYaml);
+  }
+
+  /**
+   * Refresh the map of located files to those found by processing the given
+   * [packageMap].
+   */
+  void refresh(Map<String, List<Folder>> packageMap) {
+    // Clear existing.
+    embedderYamls.clear();
+    if (packageMap != null) {
+      _processPackageMap(packageMap);
+    }
+  }
+
+  /**
+   * Given the yaml for an embedder ([embedderYaml]) and a folder ([libDir]),
+   * setup the uri mapping.
+   */
+  void _processEmbedderYaml(Folder libDir, String embedderYaml) {
+    try {
+      YamlNode yaml = loadYaml(embedderYaml);
+      if (yaml is YamlMap) {
+        embedderYamls[libDir] = yaml;
+      }
+    } catch (_) {
+      // Ignored
+    }
+  }
+
+  /**
+   * Given a package [name] and a list of folders ([libDirs]), process any
+   * `_embedder.yaml` files that are found in any of the folders.
+   */
+  void _processPackage(String name, List<Folder> libDirs) {
+    for (Folder libDir in libDirs) {
+      String embedderYaml = _readEmbedderYaml(libDir);
+      if (embedderYaml != null) {
+        _processEmbedderYaml(libDir, embedderYaml);
+      }
+    }
+  }
+
+  /**
+   * Process each of the entries in the [packageMap].
+   */
+  void _processPackageMap(Map<String, List<Folder>> packageMap) {
+    packageMap.forEach(_processPackage);
+  }
+
+  /**
+   * Read and return the contents of [libDir]/[EMBEDDER_FILE_NAME], or `null` if
+   * the file doesn't exist.
+   */
+  String _readEmbedderYaml(Folder libDir) {
+    File file = libDir.getChild(EMBEDDER_FILE_NAME);
+    try {
+      return file.readAsStringSync();
+    } on FileSystemException {
+      // File can't be read.
+      return null;
+    }
   }
 }

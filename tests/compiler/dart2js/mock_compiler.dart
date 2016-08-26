@@ -80,7 +80,6 @@ class MockCompiler extends Compiler {
        bool disableTypeInference: false,
        bool analyzeAll: false,
        bool analyzeOnly: false,
-       bool emitJavaScript: true,
        bool preserveComments: false,
        // Our unit tests check code generation output that is
        // affected by inlining support.
@@ -106,7 +105,6 @@ class MockCompiler extends Compiler {
               disableTypeInference: disableTypeInference,
               analyzeAll: analyzeAll,
               analyzeOnly: analyzeOnly,
-              emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
@@ -228,9 +226,9 @@ class MockCompiler extends Compiler {
                                           ExecutableElement element) {
     ResolverVisitor visitor =
         new ResolverVisitor(
-            this,
+            this.resolution,
             element,
-            new ResolutionRegistry(this,
+            new ResolutionRegistry(this.backend,
                 new CollectingTreeElements(element)),
             scope: new MockTypeVariablesScope(
                 element.enclosingElement.buildScope()));
@@ -247,10 +245,10 @@ class MockCompiler extends Compiler {
     Element mockElement = new MockElement(mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
         new ResolverVisitor(
-            this,
+            this.resolution,
             mockElement,
             new ResolutionRegistry(
-                this, new CollectingTreeElements(mockElement)),
+                this.backend, new CollectingTreeElements(mockElement)),
             scope: mockElement.enclosingElement.buildScope());
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;

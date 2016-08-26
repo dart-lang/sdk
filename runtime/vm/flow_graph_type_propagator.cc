@@ -237,6 +237,13 @@ void FlowGraphTypePropagator::VisitCheckSmi(CheckSmiInstr* check) {
 }
 
 
+void FlowGraphTypePropagator::VisitCheckArrayBound(
+    CheckArrayBoundInstr* check) {
+  // Array bounds checks also test index for smi.
+  SetCid(check->index()->definition(), kSmiCid);
+}
+
+
 void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
   if ((check->unary_checks().NumberOfChecks() != 1) ||
       !check->Dependencies().IsNone()) {

@@ -3,16 +3,20 @@
 # BSD-style license that can be found in the LICENSE file.
 
 config("libdart_vm_config") {
-  libs = [
-    "dl",
-  ]
+  # TODO(zra, jamesr): This check can go away after some problems with the
+  # fuchsia toolchain definition are fixed.
+  if (!defined(is_fuchsia) || !is_fuchsia) {
+    libs = [ "dl" ]
 
-  if (!is_android) {
-    libs += [ "pthread" ]
+    if (!is_android) {
+      libs += [ "pthread" ]
 
-    if (is_linux) {
-      libs += [ "rt" ]
+      if (is_linux) {
+        libs += [ "rt" ]
+      }
     }
+  } else {
+    libs = [ "runtime" ]
   }
 }
 
@@ -43,17 +47,18 @@ static_library("libdart_platform") {
   ]
 }
 
+
+vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
+                              [rebase_path("vm_sources.gypi")],
+                              "scope",
+                              ["vm_sources.gypi"])
+
+
 static_library("libdart_vm") {
   configs += ["..:dart_config",
               "..:dart_product_config",
               "..:dart_precompiled_runtime_config"]
   public_configs = [":libdart_vm_config"]
-
-  vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
-                                [rebase_path("vm_sources.gypi")],
-                                "scope",
-                                ["vm_sources.gypi"])
-
   set_sources_assignment_filter(["*_test.cc", "*_test.h"])
   sources = vm_sources_list.sources
   include_dirs = [
@@ -68,11 +73,6 @@ static_library("libdart_vm_nosnapshot") {
               "..:dart_precompiled_runtime_config"]
   public_configs = [":libdart_vm_config"]
   defines = [ "DART_NO_SNAPSHOT" ]
-  vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
-                                [rebase_path("vm_sources.gypi")],
-                                "scope",
-                                ["vm_sources.gypi"])
-
   set_sources_assignment_filter(["*_test.cc", "*_test.h"])
   sources = vm_sources_list.sources
   include_dirs = [
@@ -87,11 +87,6 @@ static_library("libdart_vm_nosnapshot_with_precompiler") {
               "..:dart_precompiler_config"]
   public_configs = [":libdart_vm_config"]
   defines = [ "DART_NO_SNAPSHOT" ]
-  vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
-                                [rebase_path("vm_sources.gypi")],
-                                "scope",
-                                ["vm_sources.gypi"])
-
   set_sources_assignment_filter(["*_test.cc", "*_test.h"])
   sources = vm_sources_list.sources
   include_dirs = [

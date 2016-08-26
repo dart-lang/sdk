@@ -45,7 +45,6 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/language'),
   new Path('tests/lib'),
   new Path('tests/standalone'),
-  new Path('tests/try'),
   new Path('tests/utils'),
   new Path('utils/tests/css'),
   new Path('utils/tests/peg'),
@@ -103,6 +102,7 @@ Future testConfigurations(List<Map> configurations) async {
           .map((name) => conf[name])
           .toList();
       if (conf['checked']) settings.add('checked');
+      if (conf['strong']) settings.add('strong');
       if (conf['noopt']) settings.add('noopt');
       output_words.add(settings.join('_'));
     }

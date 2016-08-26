@@ -9,11 +9,10 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
-import '../types/types.dart' show TypeMask;
 import '../tree/tree.dart';
-import '../util/util.dart';
+import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart' show Selector;
-
+import '../util/util.dart';
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
 import 'send_structure.dart';
 
@@ -139,7 +138,7 @@ class TreeElementMapping extends TreeElements {
   /// Map from nodes to native data.
   Map<Node, dynamic> _nativeData;
 
-  final int hashCode = ++_hashCodeCounter;
+  final int hashCode = _hashCodeCounter = (_hashCodeCounter + 1).toUnsigned(30);
   static int _hashCodeCounter = 0;
 
   TreeElementMapping(this.analyzedElement);

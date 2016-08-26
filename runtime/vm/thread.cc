@@ -97,7 +97,7 @@ Thread::Thread(Isolate* isolate)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       safepoint_state_(0),
-      execution_state_(kThreadInVM),
+      execution_state_(kThreadInNative),
       next_(NULL) {
 NOT_IN_PRODUCT(
   dart_stream_ = Timeline::GetDartStream();
@@ -642,6 +642,12 @@ CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
 
 
 bool Thread::ObjectAtOffset(intptr_t offset, Object* object) {
+  if (Isolate::Current() == Dart::vm_isolate()) {
+    // --disassemble-stubs runs before all the references through
+    // thread have targets
+    return false;
+  }
+
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
   if (Thread::member_name##offset() == offset) {                               \
     *object = expr;                                                            \

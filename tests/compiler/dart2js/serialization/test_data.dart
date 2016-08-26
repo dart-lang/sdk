@@ -5,8 +5,8 @@
 library dart2js.serialization_test_data;
 
 const List<Test> TESTS = const <Test>[
-  // This test is very long-running and put here first to compile it on its own
-  // in compilation0_test.dart
+  // These tests are very long-running and put here first to compile them on
+  // their own tests.
   const Test('Disable tree shaking through reflection', const {
     'main.dart': '''
 import 'dart:mirrors';
@@ -17,6 +17,19 @@ main() {
 ''',
   }, expectedWarningCount: 1),
 
+  const Test('Use of dart:indexed_db', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'dart:indexed_db';
+''',
+  }),
+
+  // These tests
   const Test('Empty program', const {
     'main.dart': 'main() {}'
   }),
@@ -122,7 +135,7 @@ main() {
   },
   expectedWarningCount: 1),
 
-  const Test('Impliment Comparable with incompatible parameter types', const {
+  const Test('Implement Comparable with incompatible parameter types', const {
     'main.dart': r'''
 class Class implements Comparable<Class> {
   int compareTo(String other) => 0;
@@ -134,7 +147,7 @@ main() {
   expectedWarningCount: 1,
   expectedInfoCount: 1),
 
-  const Test('Impliment Comparable with incompatible parameter count', const {
+  const Test('Implement Comparable with incompatible parameter count', const {
     'main.dart': r'''
 class Class implements Comparable {
   bool compareTo(a, b) => true;
@@ -457,6 +470,18 @@ class A {
 ''',
   }),
 
+  const Test('Index set if null', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() => m(null, null, null);
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+m(a, b, c) => a[b] ??= c;
+''',
+  }),
+
   const Test('If-null expression in constant constructor', const {
     'main.dart': '''
 import 'a.dart';
@@ -546,6 +571,128 @@ test() {}
     'c.dart': '''
 ''',
   }, expectedErrorCount: 1),
+
+  const Test('Closure in operator function', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class C {
+  operator ==(other) => () {};
+}
+
+test() => new C() == null;
+''',
+  }),
+
+  const Test('Checked setter', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+class C {
+  set foo(int i) {}
+}
+
+test() => new C().foo = 0;
+''',
+  }, checkedMode: true),
+
+  const Test('Deferred access', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'b.dart' deferred as b;
+
+test() => b.loadLibrary().then((_) => b.test2());
+''',
+    'b.dart': '''
+test2() {}
+''',
+  }),
+
+  const Test('Deferred access of dart:core', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {
+  test();
+}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import "dart:core" deferred as core;
+
+test() {
+  core.loadLibrary().then((_) => null);
+}
+''',
+  }),
+
+  const Test('Use of dart:indexed_db', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() {}
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+import 'dart:indexed_db';
+''',
+  }),
+
+  const Test('Deferred static access', const {},
+      preserializedSourceFiles: const {
+    'main.dart': '''
+import 'b.dart' deferred as prefix;
+
+main() => prefix.loadLibrary().then((_) => prefix.test2());
+''',
+    'b.dart': '''
+test2() => x;
+var x = const ConstClass(const ConstClass(1));
+class ConstClass {
+  final x;
+  const ConstClass(this.x);
+}
+''',
+  }),
+
+  const Test('Multi variable declaration', const {
+    'main.dart': '''
+import 'a.dart';
+
+main() => y;
+''',
+  }, preserializedSourceFiles: const {
+    'a.dart': '''
+var x, y = 2;
+''',
+  }),
+
+  const Test('Double values', const {},
+      preserializedSourceFiles: const {
+  'main.dart': '''
+const a = 1e+400;
+main() => a;
+''',
+  }),
 ];
 
 class Test {
@@ -557,6 +704,7 @@ class Test {
   final int expectedWarningCount;
   final int expectedHintCount;
   final int expectedInfoCount;
+  final bool checkedMode;
 
   const Test(
       this.name,
@@ -566,5 +714,6 @@ class Test {
       this.expectedErrorCount: 0,
       this.expectedWarningCount: 0,
       this.expectedHintCount: 0,
-      this.expectedInfoCount: 0});
+      this.expectedInfoCount: 0,
+      this.checkedMode: false});
 }

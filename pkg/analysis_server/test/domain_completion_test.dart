@@ -51,9 +51,9 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
   test_ArgumentList_imported_function_named_param_label1() async {
     addTestFile('main() { int.parse("16", r^: 16);}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix',
         relevance: DART_RELEVANCE_NAMED_PARAMETER);
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ',
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError',
         relevance: DART_RELEVANCE_NAMED_PARAMETER);
     expect(suggestions, hasLength(2));
   }

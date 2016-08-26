@@ -265,6 +265,10 @@ static intptr_t CidForRepresentation(Representation rep) {
       return kDoubleCid;
     case kUnboxedFloat32x4:
       return kFloat32x4Cid;
+    case kUnboxedInt32x4:
+      return kInt32x4Cid;
+    case kUnboxedFloat64x2:
+      return kFloat64x2Cid;
     case kUnboxedUint32:
       return kDynamicCid;  // smi or mint.
     default:
@@ -373,12 +377,6 @@ static void PrepareIndexedOp(BlockBuilder* builder,
                              Definition* array,
                              Definition* index,
                              intptr_t length_offset) {
-  TokenPosition token_pos = builder->TokenPos();
-  builder->AddInstruction(
-      new CheckSmiInstr(new Value(index),
-                        Thread::kNoDeoptId,
-                        token_pos));
-
   Definition* length = builder->AddDefinition(
       new LoadFieldInstr(new Value(array),
                          length_offset,
@@ -390,8 +388,8 @@ static void PrepareIndexedOp(BlockBuilder* builder,
                                Thread::kNoDeoptId));
 }
 
-
-bool Intrinsifier::Build_ObjectArrayGetIndexed(FlowGraph* flow_graph) {
+static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
+                                      intptr_t array_cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
@@ -399,199 +397,82 @@ bool Intrinsifier::Build_ObjectArrayGetIndexed(FlowGraph* flow_graph) {
   Definition* index = builder.AddParameter(1);
   Definition* array = builder.AddParameter(2);
 
-  PrepareIndexedOp(&builder, array, index, Array::length_offset());
-
-  Definition* result = builder.AddDefinition(
-      new LoadIndexedInstr(new Value(array),
-                           new Value(index),
-                           Instance::ElementSizeFor(kArrayCid),  // index scale
-                           kArrayCid,
-                           Thread::kNoDeoptId,
-                           builder.TokenPos()));
-  builder.AddIntrinsicReturn(new Value(result));
-  return true;
-}
-
-
-bool Intrinsifier::Build_ImmutableArrayGetIndexed(FlowGraph* flow_graph) {
-  return Build_ObjectArrayGetIndexed(flow_graph);
-}
-
-
-bool Intrinsifier::Build_Uint8ArrayGetIndexed(FlowGraph* flow_graph) {
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  Definition* index = builder.AddParameter(1);
-  Definition* array = builder.AddParameter(2);
-
-  PrepareIndexedOp(&builder, array, index, TypedData::length_offset());
-
-  Definition* result = builder.AddDefinition(
-      new LoadIndexedInstr(new Value(array),
-                           new Value(index),
-                           1,  // index scale
-                           kTypedDataUint8ArrayCid,
-                           Thread::kNoDeoptId,
-                           builder.TokenPos()));
-  builder.AddIntrinsicReturn(new Value(result));
-  return true;
-}
-
-
-bool Intrinsifier::Build_ExternalUint8ArrayGetIndexed(FlowGraph* flow_graph) {
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  Definition* index = builder.AddParameter(1);
-  Definition* array = builder.AddParameter(2);
-
-  PrepareIndexedOp(&builder, array, index, ExternalTypedData::length_offset());
-
-  Definition* elements = builder.AddDefinition(
-      new LoadUntaggedInstr(new Value(array),
-                            ExternalTypedData::data_offset()));
-  Definition* result = builder.AddDefinition(
-      new LoadIndexedInstr(new Value(elements),
-                           new Value(index),
-                           1,  // index scale
-                           kExternalTypedDataUint8ArrayCid,
-                           Thread::kNoDeoptId,
-                           builder.TokenPos()));
-  builder.AddIntrinsicReturn(new Value(result));
-  return true;
-}
-
-
-bool Intrinsifier::Build_Uint8ArraySetIndexed(FlowGraph* flow_graph) {
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  Definition* value = builder.AddParameter(1);
-  Definition* index = builder.AddParameter(2);
-  Definition* array = builder.AddParameter(3);
-
-  PrepareIndexedOp(&builder, array, index, TypedData::length_offset());
-
-  builder.AddInstruction(
-      new CheckSmiInstr(new Value(value),
-                        Thread::kNoDeoptId,
-                        builder.TokenPos()));
-
-  builder.AddInstruction(
-      new StoreIndexedInstr(new Value(array),
-                            new Value(index),
-                            new Value(value),
-                            kNoStoreBarrier,
-                            1,  // index scale
-                            kTypedDataUint8ArrayCid,
-                            Thread::kNoDeoptId,
-                            builder.TokenPos()));
-  // Return null.
-  Definition* null_def = builder.AddNullDefinition();
-  builder.AddIntrinsicReturn(new Value(null_def));
-  return true;
-}
-
-
-bool Intrinsifier::Build_ExternalUint8ArraySetIndexed(FlowGraph* flow_graph) {
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  Definition* value = builder.AddParameter(1);
-  Definition* index = builder.AddParameter(2);
-  Definition* array = builder.AddParameter(3);
-
-  PrepareIndexedOp(&builder, array, index, ExternalTypedData::length_offset());
-
-  builder.AddInstruction(
-      new CheckSmiInstr(new Value(value),
-                        Thread::kNoDeoptId,
-                        builder.TokenPos()));
-  Definition* elements = builder.AddDefinition(
-      new LoadUntaggedInstr(new Value(array),
-                            ExternalTypedData::data_offset()));
-  builder.AddInstruction(
-      new StoreIndexedInstr(new Value(elements),
-                            new Value(index),
-                            new Value(value),
-                            kNoStoreBarrier,
-                            1,  // index scale
-                            kExternalTypedDataUint8ArrayCid,
-                            Thread::kNoDeoptId,
-                            builder.TokenPos()));
-  // Return null.
-  Definition* null_def = builder.AddNullDefinition();
-  builder.AddIntrinsicReturn(new Value(null_def));
-  return true;
-}
-
-
-bool Intrinsifier::Build_Uint32ArraySetIndexed(FlowGraph* flow_graph) {
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  Definition* value = builder.AddParameter(1);
-  Definition* index = builder.AddParameter(2);
-  Definition* array = builder.AddParameter(3);
-
-  PrepareIndexedOp(&builder, array, index, TypedData::length_offset());
-
-  Definition* unboxed_value =
-      builder.AddUnboxInstr(kUnboxedUint32,
-                            new Value(value),
-                            /* is_checked = */ true);
-
-  builder.AddInstruction(
-      new StoreIndexedInstr(new Value(array),
-                            new Value(index),
-                            new Value(unboxed_value),
-                            kNoStoreBarrier,
-                            4,  // index scale
-                            kTypedDataUint32ArrayCid,
-                            Thread::kNoDeoptId,
-                            builder.TokenPos()));
-  // Return null.
-  Definition* null_def = builder.AddNullDefinition();
-  builder.AddIntrinsicReturn(new Value(null_def));
-  return true;
-}
-
-
-bool Intrinsifier::Build_Uint32ArrayGetIndexed(FlowGraph* flow_graph) {
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  Definition* index = builder.AddParameter(1);
-  Definition* array = builder.AddParameter(2);
-
-  PrepareIndexedOp(&builder, array, index, TypedData::length_offset());
-
-  Definition* unboxed_value = builder.AddDefinition(
-      new LoadIndexedInstr(new Value(array),
-                           new Value(index),
-                           4,  // index scale
-                           kTypedDataUint32ArrayCid,
-                           Thread::kNoDeoptId,
-                           builder.TokenPos()));
-  Definition* result = builder.AddDefinition(
-      BoxInstr::Create(kUnboxedUint32, new Value(unboxed_value)));
-  builder.AddIntrinsicReturn(new Value(result));
-  return true;
-}
-
-
-bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
-    return false;
+  intptr_t length_offset = Array::length_offset();
+  if (RawObject::IsTypedDataClassId(array_cid)) {
+    length_offset = TypedData::length_offset();
+  } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+    length_offset = ExternalTypedData::length_offset();
   }
 
+  PrepareIndexedOp(&builder, array, index, length_offset);
+
+  if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+    array = builder.AddDefinition(
+      new LoadUntaggedInstr(new Value(array),
+                            ExternalTypedData::data_offset()));
+  }
+
+  Definition* result = builder.AddDefinition(
+      new LoadIndexedInstr(new Value(array),
+                           new Value(index),
+                           Instance::ElementSizeFor(array_cid),  // index scale
+                           array_cid,
+                           Thread::kNoDeoptId,
+                           builder.TokenPos()));
+  // Box and/or convert result if necessary.
+  switch (array_cid) {
+    case kTypedDataInt32ArrayCid:
+    case kExternalTypedDataInt32ArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedInt32, new Value(result)));
+      break;
+    case kTypedDataUint32ArrayCid:
+    case kExternalTypedDataUint32ArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedUint32, new Value(result)));
+      break;
+    case kTypedDataFloat32ArrayCid:
+      result = builder.AddDefinition(
+          new FloatToDoubleInstr(new Value(result), Thread::kNoDeoptId));
+      // Fall through.
+    case kTypedDataFloat64ArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedDouble, new Value(result)));
+      break;
+    case kTypedDataFloat32x4ArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedFloat32x4, new Value(result)));
+      break;
+    case kTypedDataInt32x4ArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedInt32x4, new Value(result)));
+      break;
+    case kTypedDataFloat64x2ArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedFloat64x2, new Value(result)));
+      break;
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+      // Nothing to do.
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  builder.AddIntrinsicReturn(new Value(result));
+  return true;
+}
+
+
+static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
+                                      intptr_t array_cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
@@ -600,33 +481,104 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
   Definition* index = builder.AddParameter(2);
   Definition* array = builder.AddParameter(3);
 
-  PrepareIndexedOp(&builder, array, index, TypedData::length_offset());
+  intptr_t length_offset = Array::length_offset();
+  if (RawObject::IsTypedDataClassId(array_cid)) {
+    length_offset = TypedData::length_offset();
+  } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+    length_offset = ExternalTypedData::length_offset();
+  }
 
-  const ICData& value_check = ICData::ZoneHandle(ICData::New(
-      flow_graph->function(),
-      String::Handle(flow_graph->function().name()),
-      Object::empty_array(),  // Dummy args. descr.
-      Thread::kNoDeoptId,
-      1,
-      false));
-  value_check.AddReceiverCheck(kDoubleCid, flow_graph->function());
-  builder.AddInstruction(
-      new CheckClassInstr(new Value(value),
-                          Thread::kNoDeoptId,
-                          value_check,
-                          builder.TokenPos()));
-  Definition* double_value =
-      builder.AddUnboxInstr(kUnboxedDouble,
-                            new Value(value),
-                            /* is_checked = */ true);
+  PrepareIndexedOp(&builder, array, index, length_offset);
 
+  // Value check/conversion.
+  switch (array_cid) {
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+      builder.AddInstruction(new CheckSmiInstr(new Value(value),
+                                               Thread::kNoDeoptId,
+                                               builder.TokenPos()));
+      break;
+    case kTypedDataInt32ArrayCid:
+    case kExternalTypedDataInt32ArrayCid:
+      // Use same truncating unbox-instruction for int32 and uint32.
+      // Fall-through.
+    case kTypedDataUint32ArrayCid:
+    case kExternalTypedDataUint32ArrayCid:
+      // Supports smi and mint, slow-case for bigints.
+      value = builder.AddUnboxInstr(kUnboxedUint32,
+                                    new Value(value),
+                                    /* is_checked = */ false);
+      break;
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat64x2ArrayCid: {
+      intptr_t value_check_cid = kDoubleCid;
+      Representation rep = kUnboxedDouble;
+      switch (array_cid) {
+        case kTypedDataFloat32x4ArrayCid:
+          value_check_cid = kFloat32x4Cid;
+          rep = kUnboxedFloat32x4;
+          break;
+        case kTypedDataInt32x4ArrayCid:
+          value_check_cid = kInt32x4Cid;
+          rep = kUnboxedInt32x4;
+          break;
+        case kTypedDataFloat64x2ArrayCid:
+          value_check_cid = kFloat64x2Cid;
+          rep = kUnboxedFloat64x2;
+          break;
+        default:
+          // Float32/Float64 case already handled.
+          break;
+      }
+      const ICData& value_check = ICData::ZoneHandle(ICData::New(
+          flow_graph->function(),
+          Symbols::Empty(),  // Dummy function name.
+          Object::empty_array(),  // Dummy args. descr.
+          Thread::kNoDeoptId,
+          1,
+          false));
+      value_check.AddReceiverCheck(value_check_cid, flow_graph->function());
+      builder.AddInstruction(
+          new CheckClassInstr(new Value(value),
+                              Thread::kNoDeoptId,
+                              value_check,
+                              builder.TokenPos()));
+      value = builder.AddUnboxInstr(rep,
+                                    new Value(value),
+                                    /* is_checked = */ true);
+      if (array_cid == kTypedDataFloat32ArrayCid) {
+        value = builder.AddDefinition(
+            new DoubleToFloatInstr(new Value(value), Thread::kNoDeoptId));
+      }
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+
+  if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+    array = builder.AddDefinition(
+      new LoadUntaggedInstr(new Value(array),
+                            ExternalTypedData::data_offset()));
+  }
+  // No store barrier.
+  ASSERT(RawObject::IsExternalTypedDataClassId(array_cid) ||
+         RawObject::IsTypedDataClassId(array_cid));
   builder.AddInstruction(
       new StoreIndexedInstr(new Value(array),
                             new Value(index),
-                            new Value(double_value),
+                            new Value(value),
                             kNoStoreBarrier,
-                            8,  // index scale
-                            kTypedDataFloat64ArrayCid,
+                            Instance::ElementSizeFor(array_cid),  // index scale
+                            array_cid,
                             Thread::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
@@ -636,32 +588,114 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
 }
 
 
-bool Intrinsifier::Build_Float64ArrayGetIndexed(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
-    return false;
-  }
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  Definition* index = builder.AddParameter(1);
-  Definition* array = builder.AddParameter(2);
-
-  PrepareIndexedOp(&builder, array, index, TypedData::length_offset());
-
-  Definition* unboxed_value = builder.AddDefinition(
-      new LoadIndexedInstr(new Value(array),
-                           new Value(index),
-                           8,  // index scale
-                           kTypedDataFloat64ArrayCid,
-                           Thread::kNoDeoptId,
-                           builder.TokenPos()));
-  Definition* result = builder.AddDefinition(
-      BoxInstr::Create(kUnboxedDouble, new Value(unboxed_value)));
-  builder.AddIntrinsicReturn(new Value(result));
-  return true;
+#define DEFINE_ARRAY_GETTER_INTRINSIC(enum_name)                               \
+bool Intrinsifier::Build_##enum_name##GetIndexed(FlowGraph* flow_graph) {      \
+  return IntrinsifyArrayGetIndexed(                                            \
+      flow_graph,                                                              \
+      MethodRecognizer::MethodKindToReceiverCid(                               \
+          MethodRecognizer::k##enum_name##GetIndexed));                        \
 }
+
+
+#define DEFINE_ARRAY_SETTER_INTRINSIC(enum_name)                               \
+bool Intrinsifier::Build_##enum_name##SetIndexed(FlowGraph* flow_graph) {      \
+  return IntrinsifyArraySetIndexed(                                            \
+      flow_graph,                                                              \
+      MethodRecognizer::MethodKindToReceiverCid(                               \
+          MethodRecognizer::k##enum_name##SetIndexed));                        \
+}
+
+DEFINE_ARRAY_GETTER_INTRINSIC(ObjectArray)  // Setter in intrinsifier_<arch>.cc.
+DEFINE_ARRAY_GETTER_INTRINSIC(ImmutableArray)
+
+#define DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(enum_name)                       \
+DEFINE_ARRAY_GETTER_INTRINSIC(enum_name)                                       \
+DEFINE_ARRAY_SETTER_INTRINSIC(enum_name)
+
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Int8Array)
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint8Array)
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(ExternalUint8Array)
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint8ClampedArray)
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(ExternalUint8ClampedArray)
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Int16Array)
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint16Array)
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Int32Array)
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint32Array)
+
+#undef DEFINE_ARRAY_GETTER_SETTER_INTRINSICS
+#undef DEFINE_ARRAY_GETTER_INTRINSIC
+#undef DEFINE_ARRAY_SETTER_INTRINSIC
+
+
+#define DEFINE_FLOAT_ARRAY_GETTER_INTRINSIC(enum_name)                         \
+bool Intrinsifier::Build_##enum_name##GetIndexed(FlowGraph* flow_graph) {      \
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {                          \
+    return false;                                                              \
+  }                                                                            \
+  return IntrinsifyArrayGetIndexed(                                            \
+      flow_graph,                                                              \
+      MethodRecognizer::MethodKindToReceiverCid(                               \
+          MethodRecognizer::k##enum_name##GetIndexed));                        \
+}
+
+
+#define DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC(enum_name)                         \
+bool Intrinsifier::Build_##enum_name##SetIndexed(FlowGraph* flow_graph) {      \
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {                          \
+    return false;                                                              \
+  }                                                                            \
+  return IntrinsifyArraySetIndexed(                                            \
+      flow_graph,                                                              \
+      MethodRecognizer::MethodKindToReceiverCid(                               \
+          MethodRecognizer::k##enum_name##SetIndexed));                        \
+}
+
+#define DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS(enum_name)                 \
+DEFINE_FLOAT_ARRAY_GETTER_INTRINSIC(enum_name)                                 \
+DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC(enum_name)
+
+DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS(Float64Array)
+DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS(Float32Array)
+
+#undef DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS
+#undef DEFINE_FLOAT_ARRAY_GETTER_INTRINSIC
+#undef DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC
+
+
+#define DEFINE_SIMD_ARRAY_GETTER_INTRINSIC(enum_name)                          \
+bool Intrinsifier::Build_##enum_name##GetIndexed(FlowGraph* flow_graph) {      \
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {                          \
+    return false;                                                              \
+  }                                                                            \
+  return IntrinsifyArrayGetIndexed(                                            \
+      flow_graph,                                                              \
+      MethodRecognizer::MethodKindToReceiverCid(                               \
+          MethodRecognizer::k##enum_name##GetIndexed));                        \
+}
+
+
+#define DEFINE_SIMD_ARRAY_SETTER_INTRINSIC(enum_name)                          \
+bool Intrinsifier::Build_##enum_name##SetIndexed(FlowGraph* flow_graph) {      \
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {                          \
+    return false;                                                              \
+  }                                                                            \
+  return IntrinsifyArraySetIndexed(                                            \
+      flow_graph,                                                              \
+      MethodRecognizer::MethodKindToReceiverCid(                               \
+          MethodRecognizer::k##enum_name##SetIndexed));                        \
+}
+
+#define DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(enum_name)                 \
+DEFINE_SIMD_ARRAY_GETTER_INTRINSIC(enum_name)                                 \
+DEFINE_SIMD_ARRAY_SETTER_INTRINSIC(enum_name)
+
+DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float32x4Array)
+DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Int32x4Array)
+DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float64x2Array)
+
+#undef DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS
+#undef DEFINE_SIMD_ARRAY_GETTER_INTRINSIC
+#undef DEFINE_SIMD_ARRAY_SETTER_INTRINSIC
 
 
 static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {

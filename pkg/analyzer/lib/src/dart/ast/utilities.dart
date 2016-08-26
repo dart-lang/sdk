@@ -72,7 +72,7 @@ class AstCloner implements AstVisitor<AstNode> {
    * [nodes].
    */
   List<AstNode/*=E*/ > cloneNodeList/*<E extends AstNode>*/(
-      NodeList/*<E>*/ nodes) {
+      List/*<E>*/ nodes) {
     int count = nodes.length;
     List/*<E>*/ clonedNodes = new List/*<E>*/();
     for (int i = 0; i < count; i++) {

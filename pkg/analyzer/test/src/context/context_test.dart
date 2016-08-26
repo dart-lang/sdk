@@ -11,11 +11,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -153,6 +155,43 @@ class AnalysisContextImplTest extends AbstractContextTest {
     expect(entry.explicitlyAdded, isTrue);
   }
 
+  void test_applyChanges_addNewImport_invalidateLibraryCycle() {
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(context.analysisOptions)
+          ..strongMode = true;
+    Source embedder = addSource(
+        '/a.dart',
+        r'''
+library a;
+import 'b.dart';
+//import 'c.dart';
+''');
+    addSource(
+        '/b.dart',
+        r'''
+library b;
+import 'a.dart';
+''');
+    addSource(
+        '/c.dart',
+        r'''
+library c;
+import 'b.dart';
+''');
+    _performPendingAnalysisTasks();
+    // Add a new import into a.dart, this should invalidate its library cycle.
+    // If it doesn't, we will get a task cycle exception.
+    context.setContents(
+        embedder,
+        r'''
+library a;
+import 'b.dart';
+import 'c.dart';
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getCacheEntry(embedder).exception, isNull);
+  }
+
   Future test_applyChanges_change() {
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);
@@ -279,9 +318,72 @@ int b = aa;''';
     });
   }
 
+  void test_applyChanges_changedSource_updateModificationTime() {
+    String path = '/test.dart';
+    File file = resourceProvider.newFile(path, 'var V = 1;');
+    Source source = file.createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    // Analyze all.
+    _analyzeAll_assertFinished();
+    expect(context.analysisCache.getState(source, RESOLVED_UNIT),
+        CacheState.INVALID);
+    // Update the file and notify the context about the change.
+    resourceProvider.updateFile(path, 'var V = 2;');
+    context.applyChanges(new ChangeSet()..changedSource(source));
+    // The analysis results are invalidated.
+    // We have seen the new contents, so 'modificationTime' is also updated.
+    expect(context.analysisCache.getState(source, RESOLVED_UNIT),
+        CacheState.INVALID);
+    expect(
+        context.getCacheEntry(source).modificationTime, file.modificationStamp);
+  }
+
   void test_applyChanges_empty() {
     context.applyChanges(new ChangeSet());
     expect(context.performAnalysisTask().changeNotices, isNull);
+  }
+
+  void test_applyChanges_incremental_resetDriver() {
+    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+    Source source = addSource(
+        "/test.dart",
+        r'''
+main() {
+  print(42);
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(source).errors, hasLength(0));
+    // Update the source to have a parse error.
+    // This is an incremental change, but we always invalidate DART_ERRORS.
+    context.setContents(
+        source,
+        r'''
+main() {
+  print(42)
+}
+''');
+    AnalysisCache cache = context.analysisCache;
+    expect(cache.getValue(source, PARSE_ERRORS), hasLength(1));
+    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
+    // Perform enough analysis to prepare inputs (is not actually tested) for
+    // the DART_ERRORS computing task, but don't compute it yet.
+    context.performAnalysisTask();
+    context.performAnalysisTask();
+    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
+    // Update the source so that PARSE_ERRORS is empty.
+    context.setContents(
+        source,
+        r'''
+main() {
+  print(42);
+}
+''');
+    expect(cache.getValue(source, PARSE_ERRORS), hasLength(0));
+    // After full analysis DART_ERRORS should also be empty.
+    _performPendingAnalysisTasks();
+    expect(cache.getValue(source, DART_ERRORS), hasLength(0));
+    expect(context.getErrors(source).errors, hasLength(0));
   }
 
   void test_applyChanges_overriddenSource() {
@@ -316,7 +418,7 @@ export 'lib.dart';
     // initially: A
     {
       LibraryElement libraryElement =
-          context.getResult(exporterSource, LIBRARY_ELEMENT1) as LibraryElement;
+          context.getResult(exporterSource, LIBRARY_ELEMENT1);
       expect(libraryElement.exportNamespace.definedNames.keys,
           unorderedEquals(['A']));
     }
@@ -328,7 +430,7 @@ class B {}''');
     _performPendingAnalysisTasks();
     {
       LibraryElement libraryElement =
-          context.getResult(exporterSource, LIBRARY_ELEMENT1) as LibraryElement;
+          context.getResult(exporterSource, LIBRARY_ELEMENT1);
       expect(libraryElement.exportNamespace.definedNames.keys,
           unorderedEquals(['B']));
     }
@@ -356,7 +458,7 @@ import 'libB.dart';''';
     expect(sources[0], same(libA));
     libAElement = context.computeLibraryElement(libA);
     importedLibraries = libAElement.importedLibraries;
-    expect(importedLibraries, hasLength(1));
+    expect(importedLibraries, hasLength(2));
     return pumpEventQueue().then((_) {
       listener.assertEvent(wereSourcesAdded: true);
       listener.assertEvent(wereSourcesAdded: true);
@@ -401,7 +503,6 @@ main() {
     expect(context.getResolvedCompilationUnit2(source, source), unit);
     // remove overlay
     context.setContents(source, null);
-    context.validateCacheConsistency();
     _analyzeAll_assertFinished();
     expect(context.getResolvedCompilationUnit2(source, source), unit);
   }
@@ -432,6 +533,127 @@ import 'libB.dart';''';
       listener.assertEvent(wereSourcesRemovedOrDeleted: true);
       listener.assertNoMoreEvents();
     });
+  }
+
+  void test_applyChanges_removeUsedLibrary_addAgain() {
+    String codeA = r'''
+import 'b.dart';
+B b = null;
+''';
+    String codeB = r'''
+class B {}
+''';
+    Source a = addSource('/a.dart', codeA);
+    Source b = addSource('/b.dart', codeB);
+    CacheState getErrorsState(Source source) =>
+        context.analysisCache.getState(source, LIBRARY_ERRORS_READY);
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(a).errors, hasLength(0));
+    // Remove b.dart - errors in a.dart are invalidated and recomputed.
+    // Now a.dart has an error.
+    _removeSource(b);
+    expect(getErrorsState(a), CacheState.INVALID);
+    _performPendingAnalysisTasks();
+    expect(getErrorsState(a), CacheState.VALID);
+    expect(context.getErrors(a).errors, hasLength(isPositive));
+    // Add b.dart - errors in a.dart are invalidated and recomputed.
+    // The reason is that a.dart adds dependencies on (not existing) b.dart
+    // results in cache.
+    // Now a.dart does not have errors.
+    addSource('/b.dart', codeB);
+    expect(getErrorsState(a), CacheState.INVALID);
+    _performPendingAnalysisTasks();
+    expect(getErrorsState(a), CacheState.VALID);
+    expect(context.getErrors(a).errors, hasLength(0));
+  }
+
+  void test_cacheConsistencyValidator_computed_deleted() {
+    CacheConsistencyValidator validator = context.cacheConsistencyValidator;
+    var stat = PerformanceStatistics.cacheConsistencyValidationStatistics;
+    stat.reset();
+    // Add sources.
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    String path1 = '/test1.dart';
+    String path2 = '/test2.dart';
+    Source source1 = resourceProvider.newFile(path1, '// 1-1').createSource();
+    Source source2 = resourceProvider.newFile(path2, '// 2-1').createSource();
+    context.applyChanges(
+        new ChangeSet()..addedSource(source1)..addedSource(source2));
+    // Same modification times.
+    expect(
+        validator.sourceModificationTimesComputed([source1, source2],
+            [source1.modificationStamp, source2.modificationStamp]),
+        isFalse);
+    expect(stat.numOfChanged, 0);
+    expect(stat.numOfRemoved, 0);
+    // Add overlay
+    context.setContents(source1, '// 1-2');
+    expect(
+        validator.sourceModificationTimesComputed(
+            [source1, source2], [-1, source2.modificationStamp]),
+        isFalse);
+    context.setContents(source1, null);
+    expect(stat.numOfChanged, 0);
+    expect(stat.numOfRemoved, 0);
+    // Different modification times.
+    expect(
+        validator.sourceModificationTimesComputed(
+            [source1, source2], [-1, source2.modificationStamp]),
+        isTrue);
+    expect(stat.numOfChanged, 0);
+    expect(stat.numOfRemoved, 1);
+  }
+
+  void test_cacheConsistencyValidator_computed_modified() {
+    CacheConsistencyValidator validator = context.cacheConsistencyValidator;
+    var stat = PerformanceStatistics.cacheConsistencyValidationStatistics;
+    stat.reset();
+    // Add sources.
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    String path1 = '/test1.dart';
+    String path2 = '/test2.dart';
+    Source source1 = resourceProvider.newFile(path1, '// 1-1').createSource();
+    Source source2 = resourceProvider.newFile(path2, '// 2-1').createSource();
+    context.applyChanges(
+        new ChangeSet()..addedSource(source1)..addedSource(source2));
+    // Same modification times.
+    expect(
+        validator.sourceModificationTimesComputed([source1, source2],
+            [source1.modificationStamp, source2.modificationStamp]),
+        isFalse);
+    expect(stat.numOfChanged, 0);
+    expect(stat.numOfRemoved, 0);
+    // Add overlay
+    context.setContents(source1, '// 1-2');
+    expect(
+        validator.sourceModificationTimesComputed([source1, source2],
+            [source1.modificationStamp + 1, source2.modificationStamp]),
+        isFalse);
+    context.setContents(source1, null);
+    expect(stat.numOfChanged, 0);
+    expect(stat.numOfRemoved, 0);
+    // Different modification times.
+    expect(
+        validator.sourceModificationTimesComputed([source1, source2],
+            [source1.modificationStamp + 1, source2.modificationStamp]),
+        isTrue);
+    expect(stat.numOfChanged, 1);
+    expect(stat.numOfRemoved, 0);
+  }
+
+  void test_cacheConsistencyValidator_getSources() {
+    CacheConsistencyValidator validator = context.cacheConsistencyValidator;
+    // Add sources.
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    String path1 = '/test1.dart';
+    String path2 = '/test2.dart';
+    Source source1 = resourceProvider.newFile(path1, '// 1-1').createSource();
+    Source source2 = resourceProvider.newFile(path2, '// 2-1').createSource();
+    context.applyChanges(
+        new ChangeSet()..addedSource(source1)..addedSource(source2));
+    // Verify.
+    expect(validator.getSourcesToComputeModificationTimes(),
+        unorderedEquals([source1, source2]));
   }
 
   void test_computeDocumentationComment_class_block() {
@@ -2079,7 +2301,7 @@ library expectedToFindSemicolon
     if (context.analysisOptions.finerGrainedInvalidation) {
       expect(source.readCount, 7);
     } else {
-      expect(source.readCount, 4);
+      expect(source.readCount, 5);
     }
   }
 
@@ -2561,24 +2783,13 @@ int a = 0;''');
    * Perform analysis tasks up to 512 times and assert that it was enough.
    */
   void _analyzeAll_assertFinished([int maxIterations = 512]) {
-    bool finishedAnalyzing = false;
     for (int i = 0; i < maxIterations; i++) {
       List<ChangeNotice> notice = context.performAnalysisTask().changeNotices;
       if (notice == null) {
-        finishedAnalyzing = true;
-        bool inconsistent = context.validateCacheConsistency();
-        if (!inconsistent) {
-          return;
-        }
+        return;
       }
     }
-    if (finishedAnalyzing) {
-      fail(
-          "performAnalysisTask failed to finish analyzing all sources after $maxIterations iterations");
-    } else {
-      fail(
-          "performAnalysisTask failed to terminate after analyzing all sources");
-    }
+    fail("performAnalysisTask failed to terminate after analyzing all sources");
   }
 
   void _assertNoExceptions() {
@@ -2675,6 +2886,49 @@ class LimitedInvalidateTest extends AbstractContextTest {
     context.analysisOptions = options;
   }
 
+  void test_class_addMethod_useAsHole_inTopLevelVariable() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+var B = A.foo;
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+import 'b.dart';
+var C = B;
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(1));
+    // Update a.dart: add A.foo.
+    //   'B' in b.dart is invalid, because 'B' references 'foo'
+    //   c.dart is invalid, because 'C' references 'B'
+    context.setContents(
+        a,
+        r'''
+class A {
+  static void foo(int p) {}
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+
+    _assertValidForDependentLibrary(c);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(c, RESOLVED_UNIT4);
+  }
+
   void test_class_addMethod_useClass() {
     Source a = addSource(
         '/a.dart',
@@ -2707,6 +2961,328 @@ class B extends A {
     _assertValidForDependentLibrary(b);
     _assertValidAllLibraryUnitResults(b);
     _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_class_annotation_add_deprecated() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+List<A> foo() => [];
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(0));
+    // Add @deprecated annotation.
+    // b.dart has valid resolution, because A is still A, so only errors are
+    // invalidated.
+    context.setContents(
+        a,
+        r'''
+@deprecated
+class A {}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertValidAllResolution(b);
+    // Analysis is done successfully.
+    _performPendingAnalysisTasks();
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(a, READY_RESOLVED_UNIT);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    _assertValid(b, READY_RESOLVED_UNIT);
+    expect(context.getErrors(b).errors, hasLength(1));
+  }
+
+  void test_class_annotation_remove_deprecated() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+@deprecated
+class A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+List<A> foo() => [];
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(1));
+    // Add @deprecated annotation.
+    // b.dart has valid resolution, because A is still A, so only errors are
+    // invalidated.
+    context.setContents(
+        a,
+        r'''
+class A {}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertValidAllResolution(b);
+    // Analysis is done successfully.
+    _performPendingAnalysisTasks();
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(a, READY_RESOLVED_UNIT);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    _assertValid(b, READY_RESOLVED_UNIT);
+    expect(context.getErrors(b).errors, hasLength(0));
+  }
+
+  void test_class_constructor_named_changeName() {
+    // Update a.dart: change A.named() to A.named2().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A.named();
+}
+''',
+        r'''
+class A {
+  A.named2();
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.named();
+}
+''');
+  }
+
+  void test_class_constructor_named_parameters_add() {
+    // Update a.dart: add a new parameter to A.named().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A.named();
+}
+''',
+        r'''
+class A {
+  A.named(int p);
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.named();
+}
+''');
+  }
+
+  void test_class_constructor_named_parameters_change_usedSuper() {
+    // Update a.dart: change A.named().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A.named(int a);
+}
+''',
+        r'''
+class A {
+  A.named(String a);
+}
+''',
+        r'''
+import 'a.dart';
+class B extends A {
+  B() : super.named(42);
+}
+''');
+  }
+
+  void test_class_constructor_named_parameters_remove() {
+    // Update a.dart: remove a new parameter of A.named().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A.named(int p);
+}
+''',
+        r'''
+class A {
+  A.named();
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.named();
+}
+''');
+  }
+
+  void test_class_constructor_named_remove_notUsed() {
+    // Update a.dart: remove A.foo().
+    //   b.dart is valid, because it does not reference A.foo().
+    _verifyTwoLibrariesAllValid(
+        r'''
+class A {
+  A.foo();
+  A.bar();
+}
+''',
+        r'''
+class A {
+  A.bar();
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.bar();
+}
+''');
+  }
+
+  void test_class_constructor_named_remove_used() {
+    // Update a.dart: remove A.named().
+    //   b.dart is invalid, because it references A.named().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A.named();
+}
+''',
+        r'''
+class A {
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.named();
+}
+''');
+  }
+
+  void test_class_constructor_unnamed_parameters_change_notUsedSuper() {
+    // Update a.dart: change A().
+    //   Resolution of b.dart is valid, because it does not reference A().
+    //   Hints and verify errors are invalid, because it extends A.
+    // TODO(scheglov) we could keep valid hints and verify errors,
+    // because only constructor is changed - this cannot add/remove
+    // inherited unimplemented members.
+    _verifyTwoLibrariesInvalidHintsVerifyErrors(
+        r'''
+class A {
+  A(int a);
+  A.named(int a);
+}
+''',
+        r'''
+class A {
+  A(String a);
+  A.named(int a);
+}
+''',
+        r'''
+import 'a.dart';
+class B extends A {
+  B() : super.named(42);
+}
+''');
+  }
+
+  void test_class_constructor_unnamed_parameters_change_usedSuper() {
+    // Update a.dart: change A().
+    //   b.dart is invalid, because it references A().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A(int a);
+}
+''',
+        r'''
+class A {
+  A(String a);
+}
+''',
+        r'''
+import 'a.dart';
+class B extends A {
+  B() : super(42);
+}
+''');
+  }
+
+  void test_class_constructor_unnamed_parameters_remove() {
+    // Update a.dart: change A().
+    //   b.dart is invalid, because it references A().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A(int a, int b);
+}
+''',
+        r'''
+class A {
+  A(int a);
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A(1, 2);
+}
+''');
+  }
+
+  void test_class_constructor_unnamed_remove_notUsed() {
+    // Update a.dart: remove A().
+    //   b.dart is invalid, because it instantiates A.
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A();
+  A.named();
+}
+''',
+        r'''
+class A {
+  A.named();
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A.named();
+}
+''');
+  }
+
+  void test_class_constructor_unnamed_remove_used() {
+    // Update a.dart: remove A().
+    //   b.dart is invalid, because it references A().
+    _verifyTwoLibrariesInvalidatesResolution(
+        r'''
+class A {
+  A();
+}
+''',
+        r'''
+class A {
+}
+''',
+        r'''
+import 'a.dart';
+main() {
+  new A();
+}
+''');
   }
 
   void test_class_method_change_notUsed() {
@@ -2816,6 +3392,88 @@ class B extends A {}
     _assertInvalid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_class_method_remove_notUsed_instantiated() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+abstract class I {
+ void foo();
+}
+class A implements I {
+ void foo() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  new A();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove 'A.foo'.
+    //   b.dart is valid because it does not reference 'foo'.
+    //     The class 'A' has a warning, but it is still not abstract.
+    context.setContents(
+        a,
+        r'''
+abstract class I {
+ void fo();
+}
+class A implements I {
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValidAllResolution(b);
+    _assertValidAllErrors(b);
+  }
+
+  void test_class_method_remove_subclass() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+abstract class I {
+ void foo();
+}
+class A implements I {
+ void foo() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+class B extends A {}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: remove A.bar, add A.bar2.
+    //   b.dart
+    //     Resolution is valid because 'foo' is not referenced.
+    //     HINTS are invalid because 'B' might have invalid @override.
+    //     VERIFY_ERRORS are invalid because 'B' might not implement something.
+    //     Other errors are also invalid.
+    context.setContents(
+        a,
+        r'''
+abstract class I {
+ void foo();
+}
+class A implements I {
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+
+    _assertValidForDependentLibrary(b);
+    _assertValidAllResolution(b);
+    _assertInvalidHintsVerifyErrors(b);
+  }
+
   void test_class_private_member() {
     Source a = addSource(
         '/a.dart',
@@ -2865,52 +3523,27 @@ class A {
     _assertValid(b, LIBRARY_ERRORS_READY);
   }
 
-  void test_class_super_makeAbstract_instantiate() {
+  void test_enum_add() {
     Source a = addSource(
         '/a.dart',
         r'''
-abstract class I {
- void m();
-}
-class A implements I {
- void m() {}
-}
-''');
-    Source b = addSource(
-        '/b.dart',
-        r'''
-import 'a.dart';
-class B extends A {}
-''');
-    Source c = addSource(
-        '/c.dart',
-        r'''
-import 'b.dart';
 main() {
-  new B();
+  print(MyEnum.A);
 }
 ''');
     _performPendingAnalysisTasks();
-    // Update a.dart: remove A.bar, add A.bar2.
-    //   b.dart is valid, because it doesn't references 'bar' or 'bar2'.
+    // Insert a new enum declaration.
+    // No errors expected.
     context.setContents(
         a,
         r'''
-abstract class I {
- void m();
+main() {
+  print(MyEnum.A);
 }
-class A implements I {
- void m2() {}
-}
+enum MyEnum { A, B, C }
 ''');
-    _assertValidForChangedLibrary(a);
-    _assertInvalid(a, LIBRARY_ERRORS_READY);
-
-    _assertValidForDependentLibrary(b);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
-
-    _assertValidForDependentLibrary(c);
-    _assertInvalid(c, LIBRARY_ERRORS_READY);
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(a).errors, isEmpty);
   }
 
   void test_private_class() {
@@ -3005,6 +3638,48 @@ int B = _A + 1;
     _assertInvalid(b, LIBRARY_ERRORS_READY);
   }
 
+  void test_sequence_applyChanges_changedSource() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+class B {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main() {
+  new A();
+  new B();
+}
+''');
+    _performPendingAnalysisTasks();
+    resourceProvider.updateFile(
+        '/a.dart',
+        r'''
+class A2 {}
+class B {}
+''');
+    // Update a.dart: remove A, add A2.
+    //   b.dart is invalid, because it references A.
+    var changeSet = new ChangeSet()..changedSource(a);
+    context.applyChanges(changeSet);
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    // Analyze.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(a).errors, hasLength(0));
+    expect(context.getErrors(b).errors, hasLength(1));
+    _assertValid(a, READY_RESOLVED_UNIT);
+    _assertValid(b, READY_RESOLVED_UNIT);
+    _assertValidAllLibraryUnitResults(a);
+    _assertValidAllLibraryUnitResults(b);
+  }
+
   void test_sequence_class_give_take() {
     Source a = addSource(
         '/a.dart',
@@ -3058,6 +3733,580 @@ class C {}
     // Now b.dart is analyzed and it again has the error.
     _performPendingAnalysisTasks();
     expect(context.getErrors(b).errors, hasLength(1));
+  }
+
+  void test_sequence_class_removeMethod_overridden() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  void foo() {}
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+class B extends A {
+  @override
+  void foo() {}
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(0));
+    // Update a.dart: remove add A.foo.
+    //   b.dart has a new hint, because B.foo does not override anything
+    context.setContents(
+        a,
+        r'''
+class A {
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllResolution(b);
+    _assertInvalidHintsVerifyErrors(b);
+
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(1));
+  }
+
+  void test_sequence_clearParameterElements() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  foo(int p) {}
+}
+final a = new A();
+main() {
+  a.foo(42);
+}
+''');
+    _performPendingAnalysisTasks();
+    Expression find42() {
+      CompilationUnit unit =
+          context.getResult(new LibrarySpecificUnit(a, a), RESOLVED_UNIT);
+      ExpressionStatement statement =
+          AstFinder.getStatementsInTopLevelFunction(unit, 'main').single;
+      MethodInvocation invocation = statement.expression;
+      return invocation.argumentList.arguments[0];
+    }
+
+    {
+      Expression argument = find42();
+      expect(argument.staticParameterElement, isNull);
+      expect(argument.propagatedParameterElement, isNotNull);
+    }
+    // Update a.dart: add type annotation for 'a'.
+    // '42' has 'staticParameterElement', but not 'propagatedParameterElement'.
+    context.setContents(
+        a,
+        r'''
+class A {
+  foo(int p) {}
+}
+final A a = new A();
+main() {
+  a.foo(42);
+}
+''');
+    _performPendingAnalysisTasks();
+    {
+      Expression argument = find42();
+      expect(argument.staticParameterElement, isNotNull);
+      expect(argument.propagatedParameterElement, isNull);
+    }
+    // Update a.dart: remove type annotation for 'a'.
+    // '42' has 'propagatedParameterElement', but not 'staticParameterElement'.
+    context.setContents(
+        a,
+        r'''
+class A {
+  foo(int p) {}
+}
+final a = new A();
+main() {
+  a.foo(42);
+}
+''');
+    _performPendingAnalysisTasks();
+    {
+      Expression argument = find42();
+      expect(argument.staticParameterElement, isNull);
+      expect(argument.propagatedParameterElement, isNotNull);
+    }
+  }
+
+  void test_sequence_closureParameterTypesPropagation() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+main() {
+  f((p) => 4.2);
+}
+f(c(int p)) {}
+''');
+    _performPendingAnalysisTasks();
+    LibrarySpecificUnit targetA = new LibrarySpecificUnit(a, a);
+    // Update and analyze.
+    String newCode = r'''
+newFunction() {}
+main() {
+  f((p) => 4.2);
+}
+f(c(int p)) {}
+''';
+    context.setContents(a, newCode);
+    _performPendingAnalysisTasks();
+    // Validate "(p) => 4.2" types.
+    CompilationUnit unit = context.getResult(targetA, RESOLVED_UNIT2);
+    SimpleIdentifier parameterName =
+        EngineTestCase.findSimpleIdentifier(unit, newCode, 'p) => 4.2);');
+    expect(parameterName.staticType, context.typeProvider.dynamicType);
+    expect(parameterName.propagatedType, context.typeProvider.intType);
+  }
+
+  void test_sequence_closureParameterTypesPropagation2() {
+    var code = r'''
+import 'b.dart';
+main(x) {
+  x.toMap();
+  f((p) => 'z');
+}
+f(double c(int p)) {}
+''';
+    Source a = addSource('/a.dart', code);
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'c.dart';
+''');
+    addSource(
+        '/c.dart',
+        r'''
+import 'd.dart';
+''');
+    Source d = addSource(
+        '/d.dart',
+        r'''
+class D {}
+''');
+    _performPendingAnalysisTasks();
+    LibrarySpecificUnit targetA = new LibrarySpecificUnit(a, a);
+    // Update b.dart, resolution in a.dart is not affected.
+    context.setContents(
+        b,
+        r'''
+import 'c.dart';
+class B {}
+''');
+    _assertValidAllResolution(a);
+    _performPendingAnalysisTasks();
+    // Update d.dart, this should invalidate a.dart and type propagation
+    // performed for the closure parameter.
+    context.setContents(
+        d,
+        r'''
+class D {
+  toMap() {}
+}
+''');
+    _assertValidUnits(a, RESOLVED_UNIT6);
+    _assertInvalidUnits(a, RESOLVED_UNIT7);
+    _performPendingAnalysisTasks();
+    // Validate "(p) =>" types.
+    {
+      CompilationUnit unit = context.getResult(targetA, RESOLVED_UNIT2);
+      SimpleIdentifier parameterName =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'p) =>');
+      expect(parameterName.staticType, context.typeProvider.dynamicType);
+      expect(parameterName.propagatedType, context.typeProvider.intType);
+    }
+  }
+
+  void test_sequence_compoundingResults_exportNamespace() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A<T> {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+export 'a.dart';
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+import 'b.dart';
+main() {
+  new A<int>();
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(c).errors, isEmpty);
+    // Update a.dart, so that `A<T>` has a type bound.
+    //   This should invalidate export namespace for b.dart.
+    //   Currently we invalidate the whole LIBRARY_ELEMENT4.
+    //   So, c.dart will see the new `A<T extends B>` and report an error.
+    context.setContents(
+        a,
+        r'''
+class A<T extends B> {}
+class B {}
+''');
+    _assertInvalid(b, LIBRARY_ELEMENT4);
+    // Analyze and validate that a new error is reported.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(c).errors, hasLength(1));
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    _assertValid(c, LIBRARY_ERRORS_READY);
+  }
+
+  void test_sequence_compoundingResults_invalidateButKeepDependency() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+import 'b.dart';
+class A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+import 'c.dart';
+class B {}
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+class C {}
+''');
+    Source d = addSource(
+        '/d.dart',
+        r'''
+export 'b.dart';
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(c).errors, isEmpty);
+    // Update: a.dart (limited) and b.dart (limited).
+    //   This should invalidate LIBRARY_ELEMENT4 in d.dart, but it should be
+    //   done in a way that keep dependency of other results od d.dart on
+    //   LIBRARY_ELEMENT4 of d.dart, so that when we perform unlimited
+    //   invalidation of c.dart, this makes d.dart invalid.
+    context.setContents(
+        a,
+        r'''
+import 'b.dart';
+class A2 {}
+''');
+    context.setContents(
+        b,
+        r'''
+import 'a.dart';
+import 'c.dart';
+class B2 {}
+''');
+    context.setContents(
+        c,
+        r'''
+import 'dart:async';
+class C {}
+''');
+    _assertInvalid(d, LIBRARY_ELEMENT4);
+    _assertInvalid(d, LIBRARY_ERRORS_READY);
+    // Analyze and validate that a new error is reported.
+    _performPendingAnalysisTasks();
+    _assertValid(a, EXPORT_SOURCE_CLOSURE);
+    _assertValid(b, EXPORT_SOURCE_CLOSURE);
+    _assertValid(c, EXPORT_SOURCE_CLOSURE);
+    _assertValid(d, EXPORT_SOURCE_CLOSURE);
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    _assertValid(c, LIBRARY_ERRORS_READY);
+    _assertValid(d, LIBRARY_ERRORS_READY);
+  }
+
+  void test_sequence_compoundingResults_resolvedTypeNames() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+class B<T> {
+  B(p);
+}
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+export 'a.dart';
+export 'b.dart';
+''');
+    Source d = addSource(
+        '/d.dart',
+        r'''
+import 'c.dart';
+main() {
+  new B<int>(null);
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart and b.dart
+    //   This should invalidate most results in a.dart and b.dart
+    //
+    //   This should also invalidate "compounding" results in c.dart, such as
+    //   READY_LIBRARY_ELEMENT6, which represent a state of the whole source
+    //   closure, not a result of this single unit or a library.
+    //
+    //   The reason is that although type names (RESOLVED_UNIT5) b.dart will be
+    //   eventually resolved and set into b.dart elements, it may happen
+    //   after we attempted to re-resolve c.dart, which created Member(s), and
+    //   attempts to use elements without types set.
+    context.setContents(
+        a,
+        r'''
+class A2 {}
+''');
+    context.setContents(
+        b,
+        r'''
+class B<T> {
+  B(T p);
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForChangedLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalid(c, READY_LIBRARY_ELEMENT6);
+    _assertInvalid(c, READY_LIBRARY_ELEMENT7);
+    // Analyze and validate that all results are valid.
+    _performPendingAnalysisTasks();
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+    _assertValid(c, LIBRARY_ERRORS_READY);
+    _assertValid(d, LIBRARY_ERRORS_READY);
+  }
+
+  void test_sequence_dependenciesWithCycles() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+const A = 1;
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'c.dart';
+const B = C1 + 1;
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+import 'a.dart';
+import 'b.dart';
+const C1 = A + 1;
+const C2 = B + 2;
+''');
+    Source d = addSource(
+        '/d.dart',
+        r'''
+import 'c.dart';
+const D = C2 + 1;
+''');
+    _performPendingAnalysisTasks();
+    // Update "A" constant.
+    // This should invalidate results in all sources.
+    context.setContents(
+        a,
+        r'''
+const A = 2;
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
+    _assertInvalid(d, LIBRARY_ERRORS_READY);
+  }
+
+  void test_sequence_duplicateField_syntheticAndNot_renameNotSynthetic() {
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(context.analysisOptions)
+          ..strongMode = true;
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+  int foo;
+  int get foo => 1;
+}
+class B extends A {
+  int get foo => 2;
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(a).errors, hasLength(2));
+    // Update a.dart: rename "int foo" to "int bar".
+    // The strong mode "getter cannot override field" error is gone.
+    context.setContents(
+        a,
+        r'''
+class A {
+  int bar;
+  int get foo => 1;
+}
+class B extends A {
+  int get foo => 2;
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(a).errors, isEmpty);
+  }
+
+  void test_sequence_inBodyChange_addRef_deltaChange() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(A a) {
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(0));
+    // Update b.dart: in-body incremental change - start referencing 'foo'.
+    //   Should update referenced names.
+    context.setContents(
+        b,
+        r'''
+import 'a.dart';
+main(A a) {
+  a.foo;
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(1));
+    // Update a.dart: add A.foo
+    //   b.dart is invalid, because it references 'foo'.
+    context.setContents(
+        a,
+        r'''
+class A {
+  int foo;
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    // No errors after analysis.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(0));
+  }
+
+  void test_sequence_inBodyChange_removeRef_deltaChange() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {
+}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+import 'a.dart';
+main(A a) {
+  a.foo;
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(1));
+    // Update b.dart: in-body incremental change - stop referencing 'foo'.
+    //   Should update referenced names.
+    context.setContents(
+        b,
+        r'''
+import 'a.dart';
+main(A a) {
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(b).errors, hasLength(0));
+    // Update a.dart: add A.foo
+    //   b.dart is still valid, because it does references 'foo' anymore.
+    context.setContents(
+        a,
+        r'''
+class A {
+  int foo;
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllLibraryUnitResults(b);
+    _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_sequence_middleLimited_thenFirstFull() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+export 'a.dart';
+''');
+    Source c = addSource(
+        '/c.dart',
+        r'''
+import 'b.dart';
+A a;
+''');
+    _performPendingAnalysisTasks();
+    // Update b.dart: limited invalidation.
+    // Results in c.dart are valid, because the change in b.dart does not
+    // affect anything in c.dart.
+    context.setContents(
+        b,
+        r'''
+export 'a.dart';
+class B {}
+''');
+    _assertValid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertValid(c, LIBRARY_ERRORS_READY);
+    _assertUnitValid(c, RESOLVED_UNIT4);
+    _assertUnitValid(c, RESOLVED_UNIT5);
+    // Update a.dart: unlimited invalidation.
+    // Results RESOLVED_UNIT4, RESOLVED_UNIT5, and RESOLVED_UNIT6 in c.dart
+    // are invalid, because after unlimited change to a.dart everything
+    // should be invalidated.
+    // This fixes the problem that c.dart was not re-resolving type names.
+    context.setContents(
+        a,
+        r'''
+import 'dart:async';
+class A {}
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalid(c, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(c, RESOLVED_UNIT4);
   }
 
   void test_sequence_noChange_thenChange() {
@@ -3138,8 +4387,8 @@ class B {
     _assertValidForChangedLibrary(a);
     _assertInvalid(a, LIBRARY_ERRORS_READY);
     _assertValidForDependentLibrary(b);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
-    _assertInvalidUnits(b, RESOLVED_UNIT4);
+    _assertValidAllResolution(b);
+    _assertValidAllErrors(b);
     // The a.dart's unit and element are the same.
     {
       LibrarySpecificUnit target = new LibrarySpecificUnit(a, a);
@@ -3151,6 +4400,194 @@ class B {
     _performPendingAnalysisTasks();
     expect(context.getErrors(a).errors, hasLength(0));
     expect(context.getErrors(b).errors, hasLength(0));
+  }
+
+  void test_sequence_parts_disableForPart() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+library my_lib;
+part 'b.dart';
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+part of my_lib;
+class A {}
+''');
+    _performPendingAnalysisTasks();
+    // Update b.dart - it is a part, which we don't support.
+    // So, invalidate everything.
+    context.setContents(
+        b,
+        r'''
+part of my_lib;
+class A {}
+class B {}
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(a, RESOLVED_UNIT2);
+    _assertInvalidUnits(b, RESOLVED_UNIT1);
+  }
+
+  void test_sequence_parts_disableWithPart() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+library my_lib;
+part 'b.dart';
+''');
+    Source b = addSource(
+        '/b.dart',
+        r'''
+part of my_lib;
+class B {}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart - it is a library with a part, which we don't support.
+    // So, invalidate everything.
+    context.setContents(
+        a,
+        r'''
+library my_lib;
+part 'b.dart';
+class A {}
+''');
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(a, RESOLVED_UNIT1);
+    _assertInvalidUnits(b, RESOLVED_UNIT1);
+  }
+
+  void test_sequence_reorder_localFunctions() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+f1() {
+  localFunction() {
+    const C = 1;
+  }
+}
+f2() {}
+''');
+    _performPendingAnalysisTasks();
+    // Update a.dart: reorder functions.
+    // This should not fail with FrozenHashCodeException, because identifiers
+    // of local elements should be relative to the enclosing top-level elements.
+    context.setContents(
+        a,
+        r'''
+f2() {}
+f1() {
+  localFunction() {
+    const C = 1;
+  }
+}
+''');
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+  }
+
+  void test_sequence_unitConstants_addRemove() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+const A = 1;
+const B = 2;
+const C = 3;
+foo() {
+  const V1 = 10;
+}
+bar() {
+  const V2 = 20;
+}
+''');
+    _performPendingAnalysisTasks();
+    LibrarySpecificUnit unitA = new LibrarySpecificUnit(a, a);
+    List<ConstantEvaluationTarget> oldConstants =
+        context.getResult(unitA, COMPILATION_UNIT_CONSTANTS);
+    expect(oldConstants, hasLength(5));
+    ConstVariableElement oldA = _findConstVariable(oldConstants, 'A');
+    ConstVariableElement oldB = _findConstVariable(oldConstants, 'B');
+    ConstVariableElement oldC = _findConstVariable(oldConstants, 'C');
+    ConstVariableElement oldV1 = _findConstVariable(oldConstants, 'V1');
+    ConstVariableElement oldV2 = _findConstVariable(oldConstants, 'V2');
+    expect(context.analysisCache.get(oldA), isNotNull);
+    expect(context.analysisCache.get(oldB), isNotNull);
+    expect(context.analysisCache.get(oldC), isNotNull);
+    expect(context.analysisCache.get(oldV1), isNotNull);
+    // Update and validate new constants.
+    context.setContents(
+        a,
+        r'''
+const A = 1;
+const B = 2;
+const D = 4;
+foo() {
+  const V1 = 10;
+}
+baz() {
+  const V3 = 30;
+}
+''');
+    List<ConstantEvaluationTarget> newConstants =
+        context.getResult(unitA, COMPILATION_UNIT_CONSTANTS);
+    expect(newConstants, hasLength(5));
+    expect(newConstants, contains(same(oldA)));
+    expect(newConstants, contains(same(oldB)));
+    expect(newConstants, contains(same(oldV1)));
+    ConstVariableElement newD = _findConstVariable(newConstants, 'D');
+    ConstVariableElement newV3 = _findConstVariable(newConstants, 'V3');
+    // Perform analysis, compute constant values.
+    _performPendingAnalysisTasks();
+    // Validate const variable values.
+    expect(context.analysisCache.get(oldA), isNotNull);
+    expect(context.analysisCache.get(oldB), isNotNull);
+    expect(context.analysisCache.get(oldV1), isNotNull);
+    expect(context.analysisCache.get(oldC), isNull);
+    expect(context.analysisCache.get(oldV2), isNull);
+    expect(context.analysisCache.get(newD), isNotNull);
+    expect(context.analysisCache.get(newV3), isNotNull);
+    expect(oldA.evaluationResult.value.toIntValue(), 1);
+    expect(oldB.evaluationResult.value.toIntValue(), 2);
+    expect(newD.evaluationResult.value.toIntValue(), 4);
+    expect(oldV1.evaluationResult.value.toIntValue(), 10);
+    expect(newV3.evaluationResult.value.toIntValue(), 30);
+  }
+
+  void test_sequence_unitConstants_local_insertSpace() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+main() {
+  const C = 1;
+}
+''');
+    _performPendingAnalysisTasks();
+    LibrarySpecificUnit unitA = new LibrarySpecificUnit(a, a);
+    List<ConstantEvaluationTarget> oldConstants =
+        context.getResult(unitA, COMPILATION_UNIT_CONSTANTS);
+    expect(oldConstants, hasLength(1));
+    ConstVariableElement C = _findConstVariable(oldConstants, 'C');
+    expect(context.analysisCache.get(C), isNotNull);
+    // Insert a space before the name.
+    context.setContents(
+        a,
+        r'''
+main() {
+  const  C = 1;
+}
+''');
+    List<ConstantEvaluationTarget> newConstants =
+        context.getResult(unitA, COMPILATION_UNIT_CONSTANTS);
+    expect(newConstants, hasLength(1));
+    expect(newConstants, contains(same(C)));
+    // Perform analysis, compute constant values.
+    _performPendingAnalysisTasks();
+    // Validate const variable values.
+    expect(context.analysisCache.get(C), isNotNull);
+    expect(C.evaluationResult.value.toIntValue(), 1);
   }
 
   void test_sequence_useAnyResolvedUnit() {
@@ -3408,8 +4845,8 @@ main() {
 ''');
     _performPendingAnalysisTasks();
     // Update a.dart: remove A.m, add A.m2.
-    //   b.dart is invalid, because B extends A.
-    //   c.dart is invalid, because 'main' references B.
+    //   b.dart has valid resolution, and invalid errors.
+    //   c.dart is invalid, because 'main' references 'm'.
     context.setContents(
         a,
         r'''
@@ -3421,9 +4858,8 @@ class A {
     _assertInvalid(a, LIBRARY_ERRORS_READY);
 
     _assertValidForDependentLibrary(b);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT4);
-    _assertInvalidUnits(b, RESOLVED_UNIT4);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertValidAllResolution(b);
+    _assertInvalidHintsVerifyErrors(b);
 
     _assertValidForDependentLibrary(c);
     _assertInvalidLibraryElements(c, LIBRARY_ELEMENT5);
@@ -3471,12 +4907,9 @@ class A {
 ''');
     _assertInvalid(a, LIBRARY_ERRORS_READY);
 
-    // TODO(scheglov) In theory b.dart is not affected, because it does not
-    // call A.m, does not override it, etc.
     _assertValidForDependentLibrary(b);
-    _assertInvalidLibraryElements(b, LIBRARY_ELEMENT4);
-    _assertInvalidUnits(b, RESOLVED_UNIT4);
-    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertValidAllResolution(b);
+    _assertInvalidHintsVerifyErrors(b);
 
     _assertValidForDependentLibrary(c);
     _assertInvalidLibraryElements(c, LIBRARY_ELEMENT5);
@@ -3489,6 +4922,18 @@ class A {
     if (actual != CacheState.INVALID) {
       fail("cache state of $target $descriptor: wanted INVALID, got: $actual");
     }
+  }
+
+  /**
+   * Assert that [VERIFY_ERRORS] and other error results that include it,
+   * are invalid.
+   */
+  void _assertInvalidHintsVerifyErrors(Source unit) {
+    _assertUnitInvalid(unit, HINTS);
+    _assertUnitInvalid(unit, VERIFY_ERRORS);
+    _assertUnitInvalid(unit, LIBRARY_UNIT_ERRORS);
+    _assertInvalid(unit, DART_ERRORS);
+    _assertInvalid(unit, LIBRARY_ERRORS_READY);
   }
 
   /**
@@ -3545,15 +4990,38 @@ class A {
         reason: '$descriptor in $target');
   }
 
-  void _assertValidAllLibraryUnitResults(Source source, {Source library}) {
-    for (ResultDescriptor<LibraryElement> result in LIBRARY_ELEMENT_RESULTS) {
-      _assertValid(source, result);
+  /**
+   * Assert that all error results for the given [unit] are valid.
+   */
+  void _assertValidAllErrors(Source unit) {
+    for (ListResultDescriptor<AnalysisError> result in ERROR_SOURCE_RESULTS) {
+      _assertValid(unit, result);
     }
+    for (ListResultDescriptor<AnalysisError> result in ERROR_UNIT_RESULTS) {
+      _assertUnitValid(unit, result);
+    }
+  }
+
+  void _assertValidAllLibraryUnitResults(Source source, {Source library}) {
     library ??= source;
+    for (ResultDescriptor<LibraryElement> result in LIBRARY_ELEMENT_RESULTS) {
+      if (result == LIBRARY_ELEMENT4) {
+        continue;
+      }
+      _assertValid(library, result);
+    }
     LibrarySpecificUnit target = new LibrarySpecificUnit(library, source);
     for (ResultDescriptor<CompilationUnit> result in RESOLVED_UNIT_RESULTS) {
       _assertValid(target, result);
     }
+  }
+
+  void _assertValidAllResolution(Source unit) {
+    _assertValidUnits(unit, null);
+    _assertUnitValidTaskResults(unit, ResolveUnitTypeNamesTask.DESCRIPTOR);
+    _assertUnitValidTaskResults(unit, ResolveUnitTask.DESCRIPTOR);
+    _assertValidTaskResults(unit, ResolveLibraryReferencesTask.DESCRIPTOR);
+    _assertValidTaskResults(unit, ResolveLibraryTask.DESCRIPTOR);
   }
 
   void _assertValidForAnyLibrary(Source source) {
@@ -3589,12 +5057,71 @@ class A {
     }
   }
 
+  void _assertValidUnits(Source unit, ResultDescriptor<CompilationUnit> last,
+      {Source library}) {
+    var target = new LibrarySpecificUnit(library ?? unit, unit);
+    bool foundLast = false;
+    for (ResultDescriptor<CompilationUnit> result in RESOLVED_UNIT_RESULTS) {
+      if (!foundLast) {
+        _assertValid(target, result);
+      }
+      foundLast = foundLast || result == last;
+    }
+  }
+
+  ConstVariableElement _findConstVariable(
+      List<ConstantEvaluationTarget> constants, String name) {
+    return constants.singleWhere((c) {
+      return c is ConstVariableElement && c.name == name;
+    });
+  }
+
   void _performPendingAnalysisTasks([int maxTasks = 512]) {
     for (int i = 0; context.performAnalysisTask().hasMoreWork; i++) {
       if (i > maxTasks) {
         fail('Analysis did not terminate.');
       }
     }
+  }
+
+  void _verifyTwoLibrariesAllValid(
+      String firstCodeA, String secondCodeA, String codeB) {
+    Source a = addSource('/a.dart', firstCodeA);
+    Source b = addSource('/b.dart', codeB);
+    _performPendingAnalysisTasks();
+    context.setContents(a, secondCodeA);
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllResolution(b);
+    _assertValidAllErrors(b);
+  }
+
+  void _verifyTwoLibrariesInvalidatesResolution(
+      String firstCodeA, String secondCodeA, String codeB) {
+    Source a = addSource('/a.dart', firstCodeA);
+    Source b = addSource('/b.dart', codeB);
+    _performPendingAnalysisTasks();
+    context.setContents(a, secondCodeA);
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertInvalid(b, LIBRARY_ERRORS_READY);
+    _assertInvalidUnits(b, RESOLVED_UNIT4);
+  }
+
+  void _verifyTwoLibrariesInvalidHintsVerifyErrors(
+      String firstCodeA, String secondCodeA, String codeB) {
+    Source a = addSource('/a.dart', firstCodeA);
+    Source b = addSource('/b.dart', codeB);
+    _performPendingAnalysisTasks();
+    context.setContents(a, secondCodeA);
+    _assertValidForChangedLibrary(a);
+    _assertInvalid(a, LIBRARY_ERRORS_READY);
+    _assertValidForDependentLibrary(b);
+    _assertValidAllResolution(b);
+    _assertUnitValid(b, RESOLVE_UNIT_ERRORS);
+    _assertInvalidHintsVerifyErrors(b);
   }
 }
 

@@ -398,7 +398,11 @@ class Location : public ValueObject {
   typedef BitField<uword, Policy, 0, 3> PolicyField;
 
   // Layout for stack slots.
+#if defined(ARCH_IS_64_BIT)
+  static const intptr_t kBitsForBaseReg = 6;
+#else
   static const intptr_t kBitsForBaseReg = 5;
+#endif
   static const intptr_t kBitsForStackIndex = kBitsForPayload - kBitsForBaseReg;
   class StackSlotBaseField :
       public BitField<uword, Register, 0, kBitsForBaseReg> {};

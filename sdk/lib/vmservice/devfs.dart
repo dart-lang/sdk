@@ -37,10 +37,18 @@ class _FileSystem {
     }
     Uri pathUri;
     try {
-      pathUri = Uri.parse(path);
+      pathUri = new Uri.file(path);
     } on FormatException catch(e) {
       return null;
     }
+
+    try {
+      // Make sure that this pathUri can be converted to a file path.
+      pathUri.toFilePath();
+    } on UnsupportedError catch (e) {
+      return null;
+    }
+
     Uri resolvedUri = uri.resolveUri(pathUri);
     if (!resolvedUri.toString().startsWith(uri.toString())) {
       // Resolved uri must be within the filesystem's base uri.
@@ -111,6 +119,39 @@ class DevFS {
             message, kInternalError,
             details: 'Unexpected rpc ${message.method}');
     }
+  }
+
+  Future<String> handlePutStream(Object fsName,
+                                 Object path,
+                                 Stream<List<int>> bytes) async {
+    // A dummy Message for error message construction.
+    Message message = new Message.forMethod('_writeDevFSFile');
+    var writeStreamFile = VMServiceEmbedderHooks.writeStreamFile;
+    if (writeStreamFile == null) {
+      return _encodeDevFSDisabledError(message);
+    }
+    if (fsName == null) {
+      return encodeMissingParamError(message, 'fsName');
+    }
+    if (fsName is! String) {
+      return encodeInvalidParamError(message, 'fsName');
+    }
+    var fs = _fsMap[fsName];
+    if (fs == null) {
+      return _encodeFileSystemDoesNotExistError(message, fsName);
+    }
+    if (path == null) {
+      return encodeMissingParamError(message, 'path');
+    }
+    if (path is! String) {
+      return encodeInvalidParamError(message, 'path');
+    }
+    Uri uri = fs.resolvePath(path);
+    if (uri == null) {
+      return encodeInvalidParamError(message, 'path');
+    }
+    await writeStreamFile(uri, bytes);
+    return encodeSuccess(message);
   }
 
   Future<String> _listDevFS(Message message) async {
@@ -313,6 +354,10 @@ class DevFS {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
     var fileList = await listFiles(fs.uri);
+    // Remove any url-encoding in the filenames.
+    for (int i = 0; i < fileList.length; i++) {
+      fileList[i]['name'] = Uri.decodeFull(fileList[i]['name']);
+    }
     var result = { 'type': 'FSFileList', 'files': fileList };
     return encodeResult(message, result);
   }

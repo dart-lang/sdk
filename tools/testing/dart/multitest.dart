@@ -221,7 +221,11 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
 }
 
 Future doMultitest(
-    Path filePath, String outputDir, Path suiteDir, CreateTest doTest) {
+    Path filePath,
+    String outputDir,
+    Path suiteDir,
+    CreateTest doTest,
+    bool hotReload) {
   void writeFile(String filepath, String content) {
     final File file = new File(filepath);
 
@@ -273,6 +277,13 @@ Future doMultitest(
       bool isNegativeIfChecked = outcome.contains('dynamic type error');
       bool hasCompileErrorIfChecked =
           outcome.contains('checked mode compile-time error');
+      if (hotReload) {
+        if (hasCompileError || hasCompileErrorIfChecked) {
+          // Running a test that expects a compilation error with hot reloading
+          // is redundant with a regular run of the test.
+          continue;
+        }
+      }
       doTest(multitestFilename, filePath, hasCompileError, hasRuntimeErrors,
           isNegativeIfChecked: isNegativeIfChecked,
           hasCompileErrorIfChecked: hasCompileErrorIfChecked,

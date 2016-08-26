@@ -10,6 +10,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 
 class MockSdk implements DartSdk {
   static const _MockSdkLibrary LIB_CORE = const _MockSdkLibrary(
@@ -314,6 +315,9 @@ external void printToConsole(String line);
     }
     return null;
   }
+
+  @override
+  PackageBundle getLinkedBundle() => null;
 
   @override
   SdkLibrary getSdkLibrary(String dartUri) {

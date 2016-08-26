@@ -146,6 +146,16 @@ class Utils {
     return x.toStringAsFixed(2);
   }
 
+  static String formatMillis(double x) {
+    return x.toStringAsFixed(2);
+  }
+
+  static String formatDurationInSeconds(Duration x) =>
+    formatSeconds(x.inMicroseconds / Duration.MICROSECONDS_PER_SECOND);
+
+  static String formatDurationInMilliseconds(Duration x) =>
+    formatMillis(x.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND);
+
   static bool runningInJavaScript() => identical(1.0, 1);
 }
 

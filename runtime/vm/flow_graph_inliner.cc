@@ -634,7 +634,9 @@ class CallSiteInliner : public ValueObject {
 
     // Don't inline any intrinsified functions in precompiled mode
     // to reduce code size and make sure we use the intrinsic code.
-    if (FLAG_precompiled_mode && function.is_intrinsic()) {
+    if (FLAG_precompiled_mode &&
+        function.is_intrinsic() &&
+        !inliner_->AlwaysInline(function)) {
       TRACE_INLINING(THR_Print("     Bailout: intrinisic\n"));
       PRINT_INLINING_TREE("intrinsic",
           &call_data->caller, &function, call_data->call);
@@ -2045,15 +2047,6 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        Definition** array,
                                        Definition* index,
                                        Instruction** cursor) {
-  // Insert index smi check.
-  *cursor = flow_graph->AppendTo(
-      *cursor,
-      new(Z) CheckSmiInstr(new(Z) Value(index),
-                           call->deopt_id(),
-                           call->token_pos()),
-      call->env(),
-      FlowGraph::kEffect);
-
   // Insert array length load and bounds check.
   LoadFieldInstr* length =
       new(Z) LoadFieldInstr(
@@ -2109,86 +2102,6 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
 }
 
 
-static intptr_t MethodKindToCid(MethodRecognizer::Kind kind) {
-  switch (kind) {
-    case MethodRecognizer::kImmutableArrayGetIndexed:
-      return kImmutableArrayCid;
-
-    case MethodRecognizer::kObjectArrayGetIndexed:
-    case MethodRecognizer::kObjectArraySetIndexed:
-      return kArrayCid;
-
-    case MethodRecognizer::kGrowableArrayGetIndexed:
-    case MethodRecognizer::kGrowableArraySetIndexed:
-      return kGrowableObjectArrayCid;
-
-    case MethodRecognizer::kFloat32ArrayGetIndexed:
-    case MethodRecognizer::kFloat32ArraySetIndexed:
-      return kTypedDataFloat32ArrayCid;
-
-    case MethodRecognizer::kFloat64ArrayGetIndexed:
-    case MethodRecognizer::kFloat64ArraySetIndexed:
-      return kTypedDataFloat64ArrayCid;
-
-    case MethodRecognizer::kInt8ArrayGetIndexed:
-    case MethodRecognizer::kInt8ArraySetIndexed:
-      return kTypedDataInt8ArrayCid;
-
-    case MethodRecognizer::kUint8ArrayGetIndexed:
-    case MethodRecognizer::kUint8ArraySetIndexed:
-      return kTypedDataUint8ArrayCid;
-
-    case MethodRecognizer::kUint8ClampedArrayGetIndexed:
-    case MethodRecognizer::kUint8ClampedArraySetIndexed:
-      return kTypedDataUint8ClampedArrayCid;
-
-    case MethodRecognizer::kExternalUint8ArrayGetIndexed:
-    case MethodRecognizer::kExternalUint8ArraySetIndexed:
-      return kExternalTypedDataUint8ArrayCid;
-
-    case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
-    case MethodRecognizer::kExternalUint8ClampedArraySetIndexed:
-      return kExternalTypedDataUint8ClampedArrayCid;
-
-    case MethodRecognizer::kInt16ArrayGetIndexed:
-    case MethodRecognizer::kInt16ArraySetIndexed:
-      return kTypedDataInt16ArrayCid;
-
-    case MethodRecognizer::kUint16ArrayGetIndexed:
-    case MethodRecognizer::kUint16ArraySetIndexed:
-      return kTypedDataUint16ArrayCid;
-
-    case MethodRecognizer::kInt32ArrayGetIndexed:
-    case MethodRecognizer::kInt32ArraySetIndexed:
-      return kTypedDataInt32ArrayCid;
-
-    case MethodRecognizer::kUint32ArrayGetIndexed:
-    case MethodRecognizer::kUint32ArraySetIndexed:
-      return kTypedDataUint32ArrayCid;
-
-    case MethodRecognizer::kInt64ArrayGetIndexed:
-    case MethodRecognizer::kInt64ArraySetIndexed:
-      return kTypedDataInt64ArrayCid;
-
-    case MethodRecognizer::kFloat32x4ArrayGetIndexed:
-    case MethodRecognizer::kFloat32x4ArraySetIndexed:
-      return kTypedDataFloat32x4ArrayCid;
-
-    case MethodRecognizer::kInt32x4ArrayGetIndexed:
-    case MethodRecognizer::kInt32x4ArraySetIndexed:
-      return kTypedDataInt32x4ArrayCid;
-
-    case MethodRecognizer::kFloat64x2ArrayGetIndexed:
-    case MethodRecognizer::kFloat64x2ArraySetIndexed:
-      return kTypedDataFloat64x2ArrayCid;
-
-    default:
-      break;
-  }
-  return kIllegalCid;
-}
-
-
 static Instruction* GetCheckClass(FlowGraph* flow_graph,
                                   Definition* to_check,
                                   const ICData& unary_checks,
@@ -2211,8 +2124,7 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
                              Definition* receiver,
                              TargetEntryInstr** entry,
                              Definition** last) {
-  intptr_t array_cid = MethodKindToCid(kind);
-  ASSERT(array_cid != kIllegalCid);
+  intptr_t array_cid = MethodRecognizer::MethodKindToReceiverCid(kind);
 
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
@@ -2269,8 +2181,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
                              const ICData& value_check,
                              TargetEntryInstr** entry,
                              Definition** last) {
-  intptr_t array_cid = MethodKindToCid(kind);
-  ASSERT(array_cid != kIllegalCid);
+  intptr_t array_cid = MethodRecognizer::MethodKindToReceiverCid(kind);
 
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
@@ -2460,6 +2371,29 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
 }
 
 
+static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
+                                   Instruction* call,
+                                   TargetEntryInstr** entry,
+                                   Definition** last) {
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+
+  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                   call->GetBlock()->try_index());
+  (*entry)->InheritDeoptTarget(Z, call);
+  // Right arguments is known to be smi: other._bitAndFromSmi(this);
+  BinarySmiOpInstr* smi_op =
+      new(Z) BinarySmiOpInstr(Token::kBIT_AND,
+                              new(Z) Value(left),
+                              new(Z) Value(right),
+                              call->deopt_id());
+  flow_graph->AppendTo(*entry, smi_op, call->env(), FlowGraph::kValue);
+  *last = smi_op;
+
+  return true;
+}
+
+
 static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
                                       intptr_t offset,
                                       StoreBarrierType store_barrier_type,
@@ -2495,15 +2429,6 @@ static intptr_t PrepareInlineByteArrayBaseOp(
     Definition** array,
     Definition* byte_index,
     Instruction** cursor) {
-  // Insert byte_index smi check.
-  *cursor = flow_graph->AppendTo(*cursor,
-                                 new(Z) CheckSmiInstr(
-                                     new(Z) Value(byte_index),
-                                     call->deopt_id(),
-                                     call->token_pos()),
-                                 call->env(),
-                                 FlowGraph::kEffect);
-
   LoadFieldInstr* length =
       new(Z) LoadFieldInstr(
           new(Z) Value(*array),
@@ -2804,15 +2729,6 @@ static Definition* PrepareInlineStringIndexOp(
     Definition* str,
     Definition* index,
     Instruction* cursor) {
-
-  cursor = flow_graph->AppendTo(cursor,
-                                new(Z) CheckSmiInstr(
-                                    new(Z) Value(index),
-                                    call->deopt_id(),
-                                    call->token_pos()),
-                                call->env(),
-                                FlowGraph::kEffect);
-
   // Load the length of the string.
   // Treat length loads as mutable (i.e. affected by side effects) to avoid
   // hoisting them since we can't hoist the preceding class-check. This
@@ -3227,6 +3143,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
       return InlineGrowableArraySetter(
           flow_graph, GrowableObjectArray::length_offset(), kNoStoreBarrier,
           call, entry, last);
+    case MethodRecognizer::kSmi_bitAndFromSmi:
+      return InlineSmiBitAndFromSmi(flow_graph, call, entry, last);
     default:
       return false;
   }

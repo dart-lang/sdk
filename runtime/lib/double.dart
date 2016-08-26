@@ -8,10 +8,12 @@ class _Double implements double {
 
   Type get runtimeType => double;
 
-  int get _identityHashCode {
-    if (isNaN || isInfinite) return 0;
-    return toInt();
-  }
+  // TODO: Make a stared static method for hashCode and _identityHashCode
+  //       when semantics are corrected as described in:
+  //       https://github.com/dart-lang/sdk/issues/2884
+  int get hashCode => (isNaN || isInfinite) ?  0 : toInt();
+  int get _identityHashCode => (isNaN || isInfinite) ?  0 : toInt();
+
   double operator +(num other) {
     return _add(other.toDouble());
   }
@@ -275,4 +277,11 @@ class _Double implements double {
       return LESS;
     }
   }
+
+  static const int _FRACTIONAL_BITS = // Bits to keep after the decimal point.
+      const int.fromEnvironment("doubleFractionalBits", defaultValue: 20);
+  static const double _BIAS = 1.5 * (1 << (52 - _FRACTIONAL_BITS));
+
+  // Returns this with only _FRACTIONAL_BITS bits after the decimal point.
+  double get p => this + _BIAS - _BIAS;
 }

@@ -2,7 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+library js_backend.namer;
+
+import 'dart:collection' show HashMap;
+
+import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
+
+import '../closure.dart';
+import '../common.dart';
+import '../common/names.dart' show Identifiers, Selectors;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../core_types.dart' show CoreClasses;
+import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show DEBUG_MODE;
+import '../elements/elements.dart';
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../tree/tree.dart';
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector, SelectorKind;
+import '../util/characters.dart';
+import '../util/util.dart';
+import '../world.dart' show ClassWorld;
+import 'backend.dart';
+import 'backend_helpers.dart';
+import 'constant_system_javascript.dart';
+
+part 'field_naming_mixin.dart';
+part 'frequency_namer.dart';
+part 'minify_namer.dart';
+part 'namer_names.dart';
 
 /**
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
@@ -644,7 +674,9 @@ class Namer {
   String _jsNameHelper(Element e) {
     String jsInteropName = backend.nativeData.getJsInteropName(e);
     if (jsInteropName != null && jsInteropName.isNotEmpty) return jsInteropName;
-    return e.isLibrary ? 'self' : e.name;
+    return e.isLibrary
+        ? 'self'
+        : backend.nativeData.getUnescapedJSInteropName(e.name);
   }
 
   /// Returns a JavaScript path specifying the context in which
@@ -1147,63 +1179,72 @@ class Namer {
 
   /**
    * Returns a proposed name for the given top-level or static element.
-   * The returned id is guaranteed to be a valid JS-id.
+   * The returned id is guaranteed to be a valid JavaScript identifier.
    */
   String _proposeNameForGlobal(Element element) {
     assert(!element.isInstanceMember);
-    String name;
     if (element.isGenerativeConstructor) {
-      name = "${element.enclosingClass.name}\$"
-          "${element.name}";
-    } else if (element.isFactoryConstructor) {
+      return '${element.enclosingClass.name}\$${element.name}';
+    }
+    if (element.isFactoryConstructor) {
       // TODO(johnniwinther): Change factory name encoding as to not include
       // the class-name twice.
       String className = element.enclosingClass.name;
-      name = '${className}_${Elements.reconstructConstructorName(element)}';
-    } else if (Elements.isStaticOrTopLevel(element)) {
+      return '${className}_${Elements.reconstructConstructorName(element)}';
+    }
+    if (Elements.isStaticOrTopLevel(element)) {
       if (element.isClassMember) {
         ClassElement enclosingClass = element.enclosingClass;
-        name = "${enclosingClass.name}_"
-            "${element.name}";
-      } else {
-        name = element.name.replaceAll('+', '_');
+        return '${enclosingClass.name}_${element.name}';
       }
-    } else if (element.isLibrary) {
-      LibraryElement library = element;
-      name = libraryLongNames[library];
-      if (name != null) return name;
-      name = library.libraryOrScriptName;
-      if (name.contains('.')) {
-        // For libraries that have a library tag, we use the last part
-        // of the fully qualified name as their base name. For all other
-        // libraries, we use the first part of their filename.
-        name = library.hasLibraryName
-            ? name.substring(name.lastIndexOf('.') + 1)
-            : name.substring(0, name.indexOf('.'));
-      }
-      // The filename based name can contain all kinds of nasty characters. Make
-      // sure it is an identifier.
-      if (!IDENTIFIER.hasMatch(name)) {
-        name = name.replaceAllMapped(NON_IDENTIFIER_CHAR,
-            (match) => match[0].codeUnitAt(0).toRadixString(16));
-        if (!IDENTIFIER.hasMatch(name)) {
-          // e.g. starts with digit.
-          name = 'lib_$name';
-        }
-      }
-      // Names constructed based on a libary name will be further disambiguated.
-      // However, as names from the same libary should have the same libary
-      // name part, we disambiguate the library name here.
-      String disambiguated = name;
-      for (int c = 0; libraryLongNames.containsValue(disambiguated); c++) {
-        disambiguated = "$name$c";
-      }
-      libraryLongNames[library] = disambiguated;
-      name = disambiguated;
-    } else {
-      name = element.name;
+      return element.name.replaceAll('+', '_');
     }
-    return name;
+    if (element.isLibrary) {
+      return _proposeNameForLibrary(element);
+    }
+    return element.name;
+  }
+
+  /**
+   * Returns a proposed name for the given [LibraryElement].
+   * The returned id is guaranteed to be a valid JavaScript identifier.
+   */
+  // TODO(sra): Pre-process libraries to assign [libraryLongNames] in a way that
+  // is independent of the order of calls to namer.
+  String _proposeNameForLibrary(LibraryElement library) {
+    String name = libraryLongNames[library];
+    if (name != null) return name;
+    // Use the 'file' name, e.g. "package:expect/expect.dart" -> "expect"
+    name = library.canonicalUri.path;
+    name = name.substring(name.lastIndexOf('/') + 1);
+    if (name.contains('.')) {
+      // Drop file extension.
+      name = name.substring(0, name.lastIndexOf('.'));
+    }
+    // The filename based name can contain all kinds of nasty characters. Make
+    // sure it is an identifier.
+    if (!IDENTIFIER.hasMatch(name)) {
+      String replacer(Match match) {
+        String s = match[0];
+        if (s == '.') return '_';
+        return s.codeUnitAt(0).toRadixString(16);
+      }
+
+      name = name.replaceAllMapped(NON_IDENTIFIER_CHAR, replacer);
+      if (!IDENTIFIER.hasMatch(name)) {
+        // e.g. starts with digit.
+        name = 'lib_$name';
+      }
+    }
+    // Names constructed based on a libary name will be further disambiguated.
+    // However, as names from the same libary should have the same library
+    // name part, we disambiguate the library name here.
+    String disambiguated = name;
+    for (int c = 0; libraryLongNames.containsValue(disambiguated); c++) {
+      disambiguated = "$name$c";
+    }
+    libraryLongNames[library] = disambiguated;
+    return disambiguated;
   }
 
   String suffixForGetInterceptor(Iterable<ClassElement> classes) {
@@ -1219,6 +1260,7 @@ class Namer {
       if (cls == helpers.jsInterceptorClass) return "I";
       return cls.name;
     }
+
     List<String> names = classes
         .where((cls) => !backend.isNativeOrExtendsNative(cls))
         .map(abbreviate)
@@ -1766,7 +1808,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   @override
   void visitSynthetic(SyntheticConstantValue constant, [_]) {
-    switch (constant.kind) {
+    switch (constant.valueKind) {
       case SyntheticConstantKind.DUMMY_INTERCEPTOR:
         add('dummy_receiver');
         break;
@@ -1886,7 +1928,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitSynthetic(SyntheticConstantValue constant, [_]) {
-    switch (constant.kind) {
+    switch (constant.valueKind) {
       case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
         // These contain a deferred opaque index into metadata. There is nothing
         // we can access that is stable between compiles.  Luckily, since they

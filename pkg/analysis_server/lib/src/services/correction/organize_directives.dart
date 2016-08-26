@@ -47,7 +47,9 @@ class DirectiveOrganizer {
 
   bool _isUnresolvedUri(UriBasedDirective directive) {
     for (AnalysisError error in errors) {
-      if (error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST &&
+      ErrorCode errorCode = error.errorCode;
+      if ((errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
+              errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED) &&
           directive.uri.offset == error.offset) {
         return true;
       }

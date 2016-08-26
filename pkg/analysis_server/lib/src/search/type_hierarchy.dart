@@ -76,42 +76,41 @@ class TypeHierarchyComputer {
   }
 
   Future _createSubclasses(
-      TypeHierarchyItem item, int itemId, InterfaceType type) {
-    var future = getDirectSubClasses(_searchEngine, type.element);
-    return future.then((Set<ClassElement> subElements) {
-      List<int> subItemIds = <int>[];
-      for (ClassElement subElement in subElements) {
-        // check for recursion
-        TypeHierarchyItem subItem = _elementItemMap[subElement];
-        if (subItem != null) {
-          int id = _items.indexOf(subItem);
-          item.subclasses.add(id);
-          continue;
-        }
-        // create a subclass item
-        ExecutableElement subMemberElement = _findMemberElement(subElement);
-        subItem = new TypeHierarchyItem(convertElement(subElement),
-            memberElement: subMemberElement != null
-                ? convertElement(subMemberElement)
-                : null,
-            superclass: itemId);
-        int subItemId = _items.length;
-        // remember
-        _elementItemMap[subElement] = subItem;
-        _items.add(subItem);
-        _itemClassElements.add(subElement);
-        // add to hierarchy
-        item.subclasses.add(subItemId);
-        subItemIds.add(subItemId);
+      TypeHierarchyItem item, int itemId, InterfaceType type) async {
+    Set<ClassElement> subElements =
+        await getDirectSubClasses(_searchEngine, type.element);
+    List<int> subItemIds = <int>[];
+    for (ClassElement subElement in subElements) {
+      // check for recursion
+      TypeHierarchyItem subItem = _elementItemMap[subElement];
+      if (subItem != null) {
+        int id = _items.indexOf(subItem);
+        item.subclasses.add(id);
+        continue;
       }
-      // compute subclasses of subclasses
-      return Future.forEach(subItemIds, (int subItemId) {
-        TypeHierarchyItem subItem = _items[subItemId];
-        ClassElement subItemElement = _itemClassElements[subItemId];
-        InterfaceType subType = subItemElement.type;
-        return _createSubclasses(subItem, subItemId, subType);
-      });
-    });
+      // create a subclass item
+      ExecutableElement subMemberElement = _findMemberElement(subElement);
+      subItem = new TypeHierarchyItem(convertElement(subElement),
+          memberElement: subMemberElement != null
+              ? convertElement(subMemberElement)
+              : null,
+          superclass: itemId);
+      int subItemId = _items.length;
+      // remember
+      _elementItemMap[subElement] = subItem;
+      _items.add(subItem);
+      _itemClassElements.add(subElement);
+      // add to hierarchy
+      item.subclasses.add(subItemId);
+      subItemIds.add(subItemId);
+    }
+    // compute subclasses of subclasses
+    for (int subItemId in subItemIds) {
+      TypeHierarchyItem subItem = _items[subItemId];
+      ClassElement subItemElement = _itemClassElements[subItemId];
+      InterfaceType subType = subItemElement.type;
+      await _createSubclasses(subItem, subItemId, subType);
+    }
   }
 
   int _createSuperItem(InterfaceType type) {

@@ -5,14 +5,13 @@
 library dart2js.resolution.typedefs;
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
+import '../common/resolution.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart'
     show FunctionSignature, TypedefElement, TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousElementX, TypedefElementX;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
-
 import 'class_hierarchy.dart' show TypeDefinitionVisitor;
 import 'registry.dart' show ResolutionRegistry;
 import 'scope.dart' show MethodScope, TypeDeclarationScope;
@@ -21,9 +20,9 @@ import 'signatures.dart' show SignatureResolver;
 class TypedefResolverVisitor extends TypeDefinitionVisitor {
   TypedefElementX get element => enclosingElement;
 
-  TypedefResolverVisitor(Compiler compiler, TypedefElement typedefElement,
+  TypedefResolverVisitor(Resolution resolution, TypedefElement typedefElement,
       ResolutionRegistry registry)
-      : super(compiler, typedefElement, registry);
+      : super(resolution, typedefElement, registry);
 
   visitTypedef(Typedef node) {
     element.computeType(resolution);
@@ -31,7 +30,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     resolveTypeVariableBounds(node.typeParameters);
 
     FunctionSignature signature = SignatureResolver.analyze(
-        compiler,
+        resolution,
         scope,
         null /* typeVariables */,
         node.formals,
@@ -49,6 +48,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     void checkCyclicReference() {
       element.checkCyclicReference(resolution);
     }
+
     addDeferredAction(element, checkCyclicReference);
   }
 }
@@ -67,7 +67,7 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
   Link<TypeVariableElement> seenTypeVariables =
       const Link<TypeVariableElement>();
 
-  TypedefCyclicVisitor(this.reporter, TypedefElement this.element);
+  TypedefCyclicVisitor(this.reporter, this.element);
 
   visitType(DartType type, _) {
     // Do nothing.
@@ -115,7 +115,9 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
       seenTypedefs = seenTypedefs.prepend(typedefElement);
       seenTypedefsCount++;
       type.visitChildren(this, null);
-      typedefElement.aliasCache.accept(this, null);
+      if (!typedefElement.isMalformed) {
+        typedefElement.aliasCache.accept(this, null);
+      }
       seenTypedefs = seenTypedefs.tail;
       seenTypedefsCount--;
     }

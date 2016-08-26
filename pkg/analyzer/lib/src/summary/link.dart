@@ -347,7 +347,7 @@ abstract class ClassElementForLink extends Object
   @override
   final CompilationUnitElementForLink enclosingElement;
 
-  @override
+  /// TODO(brianwilkerson) This appears to be unused and might be removable.
   bool hasBeenInferred;
 
   ClassElementForLink(CompilationUnitElementForLink enclosingElement)
@@ -368,7 +368,7 @@ abstract class ClassElementForLink extends Object
   List<ConstructorElementForLink> get constructors;
 
   @override
-  CompilationUnitElementForLink get enclosingUnit => enclosingElement;
+  CompilationUnitElementImpl get enclosingUnit => enclosingElement;
 
   @override
   List<FieldElementForLink> get fields;
@@ -571,7 +571,7 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
-  DartType get type =>
+  InterfaceType get type =>
       _type ??= buildType((int i) => typeParameterTypes[i], null);
 
   @override
@@ -591,6 +591,9 @@ class ClassElementForLink_Class extends ClassElementForLink
     }
     return _unnamedConstructor;
   }
+
+  @override
+  int get version => 0;
 
   @override
   DartType buildType(
@@ -737,7 +740,7 @@ class ClassElementForLink_Enum extends ClassElementForLink
   InterfaceType get supertype => library._linker.typeProvider.objectType;
 
   @override
-  DartType get type => _type ??= new InterfaceTypeImpl(this);
+  InterfaceType get type => _type ??= new InterfaceTypeImpl(this);
 
   @override
   List<TypeParameterElement> get typeParameters => const [];
@@ -1055,6 +1058,7 @@ abstract class CompilationUnitElementForLink
           return null;
         }
       }
+
       ReferenceableElementForLink element = resolveRef(type.reference);
       return element.buildType(
           getTypeArgument, type.implicitFunctionTypeIndices);
@@ -1195,7 +1199,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
               enclosingClass != null ? addReference(enclosingClass) : null,
           dependency: enclosingClass != null
               ? null
-              : library.addDependency(element.library),
+              : library.addDependency(element.library as LibraryElementForLink),
           kind: kind);
     } else if (element is FunctionElementForLink_Initializer) {
       return addRawReference('',
@@ -1361,6 +1365,7 @@ class ConstConstructorNode extends ConstNode {
         dependencies.add(target);
       }
     }
+
     UnlinkedExecutable unlinkedExecutable =
         constructorElement._unlinkedExecutable;
     ClassElementForLink_Class enclosingClass =
@@ -1626,6 +1631,9 @@ class ConstructorElementForLink extends ExecutableElementForLink_NonLocal
   ConstructorElementForLink get asConstructor => this;
 
   @override
+  ClassElementImpl get enclosingElement => super.enclosingClass;
+
+  @override
   bool get isCycleFree {
     if (!_constNode.isEvaluated) {
       new ConstDependencyWalker().walk(_constNode);
@@ -1849,7 +1857,6 @@ abstract class ExecutableElementForLink extends Object
   String _name;
   String _displayName;
 
-  @override
   final CompilationUnitElementForLink compilationUnit;
 
   ExecutableElementForLink(this.compilationUnit, this._unlinkedExecutable);
@@ -1926,7 +1933,7 @@ abstract class ExecutableElementForLink extends Object
   bool get isSynthetic => false;
 
   @override
-  LibraryElementForLink get library => enclosingElement.library;
+  LibraryElement get library => enclosingElement.library;
 
   @override
   String get name {
@@ -1972,7 +1979,7 @@ abstract class ExecutableElementForLink extends Object
    */
   DartType _computeDefaultReturnType() {
     if (_unlinkedExecutable.kind == UnlinkedExecutableKind.setter &&
-        library._linker.strongMode) {
+        (library as LibraryElementForLink)._linker.strongMode) {
       // In strong mode, setters without an explicit return type are
       // considered to return `void`.
       return VoidTypeImpl.instance;
@@ -3725,6 +3732,9 @@ class MethodElementForLink extends ExecutableElementForLink_NonLocal
   DartType get asStaticType => type;
 
   @override
+  ClassElementImpl get enclosingElement => super.enclosingClass;
+
+  @override
   String get identifier => name;
 
   @override
@@ -3995,7 +4005,7 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
  * Mixin used by elements that can have parameters.
  */
 abstract class ParameterParentElementForLink implements Element {
-  List<ParameterElementForLink> _parameters;
+  List<ParameterElement> _parameters;
 
   /**
    * Get the appropriate integer list to store in
@@ -4009,11 +4019,11 @@ abstract class ParameterParentElementForLink implements Element {
   /**
    * Get all the parameters of this element.
    */
-  List<ParameterElementForLink> get parameters {
+  List<ParameterElement> get parameters {
     if (_parameters == null) {
       List<UnlinkedParam> unlinkedParameters = this.unlinkedParameters;
       int numParameters = unlinkedParameters.length;
-      _parameters = new List<ParameterElementForLink>(numParameters);
+      _parameters = new List<ParameterElement>(numParameters);
       for (int i = 0; i < numParameters; i++) {
         UnlinkedParam unlinkedParam = unlinkedParameters[i];
         _parameters[i] = new ParameterElementForLink(
@@ -4139,7 +4149,7 @@ class PropertyAccessorElementForLink_Executable
     with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
-  SyntheticVariableElementForLink variable;
+  PropertyInducingElement variable;
 
   PropertyAccessorElementForLink_Executable(
       CompilationUnitElementForLink enclosingUnit,
@@ -4167,12 +4177,15 @@ class PropertyAccessorElementForLink_Executable
   bool get isStatic => enclosingClass == null || super.isStatic;
 
   @override
-  ElementKind get kind => _unlinkedExecutable.kind ==
-      UnlinkedExecutableKind.getter ? ElementKind.GETTER : ElementKind.SETTER;
+  ElementKind get kind =>
+      _unlinkedExecutable.kind == UnlinkedExecutableKind.getter
+          ? ElementKind.GETTER
+          : ElementKind.SETTER;
 
   @override
   ReferenceableElementForLink getContainedName(String name) {
-    return new NonstaticMemberElementForLink(library, this, name);
+    return new NonstaticMemberElementForLink(
+        library as LibraryElementForLink, this, name);
   }
 
   @override
@@ -4647,7 +4660,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
   String toString() => 'TypeInferenceNode($functionElement)';
 }
 
-class TypeProviderForLink implements TypeProvider {
+class TypeProviderForLink extends TypeProviderBase {
   final Linker _linker;
 
   InterfaceType _boolType;
@@ -4727,16 +4740,6 @@ class TypeProviderForLink implements TypeProvider {
   @override
   InterfaceType get mapType =>
       _mapType ??= _buildInterfaceType(_linker.coreLibrary, 'Map');
-
-  @override
-  List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-        nullType,
-        numType,
-        intType,
-        doubleType,
-        boolType,
-        stringType
-      ];
 
   @override
   DartObjectImpl get nullObject {

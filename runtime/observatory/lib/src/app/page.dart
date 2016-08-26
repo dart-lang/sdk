@@ -4,6 +4,11 @@
 
 part of app;
 
+AllocationProfileRepository _allocationProfileRepository
+    = new AllocationProfileRepository();
+IsolateSampleProfileRepository _isolateSampleProfileRepository
+    = new IsolateSampleProfileRepository();
+
 class IsolateNotFound implements Exception {
   String isolateId;
   IsolateNotFound(this.isolateId);
@@ -18,7 +23,7 @@ abstract class Page extends Observable {
   final ObservatoryApplication app;
   final ObservableMap<String, String> internalArguments =
       new ObservableMap<String, String>();
-  @observable ObservatoryElement element;
+  @observable HtmlElement element;
 
   Page(this.app);
 
@@ -47,17 +52,10 @@ abstract class Page extends Observable {
   bool canVisit(Uri uri);
 }
 
-/// A [SimplePage] matches a single uri path and displays a single element.
-class SimplePage extends Page {
+/// A [MatchingPage] matches a single uri path.
+abstract class MatchingPage extends Page {
   final String path;
-  final String elementTagName;
-  SimplePage(this.path, this.elementTagName, app) : super(app);
-
-  void onInstall() {
-    if (element == null) {
-      element = new Element.tag(elementTagName);
-    }
-  }
+  MatchingPage(this.path, app) : super(app);
 
   void _visit(Uri uri) {
     assert(uri != null);
@@ -77,6 +75,18 @@ class SimplePage extends Page {
   bool canVisit(Uri uri) => uri.path == path;
 }
 
+/// A [SimplePage] matches a single uri path and displays a single element.
+class SimplePage extends MatchingPage {
+  final String elementTagName;
+  SimplePage(String path, this.elementTagName, app) : super(path, app);
+
+  void onInstall() {
+    if (element == null) {
+      element = new Element.tag(elementTagName);
+    }
+  }
+}
+
 /// Error page for unrecognized paths.
 class ErrorPage extends Page {
   ErrorPage(app) : super(app);
@@ -84,7 +94,7 @@ class ErrorPage extends Page {
   void onInstall() {
     if (element == null) {
       // Lazily create page.
-      element = new Element.tag('general-error');
+      element = new GeneralErrorElement(app.notifications, queue: app.queue);
     }
   }
 
@@ -92,17 +102,7 @@ class ErrorPage extends Page {
     assert(element != null);
     assert(canVisit(uri));
 
-    /*
-    if (uri.path == '') {
-      // Nothing requested.
-      return;
-    }
-    */
-
-    if (element != null) {
-      GeneralErrorElement serviceElement = element;
-      serviceElement.message = "Path '${uri.path}' not found";
-    }
+    (element as GeneralErrorElement).message = "Path '${uri.path}' not found";
   }
 
   /// Catch all.
@@ -111,14 +111,14 @@ class ErrorPage extends Page {
 
 /// Top-level vm info page.
 class VMPage extends SimplePage {
-  VMPage(app) : super('vm', 'service-view', app);
+  VMPage(app) : super('vm', 'vm-view', app);
 
   void _visit(Uri uri) {
     super._visit(uri);
     app.vm.reload().then((vm) {
       if (element != null) {
-        ServiceObjectViewElement serviceElement = element;
-        serviceElement.object = vm;
+        VMViewElement serviceElement = element;
+        serviceElement.vm = vm;
       }
     }).catchError((e, stack) {
       Logger.root.severe('VMPage visit error: $e');
@@ -131,16 +131,16 @@ class VMPage extends SimplePage {
 class FlagsPage extends SimplePage {
   FlagsPage(app) : super('flags', 'flag-list', app);
 
+  @override
+  onInstall() {
+    element = new FlagListElement(app.vm,
+                                  app.events,
+                                  new FlagsRepository(app.vm),
+                                  app.notifications);
+  }
+
   void _visit(Uri uri) {
     super._visit(uri);
-    app.vm.getFlagList().then((flags) {
-      if (element != null) {
-        FlagListElement serviceElement = element;
-        serviceElement.flagList = flags;
-      }
-    }).catchError((e, stack) {
-      Logger.root.severe('FlagsPage visit error: $e\n$stack');
-    });
   }
 }
 
@@ -172,14 +172,23 @@ class InspectPage extends SimplePage {
 class ClassTreePage extends SimplePage {
   ClassTreePage(app) : super('class-tree', 'class-tree', app);
 
+  final DivElement container = new DivElement();
+
+  @override
+  void onInstall() {
+    element = container;
+  }
+
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        ClassTreeElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new ClassTreeElement(app.vm,
+                             isolate,
+                             app.events,
+                             app.notifications,
+                             new ClassRepository(isolate))
+      ];
     });
   }
 }
@@ -217,18 +226,27 @@ class ObjectStorePage extends SimplePage {
   }
 }
 
-class CpuProfilerPage extends SimplePage {
-  CpuProfilerPage(app) : super('profiler', 'cpu-profile', app);
+class CpuProfilerPage extends MatchingPage {
+  CpuProfilerPage(app) : super('profiler', app);
+
+  DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        CpuProfileElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new CpuProfileElement(isolate.vm, isolate, app.events,
+                              app.notifications,
+                              _isolateSampleProfileRepository)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    assert(element != null);
   }
 }
 
@@ -253,19 +271,33 @@ class TableCpuProfilerPage extends SimplePage {
   }
 }
 
-class AllocationProfilerPage extends SimplePage {
-  AllocationProfilerPage(app)
-      : super('allocation-profiler', 'heap-profile', app);
+class AllocationProfilerPage extends MatchingPage {
+  AllocationProfilerPage(app) : super('allocation-profiler', app);
+
+  DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        HeapProfileElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new AllocationProfileElement(isolate.vm, isolate, app.events,
+                                     app.notifications,
+                                     _allocationProfileRepository,
+                                     queue: app.queue)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    app.startGCEventListener();
+  }
+
+  void onUninstall() {
+    super.onUninstall();
+    app.stopGCEventListener();
   }
 }
 
@@ -370,7 +402,11 @@ class VMConnectPage extends Page {
 
   void onInstall() {
     if (element == null) {
-      element = new Element.tag('vm-connect');
+      element = new VMConnectElement(
+            ObservatoryApplication.app.targets,
+            ObservatoryApplication.app.loadCrashDump,
+            ObservatoryApplication.app.notifications,
+            queue: ObservatoryApplication.app.queue);
     }
     assert(element != null);
   }
@@ -386,15 +422,19 @@ class VMConnectPage extends Page {
 class IsolateReconnectPage extends Page {
   IsolateReconnectPage(app) : super(app);
 
+  DivElement container = new DivElement();
+
   void onInstall() {
-    if (element == null) {
-      element = new Element.tag('isolate-reconnect');
-    }
-    assert(element != null);
+    element = container;
   }
 
   void _visit(Uri uri) {
     app.vm.reload();
+    container.children = [
+      new IsolateReconnectElement(app.vm, app.events, app.notifications,
+                                  uri.queryParameters['isolateId'],
+                                  Uri.parse(uri.queryParameters['originalUri']))
+    ];
     assert(element != null);
     assert(canVisit(uri));
   }

@@ -521,7 +521,6 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
   Label fall_through;
-  __ Push(R6);
   TestBothArgumentsSmis(assembler, &fall_through);
   __ CompareImmediate(R0, Smi::RawValue(Smi::kBits));
   __ b(&fall_through, HI);
@@ -549,10 +548,10 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   __ LoadImmediate(NOTFP, 1);
   __ mov(NOTFP, Operand(NOTFP, LSL, R0));  // NOTFP <- 1 << R0
   __ sub(NOTFP, NOTFP, Operand(1));  // NOTFP <- NOTFP - 1
-  __ rsb(R6, R0, Operand(32));  // R6 <- 32 - R0
-  __ mov(NOTFP, Operand(NOTFP, LSL, R6));  // NOTFP <- NOTFP << R6
+  __ rsb(R3, R0, Operand(32));  // R3 <- 32 - R0
+  __ mov(NOTFP, Operand(NOTFP, LSL, R3));  // NOTFP <- NOTFP << R3
   __ and_(NOTFP, R1, Operand(NOTFP));  // NOTFP <- NOTFP & R1
-  __ mov(NOTFP, Operand(NOTFP, LSR, R6));  // NOTFP <- NOTFP >> R6
+  __ mov(NOTFP, Operand(NOTFP, LSR, R3));  // NOTFP <- NOTFP >> R3
   // Now NOTFP has the bits that fall off of R1 on a left shift.
   __ mov(R1, Operand(R1, LSL, R0));  // R1 gets the low bits.
 
@@ -563,11 +562,8 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
 
   __ str(R1, FieldAddress(R0, Mint::value_offset()));
   __ str(NOTFP, FieldAddress(R0, Mint::value_offset() + kWordSize));
-  __ Pop(R6);
   __ Ret();
   __ Bind(&fall_through);
-  ASSERT(CODE_REG == R6);
-  __ Pop(R6);
 }
 
 

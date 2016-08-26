@@ -197,16 +197,6 @@ static void PrintICDataHelper(BufferFormatter* f,
                               const ICData& ic_data,
                               intptr_t num_checks_to_print) {
   f->Print(" IC[");
-  if (ic_data.HasRangeFeedback()) {
-    f->Print("{%s",
-        ICData::RangeFeedbackToString(ic_data.DecodeRangeFeedbackAt(0)));
-    if (ic_data.NumArgsTested() == 2) {
-      f->Print(" x %s",
-          ICData::RangeFeedbackToString(ic_data.DecodeRangeFeedbackAt(1)));
-    }
-    f->Print("->%s} ",
-        ICData::RangeFeedbackToString(ic_data.DecodeRangeFeedbackAt(2)));
-  }
   f->Print("%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
   if ((num_checks_to_print == FlowGraphPrinter::kPrintAll) ||

@@ -35,6 +35,10 @@ class NativeData {
   Map<MemberElement, NativeBehavior> nativeFieldStoreBehavior =
       <FieldElement, NativeBehavior>{};
 
+  /// Prefix used to escape JS names that are not valid Dart names
+  /// when using JSInterop.
+  static const String _jsInteropEscapePrefix = r'JS$';
+
   /// Returns `true` if [element] is explicitly marked as part of JsInterop.
   bool _isJsInterop(Element element) {
     return jsInteropNames.containsKey(element.declaration);
@@ -93,7 +97,7 @@ class NativeData {
     if (jsInteropName != null && jsInteropName.isNotEmpty) {
       return jsInteropName;
     }
-    return element.isLibrary ? 'self' : element.name;
+    return element.isLibrary ? 'self' : getUnescapedJSInteropName(element.name);
   }
 
   /// Computes the name for [element] to use in the generated JavaScript. This
@@ -215,5 +219,13 @@ class NativeData {
   void setNativeFieldStoreBehavior(
       FieldElement field, NativeBehavior behavior) {
     nativeFieldStoreBehavior[field] = behavior;
+  }
+
+  /// Apply JS$ escaping scheme to convert possible escaped Dart names into
+  /// JS names.
+  String getUnescapedJSInteropName(String name) {
+    return name.startsWith(_jsInteropEscapePrefix)
+        ? name.substring(_jsInteropEscapePrefix.length)
+        : name;
   }
 }

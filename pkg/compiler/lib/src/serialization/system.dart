@@ -5,76 +5,66 @@
 library dart2js.serialization_system;
 
 import 'dart:async';
-import '../commandline_options.dart';
+
 import '../common.dart';
-import '../common/backend_api.dart';
-import '../common/names.dart';
 import '../common/resolution.dart';
 import '../compiler.dart';
 import '../elements/elements.dart';
-import '../io/source_file.dart';
 import '../scanner/scanner.dart';
 import '../script.dart';
 import '../serialization/impact_serialization.dart';
 import '../tokens/token.dart';
 import '../universe/call_structure.dart';
-import '../universe/world_impact.dart';
 import '../universe/use.dart';
-import 'json_serializer.dart';
+import '../universe/world_impact.dart';
 import 'modelz.dart';
 import 'resolved_ast_serialization.dart';
 import 'serialization.dart';
 import 'task.dart';
 
-class DeserializerSystemImpl extends DeserializerSystem {
+class ResolutionDeserializerSystem extends DeserializerSystem {
   final Compiler _compiler;
   final Resolution resolution;
   final DeserializationContext deserializationContext;
   final List<LibraryElement> deserializedLibraries = <LibraryElement>[];
-  final ResolutionImpactDeserializer _resolutionImpactDeserializer;
-  final ResolvedAstDeserializerPlugin _resolvedAstDeserializer;
 
-  factory DeserializerSystemImpl(Compiler compiler) {
+  factory ResolutionDeserializerSystem(Compiler compiler,
+      {bool deserializeCompilationDataForTesting: false}) {
     DeserializationContext context = new DeserializationContext(
         compiler.reporter, compiler.resolution, compiler.libraryLoader);
     DeserializerPlugin backendDeserializer =
         compiler.backend.serialization.deserializer;
     context.plugins.add(backendDeserializer);
-    ResolutionImpactDeserializer resolutionImpactDeserializer =
-        new ResolutionImpactDeserializer(backendDeserializer);
-    context.plugins.add(resolutionImpactDeserializer);
-    ResolvedAstDeserializerPlugin resolvedAstDeserializer =
-        new ResolvedAstDeserializerPlugin(
-            compiler.parsingContext, backendDeserializer);
-    context.plugins.add(resolvedAstDeserializer);
-    return new DeserializerSystemImpl._(compiler, compiler.resolution, context,
-        resolutionImpactDeserializer, resolvedAstDeserializer);
+    if (compiler.options.resolveOnly && !deserializeCompilationDataForTesting) {
+      return new ResolutionDeserializerSystem._(
+          compiler, compiler.resolution, context);
+    } else {
+      ResolutionImpactDeserializer resolutionImpactDeserializer =
+          new ResolutionImpactDeserializer(backendDeserializer);
+      context.plugins.add(resolutionImpactDeserializer);
+      ResolvedAstDeserializerPlugin resolvedAstDeserializer =
+          new ResolvedAstDeserializerPlugin(
+              compiler.parsingContext, backendDeserializer);
+      context.plugins.add(resolvedAstDeserializer);
+      return new CompilationDeserializerSystem._(compiler, compiler.resolution,
+          context, resolutionImpactDeserializer, resolvedAstDeserializer);
+    }
   }
 
-  DeserializerSystemImpl._(
-      this._compiler,
-      this.resolution,
-      this.deserializationContext,
-      this._resolutionImpactDeserializer,
-      this._resolvedAstDeserializer);
+  ResolutionDeserializerSystem._(
+      this._compiler, this.resolution, this.deserializationContext);
 
   @override
   Future<LibraryElement> readLibrary(Uri resolvedUri) {
     LibraryElement library = deserializationContext.lookupLibrary(resolvedUri);
     if (library != null) {
       deserializedLibraries.add(library);
-      return Future.forEach(library.compilationUnits,
-          (CompilationUnitElement compilationUnit) {
-        ScriptZ script = compilationUnit.script;
-        return _compiler
-            .readScript(script.readableUri)
-            .then((Script newScript) {
-          script.file = newScript.file;
-          script.isSynthesized = newScript.isSynthesized;
-          _resolvedAstDeserializer.scripts[script.resourceUri] = script;
-        });
-      }).then((_) => library);
+      return onReadLibrary(library);
     }
+    return new Future<LibraryElement>.value(library);
+  }
+
+  Future<LibraryElement> onReadLibrary(LibraryElement library) {
     return new Future<LibraryElement>.value(library);
   }
 
@@ -82,6 +72,70 @@ class DeserializerSystemImpl extends DeserializerSystem {
   @override
   bool hasResolvedAst(ExecutableElement element) {
     return getResolvedAst(element) != null;
+  }
+
+  @override
+  ResolvedAst getResolvedAst(ExecutableElement element) => null;
+
+  @override
+  bool hasResolutionImpact(Element element) => true;
+
+  @override
+  ResolutionImpact getResolutionImpact(Element element) {
+    return const ResolutionImpact();
+  }
+
+  @override
+  WorldImpact computeWorldImpact(Element element) {
+    ResolutionImpact resolutionImpact = getResolutionImpact(element);
+    assert(invariant(element, resolutionImpact != null,
+        message: 'No impact found for $element (${element.library})'));
+    if (element is ExecutableElement) {
+      getResolvedAst(element);
+    }
+    if (element.isField && !element.isConst) {
+      FieldElement field = element;
+      if (field.isTopLevel || field.isStatic) {
+        if (field.constant == null) {
+          // TODO(johnniwinther): Find a cleaner way to do this. Maybe
+          // `Feature.LAZY_FIELD` of the resolution impact should be used
+          // instead.
+          _compiler.backend.constants.registerLazyStatic(element);
+        }
+      }
+    }
+    return resolution.transformResolutionImpact(element, resolutionImpact);
+  }
+
+  @override
+  bool isDeserialized(Element element) {
+    return deserializedLibraries.contains(element.library);
+  }
+}
+
+class CompilationDeserializerSystem extends ResolutionDeserializerSystem {
+  final ResolutionImpactDeserializer _resolutionImpactDeserializer;
+  final ResolvedAstDeserializerPlugin _resolvedAstDeserializer;
+
+  CompilationDeserializerSystem._(
+      Compiler compiler,
+      Resolution resolution,
+      DeserializationContext deserializationContext,
+      this._resolutionImpactDeserializer,
+      this._resolvedAstDeserializer)
+      : super._(compiler, resolution, deserializationContext);
+
+  @override
+  Future<LibraryElement> onReadLibrary(LibraryElement library) {
+    return Future.forEach(library.compilationUnits,
+        (CompilationUnitElement compilationUnit) {
+      ScriptZ script = compilationUnit.script;
+      return _compiler.readScript(script.readableUri).then((Script newScript) {
+        script.file = newScript.file;
+        script.isSynthesized = newScript.isSynthesized;
+        _resolvedAstDeserializer.scripts[script.resourceUri] = script;
+      });
+    }).then((_) => library);
   }
 
   @override
@@ -119,33 +173,6 @@ class DeserializerSystemImpl extends DeserializerSystem {
       });
     }
     return _resolutionImpactDeserializer.getResolutionImpact(element);
-  }
-
-  @override
-  WorldImpact computeWorldImpact(Element element) {
-    ResolutionImpact resolutionImpact = getResolutionImpact(element);
-    assert(invariant(element, resolutionImpact != null,
-        message: 'No impact found for $element (${element.library})'));
-    if (element is ExecutableElement) {
-      getResolvedAst(element);
-    }
-    if (element.isField && !element.isConst) {
-      FieldElement field = element;
-      if (field.isTopLevel || field.isStatic) {
-        if (field.constant == null) {
-          // TODO(johnniwinther): Find a cleaner way to do this. Maybe
-          // `Feature.LAZY_FIELD` of the resolution impact should be used
-          // instead.
-          _compiler.backend.constants.registerLazyStatic(element);
-        }
-      }
-    }
-    return resolution.transformResolutionImpact(element, resolutionImpact);
-  }
-
-  @override
-  bool isDeserialized(Element element) {
-    return deserializedLibraries.contains(element.library);
   }
 }
 

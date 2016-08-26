@@ -82,6 +82,10 @@ class SyntheticLocal extends Local {
   final String name;
   final ExecutableElement executableContext;
 
+  // Avoid slow Object.hashCode.
+  final int hashCode = _nextHashCode = (_nextHashCode + 1).toUnsigned(30);
+  static int _nextHashCode = 0;
+
   SyntheticLocal(this.name, this.executableContext);
 
   toString() => 'SyntheticLocal($name)';
@@ -202,8 +206,10 @@ class LocalsHandler {
 
   LocalsHandler(
       this.builder, this.executableContext, InterfaceType instanceType)
-      : this.instanceType = instanceType == null ||
-            instanceType.containsTypeVariables ? null : instanceType;
+      : this.instanceType =
+            instanceType == null || instanceType.containsTypeVariables
+                ? null
+                : instanceType;
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
@@ -283,7 +289,7 @@ class LocalsHandler {
         (LocalVariableElement from, BoxFieldElement to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
-      if (from.isParameter && !element.isGenerativeConstructorBody) {
+      if (from.isRegularParameter && !element.isGenerativeConstructorBody) {
         // Now that the redirection is set up, the update to the local will
         // write the parameter value into the box.
         // Store the captured parameter in the box. Get the current value
@@ -1746,7 +1752,8 @@ class SsaBuilder extends ast.Visitor
   }
 
   HGraph buildCheckedSetter(VariableElement field) {
-    openFunction(field, field.node);
+    ResolvedAst resolvedAst = field.resolvedAst;
+    openFunction(field, resolvedAst.node);
     HInstruction thisInstruction = localsHandler.readThis();
     // Use dynamic type because the type computed by the inferrer is
     // narrowed to the type annotation.
@@ -2755,11 +2762,13 @@ class SsaBuilder extends ast.Visitor
       visit(node.condition);
       pushInvokeStatic(node, helpers.assertTest, [pop()]);
     }
+
     void fail() {
       visit(node.message);
       pushInvokeStatic(node, helpers.assertThrow, [pop()]);
       pop();
     }
+
     handleIf(node, visitCondition: buildCondition, visitThen: fail);
   }
 
@@ -3093,6 +3102,7 @@ class SsaBuilder extends ast.Visitor
         pop();
       }
     }
+
     HInstruction buildCondition() {
       if (node.condition == null) {
         return graph.addConstantBool(true, compiler);
@@ -3100,6 +3110,7 @@ class SsaBuilder extends ast.Visitor
       visit(node.condition);
       return popBoolified();
     }
+
     void buildUpdate() {
       for (ast.Expression expression in node.update) {
         visit(expression);
@@ -3109,9 +3120,11 @@ class SsaBuilder extends ast.Visitor
         pop();
       }
     }
+
     void buildBody() {
       visit(node.body);
     }
+
     handleLoop(node, buildInitializer, buildCondition, buildUpdate, buildBody);
   }
 
@@ -3121,6 +3134,7 @@ class SsaBuilder extends ast.Visitor
       visit(node.condition);
       return popBoolified();
     }
+
     handleLoop(node, () {}, buildCondition, () {}, () {
       visit(node.body);
     });
@@ -5614,14 +5628,15 @@ class SsaBuilder extends ast.Visitor
       var filteredArguments = <HInstruction>[];
       var parameterNameMap = new Map<String, js.Expression>();
       params.orderedForEachParameter((ParameterElement parameter) {
-        // TODO(jacobr): throw if parameter names do not match names of property
-        // names in the class.
+        // TODO(jacobr): consider throwing if parameter names do not match
+        // names of properties in the class.
         assert(parameter.isNamed);
         HInstruction argument = arguments[i];
         if (argument != null) {
           filteredArguments.add(argument);
-          parameterNameMap[parameter.name] =
-              new js.InterpolatedExpression(positions++);
+          var jsName =
+              backend.nativeData.getUnescapedJSInteropName(parameter.name);
+          parameterNameMap[jsName] = new js.InterpolatedExpression(positions++);
         }
         i++;
       });
@@ -5660,8 +5675,10 @@ class SsaBuilder extends ast.Visitor
     // Native behavior effects here are similar to native/behavior.dart.
     // The return type is dynamic if we don't trust js-interop type
     // declarations.
-    nativeBehavior.typesReturned.add(compiler
-        .options.trustJSInteropTypeAnnotations ? type : const DynamicType());
+    nativeBehavior.typesReturned.add(
+        compiler.options.trustJSInteropTypeAnnotations
+            ? type
+            : const DynamicType());
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).
@@ -5795,6 +5812,7 @@ class SsaBuilder extends ast.Visitor
         add(buildInvokeSuper(setterSelector, element, setterInputs));
       }
     }
+
     if (identical(node.assignmentOperator.source, '=')) {
       addDynamicSendArgumentsToList(node, setterInputs);
       generateSuperSendSet();
@@ -6383,6 +6401,7 @@ class SsaBuilder extends ast.Visitor
           stack.add(getterInstruction);
         }
       }
+
       if (node.isConditional) {
         // generate `e?.x op= e2` as:
         //   t1 = e
@@ -6633,6 +6652,7 @@ class SsaBuilder extends ast.Visitor
     void loadLocal(ParameterElement parameter) {
       inputs.add(localsHandler.readLocal(parameter));
     }
+
     void loadPosition(int position, ParameterElement optionalParameter) {
       if (position < redirectingRequireds.length) {
         loadLocal(redirectingRequireds[position]);
@@ -6921,6 +6941,7 @@ class SsaBuilder extends ast.Visitor
           new TypeMask.subclass(coreClasses.objectClass, compiler.world)));
       return popBoolified();
     }
+
     void buildBody() {
       Selector call = Selectors.current;
       TypeMask callMask = elements.getCurrentTypeMask(node);
@@ -7335,6 +7356,7 @@ class SsaBuilder extends ast.Visitor
       visit(node.expression);
       return pop();
     }
+
     Iterable<ConstantValue> getConstants(ast.SwitchCase switchCase) {
       List<ConstantValue> constantList = <ConstantValue>[];
       for (ast.Node labelOrCase in switchCase.labelsAndCases) {
@@ -7344,12 +7366,15 @@ class SsaBuilder extends ast.Visitor
       }
       return constantList;
     }
+
     bool isDefaultCase(ast.SwitchCase switchCase) {
       return switchCase.isDefaultCase;
     }
+
     void buildSwitchCase(ast.SwitchCase node) {
       visit(node.statements);
     }
+
     handleSwitch(node, jumpHandler, buildExpression, node.cases, getConstants,
         isDefaultCase, buildSwitchCase);
     jumpHandler.close();
@@ -7408,6 +7433,7 @@ class SsaBuilder extends ast.Visitor
       visit(node.expression);
       return pop();
     }
+
     Iterable<ConstantValue> getConstants(ast.SwitchCase switchCase) {
       List<ConstantValue> constantList = <ConstantValue>[];
       if (switchCase != null) {
@@ -7419,9 +7445,11 @@ class SsaBuilder extends ast.Visitor
       }
       return constantList;
     }
+
     bool isDefaultCase(ast.SwitchCase switchCase) {
       return switchCase == null || switchCase.isDefaultCase;
     }
+
     void buildSwitchCase(ast.SwitchCase switchCase) {
       if (switchCase != null) {
         // Generate 'target = i; break;' for switch case i.
@@ -7435,6 +7463,7 @@ class SsaBuilder extends ast.Visitor
       }
       jumpTargets[switchTarget].generateBreak();
     }
+
     handleSwitch(node, jumpHandler, buildExpression, switchCases, getConstants,
         isDefaultCase, buildSwitchCase);
     jumpHandler.close();
@@ -7445,9 +7474,11 @@ class SsaBuilder extends ast.Visitor
       HInstruction buildExpression() {
         return localsHandler.readLocal(switchTarget);
       }
+
       Iterable<ConstantValue> getConstants(ast.SwitchCase switchCase) {
         return <ConstantValue>[constantSystem.createInt(caseIndex[switchCase])];
       }
+
       void buildSwitchCase(ast.SwitchCase switchCase) {
         visit(switchCase.statements);
         if (!isAborted()) {
@@ -7456,6 +7487,7 @@ class SsaBuilder extends ast.Visitor
           jumpTargets[switchTarget].generateBreak();
         }
       }
+
       // Pass a [NullJumpHandler] because the target for the contained break
       // is not the generated switch statement but instead the loop generated
       // in the call to [handleLoop] below.
@@ -7484,6 +7516,7 @@ class SsaBuilder extends ast.Visitor
             code, backend.boolType, [localsHandler.readLocal(switchTarget)],
             nativeBehavior: native.NativeBehavior.PURE));
       }
+
       handleIf(node,
           visitCondition: buildCondition,
           visitThen: buildLoop,
@@ -7859,6 +7892,7 @@ class SsaBuilder extends ast.Visitor
     addOptionalSuccessor(b1, b2) {
       if (b2 != null) b1.addSuccessor(b2);
     }
+
     addExitTrySuccessor(successor) {
       if (successor == null) return;
       // Iterate over all blocks created inside this try/catch, and

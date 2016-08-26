@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-third_party/pkg/scheduled_test: Fail # Issue 26585
-
 [ $use_public_packages ]
 pkg/compiler: SkipByDesign # js_ast is not published
 

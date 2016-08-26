@@ -199,7 +199,6 @@ class SlowPathCode : public ZoneAllocated {
   Label* exit_label() { return &exit_label_; }
 
   void GenerateCode(FlowGraphCompiler* compiler) {
-    ASSERT(exit_label_.IsBound());
     EmitNativeCode(compiler);
     ASSERT(entry_label_.IsBound());
   }

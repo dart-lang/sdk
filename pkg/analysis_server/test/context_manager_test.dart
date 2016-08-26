@@ -9,10 +9,10 @@ import 'dart:collection';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -2651,7 +2651,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     if (currentContext is InternalAnalysisContext) {
       EmbedderYamlLocator embedderYamlLocator =
           disposition.getEmbedderLocator(resourceProvider);
-      EmbedderSdk sdk = new EmbedderSdk(embedderYamlLocator.embedderYamls);
+      EmbedderSdk sdk =
+          new EmbedderSdk(resourceProvider, embedderYamlLocator.embedderYamls);
       if (sdk.libraryMap.size() > 0) {
         // We have some embedder dart: uri mappings, add the resolver
         // to the list.
@@ -2659,7 +2660,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
       }
     }
     resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
-    resolvers.add(new ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
+    resolvers.add(new ResourceUriResolver(resourceProvider));
     currentContext.analysisOptions = options;
     currentContext.sourceFactory =
         new SourceFactory(resolvers, disposition.packages);

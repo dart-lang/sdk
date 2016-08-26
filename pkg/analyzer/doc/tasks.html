@@ -30,7 +30,6 @@ digraph G {
   BuildLibraryElementTask -> BUILD_LIBRARY_ERRORS
   BuildLibraryElementTask -> IS_LAUNCHABLE
   BuildLibraryElementTask -> LIBRARY_ELEMENT1
-  BuildLibraryElementTask -> REFERENCED_NAMES
   BuildPublicNamespaceTask -> LIBRARY_ELEMENT3
   BuildSourceExportClosureTask -> EXPORT_SOURCE_CLOSURE
   BuildTypeProviderTask -> TYPE_PROVIDER
@@ -96,6 +95,7 @@ digraph G {
   EXPORTED_LIBRARIES -> ResolveTopLevelLibraryTypeBoundsTask
   EXPORTED_LIBRARIES [shape=box]
   EXPORT_SOURCE_CLOSURE -> BuildExportNamespaceTask
+  EXPORT_SOURCE_CLOSURE -> ResolveTopLevelUnitTypeBoundsTask
   EXPORT_SOURCE_CLOSURE [shape=box]
   EvaluateUnitConstantsTask -> CREATED_RESOLVED_UNIT13
   EvaluateUnitConstantsTask -> RESOLVED_UNIT13
@@ -127,8 +127,10 @@ digraph G {
   InferInstanceMembersInUnitTask -> CREATED_RESOLVED_UNIT11
   InferInstanceMembersInUnitTask -> RESOLVED_UNIT11
   InferStaticVariableTypeTask -> INFERRED_STATIC_VARIABLE
+  InferStaticVariableTypeTask -> STATIC_VARIABLE_RESOLUTION_ERRORS
   InferStaticVariableTypesInUnitTask -> CREATED_RESOLVED_UNIT9
   InferStaticVariableTypesInUnitTask -> RESOLVED_UNIT9
+  InferStaticVariableTypesInUnitTask -> STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT
   LIBRARY_CYCLE [shape=box]
   LIBRARY_CYCLE_DEPENDENCIES -> InferInstanceMembersInUnitTask
   LIBRARY_CYCLE_DEPENDENCIES -> InferStaticVariableTypeTask
@@ -192,6 +194,7 @@ digraph G {
   LibraryErrorsReadyTask -> LIBRARY_ERRORS_READY
   LibraryUnitErrorsTask -> LIBRARY_UNIT_ERRORS
   MODIFICATION_TIME -> BuildDirectiveElementsTask
+  MODIFICATION_TIME -> BuildLibraryElementTask
   MODIFICATION_TIME -> ParseDartTask
   MODIFICATION_TIME -> ScanDartTask
   MODIFICATION_TIME -> VerifyUnitTask
@@ -216,6 +219,7 @@ digraph G {
   ParseDartTask -> LIBRARY_SPECIFIC_UNITS
   ParseDartTask -> PARSED_UNIT
   ParseDartTask -> PARSE_ERRORS
+  ParseDartTask -> REFERENCED_NAMES
   ParseDartTask -> REFERENCED_SOURCES
   ParseDartTask -> SOURCE_KIND
   ParseDartTask -> UNITS
@@ -326,6 +330,10 @@ digraph G {
   SCAN_ERRORS [shape=box]
   SOURCE_KIND -> BuildDirectiveElementsTask
   SOURCE_KIND [shape=box]
+  STATIC_VARIABLE_RESOLUTION_ERRORS -> InferStaticVariableTypesInUnitTask
+  STATIC_VARIABLE_RESOLUTION_ERRORS [shape=box]
+  STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT -> LibraryUnitErrorsTask
+  STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT [shape=box]
   STRONG_MODE_ERRORS -> LibraryUnitErrorsTask
   STRONG_MODE_ERRORS [shape=box]
   ScanDartTask -> IGNORE_INFO

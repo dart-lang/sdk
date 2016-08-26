@@ -4,7 +4,7 @@
 // Dart core library.
 
 // VM implementation of DateTime.
-patch class DateTime {
+@patch class DateTime {
   // Natives.
   // The natives have been moved up here to work around Issue 10401.
   static int _getCurrentMicros() native "DateTime_currentTimeMicros";
@@ -30,17 +30,17 @@ patch class DateTime {
 
   List __parts;
 
-  /* patch */ DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-                                                  {bool isUtc: false})
+  @patch DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
+                                             {bool isUtc: false})
       : this._withValue(
           millisecondsSinceEpoch * Duration.MICROSECONDS_PER_MILLISECOND,
           isUtc: isUtc);
 
-  /* patch */ DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-                                                  {bool isUtc: false})
+  @patch DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
+                                             {bool isUtc: false})
       : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
-  /* patch */ DateTime._internal(int year,
+  @patch DateTime._internal(int year,
                                  int month,
                                  int day,
                                  int hour,
@@ -57,17 +57,17 @@ patch class DateTime {
     if (isUtc == null) throw new ArgumentError();
   }
 
-  /* patch */ DateTime._now()
+  @patch DateTime._now()
       : isUtc = false,
         _value = _getCurrentMicros() {
   }
 
-  /* patch */ String get timeZoneName {
+  @patch String get timeZoneName {
     if (isUtc) return "UTC";
     return _timeZoneName(microsecondsSinceEpoch);
   }
 
-  /* patch */ Duration get timeZoneOffset {
+  @patch Duration get timeZoneOffset {
     if (isUtc) return new Duration();
     int offsetInSeconds = _timeZoneOffsetInSeconds(microsecondsSinceEpoch);
     return new Duration(seconds: offsetInSeconds);
@@ -165,42 +165,42 @@ patch class DateTime {
     return __parts;
   }
 
-  /* patch */ DateTime add(Duration duration) {
+  @patch DateTime add(Duration duration) {
     return new DateTime._withValue(
         _value + duration.inMicroseconds, isUtc: isUtc);
   }
 
-  /* patch */ DateTime subtract(Duration duration) {
+  @patch DateTime subtract(Duration duration) {
     return new DateTime._withValue(
         _value - duration.inMicroseconds, isUtc: isUtc);
   }
 
-  /* patch */ Duration difference(DateTime other) {
+  @patch Duration difference(DateTime other) {
     return new Duration(microseconds: _value - other._value);
   }
 
-  /* patch */ int get millisecondsSinceEpoch =>
+  @patch int get millisecondsSinceEpoch =>
       _value ~/ Duration.MICROSECONDS_PER_MILLISECOND;
 
-  /* patch */ int get microsecondsSinceEpoch => _value;
+  @patch int get microsecondsSinceEpoch => _value;
 
-  /* patch */ int get microsecond => _parts[_MICROSECOND_INDEX];
+  @patch int get microsecond => _parts[_MICROSECOND_INDEX];
 
-  /* patch */ int get millisecond => _parts[_MILLISECOND_INDEX];
+  @patch int get millisecond => _parts[_MILLISECOND_INDEX];
 
-  /* patch */ int get second => _parts[_SECOND_INDEX];
+  @patch int get second => _parts[_SECOND_INDEX];
 
-  /* patch */ int get minute => _parts[_MINUTE_INDEX];
+  @patch int get minute => _parts[_MINUTE_INDEX];
 
-  /* patch */ int get hour => _parts[_HOUR_INDEX];
+  @patch int get hour => _parts[_HOUR_INDEX];
 
-  /* patch */ int get day => _parts[_DAY_INDEX];
+  @patch int get day => _parts[_DAY_INDEX];
 
-  /* patch */ int get weekday => _parts[_WEEKDAY_INDEX];
+  @patch int get weekday => _parts[_WEEKDAY_INDEX];
 
-  /* patch */ int get month => _parts[_MONTH_INDEX];
+  @patch int get month => _parts[_MONTH_INDEX];
 
-  /* patch */ int get year => _parts[_YEAR_INDEX];
+  @patch int get year => _parts[_YEAR_INDEX];
 
   /**
    * Returns the amount of microseconds in UTC that represent the same values
@@ -244,7 +244,7 @@ patch class DateTime {
   }
 
   /// Converts the given broken down date to microseconds.
-  /* patch */ static int _brokenDownDateToValue(
+  @patch static int _brokenDownDateToValue(
       int year, int month, int day,
       int hour, int minute, int second, int millisecond, int microsecond,
       bool isUtc) {

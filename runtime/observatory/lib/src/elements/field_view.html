@@ -1,13 +1,6 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="class_ref.html">
-<link rel="import" href="instance_ref.html">
-<link rel="import" href="library_ref.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="script_ref.html">
-<link rel="import" href="observatory_element.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="field-view" extends="observatory-element">
+<polymer-element name="field-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
@@ -20,6 +13,7 @@
       </template>
       <nav-menu link="{{ makeLink('/inspect', field) }}" anchor="{{ field.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content">
@@ -65,7 +59,8 @@
               <template if="{{ field.guardClass == 'unknown' }}">
                 none
               </template>
-              <template if="{{ field.guardClass != 'unknown' &&
+              <template if="{{ field.guardClass != null &&
+                            field.guardClass != 'unknown' &&
                             field.guardClass != 'dynamic' }}">
                 <class-ref ref="{{ field.guardClass }}"></class-ref>
                 <template if="{{ field.guardNullable }}">

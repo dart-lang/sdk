@@ -2189,12 +2189,6 @@ class Parser {
   bool parseGenericMethodComments = false;
 
   /**
-   * A flag indicating whether the parser is to parse trailing commas in
-   * parameter and argument lists (sdk#26647).
-   */
-  bool parseTrailingCommas = false;
-
-  /**
    * Initialize a newly created parser to parse tokens in the given [_source]
    * and to report any errors that are found to the given [_errorListener].
    */
@@ -2330,7 +2324,7 @@ class Parser {
       bool foundNamedArgument = argument is NamedExpression;
       bool generatedError = false;
       while (_optional(TokenType.COMMA)) {
-        if (parseTrailingCommas && _matches(TokenType.CLOSE_PAREN)) {
+        if (_matches(TokenType.CLOSE_PAREN)) {
           break;
         }
         argument = parseArgument();
@@ -4357,25 +4351,12 @@ class Parser {
    * This method assumes that the current token matches `Keyword.ASSERT`.
    *
    *     assertStatement ::=
-   *         'assert' '(' conditionalExpression ')' ';'
+   *         'assert' '(' expression [',' expression] ')' ';'
    */
   AssertStatement _parseAssertStatement() {
     Token keyword = getAndAdvance();
     Token leftParen = _expect(TokenType.OPEN_PAREN);
     Expression expression = parseExpression2();
-    if (expression is AssignmentExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT, expression);
-    } else if (expression is CascadeExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE, expression);
-    } else if (expression is ThrowExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW, expression);
-    } else if (expression is RethrowExpression) {
-      _reportErrorForNode(
-          ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression);
-    }
     Token comma;
     Expression message;
     if (_matches(TokenType.COMMA)) {
@@ -5062,16 +5043,52 @@ class Parser {
         newKeyword = firstToken;
         firstToken = firstToken.next;
       }
-      if (_tokenMatchesIdentifier(firstToken)) {
+      if (firstToken.isUserDefinableOperator) {
+        if (firstToken.next.type != TokenType.EOF) {
+          return null;
+        }
+        Identifier identifier = new SimpleIdentifier(firstToken);
+        return new CommentReference(null, identifier);
+      } else if (_tokenMatchesKeyword(firstToken, Keyword.OPERATOR)) {
+        Token secondToken = firstToken.next;
+        if (secondToken.isUserDefinableOperator) {
+          if (secondToken.next.type != TokenType.EOF) {
+            return null;
+          }
+          Identifier identifier = new SimpleIdentifier(secondToken);
+          return new CommentReference(null, identifier);
+        }
+        return null;
+      } else if (_tokenMatchesIdentifier(firstToken)) {
         Token secondToken = firstToken.next;
         Token thirdToken = secondToken.next;
         Token nextToken;
         Identifier identifier;
-        if (_tokenMatches(secondToken, TokenType.PERIOD) &&
-            _tokenMatchesIdentifier(thirdToken)) {
-          identifier = new PrefixedIdentifier(new SimpleIdentifier(firstToken),
-              secondToken, new SimpleIdentifier(thirdToken));
-          nextToken = thirdToken.next;
+        if (_tokenMatches(secondToken, TokenType.PERIOD)) {
+          if (thirdToken.isUserDefinableOperator) {
+            identifier = new PrefixedIdentifier(
+                new SimpleIdentifier(firstToken),
+                secondToken,
+                new SimpleIdentifier(thirdToken));
+            nextToken = thirdToken.next;
+          } else if (_tokenMatchesKeyword(thirdToken, Keyword.OPERATOR)) {
+            Token fourthToken = thirdToken.next;
+            if (fourthToken.isUserDefinableOperator) {
+              identifier = new PrefixedIdentifier(
+                  new SimpleIdentifier(firstToken),
+                  secondToken,
+                  new SimpleIdentifier(fourthToken));
+              nextToken = fourthToken.next;
+            } else {
+              return null;
+            }
+          } else if (_tokenMatchesIdentifier(thirdToken)) {
+            identifier = new PrefixedIdentifier(
+                new SimpleIdentifier(firstToken),
+                secondToken,
+                new SimpleIdentifier(thirdToken));
+            nextToken = thirdToken.next;
+          }
         } else {
           identifier = new SimpleIdentifier(firstToken);
           nextToken = firstToken.next;
@@ -6123,7 +6140,7 @@ class Parser {
       type = _currentToken.type;
 
       // Advance past trailing commas as appropriate.
-      if (parseTrailingCommas && type == TokenType.COMMA) {
+      if (type == TokenType.COMMA) {
         // Only parse commas trailing normal (non-positional/named) params.
         if (rightSquareBracket == null && rightCurlyBracket == null) {
           Token next = _peek();
@@ -9895,22 +9912,6 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ANNOTATION_ON_ENUM_CONSTANT =
       const ParserErrorCode('ANNOTATION_ON_ENUM_CONSTANT',
           "Enum constants cannot have annotations");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_ASSIGNMENT =
-      const ParserErrorCode('ASSERT_DOES_NOT_TAKE_ASSIGNMENT',
-          "Assert cannot be called on an assignment");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_CASCADE =
-      const ParserErrorCode(
-          'ASSERT_DOES_NOT_TAKE_CASCADE', "Assert cannot be called on cascade");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_THROW =
-      const ParserErrorCode(
-          'ASSERT_DOES_NOT_TAKE_THROW', "Assert cannot be called on throws");
-
-  static const ParserErrorCode ASSERT_DOES_NOT_TAKE_RETHROW =
-      const ParserErrorCode('ASSERT_DOES_NOT_TAKE_RETHROW',
-          "Assert cannot be called on rethrows");
 
   /**
    * 16.32 Identifier Reference: It is a compile-time error if any of the

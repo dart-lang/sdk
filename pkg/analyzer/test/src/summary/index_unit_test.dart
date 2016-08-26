@@ -1134,12 +1134,34 @@ main() {
    */
   int _findElementId(Element element) {
     int unitId = _getUnitId(element);
-    ElementInfo info = PackageIndexAssembler.newElementInfo(unitId, element);
+    // Prepare the element that was put into the index.
+    IndexElementInfo info = new IndexElementInfo(element);
+    element = info.element;
+    // Prepare element's name components.
+    int unitMemberId = _getStringId(PackageIndexAssembler.NULL_STRING);
+    int classMemberId = _getStringId(PackageIndexAssembler.NULL_STRING);
+    int parameterId = _getStringId(PackageIndexAssembler.NULL_STRING);
+    for (Element e = element; e != null; e = e.enclosingElement) {
+      if (e.enclosingElement is CompilationUnitElement) {
+        unitMemberId = _getStringId(e.name);
+      }
+    }
+    for (Element e = element; e != null; e = e.enclosingElement) {
+      if (e.enclosingElement is ClassElement) {
+        classMemberId = _getStringId(e.name);
+      }
+    }
+    if (element is ParameterElement) {
+      parameterId = _getStringId(element.name);
+    }
+    // Find the element's id.
     for (int elementId = 0;
         elementId < packageIndex.elementUnits.length;
         elementId++) {
       if (packageIndex.elementUnits[elementId] == unitId &&
-          packageIndex.elementOffsets[elementId] == info.offset &&
+          packageIndex.elementNameUnitMemberIds[elementId] == unitMemberId &&
+          packageIndex.elementNameClassMemberIds[elementId] == classMemberId &&
+          packageIndex.elementNameParameterIds[elementId] == parameterId &&
           packageIndex.elementKinds[elementId] == info.kind) {
         return elementId;
       }

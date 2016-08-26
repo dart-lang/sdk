@@ -7,6 +7,7 @@
 #include "vm/assembler.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
+#include "vm/disassembler.h"
 #include "vm/intermediate_language.h"
 #include "vm/locations.h"
 #include "vm/parser.h"
@@ -52,6 +53,13 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       deoptimizing_code_(deoptimizing_code) {
   const TypedData& deopt_info = TypedData::Handle(
       code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason_, &deopt_flags_));
+#if defined(DEBUG)
+  if (deopt_info.IsNull()) {
+    OS::PrintErr("Missing deopt info for pc %" Px "\n", frame->pc());
+    DisassembleToStdout formatter;
+    code.Disassemble(&formatter);
+  }
+#endif
   ASSERT(!deopt_info.IsNull());
   deopt_info_ = deopt_info.raw();
 
@@ -147,6 +155,7 @@ DeoptContext::~DeoptContext() {
   delete[] deferred_objects_;
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
+#ifndef PRODUCT
   if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
     TimelineStream* compiler_stream = Timeline::GetCompilerStream();
     ASSERT(compiler_stream != NULL);
@@ -172,6 +181,7 @@ DeoptContext::~DeoptContext() {
       }
     }
   }
+#endif  // !PRODUCT
 }
 
 
@@ -1045,6 +1055,10 @@ FpuRegisterSource DeoptInfoBuilder::ToFpuRegisterSource(
   Location::Kind stack_slot_kind) {
   if (loc.IsFpuRegister()) {
     return FpuRegisterSource(FpuRegisterSource::kRegister, loc.fpu_reg());
+#if defined(TARGET_ARCH_DBC)
+  } else if (loc.IsRegister()) {
+    return FpuRegisterSource(FpuRegisterSource::kRegister, loc.reg());
+#endif
   } else {
     ASSERT((stack_slot_kind == Location::kQuadStackSlot) ||
            (stack_slot_kind == Location::kDoubleStackSlot));

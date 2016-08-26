@@ -1272,13 +1272,13 @@ $else
 $endif
     bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
     if (current == null || sameAsParent) {
-      if (foundAsParent) return new Point(0, 0);
+      if (foundAsParent) return new Point/*<num>*/(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
     }
     Element parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
-    return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
+    return new Point/*<num>*/(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
 
   static HtmlDocument _parseDocument;

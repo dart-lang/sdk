@@ -176,7 +176,8 @@ bool VmService::LoadForGenPrecompiled() {
 
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
-                      bool running_precompiled) {
+                      bool running_precompiled,
+                      bool dev_mode_server) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   SetServerIPAndPort("", 0);
@@ -241,6 +242,9 @@ bool VmService::Setup(const char* server_ip,
                          DartUtils::NewString("_autoStart"),
                          Dart_NewBoolean(auto_start));
   SHUTDOWN_ON_ERROR(result);
+  result = Dart_SetField(library,
+                         DartUtils::NewString("_originCheckDisabled"),
+                         Dart_NewBoolean(dev_mode_server));
 
   // Are we running on Windows?
 #if defined(TARGET_OS_WINDOWS)
@@ -250,6 +254,16 @@ bool VmService::Setup(const char* server_ip,
 #endif
   result =
       Dart_SetField(library, DartUtils::NewString("_isWindows"), is_windows);
+  SHUTDOWN_ON_ERROR(result);
+
+  // Are we running on Fuchsia?
+#if defined(TARGET_OS_FUCHSIA)
+  Dart_Handle is_fuchsia = Dart_True();
+#else
+  Dart_Handle is_fuchsia = Dart_False();
+#endif
+  result =
+      Dart_SetField(library, DartUtils::NewString("_isFuchsia"), is_fuchsia);
   SHUTDOWN_ON_ERROR(result);
 
   // Get _getWatchSignalInternal from dart:io.
@@ -303,21 +317,21 @@ Dart_Handle VmService::GetSource(const char* name) {
 Dart_Handle VmService::LoadScript(const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadScript(uri, source, 0, 0);
+  return Dart_LoadScript(uri, Dart_Null(), source, 0, 0);
 }
 
 
 Dart_Handle VmService::LoadLibrary(const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadLibrary(uri, source, 0, 0);
+  return Dart_LoadLibrary(uri, Dart_Null(), source, 0, 0);
 }
 
 
 Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(name);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadSource(library, uri, source, 0, 0);
+  return Dart_LoadSource(library, uri, Dart_Null(), source, 0, 0);
 }
 
 
@@ -354,7 +368,7 @@ Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(source)) {
     return source;
   }
-  return Dart_LoadSource(library, url, source, 0, 0);
+  return Dart_LoadSource(library, url, Dart_Null(), source, 0, 0);
 }
 
 

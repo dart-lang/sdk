@@ -47,17 +47,13 @@ namespace dart {
 
 static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
   // time in nanoseconds.
-  mx_time_t now = _magenta_current_time();
+  mx_time_t now = mx_current_time();
   mx_time_t target = now + (micros * kNanosecondsPerMicrosecond);
   int64_t secs = target / kNanosecondsPerSecond;
   int64_t nanos = target - (secs * kNanosecondsPerSecond);
 
-  ts->tv_sec += secs;
-  ts->tv_nsec += nanos;
-  if (ts->tv_nsec >= kNanosecondsPerSecond) {
-    ts->tv_sec += 1;
-    ts->tv_nsec -= kNanosecondsPerSecond;
-  }
+  ts->tv_sec = secs;
+  ts->tv_nsec = nanos;
 }
 
 
@@ -169,8 +165,7 @@ ThreadId OSThread::GetCurrentThreadId() {
 
 #ifndef PRODUCT
 ThreadId OSThread::GetCurrentThreadTraceId() {
-  UNIMPLEMENTED();
-  return 0;
+  return pthread_self();
 }
 #endif  // PRODUCT
 

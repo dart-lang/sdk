@@ -321,13 +321,46 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'TransitionEvent': 'TransitionEvent,WebKitTransitionEvent',
 
-    'WebGLLoseContext': 'WebGLLoseContext,WebGLExtensionLoseContext',
-
     'CSSKeyframeRule':
         'CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule',
 
     'CSSKeyframesRule':
         'CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule',
+
+    # webgl extensions are sometimes named directly after the getExtension
+    # parameter (e.g on Firefox).
+
+    'ANGLEInstancedArrays': 'ANGLEInstancedArrays,ANGLE_instanced_arrays',
+    'EXTsRGB': 'EXTsRGB,EXT_sRGB',
+    'EXTBlendMinMax': 'EXTBlendMinMax,EXT_blend_minmax',
+    'EXTFragDepth': 'EXTFragDepth,EXT_frag_depth',
+    'EXTShaderTextureLOD': 'EXTShaderTextureLOD,EXT_shader_texture_lod',
+    'EXTTextureFilterAnisotropic':
+        'EXTTextureFilterAnisotropic,EXT_texture_filter_anisotropic',
+    'OESElementIndexUint': 'OESElementIndexUint,OES_element_index_uint',
+    'OESStandardDerivatives': 'OESStandardDerivatives,OES_standard_derivatives',
+    'OESTextureFloat': 'OESTextureFloat,OES_texture_float',
+    'OESTextureFloatLinear': 'OESTextureFloatLinear,OES_texture_float_linear',
+    'OESTextureHalfFloat': 'OESTextureHalfFloat,OES_texture_half_float',
+    'OESTextureHalfFloatLinear':
+        'OESTextureHalfFloatLinear,OES_texture_half_float_linear',
+    'OESVertexArrayObject':
+        'OESVertexArrayObject,OES_vertex_array_object',
+    'WebGLCompressedTextureATC':
+        'WebGLCompressedTextureATC,WEBGL_compressed_texture_atc',
+    'WebGLCompressedTextureETC1':
+        'WebGLCompressedTextureETC1,WEBGL_compressed_texture_etc1',
+    'WebGLCompressedTexturePVRTC':
+        'WebGLCompressedTexturePVRTC,WEBGL_compressed_texture_pvrtc',
+    'WebGLCompressedTextureS3TC':
+        'WebGLCompressedTextureS3TC,WEBGL_compressed_texture_s3tc',
+    'WebGLDebugRendererInfo': 'WebGLDebugRendererInfo,WEBGL_debug_renderer_info',
+    'WebGLDebugShaders': 'WebGLDebugShaders,WEBGL_debug_shaders',
+    'WebGLDepthTexture': 'WebGLDepthTexture,WEBGL_depth_texture',
+    'WebGLDrawBuffers': 'WebGLDrawBuffers,WEBGL_draw_buffers',
+    'WebGLLoseContext':
+        'WebGLLoseContext,WebGLExtensionLoseContext,WEBGL_lose_context',
+
 
 }, dart2jsOnly=True)
 
@@ -698,7 +731,7 @@ class OperationInfo(object):
               # Events fired need use a JSFunction not a anonymous closure to
               # insure the event can really be removed.
               parameters.append('js.allowInterop(%s)' % p.name)
-# These commented out cases don't actually generate any code.              
+# These commented out cases don't actually generate any code.
 #          elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
               # forEach is supported in the DOM for FontFaceSet as it iterates
               # over the Javascript Object the callback parameters are also
@@ -1103,6 +1136,9 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
   def list_item_type(self):
     return self._data.item_type
 
+  def list_item_type_nullable(self):
+    return self._data.item_type_nullable
+
   def merged_interface(self):
     # All constants, attributes, and operations of merged interface should be
     # added to this interface. Merged idl interface does not have corresponding
@@ -1357,7 +1393,8 @@ class TypeData(object):
                conversion_includes=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
-               item_type=None, suppress_interface=False):
+               item_type=None, item_type_nullable=False,
+               suppress_interface=False):
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
@@ -1369,6 +1406,7 @@ class TypeData(object):
     self.webcore_getter_name = webcore_getter_name
     self.webcore_setter_name = webcore_setter_name
     self.item_type = item_type
+    self.item_type_nullable = item_type_nullable
     self.suppress_interface = suppress_interface
 
 
@@ -1455,7 +1493,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         dart_type='List<File>'),
     'Future': TypeData(clazz='Interface', dart_type='Future'),
     'GamepadList': TypeData(clazz='Interface', item_type='Gamepad',
-        suppress_interface=True),
+        item_type_nullable=True, suppress_interface=True),
     'GLenum': TypeData(clazz='Primitive', dart_type='int',
         native_type='unsigned'),
     'GLboolean': TypeData(clazz='Primitive', dart_type='bool',

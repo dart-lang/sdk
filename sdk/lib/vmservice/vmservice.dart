@@ -116,6 +116,9 @@ typedef Future DeleteDirCallback(Uri path);
 /// Called to write a file.
 typedef Future WriteFileCallback(Uri path, List<int> bytes);
 
+/// Called to write a stream into a file.
+typedef Future WriteStreamFileCallback(Uri path, Stream<List<int>> bytes);
+
 /// Called to read a file.
 typedef Future<List<int>> ReadFileCallback(Uri path);
 
@@ -130,6 +133,7 @@ class VMServiceEmbedderHooks {
   static CreateTempDirCallback createTempDir;
   static DeleteDirCallback deleteDir;
   static WriteFileCallback writeFile;
+  static WriteStreamFileCallback writeStreamFile;
   static ReadFileCallback readFile;
   static ListFilesCallback listFiles;
 }
@@ -146,7 +150,7 @@ class VMService extends MessageRouter {
   /// A port used to receive events from the VM.
   final RawReceivePort eventPort;
 
-  final _devfs = new DevFS();
+  final devfs = new DevFS();
 
   void _addClient(Client client) {
     assert(client.streams.isEmpty);
@@ -206,7 +210,7 @@ class VMService extends MessageRouter {
     for (var client in clientsList) {
       client.disconnect();
     }
-    _devfs.cleanup();
+    devfs.cleanup();
     if (VMServiceEmbedderHooks.cleanup != null) {
       await VMServiceEmbedderHooks.cleanup();
     }
@@ -295,6 +299,37 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
+  Future<String> _spawnUri(Message message) async {
+    var token = message.params['token'];
+    if (token == null) {
+      return encodeMissingParamError(message, 'token');
+    }
+    if (token is! String) {
+      return encodeInvalidParamError(message, 'token');
+    }
+    var uri = message.params['uri'];
+    if (uri == null) {
+      return encodeMissingParamError(message, 'uri');
+    }
+    if (uri is! String) {
+      return encodeInvalidParamError(message, 'uri');
+    }
+    var args = message.params['args'];
+    if (args != null &&
+        args is! List<String>) {
+      return encodeInvalidParamError(message, 'args');
+    }
+    var msg = message.params['message'];
+
+    Isolate.spawnUri(Uri.parse(uri), args, msg).then((isolate) {
+      _spawnUriNotify(isolate.controlPort, token);
+    }).catchError((e) {
+      _spawnUriNotify(e.toString(), token);
+    });
+
+    return encodeSuccess(message);
+  }
+
   // TODO(johnmccutchan): Turn this into a command line tool that uses the
   // service library.
   Future<String> _getCrashDump(Message message) async {
@@ -367,8 +402,11 @@ class VMService extends MessageRouter {
     if (message.method == 'streamCancel') {
       return _streamCancel(message);
     }
-    if (_devfs.shouldHandleMessage(message)) {
-      return _devfs.handleMessage(message);
+    if (message.method == '_spawnUri') {
+      return _spawnUri(message);
+    }
+    if (devfs.shouldHandleMessage(message)) {
+      return devfs.handleMessage(message);
     }
     if (message.params['isolateId'] != null) {
       return runningIsolates.route(message);
@@ -404,3 +442,6 @@ external void _vmCancelStream(String streamId);
 
 /// Get the bytes to the tar archive.
 external Uint8List _requestAssets();
+
+/// Notify the vm service that an isolate has been spawned via rpc.
+external void _spawnUriNotify(obj, String token);

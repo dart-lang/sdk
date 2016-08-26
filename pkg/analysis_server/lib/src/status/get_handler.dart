@@ -21,24 +21,24 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
+import 'package:analysis_server/src/status/memory_use.dart';
 import 'package:analysis_server/src/status/validator.dart';
 import 'package:analysis_server/src/utilities/average.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -258,6 +258,11 @@ class GetHandler {
   static const String ELEMENT_PATH = '/element';
 
   /**
+   * The path used to request an analysis of the memory use of the analyzer.
+   */
+  static const String MEMORY_USE_PATH = '/memoryUse';
+
+  /**
    * The path used to request an overlay contents.
    */
   static const String OVERLAY_PATH = '/overlay';
@@ -390,6 +395,8 @@ class GetHandler {
       _returnDiagnosticInfo(request);
     } else if (path == ELEMENT_PATH) {
       _returnElement(request);
+    } else if (path == MEMORY_USE_PATH) {
+      _returnMemoryUsage(request);
     } else if (path == OVERLAY_PATH) {
       _returnOverlayContents(request);
     } else if (path == OVERLAYS_PATH) {
@@ -662,6 +669,7 @@ class GetHandler {
             _writeRow(buffer, [tag.elapsedMs, percentStr, tag.label],
                 classes: ["right", "right", null]);
           }
+
           tags.forEach(writeRow);
           buffer.write('</table>');
           //
@@ -676,6 +684,7 @@ class GetHandler {
             }
             counts[key] = count;
           }
+
           Set<AnalysisTarget> countedTargets = new HashSet<AnalysisTarget>();
           Map<String, int> sourceTypeCounts = new HashMap<String, int>();
           Map<String, int> typeCounts = new HashMap<String, int>();
@@ -743,6 +752,7 @@ class GetHandler {
                 }
               });
             }
+
             explicitSourceCount += explicitSources.length;
             explicitLineCount += lineCount(explicitSources, true);
             implicitSourceCount += implicitSources.length;
@@ -812,6 +822,30 @@ class GetHandler {
                 classes: [null, "right"]);
           }
           buffer.write('</table>');
+
+          {
+            buffer.write('<p><b>Cache consistency statistics</b></p>');
+            buffer.write(
+                '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+            _writeRow(buffer, ['Name', 'Count'], header: true);
+            _writeRow(buffer, [
+              'Changed',
+              PerformanceStatistics
+                  .cacheConsistencyValidationStatistics.numOfChanged
+            ], classes: [
+              null,
+              "right"
+            ]);
+            _writeRow(buffer, [
+              'Removed',
+              PerformanceStatistics
+                  .cacheConsistencyValidationStatistics.numOfRemoved
+            ], classes: [
+              null,
+              "right"
+            ]);
+            buffer.write('</table>');
+          }
         }, (StringBuffer buffer) {
           //
           // Write task model timing information.
@@ -1367,6 +1401,7 @@ class GetHandler {
         buffer.write('</table></p>');
       }
     }
+
     void writeOptions(StringBuffer buffer, AnalysisOptionsImpl options,
         {void writeAdditionalOptions(StringBuffer buffer)}) {
       if (options == null) {
@@ -1383,8 +1418,6 @@ class GetHandler {
       _writeOption(
           buffer, 'Enable strict call checks', options.enableStrictCallChecks);
       _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
-      _writeOption(
-          buffer, 'Enable trailing commas', options.enableTrailingCommas);
       _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
       _writeOption(buffer, 'Generate errors in implicit files',
           options.generateImplicitErrors);
@@ -1419,7 +1452,7 @@ class GetHandler {
             DartSdk sdk = context?.sourceFactory?.dartSdk;
             writeOptions(buffer, sdk?.context?.analysisOptions,
                 writeAdditionalOptions: (StringBuffer buffer) {
-              if (sdk is DirectoryBasedDartSdk) {
+              if (sdk is FolderBasedDartSdk) {
                 _writeOption(buffer, 'Use summaries', sdk.useSummary);
               }
             });
@@ -1456,9 +1489,9 @@ class GetHandler {
               DartSdk sdk = resolver.dartSdk;
               buffer.write(' (sdk = ');
               buffer.write(sdk.runtimeType);
-              if (sdk is DirectoryBasedDartSdk) {
+              if (sdk is FolderBasedDartSdk) {
                 buffer.write(' (path = ');
-                buffer.write(sdk.directory.getAbsolutePath());
+                buffer.write(sdk.directory.path);
                 buffer.write(')');
               } else if (sdk is EmbedderSdk) {
                 buffer.write(' (map = ');
@@ -1616,6 +1649,85 @@ class GetHandler {
       _writePage(buffer, 'Analysis Server - Failure', [],
           (StringBuffer buffer) {
         buffer.write(HTML_ESCAPE.convert(message));
+      });
+    });
+  }
+
+  void _returnMemoryUsage(HttpRequest request) {
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Server - Memory Use', [],
+          (StringBuffer buffer) {
+        AnalysisServer server = _server.analysisServer;
+        MemoryUseData data = new MemoryUseData();
+        data.processAnalysisServer(server);
+        Map<Type, Set> instances = data.instances;
+        List<Type> instanceTypes = instances.keys.toList();
+        instanceTypes.sort((Type left, Type right) =>
+            left.toString().compareTo(right.toString()));
+        Map<Type, Set> ownerMap = data.ownerMap;
+        List<Type> ownerTypes = ownerMap.keys.toList();
+        ownerTypes.sort((Type left, Type right) =>
+            left.toString().compareTo(right.toString()));
+
+        _writeTwoColumns(buffer, (StringBuffer buffer) {
+          buffer.write('<h3>Instance Counts (reachable from contexts)</h3>');
+          buffer.write('<table>');
+          _writeRow(buffer, ['Count', 'Class name'], header: true);
+          instanceTypes.forEach((Type type) {
+            _writeRow(buffer, [instances[type].length, type],
+                classes: ['right', null]);
+          });
+          buffer.write('</table>');
+
+          buffer.write(
+              '<h3>Ownership (which classes of objects hold on to others)</h3>');
+          buffer.write('<table>');
+          _writeRow(buffer, ['Referenced Type', 'Referencing Types'],
+              header: true);
+          ownerTypes.forEach((Type type) {
+            List<String> referencingTypes =
+                ownerMap[type].map((Type type) => type.toString()).toList();
+            referencingTypes.sort();
+            _writeRow(buffer, [type, referencingTypes.join('<br>')]);
+          });
+          buffer.write('</table>');
+
+          buffer.write('<h3>Other Data</h3>');
+          buffer.write('<p>');
+          buffer.write(data.uniqueTargetedResults.length);
+          buffer.write(' non-equal TargetedResults</p>');
+          buffer.write('<p>');
+          buffer.write(data.uniqueLSUs.length);
+          buffer.write(' non-equal LibrarySpecificUnits</p>');
+          int count = data.mismatchedTargets.length;
+          buffer.write('<p>');
+          buffer.write(count);
+          buffer.write(' mismatched targets</p>');
+          if (count < 100) {
+            for (AnalysisTarget target in data.mismatchedTargets) {
+              buffer.write(target);
+              buffer.write('<br>');
+            }
+          }
+        }, (StringBuffer buffer) {
+          void writeCountMap(String title, Map<Type, int> counts) {
+            List<Type> classNames = counts.keys.toList();
+            classNames.sort((Type left, Type right) =>
+                left.toString().compareTo(right.toString()));
+
+            buffer.write('<h3>$title</h3>');
+            buffer.write('<table>');
+            _writeRow(buffer, ['Count', 'Class name'], header: true);
+            classNames.forEach((Type type) {
+              _writeRow(buffer, [counts[type], type], classes: ['right', null]);
+            });
+            buffer.write('</table>');
+          }
+
+          writeCountMap('Directly Held AST Nodes', data.directNodeCounts);
+          writeCountMap('Indirectly Held AST Nodes', data.indirectNodeCounts);
+          writeCountMap('Directly Held Elements', data.elementCounts);
+        });
       });
     });
   }
@@ -2204,6 +2316,7 @@ class GetHandler {
     int length = keys.length;
     buffer.write('{');
     for (int i = 0; i < length; i++) {
+      buffer.write('<br>');
       String key = keys[i];
       if (i > 0) {
         buffer.write(', ');
@@ -2212,7 +2325,7 @@ class GetHandler {
       buffer.write(' = ');
       buffer.write(map[key]);
     }
-    buffer.write('}');
+    buffer.write('<br>}');
   }
 
   /**
@@ -2265,6 +2378,8 @@ class GetHandler {
         'table.column {border: 0px solid black; width: 100%; table-layout: fixed;}');
     buffer.write('td.column {vertical-align: top; width: 50%;}');
     buffer.write('td.right {text-align: right;}');
+    buffer.write('th {text-align: left; vertical-align:top;}');
+    buffer.write('tr {vertical-align:top;}');
     buffer.write('</style>');
     buffer.write('</head>');
 
@@ -2307,6 +2422,7 @@ class GetHandler {
       buffer.write(plugin.runtimeType);
       buffer.write(')<br>');
     }
+
     buffer.write('<h3>Plugin Status</h3><p>');
     writePlugin(AnalysisEngine.instance.enginePlugin);
     writePlugin(_server.serverPlugin);
@@ -2423,6 +2539,9 @@ class GetHandler {
       buffer.write('<p>');
       buffer.write(makeLink(DIAGNOSTIC_PATH, {}, 'General diagnostics'));
       buffer.write('</p>');
+      buffer.write('<p>');
+      buffer.write(makeLink(MEMORY_USE_PATH, {}, 'Memory usage'));
+      buffer.write(' <small>(long running)</small></p>');
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
     });

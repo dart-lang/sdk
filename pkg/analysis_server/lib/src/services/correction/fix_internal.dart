@@ -190,6 +190,9 @@ class FixProcessor {
       _addFix_createPartUri();
       _addFix_replaceImportUri();
     }
+    if (errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED) {
+      _addFix_replaceImportUri();
+    }
     if (errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE) {
       _addFix_canBeNullAfterNullAware();
     }
@@ -293,17 +296,17 @@ class FixProcessor {
       _addFix_updateConstructor_forUninitializedFinalFields();
     }
     if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
-      bool isAsync = _addFix_addAsync();
-      if (!isAsync) {
-        _addFix_undefinedClassAccessor_useSimilar();
-        _addFix_createClass();
-        _addFix_createField();
-        _addFix_createGetter();
-        _addFix_createFunction_forFunctionType();
-        _addFix_importLibrary_withType();
-        _addFix_importLibrary_withTopLevelVariable();
-        _addFix_createLocalVariable();
-      }
+      _addFix_undefinedClassAccessor_useSimilar();
+      _addFix_createClass();
+      _addFix_createField();
+      _addFix_createGetter();
+      _addFix_createFunction_forFunctionType();
+      _addFix_importLibrary_withType();
+      _addFix_importLibrary_withTopLevelVariable();
+      _addFix_createLocalVariable();
+    }
+    if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT) {
+      _addFix_addAsync();
     }
     if (errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE) {
       _addFix_illegalAsyncReturnType();
@@ -371,8 +374,8 @@ class FixProcessor {
     doSourceChange_addElementEdit(change, target, edit);
   }
 
-  void _addFix(FixKind kind, List args) {
-    if (change.edits.isEmpty) {
+  void _addFix(FixKind kind, List args, {bool importsOnly: false}) {
+    if (change.edits.isEmpty && !importsOnly) {
       return;
     }
     // configure Change
@@ -397,14 +400,12 @@ class FixProcessor {
    */
   bool _addFix_addAsync() {
     AstNode node = this.node;
-    if (_isAwaitNode()) {
-      FunctionBody body = node.getAncestor((n) => n is FunctionBody);
-      if (body != null && body.keyword == null) {
-        _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
-        _replaceReturnTypeWithFuture(body);
-        _addFix(DartFixKind.ADD_ASYNC, []);
-        return true;
-      }
+    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    if (body != null && body.keyword == null) {
+      _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
+      _replaceReturnTypeWithFuture(body);
+      _addFix(DartFixKind.ADD_ASYNC, []);
+      return true;
     }
     return false;
   }
@@ -626,13 +627,16 @@ class FixProcessor {
     } else {
       for (ImportElement import in unitLibraryElement.imports) {
         if (prefixElement is PrefixElement && import.prefix == prefixElement) {
-          targetUnit = import.importedLibrary.definingCompilationUnit;
-          Source targetSource = targetUnit.source;
-          int offset = targetSource.contents.data.length;
-          sb = new SourceBuilder(targetSource.fullName, offset);
-          prefix = '$eol';
-          suffix = '$eol';
-          break;
+          LibraryElement library = import.importedLibrary;
+          if (library != null) {
+            targetUnit = library.definingCompilationUnit;
+            Source targetSource = targetUnit.source;
+            int offset = targetSource.contents.data.length;
+            sb = new SourceBuilder(targetSource.fullName, offset);
+            prefix = '$eol';
+            suffix = '$eol';
+            break;
+          }
         }
       }
       if (sb == null) {
@@ -693,14 +697,12 @@ class FixProcessor {
       }
     }
     // prepare location for a new constructor
-    _ConstructorLocation targetLocation =
+    _ClassMemberLocation targetLocation =
         _prepareNewConstructorLocation(classDeclaration);
     // build constructor source
     SourceBuilder sb = new SourceBuilder(file, targetLocation.offset);
     {
-      String indent = '  ';
       sb.append(targetLocation.prefix);
-      sb.append(indent);
       sb.append(classDeclaration.name.name);
       sb.append('(');
       sb.append(fieldNames.map((name) => 'this.$name').join(', '));
@@ -739,19 +741,17 @@ class FixProcessor {
     if (targetTypeNode is! ClassDeclaration) {
       return;
     }
-    _ConstructorLocation targetLocation =
+    _ClassMemberLocation targetLocation =
         _prepareNewConstructorLocation(targetTypeNode);
     String targetFile = targetElement.source.fullName;
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
-      String indent = '  ';
       sb.append(targetLocation.prefix);
-      sb.append(indent);
       sb.append(targetElement.name);
       _addFix_undefinedMethod_create_parameters(
           sb, instanceCreation.argumentList);
-      sb.append(') {$eol$indent}');
+      sb.append(');');
       sb.append(targetLocation.suffix);
     }
     // insert source
@@ -797,15 +797,13 @@ class FixProcessor {
     if (targetTypeNode is! ClassDeclaration) {
       return;
     }
-    _ConstructorLocation targetLocation =
+    _ClassMemberLocation targetLocation =
         _prepareNewConstructorLocation(targetTypeNode);
     String targetFile = targetElement.source.fullName;
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
-      String indent = '  ';
       sb.append(targetLocation.prefix);
-      sb.append(indent);
       sb.append(targetElement.name);
       sb.append('.');
       // append name
@@ -816,7 +814,7 @@ class FixProcessor {
       }
       _addFix_undefinedMethod_create_parameters(
           sb, instanceCreation.argumentList);
-      sb.append(') {$eol$indent}');
+      sb.append(');');
       sb.append(targetLocation.suffix);
     }
     // insert source
@@ -937,13 +935,11 @@ class FixProcessor {
         argumentsBuffer.append(parameterName);
       }
       // add proposal
-      _ConstructorLocation targetLocation =
+      _ClassMemberLocation targetLocation =
           _prepareNewConstructorLocation(targetClassNode);
       SourceBuilder sb = new SourceBuilder(file, targetLocation.offset);
       {
-        String indent = utils.getIndent(1);
         sb.append(targetLocation.prefix);
-        sb.append(indent);
         sb.append(targetClassName);
         if (!constructorName.isEmpty) {
           sb.startPosition('NAME');
@@ -1021,7 +1017,8 @@ class FixProcessor {
     }
     ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
-    _FieldLocation targetLocation = _prepareNewFieldLocation(targetClassNode);
+    _ClassMemberLocation targetLocation =
+        _prepareNewFieldLocation(targetClassNode);
     // build method source
     String targetFile = targetClassElement.source.fullName;
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
@@ -1153,7 +1150,8 @@ class FixProcessor {
     }
     ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
-    _FieldLocation targetLocation = _prepareNewGetterLocation(targetClassNode);
+    _ClassMemberLocation targetLocation =
+        _prepareNewGetterLocation(targetClassNode);
     // build method source
     String targetFile = targetClassElement.source.fullName;
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
@@ -1280,11 +1278,12 @@ class FixProcessor {
     // EOL management
     bool isFirst = true;
     void addEolIfNotFirst() {
-      if (!isFirst || !targetClass.members.isEmpty) {
+      if (!isFirst || _isClassWithEmptyBody(targetClass)) {
         sb.append(eol);
       }
       isFirst = false;
     }
+
     // merge getter/setter pairs into fields
     String prefix = utils.getIndent(1);
     for (int i = 0; i < elements.length; i++) {
@@ -1349,7 +1348,10 @@ class FixProcessor {
       sb.append(prefix);
     }
     // return type
-    _appendType(sb, element.type.returnType);
+    if (!isSetter) {
+      _appendType(sb, element.type.returnType);
+    }
+    // keyword
     if (isGetter) {
       sb.append('get ');
     } else if (isSetter) {
@@ -1424,40 +1426,11 @@ class FixProcessor {
     _addFix(DartFixKind.REPLACE_RETURN_TYPE_FUTURE, []);
   }
 
-  void _addFix_importLibrary(FixKind kind, String importPath) {
-    CompilationUnitElement libraryUnitElement =
-        unitLibraryElement.definingCompilationUnit;
-    CompilationUnit libraryUnit = getParsedUnit(libraryUnitElement);
-    // prepare new import location
-    int offset = 0;
-    String prefix;
-    String suffix;
-    {
-      // if no directives
-      prefix = '';
-      suffix = eol;
-      CorrectionUtils libraryUtils = new CorrectionUtils(libraryUnit);
-      // after last directive in library
-      for (Directive directive in libraryUnit.directives) {
-        if (directive is LibraryDirective || directive is ImportDirective) {
-          offset = directive.end;
-          prefix = eol;
-          suffix = '';
-        }
-      }
-      // if still beginning of file, skip shebang and line comments
-      if (offset == 0) {
-        CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
-        offset = desc.offset;
-        prefix = desc.prefix;
-        suffix = '${desc.suffix}$eol';
-      }
-    }
-    // insert new import
-    String importSource = "${prefix}import '$importPath';$suffix";
-    _addInsertEdit(offset, importSource, libraryUnitElement);
-    // add proposal
-    _addFix(kind, [importPath]);
+  void _addFix_importLibrary(FixKind kind, LibraryElement libraryElement) {
+    librariesToImport.add(libraryElement);
+    Source librarySource = libraryElement.source;
+    String libraryUri = getLibrarySourceUri(unitLibraryElement, librarySource);
+    _addFix(kind, [libraryUri], importsOnly: true);
   }
 
   void _addFix_importLibrary_withElement(String name, ElementKind kind) {
@@ -1544,7 +1517,7 @@ class FixProcessor {
           continue;
         }
         // add import
-        _addFix_importLibrary(DartFixKind.IMPORT_LIBRARY_SDK, libraryUri);
+        _addFix_importLibrary(DartFixKind.IMPORT_LIBRARY_SDK, libraryElement);
       }
     }
     // check project libraries
@@ -1576,21 +1549,8 @@ class FixProcessor {
         if (element.kind != kind) {
           continue;
         }
-        // prepare "library" file
-        String libraryFile = librarySource.fullName;
-        // may be "package:" URI
-        {
-          String libraryPackageUri = findNonFileUri(context, libraryFile);
-          if (libraryPackageUri != null) {
-            _addFix_importLibrary(
-                DartFixKind.IMPORT_LIBRARY_PROJECT, libraryPackageUri);
-            continue;
-          }
-        }
-        // relative URI
-        String relativeFile = relative(libraryFile, from: unitLibraryFolder);
-        relativeFile = split(relativeFile).join('/');
-        _addFix_importLibrary(DartFixKind.IMPORT_LIBRARY_PROJECT, relativeFile);
+        _addFix_importLibrary(
+            DartFixKind.IMPORT_LIBRARY_PROJECT, libraryElement);
       }
     }
   }
@@ -2773,74 +2733,62 @@ class FixProcessor {
     return node is SimpleIdentifier && node.name == 'await';
   }
 
-  _ConstructorLocation _prepareNewConstructorLocation(
+  /**
+   * Return `true` if the given [classDeclaration] has open '{' and close '}'
+   * at the same line, e.g. `class X {}`.
+   */
+  bool _isClassWithEmptyBody(ClassDeclaration classDeclaration) {
+    return utils.getLineThis(classDeclaration.leftBracket.offset) ==
+        utils.getLineThis(classDeclaration.rightBracket.offset);
+  }
+
+  _ClassMemberLocation _prepareNewClassMemberLocation(
+      ClassDeclaration classDeclaration,
+      bool shouldSkip(ClassMember existingMember)) {
+    String indent = utils.getIndent(1);
+    // Find the last target member.
+    ClassMember targetMember = null;
+    List<ClassMember> members = classDeclaration.members;
+    for (ClassMember member in members) {
+      if (shouldSkip(member)) {
+        targetMember = member;
+      } else {
+        break;
+      }
+    }
+    // After the last target member.
+    if (targetMember != null) {
+      return new _ClassMemberLocation(eol + eol + indent, targetMember.end, '');
+    }
+    // At the beginning of the class.
+    String suffix = members.isNotEmpty ||
+        _isClassWithEmptyBody(classDeclaration) ? eol : '';
+    return new _ClassMemberLocation(
+        eol + indent, classDeclaration.leftBracket.end, suffix);
+  }
+
+  _ClassMemberLocation _prepareNewConstructorLocation(
       ClassDeclaration classDeclaration) {
-    List<ClassMember> members = classDeclaration.members;
-    // find the last field/constructor
-    ClassMember lastFieldOrConstructor = null;
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration || member is ConstructorDeclaration) {
-        lastFieldOrConstructor = member;
-      } else {
-        break;
-      }
-    }
-    // after the last field/constructor
-    if (lastFieldOrConstructor != null) {
-      return new _ConstructorLocation(
-          eol + eol, lastFieldOrConstructor.end, '');
-    }
-    // at the beginning of the class
-    String suffix = members.isEmpty ? '' : eol;
-    return new _ConstructorLocation(
-        eol, classDeclaration.leftBracket.end, suffix);
+    return _prepareNewClassMemberLocation(
+        classDeclaration,
+        (member) =>
+            member is FieldDeclaration || member is ConstructorDeclaration);
   }
 
-  _FieldLocation _prepareNewFieldLocation(ClassDeclaration classDeclaration) {
-    String indent = utils.getIndent(1);
-    // find the last field
-    ClassMember lastFieldOrConstructor = null;
-    List<ClassMember> members = classDeclaration.members;
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration) {
-        lastFieldOrConstructor = member;
-      } else {
-        break;
-      }
-    }
-    // after the last field
-    if (lastFieldOrConstructor != null) {
-      return new _FieldLocation(
-          eol + eol + indent, lastFieldOrConstructor.end, '');
-    }
-    // at the beginning of the class
-    String suffix = members.isEmpty ? '' : eol;
-    return new _FieldLocation(
-        eol + indent, classDeclaration.leftBracket.end, suffix);
+  _ClassMemberLocation _prepareNewFieldLocation(
+      ClassDeclaration classDeclaration) {
+    return _prepareNewClassMemberLocation(
+        classDeclaration, (member) => member is FieldDeclaration);
   }
 
-  _FieldLocation _prepareNewGetterLocation(ClassDeclaration classDeclaration) {
-    String indent = utils.getIndent(1);
-    // find an existing target member
-    ClassMember prevMember = null;
-    List<ClassMember> members = classDeclaration.members;
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration ||
-          member is ConstructorDeclaration ||
-          member is MethodDeclaration && member.isGetter) {
-        prevMember = member;
-      } else {
-        break;
-      }
-    }
-    // after the last field/getter
-    if (prevMember != null) {
-      return new _FieldLocation(eol + eol + indent, prevMember.end, '');
-    }
-    // at the beginning of the class
-    String suffix = members.isEmpty ? '' : eol;
-    return new _FieldLocation(
-        eol + indent, classDeclaration.leftBracket.end, suffix);
+  _ClassMemberLocation _prepareNewGetterLocation(
+      ClassDeclaration classDeclaration) {
+    return _prepareNewClassMemberLocation(
+        classDeclaration,
+        (member) =>
+            member is FieldDeclaration ||
+            member is ConstructorDeclaration ||
+            member is MethodDeclaration && member.isGetter);
   }
 
   /**
@@ -2962,6 +2910,17 @@ class LintNames {
 }
 
 /**
+ * Describes the location for a newly created [ClassMember].
+ */
+class _ClassMemberLocation {
+  final String prefix;
+  final int offset;
+  final String suffix;
+
+  _ClassMemberLocation(this.prefix, this.offset, this.suffix);
+}
+
+/**
  * Helper for finding [Element] with name closest to the given.
  */
 class _ClosestElementFinder {
@@ -2988,26 +2947,4 @@ class _ClosestElementFinder {
       _update(element);
     }
   }
-}
-
-/**
- * Describes the location for a newly created [ConstructorDeclaration].
- */
-class _ConstructorLocation {
-  final String prefix;
-  final int offset;
-  final String suffix;
-
-  _ConstructorLocation(this.prefix, this.offset, this.suffix);
-}
-
-/**
- * Describes the location for a newly created [FieldDeclaration].
- */
-class _FieldLocation {
-  final String prefix;
-  final int offset;
-  final String suffix;
-
-  _FieldLocation(this.prefix, this.offset, this.suffix);
 }

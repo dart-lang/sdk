@@ -28,6 +28,12 @@ class InheritanceManager {
   LibraryElement _library;
 
   /**
+   * A flag indicating whether abstract methods should be included when looking
+   * up the superclass chain.
+   */
+  bool _includeAbstractFromSuperclasses;
+
+  /**
    * This is a mapping between each [ClassElement] and a map between the [String] member
    * names and the associated [ExecutableElement] in the mixin and superclass chain.
    */
@@ -51,8 +57,10 @@ class InheritanceManager {
    *
    * @param library the library element context that the inheritance mappings are being generated
    */
-  InheritanceManager(LibraryElement library) {
+  InheritanceManager(LibraryElement library,
+      {bool includeAbstractFromSuperclasses: false}) {
     this._library = library;
+    _includeAbstractFromSuperclasses = includeAbstractFromSuperclasses;
     _classLookup = new HashMap<ClassElement, Map<String, ExecutableElement>>();
     _interfaceLookup =
         new HashMap<ClassElement, Map<String, ExecutableElement>>();
@@ -282,7 +290,8 @@ class InheritanceManager {
           //
           // Include the members from the superclass in the resultMap.
           //
-          _recordMapWithClassMembers(resultMap, supertype, false);
+          _recordMapWithClassMembers(
+              resultMap, supertype, _includeAbstractFromSuperclasses);
         } finally {
           visitedClasses.remove(superclassElt);
         }
@@ -311,7 +320,8 @@ class InheritanceManager {
             //
             // Include the members from the mixin in the resultMap.
             //
-            _recordMapWithClassMembers(map, mixin, false);
+            _recordMapWithClassMembers(
+                map, mixin, _includeAbstractFromSuperclasses);
             //
             // Add the members from map into result map.
             //

@@ -11,7 +11,6 @@ import '../tokens/precedence_constants.dart';
 import '../tokens/token.dart';
 import '../tokens/token_constants.dart';
 import '../util/characters.dart';
-
 import 'string_scanner.dart' show StringScanner;
 import 'utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
@@ -685,7 +684,8 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeFractionPart(int next, int start) {
     bool done = false;
     bool hasDigit = false;
-    LOOP: while (!done) {
+    LOOP:
+    while (!done) {
       if ($0 <= next && next <= $9) {
         hasDigit = true;
       } else if (identical($e, next) || identical($E, next)) {
@@ -1003,7 +1003,8 @@ abstract class AbstractScanner implements Scanner {
     bool asciiOnlyLine = true;
     int unicodeStart = start;
     int next = advance(); // Advance past the (last) quote (of three).
-    outer: while (!identical(next, $EOF)) {
+    outer:
+    while (!identical(next, $EOF)) {
       while (!identical(next, quoteChar)) {
         if (identical(next, $LF)) {
           if (!asciiOnlyLine) {

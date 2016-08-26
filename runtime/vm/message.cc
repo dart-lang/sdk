@@ -181,6 +181,7 @@ Message* MessageQueue::FindMessageById(intptr_t id) {
 
 
 void MessageQueue::PrintJSON(JSONStream* stream) {
+#ifndef PRODUCT
   if (!FLAG_support_service) {
     return;
   }
@@ -221,6 +222,7 @@ void MessageQueue::PrintJSON(JSONStream* stream) {
       }
     }
   }
+#endif  // !PRODUCT
 }
 
 }  // namespace dart

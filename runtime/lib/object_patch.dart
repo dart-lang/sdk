@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class Object {
+@patch class Object {
 
   // The VM has its own implementation of equals.
   bool operator ==(other) native "Object_equals";
@@ -15,22 +15,24 @@ patch class Object {
   static _getHash(obj) native "Object_getHash";
   static _setHash(obj, hash) native "Object_setHash";
 
-  /* patch */ int get hashCode => _identityHashCode;
-
-  int get _identityHashCode {
-    var result = _getHash(this);
+  // Shared static implentation for hashCode and _identityHashCode.
+  static int _objectHashCode(obj) {
+    var result = _getHash(obj);
     if (result == 0) {
       // We want the hash to be a Smi value greater than 0.
       result = _hashCodeRnd.nextInt(0x40000000);
       while (result == 0) {
         result = _hashCodeRnd.nextInt(0x40000000);
       }
-      _setHash(this, result);
+      _setHash(obj, result);
     }
     return result;
   }
 
-  /* patch */ String toString() native "Object_toString";
+  @patch int get hashCode => _objectHashCode(this);
+  int get _identityHashCode => _objectHashCode(this);
+
+  @patch String toString() native "Object_toString";
   // A statically dispatched version of Object.toString.
   static String _toString(obj) native "Object_toString";
 
@@ -41,7 +43,7 @@ patch class Object {
                 Map<String, dynamic> namedArguments)
       native "Object_noSuchMethod";
 
-  /* patch */ noSuchMethod(Invocation invocation) {
+  @patch noSuchMethod(Invocation invocation) {
     return _noSuchMethod(invocation.isMethod,
                          internal.Symbol.getName(invocation.memberName),
                          invocation._type,
@@ -49,12 +51,17 @@ patch class Object {
                          _symbolMapToStringMap(invocation.namedArguments));
   }
 
-  /* patch */ Type get runtimeType native "Object_runtimeType";
+  @patch Type get runtimeType native "Object_runtimeType";
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
   bool _instanceOf(instantiator_type_arguments, type, bool negate)
       native "Object_instanceOf";
+
+  // Group of functions for implementing fast simple instance of.
+  bool _simpleInstanceOf(type) native "Object_simpleInstanceOf";
+  bool _simpleInstanceOfTrue(type) => true;
+  bool _simpleInstanceOfFalse(type) => false;
 
   bool _instanceOfDouble(bool negate) native "Object_instanceOfDouble";
   bool _instanceOfNum(bool negate) native "Object_instanceOfNum";

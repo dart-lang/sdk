@@ -12,8 +12,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -629,14 +629,6 @@ abstract class AnalysisContext {
    * so that the default contents will be returned.
    */
   void setContents(Source source, String contents);
-
-  /**
-   * Check the cache for any invalid entries (entries whose modification time
-   * does not match the modification time of the source associated with the
-   * entry). Invalid entries will be marked as invalid so that the source will
-   * be re-analyzed. Return `true` if at least one entry was invalid.
-   */
-  bool validateCacheConsistency();
 }
 
 /**
@@ -1078,6 +1070,12 @@ abstract class AnalysisOptions {
   bool get enableGenericMethods => null;
 
   /**
+   * Return `true` to enable the lazy compound assignment operators '&&=' and
+   * '||='.
+   */
+  bool get enableLazyAssignmentOperators;
+
+  /**
    * Return `true` to strictly follow the specification when generating
    * warnings on "call" methods (fixes dartbug.com/21938).
    */
@@ -1093,12 +1091,6 @@ abstract class AnalysisOptions {
    * Return `true` if timing data should be gathered during execution.
    */
   bool get enableTiming;
-
-  /**
-   * Return `true` to enable trailing commas in parameter and argument lists
-   * (sdk#26647).
-   */
-  bool get enableTrailingCommas;
 
   /**
    * A flag indicating whether finer grained dependencies should be used
@@ -1199,6 +1191,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
 
   /**
+   * The default list of non-nullable type names.
+   */
+  static const List<String> NONNULLABLE_TYPES = const <String>[];
+
+  /**
    * A predicate indicating whether analysis is to parse and analyze function
    * bodies.
    */
@@ -1233,6 +1230,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool enableGenericMethods = false;
 
+  @override
+  bool enableLazyAssignmentOperators = false;
+
   /**
    * A flag indicating whether analysis is to strictly follow the specification
    * when generating warnings on "call" methods (fixes dartbug.com/21938).
@@ -1247,9 +1247,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool enableTiming = false;
-
-  @override
-  bool enableTrailingCommas = false;
 
   /**
    * A flag indicating whether errors, warnings and hints should be generated
@@ -1320,6 +1317,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool implicitCasts = true;
 
+  /**
+   * A list of non-nullable type names, prefixed by the library URI they belong
+   * to, e.g., 'dart:core,int', 'dart:core,bool', 'file:///foo.dart,bar', etc.
+   */
+  List<String> nonnullableTypes = NONNULLABLE_TYPES;
+
   @override
   bool finerGrainedInvalidation = false;
 
@@ -1355,7 +1358,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
-    enableTrailingCommas = options.enableTrailingCommas;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
@@ -1368,6 +1370,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
+      nonnullableTypes = options.nonnullableTypes;
       implicitDynamic = options.implicitDynamic;
     }
     trackCacheDependencies = options.trackCacheDependencies;
@@ -1453,6 +1456,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.write(optionName);
       needsSeparator = true;
     }
+
     if (encoding & ENABLE_ASSERT_FLAG > 0) {
       add('assert');
     }
@@ -1550,6 +1554,58 @@ class ApplyChangesStatus {
   final bool hasChanges;
 
   ApplyChangesStatus(this.hasChanges);
+}
+
+/**
+ * Statistics about cache consistency validation.
+ */
+class CacheConsistencyValidationStatistics {
+  /**
+   * Number of sources which were changed, but the context was not notified
+   * about it, so this fact was detected only during cache consistency
+   * validation.
+   */
+  int numOfChanged = 0;
+
+  /**
+   * Number of sources which stopped existing, but the context was not notified
+   * about it, so this fact was detected only during cache consistency
+   * validation.
+   */
+  int numOfRemoved = 0;
+
+  /**
+   * Reset all counters.
+   */
+  void reset() {
+    numOfChanged = 0;
+    numOfRemoved = 0;
+  }
+}
+
+/**
+ * Interface for cache consistency validation in an [InternalAnalysisContext].
+ */
+abstract class CacheConsistencyValidator {
+  /**
+   * Return sources for which the contexts needs to know modification times.
+   */
+  List<Source> getSourcesToComputeModificationTimes();
+
+  /**
+   * Notify the validator that modification [times] were computed for [sources].
+   * If a source does not exist, its modification time is `-1`.
+   *
+   * It's up to the validator and the context how to use this information,
+   * the list of sources the context has might have been changed since the
+   * previous invocation of [getSourcesToComputeModificationTimes].
+   *
+   * Check the cache for any invalid entries (entries whose modification time
+   * does not match the modification time of the source associated with the
+   * entry). Invalid entries will be marked as invalid so that the source will
+   * be re-analyzed. Return `true` if at least one entry was invalid.
+   */
+  bool sourceModificationTimesComputed(List<Source> sources, List<int> times);
 }
 
 /**
@@ -2037,6 +2093,11 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   AnalysisCache get analysisCache;
 
   /**
+   * The cache consistency validator for this context.
+   */
+  CacheConsistencyValidator get cacheConsistencyValidator;
+
+  /**
    * Allow the client to supply its own content cache.  This will take the
    * place of the content cache created by default, allowing clients to share
    * the content cache between contexts.
@@ -2332,6 +2393,13 @@ class PerformanceStatistics {
    * The [PerformanceTag] for time spent in summaries support.
    */
   static PerformanceTag summary = new PerformanceTag('summary');
+
+  /**
+   * Statistics about cache consistency validation.
+   */
+  static final CacheConsistencyValidationStatistics
+      cacheConsistencyValidationStatistics =
+      new CacheConsistencyValidationStatistics();
 }
 
 /**

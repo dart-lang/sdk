@@ -39,6 +39,9 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     Request request =
         new SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
     Response response = await waitResponse(request);
+    if (response.error != null) {
+      return response.error;
+    }
     searchId =
         new SearchFindTopLevelDeclarationsResult.fromResponse(response).id;
     return waitForSearchResults();
@@ -70,5 +73,10 @@ class ABC {}
     assertHasDeclaration(ElementKind.FUNCTION, 'D');
     assertHasDeclaration(ElementKind.TOP_LEVEL_VARIABLE, 'E');
     assertNoDeclaration(ElementKind.CLASS, 'ABC');
+  }
+
+  test_invalidRegex() async {
+    var result = await findTopLevelDeclarations('[A');
+    expect(result, new isInstanceOf<RequestError>());
   }
 }

@@ -440,13 +440,6 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, library_load_error_table_);
   }
 
-  RawArray* compile_time_constants() const {
-    return compile_time_constants_;
-  }
-  void set_compile_time_constants(const Array& value) {
-    compile_time_constants_ = value.raw();
-  }
-
   RawArray* unique_dynamic_targets() const {
     return unique_dynamic_targets_;
   }
@@ -486,6 +479,16 @@ class ObjectStore {
     megamorphic_miss_function_ = func.raw();
   }
 
+  RawFunction* simple_instance_of_function() const {
+    return simple_instance_of_function_;
+  }
+  RawFunction* simple_instance_of_true_function() const {
+    return simple_instance_of_true_function_;
+  }
+  RawFunction* simple_instance_of_false_function() const {
+    return simple_instance_of_false_function_;
+  }
+
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -498,10 +501,15 @@ class ObjectStore {
 
   static void Init(Isolate* isolate);
 
+#ifndef PRODUCT
   void PrintToJSONObject(JSONObject* jsobj);
+#endif
 
  private:
   ObjectStore();
+
+  // Finds a core library private method in Object.
+  RawFunction* PrivateObjectLookup(const String& name);
 
 #define OBJECT_STORE_FIELD_LIST(V)                                             \
   V(RawClass*, object_class_)                                                  \
@@ -578,14 +586,17 @@ class ObjectStore {
   V(RawFunction*, lookup_port_handler_)                                        \
   V(RawTypedData*, empty_uint32_array_)                                        \
   V(RawFunction*, handle_message_function_)                                    \
+  V(RawFunction*, simple_instance_of_function_)                                \
+  V(RawFunction*, simple_instance_of_true_function_)                           \
+  V(RawFunction*, simple_instance_of_false_function_)                          \
   V(RawArray*, library_load_error_table_)                                      \
-  V(RawArray*, compile_time_constants_)                                        \
   V(RawArray*, unique_dynamic_targets_)                                        \
   V(RawGrowableObjectArray*, token_objects_)                                   \
   V(RawArray*, token_objects_map_)                                             \
   V(RawGrowableObjectArray*, megamorphic_cache_table_)                         \
   V(RawCode*, megamorphic_miss_code_)                                          \
   V(RawFunction*, megamorphic_miss_function_)                                  \
+  // Please remember the last entry must be referred in the 'to' function below.
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&object_class_); }
 #define DECLARE_OBJECT_STORE_FIELD(type, name)                                 \
@@ -598,7 +609,7 @@ OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kCore:
-        return reinterpret_cast<RawObject**>(&compile_time_constants_);
+        return reinterpret_cast<RawObject**>(&library_load_error_table_);
       case Snapshot::kAppWithJIT:
       case Snapshot::kAppNoJIT:
         return to();

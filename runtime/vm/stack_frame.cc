@@ -108,9 +108,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     Array maps;
     maps = Array::null();
     Stackmap map;
-    const uword entry = reinterpret_cast<uword>(code.instructions()->ptr()) +
-                        Instructions::HeaderSize();
-    map = code.GetStackmap(pc() - entry, &maps, &map);
+    const uword start = Instructions::PayloadStart(code.instructions());
+    map = code.GetStackmap(pc() - start, &maps, &map);
     if (!map.IsNull()) {
 #if !defined(TARGET_ARCH_DBC)
       RawObject** first = reinterpret_cast<RawObject**>(sp());
@@ -260,7 +259,7 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   if (code.IsNull()) {
     return false;  // Stub frames do not have exception handlers.
   }
-  uword pc_offset = pc() - code.EntryPoint();
+  uword pc_offset = pc() - code.PayloadStart();
 
   REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(thread);
   ExceptionHandlers& handlers = reused_exception_handlers_handle.Handle();
@@ -279,7 +278,7 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
     if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
       RawExceptionHandlers::HandlerInfo handler_info;
       handlers.GetHandlerInfo(current_try_index, &handler_info);
-      *handler_pc = code.EntryPoint() + handler_info.handler_pc_offset;
+      *handler_pc = code.PayloadStart() + handler_info.handler_pc_offset;
       *needs_stacktrace = handler_info.needs_stacktrace;
       *has_catch_all = handler_info.has_catch_all;
       return true;
@@ -294,7 +293,7 @@ TokenPosition StackFrame::GetTokenPos() const {
   if (code.IsNull()) {
     return TokenPosition::kNoSource;  // Stub frames do not have token_pos.
   }
-  uword pc_offset = pc() - code.EntryPoint();
+  uword pc_offset = pc() - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(!descriptors.IsNull());
@@ -489,6 +488,7 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
 InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
   : index_(0),
     num_materializations_(0),
+    dest_frame_size_(0),
     code_(Code::Handle(code.raw())),
     deopt_info_(TypedData::Handle()),
     function_(Function::Handle()),
@@ -512,6 +512,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     ASSERT(!deopt_table.IsNull());
     DeoptInfo::Unpack(deopt_table, deopt_info_, &deopt_instructions_);
     num_materializations_ = DeoptInfo::NumMaterializations(deopt_instructions_);
+    dest_frame_size_ = DeoptInfo::FrameSize(deopt_info_);
     object_table_ = code_.GetObjectPool();
     Advance();
   }
@@ -550,7 +551,14 @@ intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
        index++) {
     DeoptInstr* deopt_instr = deopt_instructions_[index];
     if (deopt_instr->kind() == DeoptInstr::kCallerFp) {
+#if defined(TARGET_ARCH_DBC)
+      // Stack on DBC is growing upwards but we record deopt commands
+      // in the same order we record them on other architectures as if
+      // the stack was growing downwards.
+      return dest_frame_size_ - index;
+#else
       return (index - num_materializations_);
+#endif
     }
   }
   UNREACHABLE();

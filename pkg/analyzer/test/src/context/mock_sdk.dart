@@ -4,6 +4,7 @@
 
 library analyzer.test.src.context.mock_sdk;
 
+import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/src/context/cache.dart';
@@ -11,10 +12,27 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
+import 'package:analyzer/src/summary/summarize_elements.dart'
+    show PackageBundleAssembler;
+
+const String librariesContent = r'''
+const Map<String, LibraryInfo> libraries = const {
+  "async": const LibraryInfo("async/async.dart"),
+  "collection": const LibraryInfo("collection/collection.dart"),
+  "convert": const LibraryInfo("convert/convert.dart"),
+  "core": const LibraryInfo("core/core.dart"),
+  "html": const LibraryInfo("html/dartium/html_dartium.dart"),
+  "math": const LibraryInfo("math/math.dart"),
+  "_foreign_helper": const LibraryInfo("_internal/js_runtime/lib/foreign_helper.dart"),
+};
+''';
+
+const String sdkRoot = '/sdk';
 
 const _MockSdkLibrary _LIB_ASYNC = const _MockSdkLibrary(
     'dart:async',
-    '/lib/async/async.dart',
+    '$sdkRoot/lib/async/async.dart',
     '''
 library dart.async;
 
@@ -29,7 +47,9 @@ class Future<T> {
 
   static Future<List/*<T>*/> wait/*<T>*/(
       Iterable<Future/*<T>*/> futures) => null;
-  Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
+  Future/*<R>*/ then/*<R>*/(onValue(T value)) => null;
+
+  Future<T> whenComplete(action());
 }
 
 abstract class Completer<T> {
@@ -42,7 +62,7 @@ abstract class Completer<T> {
 }
 ''',
     const <String, String>{
-      '/lib/async/stream.dart': r'''
+      '$sdkRoot/lib/async/stream.dart': r'''
 part of dart.async;
 class Stream<T> {
   Future<T> get first;
@@ -53,7 +73,7 @@ abstract class StreamTransformer<S, T> {}
 
 const _MockSdkLibrary _LIB_COLLECTION = const _MockSdkLibrary(
     'dart:collection',
-    '/lib/collection/collection.dart',
+    '$sdkRoot/lib/collection/collection.dart',
     '''
 library dart.collection;
 
@@ -62,7 +82,7 @@ abstract class HashMap<K, V> implements Map<K, V> {}
 
 const _MockSdkLibrary _LIB_CONVERT = const _MockSdkLibrary(
     'dart:convert',
-    '/lib/convert/convert.dart',
+    '$sdkRoot/lib/convert/convert.dart',
     '''
 library dart.convert;
 
@@ -74,7 +94,7 @@ class JsonDecoder extends Converter<String, Object> {}
 
 const _MockSdkLibrary _LIB_CORE = const _MockSdkLibrary(
     'dart:core',
-    '/lib/core/core.dart',
+    '$sdkRoot/lib/core/core.dart',
     '''
 library dart.core;
 
@@ -194,6 +214,10 @@ abstract class Iterable<E> {
 
   /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
       /*=R*/ combine(/*=R*/ previousValue, E element));
+
+  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element));
+
+  List<E> toList();
 }
 
 class List<E> implements Iterable<E> {
@@ -224,6 +248,9 @@ external bool identical(Object a, Object b);
 
 void print(Object object) {}
 
+const proxy = const _Proxy();
+class _Proxy { const _Proxy(); }
+
 class _Override {
   const _Override();
 }
@@ -232,7 +259,7 @@ const Object override = const _Override();
 
 const _MockSdkLibrary _LIB_FOREIGN_HELPER = const _MockSdkLibrary(
     'dart:_foreign_helper',
-    '/lib/_foreign_helper/_foreign_helper.dart',
+    '$sdkRoot/lib/_foreign_helper/_foreign_helper.dart',
     '''
 library dart._foreign_helper;
 
@@ -243,7 +270,7 @@ JS(String typeDescription, String codeTemplate,
 
 const _MockSdkLibrary _LIB_HTML = const _MockSdkLibrary(
     'dart:html',
-    '/lib/html/dartium/html_dartium.dart',
+    '$sdkRoot/lib/html/dartium/html_dartium.dart',
     '''
 library dart.html;
 class HtmlElement {}
@@ -251,7 +278,7 @@ class HtmlElement {}
 
 const _MockSdkLibrary _LIB_MATH = const _MockSdkLibrary(
     'dart:math',
-    '/lib/math/math.dart',
+    '$sdkRoot/lib/math/math.dart',
     '''
 library dart.math;
 
@@ -284,22 +311,21 @@ const List<SdkLibrary> _LIBRARIES = const [
 
 class MockSdk implements DartSdk {
   static const Map<String, String> FULL_URI_MAP = const {
-    "dart:core": "/lib/core/core.dart",
-    "dart:html": "/lib/html/dartium/html_dartium.dart",
-    "dart:async": "/lib/async/async.dart",
-    "dart:async/stream.dart": "/lib/async/stream.dart",
-    "dart:collection": "/lib/collection/collection.dart",
-    "dart:convert": "/lib/convert/convert.dart",
-    "dart:_foreign_helper": "/lib/_foreign_helper/_foreign_helper.dart",
-    "dart:math": "/lib/math/math.dart"
+    "dart:core": "$sdkRoot/lib/core/core.dart",
+    "dart:html": "$sdkRoot/lib/html/dartium/html_dartium.dart",
+    "dart:async": "$sdkRoot/lib/async/async.dart",
+    "dart:async/stream.dart": "$sdkRoot/lib/async/stream.dart",
+    "dart:collection": "$sdkRoot/lib/collection/collection.dart",
+    "dart:convert": "$sdkRoot/lib/convert/convert.dart",
+    "dart:_foreign_helper": "$sdkRoot/lib/_foreign_helper/_foreign_helper.dart",
+    "dart:math": "$sdkRoot/lib/math/math.dart"
   };
 
   static const Map<String, String> NO_ASYNC_URI_MAP = const {
-    "dart:core": "/lib/core/core.dart",
+    "dart:core": "$sdkRoot/lib/core/core.dart",
   };
 
-  final resource.MemoryResourceProvider provider =
-      new resource.MemoryResourceProvider();
+  final resource.MemoryResourceProvider provider;
 
   final Map<String, String> uriMap;
 
@@ -311,8 +337,14 @@ class MockSdk implements DartSdk {
   @override
   final List<SdkLibrary> sdkLibraries;
 
-  MockSdk({bool dartAsync: true})
-      : sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE],
+  /**
+   * The cached linked bundle of the SDK.
+   */
+  PackageBundle _bundle;
+
+  MockSdk({bool dartAsync: true, resource.ResourceProvider resourceProvider})
+      : provider = resourceProvider ?? new resource.MemoryResourceProvider(),
+        sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE],
         uriMap = dartAsync ? FULL_URI_MAP : NO_ASYNC_URI_MAP {
     for (_MockSdkLibrary library in sdkLibraries) {
       provider.newFile(library.path, library.content);
@@ -320,6 +352,8 @@ class MockSdk implements DartSdk {
         provider.newFile(path, content);
       });
     }
+    provider.newFile(
+        '/_internal/sdk_library_metadata/lib/libraries.dart', librariesContent);
   }
 
   @override
@@ -342,7 +376,7 @@ class MockSdk implements DartSdk {
   @override
   Source fromFileUri(Uri uri) {
     String filePath = uri.path;
-    String libPath = '/lib';
+    String libPath = '$sdkRoot/lib';
     if (!filePath.startsWith("$libPath/")) {
       return null;
     }
@@ -373,6 +407,22 @@ class MockSdk implements DartSdk {
   }
 
   @override
+  PackageBundle getLinkedBundle() {
+    if (_bundle == null) {
+      PackageBundleAssembler assembler = new PackageBundleAssembler();
+      for (SdkLibrary sdkLibrary in sdkLibraries) {
+        String uriStr = sdkLibrary.shortName;
+        Source source = mapDartUri(uriStr);
+        LibraryElement libraryElement = context.computeLibraryElement(source);
+        assembler.serializeLibraryElement(libraryElement);
+      }
+      List<int> bytes = assembler.assemble().toBuffer();
+      _bundle = new PackageBundle.fromBuffer(bytes);
+    }
+    return _bundle;
+  }
+
+  @override
   SdkLibrary getSdkLibrary(String dartUri) {
     // getSdkLibrary() is only used to determine whether a library is internal
     // to the SDK.  The mock SDK doesn't have any internals, so it's safe to
@@ -392,6 +442,19 @@ class MockSdk implements DartSdk {
     // If we reach here then we tried to use a dartUri that's not in the
     // table above.
     return null;
+  }
+
+  /**
+   * This method is used to apply patches to [MockSdk].  It may be called only
+   * before analysis, i.e. before the analysis context was created.
+   */
+  void updateUriFile(String uri, String updateContent(String content)) {
+    assert(_analysisContext == null);
+    String path = FULL_URI_MAP[uri];
+    assert(path != null);
+    String content = provider.getFile(path).readAsStringSync();
+    String newContent = updateContent(content);
+    provider.updateFile(path, newContent);
   }
 }
 

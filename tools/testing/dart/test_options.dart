@@ -163,6 +163,9 @@ class TestOptionsParser {
       new _TestOptionSpecification(
           'checked', 'Run tests in checked mode', ['--checked'], [], false,
           type: 'bool'),
+      new _TestOptionSpecification(
+          'strong', 'Run tests in strong mode', ['--strong'], [], false,
+          type: 'bool'),
       new _TestOptionSpecification('host_checked',
           'Run compiler in checked mode', ['--host-checked'], [], false,
           type: 'bool'),
@@ -188,6 +191,11 @@ class TestOptionsParser {
           type: 'bool'),
       new _TestOptionSpecification(
           'hot_reload', 'Run hot reload stress tests', ['--hot-reload'], [],
+          false, type: 'bool'),
+      new _TestOptionSpecification(
+          'hot_reload_rollback',
+          'Run hot reload rollback stress tests', ['--hot-reload-rollback'],
+          [],
           false, type: 'bool'),
       new _TestOptionSpecification(
           'use_blobs',
@@ -428,6 +436,12 @@ Note: currently only implemented for dart2js.''',
           null),
       new _TestOptionSpecification('package_root',
           'The package root to use for testing.', ['--package-root'], [], null),
+      new _TestOptionSpecification(
+          'packages',
+          'The package spec file to use for testing.',
+          ['--packages'],
+          [],
+          null),
       new _TestOptionSpecification(
           'exclude_suite',
           'Exclude suites from default selector, only works when no'
@@ -703,7 +717,7 @@ Note: currently only implemented for dart2js.''',
   List<Map> _expandConfigurations(Map configuration) {
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
-      configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips,simdbc';
+      configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips,simdbc64';
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release,product';
@@ -819,12 +833,15 @@ Note: currently only implemented for dart2js.''',
 
     // Adjust default timeout based on mode, compiler, and sometimes runtime.
     if (configuration['timeout'] == -1) {
+      var isReload = configuration['hot_reload'] ||
+                     configuration['hot_reload_rollback'];
       int compilerMulitiplier =
           new CompilerConfiguration(configuration).computeTimeoutMultiplier();
       int runtimeMultiplier = new RuntimeConfiguration(configuration)
           .computeTimeoutMultiplier(
               mode: configuration['mode'],
               isChecked: configuration['checked'],
+              isReload: isReload,
               arch: configuration['arch']);
       configuration['timeout'] = 60 * compilerMulitiplier * runtimeMultiplier;
     }

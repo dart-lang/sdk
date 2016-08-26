@@ -6,8 +6,8 @@ library dart2js.resolution.members;
 
 import '../common.dart';
 import '../common/names.dart' show Selectors;
-import '../common/resolution.dart' show Feature;
-import '../compiler.dart' show Compiler;
+import '../common/resolution.dart' show Resolution;
+import '../compile_time_constants.dart';
 import '../constants/constructors.dart'
     show RedirectingFactoryConstantConstructor;
 import '../constants/expressions.dart';
@@ -20,16 +20,17 @@ import '../elements/modelx.dart'
         ConstructorElementX,
         ErroneousElementX,
         FunctionElementX,
-        InitializingFormalElementX,
         JumpTargetX,
         LocalFunctionElementX,
         LocalParameterElementX,
         ParameterElementX,
         VariableElementX,
         VariableList;
+import '../options.dart';
 import '../tokens/token.dart' show isUserDefinableOperator;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/feature.dart' show Feature;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart' show Link;
@@ -112,7 +113,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   bool isPotentiallyMutableTarget(Element target) {
     if (target == null) return false;
-    return (target.isVariable || target.isParameter) &&
+    return (target.isVariable || target.isRegularParameter) &&
         !(target.isFinal || target.isConst);
   }
 
@@ -142,7 +143,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           r')$');
 
   ResolverVisitor(
-      Compiler compiler, Element element, ResolutionRegistry registry,
+      Resolution resolution, Element element, ResolutionRegistry registry,
       {Scope scope, bool useEnclosingScope: false})
       : this.enclosingElement = element,
         // When the element is a field, we are actually resolving its
@@ -159,7 +160,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                 : element.buildScope()),
         // The type annotations on a typedef do not imply type checks.
         // TODO(karlklose): clean this up (dartbug.com/8870).
-        inCheckContext = compiler.options.enableTypeAssertions &&
+        inCheckContext = resolution.options.enableTypeAssertions &&
             !element.isLibrary &&
             !element.isTypedef &&
             !element.enclosingElement.isTypedef,
@@ -167,11 +168,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         constantState = element.isConst
             ? ConstantState.CONSTANT
             : ConstantState.NON_CONSTANT,
-        super(compiler, registry);
+        super(resolution, registry);
 
-  CoreClasses get coreClasses => compiler.coreClasses;
-
-  CoreTypes get coreTypes => compiler.coreTypes;
+  CoreClasses get coreClasses => resolution.coreClasses;
+  CoreTypes get coreTypes => resolution.coreTypes;
+  ConstantEnvironment get constants => resolution.constants;
+  ResolverTask get resolver => resolution.resolver;
+  CompilerOptions get options => resolution.options;
 
   AsyncMarker get currentAsyncMarker {
     if (enclosingElement is FunctionElement) {
@@ -370,11 +373,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   TypeResult visitTypeAnnotation(TypeAnnotation node) {
-    DartType type = resolveTypeAnnotation(node);
-    if (inCheckContext) {
-      registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
-    }
-    return new TypeResult(type);
+    return new TypeResult(resolveTypeAnnotation(node));
   }
 
   bool isNamedConstructor(Send node) => node.receiver != null;
@@ -454,18 +453,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     addDeferredAction(enclosingElement, () {
       functionSignature.forEachOptionalParameter((ParameterElementX parameter) {
         parameter.constant =
-            compiler.resolver.constantCompiler.compileConstant(parameter);
+            resolver.constantCompiler.compileConstant(parameter);
       });
     });
-    if (inCheckContext) {
-      functionSignature.forEachParameter((ParameterElement element) {
-        registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
-      });
-    }
+    functionSignature.forEachParameter((ParameterElement element) {
+      registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
+    });
   }
 
   ResolutionResult visitAssert(Assert node) {
-    if (!compiler.options.enableAssertMessage) {
+    if (!options.enableAssertMessage) {
       if (node.hasMessage) {
         reporter.reportErrorMessage(
             node, MessageKind.EXPERIMENTAL_ASSERT_MESSAGE);
@@ -564,7 +561,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       reporter.reportErrorMessage(node.name,
           MessageKind.NAMED_FUNCTION_EXPRESSION, {'name': node.name});
     }
-    visit(node.returnType);
     String name;
     if (node.name == null) {
       name = "";
@@ -573,9 +569,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     LocalFunctionElementX function = new LocalFunctionElementX(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY, enclosingElement);
-    ResolverTask.processAsyncMarker(compiler, function, registry);
+    ResolverTask.processAsyncMarker(resolution, function, registry);
     function.functionSignature = SignatureResolver.analyze(
-        compiler,
+        resolution,
         scope,
         node.typeVariables,
         node.parameters,
@@ -880,7 +876,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// Compute the [AccessSemantics] corresponding to a local access of [target].
   AccessSemantics computeLocalAccessSemantics(
       Spannable node, LocalElement target) {
-    if (target.isParameter) {
+    if (target.isRegularParameter) {
       if (target.isFinal || target.isConst) {
         return new StaticAccess.finalParameter(target);
       } else {
@@ -2017,7 +2013,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleConstantTypeLiteralUpdate(SendSet node, Name name,
       TypeDeclarationElement element, DartType type, ConstantAccess semantics) {
     // TODO(johnniwinther): Remove this when all constants are evaluated.
-    compiler.resolver.constantCompiler.evaluate(semantics.constant);
+    resolver.constantCompiler.evaluate(semantics.constant);
 
     ErroneousElement error;
     if (node.isIfNullAssignment) {
@@ -2560,7 +2556,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleLocalUpdate(Send node, Name name, Element element) {
     AccessSemantics semantics;
     ErroneousElement error;
-    if (element.isParameter) {
+    if (element.isRegularParameter) {
       if (element.isFinal) {
         error = reportAndCreateErroneousElement(node.selector, name.text,
             MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER, {'name': name});
@@ -2569,7 +2565,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         semantics = new StaticAccess.parameter(element);
       }
     } else if (element.isInitializingFormal &&
-        compiler.options.enableInitializingFormalAccess) {
+        options.enableInitializingFormalAccess) {
       error = reportAndCreateErroneousElement(node.selector, name.text,
           MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER, {'name': name});
       semantics = new StaticAccess.finalParameter(element);
@@ -2627,12 +2623,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // of parse errors to make [element] erroneous. Fix this!
     member.computeType(resolution);
 
-    if (member == compiler.mirrorSystemGetNameFunction &&
-        !compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(enclosingElement)) {
+    if (member == resolution.mirrorSystemGetNameFunction &&
+        !resolution.mirrorUsageAnalyzerTask.hasMirrorUsage(enclosingElement)) {
       reporter
           .reportHintMessage(node.selector, MessageKind.STATIC_FUNCTION_BLOAT, {
-        'class': compiler.mirrorSystemClass.name,
-        'name': compiler.mirrorSystemGetNameFunction.name
+        'class': resolution.mirrorSystemClass.name,
+        'name': resolution.mirrorSystemGetNameFunction.name
       });
     }
 
@@ -2658,7 +2654,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             registry.registerStaticUse(
                 new StaticUse.staticInvoke(semantics.element, callStructure));
             handleForeignCall(node, semantics.element, callStructure);
-            if (method == compiler.identicalFunction &&
+            if (method == resolution.identicalFunction &&
                 argumentsResult.isValidAsConstant) {
               result = new ConstantResult(
                   node,
@@ -3028,7 +3024,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   // TODO(johnniwinther): Move this to the backend resolution callbacks.
   void handleForeignCall(
       Send node, Element target, CallStructure callStructure) {
-    if (target != null && compiler.backend.isForeign(target)) {
+    if (target != null && resolution.target.isForeign(target)) {
       registry.registerForeignCall(node, target, callStructure, this);
     }
   }
@@ -3577,7 +3573,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitYield(Yield node) {
-    if (!compiler.backend.supportsAsyncAwait) {
+    if (!resolution.target.supportsAsyncAwait) {
       reporter.reportErrorMessage(
           node.yieldToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
@@ -3608,11 +3604,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstructorResult result =
         resolveRedirectingFactory(node, inConstContext: isConstConstructor);
     ConstructorElement redirectionTarget = result.element;
-    constructor.immediateRedirectionTarget = redirectionTarget;
-
-    if (result.isDeferred) {
-      constructor.redirectionDeferredPrefix = result.prefix;
-    }
+    constructor.setImmediateRedirectionTarget(
+        redirectionTarget, result.isDeferred ? result.prefix : null);
 
     registry.setRedirectingTargetConstructor(node, redirectionTarget);
     switch (result.kind) {
@@ -3621,7 +3614,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // Register a post process to check for cycles in the redirection chain
         // and set the actual generative constructor at the end of the chain.
         addDeferredAction(constructor, () {
-          compiler.resolver.resolveRedirectionChain(constructor, node);
+          resolver.resolveRedirectionChain(constructor, node);
         });
         break;
       case ConstructorResultKind.ABSTRACT:
@@ -3659,7 +3652,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         .subst(type.typeArguments, targetClass.typeVariables);
     FunctionType constructorType = constructor.computeType(resolution);
     bool isSubtype =
-        compiler.types.isSubtype(targetConstructorType, constructorType);
+        resolution.types.isSubtype(targetConstructorType, constructorType);
     if (!isSubtype) {
       reporter.reportWarningMessage(node, MessageKind.NOT_ASSIGNABLE,
           {'fromType': targetConstructorType, 'toType': constructorType});
@@ -3684,7 +3677,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerTypeUse(new TypeUse.instantiation(redirectionTarget
         .enclosingClass.thisType
         .subst(type.typeArguments, targetClass.typeVariables)));
-    if (enclosingElement == compiler.symbolConstructor) {
+    if (enclosingElement == resolution.symbolConstructor) {
       registry.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
     }
     if (isValidAsConstant) {
@@ -3718,7 +3711,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAwait(Await node) {
-    if (!compiler.backend.supportsAsyncAwait) {
+    if (!resolution.target.supportsAsyncAwait) {
       reporter.reportErrorMessage(
           node.awaitToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
@@ -3740,7 +3733,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     VariableList variables = new VariableList.node(node, type);
     VariableDefinitionsVisitor visitor =
-        new VariableDefinitionsVisitor(compiler, node, this, variables);
+        new VariableDefinitionsVisitor(resolution, node, this, variables);
 
     Modifiers modifiers = node.modifiers;
     void reportExtraModifier(String modifier) {
@@ -3757,6 +3750,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       reporter.reportErrorMessage(modifierNode, MessageKind.EXTRANEOUS_MODIFIER,
           {'modifier': modifier});
     }
+
     if (modifiers.isFinal && (modifiers.isConst || modifiers.isVar)) {
       reportExtraModifier('final');
     }
@@ -3773,7 +3767,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     if (node.metadata != null) {
       variables.metadataInternal =
-          compiler.resolver.resolveMetadata(enclosingElement, node);
+          resolver.resolveMetadata(enclosingElement, node);
     }
     visitor.visit(node.definitions);
     return const NoneResult();
@@ -3893,11 +3887,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.isConst) {
       bool isValidAsConstant = !isInvalid && constructor.isConst;
 
-      if (constructor == compiler.symbolConstructor) {
+      if (constructor == resolution.symbolConstructor) {
         Node argumentNode = node.send.arguments.head;
-        ConstantExpression constant = compiler.resolver.constantCompiler
+        ConstantExpression constant = resolver.constantCompiler
             .compileNode(argumentNode, registry.mapping);
-        ConstantValue name = compiler.constants.getConstantValue(constant);
+        ConstantValue name = resolution.constants.getConstantValue(constant);
         if (!name.isString) {
           DartType type = name.getType(coreTypes);
           reporter.reportErrorMessage(
@@ -3909,8 +3903,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             registry.registerConstSymbol(nameString);
           }
         }
-      } else if (constructor == compiler.mirrorsUsedConstructor) {
-        compiler.mirrorUsageAnalyzerTask.validate(node, registry.mapping);
+      } else if (constructor == resolution.mirrorsUsedConstructor) {
+        resolution.mirrorUsageAnalyzerTask.validate(node, registry.mapping);
       }
 
       analyzeConstantDeferred(node);
@@ -3969,8 +3963,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       analyzeConstantDeferred(node, onAnalyzed: onAnalyzed);
     } else {
       // Not constant.
-      if (constructor == compiler.symbolConstructor &&
-          !compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(enclosingElement)) {
+      if (constructor == resolution.symbolConstructor &&
+          !resolution.mirrorUsageAnalyzerTask
+              .hasMirrorUsage(enclosingElement)) {
         reporter.reportHintMessage(node.newToken, MessageKind.NON_CONST_BLOAT,
             {'name': coreClasses.symbolClass.name});
       }
@@ -4001,15 +3996,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   void analyzeConstant(Node node, {enforceConst: true}) {
-    ConstantExpression constant = compiler.resolver.constantCompiler
+    ConstantExpression constant = resolver.constantCompiler
         .compileNode(node, registry.mapping, enforceConst: enforceConst);
 
     if (constant == null) {
-      assert(invariant(node, compiler.compilationFailed));
+      assert(invariant(node, reporter.hasReportedError));
       return;
     }
 
-    ConstantValue value = compiler.constants.getConstantValue(constant);
+    ConstantValue value = resolution.constants.getConstantValue(constant);
     if (value.isMap) {
       checkConstMapKeysDontOverrideEquals(node, value);
     }
@@ -4050,13 +4045,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
    * [:null:], if there is no corresponding constructor, class or library.
    */
   ConstructorResult resolveConstructor(NewExpression node) {
-    return node.accept(
-        new ConstructorResolver(compiler, this, inConstContext: node.isConst));
+    return node.accept(new ConstructorResolver(resolution, this,
+        inConstContext: node.isConst));
   }
 
   ConstructorResult resolveRedirectingFactory(RedirectingFactoryBody node,
       {bool inConstContext: false}) {
-    return node.accept(new ConstructorResolver(compiler, this,
+    return node.accept(new ConstructorResolver(resolution, this,
         inConstContext: inConstContext));
   }
 
@@ -4065,9 +4060,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     DartType type = typeResolver.resolveTypeAnnotation(this, node,
         malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
-    if (inCheckContext) {
-      registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
-    }
+    registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
     return type;
   }
 
@@ -4245,7 +4238,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
-    if (!compiler.backend.supportsAsyncAwait) {
+    if (!resolution.target.supportsAsyncAwait) {
       reporter.reportErrorMessage(
           node.awaitToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
@@ -4333,7 +4326,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
     } else {
       // The selector may only be null if we reported an error.
-      assert(invariant(declaration, compiler.compilationFailed));
+      assert(invariant(declaration, reporter.hasReportedError));
     }
     if (loopVariable != null) {
       // loopVariable may be null if it could not be resolved.
@@ -4496,7 +4489,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         assert(invariant(node, constant != null,
             message: 'No constant computed for $node'));
 
-        ConstantValue value = compiler.constants.getConstantValue(constant);
+        ConstantValue value = resolution.constants.getConstantValue(constant);
         DartType caseType = value.getType(coreTypes); //typeOfConstant(value);
 
         if (firstCaseType == null) {

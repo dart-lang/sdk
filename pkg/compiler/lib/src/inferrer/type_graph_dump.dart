@@ -4,10 +4,11 @@
 library dart2js.inferrer.type_graph_dump;
 
 import 'dart:async';
-import 'type_graph_nodes.dart';
-import 'type_graph_inferrer.dart';
+
 import '../elements/elements.dart';
 import '../types/types.dart';
+import 'type_graph_inferrer.dart';
+import 'type_graph_nodes.dart';
 
 /// Dumps the type inference graph in Graphviz Dot format into the `typegraph`
 /// subfolder of the current working directory. Each function body is dumped in

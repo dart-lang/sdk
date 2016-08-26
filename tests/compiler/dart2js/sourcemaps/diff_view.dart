@@ -65,11 +65,13 @@ main(List<String> args) async {
   List<String> commonArguments = optionSegments[0];
   List<List<String>> options = <List<String>>[];
   if (optionSegments.length == 1) {
+    // TODO(sigmund, johnniwinther): change default options now that CPS is
+    // deleted.
     // Use default options; comparing SSA and CPS output using the new
     // source information strategy.
     options.add([Flags.useNewSourceInfo]..addAll(commonArguments));
-    options.add(
-        [Flags.useNewSourceInfo, Flags.useCpsIr]..addAll(commonArguments));
+    options.add([Flags.useNewSourceInfo]..addAll(commonArguments));
+    throw "missing options: please specify options for the second column";
   } else if (optionSegments.length == 2) {
     // Use alternative options for the second output column.
     options.add(commonArguments);

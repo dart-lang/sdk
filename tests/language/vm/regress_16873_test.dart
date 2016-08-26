@@ -1,7 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--new_gen_heap_size=1 --no_inline_alloc
+// VMOptions=--new_gen_semi_max_size=1 --no_inline_alloc
 
 // Regression test for slow-path allocation in the allocation stub.
 

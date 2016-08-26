@@ -11,8 +11,8 @@ import 'dart:io' as io;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -80,7 +80,7 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
    * [RunPubList] and [WriteFile] implementations may be injected for testing
    */
   CachingPubPackageMapProvider(
-      ResourceProvider resourceProvider, DirectoryBasedDartSdk sdk,
+      ResourceProvider resourceProvider, FolderBasedDartSdk sdk,
       [RunPubList runPubList, this._writeFile])
       : super(resourceProvider, sdk, runPubList) {
     if (_writeFile == null) {
@@ -106,7 +106,8 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
     // Check for cached entry
     Map entry = _cache[folder.path];
     if (entry != null) {
-      Map<String, int> modificationStamps = entry[modificationStampsKey];
+      Map<String, int> modificationStamps =
+          entry[modificationStampsKey] as Map<String, int>;
       if (modificationStamps != null) {
         //
         // Check to see if any dependencies have changed
@@ -217,7 +218,7 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
         TimestampedData<String> data = source.contents;
         Map map = JSON.decode(data.data);
         if (map[cacheVersionKey] == cacheVersion) {
-          _cache = map[cacheKey];
+          _cache = map[cacheKey] as Map<String, Map>;
           _cacheModificationTime = data.modificationTime;
         }
       } catch (exception, stackTrace) {

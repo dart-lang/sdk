@@ -4,6 +4,7 @@
 // Dart test program for testing isolate communication with
 // typed objects.
 // VMOptions=--disassemble
+// VMOptions=--disassemble --print-variable-descriptors --no-background-compilation
 
 // Tests proper object recognition in disassembler.
 

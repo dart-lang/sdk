@@ -33,7 +33,8 @@ class MemorySourceFileProvider extends SourceFileProvider {
     }
     String source = memorySourceFiles[resourceUri.path];
     if (source == null) {
-      return new Future.error(new Exception('No such file $resourceUri'));
+      return new Future.error(new Exception(
+          'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
     this.sourceFiles[resourceUri] =
         new StringSourceFile.fromUri(resourceUri, source);
@@ -48,7 +49,8 @@ class MemorySourceFileProvider extends SourceFileProvider {
     }
     String source = memorySourceFiles[resourceUri.path];
     if (source == null) {
-      throw new Exception('No such file $resourceUri');
+      throw new Exception(
+          'No such memory file $resourceUri in ${memorySourceFiles.keys}');
     }
     return new StringSourceFile.fromUri(resourceUri, source);
   }

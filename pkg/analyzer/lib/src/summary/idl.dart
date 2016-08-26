@@ -650,6 +650,21 @@ abstract class PackageBundle extends base.SummaryClass {
       generated.readPackageBundle(buffer);
 
   /**
+   * MD5 hash of the non-informative fields of the [PackageBundle] (not
+   * including this one).  This can be used to identify when the API of a
+   * package may have changed.
+   */
+  @Id(7)
+  String get apiSignature;
+
+  /**
+   * Information about the packages this package depends on, if known.
+   */
+  @Id(8)
+  @informative
+  List<PackageDependencyInfo> get dependencies;
+
+  /**
    * Linked libraries.
    */
   @Id(0)
@@ -698,6 +713,51 @@ abstract class PackageBundle extends base.SummaryClass {
 }
 
 /**
+ * Information about a single dependency of a summary package.
+ */
+abstract class PackageDependencyInfo extends base.SummaryClass {
+  /**
+   * API signature of this dependency.
+   */
+  @Id(0)
+  String get apiSignature;
+
+  /**
+   * If this dependency summarizes any files whose URI takes the form
+   * "package:<package_name>/...", a list of all such package names, sorted
+   * lexicographically.  Otherwise empty.
+   */
+  @Id(2)
+  List<String> get includedPackageNames;
+
+  /**
+   * Indicates whether this dependency summarizes any files whose URI takes the
+   * form "dart:...".
+   */
+  @Id(4)
+  bool get includesDartUris;
+
+  /**
+   * Indicates whether this dependency summarizes any files whose URI takes the
+   * form "file:...".
+   */
+  @Id(3)
+  bool get includesFileUris;
+
+  /**
+   * Relative path to the summary file for this dependency.  This is intended as
+   * a hint to help the analysis server locate summaries of dependencies.  We
+   * don't specify precisely what this path is relative to, but we expect it to
+   * be relative to a directory the analysis server can find (e.g. for projects
+   * built using Bazel, it would be relative to the "bazel-bin" directory).
+   *
+   * Absent if the path is not known.
+   */
+  @Id(1)
+  String get summaryPath;
+}
+
+/**
  * Index information about a package.
  */
 @TopLevel('Indx')
@@ -714,12 +774,32 @@ abstract class PackageIndex extends base.SummaryClass {
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the offset of the element name relative to the beginning of the file.  The
-   * list is sorted in ascending order, so that the client can quickly check
-   * whether an element is referenced in this [PackageIndex].
+   * the identifier of the class member element name, or `null` if the element is
+   * a top-level element.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this
+   * [PackageIndex].
+   */
+  @Id(7)
+  List<int> get elementNameClassMemberIds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the named parameter name, or `null` if the element is not
+   * a named parameter.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this
+   * [PackageIndex].
+   */
+  @Id(8)
+  List<int> get elementNameParameterIds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the top-level element name, or `null` if the element is
+   * the unit.  The list is sorted in ascending order, so that the client can
+   * quickly check whether an element is referenced in this [PackageIndex].
    */
   @Id(1)
-  List<int> get elementOffsets;
+  List<int> get elementNameUnitMemberIds;
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
@@ -2630,6 +2710,13 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   @informative
   @Id(8)
   int get libraryNameOffset;
+
+  /**
+   * Offsets of the first character of each line in the source code.
+   */
+  @informative
+  @Id(17)
+  List<int> get lineStarts;
 
   /**
    * Part declarations in the compilation unit.

@@ -16,7 +16,6 @@ import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
-import 'info/send_info.dart' show collectSendMeasurements;
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
@@ -313,9 +312,6 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     }
     info.closures = nestedClosures;
     result.functions.add(info);
-    if (const bool.fromEnvironment('send_stats')) {
-      info.measurements = collectSendMeasurements(element, compiler);
-    }
     return info;
   }
 

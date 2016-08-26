@@ -487,6 +487,7 @@ void Flags::PrintFlags() {
 }
 
 
+#ifndef PRODUCT
 void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
   if (!FLAG_support_service) {
     return;
@@ -542,5 +543,6 @@ void Flags::PrintJSON(JSONStream* js) {
     PrintFlagToJSONArray(&jsarr, flags_[i]);
   }
 }
+#endif  // !PRODUCT
 
 }  // namespace dart

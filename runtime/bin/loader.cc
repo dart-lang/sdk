@@ -66,14 +66,16 @@ Loader::~Loader() {
 // Copy the contents of |message| into an |IOResult|.
 void Loader::IOResult::Setup(Dart_CObject* message) {
   ASSERT(message->type == Dart_CObject_kArray);
-  ASSERT(message->value.as_array.length == 4);
+  ASSERT(message->value.as_array.length == 5);
   Dart_CObject* tag_message = message->value.as_array.values[0];
   ASSERT(tag_message != NULL);
   Dart_CObject* uri_message = message->value.as_array.values[1];
   ASSERT(uri_message != NULL);
-  Dart_CObject* library_uri_message = message->value.as_array.values[2];
+  Dart_CObject* resolved_uri_message = message->value.as_array.values[2];
+  ASSERT(resolved_uri_message != NULL);
+  Dart_CObject* library_uri_message = message->value.as_array.values[3];
   ASSERT(library_uri_message != NULL);
-  Dart_CObject* payload_message = message->value.as_array.values[3];
+  Dart_CObject* payload_message = message->value.as_array.values[4];
   ASSERT(payload_message != NULL);
 
   // Grab the tag.
@@ -83,6 +85,10 @@ void Loader::IOResult::Setup(Dart_CObject* message) {
   // Grab the uri id.
   ASSERT(uri_message->type == Dart_CObject_kString);
   uri = strdup(uri_message->value.as_string);
+
+  // Grab the resolved uri.
+  ASSERT(resolved_uri_message->type == Dart_CObject_kString);
+  resolved_uri = strdup(resolved_uri_message->value.as_string);
 
   // Grab the library uri if one is present.
   if (library_uri_message->type != Dart_CObject_kNull) {
@@ -113,6 +119,7 @@ void Loader::IOResult::Setup(Dart_CObject* message) {
 
 void Loader::IOResult::Cleanup() {
   free(uri);
+  free(resolved_uri);
   free(library_uri);
   free(payload);
 }
@@ -268,6 +275,8 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // dropping the lock below |result| may no longer valid.
   Dart_Handle uri =
       Dart_NewStringFromCString(reinterpret_cast<char*>(result->uri));
+  Dart_Handle resolved_uri =
+      Dart_NewStringFromCString(reinterpret_cast<char*>(result->resolved_uri));
   Dart_Handle library_uri = Dart_Null();
   if (result->library_uri != NULL) {
     library_uri =
@@ -360,20 +369,20 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
 
   switch (tag) {
     case Dart_kImportTag:
-      dart_result = Dart_LoadLibrary(uri, source, 0, 0);
+      dart_result = Dart_LoadLibrary(uri, resolved_uri, source, 0, 0);
     break;
     case Dart_kSourceTag: {
       ASSERT(library_uri != Dart_Null());
       Dart_Handle library = Dart_LookupLibrary(library_uri);
       ASSERT(!Dart_IsError(library));
-      dart_result = Dart_LoadSource(library, uri, source, 0, 0);
+      dart_result = Dart_LoadSource(library, uri, resolved_uri, source, 0, 0);
     }
     break;
     case Dart_kScriptTag:
       if (is_snapshot) {
         dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
       } else {
-        dart_result = Dart_LoadScript(uri, source, 0, 0);
+        dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
       }
     break;
     default:
@@ -653,7 +662,7 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
     Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
     free(part_uri);
     return Dart_LoadSource(library,
-                           part_uri_obj,
+                           part_uri_obj, Dart_Null(),
                            Builtin::PartSource(id, url_string), 0, 0);
   }
   // All cases should have been handled above.
@@ -661,7 +670,12 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
 }
 
 
-Mutex Loader::loader_infos_lock_;
+void Loader::InitOnce() {
+  loader_infos_lock_ = new Mutex();
+}
+
+
+Mutex* Loader::loader_infos_lock_;
 Loader::LoaderInfo* Loader::loader_infos_ = NULL;
 intptr_t Loader::loader_infos_length_ = 0;
 intptr_t Loader::loader_infos_capacity_ = 0;
@@ -672,7 +686,7 @@ intptr_t Loader::loader_infos_capacity_ = 0;
 // correct loader.
 // This happens whenever an isolate begins loading.
 void Loader::AddLoader(Dart_Port port, IsolateData* isolate_data) {
-  MutexLocker ml(&loader_infos_lock_);
+  MutexLocker ml(loader_infos_lock_);
   ASSERT(LoaderForLocked(port) == NULL);
   if (loader_infos_length_ == loader_infos_capacity_) {
     // Grow to an initial capacity or double in size.
@@ -700,7 +714,7 @@ void Loader::AddLoader(Dart_Port port, IsolateData* isolate_data) {
 // Remove |port| from the map.
 // This happens once an isolate has finished loading.
 void Loader::RemoveLoader(Dart_Port port) {
-  MutexLocker ml(&loader_infos_lock_);
+  MutexLocker ml(loader_infos_lock_);
   const intptr_t index = LoaderIndexFor(port);
   ASSERT(index >= 0);
   const intptr_t last = loader_infos_length_ - 1;
@@ -733,14 +747,14 @@ Loader* Loader::LoaderForLocked(Dart_Port port) {
 
 
 Loader* Loader::LoaderFor(Dart_Port port) {
-  MutexLocker ml(&loader_infos_lock_);
+  MutexLocker ml(loader_infos_lock_);
   return LoaderForLocked(port);
 }
 
 
 void Loader::NativeMessageHandler(Dart_Port dest_port_id,
                                   Dart_CObject* message) {
-  MutexLocker ml(&loader_infos_lock_);
+  MutexLocker ml(loader_infos_lock_);
   Loader* loader = LoaderForLocked(dest_port_id);
   if (loader == NULL) {
     return;

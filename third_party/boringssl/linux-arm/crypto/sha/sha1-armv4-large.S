@@ -1,10 +1,11 @@
 #if defined(__arm__)
-#include "arm_arch.h"
+#include <openssl/arm_arch.h>
 
 .text
 .code	32
 
 .globl	sha1_block_data_order
+.hidden	sha1_block_data_order
 .type	sha1_block_data_order,%function
 
 .align	5

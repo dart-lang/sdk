@@ -236,7 +236,7 @@ HeapIterationScope::~HeapIterationScope() {
 #endif
   ASSERT(old_space_->tasks() == 1);
   old_space_->set_tasks(0);
-  ml.Notify();
+  ml.NotifyAll();
 }
 
 
@@ -350,6 +350,7 @@ void Heap::EndOldSpaceGC() {
 }
 
 
+#ifndef PRODUCT
 void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
   ClassTable* class_table = isolate()->class_table();
   if (space == kNew) {
@@ -358,6 +359,7 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
     class_table->ResetCountersOld();
   }
 }
+#endif
 
 
 void Heap::CollectNewSpaceGarbage(Thread* thread,
@@ -369,9 +371,9 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     RecordBeforeGC(kNew, reason);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
-    UpdateClassHeapStatsBeforeGC(kNew);
+    NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
     new_space_.Scavenge(invoke_api_callbacks);
-    isolate()->class_table()->UpdatePromoted();
+    NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
     RecordAfterGC(kNew);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
@@ -393,7 +395,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     RecordBeforeGC(kOld, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");
-    UpdateClassHeapStatsBeforeGC(kOld);
+    NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kOld));
     old_space_.MarkSweep(invoke_api_callbacks);
     RecordAfterGC(kOld);
     PrintStats();
@@ -729,11 +731,13 @@ void Heap::RecordAfterGC(Space space) {
   stats_.after_.old_ = old_space_.GetCurrentUsage();
   ASSERT((space == kNew && gc_new_space_in_progress_) ||
          (space == kOld && gc_old_space_in_progress_));
+#ifndef PRODUCT
   if (FLAG_support_service && Service::gc_stream.enabled()) {
     ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);
     Service::HandleEvent(&event);
   }
+#endif  // !PRODUCT
 }
 
 

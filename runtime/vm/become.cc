@@ -148,6 +148,79 @@ class ForwardHeapPointersHandleVisitor : public HandleVisitor {
 };
 
 
+// On IA32, object pointers are embedded directly in the instruction stream,
+// which is normally write-protected, so we need to make it temporarily writable
+// to forward the pointers. On all other architectures, object pointers are
+// accessed through ObjectPools.
+#if defined(TARGET_ARCH_IA32)
+class WritableCodeLiteralsScope : public ValueObject {
+ public:
+  explicit WritableCodeLiteralsScope(Heap* heap) : heap_(heap) {
+    if (FLAG_write_protect_code) {
+      heap_->WriteProtectCode(false);
+    }
+  }
+
+  ~WritableCodeLiteralsScope() {
+    if (FLAG_write_protect_code) {
+      heap_->WriteProtectCode(true);
+    }
+  }
+
+ private:
+  Heap* heap_;
+};
+#else
+class WritableCodeLiteralsScope : public ValueObject {
+ public:
+  explicit WritableCodeLiteralsScope(Heap* heap) { }
+  ~WritableCodeLiteralsScope() { }
+};
+#endif
+
+
+void Become::MakeDummyObject(const Instance& instance) {
+  // Make the forward pointer point to itself.
+  // This is needed to distinguish it from a real forward object.
+  ForwardObjectTo(instance.raw(), instance.raw());
+}
+
+
+static bool IsDummyObject(RawObject* object) {
+  if (!object->IsForwardingCorpse()) return false;
+  return GetForwardedObject(object) == object;
+}
+
+
+void Become::CrashDump(RawObject* before_obj, RawObject* after_obj) {
+  OS::PrintErr("DETECTED FATAL ISSUE IN BECOME MAPPINGS\n");
+
+  OS::PrintErr("BEFORE ADDRESS: %p\n", before_obj);
+  OS::PrintErr("BEFORE IS HEAP OBJECT: %s",
+               before_obj->IsHeapObject() ? "YES" : "NO");
+  OS::PrintErr("BEFORE IS VM HEAP OBJECT: %s",
+               before_obj->IsVMHeapObject() ? "YES" : "NO");
+
+  OS::PrintErr("AFTER ADDRESS: %p\n", after_obj);
+  OS::PrintErr("AFTER IS HEAP OBJECT: %s",
+               after_obj->IsHeapObject() ? "YES" : "NO");
+  OS::PrintErr("AFTER IS VM HEAP OBJECT: %s",
+               after_obj->IsVMHeapObject() ? "YES" : "NO");
+
+  if (before_obj->IsHeapObject()) {
+    OS::PrintErr("BEFORE OBJECT CLASS ID=%" Pd "\n", before_obj->GetClassId());
+    const Object& obj = Object::Handle(before_obj);
+    OS::PrintErr("BEFORE OBJECT AS STRING=%s\n", obj.ToCString());
+  }
+
+  if (after_obj->IsHeapObject()) {
+    OS::PrintErr("AFTER OBJECT CLASS ID=%" Pd "\n", after_obj->GetClassId());
+    const Object& obj = Object::Handle(after_obj);
+    OS::PrintErr("AFTER OBJECT AS STRING=%s\n", obj.ToCString());
+  }
+}
+
+
 void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -166,15 +239,18 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
       FATAL("become: Cannot self-forward");
     }
     if (!before_obj->IsHeapObject()) {
+      CrashDump(before_obj, after_obj);
       FATAL("become: Cannot forward immediates");
     }
     if (!after_obj->IsHeapObject()) {
-      FATAL("become: Cannot become an immediates");
+      CrashDump(before_obj, after_obj);
+      FATAL("become: Cannot become immediates");
     }
     if (before_obj->IsVMHeapObject()) {
+      CrashDump(before_obj, after_obj);
       FATAL("become: Cannot forward VM heap objects");
     }
-    if (before_obj->IsForwardingCorpse()) {
+    if (before_obj->IsForwardingCorpse() && !IsDummyObject(before_obj)) {
       FATAL("become: Cannot forward to multiple targets");
     }
     if (after_obj->IsForwardingCorpse()) {
@@ -199,9 +275,12 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
     isolate->VisitWeakPersistentHandles(&handle_visitor);
 
     //   Heap pointers (may require updating the remembered set)
-    ForwardHeapPointersVisitor object_visitor(&pointer_visitor);
-    heap->VisitObjects(&object_visitor);
-    pointer_visitor.VisitingObject(NULL);
+    {
+      WritableCodeLiteralsScope writable_code(heap);
+      ForwardHeapPointersVisitor object_visitor(&pointer_visitor);
+      heap->VisitObjects(&object_visitor);
+      pointer_visitor.VisitingObject(NULL);
+    }
 
 #if !defined(PRODUCT)
     tds.SetNumArguments(2);

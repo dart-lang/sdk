@@ -9,8 +9,8 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -222,6 +222,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   void set analysisPriorityOrder(List<Source> sources) {
     fail("Unexpected invocation of setAnalysisPriorityOrder");
+  }
+
+  @override
+  CacheConsistencyValidator get cacheConsistencyValidator {
+    fail("Unexpected invocation of cacheConsistencyValidator");
+    return null;
   }
 
   @override
@@ -699,12 +705,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   void test_flushAstStructures(Source source) {
     fail("Unexpected invocation of test_flushAstStructures");
-  }
-
-  @override
-  bool validateCacheConsistency() {
-    fail("Unexpected invocation of validateCacheConsistency");
-    return false;
   }
 
   @override

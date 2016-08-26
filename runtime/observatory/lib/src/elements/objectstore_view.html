@@ -1,17 +1,7 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="class_ref.html">
-<link rel="import" href="curly_block.html">
 <link rel="import" href="eval_box.html">
-<link rel="import" href="field_ref.html">
-<link rel="import" href="function_ref.html">
-<link rel="import" href="instance_ref.html">
-<link rel="import" href="observatory_element.html">
-<link rel="import" href="library_ref.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="script_ref.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="objectstore-view" extends="observatory-element">
+<polymer-element name="objectstore-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
@@ -20,6 +10,7 @@
       <vm-nav-menu vm="{{ objectStore.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ objectStore.isolate }}" last="{{ true }}"></isolate-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content-centered-big">

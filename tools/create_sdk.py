@@ -44,7 +44,6 @@
 # ......dart_client.platform
 # ......dart_server.platform
 # ......dart_shared.platform
-# ......dart2dart.platform
 # ......_internal/
 #.........spec.sum
 #.........strong.sum
@@ -59,6 +58,7 @@
 # ......io/
 # ......isolate/
 # ......js/
+# ......js_util/
 # ......math/
 # ......mirrors/
 # ......typed_data/
@@ -254,7 +254,7 @@ def Main():
                   join('html', 'dart2js'), join('html', 'dartium'),
                   join('html', 'html_common'),
                   join('indexed_db', 'dart2js'), join('indexed_db', 'dartium'),
-                  'js', 'math', 'mirrors', 'profiler', 'typed_data',
+                  'js', 'js_util', 'math', 'mirrors', 'profiler', 'typed_data',
                   join('svg', 'dart2js'), join('svg', 'dartium'),
                   join('web_audio', 'dart2js'), join('web_audio', 'dartium'),
                   join('web_gl', 'dart2js'), join('web_gl', 'dartium'),
@@ -266,8 +266,7 @@ def Main():
   # Copy the platform descriptors.
   for file_name in ["dart_client.platform",
                     "dart_server.platform",
-                    "dart_shared.platform",
-                    "dart2dart.platform"]:
+                    "dart_shared.platform"]:
     copyfile(join(HOME, 'sdk', 'lib', file_name), join(LIB, file_name));
 
   # Copy libraries.dart to lib/_internal/libraries.dart for backwards

@@ -9,11 +9,10 @@ import '../common/backend_api.dart' show Backend;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../elements/elements.dart' show CompilationUnitElement;
 import '../id_generator.dart';
-import '../tokens/token.dart' show Token;
-
-import 'listener.dart' show ParserError;
-import 'element_listener.dart' show ElementListener, ScannerOptions;
 import '../options.dart' show ParserOptions;
+import '../tokens/token.dart' show Token;
+import 'element_listener.dart' show ElementListener, ScannerOptions;
+import 'listener.dart' show ParserError;
 import 'partial_parser.dart' show PartialParser;
 
 class DietParserTask extends CompilerTask {

@@ -10,7 +10,7 @@ import 'common/resolution.dart' show Resolution;
 import 'common.dart';
 import 'core_types.dart';
 import 'elements/elements.dart';
-import 'elements/modelx.dart' show TypeDeclarationElementX, ErroneousElementX;
+import 'elements/modelx.dart' show TypeDeclarationElementX;
 import 'ordered_typeset.dart' show OrderedTypeSet;
 import 'util/util.dart' show equalElements;
 
@@ -298,6 +298,8 @@ class VoidType extends DartType {
   }
 
   String toString() => name;
+
+  int get hashCode => 6007;
 }
 
 class MalformedType extends DartType {
@@ -323,8 +325,8 @@ class MalformedType extends DartType {
    */
   final List<DartType> typeArguments;
 
-  final int hashCode = (nextHash++) & 0x3fffffff;
-  static int nextHash = 43765;
+  final int hashCode = _nextHash = (_nextHash + 1).toUnsigned(30);
+  static int _nextHash = 43765;
 
   MalformedType(this.element, this.userProvidedBadType,
       [this.typeArguments = null]);
@@ -845,6 +847,10 @@ class TypedefType extends GenericType {
   void computeUnaliased(Resolution resolution) {
     if (_unaliased == null) {
       element.ensureResolved(resolution);
+      if (element.isMalformed) {
+        _unaliased = const DynamicType();
+        return;
+      }
       element.checkCyclicReference(resolution);
       element.alias.computeUnaliased(resolution);
       _unaliased = element.alias.unaliased.substByContext(this);

@@ -5,14 +5,15 @@
 library analyzer.src.summary.summary_file_builder;
 
 import 'dart:collection';
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
 import 'package:analyzer/src/summary/index_unit.dart';
@@ -34,14 +35,14 @@ class BuilderOutput {
     // Write summary.
     {
       String outputPath = join(outputDirectoryPath, '$modeName.sum');
-      File file = new File(outputPath);
-      file.writeAsBytesSync(sum, mode: FileMode.WRITE_ONLY);
+      io.File file = new io.File(outputPath);
+      file.writeAsBytesSync(sum, mode: io.FileMode.WRITE_ONLY);
     }
     // Write index.
     {
       String outputPath = join(outputDirectoryPath, '$modeName.index');
-      File file = new File(outputPath);
-      file.writeAsBytesSync(index, mode: FileMode.WRITE_ONLY);
+      io.File file = new io.File(outputPath);
+      file.writeAsBytesSync(index, mode: io.FileMode.WRITE_ONLY);
     }
   }
 }
@@ -50,7 +51,6 @@ class BuilderOutput {
  * Summary build configuration.
  */
 class SummaryBuildConfig {
-
   /**
    * Whether to use exclude informative data from created summaries.
    */
@@ -115,8 +115,9 @@ class SummaryBuilder {
     //
     // Prepare SDK.
     //
-    DirectoryBasedDartSdk sdk =
-        new DirectoryBasedDartSdk(new JavaFile(sdkPath), strongMode);
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+        resourceProvider, resourceProvider.getFolder(sdkPath), strongMode);
     sdk.useSummary = false;
     sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = strongMode;
 
@@ -153,7 +154,7 @@ class SummaryOutput {
    * Write this summary output to the given [outputPath] and return the
    * created file.
    */
-  File write(String outputPath) {
+  io.File write(String outputPath) {
     fb.Builder builder = new fb.Builder();
     fb.Offset specSumOffset = builder.writeListUint8(spec.sum);
     fb.Offset specIndexOffset = builder.writeListUint8(spec.index);
@@ -165,8 +166,8 @@ class SummaryOutput {
     builder.addOffset(FIELD_STRONG_SUM, strongSumOffset);
     builder.addOffset(FIELD_STRONG_INDEX, strongIndexOffset);
     fb.Offset offset = builder.endTable();
-    return new File(outputPath)
-      ..writeAsBytesSync(builder.finish(offset), mode: FileMode.WRITE_ONLY);
+    return new io.File(outputPath)
+      ..writeAsBytesSync(builder.finish(offset), mode: io.FileMode.WRITE_ONLY);
   }
 }
 

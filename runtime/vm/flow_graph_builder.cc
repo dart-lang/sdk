@@ -899,10 +899,13 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local,
           context, Context::parent_offset(), Type::ZoneHandle(Z, Type::null()),
           token_pos));
     }
-    return new(Z) LoadFieldInstr(context,
-                                 Context::variable_offset(local.index()),
-                                 local.type(),
-                                 token_pos);
+    LoadFieldInstr* load = new(Z) LoadFieldInstr(
+        context,
+        Context::variable_offset(local.index()),
+        local.type(),
+        token_pos);
+    load->set_is_immutable(local.is_final());
+    return load;
   } else {
     return new(Z) LoadLocalInstr(local, token_pos);
   }
@@ -1543,6 +1546,22 @@ Value* EffectGraphVisitor::BuildAssignableValue(TokenPosition token_pos,
   return Bind(BuildAssertAssignable(token_pos, value, dst_type, dst_name));
 }
 
+static bool simpleInstanceOfType(const AbstractType& type) {
+  // Bail if the type is still uninstantiated at compile time.
+  if (!type.IsInstantiated()) return false;
+
+  // Bail if the type is a function or a Dart Function type.
+  if (type.IsFunctionType() || type.IsDartFunctionType()) return false;
+
+  ASSERT(type.HasResolvedTypeClass());
+  const Class& type_class = Class::Handle(type.type_class());
+  // Bail if the type has any type parameters.
+  if (type_class.IsGeneric()) return false;
+
+  // Finally a simple class for instance of checking.
+  return true;
+}
+
 
 void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
@@ -1599,7 +1618,32 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     return;
   }
 
+  // We now know type is a real class (!num, !int, !smi, !string)
+  // and the type check could NOT be removed at compile time.
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
+  if (simpleInstanceOfType(type)) {
+    ASSERT(!node->right()->AsTypeNode()->type().IsNull());
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
+    arguments->Add(push_left);
+    Value* type_const = Bind(new(Z) ConstantInstr(type));
+    arguments->Add(PushArgument(type_const));
+    const intptr_t kNumArgsChecked = 2;
+    Definition* result = new(Z) InstanceCallInstr(
+        node->token_pos(),
+        Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()),
+        node->kind(),
+        arguments,
+        Object::null_array(),  // No argument names.
+        kNumArgsChecked,
+        owner()->ic_data_array());
+    if (negate_result) {
+      result = new(Z) BooleanNegateInstr(Bind(result));
+    }
+    ReturnDefinition(result);
+    return;
+  }
+
   PushArgumentInstr* push_type_args = NULL;
   if (type.IsInstantiated()) {
     push_type_args = PushArgument(BuildNullValue(node->token_pos()));

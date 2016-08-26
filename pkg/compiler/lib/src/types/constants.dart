@@ -48,7 +48,7 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
 
   @override
   TypeMask visitSynthetic(SyntheticConstantValue constant, Compiler compiler) {
-    switch (constant.kind) {
+    switch (constant.valueKind) {
       case SyntheticConstantKind.DUMMY_INTERCEPTOR:
         return constant.payload;
       case SyntheticConstantKind.EMPTY_VALUE:

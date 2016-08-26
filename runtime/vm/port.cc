@@ -216,7 +216,8 @@ bool PortMap::ClosePort(Dart_Port port) {
   }
   handler->ClosePort(port);
   if (!handler->HasLivePorts() && handler->OwnedByPortMap()) {
-    delete handler;
+    // Delete handler as soon as it isn't busy with a task.
+    handler->RequestDeletion();
   }
   return true;
 }
@@ -303,6 +304,7 @@ void PortMap::InitOnce() {
 
 void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream) {
+#ifndef PRODUCT
   if (!FLAG_support_service) {
     return;
   }
@@ -324,6 +326,7 @@ void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
       }
     }
   }
+#endif
 }
 
 

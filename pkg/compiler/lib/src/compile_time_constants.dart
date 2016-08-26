@@ -4,9 +4,9 @@
 
 library dart2js.compile_time_constant_evaluator;
 
-import 'common.dart';
 import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask, Measurer;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constant_system_dart.dart';
 import 'constants/constant_system.dart';
@@ -16,13 +16,12 @@ import 'constants/values.dart';
 import 'core_types.dart' show CoreTypes;
 import 'dart_types.dart';
 import 'elements/elements.dart';
-import 'elements/modelx.dart'
-    show FieldElementX, FunctionElementX, ConstantVariableMixin;
-import 'resolution/tree_elements.dart' show TreeElements;
+import 'elements/modelx.dart' show ConstantVariableMixin;
 import 'resolution/operators.dart';
+import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart';
-import 'util/util.dart' show Link;
 import 'universe/call_structure.dart' show CallStructure;
+import 'util/util.dart' show Link;
 
 /// A [ConstantEnvironment] provides access for constants compiled for variable
 /// initializers.
@@ -861,6 +860,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return new AstConstant.fromDefaultValue(
           element, constant, handler.getConstantValue(constant));
     }
+
     target.computeType(resolution);
 
     FunctionSignature signature = target.functionSignature;
@@ -965,6 +965,16 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (constructor.isFromEnvironmentConstructor) {
       return createFromEnvironmentConstant(node, constructedType, constructor,
           callStructure, normalizedArguments, concreteArguments);
+    } else if (compiler.serialization.isDeserialized(constructor)) {
+      ConstructedConstantExpression expression =
+          new ConstructedConstantExpression(type, constructor, callStructure,
+              concreteArguments.map((c) => c.expression).toList());
+      return new AstConstant(
+          context,
+          node,
+          expression,
+          expression.evaluate(
+              new _CompilerEnvironment(compiler), constantSystem));
     } else {
       return makeConstructedConstant(
           compiler,
@@ -1089,7 +1099,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       List<AstConstant> concreteArguments,
       List<AstConstant> normalizedArguments) {
     if (target.isRedirectingFactory) {
-      // This happens is case of cyclic redirection.
+      // This happens in case of cyclic redirection.
       assert(invariant(node, compiler.compilationFailed,
           message: "makeConstructedConstant can only be called with the "
               "effective target: $constructor"));
@@ -1163,8 +1173,11 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    *
    * Invariant: [constructor] must be an implementation element.
    */
-  ConstructorEvaluator(InterfaceType this.constructedType,
-      FunctionElement constructor, ConstantCompiler handler, Compiler compiler)
+  ConstructorEvaluator(
+      InterfaceType this.constructedType,
+      ConstructorElement constructor,
+      ConstantCompiler handler,
+      Compiler compiler)
       : this.constructor = constructor,
         this.definitions = new Map<Element, AstConstant>(),
         this.fieldValues = new Map<Element, AstConstant>(),
@@ -1173,6 +1186,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         super(handler, null, compiler, isConst: true) {
     assert(invariant(constructor, constructor.isImplementation));
   }
+
+  @override
+  Element get context => resolvedAst.element;
 
   @override
   TreeElements get elements => resolvedAst.elements;
@@ -1234,18 +1250,33 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     });
   }
 
-  void evaluateSuperOrRedirectSend(
-      List<AstConstant> compiledArguments, FunctionElement targetConstructor) {
-    ConstructorEvaluator evaluator = new ConstructorEvaluator(
-        constructedType.asInstanceOf(targetConstructor.enclosingClass),
-        targetConstructor,
-        handler,
-        compiler);
-    evaluator.evaluateConstructorFieldValues(compiledArguments);
-    // Copy over the fieldValues from the super/redirect-constructor.
-    // No need to go through [updateFieldValue] because the
-    // assignments have already been checked in checked mode.
-    evaluator.fieldValues.forEach((key, value) => fieldValues[key] = value);
+  void evaluateSuperOrRedirectSend(List<AstConstant> compiledArguments,
+      CallStructure callStructure, ConstructorElement targetConstructor) {
+    InterfaceType type =
+        constructedType.asInstanceOf(targetConstructor.enclosingClass);
+    if (compiler.serialization.isDeserialized(targetConstructor)) {
+      List<ConstantExpression> arguments =
+          compiledArguments.map((c) => c.expression).toList();
+      ConstructedConstantExpression expression =
+          new ConstructedConstantExpression(
+              type, targetConstructor, callStructure, arguments);
+
+      Map<FieldElement, ConstantExpression> fields =
+          expression.computeInstanceFields();
+      fields.forEach((FieldElement field, ConstantExpression expression) {
+        ConstantValue value = expression.evaluate(
+            new _CompilerEnvironment(compiler), constantSystem);
+        fieldValues[field] = new AstConstant(context, null, expression, value);
+      });
+    } else {
+      ConstructorEvaluator evaluator =
+          new ConstructorEvaluator(type, targetConstructor, handler, compiler);
+      evaluator.evaluateConstructorFieldValues(compiledArguments);
+      // Copy over the fieldValues from the super/redirect-constructor.
+      // No need to go through [updateFieldValue] because the
+      // assignments have already been checked in checked mode.
+      evaluator.fieldValues.forEach((key, value) => fieldValues[key] = value);
+    }
   }
 
   /**
@@ -1262,7 +1293,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       FunctionElement target = constructor.definingConstructor.implementation;
       CallStructure.addForwardingElementArgumentsToList(constructor,
           compiledArguments, target, compileArgument, compileConstant);
-      evaluateSuperOrRedirectSend(compiledArguments, target);
+      CallStructure callStructure =
+          new CallStructure.fromSignature(target.functionSignature);
+      evaluateSuperOrRedirectSend(compiledArguments, callStructure, target);
       return;
     }
     FunctionExpression functionNode = resolvedAst.node;
@@ -1280,14 +1313,14 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           Send call = link.head;
           FunctionElement target = elements[call];
           if (!target.isMalformed) {
+            CallStructure callStructure =
+                elements.getSelector(call).callStructure;
             List<AstConstant> compiledArguments =
                 evaluateArgumentsToConstructor(
-                    call,
-                    elements.getSelector(call).callStructure,
-                    call.arguments,
-                    target,
+                    call, callStructure, call.arguments, target,
                     compileArgument: evaluateConstant);
-            evaluateSuperOrRedirectSend(compiledArguments, target);
+            evaluateSuperOrRedirectSend(
+                compiledArguments, callStructure, target);
           }
           foundSuperOrRedirect = true;
         } else {
@@ -1315,12 +1348,14 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         // If we do not find a default constructor, an error was reported
         // already and compilation will fail anyway. So just ignore that case.
         if (targetConstructor != null) {
+          CallStructure callStructure = CallStructure.NO_ARGS;
           List<AstConstant> compiledArguments = evaluateArgumentsToConstructor(
               functionNode,
-              CallStructure.NO_ARGS,
+              callStructure,
               const Link<Node>(),
               targetConstructor);
-          evaluateSuperOrRedirectSend(compiledArguments, targetConstructor);
+          evaluateSuperOrRedirectSend(
+              compiledArguments, callStructure, targetConstructor);
         }
       }
     }

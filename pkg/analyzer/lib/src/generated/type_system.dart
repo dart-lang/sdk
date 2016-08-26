@@ -15,7 +15,9 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
+import 'package:analyzer/src/generated/utilities_general.dart'
+    show JenkinsSmiHash;
 
 typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
 
@@ -31,14 +33,52 @@ class StrongTypeSystemImpl extends TypeSystem {
    */
   final bool implicitCasts;
 
-  StrongTypeSystemImpl({this.implicitCasts: true});
+  /**
+   * A list of non-nullable type names (e.g., 'int', 'bool', etc.).
+   */
+  final List<String> nonnullableTypes;
+
+  StrongTypeSystemImpl(
+      {this.implicitCasts: true,
+      this.nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES});
 
   bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
     return ft.parameters.any((p) => predicate(p.type));
   }
 
   @override
-  bool canPromoteToType(DartType to, DartType from) => isSubtypeOf(to, from);
+  bool canPromoteToType(DartType to, DartType from) {
+    // Allow promoting to a subtype, for example:
+    //
+    //     f(Base b) {
+    //       if (b is SubTypeOfBase) {
+    //         // promote `b` to SubTypeOfBase for this block
+    //       }
+    //     }
+    //
+    // This allows the variable to be used wherever the supertype (here `Base`)
+    // is expected, while gaining a more precise type.
+    if (isSubtypeOf(to, from)) {
+      return true;
+    }
+    // For a type parameter `T extends U`, allow promoting from the upper bound
+    // `U` to `S` where `S <: U`.
+    //
+    // This does restrict the variable, because `S </: T`, it can no longer be
+    // used as a `T` without another cast.
+    //
+    // However the members you could access from a variable of type `T`, were
+    // already those on the upper bound `U`. So all members on `U` will be
+    // accessible, as well as those on `S`. Pragmatically this feels like a
+    // useful enough trade-off to allow promotion.
+    //
+    // (In general we would need union types to support this feature precisely.)
+    if (from is TypeParameterType) {
+      return isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance));
+    }
+
+    return false;
+  }
 
   @override
   FunctionType functionTypeToConcreteType(
@@ -84,24 +124,22 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   /// Computes the greatest lower bound of [type1] and [type2].
   DartType getGreatestLowerBound(
-      TypeProvider provider, DartType type1, DartType type2) {
+      TypeProvider provider, DartType type1, DartType type2,
+      {dynamicIsBottom: false}) {
     // The greatest lower bound relation is reflexive.
     if (identical(type1, type2)) {
       return type1;
     }
 
-    // Treat dynamic as top. The GLB of dynamic and any type is just that type
-    // since dynamic permits all values.
-    if (type1.isDynamic) {
+    // The GLB of top and any type is just that type.
+    // Also GLB of bottom and any type is bottom.
+    if (_isTop(type1, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(type2, dynamicIsBottom: dynamicIsBottom)) {
       return type2;
     }
-    if (type2.isDynamic) {
+    if (_isTop(type2, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(type1, dynamicIsBottom: dynamicIsBottom)) {
       return type1;
-    }
-
-    // You can't get any lower than bottom.
-    if (type1.isBottom || type2.isBottom) {
-      return provider.bottomType;
     }
 
     // Treat void as top-like for GLB. This only comes into play with the
@@ -135,6 +173,41 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   /**
+   * Compute the least upper bound of two types.
+   */
+  @override
+  DartType getLeastUpperBound(
+      TypeProvider typeProvider, DartType type1, DartType type2,
+      {bool dynamicIsBottom: false}) {
+    if (isNullableType(type1) && isNonNullableType(type2)) {
+      assert(type2 is InterfaceType);
+      type2 = getLeastNullableSupertype(type2 as InterfaceType);
+    }
+    if (isNullableType(type2) && isNonNullableType(type1)) {
+      assert(type1 is InterfaceType);
+      type1 = getLeastNullableSupertype(type1 as InterfaceType);
+    }
+    return super.getLeastUpperBound(typeProvider, type1, type2,
+        dynamicIsBottom: dynamicIsBottom);
+  }
+
+  /**
+   * Compute the least supertype of [type], which is known to be an interface
+   * type.
+   *
+   * In the event that the algorithm fails (which might occur due to a bug in
+   * the analyzer), `null` is returned.
+   */
+  DartType getLeastNullableSupertype(InterfaceType type) {
+    // compute set of supertypes
+    List<InterfaceType> s = InterfaceTypeImpl
+        .computeSuperinterfaceSet(type)
+        .where(isNullableType)
+        .toList();
+    return InterfaceTypeImpl.computeTypeAtMaxUniqueDepth(s);
+  }
+
+  /**
    * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
    * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
    *
@@ -156,7 +229,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferringTypeSystem =
-        new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
+        new _StrongInferenceTypeSystem(typeProvider, this, fnType.typeFormals);
 
     // Since we're trying to infer the instantiation, we want to ignore type
     // formals as we check the parameters and return type.
@@ -167,8 +240,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
 
     // Try to infer and instantiate the resulting type.
-    var resultType =
-        inferringTypeSystem._infer(fnType, allowPartialSolution: false);
+    var resultType = inferringTypeSystem._infer(fnType);
 
     // If the instantiation failed (because some type variable constraints
     // could not be solved, in other words, we could not find a valid subtype),
@@ -210,24 +282,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferringTypeSystem =
-        new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
-
-    // Special case inference for Future.then.
-    //
-    // We don't have union types, so Future<T>.then<S> is typed to take a
-    // callback `T -> S`. However, the lambda might actually return a
-    // Future<S>. So we handle that special case here.
-    if (argumentTypes.isNotEmpty && argumentTypes[0] is FunctionType) {
-      Element element = fnType?.element;
-      bool isFutureThen = element is MethodElement &&
-          element.name == 'then' &&
-          element.enclosingElement.type.isDartAsyncFuture;
-      if (isFutureThen) {
-        // Ignore return context. We'll let the onValue function's return type
-        // drive inference.
-        returnContextType = null;
-      }
-    }
+        new _StrongInferenceTypeSystem(typeProvider, this, fnType.typeFormals);
 
     if (returnContextType != null) {
       inferringTypeSystem.isSubtypeOf(fnType.returnType, returnContextType);
@@ -240,14 +295,7 @@ class StrongTypeSystemImpl extends TypeSystem {
           argumentTypes[i], correspondingParameterTypes[i]);
     }
 
-    // We are okay inferring some type variables and not others.
-    //
-    // This lets our return type be as precise as possible, which will help
-    // make any type information resulting from it more precise.
-    //
-    // This is simply a heuristic: the code is incorrect, and we'll issue an
-    // error on this call, to indicate that types don't match.
-    return inferringTypeSystem._infer(fnType, allowPartialSolution: true);
+    return inferringTypeSystem._infer(fnType);
   }
 
   /**
@@ -306,8 +354,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     // Don't allow implicit downcasts between function types
     // and call method objects, as these will almost always fail.
-    if ((fromType is FunctionType && getCallMethodType(toType) != null) ||
-        (toType is FunctionType && getCallMethodType(fromType) != null)) {
+    if (fromType is FunctionType && getCallMethodType(toType) != null) {
       return false;
     }
 
@@ -325,7 +372,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     // If the subtype relation goes the other way, allow the implicit
     // downcast.
-    if (isSubtypeOf(toType, fromType) || toType.isAssignableTo(fromType)) {
+    if (isSubtypeOf(toType, fromType)) {
       // TODO(leafp,jmesserly): we emit warnings/hints for these in
       // src/task/strong/checker.dart, which is a bit inconsistent. That
       // code should be handled into places that use isAssignableTo, such as
@@ -444,7 +491,8 @@ class StrongTypeSystemImpl extends TypeSystem {
       DartType paramType;
       if (fType != null && gType != null) {
         // If both functions have this parameter, include both of their types.
-        paramType = getLeastUpperBound(provider, fType, gType);
+        paramType =
+            getLeastUpperBound(provider, fType, gType, dynamicIsBottom: true);
       } else {
         paramType = fType ?? gType;
       }
@@ -528,7 +576,7 @@ class StrongTypeSystemImpl extends TypeSystem {
   @override
   DartType _functionParameterBound(
           TypeProvider provider, DartType f, DartType g) =>
-      getGreatestLowerBound(provider, f, g);
+      getGreatestLowerBound(provider, f, g, dynamicIsBottom: true);
 
   /**
    * Guard against loops in the class hierarchy
@@ -607,10 +655,6 @@ class StrongTypeSystemImpl extends TypeSystem {
         provider.dynamicType;
   }
 
-  bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
-    return (t.isDynamic && dynamicIsBottom) || t.isBottom;
-  }
-
   /**
    * Check that [f1] is a subtype of [f2].
    *
@@ -630,8 +674,9 @@ class StrongTypeSystemImpl extends TypeSystem {
   bool _isInterfaceSubtypeOf(
       InterfaceType i1, InterfaceType i2, Set<Element> visited) {
     // Guard recursive calls
-    _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype =
-        _guard(_isInterfaceSubtypeOf);
+    _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype = _guard(
+        (DartType i1, DartType i2, Set<Element> visited) =>
+            _isInterfaceSubtypeOf(i1, i2, visited));
 
     if (i1 == i2) {
       return true;
@@ -690,8 +735,8 @@ class StrongTypeSystemImpl extends TypeSystem {
       return true;
     }
 
-    // The types are void, dynamic, bottom, interface types, function types
-    // and type parameters.  We proceed by eliminating these different classes
+    // The types are void, dynamic, bottom, interface types, function types,
+    // and type parameters. We proceed by eliminating these different classes
     // from consideration.
 
     // Trivially true.
@@ -758,9 +803,22 @@ class StrongTypeSystemImpl extends TypeSystem {
     return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
   }
 
-  bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
-    // TODO(leafp): Document the rules in play here
-    return (t.isDynamic && !dynamicIsBottom) || t.isObject;
+  /// Check if [type] is in a set of preselected non-nullable types.
+  /// [FunctionType]s are always nullable.
+  bool isNonNullableType(DartType type) {
+    return !isNullableType(type);
+  }
+
+  /// Opposite of [isNonNullableType].
+  bool isNullableType(DartType type) {
+    return type is FunctionType ||
+        !nonnullableTypes.contains(_getTypeFullyQualifiedName(type));
+  }
+
+  /// Given a type return its name prepended with the URI to its containing
+  /// library and separated by a comma.
+  String _getTypeFullyQualifiedName(DartType type) {
+    return "${type?.element?.library?.identifier},$type";
   }
 
   /**
@@ -863,16 +921,20 @@ abstract class TypeSystem {
    * Compute the least upper bound of two types.
    */
   DartType getLeastUpperBound(
-      TypeProvider typeProvider, DartType type1, DartType type2) {
+      TypeProvider typeProvider, DartType type1, DartType type2,
+      {bool dynamicIsBottom: false}) {
     // The least upper bound relation is reflexive.
     if (identical(type1, type2)) {
       return type1;
     }
-    // The least upper bound of dynamic and any type T is dynamic.
-    if (type1.isDynamic) {
+    // The least upper bound of top and any type T is top.
+    // The least upper bound of bottom and any type T is T.
+    if (_isTop(type1, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(type2, dynamicIsBottom: dynamicIsBottom)) {
       return type1;
     }
-    if (type2.isDynamic) {
+    if (_isTop(type2, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(type1, dynamicIsBottom: dynamicIsBottom)) {
       return type2;
     }
     // The least upper bound of void and any type T != dynamic is void.
@@ -881,13 +943,6 @@ abstract class TypeSystem {
     }
     if (type2.isVoid) {
       return type2;
-    }
-    // The least upper bound of bottom and any type T is T.
-    if (type1.isBottom) {
-      return type2;
-    }
-    if (type2.isBottom) {
-      return type1;
     }
 
     if (type1 is TypeParameterType || type2 is TypeParameterType) {
@@ -1193,7 +1248,9 @@ abstract class TypeSystem {
   static TypeSystem create(AnalysisContext context) {
     var options = context.analysisOptions as AnalysisOptionsImpl;
     return options.strongMode
-        ? new StrongTypeSystemImpl(implicitCasts: options.implicitCasts)
+        ? new StrongTypeSystemImpl(
+            implicitCasts: options.implicitCasts,
+            nonnullableTypes: options.nonnullableTypes)
         : new TypeSystemImpl();
   }
 }
@@ -1267,45 +1324,60 @@ class TypeSystemImpl extends TypeSystem {
 }
 
 /// Tracks upper and lower type bounds for a set of type parameters.
+///
+/// This class is used by calling [isSubtypeOf]. When it encounters one of
+/// the type parameters it is inferring, it will record the constraint, and
+/// optimistically assume the constraint will be satisfied.
+///
+/// For example if we are inferring type parameter A, and we ask if
+/// `A <: num`, this will record that A must be a subytpe of `num`. It also
+/// handles cases when A appears as part of the structure of another type, for
+/// example `Iterable<A> <: Iterable<num>` would infer the same constraint
+/// (due to covariant generic types) as would `() -> A <: () -> num`. In
+/// contrast `(A) -> void <: (num) -> void`.
+///
+/// Once the lower/upper bounds are determined, [_infer] should be called to
+/// finish the inference. It will instantiate a generic function type with the
+/// inferred types for each type parameter.
+///
+/// It can also optionally compute a partial solution, in case some of the type
+/// parameters could not be inferred (because the constraints cannot be
+/// satisfied), or bail on the inference when this happens.
+///
+/// As currently designed, an instance of this class should only be used to
+/// infer a single call and discarded immediately afterwards.
 class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
   final TypeProvider _typeProvider;
+
+  /// The outer strong mode type system, used for GLB and LUB, so we don't
+  /// recurse into our constraint solving code.
+  final StrongTypeSystemImpl _typeSystem;
   final Map<TypeParameterType, _TypeParameterBound> _bounds;
 
-  _StrongInferenceTypeSystem(
-      this._typeProvider, Iterable<TypeParameterElement> typeFormals)
-      : _bounds =
-            new Map.fromIterable(typeFormals, key: (t) => t.type, value: (t) {
-          _TypeParameterBound bound = new _TypeParameterBound();
-          if (t.bound != null) bound.upper = t.bound;
-          return bound;
-        });
+  _StrongInferenceTypeSystem(this._typeProvider, this._typeSystem,
+      Iterable<TypeParameterElement> typeFormals)
+      : _bounds = new Map.fromIterable(typeFormals,
+            key: (t) => t.type, value: (t) => new _TypeParameterBound());
 
   /// Given the constraints that were given by calling [isSubtypeOf], find the
   /// instantiation of the generic function that satisfies these constraints.
-  FunctionType _infer(FunctionType fnType, {bool allowPartialSolution: false}) {
+  FunctionType _infer(FunctionType fnType) {
     List<TypeParameterType> fnTypeParams =
         TypeParameterTypeImpl.getTypes(fnType.typeFormals);
 
-    var inferredTypes = new List<DartType>.from(fnTypeParams, growable: false);
+    // Initialize the inferred type array.
+    //
+    // They all start as `dynamic` to offer reasonable degradation for f-bounded
+    // type parameters.
+    var inferredTypes = new List<DartType>.filled(
+        fnTypeParams.length, DynamicTypeImpl.instance,
+        growable: false);
+
     for (int i = 0; i < fnTypeParams.length; i++) {
       TypeParameterType typeParam = fnTypeParams[i];
-      _TypeParameterBound bound = _bounds[typeParam];
 
-      // Now we've computed lower and upper bounds for each type parameter.
+      // Apply the `extends` clause for the type parameter, if any.
       //
-      // To decide on which type to assign, we look at the return type and see
-      // if the type parameter occurs in covariant or contravariant positions.
-      //
-      // If the type is "passed in" at all, or if our lower bound was bottom,
-      // we choose the upper bound as being the most useful.
-      //
-      // Otherwise we choose the more precise lower bound.
-      _TypeParameterVariance variance =
-          new _TypeParameterVariance.from(typeParam, fnType.returnType);
-
-      inferredTypes[i] =
-          variance.passedIn || bound.lower.isBottom ? bound.upper : bound.lower;
-
       // Assumption: if the current type parameter has an "extends" clause
       // that refers to another type variable we are inferring, it will appear
       // before us or in this list position. For example:
@@ -1321,8 +1393,28 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
       // Or if the type parameter's bound depends on itself such as:
       //
       //     <T extends Clonable<T>>
+      DartType declaredUpperBound = typeParam.element.bound;
+      if (declaredUpperBound != null) {
+        // Assert that the type parameter is a subtype of its bound.
+        _inferTypeParameterSubtypeOf(typeParam,
+            declaredUpperBound.substitute2(inferredTypes, fnTypeParams), null);
+      }
+
+      // Now we've computed lower and upper bounds for each type parameter.
+      //
+      // To decide on which type to assign, we look at the return type and see
+      // if the type parameter occurs in covariant or contravariant positions.
+      //
+      // If the type is "passed in" at all, or if our lower bound was bottom,
+      // we choose the upper bound as being the most useful.
+      //
+      // Otherwise we choose the more precise lower bound.
+      _TypeParameterVariance variance =
+          new _TypeParameterVariance.from(typeParam, fnType.returnType);
+
+      _TypeParameterBound bound = _bounds[typeParam];
       inferredTypes[i] =
-          inferredTypes[i].substitute2(inferredTypes, fnTypeParams);
+          variance.passedIn || bound.lower.isBottom ? bound.upper : bound.lower;
 
       // See if the constraints on the type variable are satisfied.
       //
@@ -1335,16 +1427,8 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
               bound.upper.substitute2(inferredTypes, fnTypeParams)) ||
           !isSubtypeOf(bound.lower.substitute2(inferredTypes, fnTypeParams),
               inferredTypes[i])) {
-        // Unless a partial solution was requested, bail.
-        if (!allowPartialSolution) {
-          return null;
-        }
-
-        inferredTypes[i] = DynamicTypeImpl.instance;
-        if (typeParam.element.bound != null) {
-          inferredTypes[i] =
-              typeParam.element.bound.substitute2(inferredTypes, fnTypeParams);
-        }
+        // Inference failed. Bail.
+        return null;
       }
     }
 
@@ -1364,7 +1448,8 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
         // We already know T1 <: U, for some U.
         // So update U to reflect the new constraint T1 <: GLB(U, T2)
         //
-        bound.upper = getGreatestLowerBound(_typeProvider, bound.upper, t2);
+        bound.upper =
+            _typeSystem.getGreatestLowerBound(_typeProvider, bound.upper, t2);
         // Optimistically assume we will be able to satisfy the constraint.
         return true;
       }
@@ -1378,7 +1463,8 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
         // We already know L <: T2, for some L.
         // So update L to reflect the new constraint LUB(L, T1) <: T2
         //
-        bound.lower = getLeastUpperBound(_typeProvider, bound.lower, t1);
+        bound.lower =
+            _typeSystem.getLeastUpperBound(_typeProvider, bound.lower, t1);
         // Optimistically assume we will be able to satisfy the constraint.
         return true;
       }
@@ -1496,4 +1582,107 @@ class _TypeParameterVariance {
       _visitInterfaceType(typeParam, type, paramIn);
     }
   }
+}
+
+/**
+ * A special union type of `Future<T> | T` used for Strong Mode inference.
+ */
+class FutureUnionType extends TypeImpl {
+  // TODO(jmesserly): a Set would be better.
+  //
+  // For now we know `Future<T> | T` is the only valid use, so we can rely on
+  // the order, which simplifies some things.
+  //
+  // This will need clean up before this can function as a real union type.
+  final List<DartType> _types;
+
+  /**
+   * Creates a union of `Future< flatten(T) > | flatten(T)`.
+   */
+  factory FutureUnionType(
+      DartType type, TypeProvider provider, TypeSystem system) {
+    type = type.flattenFutures(system);
+
+    // The order of these types is important: T could be a type variable, so
+    // we want to try and match `Future<T>` before we try and match `T`.
+    return new FutureUnionType._([
+      provider.futureType.instantiate([type]),
+      type
+    ]);
+  }
+
+  FutureUnionType._(this._types) : super(null, null);
+
+  DartType get futureOfType => _types[0];
+
+  DartType get type => _types[1];
+
+  Iterable<DartType> get types => _types;
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    buffer.write('(');
+    for (int i = 0; i < _types.length; i++) {
+      if (i != 0) {
+        buffer.write(' | ');
+      }
+      (_types[i] as TypeImpl).appendTo(buffer);
+    }
+    buffer.write(')');
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    for (var t in types) {
+      hash = JenkinsSmiHash.combine(hash, t.hashCode);
+    }
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  bool operator ==(Object obj) {
+    if (obj is FutureUnionType) {
+      if (identical(obj, this)) return true;
+      return types.length == obj.types.length &&
+          types.toSet().containsAll(obj.types);
+    }
+    return false;
+  }
+
+  @override
+  bool isMoreSpecificThan(DartType type,
+          [bool withDynamic = false, Set<Element> visitedElements]) =>
+      throw new UnsupportedError(
+          'Future unions are not part of the Dart 1 type system');
+
+  @override
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune) =>
+      throw new UnsupportedError('Future unions are not substituted');
+
+  @override
+  DartType substitute2(List<DartType> args, List<DartType> params,
+          [List<FunctionTypeAliasElement> prune]) =>
+      throw new UnsupportedError('Future unions are not used in typedefs');
+
+  /**
+   * Creates a union of `flatten(T) | Future<flatten(T)>`, unless `T` is
+   * already a future-union, in which case it simply returns `T`
+   */
+  static DartType from(
+      DartType type, TypeProvider provider, TypeSystem system) {
+    if (type is FutureUnionType) {
+      return type;
+    }
+    return new FutureUnionType(type, provider, system);
+  }
+}
+
+bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
+  return (t.isDynamic && dynamicIsBottom) || t.isBottom;
+}
+
+bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
+  // TODO(leafp): Document the rules in play here
+  return (t.isDynamic && !dynamicIsBottom) || t.isObject;
 }

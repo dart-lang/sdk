@@ -4,22 +4,23 @@
 
 library js_backend.serialization;
 
-import '../common.dart';
 import '../common/backend_api.dart' show BackendSerialization;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
 import '../native/native.dart';
+import '../serialization/keys.dart';
 import '../serialization/serialization.dart'
     show DeserializerPlugin, ObjectDecoder, ObjectEncoder, SerializerPlugin;
-import '../serialization/keys.dart';
 import '../universe/side_effects.dart';
 import 'js_backend.dart';
 
 const String _BACKEND_DATA_TAG = 'jsBackendData';
 const Key DART_TYPES_RETURNED = const Key('dartTypesReturned');
+const Key THIS_TYPES_RETURNED = const Key('thisTypesReturned');
 const Key SPECIAL_TYPES_RETURNED = const Key('specialTypesReturned');
 const Key DART_TYPES_INSTANTIATED = const Key('dartTypesInstantiated');
+const Key THIS_TYPES_INSTANTIATED = const Key('thisTypesInstantiated');
 const Key SPECIAL_TYPES_INSTANTIATED = const Key('specialTypesInstantiated');
 const Key CODE_TEMPLATE = const Key('codeTemplate');
 const Key SIDE_EFFECTS = const Key('sideEffects');
@@ -150,15 +151,43 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
 }
 
 class NativeBehaviorSerialization {
-  /// Returns a list of the [DartType]s in [types].
+  static const int NORMAL_TYPE = 0;
+  static const int THIS_TYPE = 1;
+  static const int SPECIAL_TYPE = 2;
+
+  static int getTypeKind(var type) {
+    if (type is DartType) {
+      // TODO(johnniwinther): Remove this when annotation are no longer resolved
+      // to this-types.
+      if (type is GenericType &&
+          type.isGeneric &&
+          type == type.element.thisType) {
+        return THIS_TYPE;
+      }
+      return NORMAL_TYPE;
+    }
+    return SPECIAL_TYPE;
+  }
+
+  /// Returns a list of the non-this-type [DartType]s in [types].
   static List<DartType> filterDartTypes(List types) {
-    return types.where((type) => type is DartType).toList();
+    return types.where((type) => getTypeKind(type) == NORMAL_TYPE).toList();
+  }
+
+  // TODO(johnniwinther): Remove this when annotation are no longer resolved
+  // to this-types.
+  /// Returns a list of the classes of this-types in [types].
+  static List<Element> filterThisTypes(List types) {
+    return types
+        .where((type) => getTypeKind(type) == THIS_TYPE)
+        .map((type) => type.element)
+        .toList();
   }
 
   /// Returns a list of the names of the [SpecialType]s in [types].
   static List<String> filterSpecialTypes(List types) {
     return types
-        .where((type) => type is SpecialType)
+        .where((type) => getTypeKind(type) == SPECIAL_TYPE)
         .map((SpecialType type) => type.name)
         .toList();
   }
@@ -167,11 +196,15 @@ class NativeBehaviorSerialization {
       NativeBehavior behavior, ObjectEncoder encoder) {
     encoder.setTypes(
         DART_TYPES_RETURNED, filterDartTypes(behavior.typesReturned));
+    encoder.setElements(
+        THIS_TYPES_RETURNED, filterThisTypes(behavior.typesReturned));
     encoder.setStrings(
         SPECIAL_TYPES_RETURNED, filterSpecialTypes(behavior.typesReturned));
 
     encoder.setTypes(
         DART_TYPES_INSTANTIATED, filterDartTypes(behavior.typesInstantiated));
+    encoder.setElements(
+        THIS_TYPES_INSTANTIATED, filterThisTypes(behavior.typesInstantiated));
     encoder.setStrings(SPECIAL_TYPES_INSTANTIATED,
         filterSpecialTypes(behavior.typesInstantiated));
 
@@ -193,11 +226,19 @@ class NativeBehaviorSerialization {
     behavior.typesReturned
         .addAll(decoder.getTypes(DART_TYPES_RETURNED, isOptional: true));
     behavior.typesReturned.addAll(decoder
+        .getElements(THIS_TYPES_RETURNED, isOptional: true)
+        .map((element) => element.thisType)
+        .toList());
+    behavior.typesReturned.addAll(decoder
         .getStrings(SPECIAL_TYPES_RETURNED, isOptional: true)
         .map(SpecialType.fromName));
 
     behavior.typesInstantiated
         .addAll(decoder.getTypes(DART_TYPES_INSTANTIATED, isOptional: true));
+    behavior.typesInstantiated.addAll(decoder
+        .getElements(THIS_TYPES_INSTANTIATED, isOptional: true)
+        .map((element) => element.thisType)
+        .toList());
     behavior.typesInstantiated.addAll(decoder
         .getStrings(SPECIAL_TYPES_INSTANTIATED, isOptional: true)
         .map(SpecialType.fromName));

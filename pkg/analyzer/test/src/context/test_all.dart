@@ -9,7 +9,6 @@ import 'package:unittest/unittest.dart';
 import '../../utils.dart';
 import 'builder_test.dart' as builder_test;
 import 'cache_test.dart' as cache_test;
-import 'context_factory_test.dart' as context_factory_test;
 import 'context_test.dart' as context_test;
 
 /// Utility for manually running all tests.
@@ -18,7 +17,6 @@ main() {
   group('context tests', () {
     builder_test.main();
     cache_test.main();
-    context_factory_test.main();
     context_test.main();
   });
 }

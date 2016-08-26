@@ -299,6 +299,7 @@ class Precompiler : public ValueObject {
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
   void TraceConstFunctions();
+  void CollectCallbackFields();
 
   void TraceForRetainedFunctions();
   void DropFunctions();
@@ -306,6 +307,7 @@ class Precompiler : public ValueObject {
   void TraceTypesFromRetainedClasses();
   void DropTypes();
   void DropTypeArguments();
+  void DropScriptData();
   void DropClasses();
   void DropLibraries();
 

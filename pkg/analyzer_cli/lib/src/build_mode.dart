@@ -10,12 +10,11 @@ import 'dart:io' as io;
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -39,23 +38,26 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
   final StringBuffer errorBuffer = new StringBuffer();
   final StringBuffer outBuffer = new StringBuffer();
 
+  final ResourceProvider resourceProvider;
   final String dartSdkPath;
 
-  AnalyzerWorkerLoop(SyncWorkerConnection connection, {this.dartSdkPath})
+  AnalyzerWorkerLoop(this.resourceProvider, SyncWorkerConnection connection,
+      {this.dartSdkPath})
       : super(connection: connection);
 
-  factory AnalyzerWorkerLoop.std(
+  factory AnalyzerWorkerLoop.std(ResourceProvider resourceProvider,
       {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
     SyncWorkerConnection connection = new StdSyncWorkerConnection(
         stdinStream: stdinStream, stdoutStream: stdoutStream);
-    return new AnalyzerWorkerLoop(connection, dartSdkPath: dartSdkPath);
+    return new AnalyzerWorkerLoop(resourceProvider, connection,
+        dartSdkPath: dartSdkPath);
   }
 
   /**
    * Performs analysis with given [options].
    */
   void analyze(CommandLineOptions options) {
-    new BuildMode(options, new AnalysisStats()).analyze();
+    new BuildMode(resourceProvider, options, new AnalysisStats()).analyze();
     AnalysisEngine.instance.clearCaches();
   }
 
@@ -69,7 +71,7 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
     try {
       // Add in the dart-sdk argument if `dartSdkPath` is not null, otherwise it
       // will try to find the currently installed sdk.
-      var arguments = new List.from(request.arguments);
+      var arguments = new List<String>.from(request.arguments);
       if (dartSdkPath != null &&
           !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
         arguments.add('--dart-sdk=$dartSdkPath');
@@ -123,10 +125,10 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
  * Analyzer used when the "--build-mode" option is supplied.
  */
 class BuildMode {
+  final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
 
-  final ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
   SummaryDataStore summaryDataStore;
   InternalAnalysisContext context;
   Map<Uri, JavaFile> uriToFileMap;
@@ -135,8 +137,13 @@ class BuildMode {
   PackageBundleAssembler assembler;
   final Set<Source> processedSources = new Set<Source>();
   final Map<Uri, UnlinkedUnit> uriToUnit = <Uri, UnlinkedUnit>{};
+  PackageBundle sdkBundle;
 
-  BuildMode(this.options, this.stats);
+  BuildMode(this.resourceProvider, this.options, this.stats);
+
+  bool get _shouldOutputSummary =>
+      options.buildSummaryOutput != null ||
+      options.buildSummaryOutputSemantic != null;
 
   /**
    * Perform package analysis according to the given [options].
@@ -186,8 +193,7 @@ class BuildMode {
     assembler = new PackageBundleAssembler(
         excludeHashes: options.buildSummaryExcludeInformative &&
             options.buildSummaryOutputSemantic == null);
-    if (options.buildSummaryOutput != null ||
-        options.buildSummaryOutputSemantic != null) {
+    if (_shouldOutputSummary) {
       if (options.buildSummaryOnlyAst && !options.buildSummaryFallback) {
         _serializeAstBasedSummary(explicitSources);
       } else {
@@ -206,21 +212,26 @@ class BuildMode {
           }
         }
       }
+      if (!options.buildSummaryOnlyAst) {
+        // In non-AST mode, the SDK bundle wasn't added to the summaryDataStore
+        // because it is automatically loaded during analysis.  However we still
+        // want the SDK bundle to be noted as a dependency, so add it now.
+        summaryDataStore.addBundle(null, sdkBundle);
+      }
       // Write the whole package bundle.
-      PackageBundleBuilder sdkBundle = assembler.assemble();
+      assembler.recordDependencies(summaryDataStore);
+      PackageBundleBuilder bundle = assembler.assemble();
       if (options.buildSummaryExcludeInformative) {
-        sdkBundle.flushInformative();
+        bundle.flushInformative();
       }
       if (options.buildSummaryOutput != null) {
         io.File file = new io.File(options.buildSummaryOutput);
-        file.writeAsBytesSync(sdkBundle.toBuffer(),
-            mode: io.FileMode.WRITE_ONLY);
+        file.writeAsBytesSync(bundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
       }
       if (options.buildSummaryOutputSemantic != null) {
-        sdkBundle.flushInformative();
+        bundle.flushInformative();
         io.File file = new io.File(options.buildSummaryOutputSemantic);
-        file.writeAsBytesSync(sdkBundle.toBuffer(),
-            mode: io.FileMode.WRITE_ONLY);
+        file.writeAsBytesSync(bundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
       }
     }
 
@@ -252,23 +263,23 @@ class BuildMode {
 
   void _createContext() {
     // Read the summaries.
-    summaryDataStore = new SummaryDataStore(options.buildSummaryInputs);
+    summaryDataStore = new SummaryDataStore(options.buildSummaryInputs,
+        recordDependencyInfo: _shouldOutputSummary);
 
     DartSdk sdk;
-    PackageBundle sdkBundle;
     if (options.dartSdkSummaryPath != null) {
       SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
           options.dartSdkSummaryPath, options.strongMode);
       sdk = summarySdk;
       sdkBundle = summarySdk.bundle;
     } else {
-      DirectoryBasedDartSdk directorySdk =
-          new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
-      directorySdk.analysisOptions =
+      FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
+          resourceProvider.getFolder(options.dartSdkPath), options.strongMode);
+      dartSdk.analysisOptions =
           Driver.createAnalysisOptionsForCommandLineOptions(options);
-      directorySdk.useSummary = !options.buildSummaryOnlyAst;
-      sdk = directorySdk;
-      sdkBundle = directorySdk.getSummarySdkBundle(options.strongMode);
+      dartSdk.useSummary = !options.buildSummaryOnlyAst;
+      sdk = dartSdk;
+      sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
     }
 
     // In AST mode include SDK bundle to avoid parsing SDK sources.
@@ -285,7 +296,7 @@ class BuildMode {
     ]);
 
     // Set context options.
-    Driver.setAnalysisContextOptions(context, options,
+    Driver.setAnalysisContextOptions(resourceProvider, context, options,
         (AnalysisOptionsImpl contextOptions) {
       if (options.buildSummaryOnlyDiet) {
         contextOptions.analyzeFunctionBodies = false;

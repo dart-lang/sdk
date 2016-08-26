@@ -22,7 +22,6 @@ main() {
   runReflectiveTests(DartUriResolverTest);
   runReflectiveTests(EmbedderSdkTest);
   runReflectiveTests(EmbedderUriResolverTest);
-  runReflectiveTests(EmbedderYamlLocatorTest);
 }
 
 @reflectiveTest
@@ -39,6 +38,7 @@ class DartUriResolverTest extends EmbedderRelatedTest {
       expect(source, isNotNull, reason: dartUri);
       expect(source.fullName, posixToOSPath(posixPath));
     }
+
     // Check that they map to the correct paths.
     expectResolved('dart:core', '/tmp/core.dart');
     expectResolved('dart:fox', '/tmp/slippy.dart');
@@ -203,28 +203,5 @@ class EmbedderUriResolverTest extends EmbedderRelatedTest {
     expectRestore('dart:deep/file.dart', 'dart:deep');
     expectRestore('dart:deep/part.dart');
     expectRestore('dart:deep/deep/file.dart');
-  }
-}
-
-@reflectiveTest
-class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
-  void test_empty() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/empty')]
-    });
-    expect(locator.embedderYamls, hasLength(0));
-  }
-
-  void test_invalid() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator(null);
-    locator.addEmbedderYaml(null, r'''{{{,{{}}},}}''');
-    expect(locator.embedderYamls, hasLength(0));
-  }
-
-  void test_valid() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
-    });
-    expect(locator.embedderYamls, hasLength(1));
   }
 }

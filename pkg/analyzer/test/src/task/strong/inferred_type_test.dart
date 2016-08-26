@@ -62,7 +62,7 @@ main() {
     var mainUnit = checkFile(r'''
 import 'dart:async';
 import 'dart:math' show Random;
-var f = /*info:INFERRED_TYPE_CLOSURE*/() async {
+var f = /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() async {
   if (new Random().nextBool()) {
     return new Future<int>.value(1);
   } else {
@@ -101,7 +101,7 @@ main() {
     var mainUnit = checkFile(r'''
 import 'dart:async';
 import 'dart:math' show Random;
-var f = /*info:INFERRED_TYPE_CLOSURE*/() async {
+var f = /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() async {
   if (new Random().nextBool()) {
     return 1;
   } else {
@@ -140,7 +140,7 @@ main() {
     var mainUnit = checkFile(r'''
 import 'dart:async';
 import 'dart:math' show Random;
-var f = /*info:INFERRED_TYPE_CLOSURE*/() async {
+var f = /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() async {
   if (new Random().nextBool()) {
     return new Future<int>.value(1);
   } else {
@@ -175,7 +175,7 @@ main() {
   void test_blockBodiedLambdas_asyncStar_topLevel() {
     var mainUnit = checkFile(r'''
   import 'dart:async';
-var f = /*info:INFERRED_TYPE_CLOSURE*/() async* {
+var f = /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() async* {
   yield 1;
   Stream<double> s;
   yield* s;
@@ -198,7 +198,7 @@ test1() {
   void test_blockBodiedLambdas_basic_topLevel() {
     checkFile(r'''
 List<int> o;
-var y = o.map(/*info:INFERRED_TYPE_CLOSURE*/(x) { return x + 1; });
+var y = o.map(/*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/(x) { return x + 1; });
 Iterable<int> z = y;
 ''');
   }
@@ -223,7 +223,7 @@ main() async {
   void test_blockBodiedLambdas_doesNotInferBottom_async_topLevel() {
     var mainUnit = checkFile(r'''
 import 'dart:async';
-var f = () async { return null; };
+var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() async { return null; };
 ''');
     var f = mainUnit.topLevelVariables[0];
     expect(f.type.toString(), '() → Future<dynamic>');
@@ -249,7 +249,7 @@ main() async {
   void test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel() {
     var mainUnit = checkFile(r'''
 import 'dart:async';
-var f = () async* { yield null; };
+var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() async* { yield null; };
 ''');
     var f = mainUnit.topLevelVariables[0];
     expect(f.type.toString(), '() → Stream<dynamic>');
@@ -304,7 +304,7 @@ main() {
 
   void test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel() {
     var mainUnit = checkFile(r'''
-var f = () sync* { yield null; };
+var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() sync* { yield null; };
 ''');
     var f = mainUnit.topLevelVariables[0];
     expect(f.type.toString(), '() → Iterable<dynamic>');
@@ -357,7 +357,7 @@ test2() {
     checkFile(r'''
 import 'dart:math' show Random;
 List<num> o;
-var y = o.map(/*info:INFERRED_TYPE_CLOSURE*/(x) {
+var y = o.map(/*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/(x) {
   if (new Random().nextBool()) {
     return x.toInt() + 1;
   } else {
@@ -388,7 +388,7 @@ main() {
   void test_blockBodiedLambdas_nestedLambdas_topLevel() {
     // Original feature request: https://github.com/dart-lang/sdk/issues/25487
     var mainUnit = checkFile(r'''
-var f = /*info:INFERRED_TYPE_CLOSURE*/() {
+var f = /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() {
   return /*info:INFERRED_TYPE_CLOSURE*/(int x) { return 2.0 * x; };
 };
 ''');
@@ -440,7 +440,7 @@ main() {
 
   void test_blockBodiedLambdas_syncStar_topLevel() {
     var mainUnit = checkFile(r'''
-var f = /*info:INFERRED_TYPE_CLOSURE*/() sync* {
+var f = /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() sync* {
   yield 1;
   yield* /*info:INFERRED_TYPE_LITERAL*/[3, 4.0];
 };
@@ -588,6 +588,209 @@ class C2 implements A, B {
 ''');
   }
 
+  void test_constructors_downwardsWithConstraint() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26431
+    checkFile(r'''
+class Foo<T extends Iterable> {}
+void main() {
+  Foo<List> foo = /*info:INFERRED_TYPE_ALLOCATION*/new Foo();
+}
+    ''');
+  }
+
+  void test_constructors_inferenceFBounded() {
+    // Regression for https://github.com/dart-lang/sdk/issues/26990
+    var unit = checkFile('''
+class Clonable<T> {}
+
+class Pair<T extends Clonable<T>, U extends Clonable<U>> {
+  T t;
+  U u;
+  Pair(this.t, this.u);
+  Pair._();
+  Pair<U, T> get reversed => /*info:INFERRED_TYPE_ALLOCATION*/new Pair(u, t);
+}
+final x = /*info:INFERRED_TYPE_ALLOCATION*/new Pair._();
+    ''');
+    var x = unit.topLevelVariables[0];
+    expect(x.type.toString(), 'Pair<Clonable<dynamic>, Clonable<dynamic>>');
+  }
+
+  void test_constructors_inferFromArguments() {
+    var unit = checkFile('''
+class C<T> {
+  T t;
+  C(this.t);
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C(42);
+
+// Don't infer if we had a context type.
+num y;
+C<int> c_int = /*info:INFERRED_TYPE_ALLOCATION*/new C(/*info:DOWN_CAST_IMPLICIT*/y);
+
+// These hints are not reported because we resolve with a null error listener.
+C<num> c_num = /*pass should be info:INFERRED_TYPE_ALLOCATION*/new C(123);
+C<num> c_num2 = (/*pass should be info:INFERRED_TYPE_ALLOCATION*/new C(456))
+    ..t = /*error:INVALID_ASSIGNMENT*/1.0;
+
+// Down't infer from explicit dynamic.
+var c_dynamic = new C<dynamic>(42);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    var vars = unit.topLevelVariables;
+    expect(vars[0].type.toString(), 'C<int>');
+    expect(vars.firstWhere((e) => e.name == 'c_int').type.toString(), 'C<int>');
+    expect(vars.firstWhere((e) => e.name == 'c_num').type.toString(), 'C<num>');
+    expect(vars.firstWhere((e) => e.name == 'c_dynamic').type.toString(),
+        'C<dynamic>');
+  }
+
+  void test_constructors_inferFromArguments_const() {
+    var unit = checkFile('''
+class C<T> {
+  final T t;
+  const C(this.t);
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/const C(42);
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_inferFromArguments_constWithUpperBound() {
+    // Regression for https://github.com/dart-lang/sdk/issues/26993
+    checkFile('''
+class C<T extends num> {
+  final T x;
+  const C(this.x);
+}
+class D<T extends num> {
+  const D();
+}
+void f() {
+  const c = /*info:INFERRED_TYPE_ALLOCATION*/const C(0);
+  const D<int> d = /*info:INFERRED_TYPE_ALLOCATION*/const D();
+}
+    ''');
+  }
+
+  void test_constructors_inferFromArguments_factory() {
+    var unit = checkFile('''
+class C<T> {
+  T t;
+
+  C._();
+
+  factory C(T t) {
+    var x = new C<T>._();
+    x.t = t;
+    return x;
+  }
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C(42);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_inferFromArguments_named() {
+    var unit = checkFile('''
+class C<T> {
+  T t;
+  C.named(List<T> t);
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(<int>[]);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_inferFromArguments_namedFactory() {
+    var unit = checkFile('''
+class C<T> {
+  T t;
+  C();
+
+  factory C.named(T t) {
+    var x = new C<T>();
+    x.t = t;
+    return x;
+  }
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(42);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_inferFromArguments_redirecting() {
+    var unit = checkFile('''
+class C<T> {
+  T t;
+  C(this.t);
+  C.named(List<T> t) : this(t[0]);
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(<int>[42]);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_inferFromArguments_redirectingFactory() {
+    var unit = checkFile('''
+abstract class C<T> {
+  T get t;
+  void set t(T x);
+
+  factory C(T t) = CImpl<T>;
+}
+
+class CImpl<T> implements C<T> {
+  T t;
+  CImpl(this.t);
+}
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C(42);
+
+main() {
+  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
+  void test_constructors_reverseTypeParameters() {
+    // Regression for https://github.com/dart-lang/sdk/issues/26990
+    checkFile('''
+class Pair<T, U> {
+  T t;
+  U u;
+  Pair(this.t, this.u);
+  Pair<U, T> get reversed => /*info:INFERRED_TYPE_ALLOCATION*/new Pair(u, t);
+}
+    ''');
+  }
+
   void test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer() {
     checkFile('''
 class A {
@@ -697,7 +900,7 @@ void main() {
 import 'dart:async';
 Future test() async {
   dynamic d;
-  List<int> l0 = /*warning:DOWN_CAST_COMPOSITE should be pass*/await /*pass should be info:INFERRED_TYPE_LITERAL*/[d];
+  List<int> l0 = await /*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d];
   List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d]);
 }
 ''');
@@ -1034,8 +1237,8 @@ void main() {
     A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new B.named("hello", 3);
     A<int, String> a2 = new B<String, int>("hello", 3);
     A<int, String> a3 = new B<String, int>.named("hello", 3);
-    A<int, String> a4 = /*error:STATIC_TYPE_ERROR*/new B<String, dynamic>("hello", 3);
-    A<int, String> a5 = /*error:STATIC_TYPE_ERROR*/new B<dynamic, dynamic>.named("hello", 3);
+    A<int, String> a4 = /*error:INVALID_ASSIGNMENT*/new B<String, dynamic>("hello", 3);
+    A<int, String> a5 = /*error:INVALID_ASSIGNMENT*/new B<dynamic, dynamic>.named("hello", 3);
   }
   {
     A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new B(
@@ -1050,8 +1253,8 @@ void main() {
     A<int, int> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(3);
     A<int, int> a2 = new C<int>(3);
     A<int, int> a3 = new C<int>.named(3);
-    A<int, int> a4 = /*error:STATIC_TYPE_ERROR*/new C<dynamic>(3);
-    A<int, int> a5 = /*error:STATIC_TYPE_ERROR*/new C<dynamic>.named(3);
+    A<int, int> a4 = /*error:INVALID_ASSIGNMENT*/new C<dynamic>(3);
+    A<int, int> a5 = /*error:INVALID_ASSIGNMENT*/new C<dynamic>.named(3);
   }
   {
     A<int, int> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new C(
@@ -1064,8 +1267,8 @@ void main() {
     A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new D.named("hello");
     A<int, String> a2 = new D<int, String>("hello");
     A<int, String> a3 = new D<String, String>.named("hello");
-    A<int, String> a4 = /*error:STATIC_TYPE_ERROR*/new D<num, dynamic>("hello");
-    A<int, String> a5 = /*error:STATIC_TYPE_ERROR*/new D<dynamic, dynamic>.named("hello");
+    A<int, String> a4 = /*error:INVALID_ASSIGNMENT*/new D<num, dynamic>("hello");
+    A<int, String> a5 = /*error:INVALID_ASSIGNMENT*/new D<dynamic, dynamic>.named("hello");
   }
   {
     A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new D(
@@ -1073,8 +1276,8 @@ void main() {
     A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new D.named(
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
   }
-  { // Currently we only allow variable constraints.  Test that we reject.
-    A<C<int>, String> a0 = /*error:STATIC_TYPE_ERROR*/new E("hello");
+  {
+    A<C<int>, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new E("hello");
   }
   { // Check named and optional arguments
     A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new F(3, "hello",
@@ -1317,11 +1520,202 @@ int get y => null;
   }
 
   void test_futureThen() {
-    checkFile('''
+    String build({String declared, String downwards, String upwards}) => '''
 import 'dart:async';
-Future f;
-Future<int> t1 = f.then((_) => new Future<int>.value(42));
-''');
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation);
+  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+}
+
+void main() {
+  $declared f;
+  $downwards<int> t1 = f.then((_) async => await new $upwards<int>.value(3));
+  $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
+     return await new $upwards<int>.value(3);});
+  $downwards<int> t3 = f.then((_) async => 3);
+  $downwards<int> t4 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
+    return 3;});
+  $downwards<int> t5 = f.then((_) => new $upwards<int>.value(3));
+  $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) {return new $upwards<int>.value(3);});
+  $downwards<int> t7 = f.then((_) async => new $upwards<int>.value(3));
+  $downwards<int> t8 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
+    return new $upwards<int>.value(3);});
+}
+''';
+
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
+    checkFile(build(
+        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "Future"));
+  }
+
+  void test_futureThen_conditional() {
+    String build({String declared, String downwards, String upwards}) => '''
+import 'dart:async';
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation);
+  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+}
+
+void main() {
+  $declared<bool> f;
+  $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
+      (x) async => x ? 2 : await new $upwards<int>.value(3));
+  $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) async { // TODO(leafp): Why the duplicate here?
+    return await x ? 2 : new $upwards<int>.value(3);});
+  $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
+      (x) => x ? 2 : new $upwards<int>.value(3));
+  $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
+      (x) {return x ? 2 : new $upwards<int>.value(3);});
+}
+''';
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
+    checkFile(build(
+        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "Future"));
+  }
+
+  void test_futureThen_downwardsMethodTarget() {
+    // Not working yet, see: https://github.com/dart-lang/sdk/issues/27114
+    checkFile(r'''
+import 'dart:async';
+main() {
+  Future<int> f;
+  Future<List<int>> b = /*info:ASSIGNMENT_CAST should be pass*/f
+      .then(/*info:INFERRED_TYPE_CLOSURE*/(x) => [])
+      .whenComplete(/*pass should be info:INFERRED_TYPE_LITERAL*/() {});
+  b = f.then(/*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
+}
+    ''');
+  }
+
+  void test_futureThen_upwards() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/27088.
+    String build({String declared, String downwards, String upwards}) => '''
+import 'dart:async';
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation);
+  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+}
+
+void main() {
+  var f = foo().then((_) => 2.3);
+  $downwards<int> f2 = /*error:INVALID_ASSIGNMENT*/f;
+
+  // The unnecessary cast is to illustrate that we inferred <double> for
+  // the generic type args, even though we had a return type context.
+  $downwards<num> f3 = /*info:UNNECESSARY_CAST*/foo().then(
+      (_) => 2.3) as $upwards<double>;
+}
+$declared foo() => new $declared<int>.value(1);
+    ''';
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
+    checkFile(build(
+        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "Future"));
+  }
+
+  void test_futureThen_upwardsFromBlock() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/27113.
+    checkFile(r'''
+import 'dart:async';
+main() {
+  Future<int> base;
+  var f = base.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) { return x == 0; });
+  var g = base.then(/*info:INFERRED_TYPE_CLOSURE*/(x) => x == 0);
+  Future<bool> b = f;
+  b = g;
+}
+    ''');
+  }
+
+  void test_futureUnion_asyncConditional() {
+    String build({String declared, String downwards, String upwards}) => '''
+import 'dart:async';
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation);
+  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+}
+
+$downwards<int> g1(bool x) async {
+  return x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
+$downwards<int> g2(bool x) async =>
+  x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
+$downwards<int> g3(bool x) async {
+  var y = x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
+  return y;
+}
+    ''';
+    checkFile(build(downwards: "Future", upwards: "Future"));
+    checkFile(build(downwards: "Future", upwards: "MyFuture"));
+  }
+
+  void test_futureUnion_downwards() {
+    String build({String declared, String downwards, String upwards}) {
+      // TODO(leafp): The use of matchTypes in visitInstanceCreationExpression
+      // in the resolver visitor isn't powerful enough to catch this for the
+      // subclass.  See the TODO there.
+      var allocInfo =
+          (upwards == "Future") ? "/*info:INFERRED_TYPE_ALLOCATION*/" : "";
+      return '''
+import 'dart:async';
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value([T x]) {}
+  dynamic noSuchMethod(invocation);
+  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+}
+
+$declared f;
+// Instantiates Future<int>
+$downwards<int> t1 = f.then((_) =>
+   ${allocInfo}new $upwards.value(
+     /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'));
+
+// Instantiates List<int>
+$downwards<List<int>> t2 = f.then((_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
+$downwards<List<int>> g2() async { return /*info:INFERRED_TYPE_LITERAL*/[3]; }
+$downwards<List<int>> g3() async {
+  return /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(
+      /*info:INFERRED_TYPE_LITERAL*/[3]); }
+''';
+    }
+
+    ;
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
+    checkFile(
+        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "Future"));
+    checkFile(
+        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
   }
 
   void test_genericMethods_basicDownwardInference() {
@@ -1444,7 +1838,7 @@ class D extends C {
   /*=T*/ g/*<T>*/(/*=T*/ x) => x;
 }
 main() {
-  int y = /*info:DYNAMIC_CAST*/(new D() as C).m(42);
+  int y = /*info:DYNAMIC_CAST*/(/*info:UNNECESSARY_CAST*/new D() as C).m(42);
   print(y);
 }
   ''');
@@ -1512,11 +1906,11 @@ takeDDN(math.max);
 takeIIO(math.max);
 takeDDO(math.max);
 
-takeOOI(/*error:STATIC_TYPE_ERROR,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeIDI(/*error:STATIC_TYPE_ERROR,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeDID(/*error:STATIC_TYPE_ERROR,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeOON(/*error:STATIC_TYPE_ERROR,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeOOO(/*error:STATIC_TYPE_ERROR,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeOOI(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeIDI(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeDID(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeOON(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeOOO(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
 
 // Also test SimpleIdentifier
 takeIII(min);
@@ -1529,11 +1923,11 @@ takeDDN(min);
 takeIIO(min);
 takeDDO(min);
 
-takeOOI(/*error:STATIC_TYPE_ERROR,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeIDI(/*error:STATIC_TYPE_ERROR,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeDID(/*error:STATIC_TYPE_ERROR,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeOON(/*error:STATIC_TYPE_ERROR,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeOOO(/*error:STATIC_TYPE_ERROR,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeOOI(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeIDI(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeDID(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeOON(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeOOO(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
 
 // Also PropertyAccess
 takeIII(new C().m);
@@ -1555,14 +1949,14 @@ takeDDO(new C().m);
 //
 // That's legal because we're loosening parameter types.
 //
-takeOON(/*warning:DOWN_CAST_COMPOSITE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
-takeOOO(/*warning:DOWN_CAST_COMPOSITE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
+takeOON(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
+takeOOO(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
 
 // Note: this is a warning because a downcast of a method tear-off could work
 // in "normal" Dart, due to bivariance.
-takeOOI(/*warning:DOWN_CAST_COMPOSITE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
-takeIDI(/*warning:DOWN_CAST_COMPOSITE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
-takeDID(/*warning:DOWN_CAST_COMPOSITE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
+takeOOI(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
+takeIDI(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
+takeDID(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
 }
 
 void takeIII(int fn(int a, int b)) {}
@@ -2077,8 +2471,8 @@ var f = 2 + 3;          // binary expressions are OK if the left operand
                         // conected component.
 var g = -3;
 var h = new A() + 3;
-var i = /*error:UNDEFINED_OPERATOR*/- new A();
-var j = null as B;
+var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/- new A();
+var j = /*info:UNNECESSARY_CAST*/null as B;
 
 test1() {
   a = /*error:INVALID_ASSIGNMENT*/"hi";
@@ -2313,6 +2707,42 @@ main() {
   );
 }
   ''');
+  }
+
+  void test_inferLocalFunctionReturnType() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26414
+    var unit = checkFile(r'''
+main() {
+  f0() => 42;
+  f1() async => 42;
+
+  f2 /*info:INFERRED_TYPE_CLOSURE*/() { return 42; }
+  f3 /*info:INFERRED_TYPE_CLOSURE*/() async { return 42; }
+  f4 /*info:INFERRED_TYPE_CLOSURE*/() sync* { yield 42; }
+  f5 /*info:INFERRED_TYPE_CLOSURE*/() async* { yield 42; }
+
+  num f6() => 42;
+
+  f7() => f7();
+  f8() => /*error:REFERENCED_BEFORE_DECLARATION*/f9();
+  f9() => f5();
+}
+''');
+    var fns = unit.functions[0].functions;
+    expect(fns[0].type.toString(), '() → int');
+    expect(fns[1].type.toString(), '() → Future<int>');
+
+    expect(fns[2].type.toString(), '() → int');
+    expect(fns[3].type.toString(), '() → Future<int>');
+    expect(fns[4].type.toString(), '() → Iterable<int>');
+    expect(fns[5].type.toString(), '() → Stream<int>');
+
+    expect(fns[6].type.toString(), '() → num');
+
+    // Recursive cases: these infer in declaration order.
+    expect(fns[7].type.toString(), '() → dynamic');
+    expect(fns[8].type.toString(), '() → dynamic');
+    expect(fns[9].type.toString(), '() → Stream<int>');
   }
 
   void test_inferred_nonstatic_field_depends_on_static_field_complex() {
@@ -2695,6 +3125,18 @@ class C {
     var mainUnit = checkFile('final f = (bool b) => 1;');
     var f = mainUnit.topLevelVariables[0];
     expect(f.type.toString(), '(bool) → int');
+  }
+
+  void test_inferReturnOfStatementLambda() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26139
+    checkFile(r'''
+List<String> strings() {
+  var stuff = [].expand(/*info:INFERRED_TYPE_CLOSURE*/(i) {
+    return <String>[];
+  });
+  return stuff.toList();
+}
+    ''');
   }
 
   void test_inferStaticsTransitively() {
@@ -3423,6 +3865,23 @@ test1() {
 ''');
   }
 
+  void test_nullCoalescingOperator() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26552
+    checkFile(r'''
+List<int> x;
+var y = x ?? /*info:INFERRED_TYPE_LITERAL*/[];
+List<int> z = y;
+    ''');
+    // Don't do anything if we already have a context type.
+    var unit = checkFile(r'''
+List<int> x;
+List<num> y = x ?? /*info:INFERRED_TYPE_LITERAL*/[];
+    ''');
+
+    expect(unit.topLevelVariables[1].initializer.returnType.toString(),
+        'List<num>');
+  }
+
   void test_nullLiteralShouldNotInferAsBottom() {
     // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
     checkFile(r'''
@@ -3710,6 +4169,297 @@ class C {
 ''');
     // No type should be inferred for a because there is a circular reference
     // between a and c.
+  }
+
+  void test_unsafeBlockClosureInference_closureCall() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26962
+    var mainUnit = checkFile('''
+var v = ((x) => 1.0)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'double');
+  }
+
+  void test_unsafeBlockClosureInference_constructorCall_explicitDynamicParam() {
+    var mainUnit = checkFile('''
+class C<T> {
+  C(T x());
+}
+var v = new C<dynamic>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'C<dynamic>');
+  }
+
+  void test_unsafeBlockClosureInference_constructorCall_explicitTypeParam() {
+    var mainUnit = checkFile('''
+class C<T> {
+  C(T x());
+}
+var v = new C<int>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'C<int>');
+  }
+
+  void test_unsafeBlockClosureInference_constructorCall_implicitTypeParam() {
+    var mainUnit = checkFile('''
+class C<T> {
+  C(T x());
+}
+var v = /*info:INFERRED_TYPE_ALLOCATION*/new C(
+  /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() {
+    return 1;
+  });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'C<int>');
+  }
+
+  void test_unsafeBlockClosureInference_constructorCall_noTypeParam() {
+    var mainUnit = checkFile('''
+class C {
+  C(x());
+}
+var v = new C(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'C');
+  }
+
+  void test_unsafeBlockClosureInference_functionCall_explicitDynamicParam() {
+    var mainUnit = checkFile('''
+dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+var v = f/*<dynamic>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<dynamic>');
+  }
+
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
+    // Note: (f/*<dynamic>*/) is nort properly resulting in an instantiated
+    // function type due to dartbug.com/25824.
+    var mainUnit = checkFile('''
+dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+var v = (f/*<dynamic>*/)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<dynamic>');
+  }
+
+  void
+      test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() {
+    var mainUnit = checkFile('''
+dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+var v = (f)/*<dynamic>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<dynamic>');
+  }
+
+  void test_unsafeBlockClosureInference_functionCall_explicitTypeParam() {
+    var mainUnit = checkFile('''
+dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+var v = f/*<int>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<int>');
+  }
+
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
+    // TODO(paulberry): for some reason (f/*<int>) is nort properly resulting
+    // in an instantiated function type.
+    var mainUnit = checkFile('''
+dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+var v = (f/*<int>*/)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<int>');
+  }
+
+  void
+      test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() {
+    var mainUnit = checkFile('''
+dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+var v = (f)/*<int>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<int>');
+  }
+
+  void test_unsafeBlockClosureInference_functionCall_implicitTypeParam() {
+    var mainUnit = checkFile('''
+dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+var v = f(
+  /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() {
+    return 1;
+  });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<int>');
+  }
+
+  void
+      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() {
+    var mainUnit = checkFile('''
+dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+var v = (f)(
+  /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() {
+    return 1;
+  });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<int>');
+  }
+
+  void test_unsafeBlockClosureInference_functionCall_noTypeParam() {
+    var mainUnit = checkFile('''
+double f(x) => 1.0;
+var v = f(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'double');
+  }
+
+  void test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() {
+    var mainUnit = checkFile('''
+double f(x) => 1.0;
+var v = (f)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'double');
+  }
+
+  void test_unsafeBlockClosureInference_inList_dynamic() {
+    var mainUnit = checkFile('''
+var v = <dynamic>[/*info:INFERRED_TYPE_CLOSURE*/() { return 1; }];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<dynamic>');
+  }
+
+  void test_unsafeBlockClosureInference_inList_typed() {
+    var mainUnit = checkFile('''
+typedef int F();
+var v = <F>[/*info:INFERRED_TYPE_CLOSURE*/() { return 1; }];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<() → int>');
+  }
+
+  void test_unsafeBlockClosureInference_inList_untyped() {
+    var mainUnit = checkFile('''
+var v = /*info:INFERRED_TYPE_LITERAL*/[
+  /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() {
+    return 1;
+  }];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<() → int>');
+  }
+
+  void test_unsafeBlockClosureInference_inMap_dynamic() {
+    var mainUnit = checkFile('''
+var v = <int, dynamic>{1: /*info:INFERRED_TYPE_CLOSURE*/() { return 1; }};
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'Map<int, dynamic>');
+  }
+
+  void test_unsafeBlockClosureInference_inMap_typed() {
+    var mainUnit = checkFile('''
+typedef int F();
+var v = <int, F>{1: /*info:INFERRED_TYPE_CLOSURE*/() { return 1; }};
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'Map<int, () → int>');
+  }
+
+  void test_unsafeBlockClosureInference_inMap_untyped() {
+    var mainUnit = checkFile('''
+var v = /*info:INFERRED_TYPE_LITERAL*/{
+  1: /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() {
+    return 1;
+  }};
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'Map<int, () → int>');
+  }
+
+  void test_unsafeBlockClosureInference_methodCall_explicitDynamicParam() {
+    var mainUnit = checkFile('''
+class C {
+  dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+}
+var v = new C().f/*<dynamic>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<dynamic>');
+  }
+
+  void test_unsafeBlockClosureInference_methodCall_explicitTypeParam() {
+    var mainUnit = checkFile('''
+class C {
+  dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+}
+var v = new C().f/*<int>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<int>');
+  }
+
+  void test_unsafeBlockClosureInference_methodCall_implicitTypeParam() {
+    var mainUnit = checkFile('''
+class C {
+  dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
+}
+var v = new C().f(
+  /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() {
+    return 1;
+  });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'List<int>');
+  }
+
+  void test_unsafeBlockClosureInference_methodCall_noTypeParam() {
+    var mainUnit = checkFile('''
+class C {
+  double f(x) => 1.0;
+}
+var v = new C().f(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.name, 'v');
+    expect(v.type.toString(), 'double');
   }
 }
 

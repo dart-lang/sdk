@@ -1181,6 +1181,18 @@ table LinkedUnit {
  */
 table PackageBundle {
   /**
+   * MD5 hash of the non-informative fields of the [PackageBundle] (not
+   * including this one).  This can be used to identify when the API of a
+   * package may have changed.
+   */
+  apiSignature:string (id: 7);
+
+  /**
+   * Information about the packages this package depends on, if known.
+   */
+  dependencies:[PackageDependencyInfo] (id: 8);
+
+  /**
    * Linked libraries.
    */
   linkedLibraries:[LinkedLibrary] (id: 0);
@@ -1221,6 +1233,46 @@ table PackageBundle {
 }
 
 /**
+ * Information about a single dependency of a summary package.
+ */
+table PackageDependencyInfo {
+  /**
+   * API signature of this dependency.
+   */
+  apiSignature:string (id: 0);
+
+  /**
+   * If this dependency summarizes any files whose URI takes the form
+   * "package:<package_name>/...", a list of all such package names, sorted
+   * lexicographically.  Otherwise empty.
+   */
+  includedPackageNames:[string] (id: 2);
+
+  /**
+   * Indicates whether this dependency summarizes any files whose URI takes the
+   * form "dart:...".
+   */
+  includesDartUris:bool (id: 4);
+
+  /**
+   * Indicates whether this dependency summarizes any files whose URI takes the
+   * form "file:...".
+   */
+  includesFileUris:bool (id: 3);
+
+  /**
+   * Relative path to the summary file for this dependency.  This is intended as
+   * a hint to help the analysis server locate summaries of dependencies.  We
+   * don't specify precisely what this path is relative to, but we expect it to
+   * be relative to a directory the analysis server can find (e.g. for projects
+   * built using Bazel, it would be relative to the "bazel-bin" directory).
+   *
+   * Absent if the path is not known.
+   */
+  summaryPath:string (id: 1);
+}
+
+/**
  * Index information about a package.
  */
 table PackageIndex {
@@ -1232,11 +1284,29 @@ table PackageIndex {
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the offset of the element name relative to the beginning of the file.  The
-   * list is sorted in ascending order, so that the client can quickly check
-   * whether an element is referenced in this [PackageIndex].
+   * the identifier of the class member element name, or `null` if the element is
+   * a top-level element.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this
+   * [PackageIndex].
    */
-  elementOffsets:[uint] (id: 1);
+  elementNameClassMemberIds:[uint] (id: 7);
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the named parameter name, or `null` if the element is not
+   * a named parameter.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this
+   * [PackageIndex].
+   */
+  elementNameParameterIds:[uint] (id: 8);
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the top-level element name, or `null` if the element is
+   * the unit.  The list is sorted in ascending order, so that the client can
+   * quickly check whether an element is referenced in this [PackageIndex].
+   */
+  elementNameUnitMemberIds:[uint] (id: 1);
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
@@ -2302,6 +2372,11 @@ table UnlinkedUnit {
    * the library has no name).
    */
   libraryNameOffset:uint (id: 8);
+
+  /**
+   * Offsets of the first character of each line in the source code.
+   */
+  lineStarts:[uint] (id: 17);
 
   /**
    * Part declarations in the compilation unit.

@@ -1023,13 +1023,17 @@ Future testEffectiveTarget() async {
     class A {
       A() : super();
       factory A.forward() = B.patchTarget;
+      factory A.forwardOne() = B.patchFactory;
       factory A.forwardTwo() = B.reflectBack;
+      factory A.forwardThree() = B.patchInjected;
     }
     class B extends A {
       B() : super();
       external B.patchTarget();
+      external factory B.patchFactory();
       external factory B.reflectBack();
       B.originTarget() : super();
+      external factory B.patchInjected();
     }
     """;
   String patch = """
@@ -1037,7 +1041,14 @@ Future testEffectiveTarget() async {
       @patch
       B.patchTarget() : super();
       @patch
+      factory B.patchFactory() => new B.patchTarget();
+      @patch
       factory B.reflectBack() = B.originTarget;
+      @patch
+      factory B.patchInjected() = _C.injected;
+    }
+    class _C extends B {
+      _C.injected() : super.patchTarget();
     }
     """;
 
@@ -1048,14 +1059,28 @@ Future testEffectiveTarget() async {
 
   ConstructorElement forward = clsA.lookupConstructor("forward");
   ConstructorElement target = forward.effectiveTarget;
-  Expect.isTrue(target.isPatch);
+  Expect.isTrue(target.isPatched, "Unexpected target $target for $forward");
+  Expect.isFalse(target.isPatch, "Unexpected target $target for $forward");
   Expect.equals("patchTarget", target.name);
+
+  ConstructorElement forwardOne = clsA.lookupConstructor("forwardOne");
+  target = forwardOne.effectiveTarget;
+  Expect.isFalse(forwardOne.isMalformed);
+  Expect.isFalse(target.isPatch, "Unexpected target $target for $forwardOne");
+  Expect.equals("patchFactory", target.name);
 
   ConstructorElement forwardTwo = clsA.lookupConstructor("forwardTwo");
   target = forwardTwo.effectiveTarget;
   Expect.isFalse(forwardTwo.isMalformed);
-  Expect.isFalse(target.isPatch);
+  Expect.isFalse(target.isPatch, "Unexpected target $target for $forwardTwo");
   Expect.equals("originTarget", target.name);
+
+  ConstructorElement forwardThree = clsA.lookupConstructor("forwardThree");
+  target = forwardThree.effectiveTarget;
+  Expect.isFalse(forwardThree.isMalformed);
+  Expect.isTrue(target.isInjected,
+      "Unexpected target $target for $forwardThree");
+  Expect.equals("injected", target.name);
 }
 
 Future testTypecheckPatchedMembers() async {

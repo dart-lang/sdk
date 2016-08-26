@@ -233,7 +233,7 @@ class DebuggerLocation {
         for (var cls in classes) {
           assert(cls.loaded);
           for (var function in cls.functions) {
-            if (function.kind == FunctionKind.kConstructor) {
+            if (function.kind == M.FunctionKind.constructor) {
               // Constructor names are class-qualified.
               if (match.group(0) == function.name) {
                 functions.add(function);
@@ -314,7 +314,7 @@ class DebuggerLocation {
         var completions = [];
         for (var cls in classes) {
           for (var function in cls.functions) {
-            if (function.kind == FunctionKind.kConstructor) {
+            if (function.kind == M.FunctionKind.constructor) {
               if (function.name.startsWith(match.group(0))) {
                 completions.add(function.name);
               }

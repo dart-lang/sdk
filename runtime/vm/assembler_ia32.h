@@ -740,20 +740,6 @@ class Assembler : public ValueObject {
                             Register scratch,
                             Label* is_smi);
 
-  void ComputeRange(Register result,
-                    Register value,
-                    Register lo_temp,
-                    Register hi_temp,
-                    Label* miss);
-
-  void UpdateRangeFeedback(Register value,
-                           intptr_t index,
-                           Register ic_data,
-                           Register scratch1,
-                           Register scratch2,
-                           Register scratch3,
-                           Label* miss);
-
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,
                                            intptr_t index_scale,
@@ -781,7 +767,11 @@ class Assembler : public ValueObject {
     sarl(reg, Immediate(kSmiTagSize));
   }
 
-  intptr_t PreferredLoopAlignment() { return 16; }
+  void BranchIfNotSmi(Register reg, Label* label) {
+    testl(reg, Immediate(kSmiTagMask));
+    j(NOT_ZERO, label);
+  }
+
   void Align(intptr_t alignment, intptr_t offset);
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }

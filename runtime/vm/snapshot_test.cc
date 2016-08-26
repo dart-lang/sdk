@@ -833,7 +833,6 @@ class TestSnapshotWriter : public SnapshotWriter {
                        alloc,
                        kInitialSize,
                        &forward_list_,
-                       NULL, /* test_writer */
                        true /* can_send_any_object */),
         forward_list_(thread(), kMaxPredefinedObjectIds) {
     ASSERT(buffer != NULL);
@@ -1374,6 +1373,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
     // Load the library.
     Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart_import_lib"),
+                                              Dart_Null(),
                                               NewString(kLibScriptChars),
                                               0, 0);
     EXPECT_VALID(import_lib);
@@ -1436,6 +1436,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
     // Load the library.
     Dart_Handle lib = Dart_LoadLibrary(NewString("dart_lib"),
+                                       Dart_Null(),
                                        NewString(kScriptChars),
                                        0, 0);
     EXPECT_VALID(lib);
@@ -1611,6 +1612,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 
     // Load the library.
     Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart_import_lib"),
+                                              Dart_Null(),
                                               NewString(kLibScriptChars),
                                               0, 0);
     EXPECT_VALID(import_lib);

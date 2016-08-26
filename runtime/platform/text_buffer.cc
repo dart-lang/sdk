@@ -57,6 +57,7 @@ void TextBuffer::AddRaw(const uint8_t* buffer,
   buf_[msg_len_] = '\0';
 }
 
+
 intptr_t TextBuffer::Printf(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -78,6 +79,7 @@ intptr_t TextBuffer::Printf(const char* format, ...) {
   buf_[msg_len_] = '\0';
   return len;
 }
+
 
 // Write a UTF-32 code unit so it can be read by a JSON parser in a string
 // literal. Use official encoding from JSON specification. http://json.org/
@@ -118,6 +120,7 @@ void TextBuffer::EscapeAndAddCodeUnit(uint32_t codeunit) {
       }
   }
 }
+
 
 // Write an incomplete UTF-16 code unit so it can be read by a JSON parser in a
 // string literal.

@@ -4,12 +4,11 @@
 
 library dart2js.tokens;
 
-import 'dart:convert' show UTF8;
 import 'dart:collection' show HashSet;
+import 'dart:convert' show UTF8;
 
 import '../common.dart';
 import '../util/util.dart' show computeHashCode;
-
 import 'keyword.dart' show Keyword;
 import 'precedence.dart' show PrecedenceInfo;
 import 'precedence_constants.dart' as Precedence show BAD_INPUT_INFO;

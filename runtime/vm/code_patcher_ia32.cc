@@ -170,7 +170,7 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
                                     const Code& new_target) {
   const Instructions& instrs = Instructions::Handle(code.instructions());
-  WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+  WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
   ASSERT(code.ContainsInstructionAt(return_address));
   StaticCall call(return_address);
   call.set_target(new_target);
@@ -212,12 +212,27 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
 
 
 void CodePatcher::PatchSwitchableCallAt(uword return_address,
-                                        const Code& code,
-                                        const ICData& ic_data,
-                                        const MegamorphicCache& cache,
-                                        const Code& lookup_stub) {
+                                        const Code& caller_code,
+                                        const Object& data,
+                                        const Code& target) {
   // Switchable instance calls only generated for precompilation.
   UNREACHABLE();
+}
+
+
+RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
+                                                const Code& caller_code) {
+  // Switchable instance calls only generated for precompilation.
+  UNREACHABLE();
+  return Code::null();
+}
+
+
+RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
+                                                const Code& caller_code) {
+  // Switchable instance calls only generated for precompilation.
+  UNREACHABLE();
+  return Object::null();
 }
 
 

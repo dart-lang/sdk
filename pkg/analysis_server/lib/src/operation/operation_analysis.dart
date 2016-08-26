@@ -372,12 +372,7 @@ class PerformAnalysisOperation extends ServerOperation {
     List<ChangeNotice> notices = result.changeNotices;
     // nothing to analyze
     if (notices == null) {
-      bool cacheInconsistencyFixed = context.validateCacheConsistency();
-      if (cacheInconsistencyFixed) {
-        server.addOperation(new PerformAnalysisOperation(context, true));
-        return;
-      }
-      // analysis is done
+      server.scheduleCacheConsistencyValidation(context);
       setCacheSize(context, IDLE_CACHE_SIZE);
       server.sendContextAnalysisDoneNotifications(
           context, AnalysisDoneReason.COMPLETE);

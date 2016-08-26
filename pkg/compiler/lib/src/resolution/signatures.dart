@@ -5,7 +5,7 @@
 library dart2js.resolution.signatures;
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
+import '../common/resolution.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
@@ -40,15 +40,19 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   bool optionalParametersAreNamed = false;
   VariableDefinitions currentDefinitions;
 
-  SignatureResolver(Compiler compiler, FunctionTypedElement enclosingElement,
-      Scope scope, ResolutionRegistry registry,
-      {this.defaultValuesError, this.createRealParameters})
+  SignatureResolver(
+      Resolution resolution,
+      FunctionTypedElement enclosingElement,
+      Scope scope,
+      ResolutionRegistry registry,
+      {this.defaultValuesError,
+      this.createRealParameters})
       : this.scope = scope,
         this.enclosingElement = enclosingElement,
         this.resolver = new ResolverVisitor(
-            compiler, enclosingElement, registry,
+            resolution, enclosingElement, registry,
             scope: scope),
-        super(compiler, registry);
+        super(resolution, registry);
 
   bool get defaultValuesAllowed => defaultValuesError == null;
 
@@ -93,7 +97,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     FormalElementX element = definition.accept(this);
     if (currentDefinitions.metadata != null) {
       element.metadataInternal =
-          compiler.resolver.resolveMetadata(element, node);
+          resolution.resolver.resolveMetadata(element, node);
     }
     currentDefinitions = null;
     return element;
@@ -111,7 +115,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       [VariableElement fieldElement]) {
     void computeFunctionType(FunctionExpression functionExpression) {
       FunctionSignature functionSignature = SignatureResolver.analyze(
-          compiler,
+          resolution,
           scope,
           functionExpression.typeVariables,
           functionExpression.parameters,
@@ -290,7 +294,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
    * the parameters will only implement [FormalElement].
    */
   static FunctionSignature analyze(
-      Compiler compiler,
+      Resolution resolution,
       Scope scope,
       NodeList typeVariables,
       NodeList formalParameters,
@@ -300,7 +304,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       {MessageKind defaultValuesError,
       bool createRealParameters: false,
       bool isFunctionExpression: false}) {
-    DiagnosticReporter reporter = compiler.reporter;
+    DiagnosticReporter reporter = resolution.reporter;
 
     List<DartType> createTypeVariables(NodeList typeVariableNodes) {
       if (typeVariableNodes == null) return const <DartType>[];
@@ -329,7 +333,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     List<DartType> typeVariableTypes = createTypeVariables(typeVariables);
     scope = new FunctionSignatureBuildingScope(scope, typeVariableTypes);
     SignatureResolver visitor = new SignatureResolver(
-        compiler, element, scope, registry,
+        resolution, element, scope, registry,
         defaultValuesError: defaultValuesError,
         createRealParameters: createRealParameters);
     List<Element> parameters = const <Element>[];
@@ -341,7 +345,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
           // reported. In the case of parse errors, it is possible that there
           // are formal parameters, but something else in the method failed to
           // parse. So we suppress the message about missing formals.
-          assert(invariant(element, compiler.compilationFailed));
+          assert(invariant(element, reporter.hasReportedError));
         } else {
           reporter.reportErrorMessage(element, MessageKind.MISSING_FORMALS);
         }
@@ -366,9 +370,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       returnType = element.enclosingClass.thisType;
       // Because there is no type annotation for the return type of
       // this element, we explicitly add one.
-      if (compiler.options.enableTypeAssertions) {
-        registry.registerTypeUse(new TypeUse.checkedModeCheck(returnType));
-      }
+      registry.registerTypeUse(new TypeUse.checkedModeCheck(returnType));
     } else {
       AsyncMarker asyncMarker = AsyncMarker.SYNC;
       if (isFunctionExpression) {
@@ -382,13 +384,13 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
           returnType = visitor.resolveReturnType(returnNode);
           break;
         case AsyncMarker.SYNC_STAR:
-          returnType = compiler.coreTypes.iterableType();
+          returnType = resolution.coreTypes.iterableType();
           break;
         case AsyncMarker.ASYNC:
-          returnType = compiler.coreTypes.futureType();
+          returnType = resolution.coreTypes.futureType();
           break;
         case AsyncMarker.ASYNC_STAR:
-          returnType = compiler.coreTypes.streamType();
+          returnType = resolution.coreTypes.streamType();
           break;
       }
     }

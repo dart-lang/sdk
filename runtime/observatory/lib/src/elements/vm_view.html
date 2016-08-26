@@ -1,15 +1,8 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
-<link rel="import" href="curly_block.html">
 <link rel="import" href="eval_box.html">
-<link rel="import" href="function_ref.html">
 <link rel="import" href="isolate_summary.html">
-<link rel="import" href="library_ref.html">
-<link rel="import" href="nav_bar.html">
-<link rel="import" href="observatory_element.html">
-<link rel="import" href="script_ref.html">
-<link rel="import" href="view_footer.html">
 
-<polymer-element name="vm-view" extends="observatory-element">
+<polymer-element name="vm-view">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
@@ -17,6 +10,7 @@
       <top-nav-menu last="{{ false }}"></top-nav-menu>
       <vm-nav-menu vm="{{ vm }}" last="{{ true }}"></vm-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-notify notifications="{{ app.notifications }}"></nav-notify>
     </nav-bar>
 
     <div class="content-centered">
@@ -50,6 +44,10 @@
         <div class="memberItem">
           <div class="memberName">pid</div>
           <div class="memberValue">{{ vm.pid }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">peak memory</div>
+          <div class="memberValue">{{ vm.maxRSS }}</div>
         </div>
         <br>
         <div class="memberItem">

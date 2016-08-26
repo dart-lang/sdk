@@ -1921,47 +1921,6 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 }
 
 
-void Assembler::ComputeRange(Register result,
-                             Register value,
-                             Register scratch,
-                             Label* not_mint) {
-  const Register hi = TMP;
-  const Register lo = scratch;
-
-  Label done;
-  mov(result, Operand(value, LSR, kBitsPerWord - 1));
-  tst(value, Operand(kSmiTagMask));
-  b(&done, EQ);
-  CompareClassId(value, kMintCid, result);
-  b(not_mint, NE);
-  ldr(hi, FieldAddress(value, Mint::value_offset() + kWordSize));
-  ldr(lo, FieldAddress(value, Mint::value_offset()));
-  rsb(result, hi, Operand(ICData::kInt32RangeBit));
-  cmp(hi, Operand(lo, ASR, kBitsPerWord - 1));
-  b(&done, EQ);
-  LoadImmediate(result, ICData::kUint32RangeBit);  // Uint32
-  tst(hi, Operand(hi));
-  LoadImmediate(result, ICData::kInt64RangeBit, NE);  // Int64
-  Bind(&done);
-}
-
-
-void Assembler::UpdateRangeFeedback(Register value,
-                                    intptr_t index,
-                                    Register ic_data,
-                                    Register scratch1,
-                                    Register scratch2,
-                                    Label* miss) {
-  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
-  ComputeRange(scratch1, value, scratch2, miss);
-  ldr(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
-  orr(scratch2,
-      scratch2,
-      Operand(scratch1, LSL, ICData::RangeFeedbackShift(index)));
-  str(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
-}
-
-
 static bool CanEncodeBranchOffset(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, 4));
   return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);
@@ -3263,7 +3222,9 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
     ldr(PP, Address(FP, kSavedCallerPpSlotFromFp * kWordSize));
     set_constant_pool_allowed(false);
   }
-  Drop(2);  // Drop saved PP, PC marker.
+
+  // This will implicitly drop saved PP, PC marker due to restoring SP from FP
+  // first.
   LeaveFrame((1 << FP) | (1 << LR));
 }
 
@@ -3278,6 +3239,56 @@ void Assembler::LeaveStubFrame() {
 }
 
 
+void Assembler::NoMonomorphicCheckedEntry() {
+  buffer_.Reset();
+  bkpt(0);
+  bkpt(0);
+  bkpt(0);
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+}
+
+
+// R0 receiver, R9 guarded cid as Smi
+void Assembler::MonomorphicCheckedEntry() {
+#if defined(TESTING) || defined(DEBUG)
+  bool saved_use_far_branches = use_far_branches();
+  set_use_far_branches(false);
+#endif
+
+  Label miss;
+  Bind(&miss);
+  ldr(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
+  ldr(IP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  bx(IP);
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  LoadClassIdMayBeSmi(R4, R0);
+  SmiUntag(R9);
+  cmp(R4, Operand(R9));
+  b(&miss, NE);
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+
+#if defined(TESTING) || defined(DEBUG)
+  set_use_far_branches(saved_use_far_branches);
+#endif
+}
+
+
+#ifndef PRODUCT
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace) {
+  LoadAllocationStatsAddress(temp_reg, cid);
+  const uword state_offset = ClassHeapStats::state_offset();
+  ldr(temp_reg, Address(temp_reg, state_offset));
+  tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
+  b(trace, NE);
+}
+
+
 void Assembler::LoadAllocationStatsAddress(Register dest,
                                            intptr_t cid) {
   ASSERT(dest != kNoRegister);
@@ -3289,17 +3300,6 @@ void Assembler::LoadAllocationStatsAddress(Register dest,
       Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
   ldr(dest, Address(dest, table_offset));
   AddImmediate(dest, class_offset);
-}
-
-
-void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
-                                     Label* trace) {
-  LoadAllocationStatsAddress(temp_reg, cid);
-  const uword state_offset = ClassHeapStats::state_offset();
-  ldr(temp_reg, Address(temp_reg, state_offset));
-  tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
-  b(trace, NE);
 }
 
 
@@ -3339,6 +3339,7 @@ void Assembler::IncrementAllocationStatsWithSize(Register stats_addr_reg,
   add(TMP, TMP, Operand(size_reg));
   str(TMP, size_address);
 }
+#endif  // !PRODUCT
 
 
 void Assembler::TryAllocate(const Class& cls,

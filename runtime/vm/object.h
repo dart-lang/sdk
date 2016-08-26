@@ -1157,13 +1157,14 @@ class Class : public Object {
 
   bool IsPrivate() const;
 
+  // Returns an array of instance and static fields defined by this class.
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
 
-  // Returns an array of all fields of this class and its superclasses indexed
-  // by offset in words.
+  // Returns an array of all instance fields of this class and its superclasses
+  // indexed by offset in words.
   RawArray* OffsetToFieldMap() const;
 
   // Returns true if non-static fields are defined.
@@ -1194,7 +1195,8 @@ class Class : public Object {
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
-  RawField* LookupFieldAllowPrivate(const String& name) const;
+  RawField* LookupFieldAllowPrivate(const String& name,
+                                    bool instance_only = false) const;
   RawField* LookupInstanceFieldAllowPrivate(const String& name) const;
   RawField* LookupStaticFieldAllowPrivate(const String& name) const;
 
@@ -1326,6 +1328,7 @@ class Class : public Object {
   void DisableAllocationStub() const;
 
   RawArray* constants() const;
+  void set_constants(const Array& value) const;
 
   intptr_t FindInvocationDispatcherFunctionIndex(const Function& needle) const;
   RawFunction* InvocationDispatcherFunctionFromIndex(intptr_t idx) const;
@@ -1398,11 +1401,22 @@ class Class : public Object {
   void ReplaceEnum(const Class& old_enum) const;
   void CopyStaticFieldValues(const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
+  void MigrateImplicitStaticClosures(IsolateReloadContext* context,
+                                     const Class& new_cls) const;
   void CopyCanonicalConstants(const Class& old_cls) const;
   void CopyCanonicalType(const Class& old_cls) const;
-  bool CanReload(const Class& replacement) const;
+  void CheckReload(const Class& replacement,
+                   IsolateReloadContext* context) const;
 
  private:
+  bool CanReloadFinalized(const Class& replacement,
+                          IsolateReloadContext* context) const;
+  bool CanReloadPreFinalized(const Class& replacement,
+                             IsolateReloadContext* context) const;
+
+  // Tells whether instances need morphing for reload.
+  bool RequiresInstanceMorphing(const Class& replacement) const;
+
   template <class FakeObject> static RawClass* NewCommon(intptr_t index);
 
   enum MemberKind {
@@ -1458,8 +1472,6 @@ class Class : public Object {
   void set_user_name(const String& value) const;
   RawString* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
-
-  void set_constants(const Array& value) const;
 
   void set_canonical_type(const Type& value) const;
   RawType* canonical_type() const;
@@ -1841,8 +1853,8 @@ class ICData : public Object {
 
   bool IsImmutable() const;
 
-  void Reset() const;
-  void ResetData() const;
+  void Reset(Zone* zone) const;
+  void ResetSwitchable(Zone* zone) const;
 
   // Note: only deopts with reasons before Unknown in this list are recorded in
   // the ICData. All other reasons are used purely for informational messages
@@ -1861,7 +1873,6 @@ class ICData : public Object {
     V(CheckClass)                                                              \
     V(CheckArrayBound)                                                         \
     V(AtCall)                                                                  \
-    V(Uint32Load)                                                              \
     V(GuardField)                                                              \
     V(TestCids)                                                                \
     V(NumReasons)                                                              \
@@ -1949,7 +1960,6 @@ class ICData : public Object {
   RawArray* FindFreeIndex(intptr_t* index) const;
 
   void DebugDump() const;
-  void ValidateSentinelLocations() const;
 
   // Returns true if this is a two arg smi operation.
   bool AddSmiSmiCheckForFastSmiStubs() const;
@@ -2055,78 +2065,6 @@ class ICData : public Object {
   void GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
                              GrowableArray<intptr_t>* second) const;
 
-  // Range feedback tracking functionality.
-
-  // For arithmetic operations we store range information for inputs and the
-  // result. The goal is to discover:
-  //
-  //    - on 32-bit platforms:
-  //         - when Mint operation is actually a int32/uint32 operation;
-  //         - when Smi operation produces non-smi results;
-  //
-  //    - on 64-bit platforms:
-  //         - when Smi operation is actually int32/uint32 operation;
-  //         - when Mint operation produces non-smi results;
-  //
-  enum RangeFeedback {
-    kSmiRange,
-    kInt32Range,
-    kUint32Range,
-    kInt64Range
-  };
-
-  // We use 4 bits per operand/result feedback. Our lattice allows us to
-  // express the following states:
-  //
-  //   - usmi   0000 [used only on 32bit platforms]
-  //   - smi    0001
-  //   - uint31 0010
-  //   - int32  0011
-  //   - uint32 0100
-  //   - int33  x1x1
-  //   - int64  1xxx
-  //
-  // DecodeRangeFeedbackAt() helper maps these states into the RangeFeedback
-  // enumeration.
-  enum RangeFeedbackLatticeBits {
-    kSignedRangeBit = 1 << 0,
-    kInt32RangeBit = 1 << 1,
-    kUint32RangeBit = 1 << 2,
-    kInt64RangeBit = 1 << 3,
-    kBitsPerRangeFeedback = 4,
-    kRangeFeedbackMask = (1 << kBitsPerRangeFeedback) - 1,
-    kRangeFeedbackSlots = 3
-  };
-
-  static bool IsValidRangeFeedbackIndex(intptr_t index) {
-    return (0 <= index) && (index < kRangeFeedbackSlots);
-  }
-
-  static intptr_t RangeFeedbackShift(intptr_t index) {
-    return (index * kBitsPerRangeFeedback) + kRangeFeedbackPos;
-  }
-
-  static const char* RangeFeedbackToString(RangeFeedback feedback) {
-    switch (feedback) {
-      case kSmiRange:
-        return "smi";
-      case kInt32Range:
-        return "int32";
-      case kUint32Range:
-        return "uint32";
-      case kInt64Range:
-        return "int64";
-      default:
-        UNREACHABLE();
-        return "?";
-    }
-  }
-
-  // It is only meaningful to interpret range feedback stored in the ICData
-  // when all checks are Mint or Smi.
-  bool HasRangeFeedback() const;
-  RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
-
   void PrintToJSONArray(const JSONArray& jsarray,
                         TokenPosition token_pos,
                         bool is_static_call) const;
@@ -2164,14 +2102,14 @@ class ICData : public Object {
   void set_ic_data_array(const Array& value) const;
   void set_state_bits(uint32_t bits) const;
 
+  bool ValidateInterceptor(const Function& target) const;
+
   enum {
     kNumArgsTestedPos = 0,
     kNumArgsTestedSize = 2,
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
-    kRangeFeedbackPos = kDeoptReasonPos + kDeoptReasonSize,
-    kRangeFeedbackSize = kBitsPerRangeFeedback * kRangeFeedbackSlots,
-    kStaticCallPos = kRangeFeedbackPos + kRangeFeedbackSize,
+    kStaticCallPos = kDeoptReasonPos + kDeoptReasonSize,
     kStaticCallSize = 1,
   };
 
@@ -2183,11 +2121,6 @@ class ICData : public Object {
                                           uint32_t,
                                           ICData::kDeoptReasonPos,
                                           ICData::kDeoptReasonSize> {};
-  class RangeFeedbackBits : public BitField<uint32_t,
-                                            uint32_t,
-                                            ICData::kRangeFeedbackPos,
-                                            ICData::kRangeFeedbackSize> {};
-
   class StaticCallBit : public BitField<uint32_t,
                                         bool,
                                         ICData::kStaticCallPos,
@@ -2199,7 +2132,7 @@ class ICData : public Object {
 
   intptr_t TestEntryLength() const;
   static RawArray* NewNonCachedEmptyICDataArray(intptr_t num_args_tested);
-  static RawArray* NewEmptyICDataArray(intptr_t num_args_tested);
+  static RawArray* CachedEmptyICDataArray(intptr_t num_args_tested);
   static RawICData* NewDescriptor(Zone* zone,
                                   const Function& owner,
                                   const String& target_name,
@@ -2814,8 +2747,8 @@ class Function : public Object {
   void set_modifier(RawFunction::AsyncModifier value) const;
 
   // 'was_compiled' is true if the function was compiled once in this
-  // VM instantiation. It independent from presence of type feedback
-  // (ic_data_array) and code, whihc may be loaded from a snapshot.
+  // VM instantiation. It is independent from presence of type feedback
+  // (ic_data_array) and code, which may be loaded from a snapshot.
   void set_was_compiled(bool value) const {
     StoreNonPointer(&raw_ptr()->was_compiled_, value ? 1 : 0);
   }
@@ -3048,6 +2981,7 @@ class Field : public Object {
   virtual RawString* DictionaryName() const { return name(); }
 
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
+  bool is_instance() const { return !is_static(); }
   bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
   bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
   bool is_reflectable() const {
@@ -3463,6 +3397,9 @@ class TokenStream : public Object {
 class Script : public Object {
  public:
   RawString* url() const { return raw_ptr()->url_; }
+
+  // The actual url which was loaded from disk, if provided by the embedder.
+  RawString* resolved_url() const { return raw_ptr()->resolved_url_; }
   bool HasSource() const;
   RawString* Source() const;
   RawString* GenerateSource() const;  // Generates source code from Tokenstream.
@@ -3476,6 +3413,11 @@ class Script : public Object {
 
   // The load time in milliseconds since epoch.
   int64_t load_timestamp() const { return raw_ptr()->load_timestamp_; }
+
+  RawArray* compile_time_constants() const {
+    return raw_ptr()->compile_time_constants_;
+  }
+  void set_compile_time_constants(const Array& value) const;
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
 
@@ -3513,8 +3455,14 @@ class Script : public Object {
                         const String& source,
                         RawScript::Kind kind);
 
+  static RawScript* New(const String& url,
+                        const String& resolved_url,
+                        const String& source,
+                        RawScript::Kind kind);
+
  private:
   void set_url(const String& value) const;
+  void set_resolved_url(const String& value) const;
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
@@ -3524,6 +3472,7 @@ class Script : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Script, Object);
   friend class Class;
+  friend class Precompiler;
 };
 
 
@@ -3807,7 +3756,8 @@ class Library : public Object {
   // the library-specific key.
   static const char kPrivateKeySeparator = '@';
 
-  bool CanReload(const Library& replacement) const;
+  void CheckReload(const Library& replacement,
+                   IsolateReloadContext* context) const;
 
  private:
   static const int kInitialImportsCapacity = 4;
@@ -3823,8 +3773,7 @@ class Library : public Object {
   void InitClassDictionary() const;
 
   RawArray* resolved_names() const { return raw_ptr()->resolved_names_; }
-  void InitResolvedNamesCache(intptr_t size,
-                              SnapshotReader* reader = NULL) const;
+  void InitResolvedNamesCache(intptr_t size) const;
   void AllocateExportedNamesCache() const;
   void InitExportedNamesCache() const;
   static void InvalidateExportedNamesCaches();
@@ -4012,11 +3961,46 @@ class Instructions : public Object {
  public:
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
 
-  uword EntryPoint() const {
-    return EntryPoint(raw());
+  uword PayloadStart() const {
+    return PayloadStart(raw());
   }
-  static uword EntryPoint(RawInstructions* instr) {
+  uword UncheckedEntryPoint() const {
+    return UncheckedEntryPoint(raw());
+  }
+  uword CheckedEntryPoint() const {
+    return CheckedEntryPoint(raw());
+  }
+  static uword PayloadStart(RawInstructions* instr) {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
+  }
+
+#if defined(TARGET_ARCH_IA32)
+  static const intptr_t kCheckedEntryOffset = 0;
+  static const intptr_t kUncheckedEntryOffset = 0;
+#elif defined(TARGET_ARCH_X64)
+  static const intptr_t kCheckedEntryOffset = 23;
+  static const intptr_t kUncheckedEntryOffset = 44;
+#elif defined(TARGET_ARCH_ARM)
+  static const intptr_t kCheckedEntryOffset = 12;
+  static const intptr_t kUncheckedEntryOffset = 36;
+#elif defined(TARGET_ARCH_ARM64)
+  static const intptr_t kCheckedEntryOffset = 24;
+  static const intptr_t kUncheckedEntryOffset = 48;
+#elif defined(TARGET_ARCH_MIPS)
+  static const intptr_t kCheckedEntryOffset = 16;
+  static const intptr_t kUncheckedEntryOffset = 56;
+#elif defined(TARGET_ARCH_DBC)
+  static const intptr_t kCheckedEntryOffset = 0;
+  static const intptr_t kUncheckedEntryOffset = 0;
+#else
+#error Missing entry offsets for current architecture
+#endif
+
+  static uword UncheckedEntryPoint(RawInstructions* instr) {
+    return PayloadStart(instr) + kUncheckedEntryOffset;
+  }
+  static uword CheckedEntryPoint(RawInstructions* instr) {
+    return PayloadStart(instr) + kCheckedEntryOffset;
   }
 
   static const intptr_t kMaxElements = (kMaxInt32 -
@@ -4043,9 +4027,9 @@ class Instructions : public Object {
     return Utils::RoundUp(sizeof(RawInstructions), alignment);
   }
 
-  static RawInstructions* FromEntryPoint(uword entry_point) {
+  static RawInstructions* FromUncheckedEntryPoint(uword entry_point) {
     return reinterpret_cast<RawInstructions*>(
-        entry_point - HeaderSize() + kHeapObjectTag);
+        entry_point - HeaderSize() - kUncheckedEntryOffset + kHeapObjectTag);
   }
 
   bool Equals(const Instructions& other) const {
@@ -4497,6 +4481,9 @@ class Code : public Object {
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawCode, entry_point_);
   }
+  static intptr_t checked_entry_point_offset() {
+    return OFFSET_OF(RawCode, checked_entry_point_);
+  }
 
   RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
   static intptr_t object_pool_offset() {
@@ -4516,8 +4503,14 @@ class Code : public Object {
   }
   void set_is_alive(bool value) const;
 
-  uword EntryPoint() const {
-    return Instructions::Handle(instructions()).EntryPoint();
+  uword PayloadStart() const {
+    return Instructions::PayloadStart(instructions());
+  }
+  uword UncheckedEntryPoint() const {
+    return Instructions::UncheckedEntryPoint(instructions());
+  }
+  uword CheckedEntryPoint() const {
+    return Instructions::CheckedEntryPoint(instructions());
   }
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4528,7 +4521,7 @@ class Code : public Object {
   }
   bool ContainsInstructionAt(uword addr) const {
     const Instructions& instr = Instructions::Handle(instructions());
-    const uword offset = addr - instr.EntryPoint();
+    const uword offset = addr - instr.PayloadStart();
     return offset < static_cast<uword>(instr.size());
   }
 
@@ -4554,7 +4547,7 @@ class Code : public Object {
 
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
   // that are embedded inside the Code object.
-  void ResetICDatas() const;
+  void ResetICDatas(Zone* zone) const;
 
   TokenPosition GetTokenPositionAt(intptr_t offset) const;
 
@@ -5318,6 +5311,11 @@ class Instance : public Object {
   virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const;
 
+#if defined(DEBUG)
+  // Check if instance is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
+
   RawObject* GetField(const Field& field) const {
     return *FieldAddr(field);
   }
@@ -5398,7 +5396,6 @@ class Instance : public Object {
   RawObject** NativeFieldsAddr() const {
     return FieldAddrAtOffset(sizeof(RawObject));
   }
-
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
     StorePointer(FieldAddrAtOffset(offset), value.raw());
   }
@@ -5406,6 +5403,18 @@ class Instance : public Object {
 
   static intptr_t NextFieldOffset() {
     return sizeof(RawInstance);
+  }
+
+  // The follwoing raw methods are used for morphing.
+  // They are needed due to the extraction of the class in IsValidFieldOffset.
+  RawObject** RawFieldAddrAtOffset(intptr_t offset) const {
+    return reinterpret_cast<RawObject**>(raw_value() - kHeapObjectTag + offset);
+  }
+  RawObject* RawGetFieldAtOffset(intptr_t offset) const {
+    return *RawFieldAddrAtOffset(offset);
+  }
+  void RawSetFieldAtOffset(intptr_t offset, const Object& value) const {
+    StorePointer(RawFieldAddrAtOffset(offset), value.raw());
   }
 
   // TODO(iposva): Determine if this gets in the way of Smi.
@@ -5421,6 +5430,7 @@ class Instance : public Object {
   friend class InstanceSerializationCluster;
   friend class InstanceDeserializationCluster;
   friend class ClassDeserializationCluster;  // vtable
+  friend class InstanceMorpher;
 };
 
 
@@ -5551,6 +5561,14 @@ class AbstractType : public Instance {
 
   // Return the canonical version of this type.
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+
+#if defined(DEBUG)
+  // Check if abstract type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const {
+    UNREACHABLE();
+    return false;
+  }
+#endif  // DEBUG
 
   // Return the object associated with the receiver in the trail or
   // AbstractType::null() if the receiver is not contained in the trail.
@@ -5743,6 +5761,10 @@ class Type : public AbstractType {
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+#if defined(DEBUG)
+  // Check if type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
   virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
@@ -5871,6 +5893,10 @@ class TypeRef : public AbstractType {
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+#if defined(DEBUG)
+  // Check if typeref is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
   virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
@@ -5946,6 +5972,12 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
+#if defined(DEBUG)
+  // Check if type parameter is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const {
+    return true;
+  }
+#endif  // DEBUG
   virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
@@ -6036,6 +6068,12 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
+#if defined(DEBUG)
+  // Check if bounded type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const {
+    return true;
+  }
+#endif  // DEBUG
   virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
@@ -6123,6 +6161,11 @@ class Number : public Instance {
   // Numbers are canonicalized differently from other instances/strings.
   virtual RawInstance* CheckAndCanonicalize(Thread* thread,
                                             const char** error_str) const;
+
+#if defined(DEBUG)
+  // Check if number is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
 
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
@@ -6599,6 +6642,11 @@ class String : public Instance {
   // Strings are canonicalized using the symbol table.
   virtual RawInstance* CheckAndCanonicalize(Thread* thread,
                                             const char** error_str) const;
+
+#if defined(DEBUG)
+  // Check if string is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
 
   bool IsSymbol() const { return raw()->IsCanonical(); }
 
@@ -8531,9 +8579,7 @@ RawClass* Object::clazz() const {
 
 
 DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
-  // NOTE: The assignment "raw_ = value" should be the first statement in
-  // this function. Also do not use 'value' in this function after the
-  // assignment (use 'raw_' instead).
+  NoSafepointScope no_safepoint_scope;
   raw_ = value;
   if ((reinterpret_cast<uword>(value) & kSmiTagMask) == kSmiTag) {
     set_vtable(Smi::handle_vtable_);
@@ -8560,14 +8606,14 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
 
 
 intptr_t Field::Offset() const {
-  ASSERT(!is_static());  // Valid only for dart instance fields.
+  ASSERT(is_instance());  // Valid only for dart instance fields.
   intptr_t value = Smi::Value(raw_ptr()->value_.offset_);
   return (value * kWordSize);
 }
 
 
 void Field::SetOffset(intptr_t offset_in_bytes) const {
-  ASSERT(!is_static());  // Valid only for dart instance fields.
+  ASSERT(is_instance());  // Valid only for dart instance fields.
   ASSERT(kWordSize != 0);
   StorePointer(&raw_ptr()->value_.offset_,
                Smi::New(offset_in_bytes / kWordSize));

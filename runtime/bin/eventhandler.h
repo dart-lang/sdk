@@ -132,6 +132,8 @@ class CircularLinkedList {
  public:
   CircularLinkedList() : head_(NULL) {}
 
+  typedef void (*ClearFun) (void* value);
+
   // Returns true if the list was empty.
   bool Add(T t) {
     Entry* e = new Entry(t);
@@ -151,7 +153,7 @@ class CircularLinkedList {
     }
   }
 
-  void RemoveHead() {
+  void RemoveHead(ClearFun clear = NULL) {
     ASSERT(head_ != NULL);
 
     Entry* e = head_;
@@ -161,6 +163,9 @@ class CircularLinkedList {
       e->prev_->next_ = e->next_;
       e->next_->prev_ = e->prev_;
       head_ = e->next_;
+    }
+    if (clear != NULL) {
+      clear(reinterpret_cast<void*>(e->t));
     }
     delete e;
   }
@@ -195,9 +200,9 @@ class CircularLinkedList {
     }
   }
 
-  void RemoveAll() {
+  void RemoveAll(ClearFun clear = NULL) {
     while (HasHead()) {
-      RemoveHead();
+      RemoveHead(clear);
     }
   }
 
@@ -413,7 +418,9 @@ class DescriptorInfoMultipleMixin : public DI {
       : DI(fd), tokens_map_(&SamePortValue, kTokenCount),
         disable_tokens_(disable_tokens) {}
 
-  virtual ~DescriptorInfoMultipleMixin() {}
+  virtual ~DescriptorInfoMultipleMixin() {
+    RemoveAllPorts();
+  }
 
   virtual bool IsListeningSocket() const { return true; }
 
@@ -497,14 +504,16 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
   virtual void RemoveAllPorts() {
-    active_readers_.RemoveAll();
     for (HashMap::Entry *entry = tokens_map_.Start();
          entry != NULL;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
+      entry->value = NULL;
+      active_readers_.Remove(pentry);
       delete pentry;
     }
     tokens_map_.Clear();
+    active_readers_.RemoveAll(DeletePortEntry);
   }
 
   virtual Dart_Port NextNotifyDartPort(intptr_t events_ready) {
@@ -585,6 +594,11 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
  private:
+  static void DeletePortEntry(void* data) {
+    PortEntry* entry = reinterpret_cast<PortEntry*>(data);
+    delete entry;
+  }
+
   // The [Dart_Port]s which are not paused (i.e. are interested in read events,
   // i.e. `mask == (1 << kInEvent)`) and we have enough tokens to communicate
   // with them.
@@ -605,6 +619,8 @@ class DescriptorInfoMultipleMixin : public DI {
 // The event handler delegation class is OS specific.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/eventhandler_android.h"
+#elif defined(TARGET_OS_FUCHSIA)
+#include "bin/eventhandler_fuchsia.h"
 #elif defined(TARGET_OS_LINUX)
 #include "bin/eventhandler_linux.h"
 #elif defined(TARGET_OS_MACOS)

@@ -222,8 +222,9 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return defaultValues;
   }
 
-  Map<ParameterElement, ParameterElement> mapRedirectingFactoryConstructorOptionalParameters(
-      FunctionSignature source, FunctionSignature target) {
+  Map<ParameterElement, ParameterElement>
+      mapRedirectingFactoryConstructorOptionalParameters(
+          FunctionSignature source, FunctionSignature target) {
     var map = <ParameterElement, ParameterElement>{};
 
     if (source.optionalParametersAreNamed !=
@@ -361,6 +362,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       }
       return true;
     }
+
     void countTokensInTypes(Iterable<_BoundMetadataEntry> entries) {
       jsAst.TokenCounter counter = new jsAst.TokenCounter();
       entries

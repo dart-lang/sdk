@@ -243,7 +243,9 @@ class Assembler : public ValueObject {
         delay_slot_available_(false),
         in_delay_slot_(false),
         comments_(),
-        constant_pool_allowed_(true) { }
+        constant_pool_allowed_(true) {
+    MonomorphicCheckedEntry();
+  }
   ~Assembler() { }
 
   void PopRegister(Register r) { Pop(r); }
@@ -280,7 +282,6 @@ class Assembler : public ValueObject {
   }
 
   void set_use_far_branches(bool b) {
-    ASSERT(buffer_.Size() == 0);
     use_far_branches_ = b;
   }
 
@@ -294,6 +295,9 @@ class Assembler : public ValueObject {
   // A separate macro for when a Ret immediately follows, so that we can use
   // the branch delay slot.
   void LeaveStubFrameAndReturn(Register ra = RA);
+
+  void NoMonomorphicCheckedEntry();
+  void MonomorphicCheckedEntry();
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,
@@ -1472,6 +1476,11 @@ class Assembler : public ValueObject {
     sra(dst, src, kSmiTagSize);
   }
 
+  void BranchIfNotSmi(Register reg, Label* label) {
+    andi(CMPRES1, reg, Immediate(kSmiTagMask));
+    bne(CMPRES1, ZR, label);
+  }
+
   void LoadFromOffset(Register reg, Register base, int32_t offset) {
     ASSERT(!in_delay_slot_);
     if (Utils::IsInt(kImmBits, offset)) {
@@ -1548,16 +1557,6 @@ class Assembler : public ValueObject {
   void LoadClass(Register result, Register object);
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
-
-  void ComputeRange(Register result,
-                    Register value,
-                    Label* miss);
-
-  void UpdateRangeFeedback(Register value,
-                           intptr_t index,
-                           Register ic_data,
-                           Register scratch,
-                           Label* miss);
 
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.

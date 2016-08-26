@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -44,6 +45,7 @@ main() {
   runReflectiveTests(ContentCacheTest);
   runReflectiveTests(CustomUriResolverTest);
   runReflectiveTests(DartUriResolverTest);
+  // ignore: deprecated_member_use
   runReflectiveTests(DirectoryBasedDartSdkTest);
   runReflectiveTests(DirectoryBasedSourceContainerTest);
   runReflectiveTests(ElementBuilderTest);
@@ -55,6 +57,7 @@ main() {
   runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
   runReflectiveTests(ResolveRelativeUriTest);
+  // ignore: deprecated_member_use
   runReflectiveTests(SDKLibrariesReaderTest);
   runReflectiveTests(UriKindTest);
 }
@@ -85,8 +88,9 @@ class CustomUriResolverTest {
   }
 
   void test_resolve_unknown_uri() {
-    UriResolver resolver =
-        new CustomUriResolver({'custom:library': '/path/to/library.dart',});
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': '/path/to/library.dart',
+    });
     Source result =
         resolver.resolveAbsolute(parseUriWithException("custom:non_library"));
     expect(result, isNull);
@@ -95,7 +99,9 @@ class CustomUriResolverTest {
   void test_resolve_uri() {
     String path =
         FileUtilities2.createFile("/path/to/library.dart").getAbsolutePath();
-    UriResolver resolver = new CustomUriResolver({'custom:library': path,});
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': path,
+    });
     Source result =
         resolver.resolveAbsolute(parseUriWithException("custom:library"));
     expect(result, isNotNull);
@@ -106,9 +112,7 @@ class CustomUriResolverTest {
 @reflectiveTest
 class DartUriResolverTest {
   void test_creation() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     expect(new DartUriResolver(sdk), isNotNull);
   }
 
@@ -119,9 +123,7 @@ class DartUriResolverTest {
   }
 
   void test_resolve_dart() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     Source result =
         resolver.resolveAbsolute(parseUriWithException("dart:core"));
@@ -129,25 +131,29 @@ class DartUriResolverTest {
   }
 
   void test_resolve_dart_nonExistingLibrary() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver.resolveAbsolute(parseUriWithException("dart:cor"));
     expect(result, isNull);
   }
 
   void test_resolve_nonDart() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver
         .resolveAbsolute(parseUriWithException("package:some/file.dart"));
     expect(result, isNull);
   }
+
+  DartSdk _createSdk() {
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    Folder sdkFolder = FolderBasedDartSdk.defaultSdkDirectory(resourceProvider);
+    expect(sdkFolder, isNotNull);
+    return new FolderBasedDartSdk(resourceProvider, sdkFolder);
+  }
 }
 
+@deprecated
 @reflectiveTest
 class DirectoryBasedDartSdkTest {
   void fail_getDocFileFor() {
@@ -1591,6 +1597,43 @@ class C {
     expect(method.isSynthetic, isFalse);
   }
 
+  void test_visitMethodDeclaration_duplicateField_synthetic() {
+    buildElementsForText(r'''
+class A {
+  int f;
+  int get f => 42;
+}
+''');
+    ClassDeclaration classNode = compilationUnit.declarations.single;
+    // ClassElement
+    ClassElement classElement = classNode.element;
+    expect(classElement.fields, hasLength(2));
+    expect(classElement.accessors, hasLength(3));
+    FieldElement notSyntheticFieldElement = classElement.fields
+        .singleWhere((f) => f.displayName == 'f' && !f.isSynthetic);
+    FieldElement syntheticFieldElement = classElement.fields
+        .singleWhere((f) => f.displayName == 'f' && f.isSynthetic);
+    PropertyAccessorElement syntheticGetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isGetter && a.isSynthetic);
+    PropertyAccessorElement syntheticSetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isSetter && a.isSynthetic);
+    PropertyAccessorElement notSyntheticGetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isGetter && !a.isSynthetic);
+    expect(notSyntheticFieldElement.getter, same(syntheticGetterElement));
+    expect(notSyntheticFieldElement.setter, same(syntheticSetterElement));
+    expect(syntheticFieldElement.getter, same(notSyntheticGetterElement));
+    expect(syntheticFieldElement.setter, isNull);
+    // class members nodes and their elements
+    FieldDeclaration fieldDeclNode = classNode.members[0];
+    VariableDeclaration fieldNode = fieldDeclNode.fields.variables.single;
+    MethodDeclaration getterNode = classNode.members[1];
+    expect(fieldNode.element, notSyntheticFieldElement);
+    expect(getterNode.element, notSyntheticGetterElement);
+  }
+
   void test_visitMethodDeclaration_external() {
     // external m();
     ElementHolder holder = new ElementHolder();
@@ -2565,20 +2608,6 @@ class C {
 
 @reflectiveTest
 class ElementLocatorTest extends ResolverTestCase {
-  void test_locate_ExportDirective() {
-    AstNode id = _findNodeIn("export", "export 'dart:core';");
-    Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ExportElement, ExportElement, element);
-  }
-
-  void test_locate_Identifier_libraryDirective() {
-    AstNode id = _findNodeIn("foo", "library foo.bar;");
-    Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
-  }
-
   void fail_locate_Identifier_partOfDirective() {
     // Can't resolve the library element without the library declaration.
     //    AstNode id = findNodeIn("foo", "part of foo.bar;");
@@ -2641,6 +2670,13 @@ class A {
     Element element = ElementLocator.locate(declaration);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement, ConstructorElement, element);
+  }
+
+  void test_locate_ExportDirective() {
+    AstNode id = _findNodeIn("export", "export 'dart:core';");
+    Element element = ElementLocator.locate(id);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ExportElement, ExportElement, element);
   }
 
   void test_locate_FunctionDeclaration() {
@@ -2722,6 +2758,13 @@ class A {
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FieldElement, FieldElement, element);
+  }
+
+  void test_locate_Identifier_libraryDirective() {
+    AstNode id = _findNodeIn("foo", "library foo.bar;");
+    Element element = ElementLocator.locate(id);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is LibraryElement, LibraryElement, element);
   }
 
   void test_locate_Identifier_propertyAccess() {
@@ -3287,6 +3330,11 @@ class ExitDetectorTest extends ParserTestCase {
     _assertFalse("v = 1;");
   }
 
+  void test_assignmentExpression_compound_lazy() {
+    enableLazyAssignmentOperators = true;
+    _assertFalse("v ||= false;");
+  }
+
   void test_assignmentExpression_lhs_throw() {
     _assertTrue("a[throw ''] = 0;");
   }
@@ -3467,33 +3515,12 @@ class ExitDetectorTest extends ParserTestCase {
     expect(new ExitDetector(), isNotNull);
   }
 
-  void test_doStatement_return() {
-    _assertTrue("{ do { return null; } while (1 == 2); }");
-  }
-
-  void test_doStatement_throwCondition() {
-    _assertTrue("{ do {} while (throw ''); }");
-  }
-
   void test_doStatement_break_and_throw() {
     _assertFalse("{ do { if (1==1) break; throw 'T'; } while (0==1); }");
   }
 
   void test_doStatement_continue_and_throw() {
     _assertFalse("{ do { if (1==1) continue; throw 'T'; } while (0==1); }");
-  }
-
-  void test_doStatement_continueInSwitch_and_throw() {
-    _assertFalse('''
-{
-  do {
-    switch (1) {
-      L: case 0: continue;
-      M: case 1: break;
-    }
-    throw 'T';
-  } while (0 == 1);
-}''');
   }
 
   void test_doStatement_continueDoInSwitch_and_throw() {
@@ -3509,6 +3536,27 @@ class ExitDetectorTest extends ParserTestCase {
 }''');
   }
 
+  void test_doStatement_continueInSwitch_and_throw() {
+    _assertFalse('''
+{
+  do {
+    switch (1) {
+      L: case 0: continue;
+      M: case 1: break;
+    }
+    throw 'T';
+  } while (0 == 1);
+}''');
+  }
+
+  void test_doStatement_return() {
+    _assertTrue("{ do { return null; } while (1 == 2); }");
+  }
+
+  void test_doStatement_throwCondition() {
+    _assertTrue("{ do {} while (throw ''); }");
+  }
+
   void test_doStatement_true_break() {
     _assertFalse("{ do { break; } while (true); }");
   }
@@ -3520,7 +3568,6 @@ class ExitDetectorTest extends ParserTestCase {
   void test_doStatement_true_continueWithLabel() {
     _assertTrue("{ x: do { continue x; } while (true); }");
   }
-
 
   void test_doStatement_true_if_return() {
     _assertTrue("{ do { if (true) {return null;} } while (true); }");
@@ -3924,6 +3971,10 @@ on String catch (e, s) { return 1; }''');
     _assertFalse("{ while (true) { break; } }");
   }
 
+  void test_whileStatement_true_break_and_throw() {
+    _assertFalse("{ while (true) { if (1==1) break; throw 'T'; } }");
+  }
+
   void test_whileStatement_true_continue() {
     _assertTrue("{ while (true) { continue; } }");
   }
@@ -3952,16 +4003,13 @@ on String catch (e, s) { return 1; }''');
     _assertTrue("{ while (true) { throw ''; } }");
   }
 
-  void test_whileStatement_true_break_and_throw() {
-    _assertFalse("{ while (true) { if (1==1) break; throw 'T'; } }");
-  }
-
   void _assertFalse(String source) {
     _assertHasReturn(false, source);
   }
 
   void _assertHasReturn(bool expectedResult, String source) {
-    Statement statement = ParserTestCase.parseStatement(source);
+    Statement statement = ParserTestCase.parseStatement(
+        source, [], enableLazyAssignmentOperators);
     expect(ExitDetector.exits(statement), expectedResult);
   }
 
@@ -4085,20 +4133,6 @@ void f() {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_whileStatement_switchWithBreakWithLabel() {
-    Source source = addSource(r'''
-void f() {
-  x: while (true) {
-    switch (true) {
-      case false: break;
-      case true: break x;
-    }
-  }
-}
-''');
-    _assertNthStatementDoesNotExit(source, 0);
-  }
-
   void test_whileStatement_breakWithLabel_afterExting() {
     Source source = addSource(r'''
 void f() {
@@ -4111,6 +4145,20 @@ void f() {
 }
 ''');
     _assertNthStatementExits(source, 0);
+  }
+
+  void test_whileStatement_switchWithBreakWithLabel() {
+    Source source = addSource(r'''
+void f() {
+  x: while (true) {
+    switch (true) {
+      case false: break;
+      case true: break x;
+    }
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
   }
 
   void test_yieldStatement_plain() {
@@ -4268,9 +4316,7 @@ class FileBasedSourceTest {
   }
 
   void test_isInSystemLibrary_contagious() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull);
-    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     SourceFactory factory = new SourceFactory([resolver]);
     // resolve dart:core
@@ -4355,76 +4401,69 @@ class FileBasedSourceTest {
     expect(source.fullName, file.getAbsolutePath());
     expect(source.isInSystemLibrary, isTrue);
   }
+
+  DartSdk _createSdk() {
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    Folder sdkFolder = FolderBasedDartSdk.defaultSdkDirectory(resourceProvider);
+    expect(sdkFolder, isNotNull);
+    return new FolderBasedDartSdk(resourceProvider, sdkFolder);
+  }
 }
 
 @reflectiveTest
 class ResolveRelativeUriTest {
   void test_resolveRelative_dart_dartUri() {
-    Uri uri = parseUriWithException('dart:foo');
-    Uri relative = resolveRelativeUri(uri, parseUriWithException('dart:bar'));
-    expect(relative, isNotNull);
-    expect(relative.toString(), 'dart:bar');
+    _assertResolve('dart:foo', 'dart:bar', 'dart:bar');
   }
 
   void test_resolveRelative_dart_fileName() {
-    Uri uri = parseUriWithException("dart:test");
-    Uri relative = resolveRelativeUri(uri, parseUriWithException("lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "dart:test/lib.dart");
+    _assertResolve('dart:test', 'lib.dart', 'dart:test/lib.dart');
   }
 
   void test_resolveRelative_dart_filePath() {
-    Uri uri = parseUriWithException("dart:test");
-    Uri relative = resolveRelativeUri(uri, parseUriWithException("c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "dart:test/c/lib.dart");
+    _assertResolve('dart:test', 'c/lib.dart', 'dart:test/c/lib.dart');
   }
 
   void test_resolveRelative_dart_filePathWithParent() {
-    Uri uri = parseUriWithException("dart:test/b/test.dart");
-    Uri relative =
-        resolveRelativeUri(uri, parseUriWithException("../c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "dart:test/c/lib.dart");
+    _assertResolve(
+        'dart:test/b/test.dart', '../c/lib.dart', 'dart:test/c/lib.dart');
   }
 
   void test_resolveRelative_package_dartUri() {
-    Uri uri = parseUriWithException('package:foo/bar.dart');
-    Uri relative = resolveRelativeUri(uri, parseUriWithException('dart:test'));
-    expect(relative, isNotNull);
-    expect(relative.toString(), 'dart:test');
+    _assertResolve('package:foo/bar.dart', 'dart:test', 'dart:test');
+  }
+
+  void test_resolveRelative_package_emptyPath() {
+    _assertResolve('package:foo/bar.dart', '', 'package:foo/bar.dart');
   }
 
   void test_resolveRelative_package_fileName() {
-    Uri uri = parseUriWithException("package:b/test.dart");
-    Uri relative = resolveRelativeUri(uri, parseUriWithException("lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:b/lib.dart");
+    _assertResolve('package:b/test.dart', 'lib.dart', 'package:b/lib.dart');
   }
 
   void test_resolveRelative_package_fileNameWithoutPackageName() {
-    Uri uri = parseUriWithException("package:test.dart");
-    Uri relative = resolveRelativeUri(uri, parseUriWithException("lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:lib.dart");
+    _assertResolve('package:test.dart', 'lib.dart', 'package:lib.dart');
   }
 
   void test_resolveRelative_package_filePath() {
-    Uri uri = parseUriWithException("package:b/test.dart");
-    Uri relative = resolveRelativeUri(uri, parseUriWithException("c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:b/c/lib.dart");
+    _assertResolve('package:b/test.dart', 'c/lib.dart', 'package:b/c/lib.dart');
   }
 
   void test_resolveRelative_package_filePathWithParent() {
-    Uri uri = parseUriWithException("package:a/b/test.dart");
-    Uri relative =
-        resolveRelativeUri(uri, parseUriWithException("../c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:a/c/lib.dart");
+    _assertResolve(
+        'package:a/b/test.dart', '../c/lib.dart', 'package:a/c/lib.dart');
+  }
+
+  void _assertResolve(String baseStr, String containedStr, String expectedStr) {
+    Uri base = Uri.parse(baseStr);
+    Uri contained = Uri.parse(containedStr);
+    Uri result = resolveRelativeUri(base, contained);
+    expect(result, isNotNull);
+    expect(result.toString(), expectedStr);
   }
 }
 
+@deprecated
 @reflectiveTest
 class SDKLibrariesReaderTest extends EngineTestCase {
   void test_readFrom_dart2js() {

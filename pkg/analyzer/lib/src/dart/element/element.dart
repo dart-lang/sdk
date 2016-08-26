@@ -474,6 +474,13 @@ class ClassElementImpl extends AbstractClassElementImpl
   bool _hasBeenInferred = false;
 
   /**
+   * The version of this element. The version is changed when the element is
+   * incrementally updated, so that its lists of constructors, accessors and
+   * methods might be different.
+   */
+  int version = 0;
+
+  /**
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
@@ -2526,7 +2533,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /**
    * The compilation unit in which this annotation appears.
    */
-  final CompilationUnitElementImpl compilationUnit;
+  CompilationUnitElementImpl compilationUnit;
 
   /**
    * The AST of the annotation itself, cloned from the resolved AST for the
@@ -2777,7 +2784,6 @@ abstract class ElementImpl implements Element {
    */
   void set enclosingElement(Element element) {
     _enclosingElement = element as ElementImpl;
-    _updateCaches();
   }
 
   /**
@@ -2921,7 +2927,6 @@ abstract class ElementImpl implements Element {
    */
   void set name(String name) {
     this._name = name;
-    _updateCaches();
   }
 
   @override
@@ -2938,7 +2943,6 @@ abstract class ElementImpl implements Element {
    */
   void set nameOffset(int offset) {
     _nameOffset = offset;
-    _updateCaches();
   }
 
   @override
@@ -3150,33 +3154,14 @@ abstract class ElementImpl implements Element {
     }
   }
 
-  /**
-   *  Updates cached values after an input changed.
-   *
-   *  Throws [FrozenHashCodeException] if not allowed.
-   */
-  void _updateCaches() {
-    if (!hasModifier(Modifier.CACHE_KEY)) {
-      // Fast path.
-      _cachedLocation = null;
-      _cachedHashCode = null;
-      return;
+  static int _findElementIndexUsingIdentical(List items, Object item) {
+    int length = items.length;
+    for (int i = 0; i < length; i++) {
+      if (identical(items[i], item)) {
+        return i;
+      }
     }
-
-    // Save originals.
-    ElementLocation oldLocation = _cachedLocation;
-    int oldHashCode = _cachedHashCode;
-
-    _cachedLocation = null;
-    _cachedHashCode = null;
-
-    if (oldHashCode != hashCode) {
-      // Prevent cache corruption by restoring originals.
-      _cachedLocation = oldLocation;
-      _cachedHashCode = oldHashCode;
-      throw new FrozenHashCodeException(
-          "can't update hashCode for a cache key: $this ($runtimeType)");
-    }
+    throw new StateError('Unable to find $item in $items');
   }
 }
 
@@ -4343,18 +4328,6 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 }
 
 /**
- * Indicates that an ElementImpl's hashCode cannot currently be changed.
- */
-class FrozenHashCodeException implements Exception {
-  final String _message;
-
-  FrozenHashCodeException(this._message);
-
-  @override
-  String toString() => "FrozenHashCodeException($_message)";
-}
-
-/**
  * A concrete implementation of a [FunctionElement].
  */
 class FunctionElementImpl extends ExecutableElementImpl
@@ -4416,8 +4389,11 @@ class FunctionElementImpl extends ExecutableElementImpl
   @override
   String get identifier {
     String identifier = super.identifier;
-    if (!isStatic) {
-      identifier += "@$nameOffset";
+    Element enclosing = this.enclosingElement;
+    if (enclosing is ExecutableElement) {
+      int id = ElementImpl._findElementIndexUsingIdentical(
+          enclosing.functions, this);
+      identifier += "@$id";
     }
     return identifier;
   }
@@ -5692,6 +5668,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           return lib;
         }
       }
+
       void recurse(LibraryElementImpl child) {
         if (!indices.containsKey(child)) {
           // We haven't visited this child yet, so recurse on the child,
@@ -5706,6 +5683,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           root = min(root, indices[child]);
         }
       }
+
       // Recurse on all of the children in the import/export graph, filtering
       // out those for which library cycles have already been computed.
       library.exportedLibraries
@@ -5732,6 +5710,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
       return root;
     }
+
     scc(library);
     return _libraryCycle;
   }
@@ -5896,17 +5875,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * cached library cycles in the element model which may have been invalidated.
    */
   void invalidateLibraryCycles() {
-    if (_libraryCycle == null) {
-      // We have already invalidated this node, or we have never computed
-      // library cycle information for it.  In the former case, we're done. In
-      // the latter case, this node cannot be reachable from any node for which
-      // we have computed library cycle information.  Therefore, any edges added
-      // or deleted in the update causing this invalidation can only be edges to
-      // nodes which either have no library cycle information (and hence do not
-      // need invalidation), or which do not reach this node by any path.
-      // In either case, no further invalidation is needed.
-      return;
-    }
     // If we have pre-computed library cycle information, then we must
     // invalidate the information both on this element, and on certain
     // other elements.  Edges originating at this node may have been
@@ -5942,6 +5910,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         library.importedLibraries.forEach(invalidate);
       }
     }
+
     invalidate(this);
   }
 
@@ -6159,10 +6128,14 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   @override
   String get identifier {
-    int enclosingOffset =
-        enclosingElement != null ? enclosingElement.nameOffset : 0;
-    int delta = nameOffset - enclosingOffset;
-    return '${super.identifier}@$delta';
+    String identifier = super.identifier;
+    Element enclosing = this.enclosingElement;
+    if (enclosing is ExecutableElement) {
+      int id = ElementImpl._findElementIndexUsingIdentical(
+          enclosing.localVariables, this);
+      identifier += "@$id";
+    }
+    return identifier;
   }
 
   @override
@@ -6426,12 +6399,7 @@ class Modifier extends Enum<Modifier> {
    */
   static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
 
-  /**
-   * Indicates that this element is being used as an analyzer cache key.
-   */
-  static const Modifier CACHE_KEY = const Modifier('CACHE_KEY', 17);
-
-  static const List<Modifier> persistedValues = const [
+  static const List<Modifier> values = const [
     ABSTRACT,
     ASYNCHRONOUS,
     CONST,
@@ -6450,11 +6418,6 @@ class Modifier extends Enum<Modifier> {
     STATIC,
     SYNTHETIC
   ];
-
-  static const List<Modifier> transientValues = const [CACHE_KEY];
-
-  static final values = new List.unmodifiable(
-      []..addAll(persistedValues)..addAll(transientValues));
 
   const Modifier(String name, int ordinal) : super(name, ordinal);
 }
@@ -7366,7 +7329,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   DartType get type => setter.variable.type;
 
   @override
-  void set type(FunctionType type) {
+  void set type(DartType type) {
     assert(false); // Should never be called.
   }
 }
@@ -7686,7 +7649,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  DartType get type {
+  FunctionType get type {
     return _type ??= new FunctionTypeImpl(this);
   }
 
@@ -7729,7 +7692,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   }
 
   @override
-  DartType get type {
+  FunctionType get type {
     return _type ??= new FunctionTypeImpl(this);
   }
 
@@ -8290,20 +8253,20 @@ class UnitExplicitTopLevelVariables {
 abstract class UriReferencedElementImpl extends ElementImpl
     implements UriReferencedElement {
   /**
-   * The offset of the URI in the file, may be `-1` if synthetic.
+   * The offset of the URI in the file, or `-1` if this node is synthetic.
    */
-  int uriOffset = -1;
+  int _uriOffset = -1;
 
   /**
    * The offset of the character immediately following the last character of
-   * this node's URI, may be `-1` if synthetic.
+   * this node's URI, or `-1` if this node is synthetic.
    */
-  int uriEnd = -1;
+  int _uriEnd = -1;
 
   /**
    * The URI that is specified by this directive.
    */
-  String uri;
+  String _uri;
 
   /**
    * Initialize a newly created import element to have the given [name] and
@@ -8316,6 +8279,44 @@ abstract class UriReferencedElementImpl extends ElementImpl
    */
   UriReferencedElementImpl.forSerialized(ElementImpl enclosingElement)
       : super.forSerialized(enclosingElement);
+
+  /**
+   * Return the URI that is specified by this directive.
+   */
+  String get uri => _uri;
+
+  /**
+   * Set the URI that is specified by this directive to be the given [uri].
+   */
+  void set uri(String uri) {
+    _uri = uri;
+  }
+
+  /**
+   * Return the offset of the character immediately following the last character
+   * of this node's URI, or `-1` if this node is synthetic.
+   */
+  int get uriEnd => _uriEnd;
+
+  /**
+   * Set the offset of the character immediately following the last character of
+   * this node's URI to the given [offset].
+   */
+  void set uriEnd(int offset) {
+    _uriEnd = offset;
+  }
+
+  /**
+   * Return the offset of the URI in the file, or `-1` if this node is synthetic.
+   */
+  int get uriOffset => _uriOffset;
+
+  /**
+   * Set the offset of the URI in the file to the given [offset].
+   */
+  void set uriOffset(int offset) {
+    _uriOffset = offset;
+  }
 }
 
 /**

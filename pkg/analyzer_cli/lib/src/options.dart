@@ -150,6 +150,12 @@ class CommandLineOptions {
   /// Whether to use strong static checking.
   final bool strongMode;
 
+  /// Whether implicit casts are enabled (in strong mode)
+  final bool implicitCasts;
+
+  /// Whether implicit dynamic is enabled (mainly for strong mode users)
+  final bool implicitDynamic;
+
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 
@@ -160,7 +166,7 @@ class CommandLineOptions {
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
         buildSummaryFallback = args['build-summary-fallback'],
-        buildSummaryInputs = args['build-summary-input'],
+        buildSummaryInputs = args['build-summary-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyAst = args['build-summary-only-ast'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
@@ -197,6 +203,8 @@ class CommandLineOptions {
         sourceFiles = args.rest,
         warningsAreFatal = args['fatal-warnings'],
         strongMode = args['strong'],
+        implicitCasts = !args['no-implicit-casts'],
+        implicitDynamic = !args['no-implicit-dynamic'],
         lintsAreFatal = args['fatal-lints'];
 
   /// Parse [args] into [CommandLineOptions] describing the specified
@@ -478,7 +486,13 @@ class CommandLineOptions {
           negatable: false,
           hide: true)
       ..addFlag('strong',
-          help: 'Enable strong static checks (https://goo.gl/DqcBsw)');
+          help: 'Enable strong static checks (https://goo.gl/DqcBsw)')
+      ..addFlag('no-implicit-casts',
+          negatable: false,
+          help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40)')
+      ..addFlag('no-implicit-dynamic',
+          negatable: false,
+          help: 'Disable implicit dynamic (https://goo.gl/m0UgXD)');
 
     try {
       // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061

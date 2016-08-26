@@ -118,6 +118,15 @@ class SearchDomainHandler implements protocol.RequestHandler {
   Future findTopLevelDeclarations(protocol.Request request) async {
     var params =
         new protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
+    try {
+      // validate the regex
+      new RegExp(params.pattern);
+    } on FormatException catch (exception) {
+      server.sendResponse(new protocol.Response.invalidParameter(
+          request, 'pattern', exception.message));
+      return;
+    }
+
     await server.onAnalysisComplete;
     // respond
     String searchId = (_nextSearchId++).toString();

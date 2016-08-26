@@ -133,15 +133,15 @@ class RuntimeTypeGenerator {
         generateFunctionTypeSignature, generateSubstitution, generateTypeCheck);
 
     if (classElement == backend.helpers.jsJavaScriptFunctionClass) {
-        var type = backend.jsInteropAnalysis.buildJsFunctionType();
-        if (type != null) {
-          jsAst.Expression thisAccess = new jsAst.This();
-          RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
-          jsAst.Expression encoding =
-              rtiEncoder.getSignatureEncoding(type, thisAccess);
-          jsAst.Name operatorSignature = namer.asName(namer.operatorSignature);
-          result.properties[operatorSignature] = encoding;
-        }
+      var type = backend.jsInteropAnalysis.buildJsFunctionType();
+      if (type != null) {
+        jsAst.Expression thisAccess = new jsAst.This();
+        RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
+        jsAst.Expression encoding =
+            rtiEncoder.getSignatureEncoding(type, thisAccess);
+        jsAst.Name operatorSignature = namer.asName(namer.operatorSignature);
+        result.properties[operatorSignature] = encoding;
+      }
     }
     return result;
   }
@@ -265,6 +265,7 @@ class RuntimeTypeGenerator {
         generateSubstitution(check);
       }
     }
+
     ;
 
     tryEmitTest(cls);

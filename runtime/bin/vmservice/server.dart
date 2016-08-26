@@ -105,21 +105,96 @@ class Server {
   final VMService _service;
   final String _ip;
   final int _port;
-
+  final bool _originCheckDisabled;
+  final List<String> _allowedOrigins = <String>[];
   HttpServer _server;
   bool get running => _server != null;
   bool _displayMessages = false;
 
-  Server(this._service, this._ip, this._port) {
+  Server(this._service, this._ip, this._port, this._originCheckDisabled) {
     _displayMessages = (_ip != '127.0.0.1' || _port != 8181);
   }
 
-  void _requestHandler(HttpRequest request) {
-    // Allow cross origin requests with 'observatory' header.
-    request.response.headers.add('Access-Control-Allow-Origin', '*');
-    request.response.headers.add('Access-Control-Allow-Headers',
-                                 'Observatory-Version');
+  void _addOrigin(String host, String port) {
+    if (port == null) {
+      String origin = 'http://$host';
+      _allowedOrigins.add(origin);
+    } else {
+      String origin = 'http://$host:$port';
+      _allowedOrigins.add(origin);
+    }
+  }
 
+  bool _isAllowedOrigin(String origin) {
+    for (String allowedOrigin in _allowedOrigins) {
+      if (origin.startsWith(allowedOrigin)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _originCheck(HttpRequest request) {
+    if (_originCheckDisabled) {
+      // Always allow.
+      return true;
+    }
+    // First check the web-socket specific origin.
+    List<String> origins = request.headers["Sec-WebSocket-Origin"];
+    if (origins == null) {
+      // Fall back to the general Origin field.
+      origins = request.headers["Origin"];
+    }
+    if (origins == null) {
+      // No origin sent. This is a non-browser client or a same-origin request.
+      return true;
+    }
+    for (String origin in origins) {
+      if (_isAllowedOrigin(origin)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future _requestHandler(HttpRequest request) async {
+    if (!_originCheck(request)) {
+      // This is a cross origin attempt to connect
+      request.response.close();
+      return;
+    }
+    if (request.method == 'PUT') {
+      // PUT requests are forwarded to DevFS for processing.
+
+      List fsNameList;
+      List fsPathList;
+      Object fsName;
+      Object fsPath;
+
+      try {
+        // Extract the fs name and fs path from the request headers.
+        fsNameList = request.headers['dev_fs_name'];
+        fsPathList = request.headers['dev_fs_path'];
+        fsName = fsNameList[0];
+        fsPath = fsPathList[0];
+      } catch (e) { /* ignore */ }
+
+      String result;
+      try {
+        result = await _service.devfs.handlePutStream(
+            fsName,
+            fsPath,
+            request.transform(GZIP.decoder));
+      } catch (e) { /* ignore */ }
+
+      if (result != null) {
+        request.response.headers.contentType =
+            HttpRequestClient.jsonContentType;
+        request.response.write(result);
+      }
+      request.response.close();
+      return;
+    }
     if (request.method != 'GET') {
       // Not a GET request. Do nothing.
       request.response.close();
@@ -130,8 +205,7 @@ class Server {
           request.uri.path == '/' ? ROOT_REDIRECT_PATH : request.uri.path;
 
     if (path == WEBSOCKET_PATH) {
-      WebSocketTransformer.upgrade(request,
-                                   compression: CompressionOptions.OFF).then(
+      WebSocketTransformer.upgrade(request).then(
                                    (WebSocket webSocket) {
         new WebSocketClient(webSocket, _service);
       });
@@ -165,6 +239,9 @@ class Server {
       return new Future.value(this);
     }
 
+    // Clear allowed origins.
+    _allowedOrigins.clear();
+
     var address = new InternetAddress(_ip);
     // Startup HTTP server.
     return HttpServer.bind(address, _port).then((s) {
@@ -172,6 +249,13 @@ class Server {
       _server.listen(_requestHandler, cancelOnError: true);
       var ip = _server.address.address.toString();
       var port = _server.port.toString();
+      // Add the numeric ip and host name to our allowed origins.
+      _addOrigin(ip, port);
+      _addOrigin(_server.address.host.toString(), port);
+      // Explicitly add localhost and 127.0.0.1 on any port (necessary for
+      // adb port forwarding).
+      _addOrigin('127.0.0.1', null);
+      _addOrigin('localhost', null);
       if (_displayMessages) {
         print('Observatory listening on http://$ip:$port');
       }

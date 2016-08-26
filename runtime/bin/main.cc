@@ -119,7 +119,9 @@ static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
 // The 0 port is a magic value which results in the first available port
 // being allocated.
 static int vm_service_server_port = -1;
-
+// True when we are running in development mode and cross origin security
+// checks are disabled.
+static bool vm_service_dev_mode = false;
 
 // Exit code indicating an API error.
 static const int kApiErrorExitCode = 253;
@@ -129,10 +131,6 @@ static const int kCompilationErrorExitCode = 254;
 static const int kErrorExitCode = 255;
 // Exit code indicating a vm restart request.  Never returned to the user.
 static const int kRestartRequestExitCode = 1000;
-
-// Global flag that is used to indicate that the VM should do a clean
-// shutdown.
-static bool do_vm_shutdown = true;
 
 static void ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
@@ -153,9 +151,7 @@ static void ErrorExit(int exit_code, const char* format, ...) {
     free(error);
   }
 
-  if (do_vm_shutdown) {
-    EventHandler::Stop();
-  }
+  EventHandler::Stop();
   Platform::Exit(exit_code);
 }
 
@@ -286,28 +282,32 @@ static bool ProcessEnvironmentOption(const char* arg,
     environment = new HashMap(&HashMap::SameStringValue, 4);
   }
   // Split the name=value part of the -Dname=value argument.
-  char* name;
-  char* value = NULL;
   const char* equals_pos = strchr(arg, '=');
   if (equals_pos == NULL) {
     // No equal sign (name without value) currently not supported.
     Log::PrintErr("No value given to -D option\n");
     return false;
-  } else {
-    int name_len = equals_pos - arg;
-    if (name_len == 0) {
-      Log::PrintErr("No name given to -D option\n");
-      return false;
-    }
-    // Split name=value into name and value.
-    name = reinterpret_cast<char*>(malloc(name_len + 1));
-    strncpy(name, arg, name_len);
-    name[name_len] = '\0';
-    value = strdup(equals_pos + 1);
   }
+
+  char* name;
+  char* value = NULL;
+  int name_len = equals_pos - arg;
+  if (name_len == 0) {
+    Log::PrintErr("No name given to -D option\n");
+    return false;
+  }
+  // Split name=value into name and value.
+  name = reinterpret_cast<char*>(malloc(name_len + 1));
+  strncpy(name, arg, name_len);
+  name[name_len] = '\0';
+  value = strdup(equals_pos + 1);
   HashMap::Entry* entry = environment->Lookup(
       GetHashmapKeyFromString(name), HashMap::StringHash(name), true);
   ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
+  if (entry->value != NULL) {
+    free(name);
+    free(entry->value);
+  }
   entry->value = value;
   return true;
 }
@@ -393,6 +393,16 @@ static bool ProcessEnableVmServiceOption(const char* option_value,
 }
 
 
+static bool ProcessDisableServiceOriginCheckOption(
+    const char* option_value, CommandLineOptions* vm_options) {
+  ASSERT(option_value != NULL);
+  Log::PrintErr("WARNING: You are running with the service protocol in an "
+                "insecure mode.\n");
+  vm_service_dev_mode = true;
+  return true;
+}
+
+
 static bool ProcessObserveOption(const char* option_value,
                                  CommandLineOptions* vm_options) {
   ASSERT(option_value != NULL);
@@ -434,42 +444,53 @@ static bool ProcessHotReloadTestModeOption(const char* arg,
   // Identity reload.
   vm_options->AddArgument("--identity_reload");
   // Start reloading quickly.
-  vm_options->AddArgument("--reload_every=50");
+  vm_options->AddArgument("--reload_every=4");
   // Reload from optimized and unoptimized code.
   vm_options->AddArgument("--reload_every_optimized=false");
   // Reload less frequently as time goes on.
   vm_options->AddArgument("--reload_every_back_off");
-  // Ensure that an isolate has reloaded once.
+  // Ensure that every isolate has reloaded once before exiting.
   vm_options->AddArgument("--check_reloaded");
 
   return true;
 }
 
 
-static bool ProcessShutdownOption(const char* arg,
-                                  CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '\0') {
-    do_vm_shutdown = true;
-    vm_options->AddArgument("--shutdown");
-    return true;
-  }
+static bool ProcessHotReloadRollbackTestModeOption(
+      const char* arg,
+      CommandLineOptions* vm_options) {
+  // Identity reload.
+  vm_options->AddArgument("--identity_reload");
+  // Start reloading quickly.
+  vm_options->AddArgument("--reload_every=4");
+  // Reload from optimized and unoptimized code.
+  vm_options->AddArgument("--reload_every_optimized=false");
+  // Reload less frequently as time goes on.
+  vm_options->AddArgument("--reload_every_back_off");
+  // Ensure that every isolate has reloaded once before exiting.
+  vm_options->AddArgument("--check_reloaded");
+  // Force all reloads to fail and execute the rollback code.
+  vm_options->AddArgument("--reload_force_rollback");
 
-  if ((*arg != '=') && (*arg != ':')) {
-    return false;
-  }
+  return true;
+}
 
-  if (strcmp(arg + 1, "true") == 0) {
-    do_vm_shutdown = true;
-    vm_options->AddArgument("--shutdown");
-    return true;
-  } else if (strcmp(arg + 1, "false") == 0) {
-    do_vm_shutdown = false;
-    vm_options->AddArgument("--no-shutdown");
-    return true;
-  }
 
-  return false;
+extern bool short_socket_read;
+
+extern bool short_socket_write;
+
+static bool ProcessShortSocketReadOption(const char* arg,
+                                         CommandLineOptions* vm_options) {
+  short_socket_read = true;
+  return true;
+}
+
+
+static bool ProcessShortSocketWriteOption(const char* arg,
+                                          CommandLineOptions* vm_options) {
+  short_socket_write = true;
+  return true;
 }
 
 
@@ -490,14 +511,17 @@ static struct {
   // VM specific options to the standalone dart program.
   { "--compile_all", ProcessCompileAllOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
+  { "--disable-service-origin-check", ProcessDisableServiceOriginCheckOption },
   { "--observe", ProcessObserveOption },
-  { "--shutdown", ProcessShutdownOption },
   { "--snapshot=", ProcessSnapshotFilenameOption },
   { "--snapshot-kind=", ProcessSnapshotKindOption },
   { "--run-app-snapshot=", ProcessRunAppSnapshotOption },
   { "--use-blobs", ProcessUseBlobsOption },
   { "--trace-loading", ProcessTraceLoadingOption },
   { "--hot-reload-test-mode", ProcessHotReloadTestModeOption },
+  { "--hot-reload-rollback-test-mode", ProcessHotReloadRollbackTestModeOption },
+  { "--short_socket_read", ProcessShortSocketReadOption },
+  { "--short_socket_write", ProcessShortSocketWriteOption },
   { NULL, NULL }
 };
 
@@ -766,7 +790,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     bool skip_library_load = run_app_snapshot;
     if (!VmService::Setup(vm_service_server_ip,
                           vm_service_server_port,
-                          skip_library_load)) {
+                          skip_library_load,
+                          vm_service_dev_mode)) {
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }
@@ -1063,6 +1088,22 @@ static void ServiceStreamCancelCallback(const char* stream_id) {
 }
 
 
+static bool FileModifiedCallback(const char* url, int64_t since) {
+  if (strncmp(url, "file:///", 8) == 0) {
+    // If it isn't a file on local disk, we don't know if it has been
+    // modified.
+    return true;
+  }
+  int64_t data[File::kStatSize];
+  File::Stat(url + 7, data);
+  if (data[File::kType] == File::kDoesNotExist) {
+    return true;
+  }
+  bool modified = data[File::kModifiedTime] > since;
+  return modified;
+}
+
+
 static void WriteSnapshotFile(const char* snapshot_directory,
                               const char* filename,
                               bool write_magic_number,
@@ -1080,7 +1121,11 @@ static void WriteSnapshotFile(const char* snapshot_directory,
   }
 
   File* file = File::Open(qualified_filename, File::kWriteTruncate);
-  ASSERT(file != NULL);
+  if (file == NULL) {
+    ErrorExit(kErrorExitCode,
+              "Unable to open file %s for writing snapshot\n",
+              qualified_filename);
+  }
 
   if (write_magic_number) {
     // Write the magic number to indicate file is a script snapshot.
@@ -1089,7 +1134,7 @@ static void WriteSnapshotFile(const char* snapshot_directory,
 
   if (!file->WriteFully(buffer, size)) {
     ErrorExit(kErrorExitCode,
-              "Unable to open file %s for writing snapshot\n",
+              "Unable to write file %s for writing snapshot\n",
               qualified_filename);
   }
   file->Release();
@@ -1131,7 +1176,7 @@ static void ReadSnapshotFile(const char* snapshot_directory,
   }
   DartUtils::CloseFile(file);
   if (concat != NULL) {
-    delete concat;
+    delete[] concat;
   }
 }
 
@@ -1160,7 +1205,7 @@ static void ReadExecutableSnapshotFile(const char* snapshot_directory,
     Platform::Exit(kErrorExitCode);
   }
   if (concat != NULL) {
-    delete concat;
+    delete[] concat;
   }
 }
 
@@ -1377,9 +1422,7 @@ bool RunMainIsolate(const char* script_name,
       Log::PrintErr("VM cleanup failed: %s\n", error);
       free(error);
     }
-    if (do_vm_shutdown) {
-      EventHandler::Stop();
-    }
+    EventHandler::Stop();
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   delete [] isolate_name;
@@ -1521,7 +1564,7 @@ bool RunMainIsolate(const char* script_name,
 
 
 // Observatory assets are only needed in the regular dart binary.
-#if !defined(DART_PRECOMPILER)
+#if !defined(DART_PRECOMPILER) && !defined(NO_OBSERVATORY)
 extern unsigned int observatory_assets_archive_len;
 extern const uint8_t* observatory_assets_archive;
 
@@ -1610,7 +1653,7 @@ static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
 
 void main(int argc, char** argv) {
   char* script_name;
-  const int EXTRA_VM_ARGUMENTS = 2;
+  const int EXTRA_VM_ARGUMENTS = 8;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
   CommandLineOptions dart_options(argc);
   bool print_flags_seen = false;
@@ -1652,6 +1695,8 @@ void main(int argc, char** argv) {
   }
 
   Thread::InitOnce();
+
+  Loader::InitOnce();
 
   if (!DartUtils::SetOriginalWorkingDirectory()) {
     OSError err;
@@ -1706,20 +1751,24 @@ void main(int argc, char** argv) {
   }
 
   // Initialize the Dart VM.
-  char* error = Dart_Initialize(
-      vm_isolate_snapshot_buffer, instructions_snapshot, data_snapshot,
-      CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
-      NULL,
-      DartUtils::OpenFile,
-      DartUtils::ReadFile,
-      DartUtils::WriteFile,
-      DartUtils::CloseFile,
-      DartUtils::EntropySource,
-      GetVMServiceAssetsArchiveCallback);
+  Dart_InitializeParams init_params;
+  memset(&init_params, 0, sizeof(init_params));
+  init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  init_params.vm_isolate_snapshot = vm_isolate_snapshot_buffer;
+  init_params.instructions_snapshot = instructions_snapshot;
+  init_params.data_snapshot = data_snapshot;
+  init_params.create = CreateIsolateAndSetup;
+  init_params.shutdown = ShutdownIsolate;
+  init_params.file_open = DartUtils::OpenFile;
+  init_params.file_read = DartUtils::ReadFile;
+  init_params.file_write = DartUtils::WriteFile;
+  init_params.file_close = DartUtils::CloseFile;
+  init_params.entropy_source = DartUtils::EntropySource;
+  init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
+
+  char* error = Dart_Initialize(&init_params);
   if (error != NULL) {
-    if (do_vm_shutdown) {
-      EventHandler::Stop();
-    }
+    EventHandler::Stop();
     fprintf(stderr, "VM initialization failed: %s\n", error);
     fflush(stderr);
     free(error);
@@ -1730,6 +1779,7 @@ void main(int argc, char** argv) {
         "getIO", &ServiceGetIOHandler, NULL);
   Dart_SetServiceStreamCallbacks(&ServiceStreamListenCallback,
                                  &ServiceStreamCancelCallback);
+  Dart_SetFileModifiedCallback(&FileModifiedCallback);
 
   // Run the main isolate until we aren't told to restart.
   while (RunMainIsolate(script_name, &dart_options)) {
@@ -1744,9 +1794,7 @@ void main(int argc, char** argv) {
     Log::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
-  if (do_vm_shutdown) {
-    EventHandler::Stop();
-  }
+  EventHandler::Stop();
 
   // Free copied argument strings if converted.
   if (argv_converted) {

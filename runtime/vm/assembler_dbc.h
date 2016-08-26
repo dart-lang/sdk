@@ -166,6 +166,8 @@ class Assembler : public ValueObject {
 
   intptr_t AddConstant(const Object& obj);
 
+  void Nop(intptr_t d) { Nop(0, d); }
+
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
   ObjectPoolWrapper object_pool_wrapper_;

@@ -5,8 +5,7 @@
 library dart2js.resolution.constructors;
 
 import '../common.dart';
-import '../common/resolution.dart' show Feature;
-import '../compiler.dart' show Compiler;
+import '../common/resolution.dart' show Resolution;
 import '../constants/constructors.dart'
     show
         GenerativeConstantConstructor,
@@ -24,10 +23,10 @@ import '../elements/modelx.dart'
         InitializingFormalElementX,
         ParameterElementX;
 import '../tree/tree.dart';
-import '../util/util.dart' show Link;
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/feature.dart' show Feature;
 import '../universe/use.dart' show StaticUse;
-
+import '../util/util.dart' show Link;
 import 'members.dart' show lookupInScope, ResolverVisitor;
 import 'registry.dart' show ResolutionRegistry;
 import 'resolution_common.dart' show CommonResolverVisitor;
@@ -476,9 +475,9 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   final ResolverVisitor resolver;
   final bool inConstContext;
 
-  ConstructorResolver(Compiler compiler, this.resolver,
+  ConstructorResolver(Resolution resolution, this.resolver,
       {bool this.inConstContext: false})
-      : super(compiler);
+      : super(resolution);
 
   ResolutionRegistry get registry => resolver.registry;
 

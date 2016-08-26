@@ -7,7 +7,7 @@ import "dart:_internal" as internal;
 /**
  * Returns a [MirrorSystem] for the current isolate.
  */
-patch MirrorSystem currentMirrorSystem() {
+@patch MirrorSystem currentMirrorSystem() {
   return _Mirrors.currentMirrorSystem();
 }
 
@@ -17,7 +17,7 @@ patch MirrorSystem currentMirrorSystem() {
  * This only works if this mirror system is associated with the
  * current running isolate.
  */
-patch InstanceMirror reflect(Object reflectee) {
+@patch InstanceMirror reflect(Object reflectee) {
   return _Mirrors.reflect(reflectee);
 }
 
@@ -27,16 +27,16 @@ patch InstanceMirror reflect(Object reflectee) {
  *
  * This only works with objects local to the current isolate.
  */
-patch ClassMirror reflectClass(Type key) {
+@patch ClassMirror reflectClass(Type key) {
   return _Mirrors.reflectClass(key);
 }
 
-patch TypeMirror reflectType(Type key) {
+@patch TypeMirror reflectType(Type key) {
   return _Mirrors.reflectType(key);
 }
 
-patch class MirrorSystem {
-  /* patch */ LibraryMirror findLibrary(Symbol libraryName) {
+@patch class MirrorSystem {
+  @patch LibraryMirror findLibrary(Symbol libraryName) {
     var candidates =
         libraries.values.where((lib) => lib.simpleName == libraryName);
     if (candidates.length == 1) {
@@ -50,11 +50,11 @@ patch class MirrorSystem {
     throw new Exception("There is no library named '${getName(libraryName)}'");
   }
 
-  /* patch */ static String getName(Symbol symbol) {
+  @patch static String getName(Symbol symbol) {
     return internal.Symbol.getUnmangledName(symbol);
   }
 
-  /* patch */ static Symbol getSymbol(String name, [LibraryMirror library]) {
+  @patch static Symbol getSymbol(String name, [LibraryMirror library]) {
     if ((library != null && library is! _LocalLibraryMirror) ||
         ((name.length > 0) && (name[0] == '_') && (library == null))) {
       throw new ArgumentError(library);

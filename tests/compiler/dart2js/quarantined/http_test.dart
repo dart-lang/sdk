@@ -15,7 +15,9 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
-Uri pathOfData = Platform.script.resolve('../http_launch_data/');
+import '../launch_helper.dart' show launchDart2Js;
+
+Uri pathOfData = Platform.script.resolve('http_launch_data/');
 Directory tempDir;
 String outFilePath;
 
@@ -37,14 +39,6 @@ Future handleRequest(HttpRequest request) {
       _sendNotFound(request.response);
     }
   });
-}
-
-Future launchDart2Js(args) {
-  String ext = Platform.isWindows ? '.bat' : '';
-  String command =
-      path.normalize(path.join(path.fromUri(Platform.script),
-                    '../../../../../sdk/bin/dart2js${ext}'));
-  return Process.run(command, args);
 }
 
 void check(ProcessResult result) {

@@ -95,6 +95,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(BuildSourceExportClosureTask.DESCRIPTOR) ||
         isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
+        isByTask(ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeLibraryCycleTask.DESCRIPTOR) ||
         isByTask(ComputePropagableVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(DartErrorsTask.DESCRIPTOR) ||
@@ -106,6 +107,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
         isByTask(InferStaticVariableTypesInUnitTask.DESCRIPTOR) ||
+        isByTask(InferStaticVariableTypeTask.DESCRIPTOR) ||
         isByTask(LibraryErrorsReadyTask.DESCRIPTOR) ||
         isByTask(LibraryUnitErrorsTask.DESCRIPTOR) ||
         isByTask(ParseDartTask.DESCRIPTOR) ||
@@ -295,9 +297,9 @@ class IncrementalResolver {
     // compute values
     {
       CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-      ConstantValueComputer computer = new ConstantValueComputer(_context,
+      ConstantValueComputer computer = new ConstantValueComputer(
           _typeProvider, _context.declaredVariables, null, _typeSystem);
-      computer.add(unit, _source, _librarySource);
+      computer.add(unit);
       computer.computeValues();
     }
     // validate
@@ -383,6 +385,7 @@ class IncrementalResolver {
     _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
     _shiftErrors_NEW(RESOLVE_TYPE_BOUNDS_ERRORS);
     _shiftErrors_NEW(RESOLVE_UNIT_ERRORS);
+    _shiftErrors_NEW(STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT);
     _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
     _shiftErrors_NEW(VERIFY_ERRORS);
@@ -567,41 +570,52 @@ class PoorMansIncrementalResolver {
         int endOffsetOld = math.max(firstOffsetOld, lastOffsetOld);
         int beginOffsetNew = math.min(firstOffsetNew, lastOffsetNew);
         int endOffsetNew = math.max(firstOffsetNew, lastOffsetNew);
-        // check for a whitespace only change
-        if (identical(lastPair.oldToken, firstPair.oldToken) &&
-            identical(lastPair.newToken, firstPair.newToken)) {
+        // A pure whitespace change.
+        if (identical(firstPair.oldToken, lastPair.oldToken) &&
+            identical(firstPair.newToken, lastPair.newToken) &&
+            firstPair.kind == _TokenDifferenceKind.OFFSET) {
           _updateOffset = beginOffsetOld - 1;
           _updateEndOld = endOffsetOld;
           _updateEndNew = endOffsetNew;
           _updateDelta = newUnit.length - _oldUnit.length;
-          // A Dart documentation comment change.
-          if (firstPair.kind == _TokenDifferenceKind.COMMENT_DOC) {
-            bool success = _resolveCommentDoc(newUnit, firstPair);
+          logger.log('Whitespace change.');
+          _shiftTokens(firstPair.oldToken, true);
+          IncrementalResolver incrementalResolver = new IncrementalResolver(
+              _cache,
+              _sourceEntry,
+              _unitEntry,
+              _unitElement,
+              _updateOffset,
+              _updateEndOld,
+              _updateEndNew);
+          incrementalResolver._updateCache();
+          incrementalResolver._updateElementNameOffsets();
+          incrementalResolver._shiftEntryErrors();
+          _updateEntry();
+          logger.log('Success.');
+          return true;
+        }
+        // A Dart documentation comment change.
+        {
+          Token firstOldToken = firstPair.oldToken;
+          Token firstNewToken = firstPair.newToken;
+          Token lastOldToken = lastPair.oldToken;
+          Token lastNewToken = lastPair.newToken;
+          if (firstOldToken is DocumentationCommentToken &&
+              firstNewToken is DocumentationCommentToken &&
+              lastOldToken is DocumentationCommentToken &&
+              lastNewToken is DocumentationCommentToken &&
+              identical(firstOldToken.parent, lastOldToken.parent) &&
+              identical(firstNewToken.parent, lastNewToken.parent)) {
+            _updateOffset = beginOffsetOld;
+            _updateEndOld = firstOldToken.parent.offset;
+            _updateEndNew = firstNewToken.parent.offset;
+            _updateDelta = newUnit.length - _oldUnit.length;
+            bool success =
+                _resolveCommentDoc(newUnit, firstOldToken, firstNewToken);
             logger.log('Documentation comment resolved: $success');
             return success;
           }
-          // A pure whitespace change.
-          if (firstPair.kind == _TokenDifferenceKind.OFFSET) {
-            logger.log('Whitespace change.');
-            _shiftTokens(firstPair.oldToken);
-            {
-              IncrementalResolver incrementalResolver = new IncrementalResolver(
-                  _cache,
-                  _sourceEntry,
-                  _unitEntry,
-                  _unitElement,
-                  _updateOffset,
-                  _updateEndOld,
-                  _updateEndNew);
-              incrementalResolver._updateCache();
-              incrementalResolver._updateElementNameOffsets();
-              incrementalResolver._shiftEntryErrors();
-            }
-            _updateEntry();
-            logger.log('Success.');
-            return true;
-          }
-          // fall-through, end-of-line comment
         }
         // Find nodes covering the "old" and "new" token ranges.
         AstNode oldNode =
@@ -675,14 +689,6 @@ class PoorMansIncrementalResolver {
             logger.log('Failure: no enclosing function body or executable.');
             return false;
           }
-          // fail if a comment change outside the bodies
-          if (firstPair.kind == _TokenDifferenceKind.COMMENT) {
-            if (beginOffsetOld <= oldNode.offset ||
-                beginOffsetNew <= newNode.offset) {
-              logger.log('Failure: comment outside a function body.');
-              return false;
-            }
-          }
         }
         logger.log(() => 'oldNode: $oldNode');
         logger.log(() => 'newNode: $newNode');
@@ -740,6 +746,7 @@ class PoorMansIncrementalResolver {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
+      parser.parseGenericMethodComments = options.strongMode;
       parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
@@ -753,16 +760,13 @@ class PoorMansIncrementalResolver {
    * Attempts to resolve a documentation comment change.
    * Returns `true` if success.
    */
-  bool _resolveCommentDoc(CompilationUnit newUnit, _TokenPair firstPair) {
-    Token oldToken = firstPair.oldToken;
-    Token newToken = firstPair.newToken;
-    CommentToken oldComments = oldToken.precedingComments;
-    CommentToken newComments = newToken.precedingComments;
-    if (oldComments == null || newComments == null) {
+  bool _resolveCommentDoc(
+      CompilationUnit newUnit, CommentToken oldToken, CommentToken newToken) {
+    if (oldToken == null || newToken == null) {
       return false;
     }
     // find nodes
-    int offset = oldComments.offset;
+    int offset = oldToken.offset;
     logger.log('offset: $offset');
     AstNode oldNode = _findNodeCovering(_oldUnit, offset, offset);
     AstNode newNode = _findNodeCovering(newUnit, offset, offset);
@@ -773,10 +777,9 @@ class PoorMansIncrementalResolver {
     Comment newComment = newNode;
     logger.log('oldComment.beginToken: ${oldComment.beginToken}');
     logger.log('newComment.beginToken: ${newComment.beginToken}');
-    _updateOffset = oldToken.offset - 1;
     // update token references
-    _shiftTokens(firstPair.oldToken);
-    _setPrecedingComments(oldToken, newComment.tokens.first);
+    _shiftTokens(oldToken.parent);
+    _setPrecedingComments(oldToken.parent, newComment.tokens.first);
     // replace node
     NodeReplacer.replace(oldComment, newComment);
     // update elements
@@ -798,16 +801,21 @@ class PoorMansIncrementalResolver {
     {
       AstNode parent = newComment.parent;
       if (parent is AnnotatedNode) {
+        setElementDocumentationForVariables(VariableDeclarationList list) {
+          for (VariableDeclaration variable in list.variables) {
+            Element variableElement = variable.element;
+            if (variableElement is ElementImpl) {
+              setElementDocumentationComment(variableElement, parent);
+            }
+          }
+        }
         Element parentElement = ElementLocator.locate(newComment.parent);
         if (parentElement is ElementImpl) {
           setElementDocumentationComment(parentElement, parent);
-        } else if (parentElement == null && parent is FieldDeclaration) {
-          for (VariableDeclaration field in parent.fields.variables) {
-            Element fieldElement = field.element;
-            if (fieldElement is ElementImpl) {
-              setElementDocumentationComment(fieldElement, parent);
-            }
-          }
+        } else if (parent is FieldDeclaration) {
+          setElementDocumentationForVariables(parent.fields);
+        } else if (parent is TopLevelVariableDeclaration) {
+          setElementDocumentationForVariables(parent.variables);
         }
       }
     }
@@ -819,6 +827,8 @@ class PoorMansIncrementalResolver {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(_unitSource, reader, errorListener);
+    AnalysisOptions options = _unitElement.context.analysisOptions;
+    scanner.scanGenericMethodComments = options.strongMode;
     Token token = scanner.tokenize();
     _newLineInfo = new LineInfo(scanner.lineStarts);
     _newScanErrors = errorListener.errors;
@@ -843,8 +853,11 @@ class PoorMansIncrementalResolver {
     }
   }
 
-  void _shiftTokens(Token token) {
+  void _shiftTokens(Token token, [bool goUpComment = false]) {
     while (token != null) {
+      if (goUpComment && token is CommentToken) {
+        token = (token as CommentToken).parent;
+      }
       if (token.offset > _updateOffset) {
         token.offset += _updateDelta;
       }
@@ -870,6 +883,10 @@ class PoorMansIncrementalResolver {
     // parse results
     _sourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
     _sourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
+    // referenced names
+    ReferencedNames referencedNames = new ReferencedNames(_unitSource);
+    new ReferencedNamesBuilder(referencedNames).build(_oldUnit);
+    _sourceEntry.setValueIncremental(REFERENCED_NAMES, referencedNames, false);
   }
 
   /**
@@ -884,29 +901,21 @@ class PoorMansIncrementalResolver {
   }
 
   static _TokenDifferenceKind _compareToken(
-      Token oldToken, Token newToken, int delta, bool forComment) {
-    while (true) {
-      if (oldToken == null && newToken == null) {
-        return null;
-      }
-      if (oldToken == null || newToken == null) {
-        return _TokenDifferenceKind.CONTENT;
-      }
-      if (oldToken.type != newToken.type) {
-        return _TokenDifferenceKind.CONTENT;
-      }
-      if (oldToken.lexeme != newToken.lexeme) {
-        return _TokenDifferenceKind.CONTENT;
-      }
-      if (newToken.offset - oldToken.offset != delta) {
-        return _TokenDifferenceKind.OFFSET;
-      }
-      // continue if comment tokens are being checked
-      if (!forComment) {
-        break;
-      }
-      oldToken = oldToken.next;
-      newToken = newToken.next;
+      Token oldToken, Token newToken, int delta) {
+    if (oldToken == null && newToken == null) {
+      return null;
+    }
+    if (oldToken == null || newToken == null) {
+      return _TokenDifferenceKind.CONTENT;
+    }
+    if (oldToken.type != newToken.type) {
+      return _TokenDifferenceKind.CONTENT;
+    }
+    if (oldToken.lexeme != newToken.lexeme) {
+      return _TokenDifferenceKind.CONTENT;
+    }
+    if (newToken.offset - oldToken.offset != delta) {
+      return _TokenDifferenceKind.OFFSET;
     }
     return null;
   }
@@ -920,18 +929,22 @@ class PoorMansIncrementalResolver {
       {
         Token oldComment = oldToken.precedingComments;
         Token newComment = newToken.precedingComments;
-        if (_compareToken(oldComment, newComment, 0, true) != null) {
-          _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken &&
-              newComment is DocumentationCommentToken) {
-            diffKind = _TokenDifferenceKind.COMMENT_DOC;
+        while (true) {
+          _TokenDifferenceKind diffKind =
+              _compareToken(oldComment, newComment, 0);
+          if (diffKind != null) {
+            return new _TokenPair(
+                diffKind, oldComment ?? oldToken, newComment ?? newToken);
           }
-          return new _TokenPair(diffKind, oldToken, newToken);
+          if (oldComment == null && newComment == null) {
+            break;
+          }
+          oldComment = oldComment.next;
+          newComment = newComment.next;
         }
       }
       // compare tokens
-      _TokenDifferenceKind diffKind =
-          _compareToken(oldToken, newToken, 0, false);
+      _TokenDifferenceKind diffKind = _compareToken(oldToken, newToken, 0);
       if (diffKind != null) {
         return new _TokenPair(diffKind, oldToken, newToken);
       }
@@ -945,24 +958,40 @@ class PoorMansIncrementalResolver {
 
   static _TokenPair _findLastDifferentToken(Token oldToken, Token newToken) {
     int delta = newToken.offset - oldToken.offset;
+    Token prevOldToken;
+    Token prevNewToken;
     while (oldToken.previous != oldToken && newToken.previous != newToken) {
       // compare tokens
-      _TokenDifferenceKind diffKind =
-          _compareToken(oldToken, newToken, delta, false);
+      _TokenDifferenceKind diffKind = _compareToken(oldToken, newToken, delta);
       if (diffKind != null) {
-        return new _TokenPair(diffKind, oldToken.next, newToken.next);
+        return new _TokenPair(diffKind, prevOldToken, prevNewToken);
       }
+      prevOldToken = oldToken;
+      prevNewToken = newToken;
       // compare comments
       {
         Token oldComment = oldToken.precedingComments;
         Token newComment = newToken.precedingComments;
-        if (_compareToken(oldComment, newComment, delta, true) != null) {
-          _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken &&
-              newComment is DocumentationCommentToken) {
-            diffKind = _TokenDifferenceKind.COMMENT_DOC;
+        while (oldComment?.next != null) {
+          oldComment = oldComment.next;
+        }
+        while (newComment?.next != null) {
+          newComment = newComment.next;
+        }
+        while (true) {
+          _TokenDifferenceKind diffKind =
+              _compareToken(oldComment, newComment, delta);
+          if (diffKind != null) {
+            return new _TokenPair(
+                diffKind, oldComment ?? oldToken, newComment ?? newToken);
           }
-          return new _TokenPair(diffKind, oldToken, newToken);
+          if (oldComment == null && newComment == null) {
+            break;
+          }
+          prevOldToken = oldComment;
+          prevNewToken = newComment;
+          oldComment = oldComment.previous;
+          newComment = newComment.previous;
         }
       }
       // next tokens
@@ -1196,19 +1225,13 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
     // name offset
     int nameOffset = element.nameOffset;
     if (nameOffset > updateOffset) {
-      // TODO(scheglov) make sure that we don't put local variables
-      // and functions into the cache at all.
-      try {
-        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
-      } on FrozenHashCodeException {
-        cache.remove(element);
-        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
-      }
+      (element as ElementImpl).nameOffset = nameOffset + updateDelta;
       if (element is ConstVariableElement) {
         Expression initializer = element.constantInitializer;
         if (initializer != null) {
           _shiftTokens(initializer.beginToken);
         }
+        _shiftErrors(element.evaluationResult?.errors);
       }
     }
     // code range
@@ -1251,6 +1274,17 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
     super.visitElement(element);
   }
 
+  void _shiftErrors(List<AnalysisError> errors) {
+    if (errors != null) {
+      for (AnalysisError error in errors) {
+        int errorOffset = error.offset;
+        if (errorOffset > updateOffset) {
+          error.offset += updateDelta;
+        }
+      }
+    }
+  }
+
   void _shiftTokens(Token token) {
     while (token != null) {
       if (token.offset > updateOffset) {
@@ -1276,8 +1310,6 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
  * Describes how two [Token]s are different.
  */
 class _TokenDifferenceKind {
-  static const COMMENT = const _TokenDifferenceKind('COMMENT');
-  static const COMMENT_DOC = const _TokenDifferenceKind('COMMENT_DOC');
   static const CONTENT = const _TokenDifferenceKind('CONTENT');
   static const OFFSET = const _TokenDifferenceKind('OFFSET');
 

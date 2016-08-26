@@ -103,6 +103,7 @@ class Derived extends Pivot {}
               equals(text.indexOf('class $name') + 'class '.length));
         }
       }
+
       checkElement('Object');
       checkElement('Base');
       checkElement('Pivot');
@@ -261,17 +262,15 @@ class Pivot /* target */ extends Base2 {}
     return Future.forEach(tests, (test) => test());
   }
 
-  Future<HierarchyResults> typeHierarchyTest(String text) {
+  Future<HierarchyResults> typeHierarchyTest(String text) async {
     int offset = text.indexOf(' /* target */') - 1;
     sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
-    return analysisFinished
-        .then((_) => sendSearchGetTypeHierarchy(pathname, offset))
-        .then((result) {
-      if (result.hierarchyItems == null) {
-        return null;
-      } else {
-        return new HierarchyResults(result.hierarchyItems);
-      }
-    });
+    await analysisFinished;
+    var result = await sendSearchGetTypeHierarchy(pathname, offset);
+    if (result.hierarchyItems == null) {
+      return null;
+    } else {
+      return new HierarchyResults(result.hierarchyItems);
+    }
   }
 }

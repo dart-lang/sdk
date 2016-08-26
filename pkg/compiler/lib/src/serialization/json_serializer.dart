@@ -5,6 +5,7 @@
 library dart2js.serialization.json;
 
 import 'dart:convert';
+
 import 'keys.dart';
 import 'serialization.dart';
 import 'values.dart';
@@ -14,8 +15,13 @@ class JsonSerializationEncoder implements SerializationEncoder {
   const JsonSerializationEncoder();
 
   String encode(ObjectValue objectValue) {
-    return new JsonEncoder.withIndent(' ')
-        .convert(const JsonValueEncoder().convert(objectValue));
+    try {
+      return new JsonEncoder.withIndent(' ')
+          .convert(const JsonValueEncoder().convert(objectValue));
+    } on JsonUnsupportedObjectError catch (e) {
+      throw 'Error encoding `${e.unsupportedObject}` '
+          '(${e.unsupportedObject.runtimeType})';
+    }
   }
 }
 
@@ -47,7 +53,19 @@ class JsonValueEncoder implements ValueVisitor {
   visitConstant(ConstantValue value, arg) => visit(value.id);
 
   @override
-  double visitDouble(DoubleValue value, arg) => value.value;
+  visitDouble(DoubleValue value, arg) {
+    double d = value.value;
+    if (d.isNaN) {
+      return 'NaN';
+    } else if (d.isInfinite) {
+      if (d.isNegative) {
+        return '-Infinity';
+      } else {
+        return 'Infinity';
+      }
+    }
+    return d;
+  }
 
   @override
   visitElement(ElementValue value, arg) => visit(value.id);

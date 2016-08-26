@@ -20,6 +20,11 @@ abstract class CompilerTask {
 
   int asyncCount = 0;
 
+  // Each task has a fixed, lazily computed, ZoneSpecification and zoneValues
+  // for [_measureZoned].
+  ZoneSpecification _zoneSpecification;
+  Map _zoneValues;
+
   CompilerTask(Measurer measurer)
       : measurer = measurer,
         _watch = measurer.enableTaskMeasurements ? new Stopwatch() : null;
@@ -97,49 +102,49 @@ abstract class CompilerTask {
     // The current zone is already measuring `this` task.
     if (Zone.current[measurer] == this) return action();
 
-    /// Run [f] in [zone]. Running must be delegated to [parent] to ensure that
-    /// various state is set up correctly (in particular that `Zone.current`
-    /// has the right value). Since [_measureZoned] can be called recursively
-    /// (synchronously), some of the measuring zones we create will be parents
-    /// of other measuring zones, but we still need to call through the parent
-    /// chain. Consequently, we use a zone value keyed by [measurer] to see if
-    /// we should measure or not when delegating.
-    run(Zone self, ZoneDelegate parent, Zone zone, f()) {
-      if (zone[measurer] != this) return parent.run(zone, f);
-      CompilerTask previous = _start();
-      try {
-        return parent.run(zone, f);
-      } finally {
-        _stop(previous);
-      }
-    }
-
-    /// Same as [run] except that [f] takes one argument, [arg].
-    runUnary(Zone self, ZoneDelegate parent, Zone zone, f(arg), arg) {
-      if (zone[measurer] != this) return parent.runUnary(zone, f, arg);
-      CompilerTask previous = _start();
-      try {
-        return parent.runUnary(zone, f, arg);
-      } finally {
-        _stop(previous);
-      }
-    }
-
-    /// Same as [run] except that [f] takes two arguments ([a1] and [a2]).
-    runBinary(Zone self, ZoneDelegate parent, Zone zone, f(a1, a2), a1, a2) {
-      if (zone[measurer] != this) return parent.runBinary(zone, f, a1, a2);
-      CompilerTask previous = _start();
-      try {
-        return parent.runBinary(zone, f, a1, a2);
-      } finally {
-        _stop(previous);
-      }
-    }
-
     return runZoned(action,
-        zoneValues: {measurer: this},
-        zoneSpecification: new ZoneSpecification(
-            run: run, runUnary: runUnary, runBinary: runBinary));
+        zoneValues: _zoneValues ??= {measurer: this},
+        zoneSpecification: _zoneSpecification ??= new ZoneSpecification(
+            run: _run, runUnary: _runUnary, runBinary: _runBinary));
+  }
+
+  /// Run [f] in [zone]. Running must be delegated to [parent] to ensure that
+  /// various state is set up correctly (in particular that `Zone.current`
+  /// has the right value). Since [_measureZoned] can be called recursively
+  /// (synchronously), some of the measuring zones we create will be parents
+  /// of other measuring zones, but we still need to call through the parent
+  /// chain. Consequently, we use a zone value keyed by [measurer] to see if
+  /// we should measure or not when delegating.
+  _run(Zone self, ZoneDelegate parent, Zone zone, f()) {
+    if (zone[measurer] != this) return parent.run(zone, f);
+    CompilerTask previous = _start();
+    try {
+      return parent.run(zone, f);
+    } finally {
+      _stop(previous);
+    }
+  }
+
+  /// Same as [run] except that [f] takes one argument, [arg].
+  _runUnary(Zone self, ZoneDelegate parent, Zone zone, f(arg), arg) {
+    if (zone[measurer] != this) return parent.runUnary(zone, f, arg);
+    CompilerTask previous = _start();
+    try {
+      return parent.runUnary(zone, f, arg);
+    } finally {
+      _stop(previous);
+    }
+  }
+
+  /// Same as [run] except that [f] takes two arguments ([a1] and [a2]).
+  _runBinary(Zone self, ZoneDelegate parent, Zone zone, f(a1, a2), a1, a2) {
+    if (zone[measurer] != this) return parent.runBinary(zone, f, a1, a2);
+    CompilerTask previous = _start();
+    try {
+      return parent.runBinary(zone, f, a1, a2);
+    } finally {
+      _stop(previous);
+    }
   }
 
   /// Asynchronous version of [measure]. Use this when action returns a future
@@ -210,6 +215,9 @@ class Measurer {
 
   /// Whether measurement of tasks is enabled.
   final bool enableTaskMeasurements;
+
+  static int _hashCodeGenerator = 197;
+  final int hashCode = _hashCodeGenerator++;
 
   Measurer({this.enableTaskMeasurements: false});
 

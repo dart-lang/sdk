@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+import '../compile_time_constants.dart';
+import '../compiler.dart' show Compiler;
+import '../constants/constant_system.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart';
+import '../elements/elements.dart';
+import '../elements/visitor.dart' show BaseElementVisitor;
+import '../resolution/tree_elements.dart' show TreeElements;
+import '../tree/tree.dart';
+import 'constant_system_javascript.dart';
 
 /// [ConstantCompilerTask] for compilation of constants for the JavaScript
 /// backend.

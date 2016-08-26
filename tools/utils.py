@@ -103,7 +103,7 @@ def GetWindowsRegistryKeyName(name):
 
 # Try to guess Visual Studio location when buiding on Windows.
 def GuessVisualStudioPath():
-  defaultPath = r"C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7" \
+  defaultPath = r"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7" \
                 r"\IDE"
   defaultExecutable = "devenv.com"
 
@@ -148,8 +148,8 @@ def GuessVisualStudioPath():
               # Can't find value under the key - continue to the next key.
               continue
             isExpress = executable != 'devenv.com'
-            if not isExpress and subkeyName == '12.0':
-              # Stop search since if we found non-Express VS2013 version
+            if not isExpress and subkeyName == '14.0':
+              # Stop search since if we found non-Express VS2015 version
               # installed, which is preferred version.
               return installDir, executable
             else:
@@ -268,7 +268,7 @@ def IsCrossBuild(target_os, arch):
           (target_os != GuessOS()))
 
 def GetBuildConf(mode, arch, conf_os=None):
-  if conf_os == 'android' or conf_os == 'fuchsia':
+  if conf_os == 'android':
     return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
   else:
     # Ask for a cross build if the host and target architectures don't match.

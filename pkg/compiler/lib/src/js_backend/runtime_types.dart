@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+part of js_backend.backend;
 
 /// For each class, stores the possible class subtype tests that could succeed.
 abstract class TypeChecks {
@@ -150,7 +150,7 @@ class _RuntimeTypes implements RuntimeTypes {
   @override
   void registerRtiDependency(Element element, Element dependency) {
     // We're not dealing with typedef for now.
-    if (!element.isClass || !dependency.isClass) return;
+    if (element == null || !element.isClass || !dependency.isClass) return;
     Set<ClassElement> classes =
         rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
     classes.add(dependency);
@@ -298,6 +298,7 @@ class _RuntimeTypes implements RuntimeTypes {
               methodsNeedingRti.add(method);
             }
           }
+
           compiler.resolverWorld.closuresWithFreeTypeVariables
               .forEach(analyzeMethod);
           compiler.resolverWorld.callMethodsWithFreeTypeVariables
@@ -314,6 +315,7 @@ class _RuntimeTypes implements RuntimeTypes {
           methodsNeedingRti.add(method);
         }
       }
+
       compiler.resolverWorld.closuresWithFreeTypeVariables
           .forEach(analyzeMethod);
       compiler.resolverWorld.callMethodsWithFreeTypeVariables
@@ -417,6 +419,7 @@ class _RuntimeTypes implements RuntimeTypes {
         functionArgumentCollector.collect(type);
       }
     }
+
     collectFunctionTypeArguments(isChecks);
     collectFunctionTypeArguments(checkedBounds);
 
@@ -432,6 +435,7 @@ class _RuntimeTypes implements RuntimeTypes {
         }
       }
     }
+
     collectTypeArguments(instantiatedTypes);
     collectTypeArguments(checkedTypeArguments, isTypeArgument: true);
 
@@ -462,6 +466,7 @@ class _RuntimeTypes implements RuntimeTypes {
         functionArgumentCollector.collect(type);
       }
     }
+
     collectFunctionTypeArguments(instantiatedTypes);
     collectFunctionTypeArguments(checkedTypeArguments);
 
@@ -471,6 +476,7 @@ class _RuntimeTypes implements RuntimeTypes {
         collector.collect(type, isTypeArgument: isTypeArgument);
       }
     }
+
     collectTypeArguments(isChecks);
     collectTypeArguments(checkedBounds, isTypeArgument: true);
 
@@ -641,6 +647,7 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
     jsAst.Expression onVariable(TypeVariableType v) {
       return new jsAst.VariableUse(v.name);
     }
+
     ;
     jsAst.Expression encoding = getTypeRepresentation(type, onVariable);
     if (contextClass == null && !alwaysGenerateFunction) {
@@ -1049,8 +1056,8 @@ class Substitution {
 class TypeCheck {
   final ClassElement cls;
   final Substitution substitution;
-  final int hashCode = (nextHash++) & 0x3fffffff;
-  static int nextHash = 49;
+  final int hashCode = _nextHash = (_nextHash + 100003).toUnsigned(30);
+  static int _nextHash = 0;
 
   TypeCheck(this.cls, this.substitution);
 }

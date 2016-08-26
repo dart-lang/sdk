@@ -368,7 +368,9 @@ class Assembler : public ValueObject {
         prologue_offset_(-1),
         use_far_branches_(use_far_branches),
         comments_(),
-        constant_pool_allowed_(false) { }
+        constant_pool_allowed_(false) {
+    MonomorphicCheckedEntry();
+  }
 
   ~Assembler() { }
 
@@ -794,18 +796,6 @@ class Assembler : public ValueObject {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
-  void ComputeRange(Register result,
-                    Register value,
-                    Register scratch,
-                    Label* miss);
-
-  void UpdateRangeFeedback(Register value,
-                           intptr_t idx,
-                           Register ic_data,
-                           Register scratch1,
-                           Register scratch2,
-                           Label* miss);
-
   intptr_t FindImmediate(int32_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadFromOffset(OperandSize type,
@@ -919,6 +909,11 @@ class Assembler : public ValueObject {
     b(is_smi, CC);
   }
 
+  void BranchIfNotSmi(Register reg, Label* label) {
+    tst(reg, Operand(kSmiTagMask));
+    b(label, NE);
+  }
+
   void CheckCodePointer();
 
   // Function frame setup and tear down.
@@ -950,6 +945,9 @@ class Assembler : public ValueObject {
   // a stub frame.
   void EnterStubFrame();
   void LeaveStubFrame();
+
+  void NoMonomorphicCheckedEntry();
+  void MonomorphicCheckedEntry();
 
   // The register into which the allocation stats table is loaded with
   // LoadAllocationStatsAddress should be passed to

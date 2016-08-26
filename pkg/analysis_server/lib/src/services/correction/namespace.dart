@@ -37,13 +37,14 @@ Map<String, Element> getExportNamespaceForLibrary(LibraryElement library) {
 }
 
 /**
- * Returns the [ImportElement] that is referenced by [prefixNode] with
- * an [PrefixElement], maybe `null`.
+ * Return the [ImportElement] that is referenced by [prefixNode], or `null` if
+ * the node does not reference a prefix or if we cannot determine which import
+ * is being referenced.
  */
 ImportElement getImportElement(SimpleIdentifier prefixNode) {
-  if (prefixNode.parent is ImportDirective) {
-    ImportDirective importDirective = prefixNode.parent;
-    return importDirective.element;
+  AstNode parent = prefixNode.parent;
+  if (parent is ImportDirective) {
+    return parent.element;
   }
   ImportElementInfo info = internal_getImportElementInfo(prefixNode);
   return info?.element;

@@ -23,7 +23,6 @@ import '../elements/elements.dart'
 import '../library_loader.dart' show LoadedLibraries;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-
 import 'js_backend.dart';
 
 /// Helper classes and functions for the JavaScript backend.
@@ -246,6 +245,7 @@ class BackendHelpers {
       }
       return result;
     }
+
     jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
     boundClosureClass = lookupHelperClass('BoundClosure');
     closureClass = lookupHelperClass('Closure');

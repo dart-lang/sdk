@@ -31,8 +31,8 @@ import 'package:js_runtime/shared/embedded_names.dart'
         TYPES;
 
 import '../../common.dart';
-import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../compiler.dart' show Compiler;
+import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../core_types.dart' show CoreClasses;
 import '../../elements/elements.dart' show ClassElement, FunctionElement;
 import '../../hash/sha1.dart' show Hasher;
@@ -44,11 +44,9 @@ import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter;
 import '../../util/uri_extras.dart' show relativize;
-
 import '../constant_ordering.dart' show deepCompareConstants;
 import '../headers.dart';
 import '../js_emitter.dart' show NativeEmitter;
-
 import '../js_emitter.dart' show buildTearOffCode, NativeGenerator;
 import '../model.dart';
 

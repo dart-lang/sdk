@@ -287,6 +287,9 @@ def main():
   parser.add_option('--gen-interop', dest='dart_js_interop',
                     action='store_true', default=False,
                     help='Use Javascript objects (dart:js) accessing the DOM in _blink')
+  parser.add_option('--no-cached-patches', dest='no_cached_patches',
+                    action='store_true', default=False,
+                    help='Do not generate the sdk/lib/js/cached_patches.dart file')
 
   (options, args) = parser.parse_args()
 
@@ -346,13 +349,14 @@ def main():
           os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
           os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dartium'))
 
-    # Blow away the cached_patches.dart needs to be re-generated for Dartium
-    # see tools/dartium/generate_patches.sh
-    cached_patches_filename = os.path.join('..', '..', '..', 'sdk', 'lib', 'js', 'dartium',
-                                           'cached_patches.dart')
-    cached_patches = open(cached_patches_filename, 'w')
-    cached_patches.write(CACHED_PATCHES);
-    cached_patches.close()
+    if (not(options.no_cached_patches)):
+      # Blow away the cached_patches.dart needs to be re-generated for Dartium
+      # see tools/dartium/generate_patches.sh
+      cached_patches_filename = os.path.join('..', '..', '..', 'sdk', 'lib', 'js', 'dartium',
+                                             'cached_patches.dart')
+      cached_patches = open(cached_patches_filename, 'w')
+      cached_patches.write(CACHED_PATCHES);
+      cached_patches.close()
 
   if '_blink' in systems:
     _logger.info('Generating dartium _blink file.')

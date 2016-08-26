@@ -5,11 +5,10 @@
 library dart2js.js_emitter.constant_ordering;
 
 import '../constants/values.dart';
-
 import '../dart_types.dart';
 import '../elements/elements.dart' show Element, Elements, FieldElement;
-import '../tree/tree.dart' show DartString;
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
+import '../tree/dartstring.dart' show DartString;
 
 /// A canonical but arbrary ordering of constants. The ordering is 'stable'
 /// under perturbation of the source.
@@ -148,11 +147,11 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     // as elements of a few constants.  If this becomes a source of instability,
     // we will need to add a total ordering on JavaScript ASTs including
     // deferred elements.
-    SyntheticConstantKind aKind = a.kind;
-    SyntheticConstantKind bKind = b.kind;
+    SyntheticConstantKind aKind = a.valueKind;
+    SyntheticConstantKind bKind = b.valueKind;
     int r = aKind.index - bKind.index;
     if (r != 0) return r;
-    switch (a.kind) {
+    switch (aKind) {
       case SyntheticConstantKind.DUMMY_INTERCEPTOR:
       case SyntheticConstantKind.EMPTY_VALUE:
         // Never emitted.

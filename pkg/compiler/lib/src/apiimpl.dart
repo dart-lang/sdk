@@ -5,7 +5,6 @@
 library leg_apiimpl;
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgs;
@@ -16,7 +15,6 @@ import 'package:package_config/src/util.dart' show checkValidPackageUri;
 import '../compiler_new.dart' as api;
 import 'common/tasks.dart' show GenericTask, Measurer;
 import 'common.dart';
-import 'common/backend_api.dart' show Backend;
 import 'compiler.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'elements/elements.dart' as elements;
@@ -26,7 +24,6 @@ import 'options.dart' show CompilerOptions;
 import 'platform_configuration.dart' as platform_configuration;
 import 'resolved_uri_translator.dart';
 import 'script.dart';
-import 'serialization/system.dart';
 
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
 /// sources.

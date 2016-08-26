@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 
@@ -98,7 +99,9 @@ SummaryOutput _buildMultipleOutputs(String sdkPath, bool includeSpec) {
       return null;
     }
   } else {
-    sdkPath = DirectoryBasedDartSdk.defaultSdkDirectory.getAbsolutePath();
+    sdkPath = FolderBasedDartSdk
+        .defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
+        .path;
   }
 
   //

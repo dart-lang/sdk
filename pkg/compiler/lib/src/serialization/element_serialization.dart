@@ -5,14 +5,17 @@
 library dart2js.serialization.elements;
 
 import '../common.dart';
-import '../common/names.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/messages.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
-    show DeferredLoaderGetterElementX, ErroneousElementX;
+    show
+        DeferredLoaderGetterElementX,
+        ErroneousElementX,
+        WarnOnUseElementX,
+        WrappedMessage;
 import 'constant_serialization.dart';
 import 'keys.dart';
 import 'modelz.dart';
@@ -55,6 +58,7 @@ enum SerializedElementKind {
   PREFIX,
   DEFERRED_LOAD_LIBRARY,
   LOCAL_VARIABLE,
+  WARN_ON_USE,
   EXTERNAL_LIBRARY,
   EXTERNAL_LIBRARY_MEMBER,
   EXTERNAL_CLASS_MEMBER,
@@ -84,6 +88,7 @@ const List<ElementSerializer> ELEMENT_SERIALIZERS = const [
   const ImportSerializer(),
   const ExportSerializer(),
   const LocalVariableSerializer(),
+  const WarnOnUseSerializer(),
 ];
 
 /// Interface for a function that can serialize a set of element kinds.
@@ -216,12 +221,7 @@ class ErrorSerializer implements ElementSerializer {
     encoder.setElement(Key.ENCLOSING, element.enclosingElement);
     encoder.setString(Key.NAME, element.name);
     encoder.setEnum(Key.MESSAGE_KIND, element.messageKind);
-    if (element.messageArguments.isNotEmpty) {
-      MapEncoder mapEncoder = encoder.createMap(Key.ARGUMENTS);
-      element.messageArguments.forEach((String key, var value) {
-        mapEncoder.setString(key, Message.convertToString(value));
-      });
-    }
+    serializeMessageArguments(encoder, Key.ARGUMENTS, element.messageArguments);
   }
 }
 
@@ -292,8 +292,52 @@ class LibrarySerializer implements ElementSerializer {
     encoder.setElements(Key.IMPORTS, getImports(element));
     encoder.setElements(Key.EXPORTS, element.exports);
 
-    encoder.setElements(Key.IMPORT_SCOPE, getImportedElements(element));
+    List<Element> importedElements = getImportedElements(element);
+    encoder.setElements(Key.IMPORT_SCOPE, importedElements);
     encoder.setElements(Key.EXPORT_SCOPE, getExportedElements(element));
+
+    Map<Element, Iterable<ImportElement>> importsForMap =
+        <Element, Iterable<ImportElement>>{};
+
+    /// Map imports for [importedElement] in importsForMap.
+    ///
+    /// Imports are mapped to [AbstractFieldElement] which are not serialized
+    /// so we use getter (or setter if there is no getter) as the key.
+    void addImportsForElement(Element importedElement) {
+      Element key = importedElement;
+      if (importedElement.isDeferredLoaderGetter) {
+        // Use [importedElement].
+      } else if (importedElement.isGetter) {
+        GetterElement getter = importedElement;
+        importedElement = getter.abstractField;
+      } else if (importedElement.isSetter) {
+        SetterElement setter = importedElement;
+        if (setter.getter != null) {
+          return;
+        }
+        importedElement = setter.abstractField;
+      }
+      importsForMap.putIfAbsent(
+          key, () => element.getImportsFor(importedElement));
+    }
+
+    for (ImportElement import in getImports(element)) {
+      if (import.prefix != null) {
+        Set<Element> importedElements = new Set<Element>();
+        import.prefix.forEachLocalMember(
+            SerializerUtil.flattenElements(importedElements));
+        importedElements.forEach(addImportsForElement);
+      }
+    }
+    importedElements.forEach(addImportsForElement);
+
+    ListEncoder importsForEncoder = encoder.createList(Key.IMPORTS_FOR);
+    importsForMap
+        .forEach((Element importedElement, Iterable<ImportElement> imports) {
+      ObjectEncoder objectEncoder = importsForEncoder.createObject();
+      objectEncoder.setElement(Key.ELEMENT, importedElement);
+      objectEncoder.setElements(Key.IMPORTS, imports);
+    });
   }
 }
 
@@ -454,6 +498,8 @@ class ConstructorSerializer implements ElementSerializer {
                 .computeEffectiveTargetType(element.enclosingClass.thisType));
         encoder.setElement(Key.IMMEDIATE_REDIRECTION_TARGET,
             element.immediateRedirectionTarget);
+        encoder.setBool(Key.EFFECTIVE_TARGET_IS_MALFORMED,
+            element.isEffectiveTargetMalformed);
         if (element.redirectionDeferredPrefix != null) {
           encoder.setElement(Key.PREFIX, element.redirectionDeferredPrefix);
         }
@@ -544,6 +590,8 @@ class FunctionSerializer implements ElementSerializer {
     if (element.isFunction) {
       encoder.setBool(Key.IS_OPERATOR, element.isOperator);
       encoder.setEnum(Key.ASYNC_MARKER, element.asyncMarker);
+    } else if (element.isGetter) {
+      encoder.setEnum(Key.ASYNC_MARKER, element.asyncMarker);
     }
     SerializerUtil.serializeParentRelation(element, encoder);
     encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
@@ -554,6 +602,7 @@ class FunctionSerializer implements ElementSerializer {
       encoder.setElement(
           Key.EXECUTABLE_CONTEXT, localFunction.executableContext);
     }
+    encoder.setTypes(Key.TYPE_VARIABLES, element.typeVariables);
   }
 }
 
@@ -605,7 +654,7 @@ class ParameterSerializer implements ElementSerializer {
   const ParameterSerializer();
 
   SerializedElementKind getSerializedKind(Element element) {
-    if (element.isParameter) {
+    if (element.isRegularParameter) {
       return SerializedElementKind.PARAMETER;
     } else if (element.isInitializingFormal) {
       return SerializedElementKind.INITIALIZING_FORMAL;
@@ -721,6 +770,9 @@ class PrefixSerializer implements ElementSerializer {
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     encoder.setBool(Key.IS_DEFERRED, element.isDeferred);
+    Set<Element> members = new Set<Element>();
+    element.forEachLocalMember(SerializerUtil.flattenElements(members));
+    encoder.setElements(Key.MEMBERS, members);
     if (element.isDeferred) {
       encoder.setElement(Key.IMPORT, element.deferredImport);
       encoder.setElement(Key.GETTER, element.loadLibrary);
@@ -744,6 +796,25 @@ class DeferredLoadLibrarySerializer implements ElementSerializer {
   }
 }
 
+class WarnOnUseSerializer implements ElementSerializer {
+  const WarnOnUseSerializer();
+
+  SerializedElementKind getSerializedKind(Element element) {
+    if (element.isWarnOnUse) {
+      return SerializedElementKind.WARN_ON_USE;
+    }
+    return null;
+  }
+
+  void serialize(WarnOnUseElementX element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
+    encoder.setElement(Key.ENCLOSING, element.enclosingElement);
+    encoder.setElement(Key.ELEMENT, element.wrappedElement);
+    serializeWrappedMessage(encoder, Key.WARNING, element.warning);
+    serializeWrappedMessage(encoder, Key.INFO, element.info);
+  }
+}
+
 /// Utility class for deserializing [Element]s.
 ///
 /// This is used by the [Deserializer].
@@ -762,13 +833,8 @@ class ElementDeserializer {
         String name = decoder.getString(Key.NAME);
         MessageKind messageKind =
             decoder.getEnum(Key.MESSAGE_KIND, MessageKind.values);
-        Map<String, String> arguments = <String, String>{};
-        MapDecoder mapDecoder = decoder.getMap(Key.ARGUMENTS, isOptional: true);
-        if (mapDecoder != null) {
-          mapDecoder.forEachKey((String key) {
-            arguments[key] = mapDecoder.getString(key);
-          });
-        }
+        Map<String, String> arguments =
+            deserializeMessageArguments(decoder, Key.ARGUMENTS);
         return new ErroneousElementX(messageKind, arguments, name, enclosing);
       case SerializedElementKind.LIBRARY:
         return new LibraryElementZ(decoder);
@@ -839,6 +905,13 @@ class ElementDeserializer {
         return new DeferredLoaderGetterElementX(decoder.getElement(Key.PREFIX));
       case SerializedElementKind.LOCAL_VARIABLE:
         return new LocalVariableElementZ(decoder);
+      case SerializedElementKind.WARN_ON_USE:
+        Element enclosing = decoder.getElement(Key.ENCLOSING);
+        Element element = decoder.getElement(Key.ELEMENT);
+        WrappedMessage warning =
+            deserializeWrappedMessage(decoder, Key.WARNING);
+        WrappedMessage info = deserializeWrappedMessage(decoder, Key.INFO);
+        return new WarnOnUseElementX(warning, info, enclosing, element);
       case SerializedElementKind.EXTERNAL_LIBRARY:
       case SerializedElementKind.EXTERNAL_LIBRARY_MEMBER:
       case SerializedElementKind.EXTERNAL_CLASS_MEMBER:

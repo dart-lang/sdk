@@ -1674,8 +1674,8 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
 bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
-  if ((ic_data.NumberOfUsedChecks() == 0) || !ic_data.HasOneTarget()) {
-    // No type feedback collected or multiple targets found.
+  if (ic_data.NumberOfUsedChecks() != 1) {
+    // No type feedback collected or multiple receivers/targets found.
     return false;
   }
 
@@ -1690,14 +1690,13 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       (recognized_kind == MethodRecognizer::kExternalOneByteStringCodeUnitAt) ||
       (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt) ||
       (recognized_kind == MethodRecognizer::kGrowableArraySetData) ||
-      (recognized_kind == MethodRecognizer::kGrowableArraySetLength)) {
-      ASSERT(ic_data.NumberOfChecks() == 1);
+      (recognized_kind == MethodRecognizer::kGrowableArraySetLength) ||
+      (recognized_kind == MethodRecognizer::kSmi_bitAndFromSmi)) {
     return FlowGraphInliner::TryReplaceInstanceCallWithInline(
         flow_graph_, current_iterator(), call);
   }
 
-  if ((recognized_kind == MethodRecognizer::kStringBaseCharAt) &&
-      (ic_data.NumberOfChecks() == 1)) {
+  if (recognized_kind == MethodRecognizer::kStringBaseCharAt) {
       ASSERT((class_ids[0] == kOneByteStringCid) ||
              (class_ids[0] == kTwoByteStringCid) ||
              (class_ids[0] == kExternalOneByteStringCid) ||
@@ -1706,7 +1705,7 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         flow_graph_, current_iterator(), call);
   }
 
-  if ((class_ids[0] == kOneByteStringCid) && (ic_data.NumberOfChecks() == 1)) {
+  if (class_ids[0] == kOneByteStringCid) {
     if (recognized_kind == MethodRecognizer::kOneByteStringSetAt) {
       // This is an internal method, no need to check argument types nor
       // range.
@@ -1729,8 +1728,7 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   }
 
   if (CanUnboxDouble() &&
-      (recognized_kind == MethodRecognizer::kIntegerToDouble) &&
-      (ic_data.NumberOfChecks() == 1)) {
+      (recognized_kind == MethodRecognizer::kIntegerToDouble)) {
     if (class_ids[0] == kSmiCid) {
       AddReceiverCheck(call);
       ReplaceCall(call,
@@ -1799,21 +1797,20 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
   }
 
-  if (IsSupportedByteArrayViewCid(class_ids[0]) &&
-      (ic_data.NumberOfChecks() == 1)) {
+  if (IsSupportedByteArrayViewCid(class_ids[0])) {
     return FlowGraphInliner::TryReplaceInstanceCallWithInline(
         flow_graph_, current_iterator(), call);
   }
 
-  if ((class_ids[0] == kFloat32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
+  if (class_ids[0] == kFloat32x4Cid) {
     return TryInlineFloat32x4Method(call, recognized_kind);
   }
 
-  if ((class_ids[0] == kInt32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
+  if (class_ids[0] == kInt32x4Cid) {
     return TryInlineInt32x4Method(call, recognized_kind);
   }
 
-  if ((class_ids[0] == kFloat64x2Cid) && (ic_data.NumberOfChecks() == 1)) {
+  if (class_ids[0] == kFloat64x2Cid) {
     return TryInlineFloat64x2Method(call, recognized_kind);
   }
 
@@ -2050,6 +2047,10 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
   return true;  // May deoptimize since we have not identified all 'true' tests.
 }
 
+// Tells whether the function of the call matches the core private name.
+static bool matches_core(InstanceCallInstr* call, const String& name) {
+  return call->function_name().raw() == Library::PrivateCoreLibName(name).raw();
+}
 
 // TODO(srdjan): Use ICData to check if always true or false.
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
@@ -2060,26 +2061,27 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   bool negate = false;
   if (call->ArgumentCount() == 2) {
     type_args = flow_graph()->constant_null();
-    if (call->function_name().raw() ==
-        Library::PrivateCoreLibName(Symbols::_instanceOfNum()).raw()) {
-      type = Type::Number();
-    } else if (call->function_name().raw() ==
-        Library::PrivateCoreLibName(Symbols::_instanceOfInt()).raw()) {
-      type = Type::IntType();
-    } else if (call->function_name().raw() ==
-        Library::PrivateCoreLibName(Symbols::_instanceOfSmi()).raw()) {
-      type = Type::SmiType();
-    } else if (call->function_name().raw() ==
-        Library::PrivateCoreLibName(Symbols::_instanceOfDouble()).raw()) {
-      type = Type::Double();
-    } else if (call->function_name().raw() ==
-        Library::PrivateCoreLibName(Symbols::_instanceOfString()).raw()) {
-      type = Type::StringType();
+    if (matches_core(call, Symbols::_simpleInstanceOf())) {
+      type =
+          AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
+      negate = false;  // Just to be sure.
     } else {
-      UNIMPLEMENTED();
+      if (matches_core(call, Symbols::_instanceOfNum())) {
+        type = Type::Number();
+      } else if (matches_core(call, Symbols::_instanceOfInt())) {
+        type = Type::IntType();
+      } else if (matches_core(call, Symbols::_instanceOfSmi())) {
+        type = Type::SmiType();
+      } else if (matches_core(call, Symbols::_instanceOfDouble())) {
+        type = Type::Double();
+      } else if (matches_core(call, Symbols::_instanceOfString())) {
+        type = Type::StringType();
+      } else {
+        UNIMPLEMENTED();
+      }
+      negate = Bool::Cast(call->ArgumentAt(1)->OriginalDefinition()
+                          ->AsConstant()->value()).value();
     }
-    negate = Bool::Cast(call->ArgumentAt(1)->OriginalDefinition()
-        ->AsConstant()->value()).value();
   } else {
     type_args = call->ArgumentAt(1);
     type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
@@ -2743,6 +2745,28 @@ bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   instr->RemoveEnvironment();
   ReplaceCall(instr, store);
   return true;
+}
+
+
+void AotOptimizer::ReplaceArrayBoundChecks() {
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    ForwardInstructionIterator it(block_it.Current());
+    current_iterator_ = &it;
+    for (; !it.Done(); it.Advance()) {
+      CheckArrayBoundInstr* check = it.Current()->AsCheckArrayBound();
+      if (check != NULL) {
+        GenericCheckBoundInstr* new_check = new(Z) GenericCheckBoundInstr(
+            new(Z) Value(check->length()->definition()),
+            new(Z) Value(check->index()->definition()),
+            check->deopt_id());
+        flow_graph_->InsertBefore(check, new_check,
+                                  check->env(), FlowGraph::kEffect);
+        current_iterator()->RemoveCurrentFromGraph();
+      }
+    }
+  }
 }
 
 

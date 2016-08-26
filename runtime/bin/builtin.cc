@@ -24,6 +24,7 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   { "dart:html", html_source_paths_, NULL, NULL, true },
   { "dart:html_common", html_common_source_paths_, NULL, NULL, true},
   { "dart:js", js_source_paths_, NULL, NULL, true},
+  { "dart:js_util", js_util_source_paths_, NULL, NULL, true},
   { "dart:_blink", blink_source_paths_, NULL, NULL, true },
   { "dart:indexed_db", indexeddb_source_paths_, NULL, NULL, true },
   { "cached_patches.dart", cached_patches_source_paths_, NULL, NULL, true },
@@ -118,7 +119,7 @@ Dart_Handle Builtin::LoadLibrary(Dart_Handle url, BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);
   ASSERT(static_cast<int>(id) < num_libs_);
 
-  Dart_Handle library = Dart_LoadLibrary(url, Source(id), 0, 0);
+  Dart_Handle library = Dart_LoadLibrary(url, Dart_Null(), Source(id), 0, 0);
   if (!Dart_IsError(library) && (builtin_libraries_[id].has_natives_)) {
     // Setup the native resolver for built in library functions.
     DART_CHECK_VALID(

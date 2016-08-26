@@ -295,10 +295,10 @@ Token firstBeginToken(Node first, Node second) {
  * "Token".
  */
 abstract class Node extends NullTreeElementMixin implements Spannable {
-  final int hashCode;
+  final int hashCode = _HASH_COUNTER = (_HASH_COUNTER + 1).toUnsigned(30);
   static int _HASH_COUNTER = 0;
 
-  Node() : hashCode = ++_HASH_COUNTER;
+  Node();
 
   accept(Visitor visitor);
 

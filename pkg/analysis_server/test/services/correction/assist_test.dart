@@ -326,8 +326,8 @@ main() {
         'future in',
         DartAssistKind.ADD_TYPE_ANNOTATION,
         '''
-import 'my_lib.dart';
 import 'dart:async';
+import 'my_lib.dart';
 main() {
   for (Future<int> future in getFutures()) {
   }
@@ -466,8 +466,8 @@ main() {
         'v =',
         DartAssistKind.ADD_TYPE_ANNOTATION,
         '''
-import 'my_lib.dart';
 import 'dart:async';
+import 'my_lib.dart';
 main() {
   Future<int> v = getFutureInt();
 }
@@ -515,8 +515,8 @@ main() {
           resultCode,
           '''
 library my_app;
-import 'my_lib.dart';
 import 'dart:async';
+import 'my_lib.dart';
 part 'test.dart';
 ''');
     }
@@ -556,8 +556,8 @@ main() {
         'v =',
         DartAssistKind.ADD_TYPE_ANNOTATION,
         '''
-import 'ccc/lib_b.dart';
 import 'aa/bbb/lib_a.dart';
+import 'ccc/lib_b.dart';
 main() {
   MyClass v = newMyClass();
 }
@@ -1432,6 +1432,177 @@ class A {
 ''');
   }
 
+  test_convertToFinalField_BAD_hasSetter_inThisClass() async {
+    resolveTestUnit('''
+class A {
+  int get foo => null;
+  void set foo(_) {}
+}
+''');
+    await assertNoAssistAt('get foo', DartAssistKind.CONVERT_INTO_FINAL_FIELD);
+  }
+
+  test_convertToFinalField_BAD_notExpressionBody() async {
+    resolveTestUnit('''
+class A {
+  int get foo {
+    int v = 1 + 2;
+    return v + 3;
+  }
+}
+''');
+    await assertNoAssistAt('get foo', DartAssistKind.CONVERT_INTO_FINAL_FIELD);
+  }
+
+  test_convertToFinalField_BAD_notGetter() async {
+    resolveTestUnit('''
+class A {
+  int foo() => 42;
+}
+''');
+    await assertNoAssistAt('foo', DartAssistKind.CONVERT_INTO_FINAL_FIELD);
+  }
+
+  test_convertToFinalField_OK_blockBody_onlyReturnStatement() async {
+    resolveTestUnit('''
+class A {
+  int get foo {
+    return 1 + 2;
+  }
+}
+''');
+    await assertHasAssistAt(
+        'get foo',
+        DartAssistKind.CONVERT_INTO_FINAL_FIELD,
+        '''
+class A {
+  final int foo = 1 + 2;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_hasOverride() async {
+    resolveTestUnit('''
+const myAnnotation = const Object();
+class A {
+  @myAnnotation
+  int get foo => 42;
+}
+''');
+    await assertHasAssistAt(
+        'get foo',
+        DartAssistKind.CONVERT_INTO_FINAL_FIELD,
+        '''
+const myAnnotation = const Object();
+class A {
+  @myAnnotation
+  final int foo = 42;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_hasSetter_inSuper() async {
+    resolveTestUnit('''
+class A {
+  void set foo(_) {}
+}
+class B extends A {
+  int get foo => null;
+}
+''');
+    await assertHasAssistAt(
+        'get foo',
+        DartAssistKind.CONVERT_INTO_FINAL_FIELD,
+        '''
+class A {
+  void set foo(_) {}
+}
+class B extends A {
+  final int foo;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_notNull() async {
+    resolveTestUnit('''
+class A {
+  int get foo => 1 + 2;
+}
+''');
+    await assertHasAssistAt(
+        'get foo',
+        DartAssistKind.CONVERT_INTO_FINAL_FIELD,
+        '''
+class A {
+  final int foo = 1 + 2;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_null() async {
+    resolveTestUnit('''
+class A {
+  int get foo => null;
+}
+''');
+    await assertHasAssistAt(
+        'get foo',
+        DartAssistKind.CONVERT_INTO_FINAL_FIELD,
+        '''
+class A {
+  final int foo;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_onName() async {
+    resolveTestUnit('''
+class A {
+  int get foo => 42;
+}
+''');
+    await assertHasAssistAt(
+        'foo',
+        DartAssistKind.CONVERT_INTO_FINAL_FIELD,
+        '''
+class A {
+  final int foo = 42;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_onReturnType_parameterized() async {
+    resolveTestUnit('''
+class A {
+  List<int> get foo => null;
+}
+''');
+    await assertHasAssistAt(
+        'nt> get',
+        DartAssistKind.CONVERT_INTO_FINAL_FIELD,
+        '''
+class A {
+  final List<int> foo;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_onReturnType_simple() async {
+    resolveTestUnit('''
+class A {
+  int get foo => 42;
+}
+''');
+    await assertHasAssistAt(
+        'int get',
+        DartAssistKind.CONVERT_INTO_FINAL_FIELD,
+        '''
+class A {
+  final int foo = 42;
+}
+''');
+  }
+
   test_convertToForIndex_BAD_bodyNotBlock() async {
     resolveTestUnit('''
 main(List<String> items) {
@@ -1594,6 +1765,69 @@ main(List<String> items) {
     print(item);
     int i = 0, j = 1;
   }
+}
+''');
+  }
+
+  test_convertToGetter_BAD_noInitializer() async {
+    resolveTestUnit('''
+class A {
+  final int foo;
+}
+''');
+    await assertNoAssistAt('foo', DartAssistKind.CONVERT_INTO_GETTER);
+  }
+
+  test_convertToGetter_BAD_notFinal() async {
+    resolveTestUnit('''
+class A {
+  int foo = 1;
+}
+''');
+    await assertNoAssistAt('foo', DartAssistKind.CONVERT_INTO_GETTER);
+  }
+
+  test_convertToGetter_BAD_notSingleField() async {
+    resolveTestUnit('''
+class A {
+  final int foo = 1, bar = 2;
+}
+''');
+    await assertNoAssistAt('foo', DartAssistKind.CONVERT_INTO_GETTER);
+  }
+
+  test_convertToGetter_OK() async {
+    resolveTestUnit('''
+const myAnnotation = const Object();
+class A {
+  @myAnnotation
+  final int foo = 1 + 2;
+}
+''');
+    await assertHasAssistAt(
+        'foo =',
+        DartAssistKind.CONVERT_INTO_GETTER,
+        '''
+const myAnnotation = const Object();
+class A {
+  @myAnnotation
+  int get foo => 1 + 2;
+}
+''');
+  }
+
+  test_convertToGetter_OK_noType() async {
+    resolveTestUnit('''
+class A {
+  final foo = 42;
+}
+''');
+    await assertHasAssistAt(
+        'foo =',
+        DartAssistKind.CONVERT_INTO_GETTER,
+        '''
+class A {
+  get foo => 42;
 }
 ''');
   }

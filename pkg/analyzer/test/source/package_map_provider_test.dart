@@ -8,8 +8,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -24,7 +24,7 @@ main() {
 class PubPackageMapProviderTest {
   static const String projectPath = '/path/to/project';
 
-  DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
+  DartSdk sdk;
   MemoryResourceProvider resourceProvider;
   PubPackageMapProvider packageMapProvider;
   Folder projectFolder;
@@ -35,6 +35,8 @@ class PubPackageMapProviderTest {
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
+    sdk = new FolderBasedDartSdk(resourceProvider,
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
     packageMapProvider = new PubPackageMapProvider(resourceProvider, sdk);
     projectFolder = resourceProvider.newFolder(projectPath);
   }

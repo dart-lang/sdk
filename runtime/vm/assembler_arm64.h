@@ -488,7 +488,6 @@ class Assembler : public ValueObject {
   }
 
   void set_use_far_branches(bool b) {
-    ASSERT(buffer_.Size() == 0);
     use_far_branches_ = b;
   }
 
@@ -1219,6 +1218,11 @@ class Assembler : public ValueObject {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
+  void BranchIfNotSmi(Register reg, Label* label) {
+    tsti(reg, Immediate(kSmiTagMask));
+    b(label, NE);
+  }
+
   void Branch(const StubEntry& stub_entry,
               Register pp,
               Patchability patchable = kNotPatchable);
@@ -1337,18 +1341,6 @@ class Assembler : public ValueObject {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
-  void ComputeRange(Register result,
-                    Register value,
-                    Register scratch,
-                    Label* miss);
-
-  void UpdateRangeFeedback(Register value,
-                           intptr_t idx,
-                           Register ic_data,
-                           Register scratch1,
-                           Register scratch2,
-                           Label* miss);
-
   void SetupDartSP();
   void RestoreCSP();
 
@@ -1370,6 +1362,9 @@ class Assembler : public ValueObject {
   // a stub frame.
   void EnterStubFrame();
   void LeaveStubFrame();
+
+  void NoMonomorphicCheckedEntry();
+  void MonomorphicCheckedEntry();
 
   void UpdateAllocationStats(intptr_t cid,
                              Heap::Space space);

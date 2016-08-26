@@ -86,8 +86,14 @@ class DeoptContext {
     ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
     ASSERT(fpu_registers_ != NULL);
     ASSERT(reg >= 0);
+#if !defined(TARGET_ARCH_DBC)
     ASSERT(reg < kNumberOfFpuRegisters);
     return *reinterpret_cast<double*>(&fpu_registers_[reg]);
+#else
+    // On DBC registers and stack slots are the same.
+    const intptr_t stack_index = num_args_ + kDartFrameFixedSize + reg;
+    return *reinterpret_cast<double*>(GetSourceFrameAddressAt(stack_index));
+#endif
   }
 
   simd128_value_t FpuRegisterValueAsSimd128(FpuRegister reg) const {

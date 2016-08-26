@@ -53,7 +53,7 @@ DEFINE_FLAG(bool, profile_vm, false,
 
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
-
+ProfilerCounters Profiler::counters_;
 
 void Profiler::InitOnce() {
   // Place some sane restrictions on user controlled flags.
@@ -68,6 +68,8 @@ void Profiler::InitOnce() {
   NativeSymbolResolver::InitOnce();
   ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
+  // Zero counters.
+  memset(&counters_, 0, sizeof(counters_));
   initialized_ = true;
 }
 
@@ -201,14 +203,14 @@ class ReturnAddressLocator : public ValueObject {
 
   // Returns offset into code object.
   intptr_t RelativePC() {
-    ASSERT(pc() >= code_.EntryPoint());
-    return static_cast<intptr_t>(pc() - code_.EntryPoint());
+    ASSERT(pc() >= code_.PayloadStart());
+    return static_cast<intptr_t>(pc() - code_.PayloadStart());
   }
 
   uint8_t* CodePointer(intptr_t offset) {
     const intptr_t size = code_.Size();
     ASSERT(offset < size);
-    uint8_t* code_pointer = reinterpret_cast<uint8_t*>(code_.EntryPoint());
+    uint8_t* code_pointer = reinterpret_cast<uint8_t*>(code_.PayloadStart());
     code_pointer += offset;
     return code_pointer;
   }
@@ -333,12 +335,12 @@ static void DumpStackFrame(intptr_t frame_index, uword pc) {
   char* native_symbol_name =
       NativeSymbolResolver::LookupSymbolName(pc, &start);
   if (native_symbol_name == NULL) {
-    OS::Print("Frame[%" Pd "] = `unknown symbol` [0x%" Px "]\n",
-              frame_index, pc);
+    OS::PrintErr("Frame[%" Pd "] = `unknown symbol` [0x%" Px "]\n",
+                 frame_index, pc);
   } else {
-    OS::Print("Frame[%" Pd "] = `%s` [0x%" Px "]\n",
-              frame_index, native_symbol_name, pc);
-    free(native_symbol_name);
+    OS::PrintErr("Frame[%" Pd "] = `%s` [0x%" Px "]\n",
+                 frame_index, native_symbol_name, pc);
+    NativeSymbolResolver::FreeSymbolName(native_symbol_name);
   }
 }
 
@@ -349,8 +351,8 @@ static void DumpStackFrame(intptr_t frame_index,
   if (code.IsNull()) {
     DumpStackFrame(frame_index, pc);
   } else {
-    OS::Print("Frame[%" Pd "] = Dart:`%s` [0x%" Px "]\n",
-              frame_index, code.ToCString(), pc);
+    OS::PrintErr("Frame[%" Pd "] = Dart:`%s` [0x%" Px "]\n",
+                 frame_index, code.ToCString(), pc);
   }
 }
 
@@ -769,7 +771,9 @@ static void CollectSample(Isolate* isolate,
                           ProfilerDartStackWalker* dart_stack_walker,
                           uword pc,
                           uword fp,
-                          uword sp) {
+                          uword sp,
+                          ProfilerCounters* counters) {
+  ASSERT(counters != NULL);
 #if defined(TARGET_OS_WINDOWS)
   // Use structured exception handling to trap guard page access on Windows.
   __try {
@@ -783,14 +787,18 @@ static void CollectSample(Isolate* isolate,
 
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.
+    counters->stack_walker_native++;
     native_stack_walker->walk();
   } else if (StubCode::HasBeenInitialized() && exited_dart_code) {
+    counters->stack_walker_dart_exit++;
     // We have a valid exit frame info, use the Dart stack walker.
     dart_exit_stack_walker->walk();
   } else if (StubCode::HasBeenInitialized() && in_dart_code) {
+    counters->stack_walker_dart++;
     // We are executing Dart code. We have frame pointers.
     dart_stack_walker->walk();
   } else {
+    counters->stack_walker_none++;
     sample->SetAt(0, pc);
   }
 
@@ -940,8 +948,18 @@ static uintptr_t __attribute__((noinline)) GetProgramCounter() {
 
 
 void Profiler::DumpStackTrace(bool native_stack_trace) {
+  // Allow only one stack trace to prevent recursively printing stack traces if
+  // we hit an assert while printing the stack.
+  static uintptr_t started_dump = 0;
+  if (AtomicOperations::FetchAndIncrement(&started_dump) != 0) {
+    OS::PrintErr("Aborting re-entrant request for stack trace.\n");
+    return;
+  }
+
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  if (thread == NULL) {
+    return;
+  }
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   Isolate* isolate = thread->isolate();
@@ -951,9 +969,9 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
 
   const bool exited_dart_code = thread->HasExitedDartCode();
 
-  OS::Print("Dumping %s stack trace for thread %" Px "\n",
-            native_stack_trace ? "native" : "dart-only",
-            OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
+  OS::PrintErr("Dumping %s stack trace for thread %" Px "\n",
+               native_stack_trace ? "native" : "dart-only",
+               OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
 
   uintptr_t sp = Thread::GetCurrentStackPointer();
   uintptr_t fp = 0;
@@ -965,7 +983,7 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
   uword stack_upper = 0;
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
-    OS::Print(
+    OS::PrintErr(
         "Stack dump aborted because InitialRegisterCheck.\n");
     return;
   }
@@ -975,7 +993,7 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
                                         sp,
                                         &stack_lower,
                                         &stack_upper)) {
-    OS::Print(
+    OS::PrintErr(
         "Stack dump aborted because GetAndValidateIsolateStackBounds.\n");
     return;
   }
@@ -1006,7 +1024,7 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
                                               fp,
                                               sp);
   }
-  OS::Print("-- End of DumpStackTrace");
+  OS::PrintErr("-- End of DumpStackTrace");
 }
 
 
@@ -1119,6 +1137,7 @@ void Profiler::SampleThread(Thread* thread,
 
   // Thread is not doing VM work.
   if (thread->task_kind() == Thread::kUnknownTask) {
+    counters_.bail_out_unknown_task++;
     return;
   }
 
@@ -1127,6 +1146,7 @@ void Profiler::SampleThread(Thread* thread,
     // The JumpToExceptionHandler stub manually adjusts the stack pointer,
     // frame pointer, and some isolate state before jumping to a catch entry.
     // It is not safe to walk the stack when executing this stub.
+    counters_.bail_out_jump_to_exception_handler++;
     return;
   }
 
@@ -1157,15 +1177,18 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (!CheckIsolate(isolate)) {
+    counters_.bail_out_check_isolate++;
     return;
   }
 
   if (thread->IsMutatorThread() && isolate->IsDeoptimizing()) {
+    counters_.single_frame_sample_deoptimizing++;
     SampleThreadSingleFrame(thread, pc);
     return;
   }
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
+    counters_.single_frame_sample_register_check++;
     SampleThreadSingleFrame(thread, pc);
     return;
   }
@@ -1177,6 +1200,7 @@ void Profiler::SampleThread(Thread* thread,
                                         sp,
                                         &stack_lower,
                                         &stack_upper)) {
+    counters_.single_frame_sample_get_and_validate_stack_bounds++;
     // Could not get stack boundary.
     SampleThreadSingleFrame(thread, pc);
     return;
@@ -1234,7 +1258,8 @@ void Profiler::SampleThread(Thread* thread,
                 &dart_stack_walker,
                 pc,
                 fp,
-                sp);
+                sp,
+                &counters_);
 }
 
 
@@ -1244,8 +1269,8 @@ CodeDescriptor::CodeDescriptor(const Code& code) : code_(code) {
 }
 
 
-uword CodeDescriptor::Entry() const {
-  return code_.EntryPoint();
+uword CodeDescriptor::Start() const {
+  return code_.PayloadStart();
 }
 
 
@@ -1320,11 +1345,11 @@ void CodeLookupTable::Build(Thread* thread) {
   for (intptr_t i = 0; i < length() - 1; i++) {
     const CodeDescriptor* a = At(i);
     const CodeDescriptor* b = At(i + 1);
-    ASSERT(a->Entry() < b->Entry());
-    ASSERT(FindCode(a->Entry()) == a);
-    ASSERT(FindCode(b->Entry()) == b);
-    ASSERT(FindCode(a->Entry() + a->Size() - 1) == a);
-    ASSERT(FindCode(b->Entry() + b->Size() - 1) == b);
+    ASSERT(a->Start() < b->Start());
+    ASSERT(FindCode(a->Start()) == a);
+    ASSERT(FindCode(b->Start()) == b);
+    ASSERT(FindCode(a->Start() + a->Size() - 1) == a);
+    ASSERT(FindCode(b->Start() + b->Size() - 1) == b);
   }
 #endif
 }
@@ -1345,7 +1370,7 @@ const CodeDescriptor* CodeLookupTable::FindCode(uword pc) const {
     intptr_t step = count / 2;
     current += step;
     const CodeDescriptor* cd = At(current);
-    if (pc >= cd->Entry()) {
+    if (pc >= cd->Start()) {
       first = ++current;
       count -= step + 1;
     } else {

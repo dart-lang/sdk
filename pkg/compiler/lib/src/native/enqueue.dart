@@ -296,6 +296,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       }
       return e;
     }
+
     _annotationCreatesClass = find('Creates');
     _annotationReturnsClass = find('Returns');
     _annotationJsNameClass = find('JSName');

@@ -8,8 +8,7 @@ import 'common/backend_api.dart' show Backend;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
-import 'constants/expressions.dart'
-    show ConstantExpression, ConstantExpressionKind;
+import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart'
     show
         ConstantValue,
@@ -36,7 +35,6 @@ import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/resolution.dart' show AnalyzableElementX;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart' as ast;
-import 'tree/tree.dart' show Import, Node;
 import 'universe/use.dart' show StaticUse, TypeUse, TypeUseKind;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
@@ -93,8 +91,7 @@ class DeferredLoadTask extends CompilerTask {
   /// DeferredLibrary from dart:async
   ClassElement get deferredLibraryClass => compiler.deferredLibraryClass;
 
-  /// A synthetic [Import] representing the loading of the main
-  /// program.
+  /// A synthetic import representing the loading of the main program.
   final _DeferredImport _fakeMainImport = const _DeferredImport();
 
   /// The OutputUnit that will be loaded when the program starts.
@@ -182,10 +179,20 @@ class DeferredLoadTask extends CompilerTask {
     return _elementToOutputUnit[element];
   }
 
+  /// Direct access to the output-unit to element relation used for testing.
+  OutputUnit getOutputUnitForElementForTesting(Element element) {
+    return _elementToOutputUnit[element];
+  }
+
   /// Returns the [OutputUnit] where [constant] belongs.
   OutputUnit outputUnitForConstant(ConstantValue constant) {
     if (!isProgramSplit) return mainOutputUnit;
     return _constantToOutputUnit[constant];
+  }
+
+  /// Direct access to the output-unit to constants map used for testing.
+  Map<ConstantValue, OutputUnit> get outputUnitForConstantsForTesting {
+    return _constantToOutputUnit;
   }
 
   bool isDeferred(Element element) {
@@ -235,7 +242,7 @@ class DeferredLoadTask extends CompilerTask {
     return imports.every((ImportElement import) => import.isDeferred);
   }
 
-  /// Returns a [Link] of every [Import] that imports [element] into [library].
+  /// Returns every [ImportElement] that imports [element] into [library].
   Iterable<ImportElement> _getImports(Element element, LibraryElement library) {
     if (element.isClassMember) {
       element = element.enclosingClass;
@@ -347,10 +354,10 @@ class DeferredLoadTask extends CompilerTask {
         // implicit constant expression are seen that we should be able to add
         // (like primitive constant literals like `true`, `"foo"` and `0`).
         // See dartbug.com/26406 for context.
-        treeElements
-            .forEachConstantNode((Node node, ConstantExpression expression) {
+        treeElements.forEachConstantNode(
+            (ast.Node node, ConstantExpression expression) {
           if (compiler.serialization.isDeserialized(analyzableElement)) {
-            if (!expression.isImplicit && !expression.isPotential) {
+            if (!expression.isPotential) {
               // Enforce evaluation of [expression].
               backend.constants.getConstantValue(expression);
             }
@@ -397,6 +404,7 @@ class DeferredLoadTask extends CompilerTask {
         elements.add(element);
         collectDependencies(element);
       }
+
       ClassElement cls = element.declaration;
       cls.forEachLocalMember(addLiveInstanceMember);
       if (cls.implementation != cls) {
@@ -453,6 +461,7 @@ class DeferredLoadTask extends CompilerTask {
         iterateTags(library.implementation);
       }
     }
+
     traverseLibrary(root);
     result.add(compiler.coreLibrary);
     return result;
@@ -865,6 +874,7 @@ class DeferredLoadTask extends CompilerTask {
         }
       }
     }
+
     ast.Node first = firstNode(send);
     ast.Node identifier = first.asIdentifier();
     if (identifier == null) return null;
@@ -928,7 +938,8 @@ class DeferredLoadTask extends CompilerTask {
 
     StringBuffer sb = new StringBuffer();
     for (OutputUnit outputUnit in allOutputUnits) {
-      sb.write(outputUnit.name);
+      sb.write('\n-------------------------------\n');
+      sb.write('Output unit: ${outputUnit.name}');
       List<String> elements = elementMap[outputUnit];
       if (elements != null) {
         sb.write('\n elements:');
@@ -978,6 +989,10 @@ class _DeferredImport {
 
   /// Computes a suggestive name for this import.
   String computeImportDeferName(Compiler compiler) => 'main';
+
+  ImportElement get declaration => null;
+
+  String toString() => 'main';
 }
 
 /// A node in the deferred import graph defined by a deferred import directive.
@@ -1024,4 +1039,6 @@ class _DeclaredDeferredImport implements _DeferredImport {
   }
 
   int get hashCode => declaration.hashCode * 17;
+
+  String toString() => '$declaration';
 }

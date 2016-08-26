@@ -28,6 +28,8 @@ static RawObject* ExecuteTest(const Code& code) {
     (Bool::RawCast(ExecuteTest(code)) == Bool::True().raw())
 #define EXECUTE_TEST_CODE_OBJECT(code)                                         \
     Object::Handle(ExecuteTest(code))
+#define EXECUTE_TEST_CODE_DOUBLE(code)                                         \
+    bit_cast<double, RawObject*>(ExecuteTest(code))
 
 #define __ assembler->
 
@@ -1650,6 +1652,91 @@ ASSEMBLER_TEST_RUN(TestSmiFalse, test) {
 }
 
 
+//  - TestCids rA, D
+//
+//    The next D instructions must be Nops whose D field encodes a class id. If
+//    the class id of FP[rA] matches, jump to PC + N + 1 if the matching Nop's
+//    A != 0 or PC + N + 2 if the matching Nop's A = 0. If no match is found,
+//    jump to PC + N.
+ASSEMBLER_TEST_GENERATE(TestCidsTrue, assembler) {
+  Label true_branch, no_match_branch;
+  __ Frame(2);
+  __ LoadConstant(0, Object::Handle(String::New("Hi", Heap::kOld)));
+  const intptr_t num_cases = 2;
+  __ TestCids(0, num_cases);
+  __ Nop(0, static_cast<uint16_t>(kSmiCid));            // Smi    => false
+  __ Nop(1, static_cast<uint16_t>(kOneByteStringCid));  // String => true
+  __ Jump(&no_match_branch);
+  __ Jump(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));  // false branch
+  __ Return(1);
+  __ Bind(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ Return(1);
+  __ Bind(&no_match_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(2)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(TestCidsTrue, test) {
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(TestCidsFalse, assembler) {
+  Label true_branch, no_match_branch;
+  __ Frame(2);
+  __ LoadConstant(0, Object::Handle(Smi::New(42)));
+  const intptr_t num_cases = 2;
+  __ TestCids(0, num_cases);
+  __ Nop(0, static_cast<uint16_t>(kSmiCid));            // Smi    => false
+  __ Nop(1, static_cast<uint16_t>(kOneByteStringCid));  // String => true
+  __ Jump(&no_match_branch);
+  __ Jump(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));  // false branch
+  __ Return(1);
+  __ Bind(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ Return(1);
+  __ Bind(&no_match_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(2)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(TestCidsFalse, test) {
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(TestCidsNoMatch, assembler) {
+  Label true_branch, no_match_branch;
+  __ Frame(2);
+  __ LoadConstant(0, Object::Handle(Array::New(1, Heap::kOld)));
+  const intptr_t num_cases = 2;
+  __ TestCids(0, num_cases);
+  __ Nop(0, static_cast<uint16_t>(kSmiCid));            // Smi    => false
+  __ Nop(1, static_cast<uint16_t>(kOneByteStringCid));  // String => true
+  __ Jump(&no_match_branch);
+  __ Jump(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));  // false branch
+  __ Return(1);
+  __ Bind(&true_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(1)));
+  __ Return(1);
+  __ Bind(&no_match_branch);
+  __ LoadConstant(1, Smi::Handle(Smi::New(2)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(TestCidsNoMatch, test) {
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+
 //  - CheckSmi rA
 //
 //    If FP[rA] is a Smi, then skip the next instruction.
@@ -1688,9 +1775,10 @@ ASSEMBLER_TEST_RUN(CheckSmiFail, test) {
 //    If the object at FP[rA]'s class id matches hthe class id in PP[D], then
 //    skip the following instruction.
 ASSEMBLER_TEST_GENERATE(CheckClassIdSmiPass, assembler) {
-  __ Frame(1);
+  __ Frame(2);
   __ LoadConstant(0, Smi::Handle(Smi::New(42)));
-  __ CheckClassId(0, kSmiCid);
+  __ LoadClassId(1, 0);
+  __ CheckClassId(1, kSmiCid);
   __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
   __ Return(0);
 }
@@ -1702,9 +1790,10 @@ ASSEMBLER_TEST_RUN(CheckClassIdSmiPass, test) {
 
 
 ASSEMBLER_TEST_GENERATE(CheckClassIdNonSmiPass, assembler) {
-  __ Frame(1);
+  __ Frame(2);
   __ LoadConstant(0, Bool::True());
-  __ CheckClassId(0, kBoolCid);
+  __ LoadClassId(1, 0);
+  __ CheckClassId(1, kBoolCid);
   __ LoadConstant(0, Bool::False());
   __ Return(0);
 }
@@ -1716,9 +1805,10 @@ ASSEMBLER_TEST_RUN(CheckClassIdNonSmiPass, test) {
 
 
 ASSEMBLER_TEST_GENERATE(CheckClassIdFail, assembler) {
-  __ Frame(1);
+  __ Frame(2);
   __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
-  __ CheckClassId(0, kBoolCid);
+  __ LoadClassId(1, 0);
+  __ CheckClassId(1, kBoolCid);
   __ LoadConstant(0, Smi::Handle(Smi::New(42)));
   __ Return(0);
 }
@@ -1791,6 +1881,948 @@ ASSEMBLER_TEST_GENERATE(IfNeNullNotNull, assembler) {
 ASSEMBLER_TEST_RUN(IfNeNullNotNull, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
+
+//  - If<Cond> rA, rD
+//
+//    Cond is Le, Lt, Ge, Gt, unsigned variants ULe, ULt, UGe, UGt, and
+//    unboxed double variants DEq, DNe, DLe, DLt, DGe, DGt.
+//    Skips the next instruction unless FP[rA] <Cond> FP[rD]. Assumes that
+//    FP[rA] and FP[rD] are Smis or unboxed doubles as inidcated by <Cond>.
+ASSEMBLER_TEST_GENERATE(IfLeTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-5)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(100)));
+  __ IfLe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfLeTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfLeFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(100)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-5)));
+  __ IfLe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfLeFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfLtTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-5)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(100)));
+  __ IfLt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfLtTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfLtFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(100)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-5)));
+  __ IfLt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfLtFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfGeTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(100)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-5)));
+  __ IfGe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfGeTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfGeFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-5)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(100)));
+  __ IfGe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfGeFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfGtTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(100)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-5)));
+  __ IfGt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfGtTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfGtFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-5)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(100)));
+  __ IfGt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfGtFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+#if defined(ARCH_IS_64_BIT)
+ASSEMBLER_TEST_GENERATE(IfDNeTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDNe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDNeTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDNeFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDNe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDNeFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDNeNan, assembler) {
+  const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Double::Handle(Double::New(not_a_number, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(not_a_number, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDNe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDNeNan, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDEqTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDEq(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDEqTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDEqFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDEq(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDEqFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDEqNan, assembler) {
+  const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(not_a_number, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(not_a_number, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDEq(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDEqNan, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDLeTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDLe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDLeTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDLeFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDLe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDLeFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDLeNan, assembler) {
+  const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(not_a_number, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDLe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDLeNan, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDLtTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDLt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDLtTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDLtFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDLt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDLtFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDLtNan, assembler) {
+  const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(not_a_number, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDLt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDLtNan, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDGeTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDGe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDGeTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDGeFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDGe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDGeFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDGeNan, assembler) {
+  const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(not_a_number, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDGe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDGeNan, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDGtTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDGt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDGtTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDGtFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(-5.0, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDGt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDGtFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfDGtNan, assembler) {
+  const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Double::Handle(Double::New(not_a_number, Heap::kOld)));
+  __ LoadConstant(2, Double::Handle(Double::New(100.0, Heap::kOld)));
+  __ UnboxDouble(1, 1);
+  __ UnboxDouble(2, 2);
+  __ IfDGt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfDGtNan, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+#endif  // defined(ARCH_IS_64_BIT)
+
+
+ASSEMBLER_TEST_GENERATE(IfULeTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(5)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(100)));
+  __ IfULe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfULeTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfULeFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(100)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(5)));
+  __ IfULe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfULeFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfULeNegTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(5)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(-5)));
+  __ IfULe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfULeNegTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfULtTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(5)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(100)));
+  __ IfULt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfULtTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfULtFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(100)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(5)));
+  __ IfULt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfULtFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfUGeTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(100)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(5)));
+  __ IfUGe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfUGeTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfUGeFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(5)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(100)));
+  __ IfUGe(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfUGeFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfUGtTrue, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(100)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(5)));
+  __ IfUGt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfUGtTrue, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IfUGtFalse, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(5)));
+  __ LoadConstant(2, Smi::Handle(Smi::New(100)));
+  __ IfUGt(1, 2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(IfUGtFalse, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - Min, Max rA, rB, rC
+//
+//    FP[rA] <- {min, max}(FP[rB], FP[rC]). Assumes that FP[rB], and FP[rC] are
+//    Smis.
+ASSEMBLER_TEST_GENERATE(Min, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(500)));
+  __ Min(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(Min, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Max, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(5)));
+  __ Max(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(Max, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+#if defined(ARCH_IS_64_BIT)
+//  - UnboxDouble rA, rD
+//
+//    Unbox the double in FP[rD] into FP[rA]. Assumes FP[rD] is a double.
+//
+//  - CheckedUnboxDouble rA, rD
+//
+//    Unboxes FP[rD] into FP[rA] and skips the following instruction unless
+//    FP[rD] is not a double or a Smi. When FP[rD] is a Smi, converts it to a
+//    double.
+ASSEMBLER_TEST_GENERATE(Unbox, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(42.0, Heap::kOld)));
+  __ UnboxDouble(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(Unbox, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CheckedUnboxDouble, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(42.0, Heap::kOld)));
+  __ CheckedUnboxDouble(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(CheckedUnboxDouble, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CheckedUnboxSmi, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ CheckedUnboxDouble(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(CheckedUnboxSmi, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CheckedUnboxFail, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Bool::True());
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ CheckedUnboxDouble(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(CheckedUnboxFail, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - DAdd, DSub, DMul, DDiv rA, rB, rC
+//
+//    Arithmetic operaions on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
+ASSEMBLER_TEST_GENERATE(DAdd, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Double::Handle(Double::New(41.0, Heap::kOld)));
+  __ LoadConstant(1, Double::Handle(Double::New(1.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ UnboxDouble(1, 1);
+  __ DAdd(2, 1, 0);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DAdd, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DSub, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Double::Handle(Double::New(1.0, Heap::kOld)));
+  __ LoadConstant(1, Double::Handle(Double::New(43.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ UnboxDouble(1, 1);
+  __ DSub(2, 1, 0);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DSub, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DMul, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Double::Handle(Double::New(6.0, Heap::kOld)));
+  __ LoadConstant(1, Double::Handle(Double::New(7.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ UnboxDouble(1, 1);
+  __ DMul(2, 1, 0);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DMul, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DDiv, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Double::Handle(Double::New(2.0, Heap::kOld)));
+  __ LoadConstant(1, Double::Handle(Double::New(84.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ UnboxDouble(1, 1);
+  __ DDiv(2, 1, 0);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DDiv, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DNeg, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(-42.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ DNeg(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DNeg, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DSqrt, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(36.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ DSqrt(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DSqrt, test) {
+  EXPECT_EQ(6.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+//  - SmiToDouble rA, rD
+//
+//    Convert the Smi in FP[rD] to an unboxed double in FP[rA].
+//
+//  - DoubleToSmi rA, rD
+//
+//    If the unboxed double in FP[rD] can be converted to a Smi in FP[rA], then
+//    this instruction does so, and skips the following instruction. Otherwise,
+//    the following instruction is not skipped.
+ASSEMBLER_TEST_GENERATE(SmiToDouble, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ SmiToDouble(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(SmiToDouble, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToSmi, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(42.0, Heap::kOld)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ UnboxDouble(0, 0);
+  __ DoubleToSmi(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToSmi, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToSmiNearMax, assembler) {
+  const double m = static_cast<double>(Smi::kMaxValue - 1000);
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(m, Heap::kOld)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ UnboxDouble(0, 0);
+  __ DoubleToSmi(0, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToSmiNearMax, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToSmiNearMin, assembler) {
+  const double m = static_cast<double>(Smi::kMinValue);
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(m, Heap::kOld)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ UnboxDouble(0, 0);
+  __ DoubleToSmi(0, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToSmiNearMin, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToSmiFailPos, assembler) {
+  const double pos_overflow = static_cast<double>(Smi::kMaxValue + 1);
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(pos_overflow, Heap::kOld)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ UnboxDouble(0, 0);
+  __ DoubleToSmi(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToSmiFailPos, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToSmiFailNeg, assembler) {
+  const double neg_overflow = static_cast<double>(Smi::kMinValue - 1000);
+  __ Frame(2);
+  __ LoadConstant(0, Double::Handle(Double::New(neg_overflow, Heap::kOld)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(-1)));
+  __ UnboxDouble(0, 0);
+  __ DoubleToSmi(1, 0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToSmiFailNeg, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DMin, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Double::Handle(Double::New(42.0, Heap::kOld)));
+  __ LoadConstant(1, Double::Handle(Double::New(500.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ UnboxDouble(1, 1);
+  __ DMin(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DMin, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DMax, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Double::Handle(Double::New(42.0, Heap::kOld)));
+  __ LoadConstant(1, Double::Handle(Double::New(5.0, Heap::kOld)));
+  __ UnboxDouble(0, 0);
+  __ UnboxDouble(1, 1);
+  __ DMax(2, 0, 1);
+  __ Return(2);
+}
+
+
+ASSEMBLER_TEST_RUN(DMax, test) {
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+#endif  // defined(ARCH_IS_64_BIT)
 
 }  // namespace dart
 

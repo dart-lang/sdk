@@ -621,7 +621,11 @@ class StrongAssignabilityTest {
       numType,
       bottomType
     ];
-    List<DartType> unrelated = <DartType>[intType, stringType, interfaceType,];
+    List<DartType> unrelated = <DartType>[
+      intType,
+      stringType,
+      interfaceType,
+    ];
 
     _checkGroups(doubleType,
         interassignable: interassignable, unrelated: unrelated);
@@ -751,7 +755,10 @@ class StrongAssignabilityTest {
       doubleType,
       bottomType
     ];
-    List<DartType> unrelated = <DartType>[stringType, interfaceType,];
+    List<DartType> unrelated = <DartType>[
+      stringType,
+      interfaceType,
+    ];
 
     _checkGroups(numType,
         interassignable: interassignable, unrelated: unrelated);
@@ -781,10 +788,12 @@ class StrongAssignabilityTest {
 
   void _checkCrossLattice(
       DartType top, DartType left, DartType right, DartType bottom) {
-    _checkGroups(top, interassignable: <DartType>[top, left, right, bottom]);
-    _checkGroups(left, interassignable: <DartType>[top, left, right, bottom]);
-    _checkGroups(right, interassignable: <DartType>[top, left, right, bottom]);
-    _checkGroups(bottom, interassignable: <DartType>[top, left, right, bottom]);
+    _checkGroups(top, interassignable: [top, left, right, bottom]);
+    _checkGroups(left,
+        interassignable: [top, left, bottom], unrelated: [right]);
+    _checkGroups(right,
+        interassignable: [top, right, bottom], unrelated: [left]);
+    _checkGroups(bottom, interassignable: [top, left, right, bottom]);
   }
 
   void _checkEquivalent(DartType type1, DartType type2) {
@@ -891,9 +900,7 @@ class StrongGenericFunctionInferenceTest {
     expect(_inferCall(clone, [foo.type, foo.type]), [foo.type]);
 
     // Something invalid...
-    expect(_inferCall(clone, [stringType, numType]), [
-      clonable.type.instantiate([dynamicType])
-    ]);
+    expect(_inferCall(clone, [stringType, numType]), null);
   }
 
   void test_genericCastFunction() {
@@ -1007,7 +1014,7 @@ class StrongGenericFunctionInferenceTest {
     // <T extends num>() -> T
     var t = TypeBuilder.variable('T', bound: numType);
     var f = TypeBuilder.function(types: [t], required: [], result: t);
-    expect(_inferCall(f, [], stringType), [numType]);
+    expect(_inferCall(f, [], stringType), null);
   }
 
   void test_unifyParametersToFunctionParam() {
@@ -1024,7 +1031,7 @@ class StrongGenericFunctionInferenceTest {
           TypeBuilder.function(required: [intType], result: dynamicType),
           TypeBuilder.function(required: [doubleType], result: dynamicType)
         ]),
-        [dynamicType]);
+        null);
   }
 
   void test_unusedReturnTypeIsDynamic() {
@@ -1045,7 +1052,7 @@ class StrongGenericFunctionInferenceTest {
       [DartType returnType]) {
     FunctionType inferred = typeSystem.inferGenericFunctionCall(typeProvider,
         ft, ft.parameters.map((p) => p.type).toList(), arguments, returnType);
-    return inferred.typeArguments;
+    return inferred?.typeArguments;
   }
 }
 
@@ -1141,6 +1148,13 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
     FunctionType type2 = _functionType([intType, intType, intType]);
     FunctionType expected =
         _functionType([intType], optional: [intType, intType]);
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsFuzzyArrows() {
+    FunctionType type1 = _functionType([dynamicType]);
+    FunctionType type2 = _functionType([intType]);
+    FunctionType expected = _functionType([intType]);
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
@@ -1311,6 +1325,13 @@ class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
   void setUp() {
     typeSystem = new StrongTypeSystemImpl();
     super.setUp();
+  }
+
+  void test_functionsFuzzyArrows() {
+    FunctionType type1 = _functionType([dynamicType]);
+    FunctionType type2 = _functionType([intType]);
+    FunctionType expected = _functionType([dynamicType]);
+    _checkLeastUpperBound(type1, type2, expected);
   }
 
   void test_functionsGlbNamedParams() {

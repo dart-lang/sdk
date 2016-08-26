@@ -41,7 +41,6 @@ DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_time_all);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
-DEFINE_FLAG(bool, shutdown, true, "Do a clean shutdown of the VM");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 
 Isolate* Dart::vm_isolate_ = NULL;
@@ -96,6 +95,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Isolate::heap_offset(), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
   CHECK_OFFSET(Thread::object_null_offset(), 36);
+  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
 #endif
 #if defined(TARGET_ARCH_MIPS)
   // These offsets are embedded in precompiled instructions. We need simmips
@@ -104,6 +104,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Isolate::heap_offset(), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
   CHECK_OFFSET(Thread::object_null_offset(), 36);
+  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
 #endif
 #if defined(TARGET_ARCH_ARM64)
   // These offsets are embedded in precompiled instructions. We need simarm64
@@ -112,6 +113,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Isolate::heap_offset(), 16);
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
   CHECK_OFFSET(Thread::object_null_offset(), 72);
+  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 208));
 #endif
 #undef CHECK_OFFSET
 }
@@ -375,105 +377,89 @@ const char* Dart::Cleanup() {
     Thread::ExitIsolate();
   }
 
-  if (FLAG_shutdown) {
-    // Disable the creation of new isolates.
+  // Disable the creation of new isolates.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling isolate creation\n",
+                 timestamp());
+  }
+  Isolate::DisableIsolateCreation();
+
+  // Send the OOB Kill message to all remaining application isolates.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Killing all app isolates\n",
+                 timestamp());
+  }
+  Isolate::KillAllIsolates(Isolate::kInternalKillMsg);
+
+  // Wait for all isolates, but the service and the vm isolate to shut down.
+  // Only do that if there is a service isolate running.
+  if (ServiceIsolate::IsRunning()) {
     if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling isolate creation\n",
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down app isolates\n",
                    timestamp());
     }
-    Isolate::DisableIsolateCreation();
+    WaitForApplicationIsolateShutdown();
+  }
 
-    // Send the OOB Kill message to all remaining application isolates.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Killing all app isolates\n",
-                   timestamp());
-    }
-    Isolate::KillAllIsolates(Isolate::kInternalKillMsg);
+  // Shutdown the service isolate.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down service isolate\n",
+                 timestamp());
+  }
+  ServiceIsolate::Shutdown();
 
-    // Wait for all isolates, but the service and the vm isolate to shut down.
-    // Only do that if there is a service isolate running.
-    if (ServiceIsolate::IsRunning()) {
-      if (FLAG_trace_shutdown) {
-        OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down app isolates\n",
-                     timestamp());
-      }
-      WaitForApplicationIsolateShutdown();
-    }
+  // Wait for the remaining isolate (service isolate) to shutdown
+  // before shutting down the thread pool.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Waiting for isolate shutdown\n",
+                 timestamp());
+  }
+  WaitForIsolateShutdown();
 
-    // Shutdown the service isolate.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down service isolate\n",
-                   timestamp());
-    }
-    ServiceIsolate::Shutdown();
+  // Shutdown the thread pool. On return, all thread pool threads have exited.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
+                 timestamp());
+  }
+  delete thread_pool_;
+  thread_pool_ = NULL;
 
-    // Wait for the remaining isolate (service isolate) to shutdown
-    // before shutting down the thread pool.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Waiting for isolate shutdown\n",
-                   timestamp());
-    }
-    WaitForIsolateShutdown();
+  // Disable creation of any new OSThread structures which means no more new
+  // threads can do an EnterIsolate. This must come after isolate shutdown
+  // because new threads may need to be spawned to shutdown the isolates.
+  // This must come after deletion of the thread pool to avoid a race in which
+  // a thread spawned by the thread pool does not exit through the thread
+  // pool, messing up its bookkeeping.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling OS Thread creation\n",
+                 timestamp());
+  }
+  OSThread::DisableOSThreadCreation();
 
-    // Shutdown the thread pool. On return, all thread pool threads have exited.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
-                   timestamp());
-    }
-    delete thread_pool_;
-    thread_pool_ = NULL;
+  // Set the VM isolate as current isolate.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Cleaning up vm isolate\n",
+                 timestamp());
+  }
+  bool result = Thread::EnterIsolate(vm_isolate_);
+  ASSERT(result);
 
-    // Disable creation of any new OSThread structures which means no more new
-    // threads can do an EnterIsolate. This must come after isolate shutdown
-    // because new threads may need to be spawned to shutdown the isolates.
-    // This must come after deletion of the thread pool to avoid a race in which
-    // a thread spawned by the thread pool does not exit through the thread
-    // pool, messing up its bookkeeping.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling OS Thread creation\n",
-                   timestamp());
-    }
-    OSThread::DisableOSThreadCreation();
+  ShutdownIsolate();
+  vm_isolate_ = NULL;
+  ASSERT(Isolate::IsolateListLength() == 0);
 
-    // Set the VM isolate as current isolate.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Cleaning up vm isolate\n",
-                   timestamp());
-    }
-    bool result = Thread::EnterIsolate(vm_isolate_);
-    ASSERT(result);
+  TargetCPUFeatures::Cleanup();
+  StoreBuffer::ShutDown();
 
-    ShutdownIsolate();
-    vm_isolate_ = NULL;
-    ASSERT(Isolate::IsolateListLength() == 0);
-
-    TargetCPUFeatures::Cleanup();
-    StoreBuffer::ShutDown();
-
-    // Delete the current thread's TLS and set it's TLS to null.
-    // If it is the last thread then the destructor would call
-    // OSThread::Cleanup.
-    OSThread* os_thread = OSThread::Current();
-    OSThread::SetCurrent(NULL);
-    delete os_thread;
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleted os_thread\n",
-                   timestamp());
-    }
-  } else {
-    // Shutdown the service isolate.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down service isolate\n",
-                   timestamp());
-    }
-    ServiceIsolate::Shutdown();
-
-    // Disable thread creation.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling OS Thread creation\n",
-                   timestamp());
-    }
-    OSThread::DisableOSThreadCreation();
+  // Delete the current thread's TLS and set it's TLS to null.
+  // If it is the last thread then the destructor would call
+  // OSThread::Cleanup.
+  OSThread* os_thread = OSThread::Current();
+  OSThread::SetCurrent(NULL);
+  delete os_thread;
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleted os_thread\n",
+                 timestamp());
   }
 
   if (FLAG_trace_shutdown) {
@@ -673,12 +659,6 @@ const char* Dart::FeaturesString(Snapshot::Kind kind) {
     buffer.AddString(" dbc");
 #elif defined(TARGET_ARCH_DBC64)
     buffer.AddString(" dbc64");
-#endif
-  } else if (Snapshot::IsFull(kind)) {
-#if defined(ARCH_IS_32BIT)
-  buffer.AddString(" 32");
-#else
-  buffer.AddString(" 64");
 #endif
   }
 

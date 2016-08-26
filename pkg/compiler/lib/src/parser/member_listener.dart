@@ -122,6 +122,7 @@ class MemberListener extends NodeListener {
       Element element = new FieldElementX(name, enclosingClass, fields);
       addMember(element);
     }
+
     buildFieldElements(modifiers, variableDefinitions.definitions,
         enclosingClass, buildFieldElement, beginToken, endToken, hasParseError);
   }

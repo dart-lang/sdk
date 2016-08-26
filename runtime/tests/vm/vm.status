@@ -139,22 +139,6 @@ cc/Profiler_TrivialRecordAllocation: Skip
 cc/Profiler_TypedArrayAllocation: Skip
 cc/Profiler_GetSourceReport: Skip
 
-# TODO(vegorov) These tests are crashing because ICData objects can't be found
-cc/SourceReport_CallSites_PolymorphicCall: Skip
-cc/SourceReport_CallSites_SimpleCall: Skip
-cc/SourceReport_Coverage_AllFunctions: Skip
-cc/SourceReport_Coverage_ForceCompile: Skip
-cc/SourceReport_Coverage_AllFunctions_ForceCompile: Skip
-cc/SourceReport_Coverage_NestedFunctions: Skip
-cc/SourceReport_Coverage_SimpleCall: Skip
-cc/SourceReport_Coverage_UnusedClass_NoForceCompile: Skip
-cc/SourceReport_Coverage_UnusedClass_ForceCompile: Skip
-cc/SourceReport_Coverage_UnusedClass_ForceCompileError: Skip
-cc/SourceReport_MultipleReports: Skip
-cc/Coverage_Empty: Skip
-cc/Coverage_FilterFunction: Skip
-cc/Coverage_MainWithClass: Skip
-
 # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp
 # is switched on by default because they attempt to call regexp functions
 # directly instead of going through JSSyntaxRegExp_ExecuteMatch.
@@ -163,9 +147,6 @@ cc/RegExp_ExternalTwoByteString: Skip
 cc/RegExp_OneByteString: Skip
 cc/RegExp_TwoByteString: Skip
 
-# TODO(vegorov) Optimizing compiler is disabled for the SIMDBC
-cc/CompileFunctionOnHelperThread: Skip
-
 # TODO(vegorov) Field guards are disabled for SIMDBC
 cc/GuardFieldConstructor2Test: Skip
 cc/GuardFieldConstructorTest: Skip
@@ -173,46 +154,9 @@ cc/GuardFieldFinalListTest: Skip
 cc/GuardFieldFinalVariableLengthListTest: Skip
 cc/GuardFieldSimpleTest: Skip
 
-# TODO(vegorov) Not all bytecodes have appropriate debug breaks.
-cc/Debug_BreakpointStubPatching: Skip
-cc/Debug_ExprClosureBreakpoint: Skip
-cc/Debug_StackTraceDump1: Skip
-cc/Debug_StepInto: Skip
-
-# TODO(vegorov) These parser tests rely on debugger.
-cc/Parser_AllocateVariables_CapturedVar: Skip
-cc/Parser_AllocateVariables_MiddleChain: Skip
-
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
 
-# TODO(vegorov) Enable when DBC supports optimizing compiler.
-cc/Debug_InspectStack_Optimized: Skip
-cc/Debug_InspectStackWithClosure_Optimized: Skip
-
-# Isolate reload code assumes that all static calls have ICData attached to
-# them. However this is not the case on DBC.
-cc/IsolateReload_LiveStack: Skip
-cc/IsolateReload_StaticValuePreserved: Skip
-cc/IsolateReload_TopLevelFieldAdded: Skip
-cc/IsolateReload_ConstructorChanged: Skip
-cc/IsolateReload_ImplicitConstructorChanged: Skip
-cc/IsolateReload_MixinChanged: Skip
-cc/IsolateReload_SuperClassChanged: Skip
-cc/IsolateReload_ComplexInheritanceChange: Skip
-cc/IsolateReload_LibraryImportAdded: Skip
-cc/IsolateReload_LibraryHide: Skip
-cc/IsolateReload_LibraryLookup: Skip
-cc/IsolateReload_LibraryShow: Skip
-cc/IsolateReload_LiveStack: Skip
-cc/IsolateReload_StaticValuePreserved: Skip
-cc/IsolateReload_TopLevelFieldAdded: Skip
-cc/IsolateReload_ConstructorChanged: Skip
-cc/IsolateReload_ImplicitConstructorChanged: Skip
-cc/IsolateReload_MixinChanged: Skip
-cc/IsolateReload_SuperClassChanged: Skip
-cc/IsolateReload_ComplexInheritanceChange: Skip
-cc/IsolateReload_LibraryImportAdded: Skip
-cc/IsolateReload_LibraryHide: Skip
-cc/IsolateReload_LibraryLookup: Skip
-cc/IsolateReload_LibraryShow: Skip
+[ $hot_reload || $hot_reload_rollback ]
+dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
+dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.

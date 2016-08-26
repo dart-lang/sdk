@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../enqueue.dart' show Enqueuer;
+import '../universe/use.dart' show StaticUse;
+import 'backend.dart';
 
 /**
  * Support for Custom Elements.
@@ -198,6 +204,7 @@ class CustomElementsAnalysisJoin {
         }
       }
     }
+
     classElement.forEachMember(selectGenerativeConstructors,
         includeBackendMembers: false, includeSuperAndInjectedMembers: false);
     return result;

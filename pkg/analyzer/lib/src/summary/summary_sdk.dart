@@ -6,6 +6,7 @@ library analyzer.src.summary.summary_sdk;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -104,8 +105,9 @@ class SdkSummaryResynthesizer extends SummaryResynthesizer {
 class SummaryBasedDartSdk implements DartSdk {
   final bool strongMode;
   SummaryDataStore _dataStore;
-  InSummaryPackageUriResolver _uriResolver;
+  InSummaryUriResolver _uriResolver;
   PackageBundle _bundle;
+  ResourceProvider resourceProvider;
 
   /**
    * The [AnalysisContext] which is used for all of the sources in this sdk.
@@ -114,8 +116,16 @@ class SummaryBasedDartSdk implements DartSdk {
 
   SummaryBasedDartSdk(String summaryPath, this.strongMode) {
     _dataStore = new SummaryDataStore(<String>[summaryPath]);
-    _uriResolver = new InSummaryPackageUriResolver(_dataStore);
+    _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
     _bundle = _dataStore.bundles.single;
+  }
+
+  SummaryBasedDartSdk.fromBundle(
+      this.strongMode, PackageBundle bundle, this.resourceProvider) {
+    _dataStore = new SummaryDataStore([]);
+    _dataStore.addBundle('dart_sdk.sum', bundle);
+    _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
+    _bundle = bundle;
   }
 
   /**
@@ -129,7 +139,8 @@ class SummaryBasedDartSdk implements DartSdk {
       AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl()
         ..strongMode = strongMode;
       _analysisContext = new SdkAnalysisContext(analysisOptions);
-      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
+      SourceFactory factory = new SourceFactory(
+          [new DartUriResolver(this)], null, resourceProvider);
       _analysisContext.sourceFactory = factory;
       _analysisContext.resultProvider =
           new SdkSummaryResultProvider(_analysisContext, _bundle, strongMode);
@@ -158,6 +169,9 @@ class SummaryBasedDartSdk implements DartSdk {
   }
 
   @override
+  PackageBundle getLinkedBundle() => _bundle;
+
+  @override
   SdkLibrary getSdkLibrary(String uri) {
     // This is not quite correct, but currently it's used only in
     // to report errors on importing or exporting of internal libraries.
@@ -175,7 +189,7 @@ class SummaryBasedDartSdk implements DartSdk {
  * Implementation of [TypeProvider] which can be initialized separately with
  * `dart:core` and `dart:async` libraries.
  */
-class SummaryTypeProvider implements TypeProvider {
+class SummaryTypeProvider extends TypeProviderBase {
   LibraryElement _coreLibrary;
   LibraryElement _asyncLibrary;
 
@@ -291,16 +305,6 @@ class SummaryTypeProvider implements TypeProvider {
     _mapType ??= _getType(_coreLibrary, "Map");
     return _mapType;
   }
-
-  @override
-  List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-        nullType,
-        numType,
-        intType,
-        doubleType,
-        boolType,
-        stringType
-      ];
 
   @override
   DartObjectImpl get nullObject {

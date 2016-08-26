@@ -15,8 +15,8 @@ import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
 import '../resolution/tree_elements.dart' show TreeElementMapping;
-import '../tree/tree.dart' as ast
-    show DartString, Node, LiteralBool, TryStatement;
+import '../tree/dartstring.dart' show DartString;
+import '../tree/tree.dart' as ast show Node, LiteralBool, TryStatement;
 import '../types/constants.dart' show computeTypeMask;
 import '../types/types.dart'
     show ContainerTypeMask, MapTypeMask, TypeMask, TypesInferrer;
@@ -227,7 +227,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
 
   TypeInformation nonNullEmptyType;
 
-  TypeInformation stringLiteralType(ast.DartString value) {
+  TypeInformation stringLiteralType(DartString value) {
     return new StringLiteralTypeInformation(
         value, compiler.typesTask.stringType);
   }

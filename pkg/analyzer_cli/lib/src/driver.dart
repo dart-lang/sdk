@@ -13,11 +13,12 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -25,7 +26,6 @@ import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
@@ -93,6 +93,12 @@ class Driver implements CommandLineStarter {
 
   /// SDK instance.
   DartSdk sdk;
+
+  /**
+   * The resource provider used to access the file system.
+   */
+  file_system.ResourceProvider resourceProvider =
+      PhysicalResourceProvider.INSTANCE;
 
   /// Collected analysis statistics.
   final AnalysisStats stats = new AnalysisStats();
@@ -245,9 +251,11 @@ class Driver implements CommandLineStarter {
   ErrorSeverity _buildModeAnalyze(CommandLineOptions options) {
     return _analyzeAllTag.makeCurrentWhile(() {
       if (options.buildModePersistentWorker) {
-        new AnalyzerWorkerLoop.std(dartSdkPath: options.dartSdkPath).run();
+        new AnalyzerWorkerLoop.std(resourceProvider,
+                dartSdkPath: options.dartSdkPath)
+            .run();
       } else {
-        return new BuildMode(options, stats).analyze();
+        return new BuildMode(resourceProvider, options, stats).analyze();
       }
     });
   }
@@ -338,8 +346,7 @@ class Driver implements CommandLineStarter {
       Map<file_system.Folder, YamlMap> embedderMap, _PackageInfo packageInfo) {
     // Create a custom package resolver if one has been specified.
     if (packageResolverProvider != null) {
-      file_system.Folder folder =
-          PhysicalResourceProvider.INSTANCE.getResource('.');
+      file_system.Folder folder = resourceProvider.getResource('.');
       UriResolver resolver = packageResolverProvider(folder);
       if (resolver != null) {
         UriResolver sdkResolver = new DartUriResolver(sdk);
@@ -348,7 +355,7 @@ class Driver implements CommandLineStarter {
         List<UriResolver> resolvers = <UriResolver>[
           sdkResolver,
           resolver,
-          new file_system.ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
+          new file_system.ResourceUriResolver(resourceProvider)
         ];
         return new SourceFactory(resolvers);
       }
@@ -364,9 +371,8 @@ class Driver implements CommandLineStarter {
       if (packageInfo.packageMap == null) {
         // Fall back to pub list-package-dirs.
         PubPackageMapProvider pubPackageMapProvider =
-            new PubPackageMapProvider(PhysicalResourceProvider.INSTANCE, sdk);
-        file_system.Resource cwd =
-            PhysicalResourceProvider.INSTANCE.getResource('.');
+            new PubPackageMapProvider(resourceProvider, sdk);
+        file_system.Resource cwd = resourceProvider.getResource('.');
         PackageMapInfo packageMapInfo =
             pubPackageMapProvider.computePackageMap(cwd);
         Map<String, List<file_system.Folder>> packageMap =
@@ -376,8 +382,8 @@ class Driver implements CommandLineStarter {
         // If it failed, that's not a problem; it simply means we have no way
         // to resolve packages.
         if (packageMapInfo.packageMap != null) {
-          packageUriResolver = new PackageMapUriResolver(
-              PhysicalResourceProvider.INSTANCE, packageMap);
+          packageUriResolver =
+              new PackageMapUriResolver(resourceProvider, packageMap);
         }
       }
     }
@@ -388,7 +394,7 @@ class Driver implements CommandLineStarter {
     // 'dart:' URIs come first.
 
     // Setup embedding.
-    EmbedderSdk embedderSdk = new EmbedderSdk(embedderMap);
+    EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderMap);
     if (embedderSdk.libraryMap.size() == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK
       // uri resolver.
@@ -410,8 +416,7 @@ class Driver implements CommandLineStarter {
     }
 
     // Finally files.
-    resolvers.add(
-        new file_system.ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
+    resolvers.add(new file_system.ResourceUriResolver(resourceProvider));
 
     return new SourceFactory(resolvers, packageInfo.packages);
   }
@@ -475,7 +480,7 @@ class Driver implements CommandLineStarter {
 
     AnalyzeFunctionBodiesPredicate dietParsingPolicy =
         _chooseDietParsingPolicy(options);
-    setAnalysisContextOptions(_context, options,
+    setAnalysisContextOptions(resourceProvider, _context, options,
         (AnalysisOptionsImpl contextOptions) {
       contextOptions.analyzeFunctionBodiesPredicate = dietParsingPolicy;
     });
@@ -523,7 +528,7 @@ class Driver implements CommandLineStarter {
   _PackageInfo _findPackages(CommandLineOptions options) {
     if (packageResolverProvider != null) {
       // The resolver provider will do all the work later.
-      return null;
+      return new _PackageInfo(null, null);
     }
 
     Packages packages;
@@ -546,8 +551,7 @@ class Driver implements CommandLineStarter {
       packageMap = _PackageRootPackageMapBuilder
           .buildPackageMap(options.packageRootPath);
     } else {
-      file_system.Resource cwd =
-          PhysicalResourceProvider.INSTANCE.getResource('.');
+      file_system.Resource cwd = resourceProvider.getResource('.');
       // Look for .packages.
       packages = _discoverPackagespec(new Uri.directory(cwd.path));
       packageMap = _getPackageMap(packages);
@@ -564,9 +568,7 @@ class Driver implements CommandLineStarter {
     Map<String, List<file_system.Folder>> folderMap =
         new Map<String, List<file_system.Folder>>();
     packages.asMap().forEach((String packagePath, Uri uri) {
-      folderMap[packagePath] = [
-        PhysicalResourceProvider.INSTANCE.getFolder(path.fromUri(uri))
-      ];
+      folderMap[packagePath] = [resourceProvider.getFolder(path.fromUri(uri))];
     });
     return folderMap;
   }
@@ -622,17 +624,17 @@ class Driver implements CommandLineStarter {
             options.dartSdkSummaryPath, options.strongMode);
       } else {
         String dartSdkPath = options.dartSdkPath;
-        DirectoryBasedDartSdk directorySdk = new DirectoryBasedDartSdk(
-            new JavaFile(dartSdkPath), options.strongMode);
-        directorySdk.useSummary = useSummaries &&
+        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
+            resourceProvider.getFolder(dartSdkPath), options.strongMode);
+        dartSdk.useSummary = useSummaries &&
             options.sourceFiles.every((String sourcePath) {
               sourcePath = path.absolute(sourcePath);
               sourcePath = path.normalize(sourcePath);
               return !path.isWithin(dartSdkPath, sourcePath);
             });
 
-        directorySdk.analysisOptions = context.analysisOptions;
-        sdk = directorySdk;
+        dartSdk.analysisOptions = context.analysisOptions;
+        sdk = dartSdk;
       }
     }
   }
@@ -648,10 +650,13 @@ class Driver implements CommandLineStarter {
     contextOptions.generateSdkErrors = options.showSdkWarnings;
     contextOptions.lint = options.lints;
     contextOptions.strongMode = options.strongMode;
+    contextOptions.implicitCasts = options.implicitCasts;
+    contextOptions.implicitDynamic = options.implicitDynamic;
     return contextOptions;
   }
 
   static void setAnalysisContextOptions(
+      file_system.ResourceProvider resourceProvider,
       AnalysisContext context,
       CommandLineOptions options,
       void configureContextOptions(AnalysisOptionsImpl contextOptions)) {
@@ -676,7 +681,7 @@ class Driver implements CommandLineStarter {
     context.analysisOptions = contextOptions;
 
     // Process analysis options file (and notify all interested parties).
-    _processAnalysisOptions(context, options);
+    _processAnalysisOptions(resourceProvider, context, options);
   }
 
   /// Perform a deep comparison of two string maps.
@@ -692,21 +697,23 @@ class Driver implements CommandLineStarter {
     return true;
   }
 
-  static file_system.File _getOptionsFile(CommandLineOptions options) {
+  static file_system.File _getOptionsFile(
+      file_system.ResourceProvider resourceProvider,
+      CommandLineOptions options) {
     file_system.File file;
     String filePath = options.analysisOptionsFile;
     if (filePath != null) {
-      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+      file = resourceProvider.getFile(filePath);
       if (!file.exists) {
         printAndFail('Options file not found: $filePath',
             exitCode: ErrorSeverity.ERROR.ordinal);
       }
     } else {
       filePath = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+      file = resourceProvider.getFile(filePath);
       if (!file.exists) {
         filePath = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-        file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+        file = resourceProvider.getFile(filePath);
       }
     }
     return file;
@@ -717,8 +724,10 @@ class Driver implements CommandLineStarter {
       path.normalize(new File(sourcePath).absolute.path);
 
   static void _processAnalysisOptions(
-      AnalysisContext context, CommandLineOptions options) {
-    file_system.File file = _getOptionsFile(options);
+      file_system.ResourceProvider resourceProvider,
+      AnalysisContext context,
+      CommandLineOptions options) {
+    file_system.File file = _getOptionsFile(resourceProvider, options);
     List<OptionsProcessor> optionsProcessors =
         AnalysisEngine.instance.optionsPlugin.optionsProcessors;
     try {
@@ -770,15 +779,12 @@ class _BatchRunner {
         exitCode = batchResult.ordinal;
       }
       // Prepare arguments.
-      var args;
-      {
-        var lineArgs = line.split(new RegExp('\\s+'));
-        args = new List<String>();
-        args.addAll(sharedArgs);
-        args.addAll(lineArgs);
-        args.remove('-b');
-        args.remove('--batch');
-      }
+      var lineArgs = line.split(new RegExp('\\s+'));
+      var args = new List<String>();
+      args.addAll(sharedArgs);
+      args.addAll(lineArgs);
+      args.remove('-b');
+      args.remove('--batch');
       // Analyze single set of arguments.
       try {
         totalTests++;

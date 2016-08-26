@@ -717,26 +717,6 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT]);
   }
 
-  void test_assertDoesNotTakeAssignment() {
-    parse4("parseAssertStatement", "assert(b = true);",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT]);
-  }
-
-  void test_assertDoesNotTakeCascades() {
-    parse4("parseAssertStatement", "assert(new A()..m());",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE]);
-  }
-
-  void test_assertDoesNotTakeRethrow() {
-    parse4("parseAssertStatement", "assert(rethrow);",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW]);
-  }
-
-  void test_assertDoesNotTakeThrow() {
-    parse4("parseAssertStatement", "assert(throw x);",
-        [ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW]);
-  }
-
   void test_breakOutsideOfLoop_breakInDoStatement() {
     parse4("parseDoStatement", "do {break;} while (x);");
   }
@@ -1217,21 +1197,11 @@ class Foo {
   }
 
   void test_extraCommaInParameterList() {
-    parseTrailingCommas = true;
-    parse4("parseFormalParameterList", "(int a, , int b)",
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
-    parseTrailingCommas = false;
     parse4("parseFormalParameterList", "(int a, , int b)",
         [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_extraCommaTrailingNamedParameterGroup() {
-    parseTrailingCommas = true;
-    parse4("parseFormalParameterList", "({int b},)", [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS
-    ]);
-    parseTrailingCommas = false;
     parse4("parseFormalParameterList", "({int b},)", [
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS
@@ -1239,12 +1209,6 @@ class Foo {
   }
 
   void test_extraCommaTrailingPositionalParameterGroup() {
-    parseTrailingCommas = true;
-    parse4("parseFormalParameterList", "([int b],)", [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS
-    ]);
-    parseTrailingCommas = false;
     parse4("parseFormalParameterList", "([int b],)", [
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS
@@ -1252,12 +1216,8 @@ class Foo {
   }
 
   void test_extraTrailingCommaInParameterList() {
-    parseTrailingCommas = true;
     parse4("parseFormalParameterList", "(a,,)",
         [ParserErrorCode.MISSING_IDENTIFIER]);
-    parseTrailingCommas = false;
-    parse4("parseFormalParameterList", "(a,,)",
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_factoryTopLevelDeclaration_class() {
@@ -1760,7 +1720,6 @@ class Foo {
   }
 
   void test_missingIdentifierForParameterGroup() {
-    parseTrailingCommas = true;
     parse4("parseFormalParameterList", "(,)",
         [ParserErrorCode.MISSING_IDENTIFIER]);
   }
@@ -2827,10 +2786,10 @@ class ParserTestCase extends EngineTestCase {
   bool enableGenericMethodComments = false;
 
   /**
-   * A flag indicating whether parsing trailing commas in parameter and argument
-   * lists should be enabled for this test.
+   * A flag indicating whether lazy assignment operators should be enabled for
+   * the test.
    */
-  bool parseTrailingCommas = false;
+  bool enableLazyAssignmentOperators = false;
 
   /**
    * Return a CommentAndMetadata object with the given values that can be used for testing.
@@ -2876,6 +2835,7 @@ class ParserTestCase extends EngineTestCase {
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
     scanner.scanGenericMethodComments = enableGenericMethodComments;
+    scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     //
@@ -2886,7 +2846,6 @@ class ParserTestCase extends EngineTestCase {
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
-    parser.parseTrailingCommas = parseTrailingCommas;
     Object result =
         invokeParserMethodImpl(parser, methodName, objects, tokenStream);
     //
@@ -3088,19 +3047,18 @@ class ParserTestCase extends EngineTestCase {
   }
 
   /**
-   * Parse the given source as a statement.
-   *
-   * @param source the source to be parsed
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the statement that was parsed
-   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   *           not match those that are expected, or if the result would have been `null`
+   * Parse the given [source] as a statement. The [errorCodes] are the error
+   * codes of the errors that are expected to be found. If
+   * [enableLazyAssignmentOperators] is `true`, then lazy assignment operators
+   * should be enabled.
    */
   static Statement parseStatement(String source,
-      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST,
+      bool enableLazyAssignmentOperators]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
+    scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
@@ -4813,7 +4771,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseArgumentList_trailing_comma() {
-    parseTrailingCommas = true;
     ArgumentList argumentList = parse4("parseArgumentList", "(x, y, z,)");
     NodeList<Expression> arguments = argumentList.arguments;
     expect(arguments, hasLength(3));
@@ -6002,7 +5959,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseClassMember_method_trailing_commas() {
-    parseTrailingCommas = true;
     MethodDeclaration method =
         parse("parseClassMember", <Object>["C"], "void f(int x, int y,) {}");
     expect(method.documentationComment, isNull);
@@ -6299,6 +6255,66 @@ void''');
     expect(identifier.token, isNotNull);
     expect(identifier.name, "a");
     expect(identifier.offset, 9);
+  }
+
+  void test_parseCommentReference_operator_withKeyword_notPrefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["operator ==", 5], "");
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is SimpleIdentifier,
+        SimpleIdentifier,
+        reference.identifier);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 14);
+  }
+
+  void test_parseCommentReference_operator_withKeyword_prefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["Object.operator==", 7], "");
+    PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is PrefixedIdentifier,
+        PrefixedIdentifier,
+        reference.identifier);
+    SimpleIdentifier prefix = prefixedIdentifier.prefix;
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "Object");
+    expect(prefix.offset, 7);
+    expect(prefixedIdentifier.period, isNotNull);
+    SimpleIdentifier identifier = prefixedIdentifier.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 22);
+  }
+
+  void test_parseCommentReference_operator_withoutKeyword_notPrefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["==", 5], "");
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is SimpleIdentifier,
+        SimpleIdentifier,
+        reference.identifier);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 5);
+  }
+
+  void test_parseCommentReference_operator_withoutKeyword_prefixed() {
+    CommentReference reference =
+        parse("parseCommentReference", <Object>["Object.==", 7], "");
+    PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is PrefixedIdentifier,
+        PrefixedIdentifier,
+        reference.identifier);
+    SimpleIdentifier prefix = prefixedIdentifier.prefix;
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "Object");
+    expect(prefix.offset, 7);
+    expect(prefixedIdentifier.period, isNotNull);
+    SimpleIdentifier identifier = prefixedIdentifier.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 14);
   }
 
   void test_parseCommentReference_prefixed() {
@@ -7442,6 +7458,15 @@ void''');
     expect(expression.rightHandSide, isNotNull);
   }
 
+  void test_parseExpression_assign_compound() {
+    enableLazyAssignmentOperators = true;
+    AssignmentExpression expression = parse4("parseExpression", "x ||= y");
+    expect(expression.leftHandSide, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.BAR_BAR_EQ);
+    expect(expression.rightHandSide, isNotNull);
+  }
+
   void test_parseExpression_comparison() {
     BinaryExpression expression = parse4("parseExpression", "--a.b == c");
     expect(expression.leftOperand, isNotNull);
@@ -7859,7 +7884,6 @@ void''');
   }
 
   void test_parseFormalParameterList_named_trailing_comma() {
-    parseTrailingCommas = true;
     FormalParameterList parameterList =
         parse4("parseFormalParameterList", "(A a, {B b,})");
     expect(parameterList.leftParenthesis, isNotNull);
@@ -7910,7 +7934,6 @@ void''');
   }
 
   void test_parseFormalParameterList_normal_single_trailing_comma() {
-    parseTrailingCommas = true;
     FormalParameterList parameterList =
         parse4("parseFormalParameterList", "(A a,)");
     expect(parameterList.leftParenthesis, isNotNull);
@@ -7941,7 +7964,6 @@ void''');
   }
 
   void test_parseFormalParameterList_positional_trailing_comma() {
-    parseTrailingCommas = true;
     FormalParameterList parameterList =
         parse4("parseFormalParameterList", "(A a, [B b,])");
     expect(parameterList.leftParenthesis, isNotNull);

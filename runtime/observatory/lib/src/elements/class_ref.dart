@@ -2,35 +2,56 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library class_ref_element;
-
-import 'package:observatory/service.dart';
-import 'package:polymer/polymer.dart';
-import 'service_ref.dart';
+import 'dart:html';
 import 'dart:async';
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 
-@CustomTag('class-ref')
-class ClassRefElement extends ServiceRefElement {
-  @observable bool asValue = false;
+class ClassRefElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<ClassRefElement>('class-ref-wrapped');
+
+  RenderingScheduler<ClassRefElement> _r;
+
+  Stream<RenderedEvent<ClassRefElement>> get onRendered => _r.onRendered;
+
+  M.IsolateRef _isolate;
+  M.ClassRef _class;
+
+  M.IsolateRef get isolate => _isolate;
+  M.ClassRef get cls => _class;
+
+  factory ClassRefElement(M.IsolateRef isolate, M.ClassRef cls,
+      {RenderingQueue queue}) {
+    assert(isolate != null);
+    assert(cls != null);
+    ClassRefElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._isolate = isolate;
+    e._class = cls;
+    return e;
+  }
 
   ClassRefElement.created() : super.created();
 
-  String makeExpandKey(String key) {
-    return '${expandKey}/${key}';
+  @override
+  void attached() {
+    super.attached();
+    _r.enable();
   }
 
-  dynamic expander() {
-    return expandEvent;
+  @override
+  void detached() {
+    super.detached();
+    _r.disable(notify: true);
+    children = [];
   }
 
-  void expandEvent(bool expand, Function onDone) {
-    if (expand) {
-      Class cls = ref;
-      cls.reload().then((result) {
-        return Future.wait(cls.fields.map((field) => field.reload()));
-      }).whenComplete(onDone);
-    } else {
-      onDone();
-    }
+  void render() {
+    children = [
+      new AnchorElement(href: Uris.inspect(_isolate, object: _class))
+        ..text = _class.name
+    ];
   }
 }

@@ -21,6 +21,7 @@ namespace dart {
   V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
   V(Object_instanceOf, 4)                                                      \
+  V(Object_simpleInstanceOf, 2)                                                \
   V(Object_instanceOfNum, 2)                                                   \
   V(Object_instanceOfInt, 2)                                                   \
   V(Object_instanceOfSmi, 2)                                                   \
@@ -365,6 +366,7 @@ namespace dart {
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
+  V(VMService_spawnUriNotify, 2)                                               \
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \

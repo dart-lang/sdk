@@ -5,15 +5,12 @@
 library tracer;
 
 import 'dart:async' show EventSink;
+
 import '../compiler.dart' as api;
 import 'common/work.dart' show ItemCompilationContext;
 import 'compiler.dart' show Compiler;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/ssa_tracer.dart' show HTracer;
-import 'cps_ir/cps_ir_nodes.dart' as cps_ir;
-import 'cps_ir/cps_ir_tracer.dart' show IRTracer;
-import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
-import 'tree_ir/tree_ir_tracer.dart' show TreeTracer;
 import 'util/util.dart' show Indentation;
 
 /**
@@ -57,10 +54,6 @@ class Tracer extends TracerUtil {
     if (!traceActive) return;
     if (irObject is ssa.HGraph) {
       new HTracer(output, compiler, context).traceGraph(name, irObject);
-    } else if (irObject is cps_ir.FunctionDefinition) {
-      new IRTracer(output).traceGraph(name, irObject);
-    } else if (irObject is tree_ir.FunctionDefinition) {
-      new TreeTracer(output).traceGraph(name, irObject);
     }
   }
 

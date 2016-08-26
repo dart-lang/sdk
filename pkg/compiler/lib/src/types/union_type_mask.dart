@@ -253,6 +253,7 @@ class UnionTypeMask implements TypeMask {
           return other.containsMask(maskDisregardNull, classWorld);
         });
       }
+
       return disjointMasks.every((FlatTypeMask disjointMask) {
         bool contained = containedInAnyOf(disjointMask, union.disjointMasks);
         if (PERFORM_EXTRA_CONTAINS_CHECK &&
