@@ -15,6 +15,8 @@ InboundReferencesRepository _inboundReferencesRepository
 InstanceRepository _instanceRepository = new InstanceRepository();
 IsolateSampleProfileRepository _isolateSampleProfileRepository
     = new IsolateSampleProfileRepository();
+MegamorphicCacheRepository _megamorphicCacheRepository
+    = new MegamorphicCacheRepository();
 ObjectStoreRepository _objectstoreRepository
     = new ObjectStoreRepository();
 PersistentHandlesRepository _persistentHandlesRepository
@@ -213,6 +215,18 @@ class InspectPage extends MatchingPage {
                                _retainingPathRepository,
                                _instanceRepository,
                                queue: app.queue)
+      ];
+    } else if (obj is MegamorphicCache) {
+      container.children = [
+        new MegamorphicCacheViewElement(app.vm, obj.isolate, obj, app.events,
+                                        app.notifications,
+                                        _megamorphicCacheRepository,
+                                        _retainedSizeRepository,
+                                        _reachableSizeRepository,
+                                        _inboundReferencesRepository,
+                                        _retainingPathRepository,
+                                        _instanceRepository,
+                                        queue: app.queue)
       ];
     } else {
       ServiceObjectViewElement serviceElement =new Element.tag('service-view');

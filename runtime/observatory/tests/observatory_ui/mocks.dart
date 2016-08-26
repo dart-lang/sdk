@@ -54,6 +54,7 @@ part 'mocks/repositories/heap_snapshot.dart';
 part 'mocks/repositories/icdata.dart';
 part 'mocks/repositories/inbound_references.dart';
 part 'mocks/repositories/instance.dart';
+part 'mocks/repositories/megamorphiccache.dart';
 part 'mocks/repositories/notification.dart';
 part 'mocks/repositories/objectstore.dart';
 part 'mocks/repositories/ports.dart';

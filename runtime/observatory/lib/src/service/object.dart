@@ -3653,7 +3653,7 @@ class ICData extends HeapObject implements M.ICData {
   }
 }
 
-class MegamorphicCache extends HeapObject implements M.MegamorphicCacheRef {
+class MegamorphicCache extends HeapObject implements M.MegamorphicCache {
   @observable int mask;
   @observable Instance buckets;
   @observable String selector;

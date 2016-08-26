@@ -7,3 +7,10 @@ part of models;
 abstract class MegamorphicCacheRef extends ObjectRef {
   String get selector;
 }
+
+abstract class MegamorphicCache extends Object implements MegamorphicCacheRef {
+  String get selector;
+  int get mask;
+  InstanceRef get buckets;
+  InstanceRef get argumentsDescriptor;
+}

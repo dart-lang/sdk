@@ -21,7 +21,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ContextViewElement  extends HtmlElement implements Renderable {
+class ContextViewElement extends HtmlElement implements Renderable {
   static const tag = const Tag<ContextViewElement>('context-view',
                                             dependencies: const [
                                               ContextRefElement.tag,
