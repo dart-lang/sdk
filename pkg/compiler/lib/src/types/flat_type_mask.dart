@@ -688,11 +688,13 @@ class FlatTypeMask implements TypeMask {
     if (targets.length != 1) return null;
     Element result = targets.first;
     ClassElement enclosing = result.enclosingClass;
-    // We only return the found element if it is guaranteed to be
-    // implemented on the exact receiver type. It could be found in a
-    // subclass or in an inheritance-wise unrelated class in case of
-    // subtype selectors.
-    return (base.isSubclassOf(enclosing)) ? result : null;
+    // We only return the found element if it is guaranteed to be implemented on
+    // all classes in the receiver type [this]. It could be found only in a
+    // subclass or in an inheritance-wise unrelated class in case of subtype
+    // selectors.
+    if (isSubtype) return null;
+    if (base.isSubclassOf(enclosing)) return result;
+    return null;
   }
 
   bool operator ==(var other) {
