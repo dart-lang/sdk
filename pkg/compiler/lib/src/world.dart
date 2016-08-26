@@ -727,7 +727,7 @@ class World implements ClassWorld {
 
   Element locateSingleElement(Selector selector, TypeMask mask) {
     mask ??= compiler.commonMasks.dynamicType;
-    return mask.locateSingleElement(selector, mask, compiler);
+    return mask.locateSingleElement(selector, compiler);
   }
 
   TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {

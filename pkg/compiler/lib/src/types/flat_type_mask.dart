@@ -681,11 +681,10 @@ class FlatTypeMask implements TypeMask {
         subclassesToCheck.any(needsNoSuchMethod);
   }
 
-  Element locateSingleElement(
-      Selector selector, TypeMask mask, Compiler compiler) {
+  Element locateSingleElement(Selector selector, Compiler compiler) {
     if (isEmptyOrNull) return null;
     Iterable<Element> targets =
-        compiler.world.allFunctions.filter(selector, mask);
+        compiler.world.allFunctions.filter(selector, this);
     if (targets.length != 1) return null;
     Element result = targets.first;
     ClassElement enclosing = result.enclosingClass;
