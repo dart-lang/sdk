@@ -303,9 +303,6 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       Map<String, String> environmentOverrides) {
     List compilerArguments = new List.from(arguments)
       ..addAll(extraDart2jsOptions);
-    if (useFastStartup) {
-      compilerArguments.add('--fast-startup');
-    }
     return new CommandArtifact(<Command>[
       this.computeCompilationCommand('$tempDir/out.js', buildDir,
           CommandBuilder.instance, compilerArguments, environmentOverrides)
