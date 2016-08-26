@@ -88,15 +88,17 @@ class IsolateSharedSummaryElementWrapper extends HtmlElement {
         }
         isolate-shared-summary-wrapped {
           display: block;
+        }
+        isolate-shared-summary-wrapped > .summary {
           height: 300px;
           position: relative;
         }
-        isolate-shared-summary-wrapped > .menu {
+        isolate-shared-summary-wrapped .menu {
           float: right;
           top: 0;
           right: 0;
         }
-        isolate-shared-summary-wrapped > isolate-counter-chart {
+        isolate-shared-summary-wrapped isolate-counter-chart {
           position: absolute;
           left: 0;
           top: 0;

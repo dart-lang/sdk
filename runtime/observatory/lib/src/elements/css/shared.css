@@ -1063,6 +1063,8 @@ to isolate-shared-summary when wrapper removed */
 isolate-shared-summary,
 isolate-shared-summary-wrapped {
   display: block;
+}
+isolate-shared-summary-wrapped > .summary {
   height: 300px;
   position: relative;
 }

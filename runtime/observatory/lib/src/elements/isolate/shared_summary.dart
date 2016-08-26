@@ -50,18 +50,11 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    children = [];
-    if (_isolate.error != null) {
-      children = [
-        new PreElement()..classes = const ["errorBox"]
-          ..text = _isolate.error.message
-      ];
-    }
     final newHeapUsed = Utils.formatSize(_isolate.newSpace.used);
     final newHeapCapacity = Utils.formatSize(_isolate.newSpace.capacity);
     final oldHeapUsed = Utils.formatSize(_isolate.oldSpace.used);
     final oldHeapCapacity = Utils.formatSize(_isolate.oldSpace.capacity);
-    children.addAll([
+    final content = [
       new DivElement()..classes = ['menu']
         ..children = [
           new DivElement()..classes = const ['memberList']
@@ -150,6 +143,19 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
             ]
       ],
       new IsolateCounterChartElement(_isolate.counters, queue: _r.queue)
-    ]);
+    ];
+    if (_isolate.error != null) {
+      children = [
+        new PreElement()..classes = const ['errorBox']
+          ..text = _isolate.error.message,
+        new DivElement()..classes = const ['summary']
+          ..children = content
+      ];
+    } else {
+      children = [
+        new DivElement()..classes = const ['summary']
+          ..children = content
+      ];
+    }
   }
 }
