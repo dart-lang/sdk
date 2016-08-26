@@ -28,8 +28,7 @@ TEST_CASE(DirectoryExists) {
   const char* current = dart::bin::Directory::Current();
   EXPECT_NOTNULL(current);
 
-  dart::bin::Directory::ExistsResult r =
-      dart::bin::Directory::Exists(current);
+  dart::bin::Directory::ExistsResult r = dart::bin::Directory::Exists(current);
   EXPECT_EQ(dart::bin::Directory::EXISTS, r);
 }
 
@@ -37,6 +36,16 @@ TEST_CASE(DirectoryExists) {
 TEST_CASE(DirectorySystemTemp) {
   const char* system_temp = dart::bin::Directory::SystemTemp();
   EXPECT_NOTNULL(system_temp);
+}
+
+
+TEST_CASE(DirectorySystemTempExists) {
+  const char* system_temp = dart::bin::Directory::SystemTemp();
+  EXPECT_NOTNULL(system_temp);
+
+  dart::bin::Directory::ExistsResult r =
+      dart::bin::Directory::Exists(system_temp);
+  EXPECT_EQ(dart::bin::Directory::EXISTS, r);
 }
 
 

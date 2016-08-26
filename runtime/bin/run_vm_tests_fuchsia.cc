@@ -104,6 +104,11 @@ const char* kExpectFail[] = {
 const char* kBugs[] = {
   // Needs NativeSymbolResolver
   "Service_PersistentHandles",
+  // Needs lstat
+  "DirectoryCreateTemp",
+  "DirectoryCreateDelete",
+  // Needs rename
+  "DirectoryRename",
 };
 
 
