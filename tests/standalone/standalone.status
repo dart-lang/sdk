@@ -136,7 +136,7 @@ io/arguments_test: Fail # DartOptions not supported by dart2js, and issue 14200.
 medium_integer_test: Pass # The test only fails at runtime, not at compilation.
 oom_error_stacktrace_test: Pass # The test only fails at runtime.
 
-[ $compiler == dart2js && $fast_startup && $runtime == none ]
+[ $compiler == dart2js && $fast_startup ]
 io/observatory_test: Fail # mirrors not supported.
 
 [ $compiler == dart2js && $browser ]

@@ -432,6 +432,7 @@ custom/document_register_type_extensions: Fail # custom elements not supported
 custom_elements_23127_test/baseline: Fail # custom elements not supported
 custom_elements_23127_test/c1t: Fail # custom elements not supported
 custom_elements_23127_test/c2: Fail # custom elements not supported
+js_function_getter_test: Fail # js-interop function's not supported
 js_typed_interop_callable_object_test: Fail # js-interop function's not supported
 js_typed_interop_test/closure: Fail # js-interop function's not supported
 js_typed_interop_test/method: Fail # js-interop function's not supported
