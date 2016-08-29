@@ -3223,8 +3223,8 @@ class CodeGenerator extends GeneralizingAstVisitor
         var vars = <JS.MetaLetVariable, JS.Expression>{};
         var l = _visit(_bindValue(vars, 'l', target));
         jsTarget = new JS.MetaLet(vars, [
-          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #])',
-              [l, l, memberName, memberName,])
+          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #]).bind(#)',
+              [l, l, memberName, memberName, l])
         ]);
         if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
         return new JS.Call(jsTarget, args);
@@ -4565,8 +4565,8 @@ class CodeGenerator extends GeneralizingAstVisitor
         var vars = <JS.MetaLetVariable, JS.Expression>{};
         var l = _visit(_bindValue(vars, 'l', target));
         return new JS.MetaLet(vars, [
-          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #])(#)',
-              [l, l, memberName, memberName, _visitList(args)])
+          js.call('(#[(#[dart._extensionType]) ? dartx[#] : #]).call(#, #)',
+              [l, l, memberName, memberName, l, _visitList(args)])
         ]);
       }
       // dynamic dispatch
