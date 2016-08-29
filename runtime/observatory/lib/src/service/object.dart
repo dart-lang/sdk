@@ -2979,7 +2979,7 @@ class Sentinel extends ServiceObject implements M.Sentinel {
   String toString() => 'Sentinel($kind)';
 }
 
-class Field extends HeapObject implements M.FieldRef {
+class Field extends HeapObject implements M.Field {
   // Library or Class.
   @observable HeapObject dartOwner;
   @observable Library library;
@@ -2992,7 +2992,8 @@ class Field extends HeapObject implements M.FieldRef {
   @observable String vmName;
 
   @observable bool guardNullable;
-  @observable var /* Class | String */ guardClass;
+  M.GuardClassKind guardClassKind;
+  @observable Class guardClass;
   @observable String guardLength;
   @observable SourceLocation location;
 
@@ -3025,7 +3026,21 @@ class Field extends HeapObject implements M.FieldRef {
     }
 
     guardNullable = map['_guardNullable'];
-    guardClass = map['_guardClass'];
+    if (map['_guardClass'] is Class) {
+        guardClass = map['_guardClass'];
+        guardClassKind = M.GuardClassKind.single;
+    } else {
+      switch (map['_guardClass']) {
+        case 'various':
+          guardClassKind = M.GuardClassKind.dynamic;
+          break;
+        case 'unknown':
+        default:
+          guardClassKind = M.GuardClassKind.unknown;
+          break;
+      }
+    }
+
     guardLength = map['_guardLength'];
     location = map['location'];
     _loaded = true;

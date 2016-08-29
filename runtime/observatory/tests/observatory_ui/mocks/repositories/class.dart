@@ -4,8 +4,9 @@
 
 part of mocks;
 
-typedef Future<M.Class> ClassRepositoryMockObjectCallback();
-typedef Future<M.Class> ClassRepositoryMockGetterCallback(String id);
+typedef Future<M.Class> ClassRepositoryMockObjectCallback(M.Isolate isolate);
+typedef Future<M.Class>
+        ClassRepositoryMockGetterCallback(M.Isolate isolate, String id);
 
 class ClassRepositoryMock implements M.ClassRepository {
   final ClassRepositoryMockObjectCallback _object;
@@ -16,16 +17,16 @@ class ClassRepositoryMock implements M.ClassRepository {
     : _object = object,
       _get = getter;
 
-  Future<M.Class> getObject(){
+  Future<M.Class> getObject(M.IsolateRef i){
     if (_object != null) {
-      return _object();
+      return _object(i);
     }
     return new Future.value(null);
   }
 
-  Future<M.Class> get(String id){
+  Future<M.Class> get(M.IsolateRef i, String id){
     if (_get != null) {
-      return _get(id);
+      return _get(i, id);
     }
     return new Future.value(null);
   }

@@ -55,6 +55,7 @@ part 'src/models/repositories/class.dart';
 part 'src/models/repositories/context.dart';
 part 'src/models/repositories/eval.dart';
 part 'src/models/repositories/event.dart';
+part 'src/models/repositories/field.dart';
 part 'src/models/repositories/flag.dart';
 part 'src/models/repositories/heap_snapshot.dart';
 part 'src/models/repositories/icdata.dart';

@@ -6,7 +6,9 @@ part of app;
 
 AllocationProfileRepository _allocationProfileRepository
     = new AllocationProfileRepository();
+ClassRepository _classRepository = new ClassRepository();
 ContextRepository _contextRepository = new ContextRepository();
+FieldRepository _fieldRepository = new FieldRepository();
 HeapSnapshotRepository _heapSnapshotRepository
     = new HeapSnapshotRepository();
 ICDataRepository _icdataRepository = new ICDataRepository();
@@ -22,6 +24,7 @@ ObjectStoreRepository _objectstoreRepository
 PersistentHandlesRepository _persistentHandlesRepository
     = new PersistentHandlesRepository();
 PortsRepository _portsRepository = new PortsRepository();
+ScriptRepository _scriptRepository = new ScriptRepository();
 
 class IsolateNotFound implements Exception {
   String isolateId;
@@ -204,6 +207,20 @@ class InspectPage extends MatchingPage {
       container.children = [
         new ErrorViewElement(app.notifications, obj, queue: app.queue)
       ];
+    } else if (obj is Field) {
+      container.children = [
+        new FieldViewElement(app.vm, obj.isolate, obj, app.events,
+                             app.notifications,
+                             _fieldRepository,
+                             _classRepository,
+                             _retainedSizeRepository,
+                             _reachableSizeRepository,
+                             _inboundReferencesRepository,
+                             _retainingPathRepository,
+                             _scriptRepository,
+                             _instanceRepository,
+                             queue: app.queue)
+      ];
     } else if (obj is ICData) {
       container.children = [
         new ICDataViewElement(app.vm, obj.isolate, obj, app.events,
@@ -256,7 +273,7 @@ class ClassTreePage extends SimplePage {
                              isolate,
                              app.events,
                              app.notifications,
-                             new ClassRepository(isolate))
+                             _classRepository)
       ];
     });
   }
