@@ -223,7 +223,10 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
           ..text = '0%',
         new SpanElement()..classes = const ['name']
       ];
-    element.onClick.listen((_) {
+    element.onClick.listen((e) {
+      if (e.target is AnchorElement) {
+        return;
+      }
       _selected = _functions.getItemFromElement(element);
       _r.dirty();
     });
@@ -287,7 +290,10 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
           ..text = '0%',
         new SpanElement()..classes = const ['name']
       ];
-    element.onClick.listen((_) {
+    element.onClick.listen((e) {
+      if (e.target is AnchorElement) {
+        return;
+      }
       _selected = _callees.getItemFromElement(element);
       _r.dirty();
     });
@@ -322,7 +328,10 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
           ..text = '0%',
         new SpanElement()..classes = const ['name']
       ];
-    element.onClick.listen((_) {
+    element.onClick.listen((e) {
+      if (e.target is AnchorElement) {
+        return;
+      }
       _selected = _callers.getItemFromElement(element);
       _r.dirty();
     });
