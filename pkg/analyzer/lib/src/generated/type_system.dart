@@ -1426,17 +1426,9 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
       inferredTypes[i] =
           variance.passedIn || bound.lower.isBottom ? bound.upper : bound.lower;
 
-      // See if the constraints on the type variable are satisfied.
-      //
-      // If not, bail out of the analysis, unless a partial solution was
-      // requested. If we are willing to accept a partial solution, fall back to
-      // the known upper bound (if any) or `dynamic` for this unsolvable type
-      // variable.
-      if (inferredTypes[i].isBottom ||
-          !isSubtypeOf(inferredTypes[i],
-              bound.upper.substitute2(inferredTypes, fnTypeParams)) ||
-          !isSubtypeOf(bound.lower.substitute2(inferredTypes, fnTypeParams),
-              inferredTypes[i])) {
+      // See if the bounds can be satisfied.
+      if (bound.upper.isBottom ||
+          !_typeSystem.isSubtypeOf(bound.lower, bound.upper)) {
         // Inference failed. Bail.
         return null;
       }
