@@ -284,6 +284,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.lint && !options.lint) ||
         this._options.preserveComments != options.preserveComments ||
         this._options.strongMode != options.strongMode ||
+        this._options.enableAssertInitializer !=
+            options.enableAssertInitializer ||
         this._options.enableAssertMessage != options.enableAssertMessage ||
         ((options is AnalysisOptionsImpl)
             ? this._options.strongModeHints != options.strongModeHints
@@ -312,6 +314,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.enableGenericMethods = options.enableGenericMethods;
+    this._options.enableAssertInitializer = options.enableAssertInitializer;
     this._options.enableAssertMessage = options.enableAssertMessage;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableAsync = options.enableAsync;

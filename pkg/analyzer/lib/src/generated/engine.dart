@@ -1049,6 +1049,12 @@ abstract class AnalysisOptions {
   bool get dart2jsHint;
 
   /**
+   * Return `true` if the parser is to parse asserts in the initializer list of
+   * a constructor.
+   */
+  bool get enableAssertInitializer;
+
+  /**
    * Return `true` to enable custom assert messages (DEP 37).
    */
   bool get enableAssertMessage;
@@ -1202,100 +1208,61 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalyzeFunctionBodiesPredicate _analyzeFunctionBodiesPredicate =
       _analyzeAllFunctionBodies;
 
-  /**
-   * The maximum number of sources for which AST structures should be kept in
-   * the cache.
-   */
+  @override
   int cacheSize = DEFAULT_CACHE_SIZE;
 
-  /**
-   * A flag indicating whether analysis is to generate dart2js related hint
-   * results.
-   */
+  @override
   bool dart2jsHint = false;
 
-  /**
-   * A flag indicating whether custom assert messages are to be supported (DEP
-   * 37).
-   */
+  @override
+  bool enableAssertInitializer = false;
+
+  @override
   bool enableAssertMessage = false;
 
-  /**
-   * A flag indicating whether analysis is to enable async support.
-   */
+  @override
   bool enableAsync = true;
 
-  /**
-   * A flag indicating whether generic methods are to be supported (DEP 22).
-   */
+  @override
   bool enableGenericMethods = false;
 
   @override
   bool enableLazyAssignmentOperators = false;
 
-  /**
-   * A flag indicating whether analysis is to strictly follow the specification
-   * when generating warnings on "call" methods (fixes dartbug.com/21938).
-   */
+  @override
   bool enableStrictCallChecks = false;
 
-  /**
-   * A flag indicating whether mixins are allowed to inherit from types other
-   * than Object, and are allowed to reference `super`.
-   */
+  @override
   bool enableSuperMixins = false;
 
   @override
   bool enableTiming = false;
 
-  /**
-   * A flag indicating whether errors, warnings and hints should be generated
-   * for sources that are implicitly being analyzed.
-   */
+  @override
   bool generateImplicitErrors = true;
 
-  /**
-   * A flag indicating whether errors, warnings and hints should be generated
-   * for sources in the SDK.
-   */
+  @override
   bool generateSdkErrors = false;
 
-  /**
-   * A flag indicating whether analysis is to generate hint results (e.g. type
-   * inference based information and pub best practices).
-   */
+  @override
   bool hint = true;
 
-  /**
-   * A flag indicating whether incremental analysis should be used.
-   */
+  @override
   bool incremental = false;
 
-  /**
-   * A flag indicating whether incremental analysis should be used for API
-   * changes.
-   */
+  @override
   bool incrementalApi = false;
 
-  /**
-   * A flag indicating whether validation should be performed after incremental
-   * analysis.
-   */
+  @override
   bool incrementalValidation = false;
 
-  /**
-   * A flag indicating whether analysis is to generate lint warnings.
-   */
+  @override
   bool lint = false;
 
-  /**
-   * A flag indicating whether analysis is to parse comments.
-   */
+  @override
   bool preserveComments = true;
 
-  /**
-   * A flag indicating whether strong-mode analysis should be used.
-   */
+  @override
   bool strongMode = false;
 
   /**
@@ -1352,6 +1319,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
+    enableAssertInitializer = options.enableAssertInitializer;
     enableAssertMessage = options.enableAssertMessage;
     enableAsync = options.enableAsync;
     enableStrictCallChecks = options.enableStrictCallChecks;
