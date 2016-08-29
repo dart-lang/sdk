@@ -1820,8 +1820,8 @@ abstract class ContextManagerTest {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    DartSdkManager sdkManager =
-        new DartSdkManager('', false, (_) => new MockSdk());
+    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    DartSdkManager sdkManager = new DartSdkManager('/', false, (_) => sdk);
     manager = new ContextManagerImpl(
         resourceProvider,
         sdkManager,
@@ -2702,6 +2702,15 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void computingPackageMap(bool computing) {
     // Do nothing.
+  }
+
+  @override
+  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
+    DartSdkManager sdkManager = new DartSdkManager('/', false, null);
+    ContextBuilder builder =
+        new ContextBuilder(resourceProvider, sdkManager, new ContentCache());
+    builder.defaultOptions = options;
+    return builder;
   }
 
   @override

@@ -242,18 +242,32 @@ external void printToConsole(String line);
     LIB_INTERNAL,
   ];
 
-  final resource.MemoryResourceProvider provider =
-      new resource.MemoryResourceProvider();
+  static const String librariesContent = r'''
+const Map<String, LibraryInfo> libraries = const {
+  "async": const LibraryInfo("async/async.dart"),
+  "collection": const LibraryInfo("collection/collection.dart"),
+  "convert": const LibraryInfo("convert/convert.dart"),
+  "core": const LibraryInfo("core/core.dart"),
+  "html": const LibraryInfo("html/dartium/html_dartium.dart"),
+  "math": const LibraryInfo("math/math.dart"),
+  "_internal": const LibraryInfo("internal/internal.dart"),
+};
+''';
+
+  final resource.MemoryResourceProvider provider;
 
   /**
    * The [AnalysisContext] which is used for all of the sources.
    */
   InternalAnalysisContext _analysisContext;
 
-  MockSdk() {
+  MockSdk({resource.ResourceProvider resourceProvider})
+      : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
     LIBRARIES.forEach((SdkLibrary library) {
       provider.newFile(library.path, (library as MockSdkLibrary).content);
     });
+    provider.newFile('/lib/_internal/sdk_library_metadata/lib/libraries.dart',
+        librariesContent);
   }
 
   @override

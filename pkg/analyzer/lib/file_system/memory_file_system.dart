@@ -201,6 +201,15 @@ class MemoryResourceProvider implements ResourceProvider {
     return file;
   }
 
+  /**
+   * Write a representation of the file system on the given [sink].
+   */
+  void writeOn(StringSink sink) {
+    List<String> paths = _pathToResource.keys.toList();
+    paths.sort();
+    paths.forEach(sink.writeln);
+  }
+
   void _checkFileAtPath(String path) {
     _MemoryResource resource = _pathToResource[path];
     if (resource is! _MemoryFile) {
@@ -482,6 +491,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
     }
     return contains(path);
   }
+
+  @override
+  Folder resolveSymbolicLinksSync() => this;
 
   @override
   Uri toUri() =>

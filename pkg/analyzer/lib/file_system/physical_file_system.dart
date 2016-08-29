@@ -217,6 +217,11 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   @override
   Stream<WatchEvent> get changes => new DirectoryWatcher(_entry.path).events;
 
+  /**
+   * Return the underlying file being represented by this wrapper.
+   */
+  io.Directory get _directory => _entry as io.Directory;
+
   @override
   String canonicalizePath(String relPath) {
     return normalize(join(path, relPath));
@@ -274,6 +279,16 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
       return true;
     }
     return contains(path);
+  }
+
+  @override
+  Folder resolveSymbolicLinksSync() {
+    try {
+      return new _PhysicalFolder(
+          new io.Directory(_directory.resolveSymbolicLinksSync()));
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
   }
 
   @override

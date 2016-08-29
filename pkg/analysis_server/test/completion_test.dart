@@ -2664,7 +2664,7 @@ class Q {
           "8-null"
         ],
         failingTests: '234567'); //TODO(jwren) 234 failing as correct selection
-        // offset assertions can't be passed into buildTests(..)
+    // offset assertions can't be passed into buildTests(..)
 
     // keywords
     buildTests('test018', '''!1part !2of foo;''', <String>["1+part", "2+of"],
@@ -2905,8 +2905,8 @@ class A<Z extends X> {
         failingTests: '2');
 
     // test analysis of untyped fields and top-level vars
-    buildTests('test039', '''class X{}var x = null as !1X;''',
-        <String>["1-void"]);
+    buildTests(
+        'test039', '''class X{}var x = null as !1X;''', <String>["1-void"]);
 
     // test arg lists with named params
     buildTests('test040', '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1)!2;}''',

@@ -54,12 +54,6 @@ abstract class File implements Resource {
   File renameSync(String newPath);
 
   /**
-   * Return a file that refers to the same file as this file, but whose path
-   * does not contain any symbolic links.
-   */
-  File resolveSymbolicLinksSync();
-
-  /**
    * Synchronously write the given [bytes] to the file. The new content will
    * replace any existing content.
    *
@@ -181,6 +175,12 @@ abstract class Resource {
    * this folder.
    */
   bool isOrContains(String path);
+
+  /**
+   * Return a resource that refers to the same resource as this resource, but
+   * whose path does not contain any symbolic links.
+   */
+  Resource resolveSymbolicLinksSync();
 
   /**
    * Return a Uri representing this resource.

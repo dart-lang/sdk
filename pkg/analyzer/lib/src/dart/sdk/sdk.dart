@@ -10,6 +10,7 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -614,9 +615,13 @@ class FolderBasedDartSdk extends AbstractDartSdk {
         lastStackTrace = stackTrace;
       }
     }
+    StringBuffer buffer = new StringBuffer();
+    buffer.writeln('Could not initialize the library map from $searchedPaths');
+    if (resourceProvider is MemoryResourceProvider) {
+      (resourceProvider as MemoryResourceProvider).writeOn(buffer);
+    }
     AnalysisEngine.instance.logger.logError(
-        "Could not initialize the library map from $searchedPaths",
-        new CaughtException(lastException, lastStackTrace));
+        buffer.toString(), new CaughtException(lastException, lastStackTrace));
     return new LibraryMap();
   }
 

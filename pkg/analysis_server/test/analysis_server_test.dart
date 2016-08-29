@@ -137,6 +137,7 @@ import "../foo/foo.dart";
     manager.processPlugins([plugin]);
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
+    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
     packageMapProvider = new MockPackageMapProvider();
     server = new AnalysisServer(
         channel,
@@ -145,7 +146,7 @@ import "../foo/foo.dart";
         null,
         plugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('', false, (_) => new MockSdk()),
+        new DartSdkManager('/', false, (_) => sdk),
         InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
     processRequiredPlugins();
@@ -286,26 +287,6 @@ import "../foo/foo.dart";
     expect(pair.source, isNull);
   }
 
-  test_getContextSourcePair_package_inRoot() {
-    String rootPath = '/my_package';
-    String filePath = rootPath + '/lib/file.dart';
-    Folder rootFolder = resourceProvider.newFolder(rootPath);
-    resourceProvider.newFile(filePath, 'library lib;');
-
-    packageMapProvider.packageMap = <String, List<Folder>>{
-      'my_package': <Folder>[rootFolder]
-    };
-    // create contexts
-    server.setAnalysisRoots('0', [rootPath], [], {});
-    // get pair
-    ContextSourcePair pair = server.getContextSourcePair(filePath);
-    _assertContextOfFolder(pair.context, rootPath);
-    Source source = pair.source;
-    expect(source, isNotNull);
-    expect(source.uri.scheme, 'package');
-    expect(source.fullName, filePath);
-  }
-
   test_getContextSourcePair_simple() {
     String dirPath = '/dir';
     String filePath = dirPath + '/file.dart';
@@ -318,6 +299,23 @@ import "../foo/foo.dart";
     Source source = pair.source;
     expect(source, isNotNull);
     expect(source.uri.scheme, 'file');
+    expect(source.fullName, filePath);
+  }
+
+  test_getContextSourcePair_withPackagesFile() {
+    String dirPath = '/dir';
+    String packagesFilePath = dirPath + '/.packages';
+    resourceProvider.newFile(packagesFilePath, 'dir:lib/');
+    String filePath = dirPath + '/lib/file.dart';
+    resourceProvider.newFile(filePath, 'library lib;');
+    // create contexts
+    server.setAnalysisRoots('0', [dirPath], [], {});
+    // get pair
+    ContextSourcePair pair = server.getContextSourcePair(filePath);
+    _assertContextOfFolder(pair.context, dirPath);
+    Source source = pair.source;
+    expect(source, isNotNull);
+    expect(source.uri.scheme, 'package');
     expect(source.fullName, filePath);
   }
 
