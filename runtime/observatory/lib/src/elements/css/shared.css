@@ -11,6 +11,10 @@ body {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+button {
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 .content {
   padding-left: 10%;
   font: 400 14px 'Montserrat', sans-serif;
