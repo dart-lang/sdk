@@ -84,7 +84,7 @@ TEST_CASE(DirectorySetCurrent) {
 
 
 TEST_CASE(DirectoryCreateDelete) {
-  const char* kTempDirName = "test_name";
+  const char* kTempDirName = "create_delete_test_name";
 
   const char* system_temp = dart::bin::Directory::SystemTemp();
   EXPECT_NOTNULL(system_temp);
@@ -109,7 +109,7 @@ TEST_CASE(DirectoryCreateDelete) {
 
 
 TEST_CASE(DirectoryRename) {
-  const char* kTempDirName = "test_name";
+  const char* kTempDirName = "rename_test_name";
 
   const char* system_temp = dart::bin::Directory::SystemTemp();
   EXPECT_NOTNULL(system_temp);
