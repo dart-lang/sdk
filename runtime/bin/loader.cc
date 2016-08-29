@@ -667,6 +667,7 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
   }
   // All cases should have been handled above.
   UNREACHABLE();
+  return Dart_Null();
 }
 
 
