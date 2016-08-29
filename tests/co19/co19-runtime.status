@@ -31,14 +31,11 @@ LibTest/core/DateTime/DateTime.now_A01_t02: Pass, Fail # co19 issue 709
 
 LibTest/isolate/Isolate/spawnUri_A01_t02: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A01_t03: Skip # Dart issue 15974
+LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15617
 LibTest/isolate/Isolate/spawnUri_A02_t02: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t04: Skip # Dart issue 15974
-LibTest/isolate/Isolate/spawn_A03_t02: Skip # Dart issue 15974
-LibTest/isolate/Isolate/spawn_A04_t01: Skip # Dart issue 15974
-LibTest/isolate/Isolate/spawn_A04_t04: Skip # Dart issue 15974
-LibTest/isolate/Isolate/spawn_A06_t03: Skip # Dart issue 15974
-LibTest/isolate/Isolate/spawn_A06_t05: Skip # Dart issue 15974
+LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
 
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
@@ -56,10 +53,6 @@ LibTest/core/List/List_class_A01_t02: Pass, Slow
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $system == windows ]
 Language/Expressions/Function_Invocation/async_invokation_t04: Pass, RuntimeError # co19 issue 54
-
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $checked == false ]
-LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError # Issue 27185
-LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError # Issue 27185
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc && $arch != simdbc64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
@@ -156,6 +149,10 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompile
 
 Language/Expressions/Property_Extraction/General_Super_Property_Extraction: CompileTimeError # Issue 26287
 Language/Expressions/Property_Extraction/Super_Closurization: CompileTimeError # Issue 26287
+
+# co19 Roll May 30 2016
+Language/Reference/Operator_Precedence/precedence_12_Shift_t02: RuntimeError # Issue 26573
+Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t04: RuntimeError # Issue 26573
 
 [ $noopt || $compiler == precompiler || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
