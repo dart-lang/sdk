@@ -3548,6 +3548,10 @@ class PersistentHandleVisitor : public HandleVisitor {
   }
 
   void Append(FinalizablePersistentHandle* weak_persistent_handle) {
+    if (!weak_persistent_handle->raw()->IsHeapObject()) {
+      return;  // Free handle.
+    }
+
     JSONObject obj(handles_);
     obj.AddProperty("type", "_WeakPersistentHandle");
     const Object& object =
