@@ -17,12 +17,18 @@
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
+LibTest/collection/ListBase/ListBase_class_A01_t01: Fail # co19 issue 72
+LibTest/collection/ListBase/ListBase_class_A01_t02: Fail # co19 issue 72
+LibTest/collection/ListBase/listToString_A01_t01: Fail # co19 issue 72
+LibTest/collection/ListBase/listToString_A02_t01: Fail # co19 issue 72
+LibTest/collection/MapBase/MapBase_class_A01_t01: Fail # co19 issue 72
+LibTest/collection/MapMixin/MapMixin_class_A01_t01: Fail # co19 issue 72
 
 [ $compiler != dart2analyzer ]
 # Tests that fail on every runtime, but not on the analyzer.
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: Fail # co19 issue 687
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
-
+LibTest/collection/LinkedListEntry/unlink_A01_t02: Fail # co19 pull request 73
 LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # Issue 25804
 
 Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
@@ -72,6 +78,9 @@ LibTest/isolate/SendPort/send_A02_t05: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A02_t06: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A03_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A03_t02: Fail # Co19 issue 639
+
+[ $compiler != dart2analyzer && $checked == false ]
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: RuntimeError # Issue 27183
 
 [ $runtime == dartium || $compiler == dart2js ]
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
