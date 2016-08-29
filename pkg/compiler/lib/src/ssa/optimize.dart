@@ -1057,6 +1057,34 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     }
 
+    /// Read the type variable from an allocation of type [createdClass], where
+    /// [selectTypeArgumentFromObjectCreation] extracts the type argument from
+    /// the allocation for factory constructor call.
+    HInstruction finishSubstituted(ClassElement createdClass,
+        HInstruction selectTypeArgumentFromObjectCreation(int index)) {
+      HInstruction instructionForTypeVariable(TypeVariableType tv) {
+        return selectTypeArgumentFromObjectCreation(
+            createdClass.thisType.typeArguments.indexOf(tv));
+      }
+
+      DartType type = createdClass.thisType
+          .asInstanceOf(variable.element.enclosingClass)
+          .typeArguments[variable.element.index];
+      if (type is TypeVariableType) {
+        return instructionForTypeVariable(type);
+      }
+      List<HInstruction> arguments = <HInstruction>[];
+      type.forEachTypeVariable((v) {
+        arguments.add(instructionForTypeVariable(v));
+      });
+      HInstruction replacement = new HTypeInfoExpression(
+          TypeInfoExpressionKind.COMPLETE,
+          type,
+          arguments,
+          backend.dynamicType);
+      return replacement;
+    }
+
     // Type variable evaluated in the context of a constant can be replaced with
     // a ground term type.
     if (object is HConstant) {
@@ -1067,10 +1095,38 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     }
 
-    // TODO(sra): HTypeInfoReadVariable on an instance creation can be replaced
-    // with an input of the instance creation's HTypeInfoExpression (or a
-    // HTypeInfoExpression of an input).  This would in effect store-forward the
-    // type parameters.
+    // Look for an allocation with type information and re-write type variable
+    // as a function of the type parameters of the allocation.  This effectively
+    // store-forwards a type variable read through an allocation.
+
+    // Match:
+    //
+    //     setRuntimeTypeInfo(
+    //         HForeignNew(ClassElement),
+    //         HTypeInfoExpression(t_0, t_1, t_2, ...));
+    //
+    // The `t_i` are the values of the type parameters of ClassElement.
+    if (object is HInvokeStatic) {
+      if (object.element == helpers.setRuntimeTypeInfo) {
+        HInstruction allocation = object.inputs[0];
+        if (allocation is HForeignNew) {
+          HInstruction typeInfo = object.inputs[1];
+          if (typeInfo is HTypeInfoExpression) {
+            return finishSubstituted(
+                allocation.element, (int index) => typeInfo.inputs[index]);
+          }
+        }
+        return node;
+      }
+      // TODO(sra): Factory constructors pass type arguments after the value
+      // arguments. The [select] argument indexes into these type arguments.
+    }
+
+    // Non-generic type (which extends or mixes in a generic type, for example
+    // CodeUnits extends UnmodifiableListBase<int>).
+    if (object is HForeignNew) {
+      return finishGroundType(object.element.thisType);
+    }
 
     return node;
   }
