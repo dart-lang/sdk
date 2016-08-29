@@ -649,6 +649,9 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t0
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t01: Fail # please triage
 WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
 
+[ $compiler == dart2js && $fast_startup && $runtime == jsshell ]
+LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: Fail # please triage
+
 [ $compiler == dart2js && $fast_startup && $browser ]
 LayoutTests/fast/dom/custom/document-register-on-create-callback_t01: Fail # please triage
 LayoutTests/fast/dom/custom/unresolved-pseudoclass_t01: Fail # please triage
@@ -1617,7 +1620,6 @@ WebPlatformTest/DOMEvents/approved/addEventListener.optional.useCapture_t01: Run
 WebPlatformTest/Utils/test/asyncTestFail_t01: RuntimeError # Please triage this failure
 WebPlatformTest/Utils/test/asyncTestFail_t02: RuntimeError # Please triage this failure
 WebPlatformTest/Utils/test/asyncTestTimeout_t01: Skip # Times out. Please triage this failure
-WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError # Issue 25155
@@ -1775,6 +1777,15 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t0
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == chrome && $fast_startup ]
+WebPlatformTest/custom-elements/concepts/type_A04_t01: RuntimeError # Please triage this failure
+WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
+WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # Please triage this failure
+WebPlatformTest/custom-elements/instantiating/namespace_A01_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == chrome && $fast_startup == false ]
+WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $checked ]
 LayoutTests/fast/css-intrinsic-dimensions/css-tables_t01: RuntimeError # Please triage this failure
@@ -4194,7 +4205,6 @@ LibTest/html/Element/getBoundingClientRect_A01_t02: Pass, RuntimeError # Issue 5
 LibTest/html/Element/getClientRects_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # Please triage this failure
-LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isTagSupported_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
@@ -4539,7 +4549,6 @@ LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Fails 10 out of 10.
 LayoutTests/fast/forms/datalist/datalist-child-validation_t01: RuntimeError # Fails 10 out of 10.
 LayoutTests/fast/overflow/scrollbar-restored_t01: RuntimeError # Fails 10 out of 10.
 LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # Fails 10 out of 10.
-LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # Fails 10 out of 10.
 LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError, Pass # Fails 19 out of 20.
 
 LayoutTests/fast/flexbox/repaint-scrollbar_t01: Pass, RuntimeError # Fails 2 out of 10.
@@ -4551,6 +4560,9 @@ LayoutTests/fast/forms/autofocus-input-css-style-change_t01: Pass, RuntimeError 
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: Pass, RuntimeError # Fails 6 out of 10.
 
 LayoutTests/fast/canvas/webgl/glsl-conformance_t01: Skip # Times out 1 out of 20.
+
+[ $compiler == dart2js && $runtime == safari && $fast_startup == false ]
+LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # Fails 10 out of 10.
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
@@ -7875,6 +7887,9 @@ WebPlatformTest/webstorage/event_session_storageeventinit_t01: Pass, RuntimeErro
 WebPlatformTest/webstorage/event_session_url_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
+
+[ $compiler == dart2js && $runtime == ie10 && $fast_startup ]
+LayoutTests/fast/canvas/canvas-composite-image_t01: RuntimeError
 
 [ $compiler == dart2js && $runtime == ie11 ]
 Language/Variables/implicit_setter_void_t07: Skip # Times out. Please triage this failure

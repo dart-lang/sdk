@@ -45,3 +45,6 @@ persistent_handles_page/element_test: Fail # custom elements not supported
 ports/element_test: Fail # custom elements not supported
 retaining_path/element_test: Fail # custom elements not supported
 vm_connect/element_test: Fail # custom elements not supported
+
+[ $runtime == ff ]
+persistent_handles_page/element_test: Fail

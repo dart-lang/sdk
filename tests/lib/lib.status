@@ -122,7 +122,8 @@ mirrors/syntax_error_test/01: Pass # expects failure, but it fails for the wrong
 mirrors/variable_is_const_test/01: Pass # expects failure, but it fails for the wrong reason
 mirrors/model_test: Pass # this is ok
 
-
+[ $compiler == dart2js && $fast_startup ]
+mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wrong reason
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
