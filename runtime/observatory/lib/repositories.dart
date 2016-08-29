@@ -28,6 +28,7 @@ part 'src/repositories/inbound_references.dart';
 part 'src/repositories/instance.dart';
 part 'src/repositories/megamorphiccache.dart';
 part 'src/repositories/notification.dart';
+part 'src/repositories/objectpool.dart';
 part 'src/repositories/objectstore.dart';
 part 'src/repositories/persistent_handles.dart';
 part 'src/repositories/ports.dart';

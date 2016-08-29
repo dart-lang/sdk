@@ -37,10 +37,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Object':
         return (object) {
           switch (object.vmType) {
-            case 'ObjectPool':
-              ObjectPoolViewElement element = new Element.tag('objectpool-view');
-              element.pool = object;
-              return element;
             default:
               ObjectViewElement element = new Element.tag('object-view');
               element.object = object;

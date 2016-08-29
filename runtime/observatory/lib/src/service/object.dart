@@ -3624,11 +3624,11 @@ class LocalVarDescriptors extends ServiceObject {
   }
 }
 
-class ObjectPool extends HeapObject implements M.ObjectPoolRef {
+class ObjectPool extends HeapObject implements M.ObjectPool {
   bool get immutable => false;
 
   @observable int length;
-  @observable List entries;
+  @observable List<ObjectPoolEntry> entries;
 
   ObjectPool._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -3640,8 +3640,45 @@ class ObjectPool extends HeapObject implements M.ObjectPoolRef {
     if (mapIsRef) {
       return;
     }
-    entries = map['_entries'];
+    entries = map['_entries'].map((map) => new ObjectPoolEntry(map));
   }
+}
+
+class ObjectPoolEntry implements M.ObjectPoolEntry {
+  final int offset;
+  final M.ObjectPoolEntryKind kind;
+  final M.ObjectRef asObject;
+  final int asInteger;
+
+  factory ObjectPoolEntry(map) {
+    M.ObjectPoolEntryKind kind = stringToObjectPoolEntryKind(map['kind']);
+    int offset = map['offset'];
+    switch (kind) {
+      case M.ObjectPoolEntryKind.object:
+        return new ObjectPoolEntry._fromObject(map['value'], offset);
+      default:
+        return new ObjectPoolEntry._fromInteger(kind, map['value'], offset);
+    }
+  }
+
+  ObjectPoolEntry._fromObject(this.asObject, this.offset)
+    : kind = M.ObjectPoolEntryKind.object,
+      asInteger = null;
+
+  ObjectPoolEntry._fromInteger(this.kind, this.asInteger, this.offset)
+    : asObject = null;
+}
+
+M.ObjectPoolEntryKind stringToObjectPoolEntryKind(String kind) {
+  switch (kind) {
+    case 'Object':
+      return M.ObjectPoolEntryKind.object;
+    case 'Immediate':
+      return M.ObjectPoolEntryKind.immediate;
+    case 'NativeEntry':
+      return M.ObjectPoolEntryKind.nativeEntry;
+  }
+  throw new Exception('Unknown ObjectPoolEntryKind ($kind)');
 }
 
 class ICData extends HeapObject implements M.ICData {

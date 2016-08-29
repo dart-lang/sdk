@@ -56,6 +56,7 @@ part 'mocks/repositories/inbound_references.dart';
 part 'mocks/repositories/instance.dart';
 part 'mocks/repositories/megamorphiccache.dart';
 part 'mocks/repositories/notification.dart';
+part 'mocks/repositories/objectpool.dart';
 part 'mocks/repositories/objectstore.dart';
 part 'mocks/repositories/ports.dart';
 part 'mocks/repositories/persistent_handles.dart';

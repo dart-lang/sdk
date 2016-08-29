@@ -19,6 +19,8 @@ IsolateSampleProfileRepository _isolateSampleProfileRepository
     = new IsolateSampleProfileRepository();
 MegamorphicCacheRepository _megamorphicCacheRepository
     = new MegamorphicCacheRepository();
+ObjectPoolRepository _objectPoolRepository
+    = new ObjectPoolRepository();
 ObjectStoreRepository _objectstoreRepository
     = new ObjectStoreRepository();
 PersistentHandlesRepository _persistentHandlesRepository
@@ -190,7 +192,9 @@ class InspectPage extends MatchingPage {
     assert(element != null);
   }
 
-  void _visitObject(obj) {
+  Future _visitObject(obj) async {
+    container.children = [];
+    await obj.reload();
     if (obj is Context) {
       container.children = [
         new ContextViewElement(app.vm, obj.isolate, obj, app.events,
@@ -244,6 +248,18 @@ class InspectPage extends MatchingPage {
                                         _retainingPathRepository,
                                         _instanceRepository,
                                         queue: app.queue)
+      ];
+    } else if (obj is ObjectPool) {
+      container.children = [
+        new ObjectPoolViewElement(app.vm, obj.isolate, obj, app.events,
+                                  app.notifications,
+                                  _objectPoolRepository,
+                                  _retainedSizeRepository,
+                                  _reachableSizeRepository,
+                                  _inboundReferencesRepository,
+                                  _retainingPathRepository,
+                                  _instanceRepository,
+                                  queue: app.queue)
       ];
     } else {
       ServiceObjectViewElement serviceElement =new Element.tag('service-view');
