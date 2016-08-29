@@ -4963,7 +4963,11 @@ class InferenceContext {
    * inference.
    */
   static void setType(AstNode node, DartType type) {
-    node?.setProperty(_typeProperty, type);
+    if (type == null || type.isDynamic) {
+      clearType(node);
+    } else {
+      node?.setProperty(_typeProperty, type);
+    }
   }
 
   /**
@@ -6601,8 +6605,10 @@ class ResolverVisitor extends ScopedVisitor {
               //
               // We can't represent this in Dart so we populate it here during
               // inference.
-              returnType = FutureUnionType.from(
-                  futureThenType.returnType, typeProvider, typeSystem);
+              var typeParamS =
+                  futureThenType.returnType.flattenFutures(typeSystem);
+              returnType =
+                    FutureUnionType.from(typeParamS, typeProvider, typeSystem);
             } else {
               returnType = _computeReturnOrYieldType(functionType.returnType);
             }
@@ -7161,7 +7167,8 @@ class ResolverVisitor extends ScopedVisitor {
         return (typeArgs?.length == 1) ? typeArgs[0] : null;
       }
       // async functions expect `Future<T> | T`
-      return new FutureUnionType(declaredType, typeProvider, typeSystem);
+      var futureTypeParam = declaredType.flattenFutures(typeSystem);
+      return FutureUnionType.from(futureTypeParam, typeProvider, typeSystem);
     }
     return declaredType;
   }

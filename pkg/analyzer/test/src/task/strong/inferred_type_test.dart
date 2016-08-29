@@ -1609,6 +1609,17 @@ main() {
     ''');
   }
 
+  void test_futureThen_explicitFuture() {
+    checkFile(r'''
+import "dart:async";
+main() {
+  Future<int> f;
+  var x = f.then/*<Future<List<int>>>*/(/*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
+  Future<List<int>> y = x;
+}
+    ''');
+  }
+
   void test_futureThen_upwards() {
     // Regression test for https://github.com/dart-lang/sdk/issues/27088.
     String build({String declared, String downwards, String upwards}) => '''
@@ -1676,24 +1687,6 @@ $downwards<int> g3(bool x) async {
     checkFile(build(downwards: "Future", upwards: "MyFuture"));
   }
 
-  void test_futureUnion_downwardsGenericMethods() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/27134
-    //
-    // We need to take a future union into account for both directions of
-    // generic method inference.
-    checkFile(r'''
-import 'dart:async';
-
-foo() async {
-  Future<List<A>> f1 = null;
-  Future<List<A>> f2 = null;
-  List<List<A>> merged = await Future.wait(/*info:INFERRED_TYPE_LITERAL*/[f1, f2]);
-}
-
-class A {}
-    ''');
-  }
-
   void test_futureUnion_downwards() {
     String build({String declared, String downwards, String upwards}) {
       // TODO(leafp): The use of matchTypes in visitInstanceCreationExpression
@@ -1734,6 +1727,24 @@ $downwards<List<int>> g3() async {
         build(declared: "Future", downwards: "Future", upwards: "Future"));
     checkFile(
         build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
+  }
+
+  void test_futureUnion_downwardsGenericMethods() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/27134
+    //
+    // We need to take a future union into account for both directions of
+    // generic method inference.
+    checkFile(r'''
+import 'dart:async';
+
+foo() async {
+  Future<List<A>> f1 = null;
+  Future<List<A>> f2 = null;
+  List<List<A>> merged = await Future.wait(/*info:INFERRED_TYPE_LITERAL*/[f1, f2]);
+}
+
+class A {}
+    ''');
   }
 
   void test_genericMethods_basicDownwardInference() {

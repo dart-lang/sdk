@@ -1607,21 +1607,14 @@ class FutureUnionType extends TypeImpl {
   final List<DartType> _types;
 
   /**
-   * Creates a union of `Future< flatten(T) > | flatten(T)`.
+   * Creates a union of `Future<T> | T`.
    */
-  factory FutureUnionType(
-      DartType type, TypeProvider provider, TypeSystem system) {
-    type = type.flattenFutures(system);
-
-    // The order of these types is important: T could be a type variable, so
-    // we want to try and match `Future<T>` before we try and match `T`.
-    return new FutureUnionType._([
-      provider.futureType.instantiate([type]),
-      type
-    ]);
-  }
-
-  FutureUnionType._(this._types) : super(null, null);
+  FutureUnionType._(DartType type, TypeProvider provider, TypeSystem system)
+      : _types = [
+          provider.futureType.instantiate([type]),
+          type
+        ],
+        super(null, null);
 
   DartType get futureOfType => _types[0];
 
@@ -1676,15 +1669,39 @@ class FutureUnionType extends TypeImpl {
       throw new UnsupportedError('Future unions are not used in typedefs');
 
   /**
-   * Creates a union of `flatten(T) | Future<flatten(T)>`, unless `T` is
-   * already a future-union, in which case it simply returns `T`
+   * Creates a union of `T | Future<T>`, unless `T` is already a future or a
+   * future-union, in which case it simply returns `T`.
+   *
+   * Conceptually this is used as the inverse of the `flatten(T)` operation,
+   * defined as:
+   *
+   * - `flatten(Future<T>) -> T`
+   * - `flatten(T) -> T`
+   *
+   * Thus the inverse will give us `T | Future<T>`.
+   *
+   * If [type] is top (dynamic or Object) then the resulting union type is
+   * equivalent to top, so we simply return it.
+   *
+   * For a similar reason `Future<T> | Future<Future<T>>` is equivalent to just
+   * `Future<T>`, so we return it. Note that it is not possible to get a
+   * `Future<T>` as a result of `flatten`, so a this case likely indicates a
+   * type error in the code, but it will be reported elsewhere.
    */
   static DartType from(
       DartType type, TypeProvider provider, TypeSystem system) {
+    if (_isTop(type)) {
+      return type;
+    }
+    if (!identical(type, type.flattenFutures(system))) {
+      // As noted above, this most likely represents erroneous input.
+      return type;
+    }
+
     if (type is FutureUnionType) {
       return type;
     }
-    return new FutureUnionType(type, provider, system);
+    return new FutureUnionType._(type, provider, system);
   }
 }
 
