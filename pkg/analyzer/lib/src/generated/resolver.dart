@@ -5202,12 +5202,6 @@ class PartialResolverVisitor extends ResolverVisitor {
   final List<VariableElement> staticVariables = <VariableElement>[];
 
   /**
-   * The static and instance variables and fields that have an initializer.
-   * These are the variables whose types might be propagated.
-   */
-  final List<VariableElement> propagableVariables = <VariableElement>[];
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * The [definingLibrary] is the element for the library containing the node
@@ -5248,7 +5242,6 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    _addPropagableVariables(node.fields.variables);
     if (node.isStatic) {
       _addStaticVariables(node.fields.variables);
     }
@@ -5262,25 +5255,8 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _addPropagableVariables(node.variables.variables);
     _addStaticVariables(node.variables.variables);
     return super.visitTopLevelVariableDeclaration(node);
-  }
-
-  /**
-   * Add all of the [variables] with initializers to [propagableVariables].
-   */
-  void _addPropagableVariables(List<VariableDeclaration> variables) {
-    int length = variables.length;
-    for (int i = 0; i < length; i++) {
-      VariableDeclaration variable = variables[i];
-      if (variable.name.name.isNotEmpty && variable.initializer != null) {
-        VariableElement element = variable.element;
-        if (element.isConst || element.isFinal) {
-          propagableVariables.add(element);
-        }
-      }
-    }
   }
 
   /**

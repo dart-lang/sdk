@@ -7733,12 +7733,6 @@ class C<T> {
     expect(v.inferredTypeSlot, 0);
   }
 
-  test_field_propagated_type_final_immediate() {
-    UnlinkedVariable v =
-        serializeClassText('class C { final v = 0; }').fields[0];
-    checkLinkedTypeSlot(v.propagatedTypeSlot, 'dart:core', 'dart:core', 'int');
-  }
-
   test_field_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { static int i; }').fields[0];
@@ -7788,11 +7782,11 @@ class C<T> {
   }
 
   test_fully_linked_references_follow_other_references() {
-    if (skipFullyLinkedData) {
+    if (!strongMode || skipFullyLinkedData) {
       return;
     }
     serializeLibraryText('final x = 0; String y;');
-    checkLinkedTypeSlot(unlinkedUnits[0].variables[0].propagatedTypeSlot,
+    checkLinkedTypeSlot(unlinkedUnits[0].variables[0].inferredTypeSlot,
         'dart:core', 'dart:core', 'int');
     checkTypeRef(
         unlinkedUnits[0].variables[1].type, 'dart:core', 'dart:core', 'String');
@@ -7800,7 +7794,7 @@ class C<T> {
     // type reference for x should use a higher numbered reference than the
     // unlinked type reference for y.
     EntityRef propagatedType =
-        getTypeRefForSlot(unlinkedUnits[0].variables[0].propagatedTypeSlot);
+        getTypeRefForSlot(unlinkedUnits[0].variables[0].inferredTypeSlot);
     expect(unlinkedUnits[0].variables[1].type.reference,
         lessThan(propagatedType.reference));
   }
@@ -8712,7 +8706,7 @@ int bar;'''
   }
 
   test_linked_reference_reuse() {
-    if (skipFullyLinkedData) {
+    if (!strongMode || skipFullyLinkedData) {
       return;
     }
     // When the reference for a linked type is the same as an explicitly
@@ -8722,12 +8716,12 @@ int bar;'''
     serializeLibraryText(
         'import "a.dart"; import "b.dart"; C c1; final c2 = f();');
     int explicitReference = findVariable('c1').type.reference;
-    expect(getTypeRefForSlot(findVariable('c2').propagatedTypeSlot).reference,
+    expect(getTypeRefForSlot(findVariable('c2').inferredTypeSlot).reference,
         explicitReference);
   }
 
   test_linked_type_dependency_reuse() {
-    if (skipFullyLinkedData) {
+    if (!strongMode || skipFullyLinkedData) {
       return;
     }
     // When the dependency for a linked type is the same as an explicit
@@ -8739,7 +8733,7 @@ int bar;'''
     int cReference = findVariable('c').type.reference;
     int explicitDependency = linked.units[0].references[cReference].dependency;
     int dReference =
-        getTypeRefForSlot(findVariable('d').propagatedTypeSlot).reference;
+        getTypeRefForSlot(findVariable('d').inferredTypeSlot).reference;
     expect(
         linked.units[0].references[dReference].dependency, explicitDependency);
   }
@@ -9500,8 +9494,8 @@ void set f(value) {}''';
     // ids should be reused.
     addNamedSource('/a.dart', 'part of foo; final v = 0;');
     serializeLibraryText('library foo; part "a.dart"; final w = 0;');
-    expect(unlinkedUnits[1].variables[0].propagatedTypeSlot,
-        unlinkedUnits[0].variables[0].propagatedTypeSlot);
+    expect(unlinkedUnits[1].variables[0].inferredTypeSlot,
+        unlinkedUnits[0].variables[0].inferredTypeSlot);
   }
 
   test_syntheticFunctionType_genericClosure() {
@@ -9590,38 +9584,6 @@ void f<T, U>(bool b) {
         inferredType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
     checkParamTypeRef(inferredType.syntheticParams[0].type, 2);
     checkParamTypeRef(inferredType.syntheticParams[1].type, 1);
-  }
-
-  test_syntheticFunctionType_noArguments() {
-    if (skipFullyLinkedData) {
-      return;
-    }
-    UnlinkedVariable variable = serializeVariableText('''
-final v = f() ? () => 0 : () => 1;
-bool f() => true;
-''');
-    EntityRef propagatedType = getTypeRefForSlot(variable.propagatedTypeSlot);
-    checkLinkedTypeRef(
-        propagatedType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
-    expect(propagatedType.syntheticParams, isEmpty);
-  }
-
-  test_syntheticFunctionType_withArguments() {
-    if (skipFullyLinkedData) {
-      return;
-    }
-    UnlinkedVariable variable = serializeVariableText('''
-final v = f() ? (int x, String y) => 0 : (int x, String y) => 1;
-bool f() => true;
-''');
-    EntityRef propagatedType = getTypeRefForSlot(variable.propagatedTypeSlot);
-    checkTypeRef(
-        propagatedType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
-    expect(propagatedType.syntheticParams, hasLength(2));
-    checkTypeRef(propagatedType.syntheticParams[0].type, 'dart:core',
-        'dart:core', 'int');
-    checkTypeRef(propagatedType.syntheticParams[1].type, 'dart:core',
-        'dart:core', 'String');
   }
 
   test_type_arguments_explicit() {
@@ -10333,59 +10295,6 @@ var v;''';
   test_variable_private() {
     serializeVariableText('int _i;', variableName: '_i');
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
-  }
-
-  test_variable_propagated_type_final_immediate() {
-    UnlinkedVariable v = serializeVariableText('final v = 0;');
-    checkLinkedTypeSlot(v.propagatedTypeSlot, 'dart:core', 'dart:core', 'int');
-  }
-
-  test_variable_propagated_type_new_reference() {
-    if (skipFullyLinkedData) {
-      return;
-    }
-    UnlinkedVariable v = serializeVariableText('final v = 0;');
-    // Since the propagated type of `v` is `int`, and there are no references
-    // to `int` elsewhere in the source file, a new linked reference should
-    // have been created for it, with no associated unlinked reference.
-    expect(v.propagatedTypeSlot, isNot(0));
-    EntityRef type = getTypeRefForSlot(v.propagatedTypeSlot);
-    expect(type, isNotNull);
-    expect(type.reference,
-        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
-  }
-
-  test_variable_propagated_type_omit_dynamic() {
-    if (skipFullyLinkedData) {
-      return;
-    }
-    UnlinkedVariable v = serializeVariableText('final v = <int, dynamic>{};');
-    EntityRef type = getTypeRefForSlot(v.propagatedTypeSlot);
-    checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
-        numTypeParameters: 2, numTypeArguments: 2);
-    checkLinkedTypeRef(type.typeArguments[0], 'dart:core', 'dart:core', 'int');
-    checkLinkedDynamicTypeRef(type.typeArguments[1]);
-  }
-
-  test_variable_propagatedTypeSlot_const() {
-    // Const variables are propagable so they have a nonzero
-    // propagatedTypeSlot.
-    UnlinkedVariable variable = serializeVariableText('const v = 0;');
-    expect(variable.propagatedTypeSlot, isNot(0));
-  }
-
-  test_variable_propagatedTypeSlot_final() {
-    // Final variables are propagable so they have a nonzero
-    // propagatedTypeSlot.
-    UnlinkedVariable variable = serializeVariableText('final v = 0;');
-    expect(variable.propagatedTypeSlot, isNot(0));
-  }
-
-  test_variable_propagatedTypeSlot_non_propagable() {
-    // Non-final non-const variables aren't propagable so they don't have a
-    // propagatedTypeSlot.
-    UnlinkedVariable variable = serializeVariableText('var v;');
-    expect(variable.propagatedTypeSlot, 0);
   }
 
   test_variable_static() {

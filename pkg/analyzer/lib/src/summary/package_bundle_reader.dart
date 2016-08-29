@@ -253,8 +253,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           result == CREATED_RESOLVED_UNIT8 ||
           result == CREATED_RESOLVED_UNIT9 ||
           result == CREATED_RESOLVED_UNIT10 ||
-          result == CREATED_RESOLVED_UNIT11 ||
-          result == CREATED_RESOLVED_UNIT12) {
+          result == CREATED_RESOLVED_UNIT11) {
         entry.setValue(result, true, TargetedResult.EMPTY_LIST);
         return true;
       }
@@ -269,7 +268,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         }
       }
     } else if (target is VariableElement) {
-      if (result == PROPAGATED_VARIABLE || result == INFERRED_STATIC_VARIABLE) {
+      if (result == INFERRED_STATIC_VARIABLE) {
         entry.setValue(result, target, TargetedResult.EMPTY_LIST);
         return true;
       }

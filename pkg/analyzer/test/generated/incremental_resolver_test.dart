@@ -1938,9 +1938,8 @@ class B extends A {}
     _assertCacheUnitResult(RESOLVED_UNIT9);
     _assertCacheUnitResult(RESOLVED_UNIT10);
     _assertCacheUnitResult(RESOLVED_UNIT11);
-    _assertCacheUnitResult(RESOLVED_UNIT12);
     if (expectCachePostConstantsValid) {
-      _assertCacheUnitResult(RESOLVED_UNIT13);
+      _assertCacheUnitResult(RESOLVED_UNIT12);
       _assertCacheUnitResult(RESOLVED_UNIT);
     }
   }

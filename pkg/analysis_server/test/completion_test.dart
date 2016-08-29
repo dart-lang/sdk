@@ -2850,7 +2850,7 @@ class A {
 
     // test analysis of untyped fields and top-level vars
     buildTests('test035', '''class Y {final x='hi';mth() {x.!1length;}}''',
-        <String>["1+length"]);
+        <String>["1+length"], failingTests: '1');
 
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)
