@@ -22,6 +22,7 @@ part 'src/repositories/eval.dart';
 part 'src/repositories/event.dart';
 part 'src/repositories/field.dart';
 part 'src/repositories/flag.dart';
+part 'src/repositories/function.dart';
 part 'src/repositories/heap_snapshot.dart';
 part 'src/repositories/icdata.dart';
 part 'src/repositories/inbound_references.dart';

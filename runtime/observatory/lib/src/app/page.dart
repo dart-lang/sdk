@@ -9,6 +9,7 @@ AllocationProfileRepository _allocationProfileRepository
 ClassRepository _classRepository = new ClassRepository();
 ContextRepository _contextRepository = new ContextRepository();
 FieldRepository _fieldRepository = new FieldRepository();
+FunctionRepository _functionRepository = new FunctionRepository();
 HeapSnapshotRepository _heapSnapshotRepository
     = new HeapSnapshotRepository();
 ICDataRepository _icdataRepository = new ICDataRepository();
@@ -224,6 +225,20 @@ class InspectPage extends MatchingPage {
                              _scriptRepository,
                              _instanceRepository,
                              queue: app.queue)
+      ];
+    } else if (obj is ServiceFunction) {
+      container.children = [
+        new FunctionViewElement(app.vm, obj.isolate, obj, app.events,
+                                app.notifications,
+                                _functionRepository,
+                                _classRepository,
+                                _retainedSizeRepository,
+                                _reachableSizeRepository,
+                                _inboundReferencesRepository,
+                                _retainingPathRepository,
+                                _scriptRepository,
+                                _instanceRepository,
+                                queue: app.queue)
       ];
     } else if (obj is ICData) {
       container.children = [

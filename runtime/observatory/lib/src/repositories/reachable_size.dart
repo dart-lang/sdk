@@ -5,7 +5,6 @@
 part of repositories;
 
 class ReachableSizeRepository implements M.ReachableSizeRepository {
-
   Future<M.Guarded<M.Instance>> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);

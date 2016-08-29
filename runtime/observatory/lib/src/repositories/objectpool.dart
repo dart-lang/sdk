@@ -5,8 +5,6 @@
 part of repositories;
 
 class ObjectPoolRepository extends M.ObjectPoolRepository {
-  ObjectPoolRepository();
-
   Future<M.ObjectPool> get(M.IsolateRef i, String id) async{
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);

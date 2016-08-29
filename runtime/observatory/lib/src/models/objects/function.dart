@@ -82,4 +82,17 @@ abstract class Function extends Object implements FunctionRef {
 
   /// The compiled code associated with this function. [optional]
   CodeRef get code;
+  /// [optional]
+  CodeRef get unoptimizedCode;
+  /// [optional]
+  FieldRef get field;
+  int get usageCounter;
+  InstanceRef get icDataArray;
+  int get deoptimizations;
+  bool get isOptimizable;
+  bool get isInlinable;
+  bool get hasIntrinsic;
+  bool get isRecognized;
+  bool get isNative;
+  String get vmName;
 }

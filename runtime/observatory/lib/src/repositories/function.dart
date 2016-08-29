@@ -4,14 +4,10 @@
 
 part of repositories;
 
-class RetainingPathRepository implements M.RetainingPathRepository {
-  Future<M.RetainingPath> get(M.IsolateRef i, String id) async {
+class FunctionRepository extends M.FunctionRepository {
+  Future<M.Function> get(M.IsolateRef i, String id) async{
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
-    final response = await isolate.invokeRpc('_getRetainingPath', {
-        'targetId' : id,
-        'limit': 100
-    });
-    return new S.RetainingPath(response);
+    return (await isolate.getObject(id)) as S.ServiceFunction;
   }
 }

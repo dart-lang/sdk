@@ -41,6 +41,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
                                               ObjectCommonElement.tag,
+                                              ScriptInsetElement.tag,
                                               SourceLinkElement.tag,
                                               ViewFooterElement.tag
                                             ]);
@@ -283,10 +284,10 @@ class FieldViewElement extends HtmlElement implements Renderable {
 
   Future _refresh() async {
     _field = await _fields.get(_isolate, _field.id);
-    if (field.dartOwner is M.LibraryRef) {
-      _library = field.dartOwner;
-    } else if (field.dartOwner is M.ClassRef) {
-      _library = (await _classes.get(_isolate, field.dartOwner.id)).library;
+    if (_field.dartOwner is M.LibraryRef) {
+      _library = _field.dartOwner;
+    } else if (_field.dartOwner is M.ClassRef) {
+      _library = (await _classes.get(_isolate, _field.dartOwner.id)).library;
     }
     _r.dirty();
   }

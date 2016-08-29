@@ -5,8 +5,6 @@
 part of repositories;
 
 class InstanceRepository extends M.InstanceRepository {
-  InstanceRepository();
-
   Future<M.Instance> get(M.IsolateRef i, String id,
                          {int count: S.kDefaultFieldLimit}) async{
     S.Isolate isolate = i as S.Isolate;

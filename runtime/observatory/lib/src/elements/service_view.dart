@@ -30,10 +30,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         CodeViewElement element = new Element.tag('code-view');
         element.code = object;
         return element;
-      case 'Function':
-        FunctionViewElement element = new Element.tag('function-view');
-        element.function = object;
-        return element;
       case 'Object':
         return (object) {
           switch (object.vmType) {
