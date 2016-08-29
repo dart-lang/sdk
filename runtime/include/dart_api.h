@@ -586,13 +586,6 @@ DART_EXPORT Dart_Handle Dart_SetGcCallbacks(
     Dart_GcPrologueCallback prologue_callback,
     Dart_GcEpilogueCallback epilogue_callback);
 
-typedef void (*Dart_GcPrologueWeakHandleCallback)(void* isolate_callback_data,
-                                                  Dart_WeakPersistentHandle obj,
-                                                  intptr_t num_native_fields,
-                                                  intptr_t* native_fields);
-
-DART_EXPORT Dart_Handle Dart_VisitPrologueWeakHandles(
-    Dart_GcPrologueWeakHandleCallback callback);
 
 /*
  * ==========================
