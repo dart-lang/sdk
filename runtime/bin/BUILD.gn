@@ -568,6 +568,7 @@ if (defined(is_fuchsia) && is_fuchsia) {
     ]
     libs = [
       "launchpad",
+      "magenta",
       "runtime",
     ]
   }
