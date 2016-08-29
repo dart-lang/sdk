@@ -158,7 +158,6 @@
     'lib/src/elements/script_ref.dart',
     'lib/src/elements/script_ref_wrapper.dart',
     'lib/src/elements/script_view.dart',
-    'lib/src/elements/script_view.html',
     'lib/src/elements/sentinel_value.dart',
     'lib/src/elements/service_ref.dart',
     'lib/src/elements/service_ref.html',

@@ -118,7 +118,8 @@ class SourceInsetElementWrapper extends HtmlElement {
           flex-direction: row;
           width: 100%;
         }
-        script-inset-wrapped .sourceItem, .sourceItemCurrent {
+        script-inset-wrapped .sourceItem,
+        script-inset-wrapped .sourceItemCurrent {
           vertical-align: top;
           font: 400 14px consolas, courier, monospace;
           line-height: 125%;

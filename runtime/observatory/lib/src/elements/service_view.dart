@@ -51,10 +51,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         LibraryViewElement element = new Element.tag('library-view');
         element.library = object;
         return element;
-      case 'Script':
-        ScriptViewElement element = new Element.tag('script-view');
-        element.script = object;
-        return element;
       case 'VM':
         VMViewElement element = new Element.tag('vm-view');
         element.vm = object;

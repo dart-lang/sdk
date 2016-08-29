@@ -261,6 +261,24 @@ class InspectPage extends MatchingPage {
                                   _instanceRepository,
                                   queue: app.queue)
       ];
+    } else if (obj is Script) {
+      var pos;
+      if (app.locationManager.internalArguments['pos'] != null) {
+        try {
+          pos = int.parse(app.locationManager.internalArguments['pos']);
+        } catch (_) {}
+      }
+      container.children = [
+        new ScriptViewElement(app.vm, obj.isolate, obj, app.events,
+                              app.notifications,
+                              _scriptRepository,
+                              _retainedSizeRepository,
+                              _reachableSizeRepository,
+                              _inboundReferencesRepository,
+                              _retainingPathRepository,
+                              _instanceRepository,
+                              pos: pos, queue: app.queue)
+      ];
     } else {
       ServiceObjectViewElement serviceElement =new Element.tag('service-view');
       serviceElement.object = obj;

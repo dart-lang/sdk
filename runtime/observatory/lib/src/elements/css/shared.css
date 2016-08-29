@@ -2,13 +2,13 @@
 * {
   margin: 0;
   padding: 0;
-  font: 400 14px 'Montserrat', sans-serif;
-  color: #333;
   box-sizing: border-box;
 }
 
 body {
   padding-top: 56px;
+  color: #333;
+  font: 400 14px 'Montserrat', sans-serif;
 }
 
 .content {
@@ -30,6 +30,10 @@ body {
 
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
+}
+
+h2 {
+  font: 400 16px 'Montserrat', sans-serif;
 }
 
 .memberList {
@@ -1484,7 +1488,8 @@ script-inset-wrapped .sourceRow {
   flex-direction: row;
   width: 100%;
 }
-script-inset-wrapped .sourceItem, .sourceItemCurrent {
+script-inset-wrapped .sourceItem,
+script-inset-wrapped .sourceItemCurrent {
   vertical-align: top;
   font: 400 14px consolas, courier, monospace;
   line-height: 125%;
