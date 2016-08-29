@@ -56,6 +56,19 @@ class EvalBoxElementWrapper extends HtmlElement {
             color: #0489c3;
             text-decoration: none;
         }
+        eval-box-wrapped .quicks > button:hover {
+          background-color: transparent;
+          border: none;
+          text-decoration: underline;
+        }
+        eval-box-wrapped .quicks > button {
+          background-color: transparent;
+          border: none;
+          color: #0489c3;
+          padding: 0;
+          margin-right: 1em;
+          text-decoration: none;
+        }
         eval-box-wrapped .empathize {
           font-style: italic;
         }

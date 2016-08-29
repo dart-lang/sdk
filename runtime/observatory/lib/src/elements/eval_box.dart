@@ -29,6 +29,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
   final _results = <_ExpressionDescription>[];
   String _expression = '';
   bool _multiline;
+  Iterable<String> _quickExpressions;
 
   M.IsolateRef get isolate => _isolate;
   M.ObjectRef get context => _context;
@@ -36,12 +37,15 @@ class EvalBoxElement extends HtmlElement implements Renderable {
   factory EvalBoxElement(M.IsolateRef isolate, M.ObjectRef context,
                          M.InstanceRepository instances,
                          M.EvalRepository eval,
-                         {bool multiline: false, RenderingQueue queue}) {
+                         {bool multiline: false,
+                          Iterable<String> quickExpressions: const [],
+                          RenderingQueue queue}) {
     assert(isolate != null);
     assert(context != null);
     assert(instances != null);
     assert(eval != null);
     assert(multiline != null);
+    assert(quickExpressions != null);
     EvalBoxElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
@@ -49,6 +53,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
     e._instances = instances;
     e._eval = eval;
     e._multiline = multiline;
+    e._quickExpressions = new List.unmodifiable(quickExpressions);
     return e;
   }
 
@@ -70,6 +75,15 @@ class EvalBoxElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
+      new DivElement()..classes = const ['quicks']
+        ..children = _quickExpressions.map((q) =>
+          new ButtonElement()
+            ..text = q
+            ..onClick.listen((_) {
+              _expression = q;
+              _run();
+            })
+        ),
       new DivElement()..classes = const ['heading']
         ..children = [
           new FormElement()
