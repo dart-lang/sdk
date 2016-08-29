@@ -186,7 +186,9 @@ class CodeChecker extends RecursiveAstVisitor {
         // so no need to insert an error for this here.
         continue;
       }
-      checkArgument(arg, _elementType(element));
+      DartType expectedType = _elementType(element);
+      if (expectedType == null) expectedType = DynamicTypeImpl.instance;
+      checkArgument(arg, expectedType);
     }
   }
 
@@ -699,28 +701,34 @@ class CodeChecker extends RecursiveAstVisitor {
       assert(functionType.namedParameterTypes.isEmpty);
       assert(functionType.optionalParameterTypes.isEmpty);
 
-      // Refine the return type.
+      // Check the LHS type.
       var rhsType = _getDefiniteType(expr.rightHandSide);
       var lhsType = _getDefiniteType(expr.leftHandSide);
       var returnType = rules.refineBinaryExpressionType(
           typeProvider, lhsType, op, rhsType, functionType.returnType);
 
-      // Check the argument for an implicit cast.
-      _checkDowncast(expr.rightHandSide, paramTypes[0], from: rhsType);
-
-      // Check the return type for an implicit cast.
-      //
-      // If needed, mark the left side to indicate a down cast when we assign
-      // back to it. So these two implicit casts are equivalent:
-      //
-      //     y = /*implicit cast*/(y + 42);
-      //     y/*implicit cast*/ += 42;
-      //
-      // TODO(jmesserly): this is an unambiguous way to represent it, but it's
-      // a bit sneaky. We can't use the rightHandSide because that could be a
-      // downcast on its own, and we can't use the entire expression because its
-      // result value could used and then implicitly downcast.
-      _checkDowncast(expr.leftHandSide, lhsType, from: returnType);
+      if (!rules.isSubtypeOf(returnType, lhsType)) {
+        final numType = typeProvider.numType;
+        // TODO(jmesserly): this seems to duplicate logic in StaticTypeAnalyzer.
+        // Try to fix up the numerical case if possible.
+        if (rules.isSubtypeOf(lhsType, numType) &&
+            rules.isSubtypeOf(lhsType, rhsType)) {
+          // This is also slightly different from spec, but allows us to keep
+          // compound operators in the int += num and num += dynamic cases.
+          _recordImplicitCast(expr.rightHandSide, rhsType, lhsType);
+        } else {
+          // TODO(jmesserly): this results in a duplicate error, because
+          // ErrorVerifier also reports it.
+          _recordMessage(expr, StrongModeCode.STATIC_TYPE_ERROR,
+              [expr, returnType, lhsType]);
+        }
+      } else {
+        // Check the RHS type.
+        //
+        // This is only needed if we didn't already need a cast, and avoids
+        // emitting two messages for the same expression.
+        _checkDowncast(expr.rightHandSide, paramTypes.first);
+      }
     }
   }
 
