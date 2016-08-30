@@ -1,5 +1,12 @@
 ## 1.20.0
 
+### Dart VM
+
+* We have improved the way that the VM locates the native code library for a
+  native extension (e.g. `dart-ext:` import). We have updated this
+  [article on native extensions](https://www.dartlang.org/articles/dart-vm/native-extensions)
+  to reflect the VM's improved behavior.
+
 ### Core library changes
 * `dart:core`: Remove deprecated `Resource` class.
   Use the class in `package:resource` instead.
