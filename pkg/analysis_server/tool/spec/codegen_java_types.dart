@@ -103,7 +103,10 @@ final GeneratedDirectory targetDir =
       }
     }
   }
-  print(map.keys);
+  print("Generating...");
+  map.keys.forEach((String file) {
+    print("  ${targetDir.outputDirPath}/$file");
+  });
   return map;
 });
 
