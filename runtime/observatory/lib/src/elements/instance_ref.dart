@@ -12,6 +12,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/sentinel_value.dart';
+import 'package:observatory/utils.dart';
 
 class InstanceRefElement extends HtmlElement implements Renderable {
   static const tag = const Tag<InstanceRefElement>('instance-ref-wrapped');
@@ -65,7 +66,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         new SpanElement()..text = ' ',
         new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
           ..children = [
-            new DivElement()..classes = ['indent']
+            new DivElement()..classes = const ['indent']
               ..children = _createValue()
           ]
           ..onToggle.listen((e) async {
@@ -119,7 +120,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.string:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..text = asStringLiteral(_instance.valueAsString,
+            ..text = Utils.formatStringAsLiteral(_instance.valueAsString,
                 _instance.valueAsStringIsTruncated)
         ];
       case M.InstanceKind.type:
@@ -134,7 +135,8 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..children = [
-              new SpanElement()..classes = ['empathize']..text = 'Closure',
+              new SpanElement()..classes = const ['emphasize']
+                ..text = 'Closure',
               new SpanElement()..text = _instance.closureFunction.name
             ]
         ];
@@ -142,7 +144,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..children = [
-              new SpanElement()..classes = ['empathize']
+              new SpanElement()..classes = const ['emphasize']
                 ..text = _instance.clazz.name,
               new SpanElement()..text = _instance.pattern.name
             ]
@@ -153,14 +155,14 @@ class InstanceRefElement extends HtmlElement implements Renderable {
             ..text = _instance.clazz.name,
           new CurlyBlockElement(queue: _r.queue)
             ..children = [
-              new DivElement()..classes = ['stackTraceBox']
+              new DivElement()..classes = const ['stackTraceBox']
                 ..text = _instance.valueAsString
             ]
         ];
       case M.InstanceKind.plainInstance:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..classes = ['empathize']
+            ..classes = ['emphasize']
             ..text = _instance.clazz.name
         ];
       case M.InstanceKind.list:
@@ -182,7 +184,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..children = [
-              new SpanElement()..classes = ['empathize']
+              new SpanElement()..classes = const ['emphasize']
                 ..text = _instance.clazz.name,
               new SpanElement()..text = ' (${_instance.length})'
             ]
@@ -190,13 +192,13 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.mirrorReference:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..classes = ['empathize']
+            ..classes = const ['emphasize']
             ..text = _instance.clazz.name
         ];
       case M.InstanceKind.weakProperty:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..classes = ['empathize']
+            ..classes = const ['emphasize']
             ..text = _instance.clazz.name
         ];
     }
@@ -313,31 +315,5 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       default:
         return [];
     }
-  }
-
-  static String asStringLiteral(String value, [bool wasTruncated=false]) {
-    var result = new List();
-    result.add("'".codeUnitAt(0));
-    for (int codeUnit in value.codeUnits) {
-      if (codeUnit == '\n'.codeUnitAt(0)) result.addAll('\\n'.codeUnits);
-      else if (codeUnit == '\r'.codeUnitAt(0)) result.addAll('\\r'.codeUnits);
-      else if (codeUnit == '\f'.codeUnitAt(0)) result.addAll('\\f'.codeUnits);
-      else if (codeUnit == '\b'.codeUnitAt(0)) result.addAll('\\b'.codeUnits);
-      else if (codeUnit == '\t'.codeUnitAt(0)) result.addAll('\\t'.codeUnits);
-      else if (codeUnit == '\v'.codeUnitAt(0)) result.addAll('\\v'.codeUnits);
-      else if (codeUnit == '\$'.codeUnitAt(0)) result.addAll('\\\$'.codeUnits);
-      else if (codeUnit == '\\'.codeUnitAt(0)) result.addAll('\\\\'.codeUnits);
-      else if (codeUnit == "'".codeUnitAt(0)) result.addAll("'".codeUnits);
-      else if (codeUnit < 32) {
-         var escapeSequence = "\\u" + codeUnit.toRadixString(16).padLeft(4, "0");
-         result.addAll(escapeSequence.codeUnits);
-      } else result.add(codeUnit);
-    }
-    if (wasTruncated) {
-      result.addAll("...".codeUnits);
-    } else {
-      result.add("'".codeUnitAt(0));
-    }
-    return new String.fromCharCodes(result);
   }
 }

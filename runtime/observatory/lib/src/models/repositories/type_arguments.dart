@@ -4,7 +4,6 @@
 
 part of models;
 
-abstract class BoundField {
-  FieldRef get decl;
-  Guarded<InstanceRef> get value;
+abstract class TypeArgumentsRepository {
+  Future<TypeArguments> get(IsolateRef isolate, String id);
 }

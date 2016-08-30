@@ -53,7 +53,7 @@ class ICDataRefElement extends HtmlElement implements Renderable {
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _icdata))
         ..children = [
-          new SpanElement()..classes = ['emphatize']
+          new SpanElement()..classes = ['emphasize']
             ..text = 'ICData',
           new SpanElement()..text = ' (${_icdata.selector})'
         ]

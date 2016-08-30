@@ -16,6 +16,7 @@ import 'package:observatory/service_common.dart' as SC;
 import 'package:observatory/utils.dart';
 
 part 'src/repositories/allocation_profile.dart';
+part 'src/repositories/breakpoint.dart';
 part 'src/repositories/class.dart';
 part 'src/repositories/context.dart';
 part 'src/repositories/eval.dart';
@@ -42,3 +43,4 @@ part 'src/repositories/sample_profile.dart';
 part 'src/repositories/script.dart';
 part 'src/repositories/settings.dart';
 part 'src/repositories/target.dart';
+part 'src/repositories/type_arguments.dart';

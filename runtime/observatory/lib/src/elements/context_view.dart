@@ -143,13 +143,13 @@ class ContextViewElement extends HtmlElement implements Renderable {
         new BRElement(),
         new DivElement()..classes = const ['content-centered-big']
           ..children = [
-            new DivElement()..classes = ['memberList']
+            new DivElement()..classes = const ['memberList']
               ..children = [
-                new DivElement()..classes = ['memberItem']
+                new DivElement()..classes = const ['memberItem']
                   ..children = [
-                    new DivElement()..classes = ['memberName']
+                    new DivElement()..classes = const ['memberName']
                       ..text = 'parent context',
-                    new DivElement()..classes = ['memberName']
+                    new DivElement()..classes = const ['memberName']
                       ..children = [
                         new ContextRefElement(_isolate, _context.parentContext,
                                               queue: _r.queue)
@@ -169,13 +169,13 @@ class ContextViewElement extends HtmlElement implements Renderable {
             new CurlyBlockElement(expanded: _context.variables.length > 8,
                                   queue: _r.queue)
               ..children = [
-                new DivElement()..classes = ['memberList']
+                new DivElement()..classes = const ['memberList']
                   ..children = _context.variables.map((variable)
-                    => new DivElement()..classes = ['memberItem']
+                    => new DivElement()..classes = const ['memberItem']
                       ..children = [
-                        new DivElement()..classes = ['memberName']
+                        new DivElement()..classes = const ['memberName']
                           ..text = '[ ${++index} ]',
-                        new DivElement()..classes = ['memberName']
+                        new DivElement()..classes = const ['memberName']
                           ..children = [
                             anyRef(_isolate, variable.value, _instances,
                                    queue: _r.queue)

@@ -816,7 +816,7 @@ eval-box-wrapped .quicks > button {
   margin-right: 1em;
   text-decoration: none;
 }
-eval-box-wrapped .empathize {
+eval-box-wrapped .emphasize {
   font-style: italic;
 }
 eval-box-wrapped .indent {
@@ -1019,7 +1019,7 @@ instance-ref-wrapped > a[href] {
 instance-ref-wrapped > a[href] * {
   color: inherit;
 }
-instance-ref-wrapped .empathize {
+instance-ref-wrapped .emphasize {
   font-style: italic;
 }
 instance-ref-wrapped .indent {

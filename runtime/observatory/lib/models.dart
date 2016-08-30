@@ -10,7 +10,6 @@ part 'src/models/exceptions.dart';
 
 part 'src/models/objects/allocation_profile.dart';
 part 'src/models/objects/breakpoint.dart';
-part 'src/models/objects/bound_field.dart';
 part 'src/models/objects/class.dart';
 part 'src/models/objects/code.dart';
 part 'src/models/objects/context.dart';
@@ -47,10 +46,12 @@ part 'src/models/objects/source_location.dart';
 part 'src/models/objects/target.dart';
 part 'src/models/objects/token_stream.dart';
 part 'src/models/objects/timeline_event.dart';
+part 'src/models/objects/type_arguments.dart';
 part 'src/models/objects/unknown.dart';
 part 'src/models/objects/vm.dart';
 
 part 'src/models/repositories/allocation_profile.dart';
+part 'src/models/repositories/breakpoint.dart';
 part 'src/models/repositories/class.dart';
 part 'src/models/repositories/context.dart';
 part 'src/models/repositories/eval.dart';
@@ -76,3 +77,4 @@ part 'src/models/repositories/retaining_path.dart';
 part 'src/models/repositories/sample_profile.dart';
 part 'src/models/repositories/script.dart';
 part 'src/models/repositories/target.dart';
+part 'src/models/repositories/type_arguments.dart';

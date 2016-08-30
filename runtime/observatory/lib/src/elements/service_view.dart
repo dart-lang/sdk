@@ -39,16 +39,9 @@ class ServiceObjectViewElement extends ObservatoryElement {
         element.vm = object;
         return element;
       default:
-        if (object.isInstance ||
-            object.isSentinel) {  // TODO(rmacnak): Separate this out.
-          InstanceViewElement element = new Element.tag('instance-view');
-          element.instance = object;
-          return element;
-        } else {
-          JsonViewElement element = new Element.tag('json-view');
-          element.map = object;
-          return element;
-        }
+        JsonViewElement element = new Element.tag('json-view');
+        element.map = object;
+        return element;
     }
   }
 

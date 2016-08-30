@@ -52,7 +52,7 @@ class ContextRefElementWrapper extends HtmlElement {
             color: #0489c3;
             text-decoration: none;
         }
-        context-ref-wrapped .empathize {
+        context-ref-wrapped .emphasize {
           font-style: italic;
         }''',
       new ContextRefElement(_context.isolate, _context,

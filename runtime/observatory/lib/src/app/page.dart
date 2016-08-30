@@ -5,6 +5,7 @@
 part of app;
 
 final _allocationProfileRepository = new AllocationProfileRepository();
+final _breakpointRepository = new BreakpointRepository();
 final _classRepository = new ClassRepository();
 final _contextRepository = new ContextRepository();
 final _evalRepository = new EvalRepository();
@@ -23,6 +24,7 @@ final _objectstoreRepository = new ObjectStoreRepository();
 final _persistentHandlesRepository = new PersistentHandlesRepository();
 final _portsRepository = new PortsRepository();
 final _scriptRepository = new ScriptRepository();
+final _typeArgumentsRepository = new TypeArgumentsRepository();
 
 class IsolateNotFound implements Exception {
   String isolateId;
@@ -221,6 +223,23 @@ class InspectPage extends MatchingPage {
                              _instanceRepository,
                              queue: app.queue)
       ];
+    } else if (obj is Instance) {
+      container.children = [
+        new InstanceViewElement(app.vm, obj.isolate, obj, app.events,
+                             app.notifications,
+                             _instanceRepository,
+                             _classRepository,
+                             _retainedSizeRepository,
+                             _reachableSizeRepository,
+                             _inboundReferencesRepository,
+                             _retainingPathRepository,
+                             _scriptRepository,
+                             _evalRepository,
+                             _typeArgumentsRepository,
+                             _breakpointRepository,
+                             _functionRepository,
+                             queue: app.queue)
+      ];
     } else if (obj is ServiceFunction) {
       container.children = [
         new FunctionViewElement(app.vm, obj.isolate, obj, app.events,
@@ -315,6 +334,11 @@ class InspectPage extends MatchingPage {
                                _retainingPathRepository,
                                _instanceRepository,
                                queue: app.queue)
+      ];
+    } else if (obj is Sentinel) {
+      container.children = [
+        new SentinelViewElement(app.vm, obj.isolate, obj, app.events,
+                                app.notifications, queue: app.queue)
       ];
     } else {
       ServiceObjectViewElement serviceElement =new Element.tag('service-view');

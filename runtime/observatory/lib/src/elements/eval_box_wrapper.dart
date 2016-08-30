@@ -69,7 +69,7 @@ class EvalBoxElementWrapper extends HtmlElement {
           margin-right: 1em;
           text-decoration: none;
         }
-        eval-box-wrapped .empathize {
+        eval-box-wrapped .emphasize {
           font-style: italic;
         }
         eval-box-wrapped .indent {

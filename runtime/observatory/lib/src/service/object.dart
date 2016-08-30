@@ -267,6 +267,9 @@ abstract class ServiceObject extends Observable {
       case 'Sentinel':
         obj = new Sentinel._empty(owner);
         break;
+      case 'TypeArguments':
+        obj = new TypeArguments._empty(owner);
+        break;
       case 'Instance':
         obj = new Instance._empty(owner);
         break;
@@ -1363,7 +1366,9 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       if (cls.superclass == null) {
         rootClasses.add(cls);
       }
-      if ((cls.vmName == 'Object') && (cls.isPatch == false)) {
+      if ((cls.vmName == 'Object') &&
+          (cls.isPatch == false) &&
+          (cls.library.uri == 'dart:core')) {
         objectClass = cls;
       }
     }
@@ -2586,6 +2591,11 @@ class BoundField implements M.BoundField {
     : value = new Guarded(value);
 }
 
+class NativeField implements M.NativeField {
+  final int value;
+  NativeField(this.value);
+}
+
 class MapAssociation implements M.MapAssociation {
   final Guarded<Instance> key;
   final Guarded<Instance> value;
@@ -2599,7 +2609,7 @@ class Instance extends HeapObject implements M.Instance {
   @observable String valueAsString;  // If primitive.
   @observable bool valueAsStringIsTruncated;
   @observable ServiceFunction closureFunction;  // If a closure.
-  @observable Context context;  // If a closure.
+  @observable Context closureContext;  // If a closure.
   @observable int length; // If a List, Map or TypedData.
   int count;
   int offset;
@@ -2608,7 +2618,7 @@ class Instance extends HeapObject implements M.Instance {
   @observable String name;
   @observable Class typeClass;
   @observable Class parameterizedClass;
-  @observable ServiceObject typeArguments;
+  @observable TypeArguments typeArguments;
   @observable int parameterIndex;
   @observable Instance targetType;
   @observable Instance bound;
@@ -2631,12 +2641,7 @@ class Instance extends HeapObject implements M.Instance {
   @observable bool isCaseSensitive;  // If a RegExp.
   @observable bool isMultiLine;  // If a RegExp.
 
-  bool get isAbstractType {
-    return (kind == M.InstanceKind.type ||
-            kind == M.InstanceKind.typeRef ||
-            kind == M.InstanceKind.typeParameter ||
-            kind == M.InstanceKind.boundedType);
-  }
+  bool get isAbstractType => M.isAbstractType(kind);
   bool get isNull => kind == M.InstanceKind.vNull;
   bool get isBool => kind == M.InstanceKind.bool;
   bool get isDouble => kind == M.InstanceKind.double;
@@ -2691,7 +2696,7 @@ class Instance extends HeapObject implements M.Instance {
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
     closureFunction = map['closureFunction'];
-    context = map['closureContext'];
+    closureContext = map['closureContext'];
     name = map['name'];
     length = map['length'];
     pattern = map['pattern'];
@@ -2713,10 +2718,17 @@ class Instance extends HeapObject implements M.Instance {
     oneByteBytecode = map['_oneByteBytecode'];
     twoByteBytecode = map['_twoByteBytecode'];
 
-    nativeFields = map['_nativeFields'];
     if (map['fields'] != null) {
       fields = map['fields']
         .map((f) => new BoundField(f['decl'], f['value'])).toList();
+    } else {
+      fields = null;
+    }
+    if (map['_nativeFields'] != null) {
+      nativeFields = map['_nativeFields']
+        .map((f) => new NativeField(f['value'])).toList();
+    } else {
+      nativeFields = null;
     }
     if (map['elements'] != null) {
     // Should be:
@@ -2724,10 +2736,14 @@ class Instance extends HeapObject implements M.Instance {
     // some times we obtain object that are not InstanceRef
       elements = map['elements'].map((e) => new Guarded<ServiceObject>(e))
         .toList();
+    } else {
+      elements = null;
     }
     if (map['associations'] != null) {
       associations = map['associations'].map((a) =>
           new MapAssociation(a['key'], a['value'])).toList();
+    } else {
+      associations = null;
     };
     if (map['bytes'] != null) {
       Uint8List bytes = BASE64.decode(map['bytes']);
@@ -2761,6 +2777,8 @@ class Instance extends HeapObject implements M.Instance {
         case "Float64x2List":
           typedElements = bytes.buffer.asFloat64x2List(); break;
       }
+    } else {
+      typedElements = null;
     }
     parameterizedClass = map['parameterizedClass'];
     typeArguments = map['typeArguments'];
@@ -3702,6 +3720,26 @@ class ICData extends HeapObject implements M.ICData {
     }
     argumentsDescriptor = map['_argumentsDescriptor'];
     entries = map['_entries'];
+  }
+}
+
+class TypeArguments extends HeapObject implements M.TypeArguments {
+  HeapObject dartOwner;
+  String name;
+  Iterable<Instance> types;
+
+  TypeArguments._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    dartOwner = map['_owner'];
+    name = map['name'];
+    if (mapIsRef) {
+      return;
+    }
+    types = map['types'];
   }
 }
 
