@@ -851,6 +851,9 @@ eval-box-wrapped .heading .buttons {
   top: 0;
   right: 0px;
 }
+eval-box-wrapped .heading .buttons button{
+  margin-right: 1em;
+}
 eval-box-wrapped.historyExpr,
 eval-box-wrapped .historyValue {
   vertical-align: text-top;

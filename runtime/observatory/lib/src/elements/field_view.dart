@@ -191,7 +191,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
                                          queue: _r.queue));
     } else if (_field.dartOwner is M.ClassRef) {
       menu.add(
-        new NavClassMenuElement(_isolate, _field.dartOwner, queue: _r.queue),
+        new NavClassMenuElement(_isolate, _field.dartOwner, queue: _r.queue)
       );
     }
     menu.addAll([

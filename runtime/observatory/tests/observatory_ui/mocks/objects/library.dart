@@ -18,9 +18,17 @@ class LibraryMock implements M.Library {
   final int size;
   final String uri;
   final bool debuggable;
+  final Iterable<M.LibraryDependency> dependencies;
   final Iterable<M.ScriptRef> scripts;
   final Iterable<M.ClassRef> classes;
+  final Iterable<M.FieldRef> variables;
+  final Iterable<M.FunctionRef> functions;
+  final String vmName;
+  final M.ScriptRef rootScript;
   const LibraryMock({this.id, this.name, this.clazz, this.size, this.uri,
-                     this.debuggable, this.scripts: const [],
-                     this.classes: const []});
+                     this.debuggable, this.dependencies: const [],
+                     this.scripts: const [], this.classes: const [],
+                     this.variables: const [], this.functions: const [],
+                     this.vmName: 'library-vm-name',
+                     this.rootScript: const ScriptRefMock()});
 }

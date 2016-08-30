@@ -27,6 +27,7 @@ part 'src/repositories/heap_snapshot.dart';
 part 'src/repositories/icdata.dart';
 part 'src/repositories/inbound_references.dart';
 part 'src/repositories/instance.dart';
+part 'src/repositories/library.dart';
 part 'src/repositories/megamorphiccache.dart';
 part 'src/repositories/notification.dart';
 part 'src/repositories/objectpool.dart';

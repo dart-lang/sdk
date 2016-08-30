@@ -2227,7 +2227,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
 }
 
 
-class LibraryDependency {
+class LibraryDependency implements M.LibraryDependency {
   @reflectable final bool isImport;
   @reflectable final bool isDeferred;
   @reflectable final String prefix;

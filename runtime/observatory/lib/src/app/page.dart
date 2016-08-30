@@ -4,31 +4,25 @@
 
 part of app;
 
-AllocationProfileRepository _allocationProfileRepository
-    = new AllocationProfileRepository();
-ClassRepository _classRepository = new ClassRepository();
-ContextRepository _contextRepository = new ContextRepository();
-FieldRepository _fieldRepository = new FieldRepository();
-FunctionRepository _functionRepository = new FunctionRepository();
-HeapSnapshotRepository _heapSnapshotRepository
-    = new HeapSnapshotRepository();
-ICDataRepository _icdataRepository = new ICDataRepository();
-InboundReferencesRepository _inboundReferencesRepository
-    = new InboundReferencesRepository();
-InstanceRepository _instanceRepository = new InstanceRepository();
-IsolateSampleProfileRepository _isolateSampleProfileRepository
-    = new IsolateSampleProfileRepository();
-MegamorphicCacheRepository _megamorphicCacheRepository
-    = new MegamorphicCacheRepository();
-ObjectPoolRepository _objectPoolRepository
-    = new ObjectPoolRepository();
-ObjectStoreRepository _objectstoreRepository
-    = new ObjectStoreRepository();
-ObjectRepository _objectRepository = new ObjectRepository();
-PersistentHandlesRepository _persistentHandlesRepository
-    = new PersistentHandlesRepository();
-PortsRepository _portsRepository = new PortsRepository();
-ScriptRepository _scriptRepository = new ScriptRepository();
+final _allocationProfileRepository = new AllocationProfileRepository();
+final _classRepository = new ClassRepository();
+final _contextRepository = new ContextRepository();
+final _evalRepository = new EvalRepository();
+final _fieldRepository = new FieldRepository();
+final _functionRepository = new FunctionRepository();
+final _heapSnapshotRepository = new HeapSnapshotRepository();
+final _icdataRepository = new ICDataRepository();
+final _inboundReferencesRepository = new InboundReferencesRepository();
+final _instanceRepository = new InstanceRepository();
+final _isolateSampleProfileRepository = new IsolateSampleProfileRepository();
+final _libraryRepository = new LibraryRepository();
+final _megamorphicCacheRepository = new MegamorphicCacheRepository();
+final _objectRepository = new ObjectRepository();
+final _objectPoolRepository = new ObjectPoolRepository();
+final _objectstoreRepository = new ObjectStoreRepository();
+final _persistentHandlesRepository = new PersistentHandlesRepository();
+final _portsRepository = new PortsRepository();
+final _scriptRepository = new ScriptRepository();
 
 class IsolateNotFound implements Exception {
   String isolateId;
@@ -253,6 +247,21 @@ class InspectPage extends MatchingPage {
                                _instanceRepository,
                                queue: app.queue)
       ];
+    } else if (obj is Library) {
+      container.children = [
+        new LibraryViewElement(app.vm, obj.isolate, obj, app.events,
+                               app.notifications,
+                               _libraryRepository,
+                               _fieldRepository,
+                               _retainedSizeRepository,
+                               _reachableSizeRepository,
+                               _inboundReferencesRepository,
+                               _retainingPathRepository,
+                               _scriptRepository,
+                               _instanceRepository,
+                               _evalRepository,
+                               queue: app.queue)
+      ];
     } else if (obj is MegamorphicCache) {
       container.children = [
         new MegamorphicCacheViewElement(app.vm, obj.isolate, obj, app.events,
@@ -295,7 +304,7 @@ class InspectPage extends MatchingPage {
                               _instanceRepository,
                               pos: pos, queue: app.queue)
       ];
-    } else if (obj.kind == 'Object') {
+    } else if (obj.type == 'Object') {
       container.children = [
         new ObjectViewElement(app.vm, obj.isolate, obj, app.events,
                                app.notifications,
