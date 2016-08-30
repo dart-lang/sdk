@@ -6,7 +6,7 @@ library kernel.target.targets;
 import '../ast.dart';
 import 'vm.dart';
 
-final List<Target> targets = [new VmTarget()];
+final List<Target> targets = [new NoneTarget(), new VmTarget()];
 final List<String> targetNames = targets.map((t) => t.name).toList();
 
 Target getTargetByName(String name) {
@@ -19,4 +19,9 @@ abstract class Target {
   void transformProgram(Program program);
 
   String toString() => 'Target($name)';
+}
+
+class NoneTarget extends Target {
+  String get name => 'none';
+  void transformProgram(Program program) {}
 }

@@ -41,7 +41,8 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
   ..addOption('target',
       abbr: 't',
       help: 'Tailor the IR to the given target.',
-      allowed: targetNames)
+      allowed: targetNames,
+      defaultsTo: 'vm')
   ..addFlag('strong',
       help: 'Load .dart files in strong mode.\n'
           'Does not affect loading of binary files. Strong mode support is very\n'
