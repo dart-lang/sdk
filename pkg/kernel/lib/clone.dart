@@ -333,7 +333,7 @@ class CloneVisitor extends TreeVisitor {
   visitField(Field node) {
     return new Field(node.name,
         type: visitType(node.type),
-        initializer: clone(node.initializer),
+        initializer: cloneOptional(node.initializer),
         isFinal: node.isFinal,
         isConst: node.isConst,
         isStatic: node.isStatic,
