@@ -2656,30 +2656,6 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 }
 
 
-static bool IsNativeListFactory(const Function& function) {
-  switch (function.recognized_kind()) {
-    case MethodRecognizer::kTypedData_Int8Array_factory:
-    case MethodRecognizer::kTypedData_Uint8Array_factory:
-    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
-    case MethodRecognizer::kTypedData_Int16Array_factory:
-    case MethodRecognizer::kTypedData_Uint16Array_factory:
-    case MethodRecognizer::kTypedData_Int32Array_factory:
-    case MethodRecognizer::kTypedData_Uint32Array_factory:
-    case MethodRecognizer::kTypedData_Int64Array_factory:
-    case MethodRecognizer::kTypedData_Uint64Array_factory:
-    case MethodRecognizer::kTypedData_Float32Array_factory:
-    case MethodRecognizer::kTypedData_Float64Array_factory:
-    case MethodRecognizer::kTypedData_Float32x4Array_factory:
-    case MethodRecognizer::kTypedData_Int32x4Array_factory:
-    case MethodRecognizer::kTypedData_Float64x2Array_factory:
-      return true;
-    default:
-      break;
-  }
-  return false;
-}
-
-
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
@@ -2692,9 +2668,6 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
                              node->arguments()->names(),
                              arguments,
                              owner()->ic_data_array());
-  if (node->function().is_native() && IsNativeListFactory(node->function())) {
-    call->set_is_native_list_factory(true);
-  }
   if (node->function().recognized_kind() != MethodRecognizer::kUnknown) {
     call->set_result_cid(MethodRecognizer::ResultCid(node->function()));
   }
