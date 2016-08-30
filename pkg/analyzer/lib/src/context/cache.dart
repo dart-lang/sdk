@@ -1229,7 +1229,8 @@ abstract class CachePartition {
   }
 
   bool _isPriorityAnalysisTarget(AnalysisTarget target) {
-    return context.priorityTargets.contains(target);
+    Source source = target.source;
+    return source != null && context.prioritySources.contains(source);
   }
 
   /**

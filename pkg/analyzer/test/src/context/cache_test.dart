@@ -44,7 +44,7 @@ class AbstractCacheTest {
 
   void setUp() {
     context = new _InternalAnalysisContextMock();
-    when(context.priorityTargets).thenReturn([]);
+    when(context.prioritySources).thenReturn([]);
     cache = createCache(context: context);
     when(context.analysisCache).thenReturn(cache);
   }
@@ -771,6 +771,43 @@ class CacheEntryTest extends AbstractCacheTest {
     }
   }
 
+  test_setValue_flushResults_keepForPrioritySources() {
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
+    ResultDescriptor newResult(String name) =>
+        new ResultDescriptor(name, null, cachingPolicy: cachingPolicy);
+    ResultDescriptor descriptor1 = newResult('result1');
+    ResultDescriptor descriptor2 = newResult('result2');
+    ResultDescriptor descriptor3 = newResult('result3');
+    TestSource source1 = new TestSource('/a.dart');
+    TestSource source2 = new TestSource('/b.dart');
+    TestSource source3 = new TestSource('/c.dart');
+    AnalysisTarget target1 =
+        new _TestAnalysisTarget(librarySource: source1, source: source1);
+    AnalysisTarget target2 =
+        new _TestAnalysisTarget(librarySource: source2, source: source2);
+    AnalysisTarget target3 =
+        new _TestAnalysisTarget(librarySource: source3, source: source3);
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    CacheEntry entry3 = new CacheEntry(target3);
+    cache.put(entry1);
+    cache.put(entry2);
+    cache.put(entry3);
+
+    // Set two results.
+    entry1.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
+    entry2.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST);
+    expect(entry1.getState(descriptor1), CacheState.VALID);
+    expect(entry2.getState(descriptor2), CacheState.VALID);
+
+    // Make source1 priority, so result2 is flushed instead.
+    when(context.prioritySources).thenReturn([source1]);
+    entry3.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST);
+    expect(entry1.getState(descriptor1), CacheState.VALID);
+    expect(entry2.getState(descriptor2), CacheState.FLUSHED);
+    expect(entry3.getState(descriptor3), CacheState.VALID);
+  }
+
   test_setValue_keepDependent() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
@@ -1266,9 +1303,7 @@ class _KeepContinueDelta implements Delta {
 }
 
 class _TestAnalysisTarget implements AnalysisTarget {
-  @override
-  Source get librarySource => null;
-
-  @override
-  Source get source => null;
+  final Source librarySource;
+  final Source source;
+  _TestAnalysisTarget({this.librarySource, this.source});
 }
