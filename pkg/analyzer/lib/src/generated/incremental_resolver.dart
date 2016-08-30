@@ -98,11 +98,10 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
         isByTask(ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeLibraryCycleTask.DESCRIPTOR) ||
-        isByTask(ComputePropagableVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(DartErrorsTask.DESCRIPTOR) ||
         isByTask(ReadyLibraryElement2Task.DESCRIPTOR) ||
         isByTask(ReadyLibraryElement5Task.DESCRIPTOR) ||
-        isByTask(ReadyLibraryElement6Task.DESCRIPTOR) ||
+        isByTask(ReadyLibraryElement7Task.DESCRIPTOR) ||
         isByTask(ReadyResolvedUnitTask.DESCRIPTOR) ||
         isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
@@ -113,13 +112,11 @@ class IncrementalBodyDelta extends Delta {
         isByTask(LibraryUnitErrorsTask.DESCRIPTOR) ||
         isByTask(ParseDartTask.DESCRIPTOR) ||
         isByTask(PartiallyResolveUnitReferencesTask.DESCRIPTOR) ||
-        isByTask(PropagateVariableTypesInLibraryClosureTask.DESCRIPTOR) ||
-        isByTask(PropagateVariableTypesInLibraryTask.DESCRIPTOR) ||
-        isByTask(PropagateVariableTypesInUnitTask.DESCRIPTOR) ||
-        isByTask(PropagateVariableTypeTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
         isByTask(ResolveConstantExpressionTask.DESCRIPTOR) ||
         isByTask(ResolveDirectiveElementsTask.DESCRIPTOR) ||
+        isByTask(ResolvedUnit7InLibraryClosureTask.DESCRIPTOR) ||
+        isByTask(ResolvedUnit7InLibraryTask.DESCRIPTOR) ||
         isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTask.DESCRIPTOR) ||

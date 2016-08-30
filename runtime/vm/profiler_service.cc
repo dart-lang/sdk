@@ -816,6 +816,7 @@ class ProfileCodeTable : public ZoneAllocated {
       return hi;
     }
     UNREACHABLE();
+    return -1;
   }
 
  private:
@@ -2640,6 +2641,7 @@ const char* ProfileTrieWalker::CurrentName() {
     return func->Name();
   }
   UNREACHABLE();
+  return NULL;
 }
 
 
@@ -2663,6 +2665,7 @@ intptr_t ProfileTrieWalker::CurrentInclusiveTicks() {
     return func->inclusive_ticks();
   }
   UNREACHABLE();
+  return -1;
 }
 
 
@@ -2678,6 +2681,7 @@ intptr_t ProfileTrieWalker::CurrentExclusiveTicks() {
     return func->exclusive_ticks();
   }
   UNREACHABLE();
+  return -1;
 }
 
 

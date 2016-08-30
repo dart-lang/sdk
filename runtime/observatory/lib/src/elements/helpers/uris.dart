@@ -42,8 +42,6 @@ abstract class Uris {
       => _isolatePage('/persistent-handles', isolate);
   static String ports(M.IsolateRef isolate)
       => _isolatePage('/ports', isolate);
-  static String profiler(M.IsolateRef isolate)
-      => _isolatePage('/profiler', isolate);
   static String vm() => '#/vm';
   static String vmConnect() => '#/vm-connect';
 }

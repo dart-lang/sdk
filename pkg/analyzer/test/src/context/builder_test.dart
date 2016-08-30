@@ -6,15 +6,18 @@ library analyzer.test.src.context.context_builder_test;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as path;
+import 'package:plugin/src/plugin_impl.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../embedder_tests.dart';
@@ -485,7 +488,8 @@ linter:
     - empty_constructor_bodies
 ''');
 
-    AnalysisOptions options = builder.getAnalysisOptions(path);
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    AnalysisOptions options = builder.getAnalysisOptions(context, path);
     _expectEqualOptions(options, expected);
   }
 
@@ -505,8 +509,43 @@ analyzer:
   enableAsync : true
 ''');
 
-    AnalysisOptions options = builder.getAnalysisOptions(path);
-    _expectEqualOptions(options, expected);
+    AnalysisEngine engine = AnalysisEngine.instance;
+    OptionsPlugin plugin = engine.optionsPlugin;
+    plugin.registerExtensionPoints((_) {});
+    try {
+      _TestOptionsProcessor processor = new _TestOptionsProcessor();
+      processor.expectedOptions = <String, Object>{
+        'analyzer': {'enableAsync': true}
+      };
+      (plugin.optionsProcessorExtensionPoint as ExtensionPointImpl)
+          .add(processor);
+      AnalysisContext context = engine.createAnalysisContext();
+      AnalysisOptions options = builder.getAnalysisOptions(context, path);
+      _expectEqualOptions(options, expected);
+    } finally {
+      plugin.registerExtensionPoints((_) {});
+    }
+  }
+
+  void test_getAnalysisOptions_invalid() {
+    String path = '/some/directory/path';
+    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    resourceProvider.newFile(filePath, ';');
+
+    AnalysisEngine engine = AnalysisEngine.instance;
+    OptionsPlugin plugin = engine.optionsPlugin;
+    plugin.registerExtensionPoints((_) {});
+    try {
+      _TestOptionsProcessor processor = new _TestOptionsProcessor();
+      (plugin.optionsProcessorExtensionPoint as ExtensionPointImpl)
+          .add(processor);
+      AnalysisContext context = engine.createAnalysisContext();
+      AnalysisOptions options = builder.getAnalysisOptions(context, path);
+      expect(options, isNotNull);
+      expect(processor.errorCount, 1);
+    } finally {
+      plugin.registerExtensionPoints((_) {});
+    }
   }
 
   void test_getAnalysisOptions_noDefault_noOverrides() {
@@ -520,7 +559,8 @@ linter:
     - empty_constructor_bodies
 ''');
 
-    AnalysisOptions options = builder.getAnalysisOptions(path);
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    AnalysisOptions options = builder.getAnalysisOptions(context, path);
     _expectEqualOptions(options, new AnalysisOptionsImpl());
   }
 
@@ -536,7 +576,8 @@ analyzer:
   enableAsync : true
 ''');
 
-    AnalysisOptions options = builder.getAnalysisOptions(path);
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    AnalysisOptions options = builder.getAnalysisOptions(context, path);
     _expectEqualOptions(options, expected);
   }
 
@@ -649,5 +690,29 @@ class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
       'fox': [pathTranslator.getResource(foxLib)]
     });
     expect(locator.embedderYamls, hasLength(1));
+  }
+}
+
+class _TestOptionsProcessor implements OptionsProcessor {
+  Map<String, Object> expectedOptions = null;
+
+  int errorCount = 0;
+
+  @override
+  void onError(Exception exception) {
+    errorCount++;
+  }
+
+  @override
+  void optionsProcessed(AnalysisContext context, Map<String, Object> options) {
+    if (expectedOptions == null) {
+      fail('Unexpected invocation of optionsProcessed');
+    }
+    expect(options, hasLength(expectedOptions.length));
+    for (String key in expectedOptions.keys) {
+      expect(options.containsKey(key), isTrue, reason: 'missing key $key');
+      expect(options[key], expectedOptions[key],
+          reason: 'values for key $key do not match');
+    }
   }
 }

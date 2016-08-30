@@ -205,6 +205,8 @@ class KernelVisitor extends Object
     return node;
   }
 
+  final Map<ir.Node, Node> nodeToAst = <ir.Node, Node>{};
+
   bool isVoidContext = false;
 
   KernelVisitor(this.currentElement, this.elements, this.kernel);
@@ -898,7 +900,9 @@ class KernelVisitor extends Object
 
   @override
   ir.SymbolLiteral visitLiteralSymbol(LiteralSymbol node) {
-    return new ir.SymbolLiteral(node.slowNameString);
+    var result = new ir.SymbolLiteral(node.slowNameString);
+    nodeToAst[result] = node;
+    return result;
   }
 
   @override

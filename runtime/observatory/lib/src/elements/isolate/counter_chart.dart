@@ -51,11 +51,10 @@ class IsolateCounterChartElement extends HtmlElement implements Renderable {
     new ChartColumnSpec(label: 'Percent', formatter: (v) => v.toString())
   ];
 
-  final _series = [new ChartSeries("Work", const [1], new PieChartRenderer(
-    sortDataByValue: false
-  ))];
-
   void render() {
+    final _series = [new ChartSeries("Work", const [1], new PieChartRenderer(
+      sortDataByValue: false
+    ))];
     final areaHost = new DivElement()..classes = const ['host'];
     final  legendHost = new DivElement()..classes = const ['legend'];
     children = [areaHost, legendHost];

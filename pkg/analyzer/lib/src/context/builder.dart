@@ -9,6 +9,7 @@ import 'dart:core' hide Resource;
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -20,6 +21,7 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
+import 'package:path/src/context.dart';
 import 'package:yaml/yaml.dart';
 
 /**
@@ -121,11 +123,9 @@ class ContextBuilder {
    * *Note:* This method is not yet fully implemented and should not be used.
    */
   AnalysisContext buildContext(String path) {
-    // TODO(brianwilkerson) Split getAnalysisOptions so we can capture the
-    // option map and use it to run the options processors.
-    AnalysisOptions options = getAnalysisOptions(path);
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
+    AnalysisOptions options = getAnalysisOptions(context, path);
     context.contentCache = contentCache;
     context.sourceFactory = createSourceFactory(path, options);
     context.analysisOptions = options;
@@ -184,6 +184,7 @@ class ContextBuilder {
       File configFile = resourceProvider.getFile(defaultPackageFilePath);
       List<int> bytes = configFile.readAsBytesSync();
       Map<String, Uri> map = parse(bytes, configFile.toUri());
+      resolveSymbolicLinks(map);
       return new MapPackages(map);
     } else if (defaultPackagesDirectoryPath != null) {
       Folder folder = resourceProvider.getFolder(defaultPackagesDirectoryPath);
@@ -215,7 +216,7 @@ class ContextBuilder {
           packageResolver,
           fileResolver
         ];
-        return new SourceFactory(resolvers);
+        return new SourceFactory(resolvers, null, resourceProvider);
       }
     }
     Packages packages = createPackageMap(rootDirectoryPath);
@@ -225,10 +226,12 @@ class ContextBuilder {
     if (packageMap != null) {
       // TODO(brianwilkerson) I think that we don't need a PackageUriResolver
       // when we can pass the packages object to the source factory directly.
+      // Actually, I think we're using it to restoreUri, which could lead to
+      // inconsistencies.
       resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
     }
     resolvers.add(fileResolver);
-    return new SourceFactory(resolvers);
+    return new SourceFactory(resolvers, packages, resourceProvider);
   }
 
   /**
@@ -260,6 +263,7 @@ class ContextBuilder {
       List<int> fileBytes = location.readAsBytesSync();
       Map<String, Uri> map =
           parse(fileBytes, resourceProvider.pathContext.toUri(location.path));
+      resolveSymbolicLinks(map);
       return new MapPackages(map);
     } else if (location is Folder) {
       return getPackagesFromFolder(location);
@@ -334,16 +338,24 @@ class ContextBuilder {
   }
 
   /**
-   * Return the analysis options that should be used when analyzing code in the
-   * directory with the given [path].
+   * Return the analysis options that should be used when the given [context] is
+   * used to analyze code in the directory with the given [path].
    */
-  AnalysisOptions getAnalysisOptions(String path) {
+  AnalysisOptions getAnalysisOptions(AnalysisContext context, String path) {
     AnalysisOptionsImpl options = createDefaultOptions();
     File optionsFile = getOptionsFile(path);
     if (optionsFile != null) {
-      Map<String, YamlNode> fileOptions =
-          new AnalysisOptionsProvider().getOptionsFromFile(optionsFile);
-      applyToAnalysisOptions(options, fileOptions);
+      List<OptionsProcessor> optionsProcessors =
+          AnalysisEngine.instance.optionsPlugin.optionsProcessors;
+      try {
+        Map<String, YamlNode> optionMap =
+            new AnalysisOptionsProvider().getOptionsFromFile(optionsFile);
+        optionsProcessors.forEach(
+            (OptionsProcessor p) => p.optionsProcessed(context, optionMap));
+        applyToAnalysisOptions(options, optionMap);
+      } on Exception catch (exception) {
+        optionsProcessors.forEach((OptionsProcessor p) => p.onError(exception));
+      }
     }
     return options;
   }
@@ -379,20 +391,46 @@ class ContextBuilder {
    * directory.
    */
   Packages getPackagesFromFolder(Folder folder) {
+    Context pathContext = resourceProvider.pathContext;
     Map<String, Uri> map = new HashMap<String, Uri>();
     for (Resource child in folder.getChildren()) {
       if (child is Folder) {
-        String packageName = resourceProvider.pathContext.basename(child.path);
-        // Create a file URI (rather than a directory URI) and add a '.' so that
-        // the URI is suitable for resolving relative URI's against it.
-        //
-        // TODO(brianwilkerson) Decide whether we need to pass in a 'windows:'
-        // argument for testing purposes.
-        map[packageName] = resourceProvider.pathContext.toUri(
-            resourceProvider.pathContext.join(folder.path, packageName, '.'));
+        // Inline resolveSymbolicLinks for performance reasons.
+        String packageName = pathContext.basename(child.path);
+        String folderPath = resolveSymbolicLink(child);
+        String uriPath = pathContext.join(folderPath, '.');
+        map[packageName] = pathContext.toUri(uriPath);
       }
     }
     return new MapPackages(map);
+  }
+
+  /**
+   * Resolve any symbolic links encoded in the path to the given [folder].
+   */
+  String resolveSymbolicLink(Folder folder) {
+    try {
+      return folder.resolveSymbolicLinksSync().path;
+    } on FileSystemException {
+      return folder.path;
+    }
+  }
+
+  /**
+   * Resolve any symbolic links encoded in the URI's in the given [map] by
+   * replacing the values in the map.
+   */
+  void resolveSymbolicLinks(Map<String, Uri> map) {
+    Context pathContext = resourceProvider.pathContext;
+    for (String packageName in map.keys) {
+      Folder folder =
+          resourceProvider.getFolder(pathContext.fromUri(map[packageName]));
+      String folderPath = resolveSymbolicLink(folder);
+      // Add a '.' so that the URI is suitable for resolving relative URI's
+      // against it.
+      String uriPath = pathContext.join(folderPath, '.');
+      map[packageName] = pathContext.toUri(uriPath);
+    }
   }
 
   /**

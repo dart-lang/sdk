@@ -418,7 +418,7 @@ abstract class ServiceObjectOwner extends ServiceObject {
   ServiceObject getFromMap(ObservableMap map);
 }
 
-abstract class Location  {
+abstract class Location implements M.Location {
   Script get script;
   int get tokenPos;
 }
@@ -469,7 +469,9 @@ class SourceLocation extends ServiceObject implements Location,
 
 /// An [UnresolvedSourceLocation] represents a location in the source
 // code which has not been precisely mapped to a token position.
-class UnresolvedSourceLocation extends ServiceObject implements Location {
+class UnresolvedSourceLocation extends ServiceObject
+                               implements Location,
+                                          M.UnresolvedSourceLocation {
   Script script;
   String scriptUri;
   int line;
@@ -1137,6 +1139,39 @@ class Port implements M.Port {
       handler = map['handler'];
 }
 
+class PersistentHandles implements M.PersistentHandles {
+  final Iterable<PersistentHandle> elements;
+  final Iterable<WeakPersistentHandle> weakElements;
+
+  PersistentHandles(ServiceMap map)
+    : this.elements = map['persistentHandles']
+        .map((rmap) => new PersistentHandle(rmap)),
+      this.weakElements = map['weakPersistentHandles']
+          .map((rmap) => new WeakPersistentHandle(rmap));
+}
+
+class PersistentHandle implements M.PersistentHandle {
+  final HeapObject object;
+
+  PersistentHandle(ServiceMap map)
+    : object = map['object'];
+}
+
+class WeakPersistentHandle implements M.WeakPersistentHandle {
+  final int externalSize;
+  final String peer;
+  final String callbackSymbolName;
+  final String callbackAddress;
+  final HeapObject object;
+
+  WeakPersistentHandle(ServiceMap map)
+    : externalSize = int.parse(map['externalSize']),
+      peer = map['peer'],
+      callbackSymbolName = map['callbackSymbolName'],
+      callbackAddress = map['callbackAddress'],
+      object = map['object'];
+}
+
 class HeapSpace extends Observable implements M.HeapSpace {
   @observable int used = 0;
   @observable int capacity = 0;
@@ -1710,7 +1745,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     });
   }
 
-  Future<ServiceObject> _eval(ServiceObject target,
+  Future<ServiceObject> eval(ServiceObject target,
                               String expression) {
     Map params = {
       'targetId': target.id,
@@ -1819,14 +1854,14 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 }
 
 
-class NamedField {
+class NamedField implements M.NamedField {
   final String name;
-  final ServiceObject value;
+  final M.ObjectRef value;
   NamedField(this.name, this.value);
 }
 
 
-class ObjectStore extends ServiceObject {
+class ObjectStore extends ServiceObject implements M.ObjectStore {
   @observable List<NamedField> fields = new List<NamedField>();
 
   ObjectStore._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -2209,7 +2244,7 @@ class LibraryDependency {
 }
 
 
-class Library extends HeapObject implements M.LibraryRef {
+class Library extends HeapObject implements M.Library {
   @observable String uri;
   @reflectable final dependencies = new ObservableList<LibraryDependency>();
   @reflectable final scripts = new ObservableList<Script>();
@@ -2261,7 +2296,7 @@ class Library extends HeapObject implements M.LibraryRef {
   }
 
   Future<ServiceObject> evaluate(String expression) {
-    return isolate._eval(this, expression);
+    return isolate.eval(this, expression);
   }
 
   Script get rootScript {
@@ -2429,7 +2464,7 @@ class Class extends HeapObject implements M.Class {
   }
 
   Future<ServiceObject> evaluate(String expression) {
-    return isolate._eval(this, expression);
+    return isolate.eval(this, expression);
   }
 
   Future<ServiceObject> setTraceAllocations(bool enable) {
@@ -2753,7 +2788,7 @@ class Instance extends HeapObject implements M.Instance {
   }
 
   Future<ServiceObject> evaluate(String expression) {
-    return isolate._eval(this, expression);
+    return isolate.eval(this, expression);
   }
 
   String toString() => 'Instance($shortName)';
@@ -2944,7 +2979,7 @@ class Sentinel extends ServiceObject implements M.Sentinel {
   String toString() => 'Sentinel($kind)';
 }
 
-class Field extends HeapObject implements M.FieldRef {
+class Field extends HeapObject implements M.Field {
   // Library or Class.
   @observable HeapObject dartOwner;
   @observable Library library;
@@ -2957,7 +2992,8 @@ class Field extends HeapObject implements M.FieldRef {
   @observable String vmName;
 
   @observable bool guardNullable;
-  @observable var /* Class | String */ guardClass;
+  M.GuardClassKind guardClassKind;
+  @observable Class guardClass;
   @observable String guardLength;
   @observable SourceLocation location;
 
@@ -2990,7 +3026,21 @@ class Field extends HeapObject implements M.FieldRef {
     }
 
     guardNullable = map['_guardNullable'];
-    guardClass = map['_guardClass'];
+    if (map['_guardClass'] is Class) {
+        guardClass = map['_guardClass'];
+        guardClassKind = M.GuardClassKind.single;
+    } else {
+      switch (map['_guardClass']) {
+        case 'various':
+          guardClassKind = M.GuardClassKind.dynamic;
+          break;
+        case 'unknown':
+        default:
+          guardClassKind = M.GuardClassKind.unknown;
+          break;
+      }
+    }
+
     guardLength = map['_guardLength'];
     location = map['location'];
     _loaded = true;
@@ -3574,11 +3624,11 @@ class LocalVarDescriptors extends ServiceObject {
   }
 }
 
-class ObjectPool extends HeapObject implements M.ObjectPoolRef {
+class ObjectPool extends HeapObject implements M.ObjectPool {
   bool get immutable => false;
 
   @observable int length;
-  @observable List entries;
+  @observable List<ObjectPoolEntry> entries;
 
   ObjectPool._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -3590,8 +3640,45 @@ class ObjectPool extends HeapObject implements M.ObjectPoolRef {
     if (mapIsRef) {
       return;
     }
-    entries = map['_entries'];
+    entries = map['_entries'].map((map) => new ObjectPoolEntry(map));
   }
+}
+
+class ObjectPoolEntry implements M.ObjectPoolEntry {
+  final int offset;
+  final M.ObjectPoolEntryKind kind;
+  final M.ObjectRef asObject;
+  final int asInteger;
+
+  factory ObjectPoolEntry(map) {
+    M.ObjectPoolEntryKind kind = stringToObjectPoolEntryKind(map['kind']);
+    int offset = map['offset'];
+    switch (kind) {
+      case M.ObjectPoolEntryKind.object:
+        return new ObjectPoolEntry._fromObject(map['value'], offset);
+      default:
+        return new ObjectPoolEntry._fromInteger(kind, map['value'], offset);
+    }
+  }
+
+  ObjectPoolEntry._fromObject(this.asObject, this.offset)
+    : kind = M.ObjectPoolEntryKind.object,
+      asInteger = null;
+
+  ObjectPoolEntry._fromInteger(this.kind, this.asInteger, this.offset)
+    : asObject = null;
+}
+
+M.ObjectPoolEntryKind stringToObjectPoolEntryKind(String kind) {
+  switch (kind) {
+    case 'Object':
+      return M.ObjectPoolEntryKind.object;
+    case 'Immediate':
+      return M.ObjectPoolEntryKind.immediate;
+    case 'NativeEntry':
+      return M.ObjectPoolEntryKind.nativeEntry;
+  }
+  throw new Exception('Unknown ObjectPoolEntryKind ($kind)');
 }
 
 class ICData extends HeapObject implements M.ICData {
@@ -3618,7 +3705,7 @@ class ICData extends HeapObject implements M.ICData {
   }
 }
 
-class MegamorphicCache extends HeapObject implements M.MegamorphicCacheRef {
+class MegamorphicCache extends HeapObject implements M.MegamorphicCache {
   @observable int mask;
   @observable Instance buckets;
   @observable String selector;

@@ -5,7 +5,6 @@
 part of repositories;
 
 class RetainingPathRepository implements M.RetainingPathRepository {
-
   Future<M.RetainingPath> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);

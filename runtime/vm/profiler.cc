@@ -335,11 +335,9 @@ static void DumpStackFrame(intptr_t frame_index, uword pc) {
   char* native_symbol_name =
       NativeSymbolResolver::LookupSymbolName(pc, &start);
   if (native_symbol_name == NULL) {
-    OS::PrintErr("Frame[%" Pd "] = `unknown symbol` [0x%" Px "]\n",
-                 frame_index, pc);
+    OS::PrintErr("  [0x%" Pp "] Unknown symbol\n", pc);
   } else {
-    OS::PrintErr("Frame[%" Pd "] = `%s` [0x%" Px "]\n",
-                 frame_index, native_symbol_name, pc);
+    OS::PrintErr("  [0x%" Pp "] %s\n", pc, native_symbol_name);
     NativeSymbolResolver::FreeSymbolName(native_symbol_name);
   }
 }
@@ -1033,7 +1031,7 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
                                               fp,
                                               sp);
   }
-  OS::PrintErr("-- End of DumpStackTrace");
+  OS::PrintErr("-- End of DumpStackTrace\n");
 }
 
 

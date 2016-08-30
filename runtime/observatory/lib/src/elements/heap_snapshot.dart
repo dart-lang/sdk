@@ -111,7 +111,7 @@ class HeapSnapshotElement  extends HtmlElement implements Renderable {
           new NavTopMenuElement(queue: _r.queue),
           new NavVMMenuElement(_vm, _events, queue: _r.queue),
           new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavMenuElement('heap snapshot', link: Uris.profiler(_isolate),
+          new NavMenuElement('heap snapshot', link: Uris.heapSnapshot(_isolate),
               last: true, queue: _r.queue),
           new NavRefreshElement(queue: _r.queue)
               ..disabled = M.isHeapSnapshotProgressRunning(_progress?.status)

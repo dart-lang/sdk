@@ -335,6 +335,8 @@ class Precompiler : public ValueObject {
   void VisitClasses(ClassVisitor* visitor);
 
   void FinalizeAllClasses();
+  void SortClasses();
+  void RemapClassIds(intptr_t* old_to_new_cid);
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }

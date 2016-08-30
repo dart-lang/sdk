@@ -2476,7 +2476,6 @@ class ClassTwo {
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
-    entry.setState(RESOLVED_UNIT13, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
 
     context.resolveCompilationUnit2(source, source);
@@ -3797,10 +3796,10 @@ main() {
     {
       Expression argument = find42();
       expect(argument.staticParameterElement, isNull);
-      expect(argument.propagatedParameterElement, isNotNull);
     }
+
     // Update a.dart: add type annotation for 'a'.
-    // '42' has 'staticParameterElement', but not 'propagatedParameterElement'.
+    // '42' has 'staticParameterElement'.
     context.setContents(
         a,
         r'''
@@ -3816,10 +3815,10 @@ main() {
     {
       Expression argument = find42();
       expect(argument.staticParameterElement, isNotNull);
-      expect(argument.propagatedParameterElement, isNull);
     }
+
     // Update a.dart: remove type annotation for 'a'.
-    // '42' has 'propagatedParameterElement', but not 'staticParameterElement'.
+    // '42' doesn't have 'staticParameterElement'.
     context.setContents(
         a,
         r'''
@@ -3835,7 +3834,6 @@ main() {
     {
       Expression argument = find42();
       expect(argument.staticParameterElement, isNull);
-      expect(argument.propagatedParameterElement, isNotNull);
     }
   }
 

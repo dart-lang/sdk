@@ -45,6 +45,7 @@ void configureContextOptions(
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
+  static const String enableAssertInitializer = 'enableAssertInitializer';
   static const String enableAsync = 'enableAsync';
   static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableStrictCallChecks = 'enableStrictCallChecks';
@@ -84,6 +85,7 @@ class AnalyzerOptions {
 
   /// Supported `analyzer` language configuration options.
   static const List<String> languageOptions = const [
+    enableAssertInitializer,
     enableAsync,
     enableGenericMethods,
     enableStrictCallChecks,
@@ -478,6 +480,14 @@ class _OptionsProcessor {
 
   void setLanguageOption(
       AnalysisContext context, Object feature, Object value) {
+    if (feature == AnalyzerOptions.enableAssertInitializer) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableAssertInitializer = true;
+        context.analysisOptions = options;
+      }
+    }
     if (feature == AnalyzerOptions.enableAsync) {
       if (isFalse(value)) {
         AnalysisOptionsImpl options =
@@ -552,13 +562,13 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object feature, Object value) {
     bool boolValue = toBool(value);
     if (boolValue != null) {
-      if (feature == AnalyzerOptions.enableAsync) {
+      if (feature == AnalyzerOptions.enableAssertInitializer) {
+        options.enableAssertInitializer = boolValue;
+      } else if (feature == AnalyzerOptions.enableAsync) {
         options.enableAsync = boolValue;
-      }
-      if (feature == AnalyzerOptions.enableSuperMixins) {
+      } else if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;
-      }
-      if (feature == AnalyzerOptions.enableGenericMethods) {
+      } else if (feature == AnalyzerOptions.enableGenericMethods) {
         options.enableGenericMethods = boolValue;
       }
     }

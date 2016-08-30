@@ -30,34 +30,9 @@ class ServiceObjectViewElement extends ObservatoryElement {
         CodeViewElement element = new Element.tag('code-view');
         element.code = object;
         return element;
-      case 'Error':
-        ErrorViewElement element = new Element.tag('error-view');
-        element.error = object;
-        return element;
-      case 'Field':
-        FieldViewElement element = new Element.tag('field-view');
-        element.field = object;
-        return element;
-      case 'Function':
-        FunctionViewElement element = new Element.tag('function-view');
-        element.function = object;
-        return element;
-      case 'HeapMap':
-        HeapMapElement element = new Element.tag('heap-map');
-        element.fragmentation = object;
-        return element;
       case 'Object':
         return (object) {
           switch (object.vmType) {
-            case 'MegamorphicCache':
-              MegamorphicCacheViewElement element =
-                  new Element.tag('megamorphiccache-view');
-              element.megamorphicCache = object;
-              return element;
-            case 'ObjectPool':
-              ObjectPoolViewElement element = new Element.tag('objectpool-view');
-              element.pool = object;
-              return element;
             default:
               ObjectViewElement element = new Element.tag('object-view');
               element.object = object;
@@ -71,10 +46,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Library':
         LibraryViewElement element = new Element.tag('library-view');
         element.library = object;
-        return element;
-      case 'Script':
-        ScriptViewElement element = new Element.tag('script-view');
-        element.script = object;
         return element;
       case 'VM':
         VMViewElement element = new Element.tag('vm-view');

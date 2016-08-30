@@ -14,7 +14,7 @@ abstract class LibraryRef extends ObjectRef {
 
 abstract class Library extends Object implements LibraryRef {
   /// Is this library debuggable? Default true.
-  bool get debuggable;
+  //bool get debuggable;
 
   /// A list of the imports for this library.
   //LibraryDependency[] dependencies;

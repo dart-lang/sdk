@@ -2772,6 +2772,12 @@ class ParserTestCase extends EngineTestCase {
   static bool parseFunctionBodies = true;
 
   /**
+   * A flag indicating whether the parser is to parse asserts in the initializer
+   * list of a constructor.
+   */
+  bool enableAssertInitializer = false;
+
+  /**
    * A flag indicating whether parser is to parse async.
    */
   bool parseAsync = true;
@@ -2844,6 +2850,7 @@ class ParserTestCase extends EngineTestCase {
     // Parse the source.
     //
     Parser parser = createParser(listener);
+    parser.enableAssertInitializer = enableAssertInitializer;
     parser.parseAsync = parseAsync;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
@@ -2973,6 +2980,7 @@ class ParserTestCase extends EngineTestCase {
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
+    parser.enableAssertInitializer = enableAssertInitializer;
     parser.parseAsync = parseAsync;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.parseGenericMethods = enableGenericMethods;
@@ -7092,6 +7100,16 @@ void''');
 //        Token.class, Token.class, SimpleIdentifier.class, Token.class,
 //        SimpleIdentifier.class, FormalParameterList.class}, new Object[] {emptyCommentAndMetadata(),
 //        null, null, null, null, null, null}, "");
+  }
+
+  void test_parseConstructor_assert() {
+    enableAssertInitializer = true;
+    ClassMember classMember = parse("parseClassMember", <Object>["C"],
+        "C(x, y) : _x = x, assert (x < y), _y = y;");
+    expect(classMember, new isInstanceOf<ConstructorDeclaration>());
+    ConstructorDeclaration constructor = classMember as ConstructorDeclaration;
+    NodeList<ConstructorInitializer> initializers = constructor.initializers;
+    expect(initializers, hasLength(2));
   }
 
   void test_parseConstructor_with_pseudo_function_literal() {

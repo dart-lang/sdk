@@ -32,7 +32,6 @@ import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -46,7 +45,6 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
-import 'package:yaml/yaml.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 
@@ -1596,14 +1594,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   AnalysisContext addContext(
       Folder folder, AnalysisOptions options, FolderDisposition disposition) {
-    InternalAnalysisContext context =
-        AnalysisEngine.instance.createAnalysisContext();
-    context.contentCache = analysisServer.overlayState;
-    analysisServer.folderMap[folder] = context;
-    context.fileResolverProvider = analysisServer.fileResolverProvider;
-    context.sourceFactory =
-        _createSourceFactory(context, options, disposition, folder);
-    context.analysisOptions = options;
+    ContextBuilder builder = createContextBuilder(folder, options);
+    AnalysisContext context = builder.buildContext(folder.path);
+
+    // TODO(brianwilkerson) Move bundle discovery into ContextBuilder
     if (analysisServer.options.enablePubSummaryManager) {
       List<LinkedPubPackage> linkedBundles =
           analysisServer.pubSummaryManager.getLinkedBundles(context);
@@ -1613,11 +1607,12 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           store.addBundle(null, package.unlinked);
           store.addBundle(null, package.linked);
         }
-        context.resultProvider =
+        (context as InternalAnalysisContext).resultProvider =
             new InputPackagesResultProvider(context, store);
       }
     }
 
+    analysisServer.folderMap[folder] = context;
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -1646,6 +1641,32 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer._computingPackageMap(computing);
 
   @override
+  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
+    String defaultPackageFilePath = null;
+    String defaultPackagesDirectoryPath = null;
+    String path = (analysisServer.contextManager as ContextManagerImpl)
+        .normalizedPackageRoots[folder.path];
+    if (path != null) {
+      Resource resource = resourceProvider.getResource(path);
+      if (resource.exists) {
+        if (resource is File) {
+          defaultPackageFilePath = path;
+        } else {
+          defaultPackagesDirectoryPath = path;
+        }
+      }
+    }
+
+    ContextBuilder builder = new ContextBuilder(resourceProvider,
+        analysisServer.sdkManager, analysisServer.overlayState);
+    builder.defaultOptions = options;
+    builder.fileResolverProvider = analysisServer.fileResolverProvider;
+    builder.defaultPackageFilePath = defaultPackageFilePath;
+    builder.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
+    return builder;
+  }
+
+  @override
   void moveContext(Folder from, Folder to) {
     // There is nothing to do.
     // This method is mostly for tests.
@@ -1670,61 +1691,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
-  }
-
-  /**
-   * Set up a [SourceFactory] that resolves packages as appropriate for the
-   * given [disposition].
-   */
-  SourceFactory _createSourceFactory(InternalAnalysisContext context,
-      AnalysisOptions options, FolderDisposition disposition, Folder folder) {
-    List<UriResolver> resolvers = [];
-    List<UriResolver> packageUriResolvers =
-        disposition.createPackageUriResolvers(resourceProvider);
-
-    // If no embedded URI resolver was provided, defer to a locator-backed one.
-    SdkExtensionFinder extFinder =
-        disposition.getSdkExtensionFinder(resourceProvider);
-    List<String> extFilePaths = extFinder.extensionFilePaths;
-    EmbedderYamlLocator locator =
-        disposition.getEmbedderLocator(resourceProvider);
-    Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
-    EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderYamls);
-    if (embedderSdk.libraryMap.size() == 0) {
-      // There was no embedder file, or the file was empty, so used the default
-      // SDK.
-      resolvers.add(new DartUriResolver(
-          analysisServer.sdkManager.getSdkForOptions(options)));
-    } else {
-      // The embedder file defines an alternate SDK, so use it.
-      List<String> paths = <String>[];
-      for (Folder folder in embedderYamls.keys) {
-        paths.add(folder
-            .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
-            .path);
-      }
-      paths.addAll(extFilePaths);
-      DartSdk dartSdk = analysisServer.sdkManager
-          .getSdk(new SdkDescription(paths, options), () {
-        if (extFilePaths.isNotEmpty) {
-          embedderSdk.addExtensions(extFinder.urlMappings);
-        }
-        embedderSdk.analysisOptions = options;
-        // TODO(brianwilkerson) Enable summary use after we have decided where
-        // summary files for embedder files will live.
-        embedderSdk.useSummary = false;
-        return embedderSdk;
-      });
-      resolvers.add(new DartUriResolver(dartSdk));
-    }
-
-    resolvers.addAll(packageUriResolvers);
-    UriResolver fileResolver;
-    if (context.fileResolverProvider != null) {
-      fileResolver = context.fileResolverProvider(folder);
-    }
-    resolvers.add(fileResolver ?? new ResourceUriResolver(resourceProvider));
-    return new SourceFactory(resolvers, disposition.packages);
   }
 }
 

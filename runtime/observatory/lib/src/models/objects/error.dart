@@ -17,7 +17,6 @@ enum ErrorKind {
 }
 
 abstract class ErrorRef extends ObjectRef {
-  String get id;
   ErrorKind get kind;
   String get message;
 }

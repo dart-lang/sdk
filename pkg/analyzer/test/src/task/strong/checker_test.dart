@@ -269,7 +269,7 @@ foo() => new A();
 test() {
   int x = 0;
   x += 5;
-  x += /*error:INVALID_ASSIGNMENT*/3.14;
+  /*error:STATIC_TYPE_ERROR*/x += /*error:INVALID_ASSIGNMENT*/3.14;
 
   double y = 0.0;
   y += 5;
@@ -280,12 +280,12 @@ test() {
   z += 3.14;
 
   x = /*info:DOWN_CAST_IMPLICIT*/x + z;
-  /*info:DOWN_CAST_IMPLICIT*/x += z;
+  x += /*info:DOWN_CAST_IMPLICIT*/z;
   y = y + z;
   y += z;
 
   dynamic w = 42;
-  /*info:DOWN_CAST_IMPLICIT*/x += /*info:DYNAMIC_CAST*/w;
+  x += /*info:DYNAMIC_CAST*/w;
   y += /*info:DYNAMIC_CAST*/w;
   z += /*info:DYNAMIC_CAST*/w;
 
@@ -301,7 +301,7 @@ test() {
   a += b;
   a += /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/a;
   a -= b;
-  b -= /*error:INVALID_ASSIGNMENT*/b;
+  /*error:STATIC_TYPE_ERROR*/b -= /*error:INVALID_ASSIGNMENT*/b;
   a <<= b;
   a >>= b;
   a &= b;
@@ -318,20 +318,6 @@ test() {
   /*info:DYNAMIC_INVOKE,info:DYNAMIC_INVOKE*/c[b] += d;
 }
 ''');
-  }
-
-  void test_compoundAssignment_returnsDynamic() {
-    checkFile(r'''
-class Foo {
-  operator +(other) => null;
-}
-
-main() {
-  var foo = new Foo();
-  foo = /*info:DYNAMIC_CAST*/foo + 1;
-  /*info:DYNAMIC_CAST*/foo += 1;
-}
-    ''');
   }
 
   void test_constructorInvalid() {

@@ -1273,7 +1273,7 @@ class Int16List extends _TypedList with _IntListMixin implements List<int>, Type
   }
 
   void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
-    if (ClassID.getID(iterable) == CodeUnits.cid) {
+    if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
       int byteStart = this.offsetInBytes + start * Int16List.BYTES_PER_ELEMENT;
@@ -1339,7 +1339,7 @@ class Uint16List extends _TypedList with _IntListMixin implements List<int>, Typ
   }
 
   void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
-    if (ClassID.getID(iterable) == CodeUnits.cid) {
+    if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
       int byteStart = this.offsetInBytes + start * Uint16List.BYTES_PER_ELEMENT;
@@ -3384,7 +3384,7 @@ class _Int16ArrayView extends _TypedListView with _IntListMixin implements Int16
   }
 
   void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
-    if (ClassID.getID(iterable) == CodeUnits.cid) {
+    if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
       int byteStart = this.offsetInBytes + start * Int16List.BYTES_PER_ELEMENT;
@@ -3442,7 +3442,7 @@ class _Uint16ArrayView extends _TypedListView with _IntListMixin implements Uint
   }
 
   void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
-    if (ClassID.getID(iterable) == CodeUnits.cid) {
+    if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
       int byteStart = this.offsetInBytes + start * Uint16List.BYTES_PER_ELEMENT;

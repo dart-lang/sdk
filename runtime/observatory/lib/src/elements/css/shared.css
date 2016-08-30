@@ -2,13 +2,17 @@
 * {
   margin: 0;
   padding: 0;
-  font: 400 14px 'Montserrat', sans-serif;
-  color: #333;
   box-sizing: border-box;
 }
 
 body {
   padding-top: 56px;
+  color: #333;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+button {
+  font: 400 14px 'Montserrat', sans-serif;
 }
 
 .content {
@@ -30,6 +34,10 @@ body {
 
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
+}
+
+h2 {
+  font: 400 16px 'Montserrat', sans-serif;
 }
 
 .memberList {
@@ -570,6 +578,21 @@ class-tree virtual-tree .class-tree-item .name {
   margin-left: 0.5em;
 }
 
+/* context-ref */
+/* TODO(cbernaschina) fix context-ref-wrapped to context-ref when wrapper
+removed */
+
+context-ref-wrapped > a[href]:hover {
+    text-decoration: underline;
+}
+context-ref-wrapped > a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+context-ref-wrapped > a[href] * {
+    color: inherit;
+}
+
 /* cpu-profile */
 
 cpu-profile {
@@ -761,11 +784,101 @@ removed */
 error-ref-wrapped > pre {
   background-color: #f5f5f5;
   border: 1px solid #ccc;
-  padding: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
   font-family: consolas, courier, monospace;
   font-size: 1em;
   line-height: 1.2em;
   white-space: pre;
+}
+
+/* eval-box */
+/* TODO(cbernaschina) fix eval-box-wrapped to error-ref when wrapper
+removed */
+
+eval-box-wrapped a[href]:hover {
+    text-decoration: underline;
+}
+eval-box-wrapped a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+eval-box-wrapped .quicks > button:hover {
+  background-color: transparent;
+  border: none;
+  text-decoration: underline;
+}
+eval-box-wrapped .quicks > button {
+  background-color: transparent;
+  border: none;
+  color: #0489c3;
+  padding: 0;
+  margin-right: 1em;
+  text-decoration: none;
+}
+eval-box-wrapped .empathize {
+  font-style: italic;
+}
+eval-box-wrapped .indent {
+  margin-left: 1.5em;
+  font: 400 14px 'Montserrat', sans-serif;
+  line-height: 150%;
+}
+eval-box-wrapped .stackTraceBox {
+  margin-left: 1.5em;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: consolas, courier, monospace;
+  font-size: 12px;
+  white-space: pre;
+  overflow-x: auto;
+}
+eval-box-wrapped .heading {
+  line-height: 30px;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 450px;
+  padding-right: 150px;
+}
+eval-box-wrapped .heading .textbox {
+  width: 100%;
+  min-width: 300px;
+}
+eval-box-wrapped .heading .buttons {
+  position: absolute;
+  top: 0;
+  right: 0px;
+}
+eval-box-wrapped.historyExpr,
+eval-box-wrapped .historyValue {
+  vertical-align: text-top;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+eval-box-wrapped .historyExpr button {
+  display: block;
+  color: black;
+  border: none;
+  background: none;
+  text-decoration: none;
+  padding: 6px 6px;
+  cursor: pointer;
+  white-space: pre-line;
+}
+eval-box-wrapped .historyExpr button:hover {
+  background-color: #fff3e3;
+}
+eval-box-wrapped .historyValue {
+  display: block;
+  padding: 6px 6px;
+}
+eval-box-wrapped .historyDelete button {
+  border: none;
+  background: none;
+}
+eval-box-wrapped .historyDelete button:hover {
+  color: #BB3311;
 }
 
 /* flag-list */
@@ -801,12 +914,10 @@ function-ref-wrapped > a[href] {
 
 /* heap-snapshot */
 
-
 heap-snapshot .statusMessage {
   font-size: 150%;
   font-weight: bold;
 }
-
 heap-snapshot .statusBox {
   height: 100%;
   padding: 1em;
@@ -973,6 +1084,8 @@ to isolate-shared-summary when wrapper removed */
 isolate-shared-summary,
 isolate-shared-summary-wrapped {
   display: block;
+}
+isolate-shared-summary-wrapped > .summary {
   height: 300px;
   position: relative;
 }
@@ -1018,6 +1131,21 @@ library-ref-wrapped > a[href] {
 
 .nav-option label {
   color: white;
+}
+
+/* megamorphic-cache-ref */
+/* TODO(cbernaschina) fix megamorphic-cache-ref-wrapped to megamorphic-cache-ref
+when wrapper removed */
+
+megamorphic-cache-ref-wrapped > a[href]:hover {
+    text-decoration: underline;
+}
+megamorphic-cache-ref-wrapped > a[href] {
+    color: #0489c3;
+    text-decoration: none;
+}
+megamorphic-cache-ref-wrapped > a[href] * {
+    color: inherit;
 }
 
 /* nav-notify */
@@ -1151,6 +1279,12 @@ object-pool-ref > a[href] * {
     color: inherit;
 }
 
+/* object-pool-view */
+
+object-pool-view .hexadecimal {
+  font-family: monospace;
+}
+
 /* observatory-application */
 
 observatory-application {
@@ -1161,6 +1295,69 @@ observatory-application {
 observatory-application > div {
   display: block;
   height: 100%;
+}
+
+/* persistent-handles-page */
+
+persistent-handles-page {
+  display: block;
+  height: 100%;
+}
+persistent-handles-page .persistent-handles,
+persistent-handles-page .weak-persistent-handles {
+  margin-top: -70px;
+  padding-top: 70px;
+  height: 50%;
+}
+persistent-handles-page virtual-collection {
+  overflow-y: scroll;
+}
+persistent-handles-page .weak-item,
+persistent-handles-page .collection-item {
+  box-sizing: border-box;
+  line-height: 20px;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+persistent-handles-page .header {
+  box-sizing: border-box;
+  line-height: 20px;
+}
+persistent-handles-page .header .weak-item:last-child {
+  margin-bottom: -3px;
+  border-bottom: solid 1px #AAAAAA;
+}
+persistent-handles-page .weak-item .external-size,
+persistent-handles-page .weak-item .peer,
+persistent-handles-page .weak-item .object {
+  display: inline-block;
+  width: 7em;
+  text-align: right;
+  padding-right: 0.5em;
+  line-height: 20px;
+}
+persistent-handles-page .weak-item .peer {
+  width: 11em;
+  font-family: monospace;
+}
+persistent-handles-page .weak-item .object {
+  text-align: left;
+  width: 25em;
+}
+persistent-handles-page .shifter .weak-item:hover {
+  background-color: #d2e7fe;
+}
+persistent-handles-page .weak-item .finalizer {
+  padding-left: 0.5em;
+}
+persistent-handles-page .weak-item > button,
+persistent-handles-page .weak-item > button:active {
+  background-color: transparent;
+  color: #0489c3;
+  border-style: none;
+}
+persistent-handles-page .weak-item > button:hover {
+  text-decoration: underline;
 }
 
 /* ports-page */
@@ -1240,6 +1437,173 @@ sample-buffer-control .red {
 sample-buffer-control .shadow {
   box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.16),
               0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+/* script-inset */
+/* TODO(cbernaschina) fix script-inset-wrapped to script-inset when wrapper
+removed */
+
+script-inset-wrapped {
+  position: relative;
+}
+script-inset-wrapped button.refresh,
+script-inset-wrapped button.toggle-profile {
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  border: none;
+  position: absolute;
+  display: inline-block;
+  top: 5px;
+  color: #888888;
+  line-height: 30px;
+}
+script-inset-wrapped button.refresh {
+  right: 5px;
+  font-size: 25px;
+}
+script-inset-wrapped button.toggle-profile {
+  right: 30px;
+  font-size: 20px;
+}
+script-inset-wrapped button.toggle-profile.enabled {
+  color: #BB3322;
+}
+script-inset-wrapped a {
+  color: #0489c3;
+  text-decoration: none;
+}
+script-inset-wrapped a:hover {
+  text-decoration: underline;
+}
+script-inset-wrapped .sourceInset {
+}
+script-inset-wrapped .sourceTable {
+  position: relative;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: scroll;
+}
+script-inset-wrapped .sourceRow {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+script-inset-wrapped .sourceItem,
+script-inset-wrapped .sourceItemCurrent {
+  vertical-align: top;
+  font: 400 14px consolas, courier, monospace;
+  line-height: 125%;
+  white-space: pre;
+  max-width: 0;
+}
+script-inset-wrapped .currentLine {
+  background-color: #fff;
+}
+script-inset-wrapped .currentCol {
+  background-color: #6cf;
+}
+script-inset-wrapped .hitsCurrent,
+script-inset-wrapped .hitsNone,
+script-inset-wrapped .hitsNotExecuted,
+script-inset-wrapped .hitsExecuted,
+script-inset-wrapped .hitsCompiled,
+script-inset-wrapped .hitsNotCompiled {
+  display: table-cell;
+  vertical-align: top;
+  font: 400 14px consolas, courier, monospace;
+  margin-left: 5px;
+  margin-right: 5px;
+  text-align: right;
+  color: #a8a8a8;
+}
+script-inset-wrapped .hitsCurrent {
+  background-color: #6cf;
+  color: black;
+}
+script-inset-wrapped .hitsNotExecuted {
+  background-color: #faa;
+}
+script-inset-wrapped .hitsExecuted {
+  background-color: #aea;
+}
+script-inset-wrapped .hitsCompiled {
+  background-color: #e0e0e0;
+}
+script-inset-wrapped .hitsNotCompiled {
+  background-color: #f0c5c5;
+}
+script-inset-wrapped .noCopy {}
+script-inset-wrapped .emptyBreakpoint,
+script-inset-wrapped .possibleBreakpoint,
+script-inset-wrapped .busyBreakpoint,
+script-inset-wrapped .unresolvedBreakpoint,
+script-inset-wrapped .resolvedBreakpoint  {
+  display: table-cell;
+  vertical-align: top;
+  font: 400 14px consolas, courier, monospace;
+  width: 1em;
+  text-align: center;
+  cursor: pointer;
+}
+script-inset-wrapped .possibleBreakpoint {
+  color: #e0e0e0;
+}
+script-inset-wrapped .possibleBreakpoint:hover {
+  color: white;
+  background-color: #777;
+}
+script-inset-wrapped .busyBreakpoint {
+  color: white;
+  background-color: black;
+  cursor: wait;
+}
+script-inset-wrapped .unresolvedBreakpoint {
+  color: white;
+  background-color: #cac;
+}
+script-inset-wrapped .resolvedBreakpoint {
+  color: white;
+  background-color: #e66;
+}
+script-inset-wrapped .unresolvedBreakAnnotation {
+  color: white;
+  background-color: #cac;
+}
+script-inset-wrapped .resolvedBreakAnnotation {
+  color: white;
+  background-color: #e66;
+}
+script-inset-wrapped .notSourceProfile,
+script-inset-wrapped .noProfile,
+script-inset-wrapped .coldProfile,
+script-inset-wrapped .mediumProfile,
+script-inset-wrapped .hotProfile {
+  display: table-cell;
+  vertical-align: top;
+  font: 400 14px consolas, courier, monospace;
+  width: 4em;
+  text-align: right;
+  cursor: pointer;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+script-inset-wrapped .notSourceProfile {
+}
+script-inset-wrapped .noProfile {
+  background-color: #e0e0e0;
+}
+script-inset-wrapped .coldProfile {
+  background-color: #aea;
+}
+script-inset-wrapped .mediumProfile {
+  background-color: #fe9;
+}
+script-inset-wrapped .hotProfile {
+  background-color: #faa;
 }
 
 /* stack-trace-tree-config */

@@ -730,7 +730,7 @@ FinalizablePersistentHandle* FinalizablePersistentHandle::Cast(
 void FinalizablePersistentHandle::Finalize(
     Isolate* isolate, FinalizablePersistentHandle* handle) {
   if (!handle->raw()->IsHeapObject()) {
-    return;
+    return;  // Free handle.
   }
   Dart_WeakPersistentHandleFinalizer callback = handle->callback();
   ASSERT(callback != NULL);
@@ -1034,6 +1034,9 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& ref = thread->ObjectHandle();
   ref = Api::UnwrapHandle(object);
+  if (!ref.raw()->IsHeapObject()) {
+    return NULL;
+  }
   FinalizablePersistentHandle* finalizable_ref =
       FinalizablePersistentHandle::New(thread->isolate(),
                                        ref,

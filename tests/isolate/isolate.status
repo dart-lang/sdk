@@ -61,6 +61,32 @@ exit_at_spawn_test: Skip # Issue 23876
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 
+[ $compiler == dart2js && $fast_startup ]
+browser/compute_this_script_browser_test: Fail # mirrors not supported
+browser/typed_data_message_test: Fail # mirrors not supported
+count_test: Fail # mirrors not supported
+cross_isolate_message_test: Fail # mirrors not supported
+illegal_msg_function_test: Fail # mirrors not supported
+illegal_msg_mirror_test: Fail # mirrors not supported
+isolate_complex_messages_test: Fail # mirrors not supported
+mandel_isolate_test: Fail # mirrors not supported
+message2_test: Fail # mirrors not supported
+message_test: Fail # mirrors not supported
+mint_maker_test: Fail # mirrors not supported
+nested_spawn2_test: Fail # mirrors not supported
+nested_spawn_test: Fail # mirrors not supported
+raw_port_test: Fail # mirrors not supported
+remote_unittest_helper: Fail # mirrors not supported
+request_reply_test: Fail # mirrors not supported
+spawn_function_custom_class_test: Fail # mirrors not supported
+spawn_function_test: Fail # mirrors not supported
+stacktrace_message_test: Fail # mirrors not supported
+static_function_test: Fail # mirrors not supported
+unresolved_ports_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fast_startup && $browser == false ]
+isolate_current_test: Fail  # please triage
+
 [ $csp ]
 deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 

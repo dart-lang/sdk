@@ -36,5 +36,5 @@ Future<String> compile(String code, {String entry: 'main',
 Future check(String code, {String entry: 'main'}) async {
   var original = await compile(code, entry: entry, useKernel: false);
   var kernel = await compile(code, entry: entry, useKernel: true);
-  expect(original, kernel);
+  expect(kernel, original);
 }

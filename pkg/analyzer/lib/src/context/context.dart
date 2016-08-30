@@ -284,6 +284,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.lint && !options.lint) ||
         this._options.preserveComments != options.preserveComments ||
         this._options.strongMode != options.strongMode ||
+        this._options.enableAssertInitializer !=
+            options.enableAssertInitializer ||
         this._options.enableAssertMessage != options.enableAssertMessage ||
         ((options is AnalysisOptionsImpl)
             ? this._options.strongModeHints != options.strongModeHints
@@ -312,6 +314,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.enableGenericMethods = options.enableGenericMethods;
+    this._options.enableAssertInitializer = options.enableAssertInitializer;
     this._options.enableAssertMessage = options.enableAssertMessage;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableAsync = options.enableAsync;
@@ -1306,7 +1309,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
-      entry.setState(RESOLVED_UNIT13, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
       setValue(STRONG_MODE_ERRORS, AnalysisError.NO_ERRORS);
@@ -1386,7 +1388,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
-    entry.setState(RESOLVED_UNIT13, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 
@@ -1571,7 +1572,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         new LibrarySpecificUnit(librarySource, unitSource);
     for (ResultDescriptor result in [
       RESOLVED_UNIT,
-      RESOLVED_UNIT13,
       RESOLVED_UNIT12,
       RESOLVED_UNIT11,
       RESOLVED_UNIT10,

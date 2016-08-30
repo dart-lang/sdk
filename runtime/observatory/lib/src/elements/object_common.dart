@@ -102,7 +102,10 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
                 ..text = 'Class ',
               new DivElement()..classes = const ['memberValue']
                 ..children = [
-                  new ClassRefElement(_isolate, _object.clazz, queue: _r.queue)
+                  _object.clazz == null
+                    ? (new SpanElement()..text = '...')
+                    : new ClassRefElement(_isolate, _object.clazz,
+                                          queue: _r.queue)
                 ]
             ],
           new DivElement()..classes = const ['memberItem']

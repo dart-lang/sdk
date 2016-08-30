@@ -8,8 +8,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -75,10 +73,14 @@ class AnalysisDomainGetErrorsTest
   }
 
   @override
-  Future startServer({int servicesPort, bool checked: true}) {
+  Future startServer(
+      {bool checked: true, int diagnosticPort, int servicesPort}) {
     String sdkPath = createNonStandardSdk();
     return server.start(
-        servicesPort: servicesPort, checked: checked, sdkPath: sdkPath);
+        checked: checked,
+        diagnosticPort: diagnosticPort,
+        sdkPath: sdkPath,
+        servicesPort: servicesPort);
   }
 
   Future test_getErrors() async {

@@ -8,7 +8,10 @@ class ErrorRefMock implements M.ErrorRef {
   final String id;
   final M.ErrorKind kind;
   final String message;
-  const ErrorRefMock({this.id, this.kind, this.message});
+
+  const ErrorRefMock({this.id: 'error-ref',
+                      this.kind: M.ErrorKind.internalError,
+                      this.message: 'Error Message'});
 }
 
 class ErrorMock implements M.Error {
@@ -17,5 +20,8 @@ class ErrorMock implements M.Error {
   final int size;
   final M.ErrorKind kind;
   final String message;
-  const ErrorMock({this.id, this.clazz, this.size, this.kind, this.message});
+
+  const ErrorMock({this.id: 'error-id', this.clazz: const ClassMock(),
+                   this.size: 0, this.kind: M.ErrorKind.internalError,
+                   this.message: 'Error Message'});
 }

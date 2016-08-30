@@ -20,10 +20,12 @@ main() {
 
 @reflectiveTest
 class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
-  Future startServer({int servicesPort, bool checked: true}) {
+  Future startServer(
+      {bool checked: true, int diagnosticPort, int servicesPort}) {
     return server.start(
-        servicesPort: servicesPort,
         checked: checked,
+        diagnosticPort: diagnosticPort,
+        servicesPort: servicesPort,
         useAnalysisHighlight2: true);
   }
 
@@ -109,6 +111,7 @@ int topLevelVariable;
         expect(highlights[type], equals(expected.toSet()));
         highlights.remove(type);
       }
+
       check(HighlightRegionType.ANNOTATION, ['@override']);
       check(HighlightRegionType.BUILT_IN,
           ['as', 'get', 'import', 'set', 'static', 'typedef']);

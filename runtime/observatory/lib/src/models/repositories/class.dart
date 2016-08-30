@@ -5,6 +5,6 @@
 part of models;
 
 abstract class ClassRepository{
-  Future<Class> getObject();
-  Future<Class> get(String id);
+  Future<Class> getObject(IsolateRef isolate);
+  Future<Class> get(IsolateRef isolate, String id);
 }

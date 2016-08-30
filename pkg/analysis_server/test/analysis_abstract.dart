@@ -125,6 +125,7 @@ class AbstractAnalysisTest {
     //
     // Create server
     //
+    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
     return new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -132,7 +133,7 @@ class AbstractAnalysisTest {
         index,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('', false, (_) => new MockSdk()),
+        new DartSdkManager('/', false, (_) => sdk),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -143,10 +144,10 @@ class AbstractAnalysisTest {
   /**
    * Creates a project `/project`.
    */
-  void createProject() {
+  void createProject({Map<String, String> packageRoots}) {
     resourceProvider.newFolder(projectPath);
     Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+        new AnalysisSetAnalysisRootsParams([projectPath], [], packageRoots: packageRoots).toRequest('0');
     handleSuccessfulRequest(request, handler: analysisHandler);
   }
 

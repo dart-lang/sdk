@@ -4,16 +4,21 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../common/codegen.dart' show CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
+import '../diagnostics/spannable.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/kernel.dart';
 import '../kernel/kernel_visitor.dart';
 import '../resolution/tree_elements.dart';
+import '../tree/dartstring.dart';
+import '../types/masks.dart';
+
 import 'graph_builder.dart';
+import 'kernel_ast_adapter.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
 
@@ -44,8 +49,10 @@ class SsaKernelBuilderTask extends CompilerTask {
           element,
           work.resolvedAst,
           backend.compiler,
+          work.registry,
           sourceInformationFactory,
-          visitor.nodeToElement);
+          visitor,
+          kernel);
       return builder.build();
     });
   }
@@ -56,20 +63,23 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final FunctionElement functionElement;
   final ResolvedAst resolvedAst;
   final Compiler compiler;
-  final Map<ir.Node, Element> nodeToElement;
+  final CodegenRegistry registry;
 
   JavaScriptBackend get backend => compiler.backend;
 
   LocalsHandler localsHandler;
   SourceInformationBuilder sourceInformationBuilder;
+  KernelAstAdapter astAdapter;
 
   KernelSsaBuilder(
       this.function,
       this.functionElement,
       this.resolvedAst,
       this.compiler,
+      this.registry,
       SourceInformationStrategy sourceInformationFactory,
-      this.nodeToElement) {
+      KernelVisitor visitor,
+      Kernel kernel) {
     graph.element = functionElement;
     // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
     this.sourceInformationBuilder =
@@ -78,6 +88,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler =
         new LocalsHandler(this, functionElement, null, compiler);
+    this.astAdapter = new KernelAstAdapter(compiler.backend, resolvedAst,
+        visitor.nodeToAst, visitor.nodeToElement, kernel.functions);
   }
 
   HGraph build() {
@@ -115,5 +127,112 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void closeFunction() {
     if (!isAborted()) closeAndGotoExit(new HGoto());
     graph.finalize();
+  }
+
+  @override
+  void visitBlock(ir.Block block) {
+    assert(!isAborted());
+    for (ir.Statement statement in block.statements) {
+      statement.accept(this);
+      if (!isReachable) {
+        // The block has been aborted by a return or a throw.
+        if (stack.isNotEmpty) {
+          compiler.reporter.internalError(
+              NO_LOCATION_SPANNABLE, 'Non-empty instruction stack.');
+        }
+        return;
+      }
+    }
+    assert(!current.isClosed());
+    if (stack.isNotEmpty) {
+      compiler.reporter
+          .internalError(NO_LOCATION_SPANNABLE, 'Non-empty instruction stack');
+    }
+  }
+
+  @override
+  void visitReturnStatement(ir.ReturnStatement returnStatement) {
+    HInstruction value;
+    if (returnStatement.expression == null) {
+      value = graph.addConstantNull(compiler);
+    } else {
+      returnStatement.expression.accept(this);
+      value = pop();
+      // TODO(het): Check or trust the type of value
+    }
+    // TODO(het): Add source information
+    // TODO(het): Set a return value instead of closing the function when we
+    // support inlining.
+    closeAndGotoExit(new HReturn(value, null));
+  }
+
+  @override
+  void visitIntLiteral(ir.IntLiteral intLiteral) {
+    stack.add(graph.addConstantInt(intLiteral.value, compiler));
+  }
+
+  @override
+  visitDoubleLiteral(ir.DoubleLiteral doubleLiteral) {
+    stack.add(graph.addConstantDouble(doubleLiteral.value, compiler));
+  }
+
+  @override
+  visitBoolLiteral(ir.BoolLiteral boolLiteral) {
+    stack.add(graph.addConstantBool(boolLiteral.value, compiler));
+  }
+
+  @override
+  visitStringLiteral(ir.StringLiteral stringLiteral) {
+    stack.add(graph.addConstantString(
+        new DartString.literal(stringLiteral.value), compiler));
+  }
+
+  @override
+  visitSymbolLiteral(ir.SymbolLiteral symbolLiteral) {
+    stack.add(graph.addConstant(
+        astAdapter.getConstantForSymbol(symbolLiteral), compiler));
+    registry?.registerConstSymbol(symbolLiteral.value);
+  }
+
+  @override
+  visitNullLiteral(ir.NullLiteral nullLiteral) {
+    stack.add(graph.addConstantNull(compiler));
+  }
+
+  @override
+  visitVariableGet(ir.VariableGet variableGet) {
+    LocalElement local = astAdapter.getElement(variableGet.variable);
+    stack.add(localsHandler.readLocal(local));
+  }
+
+  @override
+  visitStaticInvocation(ir.StaticInvocation invocation) {
+    List<HInstruction> inputs = <HInstruction>[];
+
+    for (ir.Expression argument in invocation.arguments.positional) {
+      argument.accept(this);
+      inputs.add(pop());
+    }
+    for (ir.NamedExpression argument in invocation.arguments.named) {
+      argument.value.accept(this);
+      inputs.add(pop());
+    }
+
+    ir.Procedure target = invocation.target;
+    bool targetCanThrow = astAdapter.getCanThrow(target);
+    TypeMask typeMask = astAdapter.returnTypeOf(target);
+
+    HInstruction instruction = new HInvokeStatic(
+        astAdapter.getElement(target).declaration, inputs, typeMask,
+        targetCanThrow: targetCanThrow);
+    instruction.sideEffects = astAdapter.getSideEffects(target);
+
+    push(instruction);
+  }
+
+  @override
+  visitExpressionStatement(ir.ExpressionStatement exprStatement) {
+    exprStatement.expression.accept(this);
+    pop();
   }
 }

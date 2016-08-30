@@ -205,8 +205,12 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Start [server].
    */
-  Future startServer({int servicesPort, bool checked: true}) =>
-      server.start(servicesPort: servicesPort, checked: checked);
+  Future startServer(
+          {bool checked: true, int diagnosticPort, int servicesPort}) =>
+      server.start(
+          checked: checked,
+          diagnosticPort: diagnosticPort,
+          servicesPort: servicesPort);
 
   /**
    * After every test, the server is stopped and [sourceDirectory] is deleted.

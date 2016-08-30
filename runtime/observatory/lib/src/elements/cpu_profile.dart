@@ -101,7 +101,7 @@ class CpuProfileElement  extends HtmlElement implements Renderable {
           new NavTopMenuElement(queue: _r.queue),
           new NavVMMenuElement(_vm, _events, queue: _r.queue),
           new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavMenuElement('cpu profile', link: Uris.profiler(_isolate),
+          new NavMenuElement('cpu profile', link: Uris.cpuProfiler(_isolate),
               last: true, queue: _r.queue),
           new NavRefreshElement(queue: _r.queue)
               ..onRefresh.listen(_refresh),

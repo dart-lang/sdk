@@ -2280,6 +2280,9 @@ class TestUtils {
     if (compiler == "dart2js" && configuration["cps_ir"]) {
       args.add("--use-cps-ir");
     }
+    if (compiler == "dart2js" && configuration["fast_startup"]) {
+      args.add("--fast-startup");
+    }
     if (compiler == "dart2analyzer") {
       args.add("--show-package-warnings");
       args.add("--enable-async");

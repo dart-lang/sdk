@@ -45,8 +45,6 @@ class SourceLinkElementWrapper extends HtmlElement {
       return;
     }
 
-    ScriptRepository repository = new ScriptRepository(_location.isolate);
-
     shadowRoot.children = [
       new StyleElement()
         ..text = '''
@@ -57,7 +55,8 @@ class SourceLinkElementWrapper extends HtmlElement {
             color: #0489c3;
             text-decoration: none;
         }''',
-      new SourceLinkElement(_location.isolate, _location, repository,
+      new SourceLinkElement(_location.isolate, _location,
+                            new ScriptRepository(),
                             queue: ObservatoryApplication.app.queue)
     ];
   }

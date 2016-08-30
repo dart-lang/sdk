@@ -133,7 +133,7 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
           new NavVMMenuElement(_vm, _events, queue: _r.queue),
           new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
           new NavMenuElement('cpu profile (table)',
-              link: Uris.profiler(_isolate), last: true, queue: _r.queue),
+              link: Uris.cpuProfilerTable(_isolate), last: true, queue: _r.queue),
           new NavRefreshElement(queue: _r.queue)
               ..onRefresh.listen(_refresh),
           new NavRefreshElement(label: 'Clear', queue: _r.queue)
@@ -223,7 +223,10 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
           ..text = '0%',
         new SpanElement()..classes = const ['name']
       ];
-    element.onClick.listen((_) {
+    element.onClick.listen((e) {
+      if (e.target is AnchorElement) {
+        return;
+      }
       _selected = _functions.getItemFromElement(element);
       _r.dirty();
     });
@@ -287,7 +290,10 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
           ..text = '0%',
         new SpanElement()..classes = const ['name']
       ];
-    element.onClick.listen((_) {
+    element.onClick.listen((e) {
+      if (e.target is AnchorElement) {
+        return;
+      }
       _selected = _callees.getItemFromElement(element);
       _r.dirty();
     });
@@ -322,7 +328,10 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
           ..text = '0%',
         new SpanElement()..classes = const ['name']
       ];
-    element.onClick.listen((_) {
+    element.onClick.listen((e) {
+      if (e.target is AnchorElement) {
+        return;
+      }
       _selected = _callers.getItemFromElement(element);
       _r.dirty();
     });

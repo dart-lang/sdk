@@ -5,8 +5,6 @@
 part of repositories;
 
 class ICDataRepository extends M.ICDataRepository {
-  ICDataRepository();
-
   Future<M.ICData> get(M.IsolateRef i, String id) async{
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);

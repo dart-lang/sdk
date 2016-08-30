@@ -697,8 +697,8 @@ class FixProcessor {
       }
     }
     // prepare location for a new constructor
-    _ClassMemberLocation targetLocation =
-        _prepareNewConstructorLocation(classDeclaration);
+    ClassMemberLocation targetLocation =
+        utils.prepareNewConstructorLocation(classDeclaration);
     // build constructor source
     SourceBuilder sb = new SourceBuilder(file, targetLocation.offset);
     {
@@ -741,8 +741,8 @@ class FixProcessor {
     if (targetTypeNode is! ClassDeclaration) {
       return;
     }
-    _ClassMemberLocation targetLocation =
-        _prepareNewConstructorLocation(targetTypeNode);
+    ClassMemberLocation targetLocation =
+        utils.prepareNewConstructorLocation(targetTypeNode);
     String targetFile = targetElement.source.fullName;
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
@@ -797,8 +797,8 @@ class FixProcessor {
     if (targetTypeNode is! ClassDeclaration) {
       return;
     }
-    _ClassMemberLocation targetLocation =
-        _prepareNewConstructorLocation(targetTypeNode);
+    ClassMemberLocation targetLocation =
+        utils.prepareNewConstructorLocation(targetTypeNode);
     String targetFile = targetElement.source.fullName;
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
@@ -935,8 +935,8 @@ class FixProcessor {
         argumentsBuffer.append(parameterName);
       }
       // add proposal
-      _ClassMemberLocation targetLocation =
-          _prepareNewConstructorLocation(targetClassNode);
+      ClassMemberLocation targetLocation =
+          utils.prepareNewConstructorLocation(targetClassNode);
       SourceBuilder sb = new SourceBuilder(file, targetLocation.offset);
       {
         sb.append(targetLocation.prefix);
@@ -1017,8 +1017,8 @@ class FixProcessor {
     }
     ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
-    _ClassMemberLocation targetLocation =
-        _prepareNewFieldLocation(targetClassNode);
+    ClassMemberLocation targetLocation =
+        utils.prepareNewFieldLocation(targetClassNode);
     // build method source
     String targetFile = targetClassElement.source.fullName;
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
@@ -1150,8 +1150,8 @@ class FixProcessor {
     }
     ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
-    _ClassMemberLocation targetLocation =
-        _prepareNewGetterLocation(targetClassNode);
+    ClassMemberLocation targetLocation =
+        utils.prepareNewGetterLocation(targetClassNode);
     // build method source
     String targetFile = targetClassElement.source.fullName;
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
@@ -1278,7 +1278,7 @@ class FixProcessor {
     // EOL management
     bool isFirst = true;
     void addEolIfNotFirst() {
-      if (!isFirst || _isClassWithEmptyBody(targetClass)) {
+      if (!isFirst || utils.isClassWithEmptyBody(targetClass)) {
         sb.append(eol);
       }
       isFirst = false;
@@ -2734,64 +2734,6 @@ class FixProcessor {
   }
 
   /**
-   * Return `true` if the given [classDeclaration] has open '{' and close '}'
-   * at the same line, e.g. `class X {}`.
-   */
-  bool _isClassWithEmptyBody(ClassDeclaration classDeclaration) {
-    return utils.getLineThis(classDeclaration.leftBracket.offset) ==
-        utils.getLineThis(classDeclaration.rightBracket.offset);
-  }
-
-  _ClassMemberLocation _prepareNewClassMemberLocation(
-      ClassDeclaration classDeclaration,
-      bool shouldSkip(ClassMember existingMember)) {
-    String indent = utils.getIndent(1);
-    // Find the last target member.
-    ClassMember targetMember = null;
-    List<ClassMember> members = classDeclaration.members;
-    for (ClassMember member in members) {
-      if (shouldSkip(member)) {
-        targetMember = member;
-      } else {
-        break;
-      }
-    }
-    // After the last target member.
-    if (targetMember != null) {
-      return new _ClassMemberLocation(eol + eol + indent, targetMember.end, '');
-    }
-    // At the beginning of the class.
-    String suffix = members.isNotEmpty ||
-        _isClassWithEmptyBody(classDeclaration) ? eol : '';
-    return new _ClassMemberLocation(
-        eol + indent, classDeclaration.leftBracket.end, suffix);
-  }
-
-  _ClassMemberLocation _prepareNewConstructorLocation(
-      ClassDeclaration classDeclaration) {
-    return _prepareNewClassMemberLocation(
-        classDeclaration,
-        (member) =>
-            member is FieldDeclaration || member is ConstructorDeclaration);
-  }
-
-  _ClassMemberLocation _prepareNewFieldLocation(
-      ClassDeclaration classDeclaration) {
-    return _prepareNewClassMemberLocation(
-        classDeclaration, (member) => member is FieldDeclaration);
-  }
-
-  _ClassMemberLocation _prepareNewGetterLocation(
-      ClassDeclaration classDeclaration) {
-    return _prepareNewClassMemberLocation(
-        classDeclaration,
-        (member) =>
-            member is FieldDeclaration ||
-            member is ConstructorDeclaration ||
-            member is MethodDeclaration && member.isGetter);
-  }
-
-  /**
    * Removes any [ParenthesizedExpression] enclosing [expr].
    *
    * [exprPrecedence] - the effective precedence of [expr].
@@ -2907,17 +2849,6 @@ class FixProcessor {
  */
 class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
-}
-
-/**
- * Describes the location for a newly created [ClassMember].
- */
-class _ClassMemberLocation {
-  final String prefix;
-  final int offset;
-  final String suffix;
-
-  _ClassMemberLocation(this.prefix, this.offset, this.suffix);
 }
 
 /**

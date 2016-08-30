@@ -5,8 +5,6 @@
 part of repositories;
 
 class ContextRepository extends M.ContextRepository {
-  ContextRepository();
-
   Future<M.Context> get(M.IsolateRef i, String id) async{
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);

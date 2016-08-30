@@ -128,7 +128,7 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
           new NavVMMenuElement(_vm, _events, queue: _r.queue),
           new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
           new NavMenuElement('allocation profile', last: true,
-              link: Uris.profiler(_isolate), queue: _r.queue),
+              link: Uris.allocationProfiler(_isolate), queue: _r.queue),
           new NavRefreshElement(label: 'Download', disabled: _profile == null,
               queue: _r.queue)
             ..onRefresh.listen((_) => _downloadCSV()),

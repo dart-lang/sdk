@@ -496,6 +496,184 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 
+[ $compiler == dart2js && $fast_startup ]
+Language/Classes/Instance_Methods/Operators/unary_minus: Fail # mirrors not supported
+Language/Expressions/Null/instance_of_class_null_t01: Fail # mirrors not supported
+Language/Metadata/before_class_t01: Fail # mirrors not supported
+Language/Metadata/before_ctor_t01: Fail # mirrors not supported
+Language/Metadata/before_ctor_t02: Fail # mirrors not supported
+Language/Metadata/before_export_t01: Fail # mirrors not supported
+Language/Metadata/before_factory_t01: Fail # mirrors not supported
+Language/Metadata/before_function_t01: Fail # mirrors not supported
+Language/Metadata/before_function_t02: Fail # mirrors not supported
+Language/Metadata/before_function_t03: Fail # mirrors not supported
+Language/Metadata/before_function_t04: Fail # mirrors not supported
+Language/Metadata/before_function_t05: Fail # mirrors not supported
+Language/Metadata/before_function_t06: Fail # mirrors not supported
+Language/Metadata/before_function_t07: Fail # mirrors not supported
+Language/Metadata/before_import_t01: Fail # mirrors not supported
+Language/Metadata/before_library_t01: Fail # mirrors not supported
+Language/Metadata/before_param_t01: Fail # mirrors not supported
+Language/Metadata/before_param_t02: Fail # mirrors not supported
+Language/Metadata/before_param_t03: Fail # mirrors not supported
+Language/Metadata/before_param_t04: Fail # mirrors not supported
+Language/Metadata/before_param_t05: Fail # mirrors not supported
+Language/Metadata/before_param_t06: Fail # mirrors not supported
+Language/Metadata/before_param_t07: Fail # mirrors not supported
+Language/Metadata/before_param_t08: Fail # mirrors not supported
+Language/Metadata/before_param_t09: Fail # mirrors not supported
+Language/Metadata/before_type_param_t01: Fail # mirrors not supported
+Language/Metadata/before_typedef_t01: Fail # mirrors not supported
+Language/Metadata/before_variable_t01: Fail # mirrors not supported
+Language/Metadata/before_variable_t02: Fail # mirrors not supported
+Language/Metadata/compilation_t01: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t02: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t03: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t04: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t05: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t06: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t07: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t08: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t09: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t10: Pass # mirrors not supported, fails for the wrong reason
+Language/Metadata/compilation_t11: Pass # mirrors not supported, fails for the wrong reason
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-001_t01: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t02: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/elements-001_t01: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/elements-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-event-interface/event-path-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-007_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-008_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-009_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-010_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-011_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-012_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-013_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-001_t01: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-006_t01: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-007_t01: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-007_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-010_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-004_t02: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t02: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t02: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-dispatch/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-dispatch/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-dispatch/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-retargeting/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-retargeting/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/event-retargeting/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-005_t01: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-007_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-008_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-009_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t02: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t03: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t04: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t05: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t06: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-004_t01: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/inert-html-elements/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/composition/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/custom-pseudo-elements/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/hosting-multiple-shadow-trees/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/hosting-multiple-shadow-trees/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/hosting-multiple-shadow-trees/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/distribution-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/nested-shadow-trees/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/rendering-shadow-trees/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/reprojection/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-003_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-004_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-017_t01: Fail # custom elements not supported
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-017_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/dom-tree-accessors-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-002_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/shadow-root-001_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t01: Fail # please triage
+WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fast_startup && $runtime == jsshell ]
+LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: Fail # please triage
+
+[ $compiler == dart2js && $fast_startup && $browser ]
+LayoutTests/fast/dom/custom/document-register-on-create-callback_t01: Fail # please triage
+LayoutTests/fast/dom/custom/unresolved-pseudoclass_t01: Fail # please triage
+WebPlatformTest/custom-elements/concepts/type_A01_t01: Fail # custom elements not supported
+LayoutTests/fast/dom/custom/attribute-changed-callback_t01: Fail # custom elements not supported
+LayoutTests/fast/dom/custom/created-callback_t01: Fail # please triage
+LayoutTests/fast/dom/custom/document-register-namespace_t01: Fail # please triage
+LayoutTests/fast/dom/custom/document-register-type-extensions_t01: Fail # please triage
+LayoutTests/fast/dom/custom/element-type_t01: Fail # custom elements not supported
+LayoutTests/fast/dom/custom/element-upgrade_t01: Fail # please triage
+LayoutTests/fast/dom/custom/type-extensions_t01: Fail # custom elements not supported
+WebPlatformTest/custom-elements/concepts/type_A07_t01: Fail # custom elements not supported
+WebPlatformTest/custom-elements/concepts/type_A08_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/createElementNS_A01_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: Fail # custom elements not supported
+WebPlatformTest/custom-elements/instantiating/createElementNS_A05_t01: Fail # custom elements not supported
+WebPlatformTest/custom-elements/instantiating/createElement_A01_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/isAttribute_A03_t01: Fail # please triage
+WebPlatformTest/custom-elements/instantiating/localName_A01_t01: Fail # please triage
+
+
 [ $compiler == dart2js && $checked != true ]
 Language/Expressions/Property_Extraction/General_Super_Property_Extraction/getter_lookup_t02: Timeout, Skip # Please triage this failure
 Language/Expressions/Property_Extraction/Super_Closurization/setter_closurization_t09: CompileTimeError # Please triage this failure
@@ -1442,7 +1620,6 @@ WebPlatformTest/DOMEvents/approved/addEventListener.optional.useCapture_t01: Run
 WebPlatformTest/Utils/test/asyncTestFail_t01: RuntimeError # Please triage this failure
 WebPlatformTest/Utils/test/asyncTestFail_t02: RuntimeError # Please triage this failure
 WebPlatformTest/Utils/test/asyncTestTimeout_t01: Skip # Times out. Please triage this failure
-WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError # Issue 25155
@@ -1600,6 +1777,15 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t0
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == chrome && $fast_startup ]
+WebPlatformTest/custom-elements/concepts/type_A04_t01: RuntimeError # Please triage this failure
+WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
+WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # Please triage this failure
+WebPlatformTest/custom-elements/instantiating/namespace_A01_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == chrome && $fast_startup == false ]
+WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $checked ]
 LayoutTests/fast/css-intrinsic-dimensions/css-tables_t01: RuntimeError # Please triage this failure
@@ -3205,7 +3391,6 @@ LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JS
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 LayoutTests/fast/canvas/webgl/*: Timeout, Pass # Issue 26725
-LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # co19 issue 16
 LayoutTests/fast/text/whitespace/nowrap-line-break-after-white-space_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Skip # Times out always
 LayoutTests/fast/canvas/webgl/texture-complete_t01: Skip # Times out sometimes
@@ -4020,7 +4205,6 @@ LibTest/html/Element/getBoundingClientRect_A01_t02: Pass, RuntimeError # Issue 5
 LibTest/html/Element/getClientRects_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # Please triage this failure
-LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isTagSupported_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
@@ -4365,7 +4549,6 @@ LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Fails 10 out of 10.
 LayoutTests/fast/forms/datalist/datalist-child-validation_t01: RuntimeError # Fails 10 out of 10.
 LayoutTests/fast/overflow/scrollbar-restored_t01: RuntimeError # Fails 10 out of 10.
 LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # Fails 10 out of 10.
-LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # Fails 10 out of 10.
 LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError, Pass # Fails 19 out of 20.
 
 LayoutTests/fast/flexbox/repaint-scrollbar_t01: Pass, RuntimeError # Fails 2 out of 10.
@@ -4377,6 +4560,9 @@ LayoutTests/fast/forms/autofocus-input-css-style-change_t01: Pass, RuntimeError 
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: Pass, RuntimeError # Fails 6 out of 10.
 
 LayoutTests/fast/canvas/webgl/glsl-conformance_t01: Skip # Times out 1 out of 20.
+
+[ $compiler == dart2js && $runtime == safari && $fast_startup == false ]
+LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # Fails 10 out of 10.
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
@@ -7701,6 +7887,9 @@ WebPlatformTest/webstorage/event_session_storageeventinit_t01: Pass, RuntimeErro
 WebPlatformTest/webstorage/event_session_url_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
+
+[ $compiler == dart2js && $runtime == ie10 && $fast_startup ]
+LayoutTests/fast/canvas/canvas-composite-image_t01: RuntimeError
 
 [ $compiler == dart2js && $runtime == ie11 ]
 Language/Variables/implicit_setter_void_t07: Skip # Times out. Please triage this failure

@@ -115,7 +115,7 @@ class ClassTreeElement extends HtmlElement implements Renderable{
     _object = null;
     _subclasses.clear();
     _mixins.clear();
-    _object = await _register(await _classes.getObject());
+    _object = await _register(await _classes.getObject(_isolate));
     _r.dirty();
   }
 
@@ -129,7 +129,7 @@ class ClassTreeElement extends HtmlElement implements Renderable{
   }
 
   Future<Iterable<M.Class>> _getActualChildrens(M.ClassRef ref) async {
-    var cls = await _classes.get(ref.id);
+    var cls = await _classes.get(_isolate, ref.id);
     if (cls.isPatch) {
       return const [];
     }

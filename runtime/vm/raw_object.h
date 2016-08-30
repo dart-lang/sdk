@@ -539,6 +539,11 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
     return ClassIdTag::decode(tags);
   }
 
+  void SetClassId(intptr_t new_cid) {
+    uword tags = ptr()->tags_;
+    ptr()->tags_ = ClassIdTag::update(new_cid, tags);
+  }
+
   template<class TagBitField>
   void UpdateTagBit(bool value) {
     uword tags = ptr()->tags_;
@@ -596,6 +601,7 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   friend class Become;  // GetClassId
   friend class Bigint;
   friend class ByteBuffer;
+  friend class CidRewriteVisitor;
   friend class Closure;
   friend class Code;
   friend class Double;
@@ -719,6 +725,7 @@ class RawClass : public RawObject {
   friend class RawInstructions;
   friend class SnapshotReader;
   friend class InstanceSerializationCluster;
+  friend class CidRewriteVisitor;
 };
 
 
@@ -947,6 +954,8 @@ class RawField : public RawObject {
   int8_t guarded_list_length_in_object_offset_;
 
   uint8_t kind_bits_;  // static, final, const, has initializer....
+
+  friend class CidRewriteVisitor;
 };
 
 
@@ -1681,6 +1690,8 @@ class RawType : public RawAbstractType {
   }
   TokenPosition token_pos_;
   int8_t type_state_;
+
+  friend class CidRewriteVisitor;
 };
 
 
@@ -1713,6 +1724,8 @@ class RawTypeParameter : public RawAbstractType {
   TokenPosition token_pos_;
   int16_t index_;
   int8_t type_state_;
+
+  friend class CidRewriteVisitor;
 };
 
 

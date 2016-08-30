@@ -411,6 +411,33 @@ webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 
+[ $compiler == dart2js && $fast_startup ]
+custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
+custom/js_custom_test: Fail # mirrors not supported
+custom/mirrors_test: Fail # mirrors not supported
+mirrors_js_typed_interop_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fast_startup && $browser ]
+custom/attribute_changed_callback_test/fully_supported: Fail # custom elements not supported
+custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # custom elements not supported
+custom/document_register_type_extensions_test/construction: Fail # custom elements not supported
+custom/document_register_type_extensions_test/functional: Fail # custom elements not supported
+custom/document_register_type_extensions_test/namespaces: Fail # custom elements not supported
+custom/document_register_type_extensions_test/parsing: Fail # custom elements not supported
+custom/document_register_type_extensions_test/registration: Fail # custom elements not supported
+custom/entered_left_view_test: Fail # custom elements not supported
+custom/element_upgrade_test: Fail # custom elements not supported
+custom/document_register_basic_test: Fail # custom elements not supported
+custom/document_register_type_extensions: Fail # custom elements not supported
+custom_elements_23127_test/baseline: Fail # custom elements not supported
+custom_elements_23127_test/c1t: Fail # custom elements not supported
+custom_elements_23127_test/c2: Fail # custom elements not supported
+js_function_getter_test: Fail # js-interop function's not supported
+js_typed_interop_callable_object_test: Fail # js-interop function's not supported
+js_typed_interop_test/closure: Fail # js-interop function's not supported
+js_typed_interop_test/method: Fail # js-interop function's not supported
+js_typed_interop_window_property_test/bind*: Fail # js-interop function's not supported
+
 [ $compiler == dart2js && $cps_ir && $browser ]
 js_typed_interop_side_cast_exp_test: RuntimeError # Corner case in package:js that we might want to remove (See comment in #24978).
 js_typed_interop_test/static_method_tearoff_1: RuntimeError # Tree-shaking a used tear-off (#24978, #25720).

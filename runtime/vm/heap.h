@@ -253,10 +253,6 @@ class Heap {
   Monitor* barrier() const { return barrier_; }
   Monitor* barrier_done() const { return barrier_done_; }
 
-  Monitor* finalization_tasks_lock() const { return finalization_tasks_lock_; }
-  intptr_t finalization_tasks() const { return finalization_tasks_; }
-  void set_finalization_tasks(intptr_t count) { finalization_tasks_ = count; }
-
   void SetupExternalPage(void* pointer, uword size, bool is_executable) {
     old_space_.SetupExternalPage(pointer, size, is_executable);
   }
@@ -350,9 +346,6 @@ class Heap {
   Monitor* barrier_;
   Monitor* barrier_done_;
 
-  Monitor* finalization_tasks_lock_;
-  intptr_t finalization_tasks_;
-
   // GC stats collection.
   GCStats stats_;
 
@@ -365,6 +358,7 @@ class Heap {
   bool gc_old_space_in_progress_;
 
   friend class Become;  // VisitObjectPointers
+  friend class Precompiler;  // VisitObjects
   friend class ServiceEvent;
   friend class PageSpace;  // VerifyGC
   friend class IsolateReloadContext;  // VisitObjects

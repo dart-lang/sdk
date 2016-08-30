@@ -51,7 +51,8 @@ class ErrorRefElementWrapper extends HtmlElement {
         error-ref-wrapped > pre {
           background-color: #f5f5f5;
           border: 1px solid #ccc;
-          padding: 10px;
+          padding-left: 10px;
+          padding-right: 10px;
           font-family: consolas, courier, monospace;
           font-size: 1em;
           line-height: 1.2em;

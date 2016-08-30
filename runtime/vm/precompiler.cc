@@ -198,6 +198,8 @@ void Precompiler::DoCompileAll(
       // because their class hasn't been finalized yet.
       FinalizeAllClasses();
 
+      SortClasses();
+
       // Precompile static initializers to compute result type information.
       PrecompileStaticInitializers();
 
@@ -344,8 +346,16 @@ void Precompiler::ClearAllCode() {
       function.ClearICDataArray();
     }
   };
-  ClearCodeFunctionVisitor visitor;
-  VisitFunctions(&visitor);
+  ClearCodeFunctionVisitor function_visitor;
+  VisitFunctions(&function_visitor);
+
+  class ClearCodeClassVisitor : public ClassVisitor {
+    void Visit(const Class& cls) {
+      cls.DisableAllocationStub();
+    }
+  };
+  ClearCodeClassVisitor class_visitor;
+  VisitClasses(&class_visitor);
 }
 
 
@@ -2203,6 +2213,147 @@ void Precompiler::FinalizeAllClasses() {
     }
   }
   I->set_all_classes_finalized(true);
+}
+
+
+void Precompiler::SortClasses() {
+  ClassTable* table = I->class_table();
+  intptr_t num_cids = table->NumCids();
+  intptr_t* old_to_new_cid = new intptr_t[num_cids];
+  for (intptr_t cid = 0; cid < kNumPredefinedCids; cid++) {
+    old_to_new_cid[cid] = cid;  // The predefined classes cannot change cids.
+  }
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
+    old_to_new_cid[cid] = -1;
+  }
+
+  intptr_t next_new_cid = kNumPredefinedCids;
+  GrowableArray<intptr_t> dfs_stack;
+  Class& cls = Class::Handle(Z);
+  GrowableObjectArray& subclasses = GrowableObjectArray::Handle(Z);
+
+  // Object doesn't use its subclasses list.
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
+    if (!table->HasValidClassAt(cid)) {
+      continue;
+    }
+    cls = table->At(cid);
+    if (cls.is_patch()) {
+      continue;
+    }
+    if (cls.SuperClass() == I->object_store()->object_class()) {
+      dfs_stack.Add(cid);
+    }
+  }
+
+  while (dfs_stack.length() > 0) {
+    intptr_t cid = dfs_stack.RemoveLast();
+    ASSERT(table->HasValidClassAt(cid));
+    cls = table->At(cid);
+    ASSERT(!cls.IsNull());
+    if (old_to_new_cid[cid] == -1) {
+      old_to_new_cid[cid] = next_new_cid++;
+      if (FLAG_trace_precompiler) {
+        THR_Print("%" Pd ": %s, was %" Pd "\n",
+                  old_to_new_cid[cid], cls.ToCString(), cid);
+      }
+    }
+    subclasses = cls.direct_subclasses();
+    if (!subclasses.IsNull()) {
+      for (intptr_t i = 0; i < subclasses.Length(); i++) {
+        cls ^= subclasses.At(i);
+        ASSERT(!cls.IsNull());
+        dfs_stack.Add(cls.id());
+      }
+    }
+  }
+
+  // Top-level classes, typedefs, patch classes, etc.
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
+    if (old_to_new_cid[cid] == -1) {
+      old_to_new_cid[cid] = next_new_cid++;
+      if (FLAG_trace_precompiler && table->HasValidClassAt(cid)) {
+        cls = table->At(cid);
+        THR_Print("%" Pd ": %s, was %" Pd "\n",
+                  old_to_new_cid[cid], cls.ToCString(), cid);
+      }
+    }
+  }
+  ASSERT(next_new_cid == num_cids);
+
+  RemapClassIds(old_to_new_cid);
+  delete[] old_to_new_cid;
+}
+
+
+class CidRewriteVisitor : public ObjectVisitor {
+ public:
+  explicit CidRewriteVisitor(intptr_t* old_to_new_cids)
+      : old_to_new_cids_(old_to_new_cids) { }
+
+  intptr_t Map(intptr_t cid) {
+    ASSERT(cid != -1);
+    return old_to_new_cids_[cid];
+  }
+
+  void VisitObject(RawObject* obj) {
+    if (obj->IsClass()) {
+      RawClass* cls = Class::RawCast(obj);
+      cls->ptr()->id_ = Map(cls->ptr()->id_);
+    } else if (obj->IsField()) {
+      RawField* field = Field::RawCast(obj);
+      field->ptr()->guarded_cid_ = Map(field->ptr()->guarded_cid_);
+      field->ptr()->is_nullable_ = Map(field->ptr()->is_nullable_);
+    } else if (obj->IsTypeParameter()) {
+      RawTypeParameter* param = TypeParameter::RawCast(obj);
+      param->ptr()->parameterized_class_id_ =
+          Map(param->ptr()->parameterized_class_id_);
+    } else if (obj->IsType()) {
+      RawType* type = Type::RawCast(obj);
+      RawObject* id = type->ptr()->type_class_id_;
+      if (!id->IsHeapObject()) {
+        type->ptr()->type_class_id_ =
+            Smi::New(Map(Smi::Value(Smi::RawCast(id))));
+      }
+    } else {
+      intptr_t old_cid = obj->GetClassId();
+      intptr_t new_cid = Map(old_cid);
+      if (old_cid != new_cid) {
+        // Don't touch objects that are unchanged. In particular, Instructions,
+        // which are write-protected.
+        obj->SetClassId(new_cid);
+      }
+    }
+  }
+
+ private:
+  intptr_t* old_to_new_cids_;
+};
+
+
+void Precompiler::RemapClassIds(intptr_t* old_to_new_cid) {
+  // Code, ICData, allocation stubs have now-invalid cids.
+  ClearAllCode();
+
+  {
+    HeapIterationScope his;
+
+    // Update the class table. Do it before rewriting cids in headers, as the
+    // heap walkers load an object's size *after* calling the visitor.
+    I->class_table()->Remap(old_to_new_cid);
+
+    // Rewrite cids in headers and cids in Classes, Fields, Types and
+    // TypeParameters.
+    {
+      CidRewriteVisitor visitor(old_to_new_cid);
+      I->heap()->VisitObjects(&visitor);
+    }
+  }
+
+#if defined(DEBUG)
+  I->class_table()->Validate();
+  I->heap()->Verify();
+#endif
 }
 
 
