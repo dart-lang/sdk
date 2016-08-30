@@ -6667,7 +6667,7 @@ TEST_CASE(LoadPatch) {
       "part of library1_name;\n"
       "external int foo();";
   const char* kPatchChars =
-      "patch int foo() => 42;";
+      "@patch int foo() => 42;";
 
   // Load up a library.
   Dart_Handle url = NewString("library1_url");
@@ -6712,8 +6712,8 @@ TEST_CASE(LoadPatchSignatureMismatch) {
       "}";
   const char* kPatchChars =
       "const _UNDEFINED = const Object();\n"
-      "patch foo([x=_UNDEFINED]) => identical(x, _UNDEFINED) ? 42 : x;\n"
-      "patch class Foo {\n"
+      "@patch foo([x=_UNDEFINED]) => identical(x, _UNDEFINED) ? 42 : x;\n"
+      "@patch class Foo {\n"
       "  static addDefault10([x=_UNDEFINED, y=_UNDEFINED]) {\n"
       "    if (identical(x, _UNDEFINED)) x = 10;\n"
       "    if (identical(y, _UNDEFINED)) y = 10;\n"
