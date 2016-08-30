@@ -1529,14 +1529,14 @@ class ComputeLibraryCycleTaskTest extends _AbstractDartTaskTest {
     return outputs[LIBRARY_CYCLE] as List<LibraryElement>;
   }
 
-  List<CompilationUnitElement> getLibraryCycleDependencies(
+  List<LibrarySpecificUnit> getLibraryCycleDependencies(
       Map<ResultDescriptor, dynamic> outputs) {
-    return outputs[LIBRARY_CYCLE_DEPENDENCIES] as List<CompilationUnitElement>;
+    return outputs[LIBRARY_CYCLE_DEPENDENCIES] as List<LibrarySpecificUnit>;
   }
 
-  List<CompilationUnitElement> getLibraryCycleUnits(
+  List<LibrarySpecificUnit> getLibraryCycleUnits(
       Map<ResultDescriptor, dynamic> outputs) {
-    return outputs[LIBRARY_CYCLE_UNITS] as List<CompilationUnitElement>;
+    return outputs[LIBRARY_CYCLE_UNITS] as List<LibrarySpecificUnit>;
   }
 
   @override
@@ -1701,13 +1701,13 @@ import 'a.dart';
     expect(component0, hasLength(1));
     expect(component1, hasLength(1));
 
-    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results[0]);
-    List<CompilationUnitElement> units1 = getLibraryCycleUnits(results[1]);
+    List<LibrarySpecificUnit> units0 = getLibraryCycleUnits(results[0]);
+    List<LibrarySpecificUnit> units1 = getLibraryCycleUnits(results[1]);
     expect(units0, hasLength(1));
     expect(units1, hasLength(1));
 
-    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results[0]);
-    List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results[1]);
+    List<LibrarySpecificUnit> dep0 = getLibraryCycleDependencies(results[0]);
+    List<LibrarySpecificUnit> dep1 = getLibraryCycleDependencies(results[1]);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(2)); // dart:core, a.dart
   }
@@ -1734,16 +1734,16 @@ import 'a.dart';
     expect(component1, hasLength(3));
     expect(component2, hasLength(3));
 
-    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results[0]);
-    List<CompilationUnitElement> units1 = getLibraryCycleUnits(results[1]);
-    List<CompilationUnitElement> units2 = getLibraryCycleUnits(results[2]);
+    List<LibrarySpecificUnit> units0 = getLibraryCycleUnits(results[0]);
+    List<LibrarySpecificUnit> units1 = getLibraryCycleUnits(results[1]);
+    List<LibrarySpecificUnit> units2 = getLibraryCycleUnits(results[2]);
     expect(units0, hasLength(3));
     expect(units1, hasLength(3));
     expect(units2, hasLength(3));
 
-    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results[0]);
-    List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results[1]);
-    List<CompilationUnitElement> dep2 = getLibraryCycleDependencies(results[2]);
+    List<LibrarySpecificUnit> dep0 = getLibraryCycleDependencies(results[0]);
+    List<LibrarySpecificUnit> dep1 = getLibraryCycleDependencies(results[1]);
+    List<LibrarySpecificUnit> dep2 = getLibraryCycleDependencies(results[2]);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core
     expect(dep2, hasLength(1)); // dart:core
@@ -1819,10 +1819,10 @@ var foo = 123;
     List<LibraryElement> component0 = getLibraryCycle(results[0]);
     expect(component0, hasLength(1));
 
-    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results[0]);
+    List<LibrarySpecificUnit> units0 = getLibraryCycleUnits(results[0]);
     expect(units0, hasLength(1));
 
-    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results[0]);
+    List<LibrarySpecificUnit> dep0 = getLibraryCycleDependencies(results[0]);
     expect(dep0, hasLength(1)); // dart:core
   }
 
@@ -1834,8 +1834,8 @@ import 'dart:core';
 ''');
     computeResult(source, LIBRARY_CYCLE);
     List<LibraryElement> component = getLibraryCycle(outputs);
-    List<CompilationUnitElement> units = getLibraryCycleUnits(outputs);
-    List<CompilationUnitElement> deps = getLibraryCycleDependencies(outputs);
+    List<LibrarySpecificUnit> units = getLibraryCycleUnits(outputs);
+    List<LibrarySpecificUnit> deps = getLibraryCycleDependencies(outputs);
     expect(component, hasLength(1));
     expect(units, hasLength(1));
     expect(deps, hasLength(1));
@@ -1861,16 +1861,16 @@ import 'dart:core';
     expect(component1, hasLength(1));
     expect(component2, hasLength(1));
 
-    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results[0]);
-    List<CompilationUnitElement> units1 = getLibraryCycleUnits(results[1]);
-    List<CompilationUnitElement> units2 = getLibraryCycleUnits(results[2]);
+    List<LibrarySpecificUnit> units0 = getLibraryCycleUnits(results[0]);
+    List<LibrarySpecificUnit> units1 = getLibraryCycleUnits(results[1]);
+    List<LibrarySpecificUnit> units2 = getLibraryCycleUnits(results[2]);
     expect(units0, hasLength(1));
     expect(units1, hasLength(1));
     expect(units2, hasLength(1));
 
-    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results[0]);
-    List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results[1]);
-    List<CompilationUnitElement> dep2 = getLibraryCycleDependencies(results[2]);
+    List<LibrarySpecificUnit> dep0 = getLibraryCycleDependencies(results[0]);
+    List<LibrarySpecificUnit> dep1 = getLibraryCycleDependencies(results[1]);
+    List<LibrarySpecificUnit> dep2 = getLibraryCycleDependencies(results[2]);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core,
     expect(dep2, hasLength(3)); // dart:core, a.dart, b.dart
@@ -1907,19 +1907,19 @@ import 'dart:core';
     expect(component2, hasLength(2));
     expect(component3, hasLength(2));
 
-    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results[0]);
-    List<CompilationUnitElement> units1 = getLibraryCycleUnits(results[1]);
-    List<CompilationUnitElement> units2 = getLibraryCycleUnits(results[2]);
-    List<CompilationUnitElement> units3 = getLibraryCycleUnits(results[3]);
+    List<LibrarySpecificUnit> units0 = getLibraryCycleUnits(results[0]);
+    List<LibrarySpecificUnit> units1 = getLibraryCycleUnits(results[1]);
+    List<LibrarySpecificUnit> units2 = getLibraryCycleUnits(results[2]);
+    List<LibrarySpecificUnit> units3 = getLibraryCycleUnits(results[3]);
     expect(units0, hasLength(2));
     expect(units1, hasLength(2));
     expect(units2, hasLength(2));
     expect(units3, hasLength(2));
 
-    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results[0]);
-    List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results[1]);
-    List<CompilationUnitElement> dep2 = getLibraryCycleDependencies(results[2]);
-    List<CompilationUnitElement> dep3 = getLibraryCycleDependencies(results[3]);
+    List<LibrarySpecificUnit> dep0 = getLibraryCycleDependencies(results[0]);
+    List<LibrarySpecificUnit> dep1 = getLibraryCycleDependencies(results[1]);
+    List<LibrarySpecificUnit> dep2 = getLibraryCycleDependencies(results[2]);
+    List<LibrarySpecificUnit> dep3 = getLibraryCycleDependencies(results[3]);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core
     expect(dep2, hasLength(3)); // dart:core, a.dart, b.dart
@@ -1976,19 +1976,19 @@ import 'dart:core';
     expect(component4, hasLength(2));
     expect(component5, hasLength(2));
 
-    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results0);
-    List<CompilationUnitElement> units1 = getLibraryCycleUnits(results1);
-    List<CompilationUnitElement> units4 = getLibraryCycleUnits(results4);
-    List<CompilationUnitElement> units5 = getLibraryCycleUnits(results5);
+    List<LibrarySpecificUnit> units0 = getLibraryCycleUnits(results0);
+    List<LibrarySpecificUnit> units1 = getLibraryCycleUnits(results1);
+    List<LibrarySpecificUnit> units4 = getLibraryCycleUnits(results4);
+    List<LibrarySpecificUnit> units5 = getLibraryCycleUnits(results5);
     expect(units0, hasLength(4));
     expect(units1, hasLength(4));
     expect(units4, hasLength(4));
     expect(units5, hasLength(4));
 
-    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results0);
-    List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results1);
-    List<CompilationUnitElement> dep4 = getLibraryCycleDependencies(results4);
-    List<CompilationUnitElement> dep5 = getLibraryCycleDependencies(results5);
+    List<LibrarySpecificUnit> dep0 = getLibraryCycleDependencies(results0);
+    List<LibrarySpecificUnit> dep1 = getLibraryCycleDependencies(results1);
+    List<LibrarySpecificUnit> dep4 = getLibraryCycleDependencies(results4);
+    List<LibrarySpecificUnit> dep5 = getLibraryCycleDependencies(results5);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core
     expect(dep4, hasLength(5)); // dart:core, a.dart, aa.dart, ab.dart, b.dart
