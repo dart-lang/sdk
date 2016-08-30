@@ -281,10 +281,7 @@ Future<CompilerOutcome> batchMain(
       program.libraries.contains(library));
 
   // Apply target-specific transformations.
-  if (target != null && canContinueCompilation) {
-    if (program == null) {
-      fail('Only whole programs can have a target');
-    }
+  if (target != null && program != null && canContinueCompilation) {
     target.transformProgram(program);
     sanityCheck();
   }
