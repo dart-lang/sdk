@@ -387,6 +387,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitBlock(Block node) {
+    _checkDuplicateDeclarationInStatements(node.statements);
+    return super.visitBlock(node);
+  }
+
+  @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     bool wasInAsync = _inAsync;
     bool wasInGenerator = _inGenerator;
@@ -426,6 +432,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitCatchClause(CatchClause node) {
+    _checkDuplicateDefinitionInCatchClause(node);
     bool previousIsInCatchClause = _isInCatchClause;
     try {
       _isInCatchClause = true;
@@ -442,14 +449,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     try {
       _isInNativeClass = node.nativeClause != null;
       _enclosingClass = AbstractClassElementImpl.getImpl(node.element);
-      ExtendsClause extendsClause = node.extendsClause;
-      ImplementsClause implementsClause = node.implementsClause;
-      WithClause withClause = node.withClause;
+      _checkDuplicateClassMembers(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForMemberWithClassName();
       _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingTypeVariableErrorCodes(node);
+      ExtendsClause extendsClause = node.extendsClause;
+      ImplementsClause implementsClause = node.implementsClause;
+      WithClause withClause = node.withClause;
       // Only do error checks on the clause nodes if there is a non-null clause
       if (implementsClause != null ||
           extendsClause != null ||
@@ -544,6 +552,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitCompilationUnit(CompilationUnit node) {
+    _checkDuplicateUnitMembers(node);
     _checkForDeferredPrefixCollisions(node);
     return super.visitCompilationUnit(node);
   }
@@ -633,6 +642,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     ClassElement outerEnum = _enclosingEnum;
     try {
       _enclosingEnum = node.element;
+      _checkDuplicateEnumMembers(node);
       return super.visitEnumDeclaration(node);
     } finally {
       _enclosingEnum = outerEnum;
@@ -719,9 +729,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitFormalParameterList(FormalParameterList node) {
+    _checkDuplicateDefinitionInParameterList(node);
+    return super.visitFormalParameterList(node);
+  }
+
+  @override
   Object visitForStatement(ForStatement node) {
     if (node.condition != null) {
       _checkForNonBoolCondition(node.condition);
+    }
+    if (node.variables != null) {
+      _checkDuplicateVariables(node.variables);
     }
     return super.visitForStatement(node);
   }
@@ -1110,6 +1129,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitSwitchCase(SwitchCase node) {
+    _checkDuplicateDeclarationInStatements(node.statements);
+    return super.visitSwitchCase(node);
+  }
+
+  @override
+  Object visitSwitchDefault(SwitchDefault node) {
+    _checkDuplicateDeclarationInStatements(node.statements);
+    return super.visitSwitchDefault(node);
+  }
+
+  @override
   Object visitSwitchStatement(SwitchStatement node) {
     _checkForSwitchExpressionNotAssignable(node);
     _checkForCaseBlocksNotTerminated(node);
@@ -1159,6 +1190,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkForTypeAnnotationDeferredClass(node.bound);
     _checkForImplicitDynamicType(node.bound);
     return super.visitTypeParameter(node);
+  }
+
+  @override
+  Object visitTypeParameterList(TypeParameterList node) {
+    _checkDuplicateDefinitionInTypeParameterList(node);
+    return super.visitTypeParameterList(node);
   }
 
   @override
@@ -1255,6 +1292,222 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);
         }
       }
+    }
+  }
+
+  /**
+   * Check that there are no members with the same name.
+   */
+  void _checkDuplicateClassMembers(ClassDeclaration node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    Set<String> visitedFields = new HashSet<String>();
+    for (ClassMember member in node.members) {
+      // We ignore constructors because they are checked in the method
+      // _checkForConflictingConstructorNameAndMember.
+      if (member is FieldDeclaration) {
+        for (VariableDeclaration field in member.fields.variables) {
+          SimpleIdentifier identifier = field.name;
+          _checkDuplicateIdentifier(definedNames, identifier);
+          String name = identifier.name;
+          if (!field.isFinal &&
+              !field.isConst &&
+              !visitedFields.contains(name)) {
+            _checkDuplicateIdentifier(definedNames, identifier,
+                implicitSetter: true);
+          }
+          visitedFields.add(name);
+        }
+      } else if (member is MethodDeclaration) {
+        _checkDuplicateIdentifier(definedNames, member.name);
+      }
+    }
+  }
+
+  /**
+   * Check that all of the parameters have unique names.
+   */
+  void _checkDuplicateDeclarationInStatements(List<Statement> statements) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    for (Statement statement in statements) {
+      if (statement is VariableDeclarationStatement) {
+        for (VariableDeclaration variable in statement.variables.variables) {
+          _checkDuplicateIdentifier(definedNames, variable.name);
+        }
+      } else if (statement is FunctionDeclarationStatement) {
+        _checkDuplicateIdentifier(
+            definedNames, statement.functionDeclaration.name);
+      }
+    }
+  }
+
+  /**
+   * Check that the exception and stack trace parameters have different names.
+   */
+  void _checkDuplicateDefinitionInCatchClause(CatchClause node) {
+    SimpleIdentifier exceptionParameter = node.exceptionParameter;
+    SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
+    if (exceptionParameter != null && stackTraceParameter != null) {
+      String exceptionName = exceptionParameter.name;
+      if (exceptionName == stackTraceParameter.name) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.DUPLICATE_DEFINITION,
+            stackTraceParameter,
+            [exceptionName]);
+      }
+    }
+  }
+
+  /**
+   * Check that all of the parameters have unique names.
+   */
+  void _checkDuplicateDefinitionInParameterList(FormalParameterList node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    for (FormalParameter parameter in node.parameters) {
+      _checkDuplicateIdentifier(definedNames, parameter.identifier);
+    }
+  }
+
+  /**
+   * Check that all of the parameters have unique names.
+   */
+  void _checkDuplicateDefinitionInTypeParameterList(TypeParameterList node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    for (TypeParameter parameter in node.typeParameters) {
+      _checkDuplicateIdentifier(definedNames, parameter.name);
+    }
+  }
+
+  /**
+   * Check that there are no members with the same name.
+   */
+  void _checkDuplicateEnumMembers(EnumDeclaration node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    ClassElement element = node.element;
+    String indexName = 'index';
+    String valuesName = 'values';
+    definedNames[indexName] = element.getField(indexName);
+    definedNames[valuesName] = element.getField(valuesName);
+    for (EnumConstantDeclaration constant in node.constants) {
+      _checkDuplicateIdentifier(definedNames, constant.name);
+    }
+  }
+
+  /**
+   * Check whether the given [identifier] is already in the set of
+   * [definedNames], and produce an error if it is. If [implicitSetter] is
+   * `true`, then the identifier represents the definition of a setter.
+   */
+  void _checkDuplicateIdentifier(
+      Map<String, Element> definedNames, SimpleIdentifier identifier,
+      {bool implicitSetter: false}) {
+    ErrorCode getError(Element previous, Element current) {
+      if (previous is MethodElement && current is PropertyAccessorElement) {
+        if (current.isGetter) {
+          return CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME;
+        }
+      } else if (previous is PropertyAccessorElement &&
+          current is MethodElement) {
+        if (previous.isGetter) {
+          return CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME;
+        }
+      } else if (previous is PrefixElement) {
+        return CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
+      }
+      return CompileTimeErrorCode.DUPLICATE_DEFINITION;
+    }
+
+    Element current = identifier.staticElement;
+    String name = identifier.name;
+    if (current is PropertyAccessorElement && current.isSetter) {
+      name += '=';
+    } else if (current is MethodElement && current.isOperator && name == '-') {
+      if (current.parameters.length == 0) {
+        name = 'unary-';
+      }
+    } else if (implicitSetter) {
+      name += '=';
+    }
+    Element previous = definedNames[name];
+    if (previous != null) {
+      _errorReporter
+          .reportErrorForNode(getError(previous, current), identifier, [name]);
+    } else {
+      definedNames[name] = identifier.staticElement;
+    }
+  }
+
+  /**
+   * Check that there are no members with the same name.
+   */
+  void _checkDuplicateUnitMembers(CompilationUnit node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    void addWithoutChecking(CompilationUnitElement element) {
+      for (PropertyAccessorElement accessor in element.accessors) {
+        String name = accessor.name;
+        if (accessor.isSetter) {
+          name += '=';
+        }
+        definedNames[name] = accessor;
+      }
+      for (ClassElement type in element.enums) {
+        definedNames[type.name] = type;
+      }
+      for (FunctionElement function in element.functions) {
+        definedNames[function.name] = function;
+      }
+      for (FunctionTypeAliasElement alias in element.functionTypeAliases) {
+        definedNames[alias.name] = alias;
+      }
+      for (TopLevelVariableElement variable in element.topLevelVariables) {
+        definedNames[variable.name] = variable;
+        if (!variable.isFinal && !variable.isConst) {
+          definedNames[variable.name + '='] = variable;
+        }
+      }
+      for (ClassElement type in element.types) {
+        definedNames[type.name] = type;
+      }
+    }
+
+    for (ImportElement importElement in _currentLibrary.imports) {
+      PrefixElement prefix = importElement.prefix;
+      if (prefix != null) {
+        definedNames[prefix.name] = prefix;
+      }
+    }
+    CompilationUnitElement element = node.element;
+    if (element != _currentLibrary.definingCompilationUnit) {
+      addWithoutChecking(_currentLibrary.definingCompilationUnit);
+      for (CompilationUnitElement part in _currentLibrary.parts) {
+        if (element == part) {
+          break;
+        }
+        addWithoutChecking(part);
+      }
+    }
+    for (CompilationUnitMember member in node.declarations) {
+      if (member is NamedCompilationUnitMember) {
+        _checkDuplicateIdentifier(definedNames, member.name);
+      } else if (member is TopLevelVariableDeclaration) {
+        for (VariableDeclaration variable in member.variables.variables) {
+          _checkDuplicateIdentifier(definedNames, variable.name);
+          if (!variable.isFinal && !variable.isConst) {
+            _checkDuplicateIdentifier(definedNames, variable.name,
+                implicitSetter: true);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Check that the given list of variable declarations does not define multiple
+   * variables of the same name.
+   */
+  void _checkDuplicateVariables(VariableDeclarationList node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    for (VariableDeclaration variable in node.variables) {
+      _checkDuplicateIdentifier(definedNames, variable.name);
     }
   }
 
