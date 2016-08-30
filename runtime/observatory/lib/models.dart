@@ -65,6 +65,7 @@ part 'src/models/repositories/instance.dart';
 part 'src/models/repositories/megamorphiccache.dart';
 part 'src/models/repositories/notification.dart';
 part 'src/models/repositories/objectpool.dart';
+part 'src/models/repositories/object.dart';
 part 'src/models/repositories/objectstore.dart';
 part 'src/models/repositories/persistent_handles.dart';
 part 'src/models/repositories/ports.dart';

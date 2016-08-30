@@ -24,6 +24,7 @@ ObjectPoolRepository _objectPoolRepository
     = new ObjectPoolRepository();
 ObjectStoreRepository _objectstoreRepository
     = new ObjectStoreRepository();
+ObjectRepository _objectRepository = new ObjectRepository();
 PersistentHandlesRepository _persistentHandlesRepository
     = new PersistentHandlesRepository();
 PortsRepository _portsRepository = new PortsRepository();
@@ -293,6 +294,18 @@ class InspectPage extends MatchingPage {
                               _retainingPathRepository,
                               _instanceRepository,
                               pos: pos, queue: app.queue)
+      ];
+    } else if (obj.kind == 'Object') {
+      container.children = [
+        new ObjectViewElement(app.vm, obj.isolate, obj, app.events,
+                               app.notifications,
+                               _objectRepository,
+                               _retainedSizeRepository,
+                               _reachableSizeRepository,
+                               _inboundReferencesRepository,
+                               _retainingPathRepository,
+                               _instanceRepository,
+                               queue: app.queue)
       ];
     } else {
       ServiceObjectViewElement serviceElement =new Element.tag('service-view');

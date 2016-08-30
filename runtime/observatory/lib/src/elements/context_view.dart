@@ -131,7 +131,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
         ],
       new DivElement()..classes = const ['content-centered-big']
         ..children = [
-          new HeadingElement.h2()..text = 'Allocation Profile',
+          new HeadingElement.h2()..text = 'Context',
           new HRElement(),
           new ObjectCommonElement(_isolate, _context, _retainedSizes,
                                   _reachableSizes, _references, _retainingPaths,
