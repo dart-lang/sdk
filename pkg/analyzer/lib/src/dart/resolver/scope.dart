@@ -1107,13 +1107,8 @@ abstract class Scope {
   void define(Element element) {
     String name = _getName(element);
     if (name != null && !name.isEmpty) {
-      if (_definedNames != null && _definedNames.containsKey(name)) {
-        errorListener
-            .onError(getErrorForDuplicate(_definedNames[name], element));
-      } else {
-        _definedNames ??= new HashMap<String, Element>();
-        _definedNames[name] = element;
-      }
+      _definedNames ??= new HashMap<String, Element>();
+      _definedNames.putIfAbsent(name, () => element);
     }
   }
 

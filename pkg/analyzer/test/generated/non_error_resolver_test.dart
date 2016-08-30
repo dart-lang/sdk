@@ -1079,6 +1079,7 @@ abstract class A {
           EngineTestCase.findSimpleIdentifier(unit, code, search);
       expect(ref.staticElement, new isInstanceOf<ParameterElement>());
     }
+
     assertIsParameter('p1');
     assertIsParameter('p2');
     assertIsParameter('p3');
