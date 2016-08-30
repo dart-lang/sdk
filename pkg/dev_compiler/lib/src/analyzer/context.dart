@@ -22,10 +22,7 @@ import 'package:analyzer/src/generated/source_io.dart'
         SourceFactory,
         UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show
-        InSummaryPackageUriResolver,
-        InputPackagesResultProvider,
-        SummaryDataStore;
+    show InSummaryUriResolver, InputPackagesResultProvider, SummaryDataStore;
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
@@ -166,7 +163,7 @@ SourceFactory _createSourceFactory(AnalyzerOptions options,
   }
   resolvers.add(sdkResolver);
   if (summaryData != null) {
-    resolvers.add(new InSummaryPackageUriResolver(summaryData));
+    resolvers.add(new InSummaryUriResolver(resourceProvider, summaryData));
   }
 
   if (fileResolvers == null) fileResolvers = createFileResolvers(options);

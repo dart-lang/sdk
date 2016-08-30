@@ -17,7 +17,7 @@ import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show
         SummaryDataStore,
-        InSummaryPackageUriResolver,
+        InSummaryUriResolver,
         InputPackagesResultProvider,
         InSummarySource;
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
@@ -92,7 +92,7 @@ class WebCompileCommand extends Command {
       var summaryBundle = new PackageBundle.fromBuffer(bytes);
       summaryDataStore.addBundle(url, summaryBundle);
     }
-    var summaryResolver = new InSummaryPackageUriResolver(summaryDataStore);
+    var summaryResolver = new InSummaryUriResolver(resourceProvider, summaryDataStore);
 
     var fileResolvers = [summaryResolver, resourceUriResolver];
 

@@ -662,7 +662,6 @@ define([], function() {
   let PositionErrorTovoid = () => (PositionErrorTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html$.PositionError])))();
   let HttpRequestToString = () => (HttpRequestToString = dart.constFn(dart.definiteFunctionType(core.String, [html$.HttpRequest])))();
   let ProgressEventTovoid$ = () => (ProgressEventTovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [html$.ProgressEvent])))();
-  let HttpRequestTodynamic = () => (HttpRequestTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [html$.HttpRequest])))();
   let ListOfSourceInfoTovoid = () => (ListOfSourceInfoTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [ListOfSourceInfo()])))();
   let MediaStreamTovoid = () => (MediaStreamTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html$.MediaStream])))();
   let NavigatorUserMediaErrorTovoid = () => (NavigatorUserMediaErrorTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html$.NavigatorUserMediaError])))();
@@ -16574,7 +16573,7 @@ define([], function() {
         let iterator = input[dartx.iterator];
         return async.Future.doWhile(dart.fn(() => {
           if (!dart.test(iterator.moveNext())) return false;
-          return async.Future.sync(dart.fn(() => dart.dcall(f, iterator.current), VoidTodynamic$())).then(dart.dynamic)(dart.fn(_ => true, dynamicTobool$()));
+          return async.Future.sync(dart.fn(() => dart.dcall(f, iterator.current), VoidTodynamic$())).then(core.bool)(dart.fn(_ => true, dynamicTobool$()));
         }, VoidToObject$()));
       }
       static doWhile(f) {
@@ -54287,7 +54286,7 @@ define([], function() {
       let method = opts && 'method' in opts ? opts.method : null;
       let sendData = opts && 'sendData' in opts ? opts.sendData : null;
       if (dart.test(html$.HttpRequest.supportsCrossOrigin)) {
-        return html$.HttpRequest.request(url, {method: method, sendData: sendData}).then(core.String)(dart.fn(xhr => xhr[dartx.responseText], HttpRequestTodynamic()));
+        return html$.HttpRequest.request(url, {method: method, sendData: sendData}).then(core.String)(dart.fn(xhr => xhr[dartx.responseText], HttpRequestToString()));
       }
       let completer = CompleterOfString().new();
       if (method == null) {
