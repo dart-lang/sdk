@@ -1471,7 +1471,8 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
                                         const Function& target) {
-  if (owner_->inliner_->use_speculative_inlining() &&
+  if ((!FLAG_precompiled_mode ||
+       owner_->inliner_->use_speculative_inlining()) &&
       TryInlineRecognizedMethod(receiver_cid, target)) {
     owner_->inlined_ = true;
     return true;
