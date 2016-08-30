@@ -57,20 +57,20 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
     final content = [
       new DivElement()..classes = ['menu']
         ..children = [
-          new DivElement()..classes = const ['memberList']
+          new DivElement()..classes = ['memberList']
             ..children = [
-              new DivElement()..classes = const ['memberItem']
+              new DivElement()..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = const ['memberName']
+                  new DivElement()..classes = ['memberName']
                     ..text = 'new heap',
-                  new DivElement()..classes = const ['memberValue']
+                  new DivElement()..classes = ['memberValue']
                     ..text = '$newHeapUsed of $newHeapCapacity',
                 ],
-              new DivElement()..classes = const ['memberItem']
+              new DivElement()..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = const ['memberName']
+                  new DivElement()..classes = ['memberName']
                     ..text = 'old heap',
-                  new DivElement()..classes = const ['memberValue']
+                  new DivElement()..classes = ['memberValue']
                     ..text = '$oldHeapUsed of $oldHeapCapacity',
                 ]
             ],
@@ -146,14 +146,14 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
     ];
     if (_isolate.error != null) {
       children = [
-        new PreElement()..classes = const ['errorBox']
+        new PreElement()..classes = ['errorBox']
           ..text = _isolate.error.message,
-        new DivElement()..classes = const ['summary']
+        new DivElement()..classes = ['summary']
           ..children = content
       ];
     } else {
       children = [
-        new DivElement()..classes = const ['summary']
+        new DivElement()..classes = ['summary']
           ..children = content
       ];
     }

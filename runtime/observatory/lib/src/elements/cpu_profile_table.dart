@@ -215,13 +215,13 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
 
   Element _createFunction() {
     final element = new DivElement()
-      ..classes = const ['function-item']
+      ..classes = ['function-item']
       ..children = [
-        new SpanElement()..classes = const ['exclusive']
+        new SpanElement()..classes = ['exclusive']
           ..text = '0%',
-        new SpanElement()..classes = const ['inclusive']
+        new SpanElement()..classes = ['inclusive']
           ..text = '0%',
-        new SpanElement()..classes = const ['name']
+        new SpanElement()..classes = ['name']
       ];
     element.onClick.listen((e) {
       if (e.target is AnchorElement) {
@@ -235,19 +235,19 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
 
   void _updateFunction(Element e, M.ProfileFunction item, int index) {
     if (item == _selected) {
-      e.classes = const ['function-item', 'selected'];
+      e.classes = ['function-item', 'selected'];
     } else {
-      e.classes = const ['function-item'];
+      e.classes = ['function-item'];
     }
     e.children[0].text = Utils.formatPercentNormalized(_getExclusiveT(item));
     e.children[1].text = Utils.formatPercentNormalized(_getInclusiveT(item));
     e.children[2] = new FunctionRefElement(_isolate, item.function,
-        queue: _r.queue)..classes = const ['name'];
+        queue: _r.queue)..classes = ['name'];
   }
 
   Element _createFunctionHeader() =>
     new DivElement()
-      ..classes = const ['function-item']
+      ..classes = ['function-item']
         ..children = [
           _createHeaderButton(const ['exclusive'], 'Execution(%)',
                               _Table.functions,
@@ -284,11 +284,11 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
 
   Element _createCallee() {
     final element = new DivElement()
-      ..classes = const ['function-item']
+      ..classes = ['function-item']
       ..children = [
-        new SpanElement()..classes = const ['inclusive']
+        new SpanElement()..classes = ['inclusive']
           ..text = '0%',
-        new SpanElement()..classes = const ['name']
+        new SpanElement()..classes = ['name']
       ];
     element.onClick.listen((e) {
       if (e.target is AnchorElement) {
@@ -303,12 +303,12 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
   void _updateCallee(Element e, item, int index) {
     e.children[0].text = Utils.formatPercentNormalized(_getCalleeT(item));
     e.children[1] = new FunctionRefElement(_isolate, item.function,
-        queue: _r.queue)..classes = const ['name'];
+        queue: _r.queue)..classes = ['name'];
   }
 
   Element _createCalleeHeader() =>
     new DivElement()
-      ..classes = const ['function-item']
+      ..classes = ['function-item']
         ..children = [
           _createHeaderButton(const ['inclusive'], 'Callees(%)',
                               _Table.callee,
@@ -322,11 +322,11 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
 
   Element _createCaller() {
     final element = new DivElement()
-      ..classes = const ['function-item']
+      ..classes = ['function-item']
       ..children = [
-        new SpanElement()..classes = const ['inclusive']
+        new SpanElement()..classes = ['inclusive']
           ..text = '0%',
-        new SpanElement()..classes = const ['name']
+        new SpanElement()..classes = ['name']
       ];
     element.onClick.listen((e) {
       if (e.target is AnchorElement) {
@@ -341,12 +341,12 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
   void _updateCaller(Element e, item, int index) {
     e.children[0].text = Utils.formatPercentNormalized(_getCallerT(item));
     e.children[1] = new FunctionRefElement(_isolate, item.function,
-        queue: _r.queue)..classes = const ['name'];
+        queue: _r.queue)..classes = ['name'];
   }
 
   Element _createCallerHeader() =>
     new DivElement()
-      ..classes = const ['function-item']
+      ..classes = ['function-item']
         ..children = [
           _createHeaderButton(const ['inclusive'], 'Callers(%)',
                               _Table.caller,

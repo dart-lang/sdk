@@ -100,7 +100,7 @@ class ObjectStoreViewElement  extends HtmlElement implements Renderable {
               ..onRefresh.listen((e) => _refresh()),
           new NavNotifyElement(_notifications, queue: _r.queue)
         ],
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h1()
             ..text = fields == null
@@ -109,13 +109,13 @@ class ObjectStoreViewElement  extends HtmlElement implements Renderable {
           new HRElement(),
           fields == null
             ? (new HeadingElement.h2()..text = 'Loading...')
-            : (new DivElement()..classes = const ['memberList']
+            : (new DivElement()..classes = ['memberList']
                ..children = fields.map((field) =>
-                 new DivElement()..classes = const ['memberItem']
+                 new DivElement()..classes = ['memberItem']
                    ..children = [
-                     new DivElement()..classes = const ['memberName']
+                     new DivElement()..classes = ['memberName']
                        ..text = field.name,
-                     new DivElement()..classes = const ['memberValue']
+                     new DivElement()..classes = ['memberValue']
                        ..children = [
                          anyRef(_isolate, field.value, _instances,
                                 queue: _r.queue)

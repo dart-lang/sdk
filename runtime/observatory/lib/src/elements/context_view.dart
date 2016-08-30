@@ -129,7 +129,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
               }),
           new NavNotifyElement(_notifications, queue: _r.queue)
         ],
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Context',
           new HRElement(),
@@ -141,15 +141,15 @@ class ContextViewElement extends HtmlElement implements Renderable {
     if (_context.parentContext != null) {
       content.addAll([
         new BRElement(),
-        new DivElement()..classes = const ['content-centered-big']
+        new DivElement()..classes = ['content-centered-big']
           ..children = [
-            new DivElement()..classes = const ['memberList']
+            new DivElement()..classes = ['memberList']
               ..children = [
-                new DivElement()..classes = const ['memberItem']
+                new DivElement()..classes = ['memberItem']
                   ..children = [
-                    new DivElement()..classes = const ['memberName']
+                    new DivElement()..classes = ['memberName']
                       ..text = 'parent context',
-                    new DivElement()..classes = const ['memberName']
+                    new DivElement()..classes = ['memberName']
                       ..children = [
                         new ContextRefElement(_isolate, _context.parentContext,
                                               queue: _r.queue)
@@ -163,19 +163,19 @@ class ContextViewElement extends HtmlElement implements Renderable {
     if (_context.variables.isNotEmpty) {
       int index = 0;
       content.addAll([
-        new DivElement()..classes = const ['content-centered-big']
+        new DivElement()..classes = ['content-centered-big']
           ..children = [
             new SpanElement()..text = 'Variables ',
             new CurlyBlockElement(expanded: _context.variables.length > 8,
                                   queue: _r.queue)
               ..children = [
-                new DivElement()..classes = const ['memberList']
+                new DivElement()..classes = ['memberList']
                   ..children = _context.variables.map((variable)
-                    => new DivElement()..classes = const ['memberItem']
+                    => new DivElement()..classes = ['memberItem']
                       ..children = [
-                        new DivElement()..classes = const ['memberName']
+                        new DivElement()..classes = ['memberName']
                           ..text = '[ ${++index} ]',
-                        new DivElement()..classes = const ['memberName']
+                        new DivElement()..classes = ['memberName']
                           ..children = [
                             anyRef(_isolate, variable.value, _instances,
                                    queue: _r.queue)
@@ -185,7 +185,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
           ]
       ]);
     }
-    content.add(new DivElement()..classes = const ['content-centered-big']
+    content.add(new DivElement()..classes = ['content-centered-big']
       ..children = [new ViewFooterElement(queue: _r.queue)]);
     children = content;
   }

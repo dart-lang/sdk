@@ -85,7 +85,7 @@ class SentinelViewElement extends HtmlElement implements Renderable {
           new NavMenuElement('sentinel', last: true, queue: _r.queue),
           new NavNotifyElement(_notifications, queue: _r.queue)
         ],
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()
             ..text = 'Sentinel: #{_sentinel.valueAsString}',

@@ -154,7 +154,7 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
           new NavNotifyElement(_notifications, queue: _r.queue)
         ],
 
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'ICData',
           new HRElement(),
@@ -219,7 +219,7 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
         new SpanElement()..text = 'dependencies (${dependencies.length}) ',
         new CurlyBlockElement(queue: _r.queue)
           ..children = dependencies.map((d) =>
-            new DivElement()..classes = const ['indent']
+            new DivElement()..classes = ['indent']
               ..children = [
                 new SpanElement()..text = d.isImport ? 'import ' : 'export ',
                 new LibraryRefElement(_isolate, d.target, queue: _r.queue),
@@ -240,7 +240,7 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
         new SpanElement()..text = 'scripts (${scripts.length}) ',
         new CurlyBlockElement(queue: _r.queue)
           ..children = scripts.map((s) =>
-            new DivElement()..classes = const ['indent']
+            new DivElement()..classes = ['indent']
               ..children = [
                 new ScriptRefElement(_isolate, s, queue: _r.queue)
               ]).toList()
@@ -257,7 +257,7 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
         new SpanElement()..text = 'classes (${classes.length}) ',
         new CurlyBlockElement(queue: _r.queue)
           ..children = classes.map((c) =>
-            new DivElement()..classes = const ['indent']
+            new DivElement()..classes = ['indent']
               ..children = [
                 new ClassRefElement(_isolate, c, queue: _r.queue)
               ]).toList()
@@ -276,16 +276,16 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
           ..children = [
             _variables == null
               ? (new SpanElement()..text = 'loading...')
-              : (new DivElement()..classes = const ['indent', 'memberList']
+              : (new DivElement()..classes = ['indent', 'memberList']
                   ..children = _variables.map((f) =>
-                    new DivElement()..classes = const ['memberItem']
+                    new DivElement()..classes = ['memberItem']
                       ..children = [
-                        new DivElement()..classes = const ['memberName']
+                        new DivElement()..classes = ['memberName']
                           ..children = [
                             new FieldRefElement(_isolate, f, _instances,
                                 queue: _r.queue)
                           ],
-                        new DivElement()..classes = const ['memberValue']
+                        new DivElement()..classes = ['memberValue']
                           ..children = [
                             new SpanElement()..text = ' = ',
                             anyRef(_isolate, f.staticValue, _instances,
@@ -306,7 +306,7 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
         new SpanElement()..text = 'functions (${functions.length}) ',
         new CurlyBlockElement(queue: _r.queue)
           ..children = functions.map((f) =>
-            new DivElement()..classes = const ['indent']
+            new DivElement()..classes = ['indent']
               ..children = [
                 new FunctionRefElement(_isolate, f, queue: _r.queue)
               ]).toList()

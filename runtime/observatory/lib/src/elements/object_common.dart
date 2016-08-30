@@ -94,13 +94,13 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
                                                           _instances,
                                                           queue: _r.queue);
     children = [
-      new DivElement()..classes = const ['memberList']
+      new DivElement()..classes = ['memberList']
         ..children = [
-          new DivElement()..classes = const ['memberItem']
+          new DivElement()..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = const ['memberName']
+              new DivElement()..classes = ['memberName']
                 ..text = 'Class ',
-              new DivElement()..classes = const ['memberValue']
+              new DivElement()..classes = ['memberValue']
                 ..children = [
                   _object.clazz == null
                     ? (new SpanElement()..text = '...')
@@ -108,45 +108,45 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
                                           queue: _r.queue)
                 ]
             ],
-          new DivElement()..classes = const ['memberItem']
+          new DivElement()..classes = ['memberItem']
             ..title = 'Space for this object in memory'
             ..children = [
-              new DivElement()..classes = const ['memberName']
+              new DivElement()..classes = ['memberName']
                 ..text = 'Shallow size ',
-              new DivElement()..classes = const ['memberValue']
+              new DivElement()..classes = ['memberValue']
                 ..text = Utils.formatSize(_object.size ?? 0)
             ],
-          new DivElement()..classes = const ['memberItem']
+          new DivElement()..classes = ['memberItem']
             ..title = 'Space reachable from this object, '
                       'excluding class references'
             ..children = [
-              new DivElement()..classes = const ['memberName']
+              new DivElement()..classes = ['memberName']
                 ..text = 'Reachable size ',
-              new DivElement()..classes = const ['memberValue']
+              new DivElement()..classes = ['memberValue']
                 ..children = _createReachableSizeValue()
             ],
-          new DivElement()..classes = const ['memberItem']
+          new DivElement()..classes = ['memberItem']
             ..title = 'Space that would be reclaimed if references to this '
                       'object were replaced with null'
             ..children = [
-              new DivElement()..classes = const ['memberName']
+              new DivElement()..classes = ['memberName']
                 ..text = 'Retained size ',
-              new DivElement()..classes = const ['memberValue']
+              new DivElement()..classes = ['memberValue']
                 ..children = _createRetainedSizeValue()
             ],
-          new DivElement()..classes = const ['memberItem']
+          new DivElement()..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = const ['memberName']
+              new DivElement()..classes = ['memberName']
                 ..text = 'Retaining path ',
-              new DivElement()..classes = const ['memberValue']
+              new DivElement()..classes = ['memberValue']
                 ..children = [_path]
             ],
-          new DivElement()..classes = const ['memberItem']
+          new DivElement()..classes = ['memberItem']
             ..title = 'Objects which directly reference this object'
             ..children = [
-              new DivElement()..classes = const ['memberName']
+              new DivElement()..classes = ['memberName']
                 ..text = 'Inbound references ',
-              new DivElement()..classes = const ['memberValue']
+              new DivElement()..classes = ['memberValue']
                 ..children = [_inbounds]
             ]
         ]

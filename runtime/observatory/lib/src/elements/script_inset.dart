@@ -584,7 +584,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   ButtonElement _newRefreshButton() {
     var button = new ButtonElement();
-    button.classes = const ['refresh'];
+    button.classes = ['refresh'];
     button.onClick.listen((_) async {
       button.disabled = true;
       await _refresh();
@@ -597,8 +597,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   ButtonElement _newToggleProfileButton() {
     ButtonElement button = new ButtonElement();
-    button.classes = _includeProfile ? const ['toggle-profile', 'enabled']
-                                     : const ['toggle-profile'];
+    button.classes = _includeProfile ? ['toggle-profile', 'enabled']
+                                     : ['toggle-profile'];
     button.title = 'Toggle CPU profile information';
     button.onClick.listen((_) async {
       _includeProfile = !_includeProfile;

@@ -120,6 +120,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
                                    _instances, queue: _r.queue )
     ]);
 
-    return new DivElement()..classes = ['indent']..children = content;
+    return new DivElement()..classes = ['indent']
+             ..children = content;
   }
 }

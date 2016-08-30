@@ -66,7 +66,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         new SpanElement()..text = ' ',
         new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
           ..children = [
-            new DivElement()..classes = const ['indent']
+            new DivElement()..classes = ['indent']
               ..children = _createValue()
           ]
           ..onToggle.listen((e) async {
@@ -135,7 +135,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..children = [
-              new SpanElement()..classes = const ['emphasize']
+              new SpanElement()..classes = ['emphasize']
                 ..text = 'Closure',
               new SpanElement()..text = _instance.closureFunction.name
             ]
@@ -144,7 +144,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..children = [
-              new SpanElement()..classes = const ['emphasize']
+              new SpanElement()..classes = ['emphasize']
                 ..text = _instance.clazz.name,
               new SpanElement()..text = _instance.pattern.name
             ]
@@ -155,7 +155,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
             ..text = _instance.clazz.name,
           new CurlyBlockElement(queue: _r.queue)
             ..children = [
-              new DivElement()..classes = const ['stackTraceBox']
+              new DivElement()..classes = ['stackTraceBox']
                 ..text = _instance.valueAsString
             ]
         ];
@@ -184,7 +184,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..children = [
-              new SpanElement()..classes = const ['emphasize']
+              new SpanElement()..classes = ['emphasize']
                 ..text = _instance.clazz.name,
               new SpanElement()..text = ' (${_instance.length})'
             ]
@@ -192,13 +192,13 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.mirrorReference:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..classes = const ['emphasize']
+            ..classes = ['emphasize']
             ..text = _instance.clazz.name
         ];
       case M.InstanceKind.weakProperty:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..classes = const ['emphasize']
+            ..classes = ['emphasize']
             ..text = _instance.clazz.name
         ];
     }

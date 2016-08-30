@@ -55,8 +55,8 @@ class IsolateCounterChartElement extends HtmlElement implements Renderable {
     final _series = [new ChartSeries("Work", const [1], new PieChartRenderer(
       sortDataByValue: false
     ))];
-    final areaHost = new DivElement()..classes = const ['host'];
-    final  legendHost = new DivElement()..classes = const ['legend'];
+    final areaHost = new DivElement()..classes = ['host'];
+    final  legendHost = new DivElement()..classes = ['legend'];
     children = [areaHost, legendHost];
     final rect = areaHost.getBoundingClientRect();
     final minSize = new Rect.size(rect.width, rect.height);

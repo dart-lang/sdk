@@ -266,31 +266,31 @@ class HeapSnapshotElement  extends HtmlElement implements Renderable {
 
   static Element _createDominator(toggle) {
     return new DivElement()
-      ..classes = const ['tree-item']
+      ..classes = ['tree-item']
       ..children = [
-        new SpanElement()..classes = const ['size']
+        new SpanElement()..classes = ['size']
           ..title = 'retained size',
-        new SpanElement()..classes = const ['lines'],
-        new ButtonElement()..classes = const ['expander']
+        new SpanElement()..classes = ['lines'],
+        new ButtonElement()..classes = ['expander']
           ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-        new SpanElement()..classes = const ['percentage']
+        new SpanElement()..classes = ['percentage']
           ..title = 'percentage of heap being retained',
-        new SpanElement()..classes = const ['name']
+        new SpanElement()..classes = ['name']
       ];
   }
 
   static Element _createGroup(toggle) {
     return new DivElement()
-      ..classes = const ['tree-item']
+      ..classes = ['tree-item']
       ..children = [
-        new SpanElement()..classes = const ['size']
+        new SpanElement()..classes = ['size']
           ..title = 'shallow size',
-        new SpanElement()..classes = const ['lines'],
-        new ButtonElement()..classes = const ['expander']
+        new SpanElement()..classes = ['lines'],
+        new ButtonElement()..classes = ['expander']
           ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-        new SpanElement()..classes = const ['count']
+        new SpanElement()..classes = ['count']
           ..title = 'shallow size',
-        new SpanElement()..classes = const ['name']
+        new SpanElement()..classes = ['name']
       ];
   }
 
@@ -326,7 +326,7 @@ class HeapSnapshotElement  extends HtmlElement implements Renderable {
     }
     element.children[3].text = Utils.formatPercentNormalized(
         node.retainedSize * 1.0 / _snapshot.size);
-    final wrapper = new SpanElement()..classes = const ['name']
+    final wrapper = new SpanElement()..classes = ['name']
                                      ..text = 'Loading...';
     element.children[4] = wrapper;
     node.object.then((object) {
@@ -342,7 +342,7 @@ class HeapSnapshotElement  extends HtmlElement implements Renderable {
       element.children[2].text = _tree.isExpanded(item) ? '▼' : '►';
       element.children[3].text = '${item.instances} instances of ';
       element.children[4] = new ClassRefElement(_isolate, item.clazz,
-          queue: _r.queue)..classes = const ['name'];
+          queue: _r.queue)..classes = ['name'];
     } else if (item is Iterable) {
       element.children[0].text = '';
       if (item.isNotEmpty) {
@@ -352,17 +352,17 @@ class HeapSnapshotElement  extends HtmlElement implements Renderable {
       }
       element.children[3].text = '';
       if (item is Iterable<M.HeapSnapshotClassInbound>) {
-        element.children[4] = new SpanElement()..classes = const ['name']
+        element.children[4] = new SpanElement()..classes = ['name']
             ..text = '${item.length} Incoming references';
       } else {
-        element.children[4] = new SpanElement()..classes = const ['name']
+        element.children[4] = new SpanElement()..classes = ['name']
             ..text = '${item.length} Outgoing references';
       }
     } else {
       element.children[0].text = '';
       element.children[2].text = '';
       element.children[3].text = '';
-      element.children[4] = new SpanElement()..classes = const ['name'];
+      element.children[4] = new SpanElement()..classes = ['name'];
       if (item is M.HeapSnapshotClassInbound){
         element.children[3].text =
             '${item.count} references from instances of ';

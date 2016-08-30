@@ -117,18 +117,18 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
 
   static Element _createRow(toggle) {
     return new DivElement()
-      ..classes = const ['tree-item']
+      ..classes = ['tree-item']
       ..children = [
-        new SpanElement()..classes = const ['inclusive']
+        new SpanElement()..classes = ['inclusive']
           ..title = 'global % on stack',
-        new SpanElement()..classes = const ['exclusive']
+        new SpanElement()..classes = ['exclusive']
           ..title = 'global % executing',
-        new SpanElement()..classes = const ['lines'],
-        new ButtonElement()..classes = const ['expander']
+        new SpanElement()..classes = ['lines'],
+        new ButtonElement()..classes = ['expander']
           ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-        new SpanElement()..classes = const ['percentage']
+        new SpanElement()..classes = ['percentage']
           ..title = 'tree node %',
-        new SpanElement()..classes = const ['name']
+        new SpanElement()..classes = ['name']
       ];
   }
 
@@ -150,7 +150,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
         item.percentage);
     element.children[5] = new FunctionRefElement(_isolate,
             item.profileFunction.function, queue: _r.queue)
-            ..classes = const ['name'];
+            ..classes = ['name'];
   }
 
   void _updateCodeRow(HtmlElement element, M.CodeCallTreeNode item, int depth) {
@@ -168,7 +168,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
         item.percentage);
     element.children[5] = new CodeRefElement(_isolate,
         item.profileCode.code, queue: _r.queue)
-        ..classes = const ['name'];
+        ..classes = ['name'];
   }
 
   static _updateLines(List<Element> lines, int n) {
