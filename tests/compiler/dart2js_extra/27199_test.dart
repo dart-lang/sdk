@@ -7,15 +7,21 @@
 // Typedefs must be unaliased at some point before codegen to have the correct
 // number of references.  The unaliased type of ItemListFilter<T> has two
 // references to T: (Iterable<T>) -> Iterable<T>.
+
+import 'package:expect/expect.dart';
+
 typedef Iterable<T> ItemListFilter<T>(Iterable<T> items);
 
 class C<T> {
   Map<String, ItemListFilter<T>> f = {};
 }
 
+@NoInline() @AssumeDynamic()
+confuse(x) => x;
+
 main() {
   var c = new C();
   var a = 12;
-  if (new DateTime.now().millisecondsSinceEpoch < 42) a = {};
+  if (confuse(true)) a = {};
   c.f = a;
 }
