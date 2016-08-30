@@ -15,6 +15,7 @@ import '../kernel/kernel.dart';
 import '../kernel/kernel_visitor.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
+import '../types/masks.dart';
 
 import 'graph_builder.dart';
 import 'kernel_ast_adapter.dart';
@@ -50,7 +51,8 @@ class SsaKernelBuilderTask extends CompilerTask {
           backend.compiler,
           work.registry,
           sourceInformationFactory,
-          visitor);
+          visitor,
+          kernel);
       return builder.build();
     });
   }
@@ -76,7 +78,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       this.compiler,
       this.registry,
       SourceInformationStrategy sourceInformationFactory,
-      KernelVisitor visitor) {
+      KernelVisitor visitor,
+      Kernel kernel) {
     graph.element = functionElement;
     // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
     this.sourceInformationBuilder =
@@ -85,8 +88,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler =
         new LocalsHandler(this, functionElement, null, compiler);
-    this.astAdapter =
-        new KernelAstAdapter(compiler.backend, resolvedAst, visitor.nodeToAst);
+    this.astAdapter = new KernelAstAdapter(compiler.backend, resolvedAst,
+        visitor.nodeToAst, visitor.nodeToElement, kernel.functions);
   }
 
   HGraph build() {
@@ -186,13 +189,50 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   visitSymbolLiteral(ir.SymbolLiteral symbolLiteral) {
-    stack.add(
-        graph.addConstant(astAdapter.getConstantFor(symbolLiteral), compiler));
+    stack.add(graph.addConstant(
+        astAdapter.getConstantForSymbol(symbolLiteral), compiler));
     registry?.registerConstSymbol(symbolLiteral.value);
   }
 
   @override
   visitNullLiteral(ir.NullLiteral nullLiteral) {
     stack.add(graph.addConstantNull(compiler));
+  }
+
+  @override
+  visitVariableGet(ir.VariableGet variableGet) {
+    LocalElement local = astAdapter.getElement(variableGet.variable);
+    stack.add(localsHandler.readLocal(local));
+  }
+
+  @override
+  visitStaticInvocation(ir.StaticInvocation invocation) {
+    List<HInstruction> inputs = <HInstruction>[];
+
+    for (ir.Expression argument in invocation.arguments.positional) {
+      argument.accept(this);
+      inputs.add(pop());
+    }
+    for (ir.NamedExpression argument in invocation.arguments.named) {
+      argument.value.accept(this);
+      inputs.add(pop());
+    }
+
+    ir.Procedure target = invocation.target;
+    bool targetCanThrow = astAdapter.getCanThrow(target);
+    TypeMask typeMask = astAdapter.returnTypeOf(target);
+
+    HInstruction instruction = new HInvokeStatic(
+        astAdapter.getElement(target).declaration, inputs, typeMask,
+        targetCanThrow: targetCanThrow);
+    instruction.sideEffects = astAdapter.getSideEffects(target);
+
+    push(instruction);
+  }
+
+  @override
+  visitExpressionStatement(ir.ExpressionStatement exprStatement) {
+    exprStatement.expression.accept(this);
+    pop();
   }
 }

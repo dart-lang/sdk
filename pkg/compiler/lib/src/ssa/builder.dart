@@ -4899,7 +4899,7 @@ class SsaBuilder extends ast.Visitor
       instruction = new HInvokeStatic(element.declaration, arguments, typeMask,
           targetCanThrow: targetCanThrow)
         ..sourceInformation = sourceInformation;
-      if (!currentInlinedInstantiations.isEmpty) {
+      if (currentInlinedInstantiations.isNotEmpty) {
         instruction.instantiatedTypes =
             new List<DartType>.from(currentInlinedInstantiations);
       }
