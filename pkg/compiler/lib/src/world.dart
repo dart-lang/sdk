@@ -167,6 +167,13 @@ abstract class ClassWorld {
   /// of [superclass].
   bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement mixin);
 
+  /// Returns `true` if [cls] or any superclass mixes in [mixin].
+  bool isSubclassOfMixinUseOf(ClassElement cls, ClassElement mixin);
+
+  /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
+  /// of a mixin application of [y].
+  bool everySubtypeIsSubclassOfOrMixinUseOf(ClassElement x, ClassElement y);
+
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, ClassElement type);
 
@@ -504,6 +511,34 @@ class World implements ClassWorld {
     return mixinUsesOf(mixin).any((each) => each.isSubclassOf(superclass));
   }
 
+  /// Returns `true` if [cls] or any superclass mixes in [mixin].
+  bool isSubclassOfMixinUseOf(ClassElement cls, ClassElement mixin) {
+    if (isUsedAsMixin(mixin)) {
+      ClassElement current = cls.declaration;
+      mixin = mixin.declaration;
+      while (current != null) {
+        current = current.declaration;
+        if (current.isMixinApplication) {
+          MixinApplicationElement application = current;
+          if (application.mixin.declaration == mixin) return true;
+        }
+        current = current.superclass;
+      }
+    }
+    return false;
+  }
+
+  /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
+  /// of a mixin application of [y].
+  bool everySubtypeIsSubclassOfOrMixinUseOf(ClassElement x, ClassElement y) {
+    x = x.declaration;
+    y = y.declaration;
+    Map<ClassElement, bool> secondMap =
+        _subtypeCoveredByCache[x] ??= <ClassElement, bool>{};
+    return secondMap[y] ??= subtypesOf(x).every((ClassElement cls) =>
+        isSubclassOf(cls, y) || isSubclassOfMixinUseOf(cls, y));
+  }
+
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(
       ClassElement superclass, ClassElement type) {
@@ -532,6 +567,9 @@ class World implements ClassWorld {
   final Map<ClassElement, ClassHierarchyNode> _classHierarchyNodes =
       <ClassElement, ClassHierarchyNode>{};
   final Map<ClassElement, ClassSet> _classSets = <ClassElement, ClassSet>{};
+
+  final Map<ClassElement, Map<ClassElement, bool>> _subtypeCoveredByCache =
+      <ClassElement, Map<ClassElement, bool>>{};
 
   final Set<Element> sideEffectsFreeElements = new Set<Element>();
 

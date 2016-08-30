@@ -692,8 +692,18 @@ class FlatTypeMask implements TypeMask {
     // all classes in the receiver type [this]. It could be found only in a
     // subclass or in an inheritance-wise unrelated class in case of subtype
     // selectors.
-    if (isSubtype) return null;
-    if (base.isSubclassOf(enclosing)) return result;
+    ClassWorld classWorld = compiler.world;
+    if (isSubtype) {
+      // if (classWorld.isUsedAsMixin(enclosing)) {
+      if (classWorld.everySubtypeIsSubclassOfOrMixinUseOf(base, enclosing)) {
+        return result;
+      }
+      //}
+      return null;
+    } else {
+      if (base.isSubclassOf(enclosing)) return result;
+      if (classWorld.isSubclassOfMixinUseOf(base, enclosing)) return result;
+    }
     return null;
   }
 
