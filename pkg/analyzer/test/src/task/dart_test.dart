@@ -5337,8 +5337,7 @@ main() {
     computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
     // validate
     _fillErrorListener(VERIFY_ERRORS);
-    errorListener
-        .assertErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    errorListener.assertNoErrors();
   }
 
   test_perform_ConstantValidator_noInitializer() {

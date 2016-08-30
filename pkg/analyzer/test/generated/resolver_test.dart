@@ -198,12 +198,13 @@ class EnclosedScopeTest extends ResolverTestCase {
     Scope rootScope =
         new Scope_EnclosedScopeTest_test_define_duplicate(listener);
     EnclosedScope scope = new EnclosedScope(rootScope);
-    SimpleIdentifier identifier = AstFactory.identifier3("v1");
-    VariableElement element1 = ElementFactory.localVariableElement(identifier);
-    VariableElement element2 = ElementFactory.localVariableElement(identifier);
+    VariableElement element1 =
+        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
+    VariableElement element2 =
+        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
     scope.define(element1);
     scope.define(element2);
-    expect(scope.lookup(identifier, null), element1);
+    listener.assertErrorsWithSeverities([ErrorSeverity.ERROR]);
   }
 
   void test_define_normal() {
@@ -598,12 +599,13 @@ class ScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ScopeTest_TestScope scope = new ScopeTest_TestScope(errorListener);
-    SimpleIdentifier identifier = AstFactory.identifier3("v1");
-    VariableElement element1 = ElementFactory.localVariableElement(identifier);
-    VariableElement element2 = ElementFactory.localVariableElement(identifier);
+    VariableElement element1 =
+        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
+    VariableElement element2 =
+        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
     scope.define(element1);
     scope.define(element2);
-    expect(scope.lookup(identifier, null), element1);
+    errorListener.assertErrorsWithSeverities([ErrorSeverity.ERROR]);
   }
 
   void test_define_normal() {

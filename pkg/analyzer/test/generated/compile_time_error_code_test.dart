@@ -2334,10 +2334,8 @@ class A {
   A(this.x, this.x) {}
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.DUPLICATE_DEFINITION,
-      CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES
-    ]);
+    assertErrors(
+        source, [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]);
     verify([source]);
   }
 
