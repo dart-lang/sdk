@@ -3239,6 +3239,8 @@ class HTypeInfoReadVariable extends HInstruction {
   bool dataEquals(HTypeInfoReadVariable other) {
     return variable.element == other.variable.element;
   }
+
+  String toString() => 'HTypeInfoReadVariable($variable)';
 }
 
 enum TypeInfoExpressionKind { COMPLETE, INSTANCE }

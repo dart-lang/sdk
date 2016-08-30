@@ -3970,6 +3970,7 @@ class SsaBuilder extends ast.Visitor
   HInstruction analyzeTypeArgument(DartType argument,
       {SourceInformation sourceInformation}) {
     assert(assertTypeInContext(argument));
+    argument = argument.unaliased;
     if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
       return graph.addConstantNull(compiler);
