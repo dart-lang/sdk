@@ -447,6 +447,10 @@ abstract class Member implements Element {
   @override
   String get displayName => _baseElement.displayName;
 
+  @deprecated
+  @override
+  SourceRange get docRange => _baseElement.docRange;
+
   @override
   String get documentationComment => _baseElement.documentationComment;
 
