@@ -146,25 +146,13 @@ void dumpString(String value, [String filename]) {
 
 /// Maintains state that should be shared between batched executions when
 /// running in batch mode (for testing purposes).
+///
+/// Currently all shared state is disabled, as it causes flakiness when
+/// two different test cases share the same 'part' file.
 class BatchModeState {
-  AnalysisContext context;
-  String sdk;
-  String packageRoot;
-  bool strongMode = false;
-
   AnalysisContext getContext(
       String sdk_, String packageRoot_, bool strongMode_) {
-    if (context != null &&
-        this.sdk == sdk_ &&
-        this.packageRoot == packageRoot_ &&
-        this.strongMode == strongMode_) {
-      return context;
-    }
-    this.sdk = sdk_;
-    this.packageRoot = packageRoot_;
-    this.strongMode = strongMode_;
-    context = createContext(sdk_, packageRoot_, strongMode_);
-    return context;
+    return createContext(sdk_, packageRoot_, strongMode_);
   }
 }
 

@@ -6,6 +6,7 @@ library kernel.batch_consistency;
 import 'dart:async';
 import 'dart:io';
 import '../bin/dartk.dart' as dartk;
+import '../bin/batch_util.dart';
 import 'package:path/path.dart' as pathlib;
 import 'package:test/test.dart';
 
@@ -73,6 +74,9 @@ testBatchModeConsistency(List<String> options, List<String> files) {
       if (results[0] != results[1]) {
         fail('Batch mode returned ${results[0]}, expected ${results[1]}');
         return;
+      }
+      if (results[0] == CompilerOutcome.Fail) {
+        failed = true;
       }
       if (!failed && !await areFilesEqual(outputFiles[0], outputFiles[1])) {
         fail('Batch mode output differs for $file');
