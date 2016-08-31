@@ -15,16 +15,16 @@ import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:analyzer/src/summary/summarize_elements.dart'
     as summarize_elements;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../abstract_single_unit.dart';
 import '../context/abstract_context.dart';
 import 'summary_common.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(SummarizeElementsTest);
+  defineReflectiveTests(SummarizeElementsTest);
 }
 
 /**

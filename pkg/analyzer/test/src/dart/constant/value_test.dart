@@ -7,15 +7,15 @@ library analyzer.test.src.dart.constant.value_test;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../generated/test_support.dart';
-import '../../../reflective_tests.dart';
 import '../../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(DartObjectImplTest);
+  defineReflectiveTests(DartObjectImplTest);
 }
 
 const int LONG_MAX_VALUE = 0x7fffffffffffffff;

@@ -19,21 +19,21 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide Configuration;
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(ComplexParserTest);
-  runReflectiveTests(ErrorParserTest);
+  defineReflectiveTests(ComplexParserTest);
+  defineReflectiveTests(ErrorParserTest);
   // ignore: deprecated_member_use
-  runReflectiveTests(IncrementalParserTest);
-  runReflectiveTests(NonErrorParserTest);
-  runReflectiveTests(RecoveryParserTest);
-  runReflectiveTests(SimpleParserTest);
+  defineReflectiveTests(IncrementalParserTest);
+  defineReflectiveTests(NonErrorParserTest);
+  defineReflectiveTests(RecoveryParserTest);
+  defineReflectiveTests(SimpleParserTest);
 }
 
 class AnalysisErrorListener_SimpleParserTest_computeStringValue

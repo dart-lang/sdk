@@ -18,18 +18,18 @@ import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/src/plugin_impl.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../embedder_tests.dart';
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
 import '../../utils.dart';
 import 'mock_sdk.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(ContextBuilderTest);
-  runReflectiveTests(EmbedderYamlLocatorTest);
+  defineReflectiveTests(ContextBuilderTest);
+  defineReflectiveTests(EmbedderYamlLocatorTest);
 }
 
 @reflectiveTest

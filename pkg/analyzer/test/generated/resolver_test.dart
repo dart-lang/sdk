@@ -26,9 +26,9 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
@@ -36,21 +36,21 @@ import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(AnalysisDeltaTest);
-  runReflectiveTests(ChangeSetTest);
-  runReflectiveTests(DisableAsyncTestCase);
-  runReflectiveTests(EnclosedScopeTest);
-  runReflectiveTests(ErrorResolverTest);
-  runReflectiveTests(LibraryImportScopeTest);
-  runReflectiveTests(LibraryScopeTest);
-  runReflectiveTests(PrefixedNamespaceTest);
-  runReflectiveTests(ScopeTest);
-  runReflectiveTests(StrictModeTest);
-  runReflectiveTests(SubtypeManagerTest);
-  runReflectiveTests(TypeOverrideManagerTest);
-  runReflectiveTests(TypePropagationTest);
-  runReflectiveTests(TypeProviderImplTest);
-  runReflectiveTests(TypeResolverVisitorTest);
+  defineReflectiveTests(AnalysisDeltaTest);
+  defineReflectiveTests(ChangeSetTest);
+  defineReflectiveTests(DisableAsyncTestCase);
+  defineReflectiveTests(EnclosedScopeTest);
+  defineReflectiveTests(ErrorResolverTest);
+  defineReflectiveTests(LibraryImportScopeTest);
+  defineReflectiveTests(LibraryScopeTest);
+  defineReflectiveTests(PrefixedNamespaceTest);
+  defineReflectiveTests(ScopeTest);
+  defineReflectiveTests(StrictModeTest);
+  defineReflectiveTests(SubtypeManagerTest);
+  defineReflectiveTests(TypeOverrideManagerTest);
+  defineReflectiveTests(TypePropagationTest);
+  defineReflectiveTests(TypeProviderImplTest);
+  defineReflectiveTests(TypeResolverVisitorTest);
 }
 
 @reflectiveTest

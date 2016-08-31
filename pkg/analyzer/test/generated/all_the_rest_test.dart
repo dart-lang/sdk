@@ -34,9 +34,9 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:path/path.dart';
 import 'package:source_span/source_span.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
@@ -44,24 +44,24 @@ import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(ContentCacheTest);
-  runReflectiveTests(CustomUriResolverTest);
-  runReflectiveTests(DartUriResolverTest);
+  defineReflectiveTests(ContentCacheTest);
+  defineReflectiveTests(CustomUriResolverTest);
+  defineReflectiveTests(DartUriResolverTest);
   // ignore: deprecated_member_use
-  runReflectiveTests(DirectoryBasedDartSdkTest);
-  runReflectiveTests(DirectoryBasedSourceContainerTest);
-  runReflectiveTests(ElementBuilderTest);
-  runReflectiveTests(ElementLocatorTest);
-  runReflectiveTests(EnumMemberBuilderTest);
-  runReflectiveTests(ErrorReporterTest);
-  runReflectiveTests(ErrorSeverityTest);
-  runReflectiveTests(ExitDetectorTest);
-  runReflectiveTests(ExitDetectorTest2);
-  runReflectiveTests(FileBasedSourceTest);
-  runReflectiveTests(ResolveRelativeUriTest);
+  defineReflectiveTests(DirectoryBasedDartSdkTest);
+  defineReflectiveTests(DirectoryBasedSourceContainerTest);
+  defineReflectiveTests(ElementBuilderTest);
+  defineReflectiveTests(ElementLocatorTest);
+  defineReflectiveTests(EnumMemberBuilderTest);
+  defineReflectiveTests(ErrorReporterTest);
+  defineReflectiveTests(ErrorSeverityTest);
+  defineReflectiveTests(ExitDetectorTest);
+  defineReflectiveTests(ExitDetectorTest2);
+  defineReflectiveTests(FileBasedSourceTest);
+  defineReflectiveTests(ResolveRelativeUriTest);
   // ignore: deprecated_member_use
-  runReflectiveTests(SDKLibrariesReaderTest);
-  runReflectiveTests(UriKindTest);
+  defineReflectiveTests(SDKLibrariesReaderTest);
+  defineReflectiveTests(UriKindTest);
 }
 
 /**
@@ -116,8 +116,9 @@ class CustomUriResolverTest {
   }
 
   void test_resolve_unknown_uri() {
-    UriResolver resolver =
-        new CustomUriResolver({'custom:library': '/path/to/library.dart',});
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': '/path/to/library.dart',
+    });
     Source result =
         resolver.resolveAbsolute(parseUriWithException("custom:non_library"));
     expect(result, isNull);
@@ -126,7 +127,9 @@ class CustomUriResolverTest {
   void test_resolve_uri() {
     String path =
         FileUtilities2.createFile("/path/to/library.dart").getAbsolutePath();
-    UriResolver resolver = new CustomUriResolver({'custom:library': path,});
+    UriResolver resolver = new CustomUriResolver({
+      'custom:library': path,
+    });
     Source result =
         resolver.resolveAbsolute(parseUriWithException("custom:library"));
     expect(result, isNotNull);

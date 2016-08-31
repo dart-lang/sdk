@@ -8,14 +8,14 @@
 library analyzer.test.src.task.strong.inferred_type_test;
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../../reflective_tests.dart';
 import 'strong_test_helper.dart' as helper;
 
 void main() {
   helper.initStrongModeTests();
-  runReflectiveTests(InferredTypeTest);
+  defineReflectiveTests(InferredTypeTest);
 }
 
 abstract class InferredTypeMixin {

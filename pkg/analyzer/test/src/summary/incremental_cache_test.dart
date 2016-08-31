@@ -6,16 +6,16 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/incremental_cache.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
 import '../abstract_single_unit.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ComparePathsTest);
-  runReflectiveTests(IncrementalCacheTest);
+  defineReflectiveTests(ComparePathsTest);
+  defineReflectiveTests(IncrementalCacheTest);
 }
 
 @reflectiveTest

@@ -6,16 +6,16 @@ library analyzer.test.src.summary.summarize_elements_strong_test;
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../context/abstract_context.dart';
 import 'summarize_elements_test.dart';
 import 'summary_common.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(SummarizeElementsStrongTest);
+  defineReflectiveTests(SummarizeElementsStrongTest);
 }
 
 /**

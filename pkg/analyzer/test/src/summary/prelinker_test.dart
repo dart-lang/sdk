@@ -9,15 +9,15 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/prelink.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'summarize_elements_test.dart';
 import 'summary_common.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(PrelinkerTest);
+  defineReflectiveTests(PrelinkerTest);
 }
 
 /**
@@ -75,6 +75,7 @@ class PrelinkerTest extends SummarizeElementsTest {
       }
       return unit;
     }
+
     UnlinkedPublicNamespace getImport(String relativeUri) {
       String absoluteUri = resolveToAbsoluteUri(library, relativeUri);
       UnlinkedPublicNamespace namespace = SerializedMockSdk
@@ -89,6 +90,7 @@ class PrelinkerTest extends SummarizeElementsTest {
       }
       return namespace;
     }
+
     linked = new LinkedLibrary.fromBuffer(
         prelink(unlinkedUnits[0], getPart, getImport).toBuffer());
     validateLinkedLibrary(linked);

@@ -108,7 +108,7 @@ vars = {
   "stream_channel_tag": "@1.5.0",
   "string_scanner_tag": "@0.1.4",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_reflective_loader_tag": "@0.0.3",
+  "test_reflective_loader_tag": "@1630a63f151871197c1cf92f07f2d9debe0ea38d",
   "test_tag": "@0.12.15+1",
   "typed_data_tag": "@1.1.2",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",

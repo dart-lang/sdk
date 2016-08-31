@@ -7,16 +7,16 @@ library analyzer.test.cancelable_future_test;
 import 'dart:async';
 
 import 'package:analyzer/src/cancelable_future.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
 
-import 'reflective_tests.dart';
 import 'utils.dart';
 
 void main() {
   initializeTestEnvironment();
-  runReflectiveTests(CancelableCompleterTests);
-  runReflectiveTests(CancelableFutureTests);
+  defineReflectiveTests(CancelableCompleterTests);
+  defineReflectiveTests(CancelableFutureTests);
 }
 
 @reflectiveTest

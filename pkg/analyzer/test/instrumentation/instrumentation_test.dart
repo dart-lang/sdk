@@ -7,14 +7,13 @@ library analyzer.test.instrumentation.instrumentation_test;
 import 'dart:async';
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
-
-import '../reflective_tests.dart';
 
 main() {
   group('instrumentation', () {
-    runReflectiveTests(InstrumentationServiceTest);
-    runReflectiveTests(MulticastInstrumentationServerTest);
+    defineReflectiveTests(InstrumentationServiceTest);
+    defineReflectiveTests(MulticastInstrumentationServerTest);
   });
 }
 

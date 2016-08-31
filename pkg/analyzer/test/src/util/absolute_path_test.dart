@@ -5,15 +5,15 @@
 library analyzer.test.src.util.absolute_path_test;
 
 import 'package:analyzer/src/util/absolute_path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(AbsolutePathContextPosixTest);
-  runReflectiveTests(AbsolutePathContextWindowsTest);
+  defineReflectiveTests(AbsolutePathContextPosixTest);
+  defineReflectiveTests(AbsolutePathContextWindowsTest);
 }
 
 @reflectiveTest

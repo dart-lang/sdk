@@ -24,17 +24,17 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
 import '../abstract_single_unit.dart';
 import '../context/abstract_context.dart';
 import 'summary_common.dart' show canonicalize;
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ResynthesizeElementTest);
+  defineReflectiveTests(ResynthesizeElementTest);
 }
 
 /**

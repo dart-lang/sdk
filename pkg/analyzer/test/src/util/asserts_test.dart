@@ -5,14 +5,14 @@
 library analyzer.test.src.util.asserts_test;
 
 import 'package:analyzer/src/util/asserts.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(AnalysisTaskTest);
+  defineReflectiveTests(AnalysisTaskTest);
 }
 
 @reflectiveTest
