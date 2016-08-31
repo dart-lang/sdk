@@ -44,6 +44,24 @@ const List<String> SKIP_LIST = const <String>[
   "packages/",
 ];
 
+List<Uri> computeInputUris({String filter}) {
+  List<Uri> uriList = <Uri>[];
+  Directory dir =
+      new Directory.fromUri(Uri.base.resolve('tests/compiler/dart2js/'));
+  for (FileSystemEntity entity in dir.listSync(recursive: true)) {
+    if (entity is File && entity.path.endsWith('.dart')) {
+      Uri file = Uri.base.resolve(nativeToUriPath(entity.path));
+      if (filter != null && !'$file'.contains(filter)) {
+        continue;
+      }
+      if (!SKIP_LIST.any((skip) => file.path.contains(skip))) {
+        uriList.add(file);
+      }
+    }
+  }
+  return uriList;
+}
+
 main(List<String> arguments) {
   List<String> options = <String>[];
   List<Uri> uriList = <Uri>[];
@@ -78,19 +96,7 @@ main(List<String> arguments) {
 
   asyncTest(() async {
     if (uriList.isEmpty) {
-      Directory dir =
-          new Directory.fromUri(Uri.base.resolve('tests/compiler/dart2js/'));
-      for (FileSystemEntity entity in dir.listSync(recursive: true)) {
-        if (entity is File && entity.path.endsWith('.dart')) {
-          Uri file = Uri.base.resolve(nativeToUriPath(entity.path));
-          if (filter != null && !'$file'.contains(filter)) {
-            continue;
-          }
-          if (!SKIP_LIST.any((skip) => file.path.contains(skip))) {
-            uriList.add(file);
-          }
-        }
-      }
+      uriList = computeInputUris(filter: filter);
     }
     await analyze(
         uriList,
