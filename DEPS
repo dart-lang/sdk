@@ -108,7 +108,7 @@ vars = {
   "stream_channel_tag": "@1.5.0",
   "string_scanner_tag": "@0.1.4",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_reflective_loader_tag": "@1630a63f151871197c1cf92f07f2d9debe0ea38d",
+  "test_reflective_loader_rev": "@1630a63f151871197c1cf92f07f2d9debe0ea38d",
   "test_tag": "@0.12.15+1",
   "typed_data_tag": "@1.1.2",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
@@ -313,7 +313,7 @@ deps = {
       (Var("github_mirror") % "test") + Var("test_tag"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       (Var("github_mirror") % "test_reflective_loader") +
-      Var("test_reflective_loader_tag"),
+      Var("test_reflective_loader_rev"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       (Var("github_dartlang") % "typed_data") + Var("typed_data_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
