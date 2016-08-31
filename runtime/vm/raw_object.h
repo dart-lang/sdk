@@ -39,6 +39,7 @@ namespace dart {
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
+  V(SingleTargetCache)                                                         \
   V(ICData)                                                                    \
   V(MegamorphicCache)                                                          \
   V(SubtypeTestCache)                                                          \
@@ -1477,6 +1478,21 @@ class RawContextScope : public RawObject {
   friend class Object;
   friend class RawClosureData;
   friend class SnapshotReader;
+};
+
+
+class RawSingleTargetCache : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache);
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->target_);
+  }
+  RawCode* target_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->target_);
+  }
+  uword entry_point_;
+  classid_t lower_limit_;
+  classid_t upper_limit_;
 };
 
 

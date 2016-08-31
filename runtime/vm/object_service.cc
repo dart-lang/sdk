@@ -749,6 +749,11 @@ void ExceptionHandlers::PrintJSONImpl(JSONStream* stream,
 }
 
 
+void SingleTargetCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);

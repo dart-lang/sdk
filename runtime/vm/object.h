@@ -539,6 +539,9 @@ class Object {
     return unhandled_exception_class_;
   }
   static RawClass* unwind_error_class() { return unwind_error_class_; }
+  static RawClass* singletargetcache_class() {
+    return singletargetcache_class_;
+  }
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* megamorphic_cache_class() {
     return megamorphic_cache_class_;
@@ -790,6 +793,7 @@ class Object {
   static RawClass* deopt_info_class_;  // Class of DeoptInfo.
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
+  static RawClass* singletargetcache_class_;  // Class of SingleTargetCache.
   static RawClass* icdata_class_;  // Class of ICData.
   static RawClass* megamorphic_cache_class_;  // Class of MegamorphiCache.
   static RawClass* subtypetestcache_class_;  // Class of SubtypeTestCache.
@@ -1816,6 +1820,40 @@ class PatchClass : public Object {
   static RawPatchClass* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
+  friend class Class;
+};
+
+
+class SingleTargetCache : public Object {
+ public:
+  RawCode* target() const { return raw_ptr()->target_; }
+  void set_target(const Code& target) const;
+  static intptr_t target_offset() {
+    return OFFSET_OF(RawSingleTargetCache, target_);
+  }
+
+#define DEFINE_NON_POINTER_FIELD_ACCESSORS(type, name)                         \
+  type name() const { return raw_ptr()->name##_; }                             \
+  void set_##name(type value) const {                                          \
+    StoreNonPointer(&raw_ptr()->name##_, value);                               \
+  }                                                                            \
+  static intptr_t name##_offset() {                                            \
+    return OFFSET_OF(RawSingleTargetCache, name##_);                           \
+  }                                                                            \
+
+DEFINE_NON_POINTER_FIELD_ACCESSORS(uword, entry_point);
+DEFINE_NON_POINTER_FIELD_ACCESSORS(intptr_t, lower_limit);
+DEFINE_NON_POINTER_FIELD_ACCESSORS(intptr_t, upper_limit);
+#undef DEFINE_NON_POINTER_FIELD_ACCESSORS
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawSingleTargetCache));
+  }
+
+  static RawSingleTargetCache* New();
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache, Object);
   friend class Class;
 };
 

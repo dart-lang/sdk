@@ -1514,6 +1514,24 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawSingleTargetCache* SingleTargetCache::ReadFrom(SnapshotReader* reader,
+                                                  intptr_t object_id,
+                                                  intptr_t tags,
+                                                  Snapshot::Kind kind,
+                                                  bool as_reference) {
+  UNREACHABLE();
+  return SingleTargetCache::null();
+}
+
+
+void RawSingleTargetCache::WriteTo(SnapshotWriter* writer,
+                                   intptr_t object_id,
+                                   Snapshot::Kind kind,
+                                   bool as_reference) {
+  UNREACHABLE();
+}
+
+
 RawICData* ICData::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,

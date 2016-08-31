@@ -1026,6 +1026,121 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
+static bool IsSingleTarget(Isolate* isolate,
+                           Zone* zone,
+                           intptr_t lower_cid,
+                           intptr_t upper_cid,
+                           const Function& target,
+                           const String& name) {
+  Class& cls = Class::Handle(zone);
+  ClassTable* table = isolate->class_table();
+  Function& other_target = Function::Handle(zone);
+  for (intptr_t cid = lower_cid; cid <= upper_cid; cid++) {
+    if (!table->HasValidClassAt(cid)) continue;
+    cls = table->At(cid);
+    if (cls.is_abstract()) continue;
+    if (!cls.is_allocated()) continue;
+    other_target = Resolver::ResolveDynamicAnyArgs(zone, cls, name,
+                                                   false /* allow_add */);
+    if (other_target.raw() != target.raw()) {
+      return false;
+    }
+  }
+  return true;
+}
+#endif
+
+
+// Handle a miss of a single target cache.
+//   Arg0: Receiver.
+//   Returns: the ICData used to continue with a polymorphic call.
+DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
+#if defined(TARGET_ARCH_DBC)
+  // DBC does not use switchable calls.
+  UNREACHABLE();
+#else
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame->IsDartFrame());
+  const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
+  const Function& caller_function =
+      Function::Handle(zone, caller_frame->LookupDartFunction());
+
+  SingleTargetCache& cache = SingleTargetCache::Handle(zone);
+  cache ^= CodePatcher::GetSwitchableCallDataAt(caller_frame->pc(),
+                                                caller_code);
+  Code& old_target_code = Code::Handle(zone, cache.target());
+  Function& old_target = Function::Handle(zone);
+  old_target ^= old_target_code.owner();
+
+  // We lost the original ICData when we patched to the monomorphic case.
+  const String& name = String::Handle(zone, old_target.name());
+  ASSERT(!old_target.HasOptionalParameters());
+  const Array& descriptor = Array::Handle(zone,
+      ArgumentsDescriptor::New(old_target.num_fixed_parameters()));
+  const ICData& ic_data =
+      ICData::Handle(zone, ICData::New(caller_function,
+                                       name,
+                                       descriptor,
+                                       Thread::kNoDeoptId,
+                                       1, /* args_tested */
+                                       false /* static_call */));
+
+  // Maybe add the new target.
+  Class& cls = Class::Handle(zone, receiver.clazz());
+  ArgumentsDescriptor args_desc(descriptor);
+  Function& target_function = Function::Handle(zone,
+      Resolver::ResolveDynamicForReceiverClass(cls,
+                                               name,
+                                               args_desc));
+  if (target_function.IsNull()) {
+    target_function = InlineCacheMissHelper(receiver, descriptor, name);
+  }
+  if (target_function.IsNull()) {
+    ASSERT(!FLAG_lazy_dispatchers);
+  } else {
+    ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+  }
+
+  if (old_target.raw() == target_function.raw()) {
+    intptr_t lower, upper;
+    if (receiver.GetClassId() < cache.lower_limit()) {
+      lower = receiver.GetClassId();
+      upper = cache.upper_limit();
+    } else {
+      lower = cache.lower_limit();
+      upper = receiver.GetClassId();
+    }
+
+    if (IsSingleTarget(isolate, zone, lower, upper, target_function, name)) {
+      cache.set_lower_limit(lower);
+      cache.set_upper_limit(upper);
+      // Return the ICData. The single target stub will jump to continue in the
+      // IC call stub.
+      arguments.SetReturn(ic_data);
+      return;
+    }
+  }
+
+  // Call site is not single target, switch to call using ICData.
+  const Code& stub =
+      Code::Handle(zone, StubCode::ICCallThroughCode_entry()->code());
+  ASSERT(!Isolate::Current()->compilation_allowed());
+  CodePatcher::PatchSwitchableCallAt(caller_frame->pc(),
+                                     caller_code,
+                                     ic_data,
+                                     stub);
+
+  // Return the ICData. The single target stub will jump to continue in the
+  // IC call stub.
+  arguments.SetReturn(ic_data);
+#endif
+}
+
+
 // Handle a miss of a megamorphic cache.
 //   Arg0: Receiver.
 //   Returns: the ICData used to continue with a polymorphic call.
@@ -1082,6 +1197,37 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
     ASSERT(!FLAG_lazy_dispatchers);
   } else {
     ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+  }
+
+  if (old_target.raw() == target_function.raw()) {
+    intptr_t lower, upper;
+    if (old_expected_cid.Value() < receiver.GetClassId()) {
+      lower = old_expected_cid.Value();
+      upper = receiver.GetClassId();
+    } else {
+      lower = receiver.GetClassId();
+      upper = old_expected_cid.Value();
+    }
+
+    if (IsSingleTarget(isolate, zone, lower, upper, target_function, name)) {
+      const SingleTargetCache& cache =
+          SingleTargetCache::Handle(SingleTargetCache::New());
+      const Code& code = Code::Handle(target_function.CurrentCode());
+      cache.set_target(code);
+      cache.set_entry_point(code.UncheckedEntryPoint());
+      cache.set_lower_limit(lower);
+      cache.set_upper_limit(upper);
+      const Code& stub = Code::Handle(zone,
+          StubCode::SingleTargetCall_entry()->code());
+      CodePatcher::PatchSwitchableCallAt(caller_frame->pc(),
+                                         caller_code,
+                                         cache,
+                                         stub);
+      // Return the ICData. The miss stub will jump to continue in the IC call
+      // stub.
+      arguments.SetReturn(ic_data);
+      return;
+    }
   }
 
   // Patch to call through stub.

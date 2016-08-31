@@ -151,6 +151,8 @@ RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::singletargetcache_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::megamorphic_cache_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -651,6 +653,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<ContextScope>();
   context_scope_class_ = cls.raw();
 
+  cls = Class::New<SingleTargetCache>();
+  singletargetcache_class_ = cls.raw();
+
   cls = Class::New<ICData>();
   icdata_class_ = cls.raw();
 
@@ -992,6 +997,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
   SET_CLASS_NAME(context, Context);
   SET_CLASS_NAME(context_scope, ContextScope);
+  SET_CLASS_NAME(singletargetcache, SingleTargetCache);
   SET_CLASS_NAME(icdata, ICData);
   SET_CLASS_NAME(megamorphic_cache, MegamorphicCache);
   SET_CLASS_NAME(subtypetestcache, SubtypeTestCache);
@@ -3427,6 +3433,8 @@ NOT_IN_PRODUCT(
       return Symbols::Context().raw();
     case kContextScopeCid:
       return Symbols::ContextScope().raw();
+    case kSingleTargetCacheCid:
+      return Symbols::SingleTargetCache().raw();
     case kICDataCid:
       return Symbols::ICData().raw();
     case kMegamorphicCacheCid:
@@ -12488,6 +12496,34 @@ bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
     ASSERT(unpacked[i]->Equals(*original[i]));
   }
   return true;
+}
+
+
+void SingleTargetCache::set_target(const Code& value) const {
+  StorePointer(&raw_ptr()->target_, value.raw());
+}
+
+
+const char* SingleTargetCache::ToCString() const {
+  return "SingleTargetCache";
+}
+
+
+RawSingleTargetCache* SingleTargetCache::New() {
+  SingleTargetCache& result = SingleTargetCache::Handle();
+  {
+    // IC data objects are long living objects, allocate them in old generation.
+    RawObject* raw = Object::Allocate(SingleTargetCache::kClassId,
+                                      SingleTargetCache::InstanceSize(),
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_target(Code::Handle());
+  result.set_entry_point(0);
+  result.set_lower_limit(kIllegalCid);
+  result.set_upper_limit(kIllegalCid);
+  return result.raw();
 }
 
 
