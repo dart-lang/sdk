@@ -88,8 +88,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler =
         new LocalsHandler(this, functionElement, null, compiler);
-    this.astAdapter = new KernelAstAdapter(compiler.backend, resolvedAst,
-        visitor.nodeToAst, visitor.nodeToElement, kernel.functions);
+    this.astAdapter = new KernelAstAdapter(
+        compiler.backend,
+        resolvedAst,
+        visitor.nodeToAst,
+        visitor.nodeToElement,
+        kernel.functions,
+        kernel.libraries);
   }
 
   HGraph build() {

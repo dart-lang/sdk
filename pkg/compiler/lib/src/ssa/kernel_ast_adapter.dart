@@ -12,6 +12,7 @@ import '../js_backend/js_backend.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
+import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 
@@ -26,10 +27,18 @@ class KernelAstAdapter {
   final Map<ir.Node, ast.Node> _nodeToAst;
   final Map<ir.Node, Element> _nodeToElement;
 
-  KernelAstAdapter(this._backend, this._resolvedAst, this._nodeToAst,
-      this._nodeToElement, Map<FunctionElement, ir.Member> functions) {
+  KernelAstAdapter(
+      this._backend,
+      this._resolvedAst,
+      this._nodeToAst,
+      this._nodeToElement,
+      Map<FunctionElement, ir.Member> functions,
+      Map<LibraryElement, ir.Library> libraries) {
     for (FunctionElement functionElement in functions.keys) {
       _nodeToElement[functions[functionElement]] = functionElement;
+    }
+    for (LibraryElement libraryElement in libraries.keys) {
+      _nodeToElement[libraries[libraryElement]] = libraryElement;
     }
   }
 
@@ -73,7 +82,22 @@ class KernelAstAdapter {
 
   // TODO(het): Create the selector directly from the invocation
   Selector getSelector(ir.MethodInvocation invocation) {
-    return _elements.getSelector(getNode(invocation));
+    SelectorKind kind = Elements.isOperatorName(invocation.name.name)
+        ? SelectorKind.OPERATOR
+        : SelectorKind.CALL;
+
+    ir.Name irName = invocation.name;
+    Name name = new Name(
+        irName.name, irName.isPrivate ? getElement(irName.library) : null);
+
+    int argumentCount = invocation.arguments.positional.length +
+        invocation.arguments.named.length;
+    List<String> namedArguments =
+        invocation.arguments.named.map((e) => e.name).toList();
+    CallStructure callStructure =
+        new CallStructure(argumentCount, namedArguments);
+
+    return new Selector(kind, name, callStructure);
   }
 
   TypeMask getTypeMask(ir.MethodInvocation invocation) {
