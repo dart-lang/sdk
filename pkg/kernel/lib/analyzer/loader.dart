@@ -5,6 +5,7 @@ library kernel.analyzer.loader;
 
 import '../ast.dart' as ast;
 import '../repository.dart';
+import '../type_algebra.dart';
 import 'analyzer.dart';
 import 'ast_from_analyzer.dart';
 import 'package:analyzer/analyzer.dart';
@@ -27,6 +28,8 @@ abstract class ReferenceLevelLoader {
   ast.Constructor getCoreClassConstructorReference(String className,
       {String constructorName, String library});
   ast.TypeParameter tryGetClassTypeParameter(TypeParameterElement element);
+  ast.Class getMixinApplicationClass(
+      ast.Library library, ast.Class supertype, ast.Class mixin);
   bool get strongMode;
 }
 
@@ -38,6 +41,8 @@ class AnalyzerLoader implements ReferenceLevelLoader {
       new LoadMap<Element, ast.Member>();
   final Map<TypeParameterElement, ast.TypeParameter> _classTypeParameters =
       <TypeParameterElement, ast.TypeParameter>{};
+  final Map<ast.Library, Map<String, ast.Class>> _mixinApplications =
+      <ast.Library, Map<String, ast.Class>>{};
   final AnalysisContext context;
   LibraryElement _dartCoreLibrary;
   final List errors = [];
@@ -69,6 +74,7 @@ class AnalyzerLoader implements ReferenceLevelLoader {
 
   void _buildLibraryBody(LibraryElement element, ast.Library library) {
     library.name = element.name.isEmpty ? null : element.name;
+    _mixinApplications[library] = <String, ast.Class>{};
     for (var unit in element.units) {
       for (var type in unit.types) {
         library.addClass(getClassReference(type));
@@ -274,6 +280,31 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     String name =
         element is PropertyAccessorElement ? element.displayName : element.name;
     return new ast.Name(name, getLibraryReference(element.library));
+  }
+
+  /// Returns the canonical mixin application of [superclass] and [mixedInClass]
+  /// in the given [library].
+  ast.Class getMixinApplicationClass(
+      ast.Library library, ast.Class superclass, ast.Class mixedInClass) {
+    // TODO(asgerf): Avoid potential name clash due to associativity.
+    // As it is, these mixins get the same name:
+    //   (A with B) with C
+    //   A with (B with C)
+    String name = '${superclass.name}&${mixedInClass.name}';
+    return _mixinApplications[library].putIfAbsent(name, () {
+      var superParameters = getFreshTypeParameters(superclass.typeParameters);
+      var mixinParameters = getFreshTypeParameters(mixedInClass.typeParameters);
+      var typeParameters = <ast.TypeParameter>[]
+        ..addAll(superParameters.freshTypeParameters)
+        ..addAll(mixinParameters.freshTypeParameters);
+      var result = new ast.Class(
+          name: name,
+          typeParameters: typeParameters,
+          supertype: superParameters.substitute(superclass.thisType),
+          mixedInType: mixinParameters.substitute(mixedInClass.thisType));
+      library.addClass(result);
+      return result;
+    });
   }
 
   void ensureLibraryIsLoaded(ast.Library node) {

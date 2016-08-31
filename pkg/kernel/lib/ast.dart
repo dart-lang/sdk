@@ -258,7 +258,14 @@ class Class extends TreeNode {
   /// annotations if needed.
   List<Expression> annotations = const <Expression>[];
 
-  String name; // Cosmetic name.
+  /// Name of the class.
+  ///
+  /// Must be non-null and must be unique within the library.
+  ///
+  /// The name may contain characters that are not valid in a Dart identifier,
+  /// in particular, the symbol '&' is used in class names generated for mixin
+  /// applications.
+  String name;
   bool isAbstract;
   final List<TypeParameter> typeParameters;
 

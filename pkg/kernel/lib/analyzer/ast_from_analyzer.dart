@@ -2000,24 +2000,12 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         log.warning('Invalid mixin application in ${scope.location}');
         return result;
       }
-      String name1 = result.classNode.name;
-      String name2 = mixin.classNode.name;
-      String name = name1 != null && name2 != null
-          ? '$name1&$name2'
-          : null;
-      var freshTypes = getFreshTypeParameters(currentClass.typeParameters);
-      var mixinClass = new ast.Class(
-          name: name,
-          supertype: freshTypes.substitute(result),
-          mixedInType: freshTypes.substitute(mixin),
-          typeParameters: freshTypes.freshTypeParameters,
-          isAbstract: true);
-      currentLibrary.addClass(mixinClass);
-      result = new ast.InterfaceType(
-          mixinClass,
-          currentClass.typeParameters
-              .map(_makeTypeParameterType)
-              .toList(growable: false));
+      var mixinClass = scope.loader.getMixinApplicationClass(
+          scope.currentLibrary, result.classNode, mixin.classNode);
+      var typeArguments = <ast.DartType>[]
+        ..addAll(result.typeArguments)
+        ..addAll(mixin.typeArguments);
+      result = new ast.InterfaceType(mixinClass, typeArguments);
     }
     return result;
   }
