@@ -49,7 +49,16 @@ import 'package:analyzer/task/model.dart';
  * The [ResultCachingPolicy] for ASTs.
  */
 const ResultCachingPolicy<CompilationUnit> AST_CACHING_POLICY =
-    const SimpleResultCachingPolicy(16384, 16384);
+    const SimpleResultCachingPolicy(16384, 32);
+
+/**
+ * The [ResultCachingPolicy] for fully resolved ASTs.  It is separated from
+ * [AST_CACHING_POLICY] because we want to keep some number of fully resolved
+ * ASTs when users switch between contexts, and they should not be pushed out
+ * of the cache by temporary partially resolved ASTs.
+ */
+const ResultCachingPolicy<CompilationUnit> AST_RESOLVED_CACHING_POLICY =
+    const SimpleResultCachingPolicy(1024, 32);
 
 /**
  * The [ResultCachingPolicy] for ASTs that can be reused when a library
@@ -60,7 +69,7 @@ const ResultCachingPolicy<CompilationUnit> AST_CACHING_POLICY =
  * once analysis is done, they can be flushed.
  */
 const ResultCachingPolicy<CompilationUnit> AST_REUSABLE_CACHING_POLICY =
-    const SimpleResultCachingPolicy(1024, 1024);
+    const SimpleResultCachingPolicy(1024, 64);
 
 /**
  * The [ResultCachingPolicy] for lists of [ConstantEvaluationTarget]s.

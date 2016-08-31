@@ -277,6 +277,15 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
 
+  bool get isActive {
+    fail("Unexpected invocation of isActive");
+    return false;
+  }
+
+  void set isActive(bool isActive) {
+    fail("Unexpected invocation of isActive");
+  }
+
   @override
   bool get isDisposed {
     fail("Unexpected invocation of isDisposed");

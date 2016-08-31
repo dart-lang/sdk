@@ -2084,6 +2084,16 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   List<AnalysisTarget> get explicitTargets;
 
   /**
+   * Return `true` if the context is active, i.e. is being analyzed now.
+   */
+  bool get isActive;
+
+  /**
+   * Specify whether the context is active, i.e. is being analyzed now.
+   */
+  set isActive(bool value);
+
+  /**
    * Return the [StreamController] reporting [InvalidatedResult]s for everything
    * in this context's cache.
    */

@@ -78,6 +78,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   final int _id = _NEXT_ID++;
 
   /**
+   * The flag that is `true` if the context is being analyzed.
+   */
+  bool _isActive = false;
+
+  /**
    * A client-provided name used to identify this context, or `null` if the
    * client has not provided a name.
    */
@@ -395,6 +400,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   Stream<ImplicitAnalysisEvent> get implicitAnalysisEvents =>
       _implicitAnalysisEventsController.stream;
+
+  @override
+  bool get isActive => _isActive;
+
+  @override
+  set isActive(bool active) {
+    if (active != _isActive) {
+      _isActive = active;
+      _privatePartition.isActive = active;
+    }
+  }
 
   @override
   bool get isDisposed => _disposed;

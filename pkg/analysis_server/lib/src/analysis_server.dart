@@ -728,7 +728,7 @@ class AnalysisServer {
       return units;
     }
     // add a unit for each unit/library combination
-    runWithWorkingCacheSize(context, () {
+    runWithActiveContext(context, () {
       Source unitSource = contextSource.source;
       List<Source> librarySources = context.getLibrariesContaining(unitSource);
       for (Source librarySource in librarySources) {
@@ -1468,7 +1468,7 @@ class AnalysisServer {
       return null;
     }
     // if library has been already resolved, resolve unit
-    return runWithWorkingCacheSize(context, () {
+    return runWithActiveContext(context, () {
       return context.resolveCompilationUnit2(source, librarySource);
     });
   }

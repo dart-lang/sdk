@@ -940,7 +940,7 @@ class CacheFlushManager<T> {
       : policy = policy,
         maxActiveSize = policy.maxActiveSize,
         maxIdleSize = policy.maxIdleSize,
-        maxSize = policy.maxIdleSize;
+        maxSize = policy.maxActiveSize;
 
   /**
    * If [currentSize] is already less than [maxSize], returns an empty list.
@@ -1081,6 +1081,20 @@ abstract class CachePartition {
   CachePartition(this.context);
 
   /**
+   * Specify whether a context that uses this partition is being analyzed.
+   */
+  set isActive(bool active) {
+    for (CacheFlushManager manager in _flushManagerMap.values) {
+      if (active) {
+        manager.madeActive();
+      } else {
+        List<TargetedResult> resultsToFlush = manager.madeIdle();
+        _flushResults(resultsToFlush);
+      }
+    }
+  }
+
+  /**
    * Notifies the partition that the client is going to stop using it.
    */
   void dispose() {
@@ -1176,15 +1190,7 @@ abstract class CachePartition {
     CacheFlushManager flushManager = _getFlushManager(result.result);
     List<TargetedResult> resultsToFlush =
         flushManager.resultStored(result, value);
-    for (TargetedResult result in resultsToFlush) {
-      CacheEntry entry = get(result.target);
-      if (entry != null) {
-        ResultData data = entry._resultMap[result.result];
-        if (data != null) {
-          data.flush();
-        }
-      }
-    }
+    _flushResults(resultsToFlush);
   }
 
   /**
@@ -1200,6 +1206,21 @@ abstract class CachePartition {
       sources.add(target);
       String fullName = target.fullName;
       pathToSource.putIfAbsent(fullName, () => <Source>[]).add(target);
+    }
+  }
+
+  /**
+   * Flush the given [resultsToFlush].
+   */
+  void _flushResults(List<TargetedResult> resultsToFlush) {
+    for (TargetedResult result in resultsToFlush) {
+      CacheEntry entry = get(result.target);
+      if (entry != null) {
+        ResultData data = entry._resultMap[result.result];
+        if (data != null) {
+          data.flush();
+        }
+      }
     }
   }
 

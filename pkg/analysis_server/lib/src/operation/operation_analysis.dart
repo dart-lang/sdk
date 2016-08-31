@@ -23,20 +23,19 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
- * Runs the given function [f] with the working cache size in [context].
- * Returns the result of [f] invocation.
+ * Run the given function [f] with the given [context] made active.
+ * Return the result of [f] invocation.
  */
-runWithWorkingCacheSize(AnalysisContext context, f()) {
-  int currentCacheSize = context.analysisOptions.cacheSize;
-  if (currentCacheSize < PerformAnalysisOperation.WORKING_CACHE_SIZE) {
-    setCacheSize(context, PerformAnalysisOperation.WORKING_CACHE_SIZE);
+runWithActiveContext(AnalysisContext context, f()) {
+  if (context is InternalAnalysisContext && !context.isActive) {
+    context.isActive = true;
     try {
       return f();
     } finally {
-      setCacheSize(context, currentCacheSize);
+      context.isActive = false;
     }
   } else {
-    return f();
+    f();
   }
 }
 
@@ -245,18 +244,6 @@ void sendAnalysisNotificationOverrides(
   });
 }
 
-/**
- * Sets the cache size in the given [context] to the given value.
- */
-void setCacheSize(AnalysisContext context, int cacheSize) {
-  // TODO(scheglov) The cache size cannot be changed with task model.
-  // TODO(scheglov) Consider removing this function.
-//  AnalysisOptionsImpl options =
-//      new AnalysisOptionsImpl.from(context.analysisOptions);
-//  options.cacheSize = cacheSize;
-//  context.analysisOptions = options;
-}
-
 String _computeLibraryName(CompilationUnit unit) {
   for (Directive directive in unit.directives) {
     if (directive is LibraryDirective && directive.name != null) {
@@ -325,9 +312,6 @@ class OccurrencesOperation extends _NotificationOperation
  * Instances of [PerformAnalysisOperation] perform a single analysis task.
  */
 class PerformAnalysisOperation extends ServerOperation {
-  static const int IDLE_CACHE_SIZE = AnalysisOptionsImpl.DEFAULT_CACHE_SIZE;
-  static const int WORKING_CACHE_SIZE = 512;
-
   final bool isContinue;
 
   PerformAnalysisOperation(AnalysisContext context, this.isContinue)
@@ -365,7 +349,7 @@ class PerformAnalysisOperation extends ServerOperation {
     //   sendStatusNotification(context.toString(), taskDescription);
     // });
     if (!isContinue) {
-      setCacheSize(context, WORKING_CACHE_SIZE);
+      _setContextActive(true);
     }
     // prepare results
     AnalysisResult result = context.performAnalysisTask();
@@ -373,7 +357,7 @@ class PerformAnalysisOperation extends ServerOperation {
     // nothing to analyze
     if (notices == null) {
       server.scheduleCacheConsistencyValidation(context);
-      setCacheSize(context, IDLE_CACHE_SIZE);
+      _setContextActive(false);
       server.sendContextAnalysisDoneNotifications(
           context, AnalysisDoneReason.COMPLETE);
       return;
@@ -402,6 +386,16 @@ class PerformAnalysisOperation extends ServerOperation {
           context, parsedDartUnit, resolvedDartUnit, notice.errors);
       // done
       server.fileAnalyzed(notice);
+    }
+  }
+
+  /**
+   * Make the [context] active or idle.
+   */
+  void _setContextActive(bool active) {
+    AnalysisContext context = this.context;
+    if (context is InternalAnalysisContext) {
+      context.isActive = active;
     }
   }
 

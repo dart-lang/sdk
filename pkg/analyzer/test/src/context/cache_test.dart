@@ -933,7 +933,7 @@ class CacheFlushManagerTest {
   test_new() {
     expect(manager.maxActiveSize, 15);
     expect(manager.maxIdleSize, 3);
-    expect(manager.maxSize, 3);
+    expect(manager.maxSize, 15);
     expect(manager.currentSize, 0);
     expect(manager.recentlyUsed, isEmpty);
   }
@@ -994,6 +994,8 @@ class CacheFlushManagerTest {
   }
 
   test_resultStored() {
+    CacheFlushManager manager = new CacheFlushManager(
+        new SimpleResultCachingPolicy(3, 3), (AnalysisTarget target) => false);
     ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
     ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
     ResultDescriptor descriptor3 = new ResultDescriptor('result3', null);
