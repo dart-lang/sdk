@@ -217,6 +217,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           int code = data.codeUnitAt(index);
           return isLetterOrDigit(code) || code == CHAR_UNDERSCORE;
         }
+
         if (isIdentifierChar(offset - 1)) {
           while (offset > 0 && isIdentifierChar(offset - 1)) {
             --offset;
@@ -488,7 +489,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       bool isDeprecated: false,
       int relevance: DART_RELEVANCE_DEFAULT}) {
     relevance = optype.returnValueSuggestionsFilter(
-        enumDeclaration.element.type, relevance);
+        enumDeclaration.element?.type, relevance);
     if (relevance != null) {
       _addLocalSuggestion_enumConstant(constantDeclaration, enumDeclaration,
           isAbstract: isAbstract,
