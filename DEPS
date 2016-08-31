@@ -56,7 +56,6 @@ vars = {
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.9+1",
   "dartdoc_tag" : "@v0.9.7+2",
-  "dev_compiler_rev": "@01d4907cff61ecf934940e7243f79ef68e4bb12b",
   "fixnum_tag": "@0.10.5",
   "func_rev": "@8d4aea75c21be2179cb00dc2b94a71414653094e",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
@@ -201,8 +200,6 @@ deps = {
       (Var("github_mirror") % "dart2js_info") + Var("dart2js_info_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       (Var("github_mirror") % "dartdoc") + Var("dartdoc_tag"),
-  Var("dart_root") + "/third_party/pkg/dev_compiler":
-      (Var("github_mirror") % "dev_compiler") + Var("dev_compiler_rev"),
   Var("dart_root") + "/third_party/pkg/func":
       (Var("github_dartlang") % "func") + Var("func_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":

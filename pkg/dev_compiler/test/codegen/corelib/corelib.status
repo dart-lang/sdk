@@ -1,0 +1,213 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+bool_from_environment2_test: Skip
+bool_from_environment_test: Skip
+from_environment_const_type_test: Skip
+from_environment_const_type_undefined_test: Skip
+int_from_environment2_test: Skip
+int_from_environment3_test: Skip
+int_from_environment_test: Skip
+string_from_environment2_test: Skip
+string_from_environment3_test: Skip
+string_from_environment_test: Skip
+
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) ]
+unicode_test: Fail        # Bug 6706
+compare_to2_test: Fail    # Bug 4018
+
+symbol_test/01: Fail, Pass # bug 11669
+
+# With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/06: RuntimeError # bug 11669
+symbol_reserved_word_test/09: RuntimeError # bug 11669
+symbol_reserved_word_test/12: RuntimeError # bug 11669
+
+symbol_test/none: Fail # bug 11669
+symbol_operator_test/03: Fail # bug 11669
+string_case_test/01: Fail # Bug 18061
+
+iterable_return_type_test/01: RuntimeError # Issue 13646
+iterable_return_type_test/02: RuntimeError # Issue 13646
+
+# #void should be a valid symbol.
+[ $compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2js ]
+symbol_reserved_word_test/02: CompileTimeError # bug 20191
+symbol_reserved_word_test/05: CompileTimeError # bug 20191
+
+# With the exception of 'void', const Symbol() should not accept reserved
+# words.
+symbol_reserved_word_test/04: MissingCompileTimeError # bug 11669, 19972
+symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
+symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+symbol_reserved_word_test/02: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
+symbol_reserved_word_test/05: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
+symbol_reserved_word_test/04: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
+symbol_reserved_word_test/07: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
+symbol_reserved_word_test/10: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
+main_test: Fail  # Dartium needs to check for both main() and main(args).
+
+[ $compiler == dart2js ]
+symbol_reserved_word_test/03: RuntimeError # bug 19972, new Symbol('void') should be allowed.
+int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
+int_parse_radix_test/02: Fail # No bigints.
+double_parse_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
+integer_to_radix_string_test: RuntimeError # issue 22045
+int_modulo_arith_test/bignum: RuntimeError # No bigints.
+int_modulo_arith_test/modPow: RuntimeError # No bigints.
+
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $runtime != dartium && $runtime != drt ]
+symbol_test/02: MissingCompileTimeError # bug 11669
+symbol_test/03: MissingCompileTimeError # bug 11669
+
+[ $runtime == ff || $runtime == jsshell ]
+unicode_test: Fail
+# Firefox takes advantage of the ECMAScript number parsing cop-out clause
+# (presumably added to allow Mozilla's existing behavior)
+# and only looks at the first 20 significant digits.
+# The Dart VM and the other ECMAScript implementations follow the correct
+# IEEE-754 rounding algorithm.
+double_parse_test/02: Fail, OK
+
+[ $runtime == safari || $runtime == safarimobilesim ]
+double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
+double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
+
+[ $runtime == ff ]
+double_round3_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
+double_round_to_double2_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
+
+[ $runtime == opera ]
+core_runtime_types_test: Fail
+null_nosuchmethod_test: Fail # Issue: 7413
+unicode_test: Fail # Issue 14694
+
+[ $compiler == dart2js ]
+error_stack_trace1_test: RuntimeError # Issue 12399
+hash_set_test/01: RuntimeError # Issue 11551
+integer_to_string_test/01: RuntimeError # Issue 1533
+iterable_return_type_test/01: RuntimeError # Issue 20085
+iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
+
+big_integer_*: Skip # VM specific test.
+bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
+compare_to2_test: RuntimeError, OK    # Requires bigint support.
+string_base_vm_test: RuntimeError, OK # VM specific test.
+nan_infinity_test/01: Fail # Issue 11551
+regexp/pcre_test: Pass, Slow # Issue 21593
+regress_r21715_test: RuntimeError # Requires bigint support.
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
+
+[ $compiler == dart2js && $runtime == safarimobilesim ]
+string_split_test: RuntimeError # Issue 21431
+
+[ $compiler == dart2js && $runtime == safarimobilesim ]
+list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
+string_trimlr_test/none: Fail
+
+[ $compiler == dart2js && $runtime == ie10 ]
+string_case_test/01: Fail, OK  # Bug in IE.
+string_case_test/02: Fail, OK  # Bug in IE.
+
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
+string_case_test/01: Fail, OK  # Bug in Firefox.
+
+[ $compiler == dart2js && $runtime == dartium ]
+string_case_test/02: Fail, OK  # Bug in dartium version of V8.
+string_case_test/03: Fail, OK  # Bug in dartium version of V8.
+
+# Analyzer's implementation of fromEnvironment assumes that undefined
+# environment variables have an unspecified value (rather than being
+# null) because it is expected that the user will supply a value when
+# the code is run.  This means that it produces slightly different
+# error messages than the VM and Dart2js.
+[ $compiler == dart2analyzer && $checked ]
+from_environment_const_type_undefined_test/09: CompileTimeError
+from_environment_const_type_undefined_test/11: CompileTimeError
+from_environment_const_type_undefined_test/12: CompileTimeError
+from_environment_const_type_undefined_test/13: CompileTimeError
+from_environment_const_type_undefined_test/14: CompileTimeError
+from_environment_const_type_undefined_test/16: CompileTimeError
+
+[ $compiler == dart2analyzer ]
+int_parse_radix_test: fail
+list_insert_test: fail
+list_removeat_test: fail
+hash_set_type_check_test: StaticWarning, OK # Tests failing type tests.
+error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
+iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
+num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
+string_test: StaticWarning, OK # Test generates error on purpose.
+duration2_test: StaticWarning, OK # Test generates error on purpose.
+
+[ $system == windows && $arch == x64 ]
+stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
+
+[ $runtime != d8 && $runtime != vm && $runtime != dart_precompiled ]
+# The regexp tests are not verified to work on non d8/vm platforms yet.
+regexp/*: Skip
+
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
+regexp/global_test: Skip # Timeout. Issue 21709 and 21708
+
+[ $runtime != vm && $runtime != dart_precompiled && $runtime != dart_product && $compiler != dart2analyzer]
+data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
+file_resource_test: Skip, OK # VM specific test, uses dart:io.
+http_resource_test: Skip, OK # VM specific test, uses dart:io.
+
+[ $runtime != vm && $runtime != dart_precompiled && $compiler != dart2analyzer && $cps_ir == false ]
+package_resource_test: RuntimeError # Issue 23825 (not implemented yet).
+
+[ $mode == debug ]
+regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
+
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == simarmv5te ]
+int_parse_radix_test/*: Pass, Slow
+big_integer_parsed_mul_div_vm_test: Pass, Slow
+
+[ $compiler == dart2js && $cps_ir ]
+package_resource_test: Crash # Surprisingly null object in type propagation.
+regexp/pcre_test: Crash # Stack Overflow in LoopHierarchy.
+core_runtime_types_test: Pass, RuntimeError # Issue 25795.
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # Issue 25761
+
+[ $compiler == dart2js && $cps_ir && $host_checked ]
+regexp/pcre_test: Crash # Stack Overflow
+collection_removes_test: Crash # Issue 25911
+
+[ $compiler == dart2js && $host_checked ]
+package_resource_test: Crash # Issue 25911
+
+[ $noopt || $compiler == precompiler ]
+# Stacktraces in precompilation omit inlined frames.
+stacktrace_current_test: Pass, RuntimeError
+error_stack_trace1_test: Pass, RuntimeError
+
+[ $noopt || $compiler == precompiler || $mode == product ]
+apply3_test: SkipByDesign # Imports dart:mirrors
+
+[ $noopt || $compiler == precompiler ]
+regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
+big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
+big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
+int_parse_radix_test: Pass, Timeout # --no_intrinsify
+
+[ $compiler == precompiler || $runtime == dart_product ]
+data_resource_test: Skip # Resolve URI not supported yet in product mode.
+package_resource_test: Skip # Resolve URI not supported yet in product mode.
+file_resource_test: Skip # Resolve URI not supported yet in product mode.
+http_resource_test: Skip # Resolve URI not supported yet in product mode.
+
+[ $arch == simdbc || $arch == simdbc64 ]
+regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter

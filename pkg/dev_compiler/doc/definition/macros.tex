@@ -1,0 +1,67 @@
+%%% Cascaded items for math mode
+%% start with \begin{cascade}
+%% new line at previous indentation with \cascline
+%% new line with greater indentation with \cascitem
+%% end with \end{cascade}
+%% default indentation is 2em, adjust with \cascadeindent
+\newdimen\cascadeindent
+\cascadeindent=1em\newdimen\cascdimen
+\newcommand{\cascindent}{\global\advance\cascdimen by\cascadeindent \hspace{\cascdimen}}
+\newcommand{\cascitem}{\\ \global\advance\cascdimen by\cascadeindent \hspace{\cascdimen}}
+\newcommand{\cascback}[1]{\\ \global\advance\cascdimen by-#1.0\cascadeindent \hspace{\cascdimen}}
+\newcommand{\cascline}{\\ \hspace{\cascdimen}}
+\newenvironment{cascade}{\begin{array}[t]{@{}l@{}} \global\cascdimen=0em}{\end{array}}
+
+
+%%% Binding colon stuff
+\mathchardef\col="003A  % \col for binding colon (mathcode ordinary: less space)
+\mathchardef\semi="603B % \semi for (regular) semicolon
+%% use \semicolonforbindingcolon to redefine ; to stand for binding colon
+\newcommand{\semicolonforbindingcolon}{\mathcode`;="003A}
+
+%%% Angle bracket stuff
+\mathchardef\lt="313C  % \lt for <
+\mathchardef\gt="313E  % \gt for >
+%% use \ltgtforanglebrackets to redefine <,> to stand for \langle, \rangle
+\newcommand{\ltgtforanglebrackets}{\mathcode`<="4268 \mathcode`>="5269}
+
+\newcommand{\kwop}[1]{\ensuremath{\mathop{\mathbf{#1}}}}
+\newcommand{\kwbin}[1]{\ensuremath{\mathbin{\mathbf{#1}}}}
+\newcommand{\kw}[1]{\ensuremath{\mathord{\mathbf{#1}}}}
+
+\newcommand{\comment}[1]{\hfill \fbox{\Large{#1}}}
+
+%\newcommand{\qed}{\rule{5pt}{8pt}} 
+\newcommand{\thmbox}
+   {{\ \hfill\hbox{%
+      \vrule width1.0ex height1.0ex
+   }\parfillskip 0pt}}
+
+\newenvironment{proof}{{\textbf{Proof:} }}{\thmbox}
+\newenvironment{proofsketch}{{\textbf{Proof (Sketch):} }}{\thmbox}
+
+\newcommand{\thmstep}[2]{
+  \noindent\begin{tabular}{@{}l@{}l}
+    \lefteqn{\mbox{#1}} &\\
+    \mbox{  } & $\begin{array}{l}#2\end{array}$
+  \end{tabular}
+  }
+
+\newcommand{\thmstepp}[2]{
+  \noindent\begin{tabular}{lll}
+    \lefteqn{\mbox{#1}} &\\
+    \mbox{  } & #2
+  \end{tabular}
+  }
+
+\newcommand{\ifthenthm}[2]{
+  \noindent\begin{tabular}[t]{@{}l@{}l}
+    If & \\
+    & $\begin{array}[t]{l}#1\end{array}$ \\
+    then & \\
+    & $\begin{array}[t]{l}#2\end{array}$
+  \end{tabular}
+  }
+
+% symbol abbreviations
+\newcommand{\stepsto}{\longmapsto}
