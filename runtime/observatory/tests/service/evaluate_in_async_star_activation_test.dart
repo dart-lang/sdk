@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -32,7 +31,7 @@ hasStoppedAtBreakpoint,
   var stack = await isolate.getStack();
   var topFrame = 0;
   expect(stack.type, equals('Stack'));
-  expect(await stack['frames'][topFrame].location.getLine(), 16);
+  expect(await stack['frames'][topFrame].location.getLine(), 15);
 
   var result = await isolate.evalFrame(topFrame, "x");
   print(result);
@@ -48,7 +47,7 @@ hasStoppedAtBreakpoint,
   var stack = await isolate.getStack();
   var topFrame = 0;
   expect(stack.type, equals('Stack'));
-  expect(await stack['frames'][topFrame].location.getLine(), 19);
+  expect(await stack['frames'][topFrame].location.getLine(), 18);
 
   var result = await isolate.evalFrame(topFrame, "z");
   print(result);
