@@ -43,7 +43,7 @@ fi
 
 DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
-DEV_COMPILER="$DART_ROOT/third_party/pkg/dev_compiler/bin/dartdevc.dart"
+DEV_COMPILER="$DART_ROOT/pkg/dev_compiler/bin/dartdevc.dart"
 
 if [[ `uname` == 'Darwin' ]];
 then
