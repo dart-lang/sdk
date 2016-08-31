@@ -2271,7 +2271,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     if (body is NativeFunctionBody) {
       currentMember.isExternal = true;
       currentMember.addAnnotation(new ast.ConstructorInvocation(
-          scope.loader.getCoreClassConstructorReference('Native',
+          scope.loader.getCoreClassConstructorReference('ExternalName',
               library: 'dart:_internal'),
           new ast.Arguments(<ast.Expression>[
             new ast.StringLiteral(body.stringLiteral.stringValue)
