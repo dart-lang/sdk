@@ -199,13 +199,17 @@ class KernelVisitor extends Object
       <CascadeReceiver, ir.VariableGet>{};
 
   final Map<ir.Node, Element> nodeToElement = <ir.Node, Element>{};
+  final Map<ir.Node, Node> nodeToAst = <ir.Node, Node>{};
 
-  ir.Node associate(ir.Node node, Element element) {
+  ir.Node associateElement(ir.Node node, Element element) {
     nodeToElement[node] = element;
     return node;
   }
 
-  final Map<ir.Node, Node> nodeToAst = <ir.Node, Node>{};
+  ir.Node associateNode(ir.Node node, Node ast) {
+    nodeToAst[node] = ast;
+    return node;
+  }
 
   bool isVoidContext = false;
 
@@ -1130,7 +1134,8 @@ class KernelVisitor extends Object
   @override
   ir.MethodInvocation visitBinary(
       Send node, Node left, BinaryOperator operator, Node right, _) {
-    return buildBinaryOperator(left, operator.selectorName, right);
+    return associateNode(
+        buildBinaryOperator(left, operator.selectorName, right), node);
   }
 
   ir.Expression buildConstructorInvoke(NewExpression node, {bool isConst}) {
@@ -1922,7 +1927,7 @@ class KernelVisitor extends Object
 
   ir.VariableDeclaration getLocal(LocalElement local) {
     return locals.putIfAbsent(local, () {
-      return associate(
+      return associateElement(
           new ir.VariableDeclaration(local.name,
               initializer: null,
               type: typeToIrHack(local.type),
@@ -1998,7 +2003,7 @@ class KernelVisitor extends Object
     }
     ir.Statement body =
         (bodyNode == null) ? null : buildStatementInBlock(bodyNode);
-    return associate(
+    return associateElement(
         new ir.FunctionNode(body,
             asyncMarker: asyncMarker,
             returnType: returnType,

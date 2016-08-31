@@ -95,7 +95,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   HGraph build() {
     // TODO(het): no reason to do this here...
     HInstruction.idCounter = 0;
-    if (function.kind == ir.ProcedureKind.Method) {
+    if (function.kind == ir.ProcedureKind.Method ||
+        function.kind == ir.ProcedureKind.Operator) {
       buildMethod(function, functionElement);
     } else {
       compiler.reporter.internalError(
@@ -117,7 +118,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void openFunction(IrFunction method, FunctionElement functionElement) {
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
-    // TODO(het): Register parameters with a locals handler
     localsHandler.startFunction(functionElement, resolvedAst.node);
     close(new HGoto()).addSuccessor(block);
 
@@ -205,29 +205,68 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     stack.add(localsHandler.readLocal(local));
   }
 
+  // TODO(het): Also extract type arguments
+  /// Extracts the list of instructions for the expressions in the arguments.
+  List<HInstruction> _visitArguments(ir.Arguments arguments) {
+    List<HInstruction> result = <HInstruction>[];
+
+    for (ir.Expression argument in arguments.positional) {
+      argument.accept(this);
+      result.add(pop());
+    }
+    for (ir.NamedExpression argument in arguments.named) {
+      argument.value.accept(this);
+      result.add(pop());
+    }
+
+    return result;
+  }
+
   @override
   visitStaticInvocation(ir.StaticInvocation invocation) {
-    List<HInstruction> inputs = <HInstruction>[];
-
-    for (ir.Expression argument in invocation.arguments.positional) {
-      argument.accept(this);
-      inputs.add(pop());
-    }
-    for (ir.NamedExpression argument in invocation.arguments.named) {
-      argument.value.accept(this);
-      inputs.add(pop());
-    }
-
     ir.Procedure target = invocation.target;
     bool targetCanThrow = astAdapter.getCanThrow(target);
     TypeMask typeMask = astAdapter.returnTypeOf(target);
 
+    var arguments = _visitArguments(invocation.arguments);
+
     HInstruction instruction = new HInvokeStatic(
-        astAdapter.getElement(target).declaration, inputs, typeMask,
+        astAdapter.getElement(target).declaration, arguments, typeMask,
         targetCanThrow: targetCanThrow);
     instruction.sideEffects = astAdapter.getSideEffects(target);
 
     push(instruction);
+  }
+
+  // TODO(het): Decide when to inline
+  @override
+  visitMethodInvocation(ir.MethodInvocation invocation) {
+    invocation.receiver.accept(this);
+    HInstruction receiver = pop();
+
+    List<HInstruction> arguments = <HInstruction>[receiver]
+      ..addAll(_visitArguments(invocation.arguments));
+
+    List<HInstruction> inputs = <HInstruction>[];
+
+    bool isIntercepted = astAdapter.isIntercepted(invocation);
+    if (isIntercepted) {
+      HInterceptor interceptor =
+          new HInterceptor(receiver, backend.nonNullType);
+      add(interceptor);
+      inputs.add(interceptor);
+    }
+    inputs.addAll(arguments);
+
+    TypeMask type = astAdapter.selectorTypeOf(invocation);
+
+    push(new HInvokeDynamicMethod(astAdapter.getSelector(invocation),
+        astAdapter.getTypeMask(invocation), inputs, type, isIntercepted));
+  }
+
+  @override
+  visitThisExpression(ir.ThisExpression thisExpression) {
+    stack.add(localsHandler.readThis());
   }
 
   @override

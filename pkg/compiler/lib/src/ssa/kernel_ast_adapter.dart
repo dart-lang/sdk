@@ -4,12 +4,15 @@
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../compiler.dart';
 import '../constants/values.dart';
 import '../diagnostics/invariant.dart';
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
+import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
+import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 
 import 'types.dart';
@@ -30,8 +33,11 @@ class KernelAstAdapter {
     }
   }
 
+  Compiler get _compiler => _backend.compiler;
+  TreeElements get _elements => _resolvedAst.elements;
+
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
-    ast.Node astNode = _nodeToAst[node];
+    ast.Node astNode = getNode(node);
     ConstantValue constantValue = _backend.constants
         .getConstantValueForNode(astNode, _resolvedAst.elements);
     assert(invariant(astNode, constantValue != null,
@@ -45,17 +51,41 @@ class KernelAstAdapter {
     return result;
   }
 
+  ast.Node getNode(ir.Node node) {
+    ast.Node result = _nodeToAst[node];
+    assert(result != null);
+    return result;
+  }
+
   bool getCanThrow(ir.Procedure procedure) {
     FunctionElement function = getElement(procedure);
-    return !_backend.compiler.world.getCannotThrow(function);
+    return !_compiler.world.getCannotThrow(function);
   }
 
   TypeMask returnTypeOf(ir.Procedure node) {
     return TypeMaskFactory.inferredReturnTypeForElement(
-        getElement(node), _backend.compiler);
+        getElement(node), _compiler);
   }
 
   SideEffects getSideEffects(ir.Node node) {
-    return _backend.compiler.world.getSideEffectsOfElement(getElement(node));
+    return _compiler.world.getSideEffectsOfElement(getElement(node));
+  }
+
+  // TODO(het): Create the selector directly from the invocation
+  Selector getSelector(ir.MethodInvocation invocation) {
+    return _elements.getSelector(getNode(invocation));
+  }
+
+  TypeMask getTypeMask(ir.MethodInvocation invocation) {
+    return _elements.getTypeMask(getNode(invocation));
+  }
+
+  TypeMask selectorTypeOf(ir.MethodInvocation invocation) {
+    return TypeMaskFactory.inferredTypeForSelector(
+        getSelector(invocation), getTypeMask(invocation), _compiler);
+  }
+
+  bool isIntercepted(ir.MethodInvocation invocation) {
+    return _backend.isInterceptedSelector(getSelector(invocation));
   }
 }

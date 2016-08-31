@@ -613,7 +613,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   /**
-   * Try to inline [element] within the currect context of the builder. The
+   * Try to inline [element] within the correct context of the builder. The
    * insertion point is the state of the builder.
    */
   bool tryInlineMethod(Element element, Selector selector, TypeMask mask,
