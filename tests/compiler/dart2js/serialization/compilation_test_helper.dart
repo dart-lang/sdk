@@ -26,10 +26,13 @@ main(List<String> args) {
         await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
+      SerializationResult result = await serialize(entryPoint,
+          memorySourceFiles: serializedData.toMemorySourceFiles(),
+          resolutionInputs: serializedData.toUris());
       await compile(
           entryPoint,
-          resolutionInputs: serializedData.toUris(),
-          sourceFiles: serializedData.toMemorySourceFiles());
+          resolutionInputs: result.serializedData.toUris(),
+          sourceFiles: result.serializedData.toMemorySourceFiles());
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       await arguments.forEachTest(serializedData, TESTS, compile);
@@ -51,7 +54,7 @@ Future compile(
   OutputCollector outputCollector = new OutputCollector();
   await measure(title, 'compile', () async {
     List<String> options = [];
-    if (test.checkedMode) {
+    if (test != null && test.checkedMode) {
       options.add(Flags.enableCheckedMode);
     }
     await runCompiler(

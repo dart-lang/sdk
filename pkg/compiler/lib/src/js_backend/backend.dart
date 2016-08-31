@@ -2338,9 +2338,15 @@ class JavaScriptBackend extends Backend {
 
   /// Called when [enqueuer] is empty, but before it is closed.
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassElement> recentClasses) {
-    // Add elements referenced only via custom elements.  Return early if any
-    // elements are added to avoid counting the elements as due to mirrors.
-    customElementsAnalysis.onQueueEmpty(enqueuer);
+    if (!compiler.options.resolveOnly) {
+      // TODO(johnniwinther): The custom element analysis eagerly enqueues
+      // elements on the codegen queue. Change to compute the data needed
+      // instead.
+
+      // Add elements referenced only via custom elements.  Return early if any
+      // elements are added to avoid counting the elements as due to mirrors.
+      customElementsAnalysis.onQueueEmpty(enqueuer);
+    }
     if (!enqueuer.queueIsEmpty) return false;
 
     noSuchMethodRegistry.onQueueEmpty();
