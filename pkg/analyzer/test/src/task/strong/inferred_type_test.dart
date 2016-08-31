@@ -1761,14 +1761,18 @@ main() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
     checkFile(r'''
 class Foo<T extends Pattern> {
-  void method/*<U extends T>*/(dynamic/*=U*/ u) {}
+  /*=U*/ method/*<U extends T>*/(/*=U*/ u) => u;
 }
 main() {
-  new Foo().method/*<String>*/("str");
+  String s;
+  var a = new Foo().method/*<String>*/("str");
+  s = a;
   new Foo();
 
-  new Foo<String>().method("str");
-  new Foo().method("str");
+  var b = new Foo<String>().method("str");
+  s = b;
+  var c = new Foo().method("str");
+  s = c;
 
   new Foo<String>().method(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/42);
 }
