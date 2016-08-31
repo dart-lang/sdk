@@ -5,7 +5,7 @@
 @deprecated
 library analyzer.test.source.embedder_test;
 
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/generated/sdk.dart';

@@ -5,7 +5,7 @@
 library analysis_server.src.single_context_manager;
 
 import 'dart:async';
-import 'dart:core' hide Resource;
+import 'dart:core';
 import 'dart:math' as math;
 
 import 'package:analysis_server/src/context_manager.dart';

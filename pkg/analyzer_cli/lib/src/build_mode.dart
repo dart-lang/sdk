@@ -4,7 +4,7 @@
 
 library analyzer_cli.src.build_mode;
 
-import 'dart:core' hide Resource;
+import 'dart:core';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;

@@ -4,7 +4,7 @@
 
 library analyzer.source.analysis_options_provider;
 
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -58,6 +58,7 @@ class AnalysisOptionsProvider {
         throw new OptionsFormatException('Unable to parse YAML document.');
       }
     }
+
     YamlNode doc = safelyLoadYamlNode();
 
     // Empty options.

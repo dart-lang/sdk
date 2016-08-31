@@ -6,7 +6,7 @@ library analysis.server;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:core' hide Resource;
+import 'dart:core';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
