@@ -23,6 +23,3 @@ dev_dependencies:
   test_reflective_loader: '>=0.0.4 <0.1.0'
   typed_mock: '>=0.0.4 <1.0.0'
   unittest: '>=0.11.4 <0.12.0'
-dependency_overrides:
-  analyzer:
-    path: ../analyzer
