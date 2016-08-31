@@ -36,6 +36,7 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       'assert_with_type_test_or_cast_test': skip_fail,
       'assertion_test': skip_fail,
       'async_await_test_none_multi': 'unittest',
+      'async_await_test_03_multi': skip_fail,  // Flaky on travis (#634)
       'async_star_await_pauses_test': skip_fail,
 
       // TODO(jmesserly): figure out why this test is hanging.
