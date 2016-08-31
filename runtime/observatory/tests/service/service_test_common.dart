@@ -233,6 +233,11 @@ Future<Isolate> stepOver(Isolate isolate) async {
   return hasStoppedAtBreakpoint(isolate);
 }
 
+Future<Isolate> stepInto(Isolate isolate) async {
+  await isolate.stepInto();
+  return hasStoppedAtBreakpoint(isolate);
+}
+
 Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
   Library rootLib = await isolate.rootLibrary.load();
   for (var i = 0; i < rootLib.classes.length; i++) {
