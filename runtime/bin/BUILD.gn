@@ -31,7 +31,7 @@ action("gen_resources_cc") {
   # the Dart runtime to gn, this path might need to be updated.
   sources = rebase_path(resources_sources_gypi.sources,
                         "",
-                        "//dart/runtime/bin/vmservice/")
+                        "../bin/vmservice/")
   outputs = [ "$target_gen_dir/resources_gen.cc" ]
   args = [
     "--output",
