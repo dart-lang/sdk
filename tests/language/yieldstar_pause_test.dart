@@ -9,7 +9,7 @@ import "package:async_helper/async_helper.dart";
 // Regression test for http://dartbug.com/27205
 // If a yield-star completes while the stream is paused, it didn't resume.
 
-main() async {
+main() {
   asyncStart();
   var c = new Completer();
   var s = yieldStream(mkStream());
@@ -23,8 +23,7 @@ main() async {
     c.complete(null);
   });
 
-  await c.future;
-  asyncEnd();
+  c.future.whenComplete(asyncEnd);
 }
 
 Stream yieldStream(Stream s) async* {
