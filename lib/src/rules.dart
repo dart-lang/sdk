@@ -27,10 +27,12 @@ import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/empty_statements.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
+import 'package:linter/src/rules/invariant_booleans.dart';
 import 'package:linter/src/rules/iterable_contains_unrelated_type.dart';
 import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
 import 'package:linter/src/rules/list_remove_unrelated_type.dart';
+import 'package:linter/src/rules/literal_only_boolean_expressions.dart';
 import 'package:linter/src/rules/non_constant_identifier_names.dart';
 import 'package:linter/src/rules/one_member_abstracts.dart';
 import 'package:linter/src/rules/only_throw_errors.dart';
@@ -74,10 +76,12 @@ final Registry ruleRegistry = new Registry()
   ..register(new EmptyStatements())
   ..register(new HashAndEquals())
   ..register(new ImplementationImports())
+  ..register(new InvariantBooleans())
   ..register(new IterableContainsUnrelatedType())
   ..register(new LibraryNames())
   ..register(new LibraryPrefixes())
   ..register(new ListRemoveUnrelatedType())
+  ..register(new LiteralOnlyBooleanExpressions())
   ..register(new NonConstantIdentifierNames())
   ..register(new OneMemberAbstracts())
   ..register(new OnlyThrowErrors())
