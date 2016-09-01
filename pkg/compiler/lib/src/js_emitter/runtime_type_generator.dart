@@ -41,6 +41,8 @@ class RuntimeTypeGenerator {
 
   Iterable<ClassElement> get classesUsingTypeVariableTests =>
       typeTestRegistry.classesUsingTypeVariableTests;
+  Iterable<ClassElement> get classesUsingTypeVariableExpression =>
+      backend.rti.classesUsingTypeVariableExpression;
 
   Set<FunctionType> get checkedFunctionTypes =>
       typeTestRegistry.checkedFunctionTypes;
@@ -186,6 +188,8 @@ class RuntimeTypeGenerator {
       return backend.rti.isTrivialSubstitution(a, b);
     }
 
+    bool supertypesNeedSubstitutions = false;
+
     if (superclass != null &&
         superclass != coreClasses.objectClass &&
         !haveSameTypeVariables(cls, superclass)) {
@@ -203,11 +207,20 @@ class RuntimeTypeGenerator {
         }
         superclass = superclass.superclass;
       }
+      supertypesNeedSubstitutions = true;
+    }
+
+    if (cls is MixinApplicationElement) {
+      supertypesNeedSubstitutions = true;
+    }
+
+    if (supertypesNeedSubstitutions) {
       for (DartType supertype in cls.allSupertypes) {
         ClassElement superclass = supertype.element;
         if (generated.contains(superclass)) continue;
 
         if (classesUsingTypeVariableTests.contains(superclass) ||
+            classesUsingTypeVariableExpression.contains(superclass) ||
             checkedClasses.contains(superclass)) {
           // Generate substitution.  If no substitution is necessary, emit
           // `null` to overwrite a (possibly) existing substitution from the
@@ -217,7 +230,6 @@ class RuntimeTypeGenerator {
       }
 
       void emitNothing(_, {emitNull}) {}
-      ;
 
       generateSubstitution = emitNothing;
     }
@@ -265,8 +277,6 @@ class RuntimeTypeGenerator {
         generateSubstitution(check);
       }
     }
-
-    ;
 
     tryEmitTest(cls);
 
