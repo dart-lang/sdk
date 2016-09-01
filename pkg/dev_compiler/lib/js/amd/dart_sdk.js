@@ -3599,12 +3599,12 @@ define([], function() {
     let VoidToE = () => (VoidToE = dart.constFn(dart.functionType(E, [])))();
     let ListOfE = () => (ListOfE = dart.constFn(core.List$(E)))();
     let ReversedListIterableOfE = () => (ReversedListIterableOfE = dart.constFn(_internal.ReversedListIterable$(E)))();
+    let EAndEToint = () => (EAndEToint = dart.constFn(dart.functionType(core.int, [E, E])))();
     let SetOfE = () => (SetOfE = dart.constFn(core.Set$(E)))();
     let ArrayIteratorOfE = () => (ArrayIteratorOfE = dart.constFn(_interceptors.ArrayIterator$(E)))();
     let ListMapViewOfE = () => (ListMapViewOfE = dart.constFn(_internal.ListMapView$(E)))();
     let ETobool = () => (ETobool = dart.constFn(dart.functionType(core.bool, [E])))();
     let ETovoid = () => (ETovoid = dart.constFn(dart.functionType(dart.void, [E])))();
-    let EAndEToint = () => (EAndEToint = dart.constFn(dart.functionType(core.int, [E, E])))();
     dart.defineExtensionNames([
       'checkMutable',
       'checkGrowable',
@@ -4044,7 +4044,7 @@ define([], function() {
       [dartx.sort](compare) {
         if (compare === void 0) compare = null;
         this[dartx.checkMutable]('sort');
-        _internal.Sort.sort(dart.dynamic)(this, compare == null ? core.Comparable.compare : compare);
+        _internal.Sort.sort(E)(this, EAndEToint()._check(compare == null ? core.Comparable.compare : compare));
       }
       [dartx.shuffle](random) {
         if (random === void 0) random = null;
@@ -5750,7 +5750,7 @@ define([], function() {
       sort(compare) {
         if (compare === void 0) compare = null;
         if (compare == null) {
-          _internal.Sort.sort(dart.dynamic)(this, core.Comparable.compare);
+          _internal.Sort.sort(core.Comparable)(this, core.Comparable.compare);
         } else {
           _internal.Sort.sort(E)(this, compare);
         }
@@ -10268,7 +10268,7 @@ define([], function() {
             let wrapper = new async._ControllerEventSinkWrapper(null);
             timeout = dart.fn(() => {
               wrapper[_sink] = controller;
-              zone.runUnaryGuarded(dart.dynamic, dart.dynamic)(registeredOnTimeout, wrapper);
+              zone.runUnaryGuarded(dart.dynamic, EventSinkOfT())(registeredOnTimeout, wrapper);
               wrapper[_sink] = null;
             }, VoidTovoid$());
           }
