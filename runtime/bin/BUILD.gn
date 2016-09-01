@@ -53,7 +53,7 @@ template("gen_library_src_path") {
     inputs = [
       "../tools/gen_library_src_paths.py",
       "builtin_in.cc",
-    ]
+    ] + invoker.sources
     outputs = [ invoker.output, ]
     name = invoker.name
     kind = invoker.kind
