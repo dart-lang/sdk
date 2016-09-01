@@ -6718,7 +6718,7 @@ class String : public Instance {
   // an Array object or a regular Object so that it can be traversed during
   // garbage collection.
   RawString* MakeExternal(void* array,
-                          intptr_t length,
+                          intptr_t external_size,
                           void* peer,
                           Dart_PeerFinalizer cback) const;
 
@@ -6974,6 +6974,7 @@ class OneByteString : public AllStatic {
                                               Heap::Space space);
 
   static void SetPeer(const String& str,
+                      intptr_t external_size,
                       void* peer,
                       Dart_PeerFinalizer cback);
 
@@ -7089,6 +7090,7 @@ class TwoByteString : public AllStatic {
                                      Heap::Space space);
 
   static void SetPeer(const String& str,
+                      intptr_t external_size,
                       void* peer,
                       Dart_PeerFinalizer cback);
 
@@ -7934,7 +7936,9 @@ class ExternalTypedData : public Instance {
 #undef TYPED_GETTER_SETTER
 
   FinalizablePersistentHandle* AddFinalizer(
-      void* peer, Dart_WeakPersistentHandleFinalizer callback) const;
+      void* peer,
+      Dart_WeakPersistentHandleFinalizer callback,
+      intptr_t external_size) const;
 
   static intptr_t length_offset() {
     return OFFSET_OF(RawExternalTypedData, length_);

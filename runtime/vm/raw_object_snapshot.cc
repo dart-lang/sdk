@@ -2652,7 +2652,8 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
   Dart_WeakPersistentHandleFinalizer callback =
       reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(
           reader->ReadRawPointerValue());
-  obj.AddFinalizer(peer, callback);
+  intptr_t external_size = obj.LengthInBytes();
+  obj.AddFinalizer(peer, callback, external_size);
   return obj.raw();
 }
 

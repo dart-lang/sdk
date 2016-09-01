@@ -8321,7 +8321,7 @@ RawTokenStream* TokenStream::New(intptr_t len) {
       zone,
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                              data, len, Heap::kOld));
-  stream.AddFinalizer(data, DataFinalizer);
+  stream.AddFinalizer(data, DataFinalizer, len);
   const TokenStream& result = TokenStream::Handle(zone, TokenStream::New());
   result.SetStream(stream);
   return result.raw();
@@ -8514,7 +8514,8 @@ RawTokenStream* TokenStream::New(const String& source,
       zone,
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                              data.GetStream(), data.Length(), Heap::kOld));
-  stream.AddFinalizer(data.GetStream(), DataFinalizer);
+  intptr_t external_size = data.Length();
+  stream.AddFinalizer(data.GetStream(), DataFinalizer, external_size);
   const TokenStream& result = TokenStream::Handle(zone, New());
   result.SetPrivateKey(private_key);
   {
@@ -20473,11 +20474,10 @@ void String::ToUTF8(uint8_t* utf8_array, intptr_t array_len) const {
 static FinalizablePersistentHandle* AddFinalizer(
     const Object& referent,
     void* peer,
-    Dart_WeakPersistentHandleFinalizer callback) {
+    Dart_WeakPersistentHandleFinalizer callback,
+    intptr_t external_size) {
   ASSERT((callback != NULL && peer != NULL) ||
          (callback == NULL && peer == NULL));
-  // TODO(19482): Make API consistent for external size of strings/typed data.
-  const intptr_t external_size = 0;
   return FinalizablePersistentHandle::New(Isolate::Current(),
                                           referent,
                                           peer,
@@ -20487,7 +20487,7 @@ static FinalizablePersistentHandle* AddFinalizer(
 
 
 RawString* String::MakeExternal(void* array,
-                                intptr_t length,
+                                intptr_t external_size,
                                 void* peer,
                                 Dart_PeerFinalizer cback) const {
   ASSERT(FLAG_support_externalizable_strings);
@@ -20498,7 +20498,7 @@ RawString* String::MakeExternal(void* array,
     NoSafepointScope no_safepoint;
     ASSERT(array != NULL);
     intptr_t str_length = this->Length();
-    ASSERT(length >= (str_length * this->CharSize()));
+    ASSERT(external_size >= (str_length * this->CharSize()));
     intptr_t class_id = raw()->GetClassId();
 
     ASSERT(!InVMHeap());
@@ -20577,7 +20577,7 @@ RawString* String::MakeExternal(void* array,
       finalizer = ExternalTwoByteString::Finalize;
     }
   }  // NoSafepointScope
-  AddFinalizer(result, external_data, finalizer);
+  AddFinalizer(result, external_data, finalizer, external_size);
   return this->raw();
 }
 
@@ -21026,13 +21026,14 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
 
 
 void OneByteString::SetPeer(const String& str,
+                            intptr_t external_size,
                             void* peer,
                             Dart_PeerFinalizer cback) {
   ASSERT(!str.IsNull() && str.IsOneByteString());
   ASSERT(peer != NULL);
   ExternalStringData<uint8_t>* ext_data =
       new ExternalStringData<uint8_t>(NULL, peer, cback);
-  AddFinalizer(str, ext_data, OneByteString::Finalize);
+  AddFinalizer(str, ext_data, OneByteString::Finalize, external_size);
   Isolate::Current()->heap()->SetPeer(str.raw(), peer);
 }
 
@@ -21237,13 +21238,14 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
 
 
 void TwoByteString::SetPeer(const String& str,
+                            intptr_t external_size,
                             void* peer,
                             Dart_PeerFinalizer cback) {
   ASSERT(!str.IsNull() && str.IsTwoByteString());
   ASSERT(peer != NULL);
   ExternalStringData<uint16_t>* ext_data =
       new ExternalStringData<uint16_t>(NULL, peer, cback);
-  AddFinalizer(str, ext_data, TwoByteString::Finalize);
+  AddFinalizer(str, ext_data, TwoByteString::Finalize, external_size);
   Isolate::Current()->heap()->SetPeer(str.raw(), peer);
 }
 
@@ -21281,7 +21283,9 @@ RawExternalOneByteString* ExternalOneByteString::New(
     result.SetHash(0);
     SetExternalData(result, external_data);
   }
-  AddFinalizer(result, external_data, ExternalOneByteString::Finalize);
+  intptr_t external_size = len;
+  AddFinalizer(result, external_data, ExternalOneByteString::Finalize,
+               external_size);
   return ExternalOneByteString::raw(result);
 }
 
@@ -21319,7 +21323,9 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
     result.SetHash(0);
     SetExternalData(result, external_data);
   }
-  AddFinalizer(result, external_data, ExternalTwoByteString::Finalize);
+  intptr_t external_size = len * 2;
+  AddFinalizer(result, external_data, ExternalTwoByteString::Finalize,
+               external_size);
   return ExternalTwoByteString::raw(result);
 }
 
@@ -22113,8 +22119,10 @@ const char* TypedData::ToCString() const {
 
 
 FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
-    void* peer, Dart_WeakPersistentHandleFinalizer callback) const {
-  return dart::AddFinalizer(*this, peer, callback);
+    void* peer,
+    Dart_WeakPersistentHandleFinalizer callback,
+    intptr_t external_size) const {
+  return dart::AddFinalizer(*this, peer, callback, external_size);
 }
 
 

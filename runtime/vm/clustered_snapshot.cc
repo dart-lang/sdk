@@ -3552,6 +3552,7 @@ class ExternalTypedDataDeserializationCluster : public DeserializationCluster {
       data->ptr()->length_ = Smi::New(length);
       data->ptr()->data_ = const_cast<uint8_t*>(d->CurrentBufferAddress());
       d->Advance(length * element_size);
+      // No finalizer / external size 0.
     }
   }
 
