@@ -11,6 +11,7 @@ import 'package:observatory/src/elements/error_ref.dart';
 import 'package:observatory/src/elements/field_ref.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/icdata_ref.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/megamorphiccache_ref.dart';
@@ -66,7 +67,10 @@ Element anyRef(M.IsolateRef isolate, ref,
       return new TokenStreamRefElement(isolate, ref, queue: queue);
     } else if (ref is M.UnknownObjectRef) {
       return new UnknownObjectRefElement(isolate, ref, queue: queue);
+    } else {
+      return new AnchorElement(href: Uris.inspect(isolate, object: ref))
+        ..text = 'object';
     }
   }
-  return null;
+  throw new Exception('Unknown runtimeType (${ref.runtimeType})');
 }
