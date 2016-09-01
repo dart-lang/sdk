@@ -27,7 +27,8 @@ import '../dart_types.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
-import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
+import '../enqueue.dart'
+    show Enqueuer, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../io/start_end_information.dart'
@@ -64,6 +65,7 @@ import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'checked_mode_helpers.dart';
 import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
+import 'enqueuer.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'namer.dart';
@@ -399,7 +401,6 @@ class JavaScriptBackend extends Backend {
     }
     return _fixedArrayTypeCache;
   }
-
 
   /// Maps special classes to their implementation (JSXxx) class.
   Map<ClassElement, ClassElement> implementationClasses;
@@ -1561,6 +1562,11 @@ class JavaScriptBackend extends Backend {
     for (BackendImpact otherImpact in impact.otherImpacts) {
       enqueueImpact(enqueuer, otherImpact, registry);
     }
+  }
+
+  CodegenEnqueuer createCodegenEnqueuer(Compiler compiler) {
+    return new CodegenEnqueuer(compiler, createItemCompilationContext,
+        const TreeShakingEnqueuerStrategy());
   }
 
   WorldImpact codegen(CodegenWorkItem work) {

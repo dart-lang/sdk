@@ -58,10 +58,7 @@ class EnqueueTask extends CompilerTask {
             compiler.options.analyzeOnly && compiler.options.analyzeMain
                 ? const EnqueuerStrategy()
                 : const TreeShakingEnqueuerStrategy()),
-        codegen = new CodegenEnqueuer(
-            compiler,
-            compiler.backend.createItemCompilationContext,
-            const TreeShakingEnqueuerStrategy()),
+        codegen = compiler.backend.createCodegenEnqueuer(compiler),
         super(compiler.measurer) {
     codegen.task = this;
     resolution.task = this;
@@ -835,102 +832,10 @@ class ResolutionEnqueuer extends Enqueuer {
 }
 
 /// [Enqueuer] which is specific to code generation.
-class CodegenEnqueuer extends Enqueuer {
-  final Queue<CodegenWorkItem> queue;
-  final Map<Element, js.Expression> generatedCode = <Element, js.Expression>{};
+abstract class CodegenEnqueuer implements Enqueuer {
+  Map<Element, js.Expression> get generatedCode;
 
-  final Set<Element> newlyEnqueuedElements;
-
-  final Set<DynamicUse> newlySeenSelectors;
-
-  bool enabledNoSuchMethod = false;
-
-  static const ImpactUseCase IMPACT_USE =
-      const ImpactUseCase('CodegenEnqueuer');
-
-  ImpactUseCase get impactUse => IMPACT_USE;
-
-  CodegenEnqueuer(
-      Compiler compiler,
-      ItemCompilationContext itemCompilationContextCreator(),
-      EnqueuerStrategy strategy)
-      : queue = new Queue<CodegenWorkItem>(),
-        newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
-        newlySeenSelectors = compiler.cacheStrategy.newSet(),
-        super('codegen enqueuer', compiler, itemCompilationContextCreator,
-            strategy);
-
-  bool isProcessed(Element member) =>
-      member.isAbstract || generatedCode.containsKey(member);
-
-  /**
-   * Decides whether an element should be included to satisfy requirements
-   * of the mirror system.
-   *
-   * For code generation, we rely on the precomputed set of elements that takes
-   * subtyping constraints into account.
-   */
-  bool shouldIncludeElementDueToMirrors(Element element,
-      {bool includedEnclosing}) {
-    return compiler.backend.isAccessibleByReflection(element);
-  }
-
-  bool internalAddToWorkList(Element element) {
-    // Don't generate code for foreign elements.
-    if (compiler.backend.isForeign(element)) return false;
-
-    // Codegen inlines field initializers. It only needs to generate
-    // code for checked setters.
-    if (element.isField && element.isInstanceMember) {
-      if (!compiler.options.enableTypeAssertions ||
-          element.enclosingElement.isClosure) {
-        return false;
-      }
-    }
-
-    if (compiler.options.hasIncrementalSupport && !isProcessed(element)) {
-      newlyEnqueuedElements.add(element);
-    }
-
-    if (queueIsClosed) {
-      throw new SpannableAssertionFailure(
-          element, "Codegen work list is closed. Trying to add $element");
-    }
-    CodegenWorkItem workItem =
-        new CodegenWorkItem(compiler, element, itemCompilationContextCreator());
-    queue.add(workItem);
-    return true;
-  }
-
-  void registerNoSuchMethod(Element element) {
-    if (!enabledNoSuchMethod && compiler.backend.enabledNoSuchMethod) {
-      compiler.backend.enableNoSuchMethod(this);
-      enabledNoSuchMethod = true;
-    }
-  }
-
-  void _logSpecificSummary(log(message)) {
-    log('Compiled ${generatedCode.length} methods.');
-  }
-
-  void forgetElement(Element element) {
-    super.forgetElement(element);
-    generatedCode.remove(element);
-    if (element is MemberElement) {
-      for (Element closure in element.nestedClosures) {
-        generatedCode.remove(closure);
-        removeFromSet(instanceMembersByName, closure);
-        removeFromSet(instanceFunctionsByName, closure);
-      }
-    }
-  }
-
-  void handleUnseenSelector(DynamicUse dynamicUse) {
-    if (compiler.options.hasIncrementalSupport) {
-      newlySeenSelectors.add(dynamicUse);
-    }
-    super.handleUnseenSelector(dynamicUse);
-  }
+  Set<Element> get newlyEnqueuedElements;
 }
 
 /// Parameterizes filtering of which work items are enqueued.

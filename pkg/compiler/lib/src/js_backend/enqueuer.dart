@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.enqueue;
+library dart2js.js.enqueue;
 
 import 'dart:collection' show Queue;
 
-import 'common/codegen.dart' show CodegenWorkItem;
-import 'common/names.dart' show Identifiers;
-import 'common/resolution.dart' show Resolution;
-import 'common/resolution.dart' show ResolutionWorkItem;
-import 'common/tasks.dart' show CompilerTask;
-import 'common/work.dart' show ItemCompilationContext, WorkItem;
-import 'common.dart';
-import 'compiler.dart' show Compiler;
-import 'dart_types.dart' show DartType, InterfaceType;
-import 'elements/elements.dart'
+import '../common/codegen.dart' show CodegenWorkItem;
+import '../common/names.dart' show Identifiers;
+import '../common/resolution.dart' show Resolution;
+import '../common/resolution.dart' show ResolutionWorkItem;
+import '../common/tasks.dart' show CompilerTask;
+import '../common/work.dart' show ItemCompilationContext, WorkItem;
+import '../common.dart';
+import '../compiler.dart' show Compiler;
+import '../dart_types.dart' show DartType, InterfaceType;
+import '../elements/elements.dart'
     show
         AnalyzableElement,
         AstElement,
@@ -30,58 +30,23 @@ import 'elements/elements.dart'
         Name,
         TypedElement,
         TypedefElement;
-import 'js/js.dart' as js;
-import 'native/native.dart' as native;
-import 'types/types.dart' show TypeMaskStrategy;
-import 'universe/selector.dart' show Selector;
-import 'universe/universe.dart';
-import 'universe/use.dart'
+import '../enqueue.dart' as enqueue;
+import '../js/js.dart' as js;
+import '../native/native.dart' as native;
+import '../types/types.dart' show TypeMaskStrategy;
+import '../universe/selector.dart' show Selector;
+import '../universe/universe.dart';
+import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
-import 'universe/world_impact.dart'
+import '../universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitor;
-import 'util/util.dart' show Setlet;
+import '../util/util.dart' show Setlet;
 
-typedef ItemCompilationContext ItemCompilationContextCreator();
-
-class EnqueueTask extends CompilerTask {
-  final ResolutionEnqueuer resolution;
-  final CodegenEnqueuer codegen;
-  final Compiler compiler;
-
-  String get name => 'Enqueue';
-
-  EnqueueTask(Compiler compiler)
-      : compiler = compiler,
-        resolution = new ResolutionEnqueuer(
-            compiler,
-            compiler.backend.createItemCompilationContext,
-            compiler.options.analyzeOnly && compiler.options.analyzeMain
-                ? const EnqueuerStrategy()
-                : const TreeShakingEnqueuerStrategy()),
-        codegen = new CodegenEnqueuer(
-            compiler,
-            compiler.backend.createItemCompilationContext,
-            const TreeShakingEnqueuerStrategy()),
-        super(compiler.measurer) {
-    codegen.task = this;
-    resolution.task = this;
-
-    codegen.nativeEnqueuer = compiler.backend.nativeCodegenEnqueuer(codegen);
-    resolution.nativeEnqueuer =
-        compiler.backend.nativeResolutionEnqueuer(resolution);
-  }
-
-  void forgetElement(Element element) {
-    resolution.forgetElement(element);
-    codegen.forgetElement(element);
-  }
-}
-
-abstract class Enqueuer {
+abstract class _Enqueuer implements enqueue.Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
-  final EnqueuerStrategy strategy;
-  final ItemCompilationContextCreator itemCompilationContextCreator;
+  final enqueue.EnqueuerStrategy strategy;
+  final enqueue.ItemCompilationContextCreator itemCompilationContextCreator;
   final Map<String, Set<Element>> instanceMembersByName =
       new Map<String, Set<Element>>();
   final Map<String, Set<Element>> instanceFunctionsByName =
@@ -94,7 +59,7 @@ abstract class Enqueuer {
       const bool.fromEnvironment("TRACE_MIRROR_ENQUEUING");
 
   bool queueIsClosed = false;
-  EnqueueTask task;
+  enqueue.EnqueueTask task;
   native.NativeEnqueuer nativeEnqueuer; // Set by EnqueueTask
 
   bool hasEnqueuedReflectiveElements = false;
@@ -102,7 +67,7 @@ abstract class Enqueuer {
 
   WorldImpactVisitor impactVisitor;
 
-  Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator,
+  _Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator,
       this.strategy) {
     impactVisitor = new _EnqueuerImpactVisitor(this);
   }
@@ -116,7 +81,7 @@ abstract class Enqueuer {
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
 
-  QueueFilter get filter => compiler.enqueuerFilter;
+  enqueue.QueueFilter get filter => compiler.enqueuerFilter;
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -678,164 +643,8 @@ abstract class Enqueuer {
   }
 }
 
-/// [Enqueuer] which is specific to resolution.
-class ResolutionEnqueuer extends Enqueuer {
-  /// All declaration elements that have been processed by the resolver.
-  final Set<AstElement> processedElements;
-
-  final Queue<ResolutionWorkItem> queue;
-
-  /// Queue of deferred resolution actions to execute when the resolution queue
-  /// has been emptied.
-  final Queue<_DeferredAction> deferredQueue;
-
-  static const ImpactUseCase IMPACT_USE =
-      const ImpactUseCase('ResolutionEnqueuer');
-
-  ImpactUseCase get impactUse => IMPACT_USE;
-
-  ResolutionEnqueuer(
-      Compiler compiler,
-      ItemCompilationContext itemCompilationContextCreator(),
-      EnqueuerStrategy strategy)
-      : super('resolution enqueuer', compiler, itemCompilationContextCreator,
-            strategy),
-        processedElements = new Set<AstElement>(),
-        queue = new Queue<ResolutionWorkItem>(),
-        deferredQueue = new Queue<_DeferredAction>();
-
-  bool get isResolutionQueue => true;
-
-  bool isProcessed(Element member) => processedElements.contains(member);
-
-  /// Returns `true` if [element] has been processed by the resolution enqueuer.
-  bool hasBeenProcessed(Element element) {
-    return processedElements.contains(element.analyzableElement.declaration);
-  }
-
-  /// Registers [element] as processed by the resolution enqueuer.
-  void registerProcessedElement(AstElement element) {
-    processedElements.add(element);
-    compiler.backend.onElementResolved(element);
-  }
-
-  /**
-   * Decides whether an element should be included to satisfy requirements
-   * of the mirror system.
-   *
-   * During resolution, we have to resort to matching elements against the
-   * [MirrorsUsed] pattern, as we do not have a complete picture of the world,
-   * yet.
-   */
-  bool shouldIncludeElementDueToMirrors(Element element,
-      {bool includedEnclosing}) {
-    return includedEnclosing ||
-        compiler.backend.requiredByMirrorSystem(element);
-  }
-
-  bool internalAddToWorkList(Element element) {
-    if (element.isMalformed) return false;
-
-    assert(invariant(element, element is AnalyzableElement,
-        message: 'Element $element is not analyzable.'));
-    if (hasBeenProcessed(element)) return false;
-    if (queueIsClosed) {
-      throw new SpannableAssertionFailure(
-          element, "Resolution work list is closed. Trying to add $element.");
-    }
-
-    compiler.world.registerUsedElement(element);
-
-    ResolutionWorkItem workItem = compiler.resolution
-        .createWorkItem(element, itemCompilationContextCreator());
-    queue.add(workItem);
-
-    // Enable isolate support if we start using something from the isolate
-    // library, or timers for the async library.  We exclude constant fields,
-    // which are ending here because their initializing expression is compiled.
-    LibraryElement library = element.library;
-    if (!compiler.hasIsolateSupport && (!element.isField || !element.isConst)) {
-      String uri = library.canonicalUri.toString();
-      if (uri == 'dart:isolate') {
-        enableIsolateSupport();
-      } else if (uri == 'dart:async') {
-        if (element.name == '_createTimer' ||
-            element.name == '_createPeriodicTimer') {
-          // The [:Timer:] class uses the event queue of the isolate
-          // library, so we make sure that event queue is generated.
-          enableIsolateSupport();
-        }
-      }
-    }
-
-    if (element.isGetter && element.name == Identifiers.runtimeType_) {
-      // Enable runtime type support if we discover a getter called runtimeType.
-      // We have to enable runtime type before hitting the codegen, so
-      // that constructors know whether they need to generate code for
-      // runtime type.
-      compiler.enabledRuntimeType = true;
-      // TODO(ahe): Record precise dependency here.
-      compiler.backend.registerRuntimeType(this, compiler.globalDependencies);
-    } else if (compiler.commonElements.isFunctionApplyMethod(element)) {
-      compiler.enabledFunctionApply = true;
-    }
-
-    return true;
-  }
-
-  void registerNoSuchMethod(Element element) {
-    compiler.backend.registerNoSuchMethod(element);
-  }
-
-  void enableIsolateSupport() {
-    compiler.hasIsolateSupport = true;
-    compiler.backend.enableIsolateSupport(this);
-  }
-
-  /**
-   * Adds an action to the deferred task queue.
-   *
-   * The action is performed the next time the resolution queue has been
-   * emptied.
-   *
-   * The queue is processed in FIFO order.
-   */
-  void addDeferredAction(Element element, void action()) {
-    if (queueIsClosed) {
-      throw new SpannableAssertionFailure(
-          element,
-          "Resolution work list is closed. "
-          "Trying to add deferred action for $element");
-    }
-    deferredQueue.add(new _DeferredAction(element, action));
-  }
-
-  bool onQueueEmpty(Iterable<ClassElement> recentClasses) {
-    _emptyDeferredQueue();
-    return super.onQueueEmpty(recentClasses);
-  }
-
-  void emptyDeferredQueueForTesting() => _emptyDeferredQueue();
-
-  void _emptyDeferredQueue() {
-    while (!deferredQueue.isEmpty) {
-      _DeferredAction task = deferredQueue.removeFirst();
-      reporter.withCurrentElement(task.element, task.action);
-    }
-  }
-
-  void _logSpecificSummary(log(message)) {
-    log('Resolved ${processedElements.length} elements.');
-  }
-
-  void forgetElement(Element element) {
-    super.forgetElement(element);
-    processedElements.remove(element);
-  }
-}
-
 /// [Enqueuer] which is specific to code generation.
-class CodegenEnqueuer extends Enqueuer {
+class CodegenEnqueuer extends _Enqueuer implements enqueue.CodegenEnqueuer {
   final Queue<CodegenWorkItem> queue;
   final Map<Element, js.Expression> generatedCode = <Element, js.Expression>{};
 
@@ -853,7 +662,7 @@ class CodegenEnqueuer extends Enqueuer {
   CodegenEnqueuer(
       Compiler compiler,
       ItemCompilationContext itemCompilationContextCreator(),
-      EnqueuerStrategy strategy)
+      enqueue.EnqueuerStrategy strategy)
       : queue = new Queue<CodegenWorkItem>(),
         newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
         newlySeenSelectors = compiler.cacheStrategy.newSet(),
@@ -933,70 +742,14 @@ class CodegenEnqueuer extends Enqueuer {
   }
 }
 
-/// Parameterizes filtering of which work items are enqueued.
-class QueueFilter {
-  bool checkNoEnqueuedInvokedInstanceMethods(Enqueuer enqueuer) {
-    enqueuer.task.measure(() {
-      // Run through the classes and see if we need to compile methods.
-      for (ClassElement classElement
-          in enqueuer.universe.directlyInstantiatedClasses) {
-        for (ClassElement currentClass = classElement;
-            currentClass != null;
-            currentClass = currentClass.superclass) {
-          enqueuer.processInstantiatedClassMembers(currentClass);
-        }
-      }
-    });
-    return true;
-  }
-
-  void processWorkItem(void f(WorkItem work), WorkItem work) {
-    f(work);
-  }
-}
-
 void removeFromSet(Map<String, Set<Element>> map, Element element) {
   Set<Element> set = map[element.name];
   if (set == null) return;
   set.remove(element);
 }
 
-/// Strategy used by the enqueuer to populate the world.
-// TODO(johnniwinther): Merge this interface with [QueueFilter].
-class EnqueuerStrategy {
-  const EnqueuerStrategy();
-
-  /// Process a class instantiated in live code.
-  void processInstantiatedClass(Enqueuer enqueuer, ClassElement cls) {}
-
-  /// Process a static use of and element in live code.
-  void processStaticUse(Enqueuer enqueuer, StaticUse staticUse) {}
-
-  /// Process a dynamic use for a call site in live code.
-  void processDynamicUse(Enqueuer enqueuer, DynamicUse dynamicUse) {}
-}
-
-class TreeShakingEnqueuerStrategy implements EnqueuerStrategy {
-  const TreeShakingEnqueuerStrategy();
-
-  @override
-  void processInstantiatedClass(Enqueuer enqueuer, ClassElement cls) {
-    cls.implementation.forEachMember(enqueuer.processInstantiatedClassMember);
-  }
-
-  @override
-  void processStaticUse(Enqueuer enqueuer, StaticUse staticUse) {
-    enqueuer.registerStaticUseInternal(staticUse);
-  }
-
-  @override
-  void processDynamicUse(Enqueuer enqueuer, DynamicUse dynamicUse) {
-    enqueuer.handleUnseenSelectorInternal(dynamicUse);
-  }
-}
-
 class _EnqueuerImpactVisitor implements WorldImpactVisitor {
-  final Enqueuer enqueuer;
+  final _Enqueuer enqueuer;
 
   _EnqueuerImpactVisitor(this.enqueuer);
 
@@ -1014,13 +767,4 @@ class _EnqueuerImpactVisitor implements WorldImpactVisitor {
   void visitTypeUse(TypeUse typeUse) {
     enqueuer.registerTypeUse(typeUse);
   }
-}
-
-typedef void _DeferredActionFunction();
-
-class _DeferredAction {
-  final Element element;
-  final _DeferredActionFunction action;
-
-  _DeferredAction(this.element, this.action);
 }
