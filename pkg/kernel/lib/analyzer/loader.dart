@@ -5,6 +5,7 @@ library kernel.analyzer.loader;
 
 import '../ast.dart' as ast;
 import '../repository.dart';
+import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 import 'analyzer.dart';
 import 'ast_from_analyzer.dart';
@@ -324,8 +325,13 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     }
   }
 
-  void loadEverything() {
+  void loadEverything({Target target}) {
     ensureLibraryIsLoaded(getLibraryReference(getDartCoreLibrary()));
+    if (target != null) {
+      for (var uri in target.extraRequiredLibraries) {
+        ensureLibraryIsLoaded(getLibraryReference(_findLibraryElement(uri)));
+      }
+    }
     int libraryIndex = 0;
     bool changed = true;
     while (changed) {
@@ -360,10 +366,10 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     return list;
   }
 
-  ast.Program loadProgram(String mainLibrary) {
+  ast.Program loadProgram(String mainLibrary, {Target target}) {
     ast.Library library = repository.getLibrary(mainLibrary);
     ensureLibraryIsLoaded(library);
-    loadEverything();
+    loadEverything(target: target);
     var program = new ast.Program(repository.libraries);
     program.mainMethod = library.procedures.firstWhere(
         (member) => member.name?.name == 'main',

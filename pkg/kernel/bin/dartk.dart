@@ -243,7 +243,7 @@ Future<CompilerOutcome> batchMain(
         repository.sdk, repository.packageRoot, strongMode);
     AnalyzerLoader loader = new AnalyzerLoader(repository, context: context);
     if (options['link']) {
-      program = loader.loadProgram(file);
+      program = loader.loadProgram(file, target: target);
     } else {
       library = loader.loadLibrary(file);
       loader.loadEverything();

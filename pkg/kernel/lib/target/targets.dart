@@ -16,6 +16,12 @@ Target getTargetByName(String name) {
 /// A target provides backend-specific options for generating kernel IR.
 abstract class Target {
   String get name;
+
+  /// A list of URIs of required libraries, not including dart:core.
+  ///
+  /// Libraries will be loaded in order.
+  List<String> get extraRequiredLibraries;
+
   void transformProgram(Program program);
 
   String toString() => 'Target($name)';
@@ -23,5 +29,6 @@ abstract class Target {
 
 class NoneTarget extends Target {
   String get name => 'none';
+  List<String> get extraRequiredLibraries => <String>[];
   void transformProgram(Program program) {}
 }

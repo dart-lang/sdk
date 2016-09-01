@@ -11,6 +11,26 @@ import '../transformations/mixin_full_resolution.dart' as mix;
 class VmTarget extends Target {
   String get name => 'vm';
 
+  // This is the order that bootstrap libraries are loaded according to
+  // `runtime/vm/object_store.h`.
+  List<String> get extraRequiredLibraries => const <String>[
+    'dart:async',
+    'dart:collection',
+    'dart:convert',
+    'dart:developer',
+    'dart:_internal',
+    'dart:isolate',
+    'dart:math',
+
+    // dart:mirrors is required except in the PRODUCT configuration.
+    // It is excluded here because the ahead-of time compiler uses the PRODUCT
+    // configuration.
+
+    'dart:profiler',
+    'dart:typed_data',
+    'dart:_vmservice',
+  ];
+
   void transformProgram(Program program) {
     new mix.MixinFullResolution().transform(program);
   }
