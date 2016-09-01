@@ -1,5 +1,11 @@
 export const closure = Object.create(null);
 import { core, js, dart, dartx } from 'dart_sdk';
+let dynamic__Toint = () => (dynamic__Toint = dart.constFn(dart.functionType(core.int, [dart.dynamic], [dart.dynamic])))();
+let dynamic__Todynamic = () => (dynamic__Todynamic = dart.constFn(dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic})))();
+let StringToList = () => (StringToList = dart.constFn(dart.functionType(core.List, [core.String])))();
+let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
+let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.functionType(dart.dynamic, [dart.dynamic])))();
+let FnToListOfint = () => (FnToListOfint = dart.constFn(dart.functionType(ListOfint(), [dynamicTodynamic()])))();
 let MapOfMap$Map = () => (MapOfMap$Map = dart.constFn(core.Map$(core.Map, core.Map)))();
 let Foo = () => (Foo = dart.constFn(closure.Foo$()))();
 let ListOfTAndTToListOfT = () => (ListOfTAndTToListOfT = dart.constFn(dart.definiteFunctionType(T => [core.List$(T), [core.List$(T), T]])))();
@@ -61,15 +67,30 @@ closure.Foo$ = dart.generic(T => {
       new: dart.definiteFunctionType(closure.Foo$(T), [core.int, T]),
       build: dart.definiteFunctionType(closure.Foo$(T), [])
     }),
+    fields: () => ({
+      i: core.int,
+      b: core.bool,
+      s: core.String,
+      v: T
+    }),
+    getters: () => ({prop: dart.definiteFunctionType(core.String, [])}),
+    setters: () => ({prop: dart.definiteFunctionType(dart.void, [core.String])}),
     methods: () => ({
       untyped_method: dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic]),
       pass: dart.definiteFunctionType(T, [T]),
       typed_method: dart.definiteFunctionType(core.String, [closure.Foo, core.List, core.int, core.num, core.double, core.bool, core.String, js.JsArray, js.JsObject, js.JsFunction]),
       optional_params: dart.definiteFunctionType(dart.dynamic, [dart.dynamic], [dart.dynamic, core.int]),
       nullary_method: dart.definiteFunctionType(dart.dynamic, []),
-      function_params: dart.definiteFunctionType(dart.dynamic, [dart.functionType(core.int, [dart.dynamic], [dart.dynamic]), dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}), closure.Callback]),
-      run: dart.definiteFunctionType(dart.dynamic, [core.List, core.String, dart.functionType(core.List, [core.String]), dart.functionType(core.List$(core.int), [dart.functionType(dart.dynamic, [dart.dynamic])])], {h: MapOfMap$Map()})
+      function_params: dart.definiteFunctionType(dart.dynamic, [dynamic__Toint(), dynamic__Todynamic(), closure.Callback]),
+      run: dart.definiteFunctionType(dart.dynamic, [core.List, core.String, StringToList(), FnToListOfint()], {h: MapOfMap$Map()})
     }),
+    sfields: () => ({
+      some_static_constant: core.String,
+      some_static_final: core.String,
+      some_static_var: core.String
+    }),
+    sgetters: () => ({staticProp: dart.definiteFunctionType(core.String, [])}),
+    ssetters: () => ({staticProp: dart.definiteFunctionType(dart.void, [core.String])}),
     statics: () => ({named_params: dart.definiteFunctionType(dart.dynamic, [dart.dynamic], {b: dart.dynamic, c: core.int})}),
     names: ['named_params']
   });

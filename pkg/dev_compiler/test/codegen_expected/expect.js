@@ -4,6 +4,7 @@ define(['dart_sdk'], function(dart_sdk) {
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const expect = Object.create(null);
+  let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.functionType(dart.void, [])))();
   let dynamicAnddynamicTobool = () => (dynamicAnddynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic])))();
   expect.Expect = class Expect extends core.Object {
     static _truncateString(string, start, end, length) {
@@ -252,7 +253,7 @@ define(['dart_sdk'], function(dart_sdk) {
       mapEquals: dart.definiteFunctionType(dart.void, [core.Map, core.Map], [core.String]),
       stringEquals: dart.definiteFunctionType(dart.void, [core.String, core.String], [core.String]),
       setEquals: dart.definiteFunctionType(dart.void, [core.Iterable, core.Iterable], [core.String]),
-      throws: dart.definiteFunctionType(dart.void, [dart.functionType(dart.void, [])], [expect._CheckExceptionFn, core.String]),
+      throws: dart.definiteFunctionType(dart.void, [VoidTovoid()], [expect._CheckExceptionFn, core.String]),
       _getMessage: dart.definiteFunctionType(core.String, [core.String]),
       _fail: dart.definiteFunctionType(dart.void, [core.String])
     }),
@@ -274,7 +275,8 @@ define(['dart_sdk'], function(dart_sdk) {
   };
   expect.ExpectException[dart.implements] = () => [core.Exception];
   dart.setSignature(expect.ExpectException, {
-    constructors: () => ({new: dart.definiteFunctionType(expect.ExpectException, [core.String])})
+    constructors: () => ({new: dart.definiteFunctionType(expect.ExpectException, [core.String])}),
+    fields: () => ({message: core.String})
   });
   expect.NoInline = class NoInline extends core.Object {
     new() {

@@ -53,7 +53,6 @@ void main(List<String> args) {
   var ddcPath = path.dirname(path.dirname(Platform.script.toFilePath()));
   var template = [
     '$ddcPath/bin/dartdevc.dart',
-    'compile',
     '--no-source-map', // Invalid as we're just concatenating files below
     '-p',
     packageRoot

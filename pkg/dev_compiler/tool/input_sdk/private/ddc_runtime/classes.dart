@@ -145,12 +145,30 @@ getGenericClass(type) =>
 
 getGenericArgs(type) => JS('', '$safeGetOwnProperty($type, $_typeArguments)');
 
+// TODO(vsm): Collapse into one expando.
 final _constructorSig = JS('', 'Symbol("sigCtor")');
-final _methodSig = JS('', 'Symbol("sig")');
-final _staticSig = JS('', 'Symbol("sigStatic")');
+final _methodSig = JS('', 'Symbol("sigMethod")');
+final _fieldSig = JS('', 'Symbol("sigField")');
+final _getterSig= JS('', 'Symbol("sigGetter")');
+final _setterSig= JS('', 'Symbol("sigSetter")');
+final _staticSig = JS('', 'Symbol("sigStaticMethod")');
+final _staticFieldSig = JS('', 'Symbol("sigStaticField")');
+final _staticGetterSig= JS('', 'Symbol("sigStaticGetter")');
+final _staticSetterSig= JS('', 'Symbol("sigStaticSetter")');
 final _genericTypeCtor = JS('', 'Symbol("genericType")');
 
+// TODO(vsm): Collapse this as well - just provide a dart map to mirrors code.
+// These are queried by mirrors code.
+getConstructorSig(value) => JS('', '#[#]', value, _constructorSig);
 getMethodSig(value) => JS('', '#[#]', value, _methodSig);
+getFieldSig(value) => JS('', '#[#]', value, _fieldSig);
+getGetterSig(value) => JS('', '#[#]', value, _getterSig);
+getSetterSig(value) => JS('', '#[#]', value, _setterSig);
+getStaticSig(value) => JS('', '#[#]', value, _staticSig);
+getStaticFieldSig(value) => JS('', '#[#]', value, _staticFieldSig);
+getStaticGetterSig(value) => JS('', '#[#]', value, _staticGetterSig);
+getStaticSetterSig(value) => JS('', '#[#]', value, _staticSetterSig);
+
 getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 
 /// Get the type of a method from an object using the stored signature
@@ -176,7 +194,7 @@ getMethodTypeFromType(type, name) => JS(
 classGetConstructorType(cls, name) => JS(
     '',
     '''(() => {
-  if(!$name) $name = $cls.name;
+  if(!$name) $name = 'new';
   if ($cls === void 0) return void 0;
   if ($cls == null) return void 0;
   let sigCtor = $cls[$_constructorSig];
@@ -217,15 +235,20 @@ gbind(f, @rest typeArgs) {
 }
 
 // Set up the method signature field on the constructor
-_setMethodSignature(f, sigF) => JS(
+_setInstanceSignature(f, sigF, kind) => JS(
     '',
     '''(() => {
-  $defineMemoizedGetter($f, $_methodSig, () => {
+  $defineMemoizedGetter($f, $kind, () => {
     let sigObj = $sigF();
-    sigObj.__proto__ = $f.__proto__[$_methodSig];
+    sigObj.__proto__ = $f.__proto__[$kind];
     return sigObj;
   });
 })()''');
+
+_setMethodSignature(f, sigF) => _setInstanceSignature(f, sigF, _methodSig);
+_setFieldSignature(f, sigF) => _setInstanceSignature(f, sigF, _fieldSig);
+_setGetterSignature(f, sigF) => _setInstanceSignature(f, sigF, _getterSig);
+_setSetterSignature(f, sigF) => _setInstanceSignature(f, sigF, _setterSig);
 
 // Set up the constructor signature field on the constructor
 _setConstructorSignature(f, sigF) =>
@@ -234,6 +257,15 @@ _setConstructorSignature(f, sigF) =>
 // Set up the static signature field on the constructor
 _setStaticSignature(f, sigF) =>
     JS('', '$defineMemoizedGetter($f, $_staticSig, $sigF)');
+
+_setStaticFieldSignature(f, sigF) =>
+    JS('', '$defineMemoizedGetter($f, $_staticFieldSig, $sigF)');
+
+_setStaticGetterSignature(f, sigF) =>
+    JS('', '$defineMemoizedGetter($f, $_staticGetterSig, $sigF)');
+
+_setStaticSetterSignature(f, sigF) =>
+    JS('', '$defineMemoizedGetter($f, $_staticSetterSig, $sigF)');
 
 // Set the lazily computed runtime type field on static methods
 _setStaticTypes(f, names) => JS(
@@ -258,6 +290,8 @@ _setStaticTypes(f, names) => JS(
 ///  names: An array of the names of the static methods.  Used to
 ///   permit eagerly setting the runtimeType field on the methods
 ///   while still lazily computing the type descriptor object.
+///  fields: A function returning an object mapping instance field
+///    names to types.
 setSignature(f, signature) => JS(
     '',
     '''(() => {
@@ -266,13 +300,31 @@ setSignature(f, signature) => JS(
     ('constructors' in signature) ? signature.constructors : () => ({});
   let methods =
     ('methods' in signature) ? signature.methods : () => ({});
+  let fields =
+    ('fields' in signature) ? signature.fields : () => ({});
+  let getters =
+    ('getters' in signature) ? signature.getters : () => ({});
+  let setters =
+    ('setters' in signature) ? signature.setters : () => ({});
   let statics =
     ('statics' in signature) ? signature.statics : () => ({});
+  let staticFields =
+    ('sfields' in signature) ? signature.sfields : () => ({});
+  let staticGetters =
+    ('sgetters' in signature) ? signature.sgetters : () => ({});
+  let staticSetters =
+    ('ssetters' in signature) ? signature.ssetters : () => ({});
   let names =
     ('names' in signature) ? signature.names : [];
   $_setConstructorSignature($f, constructors);
   $_setMethodSignature($f, methods);
+  $_setFieldSignature($f, fields);
+  $_setGetterSignature($f, getters);
+  $_setSetterSignature($f, setters);
   $_setStaticSignature($f, statics);
+  $_setStaticFieldSignature($f, staticFields);
+  $_setStaticGetterSignature($f, staticGetters);
+  $_setStaticSetterSignature($f, staticSetters);
   $_setStaticTypes($f, names);
 })()''');
 

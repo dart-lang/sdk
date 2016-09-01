@@ -733,7 +733,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     _defineNamedConstructors(ctors, body, className, isCallable);
     _emitVirtualFieldSymbols(virtualFieldSymbols, body);
-    _emitClassSignature(methods, classElem, ctors, extensions, className, body);
+    _emitClassSignature(
+        methods, allFields, classElem, ctors, extensions, className, body);
     _defineExtensionMembers(extensions, className, body);
     _emitClassMetadata(node.metadata, className, body);
 
@@ -1650,6 +1651,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// Emit the signature on the class recording the runtime type information
   void _emitClassSignature(
       List<MethodDeclaration> methods,
+      List<FieldDeclaration> fields,
       ClassElement classElem,
       List<ConstructorDeclaration> ctors,
       List<ExecutableElement> extensions,
@@ -1663,31 +1665,66 @@ class CodeGenerator extends GeneralizingAstVisitor
       ]));
     }
 
-    var tStatics = <JS.Property>[];
-    var tMethods = <JS.Property>[];
+    var tStaticMethods = <JS.Property>[];
+    var tInstanceMethods = <JS.Property>[];
+    var tStaticGetters = <JS.Property>[];
+    var tInstanceGetters = <JS.Property>[];
+    var tStaticSetters = <JS.Property>[];
+    var tInstanceSetters = <JS.Property>[];
     var sNames = <JS.Expression>[];
     for (MethodDeclaration node in methods) {
-      if (!(node.isSetter || node.isGetter || node.isAbstract)) {
-        var name = node.name.name;
-        var element = node.element;
-        var inheritedElement =
-            classElem.lookUpInheritedConcreteMethod(name, currentLibrary);
-        if (inheritedElement != null && inheritedElement.type == element.type) {
-          continue;
-        }
-        var memberName = _elementMemberName(element,
+      var name = node.name.name;
+      var element = node.element;
+      // TODO(vsm): Clean up all the nasty duplication.
+      if (node.isAbstract) {
+        continue;
+      }
+
+      Function lookup;
+      List<JS.Property> tMember;
+      JS.Expression type;
+      if (node.isGetter) {
+        lookup = classElem.lookUpInheritedConcreteGetter;
+        tMember = node.isStatic ? tStaticGetters : tInstanceGetters;
+      } else if (node.isSetter) {
+        lookup = classElem.lookUpInheritedConcreteSetter;
+        tMember = node.isStatic ? tStaticSetters : tInstanceSetters;
+      } else {
+        // Method
+        lookup = classElem.lookUpInheritedConcreteMethod;
+        tMember = node.isStatic ? tStaticMethods : tInstanceMethods;
+      }
+
+      type = _emitAnnotatedFunctionType(element.type, node.metadata,
+          parameters: node.parameters?.parameters,
+          nameType: options.hoistSignatureTypes,
+          hoistType: options.hoistSignatureTypes,
+          definite: true);
+
+      var inheritedElement = lookup(name, currentLibrary);
+      if (inheritedElement != null && inheritedElement.type == element.type) {
+        continue;
+      }
+      var memberName = _elementMemberName(element,
+          useExtension: _extensionTypes.isNativeClass(classElem));
+      var property = new JS.Property(memberName, type);
+      tMember.add(property);
+      // TODO(vsm): Why do we need this?
+      if (node.isStatic && !node.isGetter && !node.isSetter) {
+        sNames.add(memberName);
+      }
+    }
+
+    var tInstanceFields = <JS.Property>[];
+    var tStaticFields = <JS.Property>[];
+    for (FieldDeclaration node in fields) {
+      for (VariableDeclaration field in node.fields.variables) {
+        var element = field.element as FieldElement;
+        var memberName = _elementMemberName(element.getter,
             useExtension: _extensionTypes.isNativeClass(classElem));
-        var type = _emitFunctionType(element.type,
-            nameType: options.hoistSignatureTypes,
-            hoistType: options.hoistSignatureTypes,
-            definite: true);
+        var type = _emitAnnotatedType(element.type, node.metadata);
         var property = new JS.Property(memberName, type);
-        if (node.isStatic) {
-          tStatics.add(property);
-          sNames.add(memberName);
-        } else {
-          tMethods.add(property);
-        }
+        (node.isStatic ? tStaticFields : tInstanceFields).add(property);
       }
     }
 
@@ -1695,7 +1732,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (ConstructorDeclaration node in ctors) {
       var memberName = _constructorName(node.element);
       var element = node.element;
-      var type = _emitFunctionType(element.type,
+      var type = _emitAnnotatedFunctionType(element.type, node.metadata,
           parameters: node.parameters.parameters,
           nameType: options.hoistSignatureTypes,
           hoistType: options.hoistSignatureTypes,
@@ -1707,18 +1744,42 @@ class CodeGenerator extends GeneralizingAstVisitor
     JS.Property build(String name, List<JS.Property> elements) {
       var o =
           new JS.ObjectInitializer(elements, multiline: elements.length > 1);
+      // TODO(vsm): Remove
       var e = js.call('() => #', o);
       return new JS.Property(_propertyName(name), e);
     }
 
     var sigFields = <JS.Property>[];
-    if (!tCtors.isEmpty) sigFields.add(build('constructors', tCtors));
-    if (!tMethods.isEmpty) sigFields.add(build('methods', tMethods));
-    if (!tStatics.isEmpty) {
+    if (!tCtors.isEmpty) {
+      sigFields.add(build('constructors', tCtors));
+    }
+    if (!tInstanceFields.isEmpty) {
+      sigFields.add(build('fields', tInstanceFields));
+    }
+    if (!tInstanceGetters.isEmpty) {
+      sigFields.add(build('getters', tInstanceGetters));
+    }
+    if (!tInstanceSetters.isEmpty) {
+      sigFields.add(build('setters', tInstanceSetters));
+    }
+    if (!tInstanceMethods.isEmpty) {
+      sigFields.add(build('methods', tInstanceMethods));
+    }
+    if (!tStaticFields.isEmpty) {
+      sigFields.add(build('sfields', tStaticFields));
+    }
+    if (!tStaticGetters.isEmpty) {
+      sigFields.add(build('sgetters', tStaticGetters));
+    }
+    if (!tStaticSetters.isEmpty) {
+      sigFields.add(build('ssetters', tStaticSetters));
+    }
+    if (!tStaticMethods.isEmpty) {
       assert(!sNames.isEmpty);
+      // TODO(vsm): Why do we need this names field?
       var aNames = new JS.Property(
           _propertyName('names'), new JS.ArrayInitializer(sNames));
-      sigFields.add(build('statics', tStatics));
+      sigFields.add(build('statics', tStaticMethods));
       sigFields.add(aNames);
     }
     if (!sigFields.isEmpty || extensions.isNotEmpty) {
@@ -2669,21 +2730,33 @@ class CodeGenerator extends GeneralizingAstVisitor
           ? p.metadata
           : (p as DefaultFormalParameter).parameter.metadata;
 
+  // Wrap a result - usually a type - with its metadata.  The runtime is
+  // responsible for unpacking this.
+  JS.Expression _emitAnnotatedResult(
+      JS.Expression result, List<Annotation> metadata) {
+    if (options.emitMetadata && metadata != null && metadata.isNotEmpty) {
+      result = new JS.ArrayInitializer(
+          [result]..addAll(metadata.map(_instantiateAnnotation)));
+    }
+    return result;
+  }
+
+  JS.Expression _emitAnnotatedType(DartType type, List<Annotation> metadata,
+      {bool nameType: true, bool hoistType: true}) {
+    metadata ??= [];
+    var typeName = _emitType(type, nameType: nameType, hoistType: hoistType);
+    return _emitAnnotatedResult(typeName, metadata);
+  }
+
   JS.ArrayInitializer _emitTypeNames(
       List<DartType> types, List<FormalParameter> parameters,
       {bool nameType: true, bool hoistType: true}) {
     var result = <JS.Expression>[];
     for (int i = 0; i < types.length; ++i) {
-      var metadata =
-          parameters != null ? _parameterMetadata(parameters[i]) : [];
-      var typeName =
-          _emitType(types[i], nameType: nameType, hoistType: hoistType);
-      var value = typeName;
-      if (options.emitMetadata && metadata.isNotEmpty) {
-        value = new JS.ArrayInitializer(
-            [typeName]..addAll(metadata.map(_instantiateAnnotation)));
-      }
-      result.add(value);
+      var metadata = parameters != null
+          ? _parameterMetadata(parameters[i])
+          : <Annotation>[];
+      result.add(_emitAnnotatedType(types[i], metadata));
     }
     return new JS.ArrayInitializer(result);
   }
@@ -2716,6 +2789,22 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (!nameType) return fullType;
     return _typeTable.nameType(type, fullType,
         hoistType: hoistType, definite: definite);
+  }
+
+  JS.Expression _emitAnnotatedFunctionType(
+      FunctionType type, List<Annotation> metadata,
+      {List<FormalParameter> parameters,
+      bool lowerTypedef: false,
+      bool nameType: true,
+      bool hoistType: true,
+      bool definite: false}) {
+    var result = _emitFunctionType(type,
+        parameters: parameters,
+        lowerTypedef: lowerTypedef,
+        nameType: nameType,
+        hoistType: hoistType,
+        definite: definite);
+    return _emitAnnotatedResult(result, metadata);
   }
 
   /// Emit the pieces of a function type, as an array of return type,

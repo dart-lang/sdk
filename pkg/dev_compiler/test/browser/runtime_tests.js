@@ -346,21 +346,21 @@ define(['dart_sdk'], function(dart_sdk) {
 
     test('constructors', () => {
       class C extends core.Object {
-        C(x) {};
+        new(x) {};
         named(x, y) {};
       }
       dart.defineNamedConstructor(C, 'named');
       dart.setSignature(C, {
         constructors: () => ({
-          C: dart.definiteFunctionType(C, [core.int]),
+          new: dart.definiteFunctionType(C, [core.int]),
           named: dart.definiteFunctionType(C, [core.int, core.int])
         })
       });
       let getType = dart.classGetConstructorType;
       isSubtype(getType(C), dart.functionType(C, [core.int]));
       isSubtype(getType(C), dart.functionType(C, [core.String]), false);
-      isSubtype(getType(C, 'C'), dart.functionType(C, [core.int]));
-      isSubtype(getType(C, 'C'), dart.functionType(C, [core.String]), false);
+      isSubtype(getType(C, 'new'), dart.functionType(C, [core.int]));
+      isSubtype(getType(C, 'new'), dart.functionType(C, [core.String]), false);
       isSubtype(getType(C, 'named'), dart.functionType(C, [core.int, core.int]));
       isSubtype(getType(C, 'named'),
                 dart.functionType(C, [core.int, core.String]), false);
@@ -511,7 +511,7 @@ define(['dart_sdk'], function(dart_sdk) {
       function ii_2i(x, y) {return x};
       dart.fn(ii_2i, dart.definiteFunctionType(core.int, [core.int], [core.int]));
       function i_i2i(x, opts) {return x};
-      dart.fn(i_i2i, 
+      dart.fn(i_i2i,
               dart.definiteFunctionType(core.int, [core.int], {extra: core.int}));
 
       assert.equal(dart.dcall(dd2d, 0, 1), 0);
@@ -542,7 +542,7 @@ define(['dart_sdk'], function(dart_sdk) {
     test('dsend', () => {
       class Tester extends core.Object {
         new() {
-          this.f = dart.fn(x => x, 
+          this.f = dart.fn(x => x,
                            dart.definiteFunctionType(core.int, [core.int]));
           this.me = this;
         }
@@ -620,8 +620,8 @@ define(['dart_sdk'], function(dart_sdk) {
       // Set the type lazily
       function ss2s(x, y) {return x};
       var coreString;
-      dart.lazyFn(ss2s, 
-                  () => dart.definiteFunctionType(coreString, 
+      dart.lazyFn(ss2s,
+                  () => dart.definiteFunctionType(coreString,
                                                   [coreString, coreString]));
       coreString = core.String;
       checkType(ss2s, dart.functionType(core.String,
@@ -642,7 +642,7 @@ define(['dart_sdk'], function(dart_sdk) {
 
       // Named types
       function i_i2i(x, opts) {return x};
-      dart.fn(i_i2i, dart.definiteFunctionType(core.int, [core.int], 
+      dart.fn(i_i2i, dart.definiteFunctionType(core.int, [core.int],
                                                {extra: core.int}));
       checkType(i_i2i, dart.functionType(core.int, [core.int],
                                          {extra: core.int}));
@@ -737,7 +737,7 @@ define(['dart_sdk'], function(dart_sdk) {
       });
 
       class O extends dart.mixin(Base, M1, M2) {
-        O() {};
+        new() {};
       };
       dart.setSignature(O, {});
       var obj = new O();
@@ -747,7 +747,7 @@ define(['dart_sdk'], function(dart_sdk) {
 
       // Test inherited signatures
       class P extends O {
-        P() {};
+        new() {};
         m(x) {return x;};
       };
       dart.setSignature(P, {});
