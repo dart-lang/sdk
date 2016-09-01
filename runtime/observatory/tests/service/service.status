@@ -34,6 +34,7 @@ process_service_test: Pass, Fail # Issue 24344
 
 [ $runtime == vm ]
 coverage_test: Pass, Slow
+developer_extension_test: Pass, Fail # Issue 27225
 
 # Service protocol is not supported in product mode.
 [ $mode == product ]
