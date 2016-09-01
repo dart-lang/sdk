@@ -794,13 +794,20 @@ class FragmentEmitter {
     List<js.Expression> inheritCalls = <js.Expression>[];
     List<js.Expression> mixinCalls = <js.Expression>[];
 
+    Set<Class> classesInFragment = new Set<Class>();
+    for (Library library in fragment.libraries) {
+      classesInFragment.addAll(library.classes);
+    }
+
     Set<Class> emittedClasses = new Set<Class>();
 
     void emitInheritanceForClass(cls) {
       if (cls == null || emittedClasses.contains(cls)) return;
 
       Class superclass = cls.superclass;
-      emitInheritanceForClass(superclass);
+      if (classesInFragment.contains(superclass)) {
+        emitInheritanceForClass(superclass);
+      }
 
       js.Expression superclassReference = (superclass == null)
           ? new js.LiteralNull()
