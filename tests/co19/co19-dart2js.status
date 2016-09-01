@@ -542,7 +542,7 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interf
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t02: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-005_t01: Fail # please triage
-WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-006_t01: Pass, Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/elements-001_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/elements-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-001_t01: Fail # please triage
@@ -558,8 +558,7 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-013_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-001_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-001_t01: Fail # please triage
-WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-006_t01: Fail # custom elements not supported
-WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-006_t01: Fail # please triage
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-006_t01: Fail, Pass # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-007_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-007_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-010_t01: Fail # please triage
@@ -1073,7 +1072,6 @@ LayoutTests/fast/css/ex-unit-with-no-x-height_t01: Pass, RuntimeError # Please t
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-cache-bug_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-face-descending-unicode-range_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-load_t01: Pass, RuntimeError # Please triage this failure
@@ -1495,7 +1493,6 @@ LayoutTests/fast/url/relative_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/segments-from-data-url_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/segments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/standard-url_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow-scroll_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/positionForPoint_t01: RuntimeError # Please triage this failure
@@ -4027,7 +4024,6 @@ LayoutTests/fast/multicol/hit-test-float_t01: RuntimeError # Please triage this 
 LayoutTests/fast/multicol/newmulticol/balance-images_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/orphans-relayout_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/multicol/vertical-rl/break-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/overflow/child-100percent-height-inside-fixed-container-with-overflow-auto_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/overflow/replaced-child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError # Please triage this failure
@@ -8159,7 +8155,6 @@ LayoutTests/fast/css/comment-before-charset-external_t01: Pass, RuntimeError # P
 LayoutTests/fast/css/computed-offset-with-zoom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-none_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-normal_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/content/content-quotes-01_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-quotes-03_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-quotes-06_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/counters/complex-before_t01: RuntimeError # Please triage this failure

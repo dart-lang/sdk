@@ -1011,10 +1011,10 @@ LibTest/isolate/Isolate/spawnUri_A01_t02: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A01_t03: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A01_t04: RuntimeError # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A01_t05: RuntimeError # Dart issue 15974
-LibTest/isolate/Isolate/spawnUri_A01_t06: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawnUri_A01_t07: RuntimeFailure # Issue 27219
+LibTest/isolate/Isolate/spawnUri_A01_t06: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawnUri_A01_t07: RuntimeError # Issue 27219
 LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15974
-LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeFailure # Issue 27219
+LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Issue 27219
 LibTest/isolate/Isolate/spawnUri_A02_t02: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t04: Skip # Dart issue 15974
@@ -1023,28 +1023,28 @@ LibTest/isolate/Isolate/spawn_A01_t02: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/Isolate/spawn_A01_t03: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/Isolate/spawn_A01_t04: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/Isolate/spawn_A01_t05: RuntimeError, OK  # Uses Isolate.spawn.
-LibTest/isolate/Isolate/spawn_A01_t06: RuntimeFailure # Issue 27219
+LibTest/isolate/Isolate/spawn_A01_t06: RuntimeError # Issue 27219
 LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
-LibTest/isolate/Isolate/spawn_A02_t02: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A03_t01: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A03_t02: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A03_t03: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A03_t04: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A04_t01: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A04_t02: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A04_t03: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A04_t04: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A04_t05: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A05_t01: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A05_t02: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A05_t03: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A06_t01: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A06_t02: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A06_t03: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A06_t04: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A06_t05: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A06_t06: RuntimeFailure # Issue 27219
-LibTest/isolate/Isolate/spawn_A06_t07: RuntimeFailure # Issue 27219
+LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A03_t01: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A03_t02: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A03_t03: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A03_t04: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A04_t01: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A04_t02: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A04_t03: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A04_t04: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A04_t05: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A05_t01: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A05_t02: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A05_t03: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A06_t01: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A06_t02: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A06_t03: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A06_t04: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A06_t05: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A06_t06: RuntimeError # Issue 27219
+LibTest/isolate/Isolate/spawn_A06_t07: RuntimeError # Issue 27219
 LibTest/isolate/RawReceivePort/RawReceivePort_A01_t01: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/RawReceivePort/RawReceivePort_A01_t02: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/RawReceivePort/close_A01_t01: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
@@ -1277,7 +1277,7 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t02: RuntimeError # Please triage this failure.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-005_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/events/event-dispatch/test-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/shadow-dom/events/event-dispatch/test-002_t01: RuntimeFailure # Please triage this failure.
+WebPlatformTest/shadow-dom/events/event-dispatch/test-002_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/shadow-dom/events/event-dispatch/test-003_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/events/event-retargeting/test-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: RuntimeError # Not clear that any of this works. Also suppressed in dart2js
@@ -1297,13 +1297,13 @@ WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-001_t01:
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-002_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-004_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-002_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-001_t01: RuntimeFailure # Please triage this failure.
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-001_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-002_t01: RuntimeFailure # Please triage this failure.
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-002_t01: RuntimeError # Please triage this failure.
 # Must fix failures below after JsInterop checkin.
 WebPlatformTest/dom/nodes/Node-appendChild_t01: RuntimeError # Issue 26134
 WebPlatformTest/dom/nodes/attributes/setAttribute_A01_t01: RuntimeError # Issue 26134
