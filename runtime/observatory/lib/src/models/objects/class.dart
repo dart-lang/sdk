@@ -23,18 +23,18 @@ abstract class Class extends Object implements ClassRef {
   /// [internal]
   bool get isPatch;
 
-  /// The library which contains this class.
+  /// [optional] The library which contains this class.
   LibraryRef get library;
 
-  /// The location of this class in the source code.[optional]
+  /// [optional] The location of this class in the source code.
   SourceLocation get location;
 
-  /// The superclass of this class, if any. [optional]
+  /// [optional] The superclass of this class, if any.
   ClassRef get superclass;
 
-  /// The supertype for this class, if any.
+  /// [optional]The supertype for this class, if any.
   ///
-  /// The value will be of the kind: Type. [optional]
+  /// The value will be of the kind: Type.
   InstanceRef get superType;
 
   /// A list of interface types for this class.
@@ -44,17 +44,33 @@ abstract class Class extends Object implements ClassRef {
 
   /// The mixin type for this class, if any.
   ///
-  /// The value will be of the kind: Type. [optional]
+  /// [optional] The value will be of the kind: Type.
   InstanceRef get mixin;
 
   /// A list of fields in this class. Does not include fields from
   /// superclasses.
-  //List<FieldRef> get fields;
+  Iterable<FieldRef> get fields;
 
   /// A list of functions in this class. Does not include functions
   /// from superclasses.
-  //List<FunctionRef> get functions;
+  Iterable<FunctionRef> get functions;
 
   // A list of subclasses of this class.
   Iterable<ClassRef> get subclasses;
+
+  bool get hasAllocations;
+  bool get hasNoAllocations;
+
+  Allocations get newSpace;
+  Allocations get oldSpace;
+
+  bool get traceAllocations;
+}
+
+abstract class InstanceSet {
+  int get count;
+  Iterable<ObjectRef> get samples;
+}
+
+abstract class TopRetainedInstances {
 }

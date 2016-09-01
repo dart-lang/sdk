@@ -22,10 +22,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
   ObservatoryElement _constructElementForObject() {
     var type = object.type;
     switch (type) {
-      case 'Class':
-        ClassViewElement element = new Element.tag('class-view');
-        element.cls = object;
-        return element;
       case 'Code':
         CodeViewElement element = new Element.tag('code-view');
         element.code = object;

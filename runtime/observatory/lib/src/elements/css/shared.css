@@ -1248,15 +1248,17 @@ nav-refresh-wrapped > li {
   margin: 0;
 }
 
-/* object-common */
+/* object-common && class-instances */
 /* TODO(cbernaschina) fix object-common-wrapped to object-common when wrapper
 removed */
 
+class-instances button:hover,
 object-common-wrapped button:hover {
   background-color: transparent;
   border: none;
   text-decoration: underline;
 }
+class-instances button,
 object-common-wrapped button {
   background-color: transparent;
   border: none;

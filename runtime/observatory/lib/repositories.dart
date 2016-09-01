@@ -42,5 +42,7 @@ part 'src/repositories/retained_size.dart';
 part 'src/repositories/sample_profile.dart';
 part 'src/repositories/script.dart';
 part 'src/repositories/settings.dart';
+part 'src/repositories/strongly_reachable_instances.dart';
 part 'src/repositories/target.dart';
+part 'src/repositories/top_retaining_instances.dart';
 part 'src/repositories/type_arguments.dart';

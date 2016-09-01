@@ -267,6 +267,9 @@ abstract class ServiceObject extends Observable {
       case 'Sentinel':
         obj = new Sentinel._empty(owner);
         break;
+      case 'InstanceSet':
+        obj = new InstanceSet._empty(owner);
+        break;
       case 'TypeArguments':
         obj = new TypeArguments._empty(owner);
         break;
@@ -409,6 +412,12 @@ abstract class HeapObject extends ServiceObject implements M.Object {
     }
     size = map['size'];
   }
+}
+
+class RetainingObject implements M.RetainingObject {
+  int get retainedSize => object.retainedSize;
+  final HeapObject object;
+  RetainingObject(this.object);
 }
 
 abstract class ServiceObjectOwner extends ServiceObject {
@@ -2324,9 +2333,10 @@ class AllocationCount extends Observable implements M.AllocationCount {
   }
 
   bool get empty => (instances == 0) && (bytes == 0);
+  bool get notEmpty => (instances != 0) || (bytes != 0);
 }
 
-class Allocations implements M.Allocations{
+class Allocations implements M.Allocations {
   // Indexes into VM provided array. (see vm/class_table.h).
   static const ALLOCATED_BEFORE_GC = 0;
   static const ALLOCATED_BEFORE_GC_SIZE = 1;
@@ -2348,6 +2358,7 @@ class Allocations implements M.Allocations{
   }
 
   bool get empty => accumulated.empty && current.empty;
+  bool get notEmpty => accumulated.notEmpty || current.notEmpty;
 }
 
 class Class extends HeapObject implements M.Class {
@@ -2368,6 +2379,7 @@ class Class extends HeapObject implements M.Class {
   final Allocations oldSpace = new Allocations();
   final AllocationCount promotedByLastNewGC = new AllocationCount();
 
+  @observable bool get hasAllocations => newSpace.notEmpty || oldSpace.notEmpty;
   @observable bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
   @observable bool traceAllocations = false;
   @reflectable final fields = new ObservableList<Field>();
@@ -3029,7 +3041,6 @@ class Field extends HeapObject implements M.Field {
     isStatic = map['static'];
     isFinal = map['final'];
     isConst = map['const'];
-    staticValue = map['staticValue'];
 
     if (dartOwner is Class) {
       Class ownerClass = dartOwner;
@@ -3042,6 +3053,7 @@ class Field extends HeapObject implements M.Field {
     if (mapIsRef) {
       return;
     }
+    staticValue = map['staticValue'];
 
     guardNullable = map['_guardNullable'];
     if (map['_guardClass'] is Class) {
@@ -3740,6 +3752,25 @@ class TypeArguments extends HeapObject implements M.TypeArguments {
       return;
     }
     types = map['types'];
+  }
+}
+
+class InstanceSet extends HeapObject implements M.InstanceSet {
+  HeapObject dartOwner;
+  int count;
+  Iterable<HeapObject> samples;
+
+  InstanceSet._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    if (mapIsRef) {
+      return;
+    }
+    count = map['totalCount'];
+    samples = map['samples'];
   }
 }
 

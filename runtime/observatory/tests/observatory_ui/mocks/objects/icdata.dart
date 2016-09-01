@@ -14,13 +14,15 @@ class ICDataRefMock implements M.ICDataRef {
 class ICDataMock implements M.ICData {
   final String id;
   final M.ClassRef clazz;
+  final String vmName;
   final int size;
   final String selector;
   final M.ObjectRef dartOwner;
   final M.InstanceRef argumentsDescriptor;
   final M.InstanceRef entries;
 
-  const ICDataMock({this.id: 'icdata-id', this.clazz: const ClassRefMock(),
-                    this.size: 0, this.selector, this.dartOwner,
-                    this.argumentsDescriptor, this.entries});
+  const ICDataMock({this.id: 'icdata-id', this.vmName: 'icdata-vmName',
+                    this.clazz: const ClassRefMock(), this.size: 0,
+                    this.selector, this.dartOwner, this.argumentsDescriptor,
+                    this.entries});
 }

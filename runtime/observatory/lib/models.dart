@@ -76,5 +76,7 @@ part 'src/models/repositories/retained_size.dart';
 part 'src/models/repositories/retaining_path.dart';
 part 'src/models/repositories/sample_profile.dart';
 part 'src/models/repositories/script.dart';
+part 'src/models/repositories/strongly_reachable_instances.dart';
 part 'src/models/repositories/target.dart';
+part 'src/models/repositories/top_retaining_instances.dart';
 part 'src/models/repositories/type_arguments.dart';

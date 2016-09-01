@@ -29,6 +29,7 @@ class InstanceRefMock implements M.InstanceRef {
 class InstanceMock implements M.Instance {
   final String id;
   final String name;
+  final String vmName;
   final M.InstanceKind kind;
   final M.ClassRef clazz;
   final int size;
@@ -65,6 +66,7 @@ class InstanceMock implements M.Instance {
   final M.InstanceRef twoByteBytecode;
 
   const InstanceMock({this.id: 'instance-id', this.name: 'instance-name',
+                      this.vmName: 'instance-vmName',
                       this.kind: M.InstanceKind.vNull,
                       this.clazz: const ClassRefMock(), this.size: 0,
                       this.valueAsString: 'null', this.valueAsStringIsTruncated,

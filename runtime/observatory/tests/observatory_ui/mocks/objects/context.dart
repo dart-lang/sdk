@@ -14,14 +14,15 @@ class ContextRefMock implements M.ContextRef {
 class ContextMock implements M.Context {
   final String id;
   final M.ClassRef clazz;
+  final String vmName;
   final int size;
   final int length;
   final M.Context parentContext;
   final Iterable<M.ContextElement> variables;
 
-  const ContextMock({this.id: 'context-id', this.clazz: const ClassMock(),
-                     this.size: 0, this.length, this.parentContext,
-                     this.variables: const []});
+  const ContextMock({this.id: 'context-id', this.vmName: 'context-vmName',
+                     this.clazz: const ClassMock(), this.size: 0, this.length,
+                     this.parentContext, this.variables: const []});
 }
 
 class ContextElementMock implements M.ContextElement {

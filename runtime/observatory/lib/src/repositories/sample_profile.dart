@@ -127,11 +127,25 @@ class IsolateSampleProfileRepository
 
 class ClassSampleProfileRepository
     implements M.ClassSampleProfileRepository {
-  Stream<SampleProfileLoadingProgressEvent> get(M.ClassRef c,
-      M.SampleProfileTag t, {bool clear: false}) {
+  Stream<SampleProfileLoadingProgressEvent> get(M.Isolate i, M.ClassRef c,
+      M.SampleProfileTag t) {
+    S.Isolate isolate = i as S.Isolate;
+    S.Class cls = c as S.Class;
+    assert(isolate != null);
+    assert(cls != null);
+    return new SampleProfileLoadingProgress(isolate, t,
+        false, cls: cls).onProgress;
+  }
+
+  Future enable(M.IsolateRef i, M.ClassRef c) {
     S.Class cls = c as S.Class;
     assert(cls != null);
-    return new SampleProfileLoadingProgress(cls.isolate, t,
-        clear, cls: cls).onProgress;
+    return cls.setTraceAllocations(true);
+  }
+
+  Future disable(M.IsolateRef i, M.ClassRef c) {
+    S.Class cls = c as S.Class;
+    assert(cls != null);
+    return cls.setTraceAllocations(false);
   }
 }
