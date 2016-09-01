@@ -185,4 +185,107 @@ class A {
     addFile('int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x;');
     check(nonnullableTypes: <String>['dart:core,int']);
   }
+
+  void test_method_call() {
+    addFile('''
+int s(int x) {
+  return x + 1;
+}
+
+void main() {
+  s(10);
+  s(/*error:INVALID_ASSIGNMENT*/null);
+}
+''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_generics() {
+    addFile('''
+class Foo<T> {
+  T x;
+
+  Foo(this.x);
+}
+
+void main() {
+  var f = new Foo<String>("hello");
+  var g = new Foo<int>(10);
+  var h = new Foo<String>(null);
+  var i = new Foo<int>(/*error:INVALID_ASSIGNMENT*/null);
+
+  print(f.x);
+  print(g.x);
+  print(h.x);
+  print(i.x);
+}
+''');
+    addFile('''
+class Foo<T> {
+  T x; // Should be annotated for a runtime check: x = (null as T)
+
+  Foo();
+}
+
+void main() {
+  var f = new Foo<String>();
+  var g = new Foo<int>(); // Should fail at runtime.
+}
+''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_map() {
+    addFile('''
+class Pair<K, V> {
+  K first;
+  V second;
+
+  Pair(this.first, this.second);
+}
+
+class SlowMap<K, V> {
+  List<Pair<K, V>> array;
+  int arrayLength = 0;
+
+  SlowMap() : array = <Pair<K, V>>[];
+
+  void insert(K key, V value) {
+    array.add(new Pair<K, V>(key, value));
+    ++arrayLength;
+  }
+
+  bool has(K key) {
+    for (int i = 0; i < arrayLength; ++i) {
+      if (array[i].first == key) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  V get(K key) {
+    for (int i = 0; i < arrayLength; ++i) {
+      if (array[i].first == key) {
+        return array[i].second;
+      }
+    }
+    return null;
+    // TODO(stanm): generate explicit cast to V which will produce a runtime
+    // error if V is non-nullable. Optionally, generate a static warning too.
+  }
+}
+
+void main() {
+  var legs = new SlowMap<String, int>();
+  legs.insert("spider", 8);
+  legs.insert("goat", 4);
+  legs.insert("chicken", 2);
+
+  int x = legs.get("goat"); // This should not produce an error.
+  int y = legs.get("sheep"); // TODO(stanm): Runtime error here.
+}
+''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
 }
