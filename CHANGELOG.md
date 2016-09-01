@@ -17,6 +17,24 @@
   * Added `WebSocket.addUtf8Text` to allow sending a pre-encoded text message
     without a round-trip UTF-8 conversion.
 
+## Strong Mode
+
+* Breaking change - it is an error if a generic type parameter cannot be
+    inferred (SDK issue [26992](https://github.com/dart-lang/sdk/issues/26992)).
+
+    ```dart
+    class Cup<T> {
+      Cup(T t);
+    }
+    main() {
+      // Error because:
+      // - if we choose Cup<num> it is not assignable to `cOfInt`,
+      // - if we choose Cup<int> then `n` is not assignable to int.
+      num n;
+      C<int> cOfInt = new C(n);
+    }
+    ```
+
 ## 1.19.0
 
 ### Language changes
