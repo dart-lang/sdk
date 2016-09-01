@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 main() { } //LINT
 
 bar() => new _Foo(); //LINT
@@ -27,4 +28,12 @@ set speed(int ms) {} //OK
 class Car {
   static set make(String name) {} // OK
   set speed(int ms) {} //OK
+}
+
+abstract class MyList<E> extends List<E> {
+  @override
+  operator []=(int index, E value) //OK: #300
+  {
+    // ignored.
+  }
 }

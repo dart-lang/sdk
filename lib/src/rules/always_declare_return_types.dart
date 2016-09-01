@@ -6,6 +6,7 @@ library linter.src.rules.always_declare_return_types;
 
 import 'package:analyzer/dart/ast/ast.dart'
     show AstVisitor, FunctionDeclaration, FunctionTypeAlias, MethodDeclaration;
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 
@@ -44,10 +45,10 @@ typedef bool predicate(Object o);
 class AlwaysDeclareReturnTypes extends LintRule {
   AlwaysDeclareReturnTypes()
       : super(
-            name: 'always_declare_return_types',
-            description: desc,
-            details: details,
-            group: Group.style);
+      name: 'always_declare_return_types',
+      description: desc,
+      details: details,
+      group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);
@@ -73,7 +74,8 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
-    if (!node.isSetter && node.returnType == null) {
+    if (!node.isSetter && node.returnType == null &&
+        node.name.token.type != TokenType.INDEX_EQ) {
       rule.reportLint(node.name);
     }
   }
