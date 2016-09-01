@@ -124,6 +124,7 @@ class _AsyncStarStreamController {
     whenDoneAdding.then((_) {
       isAdding = false;
       scheduleGenerator();
+      if (!isScheduled) isSuspendedAtYield = true;
     });
     return false;
   }
