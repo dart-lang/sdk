@@ -3913,7 +3913,7 @@ class CodeInlineInterval {
 
 class Code extends HeapObject implements M.Code {
   @observable M.CodeKind kind;
-  @observable ServiceObject objectPool;
+  @observable ObjectPool objectPool;
   @observable ServiceFunction function;
   @observable Script script;
   @observable bool isOptimized;

@@ -22,10 +22,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
   ObservatoryElement _constructElementForObject() {
     var type = object.type;
     switch (type) {
-      case 'Code':
-        CodeViewElement element = new Element.tag('code-view');
-        element.code = object;
-        return element;
       default:
         JsonViewElement element = new Element.tag('json-view');
         element.map = object;

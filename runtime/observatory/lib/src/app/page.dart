@@ -228,6 +228,18 @@ class InspectPage extends MatchingPage {
                                _classSampleProfileRepository,
                                queue: app.queue)
       ];
+    } else if (obj is Code) {
+      await obj.loadScript();
+      container.children = [
+        new CodeViewElement(app.vm, obj.isolate, obj, app.events,
+                            app.notifications,
+                            _retainedSizeRepository,
+                            _reachableSizeRepository,
+                            _inboundReferencesRepository,
+                            _retainingPathRepository,
+                            _instanceRepository,
+                            queue: app.queue)
+      ];
     } else if (obj is Context) {
       container.children = [
         new ContextViewElement(app.vm, obj.isolate, obj, app.events,

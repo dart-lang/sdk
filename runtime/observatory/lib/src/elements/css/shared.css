@@ -578,6 +578,54 @@ class-tree virtual-tree .class-tree-item .name {
   margin-left: 0.5em;
 }
 
+/* code-view */
+
+code-view .table {
+  table-layout: fixed;
+}
+
+code-view th:nth-of-type(1),
+code-view td:nth-of-type(1) {
+  min-width: 10em;
+  text-align: left;
+}
+
+code-view th:nth-of-type(2),
+code-view td:nth-of-type(2) {
+  min-width: 8em;
+  text-align: left;
+}
+
+code-view th:nth-of-type(3),
+code-view td:nth-of-type(3) {
+  min-width: 8em;
+  text-align: left;
+}
+
+code-view th:nth-of-type(4),
+code-view td:nth-of-type(4) {
+  text-align: left;
+  overflow: visible;
+  white-space: pre;
+  padding-right: 1em;
+  width: 1px;
+}
+
+code-view th:nth-of-type(5),
+code-view td:nth-of-type(5) {
+  text-align: left;
+  overflow: visible;
+}
+
+code-view tr:hover > td {
+  background-color: #F4C7C3;
+}
+
+code-view .code-comment {
+  color: grey;
+  font-style: italic;
+}
+
 /* context-ref */
 /* TODO(cbernaschina) fix context-ref-wrapped to context-ref when wrapper
 removed */
@@ -1632,6 +1680,26 @@ script-inset-wrapped .hotProfile {
 
 stack-trace-tree-config {
   white-space: nowrap;
+}
+
+/* type-arguments-ref */
+
+type-arguments-ref a[href]:hover {
+  text-decoration: underline;
+}
+type-arguments-ref a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+/* token-stream-ref */
+
+token-stream-ref a[href]:hover {
+  text-decoration: underline;
+}
+token-stream-ref a[href] {
+  color: #0489c3;
+  text-decoration: none;
 }
 
 /* view-footer */

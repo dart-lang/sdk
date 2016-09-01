@@ -21,8 +21,14 @@ class CodeMock implements M.Code {
   final int size;
   final M.CodeKind kind;
   final bool isOptimized;
+  final M.FunctionRef function;
+  final M.ObjectPoolRef objectPool;
+  final Iterable<M.FunctionRef> inlinedFunctions;
 
   const CodeMock({this.id: 'code-id', this.name: 'code-name',
                   this.vmName: 'code-vmName', this.clazz, this.size,
-                  this.kind: M.CodeKind.dart, this.isOptimized: false });
+                  this.kind: M.CodeKind.dart, this.isOptimized: false,
+                  this.function: const FunctionRefMock(),
+                  this.objectPool: const ObjectPoolRefMock(),
+                  this.inlinedFunctions: const []});
 }
