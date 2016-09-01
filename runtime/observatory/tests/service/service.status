@@ -24,10 +24,6 @@ isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
-*: StaticWarning # https://github.com/dart-lang/observe/issues/85
-address_mapper_test: Pass # https://github.com/dart-lang/observe/issues/85
-command_test: Pass # https://github.com/dart-lang/observe/issues/85
-read_stream_test: Pass # https://github.com/dart-lang/observe/issues/85
 get_isolate_after_language_error_test: SkipByDesign
 
 [ $arch == arm ]
