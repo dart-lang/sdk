@@ -213,6 +213,7 @@ void ClassTable::Unregister(intptr_t index) {
 
 #if defined(DART_PRECOMPILER)
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
   intptr_t num_cids = NumCids();
   RawClass** cls_by_old_cid = new RawClass*[num_cids];
   for (intptr_t i = 0; i < num_cids; i++) {
