@@ -395,6 +395,7 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       'json_lib_test': skip_fail,
 
       'json_utf8_chunk_test': skip_timeout,
+      'latin1_test': skip_timeout,
 
       'streamed_conversion_json_encode1_test': skip_timeout,
       'streamed_conversion_json_utf8_decode_test': skip_timeout,
