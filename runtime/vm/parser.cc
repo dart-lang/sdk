@@ -2712,6 +2712,7 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   const String& field_name = *ExpectIdentifier("field name expected");
   ExpectToken(Token::kASSIGN);
 
+  TokenPosition expr_pos = TokenPos();
   const bool saved_mode = SetAllowFunctionLiterals(false);
   // "this" must not be accessible in initializer expressions.
   receiver->set_invisible(true);
@@ -2721,9 +2722,21 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   }
   receiver->set_invisible(false);
   SetAllowFunctionLiterals(saved_mode);
-  if (current_function().is_const() && !init_expr->IsPotentiallyConst()) {
-    ReportError(field_pos,
-                "initializer expression must be compile time constant.");
+  if (current_function().is_const()) {
+    if (!init_expr->IsPotentiallyConst()) {
+      ReportError(expr_pos,
+                  "initializer expression must be compile time constant.");
+    }
+    if (init_expr->EvalConstExpr() != NULL) {
+      // If the expression is a compile-time constant, ensure that it
+      // is evaluated and canonicalized. See issue 27164.
+      Instance& const_instance = Instance::ZoneHandle(Z);
+      if (!GetCachedConstant(expr_pos, &const_instance)) {
+        const_instance = EvaluateConstExpr(expr_pos, init_expr).raw();
+        CacheConstantValue(expr_pos, const_instance);
+      }
+      init_expr = new(Z) LiteralNode(expr_pos, const_instance);
+    }
   }
   Field& field = Field::ZoneHandle(Z, cls.LookupInstanceField(field_name));
   if (field.IsNull()) {
