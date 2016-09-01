@@ -2104,11 +2104,7 @@ class ICData : public Object {
                              GrowableArray<intptr_t>* second) const;
 
   void PrintToJSONArray(const JSONArray& jsarray,
-                        TokenPosition token_pos,
-                        bool is_static_call) const;
-  void PrintToJSONArrayNew(const JSONArray& jsarray,
-                           TokenPosition token_pos,
-                           bool is_static_call) const;
+                        TokenPosition token_pos) const;
 
   // Initialize the preallocated empty ICData entry arrays.
   static void InitOnce();

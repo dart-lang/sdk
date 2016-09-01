@@ -193,8 +193,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
         // Does not correspond to a valid source position.
         continue;
       }
-      bool is_static_call = iter.Kind() == RawPcDescriptors::kUnoptStaticCall;
-      ic_data->PrintToJSONArrayNew(sites, token_pos, is_static_call);
+      ic_data->PrintToJSONArray(sites, token_pos);
     }
   }
 }
