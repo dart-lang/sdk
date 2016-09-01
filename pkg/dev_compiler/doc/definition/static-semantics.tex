@@ -1,0 +1,1062 @@
+\subsection*{Field lookup}
+
+\infrule{(C : \dclass{\TApp{C}{T_0,\ldots,T_n}}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{\many{\mathit{ce}}}) \in \Phi \\
+          \fieldDecl{x}{\tau} \in \many{\mathit{ce}}
+        }
+        {\fieldLookup{\Phi}{\TApp{C}{\tau_0, \ldots, \tau_n}}{x}{\subst{\tau_0, \ldots, \tau_n}{T_0, \ldots, T_n}{\tau}}
+        }
+
+\infrule{(C : \dclass{\TApp{C}{T_0,\ldots,T_n}}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{\many{\mathit{ce}}}) \in \Phi \quad x \notin \many{\mathit{ce}} \\
+         \fieldLookup{\Phi}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{x}{\tau}
+        }
+        {\fieldLookup{\Phi}{\TApp{C}{\tau_0, \ldots, \tau_n}}{x}{\subst{\tau_0, \ldots, \tau_n}{T_0, \ldots, T_n}{\tau}}
+        }
+
+
+\subsection*{Method lookup}
+
+\infrule{(C : \dclass{\TApp{C}{T_0,\ldots,T_n}}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{\many{\mathit{ce}}}) \in \Phi \\
+          \methodDecl{m}{\tau}{\sigma} \in \many{\mathit{ce}}
+        }
+        {\methodLookup{\Phi}
+          {\TApp{C}{\tau_0, \ldots, \tau_n}}{m}
+          {\subst{\tau_0, \ldots, \tau_n}{T_0, \ldots, T_n}{\tau}}
+          {\subst{\tau_0, \ldots, \tau_n}{T_0, \ldots, T_n}{\sigma}}
+        }
+
+\infrule{(C : \dclass{\TApp{C}{T_0,\ldots,T_n}}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{\many{\mathit{ce}}}) \in \Phi \quad m \notin \many{\mathit{ce}} \\
+         \methodLookup{\Phi}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{m}{\tau}{\sigma}
+        }
+        {\methodLookup{\Phi}{\TApp{C}{\tau_0, \ldots, \tau_n}}{m}
+          {\subst{\tau_0, \ldots, \tau_n}{T_0, \ldots, T_n}{\tau}}
+          {\subst{\tau_0, \ldots, \tau_n}{T_0, \ldots, T_n}{\sigma}}
+        }
+
+\subsection*{Method and field absence}
+
+\infrule{(C : \dclass{\TApp{C}{T_0,\ldots,T_n}}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{\many{\mathit{ce}}}) \in \Phi \quad x \notin \many{\mathit{ce}} \\
+         \fieldAbsent{\Phi}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{x}
+        }
+        {\fieldAbsent{\Phi}{\TApp{C}{\tau_0, \ldots, \tau_n}}{x}
+        }
+
+\infrule{(C : \dclass{\TApp{C}{T_0,\ldots,T_n}}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{\many{\mathit{ce}}}) \in \Phi \quad m \notin \many{\mathit{ce}} \\
+         \methodAbsent{\Phi}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{m}{\tau}{\sigma}
+        }
+        {\methodAbsent{\Phi}{\TApp{C}{\tau_0, \ldots, \tau_n}}{m}
+        }
+
+\iftrans{
+
+\subsection*{Type translation}
+
+To translate covariant generics, we essentially want to treat all contravariant
+occurrences of type variables as $\Dynamic$.  The type translation
+$\down{\tau}$ implements this.  It is defined in terms of the dual operator
+$\up{\tau}$ which translates positive occurences of type variables as $\Dynamic$.
+
+\begin{eqnarray*}
+  \down{T} & = & T \\
+  \down{\Arrow[k]{\tau_0, \ldots, \tau_n}{\tau_r}} & = & 
+     \Arrow[k]{\up{\tau_0}, \ldots, \up{\tau_n}}{\down{\tau_r}} \\
+  \down{\TApp{C}{\tau_0, \ldots, \tau_n}} & = & \TApp{C}{\down{\tau_0}, \ldots, \down{\tau_n}} \\
+  \down{\tau} & = & \tau\ \mbox{otherwise}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+  \up{T} & = & \Dynamic \\
+  \up{\Arrow[k]{\tau_0, \ldots, \tau_n}{\tau_r}} & = & 
+     \Arrow[k]{\down{\tau_0}, \ldots, \down{\tau_n}}{\up{\tau_r}} \\
+  \up{\TApp{C}{\tau_0, \ldots, \tau_n}} & = & \TApp{C}{\up{\tau_0}, \ldots, \up{\tau_n}} \\
+  \up{\tau} & = & \tau\ \mbox{if $\tau$ is base type.}
+\end{eqnarray*}
+
+
+}
+\subsection*{Expression typing: $\yieldsOk{\Phi, \Delta, \Gamma}{e}{\opt{\tau}}{e'}{\tau'}$} 
+\hrulefill\\
+
+
+\sstext{ Expression typing is a relation between typing contexts, a term ($e$),
+  an optional type ($\opt{\tau}$), and a type ($\tau'$).  The general idea is
+  that we are typechecking a term ($e$) and want to know if it is well-typed.
+  The term appears in a context, which may (or may not) impose a type constraint
+  on the term.  For example, in $\dvar{x:\tau}{e}$, $e$ appears in a context
+  which requires it to be a subtype of $\tau$, or to be coercable to $\tau$.
+  Alternatively if $e$ appears as in $\dvar{x:\_}{e}$, then the context does not
+  provide a type constraint on $e$.  This ``contextual'' type information is
+  both a constraint on the term, and may also provide a source of information
+  for type inference in $e$.  The optional type $\opt{\tau}$ in the typing
+  relation corresponds to this contextual type information.  Viewing the
+  relation algorithmically, this should be viewed as an input to the algorithm,
+  along with the term.  The process of checking a term allows us to synthesize a
+  precise type for the term $e$ which may be more precise than the type required
+  by the context.  The type $\tau'$ in the relation represents this more
+  precise, synthesized type.  This type should be thought of as an output of the
+  algorithm.  It should always be the case that the synthesized (output) type is
+  a subtype of the checked (input) type if the latter is present.  The
+  checking/synthesis pattern allows for the propagation of type information both
+  downwards and upwards. 
+
+  It is often the case that downwards propagation is not useful.  Consequently,
+  to simplify the presentation the rules which do not use the checking type
+  require that it be empty ($\_$).  This does not mean that such terms cannot be
+  checked when contextual type information is supplied: the first typing rule
+  allows contextual type information to be dropped so that such rules apply in
+  the case that we have contextual type information, subject to the contextual
+  type being a supertype of the synthesized type:
+
+}{
+For subsumption, the elaboration of the underlying term carries through.
+}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}{e}{\_}{e'}{\sigma} \quad\quad
+         \subtypeOf{\Phi, \Delta}{\sigma}{\tau}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}{e}{\tau}{e'}{\sigma}} 
+
+\sstext{
+The implicit downcast rule also allows this when the contextual type is a
+subtype of the synthesized type, corresponding to an implicit downcast.
+}{
+In an implicit downcast, the elaboration adds a check so that an error
+will be thrown if the types do not match at runtime.
+}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}{e}{\_}{e'}{\sigma} \quad\quad
+         \subtypeOf{\Phi, \Delta}{\tau}{\sigma}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}{e}{\tau}{\echeck{e'}{\tau}}{\tau}} 
+
+\sstext{Variables are typed according to their declarations:}{}
+
+\axiom{\yieldsOk{\Phi, \Delta, \extends{\Gamma}{x}{\tau}}{x}{\_}{x}{\tau}}
+
+\sstext{Numbers, booleans, and null all have a fixed synthesized type.}{}
+
+\axiom{\yieldsOk{\Phi, \Delta, \Gamma}{i}{\_}{i}{\Num}}
+
+\axiom{\yieldsOk{\Phi, \Delta, \Gamma}{\eff}{\_}{\eff}{\Bool}} 
+
+\axiom{\yieldsOk{\Phi, \Delta, \Gamma}{\ett}{\_}{\ett}{\Bool}} 
+
+\axiom{\yieldsOk{\Phi, \Delta, \Gamma}{\enull}{\_}{\enull}{\Bottom}} 
+
+\sstext{A $\ethis$ expression is well-typed if we are inside of a method, and $\sigma$
+is the type of the enclosing class.}{}
+
+\infrule{\Gamma = \Gamma'_{\sigma}
+        }
+        {
+          \yieldsOk{\Phi, \Delta, \Gamma}{\ethis}{\_}{\ethis}{\sigma}
+        } 
+
+\sstext{A fully annotated function is well-typed if its body is well-typed at its
+declared return type, under the assumption that the variables have their
+declared types.  
+}{
+
+A fully annotated function elaborates to a function with an elaborated body.
+The rest of the function elaboration rules fill in the reified type using
+contextual information if present and applicable, or $\Dynamic$ otherwise.
+
+}
+
+\infrule{\Gamma' = \extends{\Gamma}{\many{x}}{\many{\tau}} \quad\quad 
+         \stmtOk{\Phi, \Delta, \Gamma'}{s}{\sigma}{s'}{\Gamma'}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\elambda{\many{x:\tau}}{\sigma}{s}}
+                  {\_}
+                  {\elambda{\many{x:\tau}}{\sigma}{s'}}
+                  {\Arrow[-]{\many{\tau}}{\sigma}}
+        } 
+
+\sstext{A function with a missing argument type is well-typed if it is well-typed with
+the argument type replaced with $\Dynamic$.}
+{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\elambda{x_0:\opt{\tau_0}, \ldots, x_i:\Dynamic, \ldots, x_n:\opt{\tau_n}}{\opt{\sigma}}{s}}
+                  {\opt{\tau}}
+                  {e_f}
+                  {\tau_f}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\elambda{x_0:\opt{\tau_0}, \ldots, x_i:\_, \ldots, x_n:\opt{\tau_n}}{\opt{\sigma}}{s}}
+                  {\opt{\tau}}
+                  {e_f}
+                  {\tau_f}
+        } 
+
+\sstext{A function with a missing argument type is well-typed if it is well-typed with
+the argument type replaced with the corresponding argument type from the context
+type.  Note that this rule overlaps with the previous: the formal presentation
+leaves this as a non-deterministic choice.}{}
+
+\infrule{\tau_c = \Arrow[k]{\upsilon_0, \ldots, \upsilon_n}{\upsilon_r} \\
+         \yieldsOk{\Phi, \Delta, \Gamma}
+                  {\elambda{x_0:\opt{\tau_0}, \ldots, x_i:\upsilon_i, \ldots, x_n:\opt{\tau_n}}{\opt{\sigma}}{s}}
+                  {\tau_c}
+                  {e_f}
+                  {\tau_f}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\elambda{x_0:\opt{\tau_0}, \ldots, x_i:\_, \ldots, x_n:\opt{\tau_n}}{\opt{\sigma}}{s}}
+                  {\tau_c}
+                  {e_f}
+                  {\tau_f}
+        } 
+
+\sstext{A function with a missing return type is well-typed if it is well-typed with
+the return type replaced with $\Dynamic$.}{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\elambda{\many{x:\opt{\tau}}}{\Dynamic}{s}}
+                  {\opt{\tau_c}}
+                  {e_f}
+                  {\tau_f}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\elambda{\many{x:\opt{\tau}}}{\_}{s}}
+                  {\opt{\tau_c}}
+                  {e_f}
+                  {\tau_f}
+        } 
+
+\sstext{A function with a missing return type is well-typed if it is well-typed with
+the return type replaced with the corresponding return type from the context
+type.  Note that this rule overlaps with the previous: the formal presentation
+leaves this as a non-deterministic choice.  }{}
+
+\infrule{\tau_c = \Arrow[k]{\upsilon_0, \ldots, \upsilon_n}{\upsilon_r} \\
+         \yieldsOk{\Phi, \Delta, \Gamma}
+                  {\elambda{\many{x:\opt{\tau}}}{\upsilon_r}{s}}
+                  {\tau_c}
+                  {e_f}
+                  {\tau_f}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\elambda{\many{x:\opt{\tau}}}{\_}{s}}
+                  {\tau_c}
+                  {e_f}
+                  {\tau_f}
+        } 
+
+
+\sstext{Instance creation creates an instance of the appropriate type.}{}
+
+% FIXME(leafp): inference
+% FIXME(leafp): deal with bounds
+\infrule{(C : \dclass{\TApp{C}{T_0,\ldots,T_n}}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{\ldots}) \in \Phi \\ 
+  \mbox{len}(\many{\tau}) = n+1}
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\enew{C}{\many{\tau}}{}}
+                  {\_}
+                  {\enew{C}{\many{\tau}}{}}
+                  {\TApp{C}{\many{\tau}}}
+        } 
+
+
+\sstext{Members of the set of primitive operations (left unspecified) can only be
+applied.  Applications of primitives are well-typed if the arguments are
+well-typed at the types given by the signature of the primitive.}{}
+
+\infrule{\eprim\, :\, \Arrow[]{\many{\tau}}{\sigma} \quad\quad
+         \yieldsOk{\Phi, \Delta, \Gamma}{e}{\tau}{e'}{\tau'}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\eprimapp{\eprim}{\many{e}}}
+                  {\_}
+                  {\eprimapp{\eprim}{\many{e'}}}
+                  {\sigma}
+        } 
+
+\sstext{Function applications are well-typed if the applicand is well-typed and has
+function type, and the arguments are well-typed.}
+{
+
+Function application of an expression of function type elaborates to either a
+call or a dynamic (checked) call, depending on the variance of the applicand.
+If the applicand is a covariant (fuzzy) type, then a dynamic call is generated.
+
+}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}
+                  {e}
+                  {\_}
+                  {e'}
+                  {\Arrow[k]{\many{\tau_a}}{\tau_r}} \\
+         \yieldsOk{\Phi, \Delta, \Gamma}
+                  {e_a}
+                  {\tau_a}
+                  {e_a'}
+                  {\tau_a'} \quad \mbox{for}\ e_a, \tau_a \in \many{e_a}, \many{\tau_a} 
+\iftrans{\\         e_c = \begin{cases}
+                 \ecall{e'}{\many{e_a'}} & \text{if $k = -$}\\
+                 \edcall{e'}{\many{e_a'}} & \text{if $k = +$}
+                 \end{cases}}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\ecall{e}{\many{e_a}}}
+                  {\_}
+                  {e_c}
+                  {\tau_r}
+        } 
+
+\sstext{Application of an expression of type $\Dynamic$ is well-typed if the arguments
+are well-typed at any type. }
+{
+
+  Application of an expression of type $\Dynamic$ elaborates to a dynamic call.
+
+}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}
+                  {e}
+                  {\_}
+                  {e'}
+                  {\Dynamic} \\
+         \yieldsOk{\Phi, \Delta, \Gamma}
+                  {e_a}
+                  {\_}
+                  {e_a'}
+                  {\tau_a'} \quad \mbox{for}\ e_a \in \many{e_a}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\ecall{e}{\many{e_a}}}
+                  {\_}
+                  {\edcall{e'}{\many{e_a'}}}
+                  {\Dynamic}
+        } 
+
+\iftrans{
+\sstext{A dynamic call expression is well-typed so long as the applicand and the
+arguments are well-typed at any type.}{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}
+                  {e}
+                  {\Dynamic}
+                  {e'}
+                  {\tau} \\
+         \yieldsOk{\Phi, \Delta, \Gamma}
+                  {e_a}
+                  {\_}
+                  {e_a'}
+                  {\tau_a} \quad \mbox{for}\ e_a \in \many{e_a}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\edcall{e}{\many{e_a}}}
+                  {\_}
+                  {\edcall{e'}{\many{e_a'}}}
+                  {\Dynamic}
+        }
+
+}
+
+\sstext{A method load is well-typed if the term is well-typed, and the method name is
+present in the type of the term.}{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}
+                  {e}
+                  {\_}
+                  {e'}
+                  {\sigma} \quad\quad
+         \methodLookup{\Phi}{\sigma}{m}{\sigma}{\tau}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\eload{e}{m}}
+                  {\_}
+                  {\eload{e'}{m}}
+                  {\tau}
+        }
+
+\sstext{A method load from a term of type $\Dynamic$ is well-typed if the term is
+well-typed.}
+{
+
+  A method load from a term of type $\Dynamic$ elaborates to a dynamic (checked)
+  load.
+
+}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}
+                  {e}
+                  {\Dynamic}
+                  {e'}
+                  {\tau} 
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\eload{e}{m}}
+                  {\_}
+                  {\edload{e'}{m}}
+                  {\Dynamic}
+        }
+
+\iftrans{
+\sstext{A dynamic method load is well typed so long as the term is well-typed.}{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}
+                  {e}
+                  {\Dynamic}
+                  {e'}
+                  {\tau} 
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\edload{e}{m}}
+                  {\_}
+                  {\edload{e'}{m}}
+                  {\Dynamic}
+        }
+
+}
+
+\sstext{A field load from $\ethis$ is well-typed if the field name is present in the
+type of $\ethis$.}{}
+
+\infrule{\Gamma = \Gamma_\tau & \fieldLookup{\Phi}{\tau}{x}{\sigma}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\eload{\ethis}{x}}
+                  {\_}
+                  {\eload{\ethis}{x}}
+                  {\sigma}
+        } 
+
+\sstext{An assignment expression is well-typed so long as the term is well-typed at a
+type which is compatible with the type of the variable being assigned.}{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}
+                  {e}
+                  {\opt{\tau}}
+                  {e'}
+                  {\sigma} \quad\quad
+        \yieldsOk{\Phi, \Delta, \Gamma}
+                  {x}
+                  {\sigma}
+                  {x}
+                  {\sigma'}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\eassign{x}{e}}
+                  {\opt{\tau}}
+                  {\eassign{x}{e'}}
+                  {\sigma}
+        } 
+
+\sstext{A field assignment is well-typed if the term being assigned is well-typed, the
+field name is present in the type of $\ethis$, and the declared type of the
+field is compatible with the type of the expression being assigned.}{}
+
+\infrule{\Gamma = \Gamma_\tau \quad\quad 
+         \yieldsOk{\Phi, \Delta, \Gamma}
+                  {e}
+                  {\opt{\tau}}
+                  {e'}
+                  {\sigma} \\
+        \fieldLookup{\Phi}{\tau}{x}{\sigma'} \quad\quad
+        \subtypeOf{\Phi, \Delta}{\sigma}{\sigma'}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\eset{\ethis}{x}{e}}
+                  {\_}
+                  {\eset{\ethis}{x}{e}}
+                  {\sigma}
+        } 
+
+\sstext{A throw expression is well-typed at any type.}{}
+
+\axiom{\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\ethrow}
+                  {\_}
+                  {\ethrow}
+                  {\sigma}
+        } 
+
+\sstext{A cast expression is well-typed so long as the term being cast is well-typed.
+The synthesized type is the cast-to type.  We require that the cast-to type be a
+ground type.}{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}{e}{\_}{e'}{\sigma} \quad\quad \mbox{$\tau$ is ground}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\eas{e}{\tau}}
+                  {\_}
+                  {\eas{e'}{\tau}}
+                  {\tau}
+        } 
+
+\sstext{An instance check expression is well-typed if the term being checked is
+well-typed. We require that the cast to-type be a ground type.}{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}{e}{\_}{e'}{\sigma} \quad\quad \mbox{$\tau$ is ground}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\eis{e}{\tau}}
+                  {\_}
+                  {\eis{e'}{\tau}}
+                  {\Bool}
+        } 
+
+\iftrans{
+
+\sstext{A check expression is well-typed so long as the term being checked is
+well-typed.  The synthesized type is the target type of the check.}{}
+
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}{e}{\_}{e'}{\sigma}
+        }
+        {\yieldsOk{\Phi, \Delta, \Gamma}
+                  {\echeck{e}{\tau}}
+                  {\_}
+                  {\echeck{e'}{\tau}}
+                  {\tau}
+        } 
+
+}
+
+\subsection*{Declaration typing: $\declOk[d]{\Phi, \Delta, \Gamma}{\mathit{vd}}{\mathit{vd'}}{\Gamma'}$}
+\hrulefill\\
+
+\sstext{
+Variable declaration typing checks the well-formedness of the components, and
+produces an output context $\Gamma'$ which contains the binding introduced by
+the declaration.
+
+A simple variable declaration with a declared type is well-typed if the
+initializer for the declaration is well-typed at the declared type.  The output
+context binds the variable at the declared type.
+}
+{
+  Elaboration of declarations elaborates the underlying expressions.  
+}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}{e}{\tau}{e'}{\tau'}
+        }
+        {\declOk[d]{\Phi, \Delta, \Gamma}
+                {\dvar{x:\tau}{e}}
+                {\dvar{x:\tau'}{e'}}
+                {\extends{\Gamma}{x}{\tau}}
+        }
+
+\sstext{A simple variable declaration without a declared type is well-typed if the
+initializer for the declaration is well-typed at any type.  The output context
+binds the variable at the synthesized type (a simple form of type inference).}{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}{e}{\_}{e'}{\tau'}
+        }
+        {\declOk[d]{\Phi, \Delta, \Gamma}
+                {\dvar{x:\_}{e}}
+                {\dvar{x:\tau'}{e'}}
+                {\extends{\Gamma}{x}{\tau'}}
+        }
+
+\sstext{A function declaration is well-typed if the body of the function is well-typed
+with the given return type, under the assumption that the function and its
+parameters have their declared types.  The function is assumed to have a
+contravariant (precise) function type.  The output context binds the function
+variable only.}{}
+
+\infrule{\tau_f = \Arrow[-]{\many{\tau_a}}{\tau_r} \quad\quad 
+         \Gamma' = \extends{\Gamma}{f}{\tau_f} \quad\quad
+         \Gamma'' = \extends{\Gamma'}{\many{x}}{\many{\tau_a}} \\
+         \stmtOk{\Phi, \Delta, \Gamma''}{s}{\tau_r}{s'}{\Gamma_0}
+        }
+        {\declOk[d]{\Phi, \Delta, \Gamma}
+                {\dfun{\tau_r}{f}{\many{x:\tau_a}}{s}}
+                {\dfun{\tau_r}{f}{\many{x:\tau_a}}{s'}}
+                {\Gamma'}
+        }
+
+\subsection*{Statement typing: $\stmtOk{\Phi, \Delta, \Gamma}{\mathit{s}}{\tau}{\mathit{s'}}{\Gamma'}$}
+\hrulefill\\
+
+\sstext{The statement typing relation checks the well-formedness of statements and
+produces an output context which reflects any additional variable bindings
+introduced into scope by the statements.
+}{
+
+Statement elaboration elaborates the underlying expressions.
+
+}
+
+\sstext{A variable declaration statement is well-typed if the variable declaration is
+well-typed per the previous relation, with the corresponding output context.
+}{}
+
+\infrule{\declOk[d]{\Phi, \Delta, \Gamma}
+                {\mathit{vd}}
+                {\mathit{vd'}}
+                {\Gamma'}
+        }
+        {\stmtOk{\Phi, \Delta, \Gamma}
+                {\mathit{vd}}
+                {\tau}
+                {\mathit{vd'}}
+                {\Gamma'}
+        }
+
+\sstext{An expression statement is well-typed if the expression is well-typed at any
+type per the expression typing relation.}{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}{e}{\_}{e'}{\tau}
+        }
+        {\stmtOk{\Phi, \Delta, \Gamma}{e}{\tau}{e'}{\Gamma}
+        }
+
+\sstext{A conditional statement is well-typed if the condition is well-typed as a
+boolean, and the statements making up the two arms are well-typed.  The output
+context is unchanged.}{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}{e}{\Bool}{e'}{\sigma} \\
+         \stmtOk{\Phi, \Delta, \Gamma}{s_1}{\tau_r}{s_1'}{\Gamma_1} \quad\quad
+         \stmtOk{\Phi, \Delta, \Gamma}{s_2}{\tau_r}{s_2'}{\Gamma_2} 
+        }
+        {\stmtOk{\Phi, \Delta, \Gamma}
+                {\sifthenelse{e}{s_1}{s_2}}
+                {\tau_r}
+                {\sifthenelse{e'}{s_1'}{s_2'}}
+                {\Gamma}
+        }
+
+\sstext{A return statement is well-typed if the expression being returned is well-typed
+at the given return type.  }{}
+
+\infrule{\yieldsOk{\Phi, \Delta, \Gamma}{e}{\tau_r}{e'}{\tau}
+        }
+        {\stmtOk{\Phi, \Delta, \Gamma}{\sreturn{e}}{\tau_r}{\sreturn{e'}}{\Gamma}
+        }
+
+\sstext{A sequence statement is well-typed if the first component is well-typed, and the
+second component is well-typed with the output context of the first component as
+its input context.  The final output context is the output context of the second
+component.}{}
+
+\infrule{\stmtOk{\Phi, \Delta, \Gamma}{s_1}{\tau_r}{s_1'}{\Gamma'} \quad\quad
+         \stmtOk{\Phi, \Delta, \Gamma'}{s_2}{\tau_r}{s_2'}{\Gamma''}
+        }
+        {\stmtOk{\Phi, \Delta, \Gamma}{s_1;s_2}{\tau_r}{s_1';s_2'}{\Gamma''}
+        }
+
+\subsection*{Class member typing:  $\declOk[ce]{\Phi, \Delta, \Gamma}{\mathit{vd} : \mathit{ce}}{\mathit{vd}'}{\Gamma'}$}
+\hrulefill\\
+
+\sstext{ 
+
+A class member is well-typed with a given signature ($\mathit{ce}$) taken from
+the class hierarchy if the signature type matches the type on the definition,
+and if the definition is well-typed.
+
+}
+{
+
+Elaborating class members is done with respect to a signature.  The field
+translation simply translates the field as a variable declaration.
+
+}
+
+
+\infrule{
+          \declOk[d]{\Phi, \Delta, \Gamma}
+                 {\dvar{x:\opt{\tau}}{e}}
+                 {\mathit{vd'}}
+                 {\Gamma'}
+        }
+        {
+          \declOk[ce]{\Phi, \Delta, \Gamma}
+                 {\dvar{x:\opt{\tau}}{e} : \fieldDecl{x}{\opt{\tau}}}
+                 {\mathit{vd'}}
+                 {\Gamma'}
+        }
+
+
+\iftrans{
+
+Translating methods requires introducing guard expressions.  The signature
+provides an internal and an external type for the method.  The external type is
+the original declared type of the method, and is the signature which the method
+presents to external clients.  Because we implement covariant generics, clients
+may see an instantiation of this signature which will allow them to violate the
+contract expected by the implementation.  To handle this, we rewrite the method
+to match an internal signature which is in fact soundly covariant in the type
+parameters (that is, all contravariant type parameters are replaced with
+$\Dynamic$, and hence all remaining type parameters occur in properly covariant
+positions).  This property is enforced in the override checking relation: from
+the perspective of this relation, there is simply another internal type which
+defines how to wrap the method with guards.
+
+The translation insists that the internal and external types be function types
+of the appropriate arity, and that the external type is equal to the type of the
+declaration.  The declaration is translated using the underlying function
+definition translation, but is then wrapped with guards to enforce the type
+contract, producing a valid function of the internal (covariant) type.  The
+original body of the function is wrapped in a lambda function, which is applied
+using a dynamic call which checks that the arguments (which may have negative
+occurrences of type variables which are treated as $\Dynamic$ in the internal
+type) are appropriate for the actual body.  The original function returns a type
+$\tau_r$ which may be a super-type of the internal type (since negative
+occurrences of type variables must be treated as dynamic), and so we insert a
+check expression to guard against runtime type mismatches here.
+
+This is a very simplistic translation for now.  We could choose, in the case
+that the body returns a lambda, to push the checking down into the lambda
+(essentially wrapping it in place).  
+
+}
+
+\infrule{ \mathit{vd} = \dfun{\tau_r}{f}{x_0:\tau_0, \ldots, x_n:\tau_n}{s} \\
+          \sigma_e = \Arrow[+]{\tau_0, \ldots, \tau_n}{\tau_r} 
+\iftrans{\quad\quad 
+                 \sigma_i = \Arrow{\upsilon_0, \ldots, \upsilon_n}{\upsilon_r}
+} \\
+          \declOk[d]{\Phi, \Delta, \Gamma}
+                 {\mathit{vd}}
+                 {\dfun{\tau_r}{f}{x_0:\tau_0, \ldots, x_n:\tau_n}{s'}}
+                 {\Gamma'}
+\iftrans{\\
+                 e_g = \elambda{x_0:\tau_0, \ldots, x_n:\tau_n}{\tau_r}{s'}\\
+                 s_g = \sreturn{(\echeck{\edcall{e_g}{x_0 , \ldots, x_n}}{\upsilon_r})} \\
+                 \mathit{vd}_g = \dfun{\upsilon_r}{f}{x_0:\upsilon_0, \ldots, x_n:\upsilon_n}{s_g} 
+}
+        }
+        {
+          \declOk[ce]{\Phi, \Delta, \Gamma}
+                 {\mathit{vd} : \methodDecl{f}{\sigma_i}{\sigma_e}}
+                 {\mathit{vd}_g}
+                 {\Gamma'}
+        }
+
+\subsection*{Class declaration typing:  $\declOk[c]{\Phi, \Gamma}{\mathit{cd}}{\mathit{cd'}}{\Gamma'}$}
+\hrulefill\\
+
+\sstext{ 
+
+A class declaration is well-typed with a given signature ($\Sig$) taken from the
+class hierarchy if the signature matches the definition, and if each member of
+the class is well-typed with the corresponding signature from the class
+signature.  The members are checked with the generic type parameters bound in
+the type context, and with the type of the current class set as the type of
+$\ethis$ on the term context $\Gamma$.
+
+}
+{
+
+Elaboration of a class requires that the class hierarchy $\Phi$ have a matching
+signature for the class declaration.  Each class member in the class is
+elaborated using the corresponding class element from the signature.
+
+}
+
+
+\infrule{\mathit{cd} = \dclass{\TApp{C}{\many{T}}}{\TApp{G}{\many{\tau}}}{\mathit{vd}_0, \ldots, \mathit{vd}_n} \\
+         (C : \dclass{\TApp{C}{\many{T}}}{\TApp{G}{\many{\tau}}}{\mathit{ce}_0, \ldots, \many{ce}_n}) \in \Phi \\ 
+         \Delta = \many{T} \quad 
+         \Gamma_i = 
+         \begin{cases}
+           \Gamma_{\TApp{C}{\many{T}}} & \mbox{if $\mathit{vd}_i$ is a method} \\
+           \Gamma & \mbox{if $\mathit{vd}_i$ is a field} \\
+         \end{cases}\\
+
+         \declOk[ce]{\Phi, \Delta, \Gamma_i}{\mathit{vd}_i : \mathit{ce}_i}{\mathit{vd}'_i}{\Gamma'_i} \quad\quad
+         \mbox{for}\ i \in 0, \ldots, n 
+\iftrans{\\
+         \mathit{cd'} = \dclass{\TApp{C}{\many{T}}}{\TApp{G}{\many{\tau}}}{\many{\mathit{vd'}}}
+}
+        }
+        {\declOk[c]{\Phi, \Gamma}
+                   {\mathit{cd}}
+                   {\mathit{cd'}}{\Gamma'}
+        }
+
+\subsection*{Override checking:\\  \quad\quad$\overrideOk{\Phi}
+                                             {\TApp{C}{T_0, \ldots, T_n}}
+                                             {\TApp{G}{\tau_0, \ldots, \tau_k}}
+                                             {\mathit{ce}}$}
+\hrulefill\\
+
+\sstext{
+
+The override checking relation is the primary relation that checks the
+consistency of the class hierarchy.  We assume a non-cyclic class hierarchy as a
+syntactic pre-condition.  The override check relation checks that in a class
+declaration $\TApp{C}{T_0, \ldots, T_n}$ which extends $\TApp{G}{\tau_0, \ldots,
+  \tau_k}$, the definition of an element with signature $\mathit{ce}$ is valid.  
+
+}{
+
+Override checking remains largely the same, with the exception of additional
+consistency constraints on the internal signatures for methods.
+
+}
+
+\sstext{
+
+A field with the type elided is a valid override if the same field with type
+$\Dynamic$ is valid.
+
+}{
+
+}
+
+\infrule{
+           \overrideOk{\Phi}
+                 {\TApp{C}{T_0, \ldots, T_n}}
+                 {\TApp{G}{\tau_0, \ldots, \tau_k}}
+                 {\fieldDecl{x}{\Dynamic}}
+
+        }
+        {
+         \overrideOk{\Phi}
+                 {\TApp{C}{T_0, \ldots, T_n}}
+                 {\TApp{G}{\tau_0, \ldots, \tau_k}}
+                 {\fieldDecl{x}{\_}}
+        }
+
+\sstext{
+
+A field with a type $\tau$ is a valid override if it appears in the super type
+with the same type.
+
+}{
+
+}
+
+\infrule{\fieldLookup{\Phi}{\TApp{G}{\tau_0, \ldots, \tau_k}}{x}{\tau}
+        }
+        {
+         \overrideOk{\Phi}
+                 {\TApp{C}{T_0, \ldots, T_n}}
+                 {\TApp{G}{\tau_0, \ldots, \tau_k}}
+                 {\fieldDecl{x}{\tau}}
+        }
+
+\sstext{
+
+A field with a type $\tau$ is a valid override if it does not appear in the super type.
+
+}{
+
+}
+
+\infrule{\fieldAbsent{\Phi}{\TApp{G}{\tau_0, \ldots, \tau_k}}{x}
+        }
+        {
+         \overrideOk{\Phi}
+                 {\TApp{C}{T_0, \ldots, T_n}}
+                 {\TApp{G}{\tau_0, \ldots, \tau_k}}
+                 {\fieldDecl{x}{\tau}}
+        }
+
+\sstext{
+
+A method with a type $\sigma$ is a valid override if it does not appear in the super type.
+
+}{
+
+For a non-override method, we require that the internal type $\tau$ be a subtype
+of $\down{\sigma}$ where $\sigma$ is the declared type.  Essentially, this
+enforces the property that the initial declaration of a method in the hierarchy
+has a covariant internal type.
+
+}
+
+\infrule{
+\iftrans{
+      \Delta = T_0, \ldots, T_n \quad\quad
+      \subtypeOf{\Phi, \Delta}{\tau}{\down{\sigma}}\ \\
+}
+      \methodAbsent{\Phi}{\TApp{G}{\tau_0, \ldots, \tau_k}}{f}
+    }
+    {
+      \overrideOk{\Phi}
+                 {\TApp{C}{T_0, \ldots, T_n}}
+                 {\TApp{G}{\tau_0, \ldots, \tau_k}}
+                 {\methodDecl{f}{\tau}{\sigma}}
+    }
+
+\sstext{
+
+A method with a type $\sigma$ is a valid override if it appears in the super
+type, and $\sigma$ is a subtype of the type of the method in the super class.
+
+}{
+
+For a method override, we require two coherence conditions.  As before, we
+require that the internal type $\tau$ be a subtype of the $\down{\sigma}$ where
+$\sigma$ is the external type.  Moreover, we also insist that the external type
+$\sigma$ be a subtype of the external type of the method in the superclass, and
+that the internal type $\tau$ be a subtype of the internal type in the
+superclass.  Note that it this last consistency property that ensures that
+covariant generics are ``poisonous'' in the sense that non-generic subclasses of
+generic classes must still have additional checks.  For example, a superclass
+with a method of external type $\sigma_s = \Arrow{T}{T}$ will have internal type
+$\tau_s = \Arrow{\Dynamic}{T}$.  A subclass of an instantiation of this class
+with $\Num$ can validly override this method with one of external type $\sigma =
+\Arrow{\Num}{\Num}$.  This is unsound in general since the argument occurrence
+of $T$ in $\sigma_s$ is contra-variant.  However, the additional consistency
+requirement is that the internal type of the subclass method must be a subtype
+of $\subst{\Num}{T}{\tau_s} = \Arrow{\Dynamic}{\Num}$.  This enforces the
+property that the overridden method must expect to be used at type
+$\Arrow{\Dynamic}{\Num}$, and hence must check its arguments (and potentially
+its return value as well in the higher-order case).  This checking code is
+inserted during the elaboration of class members above.
+
+  }
+
+\infrule{
+\iftrans{
+      \Delta = T_0, \ldots, T_n \quad\quad 
+      \subtypeOf{\Phi, \Delta}{\tau}{\down{\sigma}}\ \\
+}
+      \methodLookup{\Phi}{\TApp{G}{\tau_0, \ldots, \tau_k}}{f}{\tau_s}{\sigma_s} \\
+\iftrans{
+      \subtypeOf{\Phi, \Delta}{\tau}{\tau_s}\quad\quad 
+}
+      \subtypeOf{\Phi, \Delta}{\sigma}{\sigma_s}
+    }
+    {
+      \overrideOk{\Phi}
+                 {\TApp{C}{T_0, \ldots, T_n}}
+                 {\TApp{G}{\tau_0, \ldots, \tau_k}}
+                 {\methodDecl{f}{\tau}{\sigma}}
+    }
+
+\subsection*{Toplevel declaration typing:  $\declOk[t]{\Phi, \Gamma}{\mathit{td}}{\mathit{td'}}{\Gamma'}$}
+\hrulefill\\
+
+\sstext{
+
+Top level variable declarations are well-typed if they are well-typed according
+to their respective specific typing relations.
+
+}{
+
+Top level declaration elaboration falls through to the underlying variable and
+class declaration code.
+
+}
+
+\infrule
+    {\declOk[d]{\Phi, \epsilon, \Gamma}{\mathit{vd}}{\mathit{vd'}}{\Gamma'}
+      
+    }
+    {\declOk[t]{\Phi, \Gamma}{\mathit{vd}}{\mathit{vd'}}{\Gamma'}
+    }
+
+\infrule
+    {\declOk[c]{\Phi, \Gamma}{\mathit{cd}}{\mathit{cd'}}{\Gamma'}
+      
+    }
+    {\declOk[t]{\Phi, \Gamma}{\mathit{cd}}{\mathit{cd'}}{\Gamma'}
+    }
+
+
+\subsection*{Well-formed class signature:  $\ok{\Phi}{\Sig}$}
+\hrulefill\\
+
+\sstext{
+
+The well-formed class signature relation checks whether a class signature is
+well-formed with respect to a given class hierarchy $\Phi$.
+
+}{
+
+}
+
+\sstext{
+
+The $\Object$ signature is always well-formed.
+
+}{
+
+}
+
+\axiom{\ok{\Phi}{\Object}
+      }
+
+\sstext{
+
+A signature for a class $C$ is well-formed if its super-class signature is
+well-formed, and if every element in its signature is a valid override of the
+super-class.
+
+}{
+
+}
+
+\infrule{\Sig = \dclass{\TApp{C}{\many{T}}}
+                              {\TApp{G}{\tau_0, \ldots, \tau_k}}
+                              {\mathit{ce}_0, \ldots, \mathit{ce}_n} \\
+        (G : \Sig') \in \Phi \quad\quad \ok{\Phi}{\Sig'} \\
+        \overrideOk{\Phi}{\TApp{C}{\many{T}}}{\TApp{G}{\tau_0, \ldots, \tau_k}}{\mathit{ce}_i} 
+        \quad\quad
+        \mbox{for}\ \mathit{ce}_i \in \mathit{ce}_0, \ldots, \mathit{ce}_n 
+        }
+        {\ok{\Phi}{\Sig}
+        }
+
+\subsection*{Well-formed class hierarchy:  $\ok{}{\Phi}$}
+\hrulefill\\
+
+\sstext{
+
+A class hierarchy is well-formed if all of the signatures in it are well-formed
+with respect to it.
+
+}{
+
+}
+
+\infrule{\ok{\Phi}{\Sig}\ \mbox{for}\, \Sig\, \in \Phi
+        }
+        {\ok{}{\Phi}
+        }
+
+\subsection*{Program typing:  $\programOk{\Phi}{P}{P'}$}
+\hrulefill\\
+
+%%Definitions:
+%%
+%% \begin{eqnarray*}
+%% \sigof{\mathit{vd}} & = &
+%%   \begin{cases}
+%%     \fieldDecl{x}{\tau} & \mbox{if}\ \mathit{vd} = \dvar{x:\tau}{e}\\
+%%     \fieldDecl{x}{\Dynamic} & \mbox{if}\ \mathit{vd} = \dvar{x:\_}{e}\\
+%%     \methodDecl{f}{\tau_f}{\Arrow[+]{\many{\tau}}{\sigma}} & \mbox{if}\ \mathit{vd} = \dfun{\sigma}{f}{\many{x:\tau}}{s}
+%% \end{cases}\\
+%% \sigof{\mathit{cd}} & = & C\, : \, \dclass{\TApp{C}{\many{T}}}
+%%                                          {\TApp{G}{\tau_0, \ldots, \tau_k}}
+%%                                          {\mathit{ce}_0, \ldots, \mathit{ce}_n} \\
+%% \mbox{where} && 
+%%          \mathit{cd} = \dclass{\TApp{C}{\many{T}}}
+%%                               {\TApp{G}{\tau_0, \ldots, \tau_k}}
+%%                               {\mathit{vd}_0, \ldots, \mathit{vd}_n} \\
+%% \mbox{and} &&
+%%         \mathit{ce}_i = \sigof{vd_i} \quad \mbox{for}\ i \in 0, \ldots, n 
+%%\end{eqnarray*}
+
+\sstext{
+
+Program well-formedness is defined with respect to a class hierarchy $\Phi$.  It
+is not specified how $\Phi$ is produced, but the well-formedness constraints in
+the various judgments should constrain it appropriately.  A program is
+well-formed if each of the top level declarations in the program is well-formed
+in a context in which all of the previous variable declarations have been
+checked and inserted in the context, and if the body of the program is
+well-formed in the final context.  We allow classes to refer to each other in
+any order, since $\Phi$ is pre-specified, but do not model out of order
+definitions of top level variables and functions.  We assume as a syntactic
+property that the class hierarchy $\Phi$ is acyclic.
+
+}{
+
+}
+
+\infrule{  \Gamma_0 = \epsilon \quad\quad
+           \declOk[t]{\Phi, \Gamma_i}{\mathit{td}_i}{\mathit{td}'_i}{\Gamma_{i+1}} \quad 
+           \mbox{for}\ i \in 0,\ldots,n\\
+           \stmtOk{\Phi, \epsilon, \Gamma_{n+1}}{s}{\tau}{s'}{\Gamma_{n+1}'}
+        }
+        { \programOk{\Phi}{\program{\mathit{td}_0, \ldots, \mathit{td}_n}{s}}
+          {\program{\mathit{td}'_0, \ldots, \mathit{td}'_n}{s'}}
+        }
