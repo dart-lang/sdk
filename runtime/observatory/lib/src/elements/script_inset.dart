@@ -1181,7 +1181,11 @@ class CallSiteAnnotation extends Annotation {
 
         for (var entry in callSite.entries) {
           var r = row();
-          r.append(cell(serviceRef(entry.receiver)));
+          if (entry.receiver == null) {
+            r.append(cell(""));
+          } else {
+            r.append(cell(serviceRef(entry.receiver)));
+          }
           r.append(cell(entry.count.toString()));
           r.append(cell(serviceRef(entry.target)));
           details.append(r);
