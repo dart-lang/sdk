@@ -4,7 +4,7 @@
 
 library analyzer.test.source.analysis_options_provider_test;
 
-import 'dart:core';
+import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';

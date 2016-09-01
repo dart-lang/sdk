@@ -6,7 +6,7 @@ library context.directory.manager;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:core';
+import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:watcher/watcher.dart';

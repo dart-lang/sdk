@@ -7,7 +7,7 @@ library context.directory.manager;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:core';
+import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';

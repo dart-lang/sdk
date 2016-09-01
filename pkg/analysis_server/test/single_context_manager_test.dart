@@ -4,7 +4,7 @@
 
 library test.analysis_server.src.single_context_manager;
 
-import 'dart:core';
+import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';

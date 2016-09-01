@@ -5,7 +5,7 @@
 library analyzer.src.context.context_builder;
 
 import 'dart:collection';
-import 'dart:core';
+import 'dart:core' hide Resource;
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';

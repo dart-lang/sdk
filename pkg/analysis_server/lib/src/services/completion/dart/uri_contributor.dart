@@ -5,6 +5,7 @@
 library services.completion.contributor.dart.importuri;
 
 import 'dart:async';
+import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';

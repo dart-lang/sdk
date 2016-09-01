@@ -7,7 +7,7 @@ library analyzer.file_system.memory_file_system;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:core';
+import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';

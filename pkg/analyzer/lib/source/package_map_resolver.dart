@@ -4,7 +4,7 @@
 
 library analyzer.source.package_map_resolver;
 
-import 'dart:core';
+import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';

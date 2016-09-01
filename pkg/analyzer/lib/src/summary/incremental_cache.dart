@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:core';
+import 'dart:core' hide Resource;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -370,7 +370,6 @@ class IncrementalCache {
           _appendLibraryClosure(closure, refSource);
         }
       }
-
       contentSource.importedUris.forEach(appendLibrarySources);
       contentSource.exportedUris.forEach(appendLibrarySources);
     }
