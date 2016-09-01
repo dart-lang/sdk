@@ -196,9 +196,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (expr is ParenthesizedExpression) {
       checkAssignment(expr.expression, type);
     } else {
-      if (_checkNonNullAssignment(expr, type)) {
-        _checkDowncast(expr, type);
-      }
+      _checkDowncast(expr, type);
     }
   }
 
@@ -743,6 +741,8 @@ class CodeChecker extends RecursiveAstVisitor {
       from = _getDefiniteType(expr);
     }
 
+    if (!_checkNonNullAssignment(expr, to, from)) return;
+
     // We can use anything as void.
     if (to.isVoid) return;
 
@@ -877,11 +877,10 @@ class CodeChecker extends RecursiveAstVisitor {
   /// Checks if the assignment is valid with respect to non-nullable types.
   /// Returns `false` if a nullable expression is assigned to a variable of
   /// non-nullable type and `true` otherwise.
-  bool _checkNonNullAssignment(Expression expression, DartType type) {
-    var exprType = expression.staticType;
-    if (rules.isNonNullableType(type) && rules.isNullableType(exprType)) {
+  bool _checkNonNullAssignment(Expression expression, DartType to, DartType from) {
+    if (rules.isNonNullableType(to) && rules.isNullableType(from)) {
       _recordMessage(expression, StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          [exprType, type]);
+          [from, to]);
       return false;
     }
     return true;

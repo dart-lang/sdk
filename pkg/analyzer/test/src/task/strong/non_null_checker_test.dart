@@ -106,6 +106,30 @@ main() {
 ''');
   }
 
+  void test_compoundAssignment() {
+    addFile('''
+void main() {
+  int i = 1;
+  i += 2;
+  /*error:STATIC_TYPE_ERROR*/i += null;
+  print(i);
+}
+''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_forEach() {
+    addFile('''
+void main() {
+  var ints = <num>[1, 2, 3, null];
+  for (int /*error:INVALID_ASSIGNMENT*/i in ints) {
+    print(i);
+  }
+}
+''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
   void test_initialize_nonnullable_with_null() {
     addFile('int x = /*error:INVALID_ASSIGNMENT*/null;');
     check(nonnullableTypes: <String>['dart:core,int']);
