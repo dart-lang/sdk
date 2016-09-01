@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
@@ -26,7 +27,7 @@ var tests = [
   await script.load();
   await hasStoppedAtBreakpoint(isolate);
   // Sanity check.
-  expect(isolate.pauseEvent.kind, equals(ServiceEvent.kPauseBreakpoint));
+  expect(isolate.pauseEvent is M.PauseBreakpointEvent, isTrue);
 },
 
 // Get object_store.

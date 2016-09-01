@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of app;
+import 'package:logging/logging.dart';
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/service.dart' as S;
 
 class VMUpdateEvent implements M.VMUpdateEvent {
   final DateTime timestamp;
@@ -250,5 +252,60 @@ class ConnectionClosedEvent implements M.ConnectionClosedEvent {
   ConnectionClosedEvent(this.timestamp, this.reason) {
     assert(timestamp != null);
     assert(reason != null);
+  }
+}
+
+M.Event createEventFromServiceEvent(S.ServiceEvent event) {
+  switch(event.kind) {
+    case S.ServiceEvent.kVMUpdate:
+      return new VMUpdateEvent(event.timestamp, event.vm);
+    case S.ServiceEvent.kIsolateStart:
+      return new IsolateStartEvent(event.timestamp, event.isolate);
+    case S.ServiceEvent.kIsolateRunnable:
+      return new IsolateRunnableEvent(event.timestamp, event.isolate);
+    case S.ServiceEvent.kIsolateUpdate:
+      return new IsolateUpdateEvent(event.timestamp, event.isolate);
+    case S.ServiceEvent.kIsolateReload:
+      return new IsolateReloadEvent(event.timestamp, event.isolate, event.error);
+    case S.ServiceEvent.kIsolateExit:
+      return new IsolateExitEvent(event.timestamp, event.isolate);
+    case S.ServiceEvent.kBreakpointAdded:
+      return new BreakpointAddedEvent(event.timestamp, event.isolate,
+          event.breakpoint);
+    case S.ServiceEvent.kBreakpointResolved:
+      return new BreakpointResolvedEvent(event.timestamp, event.isolate,
+          event.breakpoint);
+    case S.ServiceEvent.kBreakpointRemoved:
+      return new BreakpointRemovedEvent(event.timestamp, event.isolate,
+        event.breakpoint);
+    case S.ServiceEvent.kDebuggerSettingsUpdate:
+      return new DebuggerSettingsUpdateEvent(event.timestamp, event.isolate);
+    case S.ServiceEvent.kResume:
+      return new ResumeEvent(event.timestamp, event.isolate, event.topFrame);
+    case S.ServiceEvent.kPauseStart:
+      return new PauseStartEvent(event.timestamp, event.isolate);
+    case S.ServiceEvent.kPauseExit:
+      return new PauseExitEvent(event.timestamp, event.isolate);
+    case S.ServiceEvent.kPauseBreakpoint:
+      return new PauseBreakpointEvent(event.timestamp, event.isolate,
+          event.pauseBreakpoints, event.topFrame, event.atAsyncSuspension,
+          event.breakpoint);
+    case S.ServiceEvent.kPauseInterrupted:
+      return new PauseInterruptedEvent(event.timestamp, event.isolate,
+          event.topFrame, event.atAsyncSuspension);
+    case S.ServiceEvent.kPauseException:
+      return new PauseExceptionEvent(event.timestamp, event.isolate,
+          event.topFrame, event.exception);
+    case S.ServiceEvent.kInspect:
+      return new InspectEvent(event.timestamp, event.isolate,
+          event.inspectee);
+    case S.ServiceEvent.kGC:
+      return new GCEvent(event.timestamp, event.isolate);
+    case S.ServiceEvent.kNone:
+      return new NoneEvent(event.timestamp, event.isolate);
+    default:
+      // Ignore unrecognized events.
+      Logger.root.severe('Unrecognized event: $event');
+      return null;
   }
 }

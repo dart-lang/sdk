@@ -9,13 +9,14 @@ import 'dart:developer';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 
-const int LINE_A = 24;
-const int LINE_B = 26;
-const int LINE_C = 28;
-const int LINE_D = 29;
+const int LINE_A = 25;
+const int LINE_B = 27;
+const int LINE_C = 29;
+const int LINE_D = 30;
 
 // This tests the low level synthetic breakpoint added / paused / removed
 // machinery triggered by the step OverAwait command.
@@ -36,7 +37,7 @@ Breakpoint syntheticBreakpoint;
 
 Future<Isolate> testLowLevelAwaitOver(
     Isolate isolate) {
-  assert(isolate.pauseEvent.atAsyncSuspension);
+  assert(M.isAtAsyncSuspension(isolate.pauseEvent));
 
   int state = 0;
   bool firstResume = true;
@@ -161,7 +162,7 @@ var tests = [
   stepOver,
   stepOver,
   (Isolate isolate) async {
-    expect(isolate.pauseEvent.atAsyncSuspension, isTrue);
+    expect(M.isAtAsyncSuspension(isolate.pauseEvent), isTrue);
     expect(syntheticBreakpoint, isNull);
   },
   testLowLevelAwaitOver,

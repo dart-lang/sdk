@@ -26,14 +26,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         CodeViewElement element = new Element.tag('code-view');
         element.code = object;
         return element;
-      case 'Isolate':
-        IsolateViewElement element = new Element.tag('isolate-view');
-        element.isolate = object;
-        return element;
-      case 'VM':
-        VMViewElement element = new Element.tag('vm-view');
-        element.vm = object;
-        return element;
       default:
         JsonViewElement element = new Element.tag('json-view');
         element.map = object;

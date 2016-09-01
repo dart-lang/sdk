@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/isolate/counter_chart.dart';
 
 class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
   static const tag =
-    const Tag<IsolateSharedSummaryElement>('isolate-shared-summary-wrapped',
+    const Tag<IsolateSharedSummaryElement>('isolate-shared-summary',
                                            dependencies: const [
                                              IsolateCounterChartElement.tag
                                            ]);
@@ -24,13 +24,18 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
       _r.onRendered;
 
   M.Isolate _isolate;
+  M.EventRepository _events;
+  StreamSubscription _isolateSubscription;
 
   factory IsolateSharedSummaryElement(M.Isolate isolate,
+                                      M.EventRepository events,
                                       {RenderingQueue queue}) {
     assert(isolate != null);
+    assert(events != null);
     IsolateSharedSummaryElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
+    e._events = events;
     return e;
   }
 
@@ -40,6 +45,7 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
   void attached() {
     super.attached();
     _r.enable();
+    _isolateSubscription = _events.onIsolateEvent.listen(_eventListener);
   }
 
   @override
@@ -47,6 +53,7 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
     super.detached();
     children = [];
     _r.disable(notify: true);
+    _isolateSubscription.cancel();
   }
 
   void render() {
@@ -156,6 +163,13 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
         new DivElement()..classes = ['summary']
           ..children = content
       ];
+    }
+  }
+
+  void _eventListener(e) {
+    if (e.isolate.id == _isolate.id) {
+      _isolate = e.isolate;
+      _r.dirty();
     }
   }
 }

@@ -63,6 +63,7 @@ part 'src/models/repositories/heap_snapshot.dart';
 part 'src/models/repositories/icdata.dart';
 part 'src/models/repositories/inbound_references.dart';
 part 'src/models/repositories/instance.dart';
+part 'src/models/repositories/isolate.dart';
 part 'src/models/repositories/library.dart';
 part 'src/models/repositories/megamorphiccache.dart';
 part 'src/models/repositories/notification.dart';

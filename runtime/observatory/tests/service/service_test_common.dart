@@ -5,6 +5,7 @@
 library service_test_common;
 
 import 'dart:async';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_common.dart';
 import 'package:unittest/unittest.dart';
 
@@ -96,6 +97,20 @@ Future asyncStepOver(Isolate isolate) async {
   return pausedAtSyntheticBreakpoint.future;
 }
 
+bool isEventOfKind(M.Event event, String kind) {
+  switch (kind) {
+    case ServiceEvent.kPauseBreakpoint:
+      return event is M.PauseBreakpointEvent;
+    case ServiceEvent.kPauseException:
+      return event is M.PauseExceptionEvent;
+    case ServiceEvent.kPauseExit:
+      return event is M.PauseExitEvent;
+    case ServiceEvent.kPauseStart:
+      return event is M.PauseStartEvent;
+    default:
+      return false;
+  }
+}
 
 Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
   // Set up a listener to wait for breakpoint events.
@@ -117,7 +132,7 @@ Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
     // Pause may have happened before we subscribed.
     isolate.reload().then((_) {
       if ((isolate.pauseEvent != null) &&
-         (isolate.pauseEvent.kind == kind)) {
+         isEventOfKind(isolate.pauseEvent, kind)) {
         // Already waiting at a breakpoint.
         if (completer != null) {
           print('Paused with $kind');

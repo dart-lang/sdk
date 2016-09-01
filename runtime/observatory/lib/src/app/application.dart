@@ -96,77 +96,10 @@ class ObservatoryApplication extends Observable {
   void _onEvent(ServiceEvent event) {
     assert(event.kind != ServiceEvent.kNone);
 
-    M.Event e;
-
-    switch(event.kind) {
-      case ServiceEvent.kVMUpdate:
-        e = new VMUpdateEvent(event.timestamp, event.vm);
-        break;
-      case ServiceEvent.kIsolateStart:
-        e = new IsolateStartEvent(event.timestamp, event.isolate);
-        break;
-      case ServiceEvent.kIsolateRunnable:
-        e = new IsolateRunnableEvent(event.timestamp, event.isolate);
-        break;
-      case ServiceEvent.kIsolateUpdate:
-        e = new IsolateUpdateEvent(event.timestamp, event.isolate);
-        break;
-      case ServiceEvent.kIsolateReload:
-        e = new IsolateReloadEvent(event.timestamp, event.isolate, event.error);
-        break;
-      case ServiceEvent.kIsolateExit:
-        e = new IsolateExitEvent(event.timestamp, event.isolate);
-        break;
-      case ServiceEvent.kBreakpointAdded:
-        e = new BreakpointAddedEvent(event.timestamp, event.isolate,
-            event.breakpoint);
-        break;
-      case ServiceEvent.kBreakpointResolved:
-        e = new BreakpointResolvedEvent(event.timestamp, event.isolate,
-            event.breakpoint);
-        break;
-      case ServiceEvent.kBreakpointRemoved:
-        e = new BreakpointRemovedEvent(event.timestamp, event.isolate,
-          event.breakpoint);
-        break;
-      case ServiceEvent.kDebuggerSettingsUpdate:
-        e = new DebuggerSettingsUpdateEvent(event.timestamp, event.isolate);
-        break;
-      case ServiceEvent.kResume:
-        e = new ResumeEvent(event.timestamp, event.isolate, event.topFrame);
-        break;
-      case ServiceEvent.kPauseStart:
-        e = new PauseStartEvent(event.timestamp, event.isolate);
-        break;
-      case ServiceEvent.kPauseExit:
-        e = new PauseExitEvent(event.timestamp, event.isolate);
-        break;
-      case ServiceEvent.kPauseBreakpoint:
-        e = new PauseBreakpointEvent(event.timestamp, event.isolate,
-            event.pauseBreakpoints, event.topFrame, event.atAsyncSuspension,
-            event.breakpoint);
-        break;
-      case ServiceEvent.kPauseInterrupted:
-        e = new PauseInterruptedEvent(event.timestamp, event.isolate,
-            event.topFrame, event.atAsyncSuspension);
-        break;
-      case ServiceEvent.kPauseException:
-        e = new PauseExceptionEvent(event.timestamp, event.isolate,
-            event.topFrame, event.exception);
-        break;
-      case ServiceEvent.kInspect:
-        e = new InspectEvent(event.timestamp, event.isolate,
-            event.inspectee);
-        break;
-      case ServiceEvent.kGC:
-        e = new GCEvent(event.timestamp, event.isolate);
-        break;
-      default:
-        // Ignore unrecognized events.
-        Logger.root.severe('Unrecognized event: $event');
-        return;
+    M.Event e = createEventFromServiceEvent(event);
+    if (e != null) {
+      events.add(e);
     }
-    events.add(e);
   }
 
   void _registerPages() {

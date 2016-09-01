@@ -16,6 +16,7 @@ final _heapSnapshotRepository = new HeapSnapshotRepository();
 final _icdataRepository = new ICDataRepository();
 final _inboundReferencesRepository = new InboundReferencesRepository();
 final _instanceRepository = new InstanceRepository();
+final _isolateRepository = new IsolateRepository();
 final _isolateSampleProfileRepository = new IsolateSampleProfileRepository();
 final _libraryRepository = new LibraryRepository();
 final _megamorphicCacheRepository = new MegamorphicCacheRepository();
@@ -137,16 +138,26 @@ class ErrorPage extends Page {
 }
 
 /// Top-level vm info page.
-class VMPage extends SimplePage {
-  VMPage(app) : super('vm', 'vm-view', app);
+class VMPage extends MatchingPage {
+  VMPage(app) : super('vm', app);
+
+  final DivElement container = new DivElement();
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    assert(element != null);
+  }
 
   void _visit(Uri uri) {
     super._visit(uri);
-    app.vm.reload().then((vm) {
-      if (element != null) {
-        VMViewElement serviceElement = element;
-        serviceElement.vm = vm;
-      }
+    app.vm.reload().then((VM vm) {
+      container.children = [
+        new VMViewElement(vm, app.events, app.notifications,
+                          _isolateRepository, _scriptRepository,
+                          queue: app.queue)
+      ];
     }).catchError((e, stack) {
       Logger.root.severe('VMPage visit error: $e');
       // Reroute to vm-connect.
@@ -163,7 +174,8 @@ class FlagsPage extends SimplePage {
     element = new FlagListElement(app.vm,
                                   app.events,
                                   new FlagsRepository(app.vm),
-                                  app.notifications);
+                                  app.notifications,
+                                  queue: app.queue);
   }
 
   void _visit(Uri uri) {
@@ -262,6 +274,18 @@ class InspectPage extends MatchingPage {
                              _breakpointRepository,
                              _functionRepository,
                              queue: app.queue)
+      ];
+    } else if (obj is Isolate) {
+      container.children = [
+        new IsolateViewElement(app.vm, obj, app.events,
+                                app.notifications,
+                                _isolateRepository,
+                                _scriptRepository,
+                                _functionRepository,
+                                _libraryRepository,
+                                _instanceRepository,
+                                _evalRepository,
+                                queue: app.queue)
       ];
     } else if (obj is ServiceFunction) {
       container.children = [

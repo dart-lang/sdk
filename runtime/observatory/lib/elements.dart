@@ -7,8 +7,6 @@ export 'package:observatory/src/elements/code_view.dart';
 export 'package:observatory/src/elements/debugger.dart';
 export 'package:observatory/src/elements/eval_link.dart';
 export 'package:observatory/src/elements/isolate_reconnect.dart';
-export 'package:observatory/src/elements/isolate_summary.dart';
-export 'package:observatory/src/elements/isolate_view.dart';
 export 'package:observatory/src/elements/json_view.dart';
 export 'package:observatory/src/elements/library_ref_as_value.dart';
 export 'package:observatory/src/elements/logging.dart';
@@ -18,7 +16,6 @@ export 'package:observatory/src/elements/service_ref.dart';
 export 'package:observatory/src/elements/service_view.dart';
 export 'package:observatory/src/elements/timeline_page.dart';
 export 'package:observatory/src/elements/vm_connect.dart';
-export 'package:observatory/src/elements/vm_view.dart';
 
 import 'dart:async';
 
@@ -64,9 +61,12 @@ import 'package:observatory/src/elements/instance_view.dart';
 import 'package:observatory/src/elements/isolate_reconnect.dart';
 import 'package:observatory/src/elements/isolate_ref.dart';
 import 'package:observatory/src/elements/isolate_ref_wrapper.dart';
+import 'package:observatory/src/elements/isolate_view.dart';
 import 'package:observatory/src/elements/isolate/counter_chart.dart';
+import 'package:observatory/src/elements/isolate/location.dart';
+import 'package:observatory/src/elements/isolate/run_state.dart';
 import 'package:observatory/src/elements/isolate/shared_summary.dart';
-import 'package:observatory/src/elements/isolate/shared_summary_wrapper.dart';
+import 'package:observatory/src/elements/isolate/summary.dart';
 import 'package:observatory/src/elements/library_ref.dart';
 import 'package:observatory/src/elements/library_ref_wrapper.dart';
 import 'package:observatory/src/elements/library_view.dart';
@@ -123,6 +123,7 @@ import 'package:observatory/src/elements/unknown_ref.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 import 'package:observatory/src/elements/vm_connect.dart';
+import 'package:observatory/src/elements/vm_view.dart';
 
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
@@ -158,8 +159,12 @@ export 'package:observatory/src/elements/instance_ref.dart';
 export 'package:observatory/src/elements/instance_view.dart';
 export 'package:observatory/src/elements/isolate_reconnect.dart';
 export 'package:observatory/src/elements/isolate_ref.dart';
+export 'package:observatory/src/elements/isolate_view.dart';
 export 'package:observatory/src/elements/isolate/counter_chart.dart';
+export 'package:observatory/src/elements/isolate/location.dart';
+export 'package:observatory/src/elements/isolate/run_state.dart';
 export 'package:observatory/src/elements/isolate/shared_summary.dart';
+export 'package:observatory/src/elements/isolate/summary.dart';
 export 'package:observatory/src/elements/library_ref.dart';
 export 'package:observatory/src/elements/library_view.dart';
 export 'package:observatory/src/elements/local_var_descriptors_ref.dart';
@@ -201,6 +206,7 @@ export 'package:observatory/src/elements/unknown_ref.dart';
 export 'package:observatory/src/elements/view_footer.dart';
 export 'package:observatory/src/elements/vm_connect_target.dart';
 export 'package:observatory/src/elements/vm_connect.dart';
+export 'package:observatory/src/elements/vm_view.dart';
 
 // Even though this function does not invoke any asynchronous operation
 // it is marked as async to allow future backward compatible changes.
@@ -243,11 +249,14 @@ Future initElements() async {
   InstanceRefElementWrapper.tag.ensureRegistration();
   InstanceViewElement.tag.ensureRegistration();
   IsolateCounterChartElement.tag.ensureRegistration();
+  IsolateLocationElement.tag.ensureRegistration();
   IsolateReconnectElement.tag.ensureRegistration();
   IsolateRefElement.tag.ensureRegistration();
   IsolateRefElementWrapper.tag.ensureRegistration();
+  IsolateRunStateElement.tag.ensureRegistration();
   IsolateSharedSummaryElement.tag.ensureRegistration();
-  IsolateSharedSummaryElementWrapper.tag.ensureRegistration();
+  IsolateSummaryElement.tag.ensureRegistration();
+  IsolateViewElement.tag.ensureRegistration();
   LibraryRefElement.tag.ensureRegistration();
   LibraryRefElementWrapper.tag.ensureRegistration();
   LibraryViewElement.tag.ensureRegistration();
@@ -308,4 +317,5 @@ Future initElements() async {
   VirtualCollectionElement.tag.ensureRegistration();
   VirtualTreeElement.tag.ensureRegistration();
   VMConnectTargetElement.tag.ensureRegistration();
+  VMViewElement.tag.ensureRegistration();
 }

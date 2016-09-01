@@ -38,10 +38,13 @@ abstract class Uris {
       => _isolatePage('/logging', isolate);
   static String metrics(M.IsolateRef isolate)
       => _isolatePage('/metrics', isolate);
+  static String objectStore(M.IsolateRef isolate)
+      => _isolatePage('/object-store', isolate);
   static String persistentHandles(M.IsolateRef isolate)
       => _isolatePage('/persistent-handles', isolate);
   static String ports(M.IsolateRef isolate)
       => _isolatePage('/ports', isolate);
+  static String timeline() => '#/timeline';
   static String vm() => '#/vm';
   static String vmConnect() => '#/vm-connect';
 }

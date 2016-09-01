@@ -1245,9 +1245,9 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   @observable Map counters = {};
 
   void _updateRunState() {
-    topFrame = (pauseEvent != null ? pauseEvent.topFrame : null);
+    topFrame = M.topFrame(pauseEvent);
     paused = (pauseEvent != null &&
-              pauseEvent.kind != ServiceEvent.kResume);
+              !(pauseEvent is M.ResumeEvent));
     running = (!paused && topFrame != null);
     idle = (!paused && topFrame == null);
     notifyPropertyChange(#topFrame, 0, 1);
@@ -1256,7 +1256,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     notifyPropertyChange(#idle, 0, 1);
   }
 
-  @observable ServiceEvent pauseEvent = null;
+  @observable M.DebugEvent pauseEvent = null;
   @observable bool paused = false;
   @observable bool running = false;
   @observable bool idle = false;
@@ -1264,6 +1264,18 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   @observable bool runnable = false;
   @observable bool ioEnabled = false;
   @observable bool reloading = false;
+  M.IsolateStatus get status {
+    if (paused) {
+      return M.IsolateStatus.paused;
+    }
+    if (running) {
+      return M.IsolateStatus.running;
+    }
+    if (idle) {
+      return M.IsolateStatus.idle;
+    }
+    return M.IsolateStatus.loading;
+  }
 
   final List<String> extensionRPCs = new List<String>();
 
@@ -1568,7 +1580,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     assert((pauseEvent == null) ||
            (newPauseEvent == null) ||
            !newPauseEvent.timestamp.isBefore(pauseEvent.timestamp));
-    pauseEvent = newPauseEvent;
+    pauseEvent = createEventFromServiceEvent(newPauseEvent);
     _updateRunState();
     error = map['error'];
 
@@ -1658,7 +1670,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       case ServiceEvent.kResume:
         assert((pauseEvent == null) ||
                !event.timestamp.isBefore(pauseEvent.timestamp));
-        pauseEvent = event;
+        pauseEvent = createEventFromServiceEvent(event);
         _updateRunState();
         break;
 
@@ -2218,13 +2230,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
   }
 
   void remove() {
-    // Remove any references to this breakpoint.  It has been removed.
     location.script._removeBreakpoint(this);
-    if ((isolate.pauseEvent != null) &&
-        (isolate.pauseEvent.breakpoint != null) &&
-        (isolate.pauseEvent.breakpoint.id == id)) {
-      isolate.pauseEvent.breakpoint = null;
-    }
   }
 
   String toString() {

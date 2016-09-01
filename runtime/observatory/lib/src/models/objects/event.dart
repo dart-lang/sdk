@@ -143,3 +143,29 @@ abstract class ConnectionClosedEvent extends Event {
   /// The reason of the closed connection
   String get reason;
 }
+
+Frame topFrame(DebugEvent event) {
+  if (event is PauseBreakpointEvent) {
+    return event.topFrame;
+  }
+  if (event is PauseInterruptedEvent) {
+    return event.topFrame;
+  }
+  if (event is PauseExceptionEvent) {
+    return event.topFrame;
+  }
+  if (event is ResumeEvent) {
+    return event.topFrame;
+  }
+  return null;
+}
+
+bool isAtAsyncSuspension(DebugEvent event) {
+  if (event is PauseBreakpointEvent) {
+    return event.atAsyncSuspension;
+  }
+  if (event is PauseInterruptedEvent) {
+    return event.atAsyncSuspension;
+  }
+  return false;
+}
