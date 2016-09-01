@@ -32,7 +32,8 @@ dev_dependencies:
 
 dependency_overrides:
   # This is here until we can update package:test and dart_style
-  analyzer: ^0.28.0-alpha.1
+  analyzer:
+    path: ../analyzer
 
 environment:
   sdk: ">=1.12.0 <2.0.0"

@@ -3,10 +3,10 @@
 packages:
   analyzer:
     description:
-      name: analyzer
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.28.1"
+      path: "../analyzer"
+      relative: true
+    source: path
+    version: "0.28.2-alpha.0"
   archive:
     description:
       name: archive
