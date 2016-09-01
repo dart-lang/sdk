@@ -859,13 +859,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (units != null) {
       return units;
     }
-    // Schedule recomputing RESOLVED_UNIT results.
+    // Schedule computing of RESOLVED_UNIT results.
     for (Source librarySource in containingLibraries) {
       LibrarySpecificUnit target =
           new LibrarySpecificUnit(librarySource, unitSource);
-      if (_cache.getState(target, RESOLVED_UNIT) == CacheState.FLUSHED) {
-        dartWorkManager.addPriorityResult(target, RESOLVED_UNIT);
-      }
+      dartWorkManager.addPriorityResult(target, RESOLVED_UNIT);
     }
     return null;
   }
