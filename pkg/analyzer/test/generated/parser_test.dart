@@ -6534,6 +6534,46 @@ void''');
     expect(reference.offset, 16);
   }
 
+  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT,
+          r'''
+/**
+ * First.
+ * ```dart
+ * Some [int] reference.
+ * ```
+ * Last.
+ */
+''',
+          3)
+    ];
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
+    expect(references, isEmpty);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine_lines() {
+    String commentText = r'''
+/// First.
+/// ```dart
+/// Some [int] reference.
+/// ```
+/// Last.
+''';
+    List<DocumentationCommentToken> tokens = commentText
+        .split('\n')
+        .map((line) => new DocumentationCommentToken(
+            TokenType.SINGLE_LINE_COMMENT, line, 0))
+        .toList();
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
+    expect(references, isEmpty);
+  }
+
   void test_parseCommentReferences_skipCodeBlock_gitHub_notTerminated() {
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
       new DocumentationCommentToken(
