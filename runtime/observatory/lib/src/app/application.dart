@@ -73,8 +73,6 @@ class ObservatoryApplication extends Observable {
 
   @reflectable final ObservatoryApplicationElement rootElement;
 
-  TraceViewElement _traceView = null;
-
   @reflectable ServiceObject lastErrorOrException;
 
   void _initOnce() {
@@ -139,9 +137,6 @@ class ObservatoryApplication extends Observable {
     if (Tracer.current != null) {
       Tracer.current.reset();
     }
-    if (_traceView != null) {
-      _traceView.tracer = Tracer.current;
-    }
     for (var i = 0; i < _pageRegistry.length; i++) {
       var page = _pageRegistry[i];
       if (page.canVisit(uri)) {
@@ -174,11 +169,6 @@ class ObservatoryApplication extends Observable {
     }
     // Add new page.
     rootElement.children.add(page.element);
-
-    // Add tracing support.
-    _traceView = new Element.tag('trace-view');
-    _traceView.tracer = Tracer.current;
-    rootElement.children.add(_traceView);
 
     // Remember page.
     currentPage = page;

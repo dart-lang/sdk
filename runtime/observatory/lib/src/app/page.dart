@@ -382,7 +382,7 @@ class InspectPage extends MatchingPage {
                               _instanceRepository,
                               pos: pos, queue: app.queue)
       ];
-    } else if (obj.type == 'Object') {
+    } else if (obj is HeapObject) {
       container.children = [
         new ObjectViewElement(app.vm, obj.isolate, obj, app.events,
                                app.notifications,
@@ -400,9 +400,9 @@ class InspectPage extends MatchingPage {
                                 app.notifications, queue: app.queue)
       ];
     } else {
-      ServiceObjectViewElement serviceElement =new Element.tag('service-view');
-      serviceElement.object = obj;
-      container.children = [serviceElement];
+      container.children = [
+        new JSONViewElement(obj, app.notifications, queue: app.queue)
+      ];
     }
   }
 }
@@ -664,16 +664,14 @@ class ErrorViewPage extends Page {
   ErrorViewPage(app) : super(app);
 
   void onInstall() {
-    if (element == null) {
-      /// Lazily create page.
-      element = new Element.tag('service-view');
-    }
+    element = new ErrorViewElement(app.notifications,
+                                   app.lastErrorOrException as DartError,
+                                   queue: app.queue);
   }
 
   void _visit(Uri uri) {
     assert(element != null);
     assert(canVisit(uri));
-    (element as ServiceObjectViewElement).object = app.lastErrorOrException;
   }
 
   // TODO(turnidge): How to test this page?
