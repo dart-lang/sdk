@@ -799,14 +799,11 @@ class TimelinePage extends Page {
   TimelinePage(app) : super(app);
 
   void onInstall() {
-    if (element == null) {
-      element = new Element.tag('timeline-page');
-    }
-    assert(element != null);
+    element = new TimelinePageElement(app.vm, app.events, app.notifications,
+                                      queue: app.queue);
   }
 
   void _visit(Uri uri) {
-    assert(element != null);
     assert(canVisit(uri));
   }
 

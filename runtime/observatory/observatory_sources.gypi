@@ -164,7 +164,6 @@
     'lib/src/elements/stack_trace_tree_config.dart',
     'lib/src/elements/strongly_reachable_instances.dart',
     'lib/src/elements/timeline_page.dart',
-    'lib/src/elements/timeline_page.html',
     'lib/src/elements/token_stream_ref.dart',
     'lib/src/elements/top_retaining_instances.dart',
     'lib/src/elements/type_arguments_ref.dart',
