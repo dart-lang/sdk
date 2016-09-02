@@ -273,7 +273,7 @@ static int run_test(mx_handle_t binary_vmo, const char* test_name,
   RETURN_IF_ERROR(r);
 
   mx_process_info_t proc_info;
-  mx_ssize_t info_size = mx_handle_get_info(
+  mx_ssize_t info_size = mx_object_get_info(
       p, MX_INFO_PROCESS, &proc_info, sizeof(proc_info));
   RETURN_IF_ERROR(info_size);
 
