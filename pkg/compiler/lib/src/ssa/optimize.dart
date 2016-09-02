@@ -157,7 +157,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HGraph graph;
   Compiler get compiler => backend.compiler;
   final SsaOptimizerTask optimizer;
-  final Set<HInstruction> allocatedFixedLists;
 
   SsaInstructionSimplifier(this.constantSystem, this.backend, this.optimizer);
 
