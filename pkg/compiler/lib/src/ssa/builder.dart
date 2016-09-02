@@ -1524,85 +1524,21 @@ class SsaBuilder extends ast.Visitor
     if (classElement.typeVariables.isNotEmpty &&
         backend.classNeedsRti(classElement)) {
       // Read the values of the type arguments and create a HTypeInfoExpression
-      // to set on the newly create object.  We can identify the case where the
-      // expression would be of the form:
-      //
-      //  [getTypeArgumentByIndex(this, 0), .., getTypeArgumentByIndex(this, k)]
-      //
-      // and k is the number of type arguments of this.  If this is the case,
-      // we can simply copy the list from this.
-
-      // These locals are modified by [isIndexedTypeArgumentGet].
-      HThis source; // The source of the type arguments.
-      bool allIndexed = true;
-      int expectedIndex = 0;
-      ClassElement contextClass; // The class of `this`.
-      int remainingTypeVariables; // The number of 'remaining type variables'
-      // of `this`.
-
-      /// Helper to identify instructions that read a type variable without
-      /// substitution (that is, directly use the index). These are
-      /// HTypeInfoReadVariable instructions that require no substitution.
-      ///
-      /// Return `true` if [instruction] is of that form and the index is the
-      /// next index in the sequence (held in [expectedIndex]).
-
-      /// TODO: Move this to a simplifier optimization of HTypeInfoExpression.
-      bool isIndexedTypeArgumentGet(HInstruction instruction) {
-        if (instruction is HTypeInfoReadVariable) {
-          HInstruction newSource = instruction.inputs[0];
-          if (newSource is! HThis) {
-            return false;
-          }
-          if (source == null) {
-            // This is the first match. Extract the context class for the type
-            // variables and get the list of type variables to keep track of how
-            // many arguments we need to process.
-            source = newSource;
-            contextClass = source.sourceElement.enclosingClass;
-            if (needsSubstitutionForTypeVariableAccess(contextClass)) {
-              return false;
-            }
-            remainingTypeVariables = contextClass.typeVariables.length;
-          } else {
-            assert(source == newSource);
-          }
-          // If there are no more type variables, then there are more type
-          // arguments for the new object than the source has, and it can't be
-          // a copy.  Otherwise remove one argument.
-          if (remainingTypeVariables == 0) return false;
-          remainingTypeVariables--;
-          // Check that the index is the one we expect.
-          int index = instruction.variable.element.index;
-          return index == expectedIndex++;
-        }
-        return false;
-      }
-
+      // to set on the newly create object.
       List<HInstruction> typeArguments = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
         HInstruction argument = localsHandler
             .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
-        if (allIndexed && !isIndexedTypeArgumentGet(argument)) {
-          allIndexed = false;
-        }
         typeArguments.add(argument);
       });
 
-      if (source != null && allIndexed && remainingTypeVariables == 0) {
-        HInstruction typeInfo =
-            new HTypeInfoReadRaw(source, backend.dynamicType);
-        add(typeInfo);
-        newObject = callSetRuntimeTypeInfo(typeInfo, newObject);
-      } else {
-        HInstruction typeInfo = new HTypeInfoExpression(
-            TypeInfoExpressionKind.INSTANCE,
-            classElement.thisType,
-            typeArguments,
-            backend.dynamicType);
-        add(typeInfo);
-        newObject = callSetRuntimeTypeInfo(typeInfo, newObject);
-      }
+      HInstruction typeInfo = new HTypeInfoExpression(
+          TypeInfoExpressionKind.INSTANCE,
+          classElement.thisType,
+          typeArguments,
+          backend.dynamicType);
+      add(typeInfo);
+      newObject = callSetRuntimeTypeInfo(typeInfo, newObject);
     }
 
     // Generate calls to the constructor bodies.

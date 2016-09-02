@@ -1037,6 +1037,69 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return handleInterceptedCall(node);
   }
 
+  bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
+    ClassWorld classWorld = compiler.world;
+    if (classWorld.isUsedAsMixin(cls)) return true;
+
+    return classWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
+      return !backend.rti.isTrivialSubstitution(subclass, cls);
+    });
+  }
+
+  HInstruction visitTypeInfoExpression(HTypeInfoExpression node) {
+    // Identify the case where the type info expression would be of the form:
+    //
+    //  [getTypeArgumentByIndex(this, 0), .., getTypeArgumentByIndex(this, k)]
+    //
+    // and k is the number of type arguments of 'this'.  We can simply copy the
+    // list from 'this'.
+    HInstruction tryCopyInfo() {
+      if (node.kind != TypeInfoExpressionKind.INSTANCE) return null;
+
+      HInstruction source;
+      int expectedIndex = 0;
+
+      for (HInstruction argument in node.inputs) {
+        if (argument is HTypeInfoReadVariable) {
+          HInstruction nextSource = argument.object;
+          if (nextSource is HThis) {
+            if (source == null) {
+              source = nextSource;
+              ClassElement contextClass =
+                  nextSource.sourceElement.enclosingClass;
+              if (node.inputs.length != contextClass.typeVariables.length) {
+                return null;
+              }
+              if (needsSubstitutionForTypeVariableAccess(contextClass)) {
+                return null;
+              }
+            }
+            if (nextSource != source) return null;
+            // Check that the index is the one we expect.
+            int index = argument.variable.element.index;
+            if (index != expectedIndex++) return null;
+          } else {
+            // TODO(sra): Handle non-this cases (i.e. inlined code). Some
+            // non-this cases will have a TypeMask that does not need
+            // substitution, even though the general case does, e.g. inlining a
+            // method on an exact class.
+            return null;
+          }
+        } else {
+          return null;
+        }
+      }
+
+      if (source == null) return null;
+      return new HTypeInfoReadRaw(source, backend.dynamicType);
+    }
+
+    // TODO(sra): Consider fusing type expression trees with no type variables,
+    // as these could be represented like constants.
+
+    return tryCopyInfo() ?? node;
+  }
+
   HInstruction visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
     TypeVariableType variable = node.variable;
     HInstruction object = node.object;
