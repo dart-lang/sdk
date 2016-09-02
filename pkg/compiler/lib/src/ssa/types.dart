@@ -14,25 +14,18 @@ import '../world.dart' show ClassWorld;
 class TypeMaskFactory {
   static TypeMask inferredReturnTypeForElement(
       Element element, Compiler compiler) {
-    return compiler.globalInference.getGuaranteedReturnTypeOfElement(element) ??
+    return compiler.globalInference.results.returnTypeOf(element) ??
         compiler.commonMasks.dynamicType;
   }
 
   static TypeMask inferredTypeForElement(Element element, Compiler compiler) {
-    return compiler.globalInference.getGuaranteedTypeOfElement(element) ??
+    return compiler.globalInference.results.typeOf(element) ??
         compiler.commonMasks.dynamicType;
   }
 
   static TypeMask inferredTypeForSelector(
       Selector selector, TypeMask mask, Compiler compiler) {
-    return compiler.globalInference
-            .getGuaranteedTypeOfSelector(selector, mask) ??
-        compiler.commonMasks.dynamicType;
-  }
-
-  static TypeMask inferredForNode(
-      Element owner, ast.Node node, Compiler compiler) {
-    return compiler.globalInference.getGuaranteedTypeOfNode(owner, node) ??
+    return compiler.globalInference.results.typeOfSelector(selector, mask) ??
         compiler.commonMasks.dynamicType;
   }
 
