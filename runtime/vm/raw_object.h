@@ -150,6 +150,13 @@ enum ClassId {
   // Illegal class id.
   kIllegalCid = 0,
 
+  // The following entries describes classes for pseudo-objects in the heap
+  // that should never be reachable from live objects. Free list elements
+  // maintain the free list for old space, and forwarding corpses are used to
+  // implement one-way become.
+  kFreeListElement,
+  kForwardingCorpse,
+
   // List of Ids for predefined classes.
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   k##clazz##Cid,
@@ -180,13 +187,6 @@ CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
   kNullCid,
   kDynamicCid,
   kVoidCid,
-
-  // The following entries describes classes for pseudo-objects in the heap
-  // that should never be reachable from live objects. Free list elements
-  // maintain the free list for old space, and forwarding corpses are used to
-  // implement one-way become.
-  kFreeListElement,
-  kForwardingCorpse,
 
   kNumPredefinedCids,
 };
