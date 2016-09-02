@@ -54,6 +54,7 @@ class ObservatoryApplication extends Observable {
   }
 
   StreamSubscription _gcSubscription;
+  StreamSubscription _loggingSubscription;
 
   Future startGCEventListener() async {
     if (_gcSubscription != null || _vm == null) {
@@ -62,12 +63,28 @@ class ObservatoryApplication extends Observable {
     _gcSubscription = await _vm.listenEventStream(VM.kGCStream, _onEvent);
   }
 
+  Future startLoggingEventListener() async {
+    if (_loggingSubscription != null || _vm == null) {
+      return;
+    }
+    _loggingSubscription =
+        await _vm.listenEventStream(Isolate.kLoggingStream, _onEvent);
+  }
+
   Future stopGCEventListener() async {
     if (_gcSubscription == null) {
       return;
     }
     _gcSubscription.cancel();
     _gcSubscription = null;
+  }
+
+  Future stopLoggingEventListener() async {
+    if (_loggingSubscription == null) {
+      return;
+    }
+    _loggingSubscription.cancel();
+    _loggingSubscription = null;
   }
 
 
@@ -93,7 +110,6 @@ class ObservatoryApplication extends Observable {
 
   void _onEvent(ServiceEvent event) {
     assert(event.kind != ServiceEvent.kNone);
-
     M.Event e = createEventFromServiceEvent(event);
     if (e != null) {
       events.add(e);

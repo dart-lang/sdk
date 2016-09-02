@@ -108,7 +108,7 @@
     'lib/src/elements/library_view.dart',
     'lib/src/elements/local_var_descriptors_ref.dart',
     'lib/src/elements/logging.dart',
-    'lib/src/elements/logging.html',
+    'lib/src/elements/logging_list.dart',
     'lib/src/elements/megamorphiccache_ref.dart',
     'lib/src/elements/megamorphiccache_view.dart',
     'lib/src/elements/metrics.dart',

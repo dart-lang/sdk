@@ -1200,6 +1200,54 @@ library-ref-wrapped > a[href] {
   color: white;
 }
 
+/* logging-list */
+
+logging-list .outlined {
+  -webkit-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
+  -moz-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
+  box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
+  margin: 4px;
+}
+logging-list .logItem {
+  display: inline-block;
+  font: normal 14px consolas, courier, monospace;
+  white-space: pre;
+  line-height: 125%;
+  width: 100%;
+}
+logging-list .level {
+  display: inline-block;
+  width: 5em;
+}
+logging-list .time {
+  display: inline-block;
+  width: 12em;
+}
+logging-list .FINEST {
+  background-color: #FAFAFA;
+}
+logging-list .FINER {
+  background-color: #ECEFF1;
+}
+logging-list .FINE {
+  background-color: #EFEBE9;
+}
+logging-list .CONFIG {
+  background-color: #FFF3E0;
+}
+logging-list .INFO {
+  background-color: #F1F8E9;
+}
+logging-list .WARNING {
+  background-color: #FFE0B2;
+}
+logging-list .SEVERE {
+  background-color: #FFCCBC;
+}
+logging-list .SHOUT {
+  background-color: #FFCDD2;
+}
+
 /* megamorphic-cache-ref */
 /* TODO(cbernaschina) fix megamorphic-cache-ref-wrapped to megamorphic-cache-ref
 when wrapper removed */

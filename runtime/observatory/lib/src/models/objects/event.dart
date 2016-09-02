@@ -132,6 +132,14 @@ abstract class ExtensionEvent extends Event {
   ExtensionData get extensionData;
 }
 
+abstract class LoggingEvent extends Event {
+  /// The isolate with which this event is associated.
+  IsolateRef get isolate;
+
+  // TODO(cbernaschina) objectify
+  Map get logRecord;
+}
+
 abstract class TimelineEventsEvent extends Event {
   /// The isolate with which this event is associated.
   IsolateRef get isolate;

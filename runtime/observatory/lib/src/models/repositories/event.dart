@@ -27,6 +27,7 @@ abstract class EventRepository {
   Stream<BreakpointRemovedEvent> get onBreakpointRemoved;
   Stream<InspectEvent> get onInspect;
   Stream<GCEvent> get onGCEvent;
+  Stream<LoggingEvent> get onLoggingEvent;
   Stream<ExtensionEvent> get onExtensionEvent;
   Stream<TimelineEventsEvent> get onTimelineEvents;
   Stream<ConnectionClosedEvent> get onConnectionClosed;

@@ -644,18 +644,31 @@ class HeapSnapshotPage extends MatchingPage {
   }
 }
 
+class LoggingPage extends MatchingPage {
+  LoggingPage(app) : super('logging', app);
 
-class LoggingPage extends SimplePage {
-  LoggingPage(app) : super('logging', 'logging-page', app);
+  final DivElement container = new DivElement();
+
+  @override
+  void onInstall() {
+    element = container;
+    container.children = const [];
+    app.startLoggingEventListener();
+  }
+
+  @override
+  void onUninstall() {
+    app.stopLoggingEventListener();
+  }
 
   void _visit(Uri uri) {
-    super._visit(uri);
+    assert(element != null);
+    assert(canVisit(uri));
     getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        LoggingPageElement page = element;
-        page.isolate = isolate;
-      }
+      container.children = [
+        new LoggingPageElement(app.vm, isolate, app.events,
+                               app.notifications, queue: app.queue)
+      ];
     });
   }
 }

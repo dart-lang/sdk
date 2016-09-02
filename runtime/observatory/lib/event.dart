@@ -219,6 +219,17 @@ class GCEvent implements M.GCEvent {
   }
 }
 
+class LoggingEvent implements M.LoggingEvent {
+  final DateTime timestamp;
+  final M.IsolateRef isolate;
+  final Map logRecord;
+  LoggingEvent(this.timestamp, this.isolate, this.logRecord) {
+    assert(timestamp != null);
+    assert(isolate != null);
+    assert(logRecord != null);
+  }
+}
+
 class ExtensionEvent implements M.ExtensionEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
@@ -290,6 +301,8 @@ M.Event createEventFromServiceEvent(S.ServiceEvent event) {
       return new PauseBreakpointEvent(event.timestamp, event.isolate,
           event.pauseBreakpoints, event.topFrame, event.atAsyncSuspension,
           event.breakpoint);
+    case S.Isolate.kLoggingStream:
+      return new LoggingEvent(event.timestamp, event.isolate, event.logRecord);
     case S.ServiceEvent.kPauseInterrupted:
       return new PauseInterruptedEvent(event.timestamp, event.isolate,
           event.topFrame, event.atAsyncSuspension);

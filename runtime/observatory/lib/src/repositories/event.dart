@@ -29,6 +29,7 @@ class EventRepository implements M.EventRepository {
   final Stream<M.BreakpointRemovedEvent> onBreakpointRemoved;
   final Stream<M.InspectEvent> onInspect;
   final Stream<M.GCEvent> onGCEvent;
+  final Stream<M.LoggingEvent> onLoggingEvent;
   final Stream<M.ExtensionEvent> onExtensionEvent;
   final Stream<M.TimelineEventsEvent> onTimelineEvents;
   final Stream<M.ConnectionClosedEvent> onConnectionClosed;
@@ -40,6 +41,7 @@ class EventRepository implements M.EventRepository {
       controller.stream.where((e) => e is M.IsolateEvent),
       controller.stream.where((e) => e is M.DebugEvent),
       controller.stream.where((e) => e is M.GCEvent),
+      controller.stream.where((e) => e is M.LoggingEvent),
       controller.stream.where((e) => e is M.ExtensionEvent),
       controller.stream.where((e) => e is M.TimelineEventsEvent),
       controller.stream.where((e) => e is M.ConnectionClosedEvent));
@@ -47,6 +49,7 @@ class EventRepository implements M.EventRepository {
   EventRepository.__(StreamController controller,
     Stream<M.VMEvent> onVMEvent, Stream<M.IsolateEvent> onIsolateEvent,
     Stream<M.DebugEvent> onDebugEvent, Stream<M.GCEvent> onGCEvent,
+    Stream<M.LoggingEvent> onLoggingEvent,
     Stream<M.ExtensionEvent> onExtensionEvent,
     Stream<M.TimelineEventsEvent> onTimelineEvents,
     Stream<M.ConnectionClosedEvent> onConnectionClosed)
@@ -79,6 +82,7 @@ class EventRepository implements M.EventRepository {
           onDebugEvent.where((e) => e is M.BreakpointRemovedEvent),
       onInspect = onDebugEvent.where((e) => e is M.InspectEvent),
       onGCEvent = onGCEvent,
+      onLoggingEvent = onLoggingEvent,
       onExtensionEvent = onExtensionEvent,
       onTimelineEvents = onTimelineEvents,
       onConnectionClosed = onConnectionClosed;
