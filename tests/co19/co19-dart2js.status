@@ -496,6 +496,7 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # co19 issue 78
+LibTest/typed_data/Float32x4List/lastWhere_A02_t01: Fail # co19 issue 78
 
 [ $compiler == dart2js && $fast_startup ]
 Language/Classes/Instance_Methods/Operators/unary_minus: Fail # mirrors not supported
