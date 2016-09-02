@@ -47,12 +47,12 @@ vars = {
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.0.1+2",
-  "code_transformers_rev": "@136f12ed77870c9c26119ddfdd0125d7b7354d67",
+  "code_transformers_tag": "@v0.4.2+3",
   "collection_tag": "@1.9.1",
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.1",
   "csslib_tag" : "@0.13.2",
-  "dart2js_info_tag" : "@0.2.7",
+  "dart2js_info_tag" : "@0.2.7+1",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.9+1",
   "dartdoc_tag" : "@v0.9.7+3",
@@ -87,7 +87,7 @@ vars = {
   "plugin_tag": "@0.2.0",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.2.4",
-  "protobuf_tag": "@0.5.1+4",
+  "protobuf_tag": "@0.5.3",
   "pub_cache_tag": "@v0.1.0",
   "pub_rev": "@101aa44a4aebaefd0796ce44e6d155cd79fe2db4",
   "pub_semver_tag": "@1.3.0",
@@ -192,7 +192,7 @@ deps = {
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
   Var("dart_root") + "/third_party/pkg/code_transformers":
       (Var("github_dartlang") % "code_transformers") +
-      Var("code_transformers_rev"),
+      Var("code_transformers_tag"),
   Var("dart_root") + "/third_party/dart-services":
       (Var("github_mirror") % "dart-services") +
       Var("dart_services_rev"),
