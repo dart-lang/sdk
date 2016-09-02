@@ -1165,14 +1165,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Match:
     //
     //     setRuntimeTypeInfo(
-    //         HForeignNew(ClassElement),
+    //         HCreate(ClassElement),
     //         HTypeInfoExpression(t_0, t_1, t_2, ...));
     //
     // The `t_i` are the values of the type parameters of ClassElement.
     if (object is HInvokeStatic) {
       if (object.element == helpers.setRuntimeTypeInfo) {
         HInstruction allocation = object.inputs[0];
-        if (allocation is HForeignNew) {
+        if (allocation is HCreate) {
           HInstruction typeInfo = object.inputs[1];
           if (typeInfo is HTypeInfoExpression) {
             return finishSubstituted(
@@ -1188,7 +1188,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Non-generic type (which extends or mixes in a generic type, for example
     // CodeUnits extends UnmodifiableListBase<int>).
     // Also used for raw-type when the type parameters are elided.
-    if (object is HForeignNew) {
+    if (object is HCreate) {
       return finishSubstituted(
           object.element,
           // If there are type arguments, all type arguments are 'dynamic'.
@@ -2198,7 +2198,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
         instruction.element, receiver, instruction.inputs.last);
   }
 
-  void visitForeignNew(HForeignNew instruction) {
+  void visitCreate(HCreate instruction) {
     memorySet.registerAllocation(instruction);
     if (shouldTrackInitialValues(instruction)) {
       int argumentIndex = 0;
@@ -2213,7 +2213,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.killAffectedBy(instruction);
   }
 
-  bool shouldTrackInitialValues(HForeignNew instruction) {
+  bool shouldTrackInitialValues(HCreate instruction) {
     // Don't track initial field values of an allocation that are
     // unprofitable. We search the chain of single uses in allocations for a
     // limited depth.
@@ -2230,7 +2230,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
       HInstruction use = instruction.usedBy.single;
       // When the only use is an allocation, the allocation becomes the only
       // heap alias for the current instruction.
-      if (use is HForeignNew) return interestingUse(use, heapDepth + 1);
+      if (use is HCreate) return interestingUse(use, heapDepth + 1);
       if (use is HLiteralList) return interestingUse(use, heapDepth + 1);
       if (use is HInvokeStatic) {
         // Assume the argument escapes. All we do with our initial allocation is
@@ -2358,7 +2358,7 @@ class MemorySet {
   }
 
   bool isConcrete(HInstruction instruction) {
-    return instruction is HForeignNew ||
+    return instruction is HCreate ||
         instruction is HConstant ||
         instruction is HLiteralList;
   }

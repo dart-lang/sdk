@@ -670,11 +670,10 @@ class SsaConditionMerger extends HGraphVisitor {
   }
 
   bool isSafeToGenerateAtUseSite(HInstruction user, HInstruction input) {
-    // HForeignNew evaluates arguments in order and passes them to a
-    // constructor.
-    if (user is HForeignNew) return true;
-    // A [HForeign] instruction uses operators and if we generate
-    // [input] at use site, the precedence might be wrong.
+    // HCreate evaluates arguments in order and passes them to a constructor.
+    if (user is HCreate) return true;
+    // A [HForeign] instruction uses operators and if we generate [input] at use
+    // site, the precedence or evaluation order might be wrong.
     if (user is HForeign) return false;
     // A [HCheck] instruction with control flow uses its input
     // multiple times, so we avoid generating it at use site.

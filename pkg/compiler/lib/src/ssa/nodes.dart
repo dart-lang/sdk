@@ -36,13 +36,13 @@ abstract class HVisitor<R> {
   R visitBreak(HBreak node);
   R visitConstant(HConstant node);
   R visitContinue(HContinue node);
+  R visitCreate(HCreate node);
   R visitDivide(HDivide node);
   R visitExit(HExit node);
   R visitExitTry(HExitTry node);
   R visitFieldGet(HFieldGet node);
   R visitFieldSet(HFieldSet node);
   R visitForeignCode(HForeignCode node);
-  R visitForeignNew(HForeignNew node);
   R visitGoto(HGoto node);
   R visitGreater(HGreater node);
   R visitGreaterEqual(HGreaterEqual node);
@@ -328,13 +328,13 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitContinue(HContinue node) => visitJump(node);
   visitCheck(HCheck node) => visitInstruction(node);
   visitConstant(HConstant node) => visitInstruction(node);
+  visitCreate(HCreate node) => visitInstruction(node);
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitExit(HExit node) => visitControlFlow(node);
   visitExitTry(HExitTry node) => visitControlFlow(node);
   visitFieldGet(HFieldGet node) => visitFieldAccess(node);
   visitFieldSet(HFieldSet node) => visitFieldAccess(node);
   visitForeignCode(HForeignCode node) => visitInstruction(node);
-  visitForeignNew(HForeignNew node) => visitInstruction(node);
   visitGoto(HGoto node) => visitControlFlow(node);
   visitGreater(HGreater node) => visitRelational(node);
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
@@ -1494,6 +1494,27 @@ abstract class HControlFlow extends HInstruction {
   bool isJsStatement() => true;
 }
 
+// Allocates and initializes an instance.
+class HCreate extends HInstruction {
+  final ClassElement element;
+
+  /// If this field is not `null`, this call is from an inlined constructor and
+  /// we have to register the instantiated type in the code generator. The
+  /// [instructionType] of this node is not enough, because we also need the
+  /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
+  List<DartType> instantiatedTypes;
+
+  HCreate(this.element, List<HInstruction> inputs, TypeMask type,
+      [this.instantiatedTypes])
+      : super(inputs, type);
+
+  accept(HVisitor visitor) => visitor.visitCreate(this);
+
+  bool get isAllocation => true;
+
+  String toString() => 'HCreate($element)';
+}
+
 abstract class HInvoke extends HInstruction {
   /**
     * The first argument must be the target: either an [HStatic] node, or
@@ -1884,26 +1905,6 @@ class HForeignCode extends HForeign {
       nativeBehavior != null && nativeBehavior.isAllocation && !canBeNull();
 
   String toString() => 'HForeignCode("${codeTemplate.source}",$inputs)';
-}
-
-class HForeignNew extends HForeign {
-  ClassElement element;
-
-  /// If this field is not `null`, this call is from an inlined constructor and
-  /// we have to register the instantiated type in the code generator. The
-  /// [instructionType] of this node is not enough, because we also need the
-  /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
-  List<DartType> instantiatedTypes;
-
-  HForeignNew(this.element, TypeMask type, List<HInstruction> inputs,
-      [this.instantiatedTypes])
-      : super(type, inputs);
-
-  accept(HVisitor visitor) => visitor.visitForeignNew(this);
-
-  bool get isAllocation => true;
-
-  String toString() => 'HForeignNew($element)';
 }
 
 abstract class HInvokeBinary extends HInstruction {
@@ -3280,11 +3281,10 @@ enum TypeInfoExpressionKind { COMPLETE, INSTANCE }
 ///     class List<E2> { ... }
 ///     class _LinkedHashSet<E3> { ... }
 ///
-/// After inlining the factory constructor for `Set<E1>`, the HForeignNew
-/// should have type `_LinkedHashSet<List<T>>` and the TypeExpression should be
-/// a tree:
+/// After inlining the factory constructor for `Set<E1>`, the HCreate should
+/// have type `_LinkedHashSet<List<T>>` and the TypeExpression should be a tree:
 ///
-///    HForeignNew(dartType: _LinkedHashSet<List<T>>,
+///    HCreate(dartType: _LinkedHashSet<List<T>>,
 ///        [], // No arguments
 ///        HTypeInfoExpression(INSTANCE,
 ///            dartType: _LinkedHashSet<E3>, // _LinkedHashSet's thisType

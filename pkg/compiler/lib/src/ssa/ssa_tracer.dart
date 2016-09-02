@@ -202,6 +202,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Continue: (B${target.id})";
   }
 
+  String visitCreate(HCreate node) {
+    return handleGenericInvoke("Create", "${node.element.name}", node.inputs);
+  }
+
   String visitDivide(HDivide node) => handleInvokeBinary(node, 'Divide');
 
   String visitExit(HExit node) => "Exit";
@@ -335,11 +339,6 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitForeignCode(HForeignCode foreign) {
     return handleGenericInvoke(
         "ForeignCode", "${foreign.codeTemplate.ast}", foreign.inputs);
-  }
-
-  String visitForeignNew(HForeignNew node) {
-    return handleGenericInvoke(
-        "ForeignNew", "${node.element.name}", node.inputs);
   }
 
   String visitLess(HLess node) => handleInvokeBinary(node, 'Less');

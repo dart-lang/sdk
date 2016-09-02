@@ -52,12 +52,12 @@ class SsaBranchBuilder {
     conditionExitBlock.addSuccessor(thenBranch.block);
     conditionExitBlock.addSuccessor(elseBranch.block);
     bool conditionBranchLocalsCanBeReused =
-    mergeLocals(conditionBranch, thenBranch, mayReuseFromLocals: true);
+        mergeLocals(conditionBranch, thenBranch, mayReuseFromLocals: true);
     mergeLocals(conditionBranch, elseBranch,
         mayReuseFromLocals: conditionBranchLocalsCanBeReused);
 
     conditionBranch.graph =
-    new SubExpression(conditionBranch.block, conditionExitBlock);
+        new SubExpression(conditionBranch.block, conditionExitBlock);
   }
 
   /**
@@ -194,9 +194,9 @@ class SsaBranchBuilder {
     buildCondition(visitCondition, conditionBranch, thenBranch, elseBranch,
         sourceInformation);
     HInstruction thenValue =
-    buildBranch(thenBranch, visitThen, joinBranch, isExpression);
+        buildBranch(thenBranch, visitThen, joinBranch, isExpression);
     HInstruction elseValue =
-    buildBranch(elseBranch, visitElse, joinBranch, isExpression);
+        buildBranch(elseBranch, visitElse, joinBranch, isExpression);
 
     if (isExpression) {
       assert(thenValue != null && elseValue != null);

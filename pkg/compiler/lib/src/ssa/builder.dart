@@ -866,12 +866,12 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  /// A stack of [DartType]s the have been seen during inlining of factory
+  /// A stack of [DartType]s that have been seen during inlining of factory
   /// constructors.  These types are preserved in [HInvokeStatic]s and
-  /// [HForeignNew]s inside the inline code and registered during code
-  /// generation for these nodes.
-  // TODO(karlklose): consider removing this and keeping the (substituted)
-  // types of the type variables in an environment (like the [LocalsHandler]).
+  /// [HCreate]s inside the inline code and registered during code generation
+  /// for these nodes.
+  // TODO(karlklose): consider removing this and keeping the (substituted) types
+  // of the type variables in an environment (like the [LocalsHandler]).
   final List<DartType> currentInlinedInstantiations = <DartType>[];
 
   final List<AstInliningState> inliningStack = <AstInliningState>[];
@@ -1498,8 +1498,8 @@ class SsaBuilder extends ast.Visitor
 
     HInstruction newObject;
     if (!isNativeUpgradeFactory) {
-      newObject = new HForeignNew(
-          classElement, ssaType, constructorArguments, instantiatedTypes);
+      newObject = new HCreate(
+          classElement, constructorArguments, ssaType, instantiatedTypes);
       if (function != null) {
         // TODO(johnniwinther): Provide source information for creation
         // through synthetic constructors.
@@ -2431,7 +2431,7 @@ class SsaBuilder extends ast.Visitor
 
     TypeMask type =
         new TypeMask.nonNullExact(closureClassElement, compiler.world);
-    push(new HForeignNew(closureClassElement, type, capturedVariables)
+    push(new HCreate(closureClassElement, capturedVariables, type)
       ..sourceInformation = sourceInformationBuilder.buildCreate(node));
 
     Element methodElement = nestedClosureData.closureElement;

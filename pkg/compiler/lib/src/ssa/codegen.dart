@@ -1931,14 +1931,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     registerForeignTypes(node);
   }
 
-  visitForeignNew(HForeignNew node) {
+  visitCreate(HCreate node) {
     js.Expression jsClassReference =
         backend.emitter.constructorAccess(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
     push(new js.New(jsClassReference, arguments)
         .withSourceInformation(node.sourceInformation));
-    registerForeignTypes(node);
-    // We also use ForeignNew to instantiate closure classes that belong to
+    // We also use HCreate to instantiate closure classes that belong to
     // function expressions. We have to register their use here, as otherwise
     // code for them might not be emitted.
     if (node.element.isClosure) {
