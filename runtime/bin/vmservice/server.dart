@@ -96,10 +96,13 @@ class HttpRequestClient extends Client {
     }
     HttpResponse response = request.response;
     response.headers.contentType = jsonContentType;
-    final uri = Uri.parse(request.headers['Origin'].single ?? '');
-    final noPortOrigin = new Uri(host: uri.host, scheme: uri.scheme).origin;
-    if (_allowedOrigins.contains(noPortOrigin)) {
-      response.headers.add('Access-Control-Allow-Origin', uri.origin);
+    final origins = request.headers['Origin'];
+    if ((origins != null) && (origins.isNotEmpty)) {
+      final uri = Uri.parse(origins.first);
+      final noPortOrigin = new Uri(host: uri.host, scheme: uri.scheme).origin;
+      if (_allowedOrigins.contains(noPortOrigin)) {
+        response.headers.add('Access-Control-Allow-Origin', uri.origin);
+      }
     }
     if (result is String) {
       response.write(result);
