@@ -79,8 +79,9 @@ class HttpRequestClient extends Client {
   static ContentType jsonContentType =
       new ContentType("application", "json", charset: "utf-8");
   final HttpRequest request;
+  final List<String> _allowedOrigins;
 
-  HttpRequestClient(this.request, VMService service)
+  HttpRequestClient(this.request, VMService service, this._allowedOrigins)
       : super(service, sendEvents:false);
 
   disconnect() {
@@ -95,6 +96,11 @@ class HttpRequestClient extends Client {
     }
     HttpResponse response = request.response;
     response.headers.contentType = jsonContentType;
+    final uri = Uri.parse(request.headers['Origin'].single ?? '');
+    final noPortOrigin = new Uri(host: uri.host, scheme: uri.scheme).origin;
+    if (_allowedOrigins.contains(noPortOrigin)) {
+      response.headers.add('Access-Control-Allow-Origin', uri.origin);
+    }
     if (result is String) {
       response.write(result);
     } else {
@@ -239,7 +245,7 @@ class Server {
     }
     // HTTP based service request.
     try {
-      var client = new HttpRequestClient(request, _service);
+      var client = new HttpRequestClient(request, _service, _allowedOrigins);
       var message = new Message.fromUri(client, request.uri);
       client.onMessage(null, message);
     } catch (e) {
