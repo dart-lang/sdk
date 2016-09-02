@@ -392,6 +392,9 @@ class Namer {
   jsAst.Name get staticsPropertyName =>
       _staticsPropertyName ??= new StringBackedName('static');
 
+  jsAst.Name _rtiFieldName;
+  jsAst.Name get rtiFieldName => _rtiFieldName ??= new StringBackedName(r'$ti');
+
   // Name of property in a class description for the native dispatch metadata.
   final String nativeSpecProperty = '%';
 

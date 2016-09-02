@@ -320,16 +320,16 @@ class RuntimeTypeGenerator {
 
     Substitution substitution =
         backend.rti.getSubstitution(cls, element.typeDeclaration);
+    jsAst.Name rtiFieldName = backend.namer.rtiFieldName;
     if (substitution != null) {
-      computeTypeVariable = js(
-          r'#.apply(null, this.$builtinTypeInfo)',
-          backend.rtiEncoder
-              .getSubstitutionCodeForVariable(substitution, index));
+      computeTypeVariable = js(r'#.apply(null, this.#)', [
+        backend.rtiEncoder.getSubstitutionCodeForVariable(substitution, index),
+        rtiFieldName
+      ]);
     } else {
       // TODO(ahe): These can be generated dynamically.
-      computeTypeVariable = js(
-          r'this.$builtinTypeInfo && this.$builtinTypeInfo[#]',
-          js.number(index));
+      computeTypeVariable = js(r'this.# && this.#[#]',
+          [rtiFieldName, rtiFieldName, js.number(index)]);
     }
     jsAst.Expression convertRtiToRuntimeType = backend.emitter
         .staticFunctionAccess(backend.helpers.convertRtiToRuntimeType);
