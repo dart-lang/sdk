@@ -129,6 +129,7 @@ class ContextBuilder {
     context.contentCache = contentCache;
     context.sourceFactory = createSourceFactory(path, options);
     context.analysisOptions = options;
+    context.name = path;
     //_processAnalysisOptions(context, optionMap);
     declareVariables(context);
     return context;
