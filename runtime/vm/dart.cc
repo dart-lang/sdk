@@ -41,11 +41,7 @@ DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_time_all);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
-#if defined(TARGET_OS_WINDOWS)
-DEFINE_FLAG(bool, trace_shutdown, true, "Trace VM shutdown on stderr");
-#else
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
-#endif  // defined(TARGET_OS_WINDOWS)
 
 Isolate* Dart::vm_isolate_ = NULL;
 int64_t Dart::start_time_ = 0;
