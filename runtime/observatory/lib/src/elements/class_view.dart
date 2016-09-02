@@ -419,10 +419,12 @@ class ClassViewElement extends HtmlElement implements Renderable {
                                                     queue: _r.queue)
                               ],
                             new DivElement()..classes = ['memberValue']
-                              ..children = [
-                                anyRef(_isolate, f.staticValue, _instances,
-                                       queue: _r.queue)
-                              ]
+                              ..children = f.staticValue == null
+                                ? const []
+                                : [
+                                     anyRef(_isolate, f.staticValue, _instances,
+                                            queue: _r.queue)
+                                ]
                           ]
                       ).toList())
                   ]
