@@ -168,7 +168,8 @@ class SimpleFormatter implements ReportFormatter {
   void writeCounts() {
     var codes = stats.keys.toList()..sort();
     var largestCountGuess = 8;
-    var longest = codes.fold(0, (prev, element) => max(prev, element.length));
+    var longest =
+        codes.fold(0, (int prev, element) => max(prev, element.length));
     var tableWidth = max(_summaryLength, longest + largestCountGuess);
     var pad = tableWidth - longest;
     var line = ''.padLeft(tableWidth, '-');
