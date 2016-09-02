@@ -2205,6 +2205,24 @@ class B extends A {
         ]);
   }
 
+  void test_unqualifiedReferenceToNonLocalStaticMember_getter_invokeTarget() {
+    assertErrorsInCode(
+        r'''
+class A {
+  static int foo;
+}
+
+class B extends A {
+  static bar() {
+    foo.abs();
+  }
+}
+''',
+        [
+          StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER
+        ]);
+  }
+
   void test_unqualifiedReferenceToNonLocalStaticMember_method() {
     assertErrorsInCode(
         r'''

@@ -6434,24 +6434,26 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return true;
     }
     AstNode parent = identifier.parent;
-    if (parent is ConstructorName ||
-        parent is MethodInvocation ||
-        parent is PropertyAccess ||
-        parent is SuperConstructorInvocation) {
-      return true;
-    }
-    if (parent is PrefixedIdentifier &&
-        identical(parent.identifier, identifier)) {
-      return true;
-    }
-    if (parent is Annotation && identical(parent.constructorName, identifier)) {
-      return true;
+    if (parent is Annotation) {
+      return identical(parent.constructorName, identifier);
     }
     if (parent is CommentReference) {
-      CommentReference commentReference = parent;
-      if (commentReference.newKeyword != null) {
-        return true;
-      }
+      return parent.newKeyword != null;
+    }
+    if (parent is ConstructorName) {
+      return identical(parent.name, identifier);
+    }
+    if (parent is MethodInvocation) {
+      return identical(parent.methodName, identifier);
+    }
+    if (parent is PrefixedIdentifier) {
+      return identical(parent.identifier, identifier);
+    }
+    if (parent is PropertyAccess) {
+      return identical(parent.propertyName, identifier);
+    }
+    if (parent is SuperConstructorInvocation) {
+      return identical(parent.constructorName, identifier);
     }
     return false;
   }
