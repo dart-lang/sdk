@@ -785,7 +785,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT12 =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT2', null,
-        cachingPolicy: AST_CACHING_POLICY);
+        cachingPolicy: AST_REUSABLE_CACHING_POLICY);
 
 /**
  * The partially resolved [CompilationUnit] associated with a compilation unit.
@@ -798,7 +798,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT3', null,
-        cachingPolicy: AST_CACHING_POLICY);
+        cachingPolicy: AST_REUSABLE_CACHING_POLICY);
 
 /**
  * The partially resolved [CompilationUnit] associated with a compilation unit.
