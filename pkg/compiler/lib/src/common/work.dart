@@ -10,22 +10,11 @@ import '../elements/elements.dart' show AstElement;
 import '../enqueue.dart' show Enqueuer;
 import '../universe/world_impact.dart' show WorldImpact;
 
-/**
- * Contains backend-specific data that is used throughout the compilation of
- * one work item.
- */
-class ItemCompilationContext {}
-
 abstract class WorkItem {
-  final ItemCompilationContext compilationContext;
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [element] must be a declaration element.
-   */
+  /// Element on which the work will be done.
   final AstElement element;
 
-  WorkItem(this.element, this.compilationContext) {
+  WorkItem(this.element) {
     assert(invariant(element, element.isDeclaration));
   }
 

@@ -10,7 +10,7 @@ import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show Resolution;
 import 'common/resolution.dart' show ResolutionWorkItem;
 import 'common/tasks.dart' show CompilerTask;
-import 'common/work.dart' show ItemCompilationContext, WorkItem;
+import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'dart_types.dart' show DartType, InterfaceType;
@@ -39,8 +39,6 @@ import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import 'util/util.dart' show Setlet;
 
-typedef ItemCompilationContext ItemCompilationContextCreator();
-
 class EnqueueTask extends CompilerTask {
   final ResolutionEnqueuer resolution;
   final Enqueuer codegen;
@@ -52,7 +50,6 @@ class EnqueueTask extends CompilerTask {
       : compiler = compiler,
         resolution = new ResolutionEnqueuer(
             compiler,
-            compiler.backend.createItemCompilationContext,
             compiler.options.analyzeOnly && compiler.options.analyzeMain
                 ? const EnqueuerStrategy()
                 : const TreeShakingEnqueuerStrategy()),
@@ -128,7 +125,6 @@ class ResolutionEnqueuer extends Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
   final EnqueuerStrategy strategy;
-  final ItemCompilationContextCreator itemCompilationContextCreator;
   final Map<String, Set<Element>> instanceMembersByName =
       new Map<String, Set<Element>>();
   final Map<String, Set<Element>> instanceFunctionsByName =
@@ -147,8 +143,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
   WorldImpactVisitor impactVisitor;
 
-  ResolutionEnqueuer(
-      Compiler compiler, this.itemCompilationContextCreator, this.strategy)
+  ResolutionEnqueuer(Compiler compiler, this.strategy)
       : this.name = 'resolution enqueuer',
         this.compiler = compiler,
         processedElements = new Set<AstElement>(),
@@ -740,8 +735,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
     compiler.world.registerUsedElement(element);
 
-    ResolutionWorkItem workItem = compiler.resolution
-        .createWorkItem(element, itemCompilationContextCreator());
+    ResolutionWorkItem workItem = compiler.resolution.createWorkItem(element);
     queue.add(workItem);
 
     // Enable isolate support if we start using something from the isolate

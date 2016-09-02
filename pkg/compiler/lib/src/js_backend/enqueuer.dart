@@ -44,7 +44,6 @@ class CodegenEnqueuer implements Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
   final EnqueuerStrategy strategy;
-  final ItemCompilationContextCreator itemCompilationContextCreator;
   final Map<String, Set<Element>> instanceMembersByName =
       new Map<String, Set<Element>>();
   final Map<String, Set<Element>> instanceFunctionsByName =
@@ -65,8 +64,7 @@ class CodegenEnqueuer implements Enqueuer {
 
   WorldImpactVisitor impactVisitor;
 
-  CodegenEnqueuer(
-      Compiler compiler, this.itemCompilationContextCreator, this.strategy)
+  CodegenEnqueuer(Compiler compiler, this.strategy)
       : queue = new Queue<CodegenWorkItem>(),
         newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
         newlySeenSelectors = compiler.cacheStrategy.newSet(),
@@ -672,9 +670,7 @@ class CodegenEnqueuer implements Enqueuer {
       throw new SpannableAssertionFailure(
           element, "Codegen work list is closed. Trying to add $element");
     }
-    CodegenWorkItem workItem =
-        new CodegenWorkItem(compiler, element, itemCompilationContextCreator());
-    queue.add(workItem);
+    queue.add(new CodegenWorkItem(compiler, element));
     return true;
   }
 

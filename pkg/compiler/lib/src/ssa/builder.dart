@@ -86,7 +86,6 @@ class SsaBuilderTask extends CompilerTask {
         SsaBuilder builder = new SsaBuilder(
             work.element.implementation,
             work.resolvedAst,
-            work.compilationContext,
             work.registry,
             backend,
             emitter.nativeEmitter,
@@ -117,7 +116,7 @@ class SsaBuilderTask extends CompilerTask {
           } else {
             name = "${element.name}";
           }
-          compiler.tracer.traceCompilation(name, work.compilationContext);
+          compiler.tracer.traceCompilation(name);
           compiler.tracer.traceGraph('builder', graph);
         }
         return graph;
@@ -368,10 +367,6 @@ class SsaBuilder extends ast.Visitor
   /// SSA graph), when dump-info is enabled.
   final InfoReporter infoReporter;
 
-  /// If not null, the builder will store in [context] data that is used later
-  /// during the optimization phases.
-  final JavaScriptItemCompilationContext context;
-
   /// Registry used to enqueue work during codegen, may be null to avoid
   /// enqueing any work.
   // TODO(sigmund,johnniwinther): get rid of registry entirely. We should be
@@ -429,7 +424,6 @@ class SsaBuilder extends ast.Visitor
   SsaBuilder(
       this.target,
       this.resolvedAst,
-      this.context,
       this.registry,
       JavaScriptBackend backend,
       this.nativeEmitter,
@@ -4211,9 +4205,7 @@ class SsaBuilder extends ast.Visitor
       // Overwrite the element type, in case the allocation site has
       // been inlined.
       newInstance.instructionType = elementType;
-      if (context != null) {
-        context.allocatedFixedLists.add(newInstance);
-      }
+      graph.allocatedFixedLists?.add(newInstance);
     }
 
     // The List constructor forwards to a Dart static method that does

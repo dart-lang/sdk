@@ -164,6 +164,12 @@ class HGraph {
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
   final List<HBasicBlock> blocks = <HBasicBlock>[];
+
+  /// Nodes containing list allocations for which there is a known fixed length.
+  // TODO(sigmund,sra): consider not storing this explicitly here (e.g. maybe
+  // store it on HInstruction, or maybe this can be computed on demand).
+  final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
+
   SourceInformation sourceInformation;
 
   // We canonicalize all constants used within a graph so we do not

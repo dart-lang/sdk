@@ -17,7 +17,6 @@ import '../common/names.dart' show Identifiers, Selectors, Uris;
 import '../common/registry.dart' show EagerRegistry, Registry;
 import '../common/resolution.dart' show Frontend, Resolution, ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
-import '../common/work.dart' show ItemCompilationContext;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
@@ -77,11 +76,6 @@ import 'type_variable_handler.dart';
 part 'runtime_types.dart';
 
 const VERBOSE_OPTIMIZER_HINTS = false;
-
-class JavaScriptItemCompilationContext extends ItemCompilationContext {
-  final Set<HInstruction> boundsChecked = new Set<HInstruction>();
-  final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
-}
 
 abstract class FunctionCompiler {
   /// Generates JavaScript code for `work.element`.
@@ -1303,10 +1297,6 @@ class JavaScriptBackend extends Backend {
     needToInitializeDispatchProperty = true;
   }
 
-  JavaScriptItemCompilationContext createItemCompilationContext() {
-    return new JavaScriptItemCompilationContext();
-  }
-
   void enqueueHelpers(ResolutionEnqueuer world, Registry registry) {
     assert(helpers.interceptorsLibrary != null);
     // TODO(ngeoffray): Not enqueuing those two classes currently make
@@ -1567,8 +1557,7 @@ class JavaScriptBackend extends Backend {
   CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
 
   CodegenEnqueuer createCodegenEnqueuer(Compiler compiler) {
-    return new CodegenEnqueuer(compiler, createItemCompilationContext,
-        const TreeShakingEnqueuerStrategy());
+    return new CodegenEnqueuer(compiler, const TreeShakingEnqueuerStrategy());
   }
 
   WorldImpact codegen(CodegenWorkItem work) {

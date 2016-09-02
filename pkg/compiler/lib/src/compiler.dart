@@ -22,7 +22,7 @@ import 'common/resolution.dart'
         ResolutionImpact,
         Target;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
-import 'common/work.dart' show ItemCompilationContext, WorkItem;
+import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
@@ -2151,13 +2151,11 @@ class _CompilerResolution implements Resolution {
   }
 
   @override
-  ResolutionWorkItem createWorkItem(
-      Element element, ItemCompilationContext compilationContext) {
+  ResolutionWorkItem createWorkItem(Element element) {
     if (compiler.serialization.isDeserialized(element)) {
-      return compiler.serialization
-          .createResolutionWorkItem(element, compilationContext);
+      return compiler.serialization.createResolutionWorkItem(element);
     } else {
-      return new ResolutionWorkItem(element, compilationContext);
+      return new ResolutionWorkItem(element);
     }
   }
 

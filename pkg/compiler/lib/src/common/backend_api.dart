@@ -34,7 +34,6 @@ import '../universe/world_impact.dart' show ImpactStrategy, WorldImpact;
 import 'codegen.dart' show CodegenWorkItem;
 import 'registry.dart' show Registry;
 import 'tasks.dart' show CompilerTask;
-import 'work.dart' show ItemCompilationContext;
 
 abstract class Backend extends Target {
   final Compiler compiler;
@@ -104,10 +103,6 @@ abstract class Backend extends Target {
 
   void onResolutionComplete() {}
   void onTypeInferenceComplete() {}
-
-  ItemCompilationContext createItemCompilationContext() {
-    return new ItemCompilationContext();
-  }
 
   bool classNeedsRti(ClassElement cls);
   bool methodNeedsRti(FunctionElement function);

@@ -49,25 +49,23 @@ class SsaOptimizerTask extends CompilerTask {
     }
 
     ConstantSystem constantSystem = compiler.backend.constantSystem;
-    JavaScriptItemCompilationContext context = work.compilationContext;
     bool trustPrimitives = compiler.options.trustPrimitives;
+    Set<HInstruction> boundsChecked = new Set<HInstruction>();
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
+        new SsaInstructionSimplifier(constantSystem, backend, this),
         new SsaTypeConversionInserter(compiler),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         new SsaTypePropagator(compiler),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
-        new SsaCheckInserter(
-            trustPrimitives, backend, work, context.boundsChecked),
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
-        new SsaCheckInserter(
-            trustPrimitives, backend, work, context.boundsChecked),
+        new SsaInstructionSimplifier(constantSystem, backend, this),
+        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
+        new SsaInstructionSimplifier(constantSystem, backend, this),
+        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
         new SsaTypePropagator(compiler),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
@@ -81,19 +79,19 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         new SsaTypePropagator(compiler),
-        new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
+        new SsaValueRangeAnalyzer(compiler, constantSystem, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
-        new SsaCheckInserter(
-            trustPrimitives, backend, work, context.boundsChecked),
+        new SsaInstructionSimplifier(constantSystem, backend, this),
+        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
       ];
       phases.forEach(runPhase);
 
       // Simplifying interceptors is not strictly just an optimization, it is
       // required for implementation correctness because the code generator
       // assumes it is always performed.
-      runPhase(new SsaSimplifyInterceptors(compiler, constantSystem, work));
+      runPhase(
+          new SsaSimplifyInterceptors(compiler, constantSystem, work.element));
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(compiler, this);
       runPhase(dce);
@@ -102,11 +100,10 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypePropagator(compiler),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
-          new SsaInstructionSimplifier(constantSystem, backend, this, work),
-          new SsaCheckInserter(
-              trustPrimitives, backend, work, context.boundsChecked),
-          new SsaSimplifyInterceptors(compiler, constantSystem, work),
+          new SsaValueRangeAnalyzer(compiler, constantSystem, this),
+          new SsaInstructionSimplifier(constantSystem, backend, this),
+          new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
+          new SsaSimplifyInterceptors(compiler, constantSystem, work.element),
           new SsaDeadCodeEliminator(compiler, this),
         ];
       } else {
@@ -114,7 +111,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypePropagator(compiler),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(constantSystem, backend, this, work),
+          new SsaInstructionSimplifier(constantSystem, backend, this),
         ];
       }
       phases.forEach(runPhase);
@@ -156,14 +153,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   final String name = "SsaInstructionSimplifier";
   final JavaScriptBackend backend;
-  final CodegenWorkItem work;
   final ConstantSystem constantSystem;
   HGraph graph;
   Compiler get compiler => backend.compiler;
   final SsaOptimizerTask optimizer;
+  final Set<HInstruction> allocatedFixedLists;
 
-  SsaInstructionSimplifier(
-      this.constantSystem, this.backend, this.optimizer, this.work);
+  SsaInstructionSimplifier(this.constantSystem, this.backend, this.optimizer);
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
@@ -835,8 +831,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (node.isNullCheck) return node;
     var receiver = node.receiver;
     if (node.element == helpers.jsIndexableLength) {
-      JavaScriptItemCompilationContext context = work.compilationContext;
-      if (context.allocatedFixedLists.contains(receiver)) {
+      if (graph.allocatedFixedLists.contains(receiver)) {
         // TODO(ngeoffray): checking if the second input is an integer
         // should not be necessary but it currently makes it easier for
         // other optimizations to reason about a fixed length constructor
@@ -1201,14 +1196,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final Set<HInstruction> boundsChecked;
-  final CodegenWorkItem work;
   final bool trustPrimitives;
   final JavaScriptBackend backend;
   final String name = "SsaCheckInserter";
   HGraph graph;
 
-  SsaCheckInserter(
-      this.trustPrimitives, this.backend, this.work, this.boundsChecked);
+  SsaCheckInserter(this.trustPrimitives, this.backend, this.boundsChecked);
 
   BackendHelpers get helpers => backend.helpers;
 
