@@ -19,7 +19,6 @@ abstract class GraphBuilder {
   /// We build the SSA graph by simulating a stack machine.
   List<HInstruction> stack = <HInstruction>[];
 
-
   void push(HInstruction instruction) {
     add(instruction);
     stack.add(instruction);

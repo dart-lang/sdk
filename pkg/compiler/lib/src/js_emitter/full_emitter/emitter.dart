@@ -1106,8 +1106,10 @@ class Emitter implements js_emitter.Emitter {
       }
     }
 
-    String libraryName = (!compiler.options.enableMinification ||
-        backend.mustRetainLibraryNames) ? library.libraryName : "";
+    String libraryName =
+        (!compiler.options.enableMinification || backend.mustRetainLibraryNames)
+            ? library.libraryName
+            : "";
 
     jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
 

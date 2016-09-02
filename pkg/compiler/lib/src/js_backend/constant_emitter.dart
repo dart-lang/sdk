@@ -335,6 +335,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
           " in constant type '${type.getStringAsDeclared(null)}'");
       return null;
     }
+
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
     RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
     for (DartType argument in type.typeArguments) {

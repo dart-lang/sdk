@@ -945,10 +945,9 @@ class ElementDeserializer {
             decoder.getEnum(Key.MESSAGE_KIND, MessageKind.values);
         Map messageArguments =
             deserializeMessageArguments(decoder, Key.ARGUMENTS);
-        return new AmbiguousImportX(
-            messageKind, messageArguments,
+        return new AmbiguousImportX(messageKind, messageArguments,
             enclosingElement, existingElement, newElement);
-  case SerializedElementKind.EXTERNAL_LIBRARY:
+      case SerializedElementKind.EXTERNAL_LIBRARY:
       case SerializedElementKind.EXTERNAL_LIBRARY_MEMBER:
       case SerializedElementKind.EXTERNAL_CLASS_MEMBER:
       case SerializedElementKind.EXTERNAL_CONSTRUCTOR:

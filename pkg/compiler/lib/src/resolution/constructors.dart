@@ -521,8 +521,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       Node diagnosticNode, String constructorName) {
     ClassElement cls = type.element;
     cls.ensureResolved(resolution);
-    ConstructorElement constructor = findConstructor(
-        context.library, cls, constructorName);
+    ConstructorElement constructor =
+        findConstructor(context.library, cls, constructorName);
     if (constructor == null) {
       MessageKind kind = constructorName.isEmpty
           ? MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR

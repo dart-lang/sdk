@@ -1060,6 +1060,7 @@ class FragmentEmitter {
       return js.stringArray(fragments.map((DeferredFragment fragment) =>
           "${fragment.outputFileName}.${ModelEmitter.deferredExtension}"));
     }
+
     js.ArrayInitializer fragmentHashes(List<Fragment> fragments) {
       return new js.ArrayInitializer(fragments
           .map((fragment) => deferredLoadHashes[fragment])
