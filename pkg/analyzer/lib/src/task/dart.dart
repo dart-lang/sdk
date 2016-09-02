@@ -1596,10 +1596,10 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
           context as InternalAnalysisContext;
       AnalysisCache analysisCache = internalContext.analysisCache;
       CacheEntry cacheEntry = internalContext.getCacheEntry(target);
-      libraryElement = analysisCache.getValue(target, LIBRARY_ELEMENT1);
+      libraryElement = analysisCache.getValue(target, LIBRARY_ELEMENT1) as LibraryElementImpl;
       if (libraryElement == null &&
           internalContext.aboutToComputeResult(cacheEntry, LIBRARY_ELEMENT1)) {
-        libraryElement = analysisCache.getValue(target, LIBRARY_ELEMENT1);
+        libraryElement = analysisCache.getValue(target, LIBRARY_ELEMENT1) as LibraryElementImpl;
       }
     }
     //

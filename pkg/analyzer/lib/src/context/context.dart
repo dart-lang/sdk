@@ -1584,7 +1584,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       Source librarySource, Source unitSource) {
     LibrarySpecificUnit target =
         new LibrarySpecificUnit(librarySource, unitSource);
-    for (ResultDescriptor result in [
+    for (ResultDescriptor<CompilationUnit> result in [
       RESOLVED_UNIT,
       RESOLVED_UNIT12,
       RESOLVED_UNIT11,

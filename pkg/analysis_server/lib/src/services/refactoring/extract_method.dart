@@ -565,7 +565,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (_selectionExpression != null) {
       _selectionExpression.accept(visitor);
     } else if (_selectionStatements != null) {
-      _selectionStatements.forEach((statement) => statement.accept(visitor));
+      _selectionStatements.forEach((statement) {
+        statement.accept(visitor);
+      });
     }
     _hasAwait = visitor.result;
   }
