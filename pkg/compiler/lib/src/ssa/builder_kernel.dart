@@ -21,6 +21,7 @@ import 'graph_builder.dart';
 import 'kernel_ast_adapter.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
+import 'ssa_branch_builder.dart';
 
 class SsaKernelBuilderTask extends CompilerTask {
   final JavaScriptBackend backend;
@@ -67,7 +68,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   JavaScriptBackend get backend => compiler.backend;
 
-  LocalsHandler localsHandler;
   SourceInformationBuilder sourceInformationBuilder;
   KernelAstAdapter astAdapter;
 
@@ -113,6 +113,23 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return graph;
   }
 
+  @override
+  HInstruction popBoolified() {
+    HInstruction value = pop();
+    // TODO(het): add boolean conversion type check
+    HInstruction result = new HBoolify(value, backend.boolType);
+    add(result);
+    return result;
+  }
+
+  // TODO(het): This implementation is shared with [SsaBuilder]. Should we just
+  // allow [GraphBuilder] to access `compiler`?
+  @override
+  pushCheckNull(HInstruction expression) {
+    push(new HIdentity(
+        expression, graph.addConstantNull(compiler), null, backend.boolType));
+  }
+
   /// Builds a SSA graph for [method].
   void buildMethod(IrFunction method, FunctionElement functionElement) {
     openFunction(method, functionElement);
@@ -156,6 +173,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  visitExpressionStatement(ir.ExpressionStatement exprStatement) {
+    exprStatement.expression.accept(this);
+    pop();
+  }
+
+  @override
   void visitReturnStatement(ir.ReturnStatement returnStatement) {
     HInstruction value;
     if (returnStatement.expression == null) {
@@ -169,6 +192,15 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // TODO(het): Set a return value instead of closing the function when we
     // support inlining.
     closeAndGotoExit(new HReturn(value, null));
+  }
+
+  @override
+  void visitIfStatement(ir.IfStatement ifStatement) {
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, compiler);
+    branchBuilder.handleIf(
+        () => ifStatement.condition.accept(this),
+        () => ifStatement.then.accept(this),
+        () => ifStatement.otherwise?.accept(this));
   }
 
   @override
@@ -275,8 +307,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
-  visitExpressionStatement(ir.ExpressionStatement exprStatement) {
-    exprStatement.expression.accept(this);
-    pop();
+  visitNot(ir.Not not) {
+    not.operand.accept(this);
+    push(new HNot(popBoolified(), backend.boolType));
   }
 }

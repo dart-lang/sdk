@@ -61,10 +61,10 @@ class LocalsHandler {
   ///
   final InterfaceType instanceType;
 
-  final Compiler compiler;
+  final Compiler _compiler;
 
   LocalsHandler(this.builder, this.executableContext,
-      InterfaceType instanceType, this.compiler)
+      InterfaceType instanceType, this._compiler)
       : this.instanceType =
             instanceType == null || instanceType.containsTypeVariables
                 ? null
@@ -95,7 +95,7 @@ class LocalsHandler {
         instanceType = other.instanceType,
         builder = other.builder,
         closureData = other.closureData,
-        compiler = other.compiler,
+        _compiler = other._compiler,
         activationVariables = other.activationVariables,
         cachedTypeOfThis = other.cachedTypeOfThis,
         cachedTypesOfCapturedVariables = other.cachedTypesOfCapturedVariables;
@@ -111,7 +111,7 @@ class LocalsHandler {
   HInstruction createBox() {
     // TODO(floitsch): Clean up this hack. Should we create a box-object by
     // just creating an empty object literal?
-    JavaScriptBackend backend = compiler.backend;
+    JavaScriptBackend backend = _compiler.backend;
     HInstruction box = new HForeignCode(
         js.js.parseForeignJS('{}'), backend.nonNullType, <HInstruction>[],
         nativeBehavior: native.NativeBehavior.PURE_ALLOCATION);
@@ -131,7 +131,7 @@ class LocalsHandler {
     if (element != null && element.isGenerativeConstructorBody) {
       // The box is passed as a parameter to a generative
       // constructor body.
-      JavaScriptBackend backend = compiler.backend;
+      JavaScriptBackend backend = _compiler.backend;
       box = builder.addParameter(scopeData.boxElement, backend.nonNullType);
     } else {
       box = createBox();
@@ -185,7 +185,7 @@ class LocalsHandler {
   /// Invariant: [function] must be an implementation element.
   void startFunction(AstElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
-    closureData = compiler.closureToClassMapper
+    closureData = _compiler.closureToClassMapper
         .computeClosureToClassMapping(element.resolvedAst);
 
     if (element is FunctionElement) {
@@ -201,8 +201,10 @@ class LocalsHandler {
             return;
           }
         }
-        HInstruction parameter = builder.addParameter(parameterElement,
-            TypeMaskFactory.inferredTypeForElement(parameterElement, compiler));
+        HInstruction parameter = builder.addParameter(
+            parameterElement,
+            TypeMaskFactory.inferredTypeForElement(
+                parameterElement, _compiler));
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
       });
@@ -216,7 +218,7 @@ class LocalsHandler {
     closureData.forEachFreeVariable((Local from, CapturedVariable to) {
       redirectElement(from, to);
     });
-    JavaScriptBackend backend = compiler.backend;
+    JavaScriptBackend backend = _compiler.backend;
     if (closureData.isClosure) {
       // Inside closure redirect references to itself to [:this:].
       HThis thisInstruction =
@@ -265,7 +267,7 @@ class LocalsHandler {
           new SyntheticLocal('receiver', executableContext);
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
-      ClassWorld classWorld = compiler.world;
+      ClassWorld classWorld = _compiler.world;
       HParameterValue value =
           new HParameterValue(parameter, new TypeMask.exact(cls, classWorld));
       builder.graph.explicitReceiverParameter = value;
@@ -306,10 +308,10 @@ class LocalsHandler {
     if (isAccessedDirectly(local)) {
       if (directLocals[local] == null) {
         if (local is TypeVariableElement) {
-          compiler.reporter.internalError(compiler.currentElement,
+          _compiler.reporter.internalError(_compiler.currentElement,
               "Runtime type information not available for $local.");
         } else {
-          compiler.reporter.internalError(
+          _compiler.reporter.internalError(
               local, "Cannot find value $local in ${directLocals.keys}.");
         }
       }
@@ -323,7 +325,7 @@ class LocalsHandler {
       ClosureFieldElement redirect = redirectionMapping[local];
       HInstruction receiver = readLocal(closureData.closureElement);
       TypeMask type = local is BoxLocal
-          ? (compiler.backend as JavaScriptBackend).nonNullType
+          ? (_compiler.backend as JavaScriptBackend).nonNullType
           : getTypeOfCapturedVariable(redirect);
       HInstruction fieldGet = new HFieldGet(redirect, receiver, type);
       builder.add(fieldGet);
@@ -346,7 +348,7 @@ class LocalsHandler {
       HInstruction instruction = new HLocalGet(
           local,
           localValue,
-          (compiler.backend as JavaScriptBackend).dynamicType,
+          (_compiler.backend as JavaScriptBackend).dynamicType,
           sourceInformation);
       builder.add(instruction);
       return instruction;
@@ -375,7 +377,7 @@ class LocalsHandler {
     }
 
     return activationVariables.putIfAbsent(local, () {
-      JavaScriptBackend backend = compiler.backend;
+      JavaScriptBackend backend = _compiler.backend;
       HLocalValue localValue = new HLocalValue(local, backend.nonNullType)
         ..sourceInformation = sourceInformation;
       builder.graph.entry.addAtExit(localValue);
@@ -480,7 +482,7 @@ class LocalsHandler {
     Map<Local, HInstruction> savedDirectLocals =
         new Map<Local, HInstruction>.from(directLocals);
 
-    JavaScriptBackend backend = compiler.backend;
+    JavaScriptBackend backend = _compiler.backend;
     // Create phis for all elements in the definitions environment.
     savedDirectLocals.forEach((Local local, HInstruction instruction) {
       if (isAccessedDirectly(local)) {
@@ -544,7 +546,7 @@ class LocalsHandler {
     // variable cannot be alive outside the block. Note: this is only
     // true for nodes where we do joins.
     Map<Local, HInstruction> joinedLocals = new Map<Local, HInstruction>();
-    JavaScriptBackend backend = compiler.backend;
+    JavaScriptBackend backend = _compiler.backend;
     otherLocals.directLocals.forEach((Local local, HInstruction instruction) {
       // We know 'this' cannot be modified.
       if (local == closureData.thisLocal) {
@@ -577,7 +579,7 @@ class LocalsHandler {
     if (localsHandlers.length == 1) return localsHandlers[0];
     Map<Local, HInstruction> joinedLocals = new Map<Local, HInstruction>();
     HInstruction thisValue = null;
-    JavaScriptBackend backend = compiler.backend;
+    JavaScriptBackend backend = _compiler.backend;
     directLocals.forEach((Local local, HInstruction instruction) {
       if (local != closureData.thisLocal) {
         HPhi phi = new HPhi.noInputs(local, backend.dynamicType);
@@ -623,15 +625,15 @@ class LocalsHandler {
     if (result == null) {
       ThisLocal local = closureData.thisLocal;
       ClassElement cls = local.enclosingClass;
-      ClassWorld classWorld = compiler.world;
+      ClassWorld classWorld = _compiler.world;
       if (classWorld.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
         // simplicity, we mark the type as an interface type.
-        result = new TypeMask.nonNullSubtype(cls.declaration, compiler.world);
+        result = new TypeMask.nonNullSubtype(cls.declaration, _compiler.world);
       } else {
-        result = new TypeMask.nonNullSubclass(cls.declaration, compiler.world);
+        result = new TypeMask.nonNullSubclass(cls.declaration, _compiler.world);
       }
       cachedTypeOfThis = result;
     }
@@ -644,7 +646,7 @@ class LocalsHandler {
   TypeMask getTypeOfCapturedVariable(Element element) {
     assert(element.isField);
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
-      return TypeMaskFactory.inferredTypeForElement(element, compiler);
+      return TypeMaskFactory.inferredTypeForElement(element, _compiler);
     });
   }
 
