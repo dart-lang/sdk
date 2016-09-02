@@ -79,7 +79,7 @@ class TestCompiler extends apiimpl.CompilerImpl {
     return super.analyzeElement(element);
   }
 
-  WorldImpact codegen(CodegenWorkItem work, CodegenEnqueuer world) {
+  WorldImpact codegen(CodegenWorkItem work, Enqueuer world) {
     test('Compiler.codegen');
     return super.codegen(work, world);
   }

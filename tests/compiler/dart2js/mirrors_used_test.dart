@@ -58,7 +58,7 @@ void main() {
     CompilerImpl compiler = result.compiler;
     print('');
     List generatedCode =
-        Elements.sortedByPosition(compiler.enqueuer.codegen.generatedCode.keys);
+        Elements.sortedByPosition(compiler.enqueuer.codegen.processedEntities);
     for (var element in generatedCode) {
       print(element);
     }

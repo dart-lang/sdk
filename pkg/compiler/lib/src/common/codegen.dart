@@ -16,7 +16,7 @@ import '../elements/elements.dart'
         FunctionElement,
         LocalFunctionElement,
         ResolvedAst;
-import '../enqueue.dart' show CodegenEnqueuer;
+import '../enqueue.dart' show Enqueuer;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactVisitor;
@@ -244,7 +244,7 @@ class CodegenWorkItem extends WorkItem {
       : this.resolvedAst = resolvedAst,
         super(resolvedAst.element, compilationContext);
 
-  WorldImpact run(Compiler compiler, CodegenEnqueuer world) {
+  WorldImpact run(Compiler compiler, Enqueuer world) {
     if (world.isProcessed(element)) return const WorldImpact();
 
     registry = new CodegenRegistry(compiler, element);

@@ -18,8 +18,7 @@ import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
     show ClassElement, Element, FunctionElement, LibraryElement;
-import '../enqueue.dart'
-    show Enqueuer, EnqueueTask, CodegenEnqueuer, ResolutionEnqueuer;
+import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../js_backend/backend_helpers.dart' as js_backend show BackendHelpers;
@@ -83,8 +82,8 @@ abstract class Backend extends Target {
 
   void enqueueHelpers(ResolutionEnqueuer world, Registry registry);
 
-  /// Creates a [CodegenEnqueuer] specific to this backend.
-  CodegenEnqueuer createCodegenEnqueuer(Compiler compiler);
+  /// Creates an [Enqueuer] for code generation specific to this backend.
+  Enqueuer createCodegenEnqueuer(Compiler compiler);
 
   WorldImpact codegen(CodegenWorkItem work);
 

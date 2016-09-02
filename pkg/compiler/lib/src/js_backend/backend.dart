@@ -321,7 +321,7 @@ class JavaScriptBackend extends Backend {
    * The generated code as a js AST for compiled methods.
    */
   Map<Element, jsAst.Expression> get generatedCode {
-    return compiler.enqueuer.codegen.generatedCode;
+    return codegenEnqueuer.generatedCode;
   }
 
   FunctionInlineCache inlineCache = new FunctionInlineCache();
@@ -1563,6 +1563,8 @@ class JavaScriptBackend extends Backend {
       enqueueImpact(enqueuer, otherImpact, registry);
     }
   }
+
+  CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
 
   CodegenEnqueuer createCodegenEnqueuer(Compiler compiler) {
     return new CodegenEnqueuer(compiler, createItemCompilationContext,

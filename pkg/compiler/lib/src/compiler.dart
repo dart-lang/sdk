@@ -37,12 +37,7 @@ import 'dump_info.dart' show DumpInfoTask;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show ErroneousElementX;
 import 'enqueue.dart'
-    show
-        CodegenEnqueuer,
-        Enqueuer,
-        EnqueueTask,
-        ResolutionEnqueuer,
-        QueueFilter;
+    show Enqueuer, EnqueueTask, ResolutionEnqueuer, QueueFilter;
 import 'environment.dart';
 import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
@@ -879,7 +874,7 @@ abstract class Compiler implements LibraryLoaderListener {
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
     var resolved = new Set.from(enqueuer.resolution.processedElements);
-    for (Element e in enqueuer.codegen.generatedCode.keys) {
+    for (Element e in enqueuer.codegen.processedEntities) {
       resolved.remove(e);
     }
     for (Element e in new Set.from(resolved)) {
@@ -945,13 +940,13 @@ abstract class Compiler implements LibraryLoaderListener {
         return worldImpact;
       });
 
-  WorldImpact codegen(CodegenWorkItem work, CodegenEnqueuer world) {
+  WorldImpact codegen(CodegenWorkItem work, Enqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.codegen)));
     if (shouldPrintProgress) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
-      reporter
-          .log('Compiled ${enqueuer.codegen.generatedCode.length} methods.');
+      reporter.log(
+          'Compiled ${enqueuer.codegen.processedEntities.length} methods.');
       progress.reset();
     }
     return backend.codegen(work);

@@ -23,10 +23,10 @@ main() {
     Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedReflectiveElements);
     Expect.isFalse(
         compiler.enqueuer.resolution.hasEnqueuedReflectiveStaticFields);
-    Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedReflectiveElements);
-    Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedReflectiveStaticFields);
-    Expect.isFalse(compiler.disableTypeInference);
     JavaScriptBackend backend = compiler.backend;
+    Expect.isFalse(backend.codegenEnqueuer.hasEnqueuedReflectiveElements);
+    Expect.isFalse(backend.codegenEnqueuer.hasEnqueuedReflectiveStaticFields);
+    Expect.isFalse(compiler.disableTypeInference);
     Expect.isFalse(backend.hasRetainedMetadata);
   });
 }

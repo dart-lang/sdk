@@ -9,20 +9,17 @@ import 'dart:collection' show Queue;
 import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
-import '../common/resolution.dart' show ResolutionWorkItem;
-import '../common/tasks.dart' show CompilerTask;
-import '../common/work.dart' show ItemCompilationContext, WorkItem;
+import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
     show
-        AnalyzableElement,
-        AstElement,
         ClassElement,
         ConstructorElement,
         Element,
         Elements,
+        Entity,
         FunctionElement,
         LibraryElement,
         Member,
@@ -30,7 +27,7 @@ import '../elements/elements.dart'
         Name,
         TypedElement,
         TypedefElement;
-import '../enqueue.dart' as enqueue;
+import '../enqueue.dart';
 import '../js/js.dart' as js;
 import '../native/native.dart' as native;
 import '../types/types.dart' show TypeMaskStrategy;
@@ -42,11 +39,12 @@ import '../universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart' show Setlet;
 
-abstract class _Enqueuer implements enqueue.Enqueuer {
+/// [Enqueuer] which is specific to code generation.
+class CodegenEnqueuer implements Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
-  final enqueue.EnqueuerStrategy strategy;
-  final enqueue.ItemCompilationContextCreator itemCompilationContextCreator;
+  final EnqueuerStrategy strategy;
+  final ItemCompilationContextCreator itemCompilationContextCreator;
   final Map<String, Set<Element>> instanceMembersByName =
       new Map<String, Set<Element>>();
   final Map<String, Set<Element>> instanceFunctionsByName =
@@ -59,7 +57,7 @@ abstract class _Enqueuer implements enqueue.Enqueuer {
       const bool.fromEnvironment("TRACE_MIRROR_ENQUEUING");
 
   bool queueIsClosed = false;
-  enqueue.EnqueueTask task;
+  EnqueueTask task;
   native.NativeEnqueuer nativeEnqueuer; // Set by EnqueueTask
 
   bool hasEnqueuedReflectiveElements = false;
@@ -67,32 +65,31 @@ abstract class _Enqueuer implements enqueue.Enqueuer {
 
   WorldImpactVisitor impactVisitor;
 
-  _Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator,
-      this.strategy) {
+  CodegenEnqueuer(
+      Compiler compiler, this.itemCompilationContextCreator, this.strategy)
+      : queue = new Queue<CodegenWorkItem>(),
+        newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
+        newlySeenSelectors = compiler.cacheStrategy.newSet(),
+        this.name = 'codegen enqueuer',
+        this.compiler = compiler {
     impactVisitor = new _EnqueuerImpactVisitor(this);
   }
 
   // TODO(johnniwinther): Move this to [ResolutionEnqueuer].
   Resolution get resolution => compiler.resolution;
 
-  Queue<WorkItem> get queue;
   bool get queueIsEmpty => queue.isEmpty;
 
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
 
-  enqueue.QueueFilter get filter => compiler.enqueuerFilter;
+  QueueFilter get filter => compiler.enqueuerFilter;
 
   DiagnosticReporter get reporter => compiler.reporter;
-
-  /// Returns [:true:] if [member] has been processed by this enqueuer.
-  bool isProcessed(Element member);
 
   bool isClassProcessed(ClassElement cls) => _processedClasses.contains(cls);
 
   Iterable<ClassElement> get processedClasses => _processedClasses;
-
-  ImpactUseCase get impactUse;
 
   /**
    * Documentation wanted -- johnniwinther
@@ -108,13 +105,6 @@ abstract class _Enqueuer implements enqueue.Enqueuer {
           .registerDependency(compiler.currentElement, element);
     }
   }
-
-  /**
-   * Adds [element] to the work list if it has not already been processed.
-   *
-   * Returns [true] if the element was actually added to the queue.
-   */
-  bool internalAddToWorkList(Element element);
 
   /// Apply the [worldImpact] of processing [element] to this enqueuer.
   void applyImpact(Element element, WorldImpact worldImpact) {
@@ -236,8 +226,6 @@ abstract class _Enqueuer implements enqueue.Enqueuer {
         .add(member);
   }
 
-  void registerNoSuchMethod(Element noSuchMethod);
-
   void enableIsolateSupport() {}
 
   void processInstantiatedClass(ClassElement cls) {
@@ -289,16 +277,6 @@ abstract class _Enqueuer implements enqueue.Enqueuer {
       }
     });
   }
-
-  /**
-   * Decides whether an element should be included to satisfy requirements
-   * of the mirror system. [includedEnclosing] provides a hint whether the
-   * enclosing element was included.
-   *
-   * The actual implementation depends on the current compiler phase.
-   */
-  bool shouldIncludeElementDueToMirrors(Element element,
-      {bool includedEnclosing});
 
   void logEnqueueReflectiveAction(action, [msg = ""]) {
     if (TRACE_MIRROR_ENQUEUING) {
@@ -490,7 +468,7 @@ abstract class _Enqueuer implements enqueue.Enqueuer {
     processSet(instanceFunctionsByName, n, f);
   }
 
-  void handleUnseenSelector(DynamicUse universeSelector) {
+  void _handleUnseenSelector(DynamicUse universeSelector) {
     strategy.processDynamicUse(this, universeSelector);
   }
 
@@ -630,21 +608,15 @@ abstract class _Enqueuer implements enqueue.Enqueuer {
     nativeEnqueuer.logSummary(log);
   }
 
-  /// Log summary specific to the concrete enqueuer.
-  void _logSpecificSummary(log(message));
-
   String toString() => 'Enqueuer($name)';
 
-  void forgetElement(Element element) {
+  void _forgetElement(Element element) {
     universe.forgetElement(element, compiler);
     _processedClasses.remove(element);
     instanceMembersByName[element.name]?.remove(element);
     instanceFunctionsByName[element.name]?.remove(element);
   }
-}
 
-/// [Enqueuer] which is specific to code generation.
-class CodegenEnqueuer extends _Enqueuer implements enqueue.CodegenEnqueuer {
   final Queue<CodegenWorkItem> queue;
   final Map<Element, js.Expression> generatedCode = <Element, js.Expression>{};
 
@@ -658,16 +630,6 @@ class CodegenEnqueuer extends _Enqueuer implements enqueue.CodegenEnqueuer {
       const ImpactUseCase('CodegenEnqueuer');
 
   ImpactUseCase get impactUse => IMPACT_USE;
-
-  CodegenEnqueuer(
-      Compiler compiler,
-      ItemCompilationContext itemCompilationContextCreator(),
-      enqueue.EnqueuerStrategy strategy)
-      : queue = new Queue<CodegenWorkItem>(),
-        newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
-        newlySeenSelectors = compiler.cacheStrategy.newSet(),
-        super('codegen enqueuer', compiler, itemCompilationContextCreator,
-            strategy);
 
   bool isProcessed(Element member) =>
       member.isAbstract || generatedCode.containsKey(member);
@@ -684,6 +646,11 @@ class CodegenEnqueuer extends _Enqueuer implements enqueue.CodegenEnqueuer {
     return compiler.backend.isAccessibleByReflection(element);
   }
 
+  /**
+   * Adds [element] to the work list if it has not already been processed.
+   *
+   * Returns [true] if the element was actually added to the queue.
+   */
   bool internalAddToWorkList(Element element) {
     // Don't generate code for foreign elements.
     if (compiler.backend.isForeign(element)) return false;
@@ -723,7 +690,7 @@ class CodegenEnqueuer extends _Enqueuer implements enqueue.CodegenEnqueuer {
   }
 
   void forgetElement(Element element) {
-    super.forgetElement(element);
+    _forgetElement(element);
     generatedCode.remove(element);
     if (element is MemberElement) {
       for (Element closure in element.nestedClosures) {
@@ -738,8 +705,11 @@ class CodegenEnqueuer extends _Enqueuer implements enqueue.CodegenEnqueuer {
     if (compiler.options.hasIncrementalSupport) {
       newlySeenSelectors.add(dynamicUse);
     }
-    super.handleUnseenSelector(dynamicUse);
+    _handleUnseenSelector(dynamicUse);
   }
+
+  @override
+  Iterable<Entity> get processedEntities => generatedCode.keys;
 }
 
 void removeFromSet(Map<String, Set<Element>> map, Element element) {
@@ -749,7 +719,7 @@ void removeFromSet(Map<String, Set<Element>> map, Element element) {
 }
 
 class _EnqueuerImpactVisitor implements WorldImpactVisitor {
-  final _Enqueuer enqueuer;
+  final CodegenEnqueuer enqueuer;
 
   _EnqueuerImpactVisitor(this.enqueuer);
 
