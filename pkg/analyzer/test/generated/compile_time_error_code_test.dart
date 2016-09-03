@@ -5675,6 +5675,28 @@ main() {
     assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
   }
 
+  void test_referencedBeforeDeclaration_type_localFunction() {
+    Source source = addSource(r'''
+void testTypeRef() {
+  String s = '';
+  int String(int x) => x + 1;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
+  }
+
+  void test_referencedBeforeDeclaration_type_localVariable() {
+    Source source = addSource(r'''
+void testTypeRef() {
+  String s = '';
+  var String = '';
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
+  }
+
   void test_rethrowOutsideCatch() {
     Source source = addSource(r'''
 f() {

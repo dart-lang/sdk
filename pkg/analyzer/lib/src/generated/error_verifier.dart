@@ -276,6 +276,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       new HashSet<String>();
 
   /**
+   * The elements that will be defined later in the current scope, but right
+   * now are not declared.
+   */
+  HiddenElements _hiddenElements = null;
+
+  /**
    * A list of types used by the [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]
    * and [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS] error codes.
    */
@@ -388,8 +394,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBlock(Block node) {
-    _checkDuplicateDeclarationInStatements(node.statements);
-    return super.visitBlock(node);
+    _hiddenElements = new HiddenElements(_hiddenElements, node);
+    try {
+      _checkDuplicateDeclarationInStatements(node.statements);
+      return super.visitBlock(node);
+    } finally {
+      _hiddenElements = _hiddenElements.outerElements;
+    }
   }
 
   @override
@@ -747,6 +758,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
+    ExecutableElement functionElement = node.element;
+    if (functionElement != null &&
+        functionElement.enclosingElement is! CompilationUnitElement) {
+      _hiddenElements.declare(functionElement);
+    }
     ExecutableElement outerFunction = _enclosingFunction;
     try {
       SimpleIdentifier identifier = node.name;
@@ -754,7 +770,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (identifier != null) {
         methodName = identifier.name;
       }
-      _enclosingFunction = node.element;
+      _enclosingFunction = functionElement;
       TypeName returnType = node.returnType;
       if (node.isSetter || node.isGetter) {
         _checkForMismatchedAccessorTypes(node, methodName);
@@ -1111,6 +1127,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
+    _checkForReferenceBeforeDeclaration(node);
     _checkForImplicitThisReferenceInInitializer(node);
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
@@ -1219,6 +1236,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } finally {
       _isInInstanceVariableInitializer = wasInInstanceVariableInitializer;
       _namesForReferenceToDeclaredVariableInInitializer.remove(name);
+    }
+    // declare the variable
+    AstNode grandparent = node.parent.parent;
+    if (grandparent is! TopLevelVariableDeclaration &&
+        grandparent is! FieldDeclaration) {
+      VariableElement element = node.element;
+      if (element != null) {
+        _hiddenElements.declare(element);
+      }
     }
     // done
     return null;
@@ -5420,6 +5446,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         redirectedConstructorNode);
   }
 
+  void _checkForReferenceBeforeDeclaration(SimpleIdentifier node) {
+    if (!node.inDeclarationContext() &&
+        _hiddenElements != null &&
+        _hiddenElements.contains(node.staticElement)) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          node,
+          [node.name]);
+    }
+  }
+
   /**
    * Check that the given rethrow [expression] is inside of a catch clause.
    *
@@ -6607,6 +6644,61 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
         _addTypeToCheck(typeArgument);
       }
     }
+  }
+}
+
+/**
+ * A record of the elements that will be declared in some scope (block), but are
+ * not yet declared.
+ */
+class HiddenElements {
+  /**
+   * The elements hidden in outer scopes, or `null` if this is the outermost
+   * scope.
+   */
+  final HiddenElements outerElements;
+
+  /**
+   * A set containing the elements that will be declared in this scope, but are
+   * not yet declared.
+   */
+  Set<Element> _elements = new HashSet<Element>();
+
+  /**
+   * Initialize a newly created set of hidden elements to include all of the
+   * elements defined in the set of [outerElements] and all of the elements
+   * declared in the given [block].
+   */
+  HiddenElements(this.outerElements, Block block) {
+    _initializeElements(block);
+  }
+
+  /**
+   * Return `true` if this set of elements contains the given [element].
+   */
+  bool contains(Element element) {
+    if (_elements.contains(element)) {
+      return true;
+    } else if (outerElements != null) {
+      return outerElements.contains(element);
+    }
+    return false;
+  }
+
+  /**
+   * Record that the given [element] has been declared, so it is no longer
+   * hidden.
+   */
+  void declare(Element element) {
+    _elements.remove(element);
+  }
+
+  /**
+   * Initialize the list of elements that are not yet declared to be all of the
+   * elements declared somewhere in the given [block].
+   */
+  void _initializeElements(Block block) {
+    _elements.addAll(BlockScope.elementsInBlock(block));
   }
 }
 
