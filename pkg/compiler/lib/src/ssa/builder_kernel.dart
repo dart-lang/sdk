@@ -298,7 +298,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     TypeMask type = astAdapter.selectorTypeOf(invocation);
 
     push(new HInvokeDynamicMethod(astAdapter.getSelector(invocation),
-        astAdapter.typeOfInvocation(invocation), inputs, type, isIntercepted));
+        astAdapter.getTypeMask(invocation), inputs, type, isIntercepted));
   }
 
   @override

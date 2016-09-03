@@ -100,14 +100,13 @@ class KernelAstAdapter {
     return new Selector(kind, name, callStructure);
   }
 
-  TypeMask typeOfInvocation(ir.MethodInvocation invocation) {
-    return _compiler.globalInference.results
-        .typeOfSend(getNode(invocation), _elements);
+  TypeMask getTypeMask(ir.MethodInvocation invocation) {
+    return _elements.getTypeMask(getNode(invocation));
   }
 
   TypeMask selectorTypeOf(ir.MethodInvocation invocation) {
     return TypeMaskFactory.inferredTypeForSelector(
-        getSelector(invocation), typeOfInvocation(invocation), _compiler);
+        getSelector(invocation), getTypeMask(invocation), _compiler);
   }
 
   bool isIntercepted(ir.MethodInvocation invocation) {

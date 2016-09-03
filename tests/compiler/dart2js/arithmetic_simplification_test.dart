@@ -23,12 +23,10 @@ void main() {
 }
 """;
 
-// TODO(johnniwinther): Find out why this doesn't work without the `as num`
-// cast.
 const String NUM_PLUS_ZERO = """
 int foo(x) => x;
 void main() {
-  var x = foo(0) as num;
+  var x = foo(0);
   return x + 0;
 }
 """;
@@ -83,7 +81,8 @@ main() {
   asyncTest(() => Future.wait([
     compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero),
     compileAndDoNotMatch(ZERO_PLUS_INT, 'main', zeroPlus),
-    compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero),
+    // TODO(johnniwinther): Find out why this doesn't work without [useMock].
+    compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero, useMock: true),
     compileAndMatch(ZERO_PLUS_NUM, 'main', zeroPlus),
     compileAndDoNotMatch(INT_TIMES_ONE, 'main', timesOne),
     compileAndDoNotMatch(ONE_TIMES_INT, 'main', oneTimes),

@@ -25,7 +25,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
         var parameter =
           printElement.functionSignature.requiredParameters.first;
         var type =
-            compiler.globalInference.results.typeOf(parameter);
+            compiler.globalInference.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
 
@@ -36,7 +36,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
         var parameter =
           printElement.functionSignature.requiredParameters.first;
         var type =
-            compiler.globalInference.results.typeOf(parameter);
+            compiler.globalInference.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
 
@@ -47,7 +47,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
         var parameter =
           printElement.functionSignature.requiredParameters.first;
         var type =
-            compiler.globalInference.results.typeOf(parameter);
+            compiler.globalInference.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
 }
@@ -91,13 +91,13 @@ void testOptionalParameters() {
         var inference = compiler.globalInference;
         Expect.identical(
             commonMasks.uint31Type,
-            inference.results.typeOf(firstParameter));
+            inference.getGuaranteedTypeOfElement(firstParameter));
         Expect.identical(
             commonMasks.nullType,
-            inference.results.typeOf(secondParameter));
+            inference.getGuaranteedTypeOfElement(secondParameter));
         Expect.identical(
             commonMasks.nullType,
-            inference.results.typeOf(thirdParameter));
+            inference.getGuaranteedTypeOfElement(thirdParameter));
       });
 }
 
