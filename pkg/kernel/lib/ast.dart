@@ -1176,7 +1176,9 @@ class SuperPropertyGet extends Expression {
 
   accept(ExpressionVisitor v) => v.visitSuperPropertyGet(this);
 
-  visitChildren(Visitor v) {}
+  visitChildren(Visitor v) {
+    name?.accept(v);
+  }
 
   transformChildren(Transformer v) {}
 }
@@ -1195,6 +1197,7 @@ class SuperPropertySet extends Expression {
   accept(ExpressionVisitor v) => v.visitSuperPropertySet(this);
 
   visitChildren(Visitor v) {
+    name?.accept(v);
     value?.accept(v);
   }
 
@@ -1370,6 +1373,7 @@ class SuperMethodInvocation extends InvocationExpression {
   accept(ExpressionVisitor v) => v.visitSuperMethodInvocation(this);
 
   visitChildren(Visitor v) {
+    name?.accept(v);
     arguments?.accept(v);
   }
 
