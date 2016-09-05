@@ -277,18 +277,21 @@ void testCallableSubtype() {
     ClassElement classA = env.getElement('A');
     DartType A = classA.rawType;
     DartType function = env['Function'];
+    DartType call = env.getMemberType(classA, 'call');
     DartType m1 = env.getMemberType(classA, 'm1');
     DartType m2 = env.getMemberType(classA, 'm2');
     DartType m3 = env.getMemberType(classA, 'm3');
     DartType m4 = env.getMemberType(classA, 'm4');
     DartType m5 = env.getMemberType(classA, 'm5');
 
-    expect(true, A, function, expectMoreSpecific: false);
-    expect(true, A, m1, expectMoreSpecific: false);
+    expect(true, A, function);
+    expect(true, A, call);
+    expect(true, call, m1);
+    expect(true, A, m1);
     expect(true, A, m2, expectMoreSpecific: false);
     expect(false, A, m3);
     expect(false, A, m4);
-    expect(true, A, m5, expectMoreSpecific: false);
+    expect(true, A, m5);
   }));
 }
 
