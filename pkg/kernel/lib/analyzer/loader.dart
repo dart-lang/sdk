@@ -105,7 +105,9 @@ class AnalyzerLoader implements ReferenceLevelLoader {
   }
 
   LibraryElement _findLibraryElement(String uri) {
-    return context.computeLibraryElement(context.sourceFactory.forUri(uri));
+    var source = context.sourceFactory.forUri(uri);
+    if (source == null) return null;
+    return context.computeLibraryElement(source);
   }
 
   ast.Class getRootClassReference() {
@@ -329,7 +331,12 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     ensureLibraryIsLoaded(getLibraryReference(getDartCoreLibrary()));
     if (target != null) {
       for (var uri in target.extraRequiredLibraries) {
-        ensureLibraryIsLoaded(getLibraryReference(_findLibraryElement(uri)));
+        var library = _findLibraryElement(uri);
+        if (library == null) {
+          errors.add('Could not find required library $uri');
+          continue;
+        }
+        ensureLibraryIsLoaded(getLibraryReference(library));
       }
     }
     int libraryIndex = 0;
