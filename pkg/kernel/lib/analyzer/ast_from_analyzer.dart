@@ -2247,8 +2247,6 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
           break;
       }
     }
-    var typeArguments =
-        classElement.supertype.typeArguments.map(scope.buildType).toList();
     constructor.function = new ast.FunctionNode(new ast.EmptyStatement(),
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
@@ -2256,9 +2254,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         returnType: const ast.VoidType())..parent = constructor;
     constructor.initializers.add(new ast.SuperInitializer(
         scope.getMemberReference(targetConstructor),
-        new ast.Arguments(positionalArguments,
-            named: namedArguments,
-            types: typeArguments))..parent = constructor);
+        new ast.Arguments(positionalArguments, named: namedArguments))
+      ..parent = constructor);
   }
 
   void addAnnotations(List<Annotation> annotations) {
