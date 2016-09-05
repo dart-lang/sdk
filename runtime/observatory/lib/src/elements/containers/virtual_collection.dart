@@ -77,9 +77,9 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _onResizeSubscription.cancel();
   }
 
-  final DivElement _header = new DivElement()..classes = const ['header'];
-  final DivElement _scroller = new DivElement()..classes = const ['scroller'];
-  final DivElement _shifter = new DivElement()..classes = const ['shifter'];
+  final DivElement _header = new DivElement()..classes = ['header'];
+  final DivElement _scroller = new DivElement()..classes = ['scroller'];
+  final DivElement _shifter = new DivElement()..classes = ['shifter'];
 
   dynamic getItemFromElement(HtmlElement element) {
     final el_index = _shifter.children.indexOf(element);

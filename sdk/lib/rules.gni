@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+default_dart_root = rebase_path("../..")
+
 # This build rule will copy the source for one Dart SDK library.
 #
 # Required arguments:
@@ -13,7 +15,7 @@
 #       Base path to copy sources. Default value is "$root_gen_dir/dart_sdk".
 #
 #   dart_root
-#       Path to the Dart SDK source root. Default value is "//dart".
+#       Path to the Dart SDK source root. Default value is "../..".
 #
 # The sources will be copied into $root_gen_dir/dart_sdk/$sdk_lib_name/.
 #
@@ -22,7 +24,7 @@ template("dart_sdk_lib_copy") {
   if (defined(invoker.dart_root)) {
     dart_root = rebase_path(invoker.dart_root)
   } else {
-    dart_root = rebase_path("//dart")
+    dart_root = default_dart_root
   }
   if (defined(invoker.destination)) {
     destination = invoker.destination

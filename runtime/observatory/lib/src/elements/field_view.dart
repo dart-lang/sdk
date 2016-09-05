@@ -155,7 +155,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
     children = [
       new NavBarElement(queue: _r.queue)
         ..children = _createMenu(),
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = '$header ${field.name}',
           new HRElement(),
@@ -191,7 +191,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
                                          queue: _r.queue));
     } else if (_field.dartOwner is M.ClassRef) {
       menu.add(
-        new NavClassMenuElement(_isolate, _field.dartOwner, queue: _r.queue),
+        new NavClassMenuElement(_isolate, _field.dartOwner, queue: _r.queue)
       );
     }
     menu.addAll([

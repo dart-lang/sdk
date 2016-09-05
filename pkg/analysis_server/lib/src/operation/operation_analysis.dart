@@ -9,7 +9,6 @@ import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
-import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
@@ -22,24 +21,21 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/model.dart';
 
 /**
- * Runs the given function [f] with the working cache size in [context].
- * Returns the result of [f] invocation.
+ * Run the given function [f] with the given [context] made active.
+ * Return the result of [f] invocation.
  */
-runWithWorkingCacheSize(AnalysisContext context, f()) {
-  int currentCacheSize = context.analysisOptions.cacheSize;
-  if (currentCacheSize < PerformAnalysisOperation.WORKING_CACHE_SIZE) {
-    setCacheSize(context, PerformAnalysisOperation.WORKING_CACHE_SIZE);
+runWithActiveContext(AnalysisContext context, f()) {
+  if (context is InternalAnalysisContext && !context.isActive) {
+    context.isActive = true;
     try {
       return f();
     } finally {
-      setCacheSize(context, currentCacheSize);
+      context.isActive = false;
     }
   } else {
-    return f();
+    f();
   }
 }
 
@@ -248,18 +244,6 @@ void sendAnalysisNotificationOverrides(
   });
 }
 
-/**
- * Sets the cache size in the given [context] to the given value.
- */
-void setCacheSize(AnalysisContext context, int cacheSize) {
-  // TODO(scheglov) The cache size cannot be changed with task model.
-  // TODO(scheglov) Consider removing this function.
-//  AnalysisOptionsImpl options =
-//      new AnalysisOptionsImpl.from(context.analysisOptions);
-//  options.cacheSize = cacheSize;
-//  context.analysisOptions = options;
-}
-
 String _computeLibraryName(CompilationUnit unit) {
   for (Directive directive in unit.directives) {
     if (directive is LibraryDirective && directive.name != null) {
@@ -328,9 +312,6 @@ class OccurrencesOperation extends _NotificationOperation
  * Instances of [PerformAnalysisOperation] perform a single analysis task.
  */
 class PerformAnalysisOperation extends ServerOperation {
-  static const int IDLE_CACHE_SIZE = AnalysisOptionsImpl.DEFAULT_CACHE_SIZE;
-  static const int WORKING_CACHE_SIZE = 512;
-
   final bool isContinue;
 
   PerformAnalysisOperation(AnalysisContext context, this.isContinue)
@@ -368,7 +349,7 @@ class PerformAnalysisOperation extends ServerOperation {
     //   sendStatusNotification(context.toString(), taskDescription);
     // });
     if (!isContinue) {
-      setCacheSize(context, WORKING_CACHE_SIZE);
+      _setContextActive(true);
     }
     // prepare results
     AnalysisResult result = context.performAnalysisTask();
@@ -376,10 +357,9 @@ class PerformAnalysisOperation extends ServerOperation {
     // nothing to analyze
     if (notices == null) {
       server.scheduleCacheConsistencyValidation(context);
-      setCacheSize(context, IDLE_CACHE_SIZE);
+      _setContextActive(false);
       server.sendContextAnalysisDoneNotifications(
           context, AnalysisDoneReason.COMPLETE);
-      _flushCache(server);
       return;
     }
     // process results
@@ -389,28 +369,6 @@ class PerformAnalysisOperation extends ServerOperation {
     });
     // continue analysis
     server.addOperation(new PerformAnalysisOperation(context, true));
-  }
-
-  /**
-   * Flush some of the [context] cache results, which we probably not
-   * going to use anymore.
-   */
-  void _flushCache(AnalysisServer server) {
-    if (context is InternalAnalysisContext) {
-      InternalAnalysisContext context = this.context;
-      // Flush AST results for source outside of the analysis roots.
-      ContextManager contextManager = server.contextManager;
-      context.analysisCache.flush((target) {
-        if (target is Source || target is LibrarySpecificUnit) {
-          Source targetSource = target.source;
-          return !context.prioritySources.contains(targetSource) &&
-              !contextManager.isInAnalysisRoot(targetSource.fullName);
-        }
-        return false;
-      }, (target, result) {
-        return result is ResultDescriptor<CompilationUnit>;
-      });
-    }
   }
 
   /**
@@ -428,6 +386,16 @@ class PerformAnalysisOperation extends ServerOperation {
           context, parsedDartUnit, resolvedDartUnit, notice.errors);
       // done
       server.fileAnalyzed(notice);
+    }
+  }
+
+  /**
+   * Make the [context] active or idle.
+   */
+  void _setContextActive(bool active) {
+    AnalysisContext context = this.context;
+    if (context is InternalAnalysisContext) {
+      context.isActive = active;
     }
   }
 

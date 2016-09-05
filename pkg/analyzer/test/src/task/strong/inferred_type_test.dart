@@ -8,14 +8,14 @@
 library analyzer.test.src.task.strong.inferred_type_test;
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../../reflective_tests.dart';
 import 'strong_test_helper.dart' as helper;
 
 void main() {
   helper.initStrongModeTests();
-  runReflectiveTests(InferredTypeTest);
+  defineReflectiveTests(InferredTypeTest);
 }
 
 abstract class InferredTypeMixin {
@@ -625,9 +625,8 @@ class C<T> {
 
 var x = /*info:INFERRED_TYPE_ALLOCATION*/new C(42);
 
-// Don't infer if we had a context type.
 num y;
-C<int> c_int = /*info:INFERRED_TYPE_ALLOCATION*/new C(/*info:DOWN_CAST_IMPLICIT*/y);
+C<int> c_int = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER*/C(/*info:DOWN_CAST_IMPLICIT*/y);
 
 // These hints are not reported because we resolve with a null error listener.
 C<num> c_num = /*pass should be info:INFERRED_TYPE_ALLOCATION*/new C(123);
@@ -1225,10 +1224,10 @@ void main() {
     A<int, String> a5 = /*error:STATIC_TYPE_ERROR*/new A<dynamic, dynamic>.named(3, "hello");
   }
   {
-    A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new A(
+    A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/A(
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello",
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
-    A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new A.named(
+    A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/A.named(
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello",
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
   }
@@ -1241,10 +1240,10 @@ void main() {
     A<int, String> a5 = /*error:INVALID_ASSIGNMENT*/new B<dynamic, dynamic>.named("hello", 3);
   }
   {
-    A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new B(
+    A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/B(
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello");
-    A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new B.named(
+    A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/B.named(
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello");
   }
@@ -1257,9 +1256,9 @@ void main() {
     A<int, int> a5 = /*error:INVALID_ASSIGNMENT*/new C<dynamic>.named(3);
   }
   {
-    A<int, int> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new C(
+    A<int, int> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER*/C(
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello");
-    A<int, int> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new C.named(
+    A<int, int> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER*/C.named(
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello");
   }
   {
@@ -1271,9 +1270,9 @@ void main() {
     A<int, String> a5 = /*error:INVALID_ASSIGNMENT*/new D<dynamic, dynamic>.named("hello");
   }
   {
-    A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new D(
+    A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER*/D(
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
-    A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new D.named(
+    A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER*/D.named(
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
   }
   {
@@ -1288,9 +1287,9 @@ void main() {
         b: /*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3]);
     A<int, String> a2 = /*info:INFERRED_TYPE_ALLOCATION*/new F.named(3, "hello", 3, "hello");
     A<int, String> a3 = /*info:INFERRED_TYPE_ALLOCATION*/new F.named(3, "hello");
-    A<int, String> a4 = /*info:INFERRED_TYPE_ALLOCATION*/new F.named(3, "hello",
+    A<int, String> a4 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/F.named(3, "hello",
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello", /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
-    A<int, String> a5 = /*info:INFERRED_TYPE_ALLOCATION*/new F.named(3, "hello",
+    A<int, String> a5 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER*/F.named(3, "hello",
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello");
   }
 }
@@ -1706,7 +1705,7 @@ class MyFuture<T> implements Future<T> {
 $declared f;
 // Instantiates Future<int>
 $downwards<int> t1 = f.then((_) =>
-   ${allocInfo}new $upwards.value(
+   ${allocInfo}new /*error:COULD_NOT_INFER*/$upwards.value(
      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'));
 
 // Instantiates List<int>
@@ -1761,16 +1760,20 @@ main() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
     checkFile(r'''
 class Foo<T extends Pattern> {
-  void method/*<U extends T>*/(dynamic/*=U*/ u) {}
+  /*=U*/ method/*<U extends T>*/(/*=U*/ u) => u;
 }
 main() {
-  new Foo().method/*<String>*/("str");
+  String s;
+  var a = new Foo().method/*<String>*/("str");
+  s = a;
   new Foo();
 
-  new Foo<String>().method("str");
-  new Foo().method("str");
+  var b = new Foo<String>().method("str");
+  s = b;
+  var c = new Foo().method("str");
+  s = c;
 
-  new Foo<String>().method(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/42);
+  new Foo<String>()./*error:COULD_NOT_INFER*/method(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/42);
 }
 ''');
   }
@@ -1796,14 +1799,14 @@ main() {
   printInt(myMax(1, 2) as int);
 
   // Mixing int and double means return type is num.
-  printInt(/*info:DOWN_CAST_IMPLICIT*/max(1, 2.0));
-  printInt(/*info:DOWN_CAST_IMPLICIT*/min(1, 2.0));
-  printDouble(/*info:DOWN_CAST_IMPLICIT*/max(1, 2.0));
-  printDouble(/*info:DOWN_CAST_IMPLICIT*/min(1, 2.0));
+  printInt(/*error:COULD_NOT_INFER*/max(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2.0));
+  printInt(/*error:COULD_NOT_INFER*/min(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2.0));
+  printDouble(/*error:COULD_NOT_INFER*/max(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1, 2.0));
+  printDouble(/*error:COULD_NOT_INFER*/min(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1, 2.0));
 
   // Types other than int and double are not accepted.
   printInt(
-      /*info:DOWN_CAST_IMPLICIT*/min(
+      /*error:COULD_NOT_INFER*/min(
           /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hi",
           /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"there"));
 }
@@ -1871,6 +1874,15 @@ main() {
   print(y);
 }
   ''');
+  }
+
+  void test_genericMethods_inferenceError() {
+    checkFile(r'''
+main() {
+  List<String> y;
+  Iterable<String> x = y./*error:COULD_NOT_INFER*/map(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(String z) => 1.0);
+}
+    ''');
   }
 
   void test_genericMethods_inferGenericFunctionParameterType() {

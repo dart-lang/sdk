@@ -8,15 +8,15 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' show expect;
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(CompileTimeErrorCodeTest);
+  defineReflectiveTests(CompileTimeErrorCodeTest);
 }
 
 @reflectiveTest
@@ -2334,8 +2334,10 @@ class A {
   A(this.x, this.x) {}
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]);
+    assertErrors(source, [
+      CompileTimeErrorCode.DUPLICATE_DEFINITION,
+      CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES
+    ]);
     verify([source]);
   }
 
@@ -5669,6 +5671,28 @@ main() {
 main() {
   var v = v;
 }''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
+  }
+
+  void test_referencedBeforeDeclaration_type_localFunction() {
+    Source source = addSource(r'''
+void testTypeRef() {
+  String s = '';
+  int String(int x) => x + 1;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
+  }
+
+  void test_referencedBeforeDeclaration_type_localVariable() {
+    Source source = addSource(r'''
+void testTypeRef() {
+  String s = '';
+  var String = '';
+}
+''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
   }

@@ -1931,14 +1931,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     registerForeignTypes(node);
   }
 
-  visitForeignNew(HForeignNew node) {
+  visitCreate(HCreate node) {
     js.Expression jsClassReference =
         backend.emitter.constructorAccess(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
     push(new js.New(jsClassReference, arguments)
         .withSourceInformation(node.sourceInformation));
-    registerForeignTypes(node);
-    // We also use ForeignNew to instantiate closure classes that belong to
+    // We also use HCreate to instantiate closure classes that belong to
     // function expressions. We have to register their use here, as otherwise
     // code for them might not be emitted.
     if (node.element.isClosure) {
@@ -2858,7 +2857,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitTypeInfoReadRaw(HTypeInfoReadRaw node) {
     use(node.inputs[0]);
     js.Expression receiver = pop();
-    push(js.js(r'#.$builtinTypeInfo', receiver));
+    push(js.js(r'#.#', [receiver, backend.namer.rtiFieldName]));
   }
 
   void visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
@@ -2937,8 +2936,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         js.Expression receiver = pop();
         js.Expression helper =
             backend.emitter.staticFunctionAccess(helperElement);
-        push(js.js(r'#(#.$builtinTypeInfo && #.$builtinTypeInfo[#])',
-            [helper, receiver, receiver, js.js.number(index)]));
+        js.Expression rtiFieldName = backend.namer.rtiFieldName;
+        push(js.js(r'#(#.# && #.#[#])', [
+          helper,
+          receiver,
+          rtiFieldName,
+          receiver,
+          rtiFieldName,
+          js.js.number(index)
+        ]));
       } else {
         backend.emitter.registerReadTypeVariable(element);
         push(js.js(

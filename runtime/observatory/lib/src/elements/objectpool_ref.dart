@@ -53,7 +53,7 @@ class ObjectPoolRefElement extends HtmlElement implements Renderable {
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _pool))
         ..children = [
-          new SpanElement()..classes = ['emphatize']
+          new SpanElement()..classes = ['emphasize']
             ..text = 'ObjectPool',
           new SpanElement()..text = ' (${_pool.length})'
         ]

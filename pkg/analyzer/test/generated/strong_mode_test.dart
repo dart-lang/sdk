@@ -11,17 +11,17 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(StrongModeDownwardsInferenceTest);
-  runReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
-  runReflectiveTests(StrongModeTypePropagationTest);
+  defineReflectiveTests(StrongModeDownwardsInferenceTest);
+  defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
+  defineReflectiveTests(StrongModeTypePropagationTest);
 }
 
 /**

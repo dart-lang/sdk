@@ -159,6 +159,23 @@ const wchar_t* StringUtilsWin::Utf8ToWide(
 }
 
 
+char* StringUtils::StrNDup(const char* s, intptr_t n) {
+  intptr_t len = strlen(s);
+  if ((n < 0) || (len < 0)) {
+    return NULL;
+  }
+  if (n < len) {
+    len = n;
+  }
+  char* result = reinterpret_cast<char*>(malloc(len + 1));
+  if (result == NULL) {
+    return NULL;
+  }
+  result[len] = '\0';
+  return reinterpret_cast<char*>(memmove(result, s, len));
+}
+
+
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   wchar_t* command_line = GetCommandLineW();
   int unicode_argc;

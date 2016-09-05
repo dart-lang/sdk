@@ -972,7 +972,12 @@ RawObject* ActivationFrame::GetReceiver() {
 }
 
 
-bool IsPrivateVariableName(const String& var_name) {
+static bool IsSyntheticVariableName(const String& var_name) {
+  return (var_name.Length() >= 1) && (var_name.CharAt(0) == ':');
+}
+
+
+static bool IsPrivateVariableName(const String& var_name) {
   return (var_name.Length() >= 1) && (var_name.CharAt(0) == '_');
 }
 
@@ -989,7 +994,7 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
   for (intptr_t i = 0; i < num_variables; i++) {
     TokenPosition ignore;
     VariableAt(i, &name, &ignore, &ignore, &value);
-    if (!name.Equals(Symbols::This())) {
+    if (!name.Equals(Symbols::This()) && !IsSyntheticVariableName(name)) {
       if (IsPrivateVariableName(name)) {
         name = String::ScrubName(name);
       }
@@ -1045,7 +1050,11 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
                                         bool full) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
-  jsobj->AddLocation(script, TokenPos());
+  TokenPosition pos = TokenPos();
+  if (pos.IsSynthetic()) {
+    pos = pos.FromSynthetic();
+  }
+  jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function(), !full);
   jsobj->AddProperty("code", code());
   if (full) {

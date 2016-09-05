@@ -635,6 +635,13 @@ intptr_t RawContextScope::VisitContextScopePointers(
 }
 
 
+intptr_t RawSingleTargetCache::VisitSingleTargetCachePointers(
+    RawSingleTargetCache* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return SingleTargetCache::InstanceSize();
+}
+
+
 intptr_t RawICData::VisitICDataPointers(RawICData* raw_obj,
                                         ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());

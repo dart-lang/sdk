@@ -16,13 +16,13 @@ import '../elements/elements.dart'
         FunctionElement,
         LocalFunctionElement,
         ResolvedAst;
-import '../enqueue.dart' show CodegenEnqueuer;
+import '../enqueue.dart' show Enqueuer;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactVisitor;
 import '../util/util.dart' show Pair, Setlet;
 import 'registry.dart' show Registry, EagerRegistry;
-import 'work.dart' show ItemCompilationContext, WorkItem;
+import 'work.dart' show WorkItem;
 
 class CodegenImpact extends WorldImpact {
   const CodegenImpact();
@@ -227,8 +227,7 @@ class CodegenWorkItem extends WorkItem {
   CodegenRegistry registry;
   final ResolvedAst resolvedAst;
 
-  factory CodegenWorkItem(Compiler compiler, AstElement element,
-      ItemCompilationContext compilationContext) {
+  factory CodegenWorkItem(Compiler compiler, AstElement element) {
     // If this assertion fails, the resolution callbacks of the backend may be
     // missing call of form registry.registerXXX. Alternatively, the code
     // generation could spuriously be adding dependencies on things we know we
@@ -236,15 +235,14 @@ class CodegenWorkItem extends WorkItem {
     assert(invariant(element, element.hasResolvedAst,
         message: "$element has no resolved ast."));
     ResolvedAst resolvedAst = element.resolvedAst;
-    return new CodegenWorkItem.internal(resolvedAst, compilationContext);
+    return new CodegenWorkItem.internal(resolvedAst);
   }
 
-  CodegenWorkItem.internal(
-      ResolvedAst resolvedAst, ItemCompilationContext compilationContext)
+  CodegenWorkItem.internal(ResolvedAst resolvedAst)
       : this.resolvedAst = resolvedAst,
-        super(resolvedAst.element, compilationContext);
+        super(resolvedAst.element);
 
-  WorldImpact run(Compiler compiler, CodegenEnqueuer world) {
+  WorldImpact run(Compiler compiler, Enqueuer world) {
     if (world.isProcessed(element)) return const WorldImpact();
 
     registry = new CodegenRegistry(compiler, element);

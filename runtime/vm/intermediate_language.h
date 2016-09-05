@@ -3260,7 +3260,6 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
         arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
-        is_native_list_factory_(false),
         identity_(AliasIdentity::Unknown()) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function.IsZoneHandle());
@@ -3280,7 +3279,6 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
         arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
-        is_native_list_factory_(false),
         identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
@@ -3326,13 +3324,8 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
     is_known_list_constructor_ = value;
   }
 
-  bool is_native_list_factory() const { return is_native_list_factory_; }
-  void set_is_native_list_factory(bool value) {
-    is_native_list_factory_ = value;
-  }
-
   bool IsRecognizedFactory() const {
-    return is_known_list_constructor() || is_native_list_factory();
+    return is_known_list_constructor();
   }
 
   virtual AliasIdentity Identity() const { return identity_; }
@@ -3350,7 +3343,6 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
   // 'True' for recognized list constructors.
   bool is_known_list_constructor_;
-  bool is_native_list_factory_;
 
   AliasIdentity identity_;
 

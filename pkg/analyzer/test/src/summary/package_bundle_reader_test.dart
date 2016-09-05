@@ -11,15 +11,14 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
-
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ResynthesizerResultProviderTest);
-  runReflectiveTests(SummaryDataStoreTest);
+  defineReflectiveTests(ResynthesizerResultProviderTest);
+  defineReflectiveTests(SummaryDataStoreTest);
 }
 
 UnlinkedPublicNamespace _namespaceWithParts(List<String> parts) {

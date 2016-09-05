@@ -94,5 +94,4 @@ abstract class Function extends Object implements FunctionRef {
   bool get hasIntrinsic;
   bool get isRecognized;
   bool get isNative;
-  String get vmName;
 }

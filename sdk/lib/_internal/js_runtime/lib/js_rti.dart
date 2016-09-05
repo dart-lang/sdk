@@ -96,7 +96,7 @@ getMangledTypeName(TypeImpl type) => type._typeName;
 @NoInline()
 Object setRuntimeTypeInfo(Object target, var rti) {
   assert(rti == null || isJsArray(rti));
-  JS('var', r'#.$builtinTypeInfo = #', target, rti);
+  JS('var', r'#.$ti = #', target, rti);
   return target;
 }
 
@@ -106,7 +106,7 @@ Object setRuntimeTypeInfo(Object target, var rti) {
  */
 getRuntimeTypeInfo(Object target) {
   if (target == null) return null;
-  return JS('var', r'#.$builtinTypeInfo', target);
+  return JS('var', r'#.$ti', target);
 }
 
 /**
@@ -212,7 +212,7 @@ String joinArguments(var types, int startIndex,
 String getRuntimeTypeString(var object) {
   String className = getClassName(object);
   if (object == null) return className;
-  var rti = JS('var', r'#.$builtinTypeInfo', object);
+  var rti = JS('var', r'#.$ti', object);
   return "$className${joinArguments(rti, 0)}";
 }
 

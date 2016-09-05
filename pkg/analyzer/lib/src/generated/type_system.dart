@@ -7,6 +7,7 @@ library analyzer.src.generated.type_system;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -14,6 +15,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/error.dart'
+    show ErrorCode, ErrorReporter, StrongModeCode;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:analyzer/src/generated/utilities_general.dart'
@@ -248,6 +251,9 @@ class StrongTypeSystemImpl extends TypeSystem {
     //
     // It would be safe to return a partial solution here, but the user
     // experience may be better if we simply do not infer in this case.
+    //
+    // TODO(jmesserly): this heuristic is old. Maybe we should we issue the
+    // inference error?
     return resultType ?? fnType;
   }
 
@@ -272,7 +278,9 @@ class StrongTypeSystemImpl extends TypeSystem {
       FunctionType fnType,
       List<DartType> correspondingParameterTypes,
       List<DartType> argumentTypes,
-      DartType returnContextType) {
+      DartType returnContextType,
+      {ErrorReporter errorReporter,
+      AstNode errorNode}) {
     if (fnType.typeFormals.isEmpty) {
       return fnType;
     }
@@ -305,7 +313,7 @@ class StrongTypeSystemImpl extends TypeSystem {
           argumentTypes[i], correspondingParameterTypes[i]);
     }
 
-    return inferringTypeSystem._infer(fnType);
+    return inferringTypeSystem._infer(fnType, errorReporter, errorNode);
   }
 
   /**
@@ -1371,7 +1379,8 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
 
   /// Given the constraints that were given by calling [isSubtypeOf], find the
   /// instantiation of the generic function that satisfies these constraints.
-  FunctionType _infer(FunctionType fnType) {
+  FunctionType _infer(FunctionType fnType,
+      [ErrorReporter errorReporter, AstNode errorNode]) {
     List<TypeParameterType> fnTypeParams =
         TypeParameterTypeImpl.getTypes(fnType.typeFormals);
 
@@ -1423,15 +1432,39 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
           new _TypeParameterVariance.from(typeParam, fnType.returnType);
 
       _TypeParameterBound bound = _bounds[typeParam];
-      inferredTypes[i] =
-          variance.passedIn || bound.lower.isBottom ? bound.upper : bound.lower;
+      DartType lowerBound = bound.lower;
+      DartType upperBound = bound.upper;
 
       // See if the bounds can be satisfied.
-      if (bound.upper.isBottom ||
-          !_typeSystem.isSubtypeOf(bound.lower, bound.upper)) {
-        // Inference failed. Bail.
-        return null;
+      // TODO(jmesserly): also we should have an error for unconstrained type
+      // parameters, rather than silently inferring dynamic.
+      if (upperBound.isBottom ||
+          !_typeSystem.isSubtypeOf(lowerBound, upperBound)) {
+        // Inference failed.
+        if (errorReporter == null) {
+          return null;
+        }
+        errorReporter.reportErrorForNode(StrongModeCode.COULD_NOT_INFER,
+            errorNode, [typeParam, lowerBound, upperBound]);
+
+        // To make the errors more useful, we swap the normal heuristic.
+        //
+        // The normal heuristic prefers using the argument types (upwards
+        // inference, lower bound) to choose a tighter type.
+        //
+        // Here we want to prefer the return context type, so we can put the
+        // blame on the arguments to the function. That will result in narrow
+        // error spans. But ultimately it's just a heuristic, as the code is
+        // already erroneous.
+        //
+        // (we may adjust the normal heuristic too, once upwards+downwards
+        // inference are fully integrated, to prefer downwards info).
+        lowerBound = bound.upper;
+        upperBound = bound.lower;
       }
+
+      inferredTypes[i] =
+          variance.passedIn || lowerBound.isBottom ? upperBound : lowerBound;
     }
 
     // Return the instantiated type.

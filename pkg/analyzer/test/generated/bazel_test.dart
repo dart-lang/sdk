@@ -8,14 +8,14 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(BazelFileUriResolverTest);
+  defineReflectiveTests(BazelFileUriResolverTest);
 }
 
 @reflectiveTest
@@ -28,7 +28,10 @@ class BazelFileUriResolverTest {
   void setUp() {
     provider = new MemoryResourceProvider();
     workspace = provider.newFolder('/workspace');
-    buildDirs = [provider.newFolder('/workspace/one'), provider.newFolder('/workspace/two')];
+    buildDirs = [
+      provider.newFolder('/workspace/one'),
+      provider.newFolder('/workspace/two')
+    ];
     resolver = new BazelFileUriResolver(provider, workspace, buildDirs);
     provider.newFile('/workspace/test.dart', '');
     provider.newFile('/workspace/one/gen1.dart', '');
@@ -57,14 +60,8 @@ class BazelFileUriResolverTest {
     expect(source, isNull);
   }
 
-  void test_resolveAbsolute_notFile_httpsUri() {
-    var uri = new Uri(scheme: 'https', path: '127.0.0.1/test.dart');
-    Source source = resolver.resolveAbsolute(uri);
-    expect(source, isNull);
-  }
-
-  void test_resolveAbsolute_notFile_dartUri() {
-    var uri = new Uri(scheme: 'dart', path: 'core');
+  void test_resolveAbsolute_generated_file_does_not_exist_three() {
+    var uri = new Uri(scheme: 'file', path: '/workspace/gen3.dart');
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
@@ -85,8 +82,14 @@ class BazelFileUriResolverTest {
     expect(source.fullName, '/workspace/two/gen2.dart');
   }
 
-  void test_resolveAbsolute_generated_file_does_not_exist_three() {
-    var uri = new Uri(scheme: 'file', path: '/workspace/gen3.dart');
+  void test_resolveAbsolute_notFile_dartUri() {
+    var uri = new Uri(scheme: 'dart', path: 'core');
+    Source source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
+  void test_resolveAbsolute_notFile_httpsUri() {
+    var uri = new Uri(scheme: 'https', path: '127.0.0.1/test.dart');
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }

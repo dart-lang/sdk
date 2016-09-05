@@ -78,6 +78,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   final int _id = _NEXT_ID++;
 
   /**
+   * The flag that is `true` if the context is being analyzed.
+   */
+  bool _isActive = false;
+
+  /**
    * A client-provided name used to identify this context, or `null` if the
    * client has not provided a name.
    */
@@ -395,6 +400,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   Stream<ImplicitAnalysisEvent> get implicitAnalysisEvents =>
       _implicitAnalysisEventsController.stream;
+
+  @override
+  bool get isActive => _isActive;
+
+  @override
+  set isActive(bool active) {
+    if (active != _isActive) {
+      _isActive = active;
+      _privatePartition.isActive = active;
+    }
+  }
 
   @override
   bool get isDisposed => _disposed;
@@ -843,13 +859,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (units != null) {
       return units;
     }
-    // Schedule recomputing RESOLVED_UNIT results.
+    // Schedule computing of RESOLVED_UNIT results.
     for (Source librarySource in containingLibraries) {
       LibrarySpecificUnit target =
           new LibrarySpecificUnit(librarySource, unitSource);
-      if (_cache.getState(target, RESOLVED_UNIT) == CacheState.FLUSHED) {
-        dartWorkManager.addPriorityResult(target, RESOLVED_UNIT);
-      }
+      dartWorkManager.addPriorityResult(target, RESOLVED_UNIT);
     }
     return null;
   }
@@ -1570,7 +1584,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       Source librarySource, Source unitSource) {
     LibrarySpecificUnit target =
         new LibrarySpecificUnit(librarySource, unitSource);
-    for (ResultDescriptor result in [
+    for (ResultDescriptor<CompilationUnit> result in [
       RESOLVED_UNIT,
       RESOLVED_UNIT12,
       RESOLVED_UNIT11,

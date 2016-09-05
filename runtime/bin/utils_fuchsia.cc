@@ -68,6 +68,11 @@ char* StringUtils::Utf8ToConsoleString(
 }
 
 
+char* StringUtils::StrNDup(const char* s, intptr_t n) {
+  return strndup(s, n);
+}
+
+
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }

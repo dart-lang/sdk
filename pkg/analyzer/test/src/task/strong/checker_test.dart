@@ -4,12 +4,13 @@
 
 library analyzer.test.src.task.strong.checker_test;
 
-import '../../../reflective_tests.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
 import 'strong_test_helper.dart';
 
 void main() {
   initStrongModeTests();
-  runReflectiveTests(CheckerTest);
+  defineReflectiveTests(CheckerTest);
 }
 
 @reflectiveTest
@@ -318,6 +319,58 @@ test() {
   /*info:DYNAMIC_INVOKE,info:DYNAMIC_INVOKE*/c[b] += d;
 }
 ''');
+  }
+
+  void test_constantGenericTypeArg_explict() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26141
+    checkFile('''
+abstract class Equality<R> {}
+abstract class EqualityBase<R> implements Equality<R> {
+  final C<R> c = const C<R>();
+  const EqualityBase();
+}
+class DefaultEquality<S> extends EqualityBase<S> {
+  const DefaultEquality();
+}
+class SetEquality<T> implements Equality<T> {
+  final Equality<T> field = const DefaultEquality<T>();
+  const SetEquality([Equality<T> inner = const DefaultEquality<T>()]);
+}
+class C<Q> {
+  final List<Q> list = const <Q>[];
+  final Map<Q, Iterable<Q>> m =  const <Q, Iterable<Q>>{};
+  const C();
+}
+main() {
+  const SetEquality<String>();
+}
+    ''');
+  }
+
+  void test_constantGenericTypeArg_infer() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26141
+    checkFile('''
+abstract class Equality<Q> {}
+abstract class EqualityBase<R> implements Equality<R> {
+  final C<R> c = /*info:INFERRED_TYPE_ALLOCATION*/const C();
+  const EqualityBase();
+}
+class DefaultEquality<S> extends EqualityBase<S> {
+  const DefaultEquality();
+}
+class SetEquality<T> implements Equality<T> {
+  final Equality<T> field = const DefaultEquality();
+  const SetEquality([Equality<T> inner = const DefaultEquality()]);
+}
+class C<Q> {
+  final List<Q> list = /*info:INFERRED_TYPE_LITERAL*/const [];
+  final Map<Q, Iterable<Q>> m =  /*info:INFERRED_TYPE_LITERAL*/const {};
+  const C();
+}
+main() {
+  const SetEquality<String>();
+}
+    ''');
   }
 
   void test_constructorInvalid() {
@@ -1804,16 +1857,16 @@ main() {
   x = foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/('1', '2', '3');
   foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
   x = foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/('1');
-  x = /*info:DYNAMIC_CAST*/foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(1, 2, 3);
-  x = /*info:DYNAMIC_CAST*/foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
+  x = /*error:COULD_NOT_INFER*/foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2, 3);
+  x = /*error:COULD_NOT_INFER*/foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1);
 
   // named arguments
   bar(y: 1, x: 2, /*error:UNDEFINED_NAMED_PARAMETER*/z: 3);
   x = bar(/*error:UNDEFINED_NAMED_PARAMETER*/z: '1', x: '2', y: '3');
   bar(y: 1);
   x = bar(x: '1', /*error:UNDEFINED_NAMED_PARAMETER*/z: 42);
-  x = /*info:DYNAMIC_CAST*/bar(y: 1, x: 2, /*error:UNDEFINED_NAMED_PARAMETER*/z: 3);
-  x = /*info:DYNAMIC_CAST*/bar(x: 1);
+  x = /*error:COULD_NOT_INFER*/bar(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/y: 1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/x: 2, /*error:UNDEFINED_NAMED_PARAMETER*/z: 3);
+  x = /*error:COULD_NOT_INFER*/bar(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/x: 1);
 }
 ''');
   }
@@ -1988,6 +2041,7 @@ void main/*<S>*/() {
     ''');
     check(implicitDynamic: false);
   }
+
   void test_implicitDynamic_listLiteral() {
     addFile(r'''
 
@@ -2166,58 +2220,6 @@ dynamic y0;
 dynamic y1 = (<dynamic>[])[0];
     ''');
     check(implicitDynamic: false);
-  }
-
-  void test_constantGenericTypeArg_infer() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26141
-    checkFile('''
-abstract class Equality<Q> {}
-abstract class EqualityBase<R> implements Equality<R> {
-  final C<R> c = /*info:INFERRED_TYPE_ALLOCATION*/const C();
-  const EqualityBase();
-}
-class DefaultEquality<S> extends EqualityBase<S> {
-  const DefaultEquality();
-}
-class SetEquality<T> implements Equality<T> {
-  final Equality<T> field = const DefaultEquality();
-  const SetEquality([Equality<T> inner = const DefaultEquality()]);
-}
-class C<Q> {
-  final List<Q> list = /*info:INFERRED_TYPE_LITERAL*/const [];
-  final Map<Q, Iterable<Q>> m =  /*info:INFERRED_TYPE_LITERAL*/const {};
-  const C();
-}
-main() {
-  const SetEquality<String>();
-}
-    ''');
-  }
-
-  void test_constantGenericTypeArg_explict() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26141
-    checkFile('''
-abstract class Equality<R> {}
-abstract class EqualityBase<R> implements Equality<R> {
-  final C<R> c = const C<R>();
-  const EqualityBase();
-}
-class DefaultEquality<S> extends EqualityBase<S> {
-  const DefaultEquality();
-}
-class SetEquality<T> implements Equality<T> {
-  final Equality<T> field = const DefaultEquality<T>();
-  const SetEquality([Equality<T> inner = const DefaultEquality<T>()]);
-}
-class C<Q> {
-  final List<Q> list = const <Q>[];
-  final Map<Q, Iterable<Q>> m =  const <Q, Iterable<Q>>{};
-  const C();
-}
-main() {
-  const SetEquality<String>();
-}
-    ''');
   }
 
   void test_invalidOverrides_baseClassOverrideToChildInterface() {

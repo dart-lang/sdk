@@ -749,6 +749,11 @@ void ExceptionHandlers::PrintJSONImpl(JSONStream* stream,
 }
 
 
+void SingleTargetCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
@@ -765,44 +770,7 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void ICData::PrintToJSONArray(const JSONArray& jsarray,
-                              TokenPosition token_pos,
-                              bool is_static_call) const {
-  Isolate* isolate = Isolate::Current();
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-
-  JSONObject jsobj(&jsarray);
-  jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
-  jsobj.AddProperty("tokenPos", token_pos);
-  // TODO(rmacnak): Figure out how to stringify DeoptReasons().
-  // jsobj.AddProperty("deoptReasons", ...);
-
-  JSONArray cache_entries(&jsobj, "cacheEntries");
-  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
-    func = GetTargetAt(i);
-    if (is_static_call) {
-      cls ^= func.Owner();
-    } else {
-      intptr_t cid = GetReceiverClassIdAt(i);
-      cls ^= isolate->class_table()->At(cid);
-    }
-    intptr_t count = GetCountAt(i);
-    JSONObject cache_entry(&cache_entries);
-    if (cls.IsTopLevel()) {
-      cache_entry.AddProperty("receiverContainer",
-                              Library::Handle(cls.library()));
-    } else {
-      cache_entry.AddProperty("receiverContainer", cls);
-    }
-    cache_entry.AddProperty("count", count);
-    cache_entry.AddProperty("target", func);
-  }
-}
-
-
-void ICData::PrintToJSONArrayNew(const JSONArray& jsarray,
-                                 TokenPosition token_pos,
-                                 bool is_static_call) const {
+                              TokenPosition token_pos) const {
   Isolate* isolate = Isolate::Current();
   Class& cls = Class::Handle();
   Function& func = Function::Handle();
@@ -818,7 +786,7 @@ void ICData::PrintToJSONArrayNew(const JSONArray& jsarray,
     JSONObject cache_entry(&cache_entries);
     func = GetTargetAt(i);
     intptr_t count = GetCountAt(i);
-    if (!is_static_call) {
+    if (!is_static_call()) {
       intptr_t cid = GetReceiverClassIdAt(i);
       cls ^= isolate->class_table()->At(cid);
       cache_entry.AddProperty("receiver", cls);

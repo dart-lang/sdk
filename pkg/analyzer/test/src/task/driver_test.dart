@@ -11,20 +11,20 @@ import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
 import '../../utils.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(AnalysisDriverTest);
-  runReflectiveTests(CycleAwareDependencyWalkerTest);
-  runReflectiveTests(WorkItemTest);
-  runReflectiveTests(WorkOrderTest);
+  defineReflectiveTests(AnalysisDriverTest);
+  defineReflectiveTests(CycleAwareDependencyWalkerTest);
+  defineReflectiveTests(WorkItemTest);
+  defineReflectiveTests(WorkOrderTest);
 }
 
 class AbstractDriverTest {

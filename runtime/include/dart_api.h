@@ -1809,7 +1809,8 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str, intptr_t* size);
  *
  * \param array External space into which the string data will be
  *   copied into. This must not move.
- * \param length The size in bytes of the provided external space (array).
+ * \param external_allocation_size The size in bytes of the provided external
+ *   space (array). Used to inform the garbage collector.
  * \param peer An external pointer to associate with this string.
  * \param cback A callback to be called when this string is finalized.
  *
@@ -1828,11 +1829,12 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str, intptr_t* size);
  *  result = Dart_MakeExternalString(str, data, size, NULL, NULL);
  *
  */
-DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
-                                                void* array,
-                                                intptr_t length,
-                                                void* peer,
-                                                Dart_PeerFinalizer cback);
+DART_EXPORT Dart_Handle Dart_MakeExternalString(
+    Dart_Handle str,
+    void* array,
+    intptr_t external_allocation_size,
+    void* peer,
+    Dart_PeerFinalizer cback);
 
 /**
  * Retrieves some properties associated with a String.

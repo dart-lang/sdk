@@ -447,6 +447,10 @@ abstract class Member implements Element {
   @override
   String get displayName => _baseElement.displayName;
 
+  @deprecated
+  @override
+  SourceRange get docRange => _baseElement.docRange;
+
   @override
   String get documentationComment => _baseElement.documentationComment;
 
@@ -933,9 +937,13 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   @override
   final DartType bound;
 
+  DartType _type;
+
   TypeParameterMember(
       TypeParameterElement baseElement, DartType definingType, this.bound)
-      : super(baseElement, definingType);
+      : super(baseElement, definingType) {
+    _type = new TypeParameterTypeImpl(this);
+  }
 
   @override
   TypeParameterElement get baseElement =>
@@ -945,10 +953,19 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   Element get enclosingElement => baseElement.enclosingElement;
 
   @override
-  TypeParameterType get type => baseElement.type;
+  TypeParameterType get type => _type;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
+
+  @override
+  int get hashCode => baseElement.hashCode;
+
+  @override
+  bool operator ==(obj) =>
+      // TODO(jmesserly): this equality should consider the bound, see:
+      // https://github.com/dart-lang/sdk/issues/27210
+      obj is TypeParameterMember && obj.baseElement == baseElement;
 
   /**
    * If the given [parameter]'s type is different when any type parameters from

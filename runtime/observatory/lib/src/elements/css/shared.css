@@ -578,6 +578,54 @@ class-tree virtual-tree .class-tree-item .name {
   margin-left: 0.5em;
 }
 
+/* code-view */
+
+code-view .table {
+  table-layout: fixed;
+}
+
+code-view th:nth-of-type(1),
+code-view td:nth-of-type(1) {
+  min-width: 10em;
+  text-align: left;
+}
+
+code-view th:nth-of-type(2),
+code-view td:nth-of-type(2) {
+  min-width: 8em;
+  text-align: left;
+}
+
+code-view th:nth-of-type(3),
+code-view td:nth-of-type(3) {
+  min-width: 8em;
+  text-align: left;
+}
+
+code-view th:nth-of-type(4),
+code-view td:nth-of-type(4) {
+  text-align: left;
+  overflow: visible;
+  white-space: pre;
+  padding-right: 1em;
+  width: 1px;
+}
+
+code-view th:nth-of-type(5),
+code-view td:nth-of-type(5) {
+  text-align: left;
+  overflow: visible;
+}
+
+code-view tr:hover > td {
+  background-color: #F4C7C3;
+}
+
+code-view .code-comment {
+  color: grey;
+  font-style: italic;
+}
+
 /* context-ref */
 /* TODO(cbernaschina) fix context-ref-wrapped to context-ref when wrapper
 removed */
@@ -816,7 +864,7 @@ eval-box-wrapped .quicks > button {
   margin-right: 1em;
   text-decoration: none;
 }
-eval-box-wrapped .empathize {
+eval-box-wrapped .emphasize {
   font-style: italic;
 }
 eval-box-wrapped .indent {
@@ -850,6 +898,9 @@ eval-box-wrapped .heading .buttons {
   position: absolute;
   top: 0;
   right: 0px;
+}
+eval-box-wrapped .heading .buttons button{
+  margin-right: 1em;
 }
 eval-box-wrapped.historyExpr,
 eval-box-wrapped .historyValue {
@@ -1016,7 +1067,7 @@ instance-ref-wrapped > a[href] {
 instance-ref-wrapped > a[href] * {
   color: inherit;
 }
-instance-ref-wrapped .empathize {
+instance-ref-wrapped .emphasize {
   font-style: italic;
 }
 instance-ref-wrapped .indent {
@@ -1059,6 +1110,19 @@ isolate-counter-chart > div.legend {
   overflow-y: auto;
 }
 
+/* isolate-location */
+
+isolate-location > span {
+  font-weight: bold;
+}
+isolate-location > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+isolate-location > a[href]:hover {
+  text-decoration: underline;
+}
+
 /* isolate-reconnect */
 
 isolate-reconnect div.doubleSpaced {
@@ -1077,31 +1141,34 @@ isolate-ref-wrapped > a[href] {
   text-decoration: none;
 }
 
-/* isolate-shared-summary */
-/* TODO(cbernaschina) fix isolate-shared-summary-wrapped
-to isolate-shared-summary when wrapper removed */
+/* isolate-run-state */
 
-isolate-shared-summary,
-isolate-shared-summary-wrapped {
+isolate-run-state > span {
+  font-weight: bold;
+}
+
+/* isolate-shared-summary */
+
+isolate-shared-summary {
   display: block;
 }
-isolate-shared-summary-wrapped > .summary {
+isolate-shared-summary > .summary {
   height: 300px;
   position: relative;
 }
-isolate-shared-summary-wrapped > .menu {
+isolate-shared-summary .menu {
   float: right;
   top: 0;
   right: 0;
 }
-isolate-shared-summary-wrapped > isolate-counter-chart {
+isolate-shared-summary isolate-counter-chart {
   position: absolute;
   left: 0;
   top: 0;
   right: 230px;
   clear: both;
 }
-isolate-shared-summary-wrapped .errorBox {
+isolate-shared-summary .errorBox {
   background-color: #f5f5f5;
   border: 1px solid #ccc;
   padding: 2em;
@@ -1131,6 +1198,54 @@ library-ref-wrapped > a[href] {
 
 .nav-option label {
   color: white;
+}
+
+/* logging-list */
+
+logging-list .outlined {
+  -webkit-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
+  -moz-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
+  box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
+  margin: 4px;
+}
+logging-list .logItem {
+  display: inline-block;
+  font: normal 14px consolas, courier, monospace;
+  white-space: pre;
+  line-height: 125%;
+  width: 100%;
+}
+logging-list .level {
+  display: inline-block;
+  width: 5em;
+}
+logging-list .time {
+  display: inline-block;
+  width: 12em;
+}
+logging-list .FINEST {
+  background-color: #FAFAFA;
+}
+logging-list .FINER {
+  background-color: #ECEFF1;
+}
+logging-list .FINE {
+  background-color: #EFEBE9;
+}
+logging-list .CONFIG {
+  background-color: #FFF3E0;
+}
+logging-list .INFO {
+  background-color: #F1F8E9;
+}
+logging-list .WARNING {
+  background-color: #FFE0B2;
+}
+logging-list .SEVERE {
+  background-color: #FFCCBC;
+}
+logging-list .SHOUT {
+  background-color: #FFCDD2;
 }
 
 /* megamorphic-cache-ref */
@@ -1245,15 +1360,17 @@ nav-refresh-wrapped > li {
   margin: 0;
 }
 
-/* object-common */
+/* object-common && class-instances */
 /* TODO(cbernaschina) fix object-common-wrapped to object-common when wrapper
 removed */
 
+class-instances button:hover,
 object-common-wrapped button:hover {
   background-color: transparent;
   border: none;
   text-decoration: underline;
 }
+class-instances button,
 object-common-wrapped button {
   background-color: transparent;
   border: none;
@@ -1457,6 +1574,7 @@ script-inset-wrapped button.toggle-profile {
   top: 5px;
   color: #888888;
   line-height: 30px;
+  font: 400 20px 'Montserrat', sans-serif;
 }
 script-inset-wrapped button.refresh {
   right: 5px;
@@ -1610,6 +1728,40 @@ script-inset-wrapped .hotProfile {
 
 stack-trace-tree-config {
   white-space: nowrap;
+}
+
+/* timeline-page */
+
+timeline-page .iframe {
+  height: 100%;
+  width: 100%;
+  margin-top: -120px;
+  padding-top: 120px;
+}
+timeline-page .iframe iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* type-arguments-ref */
+
+type-arguments-ref a[href]:hover {
+  text-decoration: underline;
+}
+type-arguments-ref a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+/* token-stream-ref */
+
+token-stream-ref a[href]:hover {
+  text-decoration: underline;
+}
+token-stream-ref a[href] {
+  color: #0489c3;
+  text-decoration: none;
 }
 
 /* view-footer */

@@ -4,6 +4,8 @@
 
 import '../elements/elements.dart';
 import '../types/types.dart';
+
+import 'locals_handler.dart';
 import 'nodes.dart';
 
 /// Base class for objects that build up an SSA graph.
@@ -14,11 +16,13 @@ abstract class GraphBuilder {
   /// Holds the resulting SSA graph.
   final HGraph graph = new HGraph();
 
+  /// Used to track the locals while building the graph.
+  LocalsHandler localsHandler;
+
   /// A stack of instructions.
   ///
   /// We build the SSA graph by simulating a stack machine.
   List<HInstruction> stack = <HInstruction>[];
-
 
   void push(HInstruction instruction) {
     add(instruction);
@@ -28,6 +32,14 @@ abstract class GraphBuilder {
   HInstruction pop() {
     return stack.removeLast();
   }
+
+  /// Pops the most recent instruction from the stack and 'boolifies' it.
+  ///
+  /// Boolification is checking if the value is '=== true'.
+  HInstruction popBoolified();
+
+  /// Pushes a boolean checking [expression] against null.
+  pushCheckNull(HInstruction expression);
 
   void dup() {
     stack.add(stack.last);

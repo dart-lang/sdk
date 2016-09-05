@@ -19,21 +19,21 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide Configuration;
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(ComplexParserTest);
-  runReflectiveTests(ErrorParserTest);
+  defineReflectiveTests(ComplexParserTest);
+  defineReflectiveTests(ErrorParserTest);
   // ignore: deprecated_member_use
-  runReflectiveTests(IncrementalParserTest);
-  runReflectiveTests(NonErrorParserTest);
-  runReflectiveTests(RecoveryParserTest);
-  runReflectiveTests(SimpleParserTest);
+  defineReflectiveTests(IncrementalParserTest);
+  defineReflectiveTests(NonErrorParserTest);
+  defineReflectiveTests(RecoveryParserTest);
+  defineReflectiveTests(SimpleParserTest);
 }
 
 class AnalysisErrorListener_SimpleParserTest_computeStringValue
@@ -6532,6 +6532,46 @@ void''');
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
     expect(reference.offset, 16);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT,
+          r'''
+/**
+ * First.
+ * ```dart
+ * Some [int] reference.
+ * ```
+ * Last.
+ */
+''',
+          3)
+    ];
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
+    expect(references, isEmpty);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine_lines() {
+    String commentText = r'''
+/// First.
+/// ```dart
+/// Some [int] reference.
+/// ```
+/// Last.
+''';
+    List<DocumentationCommentToken> tokens = commentText
+        .split('\n')
+        .map((line) => new DocumentationCommentToken(
+            TokenType.SINGLE_LINE_COMMENT, line, 0))
+        .toList();
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
+    expect(references, isEmpty);
   }
 
   void test_parseCommentReferences_skipCodeBlock_gitHub_notTerminated() {

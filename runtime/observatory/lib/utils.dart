@@ -157,6 +157,32 @@ class Utils {
     formatMillis(x.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND);
 
   static bool runningInJavaScript() => identical(1.0, 1);
+
+  static formatStringAsLiteral(String value, [bool wasTruncated=false]) {
+    var result = new List();
+    result.add("'".codeUnitAt(0));
+    for (int codeUnit in value.codeUnits) {
+      if (codeUnit == '\n'.codeUnitAt(0)) result.addAll('\\n'.codeUnits);
+      else if (codeUnit == '\r'.codeUnitAt(0)) result.addAll('\\r'.codeUnits);
+      else if (codeUnit == '\f'.codeUnitAt(0)) result.addAll('\\f'.codeUnits);
+      else if (codeUnit == '\b'.codeUnitAt(0)) result.addAll('\\b'.codeUnits);
+      else if (codeUnit == '\t'.codeUnitAt(0)) result.addAll('\\t'.codeUnits);
+      else if (codeUnit == '\v'.codeUnitAt(0)) result.addAll('\\v'.codeUnits);
+      else if (codeUnit == '\$'.codeUnitAt(0)) result.addAll('\\\$'.codeUnits);
+      else if (codeUnit == '\\'.codeUnitAt(0)) result.addAll('\\\\'.codeUnits);
+      else if (codeUnit == "'".codeUnitAt(0)) result.addAll("'".codeUnits);
+      else if (codeUnit < 32) {
+         var escapeSequence = "\\u" + codeUnit.toRadixString(16).padLeft(4, "0");
+         result.addAll(escapeSequence.codeUnits);
+      } else result.add(codeUnit);
+    }
+    if (wasTruncated) {
+      result.addAll("...".codeUnits);
+    } else {
+      result.add("'".codeUnitAt(0));
+    }
+    return new String.fromCharCodes(result);
+  }
 }
 
 /// A [Task] that can be scheduled on the Dart event queue.

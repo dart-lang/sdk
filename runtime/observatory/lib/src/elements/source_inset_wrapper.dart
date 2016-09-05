@@ -83,6 +83,7 @@ class SourceInsetElementWrapper extends HtmlElement {
           top: 5px;
           color: #888888;
           line-height: 30px;
+          font: 400 20px 'Montserrat', sans-serif;
         }
         script-inset-wrapped button.refresh {
           right: 5px;

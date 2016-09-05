@@ -13,20 +13,20 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../embedder_tests.dart';
 import '../../../generated/test_support.dart';
-import '../../../reflective_tests.dart';
 import '../../../resource_utils.dart';
 import '../../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(EmbedderSdkTest);
-  runReflectiveTests(FolderBasedDartSdkTest);
-  runReflectiveTests(SdkExtensionFinderTest);
-  runReflectiveTests(SDKLibrariesReaderTest);
+  defineReflectiveTests(EmbedderSdkTest);
+  defineReflectiveTests(FolderBasedDartSdkTest);
+  defineReflectiveTests(SdkExtensionFinderTest);
+  defineReflectiveTests(SDKLibrariesReaderTest);
 }
 
 @reflectiveTest

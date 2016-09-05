@@ -114,7 +114,7 @@ class HeapMapElement  extends HtmlElement implements Renderable {
             ..onRefresh.listen((_) => _refresh()),
           new NavNotifyElement(_notifications, queue: _r.queue)
         ],
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = _status,
           new HRElement(),

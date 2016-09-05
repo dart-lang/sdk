@@ -7,13 +7,12 @@ library test.src.summary.flat_buffers_test;
 import 'dart:typed_data';
 
 import 'package:analyzer/src/summary/flat_buffers.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
-
-import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(BuilderTest);
+  defineReflectiveTests(BuilderTest);
 }
 
 @reflectiveTest
@@ -236,6 +235,7 @@ class BuilderTest {
         expect(items[i], trueBits.contains(i), reason: 'bit $i of $len');
       }
     }
+
     verifyListBooleans(0, <int>[]);
     verifyListBooleans(1, <int>[]);
     verifyListBooleans(1, <int>[0]);

@@ -14,14 +14,14 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import 'reflective_tests.dart';
 import 'utils.dart';
 
 void main() {
   initializeTestEnvironment();
-  runReflectiveTests(EnumTest);
+  defineReflectiveTests(EnumTest);
 }
 
 @reflectiveTest

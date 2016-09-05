@@ -22,6 +22,9 @@ class B<T> = Object with A implements J<T>;  // A is raw.
 
 class C<T> = S<List<T>> with B implements K<T>;  // B is raw.
 
+@NoInline() @AssumeDynamic()
+dyn(x) => x;
+
 main() {
   var c = new C<int>();
   Expect.equals("dynamic", c.m().toString());
@@ -31,4 +34,13 @@ main() {
   Expect.isTrue(c is S<List<int>>);
   Expect.isTrue(c is A);
   Expect.isTrue(c is M);
+
+  Expect.equals("dynamic", dyn(c).m().toString());
+  Expect.isTrue(dyn(c) is K<int>);
+  Expect.isTrue(dyn(c) is J);
+  Expect.isTrue(dyn(c) is I);
+  Expect.isTrue(dyn(c) is S<List<int>>);
+  Expect.isTrue(dyn(c) is A);
+  Expect.isTrue(dyn(c) is M);
+
 }

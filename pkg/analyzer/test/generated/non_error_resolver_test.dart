@@ -10,16 +10,16 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(NonErrorResolverTest);
+  defineReflectiveTests(NonErrorResolverTest);
 }
 
 @reflectiveTest
@@ -1079,6 +1079,7 @@ abstract class A {
           EngineTestCase.findSimpleIdentifier(unit, code, search);
       expect(ref.staticElement, new isInstanceOf<ParameterElement>());
     }
+
     assertIsParameter('p1');
     assertIsParameter('p2');
     assertIsParameter('p3');

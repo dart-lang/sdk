@@ -11,6 +11,9 @@
 */*/*/*/packages/*/*: Skip
 */*/*/*/*/packages/*/*: Skip
 
+# Don't run dev_compiler tests
+dev_compiler/test/*: Skip
+
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
 

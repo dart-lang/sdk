@@ -5178,9 +5178,22 @@ class Parser {
   List<CommentReference> _parseCommentReferences(
       List<DocumentationCommentToken> tokens) {
     List<CommentReference> references = <CommentReference>[];
+    bool isInGitHubCodeBlock = false;
     for (DocumentationCommentToken token in tokens) {
       String comment = token.lexeme;
-      comment = _removeCodeBlocksGitHub(comment);
+      // Skip GitHub code blocks.
+      // https://help.github.com/articles/creating-and-highlighting-code-blocks/
+      if (tokens.length != 1) {
+        if (comment.indexOf('```') != -1) {
+          isInGitHubCodeBlock = !isInGitHubCodeBlock;
+        }
+        if (isInGitHubCodeBlock) {
+          continue;
+        }
+      }
+      // Remove GitHub include code.
+      comment = _removeGitHubInlineCode(comment);
+      // Find references.
       int length = comment.length;
       List<List<int>> codeBlockRanges = _getCodeBlockRanges(comment);
       int leftIndex = comment.indexOf('[');
@@ -8883,7 +8896,7 @@ class Parser {
     return token;
   }
 
-  String _removeCodeBlocksGitHub(String comment) {
+  String _removeGitHubInlineCode(String comment) {
     int index = 0;
     while (true) {
       int beginIndex = comment.indexOf('`', index);

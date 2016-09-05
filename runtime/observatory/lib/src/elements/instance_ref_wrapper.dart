@@ -53,7 +53,7 @@ class InstanceRefElementWrapper extends HtmlElement {
             color: #0489c3;
             text-decoration: none;
         }
-        instance-ref-wrapped .empathize {
+        instance-ref-wrapped .emphasize {
           font-style: italic;
         }
         instance-ref-wrapped .indent {

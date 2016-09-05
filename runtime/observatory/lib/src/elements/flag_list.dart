@@ -136,15 +136,15 @@ class FlagListElement extends HtmlElement implements Renderable {
 
   static List<Element> _renderFlag(M.Flag flag) {
     return [
-      new SpanElement()..classes = const ['comment']
+      new SpanElement()..classes = ['comment']
         ..text = '// ${flag.comment}',
-      new DivElement()..classes = flag.modified ? const ['flag', 'modified']
-                                                : const ['flag', 'unmodified']
+      new DivElement()..classes = flag.modified ? ['flag', 'modified']
+                                                : ['flag', 'unmodified']
         ..children = [
-          new SpanElement()..classes = const ['name']
+          new SpanElement()..classes = ['name']
             ..text = flag.name,
           new SpanElement()..text = '=',
-          new SpanElement()..classes = const ['value']
+          new SpanElement()..classes = ['value']
             ..text = flag.valueAsString ?? 'NULL'
         ],
       new BRElement(),

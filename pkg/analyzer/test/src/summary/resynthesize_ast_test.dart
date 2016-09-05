@@ -21,9 +21,9 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/task/dart.dart' show PARSED_UNIT;
 import 'package:analyzer/task/general.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../context/abstract_context.dart';
 import '../task/strong/inferred_type_test.dart';
 import 'resynthesize_test.dart';
@@ -31,8 +31,8 @@ import 'summary_common.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ResynthesizeAstTest);
-  runReflectiveTests(AstInferredTypeTest);
+  defineReflectiveTests(ResynthesizeAstTest);
+  defineReflectiveTests(AstInferredTypeTest);
 }
 
 @reflectiveTest

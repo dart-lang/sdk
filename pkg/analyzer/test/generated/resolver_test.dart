@@ -26,9 +26,9 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
@@ -36,21 +36,21 @@ import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(AnalysisDeltaTest);
-  runReflectiveTests(ChangeSetTest);
-  runReflectiveTests(DisableAsyncTestCase);
-  runReflectiveTests(EnclosedScopeTest);
-  runReflectiveTests(ErrorResolverTest);
-  runReflectiveTests(LibraryImportScopeTest);
-  runReflectiveTests(LibraryScopeTest);
-  runReflectiveTests(PrefixedNamespaceTest);
-  runReflectiveTests(ScopeTest);
-  runReflectiveTests(StrictModeTest);
-  runReflectiveTests(SubtypeManagerTest);
-  runReflectiveTests(TypeOverrideManagerTest);
-  runReflectiveTests(TypePropagationTest);
-  runReflectiveTests(TypeProviderImplTest);
-  runReflectiveTests(TypeResolverVisitorTest);
+  defineReflectiveTests(AnalysisDeltaTest);
+  defineReflectiveTests(ChangeSetTest);
+  defineReflectiveTests(DisableAsyncTestCase);
+  defineReflectiveTests(EnclosedScopeTest);
+  defineReflectiveTests(ErrorResolverTest);
+  defineReflectiveTests(LibraryImportScopeTest);
+  defineReflectiveTests(LibraryScopeTest);
+  defineReflectiveTests(PrefixedNamespaceTest);
+  defineReflectiveTests(ScopeTest);
+  defineReflectiveTests(StrictModeTest);
+  defineReflectiveTests(SubtypeManagerTest);
+  defineReflectiveTests(TypeOverrideManagerTest);
+  defineReflectiveTests(TypePropagationTest);
+  defineReflectiveTests(TypeProviderImplTest);
+  defineReflectiveTests(TypeResolverVisitorTest);
 }
 
 @reflectiveTest
@@ -198,13 +198,12 @@ class EnclosedScopeTest extends ResolverTestCase {
     Scope rootScope =
         new Scope_EnclosedScopeTest_test_define_duplicate(listener);
     EnclosedScope scope = new EnclosedScope(rootScope);
-    VariableElement element1 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
-    VariableElement element2 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
+    SimpleIdentifier identifier = AstFactory.identifier3("v1");
+    VariableElement element1 = ElementFactory.localVariableElement(identifier);
+    VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
     scope.define(element2);
-    listener.assertErrorsWithSeverities([ErrorSeverity.ERROR]);
+    expect(scope.lookup(identifier, null), element1);
   }
 
   void test_define_normal() {
@@ -599,13 +598,12 @@ class ScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ScopeTest_TestScope scope = new ScopeTest_TestScope(errorListener);
-    VariableElement element1 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
-    VariableElement element2 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
+    SimpleIdentifier identifier = AstFactory.identifier3("v1");
+    VariableElement element1 = ElementFactory.localVariableElement(identifier);
+    VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
     scope.define(element2);
-    errorListener.assertErrorsWithSeverities([ErrorSeverity.ERROR]);
+    expect(scope.lookup(identifier, null), element1);
   }
 
   void test_define_normal() {

@@ -689,7 +689,8 @@ class InterfaceMembersCreator extends MembersCreator {
         bool allAreGetters = true;
         Map<DartType, Setlet<Member>> subtypesOfAllInherited =
             new Map<DartType, Setlet<Member>>();
-        outer: for (Member inherited in inheritedMembers) {
+        outer:
+        for (Member inherited in inheritedMembers) {
           if (inherited.isGetter) {
             someAreGetters = true;
             if (!allAreGetters) break outer;

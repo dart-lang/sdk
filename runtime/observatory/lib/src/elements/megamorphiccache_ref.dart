@@ -55,7 +55,7 @@ class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _cache))
         ..children = [
-          new SpanElement()..classes = ['emphatize']
+          new SpanElement()..classes = ['emphasize']
             ..text = 'MegarmorphicCache',
           new SpanElement()..text = ' (${_cache.selector})'
         ]

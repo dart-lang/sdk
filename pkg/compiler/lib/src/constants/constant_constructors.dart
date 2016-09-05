@@ -268,6 +268,18 @@ class ConstantConstructorComputer extends SemanticVisitor
   }
 
   @override
+  ConstantExpression visitEquals(Send node, Node left, Node right, _) {
+    return new BinaryConstantExpression(
+        apply(left), BinaryOperator.EQ, apply(right));
+  }
+
+  @override
+  ConstantExpression visitNotEquals(Send node, Node left, Node right, _) {
+    return new BinaryConstantExpression(
+        apply(left), BinaryOperator.NOT_EQ, apply(right));
+  }
+
+  @override
   ConstantExpression visitUnary(
       Send node, UnaryOperator operator, Node expression, _) {
     return new UnaryConstantExpression(operator, apply(expression));

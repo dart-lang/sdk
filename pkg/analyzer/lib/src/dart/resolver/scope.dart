@@ -16,6 +16,49 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
+ * The scope defined by a block.
+ */
+class BlockScope extends EnclosedScope {
+  /**
+   * Initialize a newly created scope, enclosed within the [enclosingScope],
+   * based on the given [classElement].
+   */
+  BlockScope(Scope enclosingScope, Block block) : super(enclosingScope) {
+    if (block == null) {
+      throw new IllegalArgumentException("block cannot be null");
+    }
+    _defineElements(block);
+  }
+
+  void _defineElements(Block block) {
+    for (Element element in elementsInBlock(block)) {
+      define(element);
+    }
+  }
+
+  /**
+   * Return the elements that are declared directly in the given [block]. This
+   * does not include elements declared in nested blocks.
+   */
+  static Iterable<Element> elementsInBlock(Block block) sync* {
+    NodeList<Statement> statements = block.statements;
+    int statementCount = statements.length;
+    for (int i = 0; i < statementCount; i++) {
+      Statement statement = statements[i];
+      if (statement is VariableDeclarationStatement) {
+        NodeList<VariableDeclaration> variables = statement.variables.variables;
+        int variableCount = variables.length;
+        for (int j = 0; j < variableCount; j++) {
+          yield variables[j].element;
+        }
+      } else if (statement is FunctionDeclarationStatement) {
+        yield statement.functionDeclaration.element;
+      }
+    }
+  }
+}
+
+/**
  * The scope defined by a class.
  */
 class ClassScope extends EnclosedScope {
@@ -81,13 +124,6 @@ class EnclosedScope extends Scope {
   final Scope enclosingScope;
 
   /**
-   * A table mapping names that will be defined in this scope, but right now are
-   * not initialized. According to the scoping rules these names are hidden,
-   * even if they were defined in an outer scope.
-   */
-  HashMap<String, Element> _hiddenElements = null;
-
-  /**
    * Initialize a newly created scope, enclosed within the [enclosingScope].
    */
   EnclosedScope(this.enclosingScope);
@@ -95,40 +131,12 @@ class EnclosedScope extends Scope {
   @override
   AnalysisErrorListener get errorListener => enclosingScope.errorListener;
 
-  /**
-   * Record that given [element] is declared in this scope, but hasn't been
-   * initialized yet, so it is error to use. If there is already an element with
-   * the given name defined in an outer scope, then it will become unavailable.
-   */
-  void hide(Element element) {
-    if (element != null) {
-      String name = element.name;
-      if (name != null && !name.isEmpty) {
-        _hiddenElements ??= new HashMap<String, Element>();
-        _hiddenElements[name] = element;
-      }
-    }
-  }
-
   @override
   Element internalLookup(
       Identifier identifier, String name, LibraryElement referencingLibrary) {
     Element element = localLookup(name, referencingLibrary);
     if (element != null) {
       return element;
-    }
-    // May be there is a hidden Element.
-    if (_hiddenElements != null) {
-      Element hiddenElement = _hiddenElements[name];
-      if (hiddenElement != null) {
-        errorListener.onError(new AnalysisError(
-            getSource(identifier),
-            identifier.offset,
-            identifier.length,
-            CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-            [name]));
-        return hiddenElement;
-      }
     }
     // Check enclosing scope.
     return enclosingScope.internalLookup(identifier, name, referencingLibrary);
@@ -1107,13 +1115,8 @@ abstract class Scope {
   void define(Element element) {
     String name = _getName(element);
     if (name != null && !name.isEmpty) {
-      if (_definedNames != null && _definedNames.containsKey(name)) {
-        errorListener
-            .onError(getErrorForDuplicate(_definedNames[name], element));
-      } else {
-        _definedNames ??= new HashMap<String, Element>();
-        _definedNames[name] = element;
-      }
+      _definedNames ??= new HashMap<String, Element>();
+      _definedNames.putIfAbsent(name, () => element);
     }
   }
 

@@ -3702,9 +3702,9 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   // if it is a Smi, which will be ignored.
   LoadClassId(result, object);
 
-  movq(object, Immediate(kSmiCid));
+  movq(TMP, Immediate(kSmiCid));
   // If object is a Smi, move the Smi cid into result. o/w leave alone.
-  cmoveq(result, object);
+  cmoveq(result, TMP);
 }
 
 

@@ -2277,6 +2277,47 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
 }
 
 
+
+// Called from switchable IC calls.
+//  T0: receiver
+//  S5: SingleTargetCache
+// Passed to target:
+//  CODE_REG: target Code object
+void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
+  Label miss;
+
+  __ LoadClassIdMayBeSmi(T1, T0);
+  __ lhu(T2, FieldAddress(S5, SingleTargetCache::lower_limit_offset()));
+  __ lhu(T3, FieldAddress(S5, SingleTargetCache::upper_limit_offset()));
+
+  __ BranchUnsignedLess(T1, T2, &miss);
+  __ BranchUnsignedGreater(T1, T3, &miss);
+
+  __ lw(T1, FieldAddress(S5, SingleTargetCache::entry_point_offset()));
+  __ lw(CODE_REG, FieldAddress(S5, SingleTargetCache::target_offset()));
+  __ jr(T1);
+
+  __ Bind(&miss);
+  __ EnterStubFrame();
+  __ Push(T0);  // Preserve receiver.
+
+  __ PushObject(Object::null_object());  // Result.
+  __ Push(T0);                           // Arg0: Receiver
+  __ CallRuntime(kSingleTargetMissRuntimeEntry, 1);
+  __ Drop(1);
+  __ Pop(S5);  // result = IC
+
+  __ Pop(T0);  // Restore receiver.
+  __ LeaveStubFrame();
+
+  __ lw(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
+  __ lw(T1, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ jr(T1);
+}
+
+
 // Called from the monomorphic checked entry.
 //  T0: receiver
 void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {

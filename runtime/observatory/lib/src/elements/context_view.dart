@@ -129,9 +129,9 @@ class ContextViewElement extends HtmlElement implements Renderable {
               }),
           new NavNotifyElement(_notifications, queue: _r.queue)
         ],
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
-          new HeadingElement.h2()..text = 'Allocation Profile',
+          new HeadingElement.h2()..text = 'Context',
           new HRElement(),
           new ObjectCommonElement(_isolate, _context, _retainedSizes,
                                   _reachableSizes, _references, _retainingPaths,
@@ -141,7 +141,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
     if (_context.parentContext != null) {
       content.addAll([
         new BRElement(),
-        new DivElement()..classes = const ['content-centered-big']
+        new DivElement()..classes = ['content-centered-big']
           ..children = [
             new DivElement()..classes = ['memberList']
               ..children = [
@@ -163,7 +163,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
     if (_context.variables.isNotEmpty) {
       int index = 0;
       content.addAll([
-        new DivElement()..classes = const ['content-centered-big']
+        new DivElement()..classes = ['content-centered-big']
           ..children = [
             new SpanElement()..text = 'Variables ',
             new CurlyBlockElement(expanded: _context.variables.length > 8,
@@ -185,7 +185,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
           ]
       ]);
     }
-    content.add(new DivElement()..classes = const ['content-centered-big']
+    content.add(new DivElement()..classes = ['content-centered-big']
       ..children = [new ViewFooterElement(queue: _r.queue)]);
     children = content;
   }

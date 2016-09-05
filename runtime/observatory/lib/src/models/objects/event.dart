@@ -132,6 +132,14 @@ abstract class ExtensionEvent extends Event {
   ExtensionData get extensionData;
 }
 
+abstract class LoggingEvent extends Event {
+  /// The isolate with which this event is associated.
+  IsolateRef get isolate;
+
+  // TODO(cbernaschina) objectify
+  Map get logRecord;
+}
+
 abstract class TimelineEventsEvent extends Event {
   /// The isolate with which this event is associated.
   IsolateRef get isolate;
@@ -142,4 +150,30 @@ abstract class TimelineEventsEvent extends Event {
 abstract class ConnectionClosedEvent extends Event {
   /// The reason of the closed connection
   String get reason;
+}
+
+Frame topFrame(DebugEvent event) {
+  if (event is PauseBreakpointEvent) {
+    return event.topFrame;
+  }
+  if (event is PauseInterruptedEvent) {
+    return event.topFrame;
+  }
+  if (event is PauseExceptionEvent) {
+    return event.topFrame;
+  }
+  if (event is ResumeEvent) {
+    return event.topFrame;
+  }
+  return null;
+}
+
+bool isAtAsyncSuspension(DebugEvent event) {
+  if (event is PauseBreakpointEvent) {
+    return event.atAsyncSuspension;
+  }
+  if (event is PauseInterruptedEvent) {
+    return event.atAsyncSuspension;
+  }
+  return false;
 }

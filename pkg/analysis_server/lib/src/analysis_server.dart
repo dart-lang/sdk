@@ -299,6 +299,12 @@ class AnalysisServer {
   ResolverProvider fileResolverProvider;
 
   /**
+   * The package resolver provider used to override the way package URI's are
+   * resolved in some contexts.
+   */
+  ResolverProvider packageResolverProvider;
+
+  /**
    * The manager of pub package summaries.
    */
   PubSummaryManager pubSummaryManager;
@@ -351,6 +357,7 @@ class AnalysisServer {
           defaultContextOptions);
     }
     this.fileResolverProvider = fileResolverProvider;
+    this.packageResolverProvider = packageResolverProvider;
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
@@ -470,7 +477,7 @@ class AnalysisServer {
    * The socket from which requests are being read has been closed.
    */
   void done() {
-    index.stop();
+    index?.stop();
     running = false;
   }
 
@@ -721,7 +728,7 @@ class AnalysisServer {
       return units;
     }
     // add a unit for each unit/library combination
-    runWithWorkingCacheSize(context, () {
+    runWithActiveContext(context, () {
       Source unitSource = contextSource.source;
       List<Source> librarySources = context.getLibrariesContaining(unitSource);
       for (Source librarySource in librarySources) {
@@ -1461,7 +1468,7 @@ class AnalysisServer {
       return null;
     }
     // if library has been already resolved, resolve unit
-    return runWithWorkingCacheSize(context, () {
+    return runWithActiveContext(context, () {
       return context.resolveCompilationUnit2(source, librarySource);
     });
   }
@@ -1661,6 +1668,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         analysisServer.sdkManager, analysisServer.overlayState);
     builder.defaultOptions = options;
     builder.fileResolverProvider = analysisServer.fileResolverProvider;
+    builder.packageResolverProvider = analysisServer.packageResolverProvider;
     builder.defaultPackageFilePath = defaultPackageFilePath;
     builder.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
     return builder;

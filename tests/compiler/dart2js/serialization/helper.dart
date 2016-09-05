@@ -213,6 +213,7 @@ Future<List<SerializedData>> preserializeData(
       test.preserializedSourceFiles.isEmpty) {
     return <SerializedData>[serializedData];
   }
+
   List<Uri> uriList = <Uri>[];
   for (String key in test.preserializedSourceFiles.keys) {
     uriList.add(Uri.parse('memory:$key'));
@@ -222,21 +223,33 @@ Future<List<SerializedData>> preserializeData(
   if (test.unserializedSourceFiles != null) {
     sourceFiles.addAll(test.unserializedSourceFiles);
   }
-  OutputCollector outputCollector = new OutputCollector();
-  Compiler compiler = compilerFor(
-      memorySourceFiles: sourceFiles,
-      resolutionInputs: serializedData.toUris(),
-      options: [Flags.resolveOnly],
-      outputProvider: outputCollector);
-  compiler.librariesToAnalyzeWhenRun = uriList;
-  await compiler.run(null);
-  List<LibraryElement> libraries = <LibraryElement>[];
-  for (Uri uri in uriList) {
-    libraries.add(compiler.libraryLoader.lookupLibrary(uri));
+  Uri additionalDataUri = Uri.parse('memory:additional.data');
+  SerializedData additionalSerializedData;
+  if (test.sourceFiles.isEmpty) {
+    SerializationResult result = await serialize(
+        uriList.first,
+        memorySourceFiles: sourceFiles,
+        resolutionInputs:  serializedData.toUris(),
+        dataUri: additionalDataUri);
+    additionalSerializedData = result.serializedData;
+  } else {
+    OutputCollector outputCollector = new OutputCollector();
+    Compiler compiler = compilerFor(
+        entryPoint: test.sourceFiles.isEmpty ? uriList.first : null,
+        memorySourceFiles: sourceFiles,
+        resolutionInputs: serializedData.toUris(),
+        options: [Flags.resolveOnly],
+        outputProvider: outputCollector);
+    compiler.librariesToAnalyzeWhenRun = uriList;
+    await compiler.run(null);
+    List<LibraryElement> libraries = <LibraryElement>[];
+    for (Uri uri in uriList) {
+      libraries.add(compiler.libraryLoader.lookupLibrary(uri));
+    }
+    additionalSerializedData = new SerializedData(
+        additionalDataUri,
+        outputCollector.getOutput('', 'data'));
   }
-  SerializedData additionalSerializedData = new SerializedData(
-      Uri.parse('memory:additional.data'),
-      outputCollector.getOutput('', 'data'));
   return <SerializedData>[serializedData, additionalSerializedData];
 }
 

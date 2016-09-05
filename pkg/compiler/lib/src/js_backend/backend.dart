@@ -17,7 +17,6 @@ import '../common/names.dart' show Identifiers, Selectors, Uris;
 import '../common/registry.dart' show EagerRegistry, Registry;
 import '../common/resolution.dart' show Frontend, Resolution, ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
-import '../common/work.dart' show ItemCompilationContext;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
@@ -27,7 +26,8 @@ import '../dart_types.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
-import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
+import '../enqueue.dart'
+    show Enqueuer, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../io/start_end_information.dart'
@@ -64,6 +64,7 @@ import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'checked_mode_helpers.dart';
 import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
+import 'enqueuer.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'namer.dart';
@@ -75,11 +76,6 @@ import 'type_variable_handler.dart';
 part 'runtime_types.dart';
 
 const VERBOSE_OPTIMIZER_HINTS = false;
-
-class JavaScriptItemCompilationContext extends ItemCompilationContext {
-  final Set<HInstruction> boundsChecked = new Set<HInstruction>();
-  final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
-}
 
 abstract class FunctionCompiler {
   /// Generates JavaScript code for `work.element`.
@@ -319,7 +315,7 @@ class JavaScriptBackend extends Backend {
    * The generated code as a js AST for compiled methods.
    */
   Map<Element, jsAst.Expression> get generatedCode {
-    return compiler.enqueuer.codegen.generatedCode;
+    return codegenEnqueuer.generatedCode;
   }
 
   FunctionInlineCache inlineCache = new FunctionInlineCache();
@@ -399,7 +395,6 @@ class JavaScriptBackend extends Backend {
     }
     return _fixedArrayTypeCache;
   }
-
 
   /// Maps special classes to their implementation (JSXxx) class.
   Map<ClassElement, ClassElement> implementationClasses;
@@ -1302,10 +1297,6 @@ class JavaScriptBackend extends Backend {
     needToInitializeDispatchProperty = true;
   }
 
-  JavaScriptItemCompilationContext createItemCompilationContext() {
-    return new JavaScriptItemCompilationContext();
-  }
-
   void enqueueHelpers(ResolutionEnqueuer world, Registry registry) {
     assert(helpers.interceptorsLibrary != null);
     // TODO(ngeoffray): Not enqueuing those two classes currently make
@@ -1561,6 +1552,12 @@ class JavaScriptBackend extends Backend {
     for (BackendImpact otherImpact in impact.otherImpacts) {
       enqueueImpact(enqueuer, otherImpact, registry);
     }
+  }
+
+  CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
+
+  CodegenEnqueuer createCodegenEnqueuer(Compiler compiler) {
+    return new CodegenEnqueuer(compiler, const TreeShakingEnqueuerStrategy());
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
@@ -2338,9 +2335,15 @@ class JavaScriptBackend extends Backend {
 
   /// Called when [enqueuer] is empty, but before it is closed.
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassElement> recentClasses) {
-    // Add elements referenced only via custom elements.  Return early if any
-    // elements are added to avoid counting the elements as due to mirrors.
-    customElementsAnalysis.onQueueEmpty(enqueuer);
+    if (!compiler.options.resolveOnly) {
+      // TODO(johnniwinther): The custom element analysis eagerly enqueues
+      // elements on the codegen queue. Change to compute the data needed
+      // instead.
+
+      // Add elements referenced only via custom elements.  Return early if any
+      // elements are added to avoid counting the elements as due to mirrors.
+      customElementsAnalysis.onQueueEmpty(enqueuer);
+    }
     if (!enqueuer.queueIsEmpty) return false;
 
     noSuchMethodRegistry.onQueueEmpty();

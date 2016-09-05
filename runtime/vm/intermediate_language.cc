@@ -2027,9 +2027,6 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         IsFixedLengthArrayCid(call->Type()->ToCid())) {
       return call->ArgumentAt(1);
     }
-    if (call->is_native_list_factory()) {
-      return call->ArgumentAt(0);
-    }
   }
 
   CreateArrayInstr* create_array =
@@ -2665,9 +2662,6 @@ Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
   if (call->is_known_list_constructor() &&
       LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
     length = call->ArgumentAt(1)->AsConstant();
-  }
-  if (call->is_native_list_factory()) {
-    length = call->ArgumentAt(0)->AsConstant();
   }
   if ((length != NULL) &&
       length->value().IsSmi() &&

@@ -1905,8 +1905,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   void _inferGenericInvocationExpression(InvocationExpression node) {
     ArgumentList arguments = node.argumentList;
-    FunctionType inferred = _inferGenericInvoke(
-        node, node.function.staticType, node.typeArguments, arguments);
+    FunctionType inferred = _inferGenericInvoke(node, node.function.staticType,
+        node.typeArguments, arguments, node.function);
     if (inferred != null && inferred != node.staticInvokeType) {
       // Fix up the parameter elements based on inferred method.
       arguments.correspondingStaticParameters = ResolverVisitor
@@ -1923,8 +1923,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * This takes into account both the context type, as well as information from
    * the argument types.
    */
-  FunctionType _inferGenericInvoke(Expression node, DartType fnType,
-      TypeArgumentList typeArguments, ArgumentList argumentList) {
+  FunctionType _inferGenericInvoke(
+      Expression node,
+      DartType fnType,
+      TypeArgumentList typeArguments,
+      ArgumentList argumentList,
+      AstNode errorNode) {
     TypeSystem ts = _typeSystem;
     if (typeArguments == null &&
         fnType is FunctionType &&
@@ -1982,7 +1986,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       }
       return ts.inferGenericFunctionCall(_typeProvider, fnType, paramTypes,
-          argTypes, InferenceContext.getContext(node));
+          argTypes, InferenceContext.getContext(node),
+          errorReporter: _resolver.errorReporter, errorNode: errorNode);
     }
     return null;
   }
@@ -2020,8 +2025,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         _constructorToGenericFunctionType(rawElement);
 
     ArgumentList arguments = node.argumentList;
-    FunctionType inferred = _inferGenericInvoke(
-        node, constructorType, constructor.type.typeArguments, arguments);
+    FunctionType inferred = _inferGenericInvoke(node, constructorType,
+        constructor.type.typeArguments, arguments, node.constructorName);
 
     if (inferred != null && inferred != originalElement.type) {
       // Fix up the parameter elements based on inferred method.

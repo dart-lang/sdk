@@ -172,6 +172,7 @@ class ObjectPointerVisitor;
   V(DeoptInfo, "DeoptInfo")                                                    \
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \
+  V(SingleTargetCache, "SingleTargetCache")                                    \
   V(ICData, "ICData")                                                          \
   V(MegamorphicCache, "MegamorphicCache")                                      \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \

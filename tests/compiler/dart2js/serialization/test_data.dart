@@ -762,6 +762,15 @@ var foo;
         'b.dart': '''
 var foo;
 ''',}),
+
+  const Test('html and mirrors', const {},
+      preserializedSourceFiles: const {
+        'main.dart': '''
+import 'dart:html';
+import 'dart:mirrors';
+main() {}
+'''},
+      expectedWarningCount: 1),
 ];
 
 class Test {

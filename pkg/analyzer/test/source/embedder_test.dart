@@ -10,16 +10,16 @@ import 'dart:core' hide Resource;
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../embedder_tests.dart';
-import '../reflective_tests.dart';
 import '../resource_utils.dart';
 
 main() {
-  runReflectiveTests(DartUriResolverTest);
-  runReflectiveTests(EmbedderSdkTest);
-  runReflectiveTests(EmbedderUriResolverTest);
+  defineReflectiveTests(DartUriResolverTest);
+  defineReflectiveTests(EmbedderSdkTest);
+  defineReflectiveTests(EmbedderUriResolverTest);
 }
 
 @reflectiveTest

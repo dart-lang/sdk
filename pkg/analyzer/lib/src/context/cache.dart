@@ -27,11 +27,6 @@ typedef bool FlushResultFilter<V>(
     AnalysisTarget target, ResultDescriptor<V> result);
 
 /**
- * Return `true` if some results of the [target] should be flushed.
- */
-typedef bool FlushTargetFilter<V>(AnalysisTarget target);
-
-/**
  * Return `true` if the given [target] is a priority one.
  */
 typedef bool IsPriorityAnalysisTarget(AnalysisTarget target);
@@ -118,11 +113,11 @@ class AnalysisCache {
   }
 
   /**
-   * Flush results that satisfy the given [targetFilter] and [resultFilter].
+   * Flush results that satisfy the given [filter].
    */
-  void flush(FlushTargetFilter targetFilter, FlushResultFilter resultFilter) {
+  void flush(FlushResultFilter filter) {
     for (CachePartition partition in _partitions) {
-      partition.flush(targetFilter, resultFilter);
+      partition.flush(filter);
     }
   }
 
@@ -410,18 +405,14 @@ class CacheEntry {
   }
 
   /**
-   * Flush results that satisfy the given [targetFilter] and [resultFilter].
+   * Flush results that satisfy the given [filter].
    */
-  void flush(FlushTargetFilter targetFilter, FlushResultFilter resultFilter) {
-    if (targetFilter(target)) {
-      _resultMap.forEach((ResultDescriptor result, ResultData data) {
-        if (data.state == CacheState.VALID) {
-          if (resultFilter(target, result)) {
-            data.flush();
-          }
-        }
-      });
-    }
+  void flush(FlushResultFilter filter) {
+    _resultMap.forEach((ResultDescriptor result, ResultData data) {
+      if (filter(target, result)) {
+        data.flush();
+      }
+    });
   }
 
   /**
@@ -949,7 +940,7 @@ class CacheFlushManager<T> {
       : policy = policy,
         maxActiveSize = policy.maxActiveSize,
         maxIdleSize = policy.maxIdleSize,
-        maxSize = policy.maxIdleSize;
+        maxSize = policy.maxActiveSize;
 
   /**
    * If [currentSize] is already less than [maxSize], returns an empty list.
@@ -1090,6 +1081,20 @@ abstract class CachePartition {
   CachePartition(this.context);
 
   /**
+   * Specify whether a context that uses this partition is being analyzed.
+   */
+  set isActive(bool active) {
+    for (CacheFlushManager manager in _flushManagerMap.values) {
+      if (active) {
+        manager.madeActive();
+      } else {
+        List<TargetedResult> resultsToFlush = manager.madeIdle();
+        _flushResults(resultsToFlush);
+      }
+    }
+  }
+
+  /**
    * Notifies the partition that the client is going to stop using it.
    */
   void dispose() {
@@ -1102,11 +1107,11 @@ abstract class CachePartition {
   }
 
   /**
-   * Flush results that satisfy the given [targetFilter] and [resultFilter].
+   * Flush results that satisfy the given [filter].
    */
-  void flush(FlushTargetFilter targetFilter, FlushResultFilter resultFilter) {
+  void flush(FlushResultFilter filter) {
     for (CacheEntry entry in entryMap.values) {
-      entry.flush(targetFilter, resultFilter);
+      entry.flush(filter);
     }
   }
 
@@ -1185,15 +1190,7 @@ abstract class CachePartition {
     CacheFlushManager flushManager = _getFlushManager(result.result);
     List<TargetedResult> resultsToFlush =
         flushManager.resultStored(result, value);
-    for (TargetedResult result in resultsToFlush) {
-      CacheEntry entry = get(result.target);
-      if (entry != null) {
-        ResultData data = entry._resultMap[result.result];
-        if (data != null) {
-          data.flush();
-        }
-      }
-    }
+    _flushResults(resultsToFlush);
   }
 
   /**
@@ -1209,6 +1206,21 @@ abstract class CachePartition {
       sources.add(target);
       String fullName = target.fullName;
       pathToSource.putIfAbsent(fullName, () => <Source>[]).add(target);
+    }
+  }
+
+  /**
+   * Flush the given [resultsToFlush].
+   */
+  void _flushResults(List<TargetedResult> resultsToFlush) {
+    for (TargetedResult result in resultsToFlush) {
+      CacheEntry entry = get(result.target);
+      if (entry != null) {
+        ResultData data = entry._resultMap[result.result];
+        if (data != null) {
+          data.flush();
+        }
+      }
     }
   }
 
@@ -1229,7 +1241,8 @@ abstract class CachePartition {
   }
 
   bool _isPriorityAnalysisTarget(AnalysisTarget target) {
-    return context.priorityTargets.contains(target);
+    Source source = target.source;
+    return source != null && context.prioritySources.contains(source);
   }
 
   /**

@@ -139,17 +139,17 @@ class PersistentHandlesPageElement  extends HtmlElement implements Renderable {
   List<Element> _createHandlers(String name, List items, create, update,
                                 {createHeader}) {
     return [
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h1()
             ..text = items == null ? '$name'
                                    : '$name (${items.length})',
           new HRElement(),
         ],
-      new DivElement()..classes = const ['persistent-handles']
+      new DivElement()..classes = ['persistent-handles']
         ..children = [
           items == null
-            ? (new HeadingElement.h2()..classes = const ['content-centered-big']
+            ? (new HeadingElement.h2()..classes = ['content-centered-big']
                 ..text = 'Loading...')
             : new VirtualCollectionElement(create, update, items: items,
                                            createHeader: createHeader,
@@ -180,25 +180,25 @@ class PersistentHandlesPageElement  extends HtmlElement implements Renderable {
   }
 
   static Element _createLine() =>
-    new DivElement()..classes = const ['collection-item']
+    new DivElement()..classes = ['collection-item']
       ..text = 'object';
 
   static Element _createWeakLine() =>
     new DivElement()
-      ..classes = const ['weak-item']
+      ..classes = ['weak-item']
       ..children = [
-        new SpanElement()..classes = const ['external-size']
+        new SpanElement()..classes = ['external-size']
           ..text = '0B',
-        new SpanElement()..classes = const ['peer']
+        new SpanElement()..classes = ['peer']
           ..text = '0x00000',
-        new SpanElement()..classes = const ['object'],
-        new SpanElement()..classes = const ['finalizer']
+        new SpanElement()..classes = ['object'],
+        new SpanElement()..classes = ['finalizer']
           ..text = 'dart::Class::Method()'
       ];
 
   Element _createWeakHeader() =>
     new DivElement()
-      ..classes = const ['weak-item']
+      ..classes = ['weak-item']
       ..children = [
         _createHeaderButton(const ['external-size'], 'External Size',
                             _SortingField.externalSize,
@@ -206,7 +206,7 @@ class PersistentHandlesPageElement  extends HtmlElement implements Renderable {
         _createHeaderButton(const ['peer'], 'Peer',
                             _SortingField.peer,
                             _SortingDirection.descending),
-        new SpanElement()..classes = const ['object']
+        new SpanElement()..classes = ['object']
           ..text = 'Object',
         _createHeaderButton(const ['finalizer'], 'Finalizer Callback',
                             _SortingField.finalizerCallback,
@@ -247,7 +247,7 @@ class PersistentHandlesPageElement  extends HtmlElement implements Renderable {
     e.children[0].text = Utils.formatSize(_getExternalSize(item));
     e.children[1].text = '${_getPeer(item)}';
     e.children[2] = anyRef(_isolate, item.object, _instances, queue: _r.queue)
-      ..classes = const ['object'];
+      ..classes = ['object'];
     e.children[3]..text = '${_getFinalizerCallback(item)}'
                  ..title = '${_getFinalizerCallback(item)}';
   }
@@ -256,7 +256,7 @@ class PersistentHandlesPageElement  extends HtmlElement implements Renderable {
       index) {
     e.children = [
       anyRef(_isolate, item.object, _instances, queue: _r.queue)
-       ..classes = const ['object']
+       ..classes = ['object']
     ];
   }
 

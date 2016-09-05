@@ -15,6 +15,7 @@ class MegamorphicCacheRefMock implements M.MegamorphicCacheRef {
 class MegamorphicCacheMock implements M.MegamorphicCache {
   final String id;
   final M.ClassRef clazz;
+  final String vmName;
   final int size;
   final String selector;
   final int mask;
@@ -22,7 +23,11 @@ class MegamorphicCacheMock implements M.MegamorphicCache {
   final M.InstanceRef argumentsDescriptor;
 
   const MegamorphicCacheMock({this.id : 'megamorphiccache-id',
-      this.clazz: const ClassRefMock(), this.size: 1, this.selector: 'selector',
-      this.mask: 0, this.buckets: const InstanceRefMock(),
-      this.argumentsDescriptor: const InstanceRefMock()});
+                              this.vmName: 'megamorphiccache-vmName',
+                              this.clazz: const ClassRefMock(),
+                              this.size: 1, this.selector: 'selector',
+                              this.mask: 0,
+                              this.buckets: const InstanceRefMock(),
+                              this.argumentsDescriptor: const InstanceRefMock()
+                             });
 }

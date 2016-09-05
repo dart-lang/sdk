@@ -539,6 +539,9 @@ class Object {
     return unhandled_exception_class_;
   }
   static RawClass* unwind_error_class() { return unwind_error_class_; }
+  static RawClass* singletargetcache_class() {
+    return singletargetcache_class_;
+  }
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* megamorphic_cache_class() {
     return megamorphic_cache_class_;
@@ -790,6 +793,7 @@ class Object {
   static RawClass* deopt_info_class_;  // Class of DeoptInfo.
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
+  static RawClass* singletargetcache_class_;  // Class of SingleTargetCache.
   static RawClass* icdata_class_;  // Class of ICData.
   static RawClass* megamorphic_cache_class_;  // Class of MegamorphiCache.
   static RawClass* subtypetestcache_class_;  // Class of SubtypeTestCache.
@@ -1820,6 +1824,40 @@ class PatchClass : public Object {
 };
 
 
+class SingleTargetCache : public Object {
+ public:
+  RawCode* target() const { return raw_ptr()->target_; }
+  void set_target(const Code& target) const;
+  static intptr_t target_offset() {
+    return OFFSET_OF(RawSingleTargetCache, target_);
+  }
+
+#define DEFINE_NON_POINTER_FIELD_ACCESSORS(type, name)                         \
+  type name() const { return raw_ptr()->name##_; }                             \
+  void set_##name(type value) const {                                          \
+    StoreNonPointer(&raw_ptr()->name##_, value);                               \
+  }                                                                            \
+  static intptr_t name##_offset() {                                            \
+    return OFFSET_OF(RawSingleTargetCache, name##_);                           \
+  }                                                                            \
+
+DEFINE_NON_POINTER_FIELD_ACCESSORS(uword, entry_point);
+DEFINE_NON_POINTER_FIELD_ACCESSORS(intptr_t, lower_limit);
+DEFINE_NON_POINTER_FIELD_ACCESSORS(intptr_t, upper_limit);
+#undef DEFINE_NON_POINTER_FIELD_ACCESSORS
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawSingleTargetCache));
+  }
+
+  static RawSingleTargetCache* New();
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache, Object);
+  friend class Class;
+};
+
+
 // Object holding information about an IC: test classes and their
 // corresponding targets. The owner of the ICData can be either the function
 // or the original ICData object. In case of background compilation we
@@ -2066,11 +2104,7 @@ class ICData : public Object {
                              GrowableArray<intptr_t>* second) const;
 
   void PrintToJSONArray(const JSONArray& jsarray,
-                        TokenPosition token_pos,
-                        bool is_static_call) const;
-  void PrintToJSONArrayNew(const JSONArray& jsarray,
-                           TokenPosition token_pos,
-                           bool is_static_call) const;
+                        TokenPosition token_pos) const;
 
   // Initialize the preallocated empty ICData entry arrays.
   static void InitOnce();
@@ -6680,7 +6714,7 @@ class String : public Instance {
   // an Array object or a regular Object so that it can be traversed during
   // garbage collection.
   RawString* MakeExternal(void* array,
-                          intptr_t length,
+                          intptr_t external_size,
                           void* peer,
                           Dart_PeerFinalizer cback) const;
 
@@ -6936,6 +6970,7 @@ class OneByteString : public AllStatic {
                                               Heap::Space space);
 
   static void SetPeer(const String& str,
+                      intptr_t external_size,
                       void* peer,
                       Dart_PeerFinalizer cback);
 
@@ -7051,6 +7086,7 @@ class TwoByteString : public AllStatic {
                                      Heap::Space space);
 
   static void SetPeer(const String& str,
+                      intptr_t external_size,
                       void* peer,
                       Dart_PeerFinalizer cback);
 
@@ -7896,7 +7932,9 @@ class ExternalTypedData : public Instance {
 #undef TYPED_GETTER_SETTER
 
   FinalizablePersistentHandle* AddFinalizer(
-      void* peer, Dart_WeakPersistentHandleFinalizer callback) const;
+      void* peer,
+      Dart_WeakPersistentHandleFinalizer callback,
+      intptr_t external_size) const;
 
   static intptr_t length_offset() {
     return OFFSET_OF(RawExternalTypedData, length_);

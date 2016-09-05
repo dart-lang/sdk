@@ -125,6 +125,18 @@ bool isSimdValue(InstanceKind kind) {
   }
 }
 
+bool isAbstractType(InstanceKind kind) {
+  switch (kind) {
+    case InstanceKind.type:
+    case InstanceKind.typeRef:
+    case InstanceKind.typeParameter:
+    case InstanceKind.boundedType:
+      return true;
+    default:
+    return false;
+  }
+}
+
 abstract class InstanceRef extends ObjectRef {
   /// What kind of instance is this?
   InstanceKind get kind;
@@ -206,6 +218,12 @@ abstract class InstanceRef extends ObjectRef {
   /// Provided for instance kinds:
   ///   Closure
   FunctionRef get closureFunction;
+
+  /// [optional] The context associated with a Closure instance.
+  ///
+  /// Provided for instance kinds:
+  ///   Closure
+  ContextRef get closureContext;
 }
 
 abstract class Instance extends Object implements InstanceRef {
@@ -274,7 +292,10 @@ abstract class Instance extends Object implements InstanceRef {
   ///   Float64x2List
   Iterable<dynamic> get typedElements;
 
-  /// [optional]The fields of this Instance.
+  /// [optional] The native fields of this Instance.
+  Iterable<NativeField> get nativeFields;
+
+  /// [optional] The fields of this Instance.
   Iterable<BoundField> get fields;
 
   /// [optional] The elements of a List instance.
@@ -309,4 +330,101 @@ abstract class Instance extends Object implements InstanceRef {
   /// Provided for instance kinds:
   ///   MirrorReference
   ObjectRef get referent;
+
+  /// [optional] The type arguments for this type.
+  ///
+  /// Provided for instance kinds:
+  ///   Type
+  TypeArgumentsRef get typeArguments;
+
+  /// [optional] The index of a TypeParameter instance.
+  ///
+  /// Provided for instance kinds:
+  ///   TypeParameter
+  int get parameterIndex;
+
+  /// [optional] The type bounded by a BoundedType instance
+  /// - or -
+  /// the referent of a TypeRef instance.
+  ///
+  /// The value will always be of one of the kinds:
+  /// Type, TypeRef, TypeParameter, BoundedType.
+  ///
+  /// Provided for instance kinds:
+  ///   BoundedType
+  ///   TypeRef
+  InstanceRef get targetType;
+
+  /// [optional] The bound of a TypeParameter or BoundedType.
+  ///
+  /// The value will always be of one of the kinds:
+  /// Type, TypeRef, TypeParameter, BoundedType.
+  ///
+  /// Provided for instance kinds:
+  ///   BoundedType
+  ///   TypeParameter
+  InstanceRef get bound;
+
+  /// [optional]
+  ///
+  /// Provided for instance kinds:
+  ///   Closure
+  Breakpoint get activationBreakpoint;
+
+  /// [optional]
+  ///
+  /// Provided for instance kinds:
+  ///   RegExp
+  bool get isCaseSensitive;
+
+  /// [optional]
+  ///
+  /// Provided for instance kinds:
+  ///   RegExp
+  bool get isMultiLine;
+
+  /// [optional]
+  ///
+  /// Provided for instance kinds:
+  ///   RegExp
+  Function get oneByteFunction;
+
+  /// [optional]
+  ///
+  /// Provided for instance kinds:
+  ///   RegExp
+  Function get twoByteFunction;
+
+  /// [optional]
+  ///
+  /// Provided for instance kinds:
+  ///   RegExp
+  Function get externalOneByteFunction;
+
+  /// [optional]
+  ///
+  /// Provided for instance kinds:
+  ///   RegExp
+  Function get externalTwoByteFunction;
+
+  /// [optional]
+  ///
+  /// Provided for instance kinds:
+  ///   RegExp
+  Instance get oneByteBytecode;
+
+  /// [optional]
+  ///
+  /// Provided for instance kinds:
+  ///   RegExp
+  Instance get twoByteBytecode;
+}
+
+abstract class BoundField {
+  FieldRef get decl;
+  Guarded<InstanceRef> get value;
+}
+
+abstract class NativeField {
+  int get value;
 }

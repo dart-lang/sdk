@@ -19,10 +19,9 @@ import 'nodes.dart';
  */
 class HTracer extends HGraphVisitor with TracerUtil {
   Compiler compiler;
-  JavaScriptItemCompilationContext context;
   final EventSink<String> output;
 
-  HTracer(this.output, this.compiler, this.context);
+  HTracer(this.output, this.compiler);
 
   void traceGraph(String name, HGraph graph) {
     DEBUG_MODE = true;
@@ -76,7 +75,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
 
   void visitBasicBlock(HBasicBlock block) {
     HInstructionStringifier stringifier =
-        new HInstructionStringifier(context, block, compiler);
+        new HInstructionStringifier(block, compiler);
     assert(block.id != null);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -114,10 +113,9 @@ class HTracer extends HGraphVisitor with TracerUtil {
 
 class HInstructionStringifier implements HVisitor<String> {
   final Compiler compiler;
-  final JavaScriptItemCompilationContext context;
   final HBasicBlock currentBlock;
 
-  HInstructionStringifier(this.context, this.currentBlock, this.compiler);
+  HInstructionStringifier(this.currentBlock, this.compiler);
 
   visit(HInstruction node) => '${node.accept(this)} ${node.instructionType}';
 
@@ -200,6 +198,10 @@ class HInstructionStringifier implements HVisitor<String> {
       return "Continue ${node.label.labelName}: (B${target.id})";
     }
     return "Continue: (B${target.id})";
+  }
+
+  String visitCreate(HCreate node) {
+    return handleGenericInvoke("Create", "${node.element.name}", node.inputs);
   }
 
   String visitDivide(HDivide node) => handleInvokeBinary(node, 'Divide');
@@ -335,11 +337,6 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitForeignCode(HForeignCode foreign) {
     return handleGenericInvoke(
         "ForeignCode", "${foreign.codeTemplate.ast}", foreign.inputs);
-  }
-
-  String visitForeignNew(HForeignNew node) {
-    return handleGenericInvoke(
-        "ForeignNew", "${node.element.name}", node.inputs);
   }
 
   String visitLess(HLess node) => handleInvokeBinary(node, 'Less');

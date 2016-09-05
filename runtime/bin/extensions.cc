@@ -9,6 +9,7 @@
 #include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/platform.h"
+#include "bin/utils.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -16,41 +17,100 @@
 namespace dart {
 namespace bin {
 
-Dart_Handle Extensions::LoadExtension(const char* extension_directory,
-                                      const char* extension_name,
-                                      Dart_Handle parent_library) {
-  // For example on Linux: directory/libfoo-arm.so
-  const char* library_strings[] = {
-    extension_directory,  // directory/
-    Platform::LibraryPrefix(),  // lib
-    extension_name,  // foo
-    "-",
-    Platform::HostArchitecture(),  // arm
-    ".",
-    Platform::LibraryExtension(),  // so
-    NULL,
-  };
-  const char* library_file = Concatenate(library_strings);
-  void* library_handle = LoadExtensionLibrary(library_file);
-  if (library_handle == NULL) {
-    // Fallback on a library file name that does not specify the host
-    // architecture. For example on Linux: directory/libfoo.so
-    const char* fallback_library_strings[] = {
-      extension_directory,  // directory/
-      Platform::LibraryPrefix(),  // lib
-      extension_name,  // foo
+static char PathSeparator() {
+  const char* sep = File::PathSeparator();
+  ASSERT(strlen(sep) == 1);
+  return sep[0];
+}
+
+
+void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
+  // First try to find the library with a suffix specifying the architecture.
+  {
+    const char* path_components[] = {
+      dir,
+      Platform::LibraryPrefix(),
+      name,
+      "-",
+      Platform::HostArchitecture(),  // arm
       ".",
       Platform::LibraryExtension(),  // so
       NULL,
     };
-    const char* fallback_library_file = Concatenate(fallback_library_strings);
-    library_handle = LoadExtensionLibrary(fallback_library_file);
-    if (library_handle == NULL) {
-      return GetError();
+    const char* library_file = Concatenate(path_components);
+    void* library_handle = LoadExtensionLibrary(library_file);
+    if (library_handle != NULL) {
+      return library_handle;
     }
   }
 
-  const char* strings[] = { extension_name, "_Init", NULL };
+  // Fall back on a library name without the suffix.
+  {
+    const char* path_components[] = {
+      dir,
+      Platform::LibraryPrefix(),
+      name,
+      ".",
+      Platform::LibraryExtension(),  // so
+      NULL,
+    };
+    const char* library_file = Concatenate(path_components);
+    return LoadExtensionLibrary(library_file);
+  }
+}
+
+
+// IMPORTANT: In the absolute path case, do not extract the filename and search
+// for that by passing it to LoadExtensionLibrary. That can lead to confusion in
+// which the absolute path is wrong, and a different version of the library is
+// loaded from the standard location.
+void* Extensions::ResolveAbsPathExtension(const char* extension_path) {
+  const char* last_slash = strrchr(extension_path, PathSeparator()) + 1;
+  char* name = strdup(last_slash);
+  char* dir = StringUtils::StrNDup(extension_path, last_slash - extension_path);
+  void* library_handle = MakePathAndResolve(dir, name);
+  free(dir);
+  free(name);
+  return library_handle;
+}
+
+
+void* Extensions::ResolveExtension(const char* extension_directory,
+                                   const char* extension_name) {
+  // If the path following dart-ext is an absolute path, then only look for the
+  // library there.
+  if (File::IsAbsolutePath(extension_name)) {
+    return ResolveAbsPathExtension(extension_name);
+  }
+
+  // If the path following dart-ext is just a file name, first look next to
+  // the importing Dart library.
+  void* library_handle = MakePathAndResolve(extension_directory,
+                                            extension_name);
+  if (library_handle != NULL) {
+    return library_handle;
+  }
+
+  // Then pass the library name down to the platform. E.g. dlopen will do its
+  // own search in standard search locations.
+  return MakePathAndResolve("", extension_name);
+}
+
+
+Dart_Handle Extensions::LoadExtension(const char* extension_directory,
+                                      const char* extension_name,
+                                      Dart_Handle parent_library) {
+  void* library_handle = ResolveExtension(extension_directory, extension_name);
+  if (library_handle == NULL) {
+    return GetError();
+  }
+
+  const char* extension = extension_name;
+  if (File::IsAbsolutePath(extension_name)) {
+    extension = strrchr(extension_name, PathSeparator()) + 1;
+  }
+
+  const char* strings[] = { extension, "_Init", NULL };
   const char* init_function_name = Concatenate(strings);
   void* init_function = ResolveSymbol(library_handle, init_function_name);
   Dart_Handle result = GetError();

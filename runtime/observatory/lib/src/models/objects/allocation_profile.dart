@@ -12,7 +12,6 @@ abstract class AllocationProfile {
   Iterable<ClassHeapStats> get members;
 }
 
-
 abstract class ClassHeapStats {
   ClassRef get clazz;
   Allocations get newSpace;

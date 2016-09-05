@@ -18,14 +18,14 @@ import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'summary_common.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(LinkedSummarizeAstSpecTest);
+  defineReflectiveTests(LinkedSummarizeAstSpecTest);
 }
 
 @reflectiveTest
@@ -265,7 +265,8 @@ abstract class SummaryLinkerTest {
     return null;
   }
 
-  LinkerInputs createLinkerInputs(String text, {String path: '/test.dart', String uri}) {
+  LinkerInputs createLinkerInputs(String text,
+      {String path: '/test.dart', String uri}) {
     uri ??= absUri(path);
     Uri testDartUri = Uri.parse(uri);
     CompilationUnit unit = _parseText(text);

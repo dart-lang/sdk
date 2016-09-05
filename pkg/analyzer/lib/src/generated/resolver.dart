@@ -6608,7 +6608,7 @@ class ResolverVisitor extends ScopedVisitor {
               var typeParamS =
                   futureThenType.returnType.flattenFutures(typeSystem);
               returnType =
-                    FutureUnionType.from(typeParamS, typeProvider, typeSystem);
+                  FutureUnionType.from(typeParamS, typeProvider, typeSystem);
             } else {
               returnType = _computeReturnOrYieldType(functionType.returnType);
             }
@@ -7782,8 +7782,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   Object visitBlock(Block node) {
     Scope outerScope = nameScope;
     try {
-      EnclosedScope enclosedScope = new EnclosedScope(nameScope);
-      _hideNamesDefinedInBlock(enclosedScope, node);
+      EnclosedScope enclosedScope = new BlockScope(nameScope, node);
       nameScope = enclosedScope;
       super.visitBlock(node);
     } finally {
@@ -8307,28 +8306,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     }
     return outerScope;
   }
-
-  /**
-   * Marks the local declarations of the given [Block] hidden in the enclosing scope.
-   * According to the scoping rules name is hidden if block defines it, but name is defined after
-   * its declaration statement.
-   */
-  void _hideNamesDefinedInBlock(EnclosedScope scope, Block block) {
-    NodeList<Statement> statements = block.statements;
-    int statementCount = statements.length;
-    for (int i = 0; i < statementCount; i++) {
-      Statement statement = statements[i];
-      if (statement is VariableDeclarationStatement) {
-        NodeList<VariableDeclaration> variables = statement.variables.variables;
-        int variableCount = variables.length;
-        for (int j = 0; j < variableCount; j++) {
-          scope.hide(variables[j].element);
-        }
-      } else if (statement is FunctionDeclarationStatement) {
-        scope.hide(statement.functionDeclaration.element);
-      }
-    }
-  }
 }
 
 /**
@@ -8829,6 +8806,11 @@ class TypeNameResolver {
             parent is WithClause ||
             parent is ClassTypeAlias) {
           // Ignored. The error will be reported elsewhere.
+        } else if (element is LocalVariableElement ||
+            (element is FunctionElement &&
+                element.enclosingElement is ExecutableElement)) {
+          reportErrorForNode(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+              typeName, [typeName.name]);
         } else {
           reportErrorForNode(
               StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);

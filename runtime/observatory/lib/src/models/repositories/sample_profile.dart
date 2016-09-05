@@ -42,11 +42,13 @@ abstract class SampleProfileLoadingProgress {
 }
 
 abstract class ClassSampleProfileRepository {
-  Stream<SampleProfileLoadingProgressEvent> get(ClassRef cls,
-      SampleProfileTag tag, {bool clear: false});
+  Stream<SampleProfileLoadingProgressEvent> get(IsolateRef isolate,
+      ClassRef cls, SampleProfileTag tag);
+  Future enable(IsolateRef isolate, ClassRef cls);
+  Future disable(IsolateRef isolate, ClassRef cls);
 }
 
 abstract class IsolateSampleProfileRepository {
-  Stream<SampleProfileLoadingProgressEvent> get(IsolateRef cls,
+  Stream<SampleProfileLoadingProgressEvent> get(IsolateRef isolate,
       SampleProfileTag tag, {bool clear: false, bool forceFetch: false});
 }

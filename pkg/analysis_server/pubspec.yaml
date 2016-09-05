@@ -20,6 +20,6 @@ dependencies:
 dev_dependencies:
   html: any
   mock: '>=0.11.0 <0.12.0'
-  test_reflective_loader: '>=0.0.3 <0.1.0'
+  test_reflective_loader: '>=0.0.4 <0.1.0'
   typed_mock: '>=0.0.4 <1.0.0'
   unittest: '>=0.11.4 <0.12.0'

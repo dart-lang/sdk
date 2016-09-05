@@ -490,6 +490,9 @@ class _RuntimeTypes implements RuntimeTypes {
       }
     }
     return instantiated..addAll(collector.classes);
+
+    // TODO(sra): This computation misses substitutions for reading type
+    // parameters.
   }
 
   @override

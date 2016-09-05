@@ -1631,13 +1631,13 @@ table UnlinkedDocumentationComment {
   /**
    * Length of the documentation comment (prior to replacing '\r\n' with '\n').
    */
-  length:uint (id: 0, deprecated);
+  length:uint (id: 0);
 
   /**
    * Offset of the beginning of the documentation comment relative to the
    * beginning of the file.
    */
-  offset:uint (id: 2, deprecated);
+  offset:uint (id: 2);
 
   /**
    * Text of the documentation comment, with '\r\n' replaced by '\n'.

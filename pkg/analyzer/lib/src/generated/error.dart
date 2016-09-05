@@ -5969,6 +5969,11 @@ class StrongModeCode extends ErrorCode {
       const StrongModeCode(ErrorType.COMPILE_TIME_ERROR,
           'INVALID_PARAMETER_DECLARATION', _typeCheckMessage);
 
+  static const StrongModeCode COULD_NOT_INFER = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'COULD_NOT_INFER',
+      "Could not infer type parameter {0}, {1} must be of type {2}.");
+
   static const StrongModeCode INFERRED_TYPE = const StrongModeCode(
       ErrorType.HINT, 'INFERRED_TYPE', _inferredTypeMessage);
 

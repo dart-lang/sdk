@@ -227,10 +227,10 @@ class NsmEmitter extends CodeEmitterHelper {
 
     dynamic isIntercepted = // jsAst.Expression or bool.
         interceptedSelectors.isEmpty
-        ? false
-        : ordinarySelectors.isEmpty
-            ? true
-            : js('j < #', js.number(interceptedSelectors.length));
+            ? false
+            : ordinarySelectors.isEmpty
+                ? true
+                : js('j < #', js.number(interceptedSelectors.length));
 
     statements.add(js.statement(
         '''

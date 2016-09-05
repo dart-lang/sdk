@@ -82,12 +82,9 @@ Future<String> compile(String code,
     compiler.processQueue(compiler.enqueuer.resolution, element);
     compiler.world.populate();
     compiler.backend.onResolutionComplete();
-    var context = new js.JavaScriptItemCompilationContext();
-    ResolutionWorkItem resolutionWork =
-        new ResolutionWorkItem(element, context);
+    ResolutionWorkItem resolutionWork = new ResolutionWorkItem(element);
     resolutionWork.run(compiler, compiler.enqueuer.resolution);
-    CodegenWorkItem work =
-        new CodegenWorkItem(compiler, element, context);
+    CodegenWorkItem work = new CodegenWorkItem(compiler, element);
     compiler.phase = Compiler.PHASE_COMPILING;
     work.run(compiler, compiler.enqueuer.codegen);
     js.JavaScriptBackend backend = compiler.backend;

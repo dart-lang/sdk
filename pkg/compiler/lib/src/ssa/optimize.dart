@@ -49,25 +49,23 @@ class SsaOptimizerTask extends CompilerTask {
     }
 
     ConstantSystem constantSystem = compiler.backend.constantSystem;
-    JavaScriptItemCompilationContext context = work.compilationContext;
     bool trustPrimitives = compiler.options.trustPrimitives;
+    Set<HInstruction> boundsChecked = new Set<HInstruction>();
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
+        new SsaInstructionSimplifier(constantSystem, backend, this),
         new SsaTypeConversionInserter(compiler),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         new SsaTypePropagator(compiler),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
-        new SsaCheckInserter(
-            trustPrimitives, backend, work, context.boundsChecked),
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
-        new SsaCheckInserter(
-            trustPrimitives, backend, work, context.boundsChecked),
+        new SsaInstructionSimplifier(constantSystem, backend, this),
+        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
+        new SsaInstructionSimplifier(constantSystem, backend, this),
+        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
         new SsaTypePropagator(compiler),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
@@ -81,19 +79,19 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         new SsaTypePropagator(compiler),
-        new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
+        new SsaValueRangeAnalyzer(compiler, constantSystem, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
-        new SsaCheckInserter(
-            trustPrimitives, backend, work, context.boundsChecked),
+        new SsaInstructionSimplifier(constantSystem, backend, this),
+        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
       ];
       phases.forEach(runPhase);
 
       // Simplifying interceptors is not strictly just an optimization, it is
       // required for implementation correctness because the code generator
       // assumes it is always performed.
-      runPhase(new SsaSimplifyInterceptors(compiler, constantSystem, work));
+      runPhase(
+          new SsaSimplifyInterceptors(compiler, constantSystem, work.element));
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(compiler, this);
       runPhase(dce);
@@ -102,11 +100,10 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypePropagator(compiler),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
-          new SsaInstructionSimplifier(constantSystem, backend, this, work),
-          new SsaCheckInserter(
-              trustPrimitives, backend, work, context.boundsChecked),
-          new SsaSimplifyInterceptors(compiler, constantSystem, work),
+          new SsaValueRangeAnalyzer(compiler, constantSystem, this),
+          new SsaInstructionSimplifier(constantSystem, backend, this),
+          new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
+          new SsaSimplifyInterceptors(compiler, constantSystem, work.element),
           new SsaDeadCodeEliminator(compiler, this),
         ];
       } else {
@@ -114,7 +111,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypePropagator(compiler),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(constantSystem, backend, this, work),
+          new SsaInstructionSimplifier(constantSystem, backend, this),
         ];
       }
       phases.forEach(runPhase);
@@ -156,14 +153,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   final String name = "SsaInstructionSimplifier";
   final JavaScriptBackend backend;
-  final CodegenWorkItem work;
   final ConstantSystem constantSystem;
   HGraph graph;
   Compiler get compiler => backend.compiler;
   final SsaOptimizerTask optimizer;
 
-  SsaInstructionSimplifier(
-      this.constantSystem, this.backend, this.optimizer, this.work);
+  SsaInstructionSimplifier(this.constantSystem, this.backend, this.optimizer);
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
@@ -835,8 +830,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (node.isNullCheck) return node;
     var receiver = node.receiver;
     if (node.element == helpers.jsIndexableLength) {
-      JavaScriptItemCompilationContext context = work.compilationContext;
-      if (context.allocatedFixedLists.contains(receiver)) {
+      if (graph.allocatedFixedLists.contains(receiver)) {
         // TODO(ngeoffray): checking if the second input is an integer
         // should not be necessary but it currently makes it easier for
         // other optimizations to reason about a fixed length constructor
@@ -1037,6 +1031,69 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return handleInterceptedCall(node);
   }
 
+  bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
+    ClassWorld classWorld = compiler.world;
+    if (classWorld.isUsedAsMixin(cls)) return true;
+
+    return classWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
+      return !backend.rti.isTrivialSubstitution(subclass, cls);
+    });
+  }
+
+  HInstruction visitTypeInfoExpression(HTypeInfoExpression node) {
+    // Identify the case where the type info expression would be of the form:
+    //
+    //  [getTypeArgumentByIndex(this, 0), .., getTypeArgumentByIndex(this, k)]
+    //
+    // and k is the number of type arguments of 'this'.  We can simply copy the
+    // list from 'this'.
+    HInstruction tryCopyInfo() {
+      if (node.kind != TypeInfoExpressionKind.INSTANCE) return null;
+
+      HInstruction source;
+      int expectedIndex = 0;
+
+      for (HInstruction argument in node.inputs) {
+        if (argument is HTypeInfoReadVariable) {
+          HInstruction nextSource = argument.object;
+          if (nextSource is HThis) {
+            if (source == null) {
+              source = nextSource;
+              ClassElement contextClass =
+                  nextSource.sourceElement.enclosingClass;
+              if (node.inputs.length != contextClass.typeVariables.length) {
+                return null;
+              }
+              if (needsSubstitutionForTypeVariableAccess(contextClass)) {
+                return null;
+              }
+            }
+            if (nextSource != source) return null;
+            // Check that the index is the one we expect.
+            int index = argument.variable.element.index;
+            if (index != expectedIndex++) return null;
+          } else {
+            // TODO(sra): Handle non-this cases (i.e. inlined code). Some
+            // non-this cases will have a TypeMask that does not need
+            // substitution, even though the general case does, e.g. inlining a
+            // method on an exact class.
+            return null;
+          }
+        } else {
+          return null;
+        }
+      }
+
+      if (source == null) return null;
+      return new HTypeInfoReadRaw(source, backend.dynamicType);
+    }
+
+    // TODO(sra): Consider fusing type expression trees with no type variables,
+    // as these could be represented like constants.
+
+    return tryCopyInfo() ?? node;
+  }
+
   HInstruction visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
     TypeVariableType variable = node.variable;
     HInstruction object = node.object;
@@ -1057,6 +1114,34 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     }
 
+    /// Read the type variable from an allocation of type [createdClass], where
+    /// [selectTypeArgumentFromObjectCreation] extracts the type argument from
+    /// the allocation for factory constructor call.
+    HInstruction finishSubstituted(ClassElement createdClass,
+        HInstruction selectTypeArgumentFromObjectCreation(int index)) {
+      HInstruction instructionForTypeVariable(TypeVariableType tv) {
+        return selectTypeArgumentFromObjectCreation(
+            createdClass.thisType.typeArguments.indexOf(tv));
+      }
+
+      DartType type = createdClass.thisType
+          .asInstanceOf(variable.element.enclosingClass)
+          .typeArguments[variable.element.index];
+      if (type is TypeVariableType) {
+        return instructionForTypeVariable(type);
+      }
+      List<HInstruction> arguments = <HInstruction>[];
+      type.forEachTypeVariable((v) {
+        arguments.add(instructionForTypeVariable(v));
+      });
+      HInstruction replacement = new HTypeInfoExpression(
+          TypeInfoExpressionKind.COMPLETE,
+          type,
+          arguments,
+          backend.dynamicType);
+      return replacement;
+    }
+
     // Type variable evaluated in the context of a constant can be replaced with
     // a ground term type.
     if (object is HConstant) {
@@ -1067,10 +1152,42 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     }
 
-    // TODO(sra): HTypeInfoReadVariable on an instance creation can be replaced
-    // with an input of the instance creation's HTypeInfoExpression (or a
-    // HTypeInfoExpression of an input).  This would in effect store-forward the
-    // type parameters.
+    // Look for an allocation with type information and re-write type variable
+    // as a function of the type parameters of the allocation.  This effectively
+    // store-forwards a type variable read through an allocation.
+
+    // Match:
+    //
+    //     setRuntimeTypeInfo(
+    //         HCreate(ClassElement),
+    //         HTypeInfoExpression(t_0, t_1, t_2, ...));
+    //
+    // The `t_i` are the values of the type parameters of ClassElement.
+    if (object is HInvokeStatic) {
+      if (object.element == helpers.setRuntimeTypeInfo) {
+        HInstruction allocation = object.inputs[0];
+        if (allocation is HCreate) {
+          HInstruction typeInfo = object.inputs[1];
+          if (typeInfo is HTypeInfoExpression) {
+            return finishSubstituted(
+                allocation.element, (int index) => typeInfo.inputs[index]);
+          }
+        }
+        return node;
+      }
+      // TODO(sra): Factory constructors pass type arguments after the value
+      // arguments. The [select] argument indexes into these type arguments.
+    }
+
+    // Non-generic type (which extends or mixes in a generic type, for example
+    // CodeUnits extends UnmodifiableListBase<int>).
+    // Also used for raw-type when the type parameters are elided.
+    if (object is HCreate) {
+      return finishSubstituted(
+          object.element,
+          // If there are type arguments, all type arguments are 'dynamic'.
+          (int i) => graph.addConstantNull(compiler));
+    }
 
     return node;
   }
@@ -1078,14 +1195,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final Set<HInstruction> boundsChecked;
-  final CodegenWorkItem work;
   final bool trustPrimitives;
   final JavaScriptBackend backend;
   final String name = "SsaCheckInserter";
   HGraph graph;
 
-  SsaCheckInserter(
-      this.trustPrimitives, this.backend, this.work, this.boundsChecked);
+  SsaCheckInserter(this.trustPrimitives, this.backend, this.boundsChecked);
 
   BackendHelpers get helpers => backend.helpers;
 
@@ -2075,7 +2190,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
         instruction.element, receiver, instruction.inputs.last);
   }
 
-  void visitForeignNew(HForeignNew instruction) {
+  void visitCreate(HCreate instruction) {
     memorySet.registerAllocation(instruction);
     if (shouldTrackInitialValues(instruction)) {
       int argumentIndex = 0;
@@ -2090,7 +2205,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.killAffectedBy(instruction);
   }
 
-  bool shouldTrackInitialValues(HForeignNew instruction) {
+  bool shouldTrackInitialValues(HCreate instruction) {
     // Don't track initial field values of an allocation that are
     // unprofitable. We search the chain of single uses in allocations for a
     // limited depth.
@@ -2107,7 +2222,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
       HInstruction use = instruction.usedBy.single;
       // When the only use is an allocation, the allocation becomes the only
       // heap alias for the current instruction.
-      if (use is HForeignNew) return interestingUse(use, heapDepth + 1);
+      if (use is HCreate) return interestingUse(use, heapDepth + 1);
       if (use is HLiteralList) return interestingUse(use, heapDepth + 1);
       if (use is HInvokeStatic) {
         // Assume the argument escapes. All we do with our initial allocation is
@@ -2235,7 +2350,7 @@ class MemorySet {
   }
 
   bool isConcrete(HInstruction instruction) {
-    return instruction is HForeignNew ||
+    return instruction is HCreate ||
         instruction is HConstant ||
         instruction is HLiteralList;
   }

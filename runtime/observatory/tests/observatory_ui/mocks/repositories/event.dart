@@ -103,6 +103,10 @@ class EventRepositoryMock implements M.EventRepository {
   get onGCEvent => _onGCEvent.stream;
   get onGCEventHasListener => _onGCEvent.hasListener;
 
+  final _onLoggingEvent = new StreamController<M.LoggingEvent>.broadcast();
+  get onLoggingEvent => _onLoggingEvent.stream;
+  get onLoggingEventHasListener => _onLoggingEvent.hasListener;
+
   final _onExtensionEvent = new StreamController<M.ExtensionEvent>.broadcast();
   get onExtensionEvent => _onExtensionEvent.stream;
   get onExtensionEventHasListener => _onExtensionEvent.hasListener;

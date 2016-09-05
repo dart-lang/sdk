@@ -36,4 +36,7 @@ abstract class CodeRef extends ObjectRef {
 }
 
 abstract class Code extends Object implements CodeRef {
+  FunctionRef get function;
+  ObjectPoolRef get objectPool;
+  Iterable<FunctionRef> get inlinedFunctions;
 }

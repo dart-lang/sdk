@@ -125,7 +125,7 @@ class ICDataViewElement  extends HtmlElement implements Renderable {
           new NavNotifyElement(_notifications, queue: _r.queue)
         ],
 
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'ICData',
           new HRElement(),

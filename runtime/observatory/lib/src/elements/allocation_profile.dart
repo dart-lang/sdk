@@ -138,7 +138,7 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
             ..onRefresh.listen((_) => _refresh(gc: true)),
           new NavRefreshElement(queue: _r.queue)
             ..onRefresh.listen((_) => _refresh()),
-          new DivElement()..classes = const ['nav-option']
+          new DivElement()..classes = ['nav-option']
             ..children = [
               new CheckboxInputElement()
                 ..id = 'allocation-profile-auto-refresh'
@@ -150,7 +150,7 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
             ],
           new NavNotifyElement(_notifications, queue: _r.queue)
         ],
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Allocation Profile',
           new HRElement()
@@ -158,65 +158,65 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
     ];
     if (_profile == null) {
       children.addAll([
-        new DivElement()..classes = const ['content-centered-big']
+        new DivElement()..classes = ['content-centered-big']
           ..children = [
             new HeadingElement.h2()..text = 'Loading...'
           ]
       ]);
     } else {
-      final newChartHost = new DivElement()..classes = const ['host'];
-      final newChartLegend = new DivElement()..classes = const ['legend'];
-      final oldChartHost = new DivElement()..classes = const ['host'];
-      final oldChartLegend = new DivElement()..classes = const ['legend'];
+      final newChartHost = new DivElement()..classes = ['host'];
+      final newChartLegend = new DivElement()..classes = ['legend'];
+      final oldChartHost = new DivElement()..classes = ['host'];
+      final oldChartLegend = new DivElement()..classes = ['legend'];
       children.addAll([
-        new DivElement()..classes = const ['content-centered-big']
+        new DivElement()..classes = ['content-centered-big']
           ..children = [
-            new DivElement()..classes = const ['memberList']
+            new DivElement()..classes = ['memberList']
               ..children = [
-                new DivElement()..classes = const ['memberItem']
+                new DivElement()..classes = ['memberItem']
                   ..children = [
-                    new DivElement()..classes = const ['memberName']
+                    new DivElement()..classes = ['memberName']
                       ..text = 'last forced GC at',
-                    new DivElement()..classes = const ['memberValue']
+                    new DivElement()..classes = ['memberValue']
                       ..text = _profile.lastServiceGC == null ? '---'
                                  : '${_profile.lastServiceGC}',
                   ],
-                new DivElement()..classes = const ['memberItem']
+                new DivElement()..classes = ['memberItem']
                   ..children = [
-                    new DivElement()..classes = const ['memberName']
+                    new DivElement()..classes = ['memberName']
                       ..text = 'last accumulator reset at',
-                    new DivElement()..classes = const ['memberValue']
+                    new DivElement()..classes = ['memberValue']
                       ..text = _profile.lastAccumulatorReset == null ? '---'
                                  : '${_profile.lastAccumulatorReset}',
                   ]
               ],
             new HRElement(),
           ],
-        new DivElement()..classes = const ['content-centered-big']
+        new DivElement()..classes = ['content-centered-big']
           ..children = [
-            new DivElement()..classes = const ['heap-space', 'left']
+            new DivElement()..classes = ['heap-space', 'left']
               ..children = [
                 new HeadingElement.h2()..text = 'New Generation',
                 new BRElement(),
-                new DivElement()..classes = const ['memberList']
+                new DivElement()..classes = ['memberList']
                   ..children = _createSpaceMembers(_profile.newSpace),
                 new BRElement(),
-                new DivElement()..classes = const ['chart']
+                new DivElement()..classes = ['chart']
                   ..children = [newChartLegend, newChartHost]
               ],
-            new DivElement()..classes = const ['heap-space', 'right']
+            new DivElement()..classes = ['heap-space', 'right']
               ..children = [
                 new HeadingElement.h2()..text = 'Old Generation',
                 new BRElement(),
-                new DivElement()..classes = const ['memberList']
+                new DivElement()..classes = ['memberList']
                   ..children = _createSpaceMembers(_profile.oldSpace),
                 new BRElement(),
-                new DivElement()..classes = const ['chart']
+                new DivElement()..classes = ['chart']
                   ..children = [oldChartLegend, oldChartHost]
               ],
             new BRElement(), new HRElement()
           ],
-        new DivElement()..classes = const ['collection']
+        new DivElement()..classes = ['collection']
           ..children = [
             new VirtualCollectionElement(
               _createCollectionLine,
@@ -284,56 +284,56 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
 
   static Element _createCollectionLine() =>
     new DivElement()
-      ..classes = const ['collection-item']
+      ..classes = ['collection-item']
       ..children = [
-        new SpanElement()..classes = const ['bytes']
+        new SpanElement()..classes = ['bytes']
           ..text = '0B',
-        new SpanElement()..classes = const ['instances']
+        new SpanElement()..classes = ['instances']
           ..text = '0',
-        new SpanElement()..classes = const ['bytes']
+        new SpanElement()..classes = ['bytes']
           ..text = '0B',
-        new SpanElement()..classes = const ['instances']
+        new SpanElement()..classes = ['instances']
           ..text = '0',
-        new SpanElement()..classes = const ['bytes']
+        new SpanElement()..classes = ['bytes']
           ..text = '0B',
-        new SpanElement()..classes = const ['instances']
+        new SpanElement()..classes = ['instances']
           ..text = '0',
-        new SpanElement()..classes = const ['bytes']
+        new SpanElement()..classes = ['bytes']
           ..text = '0B',
-        new SpanElement()..classes = const ['instances']
+        new SpanElement()..classes = ['instances']
           ..text = '0',
-        new SpanElement()..classes = const ['bytes']
+        new SpanElement()..classes = ['bytes']
           ..text = '0B',
-        new SpanElement()..classes = const ['instances']
+        new SpanElement()..classes = ['instances']
           ..text = '0',
-        new SpanElement()..classes = const ['bytes']
+        new SpanElement()..classes = ['bytes']
           ..text = '0B',
-        new SpanElement()..classes = const ['instances']
+        new SpanElement()..classes = ['instances']
           ..text = '0',
-        new SpanElement()..classes = const ['name']
+        new SpanElement()..classes = ['name']
       ];
 
   Element _createCollectionHeader() =>
     new DivElement()
       ..children = [
         new DivElement()
-          ..classes = const ['collection-item']
+          ..classes = ['collection-item']
           ..children = [
-            new SpanElement()..classes = const ['group']
+            new SpanElement()..classes = ['group']
               ..text = 'Accumulated',
-            new SpanElement()..classes = const ['group']
+            new SpanElement()..classes = ['group']
               ..text = 'Current',
-            new SpanElement()..classes = const ['group']
+            new SpanElement()..classes = ['group']
               ..text = '(NEW) Accumulated',
-            new SpanElement()..classes = const ['group']
+            new SpanElement()..classes = ['group']
               ..text = '(NEW) Current',
-            new SpanElement()..classes = const ['group']
+            new SpanElement()..classes = ['group']
               ..text = '(OLD) Accumulated',
-            new SpanElement()..classes = const ['group']
+            new SpanElement()..classes = ['group']
               ..text = '(OLD) Current',
           ],
         new DivElement()
-          ..classes = const ['collection-item']
+          ..classes = ['collection-item']
           ..children = [
             _createHeaderButton(const ['bytes'], 'Size',
                                 _SortingField.accumulatedSize,
@@ -439,7 +439,8 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
     return [
       new DivElement()..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']..text = 'used',
+          new DivElement()..classes = ['memberName']
+            ..text = 'used',
           new DivElement()..classes = ['memberValue']
             ..text = used
         ],

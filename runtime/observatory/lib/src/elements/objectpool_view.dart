@@ -129,7 +129,7 @@ class ObjectPoolViewElement  extends HtmlElement implements Renderable {
               }),
           new NavNotifyElement(_notifications, queue: _r.queue)
         ],
-      new DivElement()..classes = const ['content-centered-big']
+      new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Object Pool',
           new HRElement(),
@@ -138,14 +138,14 @@ class ObjectPoolViewElement  extends HtmlElement implements Renderable {
                                   _instances, queue: _r.queue),
           new HRElement(),
           new HeadingElement.h3()..text = 'entries (${_pool.entries.length})',
-          new DivElement()..classes = const ['memberList']
+          new DivElement()..classes = ['memberList']
             ..children = _pool.entries.map((entry)
-              => new DivElement()..classes = const ['memberItem']
+              => new DivElement()..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = const ['memberName',
+                  new DivElement()..classes = ['memberName',
                                                      'hexadecimal']
                     ..text = '[PP+0x${entry.offset.toRadixString(16)}]',
-                  new DivElement()..classes = const ['memberName']
+                  new DivElement()..classes = ['memberName']
                     ..children = _createEntry(entry)
                 ]).toList(),
           new HRElement(),

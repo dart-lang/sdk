@@ -26,6 +26,11 @@ class Extensions {
  private:
   static Dart_Handle GetError();
 
+  static void* MakePathAndResolve(const char* dir, const char* name);
+  static void* ResolveAbsPathExtension(const char* extension_path);
+  static void* ResolveExtension(const char* extensioion_directory,
+                                const char* extension_name);
+
   // The returned string is scope allocated.
   static const char* Concatenate(const char** strings);
 

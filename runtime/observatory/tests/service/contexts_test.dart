@@ -56,9 +56,9 @@ var tests = [
     return field.load().then((_) {
       return field.staticValue.load().then((Instance block) {
         expect(block.isClosure, isTrue);
-        expect(block.context.isContext, isTrue);
-        expect(block.context.length, equals(0));
-        return block.context.load().then((Context ctxt) {
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(0));
+        return block.closureContext.load().then((Context ctxt) {
           expect(ctxt.parentContext, isNull);
         });
       });
@@ -71,9 +71,9 @@ var tests = [
     return field.load().then((_) {
       return field.staticValue.load().then((Instance block) {
         expect(block.isClosure, isTrue);
-        expect(block.context.isContext, isTrue);
-        expect(block.context.length, equals(1));
-        return block.context.load().then((Context ctxt) {
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(1));
+        return block.closureContext.load().then((Context ctxt) {
           expect(ctxt.variables.single.value.asValue.isString, isTrue);
           expect(ctxt.variables.single.value.asValue.valueAsString,
               equals('I could be copied into the block'));
@@ -93,9 +93,9 @@ var tests = [
     return field.load().then((_) {
       return field.staticValue.load().then((Instance block) {
         expect(block.isClosure, isTrue);
-        expect(block.context.isContext, isTrue);
-        expect(block.context.length, equals(1));
-        return block.context.load().then((Context ctxt) {
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(1));
+        return block.closureContext.load().then((Context ctxt) {
           expect(ctxt.variables.single.value.asValue.isInt, isTrue);
           expect(ctxt.variables.single.value.asValue.valueAsString, equals('43'));
           expect(ctxt.parentContext.isContext, isTrue);
@@ -114,9 +114,9 @@ var tests = [
     return field.load().then((_) {
       return field.staticValue.load().then((Instance block) {
         expect(block.isClosure, isTrue);
-        expect(block.context.isContext, isTrue);
-        expect(block.context.length, equals(1));
-        return block.context.load().then((Context ctxt) {
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(1));
+        return block.closureContext.load().then((Context ctxt) {
           expect(ctxt.variables.single.value.asValue.isInt, isTrue);
           expect(ctxt.variables.single.value.asValue.valueAsString,
               equals('4201'));

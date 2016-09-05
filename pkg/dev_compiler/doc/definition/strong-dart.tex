@@ -1,0 +1,347 @@
+\documentclass[fleqn, draft]{article}
+\usepackage{proof, amsmath, amssymb, ifthen}
+\input{macros.tex}
+
+% types
+\newcommand{\Arrow}[3][-]{#2 \overset{#1}{\rightarrow} #3}
+\newcommand{\Bool}{\mathbf{bool}}
+\newcommand{\Bottom}{\mathbf{bottom}}
+\newcommand{\Dynamic}{\mathbf{dynamic}}
+\newcommand{\Null}{\mathbf{Null}}
+\newcommand{\Num}{\mathbf{num}}
+\newcommand{\Object}{\mathbf{Object}}
+\newcommand{\TApp}[2]{#1\mathrm{<}#2\mathrm{>}}
+\newcommand{\Type}{\mathbf{Type}}
+\newcommand{\Weak}[1]{\mathbf{\{#1\}}}
+\newcommand{\Sig}{\mathit{Sig}}
+\newcommand{\Boxed}[1]{\langle #1 \rangle}
+
+% expressions
+\newcommand{\eassign}[2]{#1 = #2}
+\newcommand{\eas}[2]{#1\ \mathbf{as}\ #2}
+\newcommand{\ebox}[2]{\langle#1\rangle_{#2}}
+\newcommand{\ecall}[2]{#1(#2)}
+\newcommand{\echeck}[2]{\kwop{check}(#1, #2)}
+\newcommand{\edcall}[2]{\kwop{dcall}(#1, #2)}
+\newcommand{\edload}[2]{\kwop{dload}(#1, #2)}
+\newcommand{\edo}[1]{\kwdo\{\,#1\,\}}
+\newcommand{\eff}{\mathrm{ff}}
+\newcommand{\eis}[2]{#1\ \mathbf{is}\ #2}
+\newcommand{\elabel}[1][l]{\mathit{l}}
+\newcommand{\elambda}[3]{(#1):#2 \Rightarrow #3}
+\newcommand{\eload}[2]{#1.#2}
+\newcommand{\enew}[3]{\mathbf{new}\,\TApp{#1}{#2}(#3)}
+\newcommand{\enull}{\mathbf{null}}
+\newcommand{\eobject}[2]{\kwobject_{#1} \{#2\}}
+\newcommand{\eprimapp}[2]{\ecall{#1}{#2}}
+\newcommand{\eprim}{\kwop{op}}
+\newcommand{\esend}[3]{\ecall{\eload{#1}{#2}}{#3}}
+\newcommand{\eset}[3]{\eassign{#1.#2}{#3}}
+\newcommand{\esuper}{\mathbf{super}}
+\newcommand{\ethis}{\mathbf{this}}
+\newcommand{\ethrow}{\mathbf{throw}}
+\newcommand{\ett}{\mathrm{tt}}
+\newcommand{\eunbox}[1]{{*#1}}
+
+% keywords
+\newcommand{\kwclass}{\kw{class}}
+\newcommand{\kwdo}{\kw{do}}
+\newcommand{\kwelse}{\kw{else}}
+\newcommand{\kwextends}{\kw{extends}}
+\newcommand{\kwfun}{\kw{fun}}
+\newcommand{\kwif}{\kw{if}}
+\newcommand{\kwin}{\kw{in}}
+\newcommand{\kwlet}{\kw{let}}
+\newcommand{\kwobject}{\kw{object}}
+\newcommand{\kwreturn}{\kw{return}}
+\newcommand{\kwthen}{\kw{then}}
+\newcommand{\kwvar}{\kw{var}}
+
+% declarations
+\newcommand{\dclass}[3]{\kwclass\ #1\ \kwextends\ #2\ \{#3\}}
+\newcommand{\dfun}[4]{#2(#3):#1 = #4}
+\newcommand{\dvar}[2]{\kwvar\ #1\ =\ #2}
+
+
+\newcommand{\fieldDecl}[2]{\kwvar\ #1 : #2}
+\newcommand{\methodDecl}[3]{\kwfun\ #1 : \iftrans{#2 \triangleleft} #3}
+
+% statements
+\newcommand{\sifthenelse}[3]{\kwif\ (#1)\ \kwthen\ #2\ \kwelse\ #3}
+\newcommand{\sreturn}[1]{\kwreturn\ #1}
+
+% programs
+\newcommand{\program}[2]{\kwlet\ #1\ \kwin\ #2}
+
+% relational operators
+\newcommand{\sub}{\mathbin{<:}}
+
+% utilities
+\newcommand{\many}[1]{\overrightarrow{#1}}
+\newcommand{\alt}{\ \mathop{|}\ }
+\newcommand{\opt}[1]{[#1]}
+\newcommand{\bind}[3]{#1 \Leftarrow\, #2\ \kw{in}\ #3}
+
+\newcommand{\note}[1]{\textbf{NOTE:} \textit{#1}}
+
+%dynamic semantics
+\newcommand{\TypeError}{\mathbf{Error}}
+
+% inference rules
+\newcommand{\infrulem}[3][]{
+  \begin{array}{c@{\ }c}
+    \begin{array}{cccc}
+      #2 \vspace{-2mm} 
+    \end{array} \\
+    \hrulefill & #1 \\
+    \begin{array}{l}
+      #3
+    \end{array}
+  \end{array}
+  }
+
+\newcommand{\axiomm}[2][]{
+  \begin{array}{cc}
+    \hrulefill & #1 \\
+    \begin{array}{c}
+      #2
+    \end{array}
+  \end{array}
+  }
+
+\newcommand{\infrule}[3][]{
+  \[ 
+  \infrulem[#1]{#2}{#3}
+  \]
+  }
+
+\newcommand{\axiom}[2][]{
+  \[ 
+  \axiomm[#1]{#2}
+  \]
+  }
+
+% judgements and relations
+\newboolean{show_translation}
+\setboolean{show_translation}{false}
+\newcommand{\iftrans}[1]{\ifthenelse{\boolean{show_translation}}{#1}{}}
+\newcommand{\ifnottrans}[1]{\ifthenelse{\boolean{show_translation}}{#1}}
+
+\newcommand{\blockOk}[4]{#1 \vdash #2 \col #3\iftrans{\, \Uparrow\, #4}}
+\newcommand{\declOk}[5][]{#2 \vdash_{#1} #3 \, \Uparrow\, \iftrans{#4\, :\,} #5}
+\newcommand{\extends}[4][:]{#2[#3\ #1\ #4]}
+\newcommand{\fieldLookup}[4]{#1 \vdash #2.#3\, \leadsto_f\, #4}
+\newcommand{\methodLookup}[5]{#1 \vdash #2.#3\, \leadsto_m\, \iftrans{#4 \triangleleft} #5}
+\newcommand{\fieldAbsent}[3]{#1 \vdash #3 \notin #2}
+\newcommand{\methodAbsent}[3]{#1 \vdash #3 \notin #2}
+\newcommand{\hastype}[3]{#1 \vdash #2 \, : \, #3}
+\newcommand{\stmtOk}[5]{#1 \vdash #2 \, : \, #3\, \Uparrow \iftrans{#4\, :\,} #5}
+\newcommand{\subst}[2]{[#1/#2]}
+\newcommand{\subtypeOfOpt}[5][?]{#2 \vdash\ #3 \sub^{#1} #4\, \Uparrow\, #5}
+\newcommand{\subtypeOf}[4][]{#2 \vdash\ #3 \sub^{#1} #4}
+\newcommand{\yieldsOk}[5]{#1 \vdash #2 \, : \, #3\, \Uparrow\, \iftrans{#4\, :\,} #5}
+\newcommand{\programOk}[3]{#1 \vdash #2\iftrans{\, \Uparrow\, #3}}
+\newcommand{\ok}[2]{#1 \vdash #2\, \mbox{\textbf{ok}}}
+\newcommand{\overrideOk}[4]{#1 \vdash #2\,\kwextends\, #3 \Leftarrow\, #4}
+
+\newcommand{\down}[1]{\ensuremath{\downharpoonleft\!\!#1\!\!\downharpoonright}}
+\newcommand{\up}[1]{\ensuremath{\upharpoonleft\!\!#1\!\!\upharpoonright}}
+\newcommand{\sigof}[1]{\mathit{sigof}(#1)}
+\newcommand{\typeof}[1]{\mathit{typeof}(#1)}
+\newcommand{\sstext}[2]{\ifthenelse{\boolean{show_translation}}{#2}{#1}}
+
+\newcommand{\evaluatesTo}[5][]{\{#2\alt #3\}  \stepsto_{#1} \{#4 \alt #5\}}
+
+
+\title{Dart strong mode definition}
+
+\begin{document}
+
+\textbf{\large PRELIMINARY DRAFT}
+
+\section*{Syntax}
+
+
+Terms and types.  Note that we allow types to be optional in certain positions
+(currently function arguments and return types, and on variable declarations).
+Implicitly these are either inferred or filled in with dynamic.
+
+There are explicit terms for dynamic calls and loads, and for dynamic type
+checks.
+
+Fields can only be read or set within a method via a reference to this, so no
+dynamic set operation is required (essentially dynamic set becomes a dynamic
+call to a setter).  This just simplifies the presentation a bit.  Methods may be
+externally loaded from the object (either to call them, or to pass them as
+closurized functions).
+
+\[
+\begin{array}{lcl}
+\text{Type identifiers} & ::= &  C, G, T, S, \ldots \\
+%
+\text{Arrow kind ($k$)} & ::= &  +, -\\
+%
+\text{Types $\tau, \sigma$} & ::= &
+ T \alt \Dynamic \alt \Object \alt \Null \alt \Type \alt \Num \\ &&
+   \alt \Bool
+   \alt \Arrow[k]{\many{\tau}}{\sigma} \alt \TApp{C}{\many{\tau}} \\
+%
+\text{Ground types $\tau, \sigma$} & ::= &
+ \Dynamic \alt \Object \alt \Null \alt \Type \alt \Num \\ &&
+   \alt \Bool
+   \alt \Arrow[+]{\many{\Dynamic}}{\Dynamic} \alt \TApp{C}{\many{\Dynamic}} \\
+%
+\text{Optional type ($[\tau]$)} & ::= &  \_ \alt \tau \\
+%
+\text{Term identifiers} & ::= & a, b, x, y, m, n, \ldots \\
+%
+\text{Primops ($\phi$)} & ::= & \mathrm{+}, \mathrm{-} \ldots \mathrm{||} \ldots \\
+%
+\text{Expressions $e$} & ::= & 
+ x \alt i \alt \ett \alt \eff \alt \enull \alt \ethis \\&&
+   \alt \elambda{\many{x:\opt{\tau}}}{\opt{\sigma}}{s} 
+   \alt \enew{C}{\many{\tau}}{} \\&&
+   \alt \eprimapp{\eprim}{\many{e}} \alt \ecall{e}{\many{e}} \\&&
+   \alt \eload{e}{m} \alt \eload{\ethis}{x} \\&&
+   \alt \eassign{x}{e} \alt \eset{\ethis}{x}{e} \\&&
+   \alt \ethrow \alt \eas{e}{\tau} \alt \eis{e}{\tau} \\
+%
+\text{Declaration ($\mathit{vd}$)} & ::= &
+   \dvar{x:\opt{\tau}}{e} \alt \dfun{\tau}{f}{\many{x:\tau}}{s} \\
+%
+\text{Statements ($s$)} & ::= & \mathit{vd} \alt e \alt \sifthenelse{e}{s_1}{s_2} 
+   \alt \sreturn{e} \alt s;s \\
+%
+\text{Class decl ($\mathit{cd}$)} & ::= & \dclass{\TApp{C}{\many{T}}}{\TApp{G}{\many{\tau}}}{\many{\mathit{vd}}} \\
+%
+\text{Toplevel decl ($\mathit{td}$)} & ::= & \mathit{vd} \alt \mathit{cd}\\
+%
+\text{Program ($P$)} & ::= & \program{\many{\mathit{td}}}{s}
+\end{array}
+\]
+
+
+Type contexts map type variables to their bounds.
+
+Class signatures describe the methods and fields in an object, along with the
+super class of the class.  There are no static methods or fields.
+
+The class hierararchy records the classes with their signatures.
+
+The term context maps term variables to their types.  I also abuse notation and
+allow for the attachment of an optional type to term contexts as follows:
+$\Gamma_\sigma$ refers to a term context within the body of a method whose class
+type is $\sigma$.
+
+\[
+\begin{array}{lcl}
+\text{Type context ($\Delta$)} & ::= &  \epsilon \alt \Delta, T \sub \tau \\
+\text{Class element ($\mathit{ce}$)} & ::= & 
+  \fieldDecl{x}{\tau} \alt \methodDecl{f}{\tau}{\sigma} \\
+\text{Class signature ($\Sig$)} & ::= &
+  \dclass{\TApp{C}{\many{T}}}{\TApp{G}{\many{\tau}}}{\many{\mathit{ce}}} \\
+\text{Class hierarchy ($\Phi$)} & ::= &  \epsilon \alt \Phi, C\ :\ \Sig \\
+\text{Term context ($\Gamma$)} & ::= &  \epsilon \alt \Gamma, x\ :\ \tau
+\end{array}
+\]
+
+
+\section*{Subtyping}
+
+\subsection*{Variant Subtyping}
+
+We include a special kind of covariant function space to model certain dart
+idioms.  An arrow type decorated with a positive variance annotation ($+$)
+treats $\Dynamic$ in its argument list covariantly: or equivalently, it treats
+$\Dynamic$ as bottom.  This variant subtyping relation captures this special
+treatment of dynamic.
+
+\axiom{\subtypeOf[+]{\Phi, \Delta}{\Dynamic}{\tau}}
+
+\infrule{\subtypeOf{\Phi, \Delta}{\sigma}{\tau} \quad \sigma \neq \Dynamic}
+        {\subtypeOf[+]{\Phi, \Delta}{\sigma}{\tau}}
+
+\infrule{\subtypeOf{\Phi, \Delta}{\sigma}{\tau}}
+        {\subtypeOf[-]{\Phi, \Delta}{\sigma}{\tau}}
+
+\subsection*{Invariant Subtyping}
+
+Regular subtyping is defined in a fairly standard way, except that generics are
+uniformly covariant, and that function argument types fall into the variant
+subtyping relation defined above.
+
+\axiom{\subtypeOf{\Phi, \Delta}{\tau}{\Dynamic}}
+
+\axiom{\subtypeOf{\Phi, \Delta}{\tau}{\Object}} 
+
+\axiom{\subtypeOf{\Phi, \Delta}{\Bottom}{\tau}}
+
+\axiom{\subtypeOf{\Phi, \Delta}{\tau}{\tau}} 
+
+\infrule{(S\, :\, \sigma) \in \Delta \quad
+         \subtypeOf{\Phi, \Delta}{\sigma}{\tau}}
+        {\subtypeOf{\Phi, \Delta}{S}{\tau}} 
+
+\infrule{\subtypeOf[k_1]{\Phi, \Delta}{\sigma_i}{\tau_i} \quad i \in 0, \ldots, n \quad\quad
+         \subtypeOf{\Phi, \Delta}{\tau_r}{\sigma_r} \\
+         \quad (k_0 = \mbox{-}) \lor (k_1 = \mbox{+})
+        } 
+        {\subtypeOf{\Phi, \Delta}
+                   {\Arrow[k_0]{\tau_0, \ldots, \tau_n}{\tau_r}}
+                   {\Arrow[k_1]{\sigma_0, \ldots, \sigma_n}{\sigma_r}}} 
+
+\infrule{\subtypeOf{\Phi, \Delta}{\tau_i}{\sigma_i} & i \in 0, \ldots, n}
+        {\subtypeOf{\Phi, \Delta}
+          {\TApp{C}{\tau_0, \ldots, \tau_n}}
+          {\TApp{C}{\sigma_0, \ldots, \sigma_n}}}
+
+\infrule{(C : \dclass{\TApp{C}{T_0,\ldots,T_n}}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{\ldots}) \in \Phi \\
+         \subtypeOf{\Phi, \Delta}{\subst{\tau_0, \ldots, \tau_n}{T_0, \ldots, T_n}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}}{\TApp{G}{\sigma_0, \ldots, \sigma_m}}}
+        {\subtypeOf{\Phi, \Delta}
+          {\TApp{C}{\tau_0, \ldots, \tau_n}}
+          {\TApp{G}{\sigma_0, \ldots, \sigma_m}}}
+
+
+
+\section*{Typing}
+\input{static-semantics}
+
+\pagebreak
+\section*{Elaboration}
+\setboolean{show_translation}{true}
+
+Elaboration is a type driven translation which maps a source Dart term to a
+translated term which corresponds to the original term with additional dynamic
+type checks inserted to reify the static unsoundness as runtime type errors.
+For the translation, we extend the source language slightly as follows.
+\[
+\begin{array}{lcl}
+\text{Expressions $e$} & ::= & \ldots 
+   \alt \edcall{e}{\many{e}} \alt \edload{e}{m} \alt \echeck{e}{\tau}\\
+\end{array}
+\]
+
+The expression language is extended with an explicitly checked dynamic call
+operation, and explicitly checked dynamic method load operation, and a runtime
+type test.  Note that while a user level cast throws an exception on failure,
+the runtime type test term introduced here produces a hard type error which
+cannot be caught programmatically.
+
+We also extend typing contexts slightly by adding an internal type to method signatures.
+\[
+\begin{array}{lcl}
+\text{Class element ($\mathit{ce}$)} & ::= & 
+  \fieldDecl{x}{\tau} \alt \methodDecl{f}{\tau}{\sigma} \\
+\end{array}
+\]
+A method signature of the form $\methodDecl{f}{\tau}{\sigma}$ describes a method
+whose public interface is described by $\sigma$, but which has an internal type
+$\tau$ which is a subtype of $\sigma$, but which is properly covariant in any
+type parameters.  The elaboration introduces runtime type checks to mediate
+between the two types.  This is discussed further in the translation of classes
+below.
+
+\input{static-semantics}
+
+
+\end{document}

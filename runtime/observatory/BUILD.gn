@@ -17,9 +17,9 @@ declare_args() {
 observatory_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
                 [ rebase_path(
-                    "//dart/runtime/observatory/observatory_sources.gypi") ],
+                    "../observatory/observatory_sources.gypi") ],
                 "scope",
-                [ "//dart/runtime/observatory/observatory_sources.gypi" ])
+                [ "../observatory/observatory_sources.gypi" ])
 
 copy("copy_observatory") {
   sources = rebase_path(observatory_sources_gypi.sources,
@@ -49,11 +49,11 @@ action("write_observatory_pubspec_yaml") {
     rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
     "--command",
     "rewrite",
-    rebase_path("//dart/runtime/observatory/pubspec.yaml"),
+    rebase_path("../observatory/pubspec.yaml"),
     rebase_path(
         "$root_gen_dir/observatory_copy/dart/runtime/observatory/pubspec.yaml"),
     "../../third_party/",
-    rebase_path("../../../dart/third_party/"),
+    rebase_path("../../third_party/"),
   ]
 
   outputs = [
@@ -66,7 +66,7 @@ action("copy_observatory_deps") {
     ":write_observatory_pubspec_yaml",
   ]
 
-  script = "//dart/tools/observatory_tool.py"
+  script = "../../tools/observatory_tool.py"
 
   inputs = [
     script,
@@ -101,7 +101,7 @@ action("pub_build_observatory") {
     ":copy_observatory_deps",
   ]
 
-  script = "//dart/tools/observatory_tool.py"
+  script = "../../tools/observatory_tool.py"
 
   inputs = [
     script,
@@ -130,7 +130,7 @@ action("deploy_observatory") {
     ":pub_build_observatory",
   ]
 
-  script = "//dart/tools/observatory_tool.py"
+  script = "../../tools/observatory_tool.py"
 
   inputs = [
     script,
@@ -157,7 +157,7 @@ action("archive_observatory") {
     ":deploy_observatory",
   ]
 
-  script = "//dart/runtime/tools/create_archive.py"
+  script = "../tools/create_archive.py"
 
   inputs = [
     script,

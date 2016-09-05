@@ -53,7 +53,7 @@ class ContextRefElement extends HtmlElement implements Renderable {
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _context))
         ..children = [
-          new SpanElement()..classes = ['empathize']..text = 'Context',
+          new SpanElement()..classes = ['emphasize']..text = 'Context',
           new SpanElement()..text = ' (${_context.length})'
         ]
     ];

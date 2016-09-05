@@ -10,14 +10,14 @@ import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(PubPackageMapProviderTest);
+  defineReflectiveTests(PubPackageMapProviderTest);
 }
 
 @reflectiveTest

@@ -2712,6 +2712,7 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   const String& field_name = *ExpectIdentifier("field name expected");
   ExpectToken(Token::kASSIGN);
 
+  TokenPosition expr_pos = TokenPos();
   const bool saved_mode = SetAllowFunctionLiterals(false);
   // "this" must not be accessible in initializer expressions.
   receiver->set_invisible(true);
@@ -2721,9 +2722,21 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   }
   receiver->set_invisible(false);
   SetAllowFunctionLiterals(saved_mode);
-  if (current_function().is_const() && !init_expr->IsPotentiallyConst()) {
-    ReportError(field_pos,
-                "initializer expression must be compile time constant.");
+  if (current_function().is_const()) {
+    if (!init_expr->IsPotentiallyConst()) {
+      ReportError(expr_pos,
+                  "initializer expression must be compile time constant.");
+    }
+    if (init_expr->EvalConstExpr() != NULL) {
+      // If the expression is a compile-time constant, ensure that it
+      // is evaluated and canonicalized. See issue 27164.
+      Instance& const_instance = Instance::ZoneHandle(Z);
+      if (!GetCachedConstant(expr_pos, &const_instance)) {
+        const_instance = EvaluateConstExpr(expr_pos, init_expr).raw();
+        CacheConstantValue(expr_pos, const_instance);
+      }
+      init_expr = new(Z) LiteralNode(expr_pos, const_instance);
+    }
   }
   Field& field = Field::ZoneHandle(Z, cls.LookupInstanceField(field_name));
   if (field.IsNull()) {
@@ -4634,14 +4647,6 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
     declaration_pos = TokenPos();
-  } else if (is_patch_source() &&
-      (CurrentToken() == Token::kIDENT) &&
-      CurrentLiteral()->Equals("patch")) {
-    if (FLAG_warn_patch) {
-      ReportWarning("deprecated use of patch 'keyword'");
-    }
-    ConsumeToken();
-    is_patch = true;
   } else if (CurrentToken() == Token::kABSTRACT) {
     is_abstract = true;
     ConsumeToken();
@@ -4826,11 +4831,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
   is_top_level_ = true;
   String& class_name = String::Handle(Z, cls.Name());
   SkipMetadata();
-  if (is_patch_source() &&
-      (CurrentToken() == Token::kIDENT) &&
-      CurrentLiteral()->Equals("patch")) {
-    ConsumeToken();
-  } else if (CurrentToken() == Token::kABSTRACT) {
+  if (CurrentToken() == Token::kABSTRACT) {
     ConsumeToken();
   }
   ExpectToken(Token::kCLASS);
@@ -5707,15 +5708,6 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
-  } else if (is_patch_source() &&
-      (CurrentToken() == Token::kIDENT) &&
-      CurrentLiteral()->Equals("patch") &&
-      (LookaheadToken(1) != Token::kLPAREN)) {
-    if (FLAG_warn_patch) {
-      ReportWarning("deprecated use of patch 'keyword'");
-    }
-    ConsumeToken();
-    is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
     is_external = true;
@@ -5847,14 +5839,6 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
-  } else if (is_patch_source() &&
-      (CurrentToken() == Token::kIDENT) &&
-      CurrentLiteral()->Equals("patch")) {
-    if (FLAG_warn_patch) {
-      ReportWarning("deprecated use of patch 'keyword'");
-    }
-    ConsumeToken();
-    is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
     is_external = true;
@@ -6397,9 +6381,6 @@ void Parser::ParseTopLevel() {
       ParseTypedef(pending_classes, tl_owner, metadata_pos);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes, tl_owner, metadata_pos);
-    } else if (is_patch_source() && IsSymbol(Symbols::Patch()) &&
-               (LookaheadToken(1) == Token::kCLASS)) {
       ParseClassDeclaration(pending_classes, tl_owner, metadata_pos);
     } else {
       set_current_class(toplevel_class);
@@ -8366,18 +8347,10 @@ bool Parser::IsFunctionDeclaration() {
   bool is_external = false;
   TokenPosScope decl_pos(this);
   SkipMetadata();
-  if (is_top_level_) {
-    if (is_patch_source() &&
-        (CurrentToken() == Token::kIDENT) &&
-        CurrentLiteral()->Equals("patch") &&
-        (LookaheadToken(1) != Token::kLPAREN)) {
-      // Skip over 'patch' for top-level function declarations in patch sources.
-      ConsumeToken();
-    } else if (CurrentToken() == Token::kEXTERNAL) {
-      // Skip over 'external' for top-level function declarations.
-      is_external = true;
-      ConsumeToken();
-    }
+  if ((is_top_level_) && (CurrentToken() == Token::kEXTERNAL)) {
+    // Skip over 'external' for top-level function declarations.
+    is_external = true;
+    ConsumeToken();
   }
   const TokenPosition type_or_name_pos = TokenPos();
   if (TryParseReturnType()) {
@@ -8417,9 +8390,7 @@ bool Parser::IsFunctionDeclaration() {
 
 bool Parser::IsTopLevelAccessor() {
   const TokenPosScope saved_pos(this);
-  if (is_patch_source() && IsSymbol(Symbols::Patch())) {
-    ConsumeToken();
-  } else if (CurrentToken() == Token::kEXTERNAL) {
+  if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
   }
   if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {

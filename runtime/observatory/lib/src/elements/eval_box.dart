@@ -75,7 +75,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new DivElement()..classes = const ['quicks']
+      new DivElement()..classes = ['quicks']
         ..children = _quickExpressions.map((q) =>
           new ButtonElement()
             ..text = q
@@ -84,13 +84,13 @@ class EvalBoxElement extends HtmlElement implements Renderable {
               _run();
             })
         ),
-      new DivElement()..classes = const ['heading']
+      new DivElement()..classes = ['heading']
         ..children = [
           new FormElement()
             ..autocomplete = 'on'
             ..children = [
               _multiline ? _createEvalTextArea() : _createEvalTextBox(),
-              new SpanElement()..classes = const ['buttons']
+              new SpanElement()..classes = ['buttons']
                 ..children = [
                   _createEvalButton(),
                   _createMultilineCheckbox(),
@@ -102,7 +102,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
         ..children = _results.reversed.map((result) =>
           new TableRowElement()
             ..children = [
-              new TableCellElement()..classes = const ['historyExpr']
+              new TableCellElement()..classes = ['historyExpr']
                 ..children = [
                   new ButtonElement()..text = result.expression
                     ..onClick.listen((_) {
@@ -110,14 +110,14 @@ class EvalBoxElement extends HtmlElement implements Renderable {
                       _r.dirty();
                     })
                 ],
-              new TableCellElement()..classes = const ['historyValue']
+              new TableCellElement()..classes = ['historyValue']
                 ..children = [
                   result.isPending
                     ? (new SpanElement()..text = 'Pending...')
                     : anyRef(_isolate, result.value, _instances,
                              queue: _r.queue)
                 ],
-              new TableCellElement()..classes = const ['historyDelete']
+              new TableCellElement()..classes = ['historyDelete']
                 ..children = [
                   new ButtonElement()..text = '✖ Remove'
                     ..onClick.listen((_) {

@@ -38,15 +38,13 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../universe/feature.dart';
 import 'backend_api.dart';
-import 'work.dart' show ItemCompilationContext, WorkItem;
+import 'work.dart' show WorkItem;
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 class ResolutionWorkItem extends WorkItem {
   bool _isAnalyzed = false;
 
-  ResolutionWorkItem(
-      AstElement element, ItemCompilationContext compilationContext)
-      : super(element, compilationContext);
+  ResolutionWorkItem(AstElement element) : super(element);
 
   WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
     WorldImpact impact = compiler.analyze(this, world);
@@ -161,8 +159,7 @@ abstract class Resolution implements Frontend {
   /// The error itself is given in [message].
   void registerCompileTimeError(Element element, DiagnosticMessage message);
 
-  ResolutionWorkItem createWorkItem(
-      Element element, ItemCompilationContext compilationContext);
+  ResolutionWorkItem createWorkItem(Element element);
 
   /// Returns `true` if [element] as a fully computed [ResolvedAst].
   bool hasResolvedAst(ExecutableElement element);

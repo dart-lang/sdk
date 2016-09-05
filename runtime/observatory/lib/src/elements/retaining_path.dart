@@ -121,6 +121,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
       anyRef(_isolate, item.source, _instances, queue: _r.queue)
     );
 
-    return new DivElement()..classes = ['indent']..children = content;
+    return new DivElement()..classes = ['indent']
+            ..children = content;
   }
 }

@@ -13,20 +13,20 @@ import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(FileSystemExceptionTest);
-  runReflectiveTests(FileTest);
-  runReflectiveTests(FolderTest);
-  runReflectiveTests(MemoryFileSourceExistingTest);
-  runReflectiveTests(MemoryFileSourceNotExistingTest);
-  runReflectiveTests(MemoryResourceProviderTest);
+  defineReflectiveTests(FileSystemExceptionTest);
+  defineReflectiveTests(FileTest);
+  defineReflectiveTests(FolderTest);
+  defineReflectiveTests(MemoryFileSourceExistingTest);
+  defineReflectiveTests(MemoryFileSourceNotExistingTest);
+  defineReflectiveTests(MemoryResourceProviderTest);
 }
 
 var _isFile = new isInstanceOf<File>();

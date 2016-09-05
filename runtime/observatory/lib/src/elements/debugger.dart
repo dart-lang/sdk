@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:math';
 import 'observatory_element.dart';
+import 'package:observatory/event.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
@@ -488,12 +490,12 @@ class FinishCommand extends DebuggerCommand {
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
       var event = debugger.isolate.pauseEvent;
-      if (event.kind == ServiceEvent.kPauseStart) {
+      if (event is M.PauseStartEvent) {
         debugger.console.print(
             "Type 'continue' [F7] or 'step' [F10] to start the isolate");
         return new Future.value(null);
       }
-      if (event.kind == ServiceEvent.kPauseExit) {
+      if (event  is M.PauseExitEvent) {
         debugger.console.print("Type 'continue' [F7] to exit the isolate");
         return new Future.value(null);
       }
@@ -1468,7 +1470,7 @@ class ObservatoryDebugger extends Debugger {
     // debugger, this could introduce a race.
     return (isolate != null &&
             isolate.pauseEvent != null &&
-            isolate.pauseEvent.kind != ServiceEvent.kResume);
+            isolate.pauseEvent is M.ResumeEvent);
   }
 
   void warnOutOfDate() {
@@ -1480,7 +1482,7 @@ class ObservatoryDebugger extends Debugger {
     });
   }
 
-  Future<ServiceMap> _refreshStack(ServiceEvent pauseEvent) {
+  Future<ServiceMap> _refreshStack(M.DebugEvent pauseEvent) {
     return isolate.getStack().then((result) {
       if (result.isSentinel) {
         // The isolate has gone away.  The IsolateExit event will
@@ -1514,7 +1516,7 @@ class ObservatoryDebugger extends Debugger {
     warnOutOfDate();
   }
 
-  void _reportIsolateError(Isolate isolate, String eventKind) {
+  void _reportIsolateError(Isolate isolate, M.DebugEvent event) {
     if (isolate == null) {
       return;
     }
@@ -1523,14 +1525,14 @@ class ObservatoryDebugger extends Debugger {
       return;
     }
     console.newline();
-    if (eventKind == ServiceEvent.kPauseException) {
+    if (event is M.PauseExceptionEvent) {
       console.printBold('Isolate will exit due to an unhandled exception:');
     } else {
       console.printBold('Isolate has exited due to an unhandled exception:');
     }
     console.print(error.message);
     console.newline();
-    if (eventKind == ServiceEvent.kPauseException &&
+    if (event  is M.PauseExceptionEvent &&
         (error.exception.isStackOverflowError ||
          error.exception.isOutOfMemoryError)) {
       console.printBold(
@@ -1545,34 +1547,36 @@ class ObservatoryDebugger extends Debugger {
     }
   }
 
-  void _reportPause(ServiceEvent event) {
-    if (event.kind == ServiceEvent.kNone) {
+  void _reportPause(M.DebugEvent event) {
+    if (event is M.NoneEvent) {
       console.print("Paused until embedder makes the isolate runnable.");
-    } else if (event.kind == ServiceEvent.kPauseStart) {
+    } else if (event is M.PauseStartEvent) {
       console.print(
           "Paused at isolate start "
           "(type 'continue' [F7] or 'step' [F10] to start the isolate')");
-    } else if (event.kind == ServiceEvent.kPauseExit) {
+    } else if (event is M.PauseExitEvent) {
       console.print(
           "Paused at isolate exit "
           "(type 'continue' or [F7] to exit the isolate')");
-      _reportIsolateError(isolate, event.kind);
-    } else if (event.kind == ServiceEvent.kPauseException) {
+      _reportIsolateError(isolate, event);
+    } else if (event is M.PauseExceptionEvent) {
       console.print(
           "Paused at an unhandled exception "
           "(type 'continue' or [F7] to exit the isolate')");
-      _reportIsolateError(isolate, event.kind);
+      _reportIsolateError(isolate, event);
     } else if (stack['frames'].length > 0) {
       Frame frame = stack['frames'][0];
       var script = frame.location.script;
       script.load().then((_) {
         var line = script.tokenToLine(frame.location.tokenPos);
         var col = script.tokenToCol(frame.location.tokenPos);
-        if (event.breakpoint != null) {
-          var bpId = event.breakpoint.number;
-          console.print('Paused at breakpoint ${bpId} at '
-                        '${script.name}:${line}:${col}');
-        } else if (event.exception != null) {
+        if ((event is M.PauseBreakpointEvent) &&
+            (event.breakpoint != null)) {
+            var bpId = event.breakpoint.number;
+            console.print('Paused at breakpoint ${bpId} at '
+                          '${script.name}:${line}:${col}');
+        } else if ((event is M.PauseExceptionEvent) &&
+                   (event.exception != null)) {
           console.print('Paused due to exception at '
                         '${script.name}:${line}:${col}');
           // This seems to be missing if we are paused-at-exception after
@@ -1687,12 +1691,13 @@ class ObservatoryDebugger extends Debugger {
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
         if (event.owner == isolate) {
-          _refreshStack(event).then((_) async {
+          var e = createEventFromServiceEvent(event);
+          _refreshStack(e).then((_) async {
             flushStdio();
             if (isolate != null) {
               await isolate.reload();
             }
-            _reportPause(event);
+            _reportPause(e);
           });
         }
         break;
@@ -1886,11 +1891,11 @@ class ObservatoryDebugger extends Debugger {
   Future syncNext() async {
     if (isolatePaused()) {
       var event = isolate.pauseEvent;
-      if (event.kind == ServiceEvent.kPauseStart) {
+      if (event is M.PauseStartEvent) {
         console.print("Type 'continue' [F7] or 'step' [F10] to start the isolate");
         return null;
       }
-      if (event.kind == ServiceEvent.kPauseExit) {
+      if (event is M.PauseExitEvent) {
         console.print("Type 'continue' [F7] to exit the isolate");
         return null;
       }
@@ -1904,7 +1909,7 @@ class ObservatoryDebugger extends Debugger {
   Future step() {
     if (isolatePaused()) {
       var event = isolate.pauseEvent;
-      if (event.kind == ServiceEvent.kPauseExit) {
+      if (event is M.PauseExitEvent) {
         console.print("Type 'continue' [F7] to exit the isolate");
         return new Future.value(null);
       }
@@ -2159,7 +2164,7 @@ class DebuggerStackElement extends ObservatoryElement {
     hasMessages = messageElements.isNotEmpty;
   }
 
-  void updateStack(ServiceMap newStack, ServiceEvent pauseEvent) {
+  void updateStack(ServiceMap newStack, M.DebugEvent pauseEvent) {
     updateStackFrames(newStack);
     updateStackMessages(newStack);
     isSampled = pauseEvent == null;

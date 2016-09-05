@@ -21,6 +21,7 @@ import 'graph_builder.dart';
 import 'kernel_ast_adapter.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
+import 'ssa_branch_builder.dart';
 
 class SsaKernelBuilderTask extends CompilerTask {
   final JavaScriptBackend backend;
@@ -67,7 +68,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   JavaScriptBackend get backend => compiler.backend;
 
-  LocalsHandler localsHandler;
   SourceInformationBuilder sourceInformationBuilder;
   KernelAstAdapter astAdapter;
 
@@ -88,14 +88,20 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler =
         new LocalsHandler(this, functionElement, null, compiler);
-    this.astAdapter = new KernelAstAdapter(compiler.backend, resolvedAst,
-        visitor.nodeToAst, visitor.nodeToElement, kernel.functions);
+    this.astAdapter = new KernelAstAdapter(
+        compiler.backend,
+        resolvedAst,
+        visitor.nodeToAst,
+        visitor.nodeToElement,
+        kernel.functions,
+        kernel.libraries);
   }
 
   HGraph build() {
     // TODO(het): no reason to do this here...
     HInstruction.idCounter = 0;
-    if (function.kind == ir.ProcedureKind.Method) {
+    if (function.kind == ir.ProcedureKind.Method ||
+        function.kind == ir.ProcedureKind.Operator) {
       buildMethod(function, functionElement);
     } else {
       compiler.reporter.internalError(
@@ -105,6 +111,23 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     assert(graph.isValid());
     return graph;
+  }
+
+  @override
+  HInstruction popBoolified() {
+    HInstruction value = pop();
+    // TODO(het): add boolean conversion type check
+    HInstruction result = new HBoolify(value, backend.boolType);
+    add(result);
+    return result;
+  }
+
+  // TODO(het): This implementation is shared with [SsaBuilder]. Should we just
+  // allow [GraphBuilder] to access `compiler`?
+  @override
+  pushCheckNull(HInstruction expression) {
+    push(new HIdentity(
+        expression, graph.addConstantNull(compiler), null, backend.boolType));
   }
 
   /// Builds a SSA graph for [method].
@@ -117,7 +140,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void openFunction(IrFunction method, FunctionElement functionElement) {
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
-    // TODO(het): Register parameters with a locals handler
     localsHandler.startFunction(functionElement, resolvedAst.node);
     close(new HGoto()).addSuccessor(block);
 
@@ -151,6 +173,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  visitExpressionStatement(ir.ExpressionStatement exprStatement) {
+    exprStatement.expression.accept(this);
+    pop();
+  }
+
+  @override
   void visitReturnStatement(ir.ReturnStatement returnStatement) {
     HInstruction value;
     if (returnStatement.expression == null) {
@@ -164,6 +192,15 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // TODO(het): Set a return value instead of closing the function when we
     // support inlining.
     closeAndGotoExit(new HReturn(value, null));
+  }
+
+  @override
+  void visitIfStatement(ir.IfStatement ifStatement) {
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, compiler);
+    branchBuilder.handleIf(
+        () => ifStatement.condition.accept(this),
+        () => ifStatement.then.accept(this),
+        () => ifStatement.otherwise?.accept(this));
   }
 
   @override
@@ -205,34 +242,73 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     stack.add(localsHandler.readLocal(local));
   }
 
+  // TODO(het): Also extract type arguments
+  /// Extracts the list of instructions for the expressions in the arguments.
+  List<HInstruction> _visitArguments(ir.Arguments arguments) {
+    List<HInstruction> result = <HInstruction>[];
+
+    for (ir.Expression argument in arguments.positional) {
+      argument.accept(this);
+      result.add(pop());
+    }
+    for (ir.NamedExpression argument in arguments.named) {
+      argument.value.accept(this);
+      result.add(pop());
+    }
+
+    return result;
+  }
+
   @override
   visitStaticInvocation(ir.StaticInvocation invocation) {
-    List<HInstruction> inputs = <HInstruction>[];
-
-    for (ir.Expression argument in invocation.arguments.positional) {
-      argument.accept(this);
-      inputs.add(pop());
-    }
-    for (ir.NamedExpression argument in invocation.arguments.named) {
-      argument.value.accept(this);
-      inputs.add(pop());
-    }
-
     ir.Procedure target = invocation.target;
     bool targetCanThrow = astAdapter.getCanThrow(target);
     TypeMask typeMask = astAdapter.returnTypeOf(target);
 
+    var arguments = _visitArguments(invocation.arguments);
+
     HInstruction instruction = new HInvokeStatic(
-        astAdapter.getElement(target).declaration, inputs, typeMask,
+        astAdapter.getElement(target).declaration, arguments, typeMask,
         targetCanThrow: targetCanThrow);
     instruction.sideEffects = astAdapter.getSideEffects(target);
 
     push(instruction);
   }
 
+  // TODO(het): Decide when to inline
   @override
-  visitExpressionStatement(ir.ExpressionStatement exprStatement) {
-    exprStatement.expression.accept(this);
-    pop();
+  visitMethodInvocation(ir.MethodInvocation invocation) {
+    invocation.receiver.accept(this);
+    HInstruction receiver = pop();
+
+    List<HInstruction> arguments = <HInstruction>[receiver]
+      ..addAll(_visitArguments(invocation.arguments));
+
+    List<HInstruction> inputs = <HInstruction>[];
+
+    bool isIntercepted = astAdapter.isIntercepted(invocation);
+    if (isIntercepted) {
+      HInterceptor interceptor =
+          new HInterceptor(receiver, backend.nonNullType);
+      add(interceptor);
+      inputs.add(interceptor);
+    }
+    inputs.addAll(arguments);
+
+    TypeMask type = astAdapter.selectorTypeOf(invocation);
+
+    push(new HInvokeDynamicMethod(astAdapter.getSelector(invocation),
+        astAdapter.getTypeMask(invocation), inputs, type, isIntercepted));
+  }
+
+  @override
+  visitThisExpression(ir.ThisExpression thisExpression) {
+    stack.add(localsHandler.readThis());
+  }
+
+  @override
+  visitNot(ir.Not not) {
+    not.operand.accept(this);
+    push(new HNot(popBoolified(), backend.boolType));
   }
 }
