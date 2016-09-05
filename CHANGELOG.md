@@ -1,3 +1,10 @@
+# 0.1.25
+
+* Fixed false positive on `[]=` in `always_declare_return_types` (#300). 
+* New `invariant_booleans` lint.
+* New `literal_only_boolean_expressions` lint.
+* Fixed `camel_case_types` to allow `$` in identifiers (#290).
+
 # 0.1.24
 
 * Internal updates to keep up with changes in the analyzer package.
