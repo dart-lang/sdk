@@ -8,13 +8,11 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/linter.dart';
 import 'package:mockito/mockito.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'mocks.dart';
 
 main() {
-  groupSep = ' | ';
-
   defineTests();
 }
 

@@ -19,11 +19,9 @@ import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
-  groupSep = ' | ';
-
   defineSanityTests();
   defineRuleTests();
   defineRuleUnitTests();

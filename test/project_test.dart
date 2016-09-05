@@ -9,11 +9,9 @@ library linter.test.project;
 import 'dart:io';
 
 import 'package:linter/src/project.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
-  groupSep = ' | ';
-
   defineTests();
 }
 

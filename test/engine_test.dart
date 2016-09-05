@@ -16,15 +16,13 @@ import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/pub.dart';
 import 'package:mockito/mockito.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../bin/linter.dart' as dartlint;
 import 'mocks.dart';
 import 'rule_test.dart' show ruleDir;
 
 main() {
-  groupSep = ' | ';
-
   defineLinterEngineTests();
 }
 
@@ -168,12 +166,6 @@ void defineLinterEngineTests() {
       });
       test('unknown arg', () {
         dartlint.main(['-XXXXX']);
-        expect(exitCode, equals(dartlint.unableToProcessExitCode));
-      });
-      //TODO: revisit error handling
-      skip_test('bad path', () {
-        var badPath = new Directory(ruleDir).path + '/___NonExistent.dart';
-        dartlint.main([badPath]);
         expect(exitCode, equals(dartlint.unableToProcessExitCode));
       });
       test('custom sdk path', () {

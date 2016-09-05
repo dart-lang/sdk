@@ -10,13 +10,11 @@ import 'package:linter/src/pub.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'mocks.dart';
 
 main() {
-  groupSep = ' | ';
-
   defineTests();
 }
 

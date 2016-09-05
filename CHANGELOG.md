@@ -1,3 +1,7 @@
+# 0.1.26
+
+* Updated tests to use package `test` (#302). 
+
 # 0.1.25
 
 * Fixed false positive on `[]=` in `always_declare_return_types` (#300). 

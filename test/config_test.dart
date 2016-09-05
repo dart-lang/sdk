@@ -5,11 +5,9 @@
 library linter.test.config;
 
 import 'package:linter/src/config.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
-  groupSep = ' | ';
-
   defineTests();
 }
 
