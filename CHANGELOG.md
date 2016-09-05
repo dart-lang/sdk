@@ -13,6 +13,10 @@
 * `dart:async`
   * `Future.wait` now catches synchronous errors and returns them in the
     returned Future.
+  * More aggressively returns a Future on Stream.cancel operations.
+    Discourages to return `null` from `cancel`.
+  * Fixes a few bugs where the cancel future wasn't passed through
+    transformations.
 * `dart:io`
   * Added `WebSocket.addUtf8Text` to allow sending a pre-encoded text message
     without a round-trip UTF-8 conversion.
