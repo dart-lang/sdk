@@ -38,10 +38,15 @@ class CloneVisitor extends TreeVisitor {
     return substitute(type, typeSubstitution);
   }
 
+  DartType visitOptionalType(DartType type) {
+    return type == null ? null : substitute(type, typeSubstitution);
+  }
+
   visitInvalidExpression(InvalidExpression node) => new InvalidExpression();
 
   visitVariableGet(VariableGet node) {
-    return new VariableGet(variables[node.variable]);
+    return new VariableGet(
+        variables[node.variable], visitOptionalType(node.promotedType));
   }
 
   visitVariableSet(VariableSet node) {
@@ -49,11 +54,13 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitPropertyGet(PropertyGet node) {
-    return new PropertyGet(clone(node.receiver), node.name);
+    return new PropertyGet(
+        clone(node.receiver), node.name, node.interfaceTarget);
   }
 
   visitPropertySet(PropertySet node) {
-    return new PropertySet(clone(node.receiver), node.name, clone(node.value));
+    return new PropertySet(clone(node.receiver), node.name, clone(node.value),
+        node.interfaceTarget);
   }
 
   visitDirectPropertyGet(DirectPropertyGet node) {
@@ -83,8 +90,8 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitMethodInvocation(MethodInvocation node) {
-    return new MethodInvocation(
-        clone(node.receiver), node.name, clone(node.arguments));
+    return new MethodInvocation(clone(node.receiver), node.name,
+        clone(node.arguments), node.interfaceTarget);
   }
 
   visitDirectMethodInvocation(DirectMethodInvocation node) {
@@ -110,13 +117,13 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitLogicalExpression(LogicalExpression node) {
-    return new LogicalExpression(
-        clone(node.left), node.operator, clone(node.right));
+    return new LogicalExpression(clone(node.left), node.operator,
+        clone(node.right), visitOptionalType(node.staticType));
   }
 
   visitConditionalExpression(ConditionalExpression node) {
-    return new ConditionalExpression(
-        clone(node.condition), clone(node.then), clone(node.otherwise));
+    return new ConditionalExpression(clone(node.condition), clone(node.then),
+        clone(node.otherwise), visitOptionalType(node.staticType));
   }
 
   visitStringConcatenation(StringConcatenation node) {
