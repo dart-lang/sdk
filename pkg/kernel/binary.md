@@ -146,6 +146,12 @@ type ClassProcedureReference extends MemberReference {
   UInt procedureIndex;
 }
 
+// Can be used as MemberReference or ClassReference *only* if indicated that
+// the given reference may be a NullReference.
+type NullReference extends MemberReference, ClassReference {
+  Byte tag = 99;
+}
+
 type Name {
   StringReference name;
   if name begins with '_' {
@@ -202,6 +208,7 @@ type Field extends Member {
   Name name;
   List<Expression> annotations;
   DartType type;
+  Option<InferredValue> inferredValue;
   Option<Expression> initializer;
 }
 
@@ -280,6 +287,7 @@ type FunctionNode {
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
   DartType returnType;
+  Option<InferredValue> inferredReturnValue;
   Option<Statement> body;
 }
 
@@ -338,6 +346,7 @@ type PropertyGet extends Expression {
   Byte tag = 22;
   Expression receiver;
   Name name;
+  MemberReference interfaceTarget; // May be NullReference.
 }
 
 type PropertySet extends Expression {
@@ -345,17 +354,20 @@ type PropertySet extends Expression {
   Expression receiver;
   Name name;
   Expression value;
+  MemberReference interfaceTarget; // May be NullReference.
 }
 
 type SuperPropertyGet extends Expression {
   Byte tag = 24;
   Name name;
+  MemberReference interfaceTarget; // May be NullReference.
 }
 
 type SuperPropertySet extends Expression {
   Byte tag = 25;
   Name name;
   Expression value;
+  MemberReference interfaceTarget; // May be NullReference.
 }
 
 type DirectPropertyGet extends Expression {
@@ -400,12 +412,14 @@ type MethodInvocation extends Expression {
   Expression receiver;
   Name name;
   Arguments arguments;
+  MemberReference interfaceTarget; // May be NullReference.
 }
 
 type SuperMethodInvocation extends Expression {
   Byte tag = 29;
   Name name;
   Arguments arguments;
+  MemberReference interfaceTarget; // May be NullReference.
 }
 
 type DirectMethodInvocation extends Expression {
@@ -745,6 +759,7 @@ type VariableDeclaration {
   // and is not necessarily unique.
   StringReference name;
   DartType type;
+  Option<InferredValue> inferredValue;
 
   // For statements and for-loops, this is the initial value.
   // For optional parameters, this is the default value (if given).
@@ -837,6 +852,14 @@ type TypeParameter {
   // Note: there is no tag on TypeParameter
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
+}
+
+/* enum BaseClassKind { None, Exact, Subclass, Subtype, } */
+
+type InferredValue {
+  ClassReference baseClass; // May be NullReference if kind = None.
+  Byte kind; // Index into BaseClassKind.
+  Byte valueBits; // See lib/type_propagation/type_propagation.dart
 }
 
 ```

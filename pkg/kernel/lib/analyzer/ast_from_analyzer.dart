@@ -54,7 +54,7 @@ class ReferenceScope {
     return element;
   }
 
-  bool supportsGet(Element element) {
+  static bool supportsConcreteGet(Element element) {
     return (element is PropertyAccessorElement &&
             element.isGetter &&
             !element.isAbstract) ||
@@ -64,7 +64,13 @@ class ReferenceScope {
         isTopLevelFunction(element);
   }
 
-  bool supportsSet(Element element) {
+  static bool supportsInterfaceGet(Element element) {
+    return (element is PropertyAccessorElement && element.isGetter) ||
+        element is FieldElement ||
+        element is MethodElement;
+  }
+
+  static bool supportsConcreteSet(Element element) {
     return (element is PropertyAccessorElement &&
             element.isSetter &&
             !element.isAbstract) ||
@@ -74,51 +80,32 @@ class ReferenceScope {
             !element.isConst;
   }
 
-  bool supportsIndexGet(Element element) {
+  static bool supportsInterfaceSet(Element element) {
+    return (element is PropertyAccessorElement && element.isSetter) ||
+        element is FieldElement && !element.isFinal && !element.isConst;
+  }
+
+  static bool supportsConcreteIndexGet(Element element) {
     return element is MethodElement &&
         element.name == '[]' &&
         !element.isAbstract;
   }
 
-  bool supportsIndexSet(Element element) {
+  static bool supportsInterfaceIndexGet(Element element) {
+    return element is MethodElement && element.name == '[]';
+  }
+
+  static bool supportsConcreteIndexSet(Element element) {
     return element is MethodElement &&
         element.name == '[]=' &&
         !element.isAbstract;
   }
 
-  bool isTopLevelFunction(Element element) {
-    return element is FunctionElement &&
-        element.enclosingElement is CompilationUnitElement;
+  static bool supportsInterfaceIndexSet(Element element) {
+    return element is MethodElement && element.name == '[]=';
   }
 
-  bool isLocalFunction(Element element) {
-    return element is FunctionElement &&
-        element.enclosingElement is! CompilationUnitElement &&
-        element.enclosingElement is! LibraryElement;
-  }
-
-  bool isLocal(Element element) {
-    return isLocalFunction(element) ||
-        element is LocalVariableElement ||
-        element is ParameterElement;
-  }
-
-  bool isInstanceMethod(Element element) {
-    return element is MethodElement && !element.isStatic;
-  }
-
-  bool isStaticMethod(Element element) {
-    return element is MethodElement && element.isStatic ||
-        isTopLevelFunction(element);
-  }
-
-  bool isStaticVariableOrGetter(Element element) {
-    element = desynthesizeGetter(element);
-    return element is FieldElement && element.isStatic ||
-        element is TopLevelVariableElement;
-  }
-
-  bool supportsMethodCall(Element element) {
+  static bool supportsConcreteMethodCall(Element element) {
     // Note that local functions are not valid targets for method calls because
     // they are not "methods" or even "procedures" in our AST.
     return element is MethodElement && !element.isAbstract ||
@@ -126,70 +113,126 @@ class ReferenceScope {
         element is ConstructorElement && element.isFactory;
   }
 
-  bool supportsConstructorCall(Element element) {
+  static bool supportsInterfaceMethodCall(Element element) {
+    return element is MethodElement;
+  }
+
+  static bool supportsConstructorCall(Element element) {
     return element is ConstructorElement && !element.isFactory;
   }
 
-  Element desynthesizeGetter(Element element) {
-    if (element == null || !element.isSynthetic) return element;
-    if (element is PropertyAccessorElement) return element.variable;
-    if (element is FieldElement) return element.getter;
-    return element;
-  }
-
-  Element desynthesizeSetter(Element element) {
-    if (element == null || !element.isSynthetic) return element;
-    if (element is PropertyAccessorElement) return element.variable;
-    if (element is FieldElement) return element.setter;
-    return element;
-  }
-
-  ast.Member resolveGet(Element element, Element auxiliary) {
+  ast.Member _resolveGet(
+      Element element, Element auxiliary, bool predicate(Element element)) {
     element = desynthesizeGetter(element);
-    if (supportsGet(element)) return getMemberReference(element);
+    if (predicate(element)) return getMemberReference(element);
     if (element is PropertyAccessorElement && element.isSetter) {
       // The getter is sometimes stored as the 'corresponding getter' instead
       // of the 'auxiliary' element.
       auxiliary ??= element.correspondingGetter;
     }
     auxiliary = desynthesizeGetter(auxiliary);
-    if (supportsGet(auxiliary)) return getMemberReference(auxiliary);
+    if (predicate(auxiliary)) return getMemberReference(auxiliary);
     return null;
   }
 
-  ast.Member resolveSet(Element element, Element auxiliary) {
+  ast.Member resolveConcreteGet(Element element, Element auxiliary) {
+    return _resolveGet(element, auxiliary, supportsConcreteGet);
+  }
+
+  ast.Member resolveInterfaceGet(Element element, Element auxiliary) {
+    if (!strongMode) return null;
+    return _resolveGet(element, auxiliary, supportsInterfaceGet);
+  }
+
+  ast.Member _resolveSet(
+      Element element, Element auxiliary, bool predicate(Element element)) {
     element = desynthesizeSetter(element);
-    if (supportsSet(element)) return getMemberReference(element);
+    if (predicate(element)) {
+      return getMemberReference(element);
+    }
     if (element is PropertyAccessorElement && element.isSetter) {
       // The setter is sometimes stored as the 'corresponding setter' instead
       // of the 'auxiliary' element.
       auxiliary ??= element.correspondingGetter;
     }
     auxiliary = desynthesizeSetter(auxiliary);
-    if (supportsSet(auxiliary)) return getMemberReference(auxiliary);
+    if (predicate(auxiliary)) {
+      return getMemberReference(auxiliary);
+    }
     return null;
   }
 
-  ast.Member resolveIndexGet(Element element, Element auxiliary) {
-    if (supportsIndexGet(element)) return getMemberReference(element);
-    if (supportsIndexGet(auxiliary)) return getMemberReference(auxiliary);
+  ast.Member resolveConcreteSet(Element element, Element auxiliary) {
+    return _resolveSet(element, auxiliary, supportsConcreteSet);
+  }
+
+  ast.Member resolveInterfaceSet(Element element, Element auxiliary) {
+    if (!strongMode) return null;
+    return _resolveSet(element, auxiliary, supportsInterfaceSet);
+  }
+
+  ast.Member resolveConcreteIndexGet(Element element, Element auxiliary) {
+    if (supportsConcreteIndexGet(element)) {
+      return getMemberReference(element);
+    }
+    if (supportsConcreteIndexGet(auxiliary)) {
+      return getMemberReference(auxiliary);
+    }
     return null;
   }
 
-  ast.Member resolveIndexSet(Element element, Element auxiliary) {
-    if (supportsIndexSet(element)) return getMemberReference(element);
-    if (supportsIndexSet(auxiliary)) return getMemberReference(auxiliary);
+  ast.Member resolveInterfaceIndexGet(Element element, Element auxiliary) {
+    if (!strongMode) return null;
+    if (supportsInterfaceIndexGet(element)) {
+      return getMemberReference(element);
+    }
+    if (supportsInterfaceIndexGet(auxiliary)) {
+      return getMemberReference(auxiliary);
+    }
     return null;
   }
 
-  ast.Member resolveMethod(Element element) {
-    return supportsMethodCall(element) ? getMemberReference(element) : null;
+  ast.Member resolveConcreteIndexSet(Element element, Element auxiliary) {
+    if (supportsConcreteIndexSet(element)) {
+      return getMemberReference(element);
+    }
+    if (supportsConcreteIndexSet(auxiliary)) {
+      return getMemberReference(auxiliary);
+    }
+    return null;
+  }
+
+  ast.Member resolveInterfaceIndexSet(Element element, Element auxiliary) {
+    if (!strongMode) return null;
+    if (supportsInterfaceIndexSet(element)) {
+      return getMemberReference(element);
+    }
+    if (supportsInterfaceIndexSet(auxiliary)) {
+      return getMemberReference(auxiliary);
+    }
+    return null;
+  }
+
+  ast.Member resolveConcreteMethod(Element element) {
+    if (supportsConcreteMethodCall(element)) {
+      return getMemberReference(element);
+    }
+    return null;
+  }
+
+  ast.Member resolveInterfaceMethod(Element element) {
+    if (!strongMode) return null;
+    if (supportsInterfaceMethodCall(element)) {
+      return getMemberReference(element);
+    }
+    return null;
   }
 
   ast.Constructor resolveConstructor(Element element) {
-    return supportsConstructorCall(element)
-        ? getMemberReference(element)
-        : null;
+    if (supportsConstructorCall(element)) {
+      return getMemberReference(element);
+    }
+    return null;
   }
 
   ast.Field resolveField(Element element) {
@@ -202,8 +245,11 @@ class ReferenceScope {
   /// A static accessor that generates a 'throw NoSuchMethodError' when a
   /// read or write access could not be resolved.
   Accessor staticAccess(String name, Element element, [Element auxiliary]) {
-    return new _StaticAccessor(this, name, resolveGet(element, auxiliary),
-        resolveSet(element, auxiliary));
+    return new _StaticAccessor(
+        this,
+        name,
+        resolveConcreteGet(element, auxiliary),
+        resolveConcreteSet(element, auxiliary));
   }
 
   /// An accessor that generates a 'throw NoSuchMethodError' on both read
@@ -614,7 +660,7 @@ class ExpressionScope extends TypeScope {
   ast.Expression buildAnnotation(Annotation annotation) {
     Element element = annotation.element;
     if (annotation.arguments == null) {
-      var target = resolveGet(element, null);
+      var target = resolveConcreteGet(element, null);
       return target == null
           ? new ast.InvalidExpression()
           : new ast.StaticGet(target);
@@ -1101,7 +1147,8 @@ class ExpressionBuilder
       // Cut off the trailing '='.
       var name = new ast.Name(operator.substring(0, operator.length - 1));
       return leftHand.buildCompoundAssignment(name, rightHand,
-          voidContext: voidContext);
+          voidContext: voidContext,
+          interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
     }
   }
 
@@ -1115,9 +1162,13 @@ class ExpressionBuilder
 
   ast.Expression visitBinaryExpression(BinaryExpression node) {
     String operator = node.operator.value();
-    if (operator == '&&' || operator == '||' || operator == '??') {
+    if (operator == '&&' || operator == '||') {
       return new ast.LogicalExpression(
           build(node.leftOperand), operator, build(node.rightOperand));
+    }
+    if (operator == '??') {
+      return new ast.LogicalExpression(build(node.leftOperand), operator,
+          build(node.rightOperand), scope.getInferredType(node));
     }
     bool isNegated = false;
     if (operator == '!=') {
@@ -1126,17 +1177,22 @@ class ExpressionBuilder
     }
     ast.Expression expression;
     if (node.leftOperand is SuperExpression) {
-      var method = scope.resolveMethod(node.staticElement);
+      var method = scope.resolveConcreteMethod(node.staticElement);
       if (method == null) {
         // TODO: Invoke super.noSuchMethod.
         return new ast.InvalidExpression();
       }
       scope.addTransformerFlag(TransformerFlag.superCalls);
       expression = new ast.SuperMethodInvocation(
-          new ast.Name(operator), buildSingleArgument(node.rightOperand));
+          new ast.Name(operator),
+          buildSingleArgument(node.rightOperand),
+          scope.resolveConcreteMethod(node.staticElement));
     } else {
-      expression = new ast.MethodInvocation(build(node.leftOperand),
-          new ast.Name(operator), buildSingleArgument(node.rightOperand));
+      expression = new ast.MethodInvocation(
+          build(node.leftOperand),
+          new ast.Name(operator),
+          buildSingleArgument(node.rightOperand),
+          scope.resolveInterfaceMethod(node.staticElement));
     }
     return isNegated ? new ast.Not(expression) : expression;
   }
@@ -1195,8 +1251,11 @@ class ExpressionBuilder
   }
 
   ast.Expression visitConditionalExpression(ConditionalExpression node) {
-    return new ast.ConditionalExpression(build(node.condition),
-        build(node.thenExpression), build(node.elseExpression));
+    return new ast.ConditionalExpression(
+        build(node.condition),
+        build(node.thenExpression),
+        build(node.elseExpression),
+        scope.getInferredType(node));
   }
 
   ast.Expression visitFunctionExpression(FunctionExpression node) {
@@ -1274,8 +1333,13 @@ class ExpressionBuilder
       case ElementKind.LOCAL_VARIABLE:
       case ElementKind.PARAMETER:
       case ElementKind.ERROR:
+        Element element = node.identifier.staticElement;
+        Element auxiliary = node.identifier.auxiliaryElements?.staticElement;
         return PropertyAccessor.make(
-            build(node.prefix), scope.buildName(node.identifier));
+            build(node.prefix),
+            scope.buildName(node.identifier),
+            scope.resolveInterfaceGet(element, auxiliary),
+            scope.resolveInterfaceSet(element, auxiliary));
 
       case ElementKind.UNIVERSE:
       case ElementKind.NAME:
@@ -1314,32 +1378,41 @@ class ExpressionBuilder
         if (!scope.allowThis) {
           return scope.unresolvedAccess(node.name);
         }
-        return PropertyAccessor.make(scope.buildThis(), scope.buildName(node));
+        return PropertyAccessor.make(
+            scope.buildThis(), scope.buildName(node), null, null);
 
       case ElementKind.FIELD:
       case ElementKind.TOP_LEVEL_VARIABLE:
       case ElementKind.GETTER:
       case ElementKind.SETTER:
       case ElementKind.METHOD:
+        Element auxiliary = node.auxiliaryElements?.staticElement;
         if (isStatic(element)) {
-          Element auxiliary = node.auxiliaryElements?.staticElement;
           return scope.staticAccess(node.name, element, auxiliary);
         }
         if (!scope.allowThis) {
           return scope.unresolvedAccess(node.name);
         }
-        return PropertyAccessor.make(scope.buildThis(), scope.buildName(node));
+        return PropertyAccessor.make(
+            scope.buildThis(),
+            scope.buildName(node),
+            scope.resolveInterfaceGet(element, auxiliary),
+            scope.resolveInterfaceSet(element, auxiliary));
 
       case ElementKind.FUNCTION:
         FunctionElement function = element;
-        if (scope.isTopLevelFunction(function)) {
+        if (isTopLevelFunction(function)) {
           return scope.staticAccess(node.name, function);
         }
         return new VariableAccessor(scope.getVariableReference(function));
 
       case ElementKind.LOCAL_VARIABLE:
       case ElementKind.PARAMETER:
-        return new VariableAccessor(scope.getVariableReference(element));
+        VariableElement variable = element;
+        var type = identical(node.staticType, variable.type)
+            ? null
+            : scope.buildType(node.staticType);
+        return new VariableAccessor(scope.getVariableReference(element), type);
 
       case ElementKind.IMPORT:
       case ElementKind.LIBRARY:
@@ -1360,13 +1433,26 @@ class ExpressionBuilder
   }
 
   visitIndexExpression(IndexExpression node) {
+    Element element = node.staticElement;
+    Element auxiliary = node.auxiliaryElements?.staticElement;
     if (node.isCascaded) {
-      return IndexAccessor.make(makeCascadeReceiver(), build(node.index));
+      return IndexAccessor.make(
+          makeCascadeReceiver(),
+          build(node.index),
+          scope.resolveInterfaceIndexGet(element, auxiliary),
+          scope.resolveInterfaceIndexSet(element, auxiliary));
     } else if (node.target is SuperExpression) {
       scope.addTransformerFlag(TransformerFlag.superCalls);
-      return new SuperIndexAccessor(build(node.index));
+      return new SuperIndexAccessor(
+          build(node.index),
+          scope.resolveConcreteIndexGet(element, auxiliary),
+          scope.resolveConcreteIndexSet(element, auxiliary));
     } else {
-      return IndexAccessor.make(build(node.target), build(node.index));
+      return IndexAccessor.make(
+          build(node.target),
+          build(node.index),
+          scope.resolveInterfaceIndexGet(element, auxiliary),
+          scope.resolveInterfaceIndexSet(element, auxiliary));
     }
   }
 
@@ -1453,7 +1539,7 @@ class ExpressionBuilder
       return scope.emitCompileTimeError(CompileTimeErrorCode.INSTANTIATE_ENUM);
     }
     if (element.isFactory) {
-      ast.Member target = scope.resolveMethod(element);
+      ast.Member target = scope.resolveConcreteMethod(element);
       if (target is ast.Procedure &&
           scope.areArgumentsCompatible(element, arguments)) {
         return new ast.StaticInvocation(target, arguments,
@@ -1494,19 +1580,24 @@ class ExpressionBuilder
     }
     var target = node.target;
     if (node.isCascaded) {
-      return new ast.MethodInvocation(makeCascadeReceiver(),
-          scope.buildName(node.methodName), buildArgumentsForInvocation(node));
+      return new ast.MethodInvocation(
+          makeCascadeReceiver(),
+          scope.buildName(node.methodName),
+          buildArgumentsForInvocation(node),
+          scope.resolveInterfaceMethod(element));
     } else if (target is SuperExpression) {
       scope.addTransformerFlag(TransformerFlag.superCalls);
       return new ast.SuperMethodInvocation(
-          scope.buildName(node.methodName), buildArgumentsForInvocation(node));
-    } else if (scope.isLocal(element)) {
+          scope.buildName(node.methodName),
+          buildArgumentsForInvocation(node),
+          scope.resolveConcreteMethod(element));
+    } else if (isLocal(element)) {
       return new ast.MethodInvocation(
           new ast.VariableGet(scope.getVariableReference(element)),
           callName,
           buildArgumentsForInvocation(node));
-    } else if (scope.isStaticMethod(element)) {
-      var method = scope.resolveMethod(element);
+    } else if (isStaticMethod(element)) {
+      var method = scope.resolveConcreteMethod(element);
       var arguments = buildArgumentsForInvocation(node);
       if (method == null || !scope.areArgumentsCompatible(element, arguments)) {
         return scope.buildThrowNoSuchMethodError(
@@ -1514,8 +1605,8 @@ class ExpressionBuilder
             candidateTarget: element);
       }
       return new ast.StaticInvocation(method, arguments);
-    } else if (scope.isStaticVariableOrGetter(element)) {
-      var method = scope.resolveGet(element, null);
+    } else if (isStaticVariableOrGetter(element)) {
+      var method = scope.resolveConcreteGet(element, null);
       if (method == null) {
         return scope.buildThrowNoSuchMethodError(
             new ast.NullLiteral(), node.methodName.name, new ast.Arguments([]),
@@ -1530,8 +1621,11 @@ class ExpressionBuilder
           node.methodName.name, buildArgumentsForInvocation(node),
           candidateTarget: element);
     } else if (target == null) {
-      return new ast.MethodInvocation(scope.buildThis(),
-          scope.buildName(node.methodName), buildArgumentsForInvocation(node));
+      return new ast.MethodInvocation(
+          scope.buildThis(),
+          scope.buildName(node.methodName),
+          buildArgumentsForInvocation(node),
+          scope.resolveInterfaceMethod(element));
     } else if (node.operator.value() == '?.') {
       var receiver = makeOrReuseVariable(build(target));
       return makeLet(
@@ -1542,10 +1636,14 @@ class ExpressionBuilder
               new ast.MethodInvocation(
                   new ast.VariableGet(receiver),
                   scope.buildName(node.methodName),
-                  buildArgumentsForInvocation(node))));
+                  buildArgumentsForInvocation(node),
+                  scope.resolveInterfaceMethod(element))));
     } else {
-      return new ast.MethodInvocation(build(node.target),
-          scope.buildName(node.methodName), buildArgumentsForInvocation(node));
+      return new ast.MethodInvocation(
+          build(node.target),
+          scope.buildName(node.methodName),
+          buildArgumentsForInvocation(node),
+          scope.resolveInterfaceMethod(element));
     }
   }
 
@@ -1572,7 +1670,8 @@ class ExpressionBuilder
         var leftHand = buildLeftHandValue(node.operand);
         var binaryOperator = new ast.Name(operator[0]);
         return leftHand.buildPostfixIncrement(binaryOperator,
-            voidContext: isInVoidContext(node));
+            voidContext: isInVoidContext(node),
+            interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
 
       default:
         return scope.internalError('Invalid postfix operator $operator');
@@ -1587,10 +1686,14 @@ class ExpressionBuilder
         var name = new ast.Name(operator == '-' ? 'unary-' : '~');
         if (node.operand is SuperExpression) {
           scope.addTransformerFlag(TransformerFlag.superCalls);
-          return new ast.SuperMethodInvocation(name, new ast.Arguments.empty());
+          return new ast.SuperMethodInvocation(name, new ast.Arguments.empty(),
+              scope.resolveConcreteMethod(node.staticElement));
         }
         return new ast.MethodInvocation(
-            build(node.operand), name, new ast.Arguments.empty());
+            build(node.operand),
+            name,
+            new ast.Arguments.empty(),
+            scope.resolveInterfaceMethod(node.staticElement));
 
       case '!':
         return new ast.Not(build(node.operand));
@@ -1599,7 +1702,8 @@ class ExpressionBuilder
       case '--':
         var leftHand = buildLeftHandValue(node.operand);
         var binaryOperator = new ast.Name(operator[0]);
-        return leftHand.buildPrefixIncrement(binaryOperator);
+        return leftHand.buildPrefixIncrement(binaryOperator,
+            interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
 
       default:
         return scope.internalError('Invalid prefix operator $operator');
@@ -1607,25 +1711,30 @@ class ExpressionBuilder
   }
 
   visitPropertyAccess(PropertyAccess node) {
+    Element element = node.propertyName.staticElement;
+    Element auxiliary = node.propertyName.auxiliaryElements?.staticElement;
+    var getter = scope.resolveInterfaceGet(element, auxiliary);
+    var setter = scope.resolveInterfaceSet(element, auxiliary);
     Expression target = node.target;
     if (node.isCascaded) {
-      return PropertyAccessor.make(
-          makeCascadeReceiver(), scope.buildName(node.propertyName));
+      return PropertyAccessor.make(makeCascadeReceiver(),
+          scope.buildName(node.propertyName), getter, setter);
     } else if (node.target is SuperExpression) {
       scope.addTransformerFlag(TransformerFlag.superCalls);
-      return new SuperPropertyAccessor(scope.buildName(node.propertyName));
+      return new SuperPropertyAccessor(
+          scope.buildName(node.propertyName),
+          scope.resolveConcreteGet(element, auxiliary),
+          scope.resolveConcreteSet(element, auxiliary));
     } else if (target is Identifier && target.staticElement is ClassElement) {
       // Note that this case also covers null-aware static access on a class,
       // which is equivalent to a regular static access.
-      Element element = node.propertyName.staticElement;
-      Element auxiliary = node.propertyName.auxiliaryElements?.staticElement;
       return scope.staticAccess(node.propertyName.name, element, auxiliary);
     } else if (node.operator.value() == '?.') {
       return new NullAwarePropertyAccessor(
-          build(target), scope.buildName(node.propertyName));
+          build(target), scope.buildName(node.propertyName), getter, setter);
     } else {
       return PropertyAccessor.make(
-          build(target), scope.buildName(node.propertyName));
+          build(target), scope.buildName(node.propertyName), getter, setter);
     }
   }
 
@@ -2343,7 +2452,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
       ConstructorElement targetElement =
           node.redirectedConstructor.staticElement;
       ast.Member target = targetElement?.isFactory ?? false
-          ? scope.resolveMethod(targetElement)
+          ? scope.resolveConcreteMethod(targetElement)
           : scope.resolveConstructor(targetElement);
       var positional =
           function.positionalParameters.map(_makeVariableGet).toList();
@@ -2468,4 +2577,50 @@ class _StaticAccessor extends StaticAccessor {
     return scope.buildThrowNoSuchMethodError(
         new ast.NullLiteral(), name, new ast.Arguments([value]));
   }
+}
+
+bool isTopLevelFunction(Element element) {
+  return element is FunctionElement &&
+      element.enclosingElement is CompilationUnitElement;
+}
+
+bool isLocalFunction(Element element) {
+  return element is FunctionElement &&
+      element.enclosingElement is! CompilationUnitElement &&
+      element.enclosingElement is! LibraryElement;
+}
+
+bool isLocal(Element element) {
+  return isLocalFunction(element) ||
+      element is LocalVariableElement ||
+      element is ParameterElement;
+}
+
+bool isInstanceMethod(Element element) {
+  return element is MethodElement && !element.isStatic;
+}
+
+bool isStaticMethod(Element element) {
+  return element is MethodElement && element.isStatic ||
+      isTopLevelFunction(element);
+}
+
+bool isStaticVariableOrGetter(Element element) {
+  element = desynthesizeGetter(element);
+  return element is FieldElement && element.isStatic ||
+      element is TopLevelVariableElement;
+}
+
+Element desynthesizeGetter(Element element) {
+  if (element == null || !element.isSynthetic) return element;
+  if (element is PropertyAccessorElement) return element.variable;
+  if (element is FieldElement) return element.getter;
+  return element;
+}
+
+Element desynthesizeSetter(Element element) {
+  if (element == null || !element.isSynthetic) return element;
+  if (element is PropertyAccessorElement) return element.variable;
+  if (element is FieldElement) return element.setter;
+  return element;
 }

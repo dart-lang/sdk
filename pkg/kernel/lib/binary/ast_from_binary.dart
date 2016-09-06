@@ -250,9 +250,9 @@ class BinaryBuilder {
 
   Class readClassReference({bool allowNull: false}) {
     int tag = readByte();
-    if (tag == Tag.NullClassReference) {
+    if (tag == Tag.NullReference) {
       if (!allowNull) {
-        throw 'Expected a valid class reference to be valid but was `null`.';
+        throw 'Expected a class reference to be valid but was `null`.';
       }
       return null;
     } else {
@@ -262,7 +262,7 @@ class BinaryBuilder {
     }
   }
 
-  Member readMemberReference() {
+  Member readMemberReference({bool allowNull: false}) {
     int tag = readByte();
     switch (tag) {
       case Tag.LibraryFieldReference:
@@ -277,6 +277,12 @@ class BinaryBuilder {
         var classNode = readClassReference();
         var index = readUInt();
         return loader.getClassMemberReference(classNode, tag, index);
+
+      case Tag.NullReference:
+        if (!allowNull) {
+          throw 'Expected a member reference to be valid but was `null`.';
+        }
+        return null;
 
       default:
         throw fail('Invalid member reference tag: $tag');
@@ -521,7 +527,7 @@ class BinaryBuilder {
       case Tag.InvalidExpression:
         return new InvalidExpression();
       case Tag.VariableGet:
-        return new VariableGet(readVariableReference());
+        return new VariableGet(readVariableReference(), readDartTypeOption());
       case Tag.SpecializedVariableGet:
         int index = tagByte & Tag.SpecializedPayloadMask;
         return new VariableGet(variableStack[index]);
@@ -531,15 +537,18 @@ class BinaryBuilder {
         int index = tagByte & Tag.SpecializedPayloadMask;
         return new VariableSet(variableStack[index], readExpression());
       case Tag.PropertyGet:
-        return new PropertyGet(readExpression(), readName());
+        return new PropertyGet(
+            readExpression(), readName(), readMemberReference(allowNull: true));
       case Tag.PropertySet:
-        return new PropertySet(readExpression(), readName(), readExpression());
+        return new PropertySet(readExpression(), readName(), readExpression(),
+            readMemberReference(allowNull: true));
       case Tag.SuperPropertyGet:
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertyGet(readName());
+        return new SuperPropertyGet(readName(), readMemberReference());
       case Tag.SuperPropertySet:
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertySet(readName(), readExpression());
+        return new SuperPropertySet(
+            readName(), readExpression(), readMemberReference());
       case Tag.DirectPropertyGet:
         return new DirectPropertyGet(readExpression(), readMemberReference());
       case Tag.DirectPropertySet:
@@ -550,11 +559,12 @@ class BinaryBuilder {
       case Tag.StaticSet:
         return new StaticSet(readMemberReference(), readExpression());
       case Tag.MethodInvocation:
-        return new MethodInvocation(
-            readExpression(), readName(), readArguments());
+        return new MethodInvocation(readExpression(), readName(),
+            readArguments(), readMemberReference(allowNull: true));
       case Tag.SuperMethodInvocation:
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperMethodInvocation(readName(), readArguments());
+        return new SuperMethodInvocation(
+            readName(), readArguments(), readMemberReference());
       case Tag.DirectMethodInvocation:
         return new DirectMethodInvocation(
             readExpression(), readMemberReference(), readArguments());
@@ -573,11 +583,14 @@ class BinaryBuilder {
       case Tag.Not:
         return new Not(readExpression());
       case Tag.LogicalExpression:
-        return new LogicalExpression(readExpression(),
-            logicalOperatorToString(readByte()), readExpression());
+        return new LogicalExpression(
+            readExpression(),
+            logicalOperatorToString(readByte()),
+            readExpression(),
+            readDartTypeOption());
       case Tag.ConditionalExpression:
-        return new ConditionalExpression(
-            readExpression(), readExpression(), readExpression());
+        return new ConditionalExpression(readExpression(), readExpression(),
+            readExpression(), readDartTypeOption());
       case Tag.StringConcatenation:
         return new StringConcatenation(readExpressionList());
       case Tag.IsExpression:
@@ -796,6 +809,8 @@ class BinaryBuilder {
   DartType readDartType() {
     int tag = readByte();
     switch (tag) {
+      case Tag.BottomType:
+        return const BottomType();
       case Tag.InvalidType:
         return const InvalidType();
       case Tag.DynamicType:

@@ -66,11 +66,12 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitSuperPropertyGet(SuperPropertyGet node) {
-    return new SuperPropertyGet(node.name);
+    return new SuperPropertyGet(node.name, node.interfaceTarget);
   }
 
   visitSuperPropertySet(SuperPropertySet node) {
-    return new SuperPropertySet(node.name, clone(node.value));
+    return new SuperPropertySet(
+        node.name, clone(node.value), node.interfaceTarget);
   }
 
   visitStaticGet(StaticGet node) {
@@ -92,7 +93,8 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {
-    return new SuperMethodInvocation(node.name, clone(node.arguments));
+    return new SuperMethodInvocation(
+        node.name, clone(node.arguments), node.interfaceTarget);
   }
 
   visitStaticInvocation(StaticInvocation node) {

@@ -39,6 +39,8 @@ class ProxyExpression extends Expression {
   visitChildren(ProxiedVisitor v) {}
 
   transformChildren(ProxiedTreeTransformer v) {}
+
+  DartType getStaticType(types) => node.getStaticType(types);
 }
 
 class ProxyExpressionRemover extends ProxiedTreeTransformer {

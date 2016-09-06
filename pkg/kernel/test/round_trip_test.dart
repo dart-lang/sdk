@@ -10,6 +10,9 @@ void main() {
   test('dart2js', () {
     cmd.main(['test/data/dart2js.dill']);
   });
+  test('dart2js-strong', () {
+    cmd.main(['test/data/dart2js-strong.dill']);
+  });
   test('boms', () {
     cmd.main(['test/data/boms.dill']);
   });

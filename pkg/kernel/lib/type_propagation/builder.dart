@@ -1348,9 +1348,7 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
   }
 
   int visitSuperMethodInvocation(SuperMethodInvocation node) {
-    Class host = environment.host;
-    passArgumentsToFunction(node.arguments, host, node.target.function);
-    return builder.getReturnVariable(host, node.target);
+    return unsupported(node);
   }
 
   void passArgumentsNowhere(Arguments node) {

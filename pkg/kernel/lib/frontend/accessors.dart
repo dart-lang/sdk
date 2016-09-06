@@ -24,37 +24,40 @@ abstract class Accessor {
   Expression buildNullAwareAssignment(Expression value,
       {bool voidContext: false}) {
     if (voidContext) {
-      return _finish(new ConditionalExpression(
-          buildIsNull(_makeRead()),
+      return _finish(new ConditionalExpression(buildIsNull(_makeRead()),
           _makeWrite(value, voidContext), new NullLiteral()));
     }
     var tmp = new VariableDeclaration.forValue(_makeRead());
-    return _finish(makeLet(tmp, new ConditionalExpression(
-        buildIsNull(new VariableGet(tmp)),
-        _makeWrite(value, voidContext), new VariableGet(tmp))));
+    return _finish(makeLet(
+        tmp,
+        new ConditionalExpression(buildIsNull(new VariableGet(tmp)),
+            _makeWrite(value, voidContext), new VariableGet(tmp))));
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {bool voidContext: false}) {
+      {bool voidContext: false, Procedure interfaceTarget}) {
     return _finish(_makeWrite(
-        makeBinary(_makeRead(), binaryOperator, value), voidContext));
+        makeBinary(_makeRead(), binaryOperator, interfaceTarget, value),
+        voidContext));
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
-      {bool voidContext: false}) {
+      {bool voidContext: false, Procedure interfaceTarget}) {
     return buildCompoundAssignment(binaryOperator, new IntLiteral(1),
-        voidContext: voidContext);
+        voidContext: voidContext, interfaceTarget: interfaceTarget);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {bool voidContext: false}) {
+      {bool voidContext: false, Procedure interfaceTarget}) {
     if (voidContext) {
       return buildPrefixIncrement(binaryOperator, voidContext: true);
     }
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
     var dummy = new VariableDeclaration.forValue(_makeWrite(
-        makeBinary(valueAccess(), binaryOperator, new IntLiteral(1)), true));
+        makeBinary(
+            valueAccess(), binaryOperator, interfaceTarget, new IntLiteral(1)),
+        true));
     return _finish(makeLet(value, makeLet(dummy, valueAccess())));
   }
 
@@ -77,10 +80,11 @@ abstract class Accessor {
 
 class VariableAccessor extends Accessor {
   VariableDeclaration variable;
+  DartType promotedType;
 
-  VariableAccessor(this.variable);
+  VariableAccessor(this.variable, [this.promotedType]);
 
-  _makeRead() => new VariableGet(variable);
+  _makeRead() => new VariableGet(variable, promotedType);
 
   _makeWrite(Expression value, bool voidContext) {
     return variable.isFinal || variable.isConst
@@ -93,20 +97,23 @@ class PropertyAccessor extends Accessor {
   VariableDeclaration _receiverVariable;
   Expression receiver;
   Name name;
+  Member getter, setter;
 
-  static Accessor make(Expression receiver, Name name) {
+  static Accessor make(
+      Expression receiver, Name name, Member getter, Member setter) {
     if (receiver is ThisExpression) {
-      return new ThisPropertyAccessor(name);
+      return new ThisPropertyAccessor(name, getter, setter);
     } else {
-      return new PropertyAccessor._internal(receiver, name);
+      return new PropertyAccessor._internal(receiver, name, getter, setter);
     }
   }
 
-  PropertyAccessor._internal(this.receiver, this.name);
+  PropertyAccessor._internal(
+      this.receiver, this.name, this.getter, this.setter);
 
-  _makeSimpleRead() => new PropertyGet(receiver, name);
+  _makeSimpleRead() => new PropertyGet(receiver, name, getter);
   _makeSimpleWrite(Expression value, bool voidContext) {
-    return new PropertySet(receiver, name, value);
+    return new PropertySet(receiver, name, value, setter);
   }
 
   receiverAccess() {
@@ -114,10 +121,10 @@ class PropertyAccessor extends Accessor {
     return new VariableGet(_receiverVariable);
   }
 
-  _makeRead() => new PropertyGet(receiverAccess(), name);
+  _makeRead() => new PropertyGet(receiverAccess(), name, getter);
 
   _makeWrite(Expression value, bool voidContext) {
-    return new PropertySet(receiverAccess(), name, value);
+    return new PropertySet(receiverAccess(), name, value, setter);
   }
 
   _finish(Expression body) => makeLet(_receiverVariable, body);
@@ -127,29 +134,32 @@ class PropertyAccessor extends Accessor {
 /// 'this'.
 class ThisPropertyAccessor extends Accessor {
   Name name;
+  Member getter, setter;
 
-  ThisPropertyAccessor(this.name);
+  ThisPropertyAccessor(this.name, this.getter, this.setter);
 
-  _makeRead() => new PropertyGet(new ThisExpression(), name);
+  _makeRead() => new PropertyGet(new ThisExpression(), name, getter);
 
   _makeWrite(Expression value, bool voidContext) {
-    return new PropertySet(new ThisExpression(), name, value);
+    return new PropertySet(new ThisExpression(), name, value, setter);
   }
 }
 
 class NullAwarePropertyAccessor extends Accessor {
   VariableDeclaration receiver;
   Name name;
+  Member getter, setter;
 
-  NullAwarePropertyAccessor(Expression receiver, this.name)
+  NullAwarePropertyAccessor(
+      Expression receiver, this.name, this.getter, this.setter)
       : this.receiver = makeOrReuseVariable(receiver);
 
   receiverAccess() => new VariableGet(receiver);
 
-  _makeRead() => new PropertyGet(receiverAccess(), name);
+  _makeRead() => new PropertyGet(receiverAccess(), name, getter);
 
   _makeWrite(Expression value, bool voidContext) {
-    return new PropertySet(receiverAccess(), name, value);
+    return new PropertySet(receiverAccess(), name, value, setter);
   }
 
   _finish(Expression body) => makeLet(
@@ -160,13 +170,14 @@ class NullAwarePropertyAccessor extends Accessor {
 
 class SuperPropertyAccessor extends Accessor {
   Name name;
+  Member getter, setter;
 
-  SuperPropertyAccessor(this.name);
+  SuperPropertyAccessor(this.name, this.getter, this.setter);
 
-  _makeRead() => new SuperPropertyGet(name);
+  _makeRead() => new SuperPropertyGet(name, getter);
 
   _makeWrite(Expression value, bool voidContext) {
-    return new SuperPropertySet(name, value);
+    return new SuperPropertySet(name, value, setter);
   }
 }
 
@@ -178,24 +189,26 @@ class IndexAccessor extends Accessor {
   Expression index;
   VariableDeclaration receiverVariable;
   VariableDeclaration indexVariable;
+  Procedure getter, setter;
 
-  static Accessor make(Expression receiver, Expression index) {
+  static Accessor make(Expression receiver, Expression index, Procedure getter,
+      Procedure setter) {
     if (receiver is ThisExpression) {
-      return new ThisIndexAccessor(index);
+      return new ThisIndexAccessor(index, getter, setter);
     } else {
-      return new IndexAccessor._internal(receiver, index);
+      return new IndexAccessor._internal(receiver, index, getter, setter);
     }
   }
 
-  IndexAccessor._internal(this.receiver, this.index);
+  IndexAccessor._internal(this.receiver, this.index, this.getter, this.setter);
 
   _makeSimpleRead() => new MethodInvocation(
-      receiver, _indexGet, new Arguments(<Expression>[index]));
+      receiver, _indexGet, new Arguments(<Expression>[index]), getter);
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(
-        receiver, _indexSet, new Arguments(<Expression>[index, value]));
+        receiver, _indexSet, new Arguments(<Expression>[index, value]), setter);
   }
 
   receiverAccess() {
@@ -212,13 +225,13 @@ class IndexAccessor extends Accessor {
 
   _makeRead() {
     return new MethodInvocation(receiverAccess(), _indexGet,
-        new Arguments(<Expression>[indexAccess()]));
+        new Arguments(<Expression>[indexAccess()]), getter);
   }
 
   _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(receiverAccess(), _indexSet,
-        new Arguments(<Expression>[indexAccess(), value]));
+        new Arguments(<Expression>[indexAccess(), value]), setter);
   }
 
   _makeWriteAndReturn(Expression value) {
@@ -229,7 +242,8 @@ class IndexAccessor extends Accessor {
         receiverAccess(),
         _indexSet,
         new Arguments(
-            <Expression>[indexAccess(), new VariableGet(valueVariable)])));
+            <Expression>[indexAccess(), new VariableGet(valueVariable)]),
+        setter));
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -244,18 +258,19 @@ class IndexAccessor extends Accessor {
 class ThisIndexAccessor extends Accessor {
   Expression index;
   VariableDeclaration indexVariable;
+  Procedure getter, setter;
 
-  ThisIndexAccessor(this.index);
+  ThisIndexAccessor(this.index, this.getter, this.setter);
 
   _makeSimpleRead() {
-    return new MethodInvocation(
-        new ThisExpression(), _indexGet, new Arguments(<Expression>[index]));
+    return new MethodInvocation(new ThisExpression(), _indexGet,
+        new Arguments(<Expression>[index]), getter);
   }
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(new ThisExpression(), _indexSet,
-        new Arguments(<Expression>[index, value]));
+        new Arguments(<Expression>[index, value]), setter);
   }
 
   indexAccess() {
@@ -264,12 +279,12 @@ class ThisIndexAccessor extends Accessor {
   }
 
   _makeRead() => new MethodInvocation(new ThisExpression(), _indexGet,
-      new Arguments(<Expression>[indexAccess()]));
+      new Arguments(<Expression>[indexAccess()]), getter);
 
   _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(new ThisExpression(), _indexSet,
-        new Arguments(<Expression>[indexAccess(), value]));
+        new Arguments(<Expression>[indexAccess(), value]), setter);
   }
 
   _makeWriteAndReturn(Expression value) {
@@ -278,7 +293,8 @@ class ThisIndexAccessor extends Accessor {
         new ThisExpression(),
         _indexSet,
         new Arguments(
-            <Expression>[indexAccess(), new VariableGet(valueVariable)])));
+            <Expression>[indexAccess(), new VariableGet(valueVariable)]),
+        setter));
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -289,8 +305,9 @@ class ThisIndexAccessor extends Accessor {
 class SuperIndexAccessor extends Accessor {
   Expression index;
   VariableDeclaration indexVariable;
+  Member getter, setter;
 
-  SuperIndexAccessor(this.index);
+  SuperIndexAccessor(this.index, this.getter, this.setter);
 
   indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
@@ -298,21 +315,21 @@ class SuperIndexAccessor extends Accessor {
   }
 
   _makeSimpleRead() => new SuperMethodInvocation(
-          _indexGet, new Arguments(<Expression>[index]));
+      _indexGet, new Arguments(<Expression>[index]), getter);
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     return new SuperMethodInvocation(
-            _indexSet, new Arguments(<Expression>[index, value]));
+        _indexSet, new Arguments(<Expression>[index, value]), setter);
   }
 
   _makeRead() {
     return new SuperMethodInvocation(
-            _indexGet, new Arguments(<Expression>[indexAccess()]));
+        _indexGet, new Arguments(<Expression>[indexAccess()]), getter);
   }
 
   _makeWrite(Expression value, bool voidContext) {
     return new SuperMethodInvocation(
-            _indexSet, new Arguments(<Expression>[indexAccess(), value]));
+        _indexSet, new Arguments(<Expression>[indexAccess(), value]), setter);
   }
 
   Expression _finish(Expression body) {
@@ -359,15 +376,16 @@ Expression makeLet(VariableDeclaration variable, Expression body) {
   return new Let(variable, body);
 }
 
-Expression makeBinary(Expression left, Name operator, Expression right) {
+Expression makeBinary(Expression left, Name operator, Procedure interfaceTarget,
+    Expression right) {
   return new MethodInvocation(
-      left, operator, new Arguments(<Expression>[right]));
+      left, operator, new Arguments(<Expression>[right]), interfaceTarget);
 }
 
 final Name _equalOperator = new Name('==');
 
 Expression buildIsNull(Expression value) {
-  return makeBinary(value, _equalOperator, new NullLiteral());
+  return makeBinary(value, _equalOperator, null, new NullLiteral());
 }
 
 VariableDeclaration makeOrReuseVariable(Expression value) {

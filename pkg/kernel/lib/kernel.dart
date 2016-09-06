@@ -61,9 +61,10 @@ Library loadLibraryFromDart(String path, [Repository repository]) {
 /// The resulting [Program] will have a main method if the library at [path]
 /// contains a top-level method named "main", otherwise its main reference will
 /// be `null`.
-Program loadProgramFromDart(String path, [Repository repository]) {
-  repository ??= new Repository();
-  return new AnalyzerLoader(repository).loadProgram(path);
+Program loadProgramFromDart(String path, Repository repository,
+    {bool strongMode: false}) {
+  return new AnalyzerLoader(repository, strongMode: strongMode)
+      .loadProgram(path);
 }
 
 Future writeLibraryToBinary(Library library, String path) {

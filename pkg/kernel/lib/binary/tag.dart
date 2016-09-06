@@ -88,6 +88,7 @@ class Tag {
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
 
+  static const int BottomType = 89;
   static const int InvalidType = 90;
   static const int DynamicType = 91;
   static const int VoidType = 92;
@@ -97,7 +98,7 @@ class Tag {
   static const int SimpleInterfaceType = 96;
   static const int SimpleFunctionType = 97;
 
-  static const int NullClassReference = 99;
+  static const int NullReference = 99;
   static const int NormalClassReference = 100;
   static const int MixinClassReference = 101;
 

@@ -167,21 +167,25 @@ class BinaryPrinter extends Visitor {
   void writeClassReference(Class node, {bool allowNull: false}) {
     if (node == null) {
       if (allowNull) {
-        writeByte(Tag.NullClassReference);
+        writeByte(Tag.NullReference);
       } else {
-        throw 'Expected a valid class reference to be valid but was `null`.';
+        throw 'Expected a class reference to be valid but was `null`.';
       }
     } else {
       node.acceptReference(this);
     }
   }
 
-  void writeMemberReference(Member node) {
+  void writeMemberReference(Member node, {bool allowNull: false}) {
     if (node == null) {
-      throw 'I found an unresolved member reference. '
-          'The binary format does not support these yet.';
+      if (allowNull) {
+        writeByte(Tag.NullReference);
+      } else {
+        throw 'Expected a member reference to be valid but was `null`.';
+      }
+    } else {
+      node.acceptReference(this);
     }
-    node.acceptReference(this);
   }
 
   void visitClassReference(Class node) {
@@ -360,11 +364,13 @@ class BinaryPrinter extends Visitor {
   visitVariableGet(VariableGet node) {
     assert(_variableIndexer != null);
     int index = _variableIndexer[node.variable];
-    if (index & Tag.SpecializedPayloadMask == index) {
+    if (index & Tag.SpecializedPayloadMask == index &&
+        node.promotedType == null) {
       writeByte(Tag.SpecializedVariableGet + index);
     } else {
       writeByte(Tag.VariableGet);
       writeUInt30(_variableIndexer[node.variable]);
+      writeOptionalNode(node.promotedType);
     }
   }
 
@@ -385,6 +391,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.PropertyGet);
     writeNode(node.receiver);
     writeName(node.name);
+    writeMemberReference(node.interfaceTarget, allowNull: true);
   }
 
   visitPropertySet(PropertySet node) {
@@ -392,17 +399,20 @@ class BinaryPrinter extends Visitor {
     writeNode(node.receiver);
     writeName(node.name);
     writeNode(node.value);
+    writeMemberReference(node.interfaceTarget, allowNull: true);
   }
 
   visitSuperPropertyGet(SuperPropertyGet node) {
     writeByte(Tag.SuperPropertyGet);
     writeName(node.name);
+    writeMemberReference(node.interfaceTarget, allowNull: true);
   }
 
   visitSuperPropertySet(SuperPropertySet node) {
     writeByte(Tag.SuperPropertySet);
     writeName(node.name);
     writeNode(node.value);
+    writeMemberReference(node.interfaceTarget, allowNull: true);
   }
 
   visitDirectPropertyGet(DirectPropertyGet node) {
@@ -434,12 +444,14 @@ class BinaryPrinter extends Visitor {
     writeNode(node.receiver);
     writeName(node.name);
     writeNode(node.arguments);
+    writeMemberReference(node.interfaceTarget, allowNull: true);
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeByte(Tag.SuperMethodInvocation);
     writeName(node.name);
     writeNode(node.arguments);
+    writeMemberReference(node.interfaceTarget, allowNull: true);
   }
 
   visitDirectMethodInvocation(DirectMethodInvocation node) {
@@ -496,6 +508,7 @@ class BinaryPrinter extends Visitor {
     writeNode(node.left);
     writeByte(logicalOperatorIndex(node.operator));
     writeNode(node.right);
+    writeOptionalNode(node.staticType);
   }
 
   visitConditionalExpression(ConditionalExpression node) {
@@ -503,6 +516,7 @@ class BinaryPrinter extends Visitor {
     writeNode(node.condition);
     writeNode(node.then);
     writeNode(node.otherwise);
+    writeOptionalNode(node.staticType);
   }
 
   visitStringConcatenation(StringConcatenation node) {
@@ -781,6 +795,10 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.FunctionDeclaration);
     writeVariableDeclaration(node.variable);
     writeNode(node.function);
+  }
+
+  visitBottomType(BottomType node) {
+    writeByte(Tag.BottomType);
   }
 
   visitInvalidType(InvalidType node) {

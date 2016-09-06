@@ -56,6 +56,8 @@ class FakeExpression extends Expression implements FakeNode {
       node?.parent = this;
     }
   }
+
+  DartType getStaticType(types) => const BottomType();
 }
 
 class FakeStatement extends Statement implements FakeNode {
