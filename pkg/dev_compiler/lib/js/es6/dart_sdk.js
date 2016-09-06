@@ -32,7 +32,7 @@ let ListOfObject = () => (ListOfObject = dart.constFn(core.List$(core.Object)))(
 let JSArrayOfListOfObject = () => (JSArrayOfListOfObject = dart.constFn(_interceptors.JSArray$(ListOfObject())))();
 let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
 let MapOfSymbol$dynamic = () => (MapOfSymbol$dynamic = dart.constFn(core.Map$(core.Symbol, dart.dynamic)))();
-let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
+let MapOfString$_MethodStats = () => (MapOfString$_MethodStats = dart.constFn(core.Map$(core.String, dart._MethodStats)))();
 let ListOfString = () => (ListOfString = dart.constFn(core.List$(core.String)))();
 let SetOfNameValuePair = () => (SetOfNameValuePair = dart.constFn(core.Set$(_debugger.NameValuePair)))();
 let JSArrayOfNameValuePair = () => (JSArrayOfNameValuePair = dart.constFn(_interceptors.JSArray$(_debugger.NameValuePair)))();
@@ -511,6 +511,7 @@ let _CustomEventStreamProvider = () => (_CustomEventStreamProvider = dart.constF
 let MapOfString$Function = () => (MapOfString$Function = dart.constFn(core.Map$(core.String, core.Function)))();
 let JSArrayOfKeyEvent = () => (JSArrayOfKeyEvent = dart.constFn(_interceptors.JSArray$(html.KeyEvent)))();
 let ListOfKeyEvent = () => (ListOfKeyEvent = dart.constFn(core.List$(html.KeyEvent)))();
+let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
 let JSArrayOfNodeValidator = () => (JSArrayOfNodeValidator = dart.constFn(_interceptors.JSArray$(html.NodeValidator)))();
 let ListOfNodeValidator = () => (ListOfNodeValidator = dart.constFn(core.List$(html.NodeValidator)))();
 let _WrappedList = () => (_WrappedList = dart.constFn(html._WrappedList$()))();
@@ -529,6 +530,7 @@ let ListOfTransform = () => (ListOfTransform = dart.constFn(core.List$(svg.Trans
 let CompleterOfAudioBuffer = () => (CompleterOfAudioBuffer = dart.constFn(async.Completer$(web_audio.AudioBuffer)))();
 let EventStreamProviderOfAudioProcessingEvent = () => (EventStreamProviderOfAudioProcessingEvent = dart.constFn(html.EventStreamProvider$(web_audio.AudioProcessingEvent)))();
 let StringAndStringToint = () => (StringAndStringToint = dart.constFn(dart.definiteFunctionType(core.int, [core.String, core.String])))();
+let VoidTo_MethodStats = () => (VoidTo_MethodStats = dart.constFn(dart.definiteFunctionType(dart._MethodStats, [])))();
 let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
 let dynamicToString = () => (dynamicToString = dart.constFn(dart.definiteFunctionType(core.String, [dart.dynamic])))();
 let dynamicToListOfString = () => (dynamicToListOfString = dart.constFn(dart.definiteFunctionType(ListOfString(), [dart.dynamic])))();
@@ -1446,7 +1448,7 @@ dart.asyncStar = function(gen, T, ...args) {
 };
 dart.dload = function(obj, field) {
   let f = dart._canonicalMember(obj, field);
-  dart._trackCall(obj, f);
+  dart._trackCall(obj);
   if (f != null) {
     if (dart.test(dart.hasMethod(obj, f))) return dart.bind(obj, f, void 0);
     return obj[f];
@@ -1455,7 +1457,7 @@ dart.dload = function(obj, field) {
 };
 dart.dput = function(obj, field, value) {
   let f = dart._canonicalMember(obj, field);
-  dart._trackCall(obj, f);
+  dart._trackCall(obj);
   if (f != null) {
     return obj[f] = value;
   }
@@ -1503,7 +1505,7 @@ dart.extractNamedArgs = function(args) {
   return null;
 };
 dart._checkAndCall = function(f, ftype, obj, typeArgs, args, name) {
-  dart._trackCall(obj, name);
+  dart._trackCall(obj);
   let originalTarget = obj === void 0 ? f : obj;
   function callNSM() {
     return dart.noSuchMethod(originalTarget, new dart.InvocationImpl(name, args, {namedArguments: dart.extractNamedArgs(args), isMethod: true}));
@@ -1554,17 +1556,17 @@ dart.dgcall = function(f, typeArgs, ...args) {
 dart.getDynamicStats = function() {
   let ret = JSArrayOfListOfObject().of([]);
   let keys = dart._callMethodStats[dartx.keys][dartx.toList]();
-  keys[dartx.sort](dart.fn((a, b) => dart._callMethodStats[dartx.get](b)[dartx.compareTo](dart._callMethodStats[dartx.get](a)), StringAndStringToint()));
+  keys[dartx.sort](dart.fn((a, b) => dart._callMethodStats[dartx.get](b).count[dartx.compareTo](dart._callMethodStats[dartx.get](a).count), StringAndStringToint()));
   for (let key of keys) {
-    let count = dart._callMethodStats[dartx.get](key);
-    ret[dartx.add](JSArrayOfObject().of([key, count]));
+    let stats = dart._callMethodStats[dartx.get](key);
+    ret[dartx.add](JSArrayOfObject().of([stats.typeName, stats.frame, stats.count]));
   }
   return ret;
 };
 dart.clearDynamicStats = function() {
   dart._callMethodStats[dartx.clear]();
 };
-dart._trackCall = function(obj, name) {
+dart._trackCall = function(obj) {
   if (!dart.trackProfile) return;
   let actual = dart.getReifiedType(obj);
   let stackStr = new Error().stack;
@@ -1577,12 +1579,9 @@ dart._trackCall = function(obj, name) {
       break;
     }
   }
-  name = dart.str`${dart.typeName(actual)}.${name} <${src}>`;
-  if (dart.test(dart._callMethodStats[dartx.containsKey](name))) {
-    dart._callMethodStats[dartx.set](core.String._check(name), dart.notNull(dart._callMethodStats[dartx.get](name)) + 1);
-  } else {
-    dart._callMethodStats[dartx.set](core.String._check(name), 1);
-  }
+  let actualTypeName = dart.typeName(actual);
+  let o = dart._callMethodStats[dartx.putIfAbsent](dart.str`${actualTypeName} <${src}>`, dart.fn(() => new dart._MethodStats(core.String._check(actualTypeName), src), VoidTo_MethodStats()));
+  o.count = dart.notNull(o.count) + 1;
 };
 dart._callMethod = function(obj, name, typeArgs, args, displayName) {
   let symbol = dart._canonicalMember(obj, name);
@@ -2435,9 +2434,25 @@ dart.setSignature(dart.InvocationImpl, {
   statics: () => ({_namedArgsToSymbols: dart.definiteFunctionType(core.Map$(core.Symbol, dart.dynamic), [dart.dynamic])}),
   names: ['_namedArgsToSymbols']
 });
+dart._MethodStats = class _MethodStats extends core.Object {
+  new(typeName, frame) {
+    this.typeName = typeName;
+    this.frame = frame;
+    this.count = null;
+    this.count = 0;
+  }
+};
+dart.setSignature(dart._MethodStats, {
+  constructors: () => ({new: dart.definiteFunctionType(dart._MethodStats, [core.String, core.String])}),
+  fields: () => ({
+    typeName: core.String,
+    frame: core.String,
+    count: core.int
+  })
+});
 dart.defineLazy(dart, {
   get _callMethodStats() {
-    return MapOfString$int().new();
+    return MapOfString$_MethodStats().new();
   },
   set _callMethodStats(_) {}
 });

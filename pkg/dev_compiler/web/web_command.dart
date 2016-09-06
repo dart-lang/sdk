@@ -33,6 +33,16 @@ import 'package:js/js.dart';
 
 typedef void MessageHandler(Object message);
 
+@JS()
+@anonymous
+class CompileResult {
+  external factory CompileResult(
+      {String code, List<String> errors, bool isValid});
+}
+
+typedef CompileResult CompileModule(
+    String code, String libraryName, String fileName);
+
 /// The command for invoking the modular compiler.
 class WebCompileCommand extends Command {
   get name => 'compile';
@@ -75,7 +85,7 @@ class WebCompileCommand extends Command {
         (error) => onError('Dart sdk summaries failed to load: $error'));
   }
 
-  Function setUpCompile(List<int> sdkBytes, List<List<int>> summaryBytes,
+  CompileModule setUpCompile(List<int> sdkBytes, List<List<int>> summaryBytes,
       List<String> summaryUrls) {
     var resourceProvider = new MemoryResourceProvider();
     var resourceUriResolver = new ResourceUriResolver(resourceProvider);
@@ -107,21 +117,24 @@ class WebCompileCommand extends Command {
 
     var compilerOptions = new CompilerOptions.fromArguments(argResults);
 
-    var compileFn = (String dart, int number) {
+    CompileModule compileFn =
+        (String sourceCode, String libraryName, String fileName) {
       // Create a new virtual File that contains the given Dart source.
-      resourceProvider.newFile("/expression${number}.dart", dart);
+      resourceProvider.newFile("/$fileName", sourceCode);
 
-      var unit = new BuildUnit("expression${number}", "",
-          ["file:///expression${number}.dart"], _moduleForLibrary);
+      var unit = new BuildUnit(
+          libraryName, "", ["file:///$fileName"], _moduleForLibrary);
 
       JSModuleFile module = compiler.compile(unit, compilerOptions);
-      module.errors.forEach(messageHandler);
 
-      if (!module.isValid) throw new CompileErrorException();
+      var moduleCode = module.isValid
+          ? module
+              .getCode(ModuleFormat.legacy, unit.name, unit.name + '.map')
+              .code
+          : '';
 
-      var code =
-          module.getCode(ModuleFormat.amd, unit.name, unit.name + '.map');
-      return code.code;
+      return new CompileResult(
+          code: moduleCode, isValid: module.isValid, errors: module.errors);
     };
 
     return allowInterop(compileFn);
