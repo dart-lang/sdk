@@ -1377,7 +1377,7 @@ RawError* Compiler::CompileFunction(Thread* thread,
                                     const Function& function) {
 #ifdef DART_PRECOMPILER
   if (FLAG_precompiled_mode) {
-    return Precompiler::CompileFunction(thread, function);
+    return Precompiler::CompileFunction(thread, thread->zone(), function);
   }
 #endif
   Isolate* isolate = thread->isolate();

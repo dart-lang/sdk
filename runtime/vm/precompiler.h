@@ -259,13 +259,47 @@ class InstanceKeyValueTrait {
 typedef DirectChainedHashMap<InstanceKeyValueTrait> InstanceSet;
 
 
+struct FieldTypePair {
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Field* Key;
+  typedef intptr_t Value;
+  typedef FieldTypePair Pair;
+
+  static Key KeyOf(Pair kv) { return kv.field_; }
+
+  static Value ValueOf(Pair kv) { return kv.cid_; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->token_pos().value();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair.field_->raw() == key->raw();
+  }
+
+  FieldTypePair(const Field* f, intptr_t cid) : field_(f), cid_(cid) { }
+
+  FieldTypePair() : field_(NULL), cid_(-1) { }
+
+  void Print() const;
+
+  const Field* field_;
+  intptr_t cid_;
+};
+
+typedef DirectChainedHashMap<FieldTypePair> FieldTypeMap;
+
+
 class Precompiler : public ValueObject {
  public:
   static RawError* CompileAll(
       Dart_QualifiedFunctionName embedder_entry_points[],
       bool reset_fields);
 
-  static RawError* CompileFunction(Thread* thread, const Function& function);
+  static RawError* CompileFunction(Thread* thread,
+                                   Zone* zone,
+                                   const Function& function,
+                                   FieldTypeMap* field_type_map = NULL);
 
   static RawObject* EvaluateStaticInitializer(const Field& field);
   static RawObject* ExecuteOnce(SequenceNode* fragment);
@@ -275,7 +309,6 @@ class Precompiler : public ValueObject {
 
  private:
   Precompiler(Thread* thread, bool reset_fields);
-
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void ClearAllCode();
@@ -321,6 +354,7 @@ class Precompiler : public ValueObject {
   void CollectDynamicFunctionNames();
 
   void PrecompileStaticInitializers();
+  void PrecompileConstructors();
 
   template<typename T>
   class Visitor : public ValueObject {
@@ -369,6 +403,7 @@ class Precompiler : public ValueObject {
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
   InstanceSet consts_to_retain_;
+  FieldTypeMap field_type_map_;
   Error& error_;
 };
 

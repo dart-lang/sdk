@@ -7476,13 +7476,14 @@ void Field::InitializeNew(const Field& result,
   // Use field guards if they are enabled and the isolate has never reloaded.
   // TODO(johnmccutchan): The reload case assumes the worst case (everything is
   // dynamic and possibly null). Attempt to relax this later.
-  const bool use_field_guards =
-      FLAG_use_field_guards && !isolate->HasAttemptedReload();
-  result.set_guarded_cid(use_field_guards ? kIllegalCid : kDynamicCid);
-  result.set_is_nullable(use_field_guards ? false : true);
+  const bool use_guarded_cid =
+      FLAG_precompiled_mode ||
+      (FLAG_use_field_guards && !isolate->HasAttemptedReload());
+  result.set_guarded_cid(use_guarded_cid ? kIllegalCid : kDynamicCid);
+  result.set_is_nullable(use_guarded_cid ? false : true);
   result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
   // Presently, we only attempt to remember the list length for final fields.
-  if (is_final && use_field_guards) {
+  if (is_final && use_guarded_cid) {
     result.set_guarded_list_length(Field::kUnknownFixedLength);
   } else {
     result.set_guarded_list_length(Field::kNoFixedLength);
@@ -14195,7 +14196,7 @@ const char* Code::ToCString() const {
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     return zone->PrintToString("[stub: %s]", name);
   } else {
-    return zone->PrintToString("Code entry:%" Px, UncheckedEntryPoint());
+    return zone->PrintToString("Code entry: 0x%" Px, UncheckedEntryPoint());
   }
 }
 
