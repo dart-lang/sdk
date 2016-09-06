@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test/util/solo_test.dart avoid_init_to_null`
+// test w/ `pub run test -N avoid_init_to_null`
 
 var x = null; //LINT
 var y; //OK
