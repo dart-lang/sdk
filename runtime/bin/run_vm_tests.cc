@@ -7,7 +7,7 @@
 #include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/platform.h"
-
+#include "platform/assert.h"
 #include "vm/benchmark_test.h"
 #include "vm/dart.h"
 #include "vm/unit_test.h"
@@ -121,20 +121,16 @@ static int Main(int argc, const char** argv) {
   // Apply the filter to all registered benchmarks.
   Benchmark::RunAll(argv[0]);
 
-  if (Flags::IsSet("shutdown")) {
-    err_msg = Dart::Cleanup();
-    ASSERT(err_msg == NULL);
-  }
-
-#if defined(TARGET_OS_WINDOWS)
-  // TODO(zra): Remove once VM shuts down cleanly.
-  private_flag_windows_run_tls_destructors = false;
-#endif
+  err_msg = Dart::Cleanup();
+  ASSERT(err_msg == NULL);
 
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
     fprintf(stderr, "No tests matched: %s\n", run_filter);
     return 1;
+  }
+  if (DynamicAssertionHelper::failed()) {
+    return 255;
   }
   return 0;
 }
@@ -143,5 +139,5 @@ static int Main(int argc, const char** argv) {
 
 
 int main(int argc, const char** argv) {
-  return dart::Main(argc, argv);
+  dart::bin::Platform::Exit(dart::Main(argc, argv));
 }

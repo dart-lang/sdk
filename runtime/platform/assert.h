@@ -35,6 +35,8 @@ class DynamicAssertionHelper {
 
   void Fail(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
+  static bool failed() { return failed_; }
+
 #if defined(TESTING)
   template<typename E, typename A>
   void Equals(const E& expected, const A& actual);
@@ -71,6 +73,8 @@ class DynamicAssertionHelper {
   T NotNull(const T p);
 
  private:
+  static bool failed_;
+
   const char* const file_;
   const int line_;
   const Kind kind_;

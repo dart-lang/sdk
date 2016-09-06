@@ -10,10 +10,7 @@
 
 namespace dart {
 
-// Exit with a failure code when we miss an EXPECT check.
-static void failed_exit(void) {
-  exit(255);
-}
+bool DynamicAssertionHelper::failed_ = false;
 
 void DynamicAssertionHelper::Fail(const char* format, ...) {
   // Take only the last 1KB of the file name if it is longer.
@@ -45,11 +42,7 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
     NOT_IN_PRODUCT(Profiler::DumpStackTrace(true /* native_stack_trace */));
     OS::Abort();
   }
-  static bool failed = false;
-  if (!failed) {
-    atexit(&failed_exit);
-  }
-  failed = true;
+  failed_ = true;
 }
 
 }  // namespace dart
