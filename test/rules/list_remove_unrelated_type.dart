@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test/util/solo_test.dart list_remove_unrelated_type`
+// test w/ `pub run test -N list_remove_unrelated_type`
 
 void someFunction() {
   var list = <int>[];

@@ -96,7 +96,7 @@ void updateRuleRegistry(String libName) {
   print("Don't forget to update lib/rules.dart with a line like:");
   print("  ..register(new ${toClassName(libName)}())");
   print("Then run your test like so:");
-  print("  dart test/util/solo_test.dart $libName");
+  print("  pub run test -N $libName");
 }
 
 String _generateStub(String libName, String className) => """
@@ -152,6 +152,6 @@ String _generateTest(String libName, String className) => '''
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test/util/solo_test.dart $libName`
+// test w/ `pub run test -N $libName`
 
 ''';

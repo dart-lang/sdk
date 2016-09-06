@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test/util/solo_test.dart valid_regexps`
+// test w/ `pub run test -N valid_regexps`
 
 RegExp bad = new RegExp('('); //LINT
 RegExp good = new RegExp('[(]'); //OK
