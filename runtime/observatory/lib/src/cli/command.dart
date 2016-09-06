@@ -115,7 +115,13 @@ abstract class _CommandBase {
 
 // The root of a tree of commands.
 class RootCommand extends _CommandBase {
-  RootCommand(List<Command> children) : super(children);
+  RootCommand(List<Command> children, [List<String> history])
+     : this._(children, history ?? ['']);
+
+   RootCommand._(List<Command> children, List<String> history)
+      : history = history,
+        historyPos = history.length - 1,
+      super(children);
 
   // Provides a list of possible completions for a line of text.
   Future<List<String>> completeCommand(String line) {
@@ -191,8 +197,8 @@ class RootCommand extends _CommandBase {
 
   // Command line history always contains one slot to hold the current
   // line, so we start off with one entry.
-  List<String> history = [''];
-  int historyPos = 0;
+  List<String> history;
+  int historyPos;
 
   String historyPrev(String line) {
     if (historyPos == 0) {

@@ -434,18 +434,32 @@ class ClassTreePage extends SimplePage {
   }
 }
 
-class DebuggerPage extends SimplePage {
-  DebuggerPage(app) : super('debugger', 'debugger-page', app);
+class DebuggerPage extends MatchingPage {
+  DebuggerPage(app) : super('debugger', app);
+
+  final DivElement container = new DivElement();
 
   void _visit(Uri uri) {
     super._visit(uri);
-    getIsolate(uri).then((isolate) {
-      if (element != null) {
-        /// Update the page.
-        DebuggerPageElement page = element;
-        page.isolate = isolate;
-      }
+    getIsolate(uri).then((isolate) async {
+      container.children = [
+        new DebuggerPageElement(isolate, _instanceRepository,
+                                _scriptRepository, app.events)
+      ];
     });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    assert(element != null);
+  }
+
+  @override
+  void onUninstall() {
+    assert(element != null);
+    element.children = const [];
   }
 }
 

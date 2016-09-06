@@ -3013,6 +3013,7 @@ class Sentinel extends ServiceObject implements M.Sentinel {
   }
 
   String toString() => 'Sentinel($kind)';
+  String get shortName => valueAsString;
 }
 
 class Field extends HeapObject implements M.Field {

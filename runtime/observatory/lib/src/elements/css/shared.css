@@ -825,6 +825,272 @@ cpu-profile-virtual-tree .tree-item > .name {
   margin-left: 0.5em;
 }
 
+/* debugger-console */
+
+debugger-console {
+  display: block;
+  margin: 0px 20px 10px 20px;
+}
+debugger-console .normal {
+  font: normal 14px consolas, courier, monospace;
+  white-space: pre;
+  line-height: 125%;
+}
+debugger-console .bold {
+  font: bold 14px consolas, courier, monospace;
+  white-space: pre;
+  line-height: 125%;
+}
+debugger-console .red {
+  font: normal 14px consolas, courier, monospace;
+  white-space: pre;
+  line-height: 125%;
+  color: red;
+}
+debugger-console .green {
+  font: normal 14px consolas, courier, monospace;
+  white-space: pre;
+  line-height: 125%;
+  color: green;
+}
+debugger-console .spacer {
+  height: 20px;
+}
+
+/* debugger-frame */
+
+debugger-frame {
+  display: block;
+  position: relative;
+  padding: 5px;
+  border: 1px solid white;
+}
+debugger-frame:hover {
+  border: 1px solid #e0e0e0;
+}
+debugger-frame.shadow {
+  box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.16),
+               0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+debugger-frame.current {
+  box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.26),
+               0 2px 5px 0 rgba(0, 0, 0, 0.46);
+  border: 1px solid #444;
+}
+debugger-frame > button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background-color: transparent;
+  border: none;
+}
+debugger-frame .frameSummaryText {
+  display: inline-block;
+  padding: 5px;
+}
+debugger-frame .frameId {
+  display: inline-block;
+  width: 60px;
+}
+debugger-frame .frameExpander {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  display: none;
+}
+debugger-frame:hover .frameExpander{
+  display: inline-block;
+}
+debugger-frame .frameContractor {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  display: inline-block;
+}
+debugger-frame .frameContractor > button {
+  background-color: transparent;
+  border: none;
+}
+debugger-frame .flex-item-script {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 765px;
+}
+debugger-frame .flex-item-vars {
+  flex-grow: 5;
+  flex-shrink: 0;
+  flex-basis: 250px;
+  overflow-x: hidden;
+}
+debugger-frame .frameVars {
+  position: relative;
+  top: 5px;
+  padding-left:2em;
+  padding-bottom: 5px;
+}
+
+/* debugger-input */
+
+debugger-input .container {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+debugger-input .textBox {
+  flex: 1 1 auto;
+  margin: 20px;
+  padding: 5px;
+  font: 400 16px consolas, courier, monospace;
+  width: 95%;
+}
+debugger-input .modalPrompt {
+  flex: 0 0 auto;
+  margin-top: 20px;
+  margin-left: 20px;
+  padding: 5px;
+  font: 400 16px consolas, courier, monospace;
+  color: red;
+}
+debugger-input .modalPrompt.hidden {
+  display: none;
+}
+
+/* debugger-message */
+
+debugger-message {
+  display: block;
+  position: relative;
+  padding: 5px;
+  border: 1px solid white;
+}
+debugger-message:hover {
+  border: 1px solid #e0e0e0;
+}
+debugger-message.shadow {
+  box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.16),
+  0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+debugger-message.current {
+  box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.26),
+  0 2px 5px 0 rgba(0, 0, 0, 0.46);
+  border: 1px solid #444;
+}
+debugger-message > button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background-color: transparent;
+  border: none;
+}
+debugger-message .messageSummaryText {
+  display: inline-block;
+  padding: 5px;
+}
+debugger-message .messageId {
+  display: inline-block;
+  font-weight: bold;
+  width: 100px;
+}
+debugger-message .messageExpander {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  display: none;
+}
+debugger-message:hover .messageExpander {
+  display: inline-block;
+}
+debugger-message.shadow:hover .messageExpander {
+  display: none;
+}
+debugger-message .messageContractor {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  display: inline-block;
+}
+debugger-message .flex-item-script {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 765px;
+}
+debugger-message .flex-item-vars {
+  flex-grow: 5;
+  flex-shrink: 0;
+  flex-basis: 225px;
+}
+
+/* debugger-page */
+
+debugger-page {
+  height: 100%;
+}
+debugger-page .variable {
+  height: 100%;
+  margin-bottom: -75px;
+  padding-bottom: 75px;
+}
+debugger-page .stack {
+  flex: 0 0 auto;
+  overflow-y: auto;
+  height: 62%;
+}
+debugger-page .splitter {
+  height: 0px;
+  margin: 0px;
+  font-size: 1px;
+  border-bottom: 1px solid #888;
+}
+debugger-page .console {
+  flex: 1 1 auto;
+  overflow-x: auto;
+  overflow-y: auto;
+  height: 38%;
+}
+debugger-page .commandline {
+  flex: 0 0 auto;
+}
+
+/* debugger-stack */
+
+debugger-stack {
+  position: relative;
+}
+debugger-stack .sampledMessage {
+  margin: 0px 20px 10px 20px;
+  font: 400 14px 'Montserrat', sans-serif;
+  line-height: 125%;
+}
+debugger-stack .sampledMessage > button {
+  background-color: transparent;
+  border: none;
+  color: #0489c3;
+  text-decoration: none;
+  margin-right: 1em;
+}
+debugger-stack .sampledMessage > button:hover {
+    text-decoration: underline;
+}
+debugger-stack .splitter {
+  height: 0px;
+  margin: 0px;
+  font-size: 1px;
+  border-bottom: 1px dashed #888;
+}
+debugger-stack .noMessages,
+debugger-stack .noStack {
+  margin: 10px 0px 10px 25px;
+  font: bold 14px 'Montserrat', sans-serif;
+  line-height: 125%;
+}
+
+debugger-stack .sampledMessage.hidden,
+debugger-stack .noMessages.hidden,
+debugger-stack .noStack.hidden {
+  display: none;
+}
+
 /* error-ref */
 /* TODO(cbernaschina) fix error-ref-wrapped to error-ref when wrapper
 removed */
@@ -1335,12 +1601,14 @@ nav-exception *, nav-event * {
   font-size: 12px;
 }
 
-nav-exception > div > a, nav-event > div > a {
+nav-exception > div > a[href],
+nav-event > div > a[href] {
   color: white;
   text-decoration: none;
 }
 
-nav-exception > div > a:hover, nav-event > div > a:hover {
+nav-exception > div > a[href]:hover,
+nav-event > div > a[href]:hover {
   text-decoration: underline;
 }
 
