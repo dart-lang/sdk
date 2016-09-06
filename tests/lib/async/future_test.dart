@@ -879,7 +879,6 @@ void testWaitCleanUpError() {
 void testWaitSyncError() {
   var cms = const Duration(milliseconds: 100);
   var cleanups = new List.filled(3, false);
-  var uncaughts = new List.filled(3, false);
   asyncStart();
   asyncStart();
   runZoned(() {
@@ -894,6 +893,43 @@ void testWaitSyncError() {
   }, onError: (e, s) {
     asyncEnd();
   });
+}
+
+void testWaitSyncError2() {
+  asyncStart();
+  Future.wait([null]).catchError((e, st) {
+    // Makes sure that the `catchError` is invoked.
+    // Regression test: an earlier version of `Future.wait` would propagate
+    // the error too soon for the code to install an error handler.
+    // `testWaitSyncError` didn't show this problem, because the `runZoned`
+    // was already installed.
+    asyncEnd();
+  });
+}
+
+// Future.wait transforms synchronous errors into asynchronous ones.
+// This function tests that zones can intercept them.
+void testWaitSyncError3() {
+  var caughtError;
+  var count = 0;
+
+  AsyncError errorCallback(
+      Zone self, ZoneDelegate parent, Zone zone, Object error,
+      StackTrace stackTrace) {
+    Expect.equals(0, count);
+    count++;
+    caughtError = error;
+    return parent.errorCallback(zone, error, stackTrace);
+  }
+
+  asyncStart();
+  runZoned(() {
+    Future.wait([null]).catchError((e, st) {
+      Expect.identical(e, caughtError);
+      Expect.equals(1, count);
+      asyncEnd();
+    });
+  }, zoneSpecification: new ZoneSpecification(errorCallback: errorCallback));
 }
 
 void testBadFuture() {
@@ -1096,6 +1132,8 @@ main() {
   testWaitCleanUp();
   testWaitCleanUpError();
   testWaitSyncError();
+  testWaitSyncError2();
+  testWaitSyncError3();
 
   testBadFuture();
 
