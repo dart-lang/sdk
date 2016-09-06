@@ -50,7 +50,8 @@ abstract class Accessor {
   Expression buildPostfixIncrement(Name binaryOperator,
       {bool voidContext: false, Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildPrefixIncrement(binaryOperator, voidContext: true);
+      return buildPrefixIncrement(binaryOperator, voidContext: true,
+          interfaceTarget: interfaceTarget);
     }
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
