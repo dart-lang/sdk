@@ -67,7 +67,7 @@ class BuildInfo(object):
       self.channel = pattern.group(4)
     else:
       pattern = re.match(BUILDER_PATTERN, self.name)
-      assert pattern:
+      assert pattern
       self.arch = 'x64' if pattern.group(2) == 'lucid64' else 'ia32'
       self.mode = 'Debug' if pattern.group(3) == 'debug' else 'Release'
       self.is_incremental = '-inc' in self.name
