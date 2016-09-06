@@ -187,6 +187,7 @@ async/stream_asyncexpand_test: RuntimeError # Timer interface not supported: Iss
 async/stream_asyncmap_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_transformation_broadcast_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_controller_test: Fail # Timer interface not supported: Issue 7728.
+async/stream_subscription_cancel_test: Fail # Timer interface not supported: Issue 7728.
 async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
 mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
 

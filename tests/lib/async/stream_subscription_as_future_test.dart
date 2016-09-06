@@ -10,7 +10,7 @@ import 'dart:async';
 import 'package:unittest/unittest.dart';
 
 main() {
-  test("subscription.asStream success", () {
+  test("subscription.asFuture success", () {
     Stream stream = new Stream.fromIterable([1, 2, 3]);
     var output = [];
     var subscription = stream.listen((x) { output.add(x); });
@@ -19,7 +19,7 @@ main() {
     }));
   });
 
-  test("subscription.asStream success2", () {
+  test("subscription.asFuture success2", () {
     StreamController controller = new StreamController(sync: true);
     [1, 2, 3].forEach(controller.add);
     controller.close();
@@ -31,7 +31,7 @@ main() {
     }));
   });
 
-  test("subscription.asStream success 3", () {
+  test("subscription.asFuture success 3", () {
     Stream stream = new Stream.fromIterable([1, 2, 3]).map((x) => x);
     var output = [];
     var subscription = stream.listen((x) { output.add(x); });
@@ -40,7 +40,7 @@ main() {
     }));
   });
 
-  test("subscription.asStream different type", () {
+  test("subscription.asFuture different type", () {
     Stream stream = new Stream<int>.fromIterable([1, 2, 3]);
     var asyncCallback = expectAsync(() => {});
     var output = [];
@@ -52,7 +52,7 @@ main() {
     });
   });
 
-  test("subscription.asStream failure", () {
+  test("subscription.asFuture failure", () {
     StreamController controller = new StreamController(sync: true);
     [1, 2, 3].forEach(controller.add);
     controller.addError("foo");
@@ -65,7 +65,7 @@ main() {
     }));
   });
 
-  test("subscription.asStream failure2", () {
+  test("subscription.asFuture failure2", () {
     Stream stream = new Stream.fromIterable([1, 2, 3, 4])
       .map((x) {
         if (x == 4) throw "foo";
@@ -75,6 +75,52 @@ main() {
     var subscription = stream.listen((x) { output.add(x); });
     subscription.asFuture(output).catchError(expectAsync((error) {
       Expect.equals(error, "foo");
+    }));
+  });
+
+  test("subscription.asFuture delayed cancel", () {
+    var completer = new Completer();
+    var controller =
+        new StreamController(onCancel: () => completer.future, sync: true);
+    [1, 2, 3].forEach(controller.add);
+    controller.addError("foo");
+    controller.close();
+    Stream stream = controller.stream;
+    var output = [];
+    var subscription = stream.listen((x) { output.add(x); });
+    bool catchErrorHasRun = false;
+    subscription.asFuture(output).catchError(expectAsync((error) {
+      Expect.equals(error, "foo");
+      catchErrorHasRun = true;
+    }));
+    Timer.run(expectAsync(() {
+      Expect.isFalse(catchErrorHasRun);
+      completer.complete();
+    }));
+  });
+
+  test("subscription.asFuture failure in cancel", () {
+    runZoned(() {
+      var completer = new Completer();
+      var controller =
+          new StreamController(onCancel: () => completer.future, sync: true);
+      [1, 2, 3].forEach(controller.add);
+      controller.addError("foo");
+      controller.close();
+      Stream stream = controller.stream;
+      var output = [];
+      var subscription = stream.listen((x) { output.add(x); });
+      bool catchErrorHasRun = false;
+      subscription.asFuture(output).catchError(expectAsync((error) {
+        Expect.equals(error, "foo");
+        catchErrorHasRun = true;
+      }));
+      Timer.run(expectAsync(() {
+        Expect.isFalse(catchErrorHasRun);
+        completer.completeError(499);
+      }));
+    }, onError: expectAsync((e) {
+      Expect.equals(499, e);
     }));
   });
 }

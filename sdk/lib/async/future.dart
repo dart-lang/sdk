@@ -322,8 +322,13 @@ abstract class Future<T> {
       // The error must have been thrown while iterating over the futures
       // list, or while installing a callback handler on the future.
       if (remaining == 0 || eagerError) {
-        // Just complete the error immediately.
-        result._completeError(e, st);
+        // Throw a new Future.error.
+        // Don't just call `result._completeError` since that would propagate
+        // the error too eagerly, not giving the callers time to install
+        // error handlers.
+        // Also, don't use `_asyncCompleteError` since that one doesn't give
+        // zones the chance to intercept the error.
+        return new Future.error(e, st);
       } else {
         // Don't allocate a list for values, thus indicating that there was an
         // error.
