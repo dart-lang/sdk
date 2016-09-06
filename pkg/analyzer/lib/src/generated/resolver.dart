@@ -7745,7 +7745,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       : source = source,
         errorReporter = new ErrorReporter(errorListener, source) {
     if (nameScope == null) {
-      this.nameScope = new LibraryScope(definingLibrary, errorListener);
+      this.nameScope = new LibraryScope(definingLibrary);
     } else {
       this.nameScope = nameScope;
     }
@@ -9338,7 +9338,7 @@ class TypeParameterBoundsResolver {
                 library, LibraryResolutionCapability.resolvedTypeNames)) {
               bound.type = typeParameterElement.bound;
             } else {
-              libraryScope ??= new LibraryScope(library, errorListener);
+              libraryScope ??= new LibraryScope(library);
               typeParametersScope ??= createTypeParametersScope();
               typeNameResolver ??= new TypeNameResolver(new TypeSystemImpl(),
                   typeProvider, library, source, errorListener);

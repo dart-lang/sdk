@@ -4076,8 +4076,11 @@ abstract class A {
 @reflectiveTest
 class MultiplyDefinedElementImplTest extends EngineTestCase {
   void test_fromElements_conflicting() {
-    Element firstElement = ElementFactory.localVariableElement2("xx");
-    Element secondElement = ElementFactory.localVariableElement2("yy");
+    TopLevelVariableElement firstElement =
+        ElementFactory.topLevelVariableElement2('xx');
+    TopLevelVariableElement secondElement =
+        ElementFactory.topLevelVariableElement2('yy');
+    _addToLibrary([firstElement, secondElement]);
     Element result = MultiplyDefinedElementImpl.fromElements(
         null, firstElement, secondElement);
     EngineTestCase.assertInstanceOf(
@@ -4086,15 +4089,19 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
         (result as MultiplyDefinedElement).conflictingElements;
     expect(elements, hasLength(2));
     for (int i = 0; i < elements.length; i++) {
-      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement,
-          LocalVariableElement, elements[i]);
+      EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
+          TopLevelVariableElement, elements[i]);
     }
   }
 
   void test_fromElements_multiple() {
-    Element firstElement = ElementFactory.localVariableElement2("xx");
-    Element secondElement = ElementFactory.localVariableElement2("yy");
-    Element thirdElement = ElementFactory.localVariableElement2("zz");
+    TopLevelVariableElement firstElement =
+        ElementFactory.topLevelVariableElement2('xx');
+    TopLevelVariableElement secondElement =
+        ElementFactory.topLevelVariableElement2('yy');
+    TopLevelVariableElement thirdElement =
+        ElementFactory.topLevelVariableElement2('zz');
+    _addToLibrary([firstElement, secondElement, thirdElement]);
     Element result = MultiplyDefinedElementImpl.fromElements(
         null,
         MultiplyDefinedElementImpl.fromElements(
@@ -4106,15 +4113,25 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
         (result as MultiplyDefinedElement).conflictingElements;
     expect(elements, hasLength(3));
     for (int i = 0; i < elements.length; i++) {
-      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement,
-          LocalVariableElement, elements[i]);
+      EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
+          TopLevelVariableElement, elements[i]);
     }
   }
 
   void test_fromElements_nonConflicting() {
-    Element element = ElementFactory.localVariableElement2("xx");
+    TopLevelVariableElement element =
+        ElementFactory.topLevelVariableElement2('xx');
+    _addToLibrary([element]);
     expect(MultiplyDefinedElementImpl.fromElements(null, element, element),
         same(element));
+  }
+
+  void _addToLibrary(List<TopLevelVariableElement> variables) {
+    CompilationUnitElementImpl compilationUnit =
+        ElementFactory.compilationUnit('lib.dart');
+    LibraryElementImpl library = ElementFactory.library(null, 'lib');
+    library.definingCompilationUnit = compilationUnit;
+    compilationUnit.topLevelVariables = variables;
   }
 }
 

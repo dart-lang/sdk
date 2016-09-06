@@ -1596,10 +1596,12 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
           context as InternalAnalysisContext;
       AnalysisCache analysisCache = internalContext.analysisCache;
       CacheEntry cacheEntry = internalContext.getCacheEntry(target);
-      libraryElement = analysisCache.getValue(target, LIBRARY_ELEMENT1) as LibraryElementImpl;
+      libraryElement = analysisCache.getValue(target, LIBRARY_ELEMENT1)
+          as LibraryElementImpl;
       if (libraryElement == null &&
           internalContext.aboutToComputeResult(cacheEntry, LIBRARY_ELEMENT1)) {
-        libraryElement = analysisCache.getValue(target, LIBRARY_ELEMENT1) as LibraryElementImpl;
+        libraryElement = analysisCache.getValue(target, LIBRARY_ELEMENT1)
+            as LibraryElementImpl;
       }
     }
     //
@@ -5773,7 +5775,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     // Resolve local variables.
     //
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    Scope nameScope = new LibraryScope(libraryElement, errorListener);
+    Scope nameScope = new LibraryScope(libraryElement);
     VariableResolverVisitor visitor = new VariableResolverVisitor(
         libraryElement, unitElement.source, typeProvider, errorListener,
         nameScope: nameScope);

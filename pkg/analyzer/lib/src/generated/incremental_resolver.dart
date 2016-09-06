@@ -1174,7 +1174,7 @@ class ResolutionContextBuilder {
       throw new AnalysisException(
           "Cannot create scope: compilation unit is not part of a library");
     }
-    return new LibraryScope(libraryElement, _errorListener);
+    return new LibraryScope(libraryElement);
   }
 
   /**

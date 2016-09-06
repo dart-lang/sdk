@@ -322,70 +322,8 @@ C toSpan(dynamic element) {
 
 @reflectiveTest
 class LibraryImportScopeTest extends ResolverTestCase {
-  void test_conflictingImports() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    String typeNameA = "A";
-    String typeNameB = "B";
-    String typeNameC = "C";
-    ClassElement typeA = ElementFactory.classElement2(typeNameA);
-    ClassElement typeB1 = ElementFactory.classElement2(typeNameB);
-    ClassElement typeB2 = ElementFactory.classElement2(typeNameB);
-    ClassElement typeC = ElementFactory.classElement2(typeNameC);
-    LibraryElement importedLibrary1 = createTestLibrary(context, "imported1");
-    (importedLibrary1.definingCompilationUnit as CompilationUnitElementImpl)
-        .types = <ClassElement>[typeA, typeB1];
-    ImportElementImpl import1 =
-        ElementFactory.importFor(importedLibrary1, null);
-    LibraryElement importedLibrary2 = createTestLibrary(context, "imported2");
-    (importedLibrary2.definingCompilationUnit as CompilationUnitElementImpl)
-        .types = <ClassElement>[typeB2, typeC];
-    ImportElementImpl import2 =
-        ElementFactory.importFor(importedLibrary2, null);
-    LibraryElementImpl importingLibrary =
-        createTestLibrary(context, "importing");
-    importingLibrary.imports = <ImportElement>[import1, import2];
-    {
-      GatheringErrorListener errorListener = new GatheringErrorListener();
-      Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-      expect(scope.lookup(AstFactory.identifier3(typeNameA), importingLibrary),
-          typeA);
-      errorListener.assertNoErrors();
-      expect(scope.lookup(AstFactory.identifier3(typeNameC), importingLibrary),
-          typeC);
-      errorListener.assertNoErrors();
-      Element element =
-          scope.lookup(AstFactory.identifier3(typeNameB), importingLibrary);
-      errorListener.assertErrorsWithCodes([StaticWarningCode.AMBIGUOUS_IMPORT]);
-      EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement,
-          MultiplyDefinedElement, element);
-      List<Element> conflictingElements =
-          (element as MultiplyDefinedElement).conflictingElements;
-      expect(conflictingElements, hasLength(2));
-      if (identical(conflictingElements[0], typeB1)) {
-        expect(conflictingElements[1], same(typeB2));
-      } else if (identical(conflictingElements[0], typeB2)) {
-        expect(conflictingElements[1], same(typeB1));
-      } else {
-        expect(conflictingElements[0], same(typeB1));
-      }
-    }
-    {
-      GatheringErrorListener errorListener = new GatheringErrorListener();
-      Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-      Identifier identifier = AstFactory.identifier3(typeNameB);
-      AstFactory.methodDeclaration(null, AstFactory.typeName3(identifier), null,
-          null, AstFactory.identifier3("foo"), null);
-      Element element = scope.lookup(identifier, importingLibrary);
-      errorListener.assertErrorsWithCodes([StaticWarningCode.AMBIGUOUS_IMPORT]);
-      EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement,
-          MultiplyDefinedElement, element);
-    }
-  }
-
   void test_creation_empty() {
-    LibraryElement definingLibrary = createDefaultTestLibrary();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    new LibraryImportScope(definingLibrary, errorListener);
+    new LibraryImportScope(createDefaultTestLibrary());
   }
 
   void test_creation_nonEmpty() {
@@ -401,66 +339,10 @@ class LibraryImportScopeTest extends ResolverTestCase {
     ImportElementImpl importElement = new ImportElementImpl(0);
     importElement.importedLibrary = importedLibrary;
     definingLibrary.imports = <ImportElement>[importElement];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(definingLibrary, errorListener);
+    Scope scope = new LibraryImportScope(definingLibrary);
     expect(
         scope.lookup(AstFactory.identifier3(importedTypeName), definingLibrary),
         importedType);
-  }
-
-  void test_getErrorListener() {
-    LibraryElement definingLibrary = createDefaultTestLibrary();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    LibraryImportScope scope =
-        new LibraryImportScope(definingLibrary, errorListener);
-    expect(scope.errorListener, errorListener);
-  }
-
-  void test_nonConflictingImports_fromSdk() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    String typeName = "List";
-    ClassElement type = ElementFactory.classElement2(typeName);
-    LibraryElement importedLibrary = createTestLibrary(context, "lib");
-    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
-        .types = <ClassElement>[type];
-    ImportElementImpl importCore = ElementFactory.importFor(
-        context.getLibraryElement(context.sourceFactory.forUri("dart:core")),
-        null);
-    ImportElementImpl importLib =
-        ElementFactory.importFor(importedLibrary, null);
-    LibraryElementImpl importingLibrary =
-        createTestLibrary(context, "importing");
-    importingLibrary.imports = <ImportElement>[importCore, importLib];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-    expect(
-        scope.lookup(AstFactory.identifier3(typeName), importingLibrary), type);
-    errorListener
-        .assertErrorsWithCodes([StaticWarningCode.CONFLICTING_DART_IMPORT]);
-  }
-
-  void test_nonConflictingImports_sameElement() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    String typeNameA = "A";
-    String typeNameB = "B";
-    ClassElement typeA = ElementFactory.classElement2(typeNameA);
-    ClassElement typeB = ElementFactory.classElement2(typeNameB);
-    LibraryElement importedLibrary = createTestLibrary(context, "imported");
-    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
-        .types = <ClassElement>[typeA, typeB];
-    ImportElementImpl import1 = ElementFactory.importFor(importedLibrary, null);
-    ImportElementImpl import2 = ElementFactory.importFor(importedLibrary, null);
-    LibraryElementImpl importingLibrary =
-        createTestLibrary(context, "importing");
-    importingLibrary.imports = <ImportElement>[import1, import2];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-    expect(scope.lookup(AstFactory.identifier3(typeNameA), importingLibrary),
-        typeA);
-    errorListener.assertNoErrors();
-    expect(scope.lookup(AstFactory.identifier3(typeNameB), importingLibrary),
-        typeB);
-    errorListener.assertNoErrors();
   }
 
   void test_prefixedAndNonPrefixed() {
@@ -487,15 +369,12 @@ class LibraryImportScopeTest extends ResolverTestCase {
       prefixedImport,
       nonPrefixedImport
     ];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
+    Scope scope = new LibraryImportScope(importingLibrary);
     Element prefixedElement = scope.lookup(
         AstFactory.identifier5(prefixName, typeName), importingLibrary);
-    errorListener.assertNoErrors();
     expect(prefixedElement, same(prefixedType));
     Element nonPrefixedElement =
         scope.lookup(AstFactory.identifier3(typeName), importingLibrary);
-    errorListener.assertNoErrors();
     expect(nonPrefixedElement, same(nonPrefixedType));
   }
 }
@@ -503,9 +382,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
 @reflectiveTest
 class LibraryScopeTest extends ResolverTestCase {
   void test_creation_empty() {
-    LibraryElement definingLibrary = createDefaultTestLibrary();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    new LibraryScope(definingLibrary, errorListener);
+    new LibraryScope(createDefaultTestLibrary());
   }
 
   void test_creation_nonEmpty() {
@@ -521,18 +398,10 @@ class LibraryScopeTest extends ResolverTestCase {
     ImportElementImpl importElement = new ImportElementImpl(0);
     importElement.importedLibrary = importedLibrary;
     definingLibrary.imports = <ImportElement>[importElement];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryScope(definingLibrary, errorListener);
+    Scope scope = new LibraryScope(definingLibrary);
     expect(
         scope.lookup(AstFactory.identifier3(importedTypeName), definingLibrary),
         importedType);
-  }
-
-  void test_getErrorListener() {
-    LibraryElement definingLibrary = createDefaultTestLibrary();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    LibraryScope scope = new LibraryScope(definingLibrary, errorListener);
-    expect(scope.errorListener, errorListener);
   }
 }
 
@@ -596,8 +465,7 @@ class Scope_EnclosedScopeTest_test_define_normal extends Scope {
 @reflectiveTest
 class ScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    ScopeTest_TestScope scope = new ScopeTest_TestScope(errorListener);
+    ScopeTest_TestScope scope = new ScopeTest_TestScope();
     SimpleIdentifier identifier = AstFactory.identifier3("v1");
     VariableElement element1 = ElementFactory.localVariableElement(identifier);
     VariableElement element2 = ElementFactory.localVariableElement(identifier);
@@ -607,21 +475,13 @@ class ScopeTest extends ResolverTestCase {
   }
 
   void test_define_normal() {
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    ScopeTest_TestScope scope = new ScopeTest_TestScope(errorListener);
+    ScopeTest_TestScope scope = new ScopeTest_TestScope();
     VariableElement element1 =
         ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
     VariableElement element2 =
         ElementFactory.localVariableElement(AstFactory.identifier3("v2"));
     scope.define(element1);
     scope.define(element2);
-    errorListener.assertNoErrors();
-  }
-
-  void test_getErrorListener() {
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    ScopeTest_TestScope scope = new ScopeTest_TestScope(errorListener);
-    expect(scope.errorListener, errorListener);
   }
 
   void test_isPrivateName_nonPrivate() {
@@ -637,12 +497,11 @@ class ScopeTest extends ResolverTestCase {
  * A non-abstract subclass that can be used for testing purposes.
  */
 class ScopeTest_TestScope extends Scope {
-  /**
-   * The listener that is to be informed when an error is encountered.
-   */
-  final AnalysisErrorListener errorListener;
+  ScopeTest_TestScope();
 
-  ScopeTest_TestScope(this.errorListener);
+  @deprecated
+  @override
+  AnalysisErrorListener get errorListener => null;
 
   @override
   Element internalLookup(Identifier identifier, String name,
@@ -2929,7 +2788,7 @@ class TypeResolverVisitorTest {
     element.definingCompilationUnit =
         new CompilationUnitElementImpl("lib.dart");
     _typeProvider = new TestTypeProvider();
-    libraryScope = new LibraryScope(element, _listener);
+    libraryScope = new LibraryScope(element);
     _visitor = new TypeResolverVisitor(
         element, librarySource, _typeProvider, _listener,
         nameScope: libraryScope);

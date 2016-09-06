@@ -4774,7 +4774,7 @@ class StaticWarningCode extends ErrorCode {
    * Parameters:
    * 0: the ambiguous name
    * 1: the name of the dart: library in which the element is found
-   * 1: the name of the non-dart: library in which the element is found
+   * 2: the name of the non-dart: library in which the element is found
    */
   static const StaticWarningCode CONFLICTING_DART_IMPORT =
       const StaticWarningCode('CONFLICTING_DART_IMPORT',

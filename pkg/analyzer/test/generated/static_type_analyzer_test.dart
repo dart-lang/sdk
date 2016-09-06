@@ -1552,7 +1552,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _typeProvider = new TestTypeProvider(context);
     _visitor = new ResolverVisitor(
         definingLibrary, source, _typeProvider, _listener,
-        nameScope: new LibraryScope(definingLibrary, _listener));
+        nameScope: new LibraryScope(definingLibrary));
     _visitor.overrideManager.enterScope();
     try {
       return _visitor.typeAnalyzer;

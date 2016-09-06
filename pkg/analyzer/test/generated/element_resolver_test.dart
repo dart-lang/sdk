@@ -883,7 +883,7 @@ class ElementResolverTest extends EngineTestCase {
     _definingLibrary.definingCompilationUnit = unit;
     _visitor = new ResolverVisitor(
         _definingLibrary, source, _typeProvider, _listener,
-        nameScope: new LibraryScope(_definingLibrary, _listener));
+        nameScope: new LibraryScope(_definingLibrary));
     try {
       return _visitor.elementResolver;
     } catch (exception) {
