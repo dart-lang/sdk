@@ -1263,6 +1263,38 @@ megamorphic-cache-ref-wrapped > a[href] * {
     color: inherit;
 }
 
+/* metric-graph */
+
+metric-graph {
+  display: block;
+  height: 100%;
+}
+
+metric-graph .graph {
+  height: 100%;
+  margin-top: -30px;
+  padding: 20px;
+  padding-top: 60px;
+}
+
+metric-graph .graph > div {
+  height: 100%;
+}
+
+/* metric-graph */
+
+metrics-page > div {
+  display: block;
+  height: 100%;
+}
+
+metrics-page > div > .graph {
+  display: block;
+  height: 100%;
+  margin-top: -300px;
+  padding-top: 300px;
+}
+
 /* nav-notify */
 /* TODO(cbernaschina) fix nav-notify-wrapped to nav-notify when wrapper
 removed */

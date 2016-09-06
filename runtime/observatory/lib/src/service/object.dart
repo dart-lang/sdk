@@ -4233,48 +4233,15 @@ class Socket extends ServiceObject {
   }
 }
 
-class MetricSample {
-  final double value;
-  final DateTime time;
-  MetricSample(this.value) : time = new DateTime.now();
-}
-
-class ServiceMetric extends ServiceObject {
+class ServiceMetric extends ServiceObject implements M.Metric {
   ServiceMetric._empty(ServiceObjectOwner owner) : super._empty(owner) {
   }
 
   bool get immutable => false;
 
-  @observable bool recording = false;
-  MetricPoller poller;
-
-  final ObservableList<MetricSample> samples =
-      new ObservableList<MetricSample>();
-  int _sampleBufferSize = 100;
-  int get sampleBufferSize => _sampleBufferSize;
-  set sampleBufferSize(int size) {
-    _sampleBufferSize = size;
-    _removeOld();
-  }
-
   Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) {
     assert(owner is Isolate);
     return isolate.invokeRpcNoUpgrade('_getIsolateMetric', { 'metricId': id });
-  }
-
-
-  void addSample(MetricSample sample) {
-    samples.add(sample);
-    _removeOld();
-  }
-
-  void _removeOld() {
-    // TODO(johnmccutchan): If this becomes hot, consider using a circular
-    // buffer.
-    if (samples.length > _sampleBufferSize) {
-      int count = samples.length - _sampleBufferSize;
-      samples.removeRange(0, count);
-    }
   }
 
   @observable String description;
@@ -4295,38 +4262,6 @@ class ServiceMetric extends ServiceObject {
   }
 
   String toString() => "ServiceMetric($_id)";
-}
-
-class MetricPoller {
-  // Metrics to be polled.
-  final List<ServiceMetric> metrics = new List<ServiceMetric>();
-  final Duration pollPeriod;
-  Timer _pollTimer;
-
-  MetricPoller(int milliseconds) :
-      pollPeriod = new Duration(milliseconds: milliseconds) {
-    start();
-  }
-
-  void start() {
-    _pollTimer = new Timer.periodic(pollPeriod, _onPoll);
-  }
-
-  void cancel() {
-    if (_pollTimer != null) {
-      _pollTimer.cancel();
-    }
-    _pollTimer = null;
-  }
-
-  void _onPoll(_) {
-    // Reload metrics and add a sample to each.
-    for (var metric in metrics) {
-      metric.reload().then((m) {
-        m.addSample(new MetricSample(m.value));
-      });
-    }
-  }
 }
 
 class Frame extends ServiceObject implements M.Frame {

@@ -20,6 +20,7 @@ final _isolateRepository = new IsolateRepository();
 final _isolateSampleProfileRepository = new IsolateSampleProfileRepository();
 final _libraryRepository = new LibraryRepository();
 final _megamorphicCacheRepository = new MegamorphicCacheRepository();
+final _metricRepository = new MetricRepository();
 final _objectRepository = new ObjectRepository();
 final _objectPoolRepository = new ObjectPoolRepository();
 final _objectstoreRepository = new ObjectStoreRepository();
@@ -736,63 +737,37 @@ class IsolateReconnectPage extends Page {
   bool canVisit(Uri uri) => uri.path == 'isolate-reconnect';
 }
 
-class MetricsPage extends Page {
-  // Page state, retained as long as ObservatoryApplication.
-  String selectedMetricId;
+class MetricsPage extends MatchingPage {
+  MetricsPage(app) : super('metrics', app);
 
-  final Map<int, MetricPoller> pollers = new Map<int, MetricPoller>();
+  final DivElement container = new DivElement();
 
-  // 8 seconds, 4 seconds, 2 seconds, 1 second, and one hundred milliseconds.
-  static final List<int> POLL_PERIODS = [8000,
-                                         4000,
-                                         2000,
-                                         1000,
-                                         100];
+  Isolate lastIsolate;
 
-  MetricsPage(app) : super(app) {
-    for (var i = 0; i < POLL_PERIODS.length; i++) {
-      pollers[POLL_PERIODS[i]] = new MetricPoller(POLL_PERIODS[i]);
-    }
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) async {
+      lastIsolate = isolate;
+      container.children = const [];
+      await _metricRepository.startSampling(isolate);
+      container.children = [
+        new MetricsPageElement(isolate.vm, isolate, app.events,
+                               app.notifications, _metricRepository,
+                               queue: app.queue)
+      ];
+    });
   }
 
   void onInstall() {
     if (element == null) {
-      element = new Element.tag('metrics-page');
-      (element as MetricsPageElement).page = this;
+      element = container;
     }
-    assert(element != null);
   }
 
-  void setRefreshPeriod(int refreshPeriod, ServiceMetric metric) {
-    if (metric.poller != null) {
-      if (metric.poller.pollPeriod.inMilliseconds == refreshPeriod) {
-        return;
-      }
-      // Remove from current poller.
-      metric.poller.metrics.remove(metric);
-      metric.poller = null;
-    }
-    if (refreshPeriod == 0) {
-      return;
-    }
-    var poller = pollers[refreshPeriod];
-    if (poller != null) {
-      poller.metrics.add(metric);
-      metric.poller = poller;
-      return;
-    }
-    throw new FallThroughError();
+  @override
+  void onUninstall() {
+    _metricRepository.stopSampling(lastIsolate);
   }
-
-  void _visit(Uri uri) {
-    assert(element != null);
-    assert(canVisit(uri));
-    app.vm.getIsolate(uri.queryParameters['isolateId']).then((i) {
-      (element as MetricsPageElement).isolate = i;
-    });
-  }
-
-  bool canVisit(Uri uri) => uri.path == 'metrics';
 }
 
 class TimelinePage extends Page {
