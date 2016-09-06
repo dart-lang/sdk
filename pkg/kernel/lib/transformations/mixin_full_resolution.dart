@@ -91,9 +91,14 @@ class SuperCallResolutionTransformer extends Transformer {
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     Member target = hierarchy.getDispatchTarget(lookupClass, node.name);
-    if (target != null) {
+    if (target is Procedure && !target.isAccessor) {
       return new DirectMethodInvocation(
           new ThisExpression(), target, visit(node.arguments));
+    } else if (target != null) {
+      return new MethodInvocation(
+          new DirectPropertyGet(new ThisExpression(), target),
+          new Name('call'),
+          visit(node.arguments));
     } else {
       return new InvalidExpression();
     }

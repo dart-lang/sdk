@@ -1573,6 +1573,28 @@ class ExpressionBuilder
     }
   }
 
+  /// Emit a method invocation, either as a direct call `o.f(x)` or decomposed
+  /// into a getter and function invocation `o.f.call(x)`.
+  ast.Expression buildDecomposableMethodInvocation(ast.Expression receiver,
+      ast.Name name, ast.Arguments arguments, Element targetElement) {
+    // Try to emit a typed call to an interface method.
+    ast.Procedure targetMethod = scope.resolveInterfaceMethod(targetElement);
+    if (targetMethod != null) {
+      return new ast.MethodInvocation(receiver, name, arguments, targetMethod);
+    }
+    // Try to emit a typed call to getter or field and call the returned
+    // function.
+    ast.Member targetGetter = scope.resolveInterfaceGet(targetElement, null);
+    if (targetGetter != null) {
+      return new ast.MethodInvocation(
+          new ast.PropertyGet(receiver, name, targetGetter),
+          callName,
+          arguments);
+    }
+    // Emit a dynamic call.
+    return new ast.MethodInvocation(receiver, name, arguments);
+  }
+
   ast.Expression visitMethodInvocation(MethodInvocation node) {
     Element element = node.methodName.staticElement;
     if (element != null && element == element.library?.loadLibraryFunction) {
@@ -1580,11 +1602,11 @@ class ExpressionBuilder
     }
     var target = node.target;
     if (node.isCascaded) {
-      return new ast.MethodInvocation(
+      return buildDecomposableMethodInvocation(
           makeCascadeReceiver(),
           scope.buildName(node.methodName),
           buildArgumentsForInvocation(node),
-          scope.resolveInterfaceMethod(element));
+          element);
     } else if (target is SuperExpression) {
       scope.addTransformerFlag(TransformerFlag.superCalls);
       return new ast.SuperMethodInvocation(
@@ -1621,11 +1643,11 @@ class ExpressionBuilder
           node.methodName.name, buildArgumentsForInvocation(node),
           candidateTarget: element);
     } else if (target == null) {
-      return new ast.MethodInvocation(
+      return buildDecomposableMethodInvocation(
           scope.buildThis(),
           scope.buildName(node.methodName),
           buildArgumentsForInvocation(node),
-          scope.resolveInterfaceMethod(element));
+          element);
     } else if (node.operator.value() == '?.') {
       var receiver = makeOrReuseVariable(build(target));
       return makeLet(
@@ -1633,17 +1655,17 @@ class ExpressionBuilder
           new ast.ConditionalExpression(
               buildIsNull(new ast.VariableGet(receiver)),
               new ast.NullLiteral(),
-              new ast.MethodInvocation(
+              buildDecomposableMethodInvocation(
                   new ast.VariableGet(receiver),
                   scope.buildName(node.methodName),
                   buildArgumentsForInvocation(node),
-                  scope.resolveInterfaceMethod(element))));
+                  element)));
     } else {
-      return new ast.MethodInvocation(
+      return buildDecomposableMethodInvocation(
           build(node.target),
           scope.buildName(node.methodName),
           buildArgumentsForInvocation(node),
-          scope.resolveInterfaceMethod(element));
+          element);
     }
   }
 
