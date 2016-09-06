@@ -88,6 +88,7 @@ static int Main(int argc, const char** argv) {
       // List all tests and benchmarks and exit without initializing the VM.
       TestCaseBase::RunAll();
       Benchmark::RunAll(argv[0]);
+      fflush(stdout);
       return 0;
     } else if (strcmp(argv[1], "--benchmarks") == 0) {
       run_filter = kAllBenchmarks;
