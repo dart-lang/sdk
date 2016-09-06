@@ -227,7 +227,7 @@ abstract class AnalysisContext {
    * analysis results that have been invalidated by these changes will be
    * removed.
    */
-  ApplyChangesStatus applyChanges(ChangeSet changeSet);
+  void applyChanges(ChangeSet changeSet);
 
   /**
    * Return the documentation comment for the given [element] as it appears in
@@ -1510,18 +1510,6 @@ class AnalysisResult {
    * performed.
    */
   bool get hasMoreWork => _notices != null;
-}
-
-/**
- * The result of applying a [ChangeSet] to a [AnalysisContext].
- */
-class ApplyChangesStatus {
-  /**
-   * Is `true` if the given [ChangeSet] caused any changes in the context.
-   */
-  final bool hasChanges;
-
-  ApplyChangesStatus(this.hasChanges);
 }
 
 /**

@@ -402,7 +402,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
+  void applyChanges(ChangeSet changeSet) {
     fail("Unexpected invocation of applyChanges");
     return null;
   }

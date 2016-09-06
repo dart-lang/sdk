@@ -529,28 +529,6 @@ analyzer:
     });
   }
 
-  test_watch_modifyFile_hasOverlay() async {
-    server.serverServices.add(ServerService.STATUS);
-    // configure the project
-    String projectPath = '/root';
-    String filePath = '/root/test.dart';
-    resourceProvider.newFolder(projectPath);
-    resourceProvider.newFile(filePath, '// 111');
-    server.setAnalysisRoots('0', ['/root'], [], {});
-    await pumpEventQueue();
-    // add overlay
-    server.updateContent('1', {filePath: new AddContentOverlay('// 222')});
-    await pumpEventQueue();
-    // update the file
-    channel.notificationsReceived.clear();
-    resourceProvider.modifyFile(filePath, '// 333');
-    await pumpEventQueue();
-    // the file has an overlay, so the file-system change was ignored
-    expect(channel.notificationsReceived.any((notification) {
-      return notification.event == SERVER_STATUS;
-    }), isFalse);
-  }
-
   void _assertContextOfFolder(
       AnalysisContext context, String expectedFolderPath) {
     Folder expectedFolder = resourceProvider.newFolder(expectedFolderPath);

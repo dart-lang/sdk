@@ -620,9 +620,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
+  void applyChanges(ChangeSet changeSet) {
     if (changeSet.isEmpty) {
-      return new ApplyChangesStatus(false);
+      return;
     }
     //
     // First, compute the list of sources that have been removed.
@@ -665,11 +665,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           changeSet.addedSources, changedSources, removedSources);
     }
     _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
-    return new ApplyChangesStatus(changeSet.addedSources.isNotEmpty ||
-        changeSet.changedContents.isNotEmpty ||
-        changeSet.deletedSources.isNotEmpty ||
-        changedSources.isNotEmpty ||
-        removedSources.isNotEmpty);
   }
 
   @override
