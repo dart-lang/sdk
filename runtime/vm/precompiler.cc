@@ -95,7 +95,7 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
           StoreInstanceFieldInstr* store = it.Current()->AsStoreInstanceField();
           if (store != NULL) {
             if (!store->field().IsNull() && store->field().is_final()) {
-              if (FLAG_trace_precompiler) {
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                 THR_Print("Found store to %s <- %s\n",
                           store->field().ToCString(),
                           store->value()->Type()->ToCString());
@@ -105,18 +105,18 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
                 field_map_->Insert(FieldTypePair(
                     &Field::Handle(zone_, store->field().raw()),  // Re-wrap.
                     store->value()->Type()->ToCid()));
-                if (FLAG_trace_precompiler) {
+                if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                     THR_Print(" initial type = %s\n",
                               store->value()->Type()->ToCString());
                 }
                 continue;
               }
               CompileType type = CompileType::FromCid(entry->cid_);
-              if (FLAG_trace_precompiler) {
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                   THR_Print(" old type = %s\n", type.ToCString());
               }
               type.Union(store->value()->Type());
-              if (FLAG_trace_precompiler) {
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                   THR_Print(" new type = %s\n", type.ToCString());
               }
               entry->cid_ = type.ToCid();
