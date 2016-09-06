@@ -11298,6 +11298,7 @@ class HighlightRegionType implements Enum {
  *   "dartdoc": optional String
  *   "elementDescription": optional String
  *   "elementKind": optional String
+ *   "isDeprecated": optional bool
  *   "parameter": optional String
  *   "propagatedType": optional String
  *   "staticType": optional String
@@ -11321,6 +11322,8 @@ class HoverInformation implements HasToJson {
   String _elementDescription;
 
   String _elementKind;
+
+  bool _isDeprecated;
 
   String _parameter;
 
@@ -11455,6 +11458,18 @@ class HoverInformation implements HasToJson {
   }
 
   /**
+   * True if the referenced element is deprecated.
+   */
+  bool get isDeprecated => _isDeprecated;
+
+  /**
+   * True if the referenced element is deprecated.
+   */
+  void set isDeprecated(bool value) {
+    this._isDeprecated = value;
+  }
+
+  /**
    * A human-readable description of the parameter corresponding to the
    * expression being hovered over. This data is omitted if the location is not
    * in an argument to a function.
@@ -11500,7 +11515,7 @@ class HoverInformation implements HasToJson {
     this._staticType = value;
   }
 
-  HoverInformation(int offset, int length, {String containingLibraryPath, String containingLibraryName, String containingClassDescription, String dartdoc, String elementDescription, String elementKind, String parameter, String propagatedType, String staticType}) {
+  HoverInformation(int offset, int length, {String containingLibraryPath, String containingLibraryName, String containingClassDescription, String dartdoc, String elementDescription, String elementKind, bool isDeprecated, String parameter, String propagatedType, String staticType}) {
     this.offset = offset;
     this.length = length;
     this.containingLibraryPath = containingLibraryPath;
@@ -11509,6 +11524,7 @@ class HoverInformation implements HasToJson {
     this.dartdoc = dartdoc;
     this.elementDescription = elementDescription;
     this.elementKind = elementKind;
+    this.isDeprecated = isDeprecated;
     this.parameter = parameter;
     this.propagatedType = propagatedType;
     this.staticType = staticType;
@@ -11555,6 +11571,10 @@ class HoverInformation implements HasToJson {
       if (json.containsKey("elementKind")) {
         elementKind = jsonDecoder.decodeString(jsonPath + ".elementKind", json["elementKind"]);
       }
+      bool isDeprecated;
+      if (json.containsKey("isDeprecated")) {
+        isDeprecated = jsonDecoder.decodeBool(jsonPath + ".isDeprecated", json["isDeprecated"]);
+      }
       String parameter;
       if (json.containsKey("parameter")) {
         parameter = jsonDecoder.decodeString(jsonPath + ".parameter", json["parameter"]);
@@ -11567,7 +11587,7 @@ class HoverInformation implements HasToJson {
       if (json.containsKey("staticType")) {
         staticType = jsonDecoder.decodeString(jsonPath + ".staticType", json["staticType"]);
       }
-      return new HoverInformation(offset, length, containingLibraryPath: containingLibraryPath, containingLibraryName: containingLibraryName, containingClassDescription: containingClassDescription, dartdoc: dartdoc, elementDescription: elementDescription, elementKind: elementKind, parameter: parameter, propagatedType: propagatedType, staticType: staticType);
+      return new HoverInformation(offset, length, containingLibraryPath: containingLibraryPath, containingLibraryName: containingLibraryName, containingClassDescription: containingClassDescription, dartdoc: dartdoc, elementDescription: elementDescription, elementKind: elementKind, isDeprecated: isDeprecated, parameter: parameter, propagatedType: propagatedType, staticType: staticType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "HoverInformation", json);
     }
@@ -11595,6 +11615,9 @@ class HoverInformation implements HasToJson {
     if (elementKind != null) {
       result["elementKind"] = elementKind;
     }
+    if (isDeprecated != null) {
+      result["isDeprecated"] = isDeprecated;
+    }
     if (parameter != null) {
       result["parameter"] = parameter;
     }
@@ -11621,6 +11644,7 @@ class HoverInformation implements HasToJson {
           dartdoc == other.dartdoc &&
           elementDescription == other.elementDescription &&
           elementKind == other.elementKind &&
+          isDeprecated == other.isDeprecated &&
           parameter == other.parameter &&
           propagatedType == other.propagatedType &&
           staticType == other.staticType;
@@ -11639,6 +11663,7 @@ class HoverInformation implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, dartdoc.hashCode);
     hash = JenkinsSmiHash.combine(hash, elementDescription.hashCode);
     hash = JenkinsSmiHash.combine(hash, elementKind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameter.hashCode);
     hash = JenkinsSmiHash.combine(hash, propagatedType.hashCode);
     hash = JenkinsSmiHash.combine(hash, staticType.hashCode);

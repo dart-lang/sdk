@@ -111,7 +111,7 @@ a:focus, a:hover {
 </style></head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version 1.16.0</h1>
+    <h1 style="color:#999999">Version 1.17.0</h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -3262,6 +3262,11 @@ a:focus, a:hover {
               referenced (such as “class” or “function type
               alias”). This data is omitted if there is no referenced
               element.
+            </p>
+          </dd><dt class="field"><b>isDeprecated (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+            
+            <p>
+              True if the referenced element is deprecated.
             </p>
           </dd><dt class="field"><b>parameter (<span style="color:#999999">optional</span> String)</b></dt><dd>
             
