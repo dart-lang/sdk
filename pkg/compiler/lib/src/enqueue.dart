@@ -309,22 +309,12 @@ class ResolutionEnqueuer extends Enqueuer {
 
       void processClass(ClassElement superclass) {
         if (_processedClasses.contains(superclass)) return;
-        // TODO(johnniwinther): Re-insert this invariant when unittests don't
-        // fail. There is already a similar invariant on the members.
-        /*if (!isResolutionQueue) {
-          assert(invariant(superclass,
-              superclass.isClosure ||
-              compiler.enqueuer.resolution.isClassProcessed(superclass),
-              message: "Class $superclass has not been "
-                       "processed in resolution."));
-        }*/
 
         _processedClasses.add(superclass);
         recentClasses.add(superclass);
         superclass.ensureResolved(resolution);
         superclass.implementation.forEachMember(processInstantiatedClassMember);
-        if (isResolutionQueue &&
-            !compiler.serialization.isDeserialized(superclass)) {
+        if (!compiler.serialization.isDeserialized(superclass)) {
           compiler.resolver.checkClass(superclass);
         }
         // We only tell the backend once that [superclass] was instantiated, so
@@ -352,7 +342,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
   void logEnqueueReflectiveAction(action, [msg = ""]) {
     if (TRACE_MIRROR_ENQUEUING) {
-      print("MIRROR_ENQUEUE (${isResolutionQueue ? "R" : "C"}): $action $msg");
+      print("MIRROR_ENQUEUE (R): $action $msg");
     }
   }
 
@@ -384,7 +374,6 @@ class ResolutionEnqueuer extends Enqueuer {
       if (element.isTypedef) {
         TypedefElement typedef = element;
         typedef.ensureResolved(resolution);
-        compiler.world.allTypedefs.add(element);
       } else if (Elements.isStaticOrTopLevel(element)) {
         registerStaticUse(new StaticUse.foreignUse(element.declaration));
       } else if (element.isInstanceMember) {
