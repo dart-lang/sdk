@@ -12,7 +12,7 @@ const desc =
     'Place the super() call last in a constructor initialization list.';
 
 const details = '''
-From the [style guide] (https://www.dartlang.org/articles/style-guide/):
+From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **DO** place the `super()` call last in a constructor initialization list.
 

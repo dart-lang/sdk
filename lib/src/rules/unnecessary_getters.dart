@@ -13,7 +13,7 @@ const desc =
     'Prefer using a public final field instead of a private field with a public getter.';
 
 const details = '''
-From the [style guide] (https://www.dartlang.org/articles/style-guide/):
+From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **PREFER** using a public final field instead of a private field with a public
 getter.

@@ -25,7 +25,7 @@ Every lint has a:
 ```
 
 **Kind.** The first word in the description should identify the *kind* of lint where kinds are derived from the 
-[style guide] (https://www.dartlang.org/articles/style-guide/). In summary:
+[style guide](https://www.dartlang.org/articles/style-guide/). In summary:
 
  * ***DO*** guidelines describe practices that should always be followed. There will almost never be a valid reason 
 to stray from them.
@@ -44,7 +44,7 @@ on rare occasions.
 precedents, and your own preference.
 
 **Detailed Description.** In addition to the short description, a lint rule should have more detailed rationale 
-with code examples, ideally *good* and *bad*. The [style guide] (https://www.dartlang.org/articles/style-guide/) is 
+with code examples, ideally *good* and *bad*. The [style guide](https://www.dartlang.org/articles/style-guide/) is 
 a great source for inspiration.  Many style recommendations have been directly translated to lints as enumerated
 [here](http://dart-lang.github.io/linter/lints/).
 

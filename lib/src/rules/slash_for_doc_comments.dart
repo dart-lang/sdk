@@ -11,7 +11,7 @@ import 'package:linter/src/linter.dart';
 const desc = r'Prefer to use /// for doc comments';
 
 const details = r'''
-From the [style guide] (https://www.dartlang.org/articles/style-guide/):
+From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **PREFER** to use `///` for doc comments.
 

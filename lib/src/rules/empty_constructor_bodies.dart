@@ -12,7 +12,7 @@ import 'package:linter/src/linter.dart';
 const desc = 'Use `;` instead of `{}` for empty constructor bodies.';
 
 const details = '''
-From the [style guide] (https://www.dartlang.org/articles/style-guide/):
+From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **DO** use ; instead of {} for empty constructor bodies.
 

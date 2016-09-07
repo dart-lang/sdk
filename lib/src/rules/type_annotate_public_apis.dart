@@ -13,7 +13,7 @@ import 'package:linter/src/util.dart';
 const desc = r'Type annotate public APIs.';
 
 const details = r'''
-From [effective dart] (https://www.dartlang.org/effective-dart/design/#do-type-annotate-public-apis):
+From [effective dart](https://www.dartlang.org/effective-dart/design/#do-type-annotate-public-apis):
 
 **DO** type annotate public APIs.
 

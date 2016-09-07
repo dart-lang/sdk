@@ -11,7 +11,7 @@ import 'package:linter/src/linter.dart';
 const desc = "Don't type annotate initializing formals.";
 
 const details = r'''
-From the [style guide] (https://www.dartlang.org/articles/style-guide/):
+From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **DON'T** type annotate initializing formals.
 

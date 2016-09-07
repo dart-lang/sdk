@@ -11,7 +11,7 @@ import 'package:linter/src/linter.dart';
 const desc = 'Name types using UpperCamelCase.';
 
 const details = '''
-From the [style guide] (https://www.dartlang.org/articles/style-guide/):
+From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **DO** name types using UpperCamelCase.
 

@@ -12,7 +12,7 @@ const desc =
     'Avoid defining a one-member abstract class when a simple function will do.';
 
 const details = '''
-From the [style guide] (https://www.dartlang.org/articles/style-guide/):
+From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **AVOID** defining a one-member abstract class when a simple function will do.
 

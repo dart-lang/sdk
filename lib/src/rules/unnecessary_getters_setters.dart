@@ -12,7 +12,7 @@ import 'package:linter/src/linter.dart';
 const desc = 'Avoid wrapping fields in getters and setters just to be "safe".';
 
 const details = '''
-From the [style guide] (https://www.dartlang.org/articles/style-guide/):
+From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 *AVOID** wrapping fields in getters and setters just to be "safe".
 
