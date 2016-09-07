@@ -5095,8 +5095,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   _visit(AstNode node) {
     if (node == null) return null;
     var result = node.accept(this);
-    if (result is JS.Node) result = annotate(result, node);
-    return result;
+    return result is JS.Node ? annotate(result, node) : result;
   }
 
   List/*<T>*/ _visitList/*<T extends AstNode>*/(Iterable/*<T>*/ nodes) {

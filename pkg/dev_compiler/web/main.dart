@@ -29,7 +29,7 @@ Future<int> _runCommand(List<String> args,
     // with ArgResults or ArgParsers.
     var runner = new CommandRunner('dartdevc', 'Dart Development Compiler');
     runner.addCommand(new WebCompileCommand(messageHandler: messageHandler));
-    setUpCompilerInBrowser = allowInterop(await runner.run(args));
+    setUpCompilerInBrowser = allowInterop((await runner.run(args)) as Function);
   } catch (e, s) {
     return _handleError(e, s, args, messageHandler: messageHandler);
   }
