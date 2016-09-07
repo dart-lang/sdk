@@ -43,8 +43,8 @@ main() {
   expectReflectedType(reflectType(C, [B, P]), new C<B, P>().runtimeType);
   expectReflectedType(reflectType(D, [P]), new D<P>().runtimeType);
   expectReflectedType(reflectType(E, [P]), new E<P>().runtimeType);
-  // expectReflectedType(
-  //     reflectType(Predicate, [P]), new Helper<Predicate<P>>().param);
+  expectReflectedType(
+      reflectType(Predicate, [P]), new Helper<Predicate<P>>().param);
   expectReflectedType(
       reflectType(FBounded, [FBounded]), new FBounded<FBounded>().runtimeType);
   expectReflectedType(
