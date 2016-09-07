@@ -499,12 +499,14 @@ class ProgramBuilder {
     return new Class(
         element, name, null, [], instanceFields, [], [], [], [], [], [], null,
         isDirectlyInstantiated: true,
+        hasRtiField: backend.classNeedsRtiField(element),
         onlyForRti: false,
         isNative: backend.isNative(element));
   }
 
   Class _buildClass(ClassElement element) {
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
+    bool hasRtiField = backend.classNeedsRtiField(element);
     if (backend.isJsInterop(element)) {
       // TODO(jacobr): check whether the class has any active static fields
       // if it does not we can suppress it completely.
@@ -635,6 +637,7 @@ class ProgramBuilder {
           isChecks,
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
+          hasRtiField: hasRtiField,
           onlyForRti: onlyForRti);
     } else {
       result = new Class(
@@ -651,6 +654,7 @@ class ProgramBuilder {
           isChecks,
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
+          hasRtiField: hasRtiField,
           onlyForRti: onlyForRti,
           isNative: backend.isNative(element));
     }

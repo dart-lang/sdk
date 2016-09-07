@@ -229,6 +229,7 @@ class Class implements FieldContainer {
   /// noSuchMethod stubs in the special case that the class is Object.
   final List<StubMethod> noSuchMethodStubs;
   final List<Field> staticFieldsForReflection;
+  final bool hasRtiField; // Per-instance runtime type information pseudo-field.
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
   final bool isNative;
@@ -262,7 +263,8 @@ class Class implements FieldContainer {
       this.checkedSetters,
       this.isChecks,
       this.functionTypeIndex,
-      {this.onlyForRti,
+      {this.hasRtiField,
+      this.onlyForRti,
       this.isDirectlyInstantiated,
       this.isNative}) {
     assert(onlyForRti != null);
@@ -297,7 +299,8 @@ class MixinApplication extends Class {
       List<StubMethod> checkedSetters,
       List<StubMethod> isChecks,
       js.Expression functionTypeIndex,
-      {bool onlyForRti,
+      {bool hasRtiField,
+      bool onlyForRti,
       bool isDirectlyInstantiated})
       : super(
             element,
@@ -312,6 +315,7 @@ class MixinApplication extends Class {
             checkedSetters,
             isChecks,
             functionTypeIndex,
+            hasRtiField: hasRtiField,
             onlyForRti: onlyForRti,
             isDirectlyInstantiated: isDirectlyInstantiated,
             isNative: false);

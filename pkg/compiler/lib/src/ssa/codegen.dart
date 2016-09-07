@@ -1943,12 +1943,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.element.isClosure) {
       registry.registerInstantiatedClass(node.element);
     }
-    if (node.instantiatedTypes == null) {
-      return;
-    }
-    node.instantiatedTypes.forEach((type) {
-      registry.registerInstantiation(type);
-    });
+    node.instantiatedTypes?.forEach(registry.registerInstantiation);
   }
 
   js.Expression newLiteralBool(

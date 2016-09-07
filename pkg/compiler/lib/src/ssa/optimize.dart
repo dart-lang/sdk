@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common/codegen.dart' show CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
@@ -50,22 +50,23 @@ class SsaOptimizerTask extends CompilerTask {
 
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     bool trustPrimitives = compiler.options.trustPrimitives;
+    CodegenRegistry registry = work.registry;
     Set<HInstruction> boundsChecked = new Set<HInstruction>();
     SsaCodeMotion codeMotion;
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(constantSystem, backend, this),
+        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
         new SsaTypeConversionInserter(compiler),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         new SsaTypePropagator(compiler),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(constantSystem, backend, this),
+        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
         new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
-        new SsaInstructionSimplifier(constantSystem, backend, this),
+        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
         new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
         new SsaTypePropagator(compiler),
         // Run a dead code eliminator before LICM because dead
@@ -83,7 +84,7 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaValueRangeAnalyzer(compiler, constantSystem, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(constantSystem, backend, this),
+        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
         new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
       ];
       phases.forEach(runPhase);
@@ -102,7 +103,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(compiler, constantSystem, this),
-          new SsaInstructionSimplifier(constantSystem, backend, this),
+          new SsaInstructionSimplifier(constantSystem, backend, this, registry),
           new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
           new SsaSimplifyInterceptors(compiler, constantSystem, work.element),
           new SsaDeadCodeEliminator(compiler, this),
@@ -112,7 +113,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypePropagator(compiler),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(constantSystem, backend, this),
+          new SsaInstructionSimplifier(constantSystem, backend, this, registry),
         ];
       }
       phases.forEach(runPhase);
@@ -155,11 +156,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final String name = "SsaInstructionSimplifier";
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
+  final CodegenRegistry registry;
   HGraph graph;
   Compiler get compiler => backend.compiler;
   final SsaOptimizerTask optimizer;
 
-  SsaInstructionSimplifier(this.constantSystem, this.backend, this.optimizer);
+  SsaInstructionSimplifier(
+      this.constantSystem, this.backend, this.optimizer, this.registry);
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
@@ -1159,36 +1162,44 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // Match:
     //
-    //     setRuntimeTypeInfo(
-    //         HCreate(ClassElement),
-    //         HTypeInfoExpression(t_0, t_1, t_2, ...));
+    //     HCreate(ClassElement,
+    //       [arg_i,
+    //        ...,
+    //        HTypeInfoExpression(t_0, t_1, t_2, ...)]);
     //
     // The `t_i` are the values of the type parameters of ClassElement.
-    if (object is HInvokeStatic) {
-      if (object.element == helpers.setRuntimeTypeInfo) {
-        HInstruction allocation = object.inputs[0];
-        if (allocation is HCreate) {
-          HInstruction typeInfo = object.inputs[1];
-          if (typeInfo is HTypeInfoExpression) {
-            return finishSubstituted(
-                allocation.element, (int index) => typeInfo.inputs[index]);
-          }
-        }
-        return node;
+
+    if (object is HCreate) {
+      void registerInstantiations() {
+        // Forwarding the type variable references might cause the HCreate to
+        // become dead. This breaks the algorithm for generating the per-type
+        // runtime type information, so we instantiate them here in case the
+        // HCreate becomes dead.
+        object.instantiatedTypes?.forEach(registry.registerInstantiation);
       }
-      // TODO(sra): Factory constructors pass type arguments after the value
-      // arguments. The [select] argument indexes into these type arguments.
+
+      if (object.hasRtiInput) {
+        HInstruction typeInfo = object.rtiInput;
+        if (typeInfo is HTypeInfoExpression) {
+          registerInstantiations();
+          return finishSubstituted(
+              object.element, (int index) => typeInfo.inputs[index]);
+        }
+      } else {
+        // Non-generic type (which extends or mixes in a generic type, for
+        // example CodeUnits extends UnmodifiableListBase<int>).  Also used for
+        // raw-type when the type parameters are elided.
+        registerInstantiations();
+        return finishSubstituted(
+            object.element,
+            // If there are type arguments, all type arguments are 'dynamic'.
+            (int i) => graph.addConstantNull(compiler));
+      }
     }
 
-    // Non-generic type (which extends or mixes in a generic type, for example
-    // CodeUnits extends UnmodifiableListBase<int>).
-    // Also used for raw-type when the type parameters are elided.
-    if (object is HCreate) {
-      return finishSubstituted(
-          object.element,
-          // If there are type arguments, all type arguments are 'dynamic'.
-          (int i) => graph.addConstantNull(compiler));
-    }
+    // TODO(sra): Factory constructors pass type arguments after the value
+    // arguments. The [selectTypeArgumentFromObjectCreation] argument of
+    // [finishSubstituted] indexes into these type arguments.
 
     return node;
   }
