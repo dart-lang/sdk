@@ -55,6 +55,12 @@ class MixinFullResolution {
                 .visit(procedure);
           }
         }
+        for (var constructor in class_.constructors) {
+          if (constructor.containsSuperCalls) {
+            new SuperCallResolutionTransformer(hierarchy, class_.superclass)
+                .visit(constructor);
+          }
+        }
       }
     }
   }
