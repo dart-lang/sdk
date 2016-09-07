@@ -131,7 +131,8 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     ConstantInfo result = parseId(json['id']);
     return result
       ..code = json['code']
-      ..size = json['size'];
+      ..size = json['size']
+      ..outputUnit = parseId(json['outputUnit']);
   }
 
   TypedefInfo parseTypedef(Map json) {
@@ -260,6 +261,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       map[info.serializedId] =
           info.uses.map((u) => _visitDependencyInfo(u)).toList();
     }
+
     allInfo.functions.forEach(helper);
     allInfo.fields.forEach(helper);
     return map;
