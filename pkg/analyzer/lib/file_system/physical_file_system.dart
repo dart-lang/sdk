@@ -152,6 +152,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
 
   @override
   List<int> readAsBytesSync() {
+    _throwIfWindowsDeviceDriver();
     try {
       return _file.readAsBytesSync();
     } on io.FileSystemException catch (exception) {
@@ -161,6 +162,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
 
   @override
   String readAsStringSync() {
+    _throwIfWindowsDeviceDriver();
     try {
       return FileBasedSource.fileReadMode(_file.readAsStringSync());
     } on io.FileSystemException catch (exception) {
@@ -351,6 +353,33 @@ abstract class _PhysicalResource implements Resource {
 
   @override
   String toString() => path;
+
+  /**
+   * If the operating system is Windows and the resource references one of the
+   * device drivers, throw a [FileSystemException].
+   *
+   * https://support.microsoft.com/en-us/kb/74496
+   */
+  void _throwIfWindowsDeviceDriver() {
+    if (io.Platform.isWindows) {
+      String shortName = this.shortName.toUpperCase();
+      if (shortName == r'CON' ||
+          shortName == r'PRN' ||
+          shortName == r'AUX' ||
+          shortName == r'CLOCK$' ||
+          shortName == r'NUL' ||
+          shortName == r'COM1' ||
+          shortName == r'LPT1' ||
+          shortName == r'LPT2' ||
+          shortName == r'LPT3' ||
+          shortName == r'COM2' ||
+          shortName == r'COM3' ||
+          shortName == r'COM4') {
+        throw new FileSystemException(
+            path, 'Windows device drivers cannot be read.');
+      }
+    }
+  }
 }
 
 /**
