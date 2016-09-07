@@ -119,6 +119,22 @@ m(x) {
     verify([source]);
   }
 
+  void test_canBeNullAfterNullAware_false_null() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a.hashCode;
+  x?.a.runtimeType;
+  x?.a.toString();
+  x?.b().hashCode;
+  x?.b().runtimeType;
+  x?.b().toString();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_canBeNullAfterNullAware_methodInvocation() {
     Source source = addSource(r'''
 m(x) {
