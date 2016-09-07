@@ -15,7 +15,7 @@ class A {
 }
 
 class B extends A {
-  var foo = 42;
+  dynamic foo = 42;
 }
 
 main() {

@@ -1404,17 +1404,16 @@ class _OverrideChecker {
     }
     FunctionType concreteSubType = subType;
     FunctionType concreteBaseType = baseType;
-    if (element is MethodElement) {
-      if (concreteSubType.typeFormals.isNotEmpty) {
-        if (concreteBaseType.typeFormals.isEmpty) {
-          concreteSubType = rules.instantiateToBounds(concreteSubType);
-        }
+    if (concreteSubType.typeFormals.isNotEmpty) {
+      if (concreteBaseType.typeFormals.isEmpty) {
+        concreteSubType = rules.instantiateToBounds(concreteSubType);
       }
-      concreteSubType =
-          rules.typeToConcreteType(_typeProvider, concreteSubType);
-      concreteBaseType =
-          rules.typeToConcreteType(_typeProvider, concreteBaseType);
     }
+    concreteSubType =
+        rules.typeToConcreteType(_typeProvider, concreteSubType);
+    concreteBaseType =
+        rules.typeToConcreteType(_typeProvider, concreteBaseType);
+
     if (!rules.isSubtypeOf(concreteSubType, concreteBaseType)) {
       // See whether non-subtype cases fit one of our common patterns:
       //

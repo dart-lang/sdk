@@ -586,14 +586,14 @@ class Child extends Base {
   /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/A f1; // invalid for getter
   /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/C f2; // invalid for setter
   /*error:INVALID_FIELD_OVERRIDE*/var f3;
-  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/dynamic f4;
+  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/dynamic f4;
 }
 
 class Child2 implements Base {
   /*error:INVALID_METHOD_OVERRIDE*/A f1; // invalid for getter
   /*error:INVALID_METHOD_OVERRIDE*/C f2; // invalid for setter
   var f3;
-  /*error:INVALID_METHOD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/dynamic f4;
+  /*error:INVALID_METHOD_OVERRIDE*/dynamic f4;
 }
 ''');
   }
@@ -671,7 +671,7 @@ class Child extends Base {
   /*error:INVALID_FIELD_OVERRIDE*/void set f1(A value) {}
   /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/void set f2(C value) {}
   /*error:INVALID_FIELD_OVERRIDE*/void set f3(value) {}
-  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/void set f4(dynamic value) {}
+  /*error:INVALID_FIELD_OVERRIDE*/void set f4(dynamic value) {}
   /*error:INVALID_FIELD_OVERRIDE*/set f5(B value) {}
 }
 
@@ -685,7 +685,7 @@ class Child2 implements Base {
   void set f1(A value) {}
   /*error:INVALID_METHOD_OVERRIDE*/void set f2(C value) {}
   void set f3(value) {}
-  /*error:INVALID_METHOD_OVERRIDE*/void set f4(dynamic value) {}
+  void set f4(dynamic value) {}
   set f5(B value) {}
 }
 ''');
@@ -3186,15 +3186,15 @@ class F {
 class G extends F {
   /*error:INVALID_METHOD_OVERRIDE*/void set f(ToVoid<int> x) {}
   void set g(ToVoid<dynamic> x) {}
-  void set h(int x) {}
-  /*error:INVALID_METHOD_OVERRIDE*/void set i(dynamic x) {}
+  /*error:INVALID_METHOD_OVERRIDE*/void set h(int x) {}
+  void set i(dynamic x) {}
 }
 
 class H implements F {
   /*error:INVALID_METHOD_OVERRIDE*/void set f(ToVoid<int> x) {}
   void set g(ToVoid<dynamic> x) {}
-  void set h(int x) {}
-  /*error:INVALID_METHOD_OVERRIDE*/void set i(dynamic x) {}
+  /*error:INVALID_METHOD_OVERRIDE*/void set h(int x) {}
+  void set i(dynamic x) {}
 }
  ''');
   }
@@ -3235,7 +3235,7 @@ class Child extends Base {
   void set f1(A value) {}
   /*error:INVALID_METHOD_OVERRIDE*/void set f2(C value) {}
   void set f3(value) {}
-  /*error:INVALID_METHOD_OVERRIDE*/void set f4(dynamic value) {}
+  void set f4(dynamic value) {}
   set f5(B value) {}
 }
 ''');
