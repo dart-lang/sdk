@@ -13920,12 +13920,37 @@ class RefactoringProblem implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringProblemSeverity implements Enum {
+  /**
+   * A minor code problem. No example, because it is not used yet.
+   */
   static const INFO = const RefactoringProblemSeverity._("INFO");
 
+  /**
+   * A minor code problem. For example names of local variables should be camel
+   * case and start with a lower case letter. Staring the name of a variable
+   * with an upper case is OK from the language point of view, but it is nice
+   * to warn the user.
+   */
   static const WARNING = const RefactoringProblemSeverity._("WARNING");
 
+  /**
+   * The refactoring technically can be performed, but there is a logical
+   * problem. For example the name of a local variable being extracted
+   * conflicts with another name in the scope, or duplicate parameter names in
+   * the method being extracted, or a conflict between a parameter name and a
+   * local variable, etc. In some cases the location of the problem is also
+   * provided, so the IDE can show user the location and the problem, and let
+   * the user decide whether she wants to perform the refactoring. For example
+   * the name conflict might be expected, and the user wants to fix it
+   * afterwards.
+   */
   static const ERROR = const RefactoringProblemSeverity._("ERROR");
 
+  /**
+   * A fatal error, which prevents performing the refactoring. For example the
+   * name of a local variable being extracted is not a valid identifier, or
+   * selection is not a valid expression.
+   */
   static const FATAL = const RefactoringProblemSeverity._("FATAL");
 
   /**
