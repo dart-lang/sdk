@@ -5,11 +5,11 @@
 library linter.src.analysis;
 
 import 'dart:collection';
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart'
-    show Folder, ResourceUriResolver;
+    show File, Folder, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -34,13 +34,16 @@ import 'package:path/path.dart' as p;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
-Source createSource(Uri sourceUri) =>
-    new FileBasedSource(new JavaFile(sourceUri.toFilePath()));
+Source createSource(Uri sourceUri) {
+  return PhysicalResourceProvider.INSTANCE
+      .getFile(sourceUri.toFilePath())
+      .createSource(sourceUri);
+}
 
 /// Print the given message and exit with the given [exitCode]
 void printAndFail(String message, {int exitCode: 15}) {
   print(message);
-  exit(exitCode);
+  io.exit(exitCode);
 }
 
 AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
@@ -107,7 +110,7 @@ class AnalysisDriver {
     return cli_util.getSdkDir().path;
   }
 
-  List<AnalysisErrorInfo> analyze(Iterable<File> files) {
+  List<AnalysisErrorInfo> analyze(Iterable<io.File> files) {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     registerLinters(context);
 
@@ -120,14 +123,15 @@ class AnalysisDriver {
 
     List<Source> sources = [];
     ChangeSet changeSet = new ChangeSet();
-    for (File file in files) {
-      JavaFile sourceFile = new JavaFile(p.normalize(file.absolute.path));
-      Source source = new FileBasedSource(sourceFile, sourceFile.toURI());
+    for (io.File file in files) {
+      File sourceFile = PhysicalResourceProvider.INSTANCE
+          .getFile(p.normalize(file.absolute.path));
+      Source source = sourceFile.createSource();
       Uri uri = context.sourceFactory.restoreUri(source);
       if (uri != null) {
         // Ensure that we analyze the file using its canonical URI (e.g. if
         // it's in "/lib", analyze it using a "package:" URI).
-        source = new FileBasedSource(sourceFile, uri);
+        source = sourceFile.createSource(uri);
       }
       sources.add(source);
       changeSet.addedSource(source);
@@ -195,7 +199,7 @@ class AnalysisDriver {
       String packageConfigPath = options.packageConfigPath;
       Uri fileUri = new Uri.file(packageConfigPath);
       try {
-        File configFile = new File.fromUri(fileUri).absolute;
+        io.File configFile = new io.File.fromUri(fileUri).absolute;
         List<int> bytes = configFile.readAsBytesSync();
         Map<String, Uri> map = pkgfile.parse(bytes, configFile.uri);
         return new MapPackages(map);
