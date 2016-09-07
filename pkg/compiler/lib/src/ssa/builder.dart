@@ -1494,33 +1494,11 @@ class SsaBuilder extends ast.Visitor
 
     HInstruction newObject;
     if (!isNativeUpgradeFactory) {
-      // Create the runtime type information, if needed.
-      bool hasRtiInput = false;
-      if (backend.classNeedsRtiField(classElement)) {
-        // Read the values of the type arguments and create a
-        // HTypeInfoExpression to set on the newly create object.
-        hasRtiInput = true;
-        List<HInstruction> typeArguments = <HInstruction>[];
-        classElement.typeVariables.forEach((TypeVariableType typeVariable) {
-            HInstruction argument = localsHandler
-                .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
-            typeArguments.add(argument);
-          });
-
-        HInstruction typeInfo = new HTypeInfoExpression(
-            TypeInfoExpressionKind.INSTANCE,
-            classElement.thisType,
-            typeArguments,
-            backend.dynamicType);
-        add(typeInfo);
-        constructorArguments.add(typeInfo);
-      }
-
-      newObject = new HCreate(classElement, constructorArguments, ssaType,
-          instantiatedTypes: instantiatedTypes, hasRtiInput: hasRtiInput);
+      newObject = new HCreate(
+          classElement, constructorArguments, ssaType, instantiatedTypes);
       if (function != null) {
-        // TODO(johnniwinther): Provide source information for creation through
-        // synthetic constructors.
+        // TODO(johnniwinther): Provide source information for creation
+        // through synthetic constructors.
         newObject.sourceInformation =
             sourceInformationBuilder.buildCreate(function);
       }
@@ -1538,6 +1516,26 @@ class SsaBuilder extends ast.Visitor
       }
     }
     removeInlinedInstantiation(type);
+    // Create the runtime type information, if needed.
+    if (classElement.typeVariables.isNotEmpty &&
+        backend.classNeedsRti(classElement)) {
+      // Read the values of the type arguments and create a HTypeInfoExpression
+      // to set on the newly create object.
+      List<HInstruction> typeArguments = <HInstruction>[];
+      classElement.typeVariables.forEach((TypeVariableType typeVariable) {
+        HInstruction argument = localsHandler
+            .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
+        typeArguments.add(argument);
+      });
+
+      HInstruction typeInfo = new HTypeInfoExpression(
+          TypeInfoExpressionKind.INSTANCE,
+          classElement.thisType,
+          typeArguments,
+          backend.dynamicType);
+      add(typeInfo);
+      newObject = callSetRuntimeTypeInfo(typeInfo, newObject);
+    }
 
     // Generate calls to the constructor bodies.
     HInstruction interceptor = null;

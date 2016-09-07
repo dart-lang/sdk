@@ -11,8 +11,8 @@ class ClassStubGenerator {
 
   ClassStubGenerator(this.compiler, this.namer, this.backend);
 
-  jsAst.Expression generateClassConstructor(ClassElement classElement,
-      Iterable<jsAst.Name> fields, bool hasRtiField) {
+  jsAst.Expression generateClassConstructor(
+      ClassElement classElement, Iterable<jsAst.Name> fields) {
     // TODO(sra): Implement placeholders in VariableDeclaration position:
     //
     //     String constructorName = namer.getNameOfClass(classElement);
@@ -20,18 +20,9 @@ class ClassStubGenerator {
     //        [ constructorName, fields,
     //            fields.map(
     //                (name) => js('this.# = #', [name, name]))]));
-    var typeParameters = const <jsAst.Parameter>[];
-    var typeInits = const <jsAst.Expression>[];
-    if (hasRtiField) {
-      String parameterName = r'$ti';
-      typeParameters = parameterName;
-      typeInits = js('this.# = #', [namer.rtiFieldName, parameterName]);
-    }
-    return js('function(#, #) { #; #; this.#();}', [
+    return js('function(#) { #; this.#();}', [
       fields,
-      typeParameters,
       fields.map((name) => js('this.# = #', [name, name])),
-      typeInits,
       namer.deferredAction
     ]);
   }

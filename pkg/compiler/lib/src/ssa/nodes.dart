@@ -1504,9 +1504,6 @@ abstract class HControlFlow extends HInstruction {
 class HCreate extends HInstruction {
   final ClassElement element;
 
-  /// Does this instruction have reified type information as the last input?
-  final bool hasRtiInput;
-
   /// If this field is not `null`, this call is from an inlined constructor and
   /// we have to register the instantiated type in the code generator. The
   /// [instructionType] of this node is not enough, because we also need the
@@ -1514,19 +1511,14 @@ class HCreate extends HInstruction {
   List<DartType> instantiatedTypes;
 
   HCreate(this.element, List<HInstruction> inputs, TypeMask type,
-      {this.instantiatedTypes, this.hasRtiInput: false})
+      [this.instantiatedTypes])
       : super(inputs, type);
-
-  bool get isAllocation => true;
-
-  HInstruction get rtiInput {
-    assert(hasRtiInput);
-    return inputs.last;
-  }
 
   accept(HVisitor visitor) => visitor.visitCreate(this);
 
-  String toString() => 'HCreate($element, ${instantiatedTypes})';
+  bool get isAllocation => true;
+
+  String toString() => 'HCreate($element)';
 }
 
 abstract class HInvoke extends HInstruction {
@@ -3338,7 +3330,7 @@ class HTypeInfoExpression extends HInstruction {
     return kind == other.kind && dartType == other.dartType;
   }
 
-  String toString() => 'HTypeInfoExpression($kindAsString, $dartType)';
+  String toString() => 'HTypeInfoExpression $kindAsString $dartType';
 
   String get kindAsString {
     switch (kind) {
