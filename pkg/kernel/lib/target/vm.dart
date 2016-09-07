@@ -22,9 +22,9 @@ class VmTarget extends Target {
     'dart:isolate',
     'dart:math',
 
-    // dart:mirrors is required except in the PRODUCT configuration.
-    // It is excluded here because the ahead-of time compiler uses the PRODUCT
-    // configuration.
+    // The library dart:mirrors may be ignored by the VM, e.g. when built in
+    // PRODUCT mode.
+    'dart:mirrors',
 
     'dart:profiler',
     'dart:typed_data',
