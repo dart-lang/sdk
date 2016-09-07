@@ -544,11 +544,12 @@ class BinaryBuilder {
             readMemberReference(allowNull: true));
       case Tag.SuperPropertyGet:
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertyGet(readName(), readMemberReference());
+        return new SuperPropertyGet(
+            readName(), readMemberReference(allowNull: true));
       case Tag.SuperPropertySet:
         addTransformerFlag(TransformerFlag.superCalls);
         return new SuperPropertySet(
-            readName(), readExpression(), readMemberReference());
+            readName(), readExpression(), readMemberReference(allowNull: true));
       case Tag.DirectPropertyGet:
         return new DirectPropertyGet(readExpression(), readMemberReference());
       case Tag.DirectPropertySet:
@@ -564,7 +565,7 @@ class BinaryBuilder {
       case Tag.SuperMethodInvocation:
         addTransformerFlag(TransformerFlag.superCalls);
         return new SuperMethodInvocation(
-            readName(), readArguments(), readMemberReference());
+            readName(), readArguments(), readMemberReference(allowNull: true));
       case Tag.DirectMethodInvocation:
         return new DirectMethodInvocation(
             readExpression(), readMemberReference(), readArguments());
