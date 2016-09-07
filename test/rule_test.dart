@@ -37,7 +37,7 @@ defineRuleTests() {
       for (var entry in new Directory(ruleDir).listSync()) {
         if (entry is! File || !isDartFile(entry)) continue;
         var ruleName = p.basenameWithoutExtension(entry.path);
-        testRule(ruleName, entry);
+        testRule(ruleName, entry, debug: true);
       }
     });
     group('pub', () {
@@ -412,7 +412,7 @@ testRule(String ruleName, File file, {bool debug: false}) {
     });
     try {
       expect(actual, unorderedMatches(expected));
-    } on Error catch (e) {
+    } catch (e) {
       if (debug) {
         // Dump results for debugging purposes.
 

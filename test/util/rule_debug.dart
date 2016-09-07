@@ -7,12 +7,13 @@ import 'package:path/path.dart' as p;
 
 import '../rule_test.dart';
 
-/// Solo rule test runner.  Handy for debugging.
+/// Solo rule test runner.  Handy for debugging until `pub run test` supports
+/// VM debugging (https://github.com/dart-lang/test/issues/50).
 ///
 /// Run, for example, like so:
 ///     dart test/util/rule_debug.dart valid_regexps
 ///
-/// To simply run a solo test, consider using `pub run test -N`:
+/// To simply *run* a solo test, consider using `pub run test -N`:
 ///     pub run test -N valid_regexps
 ///
 main(List<String> args) {
