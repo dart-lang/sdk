@@ -2623,6 +2623,10 @@ class HIndex extends HInstruction {
   HInstruction get receiver => inputs[0];
   HInstruction get index => inputs[1];
 
+  // Implicit dependency on HBoundsCheck or constraints on index.
+  // TODO(27272): Make HIndex dependent on bounds checking.
+  bool get isMovable => false;
+
   HInstruction getDartReceiver(Compiler compiler) => receiver;
   bool onlyThrowsNSM() => true;
   bool canThrow() => receiver.canBeNull();
@@ -2652,6 +2656,10 @@ class HIndexAssign extends HInstruction {
   HInstruction get receiver => inputs[0];
   HInstruction get index => inputs[1];
   HInstruction get value => inputs[2];
+
+  // Implicit dependency on HBoundsCheck or constraints on index.
+  // TODO(27272): Make HIndex dependent on bounds checking.
+  bool get isMovable => false;
 
   HInstruction getDartReceiver(Compiler compiler) => receiver;
   bool onlyThrowsNSM() => true;
