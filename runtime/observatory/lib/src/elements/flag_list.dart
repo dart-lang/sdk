@@ -7,11 +7,11 @@ library flag_list_element;
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -20,9 +20,7 @@ import 'package:observatory/src/elements/view_footer.dart';
 
 class FlagListElement extends HtmlElement implements Renderable {
   static const tag = const Tag<FlagListElement>('flag-list',
-                     dependencies: const [NavBarElement.tag,
-                                          NavMenuElement.tag,
-                                          NavNotifyElement.tag,
+                     dependencies: const [NavNotifyElement.tag,
                                           NavRefreshElement.tag,
                                           NavTopMenuElement.tag,
                                           NavVMMenuElement.tag,
@@ -100,23 +98,21 @@ class FlagListElement extends HtmlElement implements Renderable {
     }
 
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavMenuElement('flags', link: Uris.flags(), last: true,
-                             queue: _r.queue),
-          new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              try {
-                await _refresh();
-              } finally {
-                e.element.disabled = false;
-              }
-            }),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        navMenu('flags'),
+        new NavRefreshElement(queue: _r.queue)
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            try {
+              await _refresh();
+            } finally {
+              e.element.disabled = false;
+            }
+          }),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()
         ..classes = ['content-centered']
         ..children = content,

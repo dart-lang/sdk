@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class SourceLinkElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<SourceLinkElement>('source-link-wrapped');
+  static const tag = const Tag<SourceLinkElement>('source-link');
 
   RenderingScheduler _r;
 

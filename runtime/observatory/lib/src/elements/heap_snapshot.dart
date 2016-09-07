@@ -13,12 +13,12 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/containers/virtual_tree.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -34,11 +34,9 @@ class HeapSnapshotElement  extends HtmlElement implements Renderable {
   static const tag = const Tag<HeapSnapshotElement>('heap-snapshot',
                                           dependencies: const [
                                             ClassRefElement.tag,
-                                            NavBarElement.tag,
                                             NavTopMenuElement.tag,
                                             NavVMMenuElement.tag,
                                             NavIsolateMenuElement.tag,
-                                            NavMenuElement.tag,
                                             NavRefreshElement.tag,
                                             NavNotifyElement.tag,
                                             VirtualTreeElement.tag,
@@ -106,20 +104,18 @@ class HeapSnapshotElement  extends HtmlElement implements Renderable {
 
   void render() {
     final content = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavMenuElement('heap snapshot', link: Uris.heapSnapshot(_isolate),
-              last: true, queue: _r.queue),
-          new NavRefreshElement(queue: _r.queue)
-              ..disabled = M.isHeapSnapshotProgressRunning(_progress?.status)
-              ..onRefresh.listen((e) {
-                _refresh();
-              }),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu('heap snapshot'),
+        new NavRefreshElement(queue: _r.queue)
+            ..disabled = M.isHeapSnapshotProgressRunning(_progress?.status)
+            ..onRefresh.listen((e) {
+              _refresh();
+            }),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
     ];
     if (_progress == null) {
       children = content;

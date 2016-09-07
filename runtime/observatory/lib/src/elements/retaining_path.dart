@@ -67,7 +67,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
   void render() {
     children = [
       new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-        ..children = _createContent()
+        ..content = _createContent()
         ..onToggle.listen((e) async {
           _expanded = e.control.expanded;
           if (_expanded) {

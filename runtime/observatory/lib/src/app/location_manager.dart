@@ -4,7 +4,7 @@
 
 part of app;
 
-class LocationManager extends Observable {
+class LocationManager {
   final _defaultPath = '/vm';
 
   final ObservatoryApplication _app;

@@ -79,7 +79,7 @@ vars = {
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mustache4dart_tag" : "@v1.0.10",
   "oauth2_tag": "@1.0.2",
-  "observatory_pub_packages_rev": "@a01235b5b71df27b602dae4676d0bf771cbe7fa2",
+  "observatory_pub_packages_rev": "@26aad88f1c1915d39bbcbff3cad589e2402fdcf1",
   "observe_tag": "@0.13.5",
   "package_config_tag": "@1.0.0",
   "package_resolver_tag": "@1.0.2",

@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class LibraryRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<LibraryRefElement>('library-ref-wrapped');
+  static const tag = const Tag<LibraryRefElement>('library-ref');
 
   RenderingScheduler<LibraryRefElement> _r;
 

@@ -27,14 +27,15 @@ main() {
     test('created', () async {
       final label = 'custom-label';
       final e = new NavMenuItemElement(label);
+      e.content = [document.createElement('content')];
       document.body.append(e);
       await e.onRendered.first;
-      expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
-      expect(e.shadowRoot.querySelector('content'), isNotNull,
+      expect(e.children.length, isNonZero, reason: 'has elements');
+      expect(e.querySelector('content'), isNotNull,
                                                  reason: 'has content elements');
       e.remove();
       await e.onRendered.first;
-      expect(e.shadowRoot.children.length, isZero, reason: 'is empty');
+      expect(e.children.length, isZero, reason: 'is empty');
     });
     test('react to label change', () async {
       final label1 = 'custom-label-1';
@@ -42,12 +43,12 @@ main() {
       final e = new NavMenuItemElement(label1);
       document.body.append(e);
       await e.onRendered.first;
-      expect(e.shadowRoot.innerHtml.contains(label1), isTrue);
-      expect(e.shadowRoot.innerHtml.contains(label2), isFalse);
+      expect(e.innerHtml.contains(label1), isTrue);
+      expect(e.innerHtml.contains(label2), isFalse);
       e.label = label2;
       await e.onRendered.first;
-      expect(e.shadowRoot.innerHtml.contains(label1), isFalse);
-      expect(e.shadowRoot.innerHtml.contains(label2), isTrue);
+      expect(e.innerHtml.contains(label1), isFalse);
+      expect(e.innerHtml.contains(label2), isTrue);
       e.remove();
       await e.onRendered.first;
     });
@@ -58,12 +59,12 @@ main() {
       final e = new NavMenuItemElement(label, link: link1);
       document.body.append(e);
       await e.onRendered.first;
-      expect(e.shadowRoot.innerHtml.contains(link1), isTrue);
-      expect(e.shadowRoot.innerHtml.contains(link2), isFalse);
+      expect(e.innerHtml.contains(link1), isTrue);
+      expect(e.innerHtml.contains(link2), isFalse);
       e.link = link2;
       await e.onRendered.first;
-      expect(e.shadowRoot.innerHtml.contains(link1), isFalse);
-      expect(e.shadowRoot.innerHtml.contains(link2), isTrue);
+      expect(e.innerHtml.contains(link1), isFalse);
+      expect(e.innerHtml.contains(link2), isTrue);
       e.remove();
       await e.onRendered.first;
     });

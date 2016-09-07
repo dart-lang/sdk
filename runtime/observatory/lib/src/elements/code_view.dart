@@ -14,12 +14,12 @@ import 'package:observatory/app.dart'
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -41,12 +41,10 @@ class CodeViewElement extends HtmlElement implements Renderable {
                                             dependencies: const [
                                               CurlyBlockElement.tag,
                                               FunctionRefElement.tag,
-                                              NavBarElement.tag,
                                               NavClassMenuElement.tag,
                                               NavTopMenuElement.tag,
                                               NavVMMenuElement.tag,
                                               NavIsolateMenuElement.tag,
-                                              NavMenuElement.tag,
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
                                               ObjectCommonElement.tag,
@@ -194,24 +192,23 @@ class CodeViewElement extends HtmlElement implements Renderable {
     final inlinedFunctions = _code.inlinedFunctions.toList();
     final S.Code code = _code as S.Code;
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavMenuElement(_code.name, last: true, queue: _r.queue),
-          new NavRefreshElement(queue: _r.queue)
-              ..onRefresh.listen((e) async {
-                e.element.disabled = true;
-                _refresh();
-              }),
-          new NavRefreshElement(label: 'refresh ticks', queue: _r.queue)
-              ..onRefresh.listen((e) async {
-                e.element.disabled = true;
-                _refreshTicks();
-              }),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu(_code.name),
+        new NavRefreshElement(queue: _r.queue)
+            ..onRefresh.listen((e) async {
+              e.element.disabled = true;
+              _refresh();
+            }),
+        new NavRefreshElement(label: 'refresh ticks', queue: _r.queue)
+            ..onRefresh.listen((e) async {
+              e.element.disabled = true;
+              _refreshTicks();
+            }),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h1()
@@ -290,7 +287,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
                         new CurlyBlockElement(
                             expanded: inlinedFunctions.length < 8,
                             queue: _r.queue)
-                          ..children = inlinedFunctions.map((f) =>
+                          ..content = inlinedFunctions.map((f) =>
                             new FunctionRefElement(_isolate, f, queue: _r.queue)
                           ).toList()
                       ]

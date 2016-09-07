@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class CodeRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<CodeRefElement>('code-ref-wrapped');
+  static const tag = const Tag<CodeRefElement>('code-ref');
 
   RenderingScheduler<CodeRefElement> _r;
 

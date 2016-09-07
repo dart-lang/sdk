@@ -13,13 +13,13 @@ import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/field_ref.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -37,13 +37,11 @@ class FunctionViewElement extends HtmlElement implements Renderable {
                                               CurlyBlockElement.tag,
                                               FieldRefElement.tag,
                                               InstanceRefElement.tag,
-                                              NavBarElement.tag,
                                               NavClassMenuElement.tag,
                                               NavLibraryMenuElement.tag,
                                               NavTopMenuElement.tag,
                                               NavVMMenuElement.tag,
                                               NavIsolateMenuElement.tag,
-                                              NavMenuElement.tag,
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
                                               ObjectCommonElement.tag,
@@ -141,8 +139,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = _createMenu(),
+      navBar(_createMenu()),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Function ${_function.name}',
@@ -180,7 +177,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
       );
     }
     menu.addAll([
-      new NavMenuElement(_function.name, last: true, queue: _r.queue),
+      navMenu(_function.name),
       new NavRefreshElement(queue: _r.queue)
           ..onRefresh.listen((e) {
             e.element.disabled = true;

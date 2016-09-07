@@ -22,9 +22,9 @@ main() {
     final e = new NavLibraryMenuElement(i_ref, l_ref);
     document.body.append(e);
     await e.onRendered.first;
-    expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
+    expect(e.children.length, isNonZero, reason: 'has elements');
     e.remove();
     await e.onRendered.first;
-    expect(e.shadowRoot.children.length, isZero, reason: 'is empty');
+    expect(e.children.length, isZero, reason: 'is empty');
   });
 }

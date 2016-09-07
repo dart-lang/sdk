@@ -10,11 +10,11 @@ import 'dart:math';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -22,11 +22,9 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 class HeapMapElement  extends HtmlElement implements Renderable {
   static const tag = const Tag<HeapMapElement>('heap-map',
                                             dependencies: const [
-                                              NavBarElement.tag,
                                               NavTopMenuElement.tag,
                                               NavVMMenuElement.tag,
                                               NavIsolateMenuElement.tag,
-                                              NavMenuElement.tag,
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
                                             ]);
@@ -103,17 +101,15 @@ class HeapMapElement  extends HtmlElement implements Renderable {
                   ..onMouseDown.listen(_handleClick);
     }
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavMenuElement('heap map', last: true,
-              link: Uris.heapMap(_isolate), queue: _r.queue),
-          new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((_) => _refresh()),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu('heap map'),
+        new NavRefreshElement(queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh()),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = _status,
@@ -230,7 +226,7 @@ class HeapMapElement  extends HtmlElement implements Renderable {
     _updateClassList(
         _fragmentation['classList'], _fragmentation['freeClassId']);
     var pages = _fragmentation['pages'];
-    var width = _canvas.parent.client.width;
+    var width = max(_canvas.parent.client.width, 1);
     _pageHeight = _PAGE_SEPARATION_HEIGHT +
         _fragmentation['pageSizeBytes'] ~/
         _fragmentation['unitSizeBytes'] ~/ width;

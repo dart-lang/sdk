@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ScriptRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ScriptRefElement>('script-ref-wrapped');
+  static const tag = const Tag<ScriptRefElement>('script-ref');
 
   RenderingScheduler _r;
 

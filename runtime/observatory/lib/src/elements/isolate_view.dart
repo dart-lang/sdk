@@ -10,6 +10,7 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/eval_box.dart';
 import 'package:observatory/src/elements/function_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -17,7 +18,6 @@ import 'package:observatory/src/elements/isolate/location.dart';
 import 'package:observatory/src/elements/isolate/run_state.dart';
 import 'package:observatory/src/elements/isolate/shared_summary.dart';
 import 'package:observatory/src/elements/library_ref.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -38,7 +38,6 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                                               IsolateRunStateElement.tag,
                                               IsolateSharedSummaryElement.tag,
                                               LibraryRefElement.tag,
-                                              NavBarElement.tag,
                                               NavClassMenuElement.tag,
                                               NavTopMenuElement.tag,
                                               NavIsolateMenuElement.tag,
@@ -133,27 +132,26 @@ class IsolateViewElement extends HtmlElement implements Renderable {
     final uptime = new DateTime.now().difference(_isolate.startTime);
     final libraries = _isolate.libraries.toList();
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, last: true,
-                                    queue: _r.queue),
-          new NavRefreshElement(label: 'reload source', queue: _r.queue)
-              ..onRefresh.listen((e) async {
-                e.element.disabled = true;
-                await _isolates.reloadSources(_isolate);
-                _r.dirty();
-              }),
-          new NavRefreshElement(queue: _r.queue)
-              ..onRefresh.listen((e) async {
-                e.element.disabled = true;
-                _isolate = await _isolates.get(_isolate);
-                await _loadExtraData();
-                _r.dirty();
-              }),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events,
+                                  queue: _r.queue),
+        new NavRefreshElement(label: 'reload source', queue: _r.queue)
+            ..onRefresh.listen((e) async {
+              e.element.disabled = true;
+              await _isolates.reloadSources(_isolate);
+              _r.dirty();
+            }),
+        new NavRefreshElement(queue: _r.queue)
+            ..onRefresh.listen((e) async {
+              e.element.disabled = true;
+              _isolate = await _isolates.get(_isolate);
+              await _loadExtraData();
+              _r.dirty();
+            }),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Isolate ${_isolate.name}',
@@ -257,7 +255,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                   new DivElement()..classes = ['memberValue']
                     ..children = [
                       new CurlyBlockElement(queue: _r.queue)
-                        ..children = libraries.map((l) =>
+                        ..content = libraries.map((l) =>
                           new DivElement()
                             ..children = [
                               new LibraryRefElement(_isolate, l,

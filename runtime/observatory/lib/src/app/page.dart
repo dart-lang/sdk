@@ -48,11 +48,10 @@ RetainingPathRepository _retainingPathRepository
 /// one page will be the current page. Pages are registered at startup.
 /// When the user navigates within the application, each page is asked if it
 /// can handle the current location, the first page to say yes, wins.
-abstract class Page extends Observable {
+abstract class Page {
   final ObservatoryApplication app;
-  final ObservableMap<String, String> internalArguments =
-      new ObservableMap<String, String>();
-  @observable HtmlElement element;
+  final Map<String, String> internalArguments = <String, String>{};
+  HtmlElement element;
 
   Page(this.app);
 
@@ -458,8 +457,8 @@ class DebuggerPage extends MatchingPage {
 
   @override
   void onUninstall() {
-    assert(element != null);
-    element.children = const [];
+    super.onUninstall();
+    container.children = const [];
   }
 }
 
@@ -561,9 +560,11 @@ class AllocationProfilerPage extends MatchingPage {
     app.startGCEventListener();
   }
 
+  @override
   void onUninstall() {
     super.onUninstall();
     app.stopGCEventListener();
+    container.children = const [];
   }
 }
 
@@ -673,6 +674,8 @@ class LoggingPage extends MatchingPage {
 
   @override
   void onUninstall() {
+    super.onUninstall();
+    container.children = const [];
     app.stopLoggingEventListener();
   }
 
@@ -780,7 +783,9 @@ class MetricsPage extends MatchingPage {
 
   @override
   void onUninstall() {
+    super.onUninstall();
     _metricRepository.stopSampling(lastIsolate);
+    container.children = const [];
   }
 }
 

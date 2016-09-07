@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 
 class SourceInsetElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<SourceInsetElement>('source-inset-wrapped');
+  static const tag = const Tag<SourceInsetElement>('source-inset');
 
   RenderingScheduler _r;
 

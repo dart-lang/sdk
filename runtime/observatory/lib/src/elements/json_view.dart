@@ -7,9 +7,9 @@ library json_view_element;
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
@@ -17,7 +17,6 @@ import 'package:observatory/src/elements/view_footer.dart';
 class JSONViewElement extends HtmlElement implements Renderable {
   static const tag = const Tag<JSONViewElement>('json-view',
                                                 dependencies: const [
-                                                  NavBarElement.tag,
                                                   NavTopMenuElement.tag,
                                                   NavNotifyElement.tag,
                                                   ViewFooterElement.tag
@@ -63,11 +62,10 @@ class JSONViewElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Object',

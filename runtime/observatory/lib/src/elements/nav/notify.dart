@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/nav/notify_event.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
 
 class NavNotifyElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<NavNotifyElement>('nav-notify-wrapped',
+  static const tag = const Tag<NavNotifyElement>('nav-notify',
           dependencies: const [ NavNotifyEventElement.tag,
                                 NavNotifyExceptionElement.tag ]);
 
@@ -25,7 +25,7 @@ class NavNotifyElement extends HtmlElement implements Renderable {
   bool _notifyOnPause;
 
   bool get notifyOnPause => _notifyOnPause;
-  
+
   set notifyOnPause(bool value) =>
       _notifyOnPause = _r.checkAndReact(_notifyOnPause, value);
 

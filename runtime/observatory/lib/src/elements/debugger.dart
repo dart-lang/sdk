@@ -15,13 +15,13 @@ import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
@@ -1914,11 +1914,9 @@ class ObservatoryDebugger extends Debugger {
 class DebuggerPageElement  extends HtmlElement implements Renderable {
   static const tag = const Tag<DebuggerPageElement>('debugger-page',
                                                     dependencies: const [
-                                                      NavBarElement.tag,
                                                       NavTopMenuElement.tag,
                                                       NavVMMenuElement.tag,
                                                       NavIsolateMenuElement.tag,
-                                                      NavMenuElement.tag,
                                                       NavNotifyElement.tag,
                                                     ]);
 
@@ -1978,15 +1976,14 @@ class DebuggerPageElement  extends HtmlElement implements Renderable {
       ..children = [commandElement];
 
     children = [
-      new NavBarElement(queue: app.queue)
-        ..children = [
-          new NavTopMenuElement(queue: app.queue),
-          new NavVMMenuElement(app.vm, app.events, queue: app.queue),
-          new NavIsolateMenuElement(_isolate, app.events, queue: app.queue),
-          new NavMenuElement('debugger', last: true, queue: app.queue),
-          new NavNotifyElement(app.notifications, notifyOnPause: false,
-                               queue: app.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: app.queue),
+        new NavVMMenuElement(app.vm, app.events, queue: app.queue),
+        new NavIsolateMenuElement(_isolate, app.events, queue: app.queue),
+        navMenu('debugger'),
+        new NavNotifyElement(app.notifications, notifyOnPause: false,
+                             queue: app.queue)
+      ]),
       new DivElement()..classes = ['variable']
         ..children = [
           stackDiv,

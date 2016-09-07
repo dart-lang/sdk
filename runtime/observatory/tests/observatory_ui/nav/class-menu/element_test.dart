@@ -20,11 +20,12 @@ main() {
   });
   test('elements created after attachment', () async {
     final e = new NavClassMenuElement(i_ref, c_ref);
+    e.content = [document.createElement('content')];
     document.body.append(e);
     await e.onRendered.first;
-    expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
+    expect(e.children.length, isNonZero, reason: 'has elements');
     e.remove();
     await e.onRendered.first;
-    expect(e.shadowRoot.children.length, isZero, reason: 'is empty');
+    expect(e.children.length, isZero, reason: 'is empty');
   });
 }

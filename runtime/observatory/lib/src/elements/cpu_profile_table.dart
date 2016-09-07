@@ -10,12 +10,12 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
 import 'package:observatory/src/elements/cpu_profile/virtual_tree.dart';
 import 'package:observatory/src/elements/function_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -47,11 +47,9 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
   static const tag = const Tag<CpuProfileTableElement>('cpu-profile-table',
                                             dependencies: const [
                                               FunctionRefElement.tag,
-                                              NavBarElement.tag,
                                               NavTopMenuElement.tag,
                                               NavVMMenuElement.tag,
                                               NavIsolateMenuElement.tag,
-                                              NavMenuElement.tag,
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
                                               SampleBufferControlElement.tag,
@@ -127,19 +125,17 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
 
   void render() {
     var content = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavMenuElement('cpu profile (table)',
-              link: Uris.cpuProfilerTable(_isolate), last: true, queue: _r.queue),
-          new NavRefreshElement(queue: _r.queue)
-              ..onRefresh.listen(_refresh),
-          new NavRefreshElement(label: 'Clear', queue: _r.queue)
-              ..onRefresh.listen(_clearCpuProfile),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu('cpu profile (table)'),
+        new NavRefreshElement(queue: _r.queue)
+            ..onRefresh.listen(_refresh),
+        new NavRefreshElement(label: 'Clear', queue: _r.queue)
+            ..onRefresh.listen(_clearCpuProfile),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
     ];
     if (_progress == null) {
       children = content;
@@ -260,7 +256,7 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
           _createHeaderButton(const ['name'], 'Method',
                               _Table.functions,
                               _SortingField.method,
-                              _SortingDirection.descending),
+                              _SortingDirection.ascending),
       ];
 
     void _setSorting(_Table table,
@@ -317,7 +313,7 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
           _createHeaderButton(const ['name'], 'Method',
                               _Table.callee,
                               _SortingField.method,
-                              _SortingDirection.descending),
+                              _SortingDirection.ascending),
       ];
 
   Element _createCaller() {
@@ -355,7 +351,7 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
           _createHeaderButton(const ['name'], 'Method',
                               _Table.caller,
                               _SortingField.method,
-                              _SortingDirection.descending),
+                              _SortingDirection.ascending),
       ];
 
   ButtonElement _createHeaderButton(List<String> classes,

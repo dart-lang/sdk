@@ -6,7 +6,7 @@ part of app;
 
 /// The observatory application. Instances of this are created and owned
 /// by the observatory_application custom element.
-class ObservatoryApplication extends Observable {
+class ObservatoryApplication {
   static ObservatoryApplication app;
   final RenderingQueue queue = new RenderingQueue();
   final TargetRepository targets = new TargetRepository();
@@ -15,7 +15,7 @@ class ObservatoryApplication extends Observable {
   final _pageRegistry = new List<Page>();
   LocationManager _locationManager;
   LocationManager get locationManager => _locationManager;
-  @observable Page currentPage;
+  Page currentPage;
   VM _vm;
   VM get vm => _vm;
 
@@ -88,9 +88,9 @@ class ObservatoryApplication extends Observable {
   }
 
 
-  @reflectable final ObservatoryApplicationElement rootElement;
+  final ObservatoryApplicationElement rootElement;
 
-  @reflectable ServiceObject lastErrorOrException;
+  ServiceObject lastErrorOrException;
 
   void _initOnce() {
     assert(app == null);

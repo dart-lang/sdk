@@ -9,12 +9,12 @@ import "package:charted/charts/charts.dart";
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -46,11 +46,9 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
   static const tag = const Tag<AllocationProfileElement>('allocation-profile',
                                             dependencies: const [
                                               ClassRefElement.tag,
-                                              NavBarElement.tag,
                                               NavTopMenuElement.tag,
                                               NavVMMenuElement.tag,
                                               NavIsolateMenuElement.tag,
-                                              NavMenuElement.tag,
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
                                               VirtualCollectionElement.tag
@@ -122,34 +120,32 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavMenuElement('allocation profile', last: true,
-              link: Uris.allocationProfiler(_isolate), queue: _r.queue),
-          new NavRefreshElement(label: 'Download', disabled: _profile == null,
-              queue: _r.queue)
-            ..onRefresh.listen((_) => _downloadCSV()),
-          new NavRefreshElement(label: 'Reset Accumulator', queue: _r.queue)
-            ..onRefresh.listen((_) => _refresh(reset: true)),
-          new NavRefreshElement(label: 'GC', queue: _r.queue)
-            ..onRefresh.listen((_) => _refresh(gc: true)),
-          new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((_) => _refresh()),
-          new DivElement()..classes = ['nav-option']
-            ..children = [
-              new CheckboxInputElement()
-                ..id = 'allocation-profile-auto-refresh'
-                ..checked = _autoRefresh
-                ..onChange.listen((_) => _autoRefresh = !_autoRefresh),
-              new LabelElement()
-                ..htmlFor = 'allocation-profile-auto-refresh'
-                ..text = 'Auto-refresh on GC'
-            ],
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu('allocation profile'),
+        new NavRefreshElement(label: 'Download', disabled: _profile == null,
+            queue: _r.queue)
+          ..onRefresh.listen((_) => _downloadCSV()),
+        new NavRefreshElement(label: 'Reset Accumulator', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(reset: true)),
+        new NavRefreshElement(label: 'GC', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(gc: true)),
+        new NavRefreshElement(queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh()),
+        new DivElement()..classes = ['nav-option']
+          ..children = [
+            new CheckboxInputElement()
+              ..id = 'allocation-profile-auto-refresh'
+              ..checked = _autoRefresh
+              ..onChange.listen((_) => _autoRefresh = !_autoRefresh),
+            new LabelElement()
+              ..htmlFor = 'allocation-profile-auto-refresh'
+              ..text = 'Auto-refresh on GC'
+          ],
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Allocation Profile',

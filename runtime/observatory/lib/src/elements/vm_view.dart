@@ -7,11 +7,11 @@ library vm_view_element;
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate/summary.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -22,7 +22,6 @@ class VMViewElement extends HtmlElement implements Renderable {
   static const tag = const Tag<VMViewElement>('vm-view',
                                             dependencies: const [
                                               IsolateSummaryElement.tag,
-                                              NavBarElement.tag,
                                               NavTopMenuElement.tag,
                                               NavVMMenuElement.tag,
                                               NavRefreshElement.tag,
@@ -92,17 +91,16 @@ class VMViewElement extends HtmlElement implements Renderable {
     final uptime = new DateTime.now().difference(_vm.startTime);
     final isolates = _vm.isolates.toList();
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, last: true, queue: _r.queue),
-          new NavRefreshElement(queue: _r.queue)
-              ..onRefresh.listen((e) async {
-                e.element.disabled = true;
-                _r.dirty();
-              }),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavRefreshElement(queue: _r.queue)
+            ..onRefresh.listen((e) async {
+              e.element.disabled = true;
+              _r.dirty();
+            }),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h1()..text = 'VM',

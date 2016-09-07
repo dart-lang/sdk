@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 
 class FieldRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<FieldRefElement>('field-ref-wrapped',
+  static const tag = const Tag<FieldRefElement>('field-ref',
                                                 dependencies: const [
                                                   InstanceRefElement.tag
                                                 ]);

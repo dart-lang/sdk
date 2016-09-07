@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 
 class EvalBoxElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<EvalBoxElement>('eval-box-wrapped',
+  static const tag = const Tag<EvalBoxElement>('eval-box',
                                                 dependencies: const [
                                                   InstanceRefElement.tag
                                                 ]);
