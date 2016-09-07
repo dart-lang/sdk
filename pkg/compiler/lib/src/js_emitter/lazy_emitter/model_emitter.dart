@@ -625,6 +625,9 @@ class ModelEmitter {
     // or RTI. In either case we don't need its fields.
     if (cls.isDirectlyInstantiated && !cls.isNative) {
       fieldNames = cls.fields.map((Field field) => field.name).toList();
+      if (cls.hasRtiField) {
+        fieldNames.add(namer.rtiFieldName);
+      }
     }
     js.Name name = cls.name;
 

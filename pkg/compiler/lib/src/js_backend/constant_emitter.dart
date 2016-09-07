@@ -251,10 +251,14 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
           "Compiler and ${className} disagree on number of fields.");
     }
 
+    if (backend.classNeedsRtiField(classElement)) {
+      arguments.add(_reifiedTypeArguments(constant.type));
+    }
+
     jsAst.Expression constructor =
         backend.emitter.constructorAccess(classElement);
     jsAst.Expression value = new jsAst.New(constructor, arguments);
-    return maybeAddTypeArguments(constant.type, value);
+    return value;
   }
 
   JavaScriptBackend get backend => compiler.backend;
@@ -307,6 +311,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     element.forEachInstanceField((_, FieldElement field) {
       fields.add(constantReferenceGenerator(constant.fields[field]));
     }, includeSuperAndInjectedMembers: true);
+    if (backend.classNeedsRtiField(constant.type.element)) {
+      fields.add(_reifiedTypeArguments(constant.type));
+    }
     jsAst.New instantiation = new jsAst.New(constructor, fields);
     return maybeAddTypeArguments(constant.type, instantiation);
   }
