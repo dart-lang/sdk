@@ -16,6 +16,7 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
+import 'package:analyzer/src/generated/sdk.dart';
 
 // Returns the path to the current sdk based on `Platform.resolvedExecutable`.
 String currentSdk() {
@@ -148,12 +149,20 @@ void dumpString(String value, [String filename]) {
 /// Maintains state that should be shared between batched executions when
 /// running in batch mode (for testing purposes).
 ///
-/// Currently all shared state is disabled, as it causes flakiness when
-/// two different test cases share the same 'part' file.
+/// This reuses the analyzer's in-memory copy of the Dart SDK between runs.
 class BatchModeState {
+  DartSdk dartSdk;
+  String sdk;
+  bool strongMode;
+
   AnalysisContext getContext(
       String sdk_, String packageRoot_, bool strongMode_) {
-    return createContext(sdk_, packageRoot_, strongMode_);
+    if (dartSdk == null || this.sdk != sdk_ || this.strongMode != strongMode_) {
+      dartSdk = createDartSdk(sdk_, strongMode);
+      this.sdk = sdk_;
+      this.strongMode = strongMode_;
+    }
+    return createContext(sdk_, packageRoot_, strongMode_, dartSdk: dartSdk);
   }
 }
 

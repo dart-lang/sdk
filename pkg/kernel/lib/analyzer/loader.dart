@@ -15,9 +15,9 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 
 abstract class ReferenceLevelLoader {
   ast.Library getLibraryReference(LibraryElement element);
@@ -423,11 +423,27 @@ class LoadMap<K, V> {
   }
 }
 
-AnalysisContext createContext(String sdk, String packageRoot, bool strongMode) {
-  if (sdk != null) {
-    JavaSystemIO.setProperty("com.google.dart.sdk", sdk);
-  }
-  DartSdk dartSdk = DirectoryBasedDartSdk.defaultSdk;
+AnalysisOptions createAnalysisOptions(bool strongMode) {
+  return new AnalysisOptionsImpl()
+    ..strongMode = strongMode
+    ..enableGenericMethods = strongMode
+    ..preserveComments = false
+    ..hint = false
+    ..generateImplicitErrors = false
+    ..enableSuperMixins = true;
+}
+
+DartSdk createDartSdk(String path, bool strongMode) {
+  var resources = PhysicalResourceProvider.INSTANCE;
+  return new FolderBasedDartSdk(resources, resources.getFolder(path))
+    ..context
+        .analysisOptions
+        .setCrossContextOptionsFrom(createAnalysisOptions(strongMode));
+}
+
+AnalysisContext createContext(String sdk, String packageRoot, bool strongMode,
+    {DartSdk dartSdk}) {
+  dartSdk ??= createDartSdk(sdk, strongMode);
 
   List<UriResolver> resolvers = [
     new DartUriResolver(dartSdk),
@@ -440,14 +456,8 @@ AnalysisContext createContext(String sdk, String packageRoot, bool strongMode) {
   }
 
   AnalysisContext context = AnalysisEngine.instance.createAnalysisContext()
-    ..sourceFactory = new SourceFactory(resolvers);
-
-  context.analysisOptions = new AnalysisOptionsImpl()
-    ..strongMode = strongMode
-    ..preserveComments = false
-    ..hint = false
-    ..generateImplicitErrors = false
-    ..enableSuperMixins = true;
+    ..sourceFactory = new SourceFactory(resolvers)
+    ..analysisOptions = createAnalysisOptions(strongMode);
 
   return context;
 }
