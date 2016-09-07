@@ -90,8 +90,7 @@ def ArchiveAndUpload(info, archive_latest=False):
       info.mode,
       dartium_archive,
       drt_archive,
-      chromedriver_archive,
-      is_win_ninja=False)
+      chromedriver_archive)
 
   status = 0
   # Upload bleeding-edge builds to old dartium-archive bucket

@@ -132,7 +132,7 @@ def StageAndZip(fileList, target):
 
 
 def Archive(srcpath, mode, dartium_target, contentshell_target,
-            chromedriver_target, is_win_ninja=False):
+            chromedriver_target):
   # We currently build using ninja on mac debug.
   if HOST_OS == 'mac':
     releaseDir = os.path.join(srcpath, 'out', mode)
@@ -142,10 +142,7 @@ def Archive(srcpath, mode, dartium_target, contentshell_target,
     releaseDir = os.path.join(srcpath, 'out', mode)
     extra_files = []
   elif HOST_OS == 'win':
-    if is_win_ninja:
-      releaseDir = os.path.join(srcpath, 'out', mode)
-    else:
-      releaseDir = os.path.join(srcpath, 'out', mode)
+    releaseDir = os.path.join(srcpath, 'out', mode)
     # issue(16760) - we _need_ to fix our parsing of the FILES.cfg
     extra_files = [file for file in os.listdir(releaseDir) if file.endswith('manifest')]
   else:

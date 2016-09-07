@@ -112,9 +112,6 @@ def main():
                     default=None,
                     action='store', type='string',
                     help='Test filter for core tests')
-  parser.add_option('--win-ninja-build', action='store_true',
-                    default=False, dest='is_win_ninja',
-                    help='We are on windows and use ninja for building.')
 
   (options, args) = parser.parse_args()
   mode = options.mode
@@ -158,8 +155,6 @@ def main():
     show_results = '--no-show-results'
 
   host_os = utils.guessOS()
-  if options.is_win_ninja:
-    host_os = 'win-ninja'
   build_root, drt_path, dartium_path, dart_path  = {
       'mac': (
         'out',
@@ -169,7 +164,6 @@ def main():
       ),
       'linux': ('out', 'content_shell', 'chrome', 'dart'),
       'win': ('out', 'content_shell.exe', 'chrome.exe', 'dart.exe'),
-      'win-ninja': ('out', 'content_shell.exe', 'chrome.exe', 'dart.exe'),
   }[host_os]
 
   build_dir = os.path.join(srcpath, build_root, mode)
