@@ -272,14 +272,14 @@ static int run_test(mx_handle_t binary_vmo, const char* test_name,
       p, MX_SIGNAL_SIGNALED, MX_TIME_INFINITE, &state);
   RETURN_IF_ERROR(r);
 
-  mx_process_info_t proc_info;
+  mx_info_process_t proc_info;
   mx_ssize_t info_size = mx_object_get_info(
-      p, MX_INFO_PROCESS, &proc_info, sizeof(proc_info));
+      p, MX_INFO_PROCESS, sizeof(proc_info.rec), &proc_info, sizeof(proc_info));
   RETURN_IF_ERROR(info_size);
 
   r = mx_handle_close(p);
   RETURN_IF_ERROR(r);
-  return proc_info.return_code;
+  return proc_info.rec.return_code;
 }
 
 
