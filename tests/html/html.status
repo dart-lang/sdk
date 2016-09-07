@@ -34,9 +34,6 @@ js_type_test/dynamic-String-not-dynamic-Foo: Fail  # Issue 26838
 [ $compiler == dart2js && $checked ]
 js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
 
-[ $compiler == dart2js && $checked && $browser && $runtime != drt]
-js_typed_interop_test/method: Fail # Issue 24822
-
 [ $compiler == dart2js && $csp && $browser ]
 custom/js_custom_test: Fail # Issue 14643
 custom/element_upgrade_test: Fail # Issue 17298

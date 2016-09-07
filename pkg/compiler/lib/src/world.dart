@@ -18,6 +18,7 @@ import 'elements/elements.dart'
         MixinApplicationElement,
         TypedefElement,
         VariableElement;
+import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'ordered_typeset.dart';
 import 'types/masks.dart' show TypeMask, FlatTypeMask;
 import 'universe/class_set.dart';
@@ -405,6 +406,9 @@ class World implements ClassWorld {
 
   @override
   ClassElement getLubOfInstantiatedSubclasses(ClassElement cls) {
+    if (backend.isJsInterop(cls)) {
+      return backend.helpers.jsJavaScriptObjectClass;
+    }
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     return hierarchy != null
         ? hierarchy.getLubOfInstantiatedSubclasses()
@@ -413,6 +417,9 @@ class World implements ClassWorld {
 
   @override
   ClassElement getLubOfInstantiatedSubtypes(ClassElement cls) {
+    if (backend.isJsInterop(cls)) {
+      return backend.helpers.jsJavaScriptObjectClass;
+    }
     ClassSet classSet = _classSets[cls.declaration];
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
@@ -548,7 +555,7 @@ class World implements ClassWorld {
   }
 
   final Compiler compiler;
-  Backend get backend => compiler.backend;
+  JavaScriptBackend get backend => compiler.backend;
   final FunctionSet allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();

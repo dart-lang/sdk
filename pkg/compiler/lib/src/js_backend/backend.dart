@@ -635,6 +635,11 @@ class JavaScriptBackend extends Backend {
   JavaScriptConstantCompiler get constants {
     return constantCompilerTask.jsConstantCompiler;
   }
+  
+  @override
+  bool isDefaultNoSuchMethod(MethodElement element) {
+    return noSuchMethodRegistry.isDefaultNoSuchMethodImplementation(element);
+  }
 
   MethodElement resolveExternalFunction(MethodElement element) {
     if (isForeign(element)) {
