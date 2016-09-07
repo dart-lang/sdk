@@ -51,6 +51,7 @@ class SsaOptimizerTask extends CompilerTask {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     bool trustPrimitives = compiler.options.trustPrimitives;
     Set<HInstruction> boundsChecked = new Set<HInstruction>();
+    SsaCodeMotion codeMotion;
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
@@ -74,7 +75,7 @@ class SsaOptimizerTask extends CompilerTask {
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
         new SsaTypePropagator(compiler),
-        new SsaCodeMotion(),
+        codeMotion = new SsaCodeMotion(),
         new SsaLoadElimination(compiler),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
@@ -95,7 +96,7 @@ class SsaOptimizerTask extends CompilerTask {
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(compiler, this);
       runPhase(dce);
-      if (dce.eliminatedSideEffects) {
+      if (codeMotion.movedCode || dce.eliminatedSideEffects) {
         phases = <OptimizationPhase>[
           new SsaTypePropagator(compiler),
           new SsaGlobalValueNumberer(compiler),
@@ -1913,6 +1914,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
 class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaCodeMotion";
 
+  bool movedCode = false;
   List<ValueSet> values;
 
   void visitGraph(HGraph graph) {
@@ -1949,6 +1951,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
             if (toRewrite != instruction) {
               successor.rewriteWithBetterUser(toRewrite, instruction);
               successor.remove(toRewrite);
+              movedCode = true;
             }
           }
         }
@@ -1992,6 +1995,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
       } else {
         block.rewriteWithBetterUser(current, existing);
         block.remove(current);
+        movedCode = true;
       }
     }
   }
