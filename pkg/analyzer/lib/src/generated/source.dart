@@ -8,14 +8,14 @@ import 'dart:collection';
 import "dart:math" as math;
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/generated/source_io.dart'
-    show FileBasedSource, PackageUriResolver;
+import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:analyzer/task/model.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
@@ -98,6 +98,7 @@ class ContentCache {
   }
 }
 
+@deprecated
 class CustomUriResolver extends UriResolver {
   final Map<String, String> _urlMappings;
 
@@ -900,7 +901,7 @@ class UriKind extends Enum<UriKind> {
    * Return the URI kind corresponding to the given scheme string.
    */
   static UriKind fromScheme(String scheme) {
-    if (scheme == PackageUriResolver.PACKAGE_SCHEME) {
+    if (scheme == PackageMapUriResolver.PACKAGE_SCHEME) {
       return UriKind.PACKAGE_URI;
     } else if (scheme == DartUriResolver.DART_SCHEME) {
       return UriKind.DART_URI;

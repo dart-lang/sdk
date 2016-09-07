@@ -8,13 +8,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -473,15 +473,12 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Cache the source file content in the source factory but don't add the source to the analysis
-   * context. The file path should be absolute.
-   *
-   * @param filePath the path of the file being cached
-   * @param contents the contents to be returned by the content provider for the specified file
-   * @return the source object representing the cached file
+   * Cache the [contents] for the file at the given [filePath] but don't add the
+   * source to the analysis context. The file path must be absolute.
    */
   Source cacheSource(String filePath, String contents) {
-    Source source = new FileBasedSource(FileUtilities2.createFile(filePath));
+    Source source =
+        PhysicalResourceProvider.INSTANCE.getFile(filePath).createSource();
     analysisContext2.setContents(source, contents);
     return source;
   }
@@ -518,10 +515,10 @@ class ResolverTestCase extends EngineTestCase {
    * Create a source object representing a file with the given [fileName] and
    * give it an empty content. Return the source that was created.
    */
-  FileBasedSource createNamedSource(String fileName) {
-    FileBasedSource source =
-        new FileBasedSource(FileUtilities2.createFile(fileName));
-    analysisContext2.setContents(source, "");
+  Source createNamedSource(String fileName) {
+    Source source =
+        PhysicalResourceProvider.INSTANCE.getFile(fileName).createSource();
+    analysisContext2.setContents(source, '');
     return source;
   }
 
@@ -535,8 +532,8 @@ class ResolverTestCase extends EngineTestCase {
   LibraryElementImpl createTestLibrary(
       AnalysisContext context, String libraryName,
       [List<String> typeNames]) {
-    String fileName = "$libraryName.dart";
-    FileBasedSource definingCompilationUnitSource = createNamedSource(fileName);
+    String fileName = "/test/$libraryName.dart";
+    Source definingCompilationUnitSource = createNamedSource(fileName);
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
       sourcedCompilationUnits = CompilationUnitElement.EMPTY_LIST;
@@ -764,6 +761,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
       }
       fail('Wrong element type: ${element.runtimeType}');
     }
+
     SimpleIdentifier identifier = findIdentifier(name);
     // Element is either ExecutableElement or ParameterElement.
     Element element = identifier.staticElement;

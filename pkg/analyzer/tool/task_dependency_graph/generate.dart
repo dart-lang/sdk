@@ -25,11 +25,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -159,10 +160,13 @@ ${generateGraphData()}
     } else {
       packageRootPath = path.join(rootDir, 'packages');
     }
-    JavaFile packagesDir = new JavaFile(packageRootPath);
+    ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
     List<UriResolver> uriResolvers = [
       new DartUriResolver(sdk),
-      new PackageUriResolver(<JavaFile>[packagesDir]),
+      new PackageMapUriResolver(
+          resourceProvider,
+          builder
+              .convertPackagesToMap(builder.createPackageMap(packageRootPath))),
       new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
     ];
     context.sourceFactory = new SourceFactory(uriResolvers);

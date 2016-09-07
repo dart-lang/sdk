@@ -350,6 +350,7 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
  * should be canonicalized, but to preserve relative links within a package, the remainder of the
  * path from the package directory to the leaf should not.
  */
+@deprecated
 class PackageUriResolver extends UriResolver {
   /**
    * The name of the `package` scheme.

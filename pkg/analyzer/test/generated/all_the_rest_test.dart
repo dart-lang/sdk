@@ -109,6 +109,7 @@ class ContentCacheTest {
   }
 }
 
+@deprecated
 @reflectiveTest
 class CustomUriResolverTest {
   void test_creation() {
