@@ -158,9 +158,9 @@ class BatchModeState {
   AnalysisContext getContext(
       String sdk_, String packageRoot_, bool strongMode_) {
     if (dartSdk == null || this.sdk != sdk_ || this.strongMode != strongMode_) {
-      dartSdk = createDartSdk(sdk_, strongMode);
       this.sdk = sdk_;
       this.strongMode = strongMode_;
+      dartSdk = createDartSdk(sdk_, strongMode_);
     }
     return createContext(sdk_, packageRoot_, strongMode_, dartSdk: dartSdk);
   }
