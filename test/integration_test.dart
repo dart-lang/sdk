@@ -163,11 +163,8 @@ defineTests() {
 
       // https://github.com/dart-lang/linter/issues/246
       test('overrides across libraries', () {
-        dartlint.main([
-          'test/_data/overridden_fields',
-          '-c',
-          'test/_data/overridden_fields/lintconfig.yaml'
-        ]);
+        dartlint.main(
+            ['test/_data/overridden_fields', '--rules', 'overridden_fields']);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),

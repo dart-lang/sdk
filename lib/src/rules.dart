@@ -39,6 +39,9 @@ import 'package:linter/src/rules/only_throw_errors.dart';
 import 'package:linter/src/rules/overridden_fields.dart';
 import 'package:linter/src/rules/package_api_docs.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
+import 'package:linter/src/rules/parameter_assignments.dart';
+import 'package:linter/src/rules/prefer_final_fields.dart';
+import 'package:linter/src/rules/prefer_final_locals.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
 import 'package:linter/src/rules/public_member_api_docs.dart';
@@ -88,6 +91,9 @@ final Registry ruleRegistry = new Registry()
   ..register(new OverriddenFields())
   ..register(new PackageApiDocs())
   ..register(new PackagePrefixedLibraryNames())
+  ..register(new ParameterAssignments())
+  ..register(new PreferFinalFields())
+  ..register(new PreferFinalLocals())
   ..register(new PreferIsNotEmpty())
   ..register(new PublicMemberApiDocs())
   ..register(new PubPackageNames())
