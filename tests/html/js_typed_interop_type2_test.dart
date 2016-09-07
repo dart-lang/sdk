@@ -25,11 +25,6 @@ class F {
 }
 
 @NoInline()
-testA(A o) {
-  return o.foo;
-}
-
-@NoInline()
 testC(C o) {
   return o.foo;
 }
@@ -41,8 +36,8 @@ testF(F o) {
 
 void expectValueOrTypeError(f(), value) {
   try {
-    String i = 0; // Test for checked mode.
-    Expect.equals(f(), value);
+    var i = 0;
+    String s = i; // Test for checked mode.
   } on TypeError catch (error) {
     Expect.throws(f, (ex) => ex is TypeError);
   }

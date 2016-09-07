@@ -65,7 +65,8 @@ function A(foo) {
 
 void expectValueOrTypeError(f(), value) {
   try {
-    String i = 0; // Test for checked mode.
+    var i = 0;
+    String s = i; // Test for checked mode.
     Expect.equals(f(), value);
   } on TypeError catch (error) {
     Expect.throws(f, (ex) => ex is TypeError);
