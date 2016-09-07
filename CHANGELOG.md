@@ -1,3 +1,10 @@
+## 1.19.1 - 2016-09-08
+
+Patch release, resolves one issue:
+
+* Dartdoc:  Fixes a bug that prevented generation of docs
+(Dartdoc issue [1233](https://github.com/dart-lang/dartdoc/issues/1233))
+
 ## 1.19.0 - 2016-08-26
 
 ### Language changes
