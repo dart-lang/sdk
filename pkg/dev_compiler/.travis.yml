@@ -31,3 +31,8 @@ matrix:
   allow_failures:
     - env: ANALYZER=master
     - env: TEST=node
+notifications:
+  email:
+    recipients:
+      - dart-dc-team+buildbot@google.com
+    on_failure: change
