@@ -1899,8 +1899,8 @@ class ObjectStore extends ServiceObject implements M.ObjectStore {
 }
 
 
-/// A [ServiceObject] which implements [ObservableMap].
-class ServiceMap extends ServiceObject implements M.UnknownObjectRef  {
+/// A [ServiceObject] which implements [Map].
+class ServiceMap extends ServiceObject implements Map, M.UnknownObjectRef  {
   final Map _map = {};
   static String objectIdRingPrefix = 'objects/';
 
@@ -4331,7 +4331,7 @@ bool _hasRef(String type) => type.startsWith('@');
 String _stripRef(String type) => (_hasRef(type) ? type.substring(1) : type);
 
 /// Recursively upgrades all [ServiceObject]s inside [collection] which must
-/// be an [ObservableMap] or an [ObservableList]. Upgraded elements will be
+/// be an [Map] or an [List]. Upgraded elements will be
 /// associated with [vm] and [isolate].
 void _upgradeCollection(collection, ServiceObjectOwner owner) {
   if (collection is ServiceMap) {
