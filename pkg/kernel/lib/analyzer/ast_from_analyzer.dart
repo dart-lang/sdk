@@ -144,6 +144,35 @@ class ReferenceScope {
     return _resolveGet(element, auxiliary, supportsInterfaceGet);
   }
 
+  DartType getterTypeOfElement(Element element) {
+    if (element is VariableElement) {
+      return element.type;
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      return element.returnType;
+    } else {
+      return null;
+    }
+  }
+
+  /// Returns the interface target of a `call` dispatch to the given member.
+  ///
+  /// For example, if the member is a field of type C, the target will be the
+  /// `call` method of class C, if it has such a method.
+  ///
+  /// If the class C has a getter or field named `call`, this method returns
+  /// `null` - the static type system does support typed calls with indirection.
+  ast.Member resolveInterfaceFunctionCall(Element element) {
+    if (!strongMode || element == null) return null;
+    return resolveInterfaceFunctionCallOnType(getterTypeOfElement(element));
+  }
+
+  /// Returns the `call` method of [callee], if it has one, otherwise `null`.
+  ast.Member resolveInterfaceFunctionCallOnType(DartType callee) {
+    return callee is InterfaceType
+        ? resolveInterfaceMethod(callee.getMethod('call'))
+        : null;
+  }
+
   ast.Member _resolveSet(
       Element element, Element auxiliary, bool predicate(Element element)) {
     element = desynthesizeSetter(element);
@@ -1303,7 +1332,10 @@ class ExpressionBuilder
   ast.Expression visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
     return new ast.MethodInvocation(
-        build(node.function), callName, buildArgumentsForInvocation(node));
+        build(node.function),
+        callName,
+        buildArgumentsForInvocation(node),
+        scope.resolveInterfaceFunctionCallOnType(node.function.staticType));
   }
 
   visitPrefixedIdentifier(PrefixedIdentifier node) {
@@ -1589,7 +1621,8 @@ class ExpressionBuilder
       return new ast.MethodInvocation(
           new ast.PropertyGet(receiver, name, targetGetter),
           callName,
-          arguments);
+          arguments,
+          scope.resolveInterfaceFunctionCall(targetElement));
     }
     // Emit a dynamic call.
     return new ast.MethodInvocation(receiver, name, arguments);
@@ -1617,7 +1650,8 @@ class ExpressionBuilder
       return new ast.MethodInvocation(
           new ast.VariableGet(scope.getVariableReference(element)),
           callName,
-          buildArgumentsForInvocation(node));
+          buildArgumentsForInvocation(node),
+          scope.resolveInterfaceFunctionCall(element));
     } else if (isStaticMethod(element)) {
       var method = scope.resolveConcreteMethod(element);
       var arguments = buildArgumentsForInvocation(node);
@@ -1634,8 +1668,11 @@ class ExpressionBuilder
             new ast.NullLiteral(), node.methodName.name, new ast.Arguments([]),
             candidateTarget: element);
       }
-      return new ast.MethodInvocation(new ast.StaticGet(method), callName,
-          buildArgumentsForInvocation(node));
+      return new ast.MethodInvocation(
+          new ast.StaticGet(method),
+          callName,
+          buildArgumentsForInvocation(node),
+          scope.resolveInterfaceFunctionCall(element));
     } else if (target == null && !scope.allowThis ||
         target is Identifier && target.staticElement is ClassElement ||
         target is Identifier && target.staticElement is PrefixElement) {
