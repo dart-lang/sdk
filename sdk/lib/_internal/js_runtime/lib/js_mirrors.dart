@@ -471,8 +471,8 @@ class JsLibraryMirror extends JsDeclarationMirror
         continue;
       }
       bool isConstructor = unmangledName.startsWith('new ');
-      bool isStatic = !isConstructor; // Top-level functions are static, but
-      // constructors are not.
+      // Top-level functions are static, but constructors are not.
+      bool isStatic = !isConstructor;
       if (isConstructor) {
         unmangledName = unmangledName.substring(4).replaceAll(r'$', '.');
       }

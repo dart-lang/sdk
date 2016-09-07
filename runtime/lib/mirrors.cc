@@ -835,30 +835,35 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
                            Object::null_instance());
 }
 
+
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   return CreateTypeMirror(type);
 }
 
-DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirrorWithTypeArguments, 2) {
+
+DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(1));
 
+  ASSERT(type.HasResolvedTypeClass());
   const Class& clz = Class::Handle(type.type_class());
   if (!clz.IsGeneric()) {
-    const Array& errorArgs = Array::Handle(Array::New(3));
-    errorArgs.SetAt(0, type);
-    errorArgs.SetAt(1, String::Handle(String::New("key")));
-    errorArgs.SetAt(2, String::Handle(String::New("Type must be a generic class.")));
-    Exceptions::ThrowByType(Exceptions::kArgumentValue, errorArgs);
+    const Array& error_args = Array::Handle(Array::New(3));
+    error_args.SetAt(0, type);
+    error_args.SetAt(1, String::Handle(String::New("key")));
+    error_args.SetAt(2, String::Handle(
+      String::New("Type must be a generic class or function.")));
+    Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
     UNREACHABLE();
   }
   if (clz.NumTypeParameters() != args.Length()) {
-    const Array& errorArgs = Array::Handle(Array::New(3));
-    errorArgs.SetAt(0, args);
-    errorArgs.SetAt(1, String::Handle(String::New("typeArguments")));
-    errorArgs.SetAt(2, String::Handle(String::New("Number of type arguments does not match.")));
-    Exceptions::ThrowByType(Exceptions::kArgumentValue, errorArgs);
+    const Array& error_args = Array::Handle(Array::New(3));
+    error_args.SetAt(0, args);
+    error_args.SetAt(1, String::Handle(String::New("typeArguments")));
+    error_args.SetAt(2, String::Handle(
+      String::New("Number of type arguments does not match.")));
+    Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
     UNREACHABLE();
   }
 
@@ -870,11 +875,12 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirrorWithTypeArguments, 2) {
   for (intptr_t i = 0; i < args.Length(); i++) {
     instance ^= args.At(i);
     if (!instance.IsType()) {
-      const Array& errorArgs = Array::Handle(Array::New(3));
-      errorArgs.SetAt(0, args);
-      errorArgs.SetAt(1, String::Handle(String::New("typeArguments")));
-      errorArgs.SetAt(2, String::Handle(String::New("Type arguments must be instances of Type.")));
-      Exceptions::ThrowByType(Exceptions::kArgumentValue, errorArgs);
+      const Array& error_args = Array::Handle(Array::New(3));
+      error_args.SetAt(0, args);
+      error_args.SetAt(1, String::Handle(String::New("typeArguments")));
+      error_args.SetAt(2, String::Handle(
+        String::New("Type arguments must be instances of Type.")));
+      Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
       UNREACHABLE();
     }
     type_arg ^= args.At(i);
@@ -882,10 +888,21 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirrorWithTypeArguments, 2) {
   }
 
   Type& instantiated_type = Type::Handle(
-      Type::New(clz, type_args_obj, TokenPosition::kNoSource));
+    Type::New(clz, type_args_obj, TokenPosition::kNoSource));
   instantiated_type ^= ClassFinalizer::FinalizeType(
-      clz, instantiated_type, ClassFinalizer::kCanonicalize);
-  return CreateTypeMirror(instantiated_type);
+    clz, instantiated_type, ClassFinalizer::kCanonicalize);
+  if (instantiated_type.IsMalbounded()) {
+    const LanguageError& type_error = LanguageError::Handle(
+      instantiated_type.error());
+    const Array& error_args = Array::Handle(Array::New(3));
+    error_args.SetAt(0, args);
+    error_args.SetAt(1, String::Handle(String::New("typeArguments")));
+    error_args.SetAt(2, String::Handle(type_error.FormatMessage()));
+    Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
+    UNREACHABLE();
+  }
+
+  return instantiated_type.raw();
 }
 
 
