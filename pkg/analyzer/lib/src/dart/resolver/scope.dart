@@ -526,8 +526,8 @@ class LibraryImportScope extends Scope {
 
   Element _lookupInImportedNamespaces(
       Identifier identifier, Element lookup(Namespace namespace)) {
-    Set<Element> sdkElements = new HashSet<Element>.identity();
-    Set<Element> nonSdkElements = new HashSet<Element>.identity();
+    Set<Element> sdkElements = new HashSet<Element>();
+    Set<Element> nonSdkElements = new HashSet<Element>();
     for (int i = 0; i < _importedNamespaces.length; i++) {
       Element element = lookup(_importedNamespaces[i]);
       if (element != null) {
