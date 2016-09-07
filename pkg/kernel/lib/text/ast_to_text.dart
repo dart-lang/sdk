@@ -702,13 +702,13 @@ class Printer extends Visitor<Null> {
   visitMethodInvocation(MethodInvocation node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
-    writeName(node.name);
+    writeInterfaceTarget(node.name, node.interfaceTarget);
     writeNode(node.arguments);
   }
 
   visitDirectMethodInvocation(DirectMethodInvocation node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.{');
+    writeSymbol('.{=');
     writeMemberReference(node.target);
     writeSymbol('}');
     writeNode(node.arguments);
@@ -717,7 +717,7 @@ class Printer extends Visitor<Null> {
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeWord('super');
     writeSymbol('.');
-    writeName(node.name);
+    writeInterfaceTarget(node.name, node.interfaceTarget);
     writeNode(node.arguments);
   }
 
@@ -957,16 +957,26 @@ class Printer extends Visitor<Null> {
     writeExpression(node.value);
   }
 
+  void writeInterfaceTarget(Name name, Member target) {
+    if (target != null) {
+      writeSymbol('{');
+      writeMemberReference(target);
+      writeSymbol('}');
+    } else {
+      writeName(name);
+    }
+  }
+
   visitPropertyGet(PropertyGet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
-    writeName(node.name);
+    writeInterfaceTarget(node.name, node.interfaceTarget);
   }
 
   visitPropertySet(PropertySet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
-    writeName(node.name);
+    writeInterfaceTarget(node.name, node.interfaceTarget);
     writeSpaced('=');
     writeExpression(node.value);
   }
@@ -974,27 +984,27 @@ class Printer extends Visitor<Null> {
   visitSuperPropertyGet(SuperPropertyGet node) {
     writeWord('super');
     writeSymbol('.');
-    writeName(node.name);
+    writeInterfaceTarget(node.name, node.interfaceTarget);
   }
 
   visitSuperPropertySet(SuperPropertySet node) {
     writeWord('super');
     writeSymbol('.');
-    writeName(node.name);
+    writeInterfaceTarget(node.name, node.interfaceTarget);
     writeSpaced('=');
     writeExpression(node.value);
   }
 
   visitDirectPropertyGet(DirectPropertyGet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.{');
+    writeSymbol('.{=');
     writeMemberReference(node.target);
     writeSymbol('}');
   }
 
   visitDirectPropertySet(DirectPropertySet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.{');
+    writeSymbol('.{=');
     writeMemberReference(node.target);
     writeSymbol('}');
     writeSpaced('=');

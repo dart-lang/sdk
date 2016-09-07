@@ -189,19 +189,19 @@ class ScaleConstraint extends self::BinaryConstraint {
   constructor •(self::Variable/self::Variable! {null,other} src, self::Variable/self::Variable! {other} scale, self::Variable/self::Variable! {other} offset, self::Variable/self::Variable! {null,other} dest, self::Strength/self::Strength! {other} strength) → void
     : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength);
   method addToGraph() → void/Null {
-    this.{self::BinaryConstraint::addToGraph}();
+    this.{=self::BinaryConstraint::addToGraph}();
     this.scale.addConstraint(this);
     this.offset.addConstraint(this);
   }
   method removeFromGraph() → void/Null {
-    this.{self::BinaryConstraint::removeFromGraph}();
+    this.{=self::BinaryConstraint::removeFromGraph}();
     if(!this.scale.==(null))
       this.scale.removeConstraint(this);
     if(!this.offset.==(null))
       this.offset.removeConstraint(this);
   }
   method markInputs(core::int/core::num* {int,double} mark) → void/Null {
-    this.{self::BinaryConstraint::markInputs}(mark);
+    this.{=self::BinaryConstraint::markInputs}(mark);
     this.scale.mark = this.offset.mark = mark;
   }
   method execute() → void/Null {
