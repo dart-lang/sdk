@@ -69,5 +69,5 @@ matrix:
 notifications:
   email:
     recipients:
-      - dart-dc-team+buildbot@google.com
+      - dev-compiler+buildbot@dartlang.org
     on_failure: change
