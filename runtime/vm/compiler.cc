@@ -691,7 +691,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     if (val == 0) {
       FlowGraph* flow_graph = NULL;
 
-      // Class hierarchy analysis is registered with the isolate in the
+      // Class hierarchy analysis is registered with the thread in the
       // constructor and unregisters itself upon destruction.
       CHA cha(thread());
 

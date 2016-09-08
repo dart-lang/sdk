@@ -828,6 +828,7 @@ class CallSiteInliner : public ValueObject {
           // TODO(fschneider): Improve suppression of speculative inlining.
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
+#ifdef DART_PRECOMPILER
             AotOptimizer optimizer(callee_graph,
                                    inliner_->use_speculative_inlining_,
                                    inliner_->inlining_black_list_);
@@ -846,6 +847,9 @@ class CallSiteInliner : public ValueObject {
             // before 'SelectRepresentations' which inserts conversion nodes.
             callee_graph->TryOptimizePatterns();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
+#else
+            UNREACHABLE();
+#endif  // DART_PRECOMPILER
           } else {
             JitOptimizer optimizer(callee_graph);
 

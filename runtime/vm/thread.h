@@ -51,6 +51,7 @@ class String;
 class TimelineStream;
 class TypeArguments;
 class TypeParameter;
+class TypeRangeCache;
 class Zone;
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
@@ -298,6 +299,11 @@ class Thread : public BaseThread {
   void set_cha(CHA* value) {
     ASSERT(isolate_ != NULL);
     cha_ = value;
+  }
+
+  TypeRangeCache* type_range_cache() const { return type_range_cache_; }
+  void set_type_range_cache(TypeRangeCache* value) {
+    type_range_cache_ = value;
   }
 
   int32_t no_callback_scope_depth() const {
@@ -692,6 +698,7 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
   // Compiler state:
   CHA* cha_;
+  TypeRangeCache* type_range_cache_;
   intptr_t deopt_id_;  // Compilation specific counter.
   RawGrowableObjectArray* pending_functions_;
 

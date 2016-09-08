@@ -201,6 +201,92 @@ RawError* Precompiler::CompileAll(
 }
 
 
+bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
+                                             intptr_t* lower_limit,
+                                             intptr_t* upper_limit) {
+  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+
+  if (!type.IsInstantiated()) return false;
+  if (type.IsFunctionType()) return false;
+
+  Zone* zone = thread_->zone();
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(zone, type.arguments());
+  if (!type_arguments.IsNull() &&
+      !type_arguments.IsRaw(0, type_arguments.Length())) return false;
+
+
+  intptr_t type_cid = type.type_class_id();
+  if (lower_limits_[type_cid] == kNotContiguous) return false;
+  if (lower_limits_[type_cid] != kNotComputed) {
+    *lower_limit = lower_limits_[type_cid];
+    *upper_limit = upper_limits_[type_cid];
+    return true;
+  }
+
+
+  *lower_limit = -1;
+  *upper_limit = -1;
+  intptr_t last_matching_cid = -1;
+
+  ClassTable* table = thread_->isolate()->class_table();
+  Class& cls = Class::Handle(zone);
+  AbstractType& cls_type = AbstractType::Handle(zone);
+  for (intptr_t cid = kInstanceCid; cid < table->NumCids(); cid++) {
+    if (!table->HasValidClassAt(cid)) continue;
+    if (cid == kVoidCid) continue;
+    if (cid == kDynamicCid) continue;
+    cls = table->At(cid);
+    if (cls.is_abstract()) continue;
+    if (cls.is_patch()) continue;
+    if (cls.IsTopLevel()) continue;
+
+    cls_type = cls.RareType();
+    if (cls_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
+      last_matching_cid = cid;
+      if (*lower_limit == -1) {
+        // Found beginning of range.
+        *lower_limit = cid;
+      } else if (*upper_limit == -1) {
+        // Expanding range.
+      } else {
+        // Found a second range.
+        lower_limits_[type_cid] = kNotContiguous;
+        return false;
+      }
+    } else {
+      if (*lower_limit == -1) {
+        // Still before range.
+      } else if (*upper_limit == -1) {
+        // Found end of range.
+        *upper_limit = last_matching_cid;
+      } else {
+        // After range.
+      }
+    }
+  }
+  if (*lower_limit == -1) {
+    // Not implemented by any concrete class.
+    *lower_limit = kIllegalCid;
+    *upper_limit = kIllegalCid;
+  }
+
+  if (*upper_limit == -1) {
+    ASSERT(last_matching_cid != -1);
+    *upper_limit = last_matching_cid;
+  }
+
+  if (FLAG_trace_precompiler) {
+    THR_Print("Type check for %s is cid range [%" Pd ", %" Pd "]\n",
+              type.ToCString(), *lower_limit, *upper_limit);
+  }
+
+  lower_limits_[type_cid] = *lower_limit;
+  upper_limits_[type_cid] = *upper_limit;
+  return true;
+}
+
+
 Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     thread_(thread),
     zone_(NULL),
@@ -247,6 +333,7 @@ void Precompiler::DoCompileAll(
       FinalizeAllClasses();
 
       SortClasses();
+      TypeRangeCache trc(T, I->class_table()->NumCids());
 
       // Precompile static initializers to compute result type information.
       PrecompileStaticInitializers();
@@ -2587,7 +2674,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     if (val == 0) {
       FlowGraph* flow_graph = NULL;
 
-      // Class hierarchy analysis is registered with the isolate in the
+      // Class hierarchy analysis is registered with the thread in the
       // constructor and unregisters itself upon destruction.
       CHA cha(thread());
 

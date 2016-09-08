@@ -22,6 +22,42 @@ class RawError;
 class SequenceNode;
 class String;
 
+
+class TypeRangeCache : public StackResource {
+ public:
+  TypeRangeCache(Thread* thread, intptr_t num_cids)
+      : StackResource(thread),
+        thread_(thread),
+        lower_limits_(thread->zone()->Alloc<intptr_t>(num_cids)),
+        upper_limits_(thread->zone()->Alloc<intptr_t>(num_cids)) {
+    for (intptr_t i = 0; i < num_cids; i++) {
+      lower_limits_[i] = kNotComputed;
+      upper_limits_[i] = kNotComputed;
+    }
+    // We don't re-enter the precompiler.
+    ASSERT(thread->type_range_cache() == NULL);
+    thread->set_type_range_cache(this);
+  }
+
+  ~TypeRangeCache() {
+    ASSERT(thread_->type_range_cache() == this);
+    thread_->set_type_range_cache(NULL);
+  }
+
+  bool InstanceOfHasClassRange(const AbstractType& type,
+                               intptr_t* lower_limit,
+                               intptr_t* upper_limit);
+
+ private:
+  static const intptr_t kNotComputed = -1;
+  static const intptr_t kNotContiguous = -2;
+
+  Thread* thread_;
+  intptr_t* lower_limits_;
+  intptr_t* upper_limits_;
+};
+
+
 class SymbolKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.

@@ -128,6 +128,8 @@ namespace dart {
     0x306e6a79)                                                                \
   V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, Dynamic,      \
     0x3fe95fc2)                                                                \
+  V(::, _classRangeCheck, ClassRangeCheck, Bool, 0x6279a7b3)                   \
+  V(::, _classRangeCheckNegative, ClassRangeCheckNegated, Bool, 0x4799dac1)    \
 
 
 // List of intrinsics:
@@ -403,6 +405,8 @@ namespace dart {
   V(::, max, MathMax, 0x54121d6a)                                              \
   V(::, min, MathMin, 0x4276561c)                                              \
   V(::, pow, MathPow, 0x438e3089)                                              \
+  V(::, _classRangeCheck, ClassRangeCheck, 0x6279a7b3)                         \
+  V(::, _classRangeCheckNegative, ClassRangeCheckNegated, 0x4799dac1)          \
   V(Lists, copy, ListsCopy, 0x21a194fa)                                        \
   V(_Bigint, get:_neg, Bigint_getNeg, 0x7bf17a57)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 0x55041013)                            \
