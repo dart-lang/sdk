@@ -468,7 +468,6 @@ type LogicalExpression extends Expression {
   Expression left;
   Byte operator; // Index into LogicalOperator enum above
   Expression right;
-  Option<DartType> staticType;
 }
 
 type ConditionalExpression extends Expression {
@@ -476,7 +475,6 @@ type ConditionalExpression extends Expression {
   Expression condition;
   Expression then;
   Expression otherwise;
-  Option<DartType> staticType;
 }
 
 type StringConcatenation extends Expression {
