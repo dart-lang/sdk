@@ -1139,6 +1139,47 @@ class B {}
     _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
   }
 
+  test_getUnlinkedBundles_notPubCache_useExisting_inconsistent() async {
+    String aaaPath = '/Users/user/projects/aaa';
+    // Create package files.
+    resourceProvider.newFile(
+        '$aaaPath/lib/a.dart',
+        '''
+class A {}
+''');
+
+    // Compute the bundles.
+    Folder libFolderA = resourceProvider.getFolder('$aaaPath/lib');
+    await new PubSummaryManager(resourceProvider, '_.temp')
+        .computeUnlinkedForFolder('aaa', libFolderA);
+
+    // Configure packages resolution.
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+      })
+    ]);
+
+    // Request already available unlinked bundles.
+    expect(manager.getUnlinkedBundles(context), hasLength(1));
+
+    // Update a Dart file.
+    // So, the cached bundle cannot be reused.
+    resourceProvider.updateFile(
+        '$aaaPath/lib/a.dart',
+        '''
+class A2 {}
+''');
+    _createManager();
+    expect(manager.getUnlinkedBundles(context), isEmpty);
+
+    // ...and because it is not in the pub cache, it will not be recomputed.
+    await manager.onUnlinkedComplete;
+    expect(manager.getUnlinkedBundles(context), isEmpty);
+  }
+
   test_getUnlinkedBundles_nullPackageMap() async {
     context.sourceFactory =
         new SourceFactory(<UriResolver>[sdkResolver, resourceResolver]);

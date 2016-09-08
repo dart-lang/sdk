@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -26,6 +27,8 @@ import 'package:analyzer/src/summary/summarize_ast.dart'
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/src/util/fast_uri.dart';
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 
@@ -404,11 +407,11 @@ class PubSummaryManager {
       }
     }
 
+    // Verify compatibility and consistency.
     bool isInPubCache = isPathInPubCache(pathContext, package.folder.path);
-
-    // Verify compatibility.
-    // TODO(scheglov) if not in the pub cache, check for consistency
-    if (bundle != null && bundle.majorVersion == majorVersion) {
+    if (bundle != null &&
+        bundle.majorVersion == majorVersion &&
+        (isInPubCache || _isConsistent(package, bundle))) {
       unlinkedBundleMap[package] = bundle;
       return bundle;
     }
@@ -422,6 +425,53 @@ class PubSummaryManager {
 
     // The bundle is not available.
     return null;
+  }
+
+  /**
+   * Return `true` if content hashes for the [package] library files are the
+   * same the hashes in the unlinked [bundle].
+   */
+  bool _isConsistent(PubPackage package, PackageBundle bundle) {
+    List<String> actualHashes = <String>[];
+
+    /**
+     * If the given [file] is a Dart file, add its content hash.
+     */
+    void hashDartFile(File file) {
+      String path = file.path;
+      if (AnalysisEngine.isDartFileName(path)) {
+        List<int> fileBytes = file.readAsBytesSync();
+        List<int> hashBytes = md5.convert(fileBytes).bytes;
+        String hashHex = hex.encode(hashBytes);
+        actualHashes.add(hashHex);
+      }
+    }
+
+    /**
+     * Visit the [folder] recursively.
+     */
+    void hashDartFiles(Folder folder) {
+      List<Resource> children = folder.getChildren();
+      for (Resource child in children) {
+        if (child is File) {
+          hashDartFile(child);
+        } else if (child is Folder) {
+          hashDartFiles(child);
+        }
+      }
+    }
+
+    // Recursively compute hashes of the `lib` folder Dart files.
+    try {
+      hashDartFiles(package.libFolder);
+    } on FileSystemException {
+      return false;
+    }
+
+    // Compare sorted actual and bundle unit hashes.
+    List<String> bundleHashes = bundle.unlinkedUnitHashes.toList()..sort();
+    actualHashes.sort();
+    return listsEqual(actualHashes, bundleHashes);
   }
 
   /**
