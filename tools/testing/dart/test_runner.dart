@@ -1854,8 +1854,24 @@ class RunningProcess {
           void timeoutHandler() {
             timedOut = true;
             if (process != null) {
-              if (!process.kill()) {
-                DebugLogger.error("Unable to kill ${process.pid}");
+              if (io.Platform.isLinux) {
+                // Try to print stack traces of the timed out process.
+                io.Process.run('eu-stack', ['-p ${process.pid}'])
+                .then((result) {
+                  io.stdout.write(result.stdout);
+                  io.stderr.write(result.stderr);
+                })
+                .catchError(
+                    (error) => print("Error when printing stack trace: $error"))
+                .whenComplete(() {
+                  if (!process.kill()) {
+                    DebugLogger.error("Unable to kill ${process.pid}");
+                  }
+                });
+              } else {
+                if (!process.kill()) {
+                  DebugLogger.error("Unable to kill ${process.pid}");
+                }
               }
             }
           }
