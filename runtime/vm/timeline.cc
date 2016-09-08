@@ -1418,9 +1418,11 @@ TimelineEventSystraceRecorder::TimelineEventSystraceRecorder(intptr_t capacity)
 
 
 TimelineEventSystraceRecorder::~TimelineEventSystraceRecorder() {
+#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_LINUX)
   if (systrace_fd_ >= 0) {
     close(systrace_fd_);
   }
+#endif
 }
 
 
