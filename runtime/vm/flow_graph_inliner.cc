@@ -362,7 +362,7 @@ class CallSites : public ValueObject {
               current->AsPolymorphicInstanceCall();
           if (!inline_only_recognized_methods ||
               instance_call->HasSingleRecognizedTarget() ||
-              instance_call->HasOnlyDispatcherTargets()) {
+              instance_call->ic_data().HasOnlyDispatcherTargets()) {
             instance_calls_.Add(InstanceCallInfo(instance_call, graph));
           } else {
             // Method not inlined because inlining too deep and method
