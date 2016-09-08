@@ -370,6 +370,8 @@ js_typed_interop_callable_object_test: SkipByDesign
 js_typed_interop_test: SkipByDesign
 js_typed_interop_default_arg_test: SkipByDesign
 js_typed_interop_type_test: SkipByDesign
+js_typed_interop_type1_test: SkipByDesign
+js_typed_interop_type3_test: SkipByDesign
 js_typed_interop_window_property_test: SkipByDesign
 js_function_getter_test: SkipByDesign
 js_function_getter_trust_types_test: SkipByDesign
