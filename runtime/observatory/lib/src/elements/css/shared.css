@@ -391,6 +391,18 @@ allocation-profile .heap-space.right .legend * {
   direction: rtl;
 }
 
+allocation-profile .compactable {
+  position: relative;
+}
+
+allocation-profile .compact {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  width: 8em;
+  margin-left: -4em;
+}
+
 allocation-profile .heap-space.right * {
   direction: ltr;
   text-align: right;
@@ -435,6 +447,10 @@ allocation-profile .collection {
   left: 0;
   right: 0;
   top: 560px;
+}
+
+allocation-profile .collection.expanded {
+  top: 160px;
 }
 
 allocation-profile .collection-item {

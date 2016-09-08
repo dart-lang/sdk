@@ -65,6 +65,7 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
   M.AllocationProfileRepository _repository;
   M.AllocationProfile _profile;
   bool _autoRefresh = false;
+  bool _isCompacted = false;
   StreamSubscription _gcSubscription;
   _SortingField _sortingField =
       _SortingField.className;
@@ -165,7 +166,7 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
       final oldChartLegend = new DivElement()..classes = ['legend'];
       children.addAll([
         new DivElement()..classes = ['content-centered-big']
-          ..children = [
+          ..children = _isCompacted ? [] : [
             new DivElement()..classes = ['memberList']
               ..children = [
                 new DivElement()..classes = ['memberItem']
@@ -187,31 +188,50 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
               ],
             new HRElement(),
           ],
-        new DivElement()..classes = ['content-centered-big']
+        new DivElement()..classes = ['content-centered-big', 'compactable']
           ..children = [
             new DivElement()..classes = ['heap-space', 'left']
-              ..children = [
-                new HeadingElement.h2()..text = 'New Generation',
-                new BRElement(),
-                new DivElement()..classes = ['memberList']
-                  ..children = _createSpaceMembers(_profile.newSpace),
-                new BRElement(),
-                new DivElement()..classes = ['chart']
-                  ..children = [newChartLegend, newChartHost]
-              ],
+              ..children = _isCompacted
+                ? [
+                  new HeadingElement.h2()
+                    ..text = 'New Generation '
+                             '(${_usedCaption(_profile.newSpace)})',
+                ]
+                : [
+                  new HeadingElement.h2()..text = 'New Generation',
+                  new BRElement(),
+                  new DivElement()..classes = ['memberList']
+                    ..children = _createSpaceMembers(_profile.newSpace),
+                  new BRElement(),
+                  new DivElement()..classes = ['chart']
+                    ..children = [newChartLegend, newChartHost]
+                ],
             new DivElement()..classes = ['heap-space', 'right']
-              ..children = [
-                new HeadingElement.h2()..text = 'Old Generation',
-                new BRElement(),
-                new DivElement()..classes = ['memberList']
-                  ..children = _createSpaceMembers(_profile.oldSpace),
-                new BRElement(),
-                new DivElement()..classes = ['chart']
-                  ..children = [oldChartLegend, oldChartHost]
-              ],
-            new BRElement(), new HRElement()
+              ..children = _isCompacted
+                ? [
+                  new HeadingElement.h2()
+                    ..text = '(${_usedCaption(_profile.newSpace)}) '
+                             'Old Generation',
+                ]
+                : [
+                  new HeadingElement.h2()..text = 'Old Generation',
+                  new BRElement(),
+                  new DivElement()..classes = ['memberList']
+                    ..children = _createSpaceMembers(_profile.oldSpace),
+                  new BRElement(),
+                  new DivElement()..classes = ['chart']
+                    ..children = [oldChartLegend, oldChartHost]
+                ],
+            new ButtonElement()..classes = ['compact']
+              ..text = _isCompacted ? 'expand ▼' : 'compact ▲'
+              ..onClick.listen((_) {
+                _isCompacted = !_isCompacted;
+                _r.dirty();
+              }),
+            new HRElement()
           ],
-        new DivElement()..classes = ['collection']
+        new DivElement()
+          ..classes = _isCompacted ? ['collection', 'expanded'] : ['collection']
           ..children = [
             new VirtualCollectionElement(
               _createCollectionLine,
@@ -419,10 +439,13 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
                       ..classes = ['name'];
   }
 
+  static String _usedCaption(M.HeapSpace space) =>
+    '${Utils.formatSize(space.used)}'
+    ' of '
+    '${Utils.formatSize(space.capacity)}';
+
   static List<Element> _createSpaceMembers(M.HeapSpace space) {
-    final used = '${Utils.formatSize(space.used)}'
-                 ' of '
-                 '${Utils.formatSize(space.capacity)}';
+    final used = _usedCaption(space);
     final ext = '${Utils.formatSize(space.external)}';
     final collections = '${space.collections}';
     final avgCollectionTime =
