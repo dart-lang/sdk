@@ -4,6 +4,8 @@
 
 #ifndef PRODUCT
 
+#include <errno.h>
+#include <fcntl.h>
 #include <cstdlib>
 
 #include "vm/atomic.h"
@@ -20,6 +22,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 DEFINE_FLAG(bool, startup_timeline, false, "Record the startup timeline");
+DEFINE_FLAG(bool, systrace_timeline, false, "Record the timeline to systrace");
 DEFINE_FLAG(bool, trace_timeline, false,
             "Trace timeline backend");
 DEFINE_FLAG(bool, trace_timeline_analysis, false,
@@ -35,7 +38,7 @@ DEFINE_FLAG(charp, timeline_streams, NULL,
             "GC, Isolate, and VM.");
 DEFINE_FLAG(charp, timeline_recorder, "ring",
             "Select the timeline recorder used. "
-            "Valid values: ring, endless, and startup.")
+            "Valid values: ring, endless, startup, and systrace.")
 
 // Implementation notes:
 //
@@ -86,8 +89,18 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
       (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
 
   const bool use_startup_recorder = FLAG_startup_timeline;
+  const bool use_systrace_recorder = FLAG_systrace_timeline;
 
   const char* flag = FLAG_timeline_recorder;
+
+  if (use_systrace_recorder || (flag != NULL)) {
+    if (use_systrace_recorder || (strcmp("systrace", flag) == 0)) {
+      if (FLAG_trace_timeline) {
+        THR_Print("Using the Systrace timeline recorder.\n");
+      }
+      return new TimelineEventSystraceRecorder();
+    }
+  }
 
   if (use_endless_recorder || (flag != NULL)) {
     if (use_endless_recorder || (strcmp("endless", flag) == 0)) {
@@ -494,6 +507,39 @@ void TimelineEvent::StealArguments(intptr_t arguments_length,
                                    TimelineEventArgument* arguments) {
   arguments_length_ = arguments_length;
   arguments_ = arguments;
+}
+
+
+intptr_t TimelineEvent::PrintSystrace(char* buffer, intptr_t buffer_size) {
+  ASSERT(buffer != NULL);
+  ASSERT(buffer_size > 0);
+  buffer[0] = '\0';
+  intptr_t length = 0;
+  int64_t pid = OS::ProcessId();
+  switch (event_type()) {
+    case kBegin: {
+      length = OS::SNPrint(buffer, buffer_size, "B|%" Pd64 "|%s", pid, label());
+    }
+    break;
+    case kEnd: {
+      length = OS::SNPrint(buffer, buffer_size, "E");
+    }
+    break;
+    case kCounter: {
+      if (arguments_length_ > 0) {
+        // We only report the first counter value.
+        length = OS::SNPrint(buffer, buffer_size,
+                             "C|%" Pd64 "|%s|%s",
+                             pid,
+                             label(),
+                             arguments_[0].value);
+      }
+    }
+    default:
+      // Ignore event types that we cannot serialize to the Systrace format.
+    break;
+  }
+  return length;
 }
 
 
@@ -1350,6 +1396,69 @@ void TimelineEventFixedBufferRecorder::CompleteEvent(TimelineEvent* event) {
   if (event == NULL) {
     return;
   }
+  ThreadBlockCompleteEvent(event);
+}
+
+
+static const char* kSystracePath = "/sys/kernel/debug/tracing/trace_marker";
+
+
+TimelineEventSystraceRecorder::TimelineEventSystraceRecorder(intptr_t capacity)
+    : TimelineEventFixedBufferRecorder(capacity),
+      systrace_fd_(-1) {
+#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_LINUX)
+  systrace_fd_ = open(kSystracePath, O_WRONLY);
+  if ((systrace_fd_ < 0) && FLAG_trace_timeline) {
+    OS::PrintErr("TimelineEventSystraceRecorder: Could not open `%s`\n",
+                 kSystracePath);
+  }
+#else
+  OS::PrintErr("Warning: The systrace timeline recorder is equivalent to the"
+               "ring recorder on this platform.");
+#endif
+}
+
+
+TimelineEventSystraceRecorder::~TimelineEventSystraceRecorder() {
+  if (systrace_fd_ >= 0) {
+    close(systrace_fd_);
+  }
+}
+
+
+TimelineEventBlock* TimelineEventSystraceRecorder::GetNewBlockLocked() {
+  // TODO(johnmccutchan): This function should only hand out blocks
+  // which have been marked as finished.
+  if (block_cursor_ == num_blocks_) {
+    block_cursor_ = 0;
+  }
+  TimelineEventBlock* block = blocks_[block_cursor_++];
+  block->Reset();
+  block->Open();
+  return block;
+}
+
+
+void TimelineEventSystraceRecorder::CompleteEvent(TimelineEvent* event) {
+  if (event == NULL) {
+    return;
+  }
+#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_LINUX)
+  if (systrace_fd_ >= 0) {
+    // Serialize to the systrace format.
+    const intptr_t kBufferLength = 1024;
+    char buffer[kBufferLength];
+    const intptr_t event_length =
+        event->PrintSystrace(&buffer[0], kBufferLength);
+    if (event_length > 0) {
+      ssize_t __result;
+      // Repeatedly attempt the write while we are being interrupted.
+      do {
+        __result = write(systrace_fd_, buffer, event_length);
+      } while ((__result == -1L) && (errno == EINTR));
+    }
+  }
+#endif
   ThreadBlockCompleteEvent(event);
 }
 
