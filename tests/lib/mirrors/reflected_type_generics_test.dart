@@ -44,11 +44,12 @@ main() {
   expectReflectedType(reflectType(D, [P]), new D<P>().runtimeType);
   expectReflectedType(reflectType(E, [P]), new E<P>().runtimeType);
   expectReflectedType(
-      reflectType(Predicate, [P]), new Helper<Predicate<P>>().param);
-  expectReflectedType(
       reflectType(FBounded, [FBounded]), new FBounded<FBounded>().runtimeType);
-  expectReflectedType(
-      reflectType(Composite, [P, int]), new Composite<P, int>().runtimeType);
+
+  var predicateHelper = new Helper<Predicate<P>>();
+  expectReflectedType(reflectType(Predicate, [P]), predicateHelper.param); /// 01: ok
+  var composite = new Composite<P, int>();
+  expectReflectedType(reflectType(Composite, [P, int]), composite.runtimeType); /// 01: ok
 
   // Edge cases:
   Expect.throws(
@@ -85,11 +86,11 @@ main() {
       "for generic extending another generic");
   Expect.throws(
       () => reflectType(reflectType(F).typeVariables[0].reflectedType, [int]));
-  Expect.throws(() => reflectType(FBounded, [int]));
+  Expect.throws(() => reflectType(FBounded, [int])); /// 01: ok
   var boundedType =
       reflectType(FBounded).typeVariables[0].upperBound.reflectedType;
-  Expect.throws(() => reflectType(boundedType, [int]));
-  Expect.throws(() => reflectType(Composite, [int, int]));
+  Expect.throws(() => reflectType(boundedType, [int])); /// 01: ok
+  Expect.throws(() => reflectType(Composite, [int, int])); /// 01: ok
 
   // Instantiation of a generic class preserves type information:
   ClassMirror m = reflectType(A, [P]) as ClassMirror;
