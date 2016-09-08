@@ -320,6 +320,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       // emitter is used it will fail here.
       JavaScriptBackend backend = compiler.backend;
       full.Emitter emitter = backend.emitter.emitter;
+      assert(outputUnit.name != null || outputUnit.isMainOutput);
       OutputUnitInfo info = new OutputUnitInfo(
           outputUnit.name, emitter.outputBuffers[outputUnit].length);
       info.imports.addAll(outputUnit.imports
