@@ -114,7 +114,7 @@ class _Serializer {
     return x;
   }
 
-  serializeMap(Map x) {
+  serializeMap(InternalMap x) {
     Function serializeTearOff = serialize;
     return ['map',
             x.keys.map(serializeTearOff).toList(),
@@ -276,7 +276,7 @@ class _Deserializer {
   }
 
   // ['map', <key-list>, <value-list>].
-  Map deserializeMap(x) {
+  Map deserializeMap(InternalMap x) {
     assert(x[0] == 'map');
     List keys = x[1];
     List values = x[2];

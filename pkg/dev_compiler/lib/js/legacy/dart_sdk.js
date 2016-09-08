@@ -120,6 +120,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let TimerTovoid = () => (TimerTovoid = dart.constFn(dart.functionType(dart.void, [async.Timer])))();
   let MapOfdynamic$int = () => (MapOfdynamic$int = dart.constFn(core.Map$(dart.dynamic, core.int)))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.functionType(dart.dynamic, [dart.dynamic])))();
+  let InternalMap = () => (InternalMap = dart.constFn(_js_helper.InternalMap$()))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
   let SyncIterator = () => (SyncIterator = dart.constFn(_js_helper.SyncIterator$()))();
@@ -10620,7 +10621,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     serializeMap(x) {
       let serializeTearOff = dart.bind(this, 'serialize');
-      return JSArrayOfObject().of(['map', x[dartx.keys][dartx.map](dart.dynamic)(dynamicTodynamic()._check(serializeTearOff))[dartx.toList](), x[dartx.values][dartx.map](dart.dynamic)(dynamicTodynamic()._check(serializeTearOff))[dartx.toList]()]);
+      return JSArrayOfObject().of(['map', x.keys[dartx.map](dart.dynamic)(dynamicTodynamic()._check(serializeTearOff))[dartx.toList](), x.values[dartx.map](dart.dynamic)(dynamicTodynamic()._check(serializeTearOff))[dartx.toList]()]);
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
@@ -10682,7 +10683,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       serializeJSIndexable: dart.definiteFunctionType(dart.dynamic, [_interceptors.JSIndexable]),
       serializeArray: dart.definiteFunctionType(dart.dynamic, [_interceptors.JSArray]),
       serializeArrayInPlace: dart.definiteFunctionType(dart.dynamic, [_interceptors.JSArray]),
-      serializeMap: dart.definiteFunctionType(dart.dynamic, [core.Map]),
+      serializeMap: dart.definiteFunctionType(dart.dynamic, [_js_helper.InternalMap]),
       serializeJSObject: dart.definiteFunctionType(dart.dynamic, [_interceptors.JSObject]),
       serializeWorkerSendPort: dart.definiteFunctionType(dart.dynamic, [_isolate_helper._WorkerSendPort]),
       serializeJsSendPort: dart.definiteFunctionType(dart.dynamic, [_isolate_helper._NativeJsSendPort]),
@@ -10732,7 +10733,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         case "map":
         {
-          return this.deserializeMap(x);
+          return this.deserializeMap(_js_helper.InternalMap._check(x));
         }
         case "sendport":
         {
@@ -10814,9 +10815,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _interceptors.JSArray.markFixed(this.deserializeArrayInPlace(_interceptors.JSArray._check(result)));
     }
     deserializeMap(x) {
-      dart.assert(dart.equals(dart.dindex(x, 0), 'map'));
-      let keys = core.List._check(dart.dindex(x, 1));
-      let values = core.List._check(dart.dindex(x, 2));
+      dart.assert(dart.equals(x.get(0), 'map'));
+      let keys = core.List._check(x.get(1));
+      let values = core.List._check(x.get(2));
       let result = dart.map();
       this.deserializedObjects[dartx.add](result);
       keys = keys[dartx.map](dart.dynamic)(dart.bind(this, 'deserialize'))[dartx.toList]();
@@ -10897,7 +10898,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       deserializeExtendable: dart.definiteFunctionType(core.List, [dart.dynamic]),
       deserializeMutable: dart.definiteFunctionType(core.List, [dart.dynamic]),
       deserializeConst: dart.definiteFunctionType(core.List, [dart.dynamic]),
-      deserializeMap: dart.definiteFunctionType(core.Map, [dart.dynamic]),
+      deserializeMap: dart.definiteFunctionType(core.Map, [_js_helper.InternalMap]),
       deserializeSendPort: dart.definiteFunctionType(isolate.SendPort, [dart.dynamic]),
       deserializeRawSendPort: dart.definiteFunctionType(isolate.SendPort, [dart.dynamic]),
       deserializeJSObject: dart.definiteFunctionType(dart.dynamic, [dart.dynamic]),
@@ -10944,7 +10945,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({new: dart.definiteFunctionType(_js_helper._Patch, [])})
   });
   _js_helper.patch = dart.const(new _js_helper._Patch());
-  _js_helper.InternalMap = class InternalMap extends core.Object {};
+  _js_helper.InternalMap$ = dart.generic((K, V) => {
+    let MapOfK$V = () => (MapOfK$V = dart.constFn(core.Map$(K, V)))();
+    class InternalMap extends core.Object {}
+    dart.addTypeTests(InternalMap);
+    InternalMap[dart.implements] = () => [MapOfK$V()];
+    return InternalMap;
+  });
+  _js_helper.InternalMap = InternalMap();
   _js_helper.Primitives = class Primitives extends core.Object {
     static initializeStatics(id) {
       _js_helper.Primitives.mirrorFunctionCacheName = dart.notNull(_js_helper.Primitives.mirrorFunctionCacheName) + dart.str`_${id}`;
@@ -11866,6 +11874,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let KAndVTovoid = () => (KAndVTovoid = dart.constFn(dart.functionType(dart.void, [K, V])))();
     let LinkedHashMapCellOfK$V = () => (LinkedHashMapCellOfK$V = dart.constFn(_js_helper.LinkedHashMapCell$(K, V)))();
     let LinkedHashMapOfK$V = () => (LinkedHashMapOfK$V = dart.constFn(collection.LinkedHashMap$(K, V)))();
+    let InternalMapOfK$V = () => (InternalMapOfK$V = dart.constFn(_js_helper.InternalMap$(K, V)))();
     let VoidToV = () => (VoidToV = dart.constFn(dart.functionType(V, [])))();
     let KToV = () => (KToV = dart.constFn(dart.definiteFunctionType(V, [K])))();
     let KTobool = () => (KTobool = dart.constFn(dart.definiteFunctionType(core.bool, [K])))();
@@ -12138,7 +12147,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.addTypeTests(JsLinkedHashMap);
-    JsLinkedHashMap[dart.implements] = () => [LinkedHashMapOfK$V(), _js_helper.InternalMap];
+    JsLinkedHashMap[dart.implements] = () => [LinkedHashMapOfK$V(), InternalMapOfK$V()];
     dart.setSignature(JsLinkedHashMap, {
       constructors: () => ({
         new: dart.definiteFunctionType(_js_helper.JsLinkedHashMap$(K, V), []),
@@ -23464,6 +23473,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let _Es6MapIterableOfK = () => (_Es6MapIterableOfK = dart.constFn(collection._Es6MapIterable$(K)))();
     let MapOfK$V = () => (MapOfK$V = dart.constFn(core.Map$(K, V)))();
     let KAndVTovoid = () => (KAndVTovoid = dart.constFn(dart.functionType(dart.void, [K, V])))();
+    let InternalMapOfK$V = () => (InternalMapOfK$V = dart.constFn(_js_helper.InternalMap$(K, V)))();
     let _Es6MapIterableOfV = () => (_Es6MapIterableOfV = dart.constFn(collection._Es6MapIterable$(V)))();
     let VoidToV = () => (VoidToV = dart.constFn(dart.functionType(V, [])))();
     let KAndVTovoid$ = () => (KAndVTovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [K, V])))();
@@ -23552,7 +23562,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return collection.Maps.mapToString(this);
       }
     }
-    _Es6LinkedIdentityHashMap[dart.implements] = () => [_js_helper.InternalMap];
+    _Es6LinkedIdentityHashMap[dart.implements] = () => [InternalMapOfK$V()];
     dart.setSignature(_Es6LinkedIdentityHashMap, {
       constructors: () => ({new: dart.definiteFunctionType(collection._Es6LinkedIdentityHashMap$(K, V), [])}),
       fields: () => ({
