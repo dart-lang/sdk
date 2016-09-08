@@ -321,6 +321,11 @@ class AnalyzerLoader implements ReferenceLevelLoader {
       for (var error in context.computeErrors(unit.source)) {
         if (error.errorCode is CompileTimeErrorCode ||
             error.errorCode is ParserErrorCode) {
+          if (error.errorCode == ParserErrorCode.CONST_FACTORY &&
+              node.importUri.scheme == 'dart') {
+            // Ignore warnings about 'const' factories in the patched SDK.
+            continue;
+          }
           errors.add(error);
         }
       }

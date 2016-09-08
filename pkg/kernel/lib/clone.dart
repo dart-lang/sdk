@@ -365,7 +365,8 @@ class CloneVisitor extends TreeVisitor {
         positionalParameters: positional,
         namedParameters: named,
         requiredParameterCount: node.requiredParameterCount,
-        returnType: visitType(node.returnType));
+        returnType: visitType(node.returnType),
+        asyncMarker: node.asyncMarker);
   }
 
   visitArguments(Arguments node) {

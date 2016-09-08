@@ -6,6 +6,7 @@ library kernel.target.vm;
 import 'targets.dart';
 import '../ast.dart';
 import '../transformations/mixin_full_resolution.dart' as mix;
+import '../transformations/continuation.dart' as cont;
 
 /// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {
@@ -33,5 +34,6 @@ class VmTarget extends Target {
 
   void transformProgram(Program program) {
     new mix.MixinFullResolution().transform(program);
+    cont.transformProgram(program);
   }
 }
