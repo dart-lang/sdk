@@ -35,7 +35,7 @@ class Helper<T> {
 
 class Mixin<T extends P> {}
 
-class Composite<K, V> extends Object with Mixin<K> {}
+class Composite<K extends P, V> extends Object with Mixin<K> {}
 
 main() {
   // "Happy" paths:
@@ -49,7 +49,7 @@ main() {
   var predicateHelper = new Helper<Predicate<P>>();
   expectReflectedType(reflectType(Predicate, [P]), predicateHelper.param); /// 01: ok
   var composite = new Composite<P, int>();
-  expectReflectedType(reflectType(Composite, [P, int]), composite.runtimeType); /// 01: ok
+  expectReflectedType(reflectType(Composite, [P, int]), composite.runtimeType);
 
   // Edge cases:
   Expect.throws(
@@ -86,11 +86,11 @@ main() {
       "for generic extending another generic");
   Expect.throws(
       () => reflectType(reflectType(F).typeVariables[0].reflectedType, [int]));
-  Expect.throws(() => reflectType(FBounded, [int])); /// 01: ok
+  Expect.throws(() => reflectType(FBounded, [int])); /// 02: ok
   var boundedType =
       reflectType(FBounded).typeVariables[0].upperBound.reflectedType;
-  Expect.throws(() => reflectType(boundedType, [int])); /// 01: ok
-  Expect.throws(() => reflectType(Composite, [int, int])); /// 01: ok
+  Expect.throws(() => reflectType(boundedType, [int])); /// 02: ok
+  Expect.throws(() => reflectType(Composite, [int, int])); /// 02: ok
 
   // Instantiation of a generic class preserves type information:
   ClassMirror m = reflectType(A, [P]) as ClassMirror;
