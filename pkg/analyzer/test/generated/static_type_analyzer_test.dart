@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
@@ -1427,12 +1426,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   DartType _analyze4(
       Expression node, InterfaceType thisType, bool useStaticType) {
-    try {
-      _analyzer.thisType = thisType;
-    } catch (exception) {
-      throw new IllegalArgumentException(
-          "Could not set type of 'this'", exception);
-    }
+    _analyzer.thisType = thisType;
     node.accept(_analyzer);
     if (useStaticType) {
       return node.staticType;
@@ -1554,12 +1548,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         definingLibrary, source, _typeProvider, _listener,
         nameScope: new LibraryScope(definingLibrary));
     _visitor.overrideManager.enterScope();
-    try {
-      return _visitor.typeAnalyzer;
-    } catch (exception) {
-      throw new IllegalArgumentException(
-          "Could not create analyzer", exception);
-    }
+    return _visitor.typeAnalyzer;
   }
 
   DartType _flatten(DartType type) => type.flattenFutures(_typeSystem);

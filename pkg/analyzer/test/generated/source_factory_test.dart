@@ -239,14 +239,13 @@ class SourceFactoryTest {
 
   void test_fromEncoding_invalidUri() {
     SourceFactory factory = new SourceFactory([]);
-    expect(() => factory.fromEncoding("<:&%>"),
-        throwsA(new isInstanceOf<IllegalArgumentException>()));
+    expect(() => factory.fromEncoding("<:&%>"), throwsArgumentError);
   }
 
   void test_fromEncoding_noResolver() {
     SourceFactory factory = new SourceFactory([]);
     expect(() => factory.fromEncoding("foo:/does/not/exist.dart"),
-        throwsA(new isInstanceOf<IllegalArgumentException>()));
+        throwsArgumentError);
   }
 
   void test_fromEncoding_valid() {

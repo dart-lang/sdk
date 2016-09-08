@@ -143,8 +143,7 @@ class SourceFactoryImpl implements SourceFactory {
   Source fromEncoding(String encoding) {
     Source source = forUri(encoding);
     if (source == null) {
-      throw new IllegalArgumentException(
-          "Invalid source encoding: '$encoding'");
+      throw new ArgumentError("Invalid source encoding: '$encoding'");
     }
     return source;
   }

@@ -533,8 +533,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * [identifier] is not a name of a getter or a method that exists in the
    * class [Null].
    */
-  void _checkForCanBeNullAfterNullAware(
-      Expression target, Token operator, SimpleIdentifier propertyName, SimpleIdentifier methodName) {
+  void _checkForCanBeNullAfterNullAware(Expression target, Token operator,
+      SimpleIdentifier propertyName, SimpleIdentifier methodName) {
     if (operator?.type == TokenType.QUESTION_PERIOD) {
       return;
     }
@@ -9097,7 +9097,7 @@ class TypeOverrideManager {
    */
   void applyOverrides(Map<VariableElement, DartType> overrides) {
     if (currentScope == null) {
-      throw new IllegalStateException("Cannot apply overrides without a scope");
+      throw new StateError("Cannot apply overrides without a scope");
     }
     currentScope.applyOverrides(overrides);
   }
@@ -9110,8 +9110,7 @@ class TypeOverrideManager {
    */
   Map<VariableElement, DartType> captureLocalOverrides() {
     if (currentScope == null) {
-      throw new IllegalStateException(
-          "Cannot capture local overrides without a scope");
+      throw new StateError("Cannot capture local overrides without a scope");
     }
     return currentScope.captureLocalOverrides();
   }
@@ -9126,8 +9125,7 @@ class TypeOverrideManager {
   Map<VariableElement, DartType> captureOverrides(
       VariableDeclarationList variableList) {
     if (currentScope == null) {
-      throw new IllegalStateException(
-          "Cannot capture overrides without a scope");
+      throw new StateError("Cannot capture overrides without a scope");
     }
     return currentScope.captureOverrides(variableList);
   }
@@ -9144,7 +9142,7 @@ class TypeOverrideManager {
    */
   void exitScope() {
     if (currentScope == null) {
-      throw new IllegalStateException("No scope to exit");
+      throw new StateError("No scope to exit");
     }
     currentScope = currentScope._outerScope;
   }
@@ -9203,7 +9201,7 @@ class TypeOverrideManager {
    */
   void setType(VariableElement element, DartType type) {
     if (currentScope == null) {
-      throw new IllegalStateException("Cannot override without a scope");
+      throw new StateError("Cannot override without a scope");
     }
     currentScope.setType(element, type);
   }
@@ -9405,7 +9403,7 @@ class TypePromotionManager {
    */
   void exitScope() {
     if (currentScope == null) {
-      throw new IllegalStateException("No scope to exit");
+      throw new StateError("No scope to exit");
     }
     currentScope = currentScope._outerScope;
   }
@@ -9430,7 +9428,7 @@ class TypePromotionManager {
    */
   void setType(Element element, DartType type) {
     if (currentScope == null) {
-      throw new IllegalStateException("Cannot promote without a scope");
+      throw new StateError("Cannot promote without a scope");
     }
     currentScope.setType(element, type);
   }

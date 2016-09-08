@@ -81,7 +81,7 @@ class CompilationUnitMock extends TypedMock implements CompilationUnit {}
 class MockSourceFactory extends SourceFactoryImpl {
   MockSourceFactory() : super([]);
   Source resolveUri(Source containingSource, String containedUri) {
-    throw new JavaIOException();
+    throw new UnimplementedError();
   }
 }
 

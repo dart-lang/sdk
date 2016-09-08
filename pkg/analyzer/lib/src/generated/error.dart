@@ -3202,9 +3202,9 @@ class ErrorReporter {
    */
   ErrorReporter(this._errorListener, this._defaultSource) {
     if (_errorListener == null) {
-      throw new IllegalArgumentException("An error listener must be provided");
+      throw new ArgumentError("An error listener must be provided");
     } else if (_defaultSource == null) {
-      throw new IllegalArgumentException("A default source must be provided");
+      throw new ArgumentError("A default source must be provided");
     }
     this._source = _defaultSource;
   }

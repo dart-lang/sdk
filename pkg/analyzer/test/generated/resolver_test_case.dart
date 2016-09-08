@@ -590,7 +590,7 @@ class ResolverTestCase extends EngineTestCase {
       // "fail_*" tests. However, an assertion failure is success for the
       // purpose of "fail_*" tests, so without catching them here "fail_*" tests
       // can succeed by failing for the wrong reason.
-      throw new JavaException("Unexexpected assertion failure: $exception");
+      throw new StateError("Unexpected assertion failure: $exception");
     }
   }
 

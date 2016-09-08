@@ -473,7 +473,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (identical(_sourceFactory, factory)) {
       return;
     } else if (factory.context != null) {
-      throw new IllegalStateException(
+      throw new StateError(
           "Source factories cannot be shared between contexts");
     }
     if (_sourceFactory != null) {
@@ -2307,7 +2307,7 @@ class SdkAnalysisContext extends AnalysisContextImpl {
     }
     DartSdk sdk = factory.dartSdk;
     if (sdk == null) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "The source factory for an SDK analysis context must have a DartUriResolver");
     }
     return new AnalysisCache(

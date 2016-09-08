@@ -399,7 +399,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   void set correspondingPropagatedParameters(
       List<ParameterElement> parameters) {
     if (parameters != null && parameters.length != _arguments.length) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "Expected ${_arguments.length} parameters, not ${parameters.length}");
     }
     _correspondingPropagatedParameters = parameters;
@@ -411,7 +411,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @override
   void set correspondingStaticParameters(List<ParameterElement> parameters) {
     if (parameters != null && parameters.length != _arguments.length) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "Expected ${_arguments.length} parameters, not ${parameters.length}");
     }
     _correspondingStaticParameters = parameters;
@@ -5177,7 +5177,7 @@ class FunctionExpressionImpl extends ExpressionImpl
     }
     // This should never be reached because external functions must be named,
     // hence either the body or the name should be non-null.
-    throw new IllegalStateException("Non-external functions must have a body");
+    throw new StateError("Non-external functions must have a body");
   }
 
   @override
@@ -5201,7 +5201,7 @@ class FunctionExpressionImpl extends ExpressionImpl
     }
     // This should never be reached because external functions must be named,
     // hence either the body or the name should be non-null.
-    throw new IllegalStateException("Non-external functions must have a body");
+    throw new StateError("Non-external functions must have a body");
   }
 
   @override
@@ -9297,7 +9297,7 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
 
   @override
   void _appendStringValue(StringBuffer buffer) {
-    throw new IllegalArgumentException();
+    throw new ArgumentError();
   }
 }
 
@@ -9410,7 +9410,7 @@ abstract class StringLiteralImpl extends LiteralImpl implements StringLiteral {
     StringBuffer buffer = new StringBuffer();
     try {
       _appendStringValue(buffer);
-    } on IllegalArgumentException {
+    } on ArgumentError {
       return null;
     }
     return buffer.toString();
@@ -9418,8 +9418,8 @@ abstract class StringLiteralImpl extends LiteralImpl implements StringLiteral {
 
   /**
    * Append the value of this string literal to the given [buffer]. Throw an
-   * [IllegalArgumentException] if the string is not a constant string without
-   * any string interpolation.
+   * [ArgumentError] if the string is not a constant string without any
+   * string interpolation.
    */
   void _appendStringValue(StringBuffer buffer);
 }

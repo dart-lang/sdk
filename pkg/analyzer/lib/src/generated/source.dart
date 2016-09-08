@@ -212,9 +212,9 @@ class LineInfo {
    */
   LineInfo._(this.lineStarts) {
     if (lineStarts == null) {
-      throw new IllegalArgumentException("lineStarts must be non-null");
+      throw new ArgumentError("lineStarts must be non-null");
     } else if (lineStarts.length < 1) {
-      throw new IllegalArgumentException("lineStarts must be non-empty");
+      throw new ArgumentError("lineStarts must be non-empty");
     }
   }
 
@@ -379,7 +379,7 @@ class NonExistingSource extends Source {
 
   @override
   TimestampedData<String> get contents {
-    throw new UnsupportedOperationException('$fullName does not exist.');
+    throw new UnsupportedError('$fullName does not exist.');
   }
 
   @override

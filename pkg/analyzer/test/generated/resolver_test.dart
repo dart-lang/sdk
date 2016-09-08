@@ -985,24 +985,18 @@ class SubtypeManagerTest {
 class TypeOverrideManagerTest extends EngineTestCase {
   void test_exitScope_noScopes() {
     TypeOverrideManager manager = new TypeOverrideManager();
-    try {
+    expect(() {
       manager.exitScope();
-      fail("Expected IllegalStateException");
-    } on IllegalStateException {
-      // Expected
-    }
+    }, throwsStateError);
   }
 
   void test_exitScope_oneScope() {
     TypeOverrideManager manager = new TypeOverrideManager();
     manager.enterScope();
     manager.exitScope();
-    try {
+    expect(() {
       manager.exitScope();
-      fail("Expected IllegalStateException");
-    } on IllegalStateException {
-      // Expected
-    }
+    }, throwsStateError);
   }
 
   void test_exitScope_twoScopes() {
@@ -1011,12 +1005,9 @@ class TypeOverrideManagerTest extends EngineTestCase {
     manager.exitScope();
     manager.enterScope();
     manager.exitScope();
-    try {
+    expect(() {
       manager.exitScope();
-      fail("Expected IllegalStateException");
-    } on IllegalStateException {
-      // Expected
-    }
+    }, throwsStateError);
   }
 
   void test_getType_enclosedOverride() {

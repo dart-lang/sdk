@@ -8414,7 +8414,7 @@ abstract class VariableElementImpl extends ElementImpl
    * constant expression to the given [result].
    */
   void set evaluationResult(EvaluationResultImpl result) {
-    throw new IllegalStateException(
+    throw new StateError(
         "Invalid attempt to set a compile-time constant result");
   }
 

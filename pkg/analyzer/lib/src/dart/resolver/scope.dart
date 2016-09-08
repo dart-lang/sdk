@@ -25,7 +25,7 @@ class BlockScope extends EnclosedScope {
    */
   BlockScope(Scope enclosingScope, Block block) : super(enclosingScope) {
     if (block == null) {
-      throw new IllegalArgumentException("block cannot be null");
+      throw new ArgumentError("block cannot be null");
     }
     _defineElements(block);
   }
@@ -69,7 +69,7 @@ class ClassScope extends EnclosedScope {
   ClassScope(Scope enclosingScope, ClassElement classElement)
       : super(enclosingScope) {
     if (classElement == null) {
-      throw new IllegalArgumentException("class element cannot be null");
+      throw new ArgumentError("class element cannot be null");
     }
     _defineMembers(classElement);
   }
@@ -173,7 +173,7 @@ class FunctionScope extends EnclosedScope {
   FunctionScope(Scope enclosingScope, this._functionElement)
       : super(new EnclosedScope(new EnclosedScope(enclosingScope))) {
     if (_functionElement == null) {
-      throw new IllegalArgumentException("function element cannot be null");
+      throw new ArgumentError("function element cannot be null");
     }
     _defineTypeParameters();
   }
@@ -1154,7 +1154,7 @@ class TypeParameterScope extends EnclosedScope {
   TypeParameterScope(Scope enclosingScope, ClassElement classElement)
       : super(enclosingScope) {
     if (classElement == null) {
-      throw new IllegalArgumentException("class element cannot be null");
+      throw new ArgumentError("class element cannot be null");
     }
     _defineTypeParameters(classElement);
   }

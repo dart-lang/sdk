@@ -86,8 +86,7 @@ String _printf(String fmt, List args) {
         continue;
       }
       // unknown
-      throw new IllegalArgumentException(
-          '[$fmt][$i] = 0x${c.toRadixString(16)}');
+      throw new ArgumentError('[$fmt][$i] = 0x${c.toRadixString(16)}');
     } else {
       sb.writeCharCode(c);
     }
@@ -130,7 +129,7 @@ class Character {
 
   static String toChars(int codePoint) {
     if (codePoint < 0 || codePoint > MAX_CODE_POINT) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     if (codePoint < MIN_SUPPLEMENTARY_CODE_POINT) {
       return new String.fromCharCode(codePoint);
@@ -154,15 +153,6 @@ abstract class Enum<E extends Enum> implements Comparable<E> {
   String toString() => name;
 }
 
-class IllegalArgumentException extends JavaException {
-  IllegalArgumentException([message = "", cause = null])
-      : super(message, cause);
-}
-
-class IllegalStateException extends JavaException {
-  IllegalStateException([message = ""]) : super(message);
-}
-
 class JavaArrays {
   static int makeHashCode(List a) {
     // TODO(rnystrom): This is not used by analyzer, but is called by
@@ -176,18 +166,6 @@ class JavaArrays {
     }
     return result;
   }
-}
-
-class JavaException implements Exception {
-  final String message;
-  final Object cause;
-  JavaException([this.message = "", this.cause = null]);
-  JavaException.withCause(this.cause) : message = null;
-  String toString() => "$runtimeType: $message $cause";
-}
-
-class JavaIOException extends JavaException {
-  JavaIOException([message = "", cause = null]) : super(message, cause);
 }
 
 class JavaPatternMatcher {
@@ -237,26 +215,6 @@ class JavaSystem {
   }
 }
 
-class MissingFormatArgumentException implements Exception {
-  final String s;
-
-  MissingFormatArgumentException(this.s);
-
-  String toString() => "MissingFormatArgumentException: $s";
-}
-
-class NoSuchElementException extends JavaException {
-  String toString() => "NoSuchElementException";
-}
-
-class NotImplementedException extends JavaException {
-  NotImplementedException(message) : super(message);
-}
-
-class NumberFormatException extends JavaException {
-  String toString() => "NumberFormatException";
-}
-
 class PrintStringWriter extends PrintWriter {
   final StringBuffer _sb = new StringBuffer();
 
@@ -282,19 +240,6 @@ abstract class PrintWriter {
     this.print(s);
     this.newLine();
   }
-}
-
-class RuntimeException extends JavaException {
-  RuntimeException({String message: "", Exception cause: null})
-      : super(message, cause);
-}
-
-class StringIndexOutOfBoundsException extends JavaException {
-  StringIndexOutOfBoundsException(int index) : super('$index');
-}
-
-class UnsupportedOperationException extends JavaException {
-  UnsupportedOperationException([message = ""]) : super(message);
 }
 
 class URISyntaxException implements Exception {

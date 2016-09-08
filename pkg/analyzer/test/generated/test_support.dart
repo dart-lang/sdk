@@ -12,7 +12,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
@@ -129,7 +128,7 @@ class EngineTestCase {
       AstNode root, String code, String prefix, Predicate<AstNode> predicate) {
     int offset = code.indexOf(prefix);
     if (offset == -1) {
-      throw new IllegalArgumentException("Not found '$prefix'.");
+      throw new ArgumentError("Not found '$prefix'.");
     }
     AstNode node = new NodeLocator(offset).searchWithin(root);
     return node.getAncestor(predicate);
@@ -142,7 +141,7 @@ class EngineTestCase {
       AstNode root, String code, String prefix) {
     int offset = code.indexOf(prefix);
     if (offset == -1) {
-      throw new IllegalArgumentException("Not found '$prefix'.");
+      throw new ArgumentError("Not found '$prefix'.");
     }
     return new NodeLocator(offset).searchWithin(root);
   }
@@ -589,7 +588,7 @@ class TestSource extends Source {
   Uri get uri => new Uri.file(_name);
 
   UriKind get uriKind {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedError('uriKind');
   }
 
   bool operator ==(Object other) {
@@ -601,11 +600,11 @@ class TestSource extends Source {
 
   bool exists() => exists2;
   void getContentsToReceiver(Source_ContentReceiver receiver) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedError('getContentsToReceiver');
   }
 
   Source resolve(String uri) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedError('resolve');
   }
 
   void setContents(String value) {

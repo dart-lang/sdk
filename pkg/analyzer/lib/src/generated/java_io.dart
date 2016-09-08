@@ -6,7 +6,6 @@ library analyzer.src.generated.java_io;
 
 import "dart:io";
 
-import 'package:analyzer/src/generated/java_core.dart' show JavaIOException;
 import 'package:path/path.dart' as path;
 
 class JavaFile {
@@ -51,11 +50,7 @@ class JavaFile {
 
   JavaFile getCanonicalFile() => new JavaFile(getCanonicalPath());
   String getCanonicalPath() {
-    try {
-      return _newFile().resolveSymbolicLinksSync();
-    } catch (e) {
-      throw new JavaIOException('IOException', e);
-    }
+    return _newFile().resolveSymbolicLinksSync();
   }
 
   String getName() => pathContext.basename(_path);

@@ -711,6 +711,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         needsComma = true;
       }
     }
+
     void startOptionalParameters() {
       if (needsComma) {
         buffer.write(", ");
@@ -759,7 +760,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   FunctionTypeImpl instantiate(List<DartType> argumentTypes) {
     if (argumentTypes.length != typeFormals.length) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != "
           "typeFormals.length (${typeFormals.length})");
     }
@@ -838,7 +839,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // substituting once.
     assert(this.prunedTypedefs == null);
     if (argumentTypes.length != parameterTypes.length) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
     Element element = this.element;
@@ -1849,7 +1850,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
     if (argumentTypes.length != parameterTypes.length) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
     if (argumentTypes.length == 0 || typeArguments.length == 0) {
@@ -1936,6 +1937,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         visitedClasses.remove(type.element);
       }
     }
+
     recurse(this);
     return result;
   }
@@ -1959,7 +1961,25 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     List<InterfaceType> s = _intersection(si, sj);
     return computeTypeAtMaxUniqueDepth(s);
   }
-  
+
+  /**
+   * Return the length of the longest inheritance path from the given [type] to
+   * Object.
+   *
+   * See [computeLeastUpperBound].
+   */
+  static int computeLongestInheritancePathToObject(InterfaceType type) =>
+      _computeLongestInheritancePathToObject(
+          type, 0, new HashSet<ClassElement>());
+
+  /**
+   * Returns the set of all superinterfaces of the given [type].
+   *
+   * See [computeLeastUpperBound].
+   */
+  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) =>
+      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
+
   /**
    * Return the type from the [types] list that has the longest inheritence path
    * to Object of unique length.
@@ -1994,24 +2014,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     assert(false);
     return null;
   }
-
-  /**
-   * Return the length of the longest inheritance path from the given [type] to
-   * Object.
-   *
-   * See [computeLeastUpperBound].
-   */
-  static int computeLongestInheritancePathToObject(InterfaceType type) =>
-      _computeLongestInheritancePathToObject(
-          type, 0, new HashSet<ClassElement>());
-
-  /**
-   * Returns the set of all superinterfaces of the given [type].
-   *
-   * See [computeLeastUpperBound].
-   */
-  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) =>
-      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
 
   /**
    * If there is a single type which is at least as specific as all of the
@@ -2187,7 +2189,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ClassElement firstElement = firstType.element;
     ClassElement secondElement = secondType.element;
     if (firstElement != secondElement) {
-      throw new IllegalArgumentException('The same elements expected, but '
+      throw new ArgumentError('The same elements expected, but '
           '$firstElement and $secondElement are given.');
     }
     if (firstType == secondType) {
