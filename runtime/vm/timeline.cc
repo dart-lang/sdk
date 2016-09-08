@@ -1400,13 +1400,11 @@ void TimelineEventFixedBufferRecorder::CompleteEvent(TimelineEvent* event) {
 }
 
 
-static const char* kSystracePath = "/sys/kernel/debug/tracing/trace_marker";
-
-
 TimelineEventSystraceRecorder::TimelineEventSystraceRecorder(intptr_t capacity)
     : TimelineEventFixedBufferRecorder(capacity),
       systrace_fd_(-1) {
 #if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_LINUX)
+  const char* kSystracePath = "/sys/kernel/debug/tracing/trace_marker";
   systrace_fd_ = open(kSystracePath, O_WRONLY);
   if ((systrace_fd_ < 0) && FLAG_trace_timeline) {
     OS::PrintErr("TimelineEventSystraceRecorder: Could not open `%s`\n",
