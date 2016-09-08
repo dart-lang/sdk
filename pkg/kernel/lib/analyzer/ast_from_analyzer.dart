@@ -366,7 +366,7 @@ class TypeScope extends ReferenceScope {
   }
 
   List<ast.DartType> buildOptionalTypeArgumentList(TypeArgumentList node) {
-    if (node == null) return <ast.DartType>[];
+    if (node == null) return null;
     return new TypeAnnotationBuilder(this).buildList(node.arguments);
   }
 
@@ -2519,6 +2519,13 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
           function.namedParameters.map(_makeNamedExpressionFrom).toList();
       List<ast.DartType> typeArguments = scope.buildOptionalTypeArgumentList(
           node.redirectedConstructor.type.typeArguments);
+      if (typeArguments == null && targetElement != null) {
+        // If no type arguments were given, fill in 'dynamic'.
+        ClassElement targetClass = targetElement.enclosingElement;
+        typeArguments = new List<ast.DartType>.filled(
+            targetClass.typeParameters.length, const ast.DynamicType(),
+            growable: true);
+      }
       var arguments =
           new ast.Arguments(positional, named: named, types: typeArguments);
       if (targetElement != null &&
