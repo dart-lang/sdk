@@ -53,7 +53,7 @@ class NavTopMenuElement extends HtmlElement implements Renderable {
       new NavMenuItemElement('Connect to a VM', link: Uris.vmConnect()),
     ]..addAll(_content));
     children = [
-      navMenu('Observatory', link: Uris.vm(), content: _content)
+      navMenu('Observatory', link: Uris.vm(), content: content)
     ];
   }
 }
