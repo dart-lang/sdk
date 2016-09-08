@@ -80,6 +80,11 @@ class PubSummaryManager {
   static const UNLINKED_NAME = 'unlinked.ds';
   static const UNLINKED_SPEC_NAME = 'unlinked_spec.ds';
 
+  /**
+   * See [PackageBundleAssembler.currentMajorVersion].
+   */
+  final int majorVersion;
+
   final ResourceProvider resourceProvider;
 
   /**
@@ -117,7 +122,9 @@ class PubSummaryManager {
    */
   Completer _onUnlinkedCompleteCompleter;
 
-  PubSummaryManager(this.resourceProvider, this.tempFileName);
+  PubSummaryManager(this.resourceProvider, this.tempFileName,
+      {@visibleForTesting this.majorVersion:
+          PackageBundleAssembler.currentMajorVersion});
 
   /**
    * The [Future] that completes when computing of all scheduled unlinked
@@ -342,7 +349,9 @@ class PubSummaryManager {
 
     try {
       addDartFiles(libFolder);
-      List<int> bytes = assembler.assemble().toBuffer();
+      PackageBundleBuilder bundleWriter = assembler.assemble();
+      bundleWriter.majorVersion = majorVersion;
+      List<int> bytes = bundleWriter.toBuffer();
       String fileName = _getUnlinkedName(strong);
       _writeAtomic(package.folder, fileName, bytes);
     } on FileSystemException {
@@ -382,27 +391,36 @@ class PubSummaryManager {
     if (bundle != null) {
       return bundle;
     }
+
     // Try to read from the file system.
     String fileName = _getUnlinkedName(strong);
-    File unlinkedFile = package.folder.getChildAssumingFile(fileName);
-    if (unlinkedFile.exists) {
+    File file = package.folder.getChildAssumingFile(fileName);
+    if (file.exists) {
       try {
-        List<int> bytes = unlinkedFile.readAsBytesSync();
+        List<int> bytes = file.readAsBytesSync();
         bundle = new PackageBundle.fromBuffer(bytes);
-        unlinkedBundleMap[package] = bundle;
-        // TODO(scheglov) if not in the pub cache, check for consistency
-        return bundle;
       } on FileSystemException {
         // Ignore file system exceptions.
       }
     }
+
+    bool isInPubCache = isPathInPubCache(pathContext, package.folder.path);
+
+    // Verify compatibility.
+    // TODO(scheglov) if not in the pub cache, check for consistency
+    if (bundle != null && bundle.majorVersion == majorVersion) {
+      unlinkedBundleMap[package] = bundle;
+      return bundle;
+    }
+
     // Schedule computation in the background, if in the pub cache.
-    if (isPathInPubCache(pathContext, package.folder.path)) {
+    if (isInPubCache) {
       if (seenPackages.add(package)) {
         _scheduleUnlinked(package);
       }
     }
-    // The bundle is for available.
+
+    // The bundle is not available.
     return null;
   }
 

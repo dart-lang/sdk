@@ -260,6 +260,47 @@ A b;
     }
   }
 
+  test_getLinkedBundles_cached_inconsistent_majorVersion() async {
+    String pathA = '$CACHE/aaa';
+    resourceProvider.newFile(
+        '$pathA/lib/a.dart',
+        '''
+class A {}
+int a;
+''');
+    // Configure packages resolution.
+    Folder libFolderA = resourceProvider.newFolder('$pathA/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+      })
+    ]);
+
+    // Session 1.
+    // Create the linked bundle and cache it in a file.
+    {
+      // Ensure unlinked bundles.
+      manager.getUnlinkedBundles(context);
+      await manager.onUnlinkedComplete;
+
+      // Now we should be able to get the linked bundle.
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(1));
+    }
+
+    // Session 2.
+    // Recreate manager with a different major version.
+    // It cannot use the previously cache linked bundle.
+    // The reason is that we cannot use the cached unlinked bundle.
+    {
+      _createManager(majorVersion: 12345);
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, isEmpty);
+    }
+  }
+
   test_getLinkedBundles_hasCycle() async {
     resourceProvider.newFile(
         '$CACHE/aaa/lib/a.dart',
@@ -924,6 +965,56 @@ class B {}
     _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
   }
 
+  test_getUnlinkedBundles_inconsistent_majorVersion() async {
+    // Create package files.
+    resourceProvider.newFile(
+        '$CACHE/aaa/lib/a.dart',
+        '''
+class A {}
+''');
+
+    // Configure packages resolution.
+    Folder libFolder = resourceProvider.newFolder('$CACHE/aaa/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolder],
+      })
+    ]);
+
+    /**
+     * Verify that the [manager] has exactly one cache bundle `aaa`.
+     */
+    void _assertSingleBundle() {
+      Map<PubPackage, PackageBundle> bundles =
+          manager.getUnlinkedBundles(context);
+      expect(bundles, hasLength(1));
+      PackageBundle bundle = _getBundleByPackageName(bundles, 'aaa');
+      expect(bundle.unlinkedUnitUris, ['package:aaa/a.dart']);
+    }
+
+    // Compute the bundle using a non-default major version.
+    _createManager(majorVersion: 12345);
+    manager.getUnlinkedBundles(context);
+    await manager.onUnlinkedComplete;
+    _assertSingleBundle();
+
+    // Recompute when using the default major version.
+    _createManager();
+    expect(manager.getUnlinkedBundles(context), isEmpty);
+
+    // Wait for the bundle to be computed.
+    await manager.onUnlinkedComplete;
+    _assertSingleBundle();
+    _assertFileExists(libFolder.parent, PubSummaryManager.UNLINKED_NAME);
+    _assertFileExists(libFolder.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
+
+    // Can read from the file again.
+    _createManager();
+    _assertSingleBundle();
+  }
+
   test_getUnlinkedBundles_notPubCache_dontCreate() async {
     String aaaPath = '/Users/user/projects/aaa';
     // Create package files.
@@ -1125,8 +1216,10 @@ class B {}
     fail('Cannot find variable $variableName in $linkedPackage');
   }
 
-  void _createManager() {
-    manager = new PubSummaryManager(resourceProvider, '_.temp');
+  void _createManager(
+      {int majorVersion: PackageBundleAssembler.currentMajorVersion}) {
+    manager = new PubSummaryManager(resourceProvider, '_.temp',
+        majorVersion: majorVersion);
   }
 
   LinkedPubPackage _getLinkedPackage(
