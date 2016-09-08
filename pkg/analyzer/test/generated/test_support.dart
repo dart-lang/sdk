@@ -460,23 +460,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
       Source source = error.source;
       LineInfo lineInfo = _lineInfoMap[source];
       buffer.writeln();
+      String sourceName = source == null ? '' : source.shortName;
       if (lineInfo == null) {
         int offset = error.offset;
-        StringUtils.printf(buffer, "  %s %s (%d..%d)", [
-          source == null ? "" : source.shortName,
-          error.errorCode,
-          offset,
-          offset + error.length
-        ]);
+        buffer.write('  $sourceName ${error.errorCode} '
+            '($offset..${offset + error.length})');
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        StringUtils.printf(buffer, "  %s %s (%d, %d/%d)", [
-          source == null ? "" : source.shortName,
-          error.errorCode,
-          location.lineNumber,
-          location.columnNumber,
-          error.length
-        ]);
+        int lineNumber = location.lineNumber;
+        int columnNumber = location.columnNumber;
+        buffer.write('  $sourceName ${error.errorCode} '
+            '($lineNumber, $columnNumber/${error.length})');
       }
     }
     buffer.writeln();
@@ -487,25 +481,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
       Source source = error.source;
       LineInfo lineInfo = _lineInfoMap[source];
       buffer.writeln();
+      String sourceName = source == null ? '' : source.shortName;
       if (lineInfo == null) {
         int offset = error.offset;
-        StringUtils.printf(buffer, "  %s %s (%d..%d): %s", [
-          source == null ? "" : source.shortName,
-          error.errorCode,
-          offset,
-          offset + error.length,
-          error.message
-        ]);
+        buffer.write('  $sourceName ${error.errorCode} '
+            '($offset..${offset + error.length}): ${error.message}');
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        StringUtils.printf(buffer, "  %s %s (%d, %d/%d): %s", [
-          source == null ? "" : source.shortName,
-          error.errorCode,
-          location.lineNumber,
-          location.columnNumber,
-          error.length,
-          error.message
-        ]);
+        int lineNumber = location.lineNumber;
+        int columnNumber = location.columnNumber;
+        buffer.write('  $sourceName ${error.errorCode} '
+            '($lineNumber, $columnNumber/${error.length}): ${error.message}');
       }
     }
     fail(buffer.toString());
