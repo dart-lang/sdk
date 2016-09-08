@@ -34,8 +34,6 @@ vars = {
   "base_revision": "@672b04e54b937ec899429a6bd5409c5a6300d151",
   "buildtools_revision": "@565d04e8741429fb1b4f26d102f2c6c3b849edeb",
 
-  "gperftools_revision": "@7822b5b0b9fa7e016e1f6b46ea86f26f4691a457",
-
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.5",
   "async_tag": "@1.11.1",
@@ -168,9 +166,6 @@ deps = {
 
   Var("dart_root") + "/third_party/WebCore":
       "https://github.com/dart-lang/webcore.git" + Var("WebCore_rev"),
-
-  Var("dart_root") + "/third_party/tcmalloc/gperftools":
-    'https://github.com/gperftools/gperftools.git' + Var("gperftools_revision"),
 
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
