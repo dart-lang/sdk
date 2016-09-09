@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -6696,15 +6695,15 @@ class ScopedNameFinder extends GeneralizingAstVisitor<Object> {
  */
 class ToSourceVisitor implements AstVisitor<Object> {
   /**
-   * The writer to which the source is to be written.
+   * The buffer to which the source is to be written.
    */
-  final PrintWriter _writer;
+  final StringBuffer _buffer;
 
   /**
    * Initialize a newly created visitor to write source code representing the
-   * visited nodes to the given [writer].
+   * visited nodes to the given [_buffer].
    */
-  ToSourceVisitor(this._writer);
+  ToSourceVisitor(this._buffer);
 
   @override
   Object visitAdjacentStrings(AdjacentStrings node) {
@@ -6714,7 +6713,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitAnnotation(Annotation node) {
-    _writer.print('@');
+    _buffer.write('@');
     _visitNode(node.name);
     _visitNodeWithPrefix(".", node.constructorName);
     _visitNode(node.arguments);
@@ -6723,45 +6722,45 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitArgumentList(ArgumentList node) {
-    _writer.print('(');
+    _buffer.write('(');
     _visitNodeListWithSeparator(node.arguments, ", ");
-    _writer.print(')');
+    _buffer.write(')');
     return null;
   }
 
   @override
   Object visitAsExpression(AsExpression node) {
     _visitNode(node.expression);
-    _writer.print(" as ");
+    _buffer.write(" as ");
     _visitNode(node.type);
     return null;
   }
 
   @override
   Object visitAssertStatement(AssertStatement node) {
-    _writer.print("assert (");
+    _buffer.write("assert (");
     _visitNode(node.condition);
     if (node.message != null) {
-      _writer.print(', ');
+      _buffer.write(', ');
       _visitNode(node.message);
     }
-    _writer.print(");");
+    _buffer.write(");");
     return null;
   }
 
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     _visitNode(node.leftHandSide);
-    _writer.print(' ');
-    _writer.print(node.operator.lexeme);
-    _writer.print(' ');
+    _buffer.write(' ');
+    _buffer.write(node.operator.lexeme);
+    _buffer.write(' ');
     _visitNode(node.rightHandSide);
     return null;
   }
 
   @override
   Object visitAwaitExpression(AwaitExpression node) {
-    _writer.print("await ");
+    _buffer.write("await ");
     _visitNode(node.expression);
     return null;
   }
@@ -6769,18 +6768,18 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitBinaryExpression(BinaryExpression node) {
     _visitNode(node.leftOperand);
-    _writer.print(' ');
-    _writer.print(node.operator.lexeme);
-    _writer.print(' ');
+    _buffer.write(' ');
+    _buffer.write(node.operator.lexeme);
+    _buffer.write(' ');
     _visitNode(node.rightOperand);
     return null;
   }
 
   @override
   Object visitBlock(Block node) {
-    _writer.print('{');
+    _buffer.write('{');
     _visitNodeListWithSeparator(node.statements, " ");
-    _writer.print('}');
+    _buffer.write('}');
     return null;
   }
 
@@ -6788,11 +6787,11 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     Token keyword = node.keyword;
     if (keyword != null) {
-      _writer.print(keyword.lexeme);
+      _buffer.write(keyword.lexeme);
       if (node.star != null) {
-        _writer.print('*');
+        _buffer.write('*');
       }
-      _writer.print(' ');
+      _buffer.write(' ');
     }
     _visitNode(node.block);
     return null;
@@ -6800,15 +6799,15 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitBooleanLiteral(BooleanLiteral node) {
-    _writer.print(node.literal.lexeme);
+    _buffer.write(node.literal.lexeme);
     return null;
   }
 
   @override
   Object visitBreakStatement(BreakStatement node) {
-    _writer.print("break");
+    _buffer.write("break");
     _visitNodeWithPrefix(" ", node.label);
-    _writer.print(";");
+    _buffer.write(";");
     return null;
   }
 
@@ -6824,14 +6823,14 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNodeWithPrefix("on ", node.exceptionType);
     if (node.catchKeyword != null) {
       if (node.exceptionType != null) {
-        _writer.print(' ');
+        _buffer.write(' ');
       }
-      _writer.print("catch (");
+      _buffer.write("catch (");
       _visitNode(node.exceptionParameter);
       _visitNodeWithPrefix(", ", node.stackTraceParameter);
-      _writer.print(") ");
+      _buffer.write(") ");
     } else {
-      _writer.print(" ");
+      _buffer.write(" ");
     }
     _visitNode(node.body);
     return null;
@@ -6841,15 +6840,15 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitClassDeclaration(ClassDeclaration node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.abstractKeyword, " ");
-    _writer.print("class ");
+    _buffer.write("class ");
     _visitNode(node.name);
     _visitNode(node.typeParameters);
     _visitNodeWithPrefix(" ", node.extendsClause);
     _visitNodeWithPrefix(" ", node.withClause);
     _visitNodeWithPrefix(" ", node.implementsClause);
-    _writer.print(" {");
+    _buffer.write(" {");
     _visitNodeListWithSeparator(node.members, " ");
-    _writer.print("}");
+    _buffer.write("}");
     return null;
   }
 
@@ -6857,16 +6856,16 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitClassTypeAlias(ClassTypeAlias node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     if (node.abstractKeyword != null) {
-      _writer.print("abstract ");
+      _buffer.write("abstract ");
     }
-    _writer.print("class ");
+    _buffer.write("class ");
     _visitNode(node.name);
     _visitNode(node.typeParameters);
-    _writer.print(" = ");
+    _buffer.write(" = ");
     _visitNode(node.superclass);
     _visitNodeWithPrefix(" ", node.withClause);
     _visitNodeWithPrefix(" ", node.implementsClause);
-    _writer.print(";");
+    _buffer.write(";");
     return null;
   }
 
@@ -6891,19 +6890,19 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitConditionalExpression(ConditionalExpression node) {
     _visitNode(node.condition);
-    _writer.print(" ? ");
+    _buffer.write(" ? ");
     _visitNode(node.thenExpression);
-    _writer.print(" : ");
+    _buffer.write(" : ");
     _visitNode(node.elseExpression);
     return null;
   }
 
   @override
   Object visitConfiguration(Configuration node) {
-    _writer.print('if (');
+    _buffer.write('if (');
     _visitNode(node.name);
     _visitNodeWithPrefix(" == ", node.value);
-    _writer.print(') ');
+    _buffer.write(') ');
     _visitNode(node.libraryUri);
     return null;
   }
@@ -6927,7 +6926,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     _visitTokenWithSuffix(node.thisKeyword, ".");
     _visitNode(node.fieldName);
-    _writer.print(" = ");
+    _buffer.write(" = ");
     _visitNode(node.expression);
     return null;
   }
@@ -6941,9 +6940,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitContinueStatement(ContinueStatement node) {
-    _writer.print("continue");
+    _buffer.write("continue");
     _visitNodeWithPrefix(" ", node.label);
-    _writer.print(";");
+    _buffer.write(";");
     return null;
   }
 
@@ -6960,8 +6959,8 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     _visitNode(node.parameter);
     if (node.separator != null) {
-      _writer.print(" ");
-      _writer.print(node.separator.lexeme);
+      _buffer.write(" ");
+      _buffer.write(node.separator.lexeme);
       _visitNodeWithPrefix(" ", node.defaultValue);
     }
     return null;
@@ -6969,11 +6968,11 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitDoStatement(DoStatement node) {
-    _writer.print("do ");
+    _buffer.write("do ");
     _visitNode(node.body);
-    _writer.print(" while (");
+    _buffer.write(" while (");
     _visitNode(node.condition);
-    _writer.print(");");
+    _buffer.write(");");
     return null;
   }
 
@@ -6985,19 +6984,19 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitDoubleLiteral(DoubleLiteral node) {
-    _writer.print(node.literal.lexeme);
+    _buffer.write(node.literal.lexeme);
     return null;
   }
 
   @override
   Object visitEmptyFunctionBody(EmptyFunctionBody node) {
-    _writer.print(';');
+    _buffer.write(';');
     return null;
   }
 
   @override
   Object visitEmptyStatement(EmptyStatement node) {
-    _writer.print(';');
+    _buffer.write(';');
     return null;
   }
 
@@ -7011,21 +7010,21 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    _writer.print("enum ");
+    _buffer.write("enum ");
     _visitNode(node.name);
-    _writer.print(" {");
+    _buffer.write(" {");
     _visitNodeListWithSeparator(node.constants, ", ");
-    _writer.print("}");
+    _buffer.write("}");
     return null;
   }
 
   @override
   Object visitExportDirective(ExportDirective node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    _writer.print("export ");
+    _buffer.write("export ");
     _visitNode(node.uri);
     _visitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
-    _writer.print(';');
+    _buffer.write(';');
     return null;
   }
 
@@ -7033,13 +7032,13 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     Token keyword = node.keyword;
     if (keyword != null) {
-      _writer.print(keyword.lexeme);
-      _writer.print(' ');
+      _buffer.write(keyword.lexeme);
+      _buffer.write(' ');
     }
-    _writer.print("=> ");
+    _buffer.write("=> ");
     _visitNode(node.expression);
     if (node.semicolon != null) {
-      _writer.print(';');
+      _buffer.write(';');
     }
     return null;
   }
@@ -7047,13 +7046,13 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitExpressionStatement(ExpressionStatement node) {
     _visitNode(node.expression);
-    _writer.print(';');
+    _buffer.write(';');
     return null;
   }
 
   @override
   Object visitExtendsClause(ExtendsClause node) {
-    _writer.print("extends ");
+    _buffer.write("extends ");
     _visitNode(node.superclass);
     return null;
   }
@@ -7063,7 +7062,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.staticKeyword, " ");
     _visitNode(node.fields);
-    _writer.print(";");
+    _buffer.write(";");
     return null;
   }
 
@@ -7072,7 +7071,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
     _visitTokenWithSuffix(node.keyword, " ");
     _visitNodeWithSuffix(node.type, " ");
-    _writer.print("this.");
+    _buffer.write("this.");
     _visitNode(node.identifier);
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
@@ -7083,17 +7082,17 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (node.awaitKeyword != null) {
-      _writer.print("await ");
+      _buffer.write("await ");
     }
-    _writer.print("for (");
+    _buffer.write("for (");
     if (loopVariable == null) {
       _visitNode(node.identifier);
     } else {
       _visitNode(loopVariable);
     }
-    _writer.print(" in ");
+    _buffer.write(" in ");
     _visitNode(node.iterable);
-    _writer.print(") ");
+    _buffer.write(") ");
     _visitNode(node.body);
     return null;
   }
@@ -7101,46 +7100,46 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
-    _writer.print('(');
+    _buffer.write('(');
     NodeList<FormalParameter> parameters = node.parameters;
     int size = parameters.length;
     for (int i = 0; i < size; i++) {
       FormalParameter parameter = parameters[i];
       if (i > 0) {
-        _writer.print(", ");
+        _buffer.write(", ");
       }
       if (groupEnd == null && parameter is DefaultFormalParameter) {
         if (parameter.kind == ParameterKind.NAMED) {
           groupEnd = "}";
-          _writer.print('{');
+          _buffer.write('{');
         } else {
           groupEnd = "]";
-          _writer.print('[');
+          _buffer.write('[');
         }
       }
       parameter.accept(this);
     }
     if (groupEnd != null) {
-      _writer.print(groupEnd);
+      _buffer.write(groupEnd);
     }
-    _writer.print(')');
+    _buffer.write(')');
     return null;
   }
 
   @override
   Object visitForStatement(ForStatement node) {
     Expression initialization = node.initialization;
-    _writer.print("for (");
+    _buffer.write("for (");
     if (initialization != null) {
       _visitNode(initialization);
     } else {
       _visitNode(node.variables);
     }
-    _writer.print(";");
+    _buffer.write(";");
     _visitNodeWithPrefix(" ", node.condition);
-    _writer.print(";");
+    _buffer.write(";");
     _visitNodeListWithSeparatorAndPrefix(" ", node.updaters, ", ");
-    _writer.print(") ");
+    _buffer.write(") ");
     _visitNode(node.body);
     return null;
   }
@@ -7167,7 +7166,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
     if (node.body is! EmptyFunctionBody) {
-      _writer.print(' ');
+      _buffer.write(' ');
     }
     _visitNode(node.body);
     return null;
@@ -7184,12 +7183,12 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    _writer.print("typedef ");
+    _buffer.write("typedef ");
     _visitNodeWithSuffix(node.returnType, " ");
     _visitNode(node.name);
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
-    _writer.print(";");
+    _buffer.write(";");
     return null;
   }
 
@@ -7205,16 +7204,16 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitHideCombinator(HideCombinator node) {
-    _writer.print("hide ");
+    _buffer.write("hide ");
     _visitNodeListWithSeparator(node.hiddenNames, ", ");
     return null;
   }
 
   @override
   Object visitIfStatement(IfStatement node) {
-    _writer.print("if (");
+    _buffer.write("if (");
     _visitNode(node.condition);
-    _writer.print(") ");
+    _buffer.write(") ");
     _visitNode(node.thenStatement);
     _visitNodeWithPrefix(" else ", node.elseStatement);
     return null;
@@ -7222,7 +7221,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitImplementsClause(ImplementsClause node) {
-    _writer.print("implements ");
+    _buffer.write("implements ");
     _visitNodeListWithSeparator(node.interfaces, ", ");
     return null;
   }
@@ -7230,27 +7229,27 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitImportDirective(ImportDirective node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    _writer.print("import ");
+    _buffer.write("import ");
     _visitNode(node.uri);
     if (node.deferredKeyword != null) {
-      _writer.print(" deferred");
+      _buffer.write(" deferred");
     }
     _visitNodeWithPrefix(" as ", node.prefix);
     _visitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
-    _writer.print(';');
+    _buffer.write(';');
     return null;
   }
 
   @override
   Object visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
-      _writer.print("..");
+      _buffer.write("..");
     } else {
       _visitNode(node.target);
     }
-    _writer.print('[');
+    _buffer.write('[');
     _visitNode(node.index);
-    _writer.print(']');
+    _buffer.write(']');
     return null;
   }
 
@@ -7264,18 +7263,18 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitIntegerLiteral(IntegerLiteral node) {
-    _writer.print(node.literal.lexeme);
+    _buffer.write(node.literal.lexeme);
     return null;
   }
 
   @override
   Object visitInterpolationExpression(InterpolationExpression node) {
     if (node.rightBracket != null) {
-      _writer.print("\${");
+      _buffer.write("\${");
       _visitNode(node.expression);
-      _writer.print("}");
+      _buffer.write("}");
     } else {
-      _writer.print("\$");
+      _buffer.write("\$");
       _visitNode(node.expression);
     }
     return null;
@@ -7283,7 +7282,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitInterpolationString(InterpolationString node) {
-    _writer.print(node.contents.lexeme);
+    _buffer.write(node.contents.lexeme);
     return null;
   }
 
@@ -7291,9 +7290,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitIsExpression(IsExpression node) {
     _visitNode(node.expression);
     if (node.notOperator == null) {
-      _writer.print(" is ");
+      _buffer.write(" is ");
     } else {
-      _writer.print(" is! ");
+      _buffer.write(" is! ");
     }
     _visitNode(node.type);
     return null;
@@ -7302,7 +7301,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitLabel(Label node) {
     _visitNode(node.label);
-    _writer.print(":");
+    _buffer.write(":");
     return null;
   }
 
@@ -7316,48 +7315,48 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitLibraryDirective(LibraryDirective node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    _writer.print("library ");
+    _buffer.write("library ");
     _visitNode(node.name);
-    _writer.print(';');
+    _buffer.write(';');
     return null;
   }
 
   @override
   Object visitLibraryIdentifier(LibraryIdentifier node) {
-    _writer.print(node.name);
+    _buffer.write(node.name);
     return null;
   }
 
   @override
   Object visitListLiteral(ListLiteral node) {
     if (node.constKeyword != null) {
-      _writer.print(node.constKeyword.lexeme);
-      _writer.print(' ');
+      _buffer.write(node.constKeyword.lexeme);
+      _buffer.write(' ');
     }
     _visitNodeWithSuffix(node.typeArguments, " ");
-    _writer.print("[");
+    _buffer.write("[");
     _visitNodeListWithSeparator(node.elements, ", ");
-    _writer.print("]");
+    _buffer.write("]");
     return null;
   }
 
   @override
   Object visitMapLiteral(MapLiteral node) {
     if (node.constKeyword != null) {
-      _writer.print(node.constKeyword.lexeme);
-      _writer.print(' ');
+      _buffer.write(node.constKeyword.lexeme);
+      _buffer.write(' ');
     }
     _visitNodeWithSuffix(node.typeArguments, " ");
-    _writer.print("{");
+    _buffer.write("{");
     _visitNodeListWithSeparator(node.entries, ", ");
-    _writer.print("}");
+    _buffer.write("}");
     return null;
   }
 
   @override
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     _visitNode(node.key);
-    _writer.print(" : ");
+    _buffer.write(" : ");
     _visitNode(node.value);
     return null;
   }
@@ -7382,11 +7381,11 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitMethodInvocation(MethodInvocation node) {
     if (node.isCascaded) {
-      _writer.print("..");
+      _buffer.write("..");
     } else {
       if (node.target != null) {
         node.target.accept(this);
-        _writer.print(node.operator.lexeme);
+        _buffer.write(node.operator.lexeme);
       }
     }
     _visitNode(node.methodName);
@@ -7404,69 +7403,69 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitNativeClause(NativeClause node) {
-    _writer.print("native ");
+    _buffer.write("native ");
     _visitNode(node.name);
     return null;
   }
 
   @override
   Object visitNativeFunctionBody(NativeFunctionBody node) {
-    _writer.print("native ");
+    _buffer.write("native ");
     _visitNode(node.stringLiteral);
-    _writer.print(';');
+    _buffer.write(';');
     return null;
   }
 
   @override
   Object visitNullLiteral(NullLiteral node) {
-    _writer.print("null");
+    _buffer.write("null");
     return null;
   }
 
   @override
   Object visitParenthesizedExpression(ParenthesizedExpression node) {
-    _writer.print('(');
+    _buffer.write('(');
     _visitNode(node.expression);
-    _writer.print(')');
+    _buffer.write(')');
     return null;
   }
 
   @override
   Object visitPartDirective(PartDirective node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    _writer.print("part ");
+    _buffer.write("part ");
     _visitNode(node.uri);
-    _writer.print(';');
+    _buffer.write(';');
     return null;
   }
 
   @override
   Object visitPartOfDirective(PartOfDirective node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    _writer.print("part of ");
+    _buffer.write("part of ");
     _visitNode(node.libraryName);
-    _writer.print(';');
+    _buffer.write(';');
     return null;
   }
 
   @override
   Object visitPostfixExpression(PostfixExpression node) {
     _visitNode(node.operand);
-    _writer.print(node.operator.lexeme);
+    _buffer.write(node.operator.lexeme);
     return null;
   }
 
   @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     _visitNode(node.prefix);
-    _writer.print('.');
+    _buffer.write('.');
     _visitNode(node.identifier);
     return null;
   }
 
   @override
   Object visitPrefixExpression(PrefixExpression node) {
-    _writer.print(node.operator.lexeme);
+    _buffer.write(node.operator.lexeme);
     _visitNode(node.operand);
     return null;
   }
@@ -7474,10 +7473,10 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitPropertyAccess(PropertyAccess node) {
     if (node.isCascaded) {
-      _writer.print("..");
+      _buffer.write("..");
     } else {
       _visitNode(node.target);
-      _writer.print(node.operator.lexeme);
+      _buffer.write(node.operator.lexeme);
     }
     _visitNode(node.propertyName);
     return null;
@@ -7486,7 +7485,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    _writer.print("this");
+    _buffer.write("this");
     _visitNodeWithPrefix(".", node.constructorName);
     _visitNode(node.argumentList);
     return null;
@@ -7494,7 +7493,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitRethrowExpression(RethrowExpression node) {
-    _writer.print("rethrow");
+    _buffer.write("rethrow");
     return null;
   }
 
@@ -7502,24 +7501,24 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitReturnStatement(ReturnStatement node) {
     Expression expression = node.expression;
     if (expression == null) {
-      _writer.print("return;");
+      _buffer.write("return;");
     } else {
-      _writer.print("return ");
+      _buffer.write("return ");
       expression.accept(this);
-      _writer.print(";");
+      _buffer.write(";");
     }
     return null;
   }
 
   @override
   Object visitScriptTag(ScriptTag node) {
-    _writer.print(node.scriptTag.lexeme);
+    _buffer.write(node.scriptTag.lexeme);
     return null;
   }
 
   @override
   Object visitShowCombinator(ShowCombinator node) {
-    _writer.print("show ");
+    _buffer.write("show ");
     _visitNodeListWithSeparator(node.shownNames, ", ");
     return null;
   }
@@ -7535,13 +7534,13 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    _writer.print(node.token.lexeme);
+    _buffer.write(node.token.lexeme);
     return null;
   }
 
   @override
   Object visitSimpleStringLiteral(SimpleStringLiteral node) {
-    _writer.print(node.literal.lexeme);
+    _buffer.write(node.literal.lexeme);
     return null;
   }
 
@@ -7553,7 +7552,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    _writer.print("super");
+    _buffer.write("super");
     _visitNodeWithPrefix(".", node.constructorName);
     _visitNode(node.argumentList);
     return null;
@@ -7561,16 +7560,16 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitSuperExpression(SuperExpression node) {
-    _writer.print("super");
+    _buffer.write("super");
     return null;
   }
 
   @override
   Object visitSwitchCase(SwitchCase node) {
     _visitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
-    _writer.print("case ");
+    _buffer.write("case ");
     _visitNode(node.expression);
-    _writer.print(": ");
+    _buffer.write(": ");
     _visitNodeListWithSeparator(node.statements, " ");
     return null;
   }
@@ -7578,43 +7577,43 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitSwitchDefault(SwitchDefault node) {
     _visitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
-    _writer.print("default: ");
+    _buffer.write("default: ");
     _visitNodeListWithSeparator(node.statements, " ");
     return null;
   }
 
   @override
   Object visitSwitchStatement(SwitchStatement node) {
-    _writer.print("switch (");
+    _buffer.write("switch (");
     _visitNode(node.expression);
-    _writer.print(") {");
+    _buffer.write(") {");
     _visitNodeListWithSeparator(node.members, " ");
-    _writer.print("}");
+    _buffer.write("}");
     return null;
   }
 
   @override
   Object visitSymbolLiteral(SymbolLiteral node) {
-    _writer.print("#");
+    _buffer.write("#");
     List<Token> components = node.components;
     for (int i = 0; i < components.length; i++) {
       if (i > 0) {
-        _writer.print(".");
+        _buffer.write(".");
       }
-      _writer.print(components[i].lexeme);
+      _buffer.write(components[i].lexeme);
     }
     return null;
   }
 
   @override
   Object visitThisExpression(ThisExpression node) {
-    _writer.print("this");
+    _buffer.write("this");
     return null;
   }
 
   @override
   Object visitThrowExpression(ThrowExpression node) {
-    _writer.print("throw ");
+    _buffer.write("throw ");
     _visitNode(node.expression);
     return null;
   }
@@ -7627,7 +7626,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitTryStatement(TryStatement node) {
-    _writer.print("try ");
+    _buffer.write("try ");
     _visitNode(node.body);
     _visitNodeListWithSeparatorAndPrefix(" ", node.catchClauses, " ");
     _visitNodeWithPrefix(" finally ", node.finallyBlock);
@@ -7636,9 +7635,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitTypeArgumentList(TypeArgumentList node) {
-    _writer.print('<');
+    _buffer.write('<');
     _visitNodeListWithSeparator(node.arguments, ", ");
-    _writer.print('>');
+    _buffer.write('>');
     return null;
   }
 
@@ -7659,9 +7658,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitTypeParameterList(TypeParameterList node) {
-    _writer.print('<');
+    _buffer.write('<');
     _visitNodeListWithSeparator(node.typeParameters, ", ");
-    _writer.print('>');
+    _buffer.write('>');
     return null;
   }
 
@@ -7685,22 +7684,22 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _visitNode(node.variables);
-    _writer.print(";");
+    _buffer.write(";");
     return null;
   }
 
   @override
   Object visitWhileStatement(WhileStatement node) {
-    _writer.print("while (");
+    _buffer.write("while (");
     _visitNode(node.condition);
-    _writer.print(") ");
+    _buffer.write(") ");
     _visitNode(node.body);
     return null;
   }
 
   @override
   Object visitWithClause(WithClause node) {
-    _writer.print("with ");
+    _buffer.write("with ");
     _visitNodeListWithSeparator(node.mixinTypes, ", ");
     return null;
   }
@@ -7708,12 +7707,12 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitYieldStatement(YieldStatement node) {
     if (node.star != null) {
-      _writer.print("yield* ");
+      _buffer.write("yield* ");
     } else {
-      _writer.print("yield ");
+      _buffer.write("yield ");
     }
     _visitNode(node.expression);
-    _writer.print(";");
+    _buffer.write(";");
     return null;
   }
 
@@ -7723,7 +7722,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
    */
   void _visitFunctionWithPrefix(String prefix, FunctionBody body) {
     if (body is! EmptyFunctionBody) {
-      _writer.print(prefix);
+      _buffer.write(prefix);
     }
     _visitNode(body);
   }
@@ -7752,7 +7751,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
       int size = nodes.length;
       for (int i = 0; i < size; i++) {
         if (i > 0) {
-          _writer.print(separator);
+          _buffer.write(separator);
         }
         nodes[i].accept(this);
       }
@@ -7768,10 +7767,10 @@ class ToSourceVisitor implements AstVisitor<Object> {
     if (nodes != null) {
       int size = nodes.length;
       if (size > 0) {
-        _writer.print(prefix);
+        _buffer.write(prefix);
         for (int i = 0; i < size; i++) {
           if (i > 0) {
-            _writer.print(separator);
+            _buffer.write(separator);
           }
           nodes[i].accept(this);
         }
@@ -7790,11 +7789,11 @@ class ToSourceVisitor implements AstVisitor<Object> {
       if (size > 0) {
         for (int i = 0; i < size; i++) {
           if (i > 0) {
-            _writer.print(separator);
+            _buffer.write(separator);
           }
           nodes[i].accept(this);
         }
-        _writer.print(suffix);
+        _buffer.write(suffix);
       }
     }
   }
@@ -7805,7 +7804,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
    */
   void _visitNodeWithPrefix(String prefix, AstNode node) {
     if (node != null) {
-      _writer.print(prefix);
+      _buffer.write(prefix);
       node.accept(this);
     }
   }
@@ -7817,7 +7816,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   void _visitNodeWithSuffix(AstNode node, String suffix) {
     if (node != null) {
       node.accept(this);
-      _writer.print(suffix);
+      _buffer.write(suffix);
     }
   }
 
@@ -7827,8 +7826,8 @@ class ToSourceVisitor implements AstVisitor<Object> {
    */
   void _visitTokenWithSuffix(Token token, String suffix) {
     if (token != null) {
-      _writer.print(token.lexeme);
-      _writer.print(suffix);
+      _buffer.write(token.lexeme);
+      _buffer.write(suffix);
     }
   }
 }

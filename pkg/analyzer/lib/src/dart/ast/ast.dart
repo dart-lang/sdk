@@ -938,9 +938,9 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   String toSource() {
-    PrintStringWriter writer = new PrintStringWriter();
-    accept(new ToSourceVisitor(writer));
-    return writer.toString();
+    StringBuffer buffer = new StringBuffer();
+    accept(new ToSourceVisitor(buffer));
+    return buffer.toString();
   }
 
   @override

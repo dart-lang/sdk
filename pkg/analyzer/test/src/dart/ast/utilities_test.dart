@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart' show Predicate;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -3341,8 +3340,8 @@ class ToSourceVisitorTest extends EngineTestCase {
    * @throws AFE if the visitor does not produce the expected source for the given node
    */
   void _assertSource(String expectedSource, AstNode node) {
-    PrintStringWriter writer = new PrintStringWriter();
-    node.accept(new ToSourceVisitor(writer));
-    expect(writer.toString(), expectedSource);
+    StringBuffer buffer = new StringBuffer();
+    node.accept(new ToSourceVisitor(buffer));
+    expect(buffer.toString(), expectedSource);
   }
 }

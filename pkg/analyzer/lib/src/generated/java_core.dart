@@ -39,45 +39,6 @@ String formatList(String pattern, List<Object> arguments) {
   });
 }
 
-/**
- * Very limited printf implementation, supports only %s and %d.
- */
-String _printf(String fmt, List args) {
-  StringBuffer sb = new StringBuffer();
-  bool markFound = false;
-  int argIndex = 0;
-  for (int i = 0; i < fmt.length; i++) {
-    int c = fmt.codeUnitAt(i);
-    if (c == 0x25) {
-      if (markFound) {
-        sb.writeCharCode(c);
-        markFound = false;
-      } else {
-        markFound = true;
-      }
-      continue;
-    }
-    if (markFound) {
-      markFound = false;
-      // %d
-      if (c == 0x64) {
-        sb.write(args[argIndex++]);
-        continue;
-      }
-      // %s
-      if (c == 0x73) {
-        sb.write(args[argIndex++]);
-        continue;
-      }
-      // unknown
-      throw new ArgumentError('[$fmt][$i] = 0x${c.toRadixString(16)}');
-    } else {
-      sb.writeCharCode(c);
-    }
-  }
-  return sb.toString();
-}
-
 class Character {
   static const int MAX_VALUE = 0xffff;
   static const int MAX_CODE_POINT = 0x10ffff;
@@ -135,31 +96,4 @@ abstract class Enum<E extends Enum> implements Comparable<E> {
   int get hashCode => ordinal;
   int compareTo(E other) => ordinal - other.ordinal;
   String toString() => name;
-}
-
-class PrintStringWriter extends PrintWriter {
-  final StringBuffer _sb = new StringBuffer();
-
-  void print(x) {
-    _sb.write(x);
-  }
-
-  String toString() => _sb.toString();
-}
-
-abstract class PrintWriter {
-  void newLine() {
-    this.print('\n');
-  }
-
-  void print(x);
-
-  void printf(String fmt, List args) {
-    this.print(_printf(fmt, args));
-  }
-
-  void println(String s) {
-    this.print(s);
-    this.newLine();
-  }
 }
