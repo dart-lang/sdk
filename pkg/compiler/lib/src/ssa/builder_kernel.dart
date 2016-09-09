@@ -4,10 +4,10 @@
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
-import '../diagnostics/spannable.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
@@ -94,6 +94,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         visitor.nodeToAst,
         visitor.nodeToElement,
         kernel.functions,
+        kernel.classes,
         kernel.libraries);
   }
 

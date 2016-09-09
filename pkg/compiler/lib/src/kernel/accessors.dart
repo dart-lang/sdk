@@ -20,10 +20,7 @@ class TopLevelStaticAccessor extends ir_accessors.StaticAccessor {
   Kernel get kernel => builder.kernel;
 
   TopLevelStaticAccessor(
-      this.builder,
-      this.name,
-      ir.Member readTarget,
-      ir.Member writeTarget)
+      this.builder, this.name, ir.Member readTarget, ir.Member writeTarget)
       : super(readTarget, writeTarget);
 
   @override
@@ -54,8 +51,8 @@ class ClassStaticAccessor extends ir_accessors.StaticAccessor {
 
   Kernel get kernel => builder.kernel;
 
-  ClassStaticAccessor(this.builder, this.name,
-      ir.Member readTarget, ir.Member writeTarget)
+  ClassStaticAccessor(
+      this.builder, this.name, ir.Member readTarget, ir.Member writeTarget)
       : super(readTarget, writeTarget);
 
   @override
@@ -85,10 +82,7 @@ class SuperPropertyAccessor extends ir_accessors.SuperPropertyAccessor {
   final String name;
 
   SuperPropertyAccessor(
-      this.builder,
-      this.name,
-      ir.Member readTarget,
-      ir.Member writeTarget)
+      this.builder, this.name, ir.Member readTarget, ir.Member writeTarget)
       : super(readTarget, writeTarget);
 
   @override
@@ -109,10 +103,7 @@ class SuperIndexAccessor extends ir_accessors.SuperIndexAccessor {
 
   Kernel get kernel => builder.kernel;
 
-  SuperIndexAccessor(
-      this.builder,
-      ir.Expression index,
-      ir.Member readTarget,
+  SuperIndexAccessor(this.builder, ir.Expression index, ir.Member readTarget,
       ir.Member writeTarget)
       : super(index, readTarget, writeTarget);
 

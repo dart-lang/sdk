@@ -25,7 +25,7 @@ import 'members.dart' show ResolverVisitor;
 import 'send_structure.dart';
 import 'tree_elements.dart' show TreeElementMapping;
 
-class _ResolutionWorldImpact extends ResolutionImpact
+class ResolutionWorldImpactBuilder extends ResolutionImpact
     with WorldImpactBuilder
     implements NativeRegistry {
   final String name;
@@ -36,7 +36,7 @@ class _ResolutionWorldImpact extends ResolutionImpact
   Setlet<ConstantExpression> _constantLiterals;
   Setlet<dynamic> _nativeData;
 
-  _ResolutionWorldImpact(this.name);
+  ResolutionWorldImpactBuilder(this.name);
 
   void registerMapLiteral(MapLiteralUse mapLiteralUse) {
     assert(mapLiteralUse != null);
@@ -158,12 +158,12 @@ class _ResolutionWorldImpact extends ResolutionImpact
 class ResolutionRegistry extends Registry {
   final Target target;
   final TreeElementMapping mapping;
-  final _ResolutionWorldImpact worldImpact;
+  final ResolutionWorldImpactBuilder impactBuilder;
 
   ResolutionRegistry(this.target, TreeElementMapping mapping)
       : this.mapping = mapping,
-        this.worldImpact =
-            new _ResolutionWorldImpact(mapping.analyzedElement.toString());
+        this.impactBuilder = new ResolutionWorldImpactBuilder(
+            mapping.analyzedElement.toString());
 
   bool get isForResolution => true;
 
@@ -324,12 +324,12 @@ class ResolutionRegistry extends Registry {
   //////////////////////////////////////////////////////////////////////////////
 
   void registerStaticUse(StaticUse staticUse) {
-    worldImpact.registerStaticUse(staticUse);
+    impactBuilder.registerStaticUse(staticUse);
   }
 
   /// Register the use of a type.
   void registerTypeUse(TypeUse typeUse) {
-    worldImpact.registerTypeUse(typeUse);
+    impactBuilder.registerTypeUse(typeUse);
   }
 
   void registerSuperUse(SourceSpan span) {
@@ -338,20 +338,20 @@ class ResolutionRegistry extends Registry {
 
   void registerTypeLiteral(Send node, DartType type) {
     mapping.setType(node, type);
-    worldImpact.registerTypeUse(new TypeUse.typeLiteral(type));
+    impactBuilder.registerTypeUse(new TypeUse.typeLiteral(type));
   }
 
   void registerLiteralList(Node node, InterfaceType type,
       {bool isConstant, bool isEmpty}) {
     setType(node, type);
-    worldImpact.registerListLiteral(
+    impactBuilder.registerListLiteral(
         new ListLiteralUse(type, isConstant: isConstant, isEmpty: isEmpty));
   }
 
   void registerMapLiteral(Node node, InterfaceType type,
       {bool isConstant, bool isEmpty}) {
     setType(node, type);
-    worldImpact.registerMapLiteral(
+    impactBuilder.registerMapLiteral(
         new MapLiteralUse(type, isConstant: isConstant, isEmpty: isEmpty));
   }
 
@@ -362,24 +362,24 @@ class ResolutionRegistry extends Registry {
     if (nativeData != null) {
       // Split impact from resolution result.
       mapping.registerNativeData(node, nativeData);
-      worldImpact.registerNativeData(nativeData);
+      impactBuilder.registerNativeData(nativeData);
     }
   }
 
   void registerDynamicUse(DynamicUse dynamicUse) {
-    worldImpact.registerDynamicUse(dynamicUse);
+    impactBuilder.registerDynamicUse(dynamicUse);
   }
 
   void registerFeature(Feature feature) {
-    worldImpact.registerFeature(feature);
+    impactBuilder.registerFeature(feature);
   }
 
   void registerConstSymbol(String name) {
-    worldImpact.registerConstSymbolName(name);
+    impactBuilder.registerConstSymbolName(name);
   }
 
   void registerConstantLiteral(ConstantExpression constant) {
-    worldImpact.registerConstantLiteral(constant);
+    impactBuilder.registerConstantLiteral(constant);
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
@@ -387,7 +387,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerInstantiation(InterfaceType type) {
-    worldImpact.registerTypeUse(new TypeUse.instantiation(type));
+    impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
   }
 
   void registerSendStructure(Send node, SendStructure sendStructure) {

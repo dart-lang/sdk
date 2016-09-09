@@ -289,9 +289,9 @@ class ResolverTask extends CompilerTask {
         reporter.reportErrorMessage(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
       }
 
-      resolution.target.resolveNativeElement(element, registry.worldImpact);
+      resolution.target.resolveNativeElement(element, registry.impactBuilder);
 
-      return registry.worldImpact;
+      return registry.impactBuilder;
     });
   }
 
@@ -320,7 +320,7 @@ class ResolverTask extends CompilerTask {
             registry.registerStaticUse(new StaticUse.superConstructorInvoke(
                 target, CallStructure.NO_ARGS));
           }
-          return registry.worldImpact;
+          return registry.impactBuilder;
         } else {
           assert(element.isDeferredLoaderGetter || element.isMalformed);
           _ensureTreeElements(element);
@@ -424,9 +424,9 @@ class ResolverTask extends CompilerTask {
       // Perform various checks as side effect of "computing" the type.
       element.computeType(resolution);
 
-      resolution.target.resolveNativeElement(element, registry.worldImpact);
+      resolution.target.resolveNativeElement(element, registry.impactBuilder);
 
-      return registry.worldImpact;
+      return registry.impactBuilder;
     });
   }
 
@@ -1031,7 +1031,7 @@ class ResolverTask extends CompilerTask {
               new TypedefResolverVisitor(resolution, element, registry);
           visitor.visit(node);
           element.resolutionState = STATE_DONE;
-          return registry.worldImpact;
+          return registry.impactBuilder;
         });
       });
     });
