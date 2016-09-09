@@ -463,7 +463,11 @@ class JSArray<E> implements List<E>, JSIndexable {
 
   void sort([int compare(E a, E b)]) {
     checkMutable('sort');
-    Sort.sort(this, compare == null ? Comparable.compare : compare);
+    if (compare == null) {
+      Sort.sort(this, (a, b) => Comparable.compare(a, b));
+    } else {
+      Sort.sort(this, compare);
+    }
   }
 
   void shuffle([Random random]) {

@@ -563,6 +563,7 @@ define([], function() {
   let FunctionTovoid = () => (FunctionTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Function])))();
   let StringAndStringToString$ = () => (StringAndStringToString$ = dart.constFn(dart.definiteFunctionType(core.String, [core.String, core.String])))();
   let TypeAndStringTodynamic = () => (TypeAndStringTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.Type, core.String])))();
+  let dynamicAnddynamicToint = () => (dynamicAnddynamicToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.dynamic, dart.dynamic])))();
   let ListOfEToListOfE = () => (ListOfEToListOfE = dart.constFn(dart.definiteFunctionType(E => [core.List$(E), [core.List$(E)]])))();
   let StringTovoid$ = () => (StringTovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [core.String])))();
   let _IsolateContextAndFunctionTodynamic = () => (_IsolateContextAndFunctionTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [_isolate_helper._IsolateContext, core.Function])))();
@@ -673,7 +674,6 @@ define([], function() {
   let ObjectToint = () => (ObjectToint = dart.constFn(dart.definiteFunctionType(core.int, [core.Object])))();
   let ObjectTovoid = () => (ObjectTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Object])))();
   let StringAndStringTovoid$ = () => (StringAndStringTovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [core.String, core.String])))();
-  let dynamicAnddynamicToint = () => (dynamicAnddynamicToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.dynamic, dart.dynamic])))();
   let MapOfString$StringAndStringToMapOfString$String = () => (MapOfString$StringAndStringToMapOfString$String = dart.constFn(dart.definiteFunctionType(MapOfString$String(), [MapOfString$String(), core.String])))();
   let intAndintAndintTovoid = () => (intAndintAndintTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.int, core.int, core.int])))();
   let String__Tovoid = () => (String__Tovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String], [dart.dynamic])))();
@@ -3615,12 +3615,12 @@ define([], function() {
     let VoidToE = () => (VoidToE = dart.constFn(dart.functionType(E, [])))();
     let ListOfE = () => (ListOfE = dart.constFn(core.List$(E)))();
     let ReversedListIterableOfE = () => (ReversedListIterableOfE = dart.constFn(_internal.ReversedListIterable$(E)))();
-    let EAndEToint = () => (EAndEToint = dart.constFn(dart.functionType(core.int, [E, E])))();
     let SetOfE = () => (SetOfE = dart.constFn(core.Set$(E)))();
     let ArrayIteratorOfE = () => (ArrayIteratorOfE = dart.constFn(_interceptors.ArrayIterator$(E)))();
     let ListMapViewOfE = () => (ListMapViewOfE = dart.constFn(_internal.ListMapView$(E)))();
     let ETobool = () => (ETobool = dart.constFn(dart.functionType(core.bool, [E])))();
     let ETovoid = () => (ETovoid = dart.constFn(dart.functionType(dart.void, [E])))();
+    let EAndEToint = () => (EAndEToint = dart.constFn(dart.functionType(core.int, [E, E])))();
     dart.defineExtensionNames([
       'checkMutable',
       'checkGrowable',
@@ -4060,7 +4060,11 @@ define([], function() {
       [dartx.sort](compare) {
         if (compare === void 0) compare = null;
         this[dartx.checkMutable]('sort');
-        _internal.Sort.sort(E)(this, EAndEToint()._check(compare == null ? core.Comparable.compare : compare));
+        if (compare == null) {
+          _internal.Sort.sort(E)(this, dart.fn((a, b) => core.Comparable.compare(core.Comparable._check(a), core.Comparable._check(b)), dynamicAnddynamicToint()));
+        } else {
+          _internal.Sort.sort(E)(this, compare);
+        }
       }
       [dartx.shuffle](random) {
         if (random === void 0) random = null;
@@ -5766,7 +5770,7 @@ define([], function() {
       sort(compare) {
         if (compare === void 0) compare = null;
         if (compare == null) {
-          _internal.Sort.sort(core.Comparable)(this, core.Comparable.compare);
+          _internal.Sort.sort(E)(this, dart.fn((a, b) => core.Comparable.compare(core.Comparable._check(a), core.Comparable._check(b)), dynamicAnddynamicToint()));
         } else {
           _internal.Sort.sort(E)(this, compare);
         }
