@@ -9,12 +9,11 @@ import "package:charted/charts/charts.dart";
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -46,11 +45,9 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
   static const tag = const Tag<AllocationProfileElement>('allocation-profile',
                                             dependencies: const [
                                               ClassRefElement.tag,
-                                              NavBarElement.tag,
                                               NavTopMenuElement.tag,
                                               NavVMMenuElement.tag,
                                               NavIsolateMenuElement.tag,
-                                              NavMenuElement.tag,
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
                                               VirtualCollectionElement.tag
@@ -68,6 +65,7 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
   M.AllocationProfileRepository _repository;
   M.AllocationProfile _profile;
   bool _autoRefresh = false;
+  bool _isCompacted = false;
   StreamSubscription _gcSubscription;
   _SortingField _sortingField =
       _SortingField.className;
@@ -122,34 +120,32 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavMenuElement('allocation profile', last: true,
-              link: Uris.allocationProfiler(_isolate), queue: _r.queue),
-          new NavRefreshElement(label: 'Download', disabled: _profile == null,
-              queue: _r.queue)
-            ..onRefresh.listen((_) => _downloadCSV()),
-          new NavRefreshElement(label: 'Reset Accumulator', queue: _r.queue)
-            ..onRefresh.listen((_) => _refresh(reset: true)),
-          new NavRefreshElement(label: 'GC', queue: _r.queue)
-            ..onRefresh.listen((_) => _refresh(gc: true)),
-          new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((_) => _refresh()),
-          new DivElement()..classes = ['nav-option']
-            ..children = [
-              new CheckboxInputElement()
-                ..id = 'allocation-profile-auto-refresh'
-                ..checked = _autoRefresh
-                ..onChange.listen((_) => _autoRefresh = !_autoRefresh),
-              new LabelElement()
-                ..htmlFor = 'allocation-profile-auto-refresh'
-                ..text = 'Auto-refresh on GC'
-            ],
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu('allocation profile'),
+        new NavRefreshElement(label: 'Download', disabled: _profile == null,
+            queue: _r.queue)
+          ..onRefresh.listen((_) => _downloadCSV()),
+        new NavRefreshElement(label: 'Reset Accumulator', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(reset: true)),
+        new NavRefreshElement(label: 'GC', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(gc: true)),
+        new NavRefreshElement(queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh()),
+        new DivElement()..classes = ['nav-option']
+          ..children = [
+            new CheckboxInputElement()
+              ..id = 'allocation-profile-auto-refresh'
+              ..checked = _autoRefresh
+              ..onChange.listen((_) => _autoRefresh = !_autoRefresh),
+            new LabelElement()
+              ..htmlFor = 'allocation-profile-auto-refresh'
+              ..text = 'Auto-refresh on GC'
+          ],
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Allocation Profile',
@@ -170,7 +166,7 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
       final oldChartLegend = new DivElement()..classes = ['legend'];
       children.addAll([
         new DivElement()..classes = ['content-centered-big']
-          ..children = [
+          ..children = _isCompacted ? [] : [
             new DivElement()..classes = ['memberList']
               ..children = [
                 new DivElement()..classes = ['memberItem']
@@ -192,31 +188,50 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
               ],
             new HRElement(),
           ],
-        new DivElement()..classes = ['content-centered-big']
+        new DivElement()..classes = ['content-centered-big', 'compactable']
           ..children = [
             new DivElement()..classes = ['heap-space', 'left']
-              ..children = [
-                new HeadingElement.h2()..text = 'New Generation',
-                new BRElement(),
-                new DivElement()..classes = ['memberList']
-                  ..children = _createSpaceMembers(_profile.newSpace),
-                new BRElement(),
-                new DivElement()..classes = ['chart']
-                  ..children = [newChartLegend, newChartHost]
-              ],
+              ..children = _isCompacted
+                ? [
+                  new HeadingElement.h2()
+                    ..text = 'New Generation '
+                             '(${_usedCaption(_profile.newSpace)})',
+                ]
+                : [
+                  new HeadingElement.h2()..text = 'New Generation',
+                  new BRElement(),
+                  new DivElement()..classes = ['memberList']
+                    ..children = _createSpaceMembers(_profile.newSpace),
+                  new BRElement(),
+                  new DivElement()..classes = ['chart']
+                    ..children = [newChartLegend, newChartHost]
+                ],
             new DivElement()..classes = ['heap-space', 'right']
-              ..children = [
-                new HeadingElement.h2()..text = 'Old Generation',
-                new BRElement(),
-                new DivElement()..classes = ['memberList']
-                  ..children = _createSpaceMembers(_profile.oldSpace),
-                new BRElement(),
-                new DivElement()..classes = ['chart']
-                  ..children = [oldChartLegend, oldChartHost]
-              ],
-            new BRElement(), new HRElement()
+              ..children = _isCompacted
+                ? [
+                  new HeadingElement.h2()
+                    ..text = '(${_usedCaption(_profile.newSpace)}) '
+                             'Old Generation',
+                ]
+                : [
+                  new HeadingElement.h2()..text = 'Old Generation',
+                  new BRElement(),
+                  new DivElement()..classes = ['memberList']
+                    ..children = _createSpaceMembers(_profile.oldSpace),
+                  new BRElement(),
+                  new DivElement()..classes = ['chart']
+                    ..children = [oldChartLegend, oldChartHost]
+                ],
+            new ButtonElement()..classes = ['compact']
+              ..text = _isCompacted ? 'expand ▼' : 'compact ▲'
+              ..onClick.listen((_) {
+                _isCompacted = !_isCompacted;
+                _r.dirty();
+              }),
+            new HRElement()
           ],
-        new DivElement()..classes = ['collection']
+        new DivElement()
+          ..classes = _isCompacted ? ['collection', 'expanded'] : ['collection']
           ..children = [
             new VirtualCollectionElement(
               _createCollectionLine,
@@ -424,10 +439,13 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
                       ..classes = ['name'];
   }
 
+  static String _usedCaption(M.HeapSpace space) =>
+    '${Utils.formatSize(space.used)}'
+    ' of '
+    '${Utils.formatSize(space.capacity)}';
+
   static List<Element> _createSpaceMembers(M.HeapSpace space) {
-    final used = '${Utils.formatSize(space.used)}'
-                 ' of '
-                 '${Utils.formatSize(space.capacity)}';
+    final used = _usedCaption(space);
     final ext = '${Utils.formatSize(space.external)}';
     final collections = '${space.collections}';
     final avgCollectionTime =

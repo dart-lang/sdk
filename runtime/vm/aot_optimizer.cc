@@ -37,6 +37,8 @@ DEFINE_FLAG(int, max_exhaustive_polymorphic_checks, 5,
 #define I (isolate())
 #define Z (zone())
 
+#ifdef DART_PRECOMPILER
+
 static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
@@ -1521,10 +1523,7 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 
   if (TypeCheckAsClassEquality(type)) {
     LoadClassIdInstr* left_cid = new(Z) LoadClassIdInstr(new(Z) Value(left));
-    InsertBefore(call,
-                 left_cid,
-                 NULL,
-                 FlowGraph::kValue);
+    InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
     const intptr_t type_cid = Class::Handle(Z, type.type_class()).id();
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
@@ -1537,6 +1536,51 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
             new(Z) Value(cid),
             false);  // No number check.
     ReplaceCall(call, check_cid);
+    return;
+  }
+
+  TypeRangeCache* cache = thread()->type_range_cache();
+  intptr_t lower_limit, upper_limit;
+  if (cache != NULL &&
+      cache->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
+    // left.instanceof(type) =>
+    //     _classRangeCheck(left.cid, lower_limit, upper_limit)
+
+    LoadClassIdInstr* left_cid = new(Z) LoadClassIdInstr(new(Z) Value(left));
+    InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
+    ConstantInstr* lower_cid =
+        flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(lower_limit)));
+    ConstantInstr* upper_cid =
+        flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(upper_limit)));
+
+    ZoneGrowableArray<PushArgumentInstr*>* args =
+        new(Z) ZoneGrowableArray<PushArgumentInstr*>(3);
+    PushArgumentInstr* arg = new (Z) PushArgumentInstr(new (Z) Value(left_cid));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z) PushArgumentInstr(new (Z) Value(lower_cid));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z) PushArgumentInstr(new (Z) Value(upper_cid));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+
+    const Library& dart_internal =
+        Library::Handle(Z, Library::InternalLibrary());
+    const String& target_name = negate ? Symbols::_classRangeCheckNegative()
+                                       : Symbols::_classRangeCheck();
+    const Function& target = Function::ZoneHandle(Z,
+        dart_internal.LookupFunctionAllowPrivate(target_name));
+    ASSERT(!target.IsNull());
+    ASSERT(target.IsRecognized() && target.always_inline());
+
+    StaticCallInstr* new_call = new (Z) StaticCallInstr(
+        call->token_pos(),
+        target,
+        Object::null_array(),  // argument_names
+        args,
+        call->deopt_id());
+    ReplaceCall(call, new_call);
     return;
   }
 
@@ -2138,5 +2182,6 @@ void AotOptimizer::ReplaceArrayBoundChecks() {
   }
 }
 
+#endif  // DART_PRECOMPILER
 
 }  // namespace dart

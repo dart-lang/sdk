@@ -16,14 +16,13 @@ import 'package:observatory/src/elements/eval_box.dart';
 import 'package:observatory/src/elements/field_ref.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/library_ref.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -45,12 +44,10 @@ class ClassViewElement extends HtmlElement implements Renderable {
                                                    FunctionRefElement.tag,
                                                    InstanceRefElement.tag,
                                                    LibraryRefElement.tag,
-                                                   NavBarElement.tag,
                                                    NavClassMenuElement.tag,
                                                    NavTopMenuElement.tag,
                                                    NavVMMenuElement.tag,
                                                    NavIsolateMenuElement.tag,
-                                                   NavMenuElement.tag,
                                                    NavRefreshElement.tag,
                                                    NavNotifyElement.tag,
                                                    ObjectCommonElement.tag,
@@ -178,30 +175,29 @@ class ClassViewElement extends HtmlElement implements Renderable {
       header += 'patch ';
     }
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavClassMenuElement(_isolate, _cls, queue: _r.queue),
-          new NavRefreshElement(label: 'Refresh Allocation Profile',
-                                queue: _r.queue)
-              ..onRefresh.listen((e) {
-                e.element.disabled = true;
-                _loadProfile = true;
-                _r.dirty();
-              }),
-          new NavRefreshElement(queue: _r.queue)
-              ..onRefresh.listen((e) {
-                e.element.disabled = true;
-                _common = null;
-                _classInstances = null;
-                _fieldsExpanded = null;
-                _functionsExpanded = null;
-                _refresh();
-              }),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        new NavClassMenuElement(_isolate, _cls, queue: _r.queue),
+        new NavRefreshElement(label: 'Refresh Allocation Profile',
+                              queue: _r.queue)
+            ..onRefresh.listen((e) {
+              e.element.disabled = true;
+              _loadProfile = true;
+              _r.dirty();
+            }),
+        new NavRefreshElement(queue: _r.queue)
+            ..onRefresh.listen((e) {
+              e.element.disabled = true;
+              _common = null;
+              _classInstances = null;
+              _fieldsExpanded = null;
+              _functionsExpanded = null;
+              _refresh();
+            }),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = '$header class ${_cls.name}',
@@ -408,7 +404,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
               ..children =[
                 new CurlyBlockElement(expanded: _fieldsExpanded)
                   ..onToggle.listen((e) => _fieldsExpanded = e.control.expanded)
-                  ..children = [
+                  ..content = [
                     new DivElement()..classes = ['memberList']
                       ..children = (fields.map((f) =>
                         new DivElement()..classes = ['memberItem']
@@ -446,7 +442,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
                 new CurlyBlockElement(expanded: _functionsExpanded)
                   ..onToggle.listen((e) =>
                       _functionsExpanded = e.control.expanded)
-                  ..children = (functions.map((f) =>
+                  ..content = (functions.map((f) =>
                     new DivElement()..classes = ['indent']
                       ..children = [
                         new FunctionRefElement(_isolate, f, queue: _r.queue)

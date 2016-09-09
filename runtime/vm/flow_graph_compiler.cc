@@ -62,6 +62,7 @@ DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 DECLARE_FLAG(int, reload_every);
+DECLARE_FLAG(bool, unbox_numeric_fields);
 
 static void PrecompilationModeHandler(bool value) {
   if (value) {
@@ -94,6 +95,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = false;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
+    FLAG_unbox_numeric_fields = false;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for dart_noopt.
@@ -1144,7 +1146,8 @@ bool FlowGraphCompiler::TryIntrinsify() {
           *return_node.value()->AsLoadInstanceFieldNode();
       // Only intrinsify getter if the field cannot contain a mutable double.
       // Reading from a mutable double box requires allocating a fresh double.
-      if (!IsPotentialUnboxedField(load_node.field())) {
+      if (FLAG_precompiled_mode ||
+          !IsPotentialUnboxedField(load_node.field())) {
         GenerateInlinedGetter(load_node.field().Offset());
         return !FLAG_use_field_guards;
       }
@@ -1159,7 +1162,8 @@ bool FlowGraphCompiler::TryIntrinsify() {
       ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
       const StoreInstanceFieldNode& store_node =
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
-      if (store_node.field().guarded_cid() == kDynamicCid) {
+      if (FLAG_precompiled_mode ||
+          (store_node.field().guarded_cid() == kDynamicCid)) {
         GenerateInlinedSetter(store_node.field().Offset());
         return !FLAG_use_field_guards;
       }

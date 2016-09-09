@@ -78,9 +78,54 @@ DECLARE_FLAG(bool, trace_irregexp);
 
 class DartPrecompilationPipeline : public DartCompilationPipeline {
  public:
-  DartPrecompilationPipeline() : result_type_(CompileType::None()) { }
+  explicit DartPrecompilationPipeline(Zone* zone,
+                                      FieldTypeMap* field_map = NULL)
+      : zone_(zone),
+        result_type_(CompileType::None()),
+        field_map_(field_map) { }
 
   virtual void FinalizeCompilation(FlowGraph* flow_graph) {
+    if ((field_map_ != NULL )&&
+        flow_graph->function().IsGenerativeConstructor()) {
+      for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+           !block_it.Done();
+           block_it.Advance()) {
+        ForwardInstructionIterator it(block_it.Current());
+        for (; !it.Done(); it.Advance()) {
+          StoreInstanceFieldInstr* store = it.Current()->AsStoreInstanceField();
+          if (store != NULL) {
+            if (!store->field().IsNull() && store->field().is_final()) {
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+                THR_Print("Found store to %s <- %s\n",
+                          store->field().ToCString(),
+                          store->value()->Type()->ToCString());
+              }
+              FieldTypePair* entry = field_map_->Lookup(&store->field());
+              if (entry == NULL) {
+                field_map_->Insert(FieldTypePair(
+                    &Field::Handle(zone_, store->field().raw()),  // Re-wrap.
+                    store->value()->Type()->ToCid()));
+                if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+                    THR_Print(" initial type = %s\n",
+                              store->value()->Type()->ToCString());
+                }
+                continue;
+              }
+              CompileType type = CompileType::FromCid(entry->cid_);
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+                  THR_Print(" old type = %s\n", type.ToCString());
+              }
+              type.Union(store->value()->Type());
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+                  THR_Print(" new type = %s\n", type.ToCString());
+              }
+              entry->cid_ = type.ToCid();
+            }
+          }
+        }
+      }
+    }
+
     CompileType result_type = CompileType::None();
     for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
          !block_it.Done();
@@ -99,7 +144,9 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
   CompileType result_type() { return result_type_; }
 
  private:
+  Zone* zone_;
   CompileType result_type_;
+  FieldTypeMap* field_map_;
 };
 
 
@@ -154,6 +201,92 @@ RawError* Precompiler::CompileAll(
 }
 
 
+bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
+                                             intptr_t* lower_limit,
+                                             intptr_t* upper_limit) {
+  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+
+  if (!type.IsInstantiated()) return false;
+  if (type.IsFunctionType()) return false;
+
+  Zone* zone = thread_->zone();
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(zone, type.arguments());
+  if (!type_arguments.IsNull() &&
+      !type_arguments.IsRaw(0, type_arguments.Length())) return false;
+
+
+  intptr_t type_cid = type.type_class_id();
+  if (lower_limits_[type_cid] == kNotContiguous) return false;
+  if (lower_limits_[type_cid] != kNotComputed) {
+    *lower_limit = lower_limits_[type_cid];
+    *upper_limit = upper_limits_[type_cid];
+    return true;
+  }
+
+
+  *lower_limit = -1;
+  *upper_limit = -1;
+  intptr_t last_matching_cid = -1;
+
+  ClassTable* table = thread_->isolate()->class_table();
+  Class& cls = Class::Handle(zone);
+  AbstractType& cls_type = AbstractType::Handle(zone);
+  for (intptr_t cid = kInstanceCid; cid < table->NumCids(); cid++) {
+    if (!table->HasValidClassAt(cid)) continue;
+    if (cid == kVoidCid) continue;
+    if (cid == kDynamicCid) continue;
+    cls = table->At(cid);
+    if (cls.is_abstract()) continue;
+    if (cls.is_patch()) continue;
+    if (cls.IsTopLevel()) continue;
+
+    cls_type = cls.RareType();
+    if (cls_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
+      last_matching_cid = cid;
+      if (*lower_limit == -1) {
+        // Found beginning of range.
+        *lower_limit = cid;
+      } else if (*upper_limit == -1) {
+        // Expanding range.
+      } else {
+        // Found a second range.
+        lower_limits_[type_cid] = kNotContiguous;
+        return false;
+      }
+    } else {
+      if (*lower_limit == -1) {
+        // Still before range.
+      } else if (*upper_limit == -1) {
+        // Found end of range.
+        *upper_limit = last_matching_cid;
+      } else {
+        // After range.
+      }
+    }
+  }
+  if (*lower_limit == -1) {
+    // Not implemented by any concrete class.
+    *lower_limit = kIllegalCid;
+    *upper_limit = kIllegalCid;
+  }
+
+  if (*upper_limit == -1) {
+    ASSERT(last_matching_cid != -1);
+    *upper_limit = last_matching_cid;
+  }
+
+  if (FLAG_trace_precompiler) {
+    THR_Print("Type check for %s is cid range [%" Pd ", %" Pd "]\n",
+              type.ToCString(), *lower_limit, *upper_limit);
+  }
+
+  lower_limits_[type_cid] = *lower_limit;
+  upper_limits_[type_cid] = *upper_limit;
+  return true;
+}
+
+
 Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     thread_(thread),
     zone_(NULL),
@@ -180,6 +313,7 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     typeargs_to_retain_(),
     types_to_retain_(),
     consts_to_retain_(),
+    field_type_map_(),
     error_(Error::Handle()) {
 }
 
@@ -199,9 +333,14 @@ void Precompiler::DoCompileAll(
       FinalizeAllClasses();
 
       SortClasses();
+      TypeRangeCache trc(T, I->class_table()->NumCids());
 
       // Precompile static initializers to compute result type information.
       PrecompileStaticInitializers();
+
+      // Precompile constructors to compute type information for final fields.
+      ClearAllCode();
+      PrecompileConstructors();
 
       for (intptr_t round = 0; round < FLAG_precompiler_rounds; round++) {
         if (FLAG_trace_precompiler) {
@@ -336,6 +475,52 @@ void Precompiler::PrecompileStaticInitializers() {
   HANDLESCOPE(T);
   StaticInitializerVisitor visitor(Z);
   VisitClasses(&visitor);
+}
+
+
+void Precompiler::PrecompileConstructors() {
+  class ConstructorVisitor : public FunctionVisitor {
+   public:
+    explicit ConstructorVisitor(Zone* zone, FieldTypeMap* map)
+        : zone_(zone), field_type_map_(map) {
+      ASSERT(map != NULL);
+    }
+    void Visit(const Function& function) {
+      if (!function.IsGenerativeConstructor()) return;
+      if (function.HasCode()) {
+        // Const constructors may have been visited before. Recompile them here
+        // to collect type information for final fields for them as well.
+        function.ClearCode();
+      }
+      if (FLAG_trace_precompiler) {
+        THR_Print("Precompiling constructor %s\n", function.ToCString());
+      }
+      CompileFunction(Thread::Current(),
+                      zone_,
+                      function,
+                      field_type_map_);
+    }
+   private:
+    Zone* zone_;
+    FieldTypeMap* field_type_map_;
+  };
+
+  HANDLESCOPE(T);
+  ConstructorVisitor visitor(zone_, &field_type_map_);
+  VisitFunctions(&visitor);
+
+  FieldTypeMap::Iterator it(field_type_map_.GetIterator());
+  for (FieldTypePair* current = it.Next();
+       current != NULL;
+       current = it.Next()) {
+    const intptr_t cid = current->cid_;
+    current->field_->set_guarded_cid(cid);
+    current->field_->set_is_nullable(cid == kNullCid || cid == kDynamicCid);
+    if (FLAG_trace_precompiler) {
+      THR_Print("Field %s <- Type %s\n", current->field_->ToCString(),
+          Class::Handle(T->isolate()->class_table()->At(cid)).ToCString());
+    }
+  }
 }
 
 
@@ -609,7 +794,7 @@ void Precompiler::ProcessFunction(const Function& function) {
     ASSERT(!function.is_abstract());
     ASSERT(!function.IsRedirectingFactory());
 
-    error_ = CompileFunction(thread_, function);
+    error_ = CompileFunction(thread_, zone_, function);
     if (!error_.IsNull()) {
       Jump(error_);
     }
@@ -946,7 +1131,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   ParsedFunction* parsed_function = Parser::ParseStaticFieldInitializer(field);
 
   parsed_function->AllocateVariables();
-  DartPrecompilationPipeline pipeline;
+  DartPrecompilationPipeline pipeline(zone.GetZone());
   PrecompileParsedFunctionHelper helper(parsed_function,
                                         /* optimized = */ true);
   bool success = helper.Compile(&pipeline);
@@ -1046,7 +1231,7 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.
-    DartPrecompilationPipeline pipeline;
+    DartPrecompilationPipeline pipeline(Thread::Current()->zone());
     PrecompileParsedFunctionHelper helper(parsed_function,
                                           /* optimized = */ false);
     helper.Compile(&pipeline);
@@ -2489,7 +2674,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     if (val == 0) {
       FlowGraph* flow_graph = NULL;
 
-      // Class hierarchy analysis is registered with the isolate in the
+      // Class hierarchy analysis is registered with the thread in the
       // constructor and unregisters itself upon destruction.
       CHA cha(thread());
 
@@ -3073,16 +3258,16 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
 
 
 RawError* Precompiler::CompileFunction(Thread* thread,
-                                       const Function& function) {
+                                       Zone* zone,
+                                       const Function& function,
+                                       FieldTypeMap* field_type_map) {
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 
-  CompilationPipeline* pipeline =
-      CompilationPipeline::New(thread->zone(), function);
-
   ASSERT(FLAG_precompiled_mode);
   const bool optimized = function.IsOptimizable();  // False for natives.
-  return PrecompileFunctionHelper(pipeline, function, optimized);
+  DartPrecompilationPipeline pipeline(zone, field_type_map);
+  return PrecompileFunctionHelper(&pipeline, function, optimized);
 }
 
 #endif  // DART_PRECOMPILER

@@ -554,7 +554,7 @@ class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
 }
 
 class _Es6LinkedIdentityHashMap<K, V>
-    extends _LinkedIdentityHashMap<K, V> implements InternalMap {
+    extends _LinkedIdentityHashMap<K, V> implements InternalMap<K, V> {
   final _map;
   int _modifications = 0;
 

@@ -8,14 +8,14 @@ import 'dart:collection';
 import "dart:math" as math;
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/generated/source_io.dart'
-    show FileBasedSource, PackageUriResolver;
+import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:analyzer/task/model.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
@@ -41,6 +41,8 @@ class ContentCache {
    * overridden.
    */
   HashMap<String, int> _stampMap = new HashMap<String, int>();
+
+  int _nextStamp = 0;
 
   /**
    * Visit all entries of this cache.
@@ -82,7 +84,7 @@ class ContentCache {
       _stampMap.remove(fullName);
       return _contentMap.remove(fullName);
     } else {
-      int newStamp = JavaSystem.currentTimeMillis();
+      int newStamp = _nextStamp++;
       int oldStamp = _stampMap[fullName];
       _stampMap[fullName] = newStamp;
       // Occasionally, if this method is called in rapid succession, the
@@ -98,6 +100,7 @@ class ContentCache {
   }
 }
 
+@deprecated
 class CustomUriResolver extends UriResolver {
   final Map<String, String> _urlMappings;
 
@@ -211,9 +214,9 @@ class LineInfo {
    */
   LineInfo._(this.lineStarts) {
     if (lineStarts == null) {
-      throw new IllegalArgumentException("lineStarts must be non-null");
+      throw new ArgumentError("lineStarts must be non-null");
     } else if (lineStarts.length < 1) {
-      throw new IllegalArgumentException("lineStarts must be non-empty");
+      throw new ArgumentError("lineStarts must be non-empty");
     }
   }
 
@@ -378,7 +381,7 @@ class NonExistingSource extends Source {
 
   @override
   TimestampedData<String> get contents {
-    throw new UnsupportedOperationException('$fullName does not exist.');
+    throw new UnsupportedError('$fullName does not exist.');
   }
 
   @override
@@ -900,7 +903,7 @@ class UriKind extends Enum<UriKind> {
    * Return the URI kind corresponding to the given scheme string.
    */
   static UriKind fromScheme(String scheme) {
-    if (scheme == PackageUriResolver.PACKAGE_SCHEME) {
+    if (scheme == PackageMapUriResolver.PACKAGE_SCHEME) {
       return UriKind.PACKAGE_URI;
     } else if (scheme == DartUriResolver.DART_SCHEME) {
       return UriKind.DART_URI;

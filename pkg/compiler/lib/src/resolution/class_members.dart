@@ -69,7 +69,8 @@ abstract class MembersCreator {
     computeMembers(null, null);
     if (!cls.isAbstract) {
       Member member = classMembers[Names.noSuchMethod_];
-      if (member != null && !member.declarer.isObject) {
+      if (member != null &&
+          !resolution.target.isDefaultNoSuchMethod(member.element)) {
         return;
       }
       // Check for unimplemented members on concrete classes that neither have

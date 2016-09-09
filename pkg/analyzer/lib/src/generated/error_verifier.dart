@@ -1127,6 +1127,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
+    _checkForAmbiguousImport(node);
     _checkForReferenceBeforeDeclaration(node);
     _checkForImplicitThisReferenceInInitializer(node);
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
@@ -2331,6 +2332,37 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         return;
       } else {
         _exportedElements[name] = element;
+      }
+    }
+  }
+
+  /**
+   * Check the given node to see whether it was ambiguous because the name was
+   * imported from two or more imports.
+   */
+  void _checkForAmbiguousImport(SimpleIdentifier node) {
+    Element element = node.staticElement;
+    if (element is MultiplyDefinedElementImpl) {
+      String name = element.displayName;
+      List<Element> conflictingMembers = element.conflictingElements;
+      int count = conflictingMembers.length;
+      List<String> libraryNames = new List<String>(count);
+      for (int i = 0; i < count; i++) {
+        libraryNames[i] = _getLibraryName(conflictingMembers[i]);
+      }
+      libraryNames.sort();
+      _errorReporter.reportErrorForNode(StaticWarningCode.AMBIGUOUS_IMPORT,
+          node, [name, StringUtilities.printListOfQuotedNames(libraryNames)]);
+    } else {
+      List<Element> sdkElements =
+          node.getProperty(LibraryImportScope.conflictingSdkElements);
+      if (sdkElements != null) {
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.CONFLICTING_DART_IMPORT, node, [
+          element.displayName,
+          _getLibraryName(sdkElements[0]),
+          _getLibraryName(element)
+        ]);
       }
     }
   }
@@ -6271,6 +6303,53 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Return the name of the library that defines given [element].
+   */
+  String _getLibraryName(Element element) {
+    if (element == null) {
+      return StringUtilities.EMPTY;
+    }
+    LibraryElement library = element.library;
+    if (library == null) {
+      return StringUtilities.EMPTY;
+    }
+    List<ImportElement> imports = _currentLibrary.imports;
+    int count = imports.length;
+    for (int i = 0; i < count; i++) {
+      if (identical(imports[i].importedLibrary, library)) {
+        return library.definingCompilationUnit.displayName;
+      }
+    }
+    List<String> indirectSources = new List<String>();
+    for (int i = 0; i < count; i++) {
+      LibraryElement importedLibrary = imports[i].importedLibrary;
+      if (importedLibrary != null) {
+        for (LibraryElement exportedLibrary
+            in importedLibrary.exportedLibraries) {
+          if (identical(exportedLibrary, library)) {
+            indirectSources
+                .add(importedLibrary.definingCompilationUnit.displayName);
+          }
+        }
+      }
+    }
+    int indirectCount = indirectSources.length;
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(library.definingCompilationUnit.displayName);
+    if (indirectCount > 0) {
+      buffer.write(" (via ");
+      if (indirectCount > 1) {
+        indirectSources.sort();
+        buffer.write(StringUtilities.printListOfQuotedNames(indirectSources));
+      } else {
+        buffer.write(indirectSources[0]);
+      }
+      buffer.write(")");
+    }
+    return buffer.toString();
   }
 
   ExecutableElement _getOverriddenMember(Element member) {

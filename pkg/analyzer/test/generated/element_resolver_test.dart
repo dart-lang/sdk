@@ -12,8 +12,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -883,13 +881,8 @@ class ElementResolverTest extends EngineTestCase {
     _definingLibrary.definingCompilationUnit = unit;
     _visitor = new ResolverVisitor(
         _definingLibrary, source, _typeProvider, _listener,
-        nameScope: new LibraryScope(_definingLibrary, _listener));
-    try {
-      return _visitor.elementResolver;
-    } catch (exception) {
-      throw new IllegalArgumentException(
-          "Could not create resolver", exception);
-    }
+        nameScope: new LibraryScope(_definingLibrary));
+    return _visitor.elementResolver;
   }
 
   /**
@@ -943,21 +936,16 @@ class ElementResolverTest extends EngineTestCase {
    * @return the element to which the expression was resolved
    */
   void _resolveInClass(AstNode node, ClassElement enclosingClass) {
+    Scope outerScope = _visitor.nameScope;
     try {
-      Scope outerScope = _visitor.nameScope;
-      try {
-        _visitor.enclosingClass = enclosingClass;
-        EnclosedScope innerScope = new ClassScope(
-            new TypeParameterScope(outerScope, enclosingClass), enclosingClass);
-        _visitor.nameScope = innerScope;
-        node.accept(_resolver);
-      } finally {
-        _visitor.enclosingClass = null;
-        _visitor.nameScope = outerScope;
-      }
-    } catch (exception, stackTrace) {
-      throw new IllegalArgumentException(
-          "Could not resolve node", new CaughtException(exception, stackTrace));
+      _visitor.enclosingClass = enclosingClass;
+      EnclosedScope innerScope = new ClassScope(
+          new TypeParameterScope(outerScope, enclosingClass), enclosingClass);
+      _visitor.nameScope = innerScope;
+      node.accept(_resolver);
+    } finally {
+      _visitor.enclosingClass = null;
+      _visitor.nameScope = outerScope;
     }
   }
 
@@ -986,22 +974,18 @@ class ElementResolverTest extends EngineTestCase {
    * @return the element to which the expression was resolved
    */
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
+    Scope outerScope = _visitor.nameScope;
     try {
-      Scope outerScope = _visitor.nameScope;
-      try {
-        EnclosedScope innerScope = new EnclosedScope(outerScope);
-        if (definedElements != null) {
-          for (Element element in definedElements) {
-            innerScope.define(element);
-          }
+      EnclosedScope innerScope = new EnclosedScope(outerScope);
+      if (definedElements != null) {
+        for (Element element in definedElements) {
+          innerScope.define(element);
         }
-        _visitor.nameScope = innerScope;
-        node.accept(_resolver);
-      } finally {
-        _visitor.nameScope = outerScope;
       }
-    } catch (exception) {
-      throw new IllegalArgumentException("Could not resolve node", exception);
+      _visitor.nameScope = innerScope;
+      node.accept(_resolver);
+    } finally {
+      _visitor.nameScope = outerScope;
     }
   }
 
@@ -1015,23 +999,19 @@ class ElementResolverTest extends EngineTestCase {
    */
   void _resolveStatement(
       Statement statement, LabelElementImpl labelElement, AstNode labelTarget) {
+    LabelScope outerScope = _visitor.labelScope;
     try {
-      LabelScope outerScope = _visitor.labelScope;
-      try {
-        LabelScope innerScope;
-        if (labelElement == null) {
-          innerScope = outerScope;
-        } else {
-          innerScope = new LabelScope(
-              outerScope, labelElement.name, labelTarget, labelElement);
-        }
-        _visitor.labelScope = innerScope;
-        statement.accept(_resolver);
-      } finally {
-        _visitor.labelScope = outerScope;
+      LabelScope innerScope;
+      if (labelElement == null) {
+        innerScope = outerScope;
+      } else {
+        innerScope = new LabelScope(
+            outerScope, labelElement.name, labelTarget, labelElement);
       }
-    } catch (exception) {
-      throw new IllegalArgumentException("Could not resolve node", exception);
+      _visitor.labelScope = innerScope;
+      statement.accept(_resolver);
+    } finally {
+      _visitor.labelScope = outerScope;
     }
   }
 }

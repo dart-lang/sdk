@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -26,6 +27,8 @@ import 'package:analyzer/src/summary/summarize_ast.dart'
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/src/util/fast_uri.dart';
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 
@@ -80,6 +83,11 @@ class PubSummaryManager {
   static const UNLINKED_NAME = 'unlinked.ds';
   static const UNLINKED_SPEC_NAME = 'unlinked_spec.ds';
 
+  /**
+   * See [PackageBundleAssembler.currentMajorVersion].
+   */
+  final int majorVersion;
+
   final ResourceProvider resourceProvider;
 
   /**
@@ -117,7 +125,9 @@ class PubSummaryManager {
    */
   Completer _onUnlinkedCompleteCompleter;
 
-  PubSummaryManager(this.resourceProvider, this.tempFileName);
+  PubSummaryManager(this.resourceProvider, this.tempFileName,
+      {@visibleForTesting this.majorVersion:
+          PackageBundleAssembler.currentMajorVersion});
 
   /**
    * The [Future] that completes when computing of all scheduled unlinked
@@ -342,7 +352,9 @@ class PubSummaryManager {
 
     try {
       addDartFiles(libFolder);
-      List<int> bytes = assembler.assemble().toBuffer();
+      PackageBundleBuilder bundleWriter = assembler.assemble();
+      bundleWriter.majorVersion = majorVersion;
+      List<int> bytes = bundleWriter.toBuffer();
       String fileName = _getUnlinkedName(strong);
       _writeAtomic(package.folder, fileName, bytes);
     } on FileSystemException {
@@ -382,28 +394,84 @@ class PubSummaryManager {
     if (bundle != null) {
       return bundle;
     }
+
     // Try to read from the file system.
     String fileName = _getUnlinkedName(strong);
-    File unlinkedFile = package.folder.getChildAssumingFile(fileName);
-    if (unlinkedFile.exists) {
+    File file = package.folder.getChildAssumingFile(fileName);
+    if (file.exists) {
       try {
-        List<int> bytes = unlinkedFile.readAsBytesSync();
+        List<int> bytes = file.readAsBytesSync();
         bundle = new PackageBundle.fromBuffer(bytes);
-        unlinkedBundleMap[package] = bundle;
-        // TODO(scheglov) if not in the pub cache, check for consistency
-        return bundle;
       } on FileSystemException {
         // Ignore file system exceptions.
       }
     }
+
+    // Verify compatibility and consistency.
+    bool isInPubCache = isPathInPubCache(pathContext, package.folder.path);
+    if (bundle != null &&
+        bundle.majorVersion == majorVersion &&
+        (isInPubCache || _isConsistent(package, bundle))) {
+      unlinkedBundleMap[package] = bundle;
+      return bundle;
+    }
+
     // Schedule computation in the background, if in the pub cache.
-    if (isPathInPubCache(pathContext, package.folder.path)) {
+    if (isInPubCache) {
       if (seenPackages.add(package)) {
         _scheduleUnlinked(package);
       }
     }
-    // The bundle is for available.
+
+    // The bundle is not available.
     return null;
+  }
+
+  /**
+   * Return `true` if content hashes for the [package] library files are the
+   * same the hashes in the unlinked [bundle].
+   */
+  bool _isConsistent(PubPackage package, PackageBundle bundle) {
+    List<String> actualHashes = <String>[];
+
+    /**
+     * If the given [file] is a Dart file, add its content hash.
+     */
+    void hashDartFile(File file) {
+      String path = file.path;
+      if (AnalysisEngine.isDartFileName(path)) {
+        List<int> fileBytes = file.readAsBytesSync();
+        List<int> hashBytes = md5.convert(fileBytes).bytes;
+        String hashHex = hex.encode(hashBytes);
+        actualHashes.add(hashHex);
+      }
+    }
+
+    /**
+     * Visit the [folder] recursively.
+     */
+    void hashDartFiles(Folder folder) {
+      List<Resource> children = folder.getChildren();
+      for (Resource child in children) {
+        if (child is File) {
+          hashDartFile(child);
+        } else if (child is Folder) {
+          hashDartFiles(child);
+        }
+      }
+    }
+
+    // Recursively compute hashes of the `lib` folder Dart files.
+    try {
+      hashDartFiles(package.libFolder);
+    } on FileSystemException {
+      return false;
+    }
+
+    // Compare sorted actual and bundle unit hashes.
+    List<String> bundleHashes = bundle.unlinkedUnitHashes.toList()..sort();
+    actualHashes.sort();
+    return listsEqual(actualHashes, bundleHashes);
   }
 
   /**

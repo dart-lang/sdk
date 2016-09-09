@@ -398,8 +398,7 @@ main() {
     // it is already overridden in the content cache.
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedSource(source);
-    ApplyChangesStatus changesStatus = context.applyChanges(changeSet);
-    expect(changesStatus.hasChanges, isFalse);
+    context.applyChanges(changeSet);
     expect(context.sourcesNeedingProcessing, hasLength(0));
   }
 

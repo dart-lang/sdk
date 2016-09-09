@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -3942,10 +3941,10 @@ class LibraryElementImplTest extends EngineTestCase {
     LibraryElement library = ElementFactory.library(context, "foo");
     context.setContents(library.definingCompilationUnit.source, "sdfsdff");
     // Assert that we are not up to date if the target has an old time stamp.
-    expect(library.isUpToDate(0), isFalse);
+    expect(library.isUpToDate(-1), isFalse);
     // Assert that we are up to date with a target modification time in the
     // future.
-    expect(library.isUpToDate(JavaSystem.currentTimeMillis() + 1000), isTrue);
+    expect(library.isUpToDate(1 << 33), isTrue);
   }
 
   void test_setImports() {
@@ -4076,8 +4075,11 @@ abstract class A {
 @reflectiveTest
 class MultiplyDefinedElementImplTest extends EngineTestCase {
   void test_fromElements_conflicting() {
-    Element firstElement = ElementFactory.localVariableElement2("xx");
-    Element secondElement = ElementFactory.localVariableElement2("yy");
+    TopLevelVariableElement firstElement =
+        ElementFactory.topLevelVariableElement2('xx');
+    TopLevelVariableElement secondElement =
+        ElementFactory.topLevelVariableElement2('yy');
+    _addToLibrary([firstElement, secondElement]);
     Element result = MultiplyDefinedElementImpl.fromElements(
         null, firstElement, secondElement);
     EngineTestCase.assertInstanceOf(
@@ -4086,15 +4088,19 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
         (result as MultiplyDefinedElement).conflictingElements;
     expect(elements, hasLength(2));
     for (int i = 0; i < elements.length; i++) {
-      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement,
-          LocalVariableElement, elements[i]);
+      EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
+          TopLevelVariableElement, elements[i]);
     }
   }
 
   void test_fromElements_multiple() {
-    Element firstElement = ElementFactory.localVariableElement2("xx");
-    Element secondElement = ElementFactory.localVariableElement2("yy");
-    Element thirdElement = ElementFactory.localVariableElement2("zz");
+    TopLevelVariableElement firstElement =
+        ElementFactory.topLevelVariableElement2('xx');
+    TopLevelVariableElement secondElement =
+        ElementFactory.topLevelVariableElement2('yy');
+    TopLevelVariableElement thirdElement =
+        ElementFactory.topLevelVariableElement2('zz');
+    _addToLibrary([firstElement, secondElement, thirdElement]);
     Element result = MultiplyDefinedElementImpl.fromElements(
         null,
         MultiplyDefinedElementImpl.fromElements(
@@ -4106,15 +4112,25 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
         (result as MultiplyDefinedElement).conflictingElements;
     expect(elements, hasLength(3));
     for (int i = 0; i < elements.length; i++) {
-      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement,
-          LocalVariableElement, elements[i]);
+      EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
+          TopLevelVariableElement, elements[i]);
     }
   }
 
   void test_fromElements_nonConflicting() {
-    Element element = ElementFactory.localVariableElement2("xx");
+    TopLevelVariableElement element =
+        ElementFactory.topLevelVariableElement2('xx');
+    _addToLibrary([element]);
     expect(MultiplyDefinedElementImpl.fromElements(null, element, element),
         same(element));
+  }
+
+  void _addToLibrary(List<TopLevelVariableElement> variables) {
+    CompilationUnitElementImpl compilationUnit =
+        ElementFactory.compilationUnit('lib.dart');
+    LibraryElementImpl library = ElementFactory.library(null, 'lib');
+    library.definingCompilationUnit = compilationUnit;
+    compilationUnit.topLevelVariables = variables;
   }
 }
 

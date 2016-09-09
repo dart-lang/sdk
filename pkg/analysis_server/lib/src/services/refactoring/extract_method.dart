@@ -49,7 +49,7 @@ Element _getLocalElement(SimpleIdentifier node) {
  */
 String _getNormalizedSource(String src) {
   List<Token> selectionTokens = TokenUtils.getTokens(src);
-  return StringUtils.join(selectionTokens, _TOKEN_SEPARATOR);
+  return selectionTokens.join(_TOKEN_SEPARATOR);
 }
 
 /**

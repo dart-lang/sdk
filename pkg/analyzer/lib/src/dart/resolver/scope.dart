@@ -25,7 +25,7 @@ class BlockScope extends EnclosedScope {
    */
   BlockScope(Scope enclosingScope, Block block) : super(enclosingScope) {
     if (block == null) {
-      throw new IllegalArgumentException("block cannot be null");
+      throw new ArgumentError("block cannot be null");
     }
     _defineElements(block);
   }
@@ -69,7 +69,7 @@ class ClassScope extends EnclosedScope {
   ClassScope(Scope enclosingScope, ClassElement classElement)
       : super(enclosingScope) {
     if (classElement == null) {
-      throw new IllegalArgumentException("class element cannot be null");
+      throw new ArgumentError("class element cannot be null");
     }
     _defineMembers(classElement);
   }
@@ -128,6 +128,7 @@ class EnclosedScope extends Scope {
    */
   EnclosedScope(this.enclosingScope);
 
+  @deprecated
   @override
   AnalysisErrorListener get errorListener => enclosingScope.errorListener;
 
@@ -143,7 +144,7 @@ class EnclosedScope extends Scope {
   }
 
   @override
-  Element _internalLookupPrefixed(Identifier identifier, String prefix,
+  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
       String name, LibraryElement referencingLibrary) {
     return enclosingScope._internalLookupPrefixed(
         identifier, prefix, name, referencingLibrary);
@@ -172,7 +173,7 @@ class FunctionScope extends EnclosedScope {
   FunctionScope(Scope enclosingScope, this._functionElement)
       : super(new EnclosedScope(new EnclosedScope(enclosingScope))) {
     if (_functionElement == null) {
-      throw new IllegalArgumentException("function element cannot be null");
+      throw new ArgumentError("function element cannot be null");
     }
     _defineTypeParameters();
   }
@@ -352,13 +353,18 @@ class LabelScope {
  */
 class LibraryImportScope extends Scope {
   /**
+   * The name of the property containing a list of the elements from the SDK
+   * that conflict with the single name imported from non-SDK libraries. The
+   * value of the property is always of type `List<Element>`.
+   */
+  static const String conflictingSdkElements = 'conflictingSdkElements';
+
+  /**
    * The element representing the library in which this scope is enclosed.
    */
   final LibraryElement _definingLibrary;
 
-  /**
-   * The listener that is to be informed when an error is encountered.
-   */
+  @deprecated
   @override
   final AnalysisErrorListener errorListener;
 
@@ -376,10 +382,10 @@ class LibraryImportScope extends Scope {
 
   /**
    * Initialize a newly created scope representing the names imported into the
-   * [_definingLibrary]. The [errorListener] is the listener that is to be
-   * informed when an error is encountered.
+   * [_definingLibrary]. The [errorListener] is no longer used and should be
+   * omitted.
    */
-  LibraryImportScope(this._definingLibrary, this.errorListener) {
+  LibraryImportScope(this._definingLibrary, [this.errorListener]) {
     _createImportedNamespaces();
   }
 
@@ -402,49 +408,16 @@ class LibraryImportScope extends Scope {
   @override
   Element internalLookup(
       Identifier identifier, String name, LibraryElement referencingLibrary) {
-    Element foundElement = localLookup(name, referencingLibrary);
-    if (foundElement != null) {
-      return foundElement;
+    Element element = localLookup(name, referencingLibrary);
+    if (element != null) {
+      return element;
     }
-    for (int i = 0; i < _importedNamespaces.length; i++) {
-      Namespace nameSpace = _importedNamespaces[i];
-      Element element = nameSpace.get(name);
-      if (element != null) {
-        if (foundElement == null) {
-          foundElement = element;
-        } else if (!identical(foundElement, element)) {
-          foundElement = MultiplyDefinedElementImpl.fromElements(
-              _definingLibrary.context, foundElement, element);
-        }
-      }
+    element = _lookupInImportedNamespaces(
+        identifier, (Namespace namespace) => namespace.get(name));
+    if (element != null) {
+      defineNameWithoutChecking(name, element);
     }
-    Element element = foundElement;
-    if (element is MultiplyDefinedElementImpl) {
-      foundElement = _removeSdkElements(identifier, name, element);
-    }
-    if (foundElement is MultiplyDefinedElementImpl) {
-      String foundEltName = foundElement.displayName;
-      List<Element> conflictingMembers = foundElement.conflictingElements;
-      int count = conflictingMembers.length;
-      List<String> libraryNames = new List<String>(count);
-      for (int i = 0; i < count; i++) {
-        libraryNames[i] = _getLibraryName(conflictingMembers[i]);
-      }
-      libraryNames.sort();
-      errorListener.onError(new AnalysisError(
-          getSource(identifier),
-          identifier.offset,
-          identifier.length,
-          StaticWarningCode.AMBIGUOUS_IMPORT, [
-        foundEltName,
-        StringUtilities.printListOfQuotedNames(libraryNames)
-      ]));
-      return foundElement;
-    }
-    if (foundElement != null) {
-      defineNameWithoutChecking(name, foundElement);
-    }
-    return foundElement;
+    return element;
   }
 
   @override
@@ -522,98 +495,19 @@ class LibraryImportScope extends Scope {
     unprefixedNames[name] = element;
   }
 
-  /**
-   * Return the name of the library that defines given [element].
-   */
-  String _getLibraryName(Element element) {
-    if (element == null) {
-      return StringUtilities.EMPTY;
-    }
-    LibraryElement library = element.library;
-    if (library == null) {
-      return StringUtilities.EMPTY;
-    }
-    List<ImportElement> imports = _definingLibrary.imports;
-    int count = imports.length;
-    for (int i = 0; i < count; i++) {
-      if (identical(imports[i].importedLibrary, library)) {
-        return library.definingCompilationUnit.displayName;
-      }
-    }
-    List<String> indirectSources = new List<String>();
-    for (int i = 0; i < count; i++) {
-      LibraryElement importedLibrary = imports[i].importedLibrary;
-      if (importedLibrary != null) {
-        for (LibraryElement exportedLibrary
-            in importedLibrary.exportedLibraries) {
-          if (identical(exportedLibrary, library)) {
-            indirectSources
-                .add(importedLibrary.definingCompilationUnit.displayName);
-          }
-        }
-      }
-    }
-    int indirectCount = indirectSources.length;
-    StringBuffer buffer = new StringBuffer();
-    buffer.write(library.definingCompilationUnit.displayName);
-    if (indirectCount > 0) {
-      buffer.write(" (via ");
-      if (indirectCount > 1) {
-        indirectSources.sort();
-        buffer.write(StringUtilities.printListOfQuotedNames(indirectSources));
-      } else {
-        buffer.write(indirectSources[0]);
-      }
-      buffer.write(")");
-    }
-    return buffer.toString();
-  }
-
   @override
-  Element _internalLookupPrefixed(Identifier identifier, String prefix,
+  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
       String name, LibraryElement referencingLibrary) {
-    Element foundElement = _localPrefixedLookup(prefix, name);
-    if (foundElement != null) {
-      return foundElement;
+    Element element = _localPrefixedLookup(prefix, name);
+    if (element != null) {
+      return element;
     }
-    for (int i = 0; i < _importedNamespaces.length; i++) {
-      Element element = _importedNamespaces[i].getPrefixed(prefix, name);
-      if (element != null) {
-        if (foundElement == null) {
-          foundElement = element;
-        } else if (!identical(foundElement, element)) {
-          foundElement = MultiplyDefinedElementImpl.fromElements(
-              _definingLibrary.context, foundElement, element);
-        }
-      }
+    element = _lookupInImportedNamespaces(identifier.identifier,
+        (Namespace namespace) => namespace.getPrefixed(prefix, name));
+    if (element != null) {
+      _definePrefixedNameWithoutChecking(prefix, name, element);
     }
-    Element element = foundElement;
-    if (element is MultiplyDefinedElementImpl) {
-      foundElement = _removeSdkElements(identifier, name, element);
-    }
-    if (foundElement is MultiplyDefinedElementImpl) {
-      String foundEltName = foundElement.displayName;
-      List<Element> conflictingMembers = foundElement.conflictingElements;
-      int count = conflictingMembers.length;
-      List<String> libraryNames = new List<String>(count);
-      for (int i = 0; i < count; i++) {
-        libraryNames[i] = _getLibraryName(conflictingMembers[i]);
-      }
-      libraryNames.sort();
-      errorListener.onError(new AnalysisError(
-          getSource(identifier),
-          identifier.offset,
-          identifier.length,
-          StaticWarningCode.AMBIGUOUS_IMPORT, [
-        foundEltName,
-        StringUtilities.printListOfQuotedNames(libraryNames)
-      ]));
-      return foundElement;
-    }
-    if (foundElement != null) {
-      _definePrefixedNameWithoutChecking(prefix, name, foundElement);
-    }
-    return foundElement;
+    return element;
   }
 
   /**
@@ -630,47 +524,40 @@ class LibraryImportScope extends Scope {
     return null;
   }
 
-  /**
-   * Given a collection of elements (captured by the [foundElement]) that the
-   * [identifier] (with the given [name]) resolved to, remove from the list all
-   * of the names defined in the SDK and return the element(s) that remain.
-   */
-  Element _removeSdkElements(Identifier identifier, String name,
-      MultiplyDefinedElementImpl foundElement) {
-    List<Element> conflictingElements = foundElement.conflictingElements;
-    List<Element> nonSdkElements = new List<Element>();
-    Element sdkElement = null;
-    for (Element member in conflictingElements) {
-      if (member.library.isInSdk) {
-        sdkElement = member;
-      } else {
-        nonSdkElements.add(member);
+  Element _lookupInImportedNamespaces(
+      Identifier identifier, Element lookup(Namespace namespace)) {
+    Set<Element> sdkElements = new HashSet<Element>();
+    Set<Element> nonSdkElements = new HashSet<Element>();
+    for (int i = 0; i < _importedNamespaces.length; i++) {
+      Element element = lookup(_importedNamespaces[i]);
+      if (element != null) {
+        if (element.library.isInSdk) {
+          sdkElements.add(element);
+        } else {
+          nonSdkElements.add(element);
+        }
       }
     }
-    if (sdkElement != null && nonSdkElements.length > 0) {
-      String sdkLibName = _getLibraryName(sdkElement);
-      String otherLibName = _getLibraryName(nonSdkElements[0]);
-      errorListener.onError(new AnalysisError(
-          getSource(identifier),
-          identifier.offset,
-          identifier.length,
-          StaticWarningCode.CONFLICTING_DART_IMPORT,
-          [name, sdkLibName, otherLibName]));
+    int nonSdkCount = nonSdkElements.length;
+    int sdkCount = sdkElements.length;
+    if (nonSdkCount == 0) {
+      if (sdkCount == 0) {
+        return null;
+      } else if (sdkCount == 1) {
+        return sdkElements.first;
+      }
     }
-    if (nonSdkElements.length == conflictingElements.length) {
-      // None of the members were removed
-      return foundElement;
-    } else if (nonSdkElements.length == 1) {
-      // All but one member was removed
-      return nonSdkElements[0];
-    } else if (nonSdkElements.length == 0) {
-      // All members were removed
-      AnalysisEngine.instance.logger
-          .logInformation("Multiply defined SDK element: $foundElement");
-      return foundElement;
+    if (nonSdkCount == 1) {
+      if (sdkCount > 0) {
+        identifier.setProperty(
+            conflictingSdkElements, sdkElements.toList(growable: false));
+      }
+      return nonSdkElements.first;
     }
     return new MultiplyDefinedElementImpl(
-        _definingLibrary.context, nonSdkElements);
+        _definingLibrary.context,
+        sdkElements.toList(growable: false),
+        nonSdkElements.toList(growable: false));
   }
 }
 
@@ -680,11 +567,11 @@ class LibraryImportScope extends Scope {
 class LibraryScope extends EnclosedScope {
   /**
    * Initialize a newly created scope representing the names defined in the
-   * [definingLibrary]. The [errorListener] is the listener that is to be
-   * informed when an error is encountered
+   * [definingLibrary]. The [errorListener] is no longer used and should be
+   * omitted.
    */
-  LibraryScope(
-      LibraryElement definingLibrary, AnalysisErrorListener errorListener)
+  LibraryScope(LibraryElement definingLibrary,
+      [@deprecated AnalysisErrorListener errorListener])
       : super(new LibraryImportScope(definingLibrary, errorListener)) {
     _defineTopLevelNames(definingLibrary);
   }
@@ -1103,6 +990,7 @@ abstract class Scope {
   /**
    * Return the listener that is to be informed when an error is encountered.
    */
+  @deprecated
   AnalysisErrorListener get errorListener;
 
   /**
@@ -1245,7 +1133,7 @@ abstract class Scope {
    * that contains the reference to the name, used to implement library-level
    * privacy.
    */
-  Element _internalLookupPrefixed(Identifier identifier, String prefix,
+  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
       String name, LibraryElement referencingLibrary);
 
   /**
@@ -1266,7 +1154,7 @@ class TypeParameterScope extends EnclosedScope {
   TypeParameterScope(Scope enclosingScope, ClassElement classElement)
       : super(enclosingScope) {
     if (classElement == null) {
-      throw new IllegalArgumentException("class element cannot be null");
+      throw new ArgumentError("class element cannot be null");
     }
     _defineTypeParameters(classElement);
   }

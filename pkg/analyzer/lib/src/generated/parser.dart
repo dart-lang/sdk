@@ -483,7 +483,7 @@ Object invokeParserMethodImpl(
   MethodTrampoline method =
       methodTable_Parser['${methodName}_${objects.length}'];
   if (method == null) {
-    throw new IllegalArgumentException('There is no method named $methodName');
+    throw new ArgumentError('There is no method named $methodName');
   }
   return method.invoke(parser, objects);
 }
@@ -1670,7 +1670,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
    * the node to be replaced.
    */
   AstNode _notAChild(AstNode node) {
-    throw new IncrementalParseException.con1(
+    throw new IncrementalParseException(
         "Internal error: the visited node (a ${node.runtimeType}) was not the parent of the node to be replaced (a ${_oldNode.runtimeType})");
   }
 }
@@ -1680,24 +1680,10 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
  * specified node in an existing AST structure.
  */
 @deprecated
-class IncrementalParseException extends RuntimeException {
-  /**
-   * Initialize a newly created exception to have no message and to be its own
-   * cause.
-   */
-  IncrementalParseException() : super();
-
-  /**
-   * Initialize a newly created exception to have the given [message] and to be
-   * its own cause.
-   */
-  IncrementalParseException.con1(String message) : super(message: message);
-
-  /**
-   * Initialize a newly created exception to have no message and to have the
-   * given [cause].
-   */
-  IncrementalParseException.con2(Exception cause) : super(cause: cause);
+class IncrementalParseException {
+  final String message;
+  IncrementalParseException([this.message = '']);
+  String toString() => '$runtimeType: $message';
 }
 
 /**
@@ -1970,23 +1956,7 @@ class IncrementalParseStateBuilder extends SimpleAstVisitor {
  */
 @deprecated
 class InsufficientContextException extends IncrementalParseException {
-  /**
-   * Initialize a newly created exception to have no message and to be its own
-   * cause.
-   */
-  InsufficientContextException() : super();
-
-  /**
-   * Initialize a newly created exception to have the given [message] and to be
-   * its own cause.
-   */
-  InsufficientContextException.con1(String message) : super.con1(message);
-
-  /**
-   * Initialize a newly created exception to have no message and to have the
-   * given [cause].
-   */
-  InsufficientContextException.con2(Exception cause) : super.con2(cause);
+  InsufficientContextException([String message = '']) : super(message);
 }
 
 /**
@@ -1999,8 +1969,7 @@ class MethodTrampoline {
   MethodTrampoline(this.parameterCount, this.trampoline);
   Object invoke(target, List arguments) {
     if (arguments.length != parameterCount) {
-      throw new IllegalArgumentException(
-          "${arguments.length} != $parameterCount");
+      throw new ArgumentError("${arguments.length} != $parameterCount");
     }
     switch (parameterCount) {
       case 0:
@@ -2015,7 +1984,7 @@ class MethodTrampoline {
         return trampoline(
             target, arguments[0], arguments[1], arguments[2], arguments[3]);
       default:
-        throw new IllegalArgumentException("Not implemented for > 4 arguments");
+        throw new ArgumentError("Not implemented for > 4 arguments");
     }
   }
 }
@@ -2878,7 +2847,7 @@ class Parser {
           } else {
             // Internal error: this method should not have been invoked if the
             // current token was something other than one of the above.
-            throw new IllegalStateException(
+            throw new StateError(
                 "parseDirective invoked in an invalid state (currentToken = $_currentToken)");
           }
         }
@@ -5730,7 +5699,7 @@ class Parser {
     } else {
       // Internal error: this method should not have been invoked if the current
       // token was something other than one of the above.
-      throw new IllegalStateException(
+      throw new StateError(
           "parseDirective invoked in an invalid state; currentToken = $_currentToken");
     }
   }
@@ -9599,8 +9568,7 @@ class Parser {
    */
   void _unlockErrorListener() {
     if (_errorListenerLock == 0) {
-      throw new IllegalStateException(
-          "Attempt to unlock not locked error listener.");
+      throw new StateError("Attempt to unlock not locked error listener.");
     }
     _errorListenerLock--;
   }

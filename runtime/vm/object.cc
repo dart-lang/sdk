@@ -7476,13 +7476,14 @@ void Field::InitializeNew(const Field& result,
   // Use field guards if they are enabled and the isolate has never reloaded.
   // TODO(johnmccutchan): The reload case assumes the worst case (everything is
   // dynamic and possibly null). Attempt to relax this later.
-  const bool use_field_guards =
-      FLAG_use_field_guards && !isolate->HasAttemptedReload();
-  result.set_guarded_cid(use_field_guards ? kIllegalCid : kDynamicCid);
-  result.set_is_nullable(use_field_guards ? false : true);
+  const bool use_guarded_cid =
+      FLAG_precompiled_mode ||
+      (FLAG_use_field_guards && !isolate->HasAttemptedReload());
+  result.set_guarded_cid(use_guarded_cid ? kIllegalCid : kDynamicCid);
+  result.set_is_nullable(use_guarded_cid ? false : true);
   result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
   // Presently, we only attempt to remember the list length for final fields.
-  if (is_final && use_field_guards) {
+  if (is_final && use_guarded_cid) {
     result.set_guarded_list_length(Field::kUnknownFixedLength);
   } else {
     result.set_guarded_list_length(Field::kNoFixedLength);
@@ -11402,6 +11403,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS2);
   INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
   INLINE_BLACK_LIST(CHECK_FINGERPRINTS);
@@ -13411,6 +13413,20 @@ bool ICData::HasOneTarget() const {
 }
 
 
+bool ICData::HasOnlyDispatcherTargets() const {
+  const intptr_t len = NumberOfChecks();
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < len; i++) {
+    target = GetTargetAt(i);
+    if (!target.IsNoSuchMethodDispatcher() &&
+        !target.IsInvokeFieldDispatcher()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
                                    GrowableArray<intptr_t>* second) const {
   ASSERT(NumArgsTested() == 2);
@@ -14195,7 +14211,7 @@ const char* Code::ToCString() const {
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     return zone->PrintToString("[stub: %s]", name);
   } else {
-    return zone->PrintToString("Code entry:%" Px, UncheckedEntryPoint());
+    return zone->PrintToString("Code entry: 0x%" Px, UncheckedEntryPoint());
   }
 }
 

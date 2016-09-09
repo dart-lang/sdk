@@ -8,10 +8,10 @@ import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -23,7 +23,6 @@ class ObjectStoreViewElement  extends HtmlElement implements Renderable {
   static const tag = const Tag<ObjectStoreViewElement>('objectstore-view',
                                             dependencies: const [
                                               InstanceRefElement.tag,
-                                              NavBarElement.tag,
                                               NavTopMenuElement.tag,
                                               NavVMMenuElement.tag,
                                               NavIsolateMenuElement.tag,
@@ -91,15 +90,14 @@ class ObjectStoreViewElement  extends HtmlElement implements Renderable {
   void render() {
     final fields = _store?.fields?.toList(growable: false);
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavRefreshElement(disabled: _store == null, queue: _r.queue)
-              ..onRefresh.listen((e) => _refresh()),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        new NavRefreshElement(disabled: _store == null, queue: _r.queue)
+            ..onRefresh.listen((e) => _refresh()),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h1()

@@ -15,7 +15,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class FunctionRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<FunctionRefElement>('function-ref-wrapped');
+  static const tag = const Tag<FunctionRefElement>('function-ref');
 
   RenderingScheduler<FunctionRefElement> _r;
 

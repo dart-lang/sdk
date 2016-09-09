@@ -350,6 +350,7 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
  * should be canonicalized, but to preserve relative links within a package, the remainder of the
  * path from the package directory to the leaf should not.
  */
+@deprecated
 class PackageUriResolver extends UriResolver {
   /**
    * The name of the `package` scheme.
@@ -375,7 +376,7 @@ class PackageUriResolver extends UriResolver {
    */
   PackageUriResolver(this._packagesDirectories) {
     if (_packagesDirectories.length < 1) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "At least one package directory must be provided");
     }
   }
@@ -406,7 +407,7 @@ class PackageUriResolver extends UriResolver {
     JavaFile pkgDir = new JavaFile.relative(packagesDirectory, pkgName);
     try {
       pkgDir = pkgDir.getCanonicalFile();
-    } on JavaIOException catch (exception, stackTrace) {
+    } catch (exception, stackTrace) {
       if (!exception.toString().contains("Required key not available")) {
         AnalysisEngine.instance.logger.logError("Canonical failed: $pkgDir",
             new CaughtException(exception, stackTrace));

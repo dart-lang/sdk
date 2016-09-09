@@ -863,7 +863,7 @@ class FixProcessor {
       }
       // add super constructor name
       sb.append('super');
-      if (!StringUtils.isEmpty(constructorName)) {
+      if (!isEmpty(constructorName)) {
         sb.append('.');
         sb.append(constructorName);
       }
@@ -1480,7 +1480,7 @@ class FixProcessor {
         // don't add this library again
         alreadyImportedWithPrefix.add(libraryElement.source);
         // update library
-        String newShowCode = 'show ${StringUtils.join(showNames, ", ")}';
+        String newShowCode = 'show ${showNames.join(', ')}';
         _addReplaceEdit(
             rf.rangeOffsetEnd(showCombinator), newShowCode, unitLibraryElement);
         _addFix(DartFixKind.IMPORT_LIBRARY_SHOW, [libraryName]);

@@ -10,9 +10,9 @@ import 'dart:convert';
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/service_html.dart' as SH;
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -29,7 +29,6 @@ enum _Profile {
 class TimelinePageElement extends HtmlElement implements Renderable {
   static const tag = const Tag<TimelinePageElement>('timeline-page',
                                                     dependencies: const [
-                                                      NavBarElement.tag,
                                                       NavTopMenuElement.tag,
                                                       NavVMMenuElement.tag,
                                                       NavRefreshElement.tag,
@@ -121,36 +120,35 @@ class TimelinePageElement extends HtmlElement implements Renderable {
     ];
     if (children.isEmpty) {
       children = [
-        new NavBarElement(queue: _r.queue)
-          ..children = [
-            new NavTopMenuElement(queue: _r.queue),
-            new NavVMMenuElement(_vm, _events, last: true, queue: _r.queue),
-            new NavRefreshElement(queue: _r.queue)
-                ..onRefresh.listen((e) async {
-                  e.element.disabled = true;
-                  await _refresh();
-                  e.element.disabled = false;
-                }),
-            new NavRefreshElement(label: 'clear', queue: _r.queue)
-                ..onRefresh.listen((e) async {
-                  e.element.disabled = true;
-                  await _clear();
-                  e.element.disabled = false;
-                }),
-            new NavRefreshElement(label: 'save', queue: _r.queue)
-                ..onRefresh.listen((e) async {
-                  e.element.disabled = true;
-                  await _save();
-                  e.element.disabled = false;
-                }),
-            new NavRefreshElement(label: 'load', queue: _r.queue)
-                ..onRefresh.listen((e) async {
-                  e.element.disabled = true;
-                  await _load();
-                  e.element.disabled = false;
-                }),
-            new NavNotifyElement(_notifications, queue: _r.queue)
-          ],
+        navBar([
+          new NavTopMenuElement(queue: _r.queue),
+          new NavVMMenuElement(_vm, _events, queue: _r.queue),
+          new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _refresh();
+                e.element.disabled = false;
+              }),
+          new NavRefreshElement(label: 'clear', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _clear();
+                e.element.disabled = false;
+              }),
+          new NavRefreshElement(label: 'save', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _save();
+                e.element.disabled = false;
+              }),
+          new NavRefreshElement(label: 'load', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _load();
+                e.element.disabled = false;
+              }),
+          new NavNotifyElement(_notifications, queue: _r.queue)
+        ]),
         _content,
         new DivElement()..classes = ['iframe']
           ..children = [

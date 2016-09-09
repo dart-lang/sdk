@@ -4968,11 +4968,14 @@ void FullSnapshotWriter::WriteFullSnapshot() {
 
     OS::Print("VMIsolate(CodeSize): %" Pd "\n", VmIsolateSnapshotSize());
     OS::Print("Isolate(CodeSize): %" Pd "\n", IsolateSnapshotSize());
+    OS::Print("ReadOnlyData(CodeSize): %" Pd "\n",
+              instructions_writer_->data_size());
     OS::Print("Instructions(CodeSize): %" Pd "\n",
-              instructions_writer_->binary_size());
+              instructions_writer_->text_size());
     intptr_t total = VmIsolateSnapshotSize() +
                      IsolateSnapshotSize() +
-                     instructions_writer_->binary_size();
+                     instructions_writer_->data_size() +
+                     instructions_writer_->text_size();
     OS::Print("Total(CodeSize): %" Pd "\n", total);
   }
 }

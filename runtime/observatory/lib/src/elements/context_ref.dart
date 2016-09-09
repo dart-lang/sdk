@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ContextRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ContextRefElement>('context-ref-wrapped');
+  static const tag = const Tag<ContextRefElement>('context-ref');
 
   RenderingScheduler<ContextRefElement> _r;
 

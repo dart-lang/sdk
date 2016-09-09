@@ -98,6 +98,10 @@ abstract class Target {
     return null;
   }
 
+  /// Returns `true` if [element] is a default implementation of `noSuchMethod`
+  /// used by the target.
+  bool isDefaultNoSuchMethod(MethodElement element);
+
   /// Returns the default superclass for the given [element] in this target.
   ClassElement defaultSuperclass(ClassElement element);
 

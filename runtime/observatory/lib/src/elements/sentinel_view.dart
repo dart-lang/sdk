@@ -5,11 +5,11 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
@@ -19,11 +19,9 @@ import 'package:observatory/src/elements/view_footer.dart';
 class SentinelViewElement extends HtmlElement implements Renderable {
   static const tag = const Tag<SentinelViewElement>('sentinel-view',
                                                     dependencies: const [
-                                                      NavBarElement.tag,
                                                       NavTopMenuElement.tag,
                                                       NavVMMenuElement.tag,
                                                       NavIsolateMenuElement.tag,
-                                                      NavMenuElement.tag,
                                                       NavNotifyElement.tag,
                                                       ViewFooterElement.tag
                                                     ]);
@@ -77,14 +75,13 @@ class SentinelViewElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavMenuElement('sentinel', last: true, queue: _r.queue),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu('sentinel'),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()

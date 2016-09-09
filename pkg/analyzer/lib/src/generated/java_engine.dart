@@ -275,12 +275,11 @@ class StringUtilities {
    */
   static String printListOfQuotedNames(List<String> names) {
     if (names == null) {
-      throw new IllegalArgumentException("The list must not be null");
+      throw new ArgumentError("The list must not be null");
     }
     int count = names.length;
     if (count < 2) {
-      throw new IllegalArgumentException(
-          "The list must contain at least two names");
+      throw new ArgumentError("The list must contain at least two names");
     }
     StringBuffer buffer = new StringBuffer();
     buffer.write("'");

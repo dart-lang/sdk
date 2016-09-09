@@ -149,7 +149,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     // Elements within this element should have type parameters substituted,
     // just like this element.
     //
-    throw new UnsupportedOperationException();
+    throw new UnsupportedError('functions');
 //    return getBaseElement().getFunctions();
   }
 
@@ -186,7 +186,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     // Elements within this element should have type parameters substituted,
     // just like this element.
     //
-    throw new UnsupportedOperationException();
+    throw new UnsupportedError('localVariables');
 //    return getBaseElement().getLocalVariables();
   }
 
@@ -953,19 +953,19 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   Element get enclosingElement => baseElement.enclosingElement;
 
   @override
-  TypeParameterType get type => _type;
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
-
-  @override
   int get hashCode => baseElement.hashCode;
+
+  @override
+  TypeParameterType get type => _type;
 
   @override
   bool operator ==(obj) =>
       // TODO(jmesserly): this equality should consider the bound, see:
       // https://github.com/dart-lang/sdk/issues/27210
       obj is TypeParameterMember && obj.baseElement == baseElement;
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
 
   /**
    * If the given [parameter]'s type is different when any type parameters from
@@ -1033,7 +1033,7 @@ abstract class VariableMember extends Member implements VariableElement {
     // Elements within this element should have type parameters substituted,
     // just like this element.
     //
-    throw new UnsupportedOperationException();
+    throw new UnsupportedError('initializer');
     //    return getBaseElement().getInitializer();
   }
 

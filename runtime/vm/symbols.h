@@ -398,6 +398,8 @@ class ObjectPointerVisitor;
   V(DartLibrary, "dart.library.")                                              \
   V(DartLibraryMirrors, "dart.library.mirrors")                                \
   V(_name, "_name")                                                            \
+  V(_classRangeCheck, "_classRangeCheck")                                      \
+  V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

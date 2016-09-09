@@ -2306,7 +2306,7 @@ static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
   }
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
-  if (framePos > stack->Length()) {
+  if (framePos >= stack->Length()) {
     PrintInvalidParamError(js, "frameIndex");
     return true;
   }

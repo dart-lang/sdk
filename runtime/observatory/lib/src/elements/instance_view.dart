@@ -14,14 +14,14 @@ import 'package:observatory/src/elements/eval_box.dart';
 import 'package:observatory/src/elements/field_ref.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -41,13 +41,11 @@ class InstanceViewElement extends HtmlElement implements Renderable {
                                               FieldRefElement.tag,
                                               FunctionRefElement.tag,
                                               InstanceRefElement.tag,
-                                              NavBarElement.tag,
                                               NavClassMenuElement.tag,
                                               NavLibraryMenuElement.tag,
                                               NavTopMenuElement.tag,
                                               NavVMMenuElement.tag,
                                               NavIsolateMenuElement.tag,
-                                              NavMenuElement.tag,
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
                                               ObjectCommonElement.tag,
@@ -185,8 +183,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       new ViewFooterElement(queue: _r.queue)
     ]);
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = _createMenu(),
+      navBar(_createMenu()),
       new DivElement()..classes = ['content-centered-big']
         ..children = content
       ];
@@ -204,7 +201,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     }
     menu.addAll([
       new NavClassMenuElement(_isolate, _instance.clazz, queue: _r.queue),
-      new NavMenuElement('instance', last: true, queue: _r.queue),
+      navMenu('instance'),
       new NavRefreshElement(queue: _r.queue)
           ..onRefresh.listen((e) {
             e.element.disabled = true;
@@ -361,7 +358,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
               new CurlyBlockElement(
                   expanded: _instance.nativeFields.length <= 100,
                   queue: _r.queue)
-                ..children = [
+                ..content = [
                    new DivElement()..classes = ['memberList']
                     ..children = _instance.nativeFields.map((f) =>
                       new DivElement()..classes = ['memberItem']
@@ -387,7 +384,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
               new CurlyBlockElement(
                   expanded: fields.length <= 100,
                   queue: _r.queue)
-                ..children = [
+                ..content = [
                   new DivElement()..classes = ['memberList']
                     ..children = fields.map((f) =>
                       new DivElement()..classes = ['memberItem']
@@ -459,7 +456,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
               new CurlyBlockElement(
                   expanded: associations.length <= 100,
                   queue: _r.queue)
-                ..children = [
+                ..content = [
                   new DivElement()..classes = ['memberList']
                     ..children = associations.map((a) =>
                       new DivElement()..classes = ['memberItem']
@@ -504,7 +501,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
               new CurlyBlockElement(
                   expanded: typedElements.length <= 100,
                   queue: _r.queue)
-                ..children = [
+                ..content = [
                   new DivElement()..classes = ['memberList']
                     ..children = typedElements.map((e) =>
                       new DivElement()..classes = ['memberItem']

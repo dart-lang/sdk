@@ -635,6 +635,11 @@ class JavaScriptBackend extends Backend {
   JavaScriptConstantCompiler get constants {
     return constantCompilerTask.jsConstantCompiler;
   }
+  
+  @override
+  bool isDefaultNoSuchMethod(MethodElement element) {
+    return noSuchMethodRegistry.isDefaultNoSuchMethodImplementation(element);
+  }
 
   MethodElement resolveExternalFunction(MethodElement element) {
     if (isForeign(element)) {
@@ -1101,7 +1106,7 @@ class JavaScriptBackend extends Backend {
         type.isFunctionType ? coreTypes.functionType : type;
     if (type is InterfaceType) {
       registry.registerInstantiation(instantiatedType);
-      if (!type.treatAsRaw && classNeedsRti(type.element)) {
+      if (classNeedsRtiField(type.element)) {
         registry.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
             helpers.setRuntimeTypeInfo,
@@ -1470,8 +1475,14 @@ class JavaScriptBackend extends Backend {
   }
 
   bool classNeedsRti(ClassElement cls) {
-    return rti.classesNeedingRti.contains(cls.declaration) ||
-        compiler.enabledRuntimeType;
+    if (compiler.enabledRuntimeType) return true;
+    return rti.classesNeedingRti.contains(cls.declaration);
+  }
+
+  bool classNeedsRtiField(ClassElement cls) {
+    if (cls.rawType.typeArguments.isEmpty) return false;
+    if (compiler.enabledRuntimeType) return true;
+    return rti.classesNeedingRti.contains(cls.declaration);
   }
 
   bool isComplexNoSuchMethod(FunctionElement element) =>

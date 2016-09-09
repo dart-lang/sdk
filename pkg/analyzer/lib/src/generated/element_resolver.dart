@@ -2453,9 +2453,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else if (element == null &&
         (identifier.inSetterContext() ||
             identifier.parent is CommentReference)) {
-      element = _resolver.nameScope.lookup(
-          new SyntheticIdentifier("${identifier.name}=", identifier),
-          _definingLibrary);
+      Identifier setterId =
+          new SyntheticIdentifier('${identifier.name}=', identifier);
+      element = _resolver.nameScope.lookup(setterId, _definingLibrary);
+      identifier.setProperty(LibraryImportScope.conflictingSdkElements,
+          setterId.getProperty(LibraryImportScope.conflictingSdkElements));
     }
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (element == null && enclosingClass != null) {

@@ -35,3 +35,11 @@ class VMLibraryHooks {
 final bool is64Bit = _inquireIs64Bit();
 
 bool _inquireIs64Bit() native "Internal_inquireIs64Bit";
+
+bool _classRangeCheck(int cid, int lowerLimit, int upperLimit) {
+  return cid >= lowerLimit && cid <= upperLimit;
+}
+
+bool _classRangeCheckNegative(int cid, int lowerLimit, int upperLimit) {
+  return cid < lowerLimit || cid > upperLimit;
+}

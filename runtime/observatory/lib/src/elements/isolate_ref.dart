@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class IsolateRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<IsolateRefElement>('isolate-ref-wrapped');
+  static const tag = const Tag<IsolateRefElement>('isolate-ref');
 
   RenderingScheduler<IsolateRefElement> _r;
 

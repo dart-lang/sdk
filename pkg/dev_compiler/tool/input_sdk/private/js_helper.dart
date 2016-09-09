@@ -33,8 +33,7 @@ const _Patch patch = const _Patch();
 
 /// Marks the internal map in dart2js, so that internal libraries can is-check
 // them.
-abstract class InternalMap {
-}
+abstract class InternalMap<K, V> implements Map<K, V> {}
 
 class Primitives {
   /// Isolate-unique ID for caching [JsClosureMirror.function].

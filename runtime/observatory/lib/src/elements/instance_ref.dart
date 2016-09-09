@@ -15,7 +15,7 @@ import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/utils.dart';
 
 class InstanceRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<InstanceRefElement>('instance-ref-wrapped');
+  static const tag = const Tag<InstanceRefElement>('instance-ref');
 
   RenderingScheduler<InstanceRefElement> _r;
 
@@ -65,7 +65,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       content.addAll([
         new SpanElement()..text = ' ',
         new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-          ..children = [
+          ..content = [
             new DivElement()..classes = ['indent']
               ..children = _createValue()
           ]
@@ -154,7 +154,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..text = _instance.clazz.name,
           new CurlyBlockElement(queue: _r.queue)
-            ..children = [
+            ..content = [
               new DivElement()..classes = ['stackTraceBox']
                 ..text = _instance.valueAsString
             ]

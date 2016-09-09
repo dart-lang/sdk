@@ -33,7 +33,7 @@ class InvocationImpl extends Invocation {
 
 dload(obj, field) {
   var f = _canonicalMember(obj, field);
-  _trackCall(obj, f);
+  _trackCall(obj);
   if (f != null) {
     if (hasMethod(obj, f)) return bind(obj, f, JS('', 'void 0'));
     return JS('', '#[#]', obj, f);
@@ -44,7 +44,7 @@ dload(obj, field) {
 
 dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
-  _trackCall(obj, f);
+  _trackCall(obj);
   if (f != null) {
     return JS('', '#[#] = #', obj, f, value);
   }
@@ -106,7 +106,7 @@ extractNamedArgs(args) {
 }
 
 _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
-  $_trackCall($obj, $name);
+  $_trackCall($obj);
 
   let originalTarget = obj === void 0 ? f : obj;
 
@@ -182,17 +182,28 @@ dcall(f, @rest args) => _checkAndCall(
 dgcall(f, typeArgs, @rest args) => _checkAndCall(
     f, _getRuntimeType(f), JS('', 'void 0'), typeArgs, args, 'call');
 
-Map<String, int> _callMethodStats = new Map();
+class _MethodStats {
+  final String typeName;
+  final String frame;
+  int count;
+
+  _MethodStats(this.typeName, this.frame) {
+    count = 0;
+  }
+}
+
+Map<String, _MethodStats> _callMethodStats = new Map();
 
 List<List<Object>> getDynamicStats() {
   List<List<Object>> ret = [];
 
   var keys = _callMethodStats.keys.toList();
 
-  keys.sort((a, b) => _callMethodStats[b].compareTo(_callMethodStats[a]));
+  keys.sort((a, b) => _callMethodStats[b].count.compareTo(
+      _callMethodStats[a].count));
   for (var key in keys) {
-    int count = _callMethodStats[key];
-    ret.add([key, count]);
+    var stats = _callMethodStats[key];
+    ret.add([stats.typeName, stats.frame, stats.count]);
   }
 
   return ret;
@@ -204,7 +215,7 @@ clearDynamicStats() {
 
 bool trackProfile = JS('bool', 'dart.global.trackDdcProfile');
 
-_trackCall(obj, name) {
+_trackCall(obj) {
   if (JS('bool', '!#', trackProfile)) return;
 
   var actual = getReifiedType(obj);
@@ -219,12 +230,9 @@ _trackCall(obj, name) {
     }
   }
 
-  name = "${typeName(actual)}.$name <$src>";
-  if (_callMethodStats.containsKey(name)) {
-    _callMethodStats[name] = _callMethodStats[name] + 1;
-  } else {
-    _callMethodStats[name] = 1;
-  }
+  var actualTypeName = typeName(actual);
+  _callMethodStats.putIfAbsent("$actualTypeName <$src>",
+      () => new _MethodStats(actualTypeName, src)).count++;
 }
 
 /// Shared code for dsend, dindex, and dsetindex.

@@ -57,8 +57,6 @@ Element anyRef(M.IsolateRef isolate, ref,
       return new ObjectPoolRefElement(isolate, ref, queue: queue);
     } else if (ref is M.PcDescriptorsRef) {
       return new PcDescriptorsRefElement(isolate, ref, queue: queue);
-    } else if (ref is M.Sentinel) {
-      return new SentinelValueElement(ref, queue: queue);
     } else if (ref is M.ScriptRef) {
       return new ScriptRefElement(isolate, ref, queue: queue);
     } else if (ref is M.TypeArgumentsRef) {
@@ -71,6 +69,8 @@ Element anyRef(M.IsolateRef isolate, ref,
       return new AnchorElement(href: Uris.inspect(isolate, object: ref))
         ..text = 'object';
     }
+  } else if (ref is M.Sentinel) {
+    return new SentinelValueElement(ref, queue: queue);
   }
   throw new Exception('Unknown runtimeType (${ref.runtimeType})');
 }

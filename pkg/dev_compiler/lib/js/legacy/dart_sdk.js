@@ -35,7 +35,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let JSArrayOfListOfObject = () => (JSArrayOfListOfObject = dart.constFn(_interceptors.JSArray$(ListOfObject())))();
   let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
   let MapOfSymbol$dynamic = () => (MapOfSymbol$dynamic = dart.constFn(core.Map$(core.Symbol, dart.dynamic)))();
-  let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
+  let MapOfString$_MethodStats = () => (MapOfString$_MethodStats = dart.constFn(core.Map$(core.String, dart._MethodStats)))();
   let ListOfString = () => (ListOfString = dart.constFn(core.List$(core.String)))();
   let SetOfNameValuePair = () => (SetOfNameValuePair = dart.constFn(core.Set$(_debugger.NameValuePair)))();
   let JSArrayOfNameValuePair = () => (JSArrayOfNameValuePair = dart.constFn(_interceptors.JSArray$(_debugger.NameValuePair)))();
@@ -120,6 +120,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let TimerTovoid = () => (TimerTovoid = dart.constFn(dart.functionType(dart.void, [async.Timer])))();
   let MapOfdynamic$int = () => (MapOfdynamic$int = dart.constFn(core.Map$(dart.dynamic, core.int)))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.functionType(dart.dynamic, [dart.dynamic])))();
+  let InternalMap = () => (InternalMap = dart.constFn(_js_helper.InternalMap$()))();
   let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let ListOfint = () => (ListOfint = dart.constFn(core.List$(core.int)))();
   let SyncIterator = () => (SyncIterator = dart.constFn(_js_helper.SyncIterator$()))();
@@ -514,6 +515,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let MapOfString$Function = () => (MapOfString$Function = dart.constFn(core.Map$(core.String, core.Function)))();
   let JSArrayOfKeyEvent = () => (JSArrayOfKeyEvent = dart.constFn(_interceptors.JSArray$(html$.KeyEvent)))();
   let ListOfKeyEvent = () => (ListOfKeyEvent = dart.constFn(core.List$(html$.KeyEvent)))();
+  let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
   let JSArrayOfNodeValidator = () => (JSArrayOfNodeValidator = dart.constFn(_interceptors.JSArray$(html$.NodeValidator)))();
   let ListOfNodeValidator = () => (ListOfNodeValidator = dart.constFn(core.List$(html$.NodeValidator)))();
   let _WrappedList = () => (_WrappedList = dart.constFn(html$._WrappedList$()))();
@@ -532,6 +534,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let CompleterOfAudioBuffer = () => (CompleterOfAudioBuffer = dart.constFn(async.Completer$(web_audio.AudioBuffer)))();
   let EventStreamProviderOfAudioProcessingEvent = () => (EventStreamProviderOfAudioProcessingEvent = dart.constFn(html$.EventStreamProvider$(web_audio.AudioProcessingEvent)))();
   let StringAndStringToint = () => (StringAndStringToint = dart.constFn(dart.definiteFunctionType(core.int, [core.String, core.String])))();
+  let VoidTo_MethodStats = () => (VoidTo_MethodStats = dart.constFn(dart.definiteFunctionType(dart._MethodStats, [])))();
   let dynamicTodynamic$ = () => (dynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   let dynamicToString = () => (dynamicToString = dart.constFn(dart.definiteFunctionType(core.String, [dart.dynamic])))();
   let dynamicToListOfString = () => (dynamicToListOfString = dart.constFn(dart.definiteFunctionType(ListOfString(), [dart.dynamic])))();
@@ -561,6 +564,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let FunctionTovoid = () => (FunctionTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Function])))();
   let StringAndStringToString$ = () => (StringAndStringToString$ = dart.constFn(dart.definiteFunctionType(core.String, [core.String, core.String])))();
   let TypeAndStringTodynamic = () => (TypeAndStringTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.Type, core.String])))();
+  let dynamicAnddynamicToint = () => (dynamicAnddynamicToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.dynamic, dart.dynamic])))();
   let ListOfEToListOfE = () => (ListOfEToListOfE = dart.constFn(dart.definiteFunctionType(E => [core.List$(E), [core.List$(E)]])))();
   let StringTovoid$ = () => (StringTovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [core.String])))();
   let _IsolateContextAndFunctionTodynamic = () => (_IsolateContextAndFunctionTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [_isolate_helper._IsolateContext, core.Function])))();
@@ -671,7 +675,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let ObjectToint = () => (ObjectToint = dart.constFn(dart.definiteFunctionType(core.int, [core.Object])))();
   let ObjectTovoid = () => (ObjectTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Object])))();
   let StringAndStringTovoid$ = () => (StringAndStringTovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [core.String, core.String])))();
-  let dynamicAnddynamicToint = () => (dynamicAnddynamicToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.dynamic, dart.dynamic])))();
   let MapOfString$StringAndStringToMapOfString$String = () => (MapOfString$StringAndStringToMapOfString$String = dart.constFn(dart.definiteFunctionType(MapOfString$String(), [MapOfString$String(), core.String])))();
   let intAndintAndintTovoid = () => (intAndintAndintTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.int, core.int, core.int])))();
   let String__Tovoid = () => (String__Tovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String], [dart.dynamic])))();
@@ -1449,7 +1452,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.dload = function(obj, field) {
     let f = dart._canonicalMember(obj, field);
-    dart._trackCall(obj, f);
+    dart._trackCall(obj);
     if (f != null) {
       if (dart.test(dart.hasMethod(obj, f))) return dart.bind(obj, f, void 0);
       return obj[f];
@@ -1458,7 +1461,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.dput = function(obj, field, value) {
     let f = dart._canonicalMember(obj, field);
-    dart._trackCall(obj, f);
+    dart._trackCall(obj);
     if (f != null) {
       return obj[f] = value;
     }
@@ -1506,7 +1509,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return null;
   };
   dart._checkAndCall = function(f, ftype, obj, typeArgs, args, name) {
-    dart._trackCall(obj, name);
+    dart._trackCall(obj);
     let originalTarget = obj === void 0 ? f : obj;
     function callNSM() {
       return dart.noSuchMethod(originalTarget, new dart.InvocationImpl(name, args, {namedArguments: dart.extractNamedArgs(args), isMethod: true}));
@@ -1557,17 +1560,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.getDynamicStats = function() {
     let ret = JSArrayOfListOfObject().of([]);
     let keys = dart._callMethodStats[dartx.keys][dartx.toList]();
-    keys[dartx.sort](dart.fn((a, b) => dart._callMethodStats[dartx.get](b)[dartx.compareTo](dart._callMethodStats[dartx.get](a)), StringAndStringToint()));
+    keys[dartx.sort](dart.fn((a, b) => dart._callMethodStats[dartx.get](b).count[dartx.compareTo](dart._callMethodStats[dartx.get](a).count), StringAndStringToint()));
     for (let key of keys) {
-      let count = dart._callMethodStats[dartx.get](key);
-      ret[dartx.add](JSArrayOfObject().of([key, count]));
+      let stats = dart._callMethodStats[dartx.get](key);
+      ret[dartx.add](JSArrayOfObject().of([stats.typeName, stats.frame, stats.count]));
     }
     return ret;
   };
   dart.clearDynamicStats = function() {
     dart._callMethodStats[dartx.clear]();
   };
-  dart._trackCall = function(obj, name) {
+  dart._trackCall = function(obj) {
     if (!dart.trackProfile) return;
     let actual = dart.getReifiedType(obj);
     let stackStr = new Error().stack;
@@ -1580,12 +1583,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         break;
       }
     }
-    name = dart.str`${dart.typeName(actual)}.${name} <${src}>`;
-    if (dart.test(dart._callMethodStats[dartx.containsKey](name))) {
-      dart._callMethodStats[dartx.set](core.String._check(name), dart.notNull(dart._callMethodStats[dartx.get](name)) + 1);
-    } else {
-      dart._callMethodStats[dartx.set](core.String._check(name), 1);
-    }
+    let actualTypeName = dart.typeName(actual);
+    let o = dart._callMethodStats[dartx.putIfAbsent](dart.str`${actualTypeName} <${src}>`, dart.fn(() => new dart._MethodStats(core.String._check(actualTypeName), src), VoidTo_MethodStats()));
+    o.count = dart.notNull(o.count) + 1;
   };
   dart._callMethod = function(obj, name, typeArgs, args, displayName) {
     let symbol = dart._canonicalMember(obj, name);
@@ -2438,9 +2438,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
     statics: () => ({_namedArgsToSymbols: dart.definiteFunctionType(core.Map$(core.Symbol, dart.dynamic), [dart.dynamic])}),
     names: ['_namedArgsToSymbols']
   });
+  dart._MethodStats = class _MethodStats extends core.Object {
+    new(typeName, frame) {
+      this.typeName = typeName;
+      this.frame = frame;
+      this.count = null;
+      this.count = 0;
+    }
+  };
+  dart.setSignature(dart._MethodStats, {
+    constructors: () => ({new: dart.definiteFunctionType(dart._MethodStats, [core.String, core.String])}),
+    fields: () => ({
+      typeName: core.String,
+      frame: core.String,
+      count: core.int
+    })
+  });
   dart.defineLazy(dart, {
     get _callMethodStats() {
-      return MapOfString$int().new();
+      return MapOfString$_MethodStats().new();
     },
     set _callMethodStats(_) {}
   });
@@ -3600,12 +3616,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let VoidToE = () => (VoidToE = dart.constFn(dart.functionType(E, [])))();
     let ListOfE = () => (ListOfE = dart.constFn(core.List$(E)))();
     let ReversedListIterableOfE = () => (ReversedListIterableOfE = dart.constFn(_internal.ReversedListIterable$(E)))();
-    let EAndEToint = () => (EAndEToint = dart.constFn(dart.functionType(core.int, [E, E])))();
     let SetOfE = () => (SetOfE = dart.constFn(core.Set$(E)))();
     let ArrayIteratorOfE = () => (ArrayIteratorOfE = dart.constFn(_interceptors.ArrayIterator$(E)))();
     let ListMapViewOfE = () => (ListMapViewOfE = dart.constFn(_internal.ListMapView$(E)))();
     let ETobool = () => (ETobool = dart.constFn(dart.functionType(core.bool, [E])))();
     let ETovoid = () => (ETovoid = dart.constFn(dart.functionType(dart.void, [E])))();
+    let EAndEToint = () => (EAndEToint = dart.constFn(dart.functionType(core.int, [E, E])))();
     dart.defineExtensionNames([
       'checkMutable',
       'checkGrowable',
@@ -4045,7 +4061,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.sort](compare) {
         if (compare === void 0) compare = null;
         this[dartx.checkMutable]('sort');
-        _internal.Sort.sort(E)(this, EAndEToint()._check(compare == null ? core.Comparable.compare : compare));
+        if (compare == null) {
+          _internal.Sort.sort(E)(this, dart.fn((a, b) => core.Comparable.compare(core.Comparable._check(a), core.Comparable._check(b)), dynamicAnddynamicToint()));
+        } else {
+          _internal.Sort.sort(E)(this, compare);
+        }
       }
       [dartx.shuffle](random) {
         if (random === void 0) random = null;
@@ -5751,7 +5771,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       sort(compare) {
         if (compare === void 0) compare = null;
         if (compare == null) {
-          _internal.Sort.sort(core.Comparable)(this, core.Comparable.compare);
+          _internal.Sort.sort(E)(this, dart.fn((a, b) => core.Comparable.compare(core.Comparable._check(a), core.Comparable._check(b)), dynamicAnddynamicToint()));
         } else {
           _internal.Sort.sort(E)(this, compare);
         }
@@ -10605,7 +10625,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     serializeMap(x) {
       let serializeTearOff = dart.bind(this, 'serialize');
-      return JSArrayOfObject().of(['map', x[dartx.keys][dartx.map](dart.dynamic)(dynamicTodynamic()._check(serializeTearOff))[dartx.toList](), x[dartx.values][dartx.map](dart.dynamic)(dynamicTodynamic()._check(serializeTearOff))[dartx.toList]()]);
+      return JSArrayOfObject().of(['map', x.keys[dartx.map](dart.dynamic)(dynamicTodynamic()._check(serializeTearOff))[dartx.toList](), x.values[dartx.map](dart.dynamic)(dynamicTodynamic()._check(serializeTearOff))[dartx.toList]()]);
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
@@ -10667,7 +10687,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       serializeJSIndexable: dart.definiteFunctionType(dart.dynamic, [_interceptors.JSIndexable]),
       serializeArray: dart.definiteFunctionType(dart.dynamic, [_interceptors.JSArray]),
       serializeArrayInPlace: dart.definiteFunctionType(dart.dynamic, [_interceptors.JSArray]),
-      serializeMap: dart.definiteFunctionType(dart.dynamic, [core.Map]),
+      serializeMap: dart.definiteFunctionType(dart.dynamic, [_js_helper.InternalMap]),
       serializeJSObject: dart.definiteFunctionType(dart.dynamic, [_interceptors.JSObject]),
       serializeWorkerSendPort: dart.definiteFunctionType(dart.dynamic, [_isolate_helper._WorkerSendPort]),
       serializeJsSendPort: dart.definiteFunctionType(dart.dynamic, [_isolate_helper._NativeJsSendPort]),
@@ -10717,7 +10737,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         case "map":
         {
-          return this.deserializeMap(x);
+          return this.deserializeMap(_js_helper.InternalMap._check(x));
         }
         case "sendport":
         {
@@ -10799,9 +10819,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _interceptors.JSArray.markFixed(this.deserializeArrayInPlace(_interceptors.JSArray._check(result)));
     }
     deserializeMap(x) {
-      dart.assert(dart.equals(dart.dindex(x, 0), 'map'));
-      let keys = core.List._check(dart.dindex(x, 1));
-      let values = core.List._check(dart.dindex(x, 2));
+      dart.assert(dart.equals(x.get(0), 'map'));
+      let keys = core.List._check(x.get(1));
+      let values = core.List._check(x.get(2));
       let result = dart.map();
       this.deserializedObjects[dartx.add](result);
       keys = keys[dartx.map](dart.dynamic)(dart.bind(this, 'deserialize'))[dartx.toList]();
@@ -10882,7 +10902,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       deserializeExtendable: dart.definiteFunctionType(core.List, [dart.dynamic]),
       deserializeMutable: dart.definiteFunctionType(core.List, [dart.dynamic]),
       deserializeConst: dart.definiteFunctionType(core.List, [dart.dynamic]),
-      deserializeMap: dart.definiteFunctionType(core.Map, [dart.dynamic]),
+      deserializeMap: dart.definiteFunctionType(core.Map, [_js_helper.InternalMap]),
       deserializeSendPort: dart.definiteFunctionType(isolate.SendPort, [dart.dynamic]),
       deserializeRawSendPort: dart.definiteFunctionType(isolate.SendPort, [dart.dynamic]),
       deserializeJSObject: dart.definiteFunctionType(dart.dynamic, [dart.dynamic]),
@@ -10929,7 +10949,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({new: dart.definiteFunctionType(_js_helper._Patch, [])})
   });
   _js_helper.patch = dart.const(new _js_helper._Patch());
-  _js_helper.InternalMap = class InternalMap extends core.Object {};
+  _js_helper.InternalMap$ = dart.generic((K, V) => {
+    let MapOfK$V = () => (MapOfK$V = dart.constFn(core.Map$(K, V)))();
+    class InternalMap extends core.Object {}
+    dart.addTypeTests(InternalMap);
+    InternalMap[dart.implements] = () => [MapOfK$V()];
+    return InternalMap;
+  });
+  _js_helper.InternalMap = InternalMap();
   _js_helper.Primitives = class Primitives extends core.Object {
     static initializeStatics(id) {
       _js_helper.Primitives.mirrorFunctionCacheName = dart.notNull(_js_helper.Primitives.mirrorFunctionCacheName) + dart.str`_${id}`;
@@ -11851,6 +11878,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let KAndVTovoid = () => (KAndVTovoid = dart.constFn(dart.functionType(dart.void, [K, V])))();
     let LinkedHashMapCellOfK$V = () => (LinkedHashMapCellOfK$V = dart.constFn(_js_helper.LinkedHashMapCell$(K, V)))();
     let LinkedHashMapOfK$V = () => (LinkedHashMapOfK$V = dart.constFn(collection.LinkedHashMap$(K, V)))();
+    let InternalMapOfK$V = () => (InternalMapOfK$V = dart.constFn(_js_helper.InternalMap$(K, V)))();
     let VoidToV = () => (VoidToV = dart.constFn(dart.functionType(V, [])))();
     let KToV = () => (KToV = dart.constFn(dart.definiteFunctionType(V, [K])))();
     let KTobool = () => (KTobool = dart.constFn(dart.definiteFunctionType(core.bool, [K])))();
@@ -12123,7 +12151,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.addTypeTests(JsLinkedHashMap);
-    JsLinkedHashMap[dart.implements] = () => [LinkedHashMapOfK$V(), _js_helper.InternalMap];
+    JsLinkedHashMap[dart.implements] = () => [LinkedHashMapOfK$V(), InternalMapOfK$V()];
     dart.setSignature(JsLinkedHashMap, {
       constructors: () => ({
         new: dart.definiteFunctionType(_js_helper.JsLinkedHashMap$(K, V), []),
@@ -23449,6 +23477,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let _Es6MapIterableOfK = () => (_Es6MapIterableOfK = dart.constFn(collection._Es6MapIterable$(K)))();
     let MapOfK$V = () => (MapOfK$V = dart.constFn(core.Map$(K, V)))();
     let KAndVTovoid = () => (KAndVTovoid = dart.constFn(dart.functionType(dart.void, [K, V])))();
+    let InternalMapOfK$V = () => (InternalMapOfK$V = dart.constFn(_js_helper.InternalMap$(K, V)))();
     let _Es6MapIterableOfV = () => (_Es6MapIterableOfV = dart.constFn(collection._Es6MapIterable$(V)))();
     let VoidToV = () => (VoidToV = dart.constFn(dart.functionType(V, [])))();
     let KAndVTovoid$ = () => (KAndVTovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [K, V])))();
@@ -23537,7 +23566,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return collection.Maps.mapToString(this);
       }
     }
-    _Es6LinkedIdentityHashMap[dart.implements] = () => [_js_helper.InternalMap];
+    _Es6LinkedIdentityHashMap[dart.implements] = () => [InternalMapOfK$V()];
     dart.setSignature(_Es6LinkedIdentityHashMap, {
       constructors: () => ({new: dart.definiteFunctionType(collection._Es6LinkedIdentityHashMap$(K, V), [])}),
       fields: () => ({

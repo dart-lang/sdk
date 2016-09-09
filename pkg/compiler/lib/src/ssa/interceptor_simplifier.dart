@@ -300,12 +300,16 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return false;
     }
 
+    // If it is a conditional constant interceptor and was not strengthened to a
+    // constant interceptor then there is nothing more we can do.
+    if (node.isConditionalConstantInterceptor) return false;
+
     // Do we have an 'almost constant' interceptor?  The receiver could be
     // `null` but not any other JavaScript falsy value, `null` values cause
     // `NoSuchMethodError`s, and if the receiver was not null we would have a
     // constant interceptor `C`.  Then we can use `(receiver && C)` for the
     // interceptor.
-    if (receiver.canBeNull() && !node.isConditionalConstantInterceptor) {
+    if (receiver.canBeNull()) {
       if (!interceptedClasses.contains(helpers.jsNullClass)) {
         // Can use `(receiver && C)` only if receiver is either null or truthy.
         if (!(receiver.canBePrimitiveNumber(compiler) ||

@@ -7,11 +7,11 @@ import 'dart:html';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/context_ref.dart';
 import 'package:observatory/src/elements/curly_block.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -24,11 +24,9 @@ class ObjectViewElement extends HtmlElement implements Renderable {
                                             dependencies: const [
                                               ContextRefElement.tag,
                                               CurlyBlockElement.tag,
-                                              NavBarElement.tag,
                                               NavTopMenuElement.tag,
                                               NavVMMenuElement.tag,
                                               NavIsolateMenuElement.tag,
-                                              NavMenuElement.tag,
                                               NavRefreshElement.tag,
                                               NavNotifyElement.tag,
                                               ObjectCommonElement.tag,
@@ -111,20 +109,19 @@ class ObjectViewElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-          new NavMenuElement('object', last: true, queue: _r.queue),
-          new NavRefreshElement(queue: _r.queue)
-              ..onRefresh.listen((e) async {
-                e.element.disabled = true;
-                _object = await _objects.get(_isolate, _object.id);
-                _r.dirty();
-              }),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu('object'),
+        new NavRefreshElement(queue: _r.queue)
+            ..onRefresh.listen((e) async {
+              e.element.disabled = true;
+              _object = await _objects.get(_isolate, _object.id);
+              _r.dirty();
+            }),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Object',

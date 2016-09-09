@@ -6442,16 +6442,41 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   String _name;
 
   /**
-   * A list containing all of the elements that conflict.
+   * A list containing all of the elements defined in SDK libraries that
+   * conflict.
    */
-  final List<Element> conflictingElements;
+  final List<Element> sdkElements;
+
+  /**
+   * A list containing all of the elements defined in non-SDK libraries that
+   * conflict.
+   */
+  final List<Element> nonSdkElements;
 
   /**
    * Initialize a newly created element in the given [context] to represent a
-   * list of [conflictingElements].
+   * list of conflicting [sdkElements] and [nonSdkElements]. At least one of the
+   * lists must contain more than one element.
    */
-  MultiplyDefinedElementImpl(this.context, this.conflictingElements) {
-    _name = conflictingElements[0].name;
+  MultiplyDefinedElementImpl(
+      this.context, this.sdkElements, this.nonSdkElements) {
+    if (nonSdkElements.length > 0) {
+      _name = nonSdkElements[0].name;
+    } else {
+      _name = sdkElements[0].name;
+    }
+  }
+
+  @override
+  List<Element> get conflictingElements {
+    if (sdkElements.isEmpty) {
+      return nonSdkElements;
+    } else if (nonSdkElements.isEmpty) {
+      return sdkElements;
+    }
+    List<Element> elements = nonSdkElements.toList();
+    elements.addAll(sdkElements);
+    return elements;
   }
 
   @override
@@ -6567,19 +6592,25 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
-    buffer.write("[");
-    int count = conflictingElements.length;
-    for (int i = 0; i < count; i++) {
-      if (i > 0) {
-        buffer.write(", ");
-      }
-      Element element = conflictingElements[i];
-      if (element is ElementImpl) {
-        element.appendTo(buffer);
-      } else {
-        buffer.write(element);
+    bool needsSeparator = false;
+    void writeList(List<Element> elements) {
+      for (Element element in elements) {
+        if (needsSeparator) {
+          buffer.write(", ");
+        } else {
+          needsSeparator = true;
+        }
+        if (element is ElementImpl) {
+          element.appendTo(buffer);
+        } else {
+          buffer.write(element);
+        }
       }
     }
+
+    buffer.write("[");
+    writeList(nonSdkElements);
+    writeList(sdkElements);
     buffer.write("]");
     return buffer.toString();
   }
@@ -6596,44 +6627,38 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    */
   static Element fromElements(
       AnalysisContext context, Element firstElement, Element secondElement) {
-    List<Element> conflictingElements =
-        _computeConflictingElements(firstElement, secondElement);
-    int length = conflictingElements.length;
-    if (length == 0) {
-      return null;
-    } else if (length == 1) {
-      return conflictingElements[0];
-    }
-    return new MultiplyDefinedElementImpl(context, conflictingElements);
-  }
-
-  /**
-   * Add the given [element] to the list of [elements]. If the element is a
-   * multiply-defined element, add all of the conflicting elements that it
-   * represents.
-   */
-  static void _add(HashSet<Element> elements, Element element) {
-    if (element is MultiplyDefinedElementImpl) {
-      for (Element conflictingElement in element.conflictingElements) {
-        elements.add(conflictingElement);
+    Set<Element> sdkElements = new HashSet<Element>.identity();
+    Set<Element> nonSdkElements = new HashSet<Element>.identity();
+    void add(Element element) {
+      if (element != null) {
+        if (element is MultiplyDefinedElementImpl) {
+          sdkElements.addAll(element.sdkElements);
+          nonSdkElements.addAll(element.nonSdkElements);
+        } else if (element.library.isInSdk) {
+          sdkElements.add(element);
+        } else {
+          nonSdkElements.add(element);
+        }
       }
-    } else {
-      elements.add(element);
     }
-  }
 
-  /**
-   * Use the given elements to construct a list of conflicting elements. If
-   * either the [firstElement] or [secondElement] are multiply-defined elements
-   * then the conflicting elements they represent will be included in the array.
-   * Otherwise, the element itself will be included.
-   */
-  static List<Element> _computeConflictingElements(
-      Element firstElement, Element secondElement) {
-    HashSet<Element> elements = new HashSet<Element>();
-    _add(elements, firstElement);
-    _add(elements, secondElement);
-    return elements.toList(growable: false);
+    add(firstElement);
+    add(secondElement);
+    int nonSdkCount = nonSdkElements.length;
+    if (nonSdkCount == 0) {
+      int sdkCount = sdkElements.length;
+      if (sdkCount == 0) {
+        return null;
+      } else if (sdkCount == 1) {
+        return sdkElements.first;
+      }
+    } else if (nonSdkCount == 1) {
+      return nonSdkElements.first;
+    }
+    return new MultiplyDefinedElementImpl(
+        context,
+        sdkElements.toList(growable: false),
+        nonSdkElements.toList(growable: false));
   }
 }
 
@@ -8389,7 +8414,7 @@ abstract class VariableElementImpl extends ElementImpl
    * constant expression to the given [result].
    */
   void set evaluationResult(EvaluationResultImpl result) {
-    throw new IllegalStateException(
+    throw new StateError(
         "Invalid attempt to set a compile-time constant result");
   }
 

@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 
 class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
   static const tag =
-      const Tag<MegamorphicCacheRefElement>('megamorphic-cache-ref-wrapped');
+      const Tag<MegamorphicCacheRefElement>('megamorphic-cache-ref');
 
   RenderingScheduler<MegamorphicCacheRefElement> _r;
 

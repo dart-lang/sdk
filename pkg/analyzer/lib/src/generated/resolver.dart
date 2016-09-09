@@ -64,6 +64,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   final ErrorReporter _errorReporter;
 
   /**
+   * The type [Null].
+   */
+  final InterfaceType _nullType;
+
+  /**
    * The type Future<Null>, which is needed for determining whether it is safe
    * to have a bare "return;" in an async method.
    */
@@ -87,7 +92,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   BestPracticesVerifier(
       this._errorReporter, TypeProvider typeProvider, this._currentLibrary,
       {TypeSystem typeSystem})
-      : _futureNullType = typeProvider.futureNullType,
+      : _nullType = typeProvider.nullType,
+        _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new TypeSystemImpl() {
     inDeprecatedMember = _currentLibrary.isDeprecated;
   }
@@ -275,7 +281,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitMethodInvocation(MethodInvocation node) {
-    _checkForCanBeNullAfterNullAware(node.realTarget, node.operator);
+    _checkForCanBeNullAfterNullAware(
+        node.realTarget, node.operator, null, node.methodName);
     DartType staticInvokeType = node.staticInvokeType;
     if (staticInvokeType is InterfaceType) {
       MethodElement methodElement = staticInvokeType.lookUpMethod(
@@ -299,7 +306,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPropertyAccess(PropertyAccess node) {
-    _checkForCanBeNullAfterNullAware(node.realTarget, node.operator);
+    _checkForCanBeNullAfterNullAware(
+        node.realTarget, node.operator, node.propertyName, null);
     return super.visitPropertyAccess(node);
   }
 
@@ -521,20 +529,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Produce a hint if the given [target] could have a value of `null`.
+   * Produce a hint if the given [target] could have a value of `null`, and
+   * [identifier] is not a name of a getter or a method that exists in the
+   * class [Null].
    */
-  void _checkForCanBeNullAfterNullAware(Expression target, Token operator) {
+  void _checkForCanBeNullAfterNullAware(Expression target, Token operator,
+      SimpleIdentifier propertyName, SimpleIdentifier methodName) {
     if (operator?.type == TokenType.QUESTION_PERIOD) {
       return;
     }
+    bool isNullTypeMember() {
+      if (propertyName != null) {
+        String name = propertyName.name;
+        return _nullType.lookUpGetter(name, _currentLibrary) != null;
+      }
+      if (methodName != null) {
+        String name = methodName.name;
+        return _nullType.lookUpMethod(name, _currentLibrary) != null;
+      }
+      return false;
+    }
+
     target = target?.unParenthesized;
     if (target is MethodInvocation) {
-      if (target.operator?.type == TokenType.QUESTION_PERIOD) {
+      if (target.operator?.type == TokenType.QUESTION_PERIOD &&
+          !isNullTypeMember()) {
         _errorReporter.reportErrorForNode(
             HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, target);
       }
     } else if (target is PropertyAccess) {
-      if (target.operator.type == TokenType.QUESTION_PERIOD) {
+      if (target.operator.type == TokenType.QUESTION_PERIOD &&
+          !isNullTypeMember()) {
         _errorReporter.reportErrorForNode(
             HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, target);
       }
@@ -7745,7 +7770,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       : source = source,
         errorReporter = new ErrorReporter(errorListener, source) {
     if (nameScope == null) {
-      this.nameScope = new LibraryScope(definingLibrary, errorListener);
+      this.nameScope = new LibraryScope(definingLibrary);
     } else {
       this.nameScope = nameScope;
     }
@@ -9072,7 +9097,7 @@ class TypeOverrideManager {
    */
   void applyOverrides(Map<VariableElement, DartType> overrides) {
     if (currentScope == null) {
-      throw new IllegalStateException("Cannot apply overrides without a scope");
+      throw new StateError("Cannot apply overrides without a scope");
     }
     currentScope.applyOverrides(overrides);
   }
@@ -9085,8 +9110,7 @@ class TypeOverrideManager {
    */
   Map<VariableElement, DartType> captureLocalOverrides() {
     if (currentScope == null) {
-      throw new IllegalStateException(
-          "Cannot capture local overrides without a scope");
+      throw new StateError("Cannot capture local overrides without a scope");
     }
     return currentScope.captureLocalOverrides();
   }
@@ -9101,8 +9125,7 @@ class TypeOverrideManager {
   Map<VariableElement, DartType> captureOverrides(
       VariableDeclarationList variableList) {
     if (currentScope == null) {
-      throw new IllegalStateException(
-          "Cannot capture overrides without a scope");
+      throw new StateError("Cannot capture overrides without a scope");
     }
     return currentScope.captureOverrides(variableList);
   }
@@ -9119,7 +9142,7 @@ class TypeOverrideManager {
    */
   void exitScope() {
     if (currentScope == null) {
-      throw new IllegalStateException("No scope to exit");
+      throw new StateError("No scope to exit");
     }
     currentScope = currentScope._outerScope;
   }
@@ -9178,7 +9201,7 @@ class TypeOverrideManager {
    */
   void setType(VariableElement element, DartType type) {
     if (currentScope == null) {
-      throw new IllegalStateException("Cannot override without a scope");
+      throw new StateError("Cannot override without a scope");
     }
     currentScope.setType(element, type);
   }
@@ -9338,7 +9361,7 @@ class TypeParameterBoundsResolver {
                 library, LibraryResolutionCapability.resolvedTypeNames)) {
               bound.type = typeParameterElement.bound;
             } else {
-              libraryScope ??= new LibraryScope(library, errorListener);
+              libraryScope ??= new LibraryScope(library);
               typeParametersScope ??= createTypeParametersScope();
               typeNameResolver ??= new TypeNameResolver(new TypeSystemImpl(),
                   typeProvider, library, source, errorListener);
@@ -9380,7 +9403,7 @@ class TypePromotionManager {
    */
   void exitScope() {
     if (currentScope == null) {
-      throw new IllegalStateException("No scope to exit");
+      throw new StateError("No scope to exit");
     }
     currentScope = currentScope._outerScope;
   }
@@ -9405,7 +9428,7 @@ class TypePromotionManager {
    */
   void setType(Element element, DartType type) {
     if (currentScope == null) {
-      throw new IllegalStateException("Cannot promote without a scope");
+      throw new StateError("Cannot promote without a scope");
     }
     currentScope.setType(element, type);
   }

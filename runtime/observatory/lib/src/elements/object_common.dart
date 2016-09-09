@@ -14,7 +14,7 @@ import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/utils.dart';
 
 class ObjectCommonElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ObjectCommonElement>('object-common-wrapped',
+  static const tag = const Tag<ObjectCommonElement>('object-common',
       dependencies: const [
         ClassRefElement.tag,
         InboundReferencesElement.tag,

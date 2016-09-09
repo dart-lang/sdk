@@ -95,6 +95,11 @@ public class HoverInformation {
   private final String elementKind;
 
   /**
+   * True if the referenced element is deprecated.
+   */
+  private final Boolean isDeprecated;
+
+  /**
    * A human-readable description of the parameter corresponding to the expression being hovered
    * over. This data is omitted if the location is not in an argument to a function.
    */
@@ -115,7 +120,7 @@ public class HoverInformation {
   /**
    * Constructor for {@link HoverInformation}.
    */
-  public HoverInformation(int offset, int length, String containingLibraryPath, String containingLibraryName, String containingClassDescription, String dartdoc, String elementDescription, String elementKind, String parameter, String propagatedType, String staticType) {
+  public HoverInformation(int offset, int length, String containingLibraryPath, String containingLibraryName, String containingClassDescription, String dartdoc, String elementDescription, String elementKind, Boolean isDeprecated, String parameter, String propagatedType, String staticType) {
     this.offset = offset;
     this.length = length;
     this.containingLibraryPath = containingLibraryPath;
@@ -124,6 +129,7 @@ public class HoverInformation {
     this.dartdoc = dartdoc;
     this.elementDescription = elementDescription;
     this.elementKind = elementKind;
+    this.isDeprecated = isDeprecated;
     this.parameter = parameter;
     this.propagatedType = propagatedType;
     this.staticType = staticType;
@@ -142,6 +148,7 @@ public class HoverInformation {
         ObjectUtilities.equals(other.dartdoc, dartdoc) &&
         ObjectUtilities.equals(other.elementDescription, elementDescription) &&
         ObjectUtilities.equals(other.elementKind, elementKind) &&
+        ObjectUtilities.equals(other.isDeprecated, isDeprecated) &&
         ObjectUtilities.equals(other.parameter, parameter) &&
         ObjectUtilities.equals(other.propagatedType, propagatedType) &&
         ObjectUtilities.equals(other.staticType, staticType);
@@ -158,10 +165,11 @@ public class HoverInformation {
     String dartdoc = jsonObject.get("dartdoc") == null ? null : jsonObject.get("dartdoc").getAsString();
     String elementDescription = jsonObject.get("elementDescription") == null ? null : jsonObject.get("elementDescription").getAsString();
     String elementKind = jsonObject.get("elementKind") == null ? null : jsonObject.get("elementKind").getAsString();
+    Boolean isDeprecated = jsonObject.get("isDeprecated") == null ? null : jsonObject.get("isDeprecated").getAsBoolean();
     String parameter = jsonObject.get("parameter") == null ? null : jsonObject.get("parameter").getAsString();
     String propagatedType = jsonObject.get("propagatedType") == null ? null : jsonObject.get("propagatedType").getAsString();
     String staticType = jsonObject.get("staticType") == null ? null : jsonObject.get("staticType").getAsString();
-    return new HoverInformation(offset, length, containingLibraryPath, containingLibraryName, containingClassDescription, dartdoc, elementDescription, elementKind, parameter, propagatedType, staticType);
+    return new HoverInformation(offset, length, containingLibraryPath, containingLibraryName, containingClassDescription, dartdoc, elementDescription, elementKind, isDeprecated, parameter, propagatedType, staticType);
   }
 
   public static List<HoverInformation> fromJsonArray(JsonArray jsonArray) {
@@ -228,6 +236,13 @@ public class HoverInformation {
   }
 
   /**
+   * True if the referenced element is deprecated.
+   */
+  public Boolean getIsDeprecated() {
+    return isDeprecated;
+  }
+
+  /**
    * The length of the range of characters that encompasses the cursor position and has the same
    * hover information as the cursor position.
    */
@@ -278,6 +293,7 @@ public class HoverInformation {
     builder.append(dartdoc);
     builder.append(elementDescription);
     builder.append(elementKind);
+    builder.append(isDeprecated);
     builder.append(parameter);
     builder.append(propagatedType);
     builder.append(staticType);
@@ -305,6 +321,9 @@ public class HoverInformation {
     }
     if (elementKind != null) {
       jsonObject.addProperty("elementKind", elementKind);
+    }
+    if (isDeprecated != null) {
+      jsonObject.addProperty("isDeprecated", isDeprecated);
     }
     if (parameter != null) {
       jsonObject.addProperty("parameter", parameter);
@@ -338,6 +357,8 @@ public class HoverInformation {
     builder.append(elementDescription + ", ");
     builder.append("elementKind=");
     builder.append(elementKind + ", ");
+    builder.append("isDeprecated=");
+    builder.append(isDeprecated + ", ");
     builder.append("parameter=");
     builder.append(parameter + ", ");
     builder.append("propagatedType=");

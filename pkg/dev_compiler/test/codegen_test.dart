@@ -26,11 +26,7 @@ import 'package:dev_compiler/src/analyzer/context.dart' show AnalyzerOptions;
 import 'package:dev_compiler/src/compiler/compiler.dart'
     show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
 import 'package:dev_compiler/src/compiler/module_builder.dart'
-    show
-        ModuleFormat,
-        addModuleFormatOptions,
-        parseModuleFormatOption,
-        pathToJSIdentifier;
+    show ModuleFormat, addModuleFormatOptions, parseModuleFormatOption;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart' show expect, isFalse, isTrue, test;
 

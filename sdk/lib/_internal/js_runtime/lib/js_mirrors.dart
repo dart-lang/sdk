@@ -2930,6 +2930,7 @@ void parseCompactFieldSpecification(
   }
   int fieldNumber = 0;
   for (String field in fields) {
+    if (r'$ti' == field) continue;  // Strip type info pseudofield.
     var metadata;
     if (fieldsMetadata != null) {
       metadata = fieldsMetadata[fieldNumber++];

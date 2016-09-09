@@ -629,18 +629,28 @@ class FragmentEmitter {
   ///
   /// The constructor is statically built.
   js.Expression emitConstructor(Class cls) {
-    List<js.Name> fieldNames = const <js.Name>[];
-
+    js.Name name = cls.name;
     // If the class is not directly instantiated we only need it for inheritance
     // or RTI. In either case we don't need its fields.
-    if (cls.isDirectlyInstantiated && !cls.isNative) {
-      fieldNames = cls.fields.map((Field field) => field.name).toList();
+    if (cls.isNative || !cls.isDirectlyInstantiated) {
+      return js.js('function #() { }', name);
     }
-    js.Name name = cls.name;
+
+    List<js.Name> fieldNames =
+        cls.fields.map((Field field) => field.name).toList();
+    if (cls.hasRtiField) {
+      fieldNames.add(namer.rtiFieldName);
+    }
 
     Iterable<js.Name> assignments = fieldNames.map((js.Name field) {
       return js.js("this.#field = #field", {"field": field});
     });
+
+    // TODO(sra): Cache 'this' in a one-character local for 4 or more uses of
+    // 'this'. i.e. "var _=this;_.a=a;_.b=b;..."
+
+    // TODO(sra): Separate field and field initializer parameter names so the
+    // latter may be fully minified.
 
     return js.js('function #(#) { # }', [name, fieldNames, assignments]);
   }

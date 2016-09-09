@@ -70,7 +70,7 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
   void render() {
     children = [
       new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-        ..children = [
+        ..content = [
           new DivElement()..classes = ['memberList']
             ..children = _createContent()
         ]

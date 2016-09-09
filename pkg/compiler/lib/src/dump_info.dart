@@ -115,8 +115,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   }
 
   FieldInfo visitFieldElement(FieldElement element, _) {
-    TypeMask inferredType =
-        compiler.globalInference.getGuaranteedTypeOfElement(element);
+    TypeMask inferredType = compiler.globalInference.results.typeOf(element);
     // If a field has an empty inferred type it is never used.
     if (inferredType == null || inferredType.isEmpty) return null;
 
@@ -257,7 +256,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       signature.forEachParameter((parameter) {
         parameters.add(new ParameterInfo(
             parameter.name,
-            '${compiler.globalInference.getGuaranteedTypeOfElement(parameter)}',
+            '${compiler.globalInference.results.typeOf(parameter)}',
             '${parameter.node.type}'));
       });
     }
@@ -270,7 +269,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       returnType = '${element.type.returnType}';
     }
     String inferredReturnType =
-        '${compiler.globalInference.getGuaranteedReturnTypeOfElement(element)}';
+        '${compiler.globalInference.results.returnTypeOf(element)}';
     String sideEffects = '${compiler.world.getSideEffectsOfElement(element)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[element];
@@ -321,6 +320,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       // emitter is used it will fail here.
       JavaScriptBackend backend = compiler.backend;
       full.Emitter emitter = backend.emitter.emitter;
+      assert(outputUnit.name != null || outputUnit.isMainOutput);
       OutputUnitInfo info = new OutputUnitInfo(
           outputUnit.name, emitter.outputBuffers[outputUnit].length);
       info.imports.addAll(outputUnit.imports

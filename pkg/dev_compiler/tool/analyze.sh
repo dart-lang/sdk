@@ -14,7 +14,7 @@ function fail {
 # repeated analysis of the same code.
 # TODO(jmesserly): ideally we could do test/all_tests.dart, but
 # dart_runtime_test.dart creates invalid generic type instantiation AA.
-echo "Running dartanalyzer to check for errors/warnings/hints..."
-dartanalyzer --strong --fatal-warnings --package-warnings \
+echo "Running dartanalyzer to check for errors/warnings..."
+dartanalyzer --strong --package-warnings \
     bin/dartdevc.dart web/main.dart \
-    | grep -v "\[info\] TODO" | (! grep $PWD) || fail
+    | grep -v "\[info\]" | grep -v "\[hint\]" | (! grep $PWD) || fail

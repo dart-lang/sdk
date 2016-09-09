@@ -238,6 +238,24 @@ class A {
     expect(hover.parameter, isNull);
   }
 
+  test_expression_method_deprecated() async {
+    addTestFile('''
+class A {
+  @deprecated
+  static void test() {}
+}
+main() {
+  A.test();
+}
+''');
+    HoverInformation hover = await prepareHover('test();');
+    // element
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.elementDescription, 'test() → void');
+    expect(hover.elementKind, 'method');
+    expect(hover.isDeprecated, isTrue);
+  }
+
   test_expression_method_invocation() async {
     addTestFile('''
 library my.library;
@@ -258,6 +276,7 @@ main(A a) {
     expect(hover.containingLibraryPath, testFile);
     expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
     expect(hover.elementKind, 'method');
+    expect(hover.isDeprecated, isFalse);
     // types
     expect(hover.staticType, '(int, String) → List<String>');
     expect(hover.propagatedType, isNull);
@@ -409,6 +428,7 @@ main() {
       // no parameter
       expect(hover.parameter, isNull);
     }
+
     {
       HoverInformation hover = await prepareHover('new A');
       onConstructor(hover);
@@ -445,6 +465,7 @@ main() {
       expect(hover.elementDescription, 'A.named() → A');
       expect(hover.elementKind, 'constructor');
     }
+
     {
       HoverInformation hover = await prepareHover('new A');
       onConstructor(hover);

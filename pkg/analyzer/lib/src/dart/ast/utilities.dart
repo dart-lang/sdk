@@ -71,8 +71,7 @@ class AstCloner implements AstVisitor<AstNode> {
    * Return a list containing cloned versions of the nodes in the given list of
    * [nodes].
    */
-  List<AstNode/*=E*/ > cloneNodeList/*<E extends AstNode>*/(
-      List/*<E>*/ nodes) {
+  List<AstNode/*=E*/ > cloneNodeList/*<E extends AstNode>*/(List/*<E>*/ nodes) {
     int count = nodes.length;
     List/*<E>*/ clonedNodes = new List/*<E>*/();
     for (int i = 0; i < count; i++) {
@@ -936,6 +935,7 @@ class AstCloner implements AstVisitor<AstNode> {
     Token nonComment(Token token) {
       return token is CommentToken ? token.parent : token;
     }
+
     token = nonComment(token);
     if (_lastCloned == null) {
       _lastCloned = new Token(TokenType.EOF, -1);
@@ -4706,8 +4706,7 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   bool visitNode(AstNode node) {
-    throw new IllegalArgumentException(
-        "The old node is not a child of it's parent");
+    throw new ArgumentError("The old node is not a child of it's parent");
   }
 
   bool visitNormalFormalParameter(NormalFormalParameter node) {
@@ -5065,21 +5064,18 @@ class NodeReplacer implements AstVisitor<bool> {
    * Replace the [oldNode] with the [newNode] in the AST structure containing
    * the old node. Return `true` if the replacement was successful.
    *
-   * Throws an [IllegalArgumentException] if either node is `null`, if the old
-   * node does not have a parent node, or if the AST structure has been
-   * corrupted.
+   * Throws an [ArgumentError] if either node is `null`, if the old node does
+   * not have a parent node, or if the AST structure has been corrupted.
    */
   static bool replace(AstNode oldNode, AstNode newNode) {
     if (oldNode == null || newNode == null) {
-      throw new IllegalArgumentException(
-          "The old and new nodes must be non-null");
+      throw new ArgumentError("The old and new nodes must be non-null");
     } else if (identical(oldNode, newNode)) {
       return true;
     }
     AstNode parent = oldNode.parent;
     if (parent == null) {
-      throw new IllegalArgumentException(
-          "The old node is not a child of another node");
+      throw new ArgumentError("The old node is not a child of another node");
     }
     NodeReplacer replacer = new NodeReplacer(oldNode, newNode);
     return parent.accept(replacer);

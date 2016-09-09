@@ -10,7 +10,7 @@ import 'dart:convert';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
@@ -20,8 +20,7 @@ typedef void CrashDumpLoadCallback(Map dump);
 
 class VMConnectElement extends HtmlElement implements Renderable {
   static const tag = const Tag<VMConnectElement>('vm-connect',
-                     dependencies: const [NavBarElement.tag,
-                                          NavTopMenuElement.tag,
+                     dependencies: const [NavTopMenuElement.tag,
                                           NavNotifyElement.tag,
                                           ViewFooterElement.tag,
                                           VMConnectTargetElement.tag]);
@@ -75,11 +74,10 @@ class VMConnectElement extends HtmlElement implements Renderable {
     final host = window.location.hostname;
     final port = window.location.port;
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(last: true, queue: _r.queue),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()
         ..classes = ['content-centered']
         ..children = [

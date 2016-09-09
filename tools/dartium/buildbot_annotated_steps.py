@@ -28,8 +28,7 @@ DART_PATH = os.path.join(SRC_PATH, 'dart')
 # We limit testing on drt since it takes a long time to run.
 DRT_FILTER = 'html'
 
-def RunDartTests(mode, component, suite, arch, checked, test_filter=None,
-                 is_win_ninja=False):
+def RunDartTests(mode, component, suite, arch, checked, test_filter=None):
   """Runs tests using the Dart test.py or the layout test runner.
   """
   cmd = []
@@ -45,9 +44,6 @@ def RunDartTests(mode, component, suite, arch, checked, test_filter=None,
   cmd.append('--arch=' + arch)
   cmd.append('--' + checked)
   cmd.append('--no-show-results')
-
-  if is_win_ninja:
-    cmd.append('--win-ninja-build')
 
   if test_filter:
     cmd.append('--test-filter=' + test_filter)
@@ -67,7 +63,7 @@ def Test(info, component, suite, checked, test_filter=None):
                                          'layout-test-results')
   shutil.rmtree(layout_test_results_dir, ignore_errors=True)
   status = RunDartTests(info.mode, component, suite, info.arch, checked,
-                        test_filter=test_filter, is_win_ninja=info.is_win_ninja)
+                        test_filter=test_filter)
     # Archive test failures
   if suite == 'layout' and status != 0:
     upload_steps.UploadDartTestsResults(layout_test_results_dir,

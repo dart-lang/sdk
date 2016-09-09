@@ -71,7 +71,7 @@ class StronglyReachableInstancesElement extends HtmlElement
   void render() {
     children = [
       new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-        ..children = _createContent()
+        ..content = _createContent()
         ..onToggle.listen((e) async {
           _expanded = e.control.expanded;
           e.control.disabled = true;

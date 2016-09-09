@@ -1178,7 +1178,7 @@ class AssistProcessor {
       return;
     }
     // prepare change
-    String showCombinator = ' show ${StringUtils.join(referencedNames, ', ')}';
+    String showCombinator = ' show ${referencedNames.join(', ')}';
     _addInsertEdit(importDirective.end - 1, showCombinator);
     // add proposal
     _addAssist(DartAssistKind.IMPORT_ADD_SHOW, []);
@@ -1711,7 +1711,7 @@ class AssistProcessor {
         String elseTarget = _getNodeText(elseAssignment.leftHandSide);
         if (thenAssignment.operator.type == TokenType.EQ &&
             elseAssignment.operator.type == TokenType.EQ &&
-            StringUtils.equals(thenTarget, elseTarget)) {
+            thenTarget == elseTarget) {
           String conditionSrc = _getNodeText(ifStatement.condition);
           String theSrc = _getNodeText(thenAssignment.rightHandSide);
           String elseSrc = _getNodeText(elseAssignment.rightHandSide);

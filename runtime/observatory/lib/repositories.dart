@@ -31,6 +31,7 @@ part 'src/repositories/instance.dart';
 part 'src/repositories/isolate.dart';
 part 'src/repositories/library.dart';
 part 'src/repositories/megamorphiccache.dart';
+part 'src/repositories/metric.dart';
 part 'src/repositories/notification.dart';
 part 'src/repositories/objectpool.dart';
 part 'src/repositories/object.dart';

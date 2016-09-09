@@ -2,25 +2,17 @@
 name: observatory
 version: 1.6.0-dev.1
 transformers:
-- polymer:
-    entry_points:
-    - web/index.html
-    inline_stylesheets:
-      lib/src/elements/css/shared.css: false
-      packages/charted/charts/themes/quantum_theme.css: false
-    $exclude: [web/third_party/*.html, web/timeline.html]
+- dart_to_js_script_rewriter
 - $dart2js:
-    $include: "**/*.polymer.bootstrap.dart"
     suppressWarnings: false
     commandLineOptions: [--show-package-warnings]
 dependencies:
   args: any
   charted: ^0.3.0
-  polymer: ^0.16.3
   unittest: < 0.12.0
-  js: ^0.6.0
-  js_util: ^0.2.0
   usage: any
+  web_components: any
+  dart_to_js_script_rewriter: any
 dependency_overrides:
   analyzer:
     path: ../../third_party/observatory_pub_packages/packages/analyzer
@@ -46,6 +38,8 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/packages/csslib
   dart_style:
     path: ../../third_party/observatory_pub_packages/packages/dart_style
+  dart_to_js_script_rewriter:
+    path: ../../third_party/observatory_pub_packages/packages/dart_to_js_script_rewriter
   glob:
     path: ../../third_party/observatory_pub_packages/packages/glob
   html:
@@ -54,10 +48,6 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/packages/initialize
   intl:
     path: ../../third_party/observatory_pub_packages/packages/intl
-  js:
-    path: ../../third_party/observatory_pub_packages/packages/js
-  js_util:
-    path: ../../third_party/observatory_pub_packages/packages/js_util
   logging:
     path: ../../third_party/observatory_pub_packages/packages/logging
   matcher:
@@ -72,12 +62,6 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/packages/petitparser
   plugin:
     path: ../../third_party/observatory_pub_packages/packages/plugin
-  polymer:
-    path: ../../third_party/observatory_pub_packages/packages/polymer
-  polymer_expressions:
-    path: ../../third_party/observatory_pub_packages/packages/polymer_expressions
-  polymer_interop:
-    path: ../../third_party/observatory_pub_packages/packages/polymer_interop
   pool:
     path: ../../third_party/observatory_pub_packages/packages/pool
   quiver:

@@ -13,7 +13,7 @@ class RefreshEvent {
 }
 
 class NavRefreshElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<NavRefreshElement>('nav-refresh-wrapped');
+  static const tag = const Tag<NavRefreshElement>('nav-refresh');
 
   RenderingScheduler _r;
 
@@ -28,7 +28,7 @@ class NavRefreshElement extends HtmlElement implements Renderable {
 
   bool get disabled => _disabled;
   String get label => _label;
-  
+
   set disabled(bool value) => _disabled = _r.checkAndReact(_disabled, value);
   set label(String value) => _label = _r.checkAndReact(_label, value);
 

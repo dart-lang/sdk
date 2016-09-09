@@ -1701,6 +1701,7 @@ final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
  *   "dartdoc": optional String
  *   "elementDescription": optional String
  *   "elementKind": optional String
+ *   "isDeprecated": optional bool
  *   "parameter": optional String
  *   "propagatedType": optional String
  *   "staticType": optional String
@@ -1717,6 +1718,7 @@ final Matcher isHoverInformation = new LazyMatcher(() => new MatchesJsonObject(
     "dartdoc": isString,
     "elementDescription": isString,
     "elementKind": isString,
+    "isDeprecated": isBool,
     "parameter": isString,
     "propagatedType": isString,
     "staticType": isString

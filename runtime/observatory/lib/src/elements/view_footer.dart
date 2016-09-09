@@ -22,10 +22,7 @@ class ViewFooterElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ViewFooterElement.created() : super.created() {
-    // TODO(cbernaschina) remove this when polymer is removed.
-    _r = new RenderingScheduler(this);
-  }
+  ViewFooterElement.created() : super.created();
 
   @override
   void attached() {

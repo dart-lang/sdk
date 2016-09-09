@@ -203,7 +203,7 @@ class DirectedGraph<N> {
    */
   List<N> findCycleContaining(N node) {
     if (node == null) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     DirectedGraph_SccFinder<N> finder = new DirectedGraph_SccFinder<N>(this);
     return finder.componentContaining(node);
@@ -570,7 +570,7 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   K get key {
     if (_currentIterator == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     return _currentIterator.key;
   }
@@ -578,7 +578,7 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   V get value {
     if (_currentIterator == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     return _currentIterator.value;
   }
@@ -586,7 +586,7 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   void set value(V newValue) {
     if (_currentIterator == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     _currentIterator.value = newValue;
   }
@@ -672,7 +672,7 @@ class SingleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   K get key {
     if (_currentKey == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     return _currentKey;
   }
@@ -680,7 +680,7 @@ class SingleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   V get value {
     if (_currentKey == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     if (_currentValue == null) {
       _currentValue = _map[_currentKey];
@@ -691,7 +691,7 @@ class SingleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   void set value(V newValue) {
     if (_currentKey == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     _currentValue = newValue;
     _map[_currentKey] = newValue;

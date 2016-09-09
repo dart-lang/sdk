@@ -7,18 +7,17 @@ library isolate_reconnect_element;
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class IsolateReconnectElement extends HtmlElement implements Renderable{
   static const tag = const Tag<IsolateReconnectElement>('isolate-reconnect',
-                     dependencies: const [NavBarElement.tag,
-                                          NavTopMenuElement.tag,
+                     dependencies: const [NavTopMenuElement.tag,
                                           NavNotifyElement.tag,
                                           ViewFooterElement.tag]);
 
@@ -78,11 +77,10 @@ class IsolateReconnectElement extends HtmlElement implements Renderable{
 
   void render() {
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(last: true, queue: _r.queue),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()
         ..classes = ['content-centered']
         ..children = [

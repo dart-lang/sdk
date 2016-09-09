@@ -106,7 +106,6 @@ class AotOptimizer : public FlowGraphVisitor {
 
   void ReplaceCall(Definition* call, Definition* replacement);
 
-
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
                                    RawFunction::Kind kind) const;
 

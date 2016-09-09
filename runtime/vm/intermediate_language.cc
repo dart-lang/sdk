@@ -3188,22 +3188,12 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 bool PolymorphicInstanceCallInstr::HasSingleRecognizedTarget() const {
+  if (FLAG_precompiled_mode && with_checks()) return false;
+
   return ic_data().HasOneTarget() &&
       (MethodRecognizer::RecognizeKind(
           Function::Handle(ic_data().GetTargetAt(0))) !=
        MethodRecognizer::kUnknown);
-}
-
-
-bool PolymorphicInstanceCallInstr::HasOnlyDispatcherTargets() const {
-  for (intptr_t i = 0; i < ic_data().NumberOfChecks(); ++i) {
-    const Function& target = Function::Handle(ic_data().GetTargetAt(i));
-    if (!target.IsNoSuchMethodDispatcher() &&
-        !target.IsInvokeFieldDispatcher()) {
-      return false;
-    }
-  }
-  return true;
 }
 
 

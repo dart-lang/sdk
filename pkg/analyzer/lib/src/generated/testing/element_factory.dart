@@ -287,7 +287,7 @@ class ElementFactory {
     int nameCount = names == null ? 0 : names.length;
     int typeCount = namedParameters == null ? 0 : namedParameters.length;
     if (names != null && nameCount != typeCount) {
-      throw new IllegalStateException(
+      throw new StateError(
           "The passed String[] and ClassElement[] arrays had different lengths.");
     }
     int totalCount = normalCount + nameCount;

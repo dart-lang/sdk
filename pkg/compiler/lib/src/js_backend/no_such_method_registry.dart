@@ -125,7 +125,7 @@ class NoSuchMethodRegistry {
   }
 
   _subcategorizeOther(FunctionElement element) {
-    if (_compiler.globalInference.throwsAlways(element)) {
+    if (_compiler.globalInference.results.throwsAlways(element)) {
       complexNoReturnImpls.add(element);
     } else {
       complexReturningImpls.add(element);
@@ -150,7 +150,7 @@ class NoSuchMethodRegistry {
       notApplicableImpls.add(element);
       return NsmCategory.NOT_APPLICABLE;
     }
-    if (_isDefaultNoSuchMethodImplementation(element)) {
+    if (isDefaultNoSuchMethodImplementation(element)) {
       defaultImpls.add(element);
       return NsmCategory.DEFAULT;
     } else if (_hasForwardingSyntax(element)) {
@@ -186,7 +186,7 @@ class NoSuchMethodRegistry {
     }
   }
 
-  bool _isDefaultNoSuchMethodImplementation(FunctionElement element) {
+  bool isDefaultNoSuchMethodImplementation(FunctionElement element) {
     ClassElement classElement = element.enclosingClass;
     return classElement == _compiler.coreClasses.objectClass ||
         classElement == _backend.helpers.jsInterceptorClass ||

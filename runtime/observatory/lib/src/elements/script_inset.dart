@@ -16,7 +16,7 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/utils.dart';
 
 class ScriptInsetElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ScriptInsetElement>('script-inset-wrapped');
+  static const tag = const Tag<ScriptInsetElement>('script-inset');
 
   RenderingScheduler _r;
 
@@ -775,7 +775,6 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       }
     }
 
-    line.changes.listen((_) => update());
     e.onClick.listen((event) {
       if (busy) {
         return;
