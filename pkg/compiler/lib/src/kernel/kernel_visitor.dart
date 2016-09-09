@@ -476,12 +476,14 @@ class KernelVisitor extends Object
       // situation, the assignment to [ir.PropertyGet] should act as an
       // assertion.
       ir.PropertyGet expression = visitForValue(send);
-      return PropertyAccessor.make(expression.receiver, expression.name);
+      return PropertyAccessor.make(
+          expression.receiver, expression.name, null, null);
     } else if (kernel.isSyntheticError(element)) {
       return buildStaticAccessor(null);
     } else if (element.isGetter) {
       if (element.isInstanceMember) {
-        return new ThisPropertyAccessor(kernel.irName(element.name, element));
+        return new ThisPropertyAccessor(
+            kernel.irName(element.name, element), null, null);
       } else {
         GetterElement getter = element;
         Element setter = getter.setter;
@@ -1259,7 +1261,8 @@ class KernelVisitor extends Object
     ir.Expression receiverNode =
         receiver == null ? new ir.ThisExpression() : visitForValue(receiver);
     return buildCompound(
-        PropertyAccessor.make(receiverNode, nameToIrName(name)), rhs);
+        PropertyAccessor.make(receiverNode, nameToIrName(name), null, null),
+        rhs);
   }
 
   @override
@@ -1275,8 +1278,8 @@ class KernelVisitor extends Object
       Send node, Node receiver, Name name, Node rhs, _) {
     ir.Name irName = nameToIrName(name);
     Accessor accessor = (receiver == null)
-        ? new ThisPropertyAccessor(irName)
-        : PropertyAccessor.make(visitForValue(receiver), irName);
+        ? new ThisPropertyAccessor(irName, null, null)
+        : PropertyAccessor.make(visitForValue(receiver), irName, null, null);
     return accessor.buildNullAwareAssignment(visitForValue(rhs),
         voidContext: isVoidContext);
   }
@@ -1306,7 +1309,7 @@ class KernelVisitor extends Object
   ir.MethodInvocation buildBinaryOperator(
       Node left, String operator, Node right) {
     ir.Name name = kernel.irName(operator, currentElement);
-    return makeBinary(visitForValue(left), name, visitForValue(right));
+    return makeBinary(visitForValue(left), name, null, visitForValue(right));
   }
 
   @override
@@ -1486,7 +1489,7 @@ class KernelVisitor extends Object
 
   Accessor buildNullAwarePropertyAccessor(Node receiver, Name name) {
     return new NullAwarePropertyAccessor(
-        visitForValue(receiver), nameToIrName(name));
+        visitForValue(receiver), nameToIrName(name), null, null);
   }
 
   @override
@@ -1547,7 +1550,8 @@ class KernelVisitor extends Object
   }
 
   Accessor buildIndexAccessor(Node receiver, Node index) {
-    return IndexAccessor.make(visitForValue(receiver), visitForValue(index));
+    return IndexAccessor.make(
+        visitForValue(receiver), visitForValue(index), null, null);
   }
 
   @override
@@ -2147,8 +2151,10 @@ class KernelVisitor extends Object
   @override
   ir.SuperMethodInvocation visitSuperBinary(Send node, FunctionElement function,
       BinaryOperator operator, Node argument, _) {
-    return new ir.SuperMethodInvocation(kernel.functionToIr(function),
-        new ir.Arguments(<ir.Expression>[visitForValue(argument)]));
+    return new ir.SuperMethodInvocation(
+        kernel.irName(operator.selectorName, currentElement),
+        new ir.Arguments(<ir.Expression>[visitForValue(argument)]),
+        kernel.functionToIr(function));
   }
 
   @override
@@ -2186,9 +2192,10 @@ class KernelVisitor extends Object
   ir.SuperMethodInvocation buildSuperEquals(
       FunctionElement function, Node argument) {
     return new ir.SuperMethodInvocation(
-        kernel.functionToIr(function),
+        kernel.irName(function.name, function),
         new ir.Arguments(<ir.Expression>[visitForValue(argument)],
-            types: null, named: null));
+            types: null, named: null),
+        kernel.functionToIr(function));
   }
 
   @override
@@ -2269,7 +2276,9 @@ class KernelVisitor extends Object
         !getter.isConst) {
       setter = getter;
     }
+    Element element = getter ?? setter;
     return new SuperPropertyAccessor(
+        kernel.irName(element.name, element),
         (getter == null) ? null : kernel.elementToIr(getter),
         (setter == null) ? null : kernel.elementToIr(setter));
   }
@@ -2361,8 +2370,8 @@ class KernelVisitor extends Object
 
   ir.SuperMethodInvocation buildSuperMethodInvoke(
       MethodElement method, NodeList arguments) {
-    return new ir.SuperMethodInvocation(
-        kernel.functionToIr(method), buildArguments(arguments));
+    return new ir.SuperMethodInvocation(kernel.irName(method.name, method),
+        buildArguments(arguments), kernel.functionToIr(method));
   }
 
   @override
@@ -2420,8 +2429,8 @@ class KernelVisitor extends Object
   @override
   ir.SuperMethodInvocation visitSuperUnary(
       Send node, UnaryOperator operator, FunctionElement function, _) {
-    return new ir.SuperMethodInvocation(
-        kernel.functionToIr(function), new ir.Arguments.empty());
+    return new ir.SuperMethodInvocation(kernel.irName(function.name, function),
+        new ir.Arguments.empty(), kernel.functionToIr(function));
   }
 
   @override
@@ -2451,7 +2460,7 @@ class KernelVisitor extends Object
   }
 
   Accessor buildThisPropertyAccessor(Name name) {
-    return new ThisPropertyAccessor(nameToIrName(name));
+    return new ThisPropertyAccessor(nameToIrName(name), null, null);
   }
 
   @override

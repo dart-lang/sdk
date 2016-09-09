@@ -40,7 +40,7 @@ vars.update({
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
-  "kernel_rev": "@9509d282a62fe025f8d6242bb233b02e0a7fee04",
+  "kernel_rev": "@9677d68402ea15d0eca6430d64f631bb3e505499",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "matcher_tag": "@0.12.0",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
