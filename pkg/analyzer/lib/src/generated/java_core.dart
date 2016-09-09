@@ -137,21 +137,6 @@ abstract class Enum<E extends Enum> implements Comparable<E> {
   String toString() => name;
 }
 
-class JavaArrays {
-  static int makeHashCode(List a) {
-    // TODO(rnystrom): This is not used by analyzer, but is called by
-    // analysis_server. Move this code there and remove it from here.
-    if (a == null) {
-      return 0;
-    }
-    int result = 1;
-    for (var element in a) {
-      result = 31 * result + (element == null ? 0 : element.hashCode);
-    }
-    return result;
-  }
-}
-
 class JavaString {
   static int indexOf(String target, String str, int fromIndex) {
     if (fromIndex > target.length) return -1;
