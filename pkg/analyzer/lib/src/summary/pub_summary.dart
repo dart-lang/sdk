@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';

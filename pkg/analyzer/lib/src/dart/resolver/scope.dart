@@ -381,7 +381,7 @@ class LibraryImportScope extends Scope {
 
   /**
    * Initialize a newly created scope representing the names imported into the
-   * [_definingLibrary]. The [errorListener] is no longer used and should be
+   * [_definingLibrary]. The error listener is no longer used and should be
    * omitted.
    */
   LibraryImportScope(this._definingLibrary, [this.errorListener]) {
@@ -566,7 +566,7 @@ class LibraryImportScope extends Scope {
 class LibraryScope extends EnclosedScope {
   /**
    * Initialize a newly created scope representing the names defined in the
-   * [definingLibrary]. The [errorListener] is no longer used and should be
+   * [definingLibrary]. The error listener is no longer used and should be
    * omitted.
    */
   LibraryScope(LibraryElement definingLibrary,

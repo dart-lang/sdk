@@ -5,7 +5,7 @@
 library analyzer.file_system.physical_file_system;
 
 import 'dart:async';
-import 'dart:core' hide Resource;
+import 'dart:core';
 import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';
@@ -43,7 +43,7 @@ List<int> _pathsToTimes(List<String> paths) {
  * A `dart:io` based implementation of [ResourceProvider].
  */
 class PhysicalResourceProvider implements ResourceProvider {
-  static final NORMALIZE_EOL_ALWAYS =
+  static final FileReadMode NORMALIZE_EOL_ALWAYS =
       (String string) => string.replaceAll(new RegExp('\r\n?'), '\n');
 
   static final PhysicalResourceProvider INSTANCE =
@@ -62,7 +62,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   final AbsolutePathContext absolutePathContext =
       new AbsolutePathContext(io.Platform.isWindows);
 
-  PhysicalResourceProvider(String fileReadMode(String s)) {
+  PhysicalResourceProvider(FileReadMode fileReadMode) {
     if (fileReadMode != null) {
       FileBasedSource.fileReadMode = fileReadMode;
     }

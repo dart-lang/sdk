@@ -5,7 +5,7 @@
 library analyzer.source.sdk_ext;
 
 import 'dart:convert';
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart'

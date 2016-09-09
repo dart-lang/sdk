@@ -16,13 +16,133 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/error.dart'
-    show ErrorCode, ErrorReporter, StrongModeCode;
+    show ErrorReporter, StrongModeCode;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:analyzer/src/generated/utilities_general.dart'
     show JenkinsSmiHash;
 
+bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
+  return (t.isDynamic && dynamicIsBottom) || t.isBottom;
+}
+
+bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
+  // TODO(leafp): Document the rules in play here
+  return (t.isDynamic && !dynamicIsBottom) || t.isObject;
+}
+
 typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
+
+/**
+ * A special union type of `Future<T> | T` used for Strong Mode inference.
+ */
+class FutureUnionType extends TypeImpl {
+  // TODO(jmesserly): a Set would be better.
+  //
+  // For now we know `Future<T> | T` is the only valid use, so we can rely on
+  // the order, which simplifies some things.
+  //
+  // This will need clean up before this can function as a real union type.
+  final List<DartType> _types;
+
+  /**
+   * Creates a union of `Future<T> | T`.
+   */
+  FutureUnionType._(DartType type, TypeProvider provider, TypeSystem system)
+      : _types = [
+          provider.futureType.instantiate([type]),
+          type
+        ],
+        super(null, null);
+
+  DartType get futureOfType => _types[0];
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    for (var t in types) {
+      hash = JenkinsSmiHash.combine(hash, t.hashCode);
+    }
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  DartType get type => _types[1];
+
+  Iterable<DartType> get types => _types;
+
+  @override
+  bool operator ==(Object obj) {
+    if (obj is FutureUnionType) {
+      if (identical(obj, this)) return true;
+      return types.length == obj.types.length &&
+          types.toSet().containsAll(obj.types);
+    }
+    return false;
+  }
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    buffer.write('(');
+    for (int i = 0; i < _types.length; i++) {
+      if (i != 0) {
+        buffer.write(' | ');
+      }
+      (_types[i] as TypeImpl).appendTo(buffer);
+    }
+    buffer.write(')');
+  }
+
+  @override
+  bool isMoreSpecificThan(DartType type,
+          [bool withDynamic = false, Set<Element> visitedElements]) =>
+      throw new UnsupportedError(
+          'Future unions are not part of the Dart 1 type system');
+
+  @override
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune) =>
+      throw new UnsupportedError('Future unions are not substituted');
+
+  @override
+  DartType substitute2(List<DartType> args, List<DartType> params,
+          [List<FunctionTypeAliasElement> prune]) =>
+      throw new UnsupportedError('Future unions are not used in typedefs');
+
+  /**
+   * Creates a union of `T | Future<T>`, unless `T` is already a future or a
+   * future-union, in which case it simply returns `T`.
+   *
+   * Conceptually this is used as the inverse of the `flatten(T)` operation,
+   * defined as:
+   *
+   * - `flatten(Future<T>) -> T`
+   * - `flatten(T) -> T`
+   *
+   * Thus the inverse will give us `T | Future<T>`.
+   *
+   * If [type] is top (dynamic or Object) then the resulting union type is
+   * equivalent to top, so we simply return it.
+   *
+   * For a similar reason `Future<T> | Future<Future<T>>` is equivalent to just
+   * `Future<T>`, so we return it. Note that it is not possible to get a
+   * `Future<T>` as a result of `flatten`, so a this case likely indicates a
+   * type error in the code, but it will be reported elsewhere.
+   */
+  static DartType from(
+      DartType type, TypeProvider provider, TypeSystem system) {
+    if (_isTop(type)) {
+      return type;
+    }
+    if (!identical(type, type.flattenFutures(system))) {
+      // As noted above, this most likely represents erroneous input.
+      return type;
+    }
+
+    if (type is FutureUnionType) {
+      return type;
+    }
+    return new FutureUnionType._(type, provider, system);
+  }
+}
 
 /**
  * Implementation of [TypeSystem] using the strong mode rules.
@@ -176,6 +296,22 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   /**
+   * Compute the least supertype of [type], which is known to be an interface
+   * type.
+   *
+   * In the event that the algorithm fails (which might occur due to a bug in
+   * the analyzer), `null` is returned.
+   */
+  DartType getLeastNullableSupertype(InterfaceType type) {
+    // compute set of supertypes
+    List<InterfaceType> s = InterfaceTypeImpl
+        .computeSuperinterfaceSet(type)
+        .where(isNullableType)
+        .toList();
+    return InterfaceTypeImpl.computeTypeAtMaxUniqueDepth(s);
+  }
+
+  /**
    * Compute the least upper bound of two types.
    */
   @override
@@ -192,22 +328,6 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
     return super.getLeastUpperBound(typeProvider, type1, type2,
         dynamicIsBottom: dynamicIsBottom);
-  }
-
-  /**
-   * Compute the least supertype of [type], which is known to be an interface
-   * type.
-   *
-   * In the event that the algorithm fails (which might occur due to a bug in
-   * the analyzer), `null` is returned.
-   */
-  DartType getLeastNullableSupertype(InterfaceType type) {
-    // compute set of supertypes
-    List<InterfaceType> s = InterfaceTypeImpl
-        .computeSuperinterfaceSet(type)
-        .where(isNullableType)
-        .toList();
-    return InterfaceTypeImpl.computeTypeAtMaxUniqueDepth(s);
   }
 
   /**
@@ -434,6 +554,18 @@ class StrongTypeSystemImpl extends TypeSystem {
   @override
   bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf(t1, t2);
 
+  /// Check if [type] is in a set of preselected non-nullable types.
+  /// [FunctionType]s are always nullable.
+  bool isNonNullableType(DartType type) {
+    return !isNullableType(type);
+  }
+
+  /// Opposite of [isNonNullableType].
+  bool isNullableType(DartType type) {
+    return type is FunctionType ||
+        !nonnullableTypes.contains(_getTypeFullyQualifiedName(type));
+  }
+
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return _isSubtypeOf(leftType, rightType, null);
@@ -595,6 +727,12 @@ class StrongTypeSystemImpl extends TypeSystem {
   DartType _functionParameterBound(
           TypeProvider provider, DartType f, DartType g) =>
       getGreatestLowerBound(provider, f, g, dynamicIsBottom: true);
+
+  /// Given a type return its name prepended with the URI to its containing
+  /// library and separated by a comma.
+  String _getTypeFullyQualifiedName(DartType type) {
+    return "${type?.element?.library?.identifier},$type";
+  }
 
   /**
    * Guard against loops in the class hierarchy
@@ -819,24 +957,6 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
 
     return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
-  }
-
-  /// Check if [type] is in a set of preselected non-nullable types.
-  /// [FunctionType]s are always nullable.
-  bool isNonNullableType(DartType type) {
-    return !isNullableType(type);
-  }
-
-  /// Opposite of [isNonNullableType].
-  bool isNullableType(DartType type) {
-    return type is FunctionType ||
-        !nonnullableTypes.contains(_getTypeFullyQualifiedName(type));
-  }
-
-  /// Given a type return its name prepended with the URI to its containing
-  /// library and separated by a comma.
-  String _getTypeFullyQualifiedName(DartType type) {
-    return "${type?.element?.library?.identifier},$type";
   }
 
   /**
@@ -1617,124 +1737,4 @@ class _TypeParameterVariance {
       _visitInterfaceType(typeParam, type, paramIn);
     }
   }
-}
-
-/**
- * A special union type of `Future<T> | T` used for Strong Mode inference.
- */
-class FutureUnionType extends TypeImpl {
-  // TODO(jmesserly): a Set would be better.
-  //
-  // For now we know `Future<T> | T` is the only valid use, so we can rely on
-  // the order, which simplifies some things.
-  //
-  // This will need clean up before this can function as a real union type.
-  final List<DartType> _types;
-
-  /**
-   * Creates a union of `Future<T> | T`.
-   */
-  FutureUnionType._(DartType type, TypeProvider provider, TypeSystem system)
-      : _types = [
-          provider.futureType.instantiate([type]),
-          type
-        ],
-        super(null, null);
-
-  DartType get futureOfType => _types[0];
-
-  DartType get type => _types[1];
-
-  Iterable<DartType> get types => _types;
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write('(');
-    for (int i = 0; i < _types.length; i++) {
-      if (i != 0) {
-        buffer.write(' | ');
-      }
-      (_types[i] as TypeImpl).appendTo(buffer);
-    }
-    buffer.write(')');
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    for (var t in types) {
-      hash = JenkinsSmiHash.combine(hash, t.hashCode);
-    }
-    return JenkinsSmiHash.finish(hash);
-  }
-
-  @override
-  bool operator ==(Object obj) {
-    if (obj is FutureUnionType) {
-      if (identical(obj, this)) return true;
-      return types.length == obj.types.length &&
-          types.toSet().containsAll(obj.types);
-    }
-    return false;
-  }
-
-  @override
-  bool isMoreSpecificThan(DartType type,
-          [bool withDynamic = false, Set<Element> visitedElements]) =>
-      throw new UnsupportedError(
-          'Future unions are not part of the Dart 1 type system');
-
-  @override
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune) =>
-      throw new UnsupportedError('Future unions are not substituted');
-
-  @override
-  DartType substitute2(List<DartType> args, List<DartType> params,
-          [List<FunctionTypeAliasElement> prune]) =>
-      throw new UnsupportedError('Future unions are not used in typedefs');
-
-  /**
-   * Creates a union of `T | Future<T>`, unless `T` is already a future or a
-   * future-union, in which case it simply returns `T`.
-   *
-   * Conceptually this is used as the inverse of the `flatten(T)` operation,
-   * defined as:
-   *
-   * - `flatten(Future<T>) -> T`
-   * - `flatten(T) -> T`
-   *
-   * Thus the inverse will give us `T | Future<T>`.
-   *
-   * If [type] is top (dynamic or Object) then the resulting union type is
-   * equivalent to top, so we simply return it.
-   *
-   * For a similar reason `Future<T> | Future<Future<T>>` is equivalent to just
-   * `Future<T>`, so we return it. Note that it is not possible to get a
-   * `Future<T>` as a result of `flatten`, so a this case likely indicates a
-   * type error in the code, but it will be reported elsewhere.
-   */
-  static DartType from(
-      DartType type, TypeProvider provider, TypeSystem system) {
-    if (_isTop(type)) {
-      return type;
-    }
-    if (!identical(type, type.flattenFutures(system))) {
-      // As noted above, this most likely represents erroneous input.
-      return type;
-    }
-
-    if (type is FutureUnionType) {
-      return type;
-    }
-    return new FutureUnionType._(type, provider, system);
-  }
-}
-
-bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
-  return (t.isDynamic && dynamicIsBottom) || t.isBottom;
-}
-
-bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
-  // TODO(leafp): Document the rules in play here
-  return (t.isDynamic && !dynamicIsBottom) || t.isObject;
 }

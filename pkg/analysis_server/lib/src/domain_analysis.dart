@@ -5,7 +5,7 @@
 library domain.analysis;
 
 import 'dart:async';
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
 import 'package:analysis_server/src/analysis_server.dart';

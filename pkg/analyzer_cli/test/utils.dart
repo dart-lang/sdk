@@ -8,9 +8,7 @@ import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:path/path.dart' as pathos;
-import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 /// Gets the test directory in a way that works with

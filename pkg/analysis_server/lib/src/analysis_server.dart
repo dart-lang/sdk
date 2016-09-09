@@ -6,7 +6,7 @@ library analysis.server;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:core' hide Resource;
+import 'dart:core';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
@@ -34,7 +34,6 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
