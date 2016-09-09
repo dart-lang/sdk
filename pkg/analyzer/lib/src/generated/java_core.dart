@@ -152,26 +152,6 @@ class JavaArrays {
   }
 }
 
-class JavaPatternMatcher {
-  Iterator<Match> _matches;
-  Match _match;
-  JavaPatternMatcher(RegExp re, String input) {
-    _matches = re.allMatches(input).iterator;
-  }
-  int end() => _match.end;
-  bool find() {
-    if (!_matches.moveNext()) {
-      return false;
-    }
-    _match = _matches.current;
-    return true;
-  }
-
-  String group(int i) => _match[i];
-  bool matches() => find();
-  int start() => _match.start;
-}
-
 class JavaString {
   static int indexOf(String target, String str, int fromIndex) {
     if (fromIndex > target.length) return -1;

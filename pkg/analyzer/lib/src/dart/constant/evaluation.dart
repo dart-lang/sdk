@@ -861,7 +861,7 @@ class ConstantEvaluationEngine {
   static bool isValidPublicSymbol(String name) =>
       name.isEmpty ||
       name == "void" ||
-      new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
+      _PUBLIC_SYMBOL_PATTERN.hasMatch(name);
 }
 
 /**

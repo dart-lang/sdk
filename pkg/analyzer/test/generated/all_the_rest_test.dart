@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -3044,16 +3043,9 @@ core.int value;''');
     if (matchIndex == 0) {
       return contents.indexOf(pattern);
     }
-    JavaPatternMatcher matcher =
-        new JavaPatternMatcher(new RegExp(pattern), contents);
-    int count = 0;
-    while (matcher.find()) {
-      if (count == matchIndex) {
-        return matcher.start();
-      }
-      ++count;
-    }
-    return -1;
+    Iterable<Match> matches = new RegExp(pattern).allMatches(contents);
+    Match match = matches.toList()[matchIndex];
+    return match.start;
   }
 
   /**

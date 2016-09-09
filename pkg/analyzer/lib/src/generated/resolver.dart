@@ -8554,14 +8554,13 @@ class ToDoFinder {
    * @param commentToken the comment token to analyze
    */
   void _scrapeTodoComment(Token commentToken) {
-    JavaPatternMatcher matcher =
-        new JavaPatternMatcher(TodoCode.TODO_REGEX, commentToken.lexeme);
-    if (matcher.find()) {
+    Iterable<Match> matches = TodoCode.TODO_REGEX.allMatches(commentToken.lexeme);
+    for (Match match in matches) {
       int offset =
-          commentToken.offset + matcher.start() + matcher.group(1).length;
-      int length = matcher.group(2).length;
+          commentToken.offset + match.start + match.group(1).length;
+      int length = match.group(2).length;
       _errorReporter.reportErrorForOffset(
-          TodoCode.TODO, offset, length, [matcher.group(2)]);
+          TodoCode.TODO, offset, length, [match.group(2)]);
     }
   }
 }
