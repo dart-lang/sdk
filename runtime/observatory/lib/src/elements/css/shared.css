@@ -1971,20 +1971,19 @@ script-inset button.toggle-profile {
   position: absolute;
   display: inline-block;
   top: 5px;
-  color: #888888;
-  line-height: 30px;
-  font: 400 20px 'Montserrat', sans-serif;
+}
+script-inset button.refresh > svg,
+script-inset button.toggle-profile > svg {
+  fill: #888888;
 }
 script-inset button.refresh {
   right: 5px;
-  font-size: 25px;
 }
 script-inset button.toggle-profile {
   right: 30px;
-  font-size: 20px;
 }
-script-inset button.toggle-profile.enabled {
-  color: #BB3322;
+script-inset button.toggle-profile.enabled > svg {
+  fill: #BB3322;
 }
 script-inset a {
   color: #0489c3;
