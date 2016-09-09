@@ -130,6 +130,18 @@ abstract class UnresolvedVisitor {
         new ir.Arguments(<ir.Expression>[new ir.StringLiteral(errorMessage)])));
   }
 
+  SuperIndexAccessor buildUnresolvedSuperIndexAccessor(
+      Node index, Element element) {
+    ir.Member member = possiblyErroneousFunctionToIr(element);
+    return new SuperIndexAccessor(this, visitForValue(index), member, member);
+  }
+
+  SuperPropertyAccessor buildUnresolvedSuperPropertyAccessor(
+      String name, Element getter) {
+    return new SuperPropertyAccessor(this, kernel.irName(name, currentElement),
+        getter == null ? null : possiblyErroneousFunctionToIr(getter), null);
+  }
+
   ir.Expression visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       ErroneousElement element,
@@ -280,10 +292,9 @@ abstract class UnresolvedVisitor {
 
   ir.Expression visitUnresolvedSuperCompoundIndexSet(Send node, Element element,
       Node index, AssignmentOperator operator, Node rhs, _) {
-    var accessor = new SuperIndexAccessor(this, visitForValue(index),
-        possiblyErroneousFunctionToIr(element), null);
-    return accessor.buildCompoundAssignment(
-        new ir.Name(operator.selectorName), visitForValue(rhs));
+    return buildUnresolvedSuperIndexAccessor(index, element)
+        .buildCompoundAssignment(
+            new ir.Name(operator.selectorName), visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperGet(Send node, Element element, _) {
@@ -343,25 +354,22 @@ abstract class UnresolvedVisitor {
 
   ir.Expression visitUnresolvedSuperIndex(
       Send node, Element element, Node index, _) {
-    return new SuperIndexAccessor(this, visitForValue(index), null, null)
-        .buildSimpleRead();
+    return buildUnresolvedSuperIndexAccessor(index, element).buildSimpleRead();
   }
 
   ir.Expression visitUnresolvedSuperIndexPostfix(
       Send node, Element element, Node index, IncDecOperator operator, _) {
-    return new SuperIndexAccessor(this, visitForValue(index), null, null)
-        .buildSimpleRead();
+    return buildUnresolvedSuperIndexAccessor(index, element).buildSimpleRead();
   }
 
   ir.Expression visitUnresolvedSuperIndexPrefix(
       Send node, Element element, Node index, IncDecOperator operator, _) {
-    return new SuperIndexAccessor(this, visitForValue(index), null, null)
-        .buildSimpleRead();
+    return buildUnresolvedSuperIndexAccessor(index, element).buildSimpleRead();
   }
 
   ir.Expression visitUnresolvedSuperIndexSet(
       Send node, Element element, Node index, Node rhs, _) {
-    return new SuperIndexAccessor(this, visitForValue(index), null, null)
+    return buildUnresolvedSuperIndexAccessor(index, element)
         .buildAssignment(visitForValue(rhs));
   }
 
@@ -394,10 +402,9 @@ abstract class UnresolvedVisitor {
       AssignmentOperator operator,
       Node rhs,
       _) {
-    var accessor = new SuperPropertyAccessor(
-        this, '${node.selector}', possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildCompoundAssignment(
-        new ir.Name(operator.selectorName), visitForValue(rhs));
+    return buildUnresolvedSuperPropertyAccessor('${node.selector}', getter)
+        .buildCompoundAssignment(
+            new ir.Name(operator.selectorName), visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperSetterCompoundIndexSet(
@@ -408,10 +415,9 @@ abstract class UnresolvedVisitor {
       AssignmentOperator operator,
       Node rhs,
       _) {
-    var accessor = new SuperIndexAccessor(this, visitForValue(index),
-        possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildCompoundAssignment(
-        new ir.Name(operator.selectorName), visitForValue(rhs));
+    return buildUnresolvedSuperIndexAccessor(index, element)
+        .buildCompoundAssignment(
+            new ir.Name(operator.selectorName), visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperSetterIndexPostfix(
@@ -421,9 +427,8 @@ abstract class UnresolvedVisitor {
       Node index,
       IncDecOperator operator,
       _) {
-    var accessor = new SuperIndexAccessor(this, visitForValue(index),
-        possiblyErroneousFunctionToIr(indexFunction), null);
-    return accessor.buildPostfixIncrement(new ir.Name(operator.selectorName));
+    return buildUnresolvedSuperIndexAccessor(index, element)
+        .buildPostfixIncrement(new ir.Name(operator.selectorName));
   }
 
   ir.Expression visitUnresolvedSuperSetterIndexPrefix(
@@ -433,30 +438,26 @@ abstract class UnresolvedVisitor {
       Node index,
       IncDecOperator operator,
       _) {
-    var accessor = new SuperIndexAccessor(this, visitForValue(index),
-        possiblyErroneousFunctionToIr(indexFunction), null);
-    return accessor.buildPrefixIncrement(new ir.Name(operator.selectorName));
+    return buildUnresolvedSuperIndexAccessor(index, element)
+        .buildPrefixIncrement(new ir.Name(operator.selectorName));
   }
 
   ir.Expression visitUnresolvedSuperSetterPostfix(Send node,
       MethodElement getter, Element element, IncDecOperator operator, _) {
-    var accessor = new SuperPropertyAccessor(
-        this, '${node.selector}', possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildPostfixIncrement(new ir.Name(operator.selectorName));
+    return buildUnresolvedSuperPropertyAccessor('${node.selector}', getter)
+        .buildPostfixIncrement(new ir.Name(operator.selectorName));
   }
 
   ir.Expression visitUnresolvedSuperSetterPrefix(Send node,
       MethodElement getter, Element element, IncDecOperator operator, _) {
-    var accessor = new SuperPropertyAccessor(
-        this, '${node.selector}', possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildPrefixIncrement(new ir.Name(operator.selectorName));
+    return buildUnresolvedSuperPropertyAccessor('${node.selector}', getter)
+        .buildPrefixIncrement(new ir.Name(operator.selectorName));
   }
 
   ir.Expression visitUnresolvedSuperSetterSetIfNull(
       Send node, MethodElement getter, Element element, Node rhs, _) {
-    var accessor = new SuperPropertyAccessor(
-        this, '${node.selector}', possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildNullAwareAssignment(visitForValue(rhs));
+    return buildUnresolvedSuperPropertyAccessor('${node.selector}', getter)
+        .buildNullAwareAssignment(visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperUnary(
@@ -538,23 +539,20 @@ abstract class UnresolvedVisitor {
 
   ir.Expression visitUnresolvedSuperGetterIndexSetIfNull(Send node,
       Element element, MethodElement setter, Node index, Node rhs, _) {
-    var accessor = new SuperIndexAccessor(this, visitForValue(index), null,
-        possiblyErroneousFunctionToIr(setter));
-    return accessor.buildNullAwareAssignment(visitForValue(rhs));
+    return buildUnresolvedSuperIndexAccessor(index, element)
+        .buildNullAwareAssignment(visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperSetterIndexSetIfNull(Send node,
       MethodElement getter, Element element, Node index, Node rhs, _) {
-    var accessor = new SuperIndexAccessor(this, visitForValue(index),
-        possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildNullAwareAssignment(visitForValue(rhs));
+    return buildUnresolvedSuperIndexAccessor(index, element)
+        .buildNullAwareAssignment(visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperIndexSetIfNull(
       Send node, Element element, Node index, Node rhs, _) {
-    var accessor =
-        new SuperIndexAccessor(this, visitForValue(index), null, null);
-    return accessor.buildNullAwareAssignment(visitForValue(rhs));
+    return buildUnresolvedSuperIndexAccessor(index, element)
+        .buildNullAwareAssignment(visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperSet(
