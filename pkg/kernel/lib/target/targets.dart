@@ -6,11 +6,24 @@ library kernel.target.targets;
 import '../ast.dart';
 import 'vm.dart';
 
-final List<Target> targets = [new NoneTarget(), new VmTarget()];
-final List<String> targetNames = targets.map((t) => t.name).toList();
+final List<String> targetNames = _targets.keys.toList();
 
-Target getTargetByName(String name) {
-  return targets.firstWhere((t) => name == t.name, orElse: () => null);
+class TargetFlags {
+  bool strongMode;
+  TargetFlags({this.strongMode: false});
+}
+
+typedef Target _TargetBuilder(TargetFlags flags);
+
+final Map<String, _TargetBuilder> _targets = <String, _TargetBuilder>{
+  'none': (TargetFlags flags) => new NoneTarget(flags),
+  'vm': (TargetFlags flags) => new VmTarget(flags),
+};
+
+Target getTarget(String name, TargetFlags flags) {
+  var builder = _targets[name];
+  if (builder == null) return null;
+  return builder(flags);
 }
 
 /// A target provides backend-specific options for generating kernel IR.
@@ -28,6 +41,10 @@ abstract class Target {
 }
 
 class NoneTarget extends Target {
+  final TargetFlags flags;
+
+  NoneTarget(this.flags);
+
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
   void transformProgram(Program program) {}

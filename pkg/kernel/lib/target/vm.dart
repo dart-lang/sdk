@@ -10,6 +10,10 @@ import '../transformations/continuation.dart' as cont;
 
 /// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {
+  final TargetFlags flags;
+
+  VmTarget(this.flags);
+
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to

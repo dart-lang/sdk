@@ -239,8 +239,8 @@ Future<CompilerOutcome> batchMain(
   List<String> loadedFiles;
   Function getLoadedFiles;
   List errors = const [];
-  Target target =
-      options['target'] != null ? getTargetByName(options['target']) : null;
+  TargetFlags targetFlags = new TargetFlags(strongMode: strongMode);
+  Target target = getTarget(options['target'], targetFlags);
 
   if (file.endsWith('.dill')) {
     var node = loadProgramOrLibraryFromBinary(file, repository);
