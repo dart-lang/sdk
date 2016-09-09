@@ -1344,10 +1344,14 @@ class ExpressionBuilder
       case ElementKind.LIBRARY:
       case ElementKind.PREFIX:
       case ElementKind.IMPORT:
-        // Should be resolved to a static access.
-        // Do not invoke 'build', because the identifier should be seen as a
-        // left-hand value or an expression depending on the context.
-        return visitSimpleIdentifier(node.identifier);
+        if (node.identifier.staticElement != null) {
+          // Should be resolved to a static access.
+          // Do not invoke 'build', because the identifier should be seen as a
+          // left-hand value or an expression depending on the context.
+          return visitSimpleIdentifier(node.identifier);
+        }
+        // Unresolved access on a class or library.
+        return scope.unresolvedAccess(node.identifier.name);
 
       case ElementKind.DYNAMIC:
       case ElementKind.FUNCTION_TYPE_ALIAS:
