@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -3942,10 +3941,10 @@ class LibraryElementImplTest extends EngineTestCase {
     LibraryElement library = ElementFactory.library(context, "foo");
     context.setContents(library.definingCompilationUnit.source, "sdfsdff");
     // Assert that we are not up to date if the target has an old time stamp.
-    expect(library.isUpToDate(0), isFalse);
+    expect(library.isUpToDate(-1), isFalse);
     // Assert that we are up to date with a target modification time in the
     // future.
-    expect(library.isUpToDate(JavaSystem.currentTimeMillis() + 1000), isTrue);
+    expect(library.isUpToDate(1 << 33), isTrue);
   }
 
   void test_setImports() {

@@ -4,8 +4,6 @@
 
 library analyzer.src.generated.java_core;
 
-final Stopwatch nanoTimeStopwatch = new Stopwatch();
-
 /**
  * Inserts the given arguments into [pattern].
  *
@@ -199,19 +197,6 @@ class JavaString {
     if (fromIndex > target.length) return -1;
     if (fromIndex < 0) fromIndex = 0;
     return target.lastIndexOf(str, fromIndex);
-  }
-}
-
-class JavaSystem {
-  static int currentTimeMillis() {
-    return (new DateTime.now()).millisecondsSinceEpoch;
-  }
-
-  static int nanoTime() {
-    if (!nanoTimeStopwatch.isRunning) {
-      nanoTimeStopwatch.start();
-    }
-    return nanoTimeStopwatch.elapsedMicroseconds * 1000;
   }
 }
 

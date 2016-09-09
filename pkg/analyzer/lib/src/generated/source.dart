@@ -42,6 +42,8 @@ class ContentCache {
    */
   HashMap<String, int> _stampMap = new HashMap<String, int>();
 
+  int _nextStamp = 0;
+
   /**
    * Visit all entries of this cache.
    */
@@ -82,7 +84,7 @@ class ContentCache {
       _stampMap.remove(fullName);
       return _contentMap.remove(fullName);
     } else {
-      int newStamp = JavaSystem.currentTimeMillis();
+      int newStamp = _nextStamp++;
       int oldStamp = _stampMap[fullName];
       _stampMap[fullName] = newStamp;
       // Occasionally, if this method is called in rapid succession, the
