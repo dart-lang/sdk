@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -145,8 +144,8 @@ abstract class AbstractDartSdk implements DartSdk {
       return null;
     }
     try {
-      return file.createSource(parseUriWithException(path));
-    } on URISyntaxException catch (exception, stackTrace) {
+      return file.createSource(Uri.parse(path));
+    } on FormatException catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
           "Failed to create URI: $path",
           new CaughtException(exception, stackTrace));
@@ -208,8 +207,8 @@ abstract class AbstractDartSdk implements DartSdk {
     String filePath = srcPath.replaceAll('/', separator);
     try {
       File file = resourceProvider.getFile(filePath);
-      return file.createSource(parseUriWithException(dartUri));
-    } on URISyntaxException {
+      return file.createSource(Uri.parse(dartUri));
+    } on FormatException {
       return null;
     }
   }
@@ -332,8 +331,8 @@ class EmbedderSdk extends AbstractDartSdk {
     String filePath = srcPath.replaceAll('/', separator);
     try {
       File file = resourceProvider.getFile(filePath);
-      return file.createSource(parseUriWithException(dartUri));
-    } on URISyntaxException {
+      return file.createSource(Uri.parse(dartUri));
+    } on FormatException {
       return null;
     }
   }
@@ -646,8 +645,8 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       if (!relativePath.isEmpty) {
         file = file.parent.getChildAssumingFile(relativePath);
       }
-      return file.createSource(parseUriWithException(dartUri));
-    } on URISyntaxException {
+      return file.createSource(Uri.parse(dartUri));
+    } on FormatException {
       return null;
     }
   }

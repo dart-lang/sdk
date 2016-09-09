@@ -10,7 +10,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -159,7 +158,7 @@ class SourceFactoryImpl implements SourceFactory {
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return _internalResolveUri(containingSource, FastUri.parse(containedUri));
-    } on URISyntaxException {
+    } on FormatException {
       return null;
     } catch (exception, stackTrace) {
       String containingFullName =

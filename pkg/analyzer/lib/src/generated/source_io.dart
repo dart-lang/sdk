@@ -7,7 +7,6 @@ library analyzer.src.generated.source_io;
 import 'dart:collection';
 
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -481,8 +480,8 @@ class PackageUriResolver extends UriResolver {
             String pkgCanonicalUri = _toFileUri(pkgFolder.getCanonicalPath());
             if (sourceUri.startsWith(pkgCanonicalUri)) {
               String relPath = sourceUri.substring(pkgCanonicalUri.length);
-              return parseUriWithException(
-                  "$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
+              return Uri
+                  .parse("$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
           } catch (e) {}
         }

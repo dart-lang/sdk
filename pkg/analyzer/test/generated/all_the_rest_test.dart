@@ -122,8 +122,7 @@ class CustomUriResolverTest {
     UriResolver resolver = new CustomUriResolver({
       'custom:library': '/path/to/library.dart',
     });
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("custom:non_library"));
+    Source result = resolver.resolveAbsolute(Uri.parse("custom:non_library"));
     expect(result, isNull);
   }
 
@@ -133,8 +132,7 @@ class CustomUriResolverTest {
     UriResolver resolver = new CustomUriResolver({
       'custom:library': path,
     });
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("custom:library"));
+    Source result = resolver.resolveAbsolute(Uri.parse("custom:library"));
     expect(result, isNotNull);
     expect(result.fullName, path);
   }
@@ -148,7 +146,7 @@ class DartUriResolverTest {
   }
 
   void test_isDartUri_null_scheme() {
-    Uri uri = parseUriWithException("foo.dart");
+    Uri uri = Uri.parse("foo.dart");
     expect('', uri.scheme);
     expect(DartUriResolver.isDartUri(uri), isFalse);
   }
@@ -156,23 +154,22 @@ class DartUriResolverTest {
   void test_resolve_dart() {
     DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("dart:core"));
+    Source result = resolver.resolveAbsolute(Uri.parse("dart:core"));
     expect(result, isNotNull);
   }
 
   void test_resolve_dart_nonExistingLibrary() {
     DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolveAbsolute(parseUriWithException("dart:cor"));
+    Source result = resolver.resolveAbsolute(Uri.parse("dart:cor"));
     expect(result, isNull);
   }
 
   void test_resolve_nonDart() {
     DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver
-        .resolveAbsolute(parseUriWithException("package:some/file.dart"));
+    Source result =
+        resolver.resolveAbsolute(Uri.parse("package:some/file.dart"));
     expect(result, isNull);
   }
 }
@@ -4344,8 +4341,7 @@ class FileBasedSourceTest {
     UriResolver resolver = new DartUriResolver(sdk);
     SourceFactory factory = new SourceFactory([resolver]);
     // resolve dart:core
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("dart:core"));
+    Source result = resolver.resolveAbsolute(Uri.parse("dart:core"));
     expect(result, isNotNull);
     expect(result.isInSystemLibrary, isTrue);
     // system libraries reference only other system libraries
@@ -4380,8 +4376,7 @@ class FileBasedSourceTest {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
-    Uri relative =
-        resolveRelativeUri(source.uri, parseUriWithException("lib.dart"));
+    Uri relative = resolveRelativeUri(source.uri, Uri.parse("lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/b/lib.dart");
   }
@@ -4396,8 +4391,7 @@ class FileBasedSourceTest {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
-    Uri relative =
-        resolveRelativeUri(source.uri, parseUriWithException("c/lib.dart"));
+    Uri relative = resolveRelativeUri(source.uri, Uri.parse("c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/b/c/lib.dart");
   }
@@ -4411,16 +4405,14 @@ class FileBasedSourceTest {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
-    Uri relative =
-        resolveRelativeUri(source.uri, parseUriWithException("../c/lib.dart"));
+    Uri relative = resolveRelativeUri(source.uri, Uri.parse("../c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/c/lib.dart");
   }
 
   void test_system() {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("dart:core"));
+    FileBasedSource source = new FileBasedSource(file, Uri.parse("dart:core"));
     expect(source, isNotNull);
     expect(source.fullName, file.getAbsolutePath());
     expect(source.isInSystemLibrary, isTrue);

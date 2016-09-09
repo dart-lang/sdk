@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -133,8 +132,8 @@ abstract class AbstractDartSdk implements DartSdk {
       return null;
     }
     try {
-      return new FileBasedSource(file, parseUriWithException(path));
-    } on URISyntaxException catch (exception, stackTrace) {
+      return new FileBasedSource(file, Uri.parse(path));
+    } on FormatException catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
           "Failed to create URI: $path",
           new CaughtException(exception, stackTrace));
@@ -189,8 +188,8 @@ abstract class AbstractDartSdk implements DartSdk {
     String filePath = srcPath.replaceAll('/', JavaFile.separator);
     try {
       JavaFile file = new JavaFile(filePath);
-      return new FileBasedSource(file, parseUriWithException(dartUri));
-    } on URISyntaxException {
+      return new FileBasedSource(file, Uri.parse(dartUri));
+    } on FormatException {
       return null;
     }
   }
@@ -721,8 +720,8 @@ class DirectoryBasedDartSdk extends AbstractDartSdk {
         file = file.getParentFile();
         file = new JavaFile.relative(file, relativePath);
       }
-      return new FileBasedSource(file, parseUriWithException(dartUri));
-    } on URISyntaxException {
+      return new FileBasedSource(file, Uri.parse(dartUri));
+    } on FormatException {
       return null;
     }
   }

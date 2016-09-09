@@ -10526,7 +10526,7 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
 
   @override
   UriValidationCode validate() {
-    StringLiteral uriLiteral = uri;
+    StringLiteral uriLiteral = this.uri;
     if (uriLiteral is StringInterpolation) {
       return UriValidationCode.URI_WITH_INTERPOLATION;
     }
@@ -10537,9 +10537,13 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     if (this is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
       return UriValidationCode.URI_WITH_DART_EXT_SCHEME;
     }
+    Uri uri;
     try {
-      parseUriWithException(Uri.encodeFull(uriContent));
-    } on URISyntaxException {
+      uri = Uri.parse(Uri.encodeFull(uriContent));
+    } on FormatException {
+      return UriValidationCode.INVALID_URI;
+    }
+    if (uri.path.isEmpty) {
       return UriValidationCode.INVALID_URI;
     }
     return null;

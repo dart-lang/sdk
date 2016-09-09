@@ -10,7 +10,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine, Logger;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -317,7 +316,7 @@ class SourceFactoryTest {
     File file2 = resourceProvider.getFile("/some/file2.dart");
     Source source1 = new FileSource(file1);
     Source source2 = new FileSource(file2);
-    Uri expected1 = parseUriWithException("file:///my_file.dart");
+    Uri expected1 = Uri.parse("file:///my_file.dart");
     SourceFactory factory =
         new SourceFactory([new UriResolver_restoreUri(source1, expected1)]);
     expect(factory.restoreUri(source1), same(expected1));

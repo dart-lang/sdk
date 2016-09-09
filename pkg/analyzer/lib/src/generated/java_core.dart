@@ -39,20 +39,6 @@ String formatList(String pattern, List<Object> arguments) {
   });
 }
 
-/// Parses given string to [Uri], throws [URISyntaxException] if invalid.
-Uri parseUriWithException(String str) {
-  Uri uri;
-  try {
-    uri = Uri.parse(str);
-  } on FormatException catch (e) {
-    throw new URISyntaxException(e.toString());
-  }
-  if (uri.path.isEmpty) {
-    throw new URISyntaxException('empty path');
-  }
-  return uri;
-}
-
 /**
  * Very limited printf implementation, supports only %s and %d.
  */
@@ -225,10 +211,4 @@ abstract class PrintWriter {
     this.print(s);
     this.newLine();
   }
-}
-
-class URISyntaxException implements Exception {
-  final String message;
-  URISyntaxException(this.message);
-  String toString() => "URISyntaxException: $message";
 }
