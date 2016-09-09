@@ -743,6 +743,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _interfaces = _unlinkedClass.interfaces
           .map((EntityRef t) => context.resolveTypeRef(t, this))
+          .where((DartType type) => type is InterfaceType)
           .toList(growable: false);
     }
     return _interfaces ?? const <InterfaceType>[];
@@ -849,6 +850,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _mixins = _unlinkedClass.mixins
           .map((EntityRef t) => context.resolveTypeRef(t, this))
+          .where((DartType type) => type is InterfaceType)
           .toList(growable: false);
     }
     return _mixins ?? const <InterfaceType>[];
@@ -879,8 +881,13 @@ class ClassElementImpl extends AbstractClassElementImpl
   InterfaceType get supertype {
     if (_unlinkedClass != null && _supertype == null) {
       if (_unlinkedClass.supertype != null) {
-        _supertype = enclosingUnit.resynthesizerContext
+        DartType type = enclosingUnit.resynthesizerContext
             .resolveTypeRef(_unlinkedClass.supertype, this);
+        if (type is InterfaceType) {
+          _supertype = type;
+        } else {
+          _supertype = context.typeProvider.objectType;
+        }
       } else if (_unlinkedClass.hasNoSupertype) {
         return null;
       } else {
