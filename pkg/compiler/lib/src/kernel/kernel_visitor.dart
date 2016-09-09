@@ -198,16 +198,13 @@ class KernelVisitor extends Object
   final Map<CascadeReceiver, ir.VariableGet> cascadeReceivers =
       <CascadeReceiver, ir.VariableGet>{};
 
-  final Map<ir.Node, Element> nodeToElement = <ir.Node, Element>{};
-  final Map<ir.Node, Node> nodeToAst = <ir.Node, Node>{};
-
   ir.Node associateElement(ir.Node node, Element element) {
-    nodeToElement[node] = element;
+    kernel.nodeToElement[node] = element;
     return node;
   }
 
   ir.Node associateNode(ir.Node node, Node ast) {
-    nodeToAst[node] = ast;
+    kernel.nodeToAst[node] = ast;
     return node;
   }
 
@@ -905,8 +902,7 @@ class KernelVisitor extends Object
   @override
   ir.SymbolLiteral visitLiteralSymbol(LiteralSymbol node) {
     var result = new ir.SymbolLiteral(node.slowNameString);
-    nodeToAst[result] = node;
-    return result;
+    return associateNode(result, node);
   }
 
   @override

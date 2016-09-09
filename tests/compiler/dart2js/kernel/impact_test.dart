@@ -84,18 +84,17 @@ main(List<String> args) {
     Compiler compiler = compilerFor(
         entryPoint: entryPoint,
         memorySourceFiles: SOURCE,
-        options: [Flags.analyzeOnly]);
+        options: [Flags.analyzeOnly, Flags.useKernel]);
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    compiler.mainApp.forEachLocalMember(
-        (element) => checkElement(compiler, element));
+    compiler.mainApp
+        .forEachLocalMember((element) => checkElement(compiler, element));
   });
 }
 
 void checkElement(Compiler compiler, AstElement element) {
-  ResolutionImpact astImpact =
-      compiler.resolution.getResolutionImpact(element);
+  ResolutionImpact astImpact = compiler.resolution.getResolutionImpact(element);
   ResolutionImpact kernelImpact = build(compiler, element.resolvedAst);
-  testResolutionImpactEquivalence(astImpact, kernelImpact,
-      const CheckStrategy());
+  testResolutionImpactEquivalence(
+      astImpact, kernelImpact, const CheckStrategy());
 }

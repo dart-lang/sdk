@@ -22,22 +22,20 @@ import '../common/resolution.dart';
 /// Computes the [ResolutionImpact] for [resolvedAst] through kernel.
 ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
   AstElement element = resolvedAst.element.implementation;
-  Kernel kernel = new Kernel(compiler);
-  KernelVisitor visitor =
-      new KernelVisitor(element, resolvedAst.elements, kernel);
-  IrFunction function;
-  try {
-    function = visitor.buildFunction();
-  } catch (e) {
-    throw "Failed to convert to Kernel IR: $e";
+  JavaScriptBackend backend = compiler.backend;
+  Kernel kernel = backend.kernelTask.kernel;
+  ir.Procedure function = kernel.functions[element];
+  if (function == null) {
+    print("FOUND NULL FUNCTION: $element");
+    print(kernel.functions);
   }
-  KernelImpactBuilder builder = new KernelImpactBuilder(
-      function, element, resolvedAst, compiler, visitor, kernel);
+  KernelImpactBuilder builder =
+      new KernelImpactBuilder(function, element, resolvedAst, compiler, kernel);
   return builder.build();
 }
 
 class KernelImpactBuilder extends ir.Visitor {
-  final IrFunction function;
+  final ir.Procedure function;
   final FunctionElement functionElement;
   final ResolvedAst resolvedAst;
   final Compiler compiler;
@@ -48,13 +46,13 @@ class KernelImpactBuilder extends ir.Visitor {
   KernelAstAdapter astAdapter;
 
   KernelImpactBuilder(this.function, this.functionElement, this.resolvedAst,
-      this.compiler, KernelVisitor visitor, Kernel kernel) {
+      this.compiler, Kernel kernel) {
     this.impactBuilder = new ResolutionWorldImpactBuilder('$functionElement');
     this.astAdapter = new KernelAstAdapter(
         compiler.backend,
         resolvedAst,
-        visitor.nodeToAst,
-        visitor.nodeToElement,
+        kernel.nodeToAst,
+        kernel.nodeToElement,
         kernel.functions,
         kernel.classes,
         kernel.libraries);
@@ -81,8 +79,8 @@ class KernelImpactBuilder extends ir.Visitor {
     return type;
   }
 
-  void buildMethod(IrFunction method) {
-    method.node.body.accept(this);
+  void buildMethod(ir.Procedure method) {
+    method.function.body.accept(this);
   }
 
   void visitNodes(Iterable<ir.Node> nodes) {
