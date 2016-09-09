@@ -331,8 +331,7 @@ class IncrementalResolver {
 
   void _prepareResolutionContext(AstNode node) {
     if (_resolutionContext == null) {
-      _resolutionContext =
-          ResolutionContextBuilder.contextFor(node, errorListener);
+      _resolutionContext = ResolutionContextBuilder.contextFor(node);
     }
   }
 
@@ -1054,11 +1053,6 @@ class ResolutionContext {
  */
 class ResolutionContextBuilder {
   /**
-   * The listener to which analysis errors will be reported.
-   */
-  final AnalysisErrorListener _errorListener;
-
-  /**
    * The class containing the enclosing [CompilationUnitElement].
    */
   CompilationUnitElement _enclosingUnit;
@@ -1074,12 +1068,6 @@ class ResolutionContextBuilder {
    * in the scope of a class.
    */
   ClassElement _enclosingClass;
-
-  /**
-   * Initialize a newly created scope builder to generate a scope that will
-   * report errors to the given listener.
-   */
-  ResolutionContextBuilder(this._errorListener);
 
   Scope _scopeFor(AstNode node) {
     if (node is CompilationUnit) {
@@ -1181,19 +1169,16 @@ class ResolutionContextBuilder {
    * Return the context in which the given AST structure should be resolved.
    *
    * [node] - the root of the AST structure to be resolved.
-   * [errorListener] - the listener to which analysis errors will be reported.
    *
    * Throws [AnalysisException] if the AST structure has not been resolved or
    * is not part of a [CompilationUnit]
    */
-  static ResolutionContext contextFor(
-      AstNode node, AnalysisErrorListener errorListener) {
+  static ResolutionContext contextFor(AstNode node) {
     if (node == null) {
       throw new AnalysisException("Cannot create context: node is null");
     }
     // build scope
-    ResolutionContextBuilder builder =
-        new ResolutionContextBuilder(errorListener);
+    ResolutionContextBuilder builder = new ResolutionContextBuilder();
     Scope scope = builder._scopeFor(node);
     // prepare context
     ResolutionContext context = new ResolutionContext();

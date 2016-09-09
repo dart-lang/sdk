@@ -2113,8 +2113,6 @@ class B extends A {}
 
 @reflectiveTest
 class ResolutionContextBuilderTest extends EngineTestCase {
-  GatheringErrorListener listener = new GatheringErrorListener();
-
   void test_scopeFor_ClassDeclaration() {
     Scope scope = _scopeFor(_createResolvedClassDeclaration());
     EngineTestCase.assertInstanceOf(
@@ -2316,7 +2314,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
   }
 
   Scope _scopeFor(AstNode node) {
-    return ResolutionContextBuilder.contextFor(node, listener).scope;
+    return ResolutionContextBuilder.contextFor(node).scope;
   }
 }
 

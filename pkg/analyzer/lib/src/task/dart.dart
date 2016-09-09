@@ -3674,8 +3674,8 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       //
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Expression initializer = declaration.initializer;
-      ResolutionContext resolutionContext = ResolutionContextBuilder.contextFor(
-          initializer, AnalysisErrorListener.NULL_LISTENER);
+      ResolutionContext resolutionContext =
+          ResolutionContextBuilder.contextFor(initializer);
       ResolverVisitor visitor = new ResolverVisitor(
           variable.library, variable.source, typeProvider, errorListener,
           nameScope: resolutionContext.scope);
