@@ -41,7 +41,7 @@ class RecursiveContinuationRewriter extends Transformer {
       case AsyncMarker.AsyncStar:
         return new AsyncStarFunctionRewriter(helper, node).rewrite();
       case AsyncMarker.SyncYielding:
-        break; // Already transformed.
+        return super.visitFunctionNode(node);
     }
   }
 }
