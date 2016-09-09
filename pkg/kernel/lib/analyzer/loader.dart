@@ -295,16 +295,55 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     //   A with (B with C)
     String name = '${superclass.name}&${mixedInClass.name}';
     return _mixinApplications[library].putIfAbsent(name, () {
-      var superParameters = getFreshTypeParameters(superclass.typeParameters);
-      var mixinParameters = getFreshTypeParameters(mixedInClass.typeParameters);
-      var typeParameters = <ast.TypeParameter>[]
-        ..addAll(superParameters.freshTypeParameters)
-        ..addAll(mixinParameters.freshTypeParameters);
+      List<ast.TypeParameter> typeParameters = <ast.TypeParameter>[];
+      ast.InterfaceType makeSuper(ast.Class class_) {
+        if (class_.typeParameters.isEmpty) return class_.rawType;
+        // We need to copy over type parameters from the given super type,
+        // including its bounds.  We handle two cases separately:
+        //
+        //   1. The super class is derived from a ClassElement.
+        //      At this point, the IR node can only be assumed to be loaded as
+        //      a reference, meaning its type parameter bound are not yet
+        //      initialized.
+        //      Build the type parameters based on the element model.
+        //
+        //   2. The super class is a mixin application previously created here.
+        //      In this case, there does not exist a corresponding ClassElement.
+        //      However, we know the class has its type parameter bounds
+        //      already initialized since it was created here.
+        //      Copy the type parameters based on the IR of the super class.
+        //
+        ClassElement element = getClassElement(class_);
+        if (element != null) {
+          var scope = new TypeScope(this);
+          // Build type parameter objects and put them in our local scope.
+          for (var parameter in element.typeParameters) {
+            var parameterNode = new ast.TypeParameter(parameter.name);
+            scope.localTypeParameters[parameter] = parameterNode;
+            typeParameters.add(parameterNode);
+          }
+          // Build the bounds, with all the type parameters in scope.
+          for (var parameter in element.typeParameters) {
+            if (parameter.bound != null) {
+              var parameterNode = scope.getTypeParameterReference(parameter);
+              parameterNode.bound = scope.buildType(parameter.bound);
+            }
+          }
+          return scope.buildType(element.type);
+        } else {
+          // Build copies of the existing type parameters.
+          var parameters = getFreshTypeParameters(class_.typeParameters);
+          typeParameters.addAll(parameters.freshTypeParameters);
+          return parameters.substitute(class_.thisType);
+        }
+      }
+      var supertype = makeSuper(superclass);
+      var mixedInType = makeSuper(mixedInClass);
       var result = new ast.Class(
           name: name,
           typeParameters: typeParameters,
-          supertype: superParameters.substitute(superclass.thisType),
-          mixedInType: mixinParameters.substitute(mixedInClass.thisType));
+          supertype: supertype,
+          mixedInType: mixedInType);
       library.addClass(result);
       return result;
     });
