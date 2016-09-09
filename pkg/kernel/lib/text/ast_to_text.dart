@@ -1379,7 +1379,7 @@ class Printer extends Visitor<Null> {
   visitTypeParameter(TypeParameter node) {
     writeWord(getTypeParameterName(node));
     if (node.bound is! DynamicType) {
-      writeSpaced(' extends ');
+      writeSpaced('extends');
       writeType(node.bound);
     }
   }
