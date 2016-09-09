@@ -137,20 +137,6 @@ abstract class Enum<E extends Enum> implements Comparable<E> {
   String toString() => name;
 }
 
-class JavaString {
-  static int indexOf(String target, String str, int fromIndex) {
-    if (fromIndex > target.length) return -1;
-    if (fromIndex < 0) fromIndex = 0;
-    return target.indexOf(str, fromIndex);
-  }
-
-  static int lastIndexOf(String target, String str, int fromIndex) {
-    if (fromIndex > target.length) return -1;
-    if (fromIndex < 0) fromIndex = 0;
-    return target.lastIndexOf(str, fromIndex);
-  }
-}
-
 class PrintStringWriter extends PrintWriter {
   final StringBuffer _sb = new StringBuffer();
 

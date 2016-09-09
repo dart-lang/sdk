@@ -5170,7 +5170,7 @@ class Parser {
         List<int> range = _findRange(codeBlockRanges, leftIndex);
         if (range == null) {
           int nameOffset = token.offset + leftIndex + 1;
-          int rightIndex = JavaString.indexOf(comment, ']', leftIndex);
+          int rightIndex = comment.indexOf(']', leftIndex);
           if (rightIndex >= 0) {
             int firstChar = comment.codeUnitAt(leftIndex + 1);
             if (firstChar != 0x27 && firstChar != 0x22) {
@@ -5207,9 +5207,9 @@ class Parser {
             // next character
             rightIndex = leftIndex + 1;
           }
-          leftIndex = JavaString.indexOf(comment, '[', rightIndex);
+          leftIndex = comment.indexOf('[', rightIndex);
         } else {
-          leftIndex = JavaString.indexOf(comment, '[', range[1] + 1);
+          leftIndex = comment.indexOf('[', range[1]);
         }
       }
     }
