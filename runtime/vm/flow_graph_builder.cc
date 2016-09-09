@@ -4225,6 +4225,24 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
 
 void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   InlineBailout("EffectGraphVisitor::VisitTryCatchNode (exception)");
+  CatchClauseNode* catch_block = node->catch_block();
+  SequenceNode* finally_block = node->finally_block();
+  if ((finally_block != NULL) && (finally_block->length() == 0)) {
+    SequenceNode* catch_sequence = catch_block->sequence();
+    if (catch_sequence->length() == 1) {
+      // Check for a single rethrow statement. This only matches the synthetic
+      // catch-clause generated for try-finally.
+      ThrowNode* throw_node = catch_sequence->NodeAt(0)->AsThrowNode();
+      if ((throw_node != NULL) && (throw_node->stacktrace() != NULL)) {
+        // Empty finally-block in a try-finally can be optimized away.
+        EffectGraphVisitor for_try(owner());
+        node->try_block()->Visit(&for_try);
+        Append(for_try);
+        return;
+      }
+    }
+  }
+
   const intptr_t original_handler_index = owner()->try_index();
   const intptr_t try_handler_index = node->try_index();
   ASSERT(try_handler_index != original_handler_index);
@@ -4253,9 +4271,6 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
 
   // We are done generating code for the try block.
   owner()->set_try_index(original_handler_index);
-
-  CatchClauseNode* catch_block = node->catch_block();
-  SequenceNode* finally_block = node->finally_block();
 
   // If there is a finally block, it is the handler for code in the catch
   // block.
