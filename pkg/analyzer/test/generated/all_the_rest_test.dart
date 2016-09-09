@@ -45,10 +45,12 @@ import 'test_support.dart';
 main() {
   initializeTestEnvironment();
   defineReflectiveTests(ContentCacheTest);
+  // ignore: deprecated_member_use
   defineReflectiveTests(CustomUriResolverTest);
   defineReflectiveTests(DartUriResolverTest);
   // ignore: deprecated_member_use
   defineReflectiveTests(DirectoryBasedDartSdkTest);
+  // ignore: deprecated_member_use
   defineReflectiveTests(DirectoryBasedSourceContainerTest);
   defineReflectiveTests(ElementBuilderTest);
   defineReflectiveTests(ElementLocatorTest);
@@ -332,6 +334,7 @@ class DirectoryBasedDartSdkTest {
   }
 }
 
+@deprecated
 @reflectiveTest
 class DirectoryBasedSourceContainerTest {
   void test_contains() {

@@ -18,6 +18,7 @@ export 'package:analyzer/src/generated/source.dart';
  * Instances of the class [DirectoryBasedSourceContainer] represent a source container that
  * contains all sources within a given directory.
  */
+@deprecated
 class DirectoryBasedSourceContainer implements SourceContainer {
   /**
    * The container's path (not `null`).

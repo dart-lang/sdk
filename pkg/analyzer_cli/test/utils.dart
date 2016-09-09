@@ -46,7 +46,6 @@ String errorsForFile(String contents) {
 /// Test env setup (copied from `analyzer/test/utils.dart`).
 void initializeTestEnvironment() {
   groupSep = ' | ';
-  JavaFile.pathContext = path.posix;
 }
 
 /// Creates a temporary directory and passes its path to [fn]. Once [fn]

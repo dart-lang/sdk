@@ -401,7 +401,7 @@ class AnalysisServer {
       for (String pattern in patterns) {
         try {
           _analyzedFilesGlobs
-              .add(new Glob(JavaFile.pathContext.separator, pattern));
+              .add(new Glob(resourceProvider.pathContext.separator, pattern));
         } catch (exception, stackTrace) {
           AnalysisEngine.instance.logger.logError(
               'Invalid glob pattern: "$pattern"',
