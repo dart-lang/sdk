@@ -28,7 +28,7 @@ vars = {
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@3f0a4bc9a080a792cdf5f093147a900f99ea301f",
+  "co19_rev": "@d4767b4caea3c5828ad8e053cd051d44a59061af",
 
   # Revisions of GN/Mojo/Flutter related dependencies.
   "base_revision": "@672b04e54b937ec899429a6bd5409c5a6300d151",
