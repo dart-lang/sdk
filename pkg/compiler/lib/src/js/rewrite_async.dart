@@ -1712,8 +1712,7 @@ class AsyncRewriter extends AsyncRewriterBase {
       addStatement(new js.Comment("implicit return"));
     }
     addStatement(js.js.statement(
-        "return #runtimeHelper(#returnValue, #successCode, "
-        "#completer, null);",
+        "return #runtimeHelper(#returnValue, #successCode, #completer);",
         {
           "runtimeHelper": asyncHelper,
           "successCode": js.number(error_codes.SUCCESS),
@@ -1772,7 +1771,7 @@ class AsyncRewriter extends AsyncRewriterBase {
             }
             #rewrittenBody;
           });
-          return #asyncHelper(null, #bodyName, #completer, null);
+          return #asyncHelper(null, #bodyName, #completer);
         }""",
         {
           "parameters": parameters,
