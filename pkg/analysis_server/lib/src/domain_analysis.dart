@@ -21,9 +21,9 @@ import 'package:analysis_server/src/services/dependencies/library_dependencies.d
 import 'package:analysis_server/src/services/dependencies/reachable_source_collector.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart' show ResultDescriptor;
 

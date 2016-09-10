@@ -33,7 +33,7 @@ import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';

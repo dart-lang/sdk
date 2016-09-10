@@ -6,8 +6,8 @@ library analyzer.src.generated.source_io;
 
 import 'dart:collection';
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 

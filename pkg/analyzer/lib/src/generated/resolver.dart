@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -25,7 +26,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/type_system.dart';
@@ -8554,10 +8554,10 @@ class ToDoFinder {
    * @param commentToken the comment token to analyze
    */
   void _scrapeTodoComment(Token commentToken) {
-    Iterable<Match> matches = TodoCode.TODO_REGEX.allMatches(commentToken.lexeme);
+    Iterable<Match> matches =
+        TodoCode.TODO_REGEX.allMatches(commentToken.lexeme);
     for (Match match in matches) {
-      int offset =
-          commentToken.offset + match.start + match.group(1).length;
+      int offset = commentToken.offset + match.start + match.group(1).length;
       int length = match.group(2).length;
       _errorReporter.reportErrorForOffset(
           TodoCode.TODO, offset, length, [match.group(2)]);

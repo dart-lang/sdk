@@ -6,7 +6,7 @@ library analyzer.src.task.manager;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/task/model.dart';
 
 /**

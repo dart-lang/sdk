@@ -10,9 +10,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 

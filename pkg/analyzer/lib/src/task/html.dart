@@ -6,6 +6,7 @@ library analyzer.src.task.html;
 
 import 'dart:collection';
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';

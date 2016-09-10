@@ -21,7 +21,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart'
     show TypeSystem, TypeSystemImpl;
@@ -859,9 +858,7 @@ class ConstantEvaluationEngine {
    * (i.e. whether it is allowed for a call to the Symbol constructor).
    */
   static bool isValidPublicSymbol(String name) =>
-      name.isEmpty ||
-      name == "void" ||
-      _PUBLIC_SYMBOL_PATTERN.hasMatch(name);
+      name.isEmpty || name == "void" || _PUBLIC_SYMBOL_PATTERN.hasMatch(name);
 }
 
 /**
@@ -1138,6 +1135,48 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * Convenience getter to gain access to the [evaluationEngine]'s type system.
    */
   TypeSystem get _typeSystem => evaluationEngine.typeSystem;
+
+  /**
+   * Given a [type] that may contain free type variables, evaluate them against
+   * the current lexical environment and return the substituted type.
+   */
+  DartType evaluateType(DartType type) {
+    if (type is TypeParameterType) {
+      // Constants may only refer to type parameters in strong mode.
+      if (!evaluationEngine.strongMode) {
+        return null;
+      }
+
+      String name = type.name;
+      if (_lexicalEnvironment != null) {
+        return _lexicalEnvironment[name]?.toTypeValue() ?? type;
+      }
+      return type;
+    }
+    if (type is ParameterizedType) {
+      List<DartType> typeArguments;
+      for (int i = 0; i < type.typeArguments.length; i++) {
+        DartType ta = type.typeArguments[i];
+        DartType t = evaluateType(ta);
+        if (!identical(t, ta)) {
+          if (typeArguments == null) {
+            typeArguments = type.typeArguments.toList(growable: false);
+          }
+          typeArguments[i] = t;
+        }
+      }
+      if (typeArguments == null) return type;
+      return type.substitute2(typeArguments, type.typeArguments);
+    }
+    return type;
+  }
+
+  /**
+   * Given a [type], returns the constant value that contains that type value.
+   */
+  DartObjectImpl typeConstant(DartType type) {
+    return new DartObjectImpl(_typeProvider.typeType, new TypeState(type));
+  }
 
   @override
   DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
@@ -1516,48 +1555,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return super.visitTypeName(node);
     }
     return typeConstant(type);
-  }
-
-  /**
-   * Given a [type], returns the constant value that contains that type value.
-   */
-  DartObjectImpl typeConstant(DartType type) {
-    return new DartObjectImpl(_typeProvider.typeType, new TypeState(type));
-  }
-
-  /**
-   * Given a [type] that may contain free type variables, evaluate them against
-   * the current lexical environment and return the substituted type.
-   */
-  DartType evaluateType(DartType type) {
-    if (type is TypeParameterType) {
-      // Constants may only refer to type parameters in strong mode.
-      if (!evaluationEngine.strongMode) {
-        return null;
-      }
-
-      String name = type.name;
-      if (_lexicalEnvironment != null) {
-        return _lexicalEnvironment[name]?.toTypeValue() ?? type;
-      }
-      return type;
-    }
-    if (type is ParameterizedType) {
-      List<DartType> typeArguments;
-      for (int i = 0; i < type.typeArguments.length; i++) {
-        DartType ta = type.typeArguments[i];
-        DartType t = evaluateType(ta);
-        if (!identical(t, ta)) {
-          if (typeArguments == null) {
-            typeArguments = type.typeArguments.toList(growable: false);
-          }
-          typeArguments[i] = t;
-        }
-      }
-      if (typeArguments == null) return type;
-      return type.substitute2(typeArguments, type.typeArguments);
-    }
-    return type;
   }
 
   /**

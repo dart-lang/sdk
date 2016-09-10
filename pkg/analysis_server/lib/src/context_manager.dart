@@ -25,7 +25,7 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart' as context;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';

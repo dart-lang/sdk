@@ -6,7 +6,7 @@ library input.transformer.log_file;
 
 import 'dart:convert';
 
-import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:logging/logging.dart';
 
 import 'input_converter.dart';

@@ -4,7 +4,7 @@
 
 library analyzer.test.src.task.manager_test;
 
-import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

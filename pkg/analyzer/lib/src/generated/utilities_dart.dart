@@ -6,9 +6,9 @@ library analyzer.src.generated.utilities_dart;
 
 import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode, Comment;
 import 'package:analyzer/dart/ast/token.dart' show Token;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 
