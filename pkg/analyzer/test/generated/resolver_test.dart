@@ -105,7 +105,6 @@ class ChangeSetTest extends EngineTestCase {
     expect(map, hasLength(1));
     expect(map[source], same(content));
     expect(changeSet.changedRanges, hasLength(0));
-    expect(changeSet.deletedSources, hasLength(0));
     expect(changeSet.removedSources, hasLength(0));
     expect(changeSet.removedContainers, hasLength(0));
   }
@@ -126,7 +125,6 @@ class ChangeSetTest extends EngineTestCase {
     expect(change.offset, 1);
     expect(change.oldLength, 2);
     expect(change.newLength, 3);
-    expect(changeSet.deletedSources, hasLength(0));
     expect(changeSet.removedSources, hasLength(0));
     expect(changeSet.removedContainers, hasLength(0));
   }
@@ -137,7 +135,6 @@ class ChangeSetTest extends EngineTestCase {
     changeSet.changedSource(new TestSource());
     changeSet.changedContent(new TestSource(), "");
     changeSet.changedRange(new TestSource(), "", 0, 0, 0);
-    changeSet.deletedSource(new TestSource());
     changeSet.removedSource(new TestSource());
     changeSet
         .removedContainer(new SourceContainer_ChangeSetTest_test_toString());

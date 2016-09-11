@@ -653,9 +653,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _contentRangeChanged(source, change.contents, change.offset,
           change.oldLength, change.newLength);
     });
-    for (Source source in changeSet.deletedSources) {
-      _sourceDeleted(source);
-    }
     for (Source source in removedSources) {
       _sourceRemoved(source);
     }
@@ -1913,37 +1910,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       workManager.applyChange(
           Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
     }
-  }
-
-  /**
-   * Record that the give [source] has been deleted.
-   */
-  void _sourceDeleted(Source source) {
-    // TODO(brianwilkerson) Implement or remove this.
-//    SourceEntry sourceEntry = _cache.get(source);
-//    if (sourceEntry is HtmlEntry) {
-//      HtmlEntry htmlEntry = sourceEntry;
-//      htmlEntry.recordContentError(new CaughtException(
-//          new AnalysisException("This source was marked as being deleted"),
-//          null));
-//    } else if (sourceEntry is DartEntry) {
-//      DartEntry dartEntry = sourceEntry;
-//      HashSet<Source> libraries = new HashSet<Source>();
-//      for (Source librarySource in getLibrariesContaining(source)) {
-//        libraries.add(librarySource);
-//        for (Source dependentLibrary
-//            in getLibrariesDependingOn(librarySource)) {
-//          libraries.add(dependentLibrary);
-//        }
-//      }
-//      for (Source librarySource in libraries) {
-//        _invalidateLibraryResolution(librarySource);
-//      }
-//      dartEntry.recordContentError(new CaughtException(
-//          new AnalysisException("This source was marked as being deleted"),
-//          null));
-//    }
-    _removeFromPriorityOrder(source);
   }
 
   /**

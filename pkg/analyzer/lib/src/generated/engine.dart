@@ -1773,12 +1773,6 @@ class ChangeSet {
   final List<SourceContainer> removedContainers = new List<SourceContainer>();
 
   /**
-   * A list containing the sources that have been deleted.
-   */
-  @deprecated
-  final List<Source> deletedSources = new List<Source>();
-
-  /**
    * Return a table mapping the sources whose content has been changed to the
    * current content of those sources.
    */
@@ -1793,8 +1787,7 @@ class ChangeSet {
       _changedContent.isEmpty &&
       changedRanges.isEmpty &&
       removedSources.isEmpty &&
-      removedContainers.isEmpty &&
-      deletedSources.isEmpty;
+      removedContainers.isEmpty;
 
   /**
    * Record that the specified [source] has been added and that its content is
@@ -1836,14 +1829,6 @@ class ChangeSet {
   }
 
   /**
-   * Record that the specified [source] has been deleted.
-   */
-  @deprecated
-  void deletedSource(Source source) {
-    deletedSources.add(source);
-  }
-
-  /**
    * Record that the specified source [container] has been removed.
    */
   void removedContainer(SourceContainer container) {
@@ -1872,8 +1857,6 @@ class ChangeSet {
         buffer, _changedContent, needsSeparator, "changedContent");
     needsSeparator =
         _appendSources2(buffer, changedRanges, needsSeparator, "changedRanges");
-    needsSeparator = _appendSources(
-        buffer, deletedSources, needsSeparator, "deletedSources");
     needsSeparator = _appendSources(
         buffer, removedSources, needsSeparator, "removedSources");
     int count = removedContainers.length;
@@ -2681,10 +2664,9 @@ class SourcesChangedEvent {
   /**
    * Return `true` if any sources were removed or deleted.
    */
-  bool get wereSourcesRemovedOrDeleted =>
+  bool get wereSourcesRemoved =>
       _changeSet.removedSources.length > 0 ||
-      _changeSet.removedContainers.length > 0 ||
-      _changeSet.deletedSources.length > 0;
+      _changeSet.removedContainers.length > 0;
 }
 
 /**

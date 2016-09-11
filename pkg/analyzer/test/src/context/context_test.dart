@@ -2718,7 +2718,7 @@ int a = 0;''');
     expect(context.sourcesNeedingProcessing.contains(source), isFalse);
   }
 
-  void test_validateCacheConsistency_deletedSource() {
+  void test_validateCacheConsistency_deletedFile() {
     MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     var fileA = resourceProvider.newFile('/a.dart', "");
     var fileB = resourceProvider.newFile('/b.dart', "import 'a.dart';");

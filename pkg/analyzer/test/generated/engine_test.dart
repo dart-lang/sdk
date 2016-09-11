@@ -131,14 +131,6 @@ class SourcesChangedEventTest {
     assertEvent(event, changedSources: [source]);
   }
 
-  void test_deleted() {
-    var source = new StringSource('', '/test.dart');
-    var changeSet = new ChangeSet();
-    changeSet.deletedSource(source);
-    var event = new SourcesChangedEvent(changeSet);
-    assertEvent(event, wereSourcesRemovedOrDeleted: true);
-  }
-
   void test_empty() {
     var changeSet = new ChangeSet();
     var event = new SourcesChangedEvent(changeSet);
@@ -150,16 +142,16 @@ class SourcesChangedEventTest {
     var changeSet = new ChangeSet();
     changeSet.removedSource(source);
     var event = new SourcesChangedEvent(changeSet);
-    assertEvent(event, wereSourcesRemovedOrDeleted: true);
+    assertEvent(event, wereSourcesRemoved: true);
   }
 
   static void assertEvent(SourcesChangedEvent event,
       {bool wereSourcesAdded: false,
       List<Source> changedSources: Source.EMPTY_LIST,
-      bool wereSourcesRemovedOrDeleted: false}) {
+      bool wereSourcesRemoved: false}) {
     expect(event.wereSourcesAdded, wereSourcesAdded);
     expect(event.changedSources, changedSources);
-    expect(event.wereSourcesRemovedOrDeleted, wereSourcesRemovedOrDeleted);
+    expect(event.wereSourcesRemoved, wereSourcesRemoved);
   }
 }
 
@@ -177,7 +169,7 @@ class SourcesChangedListener {
     SourcesChangedEventTest.assertEvent(actual,
         wereSourcesAdded: wereSourcesAdded,
         changedSources: changedSources,
-        wereSourcesRemovedOrDeleted: wereSourcesRemovedOrDeleted);
+        wereSourcesRemoved: wereSourcesRemovedOrDeleted);
   }
 
   void assertNoMoreEvents() {
