@@ -119,7 +119,7 @@ class _CodeGenerator {
         }
       }
       Map<int, String> idsUsed = <int, String>{};
-      for (idlModel.FieldDeclaration field in cls.fields) {
+      for (idlModel.FieldDeclaration field in cls.allFields) {
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
         if (type.isList) {

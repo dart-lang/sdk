@@ -584,18 +584,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  SourceRange get docRange {
-    if (_unlinkedClass != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedClass.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedClass != null) {
       return _unlinkedClass?.documentationComment?.text;
@@ -1821,18 +1809,6 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
       : super(enumElement);
 
   @override
-  SourceRange get docRange {
-    if (_unlinkedEnumValue != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedEnumValue.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedEnumValue != null) {
       return _unlinkedEnumValue?.documentationComment?.text;
@@ -2700,17 +2676,6 @@ abstract class ElementImpl implements Element {
   String _docComment;
 
   /**
-   * The offset to the beginning of the documentation comment,
-   * or `null` if this element does not have a documentation comment.
-   */
-  int _docRangeOffset;
-
-  /**
-   * The length of the documentation comment range for this element.
-   */
-  int _docRangeLength;
-
-  /**
    * The offset of the beginning of the element's code in the file that contains
    * the element, or `null` if the element is synthetic.
    */
@@ -2761,14 +2726,6 @@ abstract class ElementImpl implements Element {
 
   @override
   String get displayName => _name;
-
-  @override
-  SourceRange get docRange {
-    if (_docRangeOffset != null && _docRangeLength != null) {
-      return new SourceRange(_docRangeOffset, _docRangeLength);
-    }
-    return null;
-  }
 
   @override
   String get documentationComment => _docComment;
@@ -3115,15 +3072,6 @@ abstract class ElementImpl implements Element {
   }
 
   /**
-   * Set the documentation comment source range for this element.
-   */
-  void setDocRange(int offset, int length) {
-    assert(!isResynthesized);
-    _docRangeOffset = offset;
-    _docRangeLength = length;
-  }
-
-  /**
    * Set whether the given [modifier] is associated with this element to
    * correspond to the given [value].
    */
@@ -3409,17 +3357,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  SourceRange get docRange {
-    if (_unlinkedEnum != null) {
-      UnlinkedDocumentationComment comment = _unlinkedEnum.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedEnum != null) {
       return _unlinkedEnum?.documentationComment?.text;
@@ -3670,18 +3607,6 @@ abstract class ExecutableElementImpl extends ElementImpl
       return serializedExecutable.name;
     }
     return super.displayName;
-  }
-
-  @override
-  SourceRange get docRange {
-    if (serializedExecutable != null) {
-      UnlinkedDocumentationComment comment =
-          serializedExecutable.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
   }
 
   @override
@@ -4651,18 +4576,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   String get displayName => name;
 
   @override
-  SourceRange get docRange {
-    if (_unlinkedTypedef != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedTypedef.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef?.documentationComment?.text;
@@ -5417,18 +5330,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     assert((unit as CompilationUnitElementImpl).librarySource == unit.source);
     (unit as CompilationUnitElementImpl).enclosingElement = this;
     this._definingCompilationUnit = unit;
-  }
-
-  @override
-  SourceRange get docRange {
-    if (_unlinkedDefiningUnit != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedDefiningUnit.libraryDocumentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
   }
 
   @override
@@ -6490,9 +6391,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   String get displayName => _name;
 
   @override
-  SourceRange get docRange => null;
-
-  @override
   String get documentationComment => null;
 
   @override
@@ -6773,18 +6671,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   void set const3(bool isConst) {
     assert(_unlinkedVariable == null);
     super.const3 = isConst;
-  }
-
-  @override
-  SourceRange get docRange {
-    if (_unlinkedVariable != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedVariable.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
   }
 
   @override
