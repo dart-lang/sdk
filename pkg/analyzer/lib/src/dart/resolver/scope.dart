@@ -20,7 +20,7 @@ import 'package:analyzer/src/generated/source.dart';
 class BlockScope extends EnclosedScope {
   /**
    * Initialize a newly created scope, enclosed within the [enclosingScope],
-   * based on the given [classElement].
+   * based on the given [block].
    */
   BlockScope(Scope enclosingScope, Block block) : super(enclosingScope) {
     if (block == null) {
@@ -397,8 +397,7 @@ class LibraryImportScope extends Scope {
 
   /**
    * Initialize a newly created scope representing the names imported into the
-   * [_definingLibrary]. The error listener is no longer used and should be
-   * omitted.
+   * [_definingLibrary].
    */
   LibraryImportScope(this._definingLibrary) {
     _createImportedNamespaces();
@@ -582,8 +581,7 @@ class LibraryImportScope extends Scope {
 class LibraryScope extends EnclosedScope {
   /**
    * Initialize a newly created scope representing the names defined in the
-   * [definingLibrary]. The error listener is no longer used and should be
-   * omitted.
+   * [definingLibrary].
    */
   LibraryScope(LibraryElement definingLibrary)
       : super(new LibraryImportScope(definingLibrary)) {
@@ -1003,10 +1001,8 @@ abstract class Scope {
 
   /**
    * Add the given [element] to this scope. If there is already an element with
-   * the given name defined in this scope, then an error will be generated and
-   * the original element will continue to be mapped to the name. If there is an
-   * element with the given name in an enclosing scope, then a warning will be
-   * generated but the given element will hide the inherited element.
+   * the given name defined in this scope, then the original element will
+   * continue to be mapped to the name.
    */
   void define(Element element) {
     String name = _getName(element);
