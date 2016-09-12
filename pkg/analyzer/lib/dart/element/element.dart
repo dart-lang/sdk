@@ -1497,13 +1497,6 @@ abstract class LibraryElement implements Element {
    * `null` if this library does not define a class with the given name.
    */
   ClassElement getType(String className);
-
-  /**
-   * Return `true` if this library is up to date with respect to the given
-   * [timeStamp]. If any transitively referenced Source is newer than the time
-   * stamp, this method returns false.
-   */
-  bool isUpToDate(int timeStamp);
 }
 
 /**

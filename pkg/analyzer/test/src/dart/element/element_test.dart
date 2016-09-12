@@ -3935,18 +3935,6 @@ class LibraryElementImplTest extends EngineTestCase {
     library.invalidateLibraryCycles();
   }
 
-  void test_isUpToDate() {
-    AnalysisContext context = createAnalysisContext();
-    context.sourceFactory = new SourceFactory([]);
-    LibraryElement library = ElementFactory.library(context, "foo");
-    context.setContents(library.definingCompilationUnit.source, "sdfsdff");
-    // Assert that we are not up to date if the target has an old time stamp.
-    expect(library.isUpToDate(-1), isFalse);
-    // Assert that we are up to date with a target modification time in the
-    // future.
-    expect(library.isUpToDate(1 << 33), isTrue);
-  }
-
   void test_setImports() {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = new LibraryElementImpl.forNode(
@@ -4334,7 +4322,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     expect(type.isMoreSpecificThan(ElementFactory.object.type), isTrue);
   }
 
-  void test_isMoreSpecificThan_typeArguments_resursive() {
+  void test_isMoreSpecificThan_typeArguments_recursive() {
     ClassElementImpl classS = ElementFactory.classElement2("A");
     TypeParameterElementImpl typeParameterU =
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("U"));

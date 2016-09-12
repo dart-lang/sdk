@@ -816,9 +816,6 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
 
   @override
   ClassElement getType(String className) => actualElement.getType(className);
-
-  @override
-  bool isUpToDate(int timeStamp) => actualElement.isUpToDate(timeStamp);
 }
 
 /**

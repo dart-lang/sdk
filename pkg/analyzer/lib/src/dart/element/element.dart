@@ -1246,26 +1246,26 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   bool _safeIsOrInheritsProxy(
-      ClassElement classElt, HashSet<ClassElement> visitedClassElts) {
-    if (visitedClassElts.contains(classElt)) {
+      ClassElement element, HashSet<ClassElement> visited) {
+    if (visited.contains(element)) {
       return false;
     }
-    visitedClassElts.add(classElt);
-    if (classElt.isProxy) {
+    visited.add(element);
+    if (element.isProxy) {
       return true;
-    } else if (classElt.supertype != null &&
-        _safeIsOrInheritsProxy(classElt.supertype.element, visitedClassElts)) {
+    } else if (element.supertype != null &&
+        _safeIsOrInheritsProxy(element.supertype.element, visited)) {
       return true;
     }
-    List<InterfaceType> supertypes = classElt.interfaces;
+    List<InterfaceType> supertypes = element.interfaces;
     for (int i = 0; i < supertypes.length; i++) {
-      if (_safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
+      if (_safeIsOrInheritsProxy(supertypes[i].element, visited)) {
         return true;
       }
     }
-    supertypes = classElt.mixins;
+    supertypes = element.mixins;
     for (int i = 0; i < supertypes.length; i++) {
-      if (_safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
+      if (_safeIsOrInheritsProxy(supertypes[i].element, visited)) {
         return true;
       }
     }
@@ -5822,12 +5822,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     invalidate(this);
   }
 
-  @override
-  bool isUpToDate(int timeStamp) {
-    Set<LibraryElement> visitedLibraries = new Set();
-    return _safeIsUpToDate(this, timeStamp, visitedLibraries);
-  }
-
   /**
    * Set whether the library has the given [capability] to
    * correspond to the given [value].
@@ -5884,44 +5878,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       LibraryElement library, LibraryResolutionCapability capability) {
     return library is LibraryElementImpl &&
         BooleanArray.get(library._resolutionCapabilities, capability.index);
-  }
-
-  /**
-   * Return `true` if the given [library] is up to date with respect to the
-   * given [timeStamp]. The set of [visitedLibraries] is used to prevent
-   * infinite recursion in the case of mutually dependent libraries.
-   */
-  static bool _safeIsUpToDate(LibraryElement library, int timeStamp,
-      Set<LibraryElement> visitedLibraries) {
-    if (!visitedLibraries.contains(library)) {
-      visitedLibraries.add(library);
-      AnalysisContext context = library.context;
-      // Check the defining compilation unit.
-      if (timeStamp <
-          context
-              .getModificationStamp(library.definingCompilationUnit.source)) {
-        return false;
-      }
-      // Check the parted compilation units.
-      for (CompilationUnitElement element in library.parts) {
-        if (timeStamp < context.getModificationStamp(element.source)) {
-          return false;
-        }
-      }
-      // Check the imported libraries.
-      for (LibraryElement importedLibrary in library.importedLibraries) {
-        if (!_safeIsUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
-          return false;
-        }
-      }
-      // Check the exported libraries.
-      for (LibraryElement exportedLibrary in library.exportedLibraries) {
-        if (!_safeIsUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 }
 
