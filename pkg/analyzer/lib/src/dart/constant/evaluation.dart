@@ -654,10 +654,9 @@ class ConstantEvaluationEngine {
             }
             fieldMap[fieldName] = argumentValue;
           }
-        } else {
-          String name = baseParameter.name;
-          parameterMap[name] = argumentValue;
         }
+        String name = baseParameter.name;
+        parameterMap[name] = argumentValue;
       }
     }
     ConstantVisitor initializerVisitor = new ConstantVisitor(

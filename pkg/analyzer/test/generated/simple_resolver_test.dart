@@ -656,11 +656,29 @@ class A {
   }
 
   void test_fieldFormalParameter() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableInitializingFormalAccess = true;
+    resetWithOptions(options);
     Source source = addSource(r'''
 class A {
   int x;
-  A(this.x) {}
+  int y;
+  A(this.x) : y = x {}
 }''');
+    CompilationUnit unit =
+        analysisContext2.resolveCompilationUnit2(source, source);
+    ClassDeclaration classA = unit.declarations[0];
+    FieldDeclaration field = classA.members[0];
+    ConstructorDeclaration constructor = classA.members[2];
+    ParameterElement paramElement =
+        constructor.parameters.parameters[0].element;
+    expect(paramElement, new isInstanceOf<FieldFormalParameterElement>());
+    expect((paramElement as FieldFormalParameterElement).field,
+        field.fields.variables[0].element);
+    ConstructorFieldInitializer initializer = constructor.initializers[0];
+    SimpleIdentifier identifierX = initializer.expression;
+    expect(identifierX.staticElement, paramElement);
+
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);

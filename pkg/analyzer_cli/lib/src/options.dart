@@ -87,6 +87,10 @@ class CommandLineOptions {
   /// Whether to display version information
   final bool displayVersion;
 
+  /// A flag indicating whether access to field formal parameters should be
+  /// allowed in a constructor's initializer list.
+  final bool enableInitializingFormalAccess;
+
   /// Whether to enable null-aware operators (DEP 9).
   final bool enableNullAwareOperators;
 
@@ -181,6 +185,7 @@ class CommandLineOptions {
         analysisOptionsFile = args['options'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
+        enableInitializingFormalAccess = args['initializing-formal-access'],
         enableNullAwareOperators = args['enable-null-aware-operators'],
         enableStrictCallChecks = args['enable-strict-call-checks'],
         enableSuperMixins = args['supermixin'],
@@ -467,6 +472,12 @@ class CommandLineOptions {
           hide: true)
       ..addFlag('enable-new-task-model',
           help: 'deprecated -- Ennable new task model.',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('initializing-formal-access',
+          help:
+              'Enable support for allowing access to field formal parameters in a constructor\'s initializer list',
           defaultsTo: false,
           negatable: false,
           hide: true)

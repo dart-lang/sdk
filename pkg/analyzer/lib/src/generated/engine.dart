@@ -1077,6 +1077,12 @@ abstract class AnalysisOptions {
   bool get enableGenericMethods => null;
 
   /**
+   * Return `true` if access to field formal parameters should be allowed in a
+   * constructor's initializer list.
+   */
+  bool get enableInitializingFormalAccess;
+
+  /**
    * Return `true` to enable the lazy compound assignment operators '&&=' and
    * '||='.
    */
@@ -1228,6 +1234,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableGenericMethods = false;
 
   @override
+  bool enableInitializingFormalAccess = false;
+
+  @override
   bool enableLazyAssignmentOperators = false;
 
   @override
@@ -1325,6 +1334,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableAsync = options.enableAsync;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
+    enableInitializingFormalAccess = options.enableInitializingFormalAccess;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
     generateImplicitErrors = options.generateImplicitErrors;

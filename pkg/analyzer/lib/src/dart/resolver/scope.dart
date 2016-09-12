@@ -113,6 +113,30 @@ class ClassScope extends EnclosedScope {
 }
 
 /**
+ * The scope defined for the initializers in a constructor.
+ */
+class ConstructorInitializerScope extends EnclosedScope {
+  /**
+   * Initialize a newly created scope, enclosed within the [enclosingScope].
+   */
+  ConstructorInitializerScope(Scope enclosingScope, ConstructorElement element)
+      : super(enclosingScope) {
+    _initializeFieldFormalParameters(element);
+  }
+
+  /**
+   * Initialize the local scope with all of the field formal parameters.
+   */
+  void _initializeFieldFormalParameters(ConstructorElement element) {
+    for (ParameterElement parameter in element.parameters) {
+      if (parameter is FieldFormalParameterElement) {
+        define(parameter);
+      }
+    }
+  }
+}
+
+/**
  * A scope that is lexically enclosed in another scope.
  */
 class EnclosedScope extends Scope {

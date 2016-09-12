@@ -48,6 +48,8 @@ class AnalyzerOptions {
   static const String enableAssertInitializer = 'enableAssertInitializer';
   static const String enableAsync = 'enableAsync';
   static const String enableGenericMethods = 'enableGenericMethods';
+  static const String enableInitializingFormalAccess =
+      'enableInitializingFormalAccess';
   static const String enableStrictCallChecks = 'enableStrictCallChecks';
   static const String enableSuperMixins = 'enableSuperMixins';
 
@@ -566,6 +568,8 @@ class _OptionsProcessor {
         options.enableAssertInitializer = boolValue;
       } else if (feature == AnalyzerOptions.enableAsync) {
         options.enableAsync = boolValue;
+      } else if (feature == AnalyzerOptions.enableInitializingFormalAccess) {
+        options.enableInitializingFormalAccess = boolValue;
       } else if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;
       } else if (feature == AnalyzerOptions.enableGenericMethods) {
