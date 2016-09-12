@@ -6,7 +6,7 @@ packages:
       path: "../analyzer"
       relative: true
     source: path
-    version: "0.28.2-alpha.0"
+    version: "0.29.0-alpha.0"
   archive:
     description:
       name: archive
@@ -144,7 +144,7 @@ packages:
       name: js
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.0"
+    version: "0.6.1"
   logging:
     description:
       name: logging
@@ -204,7 +204,7 @@ packages:
       name: protobuf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.2"
+    version: "0.5.3"
   pub_semver:
     description:
       name: pub_semver
@@ -312,7 +312,7 @@ packages:
       name: webdriver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.0"
+    version: "1.2.1"
   when:
     description:
       name: when
@@ -332,4 +332,4 @@ packages:
     source: hosted
     version: "2.1.10"
 sdks:
-  dart: ">=1.17.0-dev.6.2 <2.0.0"
+  dart: ">=1.19.0-dev.0.0 <2.0.0"
