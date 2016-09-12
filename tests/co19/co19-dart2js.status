@@ -712,6 +712,7 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: Runtime
 LibTest/async/Future/Future.delayed_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/Future.delayed_A03_t01: fail # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/doWhile_A05_t01: RuntimeError # Please triage. May be unsupported timer issue 7728.
+LibTest/async/Future/forEach_A04_t02: RuntimeError # Please triage. May be unsupported timer issue 7728.
 LibTest/async/Future/timeout_A01_t01: RuntimeError # Please triage. May be unsupported timer issue 7728.
 LibTest/async/Future/wait_A01_t07: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Stream/Stream.periodic_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
@@ -754,12 +755,12 @@ LibTest/isolate/Isolate/spawn_A03_t03: RuntimeError # Please triage this failure
 LibTest/isolate/Isolate/spawn_A03_t04: RuntimeError # Please triage this failure
 LibTest/isolate/Isolate/spawn_A04_t02: RuntimeError # Please triage this failure
 LibTest/isolate/Isolate/spawn_A04_t03: Fail # Please triage this failure
-LibTest/isolate/Isolate/spawn_A04_t05: RuntimeError # Please triage this failure
+LibTest/isolate/Isolate/spawn_A04_t05: Fail # Please triage this failure
 LibTest/isolate/Isolate/spawn_A06_t02: Fail # Please triage this failure
 LibTest/isolate/Isolate/spawn_A06_t03: Fail # Please triage this failure
 LibTest/isolate/Isolate/spawn_A06_t04: RuntimeError # Please triage this failure
 LibTest/isolate/Isolate/spawn_A06_t05: RuntimeError # Please triage this failure
-LibTest/isolate/Isolate/spawn_A06_t07: RuntimeError # Please triage this failure
+LibTest/isolate/Isolate/spawn_A06_t07: Fail # Please triage this failure
 LibTest/isolate/RawReceivePort/close_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in jsshell
