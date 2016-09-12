@@ -193,6 +193,7 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
+*: Skip # Issue 27294
 LibTest/isolate/*: Skip # Issue #26373
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: Skip # Issue #26373
 

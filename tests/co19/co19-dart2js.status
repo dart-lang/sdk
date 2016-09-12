@@ -540,8 +540,6 @@ Language/Metadata/compilation_t09: Pass # mirrors not supported, fails for the w
 Language/Metadata/compilation_t10: Pass # mirrors not supported, fails for the wrong reason
 Language/Metadata/compilation_t11: Pass # mirrors not supported, fails for the wrong reason
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # please triage
-WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-006_t01: Fail # please triage
-WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-006_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
 
 [ $compiler == dart2js && $fast_startup && $runtime == jsshell ]
@@ -709,6 +707,8 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: Runtime
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/Future.delayed_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/Future.delayed_A03_t01: fail # Issue 7728, timer not supported in jsshell
+LibTest/async/Future/doWhile_A05_t01: RuntimeError # Please triage. May be unsupported timer issue 7728.
+LibTest/async/Future/timeout_A01_t01: RuntimeError # Please triage. May be unsupported timer issue 7728.
 LibTest/async/Future/wait_A01_t07: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Stream/Stream.periodic_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Stream/Stream.periodic_A02_t01: fail # Issue 7728, timer not supported in jsshell
@@ -717,6 +717,10 @@ LibTest/async/Stream/asBroadcastStream_A03_t01: RuntimeError # Issue 7728, timer
 LibTest/async/Stream/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Stream/first_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Stream/first_A02_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/timeout_A01_t01: RuntimeError # Please triage. May be unsupported timer issue 7728.
+LibTest/async/Stream/timeout_A02_t01: RuntimeError # Please triage. May be unsupported timer issue 7728.
+LibTest/async/Stream/timeout_A03_t01: RuntimeError # Please triage. May be unsupported timer issue 7728.
+LibTest/async/Stream/timeout_A04_t01: RuntimeError # Please triage. May be unsupported timer issue 7728.
 LibTest/async/Timer/Timer.periodic_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Timer/Timer.periodic_A02_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Timer/Timer_A01_t01: fail # Issue 7728, timer not supported in jsshell
@@ -741,6 +745,18 @@ LibTest/core/Stopwatch/start_A01_t02: RuntimeError # Please triage this failure
 LibTest/core/Stopwatch/start_A01_t03: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Uri/Uri_A06_t03: Pass, Slow
+LibTest/isolate/Isolate/spawn_A03_t01: Pass # co19 issue 77
+LibTest/isolate/Isolate/spawn_A03_t03: RuntimeError # Please triage this failure
+LibTest/isolate/Isolate/spawn_A03_t04: RuntimeError # Please triage this failure
+LibTest/isolate/Isolate/spawn_A04_t02: RuntimeError # Please triage this failure
+LibTest/isolate/Isolate/spawn_A04_t03: Fail # Please triage this failure
+LibTest/isolate/Isolate/spawn_A04_t04: Fail # please triage
+LibTest/isolate/Isolate/spawn_A04_t05: RuntimeError # Please triage this failure
+LibTest/isolate/Isolate/spawn_A06_t02: Fail # Please triage this failure
+LibTest/isolate/Isolate/spawn_A06_t03: Fail # Please triage this failure
+LibTest/isolate/Isolate/spawn_A06_t04: RuntimeError # Please triage this failure
+LibTest/isolate/Isolate/spawn_A06_t05: RuntimeError # Please triage this failure
+LibTest/isolate/Isolate/spawn_A06_t07: RuntimeError # Please triage this failure
 LibTest/isolate/RawReceivePort/close_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in jsshell
