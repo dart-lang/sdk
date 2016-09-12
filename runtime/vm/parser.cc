@@ -2730,12 +2730,7 @@ AstNode* Parser::ParseInitializer(const Class& cls,
     if (init_expr->EvalConstExpr() != NULL) {
       // If the expression is a compile-time constant, ensure that it
       // is evaluated and canonicalized. See issue 27164.
-      Instance& const_instance = Instance::ZoneHandle(Z);
-      if (!GetCachedConstant(expr_pos, &const_instance)) {
-        const_instance = EvaluateConstExpr(expr_pos, init_expr).raw();
-        CacheConstantValue(expr_pos, const_instance);
-      }
-      init_expr = new(Z) LiteralNode(expr_pos, const_instance);
+      init_expr = FoldConstExpr(expr_pos, init_expr);
     }
   }
   Field& field = Field::ZoneHandle(Z, cls.LookupInstanceField(field_name));
@@ -2812,12 +2807,7 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   } else {
     init_expr = ParseExpr(kAllowConst, kConsumeCascades);
     if (init_expr->EvalConstExpr() != NULL) {
-      Instance& expr_value = Instance::ZoneHandle(Z);
-      if (!GetCachedConstant(expr_pos, &expr_value)) {
-        expr_value = EvaluateConstExpr(expr_pos, init_expr).raw();
-        CacheConstantValue(expr_pos, expr_value);
-      }
-      init_expr = new(Z) LiteralNode(field.token_pos(), expr_value);
+      init_expr = FoldConstExpr(expr_pos, init_expr);
     }
   }
   set_library(saved_library);
@@ -2860,12 +2850,7 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
           TokenPosition expr_pos = TokenPos();
           init_expr = ParseExpr(kAllowConst, kConsumeCascades);
           if (init_expr->EvalConstExpr() != NULL) {
-            Instance& expr_value = Instance::ZoneHandle(Z);
-            if (!GetCachedConstant(expr_pos, &expr_value)) {
-              expr_value = EvaluateConstExpr(expr_pos, init_expr).raw();
-              CacheConstantValue(expr_pos, expr_value);
-            }
-            init_expr = new(Z) LiteralNode(field.token_pos(), expr_value);
+            init_expr = FoldConstExpr(expr_pos, init_expr);
           }
         }
       }
@@ -11033,13 +11018,10 @@ AstNode* Parser::OptimizeBinaryOpNode(TokenPosition op_pos,
   if (binary_op == Token::kIFNULL) {
     // Handle a ?? b.
     if ((lhs->EvalConstExpr() != NULL) && (rhs->EvalConstExpr() != NULL)) {
-      Instance& expr_value = Instance::ZoneHandle(Z);
-      if (!GetCachedConstant(op_pos, &expr_value)) {
-        expr_value = EvaluateConstExpr(lhs->token_pos(), lhs).raw();
-        if (expr_value.IsNull()) {
-          expr_value = EvaluateConstExpr(rhs->token_pos(), rhs).raw();
-        }
-        CacheConstantValue(op_pos, expr_value);
+      Instance& expr_value = Instance::ZoneHandle(Z,
+          EvaluateConstExpr(lhs->token_pos(), lhs).raw());
+      if (expr_value.IsNull()) {
+        expr_value = EvaluateConstExpr(rhs->token_pos(), rhs).raw();
       }
       return new(Z) LiteralNode(op_pos, expr_value);
     }
@@ -11117,8 +11099,7 @@ LiteralNode* Parser::FoldConstExpr(TokenPosition expr_pos, AstNode* expr) {
   if (expr->EvalConstExpr() == NULL) {
     ReportError(expr_pos, "expression is not a valid compile-time constant");
   }
-  return new(Z) LiteralNode(
-      expr_pos, EvaluateConstExpr(expr_pos, expr));
+  return new(Z) LiteralNode(expr_pos, EvaluateConstExpr(expr_pos, expr));
 }
 
 
@@ -11379,10 +11360,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
       return ParseCascades(expr);
     }
     if (require_compiletime_const) {
-      const bool use_cache = !expr->IsLiteralNode();
-      LiteralNode* const_value = FoldConstExpr(expr_pos, expr);
-      if (use_cache) CacheConstantValue(expr_pos, const_value->literal());
-      expr = const_value;
+      expr = FoldConstExpr(expr_pos, expr);
     } else {
       expr = LiteralIfStaticConst(Z, expr);
     }
@@ -12477,6 +12455,7 @@ void Parser::CacheConstantValue(TokenPosition token_pos,
     return;
   }
   InsertCachedConstantValue(script_, token_pos, value);
+  INC_STAT(thread_, num_cached_consts, 1);
 }
 
 
@@ -14480,15 +14459,31 @@ const Instance& Parser::EvaluateConstExpr(TokenPosition expr_pos,
     ASSERT(field.StaticValue() != Object::sentinel().raw());
     ASSERT(field.StaticValue() != Object::transition_sentinel().raw());
     return Instance::ZoneHandle(Z, field.StaticValue());
+  } else if (expr->IsTypeNode()) {
+    AbstractType& type =
+        AbstractType::ZoneHandle(Z, expr->AsTypeNode()->type().raw());
+    ASSERT(type.IsInstantiated() && !type.IsMalformedOrMalbounded());
+    return type;
+  } else if (expr->IsClosureNode()) {
+    const Function& func = expr->AsClosureNode()->function();
+    ASSERT((func.IsImplicitStaticClosureFunction()));
+    Instance& closure = Instance::ZoneHandle(Z, func.ImplicitStaticClosure());
+    closure = TryCanonicalize(closure, expr_pos);
+    return closure;
   } else {
     ASSERT(expr->EvalConstExpr() != NULL);
-    ReturnNode* ret = new(Z) ReturnNode(expr->token_pos(), expr);
+    Instance& value = Instance::ZoneHandle(Z);
+    if (GetCachedConstant(expr_pos, &value)) {
+      return value;
+    }
+    ReturnNode* ret = new(Z) ReturnNode(expr_pos, expr);
     // Compile time constant expressions cannot reference anything from a
     // local scope.
     LocalScope* empty_scope = new(Z) LocalScope(NULL, 0, 0);
-    SequenceNode* seq = new(Z) SequenceNode(expr->token_pos(), empty_scope);
+    SequenceNode* seq = new(Z) SequenceNode(expr_pos, empty_scope);
     seq->Add(ret);
 
+    INC_STAT(thread_, num_execute_const, 1);
     Object& result = Object::Handle(Z, Compiler::ExecuteOnce(seq));
     if (result.IsError()) {
       ReportErrors(Error::Cast(result),
@@ -14496,9 +14491,9 @@ const Instance& Parser::EvaluateConstExpr(TokenPosition expr_pos,
                    "error evaluating constant expression");
     }
     ASSERT(result.IsInstance() || result.IsNull());
-    Instance& value = Instance::ZoneHandle(Z);
     value ^= result.raw();
-    value = TryCanonicalize(value, TokenPos());
+    value = TryCanonicalize(value, expr_pos);
+    CacheConstantValue(expr_pos, value);
     return value;
   }
 }
