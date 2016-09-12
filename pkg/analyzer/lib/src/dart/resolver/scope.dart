@@ -127,10 +127,6 @@ class EnclosedScope extends Scope {
    */
   EnclosedScope(this.enclosingScope);
 
-  @deprecated
-  @override
-  AnalysisErrorListener get errorListener => enclosingScope.errorListener;
-
   @override
   Element internalLookup(
       Identifier identifier, String name, LibraryElement referencingLibrary) {
@@ -363,10 +359,6 @@ class LibraryImportScope extends Scope {
    */
   final LibraryElement _definingLibrary;
 
-  @deprecated
-  @override
-  final AnalysisErrorListener errorListener;
-
   /**
    * A list of the namespaces representing the names that are available in this scope from imported
    * libraries.
@@ -384,7 +376,7 @@ class LibraryImportScope extends Scope {
    * [_definingLibrary]. The error listener is no longer used and should be
    * omitted.
    */
-  LibraryImportScope(this._definingLibrary, [this.errorListener]) {
+  LibraryImportScope(this._definingLibrary) {
     _createImportedNamespaces();
   }
 
@@ -569,9 +561,8 @@ class LibraryScope extends EnclosedScope {
    * [definingLibrary]. The error listener is no longer used and should be
    * omitted.
    */
-  LibraryScope(LibraryElement definingLibrary,
-      [@deprecated AnalysisErrorListener errorListener])
-      : super(new LibraryImportScope(definingLibrary, errorListener)) {
+  LibraryScope(LibraryElement definingLibrary)
+      : super(new LibraryImportScope(definingLibrary)) {
     _defineTopLevelNames(definingLibrary);
   }
 
@@ -985,12 +976,6 @@ abstract class Scope {
    * Return the scope in which this scope is lexically enclosed.
    */
   Scope get enclosingScope => null;
-
-  /**
-   * Return the listener that is to be informed when an error is encountered.
-   */
-  @deprecated
-  AnalysisErrorListener get errorListener;
 
   /**
    * Add the given [element] to this scope. If there is already an element with
