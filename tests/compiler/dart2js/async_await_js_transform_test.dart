@@ -77,13 +77,13 @@ r"""function() async {
           v3 = 2;
           P.print(v0[v1].call$2(v2, v3));
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }"""
   )  /// 01: ok
   ;
@@ -110,13 +110,13 @@ function(a) {
         case 2:
           // returning from await.
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -234,13 +234,13 @@ function(b) {
             break;
           case 1:
             // return
-            return thenHelper(__returnValue, 0, __completer, null);
+            return thenHelper(__returnValue, 0, __completer);
           case 2:
             // rethrow
             return thenHelper(__currentError, 1, __completer);
         }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -289,13 +289,13 @@ function(c) {
           // returning from await.
           f = --__temp1[__result];
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -422,13 +422,13 @@ function(d2) {
           g = __result;
           h = foo1() && foo2();
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -516,13 +516,13 @@ function(x, y) {
         case 3:
           // after while
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -577,13 +577,13 @@ function(f) {
         case 4:
           // after do
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -667,13 +667,13 @@ function(g) {
           // after for
         case 1:
           // return
-          return thenHelper(__returnValue, 0, __completer, null);
+          return thenHelper(__returnValue, 0, __completer);
         case 2:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -742,13 +742,13 @@ function(a, h) {
           // returning from await.
           __temp1[__temp2] = __result;
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -859,13 +859,13 @@ function(c, i) {
         case 5:
           // after finally
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -925,13 +925,13 @@ function(x, y, j) {
           // returning from await.
           __temp1(__temp2(__temp3, __result, z));
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -1065,13 +1065,13 @@ function(x, y, k) {
           // after while
         case 1:
           // return
-          return thenHelper(__returnValue, 0, __completer, null);
+          return thenHelper(__returnValue, 0, __completer);
         case 2:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -1114,13 +1114,13 @@ function(l) {
               break;
           }
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testAsyncTransform("""
@@ -1193,13 +1193,13 @@ function(m) {
           // after finally
           print(exception);
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
   testSyncStarTransform("""
