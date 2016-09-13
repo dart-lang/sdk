@@ -238,7 +238,19 @@ main(List<String> args) {
   String interfaceAllTargetsPerSecond =
       perSecond(interfaceAllTargetsTime, numQueryTrials);
 
+  watch.reset();
   var classHierarchy = getClassHierarchy();
+  int numberOfOverridePairs = 0;
+  for (var class_ in classHierarchy.classes) {
+    classHierarchy.forEachOverridePair(class_, (member, supermember, isSetter) {
+      ++numberOfOverridePairs;
+    });
+  }
+  int overrideTime = watch.elapsedMicroseconds;
+
+  String overridePairsPerSecond =
+      perSecond(overrideTime, numberOfOverridePairs);
+
   List<int> depth = new List(classHierarchy.classes.length);
   for (int i = 0; i < depth.length; ++i) {
     int parentDepth = 0;
@@ -284,6 +296,8 @@ depth.histogram: ${depthHistogram.skip(1).join(' ')}
 depth.average: $averageDepth
 depth.median:  $medianDepth
 depth.total:   $totalDepth
+overrides.total:   $numberOfOverridePairs
+overrides.iterate: ${overrideTime ~/ 1000} ms ($overridePairsPerSecond)
 ''');
 }
 

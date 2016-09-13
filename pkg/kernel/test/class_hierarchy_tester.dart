@@ -119,6 +119,30 @@ void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
       stdout.write('\rInterface queries ${100 * progress ~/ total}%');
     }
   }
+  for (var classNode in classHierarchy.classes) {
+    String getHash(member, superMember, setter) {
+      String eq = setter ? '=' : '';
+      return '$member$eq overrides $superMember$eq';
+    }
+    Set<String> expectedOverrides = new Set<String>();
+    basic.forEachOverridePair(classNode, (member, superMember, setter) {
+      expectedOverrides.add(getHash(member, superMember, setter));
+    });
+    Set<String> actualOverrides = new Set<String>();
+    classHierarchy.forEachOverridePair(classNode, (member, superMember, setter) {
+      actualOverrides.add(getHash(member, superMember, setter));
+    });
+    for (var actual in actualOverrides) {
+      if (!expectedOverrides.contains(actual)) {
+        fail("forEachOverridePair($classNode) should not report that $actual");
+      }
+    }
+    for (var expected in expectedOverrides) {
+      if (!actualOverrides.contains(expected)) {
+        fail("forEachOverridePair($classNode) did not report that $expected");
+      }
+    }
+  }
   if (verbose) {
     print('\rProgress 100%. Done.');
   }

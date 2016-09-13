@@ -465,6 +465,15 @@ abstract class Member extends TreeNode {
   /// Returns true if this is an abstract procedure.
   bool get isAbstract => false;
 
+  /// True if this is a field or non-setter procedure.
+  ///
+  /// Note that operators and factories return `true`, even though there are
+  /// normally no calls to their getter.
+  bool get hasGetter;
+
+  /// True if this is a setter or a mutable field.
+  bool get hasSetter;
+
   /// True if this is a non-static field or procedure.
   bool get isInstanceMember;
 
@@ -543,6 +552,8 @@ class Field extends Member {
   /// True if the field is neither final nor const.
   bool get isMutable => flags & (FlagFinal | FlagConst) == 0;
   bool get isInstanceMember => !isStatic;
+  bool get hasGetter => true;
+  bool get hasSetter => isMutable;
 
   bool get isExternal => false;
   void set isExternal(bool value) {
@@ -618,6 +629,8 @@ class Constructor extends Member {
   }
 
   bool get isInstanceMember => false;
+  bool get hasGetter => false;
+  bool get hasSetter => false;
 
   accept(MemberVisitor v) => v.visitConstructor(this);
 
@@ -715,6 +728,8 @@ class Procedure extends Member {
   bool get isGetter => kind == ProcedureKind.Getter;
   bool get isSetter => kind == ProcedureKind.Setter;
   bool get isAccessor => isGetter || isSetter;
+  bool get hasGetter => kind != ProcedureKind.Setter;
+  bool get hasSetter => kind == ProcedureKind.Setter;
 
   accept(MemberVisitor v) => v.visitProcedure(this);
 

@@ -138,6 +138,93 @@ class ClassHierarchy {
     return _buildInterfaceMembers(class_, _infoFor[class_], setters: setters);
   }
 
+  /// Invokes [callback] for every member declared in or inherited by [class_]
+  /// that overrides or implements a member in a supertype of [class_]
+  /// (or in rare cases, overrides a member declared in [class_]).
+  ///
+  /// We use the term "inheritable" for members that are candidates for
+  /// inheritance but may have been overridden.  The "declared" members of a
+  /// mixin application are those declared in the mixed-in type. The callback is
+  /// invoked in the following cases:
+  ///
+  /// 1. A member declared in the class overrides a member inheritable through
+  /// one of the supertypes of the class.
+  ///
+  /// 2. A non-abstract member is inherited from a superclass, and in the
+  /// context of this class, it overrides an abstract member inheritable through
+  /// one of its superinterfaces.
+  ///
+  /// 3. A non-abstract member is inherited from a superclass, and it overrides
+  /// an abstract member declared in this class.
+  ///
+  /// This method will not report that a member overrides itself. A given pair
+  /// may be reported multiple times when there are multiple inheritance paths
+  /// to the overridden member.
+  ///
+  /// It is possible for two methods to override one another in both directions.
+  ///
+  /// Getters and setters are overridden separately.  The [isSetter] callback
+  /// parameter determines which type of access is being overridden.
+  void forEachOverridePair(Class class_,
+      callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
+    _ClassInfo info = _infoFor[class_];
+    for (var supertype in class_.supers) {
+      var superclass = supertype.classNode;
+      var superGetters = getInterfaceMembers(superclass);
+      var superSetters = getInterfaceMembers(superclass, setters: true);
+      _reportOverrides(info.implementedGettersAndCalls, superGetters, callback);
+      _reportOverrides(info.declaredGettersAndCalls, superGetters, callback,
+          onlyAbstract: true);
+      _reportOverrides(info.implementedSetters, superSetters, callback,
+          isSetter: true);
+      _reportOverrides(info.declaredSetters, superSetters, callback,
+          isSetter: true, onlyAbstract: true);
+    }
+    if (!class_.isAbstract) {
+      // If a non-abstract class declares an abstract method M whose
+      // implementation M' is inherited from the superclass, then the inherited
+      // method M' overrides the declared method M.
+      // This flies in the face of conventional override logic, but is necessary
+      // because an instance of the class will contain the method M' which can
+      // be invoked through the interface of M.
+      // Note that [_reportOverrides] does not report self-overrides, so in
+      // most cases these calls will just scan both lists and report nothing.
+      _reportOverrides(info.implementedGettersAndCalls,
+          info.declaredGettersAndCalls, callback);
+      _reportOverrides(info.implementedSetters, info.declaredSetters, callback,
+          isSetter: true);
+    }
+  }
+
+  static void _reportOverrides(
+      List<Member> declaredList,
+      List<Member> inheritedList,
+      callback(Member declaredMember, Member interfaceMember, bool isSetter),
+      {bool isSetter: false,
+      bool onlyAbstract: false}) {
+    int i = 0, j = 0;
+    while (i < declaredList.length && j < inheritedList.length) {
+      Member declared = declaredList[i];
+      if (onlyAbstract && !declared.isAbstract) {
+        ++i;
+        continue;
+      }
+      Member inherited = inheritedList[j];
+      int comparison = _compareMembers(declared, inherited);
+      if (comparison < 0) {
+        ++i;
+      } else if (comparison > 0) {
+        ++j;
+      } else {
+        ++i;
+        ++j;
+        if (!identical(declared, inherited)) {
+          callback(declared, inherited, isSetter);
+        }
+      }
+    }
+  }
+
   ClassHierarchy._internal(Program program, int numberOfClasses)
       : classes = new List<Class>(numberOfClasses) {
     // Build the class ordering based on a topological sort.
@@ -210,7 +297,7 @@ class ClassHierarchy {
       var members = info.declaredGettersAndCalls = <Member>[];
       var setters = info.declaredSetters = <Member>[];
       for (Procedure procedure in classNode.procedures) {
-        if (procedure.isStatic || procedure.isAbstract) continue;
+        if (procedure.isStatic) continue;
         if (procedure.kind == ProcedureKind.Setter) {
           setters.add(procedure);
         } else {
@@ -239,10 +326,12 @@ class ClassHierarchy {
       inheritedMembers = superInfo.implementedGettersAndCalls;
       inheritedSetters = superInfo.implementedSetters;
     }
-    info.implementedGettersAndCalls =
-        _inheritMembers(info.declaredGettersAndCalls, inheritedMembers);
-    info.implementedSetters =
-        _inheritMembers(info.declaredSetters, inheritedSetters);
+    info.implementedGettersAndCalls = _inheritMembers(
+        info.declaredGettersAndCalls, inheritedMembers,
+        skipAbstractMembers: true);
+    info.implementedSetters = _inheritMembers(
+        info.declaredSetters, inheritedSetters,
+        skipAbstractMembers: true);
   }
 
   List<Member> _buildInterfaceMembers(Class classNode, _ClassInfo info,
@@ -264,8 +353,9 @@ class ClassHierarchy {
     members.sort(_compareMembers);
     void inheritFrom(InterfaceType type) {
       if (type == null) return;
-      List<Member> inherited = _buildInterfaceMembers(type.classNode,
-          _infoFor[type.classNode], setters: setters);
+      List<Member> inherited = _buildInterfaceMembers(
+          type.classNode, _infoFor[type.classNode],
+          setters: setters);
       members = _inheritMembers(members, inherited);
     }
     inheritFrom(classNode.supertype);
@@ -283,7 +373,8 @@ class ClassHierarchy {
   /// members and inherited instance members.
   ///
   /// Both lists must be sorted by name beforehand.
-  List<Member> _inheritMembers(List<Member> declared, List<Member> inherited) {
+  List<Member> _inheritMembers(List<Member> declared, List<Member> inherited,
+      {bool skipAbstractMembers: false}) {
     List<Member> result = <Member>[]
       ..length = declared.length + inherited.length;
     // Since both lists are sorted, we can fuse them like in merge sort.
@@ -292,6 +383,14 @@ class ClassHierarchy {
     while (i < declared.length && j < inherited.length) {
       Member declaredMember = declared[i];
       Member inheritedMember = inherited[j];
+      if (skipAbstractMembers && declaredMember.isAbstract) {
+        ++i;
+        continue;
+      }
+      if (skipAbstractMembers && inheritedMember.isAbstract) {
+        ++j;
+        continue;
+      }
       int comparison = _compareMembers(declaredMember, inheritedMember);
       if (comparison < 0) {
         result[storeIndex++] = declaredMember;

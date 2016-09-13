@@ -37,6 +37,56 @@ class BasicClassHierarchy implements ClassHierarchy {
     }
   }
 
+  void forEachOverridePair(
+      Class class_, callback(Member member, Member superMember, bool setter)) {
+    void report(Member member, Member superMember, bool setter) {
+      if (!identical(member, superMember)) {
+        callback(member, superMember, setter);
+      }
+    }
+    // Report declared members overriding inheritable members.
+    for (var member in class_.mixin.members) {
+      for (var supertype in class_.supers) {
+        if (member.hasGetter) {
+          var superMember =
+              getInterfaceMember(supertype.classNode, member.name);
+          if (superMember != null) {
+            report(member, superMember, false);
+          }
+        }
+        if (member.hasSetter) {
+          var superMember = getInterfaceMember(supertype.classNode, member.name,
+              setter: true);
+          if (superMember != null) {
+            report(member, superMember, true);
+          }
+        }
+      }
+    }
+    // Report inherited non-abstract members overriding inheritable or
+    // declared members.
+    for (var setter in [true, false]) {
+      for (var member in getDispatchTargets(class_, setters: setter)) {
+        // Report overriding inheritable members.
+        for (var supertype in class_.supers) {
+          var supermember = getInterfaceMember(supertype.classNode, member.name,
+              setter: setter);
+          if (supermember != null) {
+            report(member, supermember, setter);
+          }
+        }
+        // Report overriding declared abstract members.
+        if (!class_.isAbstract && member.enclosingClass != class_.mixin) {
+          var declaredMember =
+              getInterfaceMember(class_, member.name, setter: setter);
+          if (declaredMember != null) {
+            report(member, declaredMember, setter);
+          }
+        }
+      }
+    }
+  }
+
   void buildSuperTypeSets(Class node) {
     if (superclasses.containsKey(node)) return;
     superclasses[node] = new Set<Class>()..add(node);
