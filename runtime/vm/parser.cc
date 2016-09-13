@@ -2032,15 +2032,19 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     if (!IsIdentifier()) {
       ReportError("parameter name or type expected");
     }
-    // We have not seen a parameter type yet, so we check if the next
-    // identifier could represent a type before parsing it.
-    Token::Kind follower = LookaheadToken(1);
-    // We have an identifier followed by a 'follower' token.
-    // We either parse a type or assume that no type is specified.
-    if ((follower == Token::kLT) ||  // Parameterized type.
-        (follower == Token::kPERIOD) ||  // Qualified class name of type.
-        Token::IsIdentifier(follower) ||  // Parameter name following a type.
-        (follower == Token::kTHIS)) {  // Field parameter following a type.
+
+    // Lookahead to determine whether the next tokens are a return type
+    // followed by a parameter name.
+    bool found_type = false;
+    {
+      TokenPosScope saved_pos(this);
+      if (TryParseReturnType()) {
+        if (IsIdentifier() || (CurrentToken() == Token::kTHIS)) {
+          found_type = true;
+        }
+      }
+    }
+    if (found_type) {
       // The types of formal parameters are never ignored, even in unchecked
       // mode, because they are part of the function type of closurized
       // functions appearing in type tests with typedefs.
