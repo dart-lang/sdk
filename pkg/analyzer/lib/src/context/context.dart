@@ -1888,20 +1888,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               .firstWhere((unit) => unit != null, orElse: () => null);
           // If we have the old unit, we can try to update it.
           if (oldUnit != null) {
-            CompilationUnit newUnit = parseCompilationUnit(source);
-            IncrementalCompilationUnitElementBuilder builder =
-                new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
-            builder.build();
-            CompilationUnitElementDelta unitDelta = builder.unitDelta;
-            if (!unitDelta.hasDirectiveChange) {
-              unitEntry.setValueIncremental(
-                  COMPILATION_UNIT_CONSTANTS, builder.unitConstants, false);
-              DartDelta dartDelta = new DartDelta(source);
-              unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
-              unitDelta.removedDeclarations.forEach(dartDelta.elementChanged);
-              unitDelta.classDeltas.values.forEach(dartDelta.classChanged);
-              entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
-              return;
+            // Safely parse the source.
+            CompilationUnit newUnit;
+            try {
+              newUnit = parseCompilationUnit(source);
+            } catch (_) {
+              // The source might have been removed by this time.
+              // We cannot perform incremental invalidation.
+            }
+            // If the new unit was parsed successfully, continue.
+            if (newUnit != null) {
+              IncrementalCompilationUnitElementBuilder builder =
+                  new IncrementalCompilationUnitElementBuilder(
+                      oldUnit, newUnit);
+              builder.build();
+              CompilationUnitElementDelta unitDelta = builder.unitDelta;
+              if (!unitDelta.hasDirectiveChange) {
+                unitEntry.setValueIncremental(
+                    COMPILATION_UNIT_CONSTANTS, builder.unitConstants, false);
+                DartDelta dartDelta = new DartDelta(source);
+                unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
+                unitDelta.removedDeclarations.forEach(dartDelta.elementChanged);
+                unitDelta.classDeltas.values.forEach(dartDelta.classChanged);
+                entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
+                return;
+              }
             }
           }
         }

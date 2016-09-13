@@ -2878,6 +2878,34 @@ class LimitedInvalidateTest extends AbstractContextTest {
     context.analysisOptions = options;
   }
 
+  void test_applyChanges_changedSource_removeFile() {
+    File file = resourceProvider.newFile('/test.dart', 'main() {}');
+    Source source = file.createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    // Analyze all.
+    _performPendingAnalysisTasks();
+    expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
+    // Delete the file, but tell the context that it is changed.
+    // This might happen as a race condition.
+    // Or it might be a mishandling of file notification events.
+    file.delete();
+    context.applyChanges(new ChangeSet()..changedSource(source));
+    // All the analysis results are gone.
+    void noResolvedUnits() {
+      LibrarySpecificUnit unit = new LibrarySpecificUnit(source, source);
+      RESOLVED_UNIT_RESULTS.forEach((result) {
+        expect(context.getResult(unit, result), isNull);
+      });
+    }
+
+    noResolvedUnits();
+    // Analyze again.
+    // The source does not exist, so still no resolution.
+    _performPendingAnalysisTasks();
+    noResolvedUnits();
+    expect(context.getModificationStamp(source), -1);
+  }
+
   void test_class_addMethod_useAsHole_inTopLevelVariable() {
     Source a = addSource(
         '/a.dart',
