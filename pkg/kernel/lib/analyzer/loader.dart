@@ -350,6 +350,14 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     });
   }
 
+  String formatErrorMessage(
+      AnalysisError error, String filename, LineInfo lines) {
+    var location = lines.getLocation(error.offset);
+    return '[error] ${error.message} ($filename, '
+        'line ${location.lineNumber}, '
+        'col ${location.columnNumber})';
+  }
+
   void ensureLibraryIsLoaded(ast.Library node) {
     if (node.isLoaded) return;
     var source = context.sourceFactory.forUri2(node.importUri);
@@ -358,6 +366,7 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     context.resolveCompilationUnit(source, element);
     _buildLibraryBody(element, node);
     for (var unit in element.units) {
+      LineInfo lines;
       for (var error in context.computeErrors(unit.source)) {
         if (error.errorCode is CompileTimeErrorCode ||
             error.errorCode is ParserErrorCode ||
@@ -368,7 +377,8 @@ class AnalyzerLoader implements ReferenceLevelLoader {
             // Ignore warnings about 'const' factories in the patched SDK.
             continue;
           }
-          errors.add(error);
+          lines ??= context.computeLineInfo(source);
+          errors.add(formatErrorMessage(error, source.shortName, lines));
         }
       }
     }
