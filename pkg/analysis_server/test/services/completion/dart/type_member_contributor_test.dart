@@ -2992,9 +2992,9 @@ void main() {new C().^}''');
 
   test_MethodInvocation_no_semicolon() async {
     // MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
+    addTestSource(r'''
         main() { }
-        class I {X get f => new A();get _g => new A();}
+        class I {X get f => new A();get _g => new A(); F $p; void $q(){}}
         class A implements I {
           var b; X _c;
           X get d => new A();get _e => new A();
@@ -3007,6 +3007,8 @@ void main() {new C().^}''');
     expect(replacementLength, 0);
     assertSuggestGetter('f', 'X');
     assertSuggestGetter('_g', null);
+    assertSuggestField(r'$p', 'dynamic', relevance: DART_RELEVANCE_LOW);
+    assertSuggestMethod(r'$q', 'I', 'void', relevance: DART_RELEVANCE_LOW);
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('d');
