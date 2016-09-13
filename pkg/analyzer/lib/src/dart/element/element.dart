@@ -5700,13 +5700,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  List<LibraryElement> get visibleLibraries {
-    HashSet<LibraryElement> visibleLibraries = new HashSet<LibraryElement>();
-    _addVisibleLibraries(visibleLibraries, false);
-    return visibleLibraries.toList(growable: false);
-  }
-
-  @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
 
   /**
@@ -5839,36 +5832,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     safelyVisitChildren(exports, visitor);
     safelyVisitChildren(imports, visitor);
     safelyVisitChildren(_parts, visitor);
-  }
-
-  /**
-   * Recursively fills set of visible libraries for
-   * [getVisibleElementsLibraries].
-   */
-  void _addVisibleLibraries(
-      Set<LibraryElement> visibleLibraries, bool includeExports) {
-    // maybe already processed
-    if (!visibleLibraries.add(this)) {
-      return;
-    }
-    // add imported libraries
-    for (ImportElement importElement in imports) {
-      LibraryElement importedLibrary = importElement.importedLibrary;
-      if (importedLibrary != null) {
-        (importedLibrary as LibraryElementImpl)
-            ._addVisibleLibraries(visibleLibraries, true);
-      }
-    }
-    // add exported libraries
-    if (includeExports) {
-      for (ExportElement exportElement in exports) {
-        LibraryElement exportedLibrary = exportElement.exportedLibrary;
-        if (exportedLibrary != null) {
-          (exportedLibrary as LibraryElementImpl)
-              ._addVisibleLibraries(visibleLibraries, true);
-        }
-      }
-    }
   }
 
   /**

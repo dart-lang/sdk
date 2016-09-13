@@ -2494,9 +2494,6 @@ class ClassTwo {
     LibraryElement library = compilationUnit.element.library;
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
-    List<LibraryElement> visibleLibraries = library.visibleLibraries;
-    assertNamedElements(visibleLibraries,
-        ["dart.core", "dart.async", "dart.math", "libA", "libB"]);
   }
 
   void test_resolveCompilationUnit_import_relative_cyclic() {
@@ -2509,9 +2506,6 @@ class ClassTwo {
     LibraryElement library = compilationUnit.element.library;
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
-    List<LibraryElement> visibleLibraries = library.visibleLibraries;
-    assertNamedElements(visibleLibraries,
-        ["dart.core", "dart.async", "dart.math", "libA", "libB"]);
   }
 
 //  void test_resolveCompilationUnit_sourceChangeDuringResolution() {

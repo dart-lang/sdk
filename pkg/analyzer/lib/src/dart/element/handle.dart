@@ -808,9 +808,6 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   List<CompilationUnitElement> get units => actualElement.units;
 
   @override
-  List<LibraryElement> get visibleLibraries => actualElement.visibleLibraries;
-
-  @override
   List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) =>
       actualElement.getImportsWithPrefix(prefixElement);
 

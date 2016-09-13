@@ -1482,11 +1482,6 @@ abstract class LibraryElement implements Element {
   List<CompilationUnitElement> get units;
 
   /**
-   * Return a list containing all directly and indirectly imported libraries.
-   */
-  List<LibraryElement> get visibleLibraries;
-
-  /**
    * Return a list containing all of the imports that share the given [prefix],
    * or an empty array if there are no such imports.
    */
