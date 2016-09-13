@@ -109,6 +109,8 @@ const char* kBugs[] = {
   "DirectoryCreateDelete",
   // Needs rename
   "DirectoryRename",
+  // Needs read of RSS.
+  "InitialRSS",
 };
 
 
@@ -167,6 +169,8 @@ static mx_status_t lp_setup(launchpad_t** lp_out, mx_handle_t binary_vmo,
   status = launchpad_add_pipe(lp, stdout_out, 1);
   RETURN_IF_ERROR(status);
   status = launchpad_add_pipe(lp, stderr_out, 2);
+  RETURN_IF_ERROR(status);
+  status = launchpad_add_vdso_vmo(lp);
   RETURN_IF_ERROR(status);
   status = launchpad_elf_load(lp, binary_vmo);
   RETURN_IF_ERROR(status);
