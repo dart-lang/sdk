@@ -65,6 +65,7 @@ vm/reflect_core_vm_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $fast_startup && $checked ]
 generic_local_functions_test: Fail # reified type for generic function not generated correctly
+generic_methods_generic_function_parameter_test: Fail # reified type for generic function not generated correctly
 
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
@@ -84,6 +85,7 @@ generic_sends_test: CompileTimeError # DartOptions not passed to compiler.
 generic_methods_new_test: CompiletimeError # DartOptions not passed to compiler.
 generic_methods_function_type_test: CompiletimeError # DartOptions not passed to compiler.
 generic_methods_type_expression_test: CompiletimeError # DartOptions not passed to compiler.
+generic_methods_generic_function_parameter_test: CompiletimeError # DartOptions not passed to compiler.
 
 # Experimental feature: Use initializing formals in initializers and constructor body.
 initializing_formal_access_test: CompiletimeError # DartOptions not passed to compiler.
