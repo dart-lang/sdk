@@ -3901,6 +3901,9 @@ class ParameterElementForLink implements ParameterElementImpl {
   DartType _inferredType;
   DartType _declaredType;
 
+  @override
+  bool inheritsCovariant = false;
+
   ParameterElementForLink(this.enclosingElement, this._unlinkedParam,
       this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
     if (_unlinkedParam.initializer?.bodyExpr != null) {
@@ -3914,6 +3917,9 @@ class ParameterElementForLink implements ParameterElementImpl {
   @override
   bool get hasImplicitType =>
       !_unlinkedParam.isFunctionTyped && _unlinkedParam.type == null;
+
+  @override
+  bool get isCovariant => false;
 
   @override
   String get name => _unlinkedParam.name;

@@ -233,6 +233,9 @@ class FieldFormalParameterMember extends ParameterMember
       : super(baseElement, definingType, type);
 
   @override
+  bool get isCovariant => baseElement.isCovariant;
+
+  @override
   FieldElement get field {
     FieldElement field = (baseElement as FieldFormalParameterElement).field;
     if (field is FieldElement) {
@@ -673,6 +676,9 @@ class ParameterMember extends VariableMember
 
   @override
   int get hashCode => baseElement.hashCode;
+
+  @override
+  bool get isCovariant => baseElement.isCovariant;
 
   @override
   bool get isInitializingFormal => baseElement.isInitializingFormal;

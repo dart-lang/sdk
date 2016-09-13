@@ -1613,6 +1613,12 @@ abstract class ParameterElement
   String get defaultValueCode;
 
   /**
+   * Return `true` if this parameter is covariant, meaning it is allowed to have
+   * a narrower type in an override.
+   */
+  bool get isCovariant;
+
+  /**
    * Return `true` if this parameter is an initializing formal parameter.
    */
   bool get isInitializingFormal;

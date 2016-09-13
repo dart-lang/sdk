@@ -2491,7 +2491,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       DartType expectedStaticType,
       ErrorCode errorCode) {
     // TODO(leafp): Move the Downcast functionality here.
-    // TODO(leafp): Support strict downcasts
     if (!_expressionIsAssignableAtType(
         expression, actualStaticType, expectedStaticType)) {
       _errorReporter.reportTypeErrorForNode(
@@ -5038,10 +5037,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           FunctionType requiredMemberFT = _inheritanceManager
               .substituteTypeArgumentsInMemberFromInheritance(
                   requiredMemberType, memberName, enclosingType);
-          foundConcreteFT =
-              _typeSystem.typeToConcreteType(_typeProvider, foundConcreteFT);
-          requiredMemberFT =
-              _typeSystem.typeToConcreteType(_typeProvider, requiredMemberFT);
+          foundConcreteFT = _typeSystem.functionTypeToConcreteType(
+              _typeProvider, foundConcreteFT);
+          requiredMemberFT = _typeSystem.functionTypeToConcreteType(
+              _typeProvider, requiredMemberFT);
           if (_typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
             continue;
           }
@@ -6229,11 +6228,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _expressionIsAssignableAtType(Expression expression,
       DartType actualStaticType, DartType expectedStaticType) {
     bool concrete = _options.strongMode && checker.isKnownFunction(expression);
-    if (concrete) {
-      actualStaticType =
-          _typeSystem.typeToConcreteType(_typeProvider, actualStaticType);
+    if (concrete && actualStaticType is FunctionType) {
+      actualStaticType = _typeSystem.functionTypeToConcreteType(
+          _typeProvider, actualStaticType);
       // TODO(leafp): Move the Downcast functionality here.
-      // TODO(leafp): Support strict downcasts
     }
     return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType);
   }

@@ -499,6 +499,112 @@ void main() {
 ''');
   }
 
+  void test_covariantOverride() {
+    addFile(r'''
+library meta;
+class _Checked { const _Checked(); }
+const Object checked = const _Checked();
+    ''', name: '/meta.dart');
+
+    checkFile(r'''
+import 'meta.dart';
+class C {
+  num f(num x) => x;
+}
+class D extends C {
+  int f(@checked int x) => x;
+}
+class E extends D {
+  int f(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
+}
+class F extends E {
+  int f(@checked int x) => x;
+}
+class G extends E implements D {}
+
+class D_error extends C {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(int x) => x;
+}
+class E_error extends D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(@checked double x) => 0;
+}
+class F_error extends E {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(@checked double x) => 0;
+}
+class G_error extends E implements D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(@checked double x) => 0;
+}
+    ''');
+  }
+
+  void test_covariantOverride_leastUpperBound() {
+    addFile(r'''
+library meta;
+class _Checked { const _Checked(); }
+const Object checked = const _Checked();
+    ''', name: '/meta.dart');
+
+    checkFile(r'''
+import "meta.dart";
+abstract class Top {}
+abstract class Left implements Top {}
+abstract class Right implements Top {}
+abstract class Bottom implements Left, Right {}
+
+abstract class TakesLeft {
+  m(Left x);
+}
+abstract class TakesRight {
+  m(Right x);
+}
+abstract class TakesTop implements TakesLeft, TakesRight {
+  m(Top x); // works today
+}
+abstract class TakesBottom implements TakesLeft, TakesRight {
+  // LUB(Left, Right) == Top, so this is an implicit cast from Top to Bottom.
+  m(@checked Bottom x);
+}
+    ''');
+  }
+
+  void test_covariantOverride_markerIsInherited() {
+    addFile(r'''
+library meta;
+class _Checked { const _Checked(); }
+const Object checked = const _Checked();
+    ''', name: '/meta.dart');
+
+    checkFile(r'''
+import 'meta.dart';
+class C {
+  num f(@checked num x) => x;
+}
+class D extends C {
+  int f(int x) => x;
+}
+class E extends D {
+  int f(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
+}
+class F extends E {
+  int f(int x) => x;
+}
+class G extends E implements D {}
+
+class D_error extends C {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(String x) => 0;
+}
+class E_error extends D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(double x) => 0;
+}
+class F_error extends E {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(double x) => 0;
+}
+class G_error extends E implements D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(double x) => 0;
+}
+    ''');
+  }
+
   void test_dynamicInvocation() {
     checkFile('''
 typedef dynamic A(dynamic x);

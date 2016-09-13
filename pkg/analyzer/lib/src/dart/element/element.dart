@@ -2441,6 +2441,12 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
  */
 class ElementAnnotationImpl implements ElementAnnotation {
   /**
+   * The name of the top-level variable used to mark a method parameter as
+   * covariant.
+   */
+  static String _COVARIANT_VARIABLE_NAME = "checked";
+
+  /**
    * The name of the class used to mark an element as being deprecated.
    */
   static String _DEPRECATED_CLASS_NAME = "Deprecated";
@@ -2542,6 +2548,15 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   AnalysisContext get context => compilationUnit.library.context;
+
+  /**
+   * Return `true` if this annotation marks the associated parameter as being
+   * covariant, meaning it is allowed to have a narrower type in an override.
+   */
+  bool get isCovariant =>
+      element is PropertyAccessorElement &&
+      element.name == _COVARIANT_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isDeprecated {
@@ -6753,6 +6768,13 @@ class ParameterElementImpl extends VariableElementImpl
   int _visibleRangeLength = -1;
 
   /**
+   * True if this parameter inherits from a covariant parameter. This happens
+   * when it overrides a method in a supertype that has a corresponding
+   * covariant parameter.
+   */
+  bool inheritsCovariant = false;
+
+  /**
    * Initialize a newly created parameter element to have the given [name] and
    * [nameOffset].
    */
@@ -6904,6 +6926,19 @@ class ParameterElementImpl extends VariableElementImpl
       return false;
     }
     return super.isConst;
+  }
+
+  @override
+  bool get isCovariant {
+    if (inheritsCovariant) {
+      return true;
+    }
+    for (ElementAnnotationImpl annotation in metadata) {
+      if (annotation.isCovariant) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override

@@ -895,6 +895,9 @@ class ParameterElementHandle extends VariableElementHandle
   String get defaultValueCode => actualElement.defaultValueCode;
 
   @override
+  bool get isCovariant => actualElement.isCovariant;
+
+  @override
   bool get isInitializingFormal => actualElement.isInitializingFormal;
 
   @override

@@ -248,12 +248,10 @@ external bool identical(Object a, Object b);
 
 void print(Object object) {}
 
-const proxy = const _Proxy();
 class _Proxy { const _Proxy(); }
+const Object proxy = const _Proxy();
 
-class _Override {
-  const _Override();
-}
+class _Override { const _Override(); }
 const Object override = const _Override();
 ''');
 

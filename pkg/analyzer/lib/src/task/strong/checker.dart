@@ -1121,13 +1121,11 @@ class CodeChecker extends RecursiveAstVisitor {
 /// applications.
 class _OverrideChecker {
   final StrongTypeSystemImpl rules;
-  final TypeProvider _typeProvider;
   final CodeChecker _checker;
 
   _OverrideChecker(CodeChecker checker)
       : _checker = checker,
-        rules = checker.rules,
-        _typeProvider = checker.typeProvider;
+        rules = checker.rules;
 
   void check(ClassDeclaration node) {
     if (node.element.type.isObject) return;
@@ -1409,24 +1407,8 @@ class _OverrideChecker {
         concreteSubType = rules.instantiateToBounds(concreteSubType);
       }
     }
-    concreteSubType =
-        rules.typeToConcreteType(_typeProvider, concreteSubType);
-    concreteBaseType =
-        rules.typeToConcreteType(_typeProvider, concreteBaseType);
 
-    if (!rules.isSubtypeOf(concreteSubType, concreteBaseType)) {
-      // See whether non-subtype cases fit one of our common patterns:
-      //
-      // Common pattern 1: Inferable return type (on getters and methods)
-      //   class A {
-      //     int get foo => ...;
-      //     String toString() { ... }
-      //   }
-      //   class B extends A {
-      //     get foo => e; // no type specified.
-      //     toString() { ... } // no return type specified.
-      //   }
-
+    if (!rules.isOverrideSubtypeOf(concreteSubType, concreteBaseType)) {
       ErrorCode errorCode;
       if (errorLocation is ExtendsClause) {
         errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE;
@@ -1444,7 +1426,12 @@ class _OverrideChecker {
         baseType
       ]);
     }
-    return true;
+
+    // If we have any covariant parameters and we're comparing against a
+    // superclass, we check all superclasses instead of stopping the search.
+    bool hasCovariant = element.parameters.any((p) => p.isCovariant);
+    bool keepSearching = hasCovariant && isSubclass;
+    return !keepSearching;
   }
 
   /// Check overrides between a class and its superclasses and mixins. For

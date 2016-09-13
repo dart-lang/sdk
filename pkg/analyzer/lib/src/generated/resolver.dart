@@ -7334,7 +7334,8 @@ class ResolverVisitor extends ScopedVisitor {
         !FunctionTypeImpl.relate(
             expectedClosureType,
             staticClosureType,
-            (DartType t, DartType s) => (t as TypeImpl).isMoreSpecificThan(s),
+            (DartType t, DartType s, _, __) =>
+                (t as TypeImpl).isMoreSpecificThan(s),
             new TypeSystemImpl().instantiateToBounds,
             returnRelation: (s, t) => true)) {
       return;
