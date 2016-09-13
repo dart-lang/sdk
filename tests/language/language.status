@@ -278,6 +278,8 @@ issue_1751477_test: Crash # Requires deferred libraries
 regress_23408_test: Crash # Requires deferred libraries
 regress_22443_test: Crash # Requires deferred libraries
 tearoff_basic_test: Crash # Requires deferred libraries
+conditional_import_test: Crash # Requires deferred libraries
+conditional_import_string_test: Crash # Requires deferred libraries
 
 [$runtime != vm || $compiler != none]
 assert_initializer_test: SKIP  # not implemented yet, experiment is VM only.
