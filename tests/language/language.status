@@ -46,6 +46,7 @@ async_star_cancel_while_paused_test: RuntimeError
 
 # Experimental feature: Syntactic support for generic methods.
 generic_methods_type_expression_test: RuntimeError # Issue 25869
+generic_methods_generic_function_parameter_test: CompileTimeError # Issue #27299
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $checked ]
 # The generic functions tests fail in checked mode because the parsed type parameters
