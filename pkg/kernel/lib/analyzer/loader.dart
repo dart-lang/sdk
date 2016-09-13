@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 
 abstract class ReferenceLevelLoader {
   ast.Library getLibraryReference(LibraryElement element);
@@ -359,7 +360,9 @@ class AnalyzerLoader implements ReferenceLevelLoader {
     for (var unit in element.units) {
       for (var error in context.computeErrors(unit.source)) {
         if (error.errorCode is CompileTimeErrorCode ||
-            error.errorCode is ParserErrorCode) {
+            error.errorCode is ParserErrorCode ||
+            error.errorCode is ScannerErrorCode ||
+            error.errorCode is StrongModeCode) {
           if (error.errorCode == ParserErrorCode.CONST_FACTORY &&
               node.importUri.scheme == 'dart') {
             // Ignore warnings about 'const' factories in the patched SDK.
