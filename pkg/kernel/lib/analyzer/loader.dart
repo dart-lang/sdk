@@ -484,9 +484,10 @@ AnalysisOptions createAnalysisOptions(bool strongMode) {
   return new AnalysisOptionsImpl()
     ..strongMode = strongMode
     ..enableGenericMethods = strongMode
+    ..generateImplicitErrors = true
+    ..generateSdkErrors = true
     ..preserveComments = false
     ..hint = false
-    ..generateImplicitErrors = false
     ..enableSuperMixins = true;
 }
 

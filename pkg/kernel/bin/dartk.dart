@@ -259,7 +259,12 @@ Future<CompilerOutcome> batchMain(
     }
     errors = loader.errors;
     if (errors.isNotEmpty) {
-      stderr.writeln(errors.take(10).join('\n'));
+      const int errorLimit = 100;
+      stderr.writeln(errors.take(errorLimit).join('\n'));
+      if (errors.length > errorLimit) {
+        stderr
+            .writeln('[error] ${errors.length - errorLimit} errors not shown');
+      }
     }
     getLoadedFiles = () => loadedFiles ??= loader.getLoadedFileNames();
   }
