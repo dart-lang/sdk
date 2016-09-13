@@ -17,6 +17,7 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
+import 'package:observatory/utils.dart';
 
 class VMViewElement extends HtmlElement implements Renderable {
   static const tag = const Tag<VMViewElement>('vm-view',
@@ -152,9 +153,9 @@ class VMViewElement extends HtmlElement implements Renderable {
               new DivElement()..classes = ['memberItem']
                 ..children = [
                   new DivElement()..classes = ['memberName']
-                    ..text = 'maxRSS',
+                    ..text = 'peak memory',
                   new DivElement()..classes = ['memberValue']
-                    ..text = '${_vm.maxRSS}'
+                    ..text = Utils.formatSize(_vm.maxRSS)
                 ],
               new BRElement(),
               new DivElement()..classes = ['memberItem']

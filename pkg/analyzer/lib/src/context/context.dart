@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/plugin/task.dart';
@@ -22,8 +23,6 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
@@ -292,6 +291,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.enableAssertInitializer !=
             options.enableAssertInitializer ||
         this._options.enableAssertMessage != options.enableAssertMessage ||
+        this._options.enableInitializingFormalAccess !=
+            options.enableInitializingFormalAccess ||
         ((options is AnalysisOptionsImpl)
             ? this._options.strongModeHints != options.strongModeHints
             : false) ||
@@ -323,6 +324,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableAssertMessage = options.enableAssertMessage;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableAsync = options.enableAsync;
+    this._options.enableInitializingFormalAccess =
+        options.enableInitializingFormalAccess;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
     this._options.hint = options.hint;
@@ -654,9 +657,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _contentRangeChanged(source, change.contents, change.offset,
           change.oldLength, change.newLength);
     });
-    for (Source source in changeSet.deletedSources) {
-      _sourceDeleted(source);
-    }
     for (Source source in removedSources) {
       _sourceRemoved(source);
     }
@@ -1888,20 +1888,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               .firstWhere((unit) => unit != null, orElse: () => null);
           // If we have the old unit, we can try to update it.
           if (oldUnit != null) {
-            CompilationUnit newUnit = parseCompilationUnit(source);
-            IncrementalCompilationUnitElementBuilder builder =
-                new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
-            builder.build();
-            CompilationUnitElementDelta unitDelta = builder.unitDelta;
-            if (!unitDelta.hasDirectiveChange) {
-              unitEntry.setValueIncremental(
-                  COMPILATION_UNIT_CONSTANTS, builder.unitConstants, false);
-              DartDelta dartDelta = new DartDelta(source);
-              unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
-              unitDelta.removedDeclarations.forEach(dartDelta.elementChanged);
-              unitDelta.classDeltas.values.forEach(dartDelta.classChanged);
-              entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
-              return;
+            // Safely parse the source.
+            CompilationUnit newUnit;
+            try {
+              newUnit = parseCompilationUnit(source);
+            } catch (_) {
+              // The source might have been removed by this time.
+              // We cannot perform incremental invalidation.
+            }
+            // If the new unit was parsed successfully, continue.
+            if (newUnit != null) {
+              IncrementalCompilationUnitElementBuilder builder =
+                  new IncrementalCompilationUnitElementBuilder(
+                      oldUnit, newUnit);
+              builder.build();
+              CompilationUnitElementDelta unitDelta = builder.unitDelta;
+              if (!unitDelta.hasDirectiveChange) {
+                unitEntry.setValueIncremental(
+                    COMPILATION_UNIT_CONSTANTS, builder.unitConstants, false);
+                DartDelta dartDelta = new DartDelta(source);
+                unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
+                unitDelta.removedDeclarations.forEach(dartDelta.elementChanged);
+                unitDelta.classDeltas.values.forEach(dartDelta.classChanged);
+                entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
+                return;
+              }
             }
           }
         }
@@ -1914,37 +1925,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       workManager.applyChange(
           Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
     }
-  }
-
-  /**
-   * Record that the give [source] has been deleted.
-   */
-  void _sourceDeleted(Source source) {
-    // TODO(brianwilkerson) Implement or remove this.
-//    SourceEntry sourceEntry = _cache.get(source);
-//    if (sourceEntry is HtmlEntry) {
-//      HtmlEntry htmlEntry = sourceEntry;
-//      htmlEntry.recordContentError(new CaughtException(
-//          new AnalysisException("This source was marked as being deleted"),
-//          null));
-//    } else if (sourceEntry is DartEntry) {
-//      DartEntry dartEntry = sourceEntry;
-//      HashSet<Source> libraries = new HashSet<Source>();
-//      for (Source librarySource in getLibrariesContaining(source)) {
-//        libraries.add(librarySource);
-//        for (Source dependentLibrary
-//            in getLibrariesDependingOn(librarySource)) {
-//          libraries.add(dependentLibrary);
-//        }
-//      }
-//      for (Source librarySource in libraries) {
-//        _invalidateLibraryResolution(librarySource);
-//      }
-//      dartEntry.recordContentError(new CaughtException(
-//          new AnalysisException("This source was marked as being deleted"),
-//          null));
-//    }
-    _removeFromPriorityOrder(source);
   }
 
   /**

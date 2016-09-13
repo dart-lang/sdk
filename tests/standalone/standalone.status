@@ -183,6 +183,7 @@ deferred_transitive_import_error_test: Skip # Contains intentional errors.
 [ $compiler == dart2analyzer ]
 package/package1_test: CompileTimeError
 package/package_test: CompileTimeError
+package/package_isolate_test: CompileTimeError
 package/scenarios/packages_dir_only/packages_dir_only_test: CompileTimeError
 package/scenarios/packages_file_only/packages_file_only_test: CompileTimeError
 package/scenarios/both_dir_and_file/prefers_packages_file_test: CompileTimeError

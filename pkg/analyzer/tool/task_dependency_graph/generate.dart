@@ -31,7 +31,6 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -161,10 +160,12 @@ ${generateGraphData()}
     } else {
       packageRootPath = path.join(rootDir, 'packages');
     }
-    JavaFile packagesDir = new JavaFile(packageRootPath);
+    ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
+    builder.defaultPackagesDirectoryPath = packageRootPath;
     List<UriResolver> uriResolvers = [
       new DartUriResolver(sdk),
-      new PackageUriResolver(<JavaFile>[packagesDir]),
+      new PackageMapUriResolver(resourceProvider,
+          builder.convertPackagesToMap(builder.createPackageMap(''))),
       new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
     ];
     context.sourceFactory = new SourceFactory(uriResolvers);

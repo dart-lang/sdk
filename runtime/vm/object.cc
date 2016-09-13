@@ -4554,7 +4554,7 @@ static uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits) {
   hash += hash << 3;
   hash ^= hash >> 11;  // Logical shift, unsigned hash.
   hash += hash << 15;
-  hash &= ((static_cast<intptr_t>(1) << hashbits) - 1);
+  hash &= ((static_cast<uintptr_t>(1) << hashbits) - 1);
   return (hash == 0) ? 1 : hash;
 }
 

@@ -3842,81 +3842,6 @@ class LibraryElementImplTest extends EngineTestCase {
         unorderedEquals(<CompilationUnitElement>[unitLib, unitA, unitB]));
   }
 
-  void test_getVisibleLibraries_cycle() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    libraryA.imports = <ImportElementImpl>[
-      ElementFactory.importFor(library, null)
-    ];
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null)
-    ];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    expect(libraries, unorderedEquals(<LibraryElement>[library, libraryA]));
-  }
-
-  void test_getVisibleLibraries_directExports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    library.exports = <ExportElementImpl>[ElementFactory.exportFor(libraryA)];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    expect(libraries, unorderedEquals(<LibraryElement>[library]));
-  }
-
-  void test_getVisibleLibraries_directImports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null)
-    ];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    expect(libraries, unorderedEquals(<LibraryElement>[library, libraryA]));
-  }
-
-  void test_getVisibleLibraries_indirectExports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
-    libraryA.exports = <ExportElementImpl>[ElementFactory.exportFor(libraryAA)];
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null)
-    ];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    expect(libraries,
-        unorderedEquals(<LibraryElement>[library, libraryA, libraryAA]));
-  }
-
-  void test_getVisibleLibraries_indirectImports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
-    LibraryElementImpl libraryB = ElementFactory.library(context, "B");
-    libraryA.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryAA, null)
-    ];
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null),
-      ElementFactory.importFor(libraryB, null)
-    ];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    expect(
-        libraries,
-        unorderedEquals(
-            <LibraryElement>[library, libraryA, libraryAA, libraryB]));
-  }
-
-  void test_getVisibleLibraries_noImports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    expect(
-        library.visibleLibraries, unorderedEquals(<LibraryElement>[library]));
-  }
-
   void test_invalidateLibraryCycles_withHandle() {
     AnalysisContext context = createAnalysisContext();
     context.sourceFactory = new SourceFactory([]);
@@ -3933,18 +3858,6 @@ class LibraryElementImplTest extends EngineTestCase {
     library.libraryCycle; // Force computation of the cycle.
 
     library.invalidateLibraryCycles();
-  }
-
-  void test_isUpToDate() {
-    AnalysisContext context = createAnalysisContext();
-    context.sourceFactory = new SourceFactory([]);
-    LibraryElement library = ElementFactory.library(context, "foo");
-    context.setContents(library.definingCompilationUnit.source, "sdfsdff");
-    // Assert that we are not up to date if the target has an old time stamp.
-    expect(library.isUpToDate(-1), isFalse);
-    // Assert that we are up to date with a target modification time in the
-    // future.
-    expect(library.isUpToDate(1 << 33), isTrue);
   }
 
   void test_setImports() {
@@ -4334,7 +4247,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     expect(type.isMoreSpecificThan(ElementFactory.object.type), isTrue);
   }
 
-  void test_isMoreSpecificThan_typeArguments_resursive() {
+  void test_isMoreSpecificThan_typeArguments_recursive() {
     ClassElementImpl classS = ElementFactory.classElement2("A");
     TypeParameterElementImpl typeParameterU =
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("U"));

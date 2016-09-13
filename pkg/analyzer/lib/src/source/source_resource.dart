@@ -11,13 +11,20 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
+ * A function that can translate the contents of files on disk as they are read.
+ * This is now obsolete, but supported the ability of server to deal with
+ * clients that convert all text to an internal format.
+ */
+typedef String FileReadMode(String s);
+
+/**
  * A source that represents a file.
  */
 class FileSource extends Source {
   /**
    * A function that changes the way that files are read off of disk.
    */
-  static Function fileReadMode = (String s) => s;
+  static FileReadMode fileReadMode = (String s) => s;
 
   /**
    * Map from encoded URI/filepath pair to a unique integer identifier.  This

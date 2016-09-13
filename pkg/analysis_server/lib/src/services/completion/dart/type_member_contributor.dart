@@ -331,6 +331,15 @@ class _SuggestionBuilder {
       }
     }
     String identifier = element.displayName;
+
+    if (relevance == DART_RELEVANCE_DEFAULT && identifier != null) {
+      // Decrease relevance of suggestions starting with $
+      // https://github.com/dart-lang/sdk/issues/27303
+      if (identifier.startsWith(r'$')) {
+        relevance = DART_RELEVANCE_LOW;
+      }
+    }
+
     int alreadyGenerated = _completionTypesGenerated.putIfAbsent(
         identifier, () => _COMPLETION_TYPE_NONE);
     if (element is MethodElement) {

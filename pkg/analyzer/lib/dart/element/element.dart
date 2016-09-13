@@ -590,15 +590,6 @@ abstract class Element implements AnalysisTarget {
   String get displayName;
 
   /**
-   * Return the source range of the documentation comment for this element,
-   * or `null` if this element does not or cannot have a documentation.
-   *
-   * Deprecated.  Use [documentationComment] instead.
-   */
-  @deprecated
-  SourceRange get docRange;
-
-  /**
    * Return the content of the documentation comment (including delimiters) for
    * this element, or `null` if this element does not or cannot have
    * documentation.
@@ -1491,11 +1482,6 @@ abstract class LibraryElement implements Element {
   List<CompilationUnitElement> get units;
 
   /**
-   * Return a list containing all directly and indirectly imported libraries.
-   */
-  List<LibraryElement> get visibleLibraries;
-
-  /**
    * Return a list containing all of the imports that share the given [prefix],
    * or an empty array if there are no such imports.
    */
@@ -1506,13 +1492,6 @@ abstract class LibraryElement implements Element {
    * `null` if this library does not define a class with the given name.
    */
   ClassElement getType(String className);
-
-  /**
-   * Return `true` if this library is up to date with respect to the given
-   * [timeStamp]. If any transitively referenced Source is newer than the time
-   * stamp, this method returns false.
-   */
-  bool isUpToDate(int timeStamp);
 }
 
 /**

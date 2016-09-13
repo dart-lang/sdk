@@ -4061,7 +4061,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     DartType type = typeResolver.resolveTypeAnnotation(this, node,
         malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
-    registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
+    if (!type.isDynamic) {
+      registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
+    }
     return type;
   }
 

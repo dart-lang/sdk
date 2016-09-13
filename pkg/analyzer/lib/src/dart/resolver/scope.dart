@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -21,7 +20,7 @@ import 'package:analyzer/src/generated/source.dart';
 class BlockScope extends EnclosedScope {
   /**
    * Initialize a newly created scope, enclosed within the [enclosingScope],
-   * based on the given [classElement].
+   * based on the given [block].
    */
   BlockScope(Scope enclosingScope, Block block) : super(enclosingScope) {
     if (block == null) {
@@ -114,6 +113,30 @@ class ClassScope extends EnclosedScope {
 }
 
 /**
+ * The scope defined for the initializers in a constructor.
+ */
+class ConstructorInitializerScope extends EnclosedScope {
+  /**
+   * Initialize a newly created scope, enclosed within the [enclosingScope].
+   */
+  ConstructorInitializerScope(Scope enclosingScope, ConstructorElement element)
+      : super(enclosingScope) {
+    _initializeFieldFormalParameters(element);
+  }
+
+  /**
+   * Initialize the local scope with all of the field formal parameters.
+   */
+  void _initializeFieldFormalParameters(ConstructorElement element) {
+    for (ParameterElement parameter in element.parameters) {
+      if (parameter is FieldFormalParameterElement) {
+        define(parameter);
+      }
+    }
+  }
+}
+
+/**
  * A scope that is lexically enclosed in another scope.
  */
 class EnclosedScope extends Scope {
@@ -127,10 +150,6 @@ class EnclosedScope extends Scope {
    * Initialize a newly created scope, enclosed within the [enclosingScope].
    */
   EnclosedScope(this.enclosingScope);
-
-  @deprecated
-  @override
-  AnalysisErrorListener get errorListener => enclosingScope.errorListener;
 
   @override
   Element internalLookup(
@@ -364,10 +383,6 @@ class LibraryImportScope extends Scope {
    */
   final LibraryElement _definingLibrary;
 
-  @deprecated
-  @override
-  final AnalysisErrorListener errorListener;
-
   /**
    * A list of the namespaces representing the names that are available in this scope from imported
    * libraries.
@@ -382,10 +397,9 @@ class LibraryImportScope extends Scope {
 
   /**
    * Initialize a newly created scope representing the names imported into the
-   * [_definingLibrary]. The [errorListener] is no longer used and should be
-   * omitted.
+   * [_definingLibrary].
    */
-  LibraryImportScope(this._definingLibrary, [this.errorListener]) {
+  LibraryImportScope(this._definingLibrary) {
     _createImportedNamespaces();
   }
 
@@ -567,12 +581,10 @@ class LibraryImportScope extends Scope {
 class LibraryScope extends EnclosedScope {
   /**
    * Initialize a newly created scope representing the names defined in the
-   * [definingLibrary]. The [errorListener] is no longer used and should be
-   * omitted.
+   * [definingLibrary].
    */
-  LibraryScope(LibraryElement definingLibrary,
-      [@deprecated AnalysisErrorListener errorListener])
-      : super(new LibraryImportScope(definingLibrary, errorListener)) {
+  LibraryScope(LibraryElement definingLibrary)
+      : super(new LibraryImportScope(definingLibrary)) {
     _defineTopLevelNames(definingLibrary);
   }
 
@@ -988,17 +1000,9 @@ abstract class Scope {
   Scope get enclosingScope => null;
 
   /**
-   * Return the listener that is to be informed when an error is encountered.
-   */
-  @deprecated
-  AnalysisErrorListener get errorListener;
-
-  /**
    * Add the given [element] to this scope. If there is already an element with
-   * the given name defined in this scope, then an error will be generated and
-   * the original element will continue to be mapped to the name. If there is an
-   * element with the given name in an enclosing scope, then a warning will be
-   * generated but the given element will hide the inherited element.
+   * the given name defined in this scope, then the original element will
+   * continue to be mapped to the name.
    */
   void define(Element element) {
     String name = _getName(element);

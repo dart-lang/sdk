@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -446,10 +445,6 @@ abstract class Member implements Element {
 
   @override
   String get displayName => _baseElement.displayName;
-
-  @deprecated
-  @override
-  SourceRange get docRange => _baseElement.docRange;
 
   @override
   String get documentationComment => _baseElement.documentationComment;

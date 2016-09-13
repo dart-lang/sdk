@@ -128,7 +128,7 @@ class ObjectPoolViewElement  extends HtmlElement implements Renderable {
       ]),
       new DivElement()..classes = ['content-centered-big']
         ..children = [
-          new HeadingElement.h2()..text = 'Object Pool',
+          new HeadingElement.h2()..text = 'ObjectPool',
           new HRElement(),
           new ObjectCommonElement(_isolate, _pool, _retainedSizes,
                                   _reachableSizes, _references, _retainingPaths,

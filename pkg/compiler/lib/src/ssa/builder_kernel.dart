@@ -4,10 +4,10 @@
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
-import '../diagnostics/spannable.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
@@ -36,15 +36,8 @@ class SsaKernelBuilderTask extends CompilerTask {
   HGraph build(CodegenWorkItem work) {
     return measure(() {
       AstElement element = work.element.implementation;
-      TreeElements treeElements = work.resolvedAst.elements;
-      Kernel kernel = new Kernel(backend.compiler);
-      KernelVisitor visitor = new KernelVisitor(element, treeElements, kernel);
-      IrFunction function;
-      try {
-        function = visitor.buildFunction();
-      } catch (e) {
-        throw "Failed to convert to Kernel IR: $e";
-      }
+      Kernel kernel = backend.kernelTask.kernel;
+      ir.Procedure function = kernel.functions[element];
       KernelSsaBuilder builder = new KernelSsaBuilder(
           function,
           element,
@@ -52,7 +45,6 @@ class SsaKernelBuilderTask extends CompilerTask {
           backend.compiler,
           work.registry,
           sourceInformationFactory,
-          visitor,
           kernel);
       return builder.build();
     });
@@ -60,7 +52,7 @@ class SsaKernelBuilderTask extends CompilerTask {
 }
 
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
-  final IrFunction function;
+  final ir.Procedure function;
   final FunctionElement functionElement;
   final ResolvedAst resolvedAst;
   final Compiler compiler;
@@ -78,7 +70,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       this.compiler,
       this.registry,
       SourceInformationStrategy sourceInformationFactory,
-      KernelVisitor visitor,
       Kernel kernel) {
     graph.element = functionElement;
     // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
@@ -91,9 +82,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     this.astAdapter = new KernelAstAdapter(
         compiler.backend,
         resolvedAst,
-        visitor.nodeToAst,
-        visitor.nodeToElement,
+        kernel.nodeToAst,
+        kernel.nodeToElement,
         kernel.functions,
+        kernel.classes,
         kernel.libraries);
   }
 
@@ -131,13 +123,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   /// Builds a SSA graph for [method].
-  void buildMethod(IrFunction method, FunctionElement functionElement) {
-    openFunction(method, functionElement);
-    method.node.body.accept(this);
+  void buildMethod(ir.Procedure method, FunctionElement functionElement) {
+    openFunction(functionElement);
+    method.function.body.accept(this);
     closeFunction();
   }
 
-  void openFunction(IrFunction method, FunctionElement functionElement) {
+  // TODO(het): get function element from astAdapter?
+  void openFunction(FunctionElement functionElement) {
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
     localsHandler.startFunction(functionElement, resolvedAst.node);

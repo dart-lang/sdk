@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -25,7 +26,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/type_system.dart';
@@ -6348,6 +6348,12 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
     super.visitConstructorDeclarationInScope(node);
+    // Because of needing a different scope for the initializer list, the
+    // overridden implementation of this method cannot cause the visitNode
+    // method to be invoked. As a result, we have to hard-code using the
+    // element resolver and type analyzer to visit the constructor declaration.
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     safelyVisitComment(node.documentationComment);
   }
 
@@ -7744,6 +7750,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   LabelScope labelScope;
 
   /**
+   * A flag indicating whether to enable support for allowing access to field
+   * formal parameters in a constructor's initializer list.
+   */
+  bool enableInitializingFormalAccess = false;
+
+  /**
    * The class containing the AST nodes being visited,
    * or `null` if we are not in the scope of a class.
    */
@@ -7774,6 +7786,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     } else {
       this.nameScope = nameScope;
     }
+    enableInitializingFormalAccess =
+        definingLibrary.context.analysisOptions.enableInitializingFormalAccess;
   }
 
   /**
@@ -7910,23 +7924,40 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElement constructorElement = node.element;
+    if (constructorElement == null) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Missing element for constructor ");
+      buffer.write(node.returnType.name);
+      if (node.name != null) {
+        buffer.write(".");
+        buffer.write(node.name.name);
+      }
+      buffer.write(" in ");
+      buffer.write(definingLibrary.source.fullName);
+      AnalysisEngine.instance.logger.logInformation(buffer.toString(),
+          new CaughtException(new AnalysisException(), null));
+    }
     Scope outerScope = nameScope;
     try {
-      if (constructorElement == null) {
-        StringBuffer buffer = new StringBuffer();
-        buffer.write("Missing element for constructor ");
-        buffer.write(node.returnType.name);
-        if (node.name != null) {
-          buffer.write(".");
-          buffer.write(node.name.name);
-        }
-        buffer.write(" in ");
-        buffer.write(definingLibrary.source.fullName);
-        AnalysisEngine.instance.logger.logInformation(buffer.toString(),
-            new CaughtException(new AnalysisException(), null));
-      } else {
+      if (constructorElement != null) {
         nameScope = new FunctionScope(nameScope, constructorElement);
       }
+      node.documentationComment?.accept(this);
+      node.metadata.accept(this);
+      node.returnType?.accept(this);
+      node.name?.accept(this);
+      node.parameters?.accept(this);
+      Scope functionScope = nameScope;
+      try {
+        if (constructorElement != null && enableInitializingFormalAccess) {
+          nameScope =
+              new ConstructorInitializerScope(nameScope, constructorElement);
+        }
+        node.initializers.accept(this);
+      } finally {
+        nameScope = functionScope;
+      }
+      node.redirectedConstructor?.accept(this);
       visitConstructorDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -7935,7 +7966,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   }
 
   void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
-    super.visitConstructorDeclaration(node);
+    node.body?.accept(this);
   }
 
   @override
@@ -8554,14 +8585,13 @@ class ToDoFinder {
    * @param commentToken the comment token to analyze
    */
   void _scrapeTodoComment(Token commentToken) {
-    JavaPatternMatcher matcher =
-        new JavaPatternMatcher(TodoCode.TODO_REGEX, commentToken.lexeme);
-    if (matcher.find()) {
-      int offset =
-          commentToken.offset + matcher.start() + matcher.group(1).length;
-      int length = matcher.group(2).length;
+    Iterable<Match> matches =
+        TodoCode.TODO_REGEX.allMatches(commentToken.lexeme);
+    for (Match match in matches) {
+      int offset = commentToken.offset + match.start + match.group(1).length;
+      int length = match.group(2).length;
       _errorReporter.reportErrorForOffset(
-          TodoCode.TODO, offset, length, [matcher.group(2)]);
+          TodoCode.TODO, offset, length, [match.group(2)]);
     }
   }
 }

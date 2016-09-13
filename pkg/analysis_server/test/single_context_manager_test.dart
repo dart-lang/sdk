@@ -4,12 +4,11 @@
 
 library test.analysis_server.src.single_context_manager;
 
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -45,7 +44,7 @@ class SingleContextManagerTest {
       '**/*.${AnalysisEngine.SUFFIX_HTML}',
     ];
     return patterns
-        .map((pattern) => new Glob(JavaFile.pathContext.separator, pattern))
+        .map((pattern) => new Glob(posix.separator, pattern))
         .toList();
   }
 

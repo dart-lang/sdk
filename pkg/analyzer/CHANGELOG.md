@@ -1,3 +1,6 @@
+## 0.29.0-alpha.0
+* Removed `Element.docRange`.
+
 ## 0.28.2-alpha.0
 * Corresponds with the analyzer/server in the `1.20.0-dev.1.0 ` SDK.
 

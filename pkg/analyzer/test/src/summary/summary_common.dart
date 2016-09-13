@@ -286,8 +286,6 @@ abstract class SummaryTest {
     String expectedCommentText =
         text.substring(commentStart, commentEnd).replaceAll('\r\n', '\n');
     expect(documentationComment.text, expectedCommentText);
-    expect(documentationComment.offset, commentStart);
-    expect(documentationComment.length, commentEnd - commentStart);
   }
 
   /**

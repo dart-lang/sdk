@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -45,10 +44,12 @@ import 'test_support.dart';
 main() {
   initializeTestEnvironment();
   defineReflectiveTests(ContentCacheTest);
+  // ignore: deprecated_member_use
   defineReflectiveTests(CustomUriResolverTest);
   defineReflectiveTests(DartUriResolverTest);
   // ignore: deprecated_member_use
   defineReflectiveTests(DirectoryBasedDartSdkTest);
+  // ignore: deprecated_member_use
   defineReflectiveTests(DirectoryBasedSourceContainerTest);
   defineReflectiveTests(ElementBuilderTest);
   defineReflectiveTests(ElementLocatorTest);
@@ -120,8 +121,7 @@ class CustomUriResolverTest {
     UriResolver resolver = new CustomUriResolver({
       'custom:library': '/path/to/library.dart',
     });
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("custom:non_library"));
+    Source result = resolver.resolveAbsolute(Uri.parse("custom:non_library"));
     expect(result, isNull);
   }
 
@@ -131,8 +131,7 @@ class CustomUriResolverTest {
     UriResolver resolver = new CustomUriResolver({
       'custom:library': path,
     });
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("custom:library"));
+    Source result = resolver.resolveAbsolute(Uri.parse("custom:library"));
     expect(result, isNotNull);
     expect(result.fullName, path);
   }
@@ -146,7 +145,7 @@ class DartUriResolverTest {
   }
 
   void test_isDartUri_null_scheme() {
-    Uri uri = parseUriWithException("foo.dart");
+    Uri uri = Uri.parse("foo.dart");
     expect('', uri.scheme);
     expect(DartUriResolver.isDartUri(uri), isFalse);
   }
@@ -154,23 +153,22 @@ class DartUriResolverTest {
   void test_resolve_dart() {
     DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("dart:core"));
+    Source result = resolver.resolveAbsolute(Uri.parse("dart:core"));
     expect(result, isNotNull);
   }
 
   void test_resolve_dart_nonExistingLibrary() {
     DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolveAbsolute(parseUriWithException("dart:cor"));
+    Source result = resolver.resolveAbsolute(Uri.parse("dart:cor"));
     expect(result, isNull);
   }
 
   void test_resolve_nonDart() {
     DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver
-        .resolveAbsolute(parseUriWithException("package:some/file.dart"));
+    Source result =
+        resolver.resolveAbsolute(Uri.parse("package:some/file.dart"));
     expect(result, isNull);
   }
 }
@@ -332,6 +330,7 @@ class DirectoryBasedDartSdkTest {
   }
 }
 
+@deprecated
 @reflectiveTest
 class DirectoryBasedSourceContainerTest {
   void test_contains() {
@@ -738,7 +737,6 @@ class C {
     expect(type.isMixinApplication, isFalse);
     expect(type.isSynthetic, isFalse);
     expect(type.documentationComment, '/// aaa');
-    _assertHasDocRange(type, 50, 7);
     _assertHasCodeRange(type, 50, 31);
   }
 
@@ -1005,7 +1003,6 @@ class C {
     expect(constructor, isNotNull);
     _assertHasCodeRange(constructor, 50, 31);
     expect(constructor.documentationComment, '/// aaa');
-    _assertHasDocRange(constructor, 50, 7);
     expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
@@ -1208,7 +1205,6 @@ class C {
     expect(enumElement, isNotNull);
     _assertHasCodeRange(enumElement, 50, 31);
     expect(enumElement.documentationComment, '/// aaa');
-    _assertHasDocRange(enumElement, 50, 7);
     expect(enumElement.name, enumName);
   }
 
@@ -1234,7 +1230,6 @@ class C {
     expect(firstField, isNotNull);
     _assertHasCodeRange(firstField, 50, 61);
     expect(firstField.documentationComment, '/// aaa');
-    _assertHasDocRange(firstField, 50, 7);
     expect(firstField.name, firstFieldName);
     expect(firstField.initializer, isNull);
     expect(firstField.isConst, isFalse);
@@ -1245,7 +1240,6 @@ class C {
     expect(secondField, isNotNull);
     _assertHasCodeRange(secondField, 50, 61);
     expect(secondField.documentationComment, '/// aaa');
-    _assertHasDocRange(secondField, 50, 7);
     expect(secondField.name, secondFieldName);
     expect(secondField.initializer, isNull);
     expect(secondField.isConst, isFalse);
@@ -1366,7 +1360,6 @@ class C {
     expect(accessor, isNotNull);
     _assertHasCodeRange(accessor, 50, 31);
     expect(accessor.documentationComment, '/// aaa');
-    _assertHasDocRange(accessor, 50, 7);
     expect(accessor.name, functionName);
     expect(declaration.element, same(accessor));
     expect(declaration.functionExpression.element, same(accessor));
@@ -1404,7 +1397,6 @@ class C {
     expect(function, isNotNull);
     _assertHasCodeRange(function, 50, 31);
     expect(function.documentationComment, '/// aaa');
-    _assertHasDocRange(function, 50, 7);
     expect(function.hasImplicitReturnType, isFalse);
     expect(function.name, functionName);
     expect(declaration.element, same(function));
@@ -1436,7 +1428,6 @@ class C {
     expect(accessor, isNotNull);
     _assertHasCodeRange(accessor, 50, 31);
     expect(accessor.documentationComment, '/// aaa');
-    _assertHasDocRange(accessor, 50, 7);
     expect(accessor.hasImplicitReturnType, isTrue);
     expect(accessor.name, "$functionName=");
     expect(declaration.element, same(accessor));
@@ -1517,7 +1508,6 @@ class C {
     expect(alias, isNotNull);
     _assertHasCodeRange(alias, 50, 31);
     expect(alias.documentationComment, '/// aaa');
-    _assertHasDocRange(alias, 50, 7);
     expect(alias.name, aliasName);
     expect(alias.parameters, hasLength(0));
     List<TypeParameterElement> typeParameters = alias.typeParameters;
@@ -1718,7 +1708,6 @@ class A {
     expect(getter, isNotNull);
     _assertHasCodeRange(getter, 50, 31);
     expect(getter.documentationComment, '/// aaa');
-    _assertHasDocRange(getter, 50, 7);
     expect(getter.hasImplicitReturnType, isTrue);
     expect(getter.isAbstract, isFalse);
     expect(getter.isExternal, isFalse);
@@ -1831,7 +1820,6 @@ class A {
     expect(method, isNotNull);
     _assertHasCodeRange(method, 50, 31);
     expect(method.documentationComment, '/// aaa');
-    _assertHasDocRange(method, 50, 7);
     expect(method.hasImplicitReturnType, isFalse);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
@@ -1908,7 +1896,6 @@ class A {
     expect(setter, isNotNull);
     _assertHasCodeRange(setter, 50, 31);
     expect(setter.documentationComment, '/// aaa');
-    _assertHasDocRange(setter, 50, 7);
     expect(setter.hasImplicitReturnType, isTrue);
     expect(setter.isAbstract, isFalse);
     expect(setter.isExternal, isFalse);
@@ -2497,6 +2484,34 @@ class A {
     expect(variable.setter, isNotNull);
   }
 
+  void test_visitVariableDeclaration_top() {
+    // final a, b;
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    VariableDeclaration variableDeclaration1 =
+        AstFactory.variableDeclaration('a');
+    VariableDeclaration variableDeclaration2 =
+        AstFactory.variableDeclaration('b');
+    TopLevelVariableDeclaration topLevelVariableDeclaration = AstFactory
+        .topLevelVariableDeclaration(
+            Keyword.FINAL, null, [variableDeclaration1, variableDeclaration2]);
+    topLevelVariableDeclaration.documentationComment = AstFactory
+        .documentationComment(
+            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+
+    topLevelVariableDeclaration.accept(builder);
+    List<TopLevelVariableElement> variables = holder.topLevelVariables;
+    expect(variables, hasLength(2));
+
+    TopLevelVariableElement variable1 = variables[0];
+    expect(variable1, isNotNull);
+    expect(variable1.documentationComment, '/// aaa');
+
+    TopLevelVariableElement variable2 = variables[1];
+    expect(variable2, isNotNull);
+    expect(variable2.documentationComment, '/// aaa');
+  }
+
   void test_visitVariableDeclaration_top_const_hasInitializer() {
     // const v = 42;
     ElementHolder holder = new ElementHolder();
@@ -2521,36 +2536,6 @@ class A {
     expect(variable.isSynthetic, isFalse);
     expect(variable.getter, isNotNull);
     expect(variable.setter, isNull);
-  }
-
-  void test_visitVariableDeclaration_top_docRange() {
-    // final a, b;
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    VariableDeclaration variableDeclaration1 =
-        AstFactory.variableDeclaration('a');
-    VariableDeclaration variableDeclaration2 =
-        AstFactory.variableDeclaration('b');
-    TopLevelVariableDeclaration topLevelVariableDeclaration = AstFactory
-        .topLevelVariableDeclaration(
-            Keyword.FINAL, null, [variableDeclaration1, variableDeclaration2]);
-    topLevelVariableDeclaration.documentationComment = AstFactory
-        .documentationComment(
-            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-
-    topLevelVariableDeclaration.accept(builder);
-    List<TopLevelVariableElement> variables = holder.topLevelVariables;
-    expect(variables, hasLength(2));
-
-    TopLevelVariableElement variable1 = variables[0];
-    expect(variable1, isNotNull);
-    expect(variable1.documentationComment, '/// aaa');
-    _assertHasDocRange(variable1, 50, 7);
-
-    TopLevelVariableElement variable2 = variables[1];
-    expect(variable2, isNotNull);
-    expect(variable2.documentationComment, '/// aaa');
-    _assertHasDocRange(variable2, 50, 7);
   }
 
   void test_visitVariableDeclaration_top_final() {
@@ -2580,15 +2565,6 @@ class A {
     ElementImpl elementImpl = element;
     expect(elementImpl.codeOffset, offset);
     expect(elementImpl.codeLength, length);
-  }
-
-  void _assertHasDocRange(
-      Element element, int expectedOffset, int expectedLength) {
-    // Cast to dynamic here to avoid a hint about @deprecated docRange.
-    SourceRange docRange = (element as dynamic).docRange;
-    expect(docRange, isNotNull);
-    expect(docRange.offset, expectedOffset);
-    expect(docRange.length, expectedLength);
   }
 
   void _assertVisibleRange(LocalElement element, int offset, int end) {
@@ -3044,16 +3020,9 @@ core.int value;''');
     if (matchIndex == 0) {
       return contents.indexOf(pattern);
     }
-    JavaPatternMatcher matcher =
-        new JavaPatternMatcher(new RegExp(pattern), contents);
-    int count = 0;
-    while (matcher.find()) {
-      if (count == matchIndex) {
-        return matcher.start();
-      }
-      ++count;
-    }
-    return -1;
+    Iterable<Match> matches = new RegExp(pattern).allMatches(contents);
+    Match match = matches.toList()[matchIndex];
+    return match.start;
   }
 
   /**
@@ -3144,8 +3113,6 @@ class EnumMemberBuilderTest extends EngineTestCase {
     expect(constant.isStatic, isTrue);
     expect((constant as FieldElementImpl).evaluationResult, isNotNull);
     expect(constant.documentationComment, '/// aaa');
-    expect(constant.docRange.offset, 50);
-    expect(constant.docRange.length, 7);
     _assertGetter(constant);
   }
 
@@ -4154,7 +4121,7 @@ void f() {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_whileStatement_breakWithLabel_afterExting() {
+  void test_whileStatement_breakWithLabel_afterExiting() {
     Source source = addSource(r'''
 void f() {
   x: while (true) {
@@ -4341,8 +4308,7 @@ class FileBasedSourceTest {
     UriResolver resolver = new DartUriResolver(sdk);
     SourceFactory factory = new SourceFactory([resolver]);
     // resolve dart:core
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("dart:core"));
+    Source result = resolver.resolveAbsolute(Uri.parse("dart:core"));
     expect(result, isNotNull);
     expect(result.isInSystemLibrary, isTrue);
     // system libraries reference only other system libraries
@@ -4377,8 +4343,7 @@ class FileBasedSourceTest {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
-    Uri relative =
-        resolveRelativeUri(source.uri, parseUriWithException("lib.dart"));
+    Uri relative = resolveRelativeUri(source.uri, Uri.parse("lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/b/lib.dart");
   }
@@ -4393,8 +4358,7 @@ class FileBasedSourceTest {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
-    Uri relative =
-        resolveRelativeUri(source.uri, parseUriWithException("c/lib.dart"));
+    Uri relative = resolveRelativeUri(source.uri, Uri.parse("c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/b/c/lib.dart");
   }
@@ -4408,16 +4372,14 @@ class FileBasedSourceTest {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
-    Uri relative =
-        resolveRelativeUri(source.uri, parseUriWithException("../c/lib.dart"));
+    Uri relative = resolveRelativeUri(source.uri, Uri.parse("../c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/c/lib.dart");
   }
 
   void test_system() {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("dart:core"));
+    FileBasedSource source = new FileBasedSource(file, Uri.parse("dart:core"));
     expect(source, isNotNull);
     expect(source.fullName, file.getAbsolutePath());
     expect(source.isInSystemLibrary, isTrue);

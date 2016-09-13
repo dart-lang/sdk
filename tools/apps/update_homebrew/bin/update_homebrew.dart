@@ -26,8 +26,8 @@ const FILES = const [x64File, ia32File, dartiumFile, contentShellFile];
 const urlBase = 'https://storage.googleapis.com/dart-archive/channels';
 const x64File = 'sdk/dartsdk-macos-x64-release.zip';
 const ia32File = 'sdk/dartsdk-macos-ia32-release.zip';
-const dartiumFile = 'dartium/dartium-macos-ia32-release.zip';
-const contentShellFile = 'dartium/content_shell-macos-ia32-release.zip';
+const dartiumFile = 'dartium/dartium-macos-x64-release.zip';
+const contentShellFile = 'dartium/content_shell-macos-x64-release.zip';
 
 Future<String> getHash256(
     String channel, String revision, String download) async {

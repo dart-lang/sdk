@@ -235,6 +235,7 @@ char* CompilerStats::PrintToZone() {
   log.Print("Local functions:         %" Pd64 "\n", num_local_functions);
   log.Print("Consts cached:           %" Pd64 "\n", num_cached_consts);
   log.Print("Consts cache hits:       %" Pd64 "\n", num_const_cache_hits);
+  log.Print("Consts calcuated:        %" Pd64 "\n", num_execute_const);
 
   int64_t scan_usecs = scanner_timer.TotalElapsedTime();
   log.Print("Scanner time:            %" Pd64 " ms\n", scan_usecs / 1000);

@@ -4,11 +4,8 @@
 
 library analysis_server.test.utils;
 
-import 'package:analyzer/src/generated/java_io.dart';
-import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 void initializeTestEnvironment() {
   groupSep = ' | ';
-  JavaFile.pathContext = path.posix;
 }

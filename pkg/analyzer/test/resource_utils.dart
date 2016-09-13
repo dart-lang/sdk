@@ -5,7 +5,7 @@
 library analyzer.test.resource_utils;
 
 import 'dart:async';
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';

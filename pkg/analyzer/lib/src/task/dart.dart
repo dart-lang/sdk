@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -25,7 +26,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -3674,8 +3674,8 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       //
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Expression initializer = declaration.initializer;
-      ResolutionContext resolutionContext = ResolutionContextBuilder.contextFor(
-          initializer, AnalysisErrorListener.NULL_LISTENER);
+      ResolutionContext resolutionContext =
+          ResolutionContextBuilder.contextFor(initializer);
       ResolverVisitor visitor = new ResolverVisitor(
           variable.library, variable.source, typeProvider, errorListener,
           nameScope: resolutionContext.scope);

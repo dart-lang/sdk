@@ -10,12 +10,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
@@ -938,9 +938,9 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   String toSource() {
-    PrintStringWriter writer = new PrintStringWriter();
-    accept(new ToSourceVisitor(writer));
-    return writer.toString();
+    StringBuffer buffer = new StringBuffer();
+    accept(new ToSourceVisitor(buffer));
+    return buffer.toString();
   }
 
   @override
@@ -10526,7 +10526,7 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
 
   @override
   UriValidationCode validate() {
-    StringLiteral uriLiteral = uri;
+    StringLiteral uriLiteral = this.uri;
     if (uriLiteral is StringInterpolation) {
       return UriValidationCode.URI_WITH_INTERPOLATION;
     }
@@ -10537,9 +10537,13 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     if (this is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
       return UriValidationCode.URI_WITH_DART_EXT_SCHEME;
     }
+    Uri uri;
     try {
-      parseUriWithException(Uri.encodeFull(uriContent));
-    } on URISyntaxException {
+      uri = Uri.parse(Uri.encodeFull(uriContent));
+    } on FormatException {
+      return UriValidationCode.INVALID_URI;
+    }
+    if (uri.path.isEmpty) {
       return UriValidationCode.INVALID_URI;
     }
     return null;

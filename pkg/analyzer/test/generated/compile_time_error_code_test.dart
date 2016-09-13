@@ -1800,6 +1800,17 @@ class A {
     verify([source]);
   }
 
+  void test_duplicateDefinition_parameters_inConstructor() {
+    Source source = addSource(r'''
+class A {
+  int a;
+  A(int a, this.a);
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    verify([source]);
+  }
+
   void test_duplicateDefinition_parameters_inFunctionTypeAlias() {
     Source source = addSource(r'''
 typedef F(int a, double a);
@@ -2152,6 +2163,18 @@ class B extends A {
     verify([source]);
   }
 
+  void test_fieldFormalParameter_assignedInInitializer() {
+    Source source = addSource(r'''
+class A {
+  int x;
+  A(this.x) : x = 3 {}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    verify([source]);
+  }
+
   void test_fieldInitializedByMultipleInitializers() {
     Source source = addSource(r'''
 class A {
@@ -2334,6 +2357,7 @@ class A {
   A(this.x, this.x) {}
 }''');
     computeLibrarySourceErrors(source);
+    // TODO(brianwilkerson) There should only be one error here.
     assertErrors(source, [
       CompileTimeErrorCode.DUPLICATE_DEFINITION,
       CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES

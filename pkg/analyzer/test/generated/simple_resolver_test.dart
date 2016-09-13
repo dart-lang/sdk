@@ -8,9 +8,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -656,11 +656,29 @@ class A {
   }
 
   void test_fieldFormalParameter() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableInitializingFormalAccess = true;
+    resetWithOptions(options);
     Source source = addSource(r'''
 class A {
   int x;
-  A(this.x) {}
+  int y;
+  A(this.x) : y = x {}
 }''');
+    CompilationUnit unit =
+        analysisContext2.resolveCompilationUnit2(source, source);
+    ClassDeclaration classA = unit.declarations[0];
+    FieldDeclaration field = classA.members[0];
+    ConstructorDeclaration constructor = classA.members[2];
+    ParameterElement paramElement =
+        constructor.parameters.parameters[0].element;
+    expect(paramElement, new isInstanceOf<FieldFormalParameterElement>());
+    expect((paramElement as FieldFormalParameterElement).field,
+        field.fields.variables[0].element);
+    ConstructorFieldInitializer initializer = constructor.initializers[0];
+    SimpleIdentifier identifierX = initializer.expression;
+    expect(identifierX.staticElement, paramElement);
+
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);

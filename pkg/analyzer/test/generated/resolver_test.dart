@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -106,7 +105,6 @@ class ChangeSetTest extends EngineTestCase {
     expect(map, hasLength(1));
     expect(map[source], same(content));
     expect(changeSet.changedRanges, hasLength(0));
-    expect(changeSet.deletedSources, hasLength(0));
     expect(changeSet.removedSources, hasLength(0));
     expect(changeSet.removedContainers, hasLength(0));
   }
@@ -127,7 +125,6 @@ class ChangeSetTest extends EngineTestCase {
     expect(change.offset, 1);
     expect(change.oldLength, 2);
     expect(change.newLength, 3);
-    expect(changeSet.deletedSources, hasLength(0));
     expect(changeSet.removedSources, hasLength(0));
     expect(changeSet.removedContainers, hasLength(0));
   }
@@ -138,7 +135,6 @@ class ChangeSetTest extends EngineTestCase {
     changeSet.changedSource(new TestSource());
     changeSet.changedContent(new TestSource(), "");
     changeSet.changedRange(new TestSource(), "", 0, 0, 0);
-    changeSet.deletedSource(new TestSource());
     changeSet.removedSource(new TestSource());
     changeSet
         .removedContainer(new SourceContainer_ChangeSetTest_test_toString());
@@ -194,30 +190,14 @@ class C {
 @reflectiveTest
 class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope rootScope =
-        new Scope_EnclosedScopeTest_test_define_duplicate(listener);
+    Scope rootScope = new _RootScope();
     EnclosedScope scope = new EnclosedScope(rootScope);
-    SimpleIdentifier identifier = AstFactory.identifier3("v1");
+    SimpleIdentifier identifier = AstFactory.identifier3('v');
     VariableElement element1 = ElementFactory.localVariableElement(identifier);
     VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
     scope.define(element2);
-    expect(scope.lookup(identifier, null), element1);
-  }
-
-  void test_define_normal() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope rootScope = new Scope_EnclosedScopeTest_test_define_normal(listener);
-    EnclosedScope outerScope = new EnclosedScope(rootScope);
-    EnclosedScope innerScope = new EnclosedScope(outerScope);
-    VariableElement element1 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
-    VariableElement element2 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v2"));
-    outerScope.define(element1);
-    innerScope.define(element2);
-    listener.assertNoErrors();
+    expect(scope.lookup(identifier, null), same(element1));
   }
 }
 
@@ -434,54 +414,16 @@ class PrefixedNamespaceTest extends ResolverTestCase {
   }
 }
 
-class Scope_EnclosedScopeTest_test_define_duplicate extends Scope {
-  GatheringErrorListener listener;
-
-  Scope_EnclosedScopeTest_test_define_duplicate(this.listener) : super();
-
-  @override
-  AnalysisErrorListener get errorListener => listener;
-
-  @override
-  Element internalLookup(Identifier identifier, String name,
-          LibraryElement referencingLibrary) =>
-      null;
-}
-
-class Scope_EnclosedScopeTest_test_define_normal extends Scope {
-  GatheringErrorListener listener;
-
-  Scope_EnclosedScopeTest_test_define_normal(this.listener) : super();
-
-  @override
-  AnalysisErrorListener get errorListener => listener;
-
-  @override
-  Element internalLookup(Identifier identifier, String name,
-          LibraryElement referencingLibrary) =>
-      null;
-}
-
 @reflectiveTest
 class ScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
-    ScopeTest_TestScope scope = new ScopeTest_TestScope();
-    SimpleIdentifier identifier = AstFactory.identifier3("v1");
+    Scope scope = new _RootScope();
+    SimpleIdentifier identifier = AstFactory.identifier3('v');
     VariableElement element1 = ElementFactory.localVariableElement(identifier);
     VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
     scope.define(element2);
-    expect(scope.lookup(identifier, null), element1);
-  }
-
-  void test_define_normal() {
-    ScopeTest_TestScope scope = new ScopeTest_TestScope();
-    VariableElement element1 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
-    VariableElement element2 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v2"));
-    scope.define(element1);
-    scope.define(element2);
+    expect(scope.localLookup('v', null), same(element1));
   }
 
   void test_isPrivateName_nonPrivate() {
@@ -491,22 +433,6 @@ class ScopeTest extends ResolverTestCase {
   void test_isPrivateName_private() {
     expect(Scope.isPrivateName("_Private"), isTrue);
   }
-}
-
-/**
- * A non-abstract subclass that can be used for testing purposes.
- */
-class ScopeTest_TestScope extends Scope {
-  ScopeTest_TestScope();
-
-  @deprecated
-  @override
-  AnalysisErrorListener get errorListener => null;
-
-  @override
-  Element internalLookup(Identifier identifier, String name,
-          LibraryElement referencingLibrary) =>
-      localLookup(name, referencingLibrary);
 }
 
 class SourceContainer_ChangeSetTest_test_toString implements SourceContainer {
@@ -3371,6 +3297,13 @@ class TypeResolverVisitorTest {
     }
     node.accept(_visitor);
   }
+}
+
+class _RootScope extends Scope {
+  @override
+  Element internalLookup(Identifier identifier, String name,
+          LibraryElement referencingLibrary) =>
+      null;
 }
 
 /**

@@ -40,15 +40,14 @@ import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
-import '../ssa/nodes.dart' show HInstruction;
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/selector.dart' show Selector, SelectorKind;
+import '../universe/feature.dart';
+import '../universe/selector.dart' show Selector;
 import '../universe/universe.dart';
 import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
-import '../universe/feature.dart';
 import '../universe/world_impact.dart'
     show
         ImpactStrategy,
@@ -66,6 +65,7 @@ import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'enqueuer.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
+import 'kernel_task.dart';
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'namer.dart';
 import 'native_data.dart' show NativeData;
@@ -564,6 +564,9 @@ class JavaScriptBackend extends Backend {
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
+  /// Builds kernel representation for the program.
+  KernelTask kernelTask;
+
   JavaScriptConstantTask constantCompilerTask;
 
   JavaScriptImpactTransformer impactTransformer;
@@ -612,6 +615,7 @@ class JavaScriptBackend extends Backend {
     jsInteropAnalysis = new JsInteropAnalysis(this);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
+    kernelTask = new KernelTask(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
@@ -635,7 +639,7 @@ class JavaScriptBackend extends Backend {
   JavaScriptConstantCompiler get constants {
     return constantCompilerTask.jsConstantCompiler;
   }
-  
+
   @override
   bool isDefaultNoSuchMethod(MethodElement element) {
     return noSuchMethodRegistry.isDefaultNoSuchMethodImplementation(element);
@@ -2363,6 +2367,10 @@ class JavaScriptBackend extends Backend {
             noSuchMethodRegistry.hasComplexNoSuchMethod)) {
       enableNoSuchMethod(enqueuer);
       enabledNoSuchMethod = true;
+    }
+
+    if (compiler.options.useKernel) {
+      kernelTask.buildKernelIr();
     }
 
     if (compiler.options.hasIncrementalSupport) {

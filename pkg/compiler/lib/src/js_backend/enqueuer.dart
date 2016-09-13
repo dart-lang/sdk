@@ -109,8 +109,7 @@ class CodegenEnqueuer implements Enqueuer {
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
     if (element.isField && element.isInstanceMember) {
-      if (!options.enableTypeAssertions ||
-          element.enclosingElement.isClosure) {
+      if (!options.enableTypeAssertions || element.enclosingElement.isClosure) {
         return;
       }
     }
@@ -145,8 +144,7 @@ class CodegenEnqueuer implements Enqueuer {
       universe.registerTypeInstantiation(type,
           isNative: isNative,
           byMirrors: mirrorUsage, onImplemented: (ClassElement cls) {
-        backend
-            .registerImplementedClass(cls, this, globalDependencies);
+        backend.registerImplementedClass(cls, this, globalDependencies);
       });
       // TODO(johnniwinther): Share this reasoning with [Universe].
       if (!cls.isAbstract || isNative || mirrorUsage) {
@@ -271,8 +269,7 @@ class CodegenEnqueuer implements Enqueuer {
         // We only tell the backend once that [superclass] was instantiated, so
         // any additional dependencies must be treated as global
         // dependencies.
-        backend.registerInstantiatedClass(
-            superclass, this, globalDependencies);
+        backend.registerInstantiatedClass(superclass, this, globalDependencies);
       }
 
       ClassElement superclass = cls;
@@ -307,8 +304,7 @@ class CodegenEnqueuer implements Enqueuer {
         includedEnclosing: enclosingWasIncluded)) {
       logEnqueueReflectiveAction(ctor);
       ClassElement cls = ctor.declaration.enclosingClass;
-      backend.registerInstantiatedType(
-          cls.rawType, this, mirrorDependencies,
+      backend.registerInstantiatedType(cls.rawType, this, mirrorDependencies,
           mirrorUsage: true);
       registerStaticUse(new StaticUse.foreignUse(ctor.declaration));
     }
@@ -356,8 +352,7 @@ class CodegenEnqueuer implements Enqueuer {
     if (includeClass) {
       logEnqueueReflectiveAction(cls, "register");
       ClassElement decl = cls.declaration;
-      backend.registerInstantiatedType(
-          decl.rawType, this, mirrorDependencies,
+      backend.registerInstantiatedType(decl.rawType, this, mirrorDependencies,
           mirrorUsage: true);
     }
     // If the class is never instantiated, we know nothing of it can possibly
@@ -382,13 +377,11 @@ class CodegenEnqueuer implements Enqueuer {
   /// that none of its methods are reflectable, unless reflectable by
   /// inheritance.
   void enqueueReflectiveSpecialClasses() {
-    Iterable<ClassElement> classes =
-        backend.classesRequiredForReflection;
+    Iterable<ClassElement> classes = backend.classesRequiredForReflection;
     for (ClassElement cls in classes) {
       if (backend.referencedFromMirrorSystem(cls)) {
         logEnqueueReflectiveAction(cls);
-        backend.registerInstantiatedType(
-            cls.rawType, this, mirrorDependencies,
+        backend.registerInstantiatedType(cls.rawType, this, mirrorDependencies,
             mirrorUsage: true);
       }
     }

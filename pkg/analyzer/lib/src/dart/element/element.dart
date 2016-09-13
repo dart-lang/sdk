@@ -584,18 +584,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  SourceRange get docRange {
-    if (_unlinkedClass != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedClass.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedClass != null) {
       return _unlinkedClass?.documentationComment?.text;
@@ -743,6 +731,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _interfaces = _unlinkedClass.interfaces
           .map((EntityRef t) => context.resolveTypeRef(t, this))
+          .where((DartType type) => type is InterfaceType)
           .toList(growable: false);
     }
     return _interfaces ?? const <InterfaceType>[];
@@ -849,6 +838,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _mixins = _unlinkedClass.mixins
           .map((EntityRef t) => context.resolveTypeRef(t, this))
+          .where((DartType type) => type is InterfaceType)
           .toList(growable: false);
     }
     return _mixins ?? const <InterfaceType>[];
@@ -879,8 +869,13 @@ class ClassElementImpl extends AbstractClassElementImpl
   InterfaceType get supertype {
     if (_unlinkedClass != null && _supertype == null) {
       if (_unlinkedClass.supertype != null) {
-        _supertype = enclosingUnit.resynthesizerContext
+        DartType type = enclosingUnit.resynthesizerContext
             .resolveTypeRef(_unlinkedClass.supertype, this);
+        if (type is InterfaceType) {
+          _supertype = type;
+        } else {
+          _supertype = context.typeProvider.objectType;
+        }
       } else if (_unlinkedClass.hasNoSupertype) {
         return null;
       } else {
@@ -1251,26 +1246,26 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   bool _safeIsOrInheritsProxy(
-      ClassElement classElt, HashSet<ClassElement> visitedClassElts) {
-    if (visitedClassElts.contains(classElt)) {
+      ClassElement element, HashSet<ClassElement> visited) {
+    if (visited.contains(element)) {
       return false;
     }
-    visitedClassElts.add(classElt);
-    if (classElt.isProxy) {
+    visited.add(element);
+    if (element.isProxy) {
       return true;
-    } else if (classElt.supertype != null &&
-        _safeIsOrInheritsProxy(classElt.supertype.element, visitedClassElts)) {
+    } else if (element.supertype != null &&
+        _safeIsOrInheritsProxy(element.supertype.element, visited)) {
       return true;
     }
-    List<InterfaceType> supertypes = classElt.interfaces;
+    List<InterfaceType> supertypes = element.interfaces;
     for (int i = 0; i < supertypes.length; i++) {
-      if (_safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
+      if (_safeIsOrInheritsProxy(supertypes[i].element, visited)) {
         return true;
       }
     }
-    supertypes = classElt.mixins;
+    supertypes = element.mixins;
     for (int i = 0; i < supertypes.length; i++) {
-      if (_safeIsOrInheritsProxy(supertypes[i].element, visitedClassElts)) {
+      if (_safeIsOrInheritsProxy(supertypes[i].element, visited)) {
         return true;
       }
     }
@@ -1812,18 +1807,6 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   ConstFieldElementImpl_EnumValue(
       EnumElementImpl enumElement, this._unlinkedEnumValue, this._index)
       : super(enumElement);
-
-  @override
-  SourceRange get docRange {
-    if (_unlinkedEnumValue != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedEnumValue.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
 
   @override
   String get documentationComment {
@@ -2693,17 +2676,6 @@ abstract class ElementImpl implements Element {
   String _docComment;
 
   /**
-   * The offset to the beginning of the documentation comment,
-   * or `null` if this element does not have a documentation comment.
-   */
-  int _docRangeOffset;
-
-  /**
-   * The length of the documentation comment range for this element.
-   */
-  int _docRangeLength;
-
-  /**
    * The offset of the beginning of the element's code in the file that contains
    * the element, or `null` if the element is synthetic.
    */
@@ -2754,14 +2726,6 @@ abstract class ElementImpl implements Element {
 
   @override
   String get displayName => _name;
-
-  @override
-  SourceRange get docRange {
-    if (_docRangeOffset != null && _docRangeLength != null) {
-      return new SourceRange(_docRangeOffset, _docRangeLength);
-    }
-    return null;
-  }
 
   @override
   String get documentationComment => _docComment;
@@ -3108,15 +3072,6 @@ abstract class ElementImpl implements Element {
   }
 
   /**
-   * Set the documentation comment source range for this element.
-   */
-  void setDocRange(int offset, int length) {
-    assert(!isResynthesized);
-    _docRangeOffset = offset;
-    _docRangeLength = length;
-  }
-
-  /**
    * Set whether the given [modifier] is associated with this element to
    * correspond to the given [value].
    */
@@ -3402,17 +3357,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  SourceRange get docRange {
-    if (_unlinkedEnum != null) {
-      UnlinkedDocumentationComment comment = _unlinkedEnum.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedEnum != null) {
       return _unlinkedEnum?.documentationComment?.text;
@@ -3663,18 +3607,6 @@ abstract class ExecutableElementImpl extends ElementImpl
       return serializedExecutable.name;
     }
     return super.displayName;
-  }
-
-  @override
-  SourceRange get docRange {
-    if (serializedExecutable != null) {
-      UnlinkedDocumentationComment comment =
-          serializedExecutable.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
   }
 
   @override
@@ -4644,18 +4576,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   String get displayName => name;
 
   @override
-  SourceRange get docRange {
-    if (_unlinkedTypedef != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedTypedef.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef?.documentationComment?.text;
@@ -5413,18 +5333,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  SourceRange get docRange {
-    if (_unlinkedDefiningUnit != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedDefiningUnit.libraryDocumentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedDefiningUnit != null) {
       return _unlinkedDefiningUnit?.libraryDocumentationComment?.text;
@@ -5792,13 +5700,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  List<LibraryElement> get visibleLibraries {
-    HashSet<LibraryElement> visibleLibraries = new HashSet<LibraryElement>();
-    _addVisibleLibraries(visibleLibraries, false);
-    return visibleLibraries.toList(growable: false);
-  }
-
-  @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
 
   /**
@@ -5914,12 +5815,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     invalidate(this);
   }
 
-  @override
-  bool isUpToDate(int timeStamp) {
-    Set<LibraryElement> visitedLibraries = new Set();
-    return _safeIsUpToDate(this, timeStamp, visitedLibraries);
-  }
-
   /**
    * Set whether the library has the given [capability] to
    * correspond to the given [value].
@@ -5940,80 +5835,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   /**
-   * Recursively fills set of visible libraries for
-   * [getVisibleElementsLibraries].
-   */
-  void _addVisibleLibraries(
-      Set<LibraryElement> visibleLibraries, bool includeExports) {
-    // maybe already processed
-    if (!visibleLibraries.add(this)) {
-      return;
-    }
-    // add imported libraries
-    for (ImportElement importElement in imports) {
-      LibraryElement importedLibrary = importElement.importedLibrary;
-      if (importedLibrary != null) {
-        (importedLibrary as LibraryElementImpl)
-            ._addVisibleLibraries(visibleLibraries, true);
-      }
-    }
-    // add exported libraries
-    if (includeExports) {
-      for (ExportElement exportElement in exports) {
-        LibraryElement exportedLibrary = exportElement.exportedLibrary;
-        if (exportedLibrary != null) {
-          (exportedLibrary as LibraryElementImpl)
-              ._addVisibleLibraries(visibleLibraries, true);
-        }
-      }
-    }
-  }
-
-  /**
    * Return `true` if the [library] has the given [capability].
    */
   static bool hasResolutionCapability(
       LibraryElement library, LibraryResolutionCapability capability) {
     return library is LibraryElementImpl &&
         BooleanArray.get(library._resolutionCapabilities, capability.index);
-  }
-
-  /**
-   * Return `true` if the given [library] is up to date with respect to the
-   * given [timeStamp]. The set of [visitedLibraries] is used to prevent
-   * infinite recursion in the case of mutually dependent libraries.
-   */
-  static bool _safeIsUpToDate(LibraryElement library, int timeStamp,
-      Set<LibraryElement> visitedLibraries) {
-    if (!visitedLibraries.contains(library)) {
-      visitedLibraries.add(library);
-      AnalysisContext context = library.context;
-      // Check the defining compilation unit.
-      if (timeStamp <
-          context
-              .getModificationStamp(library.definingCompilationUnit.source)) {
-        return false;
-      }
-      // Check the parted compilation units.
-      for (CompilationUnitElement element in library.parts) {
-        if (timeStamp < context.getModificationStamp(element.source)) {
-          return false;
-        }
-      }
-      // Check the imported libraries.
-      for (LibraryElement importedLibrary in library.importedLibraries) {
-        if (!_safeIsUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
-          return false;
-        }
-      }
-      // Check the exported libraries.
-      for (LibraryElement exportedLibrary in library.exportedLibraries) {
-        if (!_safeIsUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 }
 
@@ -6483,9 +6310,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   String get displayName => _name;
 
   @override
-  SourceRange get docRange => null;
-
-  @override
   String get documentationComment => null;
 
   @override
@@ -6766,18 +6590,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   void set const3(bool isConst) {
     assert(_unlinkedVariable == null);
     super.const3 = isConst;
-  }
-
-  @override
-  SourceRange get docRange {
-    if (_unlinkedVariable != null) {
-      UnlinkedDocumentationComment comment =
-          _unlinkedVariable.documentationComment;
-      return comment != null
-          ? new SourceRange(comment.offset, comment.length)
-          : null;
-    }
-    return super.docRange;
   }
 
   @override

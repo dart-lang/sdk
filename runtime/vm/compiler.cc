@@ -1251,7 +1251,6 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                num_tokens_after - num_tokens_before);
     }
 
-
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
 
     if (Compiler::IsBackgroundCompilation()) {

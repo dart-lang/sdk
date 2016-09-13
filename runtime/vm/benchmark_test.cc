@@ -730,4 +730,9 @@ BENCHMARK(LargeMap) {
   benchmark->set_score(elapsed_time);
 }
 
+
+BENCHMARK_MEMORY(InitialRSS) {
+  benchmark->set_score(OS::MaxRSS());
+}
+
 }  // namespace dart

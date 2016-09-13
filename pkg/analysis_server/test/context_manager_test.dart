@@ -5,6 +5,7 @@
 library test.context.directory.manager;
 
 import 'dart:collection';
+import 'dart:io' as io;
 
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -15,7 +16,6 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -154,8 +154,10 @@ test_pack:lib/''');
     var context = contexts[0];
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(source.fullName,
-        '/my/proj/sdk_ext/entry.dart'.replaceAll('/', JavaFile.separator));
+    expect(
+        source.fullName,
+        '/my/proj/sdk_ext/entry.dart'
+            .replaceAll('/', io.Platform.pathSeparator));
     // We can't find dart:core because we didn't list it in our
     // embedded_libs map.
     expect(context.sourceFactory.forUri('dart:core'), isNull);
@@ -1771,7 +1773,7 @@ abstract class ContextManagerTest {
       '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}'
     ];
     return patterns
-        .map((pattern) => new Glob(JavaFile.pathContext.separator, pattern))
+        .map((pattern) => new Glob(posix.separator, pattern))
         .toList();
   }
 
@@ -2193,8 +2195,10 @@ linter:
     // Sanity check embedder libs.
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(source.fullName,
-        '/my/proj/sdk_ext/entry.dart'.replaceAll('/', JavaFile.separator));
+    expect(
+        source.fullName,
+        '/my/proj/sdk_ext/entry.dart'
+            .replaceAll('/', io.Platform.pathSeparator));
   }
 
   test_embedder_options() async {
@@ -2287,8 +2291,10 @@ linter:
     // Sanity check embedder libs.
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(source.fullName,
-        '/my/proj/sdk_ext/entry.dart'.replaceAll('/', JavaFile.separator));
+    expect(
+        source.fullName,
+        '/my/proj/sdk_ext/entry.dart'
+            .replaceAll('/', io.Platform.pathSeparator));
   }
 
   test_error_filter_analysis_option() async {

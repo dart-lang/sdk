@@ -40,7 +40,7 @@ vars.update({
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
-  "kernel_rev": "@9509d282a62fe025f8d6242bb233b02e0a7fee04",
+  "kernel_rev": "@9677d68402ea15d0eca6430d64f631bb3e505499",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "matcher_tag": "@0.12.0",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
@@ -69,7 +69,7 @@ vars.update({
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
 
-  "co19_rev": "@3f0a4bc9a080a792cdf5f093147a900f99ea301f",
+  "co19_rev": "@d4767b4caea3c5828ad8e053cd051d44a59061af",
 })
 
 deps.update({

@@ -5,7 +5,7 @@
 library analysis_server.src.domain_diagnostic;
 
 import 'dart:collection';
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';

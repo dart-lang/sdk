@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -21,7 +22,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -2494,9 +2494,6 @@ class ClassTwo {
     LibraryElement library = compilationUnit.element.library;
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
-    List<LibraryElement> visibleLibraries = library.visibleLibraries;
-    assertNamedElements(visibleLibraries,
-        ["dart.core", "dart.async", "dart.math", "libA", "libB"]);
   }
 
   void test_resolveCompilationUnit_import_relative_cyclic() {
@@ -2509,9 +2506,6 @@ class ClassTwo {
     LibraryElement library = compilationUnit.element.library;
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
-    List<LibraryElement> visibleLibraries = library.visibleLibraries;
-    assertNamedElements(visibleLibraries,
-        ["dart.core", "dart.async", "dart.math", "libA", "libB"]);
   }
 
 //  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
@@ -2718,7 +2712,7 @@ int a = 0;''');
     expect(context.sourcesNeedingProcessing.contains(source), isFalse);
   }
 
-  void test_validateCacheConsistency_deletedSource() {
+  void test_validateCacheConsistency_deletedFile() {
     MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     var fileA = resourceProvider.newFile('/a.dart', "");
     var fileB = resourceProvider.newFile('/b.dart', "import 'a.dart';");
@@ -2882,6 +2876,34 @@ class LimitedInvalidateTest extends AbstractContextTest {
     options.incremental = true;
     options.finerGrainedInvalidation = true;
     context.analysisOptions = options;
+  }
+
+  void test_applyChanges_changedSource_removeFile() {
+    File file = resourceProvider.newFile('/test.dart', 'main() {}');
+    Source source = file.createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    // Analyze all.
+    _performPendingAnalysisTasks();
+    expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
+    // Delete the file, but tell the context that it is changed.
+    // This might happen as a race condition.
+    // Or it might be a mishandling of file notification events.
+    file.delete();
+    context.applyChanges(new ChangeSet()..changedSource(source));
+    // All the analysis results are gone.
+    void noResolvedUnits() {
+      LibrarySpecificUnit unit = new LibrarySpecificUnit(source, source);
+      RESOLVED_UNIT_RESULTS.forEach((result) {
+        expect(context.getResult(unit, result), isNull);
+      });
+    }
+
+    noResolvedUnits();
+    // Analyze again.
+    // The source does not exist, so still no resolution.
+    _performPendingAnalysisTasks();
+    noResolvedUnits();
+    expect(context.getModificationStamp(source), -1);
   }
 
   void test_class_addMethod_useAsHole_inTopLevelVariable() {

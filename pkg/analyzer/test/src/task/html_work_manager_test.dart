@@ -4,6 +4,7 @@
 
 library analyzer.test.src.task.html_work_manager_test;
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
@@ -15,7 +16,6 @@ import 'package:analyzer/src/generated/engine.dart'
         InternalAnalysisContext;
 import 'package:analyzer/src/generated/error.dart'
     show AnalysisError, HtmlErrorCode;
-import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';

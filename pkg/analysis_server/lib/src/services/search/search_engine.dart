@@ -10,8 +10,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * Instances of the enum [MatchKind] represent the kind of reference that was
@@ -175,8 +175,9 @@ class SearchMatch {
   String get file => unitSource.fullName;
 
   @override
-  int get hashCode =>
-      JavaArrays.makeHashCode([libraryUri, unitUri, kind, sourceRange]);
+  int get hashCode {
+    return JenkinsSmiHash.hash4(libraryUri, unitUri, kind, sourceRange);
+  }
 
   /**
    * Return the [LibraryElement] for the [libraryUri] in the [context].

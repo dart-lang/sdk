@@ -154,7 +154,7 @@ class WeakTable {
   void Rehash();
 
   static intptr_t Hash(RawObject* key) {
-    return reinterpret_cast<intptr_t>(key) * 92821;
+    return reinterpret_cast<uintptr_t>(key) * 92821;
   }
 
   // data_ contains size_ tuples of key/value.

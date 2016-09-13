@@ -696,7 +696,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(rImpl.codeLength, oImpl.codeLength, reason: desc);
     expect(resynthesized.documentationComment, original.documentationComment,
         reason: desc);
-    expect(resynthesized.docRange, original.docRange, reason: desc);
     compareMetadata(resynthesized.metadata, original.metadata, desc);
 
     // Validate modifiers.
@@ -1722,6 +1721,11 @@ class E {}''');
     checkLibrary('class C implements D, E {} class D {} class E {}');
   }
 
+  test_class_interfaces_unresolved() {
+    checkLibrary('class C implements X, Y, Z {} class X {} class Z {}',
+        allowErrors: true);
+  }
+
   test_class_method_abstract() {
     checkLibrary('abstract class C { f(); }');
   }
@@ -1744,6 +1748,11 @@ class E {}''');
 
   test_class_mixins() {
     checkLibrary('class C extends Object with D, E {} class D {} class E {}');
+  }
+
+  test_class_mixins_unresolved() {
+    checkLibrary('class C extends Object with X, Y, Z; class X {} class Z {}',
+        allowErrors: true);
   }
 
   test_class_setter_abstract() {
@@ -1772,6 +1781,10 @@ class E {}''');
 
   test_class_supertype() {
     checkLibrary('class C extends D {} class D {}');
+  }
+
+  test_class_supertype_unresolved() {
+    checkLibrary('class C extends D {}', allowErrors: true);
   }
 
   test_class_type_parameters() {

@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:unittest/unittest.dart';
 
 import 'domain_completion_test.dart';
@@ -162,8 +161,7 @@ class LocationSpec {
       String value = result.substring(2);
       LocationSpec test = tests[id];
       if (test == null) {
-        throw new StateError(
-            "Invalid location result id: $id for: $result");
+        throw new StateError("Invalid location result id: $id for: $result");
       }
       test.source = modifiedSource;
       if (sign == '+') {

@@ -25,7 +25,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -285,6 +284,10 @@ class Driver implements CommandLineStarter {
     if (options.disableHints != _previousOptions.disableHints) {
       return false;
     }
+    if (options.enableInitializingFormalAccess !=
+        _previousOptions.enableInitializingFormalAccess) {
+      return false;
+    }
     if (options.enableStrictCallChecks !=
         _previousOptions.enableStrictCallChecks) {
       return false;
@@ -366,8 +369,10 @@ class Driver implements CommandLineStarter {
     UriResolver packageUriResolver;
 
     if (options.packageRootPath != null) {
-      JavaFile packageDirectory = new JavaFile(options.packageRootPath);
-      packageUriResolver = new PackageUriResolver([packageDirectory]);
+      ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
+      builder.defaultPackagesDirectoryPath = options.packageRootPath;
+      packageUriResolver = new PackageMapUriResolver(resourceProvider,
+          builder.convertPackagesToMap(builder.createPackageMap('')));
     } else if (options.packageConfigPath == null) {
       // TODO(pq): remove?
       if (packageInfo.packageMap == null) {
@@ -646,6 +651,8 @@ class Driver implements CommandLineStarter {
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
     contextOptions.trackCacheDependencies = false;
     contextOptions.hint = !options.disableHints;
+    contextOptions.enableInitializingFormalAccess =
+        options.enableInitializingFormalAccess;
     contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
     contextOptions.enableSuperMixins = options.enableSuperMixins;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;

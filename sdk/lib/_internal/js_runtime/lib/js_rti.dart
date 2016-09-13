@@ -228,23 +228,21 @@ Type getRuntimeType(var object) {
  * possible values for [substitution].
  */
 substitute(var substitution, var arguments) {
-  assert(substitution == null ||
-         isJsFunction(substitution));
+  if (substitution == null) return arguments;
+  assert(isJsFunction(substitution));
   assert(arguments == null || isJsArray(arguments));
+  substitution = invoke(substitution, arguments);
+  if (substitution == null) return null;
+  if (isJsArray(substitution)) {
+    // Substitutions are generated too late to mark Array as used, so use a
+    // tautological JS 'cast' to mark Array as used. This is needed only in
+    // some tiny tests where the substition is the only thing that creates an
+    // Array.
+    return JS('JSArray', '#', substitution);
+  }
   if (isJsFunction(substitution)) {
-    substitution = invoke(substitution, arguments);
-    if (substitution == null) return substitution;
-    if (isJsArray(substitution)) {
-      // Substitutions are generated too late to mark Array as used, so use a
-      // tautological JS 'cast' to mark Array as used. This is needed only in
-      // some tiny tests where the substition is the only thing that creates an
-      // Array.
-      return JS('JSArray', '#', substitution);
-    }
-    if (isJsFunction(substitution)) {
-      // TODO(johnniwinther): Check if this is still needed.
-      return invoke(substitution, arguments);
-    }
+    // TODO(johnniwinther): Check if this is still needed.
+    return invoke(substitution, arguments);
   }
   return arguments;
 }
@@ -467,12 +465,12 @@ bool isSubtype(var s, var t) {
   // Get the necessary substitution of the type arguments, if there is one.
   var substitution;
   if (isNotIdentical(typeOfT, typeOfS)) {
-    if (!builtinIsSubtype(typeOfS, runtimeTypeToString(typeOfT))) {
+    String typeOfTString = runtimeTypeToString(typeOfT);
+    if (!builtinIsSubtype(typeOfS, typeOfTString)) {
       return false;
     }
     var typeOfSPrototype = JS('', '#.prototype', typeOfS);
-    var field = '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}'
-        '${runtimeTypeToString(typeOfT)}';
+    var field = '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}${typeOfTString}';
     substitution = getField(typeOfSPrototype, field);
   }
   // The class of [s] is a subclass of the class of [t].  If [s] has no type

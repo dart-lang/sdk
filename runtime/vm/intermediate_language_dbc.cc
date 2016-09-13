@@ -683,13 +683,18 @@ EMIT_NATIVE_CODE(CreateArray,
                  2, Location::RequiresRegister(),
                  LocationSummary::kCall) {
   if (compiler->is_optimizing()) {
-    __ Push(locs()->in(0).reg());
-    __ Push(locs()->in(1).reg());
-  }
-  __ CreateArrayTOS();
-  compiler->RecordSafepoint(locs());
-  if (compiler->is_optimizing()) {
-    __ PopLocal(locs()->out(0).reg());
+    const Register length = locs()->in(kLengthPos).reg();
+    const Register type_arguments = locs()->in(kElementTypePos).reg();
+    const Register out = locs()->out(0).reg();
+    __ CreateArrayOpt(out, length, type_arguments);
+    __ Push(type_arguments);
+    __ Push(length);
+    __ CreateArrayTOS();
+    compiler->RecordSafepoint(locs());
+    __ PopLocal(out);
+  } else {
+    __ CreateArrayTOS();
+    compiler->RecordSafepoint(locs());
   }
 }
 
@@ -910,21 +915,45 @@ EMIT_NATIVE_CODE(AllocateObject,
                  0, Location::RequiresRegister(),
                  LocationSummary::kCall) {
   if (ArgumentCount() == 1) {
+    // Allocate with type arguments.
     __ PushConstant(cls());
     __ AllocateT();
     compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                    Thread::kNoDeoptId,
                                    token_pos());
+    compiler->RecordSafepoint(locs());
+    if (compiler->is_optimizing()) {
+      __ PopLocal(locs()->out(0).reg());
+    }
+  } else if (compiler->is_optimizing()) {
+    // If we're optimizing, try a streamlined fastpath.
+    const intptr_t instance_size = cls().instance_size();
+    Isolate* isolate = Isolate::Current();
+    if (Heap::IsAllocatableInNewSpace(instance_size) &&
+        !cls().TraceAllocation(isolate)) {
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(instance_size, tags);
+      ASSERT(cls().id() != kIllegalCid);
+      tags = RawObject::ClassIdTag::update(cls().id(), tags);
+      if (Smi::IsValid(tags)) {
+        const intptr_t tags_kidx = __ AddConstant(Smi::Handle(Smi::New(tags)));
+        __ AllocateOpt(locs()->out(0).reg(), tags_kidx);
+      }
+    }
+    const intptr_t kidx = __ AddConstant(cls());
+    __ Allocate(kidx);
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                   Thread::kNoDeoptId,
+                                   token_pos());
+    compiler->RecordSafepoint(locs());
+    __ PopLocal(locs()->out(0).reg());
   } else {
     const intptr_t kidx = __ AddConstant(cls());
     __ Allocate(kidx);
     compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                    Thread::kNoDeoptId,
                                    token_pos());
-  }
-  compiler->RecordSafepoint(locs());
-  if (compiler->is_optimizing()) {
-    __ PopLocal(locs()->out(0).reg());
+    compiler->RecordSafepoint(locs());
   }
 }
 
@@ -1413,13 +1442,25 @@ EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
   ASSERT(from_representation() == kUnboxedDouble);
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
+  const intptr_t instance_size = compiler->double_class().instance_size();
+  Isolate* isolate = Isolate::Current();
+  ASSERT(Heap::IsAllocatableInNewSpace(instance_size));
+  if (!compiler->double_class().TraceAllocation(isolate)) {
+    uword tags = 0;
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::ClassIdTag::update(compiler->double_class().id(), tags);
+    if (Smi::IsValid(tags)) {
+      const intptr_t tags_kidx = __ AddConstant(Smi::Handle(Smi::New(tags)));
+      __ AllocateOpt(out, tags_kidx);
+    }
+  }
   const intptr_t kidx = __ AddConstant(compiler->double_class());
   __ Allocate(kidx);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  Thread::kNoDeoptId,
                                  token_pos());
   compiler->RecordSafepoint(locs());
-  // __ Allocate puts the box at the top of the stack.
+  __ PopLocal(out);
   __ WriteIntoDouble(out, value);
 }
 

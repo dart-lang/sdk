@@ -133,6 +133,13 @@ class ICDataViewElement  extends HtmlElement implements Renderable {
               new DivElement()..classes = ['memberItem']
                 ..children = [
                   new DivElement()..classes = ['memberName']
+                    ..text = 'selector',
+                  new DivElement()..classes = ['memberName']
+                    ..text = _icdata.selector
+                ],
+              new DivElement()..classes = ['memberItem']
+                ..children = [
+                  new DivElement()..classes = ['memberName']
                     ..text = 'owner',
                   new DivElement()..classes = ['memberName']
                     ..children = [

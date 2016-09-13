@@ -7,6 +7,7 @@ library analyzer.test.generated.incremental_resolver_test;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -2113,8 +2114,6 @@ class B extends A {}
 
 @reflectiveTest
 class ResolutionContextBuilderTest extends EngineTestCase {
-  GatheringErrorListener listener = new GatheringErrorListener();
-
   void test_scopeFor_ClassDeclaration() {
     Scope scope = _scopeFor(_createResolvedClassDeclaration());
     EngineTestCase.assertInstanceOf(
@@ -2316,7 +2315,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
   }
 
   Scope _scopeFor(AstNode node) {
-    return ResolutionContextBuilder.contextFor(node, listener).scope;
+    return ResolutionContextBuilder.contextFor(node).scope;
   }
 }
 

@@ -6,6 +6,7 @@ library script_inset_element;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:svg';
 import 'package:observatory/app.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
@@ -591,7 +592,9 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       button.disabled = false;
     });
     button.title = 'Refresh coverage';
-    button.text = '↺';
+    button.children = [
+      _iconRefresh.clone(true)
+    ];
     return button;
   }
 
@@ -607,7 +610,9 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       _refresh();
       button.disabled = false;
     });
-    button.text = '🔥';
+    button.children = [
+      _iconWhatsHot.clone(true)
+    ];
     return button;
   }
 
@@ -1347,3 +1352,29 @@ class ScriptLineProfile {
   bool isHot(bool self) => _percent(self) > kHotThreshold;
   bool isMedium(bool self) => _percent(self) > kMediumThreshold;
 }
+
+final SvgSvgElement _iconRefresh = new SvgSvgElement()
+    ..setAttribute('width', '24')
+    ..setAttribute('height', '24')
+    ..children = [
+      new PathElement()
+        ..setAttribute('d', 'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 '
+                            '3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 '
+                            '7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 '
+                            '0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 '
+                            '1.78L13 11h7V4l-2.35 2.35z')
+    ];
+
+final SvgSvgElement _iconWhatsHot = new SvgSvgElement()
+    ..setAttribute('width', '24')
+    ..setAttribute('height', '24')
+    ..children = [
+      new PathElement()
+        ..setAttribute('d', 'M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 '
+                            '3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 '
+                            '4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 '
+                            '17.41 3.8 13.5.67zM11.71 19c-1.78 '
+                            '0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 '
+                            '1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 '
+                            '4.04 0 2.65-2.15 4.8-4.8 4.8z')
+    ];

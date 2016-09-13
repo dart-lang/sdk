@@ -6,7 +6,6 @@ import 'dart:collection' show Queue;
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/checks.dart' show CheckParentPointers;
-import 'package:kernel/frontend/super_calls.dart' show moveSuperCallLast;
 
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show TypeConstantExpression;
@@ -60,6 +59,9 @@ class Kernel {
 
   final Map<LibraryElement, Map<String, int>> mixinApplicationNamesByLibrary =
       <LibraryElement, Map<String, int>>{};
+
+  final Map<ir.Node, Element> nodeToElement = <ir.Node, Element>{};
+  final Map<ir.Node, Node> nodeToAst = <ir.Node, Node>{};
 
   /// FIFO queue of work that needs to be completed before the returned AST
   /// nodes are correct.
@@ -162,6 +164,8 @@ class Kernel {
   ir.Class classToIr(ClassElement cls) {
     cls = cls.declaration;
     return classes.putIfAbsent(cls, () {
+      cls.ensureResolved(compiler.resolution);
+      compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
       String name = computeName(cls);
       ir.Class classNode = new ir.Class(
           name: name,
@@ -182,7 +186,8 @@ class Kernel {
         cls.implementation
             .forEachMember((ClassElement enclosingClass, Element member) {
           if (member.enclosingClass.declaration != cls) {
-            internalError(cls, "`$member` isn't mine.");
+            // TODO(het): figure out why impact_test triggers this
+            //internalError(cls, "`$member` isn't mine.");
           } else if (member.isFunction ||
               member.isAccessor ||
               member.isConstructor) {
@@ -321,6 +326,8 @@ class Kernel {
     }
     function = function.declaration;
     return functions.putIfAbsent(function, () {
+      compiler.analyzeElement(function);
+      compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
       function = function.implementation;
       ir.Member member;
       ir.Constructor constructor;
@@ -358,7 +365,6 @@ class Kernel {
           for (ir.Initializer initializer in irFunction.initializers) {
             initializer.parent = constructor;
           }
-          moveSuperCallLast(constructor);
         } else {
           assert(irFunction.kind != null);
           procedure.function = irFunction.node;
@@ -411,6 +417,8 @@ class Kernel {
     }
     field = field.declaration;
     return fields.putIfAbsent(field, () {
+      compiler.analyzeElement(field);
+      compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
       field = field.implementation;
       ir.DartType type =
           field.isMalformed ? const ir.InvalidType() : typeToIr(field.type);
@@ -445,6 +453,7 @@ class Kernel {
         // TODO(ahe): This assignment will probably not be correct when dart2js
         // supports generic methods.
         ClassElement cls = variable.typeDeclaration;
+        cls.ensureResolved(compiler.resolution);
         parameter.parent = classToIr(cls);
         parameter.bound = typeToIr(variable.bound);
       });

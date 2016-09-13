@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/cancelable_future.dart';
@@ -1076,6 +1077,12 @@ abstract class AnalysisOptions {
   bool get enableGenericMethods => null;
 
   /**
+   * Return `true` if access to field formal parameters should be allowed in a
+   * constructor's initializer list.
+   */
+  bool get enableInitializingFormalAccess;
+
+  /**
    * Return `true` to enable the lazy compound assignment operators '&&=' and
    * '||='.
    */
@@ -1227,6 +1234,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableGenericMethods = false;
 
   @override
+  bool enableInitializingFormalAccess = false;
+
+  @override
   bool enableLazyAssignmentOperators = false;
 
   @override
@@ -1324,6 +1334,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableAsync = options.enableAsync;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
+    enableInitializingFormalAccess = options.enableInitializingFormalAccess;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
     generateImplicitErrors = options.generateImplicitErrors;
@@ -1772,12 +1783,6 @@ class ChangeSet {
   final List<SourceContainer> removedContainers = new List<SourceContainer>();
 
   /**
-   * A list containing the sources that have been deleted.
-   */
-  @deprecated
-  final List<Source> deletedSources = new List<Source>();
-
-  /**
    * Return a table mapping the sources whose content has been changed to the
    * current content of those sources.
    */
@@ -1792,8 +1797,7 @@ class ChangeSet {
       _changedContent.isEmpty &&
       changedRanges.isEmpty &&
       removedSources.isEmpty &&
-      removedContainers.isEmpty &&
-      deletedSources.isEmpty;
+      removedContainers.isEmpty;
 
   /**
    * Record that the specified [source] has been added and that its content is
@@ -1835,14 +1839,6 @@ class ChangeSet {
   }
 
   /**
-   * Record that the specified [source] has been deleted.
-   */
-  @deprecated
-  void deletedSource(Source source) {
-    deletedSources.add(source);
-  }
-
-  /**
    * Record that the specified source [container] has been removed.
    */
   void removedContainer(SourceContainer container) {
@@ -1871,8 +1867,6 @@ class ChangeSet {
         buffer, _changedContent, needsSeparator, "changedContent");
     needsSeparator =
         _appendSources2(buffer, changedRanges, needsSeparator, "changedRanges");
-    needsSeparator = _appendSources(
-        buffer, deletedSources, needsSeparator, "deletedSources");
     needsSeparator = _appendSources(
         buffer, removedSources, needsSeparator, "removedSources");
     int count = removedContainers.length;
@@ -2680,10 +2674,9 @@ class SourcesChangedEvent {
   /**
    * Return `true` if any sources were removed or deleted.
    */
-  bool get wereSourcesRemovedOrDeleted =>
+  bool get wereSourcesRemoved =>
       _changeSet.removedSources.length > 0 ||
-      _changeSet.removedContainers.length > 0 ||
-      _changeSet.deletedSources.length > 0;
+      _changeSet.removedContainers.length > 0;
 }
 
 /**

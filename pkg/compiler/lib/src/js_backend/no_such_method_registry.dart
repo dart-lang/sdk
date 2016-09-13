@@ -7,7 +7,6 @@ import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-import '../types/types.dart';
 import 'backend.dart';
 
 /**

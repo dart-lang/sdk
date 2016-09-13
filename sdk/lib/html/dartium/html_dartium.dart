@@ -9381,7 +9381,7 @@ class DataTransferItemList extends DartHtmlDomObject {
     // TODO(alanknight): I think that all the __getter__ generators should just
     // do property access, but that's major surgery. This one is a problem, so
     // just hard-code it for now.
-    return _blink.Blink_JsNative_DomException.getProperty(this, index);
+    return _blink.Blink_JsNative_DomException.getProperty(this, index.toString());
   }
 
 }

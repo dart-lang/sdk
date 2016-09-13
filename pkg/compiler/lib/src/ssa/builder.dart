@@ -1502,10 +1502,10 @@ class SsaBuilder extends ast.Visitor
         hasRtiInput = true;
         List<HInstruction> typeArguments = <HInstruction>[];
         classElement.typeVariables.forEach((TypeVariableType typeVariable) {
-            HInstruction argument = localsHandler
-                .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
-            typeArguments.add(argument);
-          });
+          HInstruction argument = localsHandler
+              .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
+          typeArguments.add(argument);
+        });
 
         HInstruction typeInfo = new HTypeInfoExpression(
             TypeInfoExpressionKind.INSTANCE,
