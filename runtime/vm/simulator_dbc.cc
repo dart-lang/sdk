@@ -256,8 +256,6 @@ class SimulatorHelpers {
     RawTypedData* array = reinterpret_cast<RawTypedData*>(obj);
     const intptr_t byte_offset = Smi::Value(RAW_CAST(Smi, index));
     ASSERT(byte_offset >= 0);
-    ASSERT(((byte_offset + (1 << scale)) >> scale) <=
-               Smi::Value(array->ptr()->length_));
     return array->ptr()->data() + byte_offset;
   }
 };
@@ -1826,9 +1824,8 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(WriteIntoDouble, A_D);
     const double value = bit_cast<double, RawObject*>(FP[rD]);
-    RawDouble* box = RAW_CAST(Double, *SP--);
+    RawDouble* box = RAW_CAST(Double, FP[rA]);
     box->ptr()->value_ = value;
-    FP[rA] = box;
     DISPATCH();
   }
 
@@ -2324,6 +2321,25 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(AllocateOpt, A_D);
+    const uword tags =
+        static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
+    const intptr_t instance_size = RawObject::SizeTag::decode(tags);
+    const uword start = thread->heap()->new_space()->TryAllocate(instance_size);
+    if (LIKELY(start != 0)) {
+      *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
+      for (intptr_t current_offset = sizeof(RawInstance);
+           current_offset < instance_size;
+           current_offset += kWordSize) {
+        *reinterpret_cast<RawObject**>(start + current_offset) = null_value;
+      }
+      FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+      pc += 2;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(Allocate, A_D);
     SP[1] = 0;  // Space for the result.
     SP[2] = LOAD_CONSTANT(rD);  // Class object.
@@ -2343,6 +2359,38 @@ RawObject* Simulator::Call(const Code& code,
     NativeArguments args(thread, 2, SP + 1, SP - 1);
     INVOKE_RUNTIME(DRT_AllocateObject, args);
     SP -= 1;  // Result is in SP - 1.
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CreateArrayOpt, A_B_C);
+    const intptr_t length = Smi::Value(RAW_CAST(Smi, FP[rB]));
+    if (LIKELY(length <= Array::kMaxElements)) {
+      const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+      const intptr_t instance_size =
+          (fixed_size + length*kWordSize) & ~(kObjectAlignment - 1);
+      const uword start =
+          thread->heap()->new_space()->TryAllocate(instance_size);
+      if (LIKELY(start != 0)) {
+        const intptr_t cid = kArrayCid;
+        uword tags = 0;
+        if (LIKELY(instance_size < RawObject::SizeTag::kMaxSizeTag)) {
+          tags = RawObject::SizeTag::update(instance_size, tags);
+        }
+        tags = RawObject::ClassIdTag::update(cid, tags);
+        *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
+        *reinterpret_cast<RawObject**>(start + Array::length_offset()) = FP[rB];
+        *reinterpret_cast<RawObject**>(start + Array::type_arguments_offset()) =
+            FP[rC];
+        RawObject** data =
+            reinterpret_cast<RawObject**>(start + Array::data_offset());
+        for (intptr_t i = 0; i < length; i++) {
+          data[i] = null_value;
+        }
+        FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+        pc += 4;
+      }
+    }
     DISPATCH();
   }
 

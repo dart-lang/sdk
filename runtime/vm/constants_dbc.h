@@ -231,7 +231,7 @@ namespace dart {
 //
 //  - WriteIntoDouble rA, rD
 //
-//    Box the double in FP[rD] with the result in FP[rA].
+//    Box the double in FP[rD] using the box in FP[rA].
 //
 //  - UnboxDouble rA, rD
 //
@@ -309,9 +309,23 @@ namespace dart {
 //
 //    Allocate array of length SP[0] with type arguments SP[-1].
 //
+//  - CreateArrayOpt rA, rB, rC
+//
+//    Try to allocate a new array where FP[rB] is the length, and FP[rC] is the
+//    type. If allocation is successful, the result is stored in FP[rA], and
+//    the next four instructions, which should be the
+//    (Push type; Push length; AllocateTOS; PopLocal) slow path are skipped.
+//
 //  - Allocate D
 //
 //    Allocate object of class PP[D] with no type arguments.
+//
+//  - AllocateOpt rA, D
+//
+//    Try allocating an object with tags in PP[D] with no type arguments.
+//    If allocation is successful, the result is stored in FP[rA], and
+//    the next two instructions, which should be the (Allocate class; PopLocal)
+//    slow path are skipped
 //
 //  - AllocateT
 //
@@ -684,8 +698,10 @@ namespace dart {
   V(IfEqNull,                        A, reg, ___, ___) \
   V(IfNeNull,                        A, reg, ___, ___) \
   V(CreateArrayTOS,                  0, ___, ___, ___) \
+  V(CreateArrayOpt,              A_B_C, reg, reg, ___) \
   V(Allocate,                        D, lit, ___, ___) \
   V(AllocateT,                       0, ___, ___, ___) \
+  V(AllocateOpt,                   A_D, reg, lit, ___) \
   V(StoreIndexedTOS,                 0, ___, ___, ___) \
   V(StoreIndexed,                A_B_C, reg, reg, reg) \
   V(StoreIndexedUint8,           A_B_C, reg, reg, reg) \
