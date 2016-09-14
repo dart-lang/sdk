@@ -1,11 +1,11 @@
-## Writing Lints
+# Writing Lints
 
 Preliminary notes on writing lints.
 
 ## Lint Criteria
 
-Borrowing heavily from the criteria for [adding new checks to errorprone]
-(https://github.com/google/error-prone/wiki/Criteria-for-new-checks), lints should have the following properties.
+Borrowing heavily from the criteria for [adding new checks to errorprone](https://github.com/google/error-prone/wiki/Criteria-for-new-checks), 
+lints should have the following properties.
 
 Dart lints:
 
@@ -27,20 +27,20 @@ Every lint has a:
 **Kind.** The first word in the description should identify the *kind* of lint where kinds are derived from the 
 [style guide](https://www.dartlang.org/articles/style-guide/). In summary:
 
- * ***DO*** guidelines describe practices that should always be followed. There will almost never be a valid reason 
+* ***DO*** guidelines describe practices that should always be followed. There will almost never be a valid reason 
 to stray from them.
 
- * ***DON'T*** guidelines are the converse: things that are almost never a good idea. You'll note there are few of 
+* ***DON'T*** guidelines are the converse: things that are almost never a good idea. You'll note there are few of 
 these here. Guidelines like these in other languages help to avoid the pitfalls that appear over time. Dart is 
 new enough that we can just fix those pitfalls directly instead of putting up ropes around them.
 
- * ***PREFER*** guidelines are practices that you should follow. However, there may be circumstances where it makes 
+* ***PREFER*** guidelines are practices that you should follow. However, there may be circumstances where it makes 
 sense to do otherwise. Just make sure you understand the full implications of ignoring the guideline when you do.
 
- * ***AVOID*** guidelines are the dual to "prefer": stuff you shouldn't do but where there may be good reasons to 
+* ***AVOID*** guidelines are the dual to "prefer": stuff you shouldn't do but where there may be good reasons to 
 on rare occasions.
 
- * ***CONSIDER*** guidelines are practices that you might or might not want to follow, depending on circumstances, 
+* ***CONSIDER*** guidelines are practices that you might or might not want to follow, depending on circumstances, 
 precedents, and your own preference.
 
 **Detailed Description.** In addition to the short description, a lint rule should have more detailed rationale 
@@ -59,7 +59,7 @@ Lints live in the [lib/src/rules](https://github.com/dart-lang/linter/tree/maste
 Corresponding tests live in [test/rules](https://github.com/dart-lang/linter/tree/master/test/rules). 
 
 Rule stubs can be generated with the [rule.dart](https://github.com/dart-lang/linter/blob/master/tool/rule.dart) 
-helper script and documentation gets generated with [doc.dart] 
-(https://github.com/dart-lang/linter/blob/master/tool/doc.dart).
+helper script and documentation gets generated with [doc.dart](https://github.com/dart-lang/linter/blob/master/tool/doc.dart). 
+Helper scripts can be invoked via `dart` or grinder (`pub run grinder docs:doc_location` and `pub run grinder rule:my_new_rule` respectively).
 
 Needless to say, details are under active development.  Feedback is most [welcome](https://github.com/dart-lang/linter/issues)!

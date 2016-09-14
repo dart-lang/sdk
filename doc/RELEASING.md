@@ -1,4 +1,4 @@
-**Pushing a new Release**
+# Pushing a new Release
 
 First, make sure travis and appveyor are GREEN.
 
