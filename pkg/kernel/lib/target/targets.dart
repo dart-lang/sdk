@@ -6,7 +6,7 @@ library kernel.target.targets;
 import '../ast.dart';
 import 'vm.dart';
 
-final List<String> targetNames = _targets.keys.toList();
+final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   bool strongMode;
@@ -15,13 +15,13 @@ class TargetFlags {
 
 typedef Target _TargetBuilder(TargetFlags flags);
 
-final Map<String, _TargetBuilder> _targets = <String, _TargetBuilder>{
+final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),
   'vm': (TargetFlags flags) => new VmTarget(flags),
 };
 
 Target getTarget(String name, TargetFlags flags) {
-  var builder = _targets[name];
+  var builder = targets[name];
   if (builder == null) return null;
   return builder(flags);
 }
