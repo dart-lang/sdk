@@ -55,11 +55,39 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
     StringLiteral uri = node.uri;
     if (uri is SimpleStringLiteral) {
       int offset = request.offset;
-      if (uri.offset < offset &&
-          (offset < uri.end || offset == uri.offset + 1)) {
-        // Handle degenerate case where import or export is only line in file
-        // and there is no semicolon
-        visitSimpleStringLiteral(uri);
+      int start = uri.offset;
+      int end = uri.end;
+      if (offset > start) {
+        if (offset < end) {
+          // Quoted non-empty string
+          visitSimpleStringLiteral(uri);
+        } else if (offset == end) {
+          if (end == start + 1) {
+            // Quoted empty string
+            visitSimpleStringLiteral(uri);
+          } else {
+            String data = request.source.contents.data;
+            if (end == data.length) {
+              String ch = data[end - 1];
+              if (ch != '"' && ch != "'") {
+                // Insertion point at end of file
+                // and missing closing quote on non-empty string
+                visitSimpleStringLiteral(uri);
+              }
+            }
+          }
+        }
+      }
+      else if (offset == start && offset == end) {
+        String data = request.source.contents.data;
+        if (end == data.length) {
+          String ch = data[end - 1];
+          if (ch == '"' || ch == "'") {
+            // Insertion point at end of file
+            // and missing closing quote on empty string
+            visitSimpleStringLiteral(uri);
+          }
+        }
       }
     }
   }

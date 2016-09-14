@@ -1349,8 +1349,7 @@ export 'dart:!1''',
           "1+dart:math",
           "1-dart:_chrome",
           "1-dart:_collection.dev"
-        ],
-        failingTests: '1');
+        ]);
 
     buildTests(
         'testCompletion_export_noStringLiteral_noSemicolon',
@@ -1497,8 +1496,7 @@ import 'dart:!1''',
           "1+dart:math",
           "1-dart:_chrome",
           "1-dart:_collection.dev"
-        ],
-        failingTests: '1');
+        ]);
 
     buildTests(
         'testCompletion_import_hasStringLiteral_noSemicolon',
