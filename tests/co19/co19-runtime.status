@@ -230,6 +230,8 @@ Language/Types/Dynamic_Type_System/deferred_type_error_t01: Skip # Requires defe
 Language/Types/Static_Types/deferred_type_t01: Skip # Requires deferred libraries
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # Requires deferred libraries
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Timeout
+LibTest/collection/IterableBase/IterableBase_class_A01_t02: Pass, Timeout
+LibTest/collection/IterableMixin/IterableMixin_class_A02_t01: Pass, Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
