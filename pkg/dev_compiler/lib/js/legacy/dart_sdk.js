@@ -1022,6 +1022,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (!jsType) return;
     let extProto = dartExtType.prototype;
     let jsProto = jsType.prototype;
+    if (!jsProto) return;
     jsProto[dart._extensionType] = dartExtType;
     dart._installProperties(jsProto, extProto);
     let originalSigFn = dart.getOwnPropertyDescriptor(dartExtType, dart._methodSig).get;
@@ -1762,7 +1763,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.nullSafe = function(obj, ...callbacks) {
     if (obj == null) return obj;
-    for (const callback of callbacks) {
+    for (let callback of callbacks) {
       obj = callback(obj);
       if (obj == null) break;
     }

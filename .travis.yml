@@ -9,6 +9,8 @@ cache:
     - $HOME/.nvm
     - $HOME/.pub-cache/hosted
     - pkg/dev_compiler/node_modules
+addons:
+  firefox: latest
 before_install:
   # g++4.8.1 setup
   - if [ "$CXX" == "g++" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
@@ -58,6 +60,7 @@ script:
   - if [[ "$TEST" == node ]]; then ./tool/node_test.sh ; fi
 env:
   - ANALYZER=master
+  - ANALYZER=master DDC_BROWSERS=Firefox
   - ANALYZER=master CXX=g++
   - ANALYZER=master CXX=clang++
   - TEST=coverage
@@ -65,6 +68,7 @@ env:
 matrix:
   allow_failures:
     - env: TEST=node
+    - env: ANALYZER=master DDC_BROWSERS=Firefox
     - env: ANALYZER=master CXX=clang++
 notifications:
   email:

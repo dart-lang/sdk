@@ -22,8 +22,10 @@
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.1.8",
     "karma-electron-launcher": "^0.0.5",
+    "karma-firefox-launcher": "~0.1",
     "karma-mocha": "^0.1.10",
     "karma-requirejs": "^0.2.2",
+    "karma-safari-launcher": "^1.0.0",
     "mocha": "^2.2.4",
     "requirejs": "^2.1.17",
     "webdriver-manager": "8.0.0"
