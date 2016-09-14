@@ -2297,6 +2297,25 @@ RawObject* Simulator::Call(const Code& code,
   // TODO(vegorov) allocation bytecodes can benefit from the new-space
   // allocation fast-path that does not transition into the runtime system.
   {
+    BYTECODE(AllocateUninitializedContext, A_D);
+    const uint16_t num_context_variables = rD;
+    const intptr_t instance_size = Context::InstanceSize(num_context_variables);
+    const uword start =
+        thread->heap()->new_space()->TryAllocate(instance_size);
+    if (LIKELY(start != 0)) {
+      uword tags = 0;
+      tags = RawObject::ClassIdTag::update(kContextCid, tags);
+      tags = RawObject::SizeTag::update(instance_size, tags);
+      *reinterpret_cast<uword*>(start + Array::tags_offset()) = tags;
+      *reinterpret_cast<uword*>(start + Context::num_variables_offset()) =
+          num_context_variables;
+      FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+      pc += 2;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(AllocateContext, A_D);
     const uint16_t num_context_variables = rD;
     {
@@ -2348,6 +2367,28 @@ RawObject* Simulator::Call(const Code& code,
     NativeArguments args(thread, 2, SP + 2, SP + 1);
     INVOKE_RUNTIME(DRT_AllocateObject, args);
     SP++;  // Result is in SP[1].
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(AllocateTOpt, A_D);
+    const uword tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
+    const intptr_t instance_size = RawObject::SizeTag::decode(tags);
+    const uword start = thread->heap()->new_space()->TryAllocate(instance_size);
+    if (LIKELY(start != 0)) {
+      RawObject* type_args = SP[0];
+      const intptr_t type_args_offset = Bytecode::DecodeD(*pc);
+      *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
+      *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
+      for (intptr_t current_offset = sizeof(RawInstance);
+           current_offset < instance_size;
+           current_offset += kWordSize) {
+        *reinterpret_cast<RawObject**>(start + current_offset) = null_value;
+      }
+      FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+      SP -= 1;  // Consume the type arguments on the stack.
+      pc += 4;
+    }
     DISPATCH();
   }
 

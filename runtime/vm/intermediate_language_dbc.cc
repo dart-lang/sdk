@@ -916,14 +916,37 @@ EMIT_NATIVE_CODE(AllocateObject,
                  LocationSummary::kCall) {
   if (ArgumentCount() == 1) {
     // Allocate with type arguments.
-    __ PushConstant(cls());
-    __ AllocateT();
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
-                                   Thread::kNoDeoptId,
-                                   token_pos());
-    compiler->RecordSafepoint(locs());
     if (compiler->is_optimizing()) {
+      // If we're optimizing, try a streamlined fastpath.
+      const intptr_t instance_size = cls().instance_size();
+      Isolate* isolate = Isolate::Current();
+      if (Heap::IsAllocatableInNewSpace(instance_size) &&
+          !cls().TraceAllocation(isolate)) {
+        uword tags = 0;
+        tags = RawObject::SizeTag::update(instance_size, tags);
+        ASSERT(cls().id() != kIllegalCid);
+        tags = RawObject::ClassIdTag::update(cls().id(), tags);
+        if (Smi::IsValid(tags)) {
+          const intptr_t tags_kidx = __ AddConstant(
+              Smi::Handle(Smi::New(tags)));
+          __ AllocateTOpt(locs()->out(0).reg(), tags_kidx);
+          __ Nop(cls().type_arguments_field_offset());
+        }
+      }
+      __ PushConstant(cls());
+      __ AllocateT();
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                     Thread::kNoDeoptId,
+                                     token_pos());
+      compiler->RecordSafepoint(locs());
       __ PopLocal(locs()->out(0).reg());
+    } else {
+      __ PushConstant(cls());
+      __ AllocateT();
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                     Thread::kNoDeoptId,
+                                     token_pos());
+      compiler->RecordSafepoint(locs());
     }
   } else if (compiler->is_optimizing()) {
     // If we're optimizing, try a streamlined fastpath.
@@ -1020,6 +1043,8 @@ EMIT_NATIVE_CODE(AllocateUninitializedContext,
                  0, Location::RequiresRegister(),
                  LocationSummary::kCall) {
   ASSERT(compiler->is_optimizing());
+  __ AllocateUninitializedContext(locs()->out(0).reg(),
+                                  num_context_variables());
   __ AllocateContext(num_context_variables());
   compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
