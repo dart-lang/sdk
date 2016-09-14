@@ -10,46 +10,40 @@ import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
+import '../kernel/kernel.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-
 import 'types.dart';
 
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
 class KernelAstAdapter {
+  final Kernel kernel;
   final JavaScriptBackend _backend;
   final ResolvedAst _resolvedAst;
   final Map<ir.Node, ast.Node> _nodeToAst;
   final Map<ir.Node, Element> _nodeToElement;
   DartTypeConverter _typeConverter;
 
-  KernelAstAdapter(
-      this._backend,
-      this._resolvedAst,
-      this._nodeToAst,
-      this._nodeToElement,
-      Map<FieldElement, ir.Field> fields,
-      Map<FunctionElement, ir.Member> functions,
-      Map<ClassElement, ir.Class> classes,
-      Map<LibraryElement, ir.Library> libraries) {
+  KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
+      this._nodeToAst, this._nodeToElement) {
     // TODO(het): Maybe just use all of the kernel maps directly?
-    for (FieldElement fieldElement in fields.keys) {
-      _nodeToElement[fields[fieldElement]] = fieldElement;
+    for (FieldElement fieldElement in kernel.fields.keys) {
+      _nodeToElement[kernel.fields[fieldElement]] = fieldElement;
     }
-    for (FunctionElement functionElement in functions.keys) {
-      _nodeToElement[functions[functionElement]] = functionElement;
+    for (FunctionElement functionElement in kernel.functions.keys) {
+      _nodeToElement[kernel.functions[functionElement]] = functionElement;
     }
-    for (ClassElement classElement in classes.keys) {
-      _nodeToElement[classes[classElement]] = classElement;
+    for (ClassElement classElement in kernel.classes.keys) {
+      _nodeToElement[kernel.classes[classElement]] = classElement;
     }
-    for (LibraryElement libraryElement in libraries.keys) {
-      _nodeToElement[libraries[libraryElement]] = libraryElement;
+    for (LibraryElement libraryElement in kernel.libraries.keys) {
+      _nodeToElement[kernel.libraries[libraryElement]] = libraryElement;
     }
     _typeConverter = new DartTypeConverter(this);
   }
@@ -162,6 +156,12 @@ class KernelAstAdapter {
     }
     return _backend.isInterceptedSelector(selector);
   }
+
+  ir.Procedure get mapLiteralConstructor =>
+      kernel.functions[_backend.helpers.mapLiteralConstructor];
+
+  ir.Procedure get mapLiteralConstructorEmpty =>
+      kernel.functions[_backend.helpers.mapLiteralConstructorEmpty];
 
   DartType getDartType(ir.DartType type) {
     return type.accept(_typeConverter);

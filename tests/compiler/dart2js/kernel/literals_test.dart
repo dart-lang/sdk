@@ -13,4 +13,10 @@ main() {
   test('compile function that returns a const list', () {
     return check('main() { return const [1, 2, 3]; }');
   });
+  test('compile function that returns a literal map', () {
+    return check('main() { return {"a": 1, "b": 2, "c": 3}; }');
+  });
+  test('compile function that returns a literal map', () {
+    return check('main() { return const {"a": 1, "b": 2, "c": 3}; }');
+  });
 }

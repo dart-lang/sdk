@@ -879,11 +879,13 @@ class KernelVisitor extends Object
     }
     List<ir.DartType> typeArguments =
         computeTypesFromTypes(node.typeArguments, expected: 2);
-    return new ir.MapLiteral(entries,
-        keyType: typeArguments.first,
-        valueType: typeArguments.last,
-        // TODO(ahe): Should Constness be validated?
-        isConst: node.isConst);
+    return associateNode(
+        new ir.MapLiteral(entries,
+            keyType: typeArguments.first,
+            valueType: typeArguments.last,
+            // TODO(ahe): Should Constness be validated?
+            isConst: node.isConst),
+        node);
   }
 
   @override

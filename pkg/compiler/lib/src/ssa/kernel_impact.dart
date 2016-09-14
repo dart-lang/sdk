@@ -48,15 +48,8 @@ class KernelImpactBuilder extends ir.Visitor {
   KernelImpactBuilder(this.function, this.functionElement, this.resolvedAst,
       this.compiler, Kernel kernel) {
     this.impactBuilder = new ResolutionWorldImpactBuilder('$functionElement');
-    this.astAdapter = new KernelAstAdapter(
-        compiler.backend,
-        resolvedAst,
-        kernel.nodeToAst,
-        kernel.nodeToElement,
-        kernel.fields,
-        kernel.functions,
-        kernel.classes,
-        kernel.libraries);
+    this.astAdapter = new KernelAstAdapter(kernel, compiler.backend,
+        resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
   }
 
   ResolutionImpact build() {

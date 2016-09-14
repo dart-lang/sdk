@@ -70,15 +70,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler = new LocalsHandler(this, targetElement, null, compiler);
-    this.astAdapter = new KernelAstAdapter(
-        compiler.backend,
-        resolvedAst,
-        kernel.nodeToAst,
-        kernel.nodeToElement,
-        kernel.fields,
-        kernel.functions,
-        kernel.classes,
-        kernel.libraries);
+    this.astAdapter = new KernelAstAdapter(kernel, compiler.backend,
+        resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
     Element originTarget = targetElement;
     if (originTarget.isPatch) {
       originTarget = originTarget.origin;
@@ -300,6 +293,47 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitMapLiteral(ir.MapLiteral mapLiteral) {
+    if (mapLiteral.isConst) {
+      stack.add(
+          graph.addConstant(astAdapter.getConstantFor(mapLiteral), compiler));
+      return;
+    }
+
+    // The map literal constructors take the key-value pairs as a List
+    List<HInstruction> constructorArgs = <HInstruction>[];
+    for (ir.MapEntry mapEntry in mapLiteral.entries) {
+      mapEntry.accept(this);
+      constructorArgs.add(pop());
+      constructorArgs.add(pop());
+    }
+
+    // The constructor is a procedure because it's a factory.
+    ir.Procedure constructor;
+    List<HInstruction> inputs = <HInstruction>[];
+    if (constructorArgs.isEmpty) {
+      constructor = astAdapter.mapLiteralConstructorEmpty;
+    } else {
+      constructor = astAdapter.mapLiteralConstructor;
+      HLiteralList argList =
+          new HLiteralList(constructorArgs, backend.extendableArrayType);
+      add(argList);
+      inputs.add(argList);
+    }
+
+    // TODO(het): Add type information
+    _pushStaticInvocation(constructor, inputs, backend.dynamicType);
+  }
+
+  @override
+  void visitMapEntry(ir.MapEntry mapEntry) {
+    // Visit value before the key because each will push an expression to the
+    // stack, so when we pop them off, the key is popped first, then the value.
+    mapEntry.value.accept(this);
+    mapEntry.key.accept(this);
+  }
+
+  @override
   void visitStaticGet(ir.StaticGet staticGet) {
     var staticTarget = staticGet.target;
     Element element = astAdapter.getElement(staticTarget).declaration;
@@ -415,11 +449,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void _pushStaticInvocation(
       ir.Node target, List<HInstruction> arguments, TypeMask typeMask) {
-    bool targetCanThrow = astAdapter.getCanThrow(target);
-
     HInstruction instruction = new HInvokeStatic(
         astAdapter.getElement(target).declaration, arguments, typeMask,
-        targetCanThrow: targetCanThrow);
+        targetCanThrow: astAdapter.getCanThrow(target));
     instruction.sideEffects = astAdapter.getSideEffects(target);
 
     push(instruction);
