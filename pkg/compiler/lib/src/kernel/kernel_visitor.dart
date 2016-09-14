@@ -861,10 +861,12 @@ class KernelVisitor extends Object
     for (Expression element in node.elements.nodes) {
       elements.add(visitForValue(element));
     }
-    return new ir.ListLiteral(elements,
-        typeArgument: computeTypeFromTypes(node.typeArguments),
-        // TODO(ahe): Should constness be validated?
-        isConst: node.isConst);
+    return associateNode(
+        new ir.ListLiteral(elements,
+            typeArgument: computeTypeFromTypes(node.typeArguments),
+            // TODO(ahe): Should constness be validated?
+            isConst: node.isConst),
+        node);
   }
 
   @override

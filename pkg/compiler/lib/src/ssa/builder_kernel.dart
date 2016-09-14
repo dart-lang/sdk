@@ -279,6 +279,27 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitListLiteral(ir.ListLiteral listLiteral) {
+    HInstruction listInstruction;
+    if (listLiteral.isConst) {
+      listInstruction =
+          graph.addConstant(astAdapter.getConstantFor(listLiteral), compiler);
+    } else {
+      List<HInstruction> elements = <HInstruction>[];
+      for (ir.Expression element in listLiteral.expressions) {
+        element.accept(this);
+        elements.add(pop());
+      }
+      listInstruction = new HLiteralList(elements, backend.extendableArrayType);
+      add(listInstruction);
+      // TODO(het): set runtime type info
+    }
+
+    // TODO(het): Set the instruction type to the list type given by inference
+    stack.add(listInstruction);
+  }
+
+  @override
   void visitStaticGet(ir.StaticGet staticGet) {
     var staticTarget = staticGet.target;
     Element element = astAdapter.getElement(staticTarget).declaration;

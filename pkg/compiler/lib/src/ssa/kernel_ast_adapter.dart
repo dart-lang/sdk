@@ -145,6 +145,14 @@ class KernelAstAdapter {
         getGetterSelector(getter), typeOfGet(getter), _compiler);
   }
 
+  ConstantValue getConstantFor(ir.Node node) {
+    ConstantValue constantValue =
+        _backend.constants.getConstantValueForNode(getNode(node), _elements);
+    assert(invariant(getNode(node), constantValue != null,
+        message: 'No constant computed for $node'));
+    return constantValue;
+  }
+
   bool isIntercepted(ir.Node node) {
     Selector selector;
     if (node is ir.PropertyGet) {
