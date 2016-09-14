@@ -22,7 +22,6 @@ class KernelTask {
   ///
   /// May enqueue more elements to the resolution queue.
   void buildKernelIr() {
-    kernel.functionToIr(_compiler.mainFunction);
-    kernel.processWorkQueue();
+    kernel.libraryDependencies(_compiler.options.entryPoint);
   }
 }

@@ -53,6 +53,7 @@ class KernelImpactBuilder extends ir.Visitor {
         resolvedAst,
         kernel.nodeToAst,
         kernel.nodeToElement,
+        kernel.fields,
         kernel.functions,
         kernel.classes,
         kernel.libraries);

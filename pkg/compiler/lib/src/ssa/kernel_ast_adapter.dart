@@ -34,9 +34,14 @@ class KernelAstAdapter {
       this._resolvedAst,
       this._nodeToAst,
       this._nodeToElement,
+      Map<FieldElement, ir.Field> fields,
       Map<FunctionElement, ir.Member> functions,
       Map<ClassElement, ir.Class> classes,
       Map<LibraryElement, ir.Library> libraries) {
+    // TODO(het): Maybe just use all of the kernel maps directly?
+    for (FieldElement fieldElement in fields.keys) {
+      _nodeToElement[fields[fieldElement]] = fieldElement;
+    }
     for (FunctionElement functionElement in functions.keys) {
       _nodeToElement[functions[functionElement]] = functionElement;
     }
@@ -73,12 +78,11 @@ class KernelAstAdapter {
     return result;
   }
 
-  bool getCanThrow(ir.Procedure procedure) {
-    FunctionElement function = getElement(procedure);
-    return !_compiler.world.getCannotThrow(function);
+  bool getCanThrow(ir.Node procedure) {
+    return !_compiler.world.getCannotThrow(getElement(procedure));
   }
 
-  TypeMask returnTypeOf(ir.Procedure node) {
+  TypeMask returnTypeOf(ir.Member node) {
     return TypeMaskFactory.inferredReturnTypeForElement(
         getElement(node), _compiler);
   }
@@ -94,10 +98,13 @@ class KernelAstAdapter {
   }
 
   // TODO(het): Create the selector directly from the invocation
-  Selector getSelector(ir.MethodInvocation invocation) {
+  Selector getSelector(ir.InvocationExpression invocation) {
     SelectorKind kind = Elements.isOperatorName(invocation.name.name)
         ? SelectorKind.OPERATOR
         : SelectorKind.CALL;
+    if (invocation.name.name == '[]' || invocation.name.name == '[]=') {
+      kind = SelectorKind.INDEX;
+    }
 
     ir.Name irName = invocation.name;
     Name name = new Name(
@@ -107,9 +114,25 @@ class KernelAstAdapter {
     return new Selector(kind, name, callStructure);
   }
 
+  Selector getGetterSelector(ir.PropertyGet getter) {
+    ir.Name irName = getter.name;
+    Name name = new Name(
+        irName.name, irName.isPrivate ? getElement(irName.library) : null);
+    return new Selector.getter(name);
+  }
+
   TypeMask typeOfInvocation(ir.MethodInvocation invocation) {
     return _compiler.globalInference.results
         .typeOfSend(getNode(invocation), _elements);
+  }
+
+  TypeMask typeOfGet(ir.PropertyGet getter) {
+    return _compiler.globalInference.results
+        .typeOfSend(getNode(getter), _elements);
+  }
+
+  TypeMask inferredTypeOf(ir.Member node) {
+    return TypeMaskFactory.inferredTypeForElement(getElement(node), _compiler);
   }
 
   TypeMask selectorTypeOf(ir.MethodInvocation invocation) {
@@ -117,8 +140,19 @@ class KernelAstAdapter {
         getSelector(invocation), typeOfInvocation(invocation), _compiler);
   }
 
-  bool isIntercepted(ir.MethodInvocation invocation) {
-    return _backend.isInterceptedSelector(getSelector(invocation));
+  TypeMask selectorGetterTypeOf(ir.PropertyGet getter) {
+    return TypeMaskFactory.inferredTypeForSelector(
+        getGetterSelector(getter), typeOfGet(getter), _compiler);
+  }
+
+  bool isIntercepted(ir.Node node) {
+    Selector selector;
+    if (node is ir.PropertyGet) {
+      selector = getGetterSelector(node);
+    } else {
+      selector = getSelector(node);
+    }
+    return _backend.isInterceptedSelector(selector);
   }
 
   DartType getDartType(ir.DartType type) {

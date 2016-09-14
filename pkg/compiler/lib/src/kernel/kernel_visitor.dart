@@ -1245,14 +1245,17 @@ class KernelVisitor extends Object
   @override
   ir.PropertyGet visitDynamicPropertyGet(
       Send node, Node receiver, Name name, _) {
-    return new ir.PropertyGet(visitForValue(receiver), nameToIrName(name));
+    return associateNode(
+        new ir.PropertyGet(visitForValue(receiver), nameToIrName(name)), node);
   }
 
   @override
   ir.MethodInvocation visitDynamicPropertyInvoke(
       Send node, Node receiver, NodeList arguments, Selector selector, _) {
-    return buildInvokeSelector(
-        visitForValue(receiver), selector, buildArguments(arguments));
+    return associateNode(
+        buildInvokeSelector(
+            visitForValue(receiver), selector, buildArguments(arguments)),
+        node);
   }
 
   @override
@@ -1260,9 +1263,15 @@ class KernelVisitor extends Object
       Send node, Node receiver, Name name, CompoundRhs rhs, _) {
     ir.Expression receiverNode =
         receiver == null ? new ir.ThisExpression() : visitForValue(receiver);
-    return buildCompound(
+    ir.Expression compound = buildCompound(
         PropertyAccessor.make(receiverNode, nameToIrName(name), null, null),
         rhs);
+    if (compound is ir.VariableSet) {
+      associateNode(compound.value, node);
+    } else {
+      associateNode(compound, node);
+    }
+    return compound;
   }
 
   @override
@@ -1314,13 +1323,14 @@ class KernelVisitor extends Object
 
   @override
   ir.MethodInvocation visitEquals(Send node, Node left, Node right, _) {
-    return buildBinaryOperator(left, '==', right);
+    return associateNode(buildBinaryOperator(left, '==', right), node);
   }
 
   @override
   ir.MethodInvocation visitExpressionInvoke(Send node, Node expression,
       NodeList arguments, CallStructure callStructure, _) {
-    return buildCall(visitForValue(expression), callStructure, arguments);
+    return associateNode(
+        buildCall(visitForValue(expression), callStructure, arguments), node);
   }
 
   @override
@@ -1556,7 +1566,8 @@ class KernelVisitor extends Object
 
   @override
   ir.Expression visitIndex(Send node, Node receiver, Node index, _) {
-    return buildIndexAccessor(receiver, index).buildSimpleRead();
+    return associateNode(
+        buildIndexAccessor(receiver, index).buildSimpleRead(), node);
   }
 
   ir.Expression buildIndexPostfix(Accessor accessor, IncDecOperator operator) {
@@ -1584,8 +1595,10 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitIndexSet(
       SendSet node, Node receiver, Node index, Node rhs, _) {
-    return buildIndexAccessor(receiver, index)
-        .buildAssignment(visitForValue(rhs), voidContext: isVoidContext);
+    return associateNode(
+        buildIndexAccessor(receiver, index)
+            .buildAssignment(visitForValue(rhs), voidContext: isVoidContext),
+        node);
   }
 
   ir.Initializer buildInitializingFormal(InitializingFormalElement parameter) {
@@ -1711,7 +1724,14 @@ class KernelVisitor extends Object
   ir.Expression handleLocalCompounds(
       SendSet node, LocalElement local, CompoundRhs rhs, _,
       {bool isSetterValid}) {
-    return buildCompound(new VariableAccessor(getLocal(local)), rhs);
+    ir.Expression compound =
+        buildCompound(new VariableAccessor(getLocal(local)), rhs);
+    if (compound is ir.VariableSet) {
+      associateNode(compound.value, node);
+    } else {
+      associateNode(compound, node);
+    }
+    return compound;
   }
 
   @override
@@ -1761,7 +1781,9 @@ class KernelVisitor extends Object
 
   @override
   ir.Not visitNotEquals(Send node, Node left, Node right, _) {
-    return new ir.Not(buildBinaryOperator(left, '==', right));
+    return associateNode(
+        new ir.Not(associateNode(buildBinaryOperator(left, '==', right), node)),
+        node);
   }
 
   @override
@@ -1797,7 +1819,8 @@ class KernelVisitor extends Object
   @override
   ir.MethodInvocation handleLocalInvoke(Send node, LocalElement element,
       NodeList arguments, CallStructure callStructure, _) {
-    return buildCall(buildLocalGet(element), callStructure, arguments);
+    return associateNode(
+        buildCall(buildLocalGet(element), callStructure, arguments), node);
   }
 
   @override
@@ -1899,7 +1922,8 @@ class KernelVisitor extends Object
   @override
   ir.MethodInvocation handleStaticFieldInvoke(Send node, FieldElement field,
       NodeList arguments, CallStructure callStructure, _) {
-    return buildCall(buildStaticGet(field), callStructure, arguments);
+    return associateNode(
+        buildCall(buildStaticGet(field), callStructure, arguments), node);
   }
 
   @override
@@ -2391,7 +2415,7 @@ class KernelVisitor extends Object
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return buildSuperMethodInvoke(method, arguments);
+    return associateNode(buildSuperMethodInvoke(method, arguments), node);
   }
 
   @override
@@ -2465,14 +2489,17 @@ class KernelVisitor extends Object
 
   @override
   ir.Expression visitThisPropertyGet(Send node, Name name, _) {
-    return buildThisPropertyAccessor(name).buildSimpleRead();
+    return associateNode(
+        buildThisPropertyAccessor(name).buildSimpleRead(), node);
   }
 
   @override
   ir.MethodInvocation visitThisPropertyInvoke(
       Send node, NodeList arguments, Selector selector, _) {
-    return buildInvokeSelector(
-        new ir.ThisExpression(), selector, buildArguments(arguments));
+    return associateNode(
+        buildInvokeSelector(
+            new ir.ThisExpression(), selector, buildArguments(arguments)),
+        node);
   }
 
   @override
@@ -2590,10 +2617,12 @@ class KernelVisitor extends Object
   @override
   ir.MethodInvocation visitUnary(
       Send node, UnaryOperator operator, Node expression, _) {
-    return new ir.MethodInvocation(
-        visitForValue(expression),
-        kernel.irName(operator.selectorName, currentElement),
-        new ir.Arguments.empty());
+    return associateNode(
+        new ir.MethodInvocation(
+            visitForValue(expression),
+            kernel.irName(operator.selectorName, currentElement),
+            new ir.Arguments.empty()),
+        node);
   }
 
   @override
