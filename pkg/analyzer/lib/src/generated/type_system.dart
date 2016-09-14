@@ -363,7 +363,8 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
 
     // Try to infer and instantiate the resulting type.
-    var resultType = inferringTypeSystem._infer(fnType);
+    var resultType = inferringTypeSystem._infer(
+        fnType, fnType.typeFormals, fnType.returnType);
 
     // If the instantiation failed (because some type variable constraints
     // could not be solved, in other words, we could not find a valid subtype),
@@ -393,26 +394,21 @@ class StrongTypeSystemImpl extends TypeSystem {
   /// As a simplification, we do not actually store all constraints on each type
   /// parameter Tj. Instead we track Uj and Lj where U is the upper bound and
   /// L is the lower bound of that type parameter.
-  FunctionType inferGenericFunctionCall(
+  /*=T*/ inferGenericFunctionCall/*<T extends ParameterizedType>*/(
       TypeProvider typeProvider,
-      FunctionType fnType,
-      List<DartType> correspondingParameterTypes,
+      /*=T*/ genericType,
+      List<DartType> declaredParameterTypes,
       List<DartType> argumentTypes,
+      DartType declaredReturnType,
       DartType returnContextType,
       {ErrorReporter errorReporter,
       AstNode errorNode}) {
-    if (fnType.typeFormals.isEmpty) {
-      return fnType;
-    }
-
-    // If we're in a future union context, choose either the Future<T> or the T
-    // based on the function's return type.
-    if (returnContextType is FutureUnionType) {
-      var futureUnion = returnContextType as FutureUnionType;
-      returnContextType =
-          isSubtypeOf(fnType.returnType, typeProvider.futureDynamicType)
-              ? futureUnion.futureOfType
-              : futureUnion.type;
+    // TODO(jmesserly): expose typeFormals on ParameterizedType.
+    List<TypeParameterElement> typeFormals = genericType is FunctionType
+        ? genericType.typeFormals
+        : genericType.typeParameters;
+    if (typeFormals.isEmpty) {
+      return genericType;
     }
 
     // Create a TypeSystem that will allow certain type parameters to be
@@ -420,20 +416,31 @@ class StrongTypeSystemImpl extends TypeSystem {
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferringTypeSystem =
-        new _StrongInferenceTypeSystem(typeProvider, this, fnType.typeFormals);
+        new _StrongInferenceTypeSystem(typeProvider, this, typeFormals);
 
     if (returnContextType != null) {
-      inferringTypeSystem.isSubtypeOf(fnType.returnType, returnContextType);
+      // If we're in a future union context, choose either the Future<T>
+      // or the T based on the declared return type.
+      if (returnContextType is FutureUnionType) {
+        var futureUnion = returnContextType as FutureUnionType;
+        returnContextType =
+            isSubtypeOf(declaredReturnType, typeProvider.futureDynamicType)
+                ? futureUnion.futureOfType
+                : futureUnion.type;
+      }
+
+      inferringTypeSystem.isSubtypeOf(declaredReturnType, returnContextType);
     }
 
     for (int i = 0; i < argumentTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
       // parameter bounds that were implied by this assignment.
       inferringTypeSystem.isSubtypeOf(
-          argumentTypes[i], correspondingParameterTypes[i]);
+          argumentTypes[i], declaredParameterTypes[i]);
     }
 
-    return inferringTypeSystem._infer(fnType, errorReporter, errorNode);
+    return inferringTypeSystem._infer(
+        genericType, typeFormals, declaredReturnType, errorReporter, errorNode);
   }
 
   /**
@@ -1511,10 +1518,11 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
 
   /// Given the constraints that were given by calling [isSubtypeOf], find the
   /// instantiation of the generic function that satisfies these constraints.
-  FunctionType _infer(FunctionType fnType,
+  /*=T*/ _infer/*<T extends ParameterizedType>*/(/*=T*/ genericType,
+      List<TypeParameterElement> typeFormals, DartType declaredReturnType,
       [ErrorReporter errorReporter, AstNode errorNode]) {
     List<TypeParameterType> fnTypeParams =
-        TypeParameterTypeImpl.getTypes(fnType.typeFormals);
+        TypeParameterTypeImpl.getTypes(typeFormals);
 
     // Initialize the inferred type array.
     //
@@ -1561,7 +1569,7 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
       //
       // Otherwise we choose the more precise lower bound.
       _TypeParameterVariance variance =
-          new _TypeParameterVariance.from(typeParam, fnType.returnType);
+          new _TypeParameterVariance.from(typeParam, declaredReturnType);
 
       _TypeParameterBound bound = _bounds[typeParam];
       DartType lowerBound = bound.lower;
@@ -1600,7 +1608,7 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
     }
 
     // Return the instantiated type.
-    return fnType.instantiate(inferredTypes);
+    return genericType.instantiate(inferredTypes) as dynamic/*=T*/;
   }
 
   @override

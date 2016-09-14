@@ -2624,7 +2624,12 @@ class ExprTypeComputer {
         });
         // Perform inference.
         FunctionType inferred = ts.inferGenericFunctionCall(
-            typeProvider, rawMethodType, paramTypes, argTypes, null);
+            typeProvider,
+            rawMethodType,
+            paramTypes,
+            argTypes,
+            rawMethodType.returnType,
+            null);
         return inferred;
       }
     }

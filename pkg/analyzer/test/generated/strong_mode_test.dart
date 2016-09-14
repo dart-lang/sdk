@@ -1450,6 +1450,12 @@ class D<S> {
     checkBody("D");
   }
 
+  void test_genericFunction_upwardsAndDownwards() {
+    // Regression tests for https://github.com/dart-lang/sdk/issues/27151.
+    resolveTestUnit(r'List<num> x = [1, 2];');
+    expectInitializerType('x', 'List<int>');
+  }
+
   void test_genericMethod() {
     resolveTestUnit(r'''
 class C<E> {

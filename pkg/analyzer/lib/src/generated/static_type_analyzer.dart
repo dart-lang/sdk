@@ -623,46 +623,45 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       return null;
     }
 
+    DartType listDynamicType =
+        _typeProvider.listType.instantiate(<DartType>[_dynamicType]);
+
     // If there are no type arguments and we are in strong mode, try to infer
     // some arguments.
     if (_strongMode) {
       DartType contextType = InferenceContext.getType(node);
 
-      // If we have a type from the context, use it.
-      if (contextType is InterfaceType &&
-          contextType.typeArguments.length == 1 &&
-          contextType.element == _typeProvider.listType.element) {
-        _resolver.inferenceContext.recordInference(node, contextType);
-        _recordStaticType(node, contextType);
-        return null;
-      }
+      // Use both downwards and upwards information to infer the type.
+      var ts = _typeSystem as StrongTypeSystemImpl;
+      var elementTypes = node.elements
+          .map((e) => e.staticType)
+          .where((t) => t != null)
+          .toList();
+      var listTypeParam = _typeProvider.listType.typeParameters[0].type;
 
-      // If we don't have a type from the context, try to infer from the
-      // elements
-      if (node.elements.isNotEmpty) {
-        // Infer the list type from the arguments.
-        Iterable<DartType> types =
-            node.elements.map((e) => e.staticType).where((t) => t != null);
-        if (types.isEmpty) {
-          return null;
-        }
-        DartType staticType = types.reduce(_leastUpperBound);
-        if (staticType.isBottom) {
-          staticType = _dynamicType;
-        }
-        DartType listLiteralType =
-            _typeProvider.listType.instantiate(<DartType>[staticType]);
-        if (!staticType.isDynamic) {
-          _resolver.inferenceContext.recordInference(node, listLiteralType);
-        }
-        _recordStaticType(node, listLiteralType);
+      DartType inferred = ts.inferGenericFunctionCall(
+          _typeProvider,
+          _typeProvider.listType,
+          new List.filled(elementTypes.length, listTypeParam),
+          elementTypes,
+          _typeProvider.listType,
+          contextType,
+          errorReporter: _resolver.errorReporter,
+          errorNode: node);
+
+      if (inferred != listDynamicType) {
+        // TODO(jmesserly): this results in an "inferred" message even when we
+        // in fact had an error above, because it will still attempt to return
+        // a type. Perhaps we should record inference from TypeSystem if
+        // everything was successful?
+        _resolver.inferenceContext.recordInference(node, inferred);
+        _recordStaticType(node, inferred);
         return null;
       }
     }
 
     // If we have no type arguments and couldn't infer any, use dynamic.
-    _recordStaticType(
-        node, _typeProvider.listType.instantiate(<DartType>[_dynamicType]));
+    _recordStaticType(node, listDynamicType);
     return null;
   }
 
@@ -681,6 +680,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitMapLiteral(MapLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
+
+    DartType mapDynamicType = _typeProvider.mapType
+        .instantiate(<DartType>[_dynamicType, _dynamicType]);
 
     // If we have type arguments, use them
     if (typeArguments != null) {
@@ -710,43 +712,40 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     // then try to infer type arguments.
     if (_strongMode) {
       DartType contextType = InferenceContext.getType(node);
-      // If we have a context type, use that for inference.
-      if (contextType is InterfaceType &&
-          contextType.typeArguments.length == 2 &&
-          contextType.element == _typeProvider.mapType.element) {
-        _resolver.inferenceContext.recordInference(node, contextType);
-        _recordStaticType(node, contextType);
-        return null;
-      }
 
-      // Otherwise, try to infer a type from the keys and values.
-      if (node.entries.isNotEmpty) {
-        DartType staticKeyType =
-            node.entries.map((e) => e.key.staticType).reduce(_leastUpperBound);
-        DartType staticValueType = node.entries
-            .map((e) => e.value.staticType)
-            .reduce(_leastUpperBound);
-        if (staticKeyType.isBottom) {
-          staticKeyType = _dynamicType;
-        }
-        if (staticValueType.isBottom) {
-          staticValueType = _dynamicType;
-        }
-        DartType mapLiteralType = _typeProvider.mapType
-            .instantiate(<DartType>[staticKeyType, staticValueType]);
-        if (!(staticValueType.isDynamic && staticKeyType.isDynamic)) {
-          _resolver.inferenceContext.recordInference(node, mapLiteralType);
-        }
-        _recordStaticType(node, mapLiteralType);
+      // Use both downwards and upwards information to infer the type.
+      var ts = _typeSystem as StrongTypeSystemImpl;
+      var keyTypes =
+          node.entries.map((e) => e.key.staticType).where((t) => t != null);
+      var valueTypes =
+          node.entries.map((e) => e.value.staticType).where((t) => t != null);
+      var keyTypeParam = _typeProvider.mapType.typeParameters[0].type;
+      var valueTypeParam = _typeProvider.mapType.typeParameters[1].type;
+
+      DartType inferred = ts.inferGenericFunctionCall(
+          _typeProvider,
+          _typeProvider.mapType,
+          new List.filled(keyTypes.length, keyTypeParam, growable: true)
+            ..addAll(new List.filled(valueTypes.length, valueTypeParam)),
+          new List.from(keyTypes)..addAll(valueTypes),
+          _typeProvider.mapType,
+          contextType,
+          errorReporter: _resolver.errorReporter,
+          errorNode: node);
+
+      if (inferred != mapDynamicType) {
+        // TODO(jmesserly): this results in an "inferred" message even when we
+        // in fact had an error above, because it will still attempt to return
+        // a type. Perhaps we should record inference from TypeSystem if
+        // everything was successful?
+        _resolver.inferenceContext.recordInference(node, inferred);
+        _recordStaticType(node, inferred);
         return null;
       }
     }
 
     // If no type arguments and no inference, use dynamic
-    _recordStaticType(
-        node,
-        _typeProvider.mapType
-            .instantiate(<DartType>[_dynamicType, _dynamicType]));
+    _recordStaticType(node, mapDynamicType);
     return null;
   }
 
@@ -1986,7 +1985,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       }
       return ts.inferGenericFunctionCall(_typeProvider, fnType, paramTypes,
-          argTypes, InferenceContext.getContext(node),
+          argTypes, fnType.returnType, InferenceContext.getContext(node),
           errorReporter: _resolver.errorReporter, errorNode: errorNode);
     }
     return null;
@@ -2249,14 +2248,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
             identical(node, parent.target) &&
             parent.operator.type == TokenType.PERIOD);
   }
-
-  /**
-   * Computes the least upper bound between two types.
-   *
-   * See [TypeSystem.getLeastUpperBound].
-   */
-  DartType _leastUpperBound(DartType s, DartType t) =>
-      _typeSystem.getLeastUpperBound(_typeProvider, s, t);
 
   /**
    * Record that the propagated type of the given node is the given type.

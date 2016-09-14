@@ -7282,7 +7282,7 @@ class ResolverVisitor extends ScopedVisitor {
           originalType.typeFormals.isNotEmpty &&
           ts is StrongTypeSystemImpl) {
         contextType = ts.inferGenericFunctionCall(typeProvider, originalType,
-            DartType.EMPTY_LIST, DartType.EMPTY_LIST, returnContextType);
+            DartType.EMPTY_LIST, DartType.EMPTY_LIST, originalType.returnType, returnContextType);
       }
 
       InferenceContext.setType(node.argumentList, contextType);
