@@ -1284,8 +1284,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
             // We got an error during compilation.
             error = thread->sticky_error();
             thread->clear_sticky_error();
-            if (error.IsLanguageError() &&
-                LanguageError::Cast(error).kind() == Report::kBailout) {
+            if ((error.IsLanguageError() &&
+                 LanguageError::Cast(error).kind() == Report::kBailout) ||
+                error.IsUnhandledException()) {
               if (FLAG_trace_compiler) {
                 THR_Print("--> disabling optimizations for '%s'\n",
                           function.ToFullyQualifiedCString());
@@ -1360,9 +1361,6 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       }
       return Error::null();
     }
-    // Unoptimized compilation or precompilation may encounter compile-time
-    // errors, but regular optimized compilation should not.
-    ASSERT(!optimized);
     // Do not attempt to optimize functions that can cause errors.
     function.set_is_optimizable(false);
     return error.raw();
@@ -1862,15 +1860,9 @@ void BackgroundCompiler::Run() {
       while (running_ && !function.IsNull() && !isolate_->IsTopLevelParsing()) {
         // Check that we have aggregated and cleared the stats.
         ASSERT(thread->compiler_stats()->IsCleared());
-        const Error& error = Error::Handle(zone,
-            Compiler::CompileOptimizedFunction(thread,
-                                               function,
-                                               Compiler::kNoOSRDeoptId));
-        // TODO(srdjan): We do not expect errors while compiling optimized
-        // code, any errors should have been caught when compiling
-        // unoptimized code. Any issues while optimizing are flagged by
-        // making the result invalid.
-        ASSERT(error.IsNull());
+        Compiler::CompileOptimizedFunction(thread,
+                                           function,
+                                           Compiler::kNoOSRDeoptId);
 #ifndef PRODUCT
         Isolate* isolate = thread->isolate();
         isolate->aggregate_compiler_stats()->Add(*thread->compiler_stats());
