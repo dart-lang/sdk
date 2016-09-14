@@ -2048,6 +2048,11 @@ class DebuggerPageElement  extends HtmlElement implements Renderable {
   }
 
   @override
+  void render() {
+    /* nothing to do */
+  }
+
+  @override
   void detached() {
     _timer.cancel();
     children = const [];
@@ -2166,6 +2171,10 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
       e._messageList = new UListElement()..classes = ['messageList']
     ];
     return e;
+  }
+
+  void render() {
+    /* nothing to do */
   }
 
   _addFrame(List frameList, S.Frame frameInfo) {
@@ -2926,6 +2935,10 @@ class DebuggerConsoleElement extends HtmlElement implements Renderable {
     children.clear();
   }
 
+  void render() {
+    /* nothing to do */
+  }
+
   ObservatoryApplication get app => ObservatoryApplication.app;
 }
 
@@ -3099,6 +3112,10 @@ class DebuggerInputElement extends HtmlElement implements Renderable {
 
   void focus() {
     _textBox.focus();
+  }
+
+  void render() {
+    // Nothing to do.
   }
 }
 
