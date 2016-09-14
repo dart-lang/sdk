@@ -39,6 +39,25 @@
     }
     ```
 
+* New feature - use `@checked` to override a method and tighten a parameter
+    type (SDK issue [25578](https://github.com/dart-lang/sdk/issues/25578)).
+
+    ```dart
+    import 'package:meta/meta.dart' show checked;
+    class View {
+      addChild(View v) {}
+    }
+    class MyView extends View {
+      // this override is legal, it will check at runtime if we actually
+      // got a MyView.
+      addChild(@checked MyView v) {}
+    }
+    main() {
+      dynamic mv = new MyView();
+      mv.addChild(new View()); // runtime error
+    }
+    ```
+
 ## 1.19.0
 
 ### Language changes
