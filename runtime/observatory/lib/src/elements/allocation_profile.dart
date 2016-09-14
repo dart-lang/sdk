@@ -547,7 +547,7 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
                     '"(OLD) Current Size"',
                     '"(OLD) Current Instances"',
                     'Class'
-                    ].join(';') + '\n';
+                    ].join(',') + '\n';
     AnchorElement tl = document.createElement('a');
     tl..attributes['href'] = 'data:text/plain;charset=utf-8,' +
         Uri.encodeComponent(header +
@@ -572,7 +572,7 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
       _getOldCurrentSize(s),
       _getOldCurrentInstances(s),
       s.clazz.name
-    ].join(';');
+    ].join(',');
   }
 
   static int _getAccumulatedSize(M.ClassHeapStats s) =>

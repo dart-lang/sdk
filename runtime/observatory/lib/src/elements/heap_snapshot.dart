@@ -346,12 +346,16 @@ class HeapSnapshotElement  extends HtmlElement implements Renderable {
         element.children[2].text = '';
       }
       element.children[3].text = '';
+      int references = 0;
+      for (var referenceGroup in item) {
+        references += referenceGroup.count;
+      }
       if (item is Iterable<M.HeapSnapshotClassInbound>) {
         element.children[4] = new SpanElement()..classes = ['name']
-            ..text = '${item.length} Incoming references';
+            ..text = '$references incoming references';
       } else {
         element.children[4] = new SpanElement()..classes = ['name']
-            ..text = '${item.length} Outgoing references';
+            ..text = '$references outgoing references';
       }
     } else {
       element.children[0].text = '';
