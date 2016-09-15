@@ -2503,8 +2503,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     var typeFormals = _emitTypeFormals(type.typeFormals);
     var returnType = emitTypeRef(type.returnType);
     if (type.typeFormals.isNotEmpty) {
-      code = new JS.Block(
-          [new JS.Block(_typeTable.discharge(type.typeFormals)), code]);
+      code = new JS.Block(<JS.Statement>[
+        new JS.Block(_typeTable.discharge(type.typeFormals)),
+        code
+      ]);
     }
     return new JS.Fun(formals, code,
         typeParams: typeFormals, returnType: returnType);
@@ -4501,7 +4503,8 @@ class CodeGenerator extends GeneralizingAstVisitor
         var param =
             _createTemporary('_', nodeTarget.staticType, nullable: false);
         var baseNode = _stripNullAwareOp(node, param);
-        tail.add(new JS.ArrowFun([_visit(param)], _visit(baseNode)));
+        tail.add(
+            new JS.ArrowFun(<JS.Parameter>[_visit(param)], _visit(baseNode)));
         node = nodeTarget;
       } else {
         break;
