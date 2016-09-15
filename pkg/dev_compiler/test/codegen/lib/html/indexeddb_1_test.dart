@@ -78,7 +78,7 @@ testReadWrite(key, value, matcher,
 };
 
 testReadWriteTyped(key, value, matcher,
-    [dbName, storeName = STORE_NAME, version = VERSION,
+    [dbName, String storeName = STORE_NAME, version = VERSION,
     stringifyResult = false]) => () {
   if (dbName == null) {
     dbName = nextDatabaseName();
