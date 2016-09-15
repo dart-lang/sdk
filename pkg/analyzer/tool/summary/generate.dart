@@ -568,19 +568,19 @@ class _CodeGenerator {
           out();
           outDoc(field.documentation);
           constructorParams.add('$typeStr $fieldName');
-          out('void set $fieldName($typeStr _value) {');
+          out('void set $fieldName($typeStr value) {');
           indent(() {
             String stateFieldName = '_' + fieldName;
             // Validate that int(s) are non-negative.
             if (fieldType.typeName == 'int') {
               if (!fieldType.isList) {
-                out('assert(_value == null || _value >= 0);');
+                out('assert(value == null || value >= 0);');
               } else {
-                out('assert(_value == null || _value.every((e) => e >= 0));');
+                out('assert(value == null || value.every((e) => e >= 0));');
               }
             }
             // Set the value.
-            out('$stateFieldName = _value;');
+            out('this.$stateFieldName = value;');
           });
           out('}');
         }
