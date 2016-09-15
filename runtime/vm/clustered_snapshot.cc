@@ -49,6 +49,7 @@ void Deserializer::InitializeHeader(RawObject* raw,
 }
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ClassSerializationCluster : public SerializationCluster {
  public:
   explicit ClassSerializationCluster(intptr_t num_cids) :
@@ -127,6 +128,7 @@ class ClassSerializationCluster : public SerializationCluster {
   GrowableArray<RawClass*> predefined_;
   GrowableArray<RawClass*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ClassDeserializationCluster : public DeserializationCluster {
@@ -247,6 +249,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class UnresolvedClassSerializationCluster : public SerializationCluster {
  public:
   UnresolvedClassSerializationCluster() { }
@@ -290,6 +293,7 @@ class UnresolvedClassSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawUnresolvedClass*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class UnresolvedClassDeserializationCluster : public DeserializationCluster {
@@ -328,6 +332,7 @@ class UnresolvedClassDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeArgumentsSerializationCluster : public SerializationCluster {
  public:
   TypeArgumentsSerializationCluster() { }
@@ -375,6 +380,7 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawTypeArguments*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class TypeArgumentsDeserializationCluster : public DeserializationCluster {
@@ -418,6 +424,7 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class PatchClassSerializationCluster : public SerializationCluster {
  public:
   PatchClassSerializationCluster() { }
@@ -459,6 +466,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawPatchClass*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class PatchClassDeserializationCluster : public DeserializationCluster {
@@ -494,6 +502,7 @@ class PatchClassDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class FunctionSerializationCluster : public SerializationCluster {
  public:
   FunctionSerializationCluster() { }
@@ -567,6 +576,7 @@ class FunctionSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawFunction*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class FunctionDeserializationCluster : public DeserializationCluster {
@@ -670,6 +680,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ClosureDataSerializationCluster : public SerializationCluster {
  public:
   ClosureDataSerializationCluster() { }
@@ -711,6 +722,7 @@ class ClosureDataSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawClosureData*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ClosureDataDeserializationCluster : public DeserializationCluster {
@@ -746,6 +758,7 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class RedirectionDataSerializationCluster : public SerializationCluster {
  public:
   RedirectionDataSerializationCluster() { }
@@ -787,6 +800,7 @@ class RedirectionDataSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawRedirectionData*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class RedirectionDataDeserializationCluster : public DeserializationCluster {
@@ -824,6 +838,7 @@ class RedirectionDataDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class FieldSerializationCluster : public SerializationCluster {
  public:
   FieldSerializationCluster() { }
@@ -924,6 +939,7 @@ class FieldSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawField*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class FieldDeserializationCluster : public DeserializationCluster {
@@ -992,6 +1008,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class LiteralTokenSerializationCluster : public SerializationCluster {
  public:
   LiteralTokenSerializationCluster() { }
@@ -1034,6 +1051,7 @@ class LiteralTokenSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawLiteralToken*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class LiteralTokenDeserializationCluster : public DeserializationCluster {
@@ -1071,6 +1089,7 @@ class LiteralTokenDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class TokenStreamSerializationCluster : public SerializationCluster {
  public:
   TokenStreamSerializationCluster() { }
@@ -1112,6 +1131,7 @@ class TokenStreamSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawTokenStream*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class TokenStreamDeserializationCluster : public DeserializationCluster {
@@ -1147,6 +1167,7 @@ class TokenStreamDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ScriptSerializationCluster : public SerializationCluster {
  public:
   ScriptSerializationCluster() { }
@@ -1193,6 +1214,7 @@ class ScriptSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawScript*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ScriptDeserializationCluster : public DeserializationCluster {
@@ -1237,6 +1259,7 @@ class ScriptDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class LibrarySerializationCluster : public SerializationCluster {
  public:
   LibrarySerializationCluster() { }
@@ -1285,6 +1308,8 @@ class LibrarySerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawLibrary*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
+
 
 class LibraryDeserializationCluster : public DeserializationCluster {
  public:
@@ -1347,6 +1372,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class NamespaceSerializationCluster : public SerializationCluster {
  public:
   NamespaceSerializationCluster() { }
@@ -1388,6 +1414,7 @@ class NamespaceSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawNamespace*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class NamespaceDeserializationCluster : public DeserializationCluster {
@@ -1422,6 +1449,7 @@ class NamespaceDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class CodeSerializationCluster : public SerializationCluster {
  public:
   CodeSerializationCluster() { }
@@ -1491,6 +1519,7 @@ class CodeSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawCode*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class CodeDeserializationCluster : public DeserializationCluster {
@@ -1551,6 +1580,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ObjectPoolSerializationCluster : public SerializationCluster {
  public:
   ObjectPoolSerializationCluster() { }
@@ -1634,6 +1664,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawObjectPool*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ObjectPoolDeserializationCluster : public DeserializationCluster {
@@ -1701,6 +1732,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 // PcDescriptor, Stackmap, OneByteString, TwoByteString
 class RODataSerializationCluster : public SerializationCluster {
  public:
@@ -1751,6 +1783,7 @@ class RODataSerializationCluster : public SerializationCluster {
   const intptr_t cid_;
   GrowableArray<RawObject*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class RODataDeserializationCluster : public DeserializationCluster {
@@ -1772,20 +1805,7 @@ class RODataDeserializationCluster : public DeserializationCluster {
 };
 
 
-class LocalVarDescriptorsSerializationCluster : public SerializationCluster {
- public:
-  LocalVarDescriptorsSerializationCluster() { }
-  virtual ~LocalVarDescriptorsSerializationCluster() { }
-
-  void Trace(Serializer* s, RawObject* object) { UNIMPLEMENTED(); }
-  void WriteAlloc(Serializer* s) {}
-  void WriteFill(Serializer* s) {}
-
- private:
-  GrowableArray<RawClass*> objects_;
-};
-
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ExceptionHandlersSerializationCluster : public SerializationCluster {
  public:
   ExceptionHandlersSerializationCluster() { }
@@ -1828,6 +1848,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawExceptionHandlers*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
@@ -1869,6 +1890,7 @@ class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
   }
 };
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ContextSerializationCluster : public SerializationCluster {
  public:
   ContextSerializationCluster() { }
@@ -1913,6 +1935,7 @@ class ContextSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawContext*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ContextDeserializationCluster : public DeserializationCluster {
@@ -1951,6 +1974,7 @@ class ContextDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ContextScopeSerializationCluster : public SerializationCluster {
  public:
   ContextScopeSerializationCluster() { }
@@ -1998,6 +2022,7 @@ class ContextScopeSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawContextScope*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ContextScopeDeserializationCluster : public DeserializationCluster {
@@ -2038,6 +2063,7 @@ class ContextScopeDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ICDataSerializationCluster : public SerializationCluster {
  public:
   ICDataSerializationCluster() { }
@@ -2085,6 +2111,7 @@ class ICDataSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawICData*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ICDataDeserializationCluster : public DeserializationCluster {
@@ -2129,6 +2156,7 @@ class ICDataDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class MegamorphicCacheSerializationCluster : public SerializationCluster {
  public:
   MegamorphicCacheSerializationCluster() { }
@@ -2171,6 +2199,7 @@ class MegamorphicCacheSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawMegamorphicCache*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
@@ -2209,6 +2238,7 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class SubtypeTestCacheSerializationCluster : public SerializationCluster {
  public:
   SubtypeTestCacheSerializationCluster() { }
@@ -2241,6 +2271,7 @@ class SubtypeTestCacheSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawSubtypeTestCache*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
@@ -2274,6 +2305,7 @@ class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class LanguageErrorSerializationCluster : public SerializationCluster {
  public:
   LanguageErrorSerializationCluster() { }
@@ -2318,6 +2350,7 @@ class LanguageErrorSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawLanguageError*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class LanguageErrorDeserializationCluster : public DeserializationCluster {
@@ -2357,6 +2390,7 @@ class LanguageErrorDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class UnhandledExceptionSerializationCluster : public SerializationCluster {
  public:
   UnhandledExceptionSerializationCluster() { }
@@ -2398,6 +2432,7 @@ class UnhandledExceptionSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawUnhandledException*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class UnhandledExceptionDeserializationCluster : public DeserializationCluster {
@@ -2435,6 +2470,7 @@ class UnhandledExceptionDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class InstanceSerializationCluster : public SerializationCluster {
  public:
   explicit InstanceSerializationCluster(intptr_t cid) : cid_(cid) {
@@ -2496,6 +2532,7 @@ class InstanceSerializationCluster : public SerializationCluster {
   intptr_t instance_size_in_words_;
   GrowableArray<RawInstance*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class InstanceDeserializationCluster : public DeserializationCluster {
@@ -2553,6 +2590,7 @@ class InstanceDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class LibraryPrefixSerializationCluster : public SerializationCluster {
  public:
   LibraryPrefixSerializationCluster() { }
@@ -2597,6 +2635,7 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawLibraryPrefix*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class LibraryPrefixDeserializationCluster : public DeserializationCluster {
@@ -2637,6 +2676,7 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeSerializationCluster : public SerializationCluster {
  public:
   TypeSerializationCluster() { }
@@ -2707,6 +2747,7 @@ class TypeSerializationCluster : public SerializationCluster {
   GrowableArray<RawType*> canonical_objects_;
   GrowableArray<RawType*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class TypeDeserializationCluster : public DeserializationCluster {
@@ -2769,6 +2810,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeRefSerializationCluster : public SerializationCluster {
  public:
   TypeRefSerializationCluster() { }
@@ -2810,6 +2852,7 @@ class TypeRefSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawTypeRef*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class TypeRefDeserializationCluster : public DeserializationCluster {
@@ -2844,6 +2887,7 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeParameterSerializationCluster : public SerializationCluster {
  public:
   TypeParameterSerializationCluster() { }
@@ -2890,6 +2934,7 @@ class TypeParameterSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawTypeParameter*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class TypeParameterDeserializationCluster : public DeserializationCluster {
@@ -2930,6 +2975,7 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class BoundedTypeSerializationCluster : public SerializationCluster {
  public:
   BoundedTypeSerializationCluster() { }
@@ -2971,6 +3017,7 @@ class BoundedTypeSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawBoundedType*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class BoundedTypeDeserializationCluster : public DeserializationCluster {
@@ -3006,6 +3053,7 @@ class BoundedTypeDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ClosureSerializationCluster : public SerializationCluster {
  public:
   ClosureSerializationCluster() { }
@@ -3048,6 +3096,7 @@ class ClosureSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawClosure*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ClosureDeserializationCluster : public DeserializationCluster {
@@ -3084,6 +3133,7 @@ class ClosureDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class MintSerializationCluster : public SerializationCluster {
  public:
   MintSerializationCluster() { }
@@ -3123,6 +3173,7 @@ class MintSerializationCluster : public SerializationCluster {
   GrowableArray<RawSmi*> smis_;
   GrowableArray<RawMint*> mints_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class MintDeserializationCluster : public DeserializationCluster {
@@ -3178,6 +3229,7 @@ class MintDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class BigintSerializationCluster : public SerializationCluster {
  public:
   BigintSerializationCluster() { }
@@ -3220,6 +3272,7 @@ class BigintSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawBigint*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class BigintDeserializationCluster : public DeserializationCluster {
@@ -3256,6 +3309,7 @@ class BigintDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class DoubleSerializationCluster : public SerializationCluster {
  public:
   DoubleSerializationCluster() { }
@@ -3288,6 +3342,7 @@ class DoubleSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawDouble*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class DoubleDeserializationCluster : public DeserializationCluster {
@@ -3320,6 +3375,7 @@ class DoubleDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class GrowableObjectArraySerializationCluster : public SerializationCluster {
  public:
   GrowableObjectArraySerializationCluster() { }
@@ -3362,6 +3418,7 @@ class GrowableObjectArraySerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawGrowableObjectArray*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class GrowableObjectArrayDeserializationCluster
@@ -3401,6 +3458,7 @@ class GrowableObjectArrayDeserializationCluster
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class TypedDataSerializationCluster : public SerializationCluster {
  public:
   explicit TypedDataSerializationCluster(intptr_t cid) : cid_(cid) { }
@@ -3440,6 +3498,7 @@ class TypedDataSerializationCluster : public SerializationCluster {
   const intptr_t cid_;
   GrowableArray<RawTypedData*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class TypedDataDeserializationCluster : public DeserializationCluster {
@@ -3483,6 +3542,7 @@ class TypedDataDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ExternalTypedDataSerializationCluster : public SerializationCluster {
  public:
   explicit ExternalTypedDataSerializationCluster(intptr_t cid) : cid_(cid) { }
@@ -3520,6 +3580,7 @@ class ExternalTypedDataSerializationCluster : public SerializationCluster {
   const intptr_t cid_;
   GrowableArray<RawExternalTypedData*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ExternalTypedDataDeserializationCluster : public DeserializationCluster {
@@ -3561,6 +3622,7 @@ class ExternalTypedDataDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class StacktraceSerializationCluster : public SerializationCluster {
  public:
   StacktraceSerializationCluster() { }
@@ -3602,6 +3664,7 @@ class StacktraceSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawStacktrace*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class StacktraceDeserializationCluster : public DeserializationCluster {
@@ -3637,6 +3700,7 @@ class StacktraceDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class RegExpSerializationCluster : public SerializationCluster {
  public:
   RegExpSerializationCluster() { }
@@ -3681,6 +3745,7 @@ class RegExpSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawRegExp*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class RegExpDeserializationCluster : public DeserializationCluster {
@@ -3719,6 +3784,7 @@ class RegExpDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class LinkedHashMapSerializationCluster : public SerializationCluster {
  public:
   LinkedHashMapSerializationCluster() { }
@@ -3784,6 +3850,7 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawLinkedHashMap*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class LinkedHashMapDeserializationCluster : public DeserializationCluster {
@@ -3845,6 +3912,7 @@ class LinkedHashMapDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ArraySerializationCluster : public SerializationCluster {
  public:
   explicit ArraySerializationCluster(intptr_t cid) : cid_(cid) { }
@@ -3891,6 +3959,7 @@ class ArraySerializationCluster : public SerializationCluster {
   intptr_t cid_;
   GrowableArray<RawArray*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class ArrayDeserializationCluster : public DeserializationCluster {
@@ -3934,6 +4003,7 @@ class ArrayDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class OneByteStringSerializationCluster : public SerializationCluster {
  public:
   OneByteStringSerializationCluster() { }
@@ -3972,6 +4042,7 @@ class OneByteStringSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawOneByteString*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class OneByteStringDeserializationCluster : public DeserializationCluster {
@@ -4011,6 +4082,7 @@ class OneByteStringDeserializationCluster : public DeserializationCluster {
 };
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class TwoByteStringSerializationCluster : public SerializationCluster {
  public:
   TwoByteStringSerializationCluster() { }
@@ -4049,6 +4121,7 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
  private:
   GrowableArray<RawTwoByteString*> objects_;
 };
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 
 class TwoByteStringDeserializationCluster : public DeserializationCluster {
@@ -4120,6 +4193,10 @@ Serializer::~Serializer() {
 
 
 SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return NULL;
+#else
   Zone* Z = zone_;
   if ((cid > kNumPredefinedCids) ||
       (cid == kInstanceCid) ||
@@ -4206,6 +4283,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 
   FATAL1("No cluster defined for cid %" Pd, cid);
   return NULL;
+#endif  // !DART_PRECOMPILED_RUNTIME
 }
 
 
