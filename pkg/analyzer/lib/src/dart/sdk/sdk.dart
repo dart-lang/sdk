@@ -155,9 +155,12 @@ abstract class AbstractDartSdk implements DartSdk {
 
   @override
   PackageBundle getLinkedBundle() {
-    bool strongMode = _analysisOptions?.strongMode ?? false;
-    _sdkBundle ??= getSummarySdkBundle(strongMode);
-    return _sdkBundle;
+    if (_useSummary) {
+      bool strongMode = _analysisOptions?.strongMode ?? false;
+      _sdkBundle ??= getSummarySdkBundle(strongMode);
+      return _sdkBundle;
+    }
+    return null;
   }
 
   String getRelativePathFromFile(File file);
