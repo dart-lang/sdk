@@ -436,7 +436,11 @@ class JSModuleFile {
       c = 'eval(${JSON.encode(c)});\n';
     }
     new File(jsPath).writeAsStringSync(c);
-    if (code.sourceMap != null && !options.inlineSourceMap) {
+    // TODO(jacobr): it is a bit strange we are writing the source map to a file
+    // even when options.inlineSourceMap is true. To be consistent perhaps we
+    // should also write a copy of the source file without a sourcemap even when
+    // inlineSourceMap is true.
+    if (code.sourceMap != null) {
       new File(mapPath).writeAsStringSync(JSON.encode(code.sourceMap));
     }
   }
