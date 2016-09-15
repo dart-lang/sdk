@@ -1533,6 +1533,28 @@ table UnlinkedCombinator {
 }
 
 /**
+ * Unlinked summary information about a single import or export configuration.
+ */
+table UnlinkedConfiguration {
+  /**
+   * The name of the declared variable whose value is being used in the
+   * condition.
+   */
+  name:string (id: 0);
+
+  /**
+   * The URI of the implementation library to be used if the condition is true.
+   */
+  uri:string (id: 2);
+
+  /**
+   * The value to which the value of the declared variable will be compared,
+   * or `true` if the condition does not include an equality test.
+   */
+  value:string (id: 1);
+}
+
+/**
  * Unlinked summary information about a compile-time constant expression, or a
  * potentially constant expression.
  *
@@ -1931,9 +1953,15 @@ table UnlinkedExportNonPublic {
  */
 table UnlinkedExportPublic {
   /**
-   * Combinators contained in this import declaration.
+   * Combinators contained in this export declaration.
    */
   combinators:[UnlinkedCombinator] (id: 1);
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  configurations:[UnlinkedConfiguration] (id: 2);
 
   /**
    * URI used in the source code to reference the exported library.
@@ -1954,6 +1982,12 @@ table UnlinkedImport {
    * Combinators contained in this import declaration.
    */
   combinators:[UnlinkedCombinator] (id: 4);
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  configurations:[UnlinkedConfiguration] (id: 10);
 
   /**
    * Indicates whether the import declaration uses the `deferred` keyword.

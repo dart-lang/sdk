@@ -6057,6 +6057,36 @@ f(MyFunction myFunction) {}
         ReferenceKind.classOrEnum);
   }
 
+  test_export_configurations() {
+    if (!checkAstDerivedData) {
+      // Element model does not provide access to configurations.
+      return;
+    }
+    addNamedSource('/foo.dart', 'bar() {}');
+    addNamedSource('/foo_io.dart', 'bar() {}');
+    addNamedSource('/foo_html.dart', 'bar() {}');
+    String libraryText = r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.flavor == 'html') 'foo_html.dart';
+''';
+    serializeLibraryText(libraryText);
+    UnlinkedExportPublic exp = unlinkedUnits[0].publicNamespace.exports[0];
+    expect(exp.configurations, hasLength(2));
+    {
+      UnlinkedConfiguration configuration = exp.configurations[0];
+      expect(configuration.name, 'dart.library.io');
+      expect(configuration.value, 'true');
+      expect(configuration.uri, 'foo_io.dart');
+    }
+    {
+      UnlinkedConfiguration configuration = exp.configurations[1];
+      expect(configuration.name, 'dart.flavor');
+      expect(configuration.value, 'html');
+      expect(configuration.uri, 'foo_html.dart');
+    }
+  }
+
   test_export_dependency() {
     serializeLibraryText('export "dart:async";');
     expect(unlinkedUnits[0].exports, hasLength(1));
@@ -6260,8 +6290,10 @@ f(MyFunction myFunction) {}
     String uriString = '"a.dart"';
     String libraryText = 'export $uriString;';
     serializeLibraryText(libraryText);
-    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
-    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, 'a.dart');
+    var unlinkedExports = unlinkedUnits[0].publicNamespace.exports;
+    expect(unlinkedExports, hasLength(1));
+    expect(unlinkedExports[0].uri, 'a.dart');
+    expect(unlinkedExports[0].configurations, isEmpty);
   }
 
   test_export_variable() {
@@ -7876,6 +7908,36 @@ get f => null;''';
     int bDep =
         checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
     expect(aDep, lessThan(bDep));
+  }
+
+  test_import_configurations() {
+    if (!checkAstDerivedData) {
+      // Element model does not provide access to configurations.
+      return;
+    }
+    addNamedSource('/foo.dart', 'bar() {}');
+    addNamedSource('/foo_io.dart', 'bar() {}');
+    addNamedSource('/foo_html.dart', 'bar() {}');
+    String libraryText = r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.flavor == 'html') 'foo_html.dart';
+''';
+    serializeLibraryText(libraryText);
+    UnlinkedImport imp = unlinkedUnits[0].imports[0];
+    expect(imp.configurations, hasLength(2));
+    {
+      UnlinkedConfiguration configuration = imp.configurations[0];
+      expect(configuration.name, 'dart.library.io');
+      expect(configuration.value, 'true');
+      expect(configuration.uri, 'foo_io.dart');
+    }
+    {
+      UnlinkedConfiguration configuration = imp.configurations[1];
+      expect(configuration.name, 'dart.flavor');
+      expect(configuration.value, 'html');
+      expect(configuration.uri, 'foo_html.dart');
+    }
   }
 
   test_import_deferred() {

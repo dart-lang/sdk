@@ -1130,6 +1130,31 @@ abstract class UnlinkedCombinator extends base.SummaryClass {
 }
 
 /**
+ * Unlinked summary information about a single import or export configuration.
+ */
+abstract class UnlinkedConfiguration extends base.SummaryClass {
+  /**
+   * The name of the declared variable whose value is being used in the
+   * condition.
+   */
+  @Id(0)
+  String get name;
+
+  /**
+   * The URI of the implementation library to be used if the condition is true.
+   */
+  @Id(2)
+  String get uri;
+
+  /**
+   * The value to which the value of the declared variable will be compared,
+   * or `true` if the condition does not include an equality test.
+   */
+  @Id(1)
+  String get value;
+}
+
+/**
  * Unlinked summary information about a compile-time constant expression, or a
  * potentially constant expression.
  *
@@ -2063,10 +2088,17 @@ abstract class UnlinkedExportNonPublic extends base.SummaryClass {
  */
 abstract class UnlinkedExportPublic extends base.SummaryClass {
   /**
-   * Combinators contained in this import declaration.
+   * Combinators contained in this export declaration.
    */
   @Id(1)
   List<UnlinkedCombinator> get combinators;
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  @Id(2)
+  List<UnlinkedConfiguration> get configurations;
 
   /**
    * URI used in the source code to reference the exported library.
@@ -2184,6 +2216,13 @@ abstract class UnlinkedImport extends base.SummaryClass {
    */
   @Id(4)
   List<UnlinkedCombinator> get combinators;
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  @Id(10)
+  List<UnlinkedConfiguration> get configurations;
 
   /**
    * Indicates whether the import declaration uses the `deferred` keyword.

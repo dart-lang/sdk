@@ -4274,6 +4274,147 @@ abstract class _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
   String toString() => convert.JSON.encode(toJson());
 }
 
+class UnlinkedConfigurationBuilder extends Object with _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration {
+  String _name;
+  String _uri;
+  String _value;
+
+  @override
+  String get name => _name ??= '';
+
+  /**
+   * The name of the declared variable whose value is being used in the
+   * condition.
+   */
+  void set name(String value) {
+    this._name = value;
+  }
+
+  @override
+  String get uri => _uri ??= '';
+
+  /**
+   * The URI of the implementation library to be used if the condition is true.
+   */
+  void set uri(String value) {
+    this._uri = value;
+  }
+
+  @override
+  String get value => _value ??= '';
+
+  /**
+   * The value to which the value of the declared variable will be compared,
+   * or `true` if the condition does not include an equality test.
+   */
+  void set value(String value) {
+    this._value = value;
+  }
+
+  UnlinkedConfigurationBuilder({String name, String uri, String value})
+    : _name = name,
+      _uri = uri,
+      _value = value;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addString(this._value ?? '');
+    signature.addString(this._uri ?? '');
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_name;
+    fb.Offset offset_uri;
+    fb.Offset offset_value;
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    if (_uri != null) {
+      offset_uri = fbBuilder.writeString(_uri);
+    }
+    if (_value != null) {
+      offset_value = fbBuilder.writeString(_value);
+    }
+    fbBuilder.startTable();
+    if (offset_name != null) {
+      fbBuilder.addOffset(0, offset_name);
+    }
+    if (offset_uri != null) {
+      fbBuilder.addOffset(2, offset_uri);
+    }
+    if (offset_value != null) {
+      fbBuilder.addOffset(1, offset_value);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnlinkedConfigurationReader extends fb.TableReader<_UnlinkedConfigurationImpl> {
+  const _UnlinkedConfigurationReader();
+
+  @override
+  _UnlinkedConfigurationImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedConfigurationImpl(bc, offset);
+}
+
+class _UnlinkedConfigurationImpl extends Object with _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _UnlinkedConfigurationImpl(this._bc, this._bcOffset);
+
+  String _name;
+  String _uri;
+  String _value;
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _name;
+  }
+
+  @override
+  String get uri {
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _uri;
+  }
+
+  @override
+  String get value {
+    _value ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _value;
+  }
+}
+
+abstract class _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (name != '') _result["name"] = name;
+    if (uri != '') _result["uri"] = uri;
+    if (value != '') _result["value"] = value;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "uri": uri,
+    "value": value,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements idl.UnlinkedConst {
   List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
   List<double> _doubles;
@@ -6384,16 +6525,28 @@ abstract class _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPub
 
 class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
   List<UnlinkedCombinatorBuilder> _combinators;
+  List<UnlinkedConfigurationBuilder> _configurations;
   String _uri;
 
   @override
   List<UnlinkedCombinatorBuilder> get combinators => _combinators ??= <UnlinkedCombinatorBuilder>[];
 
   /**
-   * Combinators contained in this import declaration.
+   * Combinators contained in this export declaration.
    */
   void set combinators(List<UnlinkedCombinatorBuilder> value) {
     this._combinators = value;
+  }
+
+  @override
+  List<UnlinkedConfigurationBuilder> get configurations => _configurations ??= <UnlinkedConfigurationBuilder>[];
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  void set configurations(List<UnlinkedConfigurationBuilder> value) {
+    this._configurations = value;
   }
 
   @override
@@ -6406,8 +6559,9 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
     this._uri = value;
   }
 
-  UnlinkedExportPublicBuilder({List<UnlinkedCombinatorBuilder> combinators, String uri})
+  UnlinkedExportPublicBuilder({List<UnlinkedCombinatorBuilder> combinators, List<UnlinkedConfigurationBuilder> configurations, String uri})
     : _combinators = combinators,
+      _configurations = configurations,
       _uri = uri;
 
   /**
@@ -6415,6 +6569,7 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
    */
   void flushInformative() {
     _combinators?.forEach((b) => b.flushInformative());
+    _configurations?.forEach((b) => b.flushInformative());
   }
 
   /**
@@ -6430,13 +6585,25 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
         x?.collectApiSignature(signature);
       }
     }
+    if (this._configurations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._configurations.length);
+      for (var x in this._configurations) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_combinators;
+    fb.Offset offset_configurations;
     fb.Offset offset_uri;
     if (!(_combinators == null || _combinators.isEmpty)) {
       offset_combinators = fbBuilder.writeList(_combinators.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_configurations == null || _configurations.isEmpty)) {
+      offset_configurations = fbBuilder.writeList(_configurations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_uri != null) {
       offset_uri = fbBuilder.writeString(_uri);
@@ -6444,6 +6611,9 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
     fbBuilder.startTable();
     if (offset_combinators != null) {
       fbBuilder.addOffset(1, offset_combinators);
+    }
+    if (offset_configurations != null) {
+      fbBuilder.addOffset(2, offset_configurations);
     }
     if (offset_uri != null) {
       fbBuilder.addOffset(0, offset_uri);
@@ -6466,12 +6636,19 @@ class _UnlinkedExportPublicImpl extends Object with _UnlinkedExportPublicMixin i
   _UnlinkedExportPublicImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedCombinator> _combinators;
+  List<idl.UnlinkedConfiguration> _configurations;
   String _uri;
 
   @override
   List<idl.UnlinkedCombinator> get combinators {
     _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedCombinator>[]);
     return _combinators;
+  }
+
+  @override
+  List<idl.UnlinkedConfiguration> get configurations {
+    _configurations ??= const fb.ListReader<idl.UnlinkedConfiguration>(const _UnlinkedConfigurationReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedConfiguration>[]);
+    return _configurations;
   }
 
   @override
@@ -6486,6 +6663,7 @@ abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (combinators.isNotEmpty) _result["combinators"] = combinators.map((_value) => _value.toJson()).toList();
+    if (configurations.isNotEmpty) _result["configurations"] = configurations.map((_value) => _value.toJson()).toList();
     if (uri != '') _result["uri"] = uri;
     return _result;
   }
@@ -6493,6 +6671,7 @@ abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
   @override
   Map<String, Object> toMap() => {
     "combinators": combinators,
+    "configurations": configurations,
     "uri": uri,
   };
 
@@ -6503,6 +6682,7 @@ abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
 class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements idl.UnlinkedImport {
   List<UnlinkedConstBuilder> _annotations;
   List<UnlinkedCombinatorBuilder> _combinators;
+  List<UnlinkedConfigurationBuilder> _configurations;
   bool _isDeferred;
   bool _isImplicit;
   int _offset;
@@ -6530,6 +6710,17 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    */
   void set combinators(List<UnlinkedCombinatorBuilder> value) {
     this._combinators = value;
+  }
+
+  @override
+  List<UnlinkedConfigurationBuilder> get configurations => _configurations ??= <UnlinkedConfigurationBuilder>[];
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  void set configurations(List<UnlinkedConfigurationBuilder> value) {
+    this._configurations = value;
   }
 
   @override
@@ -6624,9 +6815,10 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
     this._uriOffset = value;
   }
 
-  UnlinkedImportBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit, int offset, int prefixOffset, int prefixReference, String uri, int uriEnd, int uriOffset})
+  UnlinkedImportBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedCombinatorBuilder> combinators, List<UnlinkedConfigurationBuilder> configurations, bool isDeferred, bool isImplicit, int offset, int prefixOffset, int prefixReference, String uri, int uriEnd, int uriOffset})
     : _annotations = annotations,
       _combinators = combinators,
+      _configurations = configurations,
       _isDeferred = isDeferred,
       _isImplicit = isImplicit,
       _offset = offset,
@@ -6642,6 +6834,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _combinators?.forEach((b) => b.flushInformative());
+    _configurations?.forEach((b) => b.flushInformative());
     _offset = null;
     _prefixOffset = null;
     _uriEnd = null;
@@ -6672,17 +6865,29 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
       }
     }
     signature.addBool(this._isDeferred == true);
+    if (this._configurations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._configurations.length);
+      for (var x in this._configurations) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_annotations;
     fb.Offset offset_combinators;
+    fb.Offset offset_configurations;
     fb.Offset offset_uri;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_combinators == null || _combinators.isEmpty)) {
       offset_combinators = fbBuilder.writeList(_combinators.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_configurations == null || _configurations.isEmpty)) {
+      offset_configurations = fbBuilder.writeList(_configurations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_uri != null) {
       offset_uri = fbBuilder.writeString(_uri);
@@ -6693,6 +6898,9 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
     }
     if (offset_combinators != null) {
       fbBuilder.addOffset(4, offset_combinators);
+    }
+    if (offset_configurations != null) {
+      fbBuilder.addOffset(10, offset_configurations);
     }
     if (_isDeferred == true) {
       fbBuilder.addBool(9, true);
@@ -6737,6 +6945,7 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
 
   List<idl.UnlinkedConst> _annotations;
   List<idl.UnlinkedCombinator> _combinators;
+  List<idl.UnlinkedConfiguration> _configurations;
   bool _isDeferred;
   bool _isImplicit;
   int _offset;
@@ -6756,6 +6965,12 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
   List<idl.UnlinkedCombinator> get combinators {
     _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedCombinator>[]);
     return _combinators;
+  }
+
+  @override
+  List<idl.UnlinkedConfiguration> get configurations {
+    _configurations ??= const fb.ListReader<idl.UnlinkedConfiguration>(const _UnlinkedConfigurationReader()).vTableGet(_bc, _bcOffset, 10, const <idl.UnlinkedConfiguration>[]);
+    return _configurations;
   }
 
   @override
@@ -6813,6 +7028,7 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
     if (combinators.isNotEmpty) _result["combinators"] = combinators.map((_value) => _value.toJson()).toList();
+    if (configurations.isNotEmpty) _result["configurations"] = configurations.map((_value) => _value.toJson()).toList();
     if (isDeferred != false) _result["isDeferred"] = isDeferred;
     if (isImplicit != false) _result["isImplicit"] = isImplicit;
     if (offset != 0) _result["offset"] = offset;
@@ -6828,6 +7044,7 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "combinators": combinators,
+    "configurations": configurations,
     "isDeferred": isDeferred,
     "isImplicit": isImplicit,
     "offset": offset,
