@@ -8,6 +8,7 @@ import 'dart:html';
 import 'dart:async';
 import 'dart:convert';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/app.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
@@ -93,9 +94,12 @@ class VMConnectElement extends HtmlElement implements Renderable {
                   new BRElement(),
                   new UListElement()
                     ..children = _targets.list().map((target) {
+                      final ObservatoryApplication app =
+                          ObservatoryApplication.app;
+                      final bool current = app.isConnectedVMTarget(target);
                       return new LIElement()
                         ..children = [new VMConnectTargetElement(target,
-                          current: target == _targets.current, queue: _r.queue)
+                          current: current, queue: _r.queue)
                           ..onConnect.listen(_connect)
                           ..onDelete.listen(_delete)
                         ];
@@ -170,13 +174,22 @@ class VMConnectElement extends HtmlElement implements Renderable {
     if (_address == null || _address.isEmpty) return;
     _targets.add(_normalizeStandaloneAddress(_address));
   }
-  void _connect(TargetEvent e) => _targets.setCurrent(e.target);
+  void _connect(TargetEvent e) {
+    _targets.setCurrent(e.target);
+  }
   void _delete(TargetEvent e) => _targets.delete(e.target);
 
   static String _normalizeStandaloneAddress(String networkAddress) {
-    if (networkAddress.startsWith('ws://')) {
+    if (!networkAddress.startsWith('http') && !networkAddress.startsWith('ws')) {
+      networkAddress = 'http://$networkAddress';
+    }
+    try {
+      Uri uri = Uri.parse(networkAddress);
+      print('returning ${uri.host} ${uri.port}');
+      return 'ws://${uri.host}:${uri.port}/ws';
+    } catch (e) {
+      print('caught exception with: $networkAddress -- $e');
       return networkAddress;
     }
-    return 'ws://${networkAddress}/ws';
   }
 }

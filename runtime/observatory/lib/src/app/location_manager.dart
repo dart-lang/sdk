@@ -5,8 +5,6 @@
 part of app;
 
 class LocationManager {
-  final _defaultPath = '/vm';
-
   final ObservatoryApplication _app;
 
   /// [internalArguments] are parameters specified after a '---' in the
@@ -25,7 +23,8 @@ class LocationManager {
     if ((window.location.hash == '') || (window.location.hash == '#')) {
       // Observatory has loaded but no application path has been specified,
       // use the default.
-      applicationPath = makeLink(_defaultPath);
+      // By default we navigate to the VM page.
+      applicationPath = Uris.vm();
     }
     // Update current application path.
     window.history.replaceState(applicationPath,
@@ -54,7 +53,7 @@ class LocationManager {
   /// Update the application location. After this function returns,
   /// [uri] and [debugArguments] will be updated.
   _updateApplicationLocation(String url) {
-    if (url == makeLink('/vm-connect')) {
+    if (url == Uris.vmConnect()) {
       // When we go to the vm-connect page, drop all notifications.
       _app.notifications.deleteAll();
     }
@@ -111,15 +110,6 @@ class LocationManager {
 
   /// Navigate to [url].
   void go(String url, [bool addToBrowserHistory = true]) {
-    if ((url != makeLink('/vm-connect')) &&
-        (_app.vm == null || _app.vm.isDisconnected)) {
-      if (!window.confirm('Connection with VM has been lost. '
-                          'Proceeding will lose current page.')) {
-        return;
-      }
-      url = makeLink('/vm-connect');
-    }
-
     if (addToBrowserHistory) {
       _addToBrowserHistory(url);
     }

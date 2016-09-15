@@ -88,7 +88,6 @@ abstract class CommonWebSocketVM extends VM {
       new Map<String, _WebSocketRequest>();
   int _requestSerial = 0;
   bool _hasInitiatedConnect = false;
-  bool _hasFinishedConnect = false;
   Utf8Decoder _utf8Decoder = const Utf8Decoder();
 
   String get displayName => '${name}@${target.name}';
@@ -100,17 +99,15 @@ abstract class CommonWebSocketVM extends VM {
   }
 
   void _notifyConnect() {
-    _hasFinishedConnect = true;
     if (!_connected.isCompleted) {
       Logger.root.info('WebSocketVM connection opened: ${target.networkAddress}');
       _connected.complete(this);
     }
   }
   Future get onConnect => _connected.future;
+  bool get wasOrIsConnected => _connected.isCompleted;
+  bool get isConnected => wasOrIsConnected && !isDisconnected;
   void _notifyDisconnect(String reason) {
-    if (!_hasFinishedConnect) {
-      return;
-    }
     if (!_disconnected.isCompleted) {
       Logger.root.info('WebSocketVM connection error: ${target.networkAddress}');
       _disconnected.complete(reason);
@@ -121,7 +118,9 @@ abstract class CommonWebSocketVM extends VM {
 
   void disconnect({String reason : 'WebSocket closed'}) {
     if (_hasInitiatedConnect) {
-      _webSocket.close();
+      if (_webSocket != null) {
+        _webSocket.close();
+      }
     }
     // We don't need to cancel requests and notify here.  These
     // functions will be called again when the onClose callback
@@ -134,8 +133,14 @@ abstract class CommonWebSocketVM extends VM {
   Future<Map> invokeRpcRaw(String method, Map params) {
     if (!_hasInitiatedConnect) {
       _hasInitiatedConnect = true;
-      _webSocket.connect(
-          target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
+      try {
+        _webSocket.connect(
+            target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
+      } catch (_) {
+        _webSocket = null;
+        var exception = new NetworkRpcException('WebSocket closed');
+        return new Future.error(exception);
+      }
     }
     if (_disconnected.isCompleted) {
       // This connection was closed already.
@@ -144,7 +149,7 @@ abstract class CommonWebSocketVM extends VM {
     }
     String serial = (_requestSerial++).toString();
     var request = new _WebSocketRequest(method, params);
-    if (_webSocket.isOpen) {
+    if ((_webSocket != null) && _webSocket.isOpen) {
       // Already connected, send request immediately.
       _sendRequest(serial, request);
     } else {
@@ -265,8 +270,9 @@ abstract class CommonWebSocketVM extends VM {
 
   void _cancelRequests(Map<String,_WebSocketRequest> requests,
                        String message) {
-    requests.forEach((_, _WebSocketRequest request) {
-      var exception = new NetworkRpcException(message);
+    requests.forEach((String serial, _WebSocketRequest request) {
+      var exception = new NetworkRpcException(message +
+          '(id: $serial method: ${request.method} params: ${request.params})');
       request.completer.completeError(exception);
     });
     requests.clear();
@@ -329,4 +335,6 @@ abstract class CommonWebSocketVM extends VM {
     // Send message.
     _webSocket.send(message);
   }
+
+  String toString() => displayName;
 }

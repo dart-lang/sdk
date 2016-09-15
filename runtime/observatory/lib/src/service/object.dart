@@ -589,6 +589,8 @@ class _EventStreamState {
           // No new listeners showed up during cancelation.
           _onDone();
         }
+      }).catchError((e) {
+        /* ignore */
       });
     }
     // No need to wait for _cancelFuture here.
@@ -601,12 +603,16 @@ class _EventStreamState {
         onCancel:() => _cancelController(controller));
     _controllers.add(controller);
     if (_cancelFuture != null) {
-      await _cancelFuture;
+      try {
+        await _cancelFuture;
+      } on NetworkRpcException catch (_) { /* ignore */ }
     }
     if (_listenFuture == null) {
       _listenFuture = _vm._streamListen(streamId);
     }
-    await _listenFuture;
+    try {
+      await _listenFuture;
+    } on NetworkRpcException catch (_) { /* ignore */ }
     return controller.stream;
   }
 
@@ -624,6 +630,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
 
   // TODO(turnidge): The connection should not be stored in the VM object.
   bool get isDisconnected;
+  bool get isConnected;
 
   // Used for verbose logging.
   bool verbose = false;
@@ -813,6 +820,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
         _cache.putIfAbsent(objId, () => obj);
       }
       return obj;
+    }).catchError((e) {
+      return new Future.error(e);
     });
   }
 
@@ -838,6 +847,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
         await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
       } on FakeVMRpcException catch (_) {
         // ignore FakeVMRpcExceptions here.
+      } on NetworkRpcException catch (_) {
+        // ignore network errors here.
       }
     }
     return await invokeRpcNoUpgrade('getVM', {});
@@ -855,14 +866,24 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     Map params = {
       'streamId': streamId,
     };
-    return invokeRpc('streamListen', params);
+    return invokeRpc('streamListen', params).catchError((e) {
+      // Ignore network errors on stream listen.
+      if (e is NetworkRpcException) {
+        return null;
+      }
+    });
   }
 
   Future<ServiceObject> _streamCancel(String streamId) {
     Map params = {
       'streamId': streamId,
     };
-    return invokeRpc('streamCancel', params);
+    return invokeRpc('streamCancel', params).catchError((e) {
+      // Ignore network errors on stream cancel.
+      if (e is NetworkRpcException) {
+        return null;
+      }
+    });
   }
 
   // A map from stream id to event stream state.
@@ -883,7 +904,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     var eventStream = _eventStreams.putIfAbsent(
         streamId, () => new _EventStreamState(
             this, streamId, () => _eventStreams.remove(streamId)));
-    return eventStream.addStream();
+    Stream stream = await eventStream.addStream();
+    return stream;
   }
 
   /// Helper function for listening to an event stream.
@@ -987,6 +1009,7 @@ class FakeVM extends VM {
     _onConnect = new Future.value(this);
     return _onConnect;
   }
+  bool get isConnected => !isDisconnected;
   // Only complete when requested.
   Completer _onDisconnect = new Completer();
   Future get onDisconnect => _onDisconnect.future;

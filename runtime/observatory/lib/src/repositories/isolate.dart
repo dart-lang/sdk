@@ -8,7 +8,11 @@ class IsolateRepository extends M.IsolateRepository {
   Future<M.Isolate> get(M.IsolateRef i) async{
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
-    await isolate.reload();
+    try {
+      await isolate.reload();
+    } on SC.NetworkRpcException catch (_) {
+      /* ignore */
+    }
     return isolate;
   }
 

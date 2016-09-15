@@ -152,6 +152,12 @@ class VMPage extends MatchingPage {
 
   void _visit(Uri uri) {
     super._visit(uri);
+    if (app.vm == null) {
+      Logger.root.severe('VMPage has no VM');
+      // Reroute to vm-connect.
+      app.locationManager.go(Uris.vmConnect());
+      return;
+    }
     app.vm.reload().then((VM vm) {
       container.children = [
         new VMViewElement(vm, app.events, app.notifications,
@@ -161,7 +167,7 @@ class VMPage extends MatchingPage {
     }).catchError((e, stack) {
       Logger.root.severe('VMPage visit error: $e');
       // Reroute to vm-connect.
-      app.locationManager.go(app.locationManager.makeLink('/vm-connect'));
+      app.locationManager.go(Uris.vmConnect());
     });
   }
 }
