@@ -9,6 +9,7 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
+        '../../pkg/pkg.gyp:pkg_packages',
         '../../pkg/pkg_files.gyp:pkg_files_stamp'
       ],
       'actions': [
@@ -26,6 +27,7 @@
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/analysis_server.dart.snapshot',
+            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/analysis_server/bin/server.dart',
           ],
         },

@@ -27,7 +27,14 @@ if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
 set DARTFMT=%DART_ROOT%\third_party\pkg_tested\dart_style\bin\format.dart
 
-"%DART%" "%DARTFMT%" %*
+rem DART_CONFIGURATION defaults to ReleaseX64
+if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseX64
+
+set BUILD_DIR=%DART_ROOT%\out\%DART_CONFIGURATION%
+
+set PACKAGE_ROOT=%BUILD_DIR%\packages
+
+"%DART%" "--package-root=%PACKAGE_ROOT%" "%DARTFMT%" %*
 
 endlocal
 

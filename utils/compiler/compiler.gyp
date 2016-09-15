@@ -12,6 +12,7 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
+        '../../pkg/pkg.gyp:pkg_packages',
         'dart2js_files_stamp',
       ],
       'actions': [
@@ -35,6 +36,7 @@
             'create_snapshot.dart',
             '--output_dir=<(SHARED_INTERMEDIATE_DIR)',
             '--dart2js_main=pkg/compiler/lib/src/dart2js.dart',
+            '--package_root=<(PRODUCT_DIR)/packages/',
           ],
         },
       ],

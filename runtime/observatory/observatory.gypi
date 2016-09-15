@@ -12,6 +12,8 @@
       'type': 'none',
       'dependencies': [
         'dart_bootstrap#host',
+        # We use packages for building
+        '../pkg/pkg.gyp:pkg_packages#target',
       ],
       'toolsets': ['host'],
       'actions': [

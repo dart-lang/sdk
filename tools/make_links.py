@@ -26,8 +26,6 @@ import os
 import shutil
 import subprocess
 import sys
-import urllib
-import urlparse
 import utils
 
 # Useful messages when we find orphaned checkouts.
@@ -45,15 +43,6 @@ def get_options():
       action="store_true",
       dest="quiet",
       default=False)
-  result.add_option("--create-links",
-      help='Create links to the package lib directories in "packages/".',
-      action='store_false',
-      default=True)
-  result.add_option("--create-package-file",
-      help='Create a ".packages" file pointing to the packages.',
-      action='store_false',
-      default=True)
-
   return result.parse_args()
 
 def make_link(quiet, source, target, orig_source):
@@ -92,12 +81,12 @@ def create_timestamp_file(options):
       os.mkdir(dir_name)
     open(options.timestamp_file, 'w').close()
 
+
 def main(argv):
   (options, args) = get_options()
-  target_dir = os.path.relpath(args[0])
-  target = os.path.join(target_dir, 'packages')
+  target = os.path.relpath(args[0])
   if os.path.exists(target):
-    # If the packages directory already exists, delete the current links in
+    # If the packages directory already exists, delete the current links inside
     # it. This is necessary, otherwise we can end up having links in there
     # pointing to directories which no longer exist (on incremental builds).
     for link in os.listdir(target):
@@ -110,12 +99,7 @@ def main(argv):
         os.remove(full_link)
   else:
     os.makedirs(target)
-  target = os.path.join(target_dir, '.packages')
-  if os.path.exists(target):
-    os.remove(target)
-
   linked_names = {};
-  package_file_contents = '# .package file created by tools/make_links.py\n'
   for source in args[1:]:
     # Assume the source directory is named ".../NAME/lib".
     split = source.split(':')
@@ -138,21 +122,14 @@ def main(argv):
       return 1
     linked_names[name] = path
     orig_source = source
-    if options.create_links:
-      if utils.GuessOS() == 'win32':
-        source = os.path.relpath(source)
-      else:
-        source = os.path.relpath(source, start=target)
-        exit_code = make_link(options.quiet,
-                              source, os.path.join(target, name), orig_source)
-        if exit_code != 0:
-          return exit_code
-    abs_source = os.path.abspath(orig_source)
-    source_url = urlparse.urljoin('file:', urllib.pathname2url(abs_source))
-    package_file_contents += '%s:%s\n' % (name, source_url)
-  if options.create_package_file:
-    with open(os.path.join(target_dir, '.packages'), 'w') as package_file:
-      package_file.write(package_file_contents)
+    if utils.GuessOS() == 'win32':
+      source = os.path.relpath(source)
+    else:
+      source = os.path.relpath(source, start=target)
+    exit_code = make_link(
+        options.quiet, source, os.path.join(target, name), orig_source)
+    if exit_code != 0:
+      return exit_code
   create_timestamp_file(options)
   return 0
 

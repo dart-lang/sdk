@@ -31,11 +31,12 @@ if not "_%DART_VM_OPTIONS%_" == "__" (
 rem Use the Dart binary in the built SDK so pub can find the version file next
 rem to it.
 set BUILD_DIR=%SDK_DIR%\..\out\ReleaseX64
+set PACKAGES_DIR=%BUILD_DIR%\packages
 set DART=%BUILD_DIR%\dart-sdk\bin\dart
 
 rem Run pub.
 set PUB="%SDK_DIR%\..\third_party\pkg\pub\bin\pub.dart"
-"%DART%" %VM_OPTIONS% "%PUB%" %*
+"%DART%" %VM_OPTIONS% --package-root="%PACKAGES_DIR%" "%PUB%" %*
 
 endlocal
 
