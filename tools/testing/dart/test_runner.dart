@@ -2928,7 +2928,7 @@ class ProcessQueue {
         cancelDebugTimer();
         _debugTimer = new Timer(debugTimerDuration, () {
           print("The debug timer of test.dart expired. Please report this issue"
-              " to ricow/whesse and provide the following information:");
+              " to whesse@ and provide the following information:");
           print("");
           print("Graph is sealed: ${_graph.isSealed}");
           print("");
