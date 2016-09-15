@@ -9,7 +9,6 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
-        '../../pkg/pkg.gyp:pkg_packages',
       ],
       'actions': [
         {
@@ -27,7 +26,6 @@
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/dartanalyzer.dart.snapshot',
-            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/analyzer_cli/bin/analyzer.dart',
           ],
         },
@@ -44,7 +42,6 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
             'single-output',
             '<(SHARED_INTERMEDIATE_DIR)/sdk_summary_bundle.bin',
@@ -60,7 +57,6 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
             'extract-spec-sum',
             '<(SHARED_INTERMEDIATE_DIR)/sdk_summary_bundle.bin',
@@ -77,7 +73,6 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
             'extract-strong-sum',
             '<(SHARED_INTERMEDIATE_DIR)/sdk_summary_bundle.bin',

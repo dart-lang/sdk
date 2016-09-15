@@ -50,7 +50,6 @@ client/tests/drt
 # Pub generated "packages" directories and files
 packages
 pubspec.lock
-.packages
 
 # Local pub storage
 .pub

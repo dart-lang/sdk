@@ -11,11 +11,21 @@ import "package:async_helper/async_helper.dart";
 //
 // The main script spawns a server and a subprocess which does a connection back
 // to it.
-// The subprocess is expected to shut down it's idle sockets after
+// The subprocess is expected to shut down its idle sockets after
 // [HttpClient.idleTimeout] and the main script will assert that this happens
 // within +/- 2 <= seconds.
 
 const SECONDS = 4;
+
+List<String> packageOptions() {
+  if (Platform.packageRoot != null) {
+    return <String>['--package-root=${Platform.packageRoot}'];
+  } else if (Platform.packageConfig != null) {
+    return <String>['--packages=${Platform.packageConfig}'];
+  } else {
+    return <String>[];
+  }
+}
 
 void runServerProcess() {
   asyncStart();
@@ -29,9 +39,7 @@ void runServerProcess() {
     });
 
     var sw = new Stopwatch()..start();
-    var arguments = ['--package-root=${Platform.packageRoot}',
-                     '${Platform.script}',
-                     url];
+    var arguments = packageOptions()..add(Platform.script.toString())..add(url);
     Process.run(Platform.executable, arguments).then((res) {
       subscription.cancel();
       if (res.exitCode != 0) {
