@@ -8,18 +8,21 @@ import 'dart:collection';
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/task/options.dart'
+    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/rules/avoid_as.dart';

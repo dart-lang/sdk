@@ -4,8 +4,9 @@
 
 library analyzer.test.generated.static_type_warning_code_test;
 
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart' show formatList;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/incremental_cache.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

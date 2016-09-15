@@ -4,7 +4,8 @@
 
 library analyzer.test.generated.non_hint_code_test;
 
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

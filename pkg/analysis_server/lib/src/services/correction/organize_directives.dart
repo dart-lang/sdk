@@ -9,7 +9,8 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 /**
  * Organizer of directives in the [unit].

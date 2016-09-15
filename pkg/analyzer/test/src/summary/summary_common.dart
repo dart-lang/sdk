@@ -7,10 +7,10 @@ library analyzer.test.src.summary.summary_common;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -1305,35 +1305,6 @@ class E {}
   test_class_no_interface() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.interfaces, isEmpty);
-  }
-
-  test_unresolved_import() {
-    allowMissingFiles = true;
-    serializeLibraryText("import 'foo.dart';", allowErrors: true);
-    expect(unlinkedUnits[0].imports, hasLength(2));
-    expect(unlinkedUnits[0].imports[0].uri, 'foo.dart');
-    // Note: imports[1] is the implicit import of dart:core.
-    expect(unlinkedUnits[0].imports[1].isImplicit, true);
-    expect(linked.importDependencies, hasLength(2));
-    checkDependency(
-        linked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
-  }
-
-  test_unresolved_export() {
-    allowMissingFiles = true;
-    serializeLibraryText("export 'foo.dart';", allowErrors: true);
-    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
-    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, 'foo.dart');
-    expect(linked.exportDependencies, hasLength(1));
-    checkDependency(
-        linked.exportDependencies[0], absUri('/foo.dart'), 'foo.dart');
-  }
-
-  test_unresolved_part() {
-    allowMissingFiles = true;
-    serializeLibraryText("part 'foo.dart';", allowErrors: true);
-    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
-    expect(unlinkedUnits[0].publicNamespace.parts[0], 'foo.dart');
   }
 
   test_class_no_mixins() {
@@ -10071,6 +10042,35 @@ typedef F();''';
     serializeLibraryText('  int a = 1;  ');
     UnlinkedUnit unit = unlinkedUnits[0];
     _assertCodeRange(unit.codeRange, 0, 14);
+  }
+
+  test_unresolved_export() {
+    allowMissingFiles = true;
+    serializeLibraryText("export 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, 'foo.dart');
+    expect(linked.exportDependencies, hasLength(1));
+    checkDependency(
+        linked.exportDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
+  test_unresolved_import() {
+    allowMissingFiles = true;
+    serializeLibraryText("import 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].uri, 'foo.dart');
+    // Note: imports[1] is the implicit import of dart:core.
+    expect(unlinkedUnits[0].imports[1].isImplicit, true);
+    expect(linked.importDependencies, hasLength(2));
+    checkDependency(
+        linked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
+  test_unresolved_part() {
+    allowMissingFiles = true;
+    serializeLibraryText("part 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0], 'foo.dart');
   }
 
   test_unresolved_reference_in_multiple_parts() {

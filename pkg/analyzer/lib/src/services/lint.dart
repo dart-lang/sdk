@@ -7,8 +7,8 @@ library analyzer.src.services.lint;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 

@@ -6,10 +6,10 @@ library analyzer.src.task.options_work_manager;
 
 import 'dart:collection';
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisErrorInfo, CacheState, InternalAnalysisContext;
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/model.dart';

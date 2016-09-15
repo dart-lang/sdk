@@ -5,9 +5,10 @@
 library analyzer.src.dart.scanner.scanner;
 
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:charcode/ascii.dart';
@@ -803,7 +804,8 @@ class Scanner {
   int _tokenizeFractionPart(int next, int start) {
     bool done = false;
     bool hasDigit = false;
-    LOOP: while (!done) {
+    LOOP:
+    while (!done) {
       if ($0 <= next && next <= $9) {
         hasDigit = true;
       } else if ($e == next || $E == next) {
@@ -1037,7 +1039,8 @@ class Scanner {
 
   int _tokenizeMultiLineRawString(int quoteChar, int start) {
     int next = _reader.advance();
-    outer: while (next != -1) {
+    outer:
+    while (next != -1) {
       while (next != quoteChar) {
         if (next == -1) {
           break outer;

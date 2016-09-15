@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/error.dart'
+import 'package:analyzer/error/listener.dart'
     show AnalysisErrorListener, ErrorReporter;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;

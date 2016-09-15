@@ -29,6 +29,14 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'ANALYSIS_OPTIONS_ERRORS', AnalysisError.NO_ERRORS);
 
+/**
+ * The descriptor used to associate error processors with analysis contexts in
+ * configuration data.
+ */
+final ListResultDescriptor<ErrorProcessor> CONFIGURED_ERROR_PROCESSORS =
+    new ListResultDescriptor<ErrorProcessor>(
+        'configured.errors', const <ErrorProcessor>[]);
+
 final _OptionsProcessor _processor = new _OptionsProcessor();
 
 void applyToAnalysisOptions(

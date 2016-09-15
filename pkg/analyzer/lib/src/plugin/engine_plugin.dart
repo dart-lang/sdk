@@ -4,10 +4,10 @@
 
 library analyzer.src.plugin.engine_plugin;
 
+import 'package:analyzer/error/error.dart' show AnalysisError;
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;
-import 'package:analyzer/src/generated/error.dart' show AnalysisError;
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/general.dart';

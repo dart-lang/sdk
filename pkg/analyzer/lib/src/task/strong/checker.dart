@@ -14,20 +14,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/error.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart';
 
 import 'ast_properties.dart';
-
-bool isKnownFunction(Expression expression) {
-  var element = _getKnownElement(expression);
-  // First class functions and static methods, where we know the original
-  // declaration, will have an exact type, so we know a downcast will fail.
-  return element is FunctionElement ||
-      element is MethodElement && element.isStatic;
-}
 
 /// Given an [expression] and a corresponding [typeSystem] and [typeProvider],
 /// gets the known static type of the expression.
@@ -50,9 +42,20 @@ DartType getDefiniteType(
   return type;
 }
 
-bool _hasStrictArrow(Expression expression) {
+bool isKnownFunction(Expression expression) {
   var element = _getKnownElement(expression);
-  return element is FunctionElement || element is MethodElement;
+  // First class functions and static methods, where we know the original
+  // declaration, will have an exact type, so we know a downcast will fail.
+  return element is FunctionElement ||
+      element is MethodElement && element.isStatic;
+}
+
+DartType _elementType(Element e) {
+  if (e == null) {
+    // Malformed code - just return dynamic.
+    return DynamicTypeImpl.instance;
+  }
+  return (e as dynamic).type;
 }
 
 Element _getKnownElement(Expression expression) {
@@ -69,16 +72,8 @@ Element _getKnownElement(Expression expression) {
   return null;
 }
 
-DartType _elementType(Element e) {
-  if (e == null) {
-    // Malformed code - just return dynamic.
-    return DynamicTypeImpl.instance;
-  }
-  return (e as dynamic).type;
-}
-
-// Return the field on type corresponding to member, or null if none
-// exists or the "field" is actually a getter/setter.
+/// Return the field on type corresponding to member, or null if none
+/// exists or the "field" is actually a getter/setter.
 PropertyInducingElement _getMemberField(
     InterfaceType type, PropertyAccessorElement member) {
   String memberName = member.name;
@@ -108,6 +103,11 @@ PropertyInducingElement _getMemberField(
 /// declared type.
 FunctionType _getMemberType(InterfaceType type, ExecutableElement member) =>
     _memberTypeGetter(member)(type);
+
+bool _hasStrictArrow(Expression expression) {
+  var element = _getKnownElement(expression);
+  return element is FunctionElement || element is MethodElement;
+}
 
 _MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
   String memberName = member.name;
@@ -640,6 +640,20 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    if (!node.isConst &&
+        !node.isFinal &&
+        node.initializer == null &&
+        rules.isNonNullableType(node?.element?.type)) {
+      _recordMessage(
+          node,
+          StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
+          [node.name, node?.element?.type]);
+    }
+    return super.visitVariableDeclaration(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     TypeName type = node.type;
     if (type == null) {
@@ -655,20 +669,6 @@ class CodeChecker extends RecursiveAstVisitor {
       }
     }
     node.visitChildren(this);
-  }
-
-  @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
-    if (!node.isConst &&
-        !node.isFinal &&
-        node.initializer == null &&
-        rules.isNonNullableType(node?.element?.type)) {
-      _recordMessage(
-          node,
-          StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
-          [node.name, node?.element?.type]);
-    }
-    return super.visitVariableDeclaration(node);
   }
 
   @override
@@ -877,10 +877,11 @@ class CodeChecker extends RecursiveAstVisitor {
   /// Checks if the assignment is valid with respect to non-nullable types.
   /// Returns `false` if a nullable expression is assigned to a variable of
   /// non-nullable type and `true` otherwise.
-  bool _checkNonNullAssignment(Expression expression, DartType to, DartType from) {
+  bool _checkNonNullAssignment(
+      Expression expression, DartType to, DartType from) {
     if (rules.isNonNullableType(to) && rules.isNullableType(from)) {
-      _recordMessage(expression, StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          [from, to]);
+      _recordMessage(
+          expression, StaticTypeWarningCode.INVALID_ASSIGNMENT, [from, to]);
       return false;
     }
     return true;
@@ -922,6 +923,9 @@ class CodeChecker extends RecursiveAstVisitor {
       // We assume Analyzer has done this already.
     }
   }
+
+  DartType _getDefiniteType(Expression expr) =>
+      getDefiniteType(expr, rules, typeProvider);
 
   /// Gets the expected return type of the given function [body], either from
   /// a normal return/yield, or from a yield*.
@@ -976,9 +980,6 @@ class CodeChecker extends RecursiveAstVisitor {
       return null;
     }
   }
-
-  DartType _getDefiniteType(Expression expr) =>
-      getDefiniteType(expr, rules, typeProvider);
 
   /// Given an expression, return its type assuming it is
   /// in the caller position of a call (that is, accounting

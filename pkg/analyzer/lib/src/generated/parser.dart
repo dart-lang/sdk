@@ -9,12 +9,14 @@ import "dart:math" as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/generated/shared_messages.dart'
     as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
