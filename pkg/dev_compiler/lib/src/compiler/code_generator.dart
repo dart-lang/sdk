@@ -2179,13 +2179,13 @@ class CodeGenerator extends GeneralizingAstVisitor
       // TODO(jmesserly): various problems here, see:
       // https://github.com/dart-lang/dev_compiler/issues/116
       var paramType = param.element.type;
-      if (node is MethodDeclaration && _unsoundCovariant(paramType, true)) {
+      if (node is MethodDeclaration &&
+          (param.element.isCovariant || _unsoundCovariant(paramType, true)) &&
+          !_inWhitelistCode(node)) {
         var castType = _emitType(paramType,
             nameType: options.nameTypeTests || options.hoistTypeTests,
             hoistType: options.hoistTypeTests);
-        if (!_inWhitelistCode(node)) {
-          body.add(js.statement('#._check(#);', [castType, jsParam]));
-        }
+        body.add(js.statement('#._check(#);', [castType, jsParam]));
       }
     }
     return body.isEmpty ? null : _statement(body);

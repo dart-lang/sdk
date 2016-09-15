@@ -16,6 +16,7 @@ dependencies:
   func: ^0.1.0
   html: ^0.12.0
   js: ^0.6.0
+  meta: ^1.0.3
   path: ^1.3.0
   pub_semver: ^1.1.0
   source_maps: ^0.10.0
@@ -31,15 +32,9 @@ dev_dependencies:
   webdriver: ^1.1.0
 
 dependency_overrides:
-  # This is here until we can update package:test and dart_style
-  analyzer:
-    path: ../analyzer
+  # Depend directly on packages in the same repositiory
+  analyzer: { path: ../analyzer }
+  meta: { path: ../meta }
 
 environment:
   sdk: ">=1.12.0 <2.0.0"
-
-executables:
-  # Similar to "analyzer.dart" and its command line "dartanalyzer" we use
-  # "dartdevc".
-  dartdevc: dartdevc
-  dev_compiler: dartdevc
