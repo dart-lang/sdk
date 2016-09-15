@@ -181,7 +181,8 @@ f() {
     Annotation annotation = unit.declarations
         .firstWhere((m) => m is FunctionDeclaration)
         .metadata[0];
-    List<ConstantEvaluationTarget> expectedConstants = [
+    List<ConstantEvaluationTarget> expectedConstants =
+        <ConstantEvaluationTarget>[
       unitElement.accessors.firstWhere((e) => e.isGetter).variable,
       unitElement.types[0].fields[0],
       unitElement.functions[0].localVariables[0],

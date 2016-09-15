@@ -655,7 +655,7 @@ class DartWorkManagerTest {
     when(context.prioritySources).thenReturn(<Source>[]);
     when(context.shouldErrorsBeAnalyzed(anyObject)).thenReturn(false);
     // library1 parts
-    manager.resultsComputed(library1, {
+    manager.resultsComputed(library1, <ResultDescriptor, dynamic>{
       INCLUDED_PARTS: [part1, part2],
       SOURCE_KIND: SourceKind.LIBRARY
     });
@@ -665,7 +665,7 @@ class DartWorkManagerTest {
     expect(manager.libraryPartsMap[library1], [part1, part2]);
     expect(manager.libraryPartsMap[library2], isNull);
     // library2 parts
-    manager.resultsComputed(library2, {
+    manager.resultsComputed(library2, <ResultDescriptor, dynamic>{
       INCLUDED_PARTS: [part2, part3],
       SOURCE_KIND: SourceKind.LIBRARY
     });
@@ -787,8 +787,10 @@ class DartWorkManagerTest {
     Source part = new TestSource('part.dart');
     expect(manager.libraryPartsMap, isEmpty);
     // part.dart parsed, no changes is the map of libraries
-    manager.resultsComputed(
-        part, {SOURCE_KIND: SourceKind.PART, INCLUDED_PARTS: <Source>[]});
+    manager.resultsComputed(part, <ResultDescriptor, dynamic>{
+      SOURCE_KIND: SourceKind.PART,
+      INCLUDED_PARTS: <Source>[]
+    });
     expect(manager.libraryPartsMap, isEmpty);
   }
 

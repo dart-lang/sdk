@@ -445,7 +445,7 @@ test_pack:lib/''');
     newFile([examplePath, ContextManagerImpl.PACKAGE_SPEC_NAME]);
     newFile([examplePath, 'example.dart']);
 
-    packageMapProvider.packageMap['proj'] = [
+    packageMapProvider.packageMap['proj'] = <Folder>[
       resourceProvider.getResource(libPath)
     ];
 
@@ -474,7 +474,7 @@ test_pack:lib/''');
     newFile([examplePath, ContextManagerImpl.PUBSPEC_NAME]);
     newFile([examplePath, 'example.dart']);
 
-    packageMapProvider.packageMap['proj'] = [
+    packageMapProvider.packageMap['proj'] = <Folder>[
       resourceProvider.getResource(libPath)
     ];
 
@@ -573,7 +573,7 @@ test_pack:lib/''');
     newFile([srcPath, 'internal.dart']);
     String testFilePath = newFile([testPath, 'main_test.dart']);
 
-    packageMapProvider.packageMap['proj'] = [
+    packageMapProvider.packageMap['proj'] = <Folder>[
       resourceProvider.getResource(libPath)
     ];
 

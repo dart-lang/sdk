@@ -1870,7 +1870,7 @@ part 'my_part.dart';
         Uri.parse('package:my/test.dart'));
     // configure SourceFactory
     UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'my': [provider.getResource('/my/lib')],
+      'my': <Folder>[provider.getResource('/my/lib')],
     });
     context.sourceFactory = new SourceFactory(
         [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -409,7 +410,7 @@ f(A a) {
     expect(filesErrors[testFile], isNotEmpty);
     // Add the package to the package map and tickle the package dependency.
     packageMapProvider.packageMap = {
-      'pkgA': [resourceProvider.getResource('/packages/pkgA')]
+      'pkgA': <Folder>[resourceProvider.getResource('/packages/pkgA')]
     };
     resourceProvider.modifyFile(pkgDependency, 'new contents');
     // Give the server time to notice the file has changed, then let

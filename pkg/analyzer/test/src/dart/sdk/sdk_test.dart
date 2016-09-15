@@ -33,7 +33,7 @@ main() {
 class EmbedderSdkTest extends EmbedderRelatedTest {
   void test_creation() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
 
@@ -42,7 +42,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
   void test_fromFileUri() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
 
@@ -63,7 +63,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     pathTranslator.newFileWithBytes(
         '$foxPath/sdk.ds', new PackageBundleAssembler().assemble().toBuffer());
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     // No bundle for spec mode.
     {
@@ -93,7 +93,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
   void test_getLinkedBundle_noBundle() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
     expect(sdk.getLinkedBundle(), isNull);
@@ -101,7 +101,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
   void test_getSdkLibrary() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
 
@@ -113,7 +113,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
   void test_mapDartUri() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
 
@@ -356,7 +356,7 @@ class SdkExtensionFinderTest {
 
   test_create_noSdkExtPackageMap() {
     var resolver = new SdkExtensionFinder({
-      'fox': [resourceProvider.getResource('/empty')]
+      'fox': <Folder>[resourceProvider.getResource('/empty')]
     });
     expect(resolver.urlMappings.length, equals(0));
   }
@@ -368,7 +368,7 @@ class SdkExtensionFinderTest {
 
   test_create_sdkExtPackageMap() {
     var resolver = new SdkExtensionFinder({
-      'fox': [resourceProvider.getResource('/tmp')]
+      'fox': <Folder>[resourceProvider.getResource('/tmp')]
     });
     // We have four mappings.
     Map<String, String> urlMappings = resolver.urlMappings;

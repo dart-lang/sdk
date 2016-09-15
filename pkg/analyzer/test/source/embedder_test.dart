@@ -7,6 +7,7 @@ library analyzer.test.source.embedder_test;
 
 import 'dart:core';
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -26,7 +27,7 @@ main() {
 class DartUriResolverTest extends EmbedderRelatedTest {
   void test_embedderYaml() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
     DartUriResolver resolver = new DartUriResolver(sdk);
@@ -50,7 +51,7 @@ class DartUriResolverTest extends EmbedderRelatedTest {
 class EmbedderSdkTest extends EmbedderRelatedTest {
   void test_creation() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
 
@@ -59,7 +60,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
   void test_fromFileUri() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
 
@@ -78,7 +79,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
   void test_getSdkLibrary() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
 
@@ -90,7 +91,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
   void test_mapDartUri() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
 
@@ -112,7 +113,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 class EmbedderUriResolverTest extends EmbedderRelatedTest {
   void test_embedderYaml() {
     var locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     var resolver = new EmbedderUriResolver(locator.embedderYamls);
 
@@ -139,7 +140,7 @@ class EmbedderUriResolverTest extends EmbedderRelatedTest {
 
   void test_restoreAbsolute() {
     var locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource(foxLib)]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     var resolver = new EmbedderUriResolver(locator.embedderYamls);
 
