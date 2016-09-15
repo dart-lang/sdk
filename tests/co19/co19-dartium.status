@@ -1013,8 +1013,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: RuntimeError # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A01_t05: RuntimeError # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A01_t06: RuntimeError # Issue 27219
 LibTest/isolate/Isolate/spawnUri_A01_t07: RuntimeError # Issue 27219
-LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15974
-LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Issue 27219
 LibTest/isolate/Isolate/spawnUri_A02_t02: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t04: Skip # Dart issue 15974
@@ -1024,8 +1022,6 @@ LibTest/isolate/Isolate/spawn_A01_t03: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/Isolate/spawn_A01_t04: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/Isolate/spawn_A01_t05: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/Isolate/spawn_A01_t06: RuntimeError # Issue 27219
-LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
-LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Issue 27219
 LibTest/isolate/Isolate/spawn_A03_t01: RuntimeError # Issue 27219
 LibTest/isolate/Isolate/spawn_A03_t02: RuntimeError # Issue 27219
 LibTest/isolate/Isolate/spawn_A03_t03: RuntimeError # Issue 27219

@@ -9,6 +9,9 @@ cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 mirrors_js_typed_interop_test: Fail # Missing expected failure (Issue 25044)
 js_typed_interop_side_cast_exp_test: Fail, OK # tests dart2js-specific behavior.
+js_typed_interop_type1_test: Fail, OK # tests dart2js-specific behavior.
+js_typed_interop_type2_test: Fail, OK # tests dart2js-specific behavior.
+js_typed_interop_type3_test: Fail, OK # tests dart2js-specific behavior.
 
 native_gc_test: Skip # Dartium JSInterop failure
 
