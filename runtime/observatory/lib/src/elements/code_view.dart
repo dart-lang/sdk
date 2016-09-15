@@ -442,7 +442,6 @@ class CodeViewElement extends HtmlElement implements Renderable {
       final cell = tr.children[i];
       final content = row.values[i];
       if (content is S.HeapObject) {
-        print(content.runtimeType);
         cell.children = [
           anyRef(_isolate, content, _instances, queue: _r.queue)
         ];

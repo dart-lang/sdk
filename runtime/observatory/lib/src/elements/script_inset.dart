@@ -72,6 +72,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   ScriptInsetElement.created() : super.created();
 
+  bool get noSource => _startPos == -1;
+
   @override
   void attached() {
     super.attached();
@@ -109,7 +111,9 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    if (_loadedScript == null) {
+    if (noSource) {
+      children = [new SpanElement()..text = 'No source'];
+    } else if (_loadedScript == null) {
       children = [new SpanElement()..text = 'Loading...'];
     } else {
       final table = linesTable();
@@ -204,6 +208,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   // Build _rangeMap and _callSites from a source report.
   Future _refreshSourceReport() async {
+    if (noSource) return;
+
     var reports = [S.Isolate.kCallSitesReport,
                    S.Isolate.kPossibleBreakpointsReport];
     if (_includeProfile) {

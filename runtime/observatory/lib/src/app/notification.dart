@@ -5,7 +5,7 @@
 part of app;
 
 class ExceptionNotification implements M.ExceptionNotification {
-  final Exception exception;
+  final exception;
   /// [optional]
   final StackTrace stacktrace;
   ExceptionNotification(this.exception, {this.stacktrace});

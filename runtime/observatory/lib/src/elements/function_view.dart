@@ -273,19 +273,30 @@ class FunctionViewElement extends HtmlElement implements Renderable {
           ]
       );
     }
+    members.add(
+      new DivElement()
+        ..classes = ['memberItem']
+        ..text = ' ');
+
+    if (_function.icDataArray != null) {
+      members.add(
+        new DivElement()
+          ..classes = ['memberItem']
+          ..children = [
+            new DivElement()
+              ..classes = ['memberName']
+              ..text = 'ic data array',
+            new DivElement()
+              ..classes = ['memberName']
+              ..children = [
+                new InstanceRefElement(_isolate, _function.icDataArray,
+                                       _instances, queue: _r.queue)
+              ]
+          ]
+      );
+    }
+
     members.addAll([
-      new DivElement()..classes = ['memberItem']
-        ..text = ' ',
-      new DivElement()..classes = ['memberItem']
-        ..children = [
-          new DivElement()..classes = ['memberName']
-            ..text = 'ic data array',
-          new DivElement()..classes = ['memberName']
-            ..children = [
-              new InstanceRefElement(_isolate, _function.icDataArray,
-                                     _instances, queue: _r.queue)
-            ]
-        ],
       new DivElement()..classes = ['memberItem']
         ..children = [
           new DivElement()..classes = ['memberName']

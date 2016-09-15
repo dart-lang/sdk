@@ -5299,9 +5299,13 @@ bool Function::HasCode() const {
 
 
 void Function::ClearCode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(Thread::Current()->IsMutatorThread());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+#endif
 }
 
 
@@ -5373,9 +5377,13 @@ void Function::SwitchToLazyCompiledUnoptimizedCode() const {
 
 
 void Function::set_unoptimized_code(const Code& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(value.IsNull() || !value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
+#endif
 }
 
 
@@ -5871,8 +5879,12 @@ void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
 
 
 void Function::set_token_pos(TokenPosition token_pos) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(!token_pos.IsClassifying() || IsMethodExtractor());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
+#endif
 }
 
 
@@ -6527,16 +6539,16 @@ RawFunction* Function::New(const String& name,
   result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
-  result.set_was_compiled(false);
+  NOT_IN_PRECOMPILED(result.set_was_compiled(false));
   result.set_owner(owner);
-  result.set_token_pos(token_pos);
-  result.set_end_token_pos(token_pos);
+  NOT_IN_PRECOMPILED(result.set_token_pos(token_pos));
+  NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));
   result.set_num_fixed_parameters(0);
   result.set_num_optional_parameters(0);
-  result.set_usage_counter(0);
-  result.set_deoptimization_counter(0);
-  result.set_optimized_instruction_count(0);
-  result.set_optimized_call_site_count(0);
+  NOT_IN_PRECOMPILED(result.set_usage_counter(0));
+  NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
+  NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
+  NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
@@ -12599,8 +12611,12 @@ void ICData::set_arguments_descriptor(const Array& value) const {
 
 
 void ICData::set_deopt_id(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(value <= kMaxInt32);
   StoreNonPointer(&raw_ptr()->deopt_id_, value);
+#endif
 }
 
 
@@ -13512,7 +13528,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
   result.set_owner(owner);
   result.set_target_name(target_name);
   result.set_arguments_descriptor(arguments_descriptor);
-  result.set_deopt_id(deopt_id);
+  NOT_IN_PRECOMPILED(result.set_deopt_id(deopt_id));
   result.set_state_bits(0);
 #if defined(TAG_IC_DATA)
   result.set_tag(-1);
@@ -13700,13 +13716,21 @@ void Code::set_stackmaps(const Array& maps) const {
 
 
 void Code::set_deopt_info_array(const Array& array) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(array.IsOld());
   StorePointer(&raw_ptr()->deopt_info_array_, array.raw());
+#endif
 }
 
 
 void Code::set_static_calls_target_table(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   StorePointer(&raw_ptr()->static_calls_target_table_, value.raw());
+#endif
 #if defined(DEBUG)
   // Check that the table is sorted by pc offsets.
   // FlowGraphCompiler::AddStaticCallTarget adds pc-offsets to the table while
@@ -13769,6 +13793,9 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
 
 
 intptr_t Code::BinarySearchInSCallTable(uword pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   NoSafepointScope no_safepoint;
   const Array& table = Array::Handle(raw_ptr()->static_calls_target_table_);
   RawObject* key = reinterpret_cast<RawObject*>(Smi::New(pc - PayloadStart()));
@@ -13786,11 +13813,16 @@ intptr_t Code::BinarySearchInSCallTable(uword pc) const {
       return real_index;
     }
   }
+#endif
   return -1;
 }
 
 
 RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return Function::null();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   if (i < 0) {
     return Function::null();
@@ -13800,10 +13832,15 @@ RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
   Function& function = Function::Handle();
   function ^= array.At(i + kSCallTableFunctionEntry);
   return function.raw();
+#endif
 }
 
 
 RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return Code::null();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   if (i < 0) {
     return Code::null();
@@ -13813,10 +13850,14 @@ RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
   Code& code = Code::Handle();
   code ^= array.At(i + kSCallTableCodeEntry);
   return code.raw();
+#endif
 }
 
 
 void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   ASSERT(i >= 0);
   const Array& array =
@@ -13824,10 +13865,14 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
   ASSERT(code.IsNull() ||
          (code.function() == array.At(i + kSCallTableFunctionEntry)));
   array.SetAt(i + kSCallTableCodeEntry, code);
+#endif
 }
 
 
 void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   ASSERT(i >= 0);
   const Array& array =
@@ -13841,6 +13886,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
   }
 #endif
   array.SetAt(i + kSCallTableCodeEntry, code);
+#endif
 }
 
 
@@ -13861,26 +13907,41 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
 
 
 const Code::Comments& Code::comments() const  {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Comments* comments = new Code::Comments(Array::Handle());
+#else
   Comments* comments = new Code::Comments(Array::Handle(raw_ptr()->comments_));
+#endif
   return *comments;
 }
 
 
 void Code::set_comments(const Code::Comments& comments) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(comments.comments_.IsOld());
   StorePointer(&raw_ptr()->comments_, comments.comments_.raw());
+#endif
 }
 
 
 void Code::SetPrologueOffset(intptr_t offset) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(offset >= 0);
   StoreSmi(
       reinterpret_cast<RawSmi* const *>(&raw_ptr()->return_address_metadata_),
       Smi::New(offset));
+#endif
 }
 
 
 intptr_t Code::GetPrologueOffset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return -1;
+#else
   const Object& object = Object::Handle(raw_ptr()->return_address_metadata_);
   // In the future we may put something other than a smi in
   // |return_address_metadata_|.
@@ -13888,20 +13949,28 @@ intptr_t Code::GetPrologueOffset() const {
     return -1;
   }
   return Smi::Cast(object).Value();
+#endif
 }
 
 
 RawArray* Code::GetInlinedIntervals() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedIntervalsIndex));
+#endif
 }
 
 
 void Code::SetInlinedIntervals(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13911,20 +13980,28 @@ void Code::SetInlinedIntervals(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedIntervalsIndex, value);
+#endif
 }
 
 
 RawArray* Code::GetInlinedIdToFunction() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedIdToFunctionIndex));
+#endif
 }
 
 
 void Code::SetInlinedIdToFunction(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13934,20 +14011,28 @@ void Code::SetInlinedIdToFunction(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedIdToFunctionIndex, value);
+#endif
 }
 
 
 RawArray* Code::GetInlinedIdToTokenPos() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedIdToTokenPosIndex));
+#endif
 }
 
 
 void Code::SetInlinedIdToTokenPos(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13957,20 +14042,28 @@ void Code::SetInlinedIdToTokenPos(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedIdToTokenPosIndex, value);
+#endif
 }
 
 
 RawArray* Code::GetInlinedCallerIdMap() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedCallerIdMapIndex));
+#endif
 }
 
 
 void Code::SetInlinedCallerIdMap(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13980,6 +14073,7 @@ void Code::SetInlinedCallerIdMap(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedCallerIdMapIndex, value);
+#endif
 }
 
 
@@ -14296,6 +14390,9 @@ void Code::DisableStubCode() const {
 
 
 void Code::SetActiveInstructions(RawInstructions* instructions) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
@@ -14304,6 +14401,7 @@ void Code::SetActiveInstructions(RawInstructions* instructions) const {
                   Instructions::UncheckedEntryPoint(instructions));
   StoreNonPointer(&raw_ptr()->checked_entry_point_,
                   Instructions::CheckedEntryPoint(instructions));
+#endif
 }
 
 

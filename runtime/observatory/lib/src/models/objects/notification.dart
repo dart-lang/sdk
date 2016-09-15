@@ -7,7 +7,7 @@ part of models;
 abstract class Notification {}
 
 abstract class ExceptionNotification implements Notification{
-  Exception get exception;
+  get exception;
   /// [optional]
   StackTrace get stacktrace;
 }

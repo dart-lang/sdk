@@ -136,8 +136,6 @@ P(precompiled_mode, bool, false,                                               \
   "Precompilation compiler mode")                                              \
 C(precompiled_runtime, true, false, bool, false,                               \
   "Precompiled runtime mode")                                                  \
-R(print_ssa_liveness, false, bool, false,                                      \
-  "Print liveness for ssa variables.")                                         \
 R(print_ssa_liveranges, false, bool, false,                                    \
   "Print live ranges after allocation.")                                       \
 C(print_stop_message, false, false, bool, false,                               \

@@ -520,7 +520,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     if (s->kind() == Snapshot::kAppNoJIT) {
       s->Push(func->ptr()->code_);
     } else if (s->kind() == Snapshot::kAppWithJIT) {
-      s->Push(func->ptr()->unoptimized_code_);
+      NOT_IN_PRECOMPILED(s->Push(func->ptr()->unoptimized_code_));
       s->Push(func->ptr()->ic_data_array_);
     }
   }
@@ -548,18 +548,23 @@ class FunctionSerializationCluster : public SerializationCluster {
       if (kind == Snapshot::kAppNoJIT) {
         s->WriteRef(func->ptr()->code_);
       } else if (s->kind() == Snapshot::kAppWithJIT) {
-        s->WriteRef(func->ptr()->unoptimized_code_);
+        NOT_IN_PRECOMPILED(s->WriteRef(func->ptr()->unoptimized_code_));
         s->WriteRef(func->ptr()->ic_data_array_);
       }
 
-      s->WriteTokenPosition(func->ptr()->token_pos_);
-      s->WriteTokenPosition(func->ptr()->end_token_pos_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (kind != Snapshot::kAppNoJIT) {
+        s->WriteTokenPosition(func->ptr()->token_pos_);
+        s->WriteTokenPosition(func->ptr()->end_token_pos_);
+      }
+#endif
       s->Write<int16_t>(func->ptr()->num_fixed_parameters_);
       s->Write<int16_t>(func->ptr()->num_optional_parameters_);
       s->Write<uint32_t>(func->ptr()->kind_tag_);
       if (kind == Snapshot::kAppNoJIT) {
         // Omit fields used to support de/reoptimization.
       } else {
+#if !defined(DART_PRECOMPILED_RUNTIME)
         bool is_optimized = Code::IsOptimized(func->ptr()->code_);
         if (is_optimized) {
           s->Write<int32_t>(FLAG_optimization_counter_threshold);
@@ -569,6 +574,7 @@ class FunctionSerializationCluster : public SerializationCluster {
         s->Write<int8_t>(func->ptr()->deoptimization_counter_);
         s->Write<uint16_t>(func->ptr()->optimized_instruction_count_);
         s->Write<uint16_t>(func->ptr()->optimized_call_site_count_);
+#endif
       }
     }
   }
@@ -615,8 +621,8 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       if (kind == Snapshot::kAppNoJIT) {
         func->ptr()->code_ = reinterpret_cast<RawCode*>(d->ReadRef());
       } else if (kind == Snapshot::kAppWithJIT) {
-        func->ptr()->unoptimized_code_ =
-            reinterpret_cast<RawCode*>(d->ReadRef());
+        NOT_IN_PRECOMPILED(func->ptr()->unoptimized_code_ =
+            reinterpret_cast<RawCode*>(d->ReadRef()));
         func->ptr()->ic_data_array_ = reinterpret_cast<RawArray*>(d->ReadRef());
       }
 
@@ -624,18 +630,24 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       func->ptr()->entry_point_ = 0;
 #endif
 
-      func->ptr()->token_pos_ = d->ReadTokenPosition();
-      func->ptr()->end_token_pos_ = d->ReadTokenPosition();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (kind != Snapshot::kAppNoJIT) {
+        func->ptr()->token_pos_ = d->ReadTokenPosition();
+        func->ptr()->end_token_pos_ = d->ReadTokenPosition();
+      }
+#endif
       func->ptr()->num_fixed_parameters_ = d->Read<int16_t>();
       func->ptr()->num_optional_parameters_ = d->Read<int16_t>();
       func->ptr()->kind_tag_ = d->Read<uint32_t>();
       if (kind == Snapshot::kAppNoJIT) {
         // Omit fields used to support de/reoptimization.
       } else {
+#if !defined(DART_PRECOMPILED_RUNTIME)
         func->ptr()->usage_counter_ = d->Read<int32_t>();
         func->ptr()->deoptimization_counter_ = d->Read<int8_t>();
         func->ptr()->optimized_instruction_count_ = d->Read<uint16_t>();
         func->ptr()->optimized_call_site_count_ = d->Read<uint16_t>();
+#endif
       }
     }
   }
@@ -690,11 +702,12 @@ class ClosureDataSerializationCluster : public SerializationCluster {
     RawClosureData* data = ClosureData::RawCast(object);
     objects_.Add(data);
 
-    RawObject** from = data->from();
-    RawObject** to = data->to();
-    for (RawObject** p = from; p <= to; p++) {
-      s->Push(*p);
+    if (s->kind() != Snapshot::kAppNoJIT) {
+      s->Push(data->ptr()->context_scope_);
     }
+    s->Push(data->ptr()->parent_function_);
+    s->Push(data->ptr()->signature_type_);
+    s->Push(data->ptr()->closure_);
   }
 
   void WriteAlloc(Serializer* s) {
@@ -711,11 +724,12 @@ class ClosureDataSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawClosureData* data = objects_[i];
-      RawObject** from = data->from();
-      RawObject** to = data->to();
-      for (RawObject** p = from; p <= to; p++) {
-        s->WriteRef(*p);
+      if (s->kind() != Snapshot::kAppNoJIT) {
+        s->WriteRef(data->ptr()->context_scope_);
       }
+      s->WriteRef(data->ptr()->parent_function_);
+      s->WriteRef(data->ptr()->signature_type_);
+      s->WriteRef(data->ptr()->closure_);
     }
   }
 
@@ -747,12 +761,17 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawClosureData* data = reinterpret_cast<RawClosureData*>(d->Ref(id));
       Deserializer::InitializeHeader(data, kClosureDataCid,
-                                     ClosureData::InstanceSize(), is_vm_object);
-      RawObject** from = data->from();
-      RawObject** to = data->to();
-      for (RawObject** p = from; p <= to; p++) {
-        *p = d->ReadRef();
+                                     ClosureData::InstanceSize(),
+                                     is_vm_object);
+      if (d->kind() == Snapshot::kAppNoJIT) {
+        data->ptr()->context_scope_ = ContextScope::null();
+      } else {
+        data->ptr()->context_scope_ =
+            static_cast<RawContextScope*>(d->ReadRef());
       }
+      data->ptr()->parent_function_ = static_cast<RawFunction*>(d->ReadRef());
+      data->ptr()->signature_type_ = static_cast<RawType*>(d->ReadRef());
+      data->ptr()->closure_ = static_cast<RawInstance*>(d->ReadRef());
     }
   }
 };
@@ -1489,7 +1508,8 @@ class CodeSerializationCluster : public SerializationCluster {
       }
       if (kind == Snapshot::kAppNoJIT) {
         // No disabled code in precompilation.
-        ASSERT(code->ptr()->instructions_ == code->ptr()->active_instructions_);
+        NOT_IN_PRECOMPILED(ASSERT(
+            code->ptr()->instructions_ == code->ptr()->active_instructions_));
       } else {
         ASSERT(kind == Snapshot::kAppWithJIT);
         // We never include optimized code in JIT precompilation. Deoptimization
@@ -1552,7 +1572,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->entry_point_ = Instructions::UncheckedEntryPoint(instr);
       code->ptr()->checked_entry_point_ =
           Instructions::CheckedEntryPoint(instr);
-      code->ptr()->active_instructions_ = instr;
+      NOT_IN_PRECOMPILED(code->ptr()->active_instructions_ = instr);
       code->ptr()->instructions_ = instr;
       code->ptr()->object_pool_ =
           reinterpret_cast<RawObjectPool*>(d->ReadRef());
@@ -1564,6 +1584,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->stackmaps_ =
           reinterpret_cast<RawArray*>(d->ReadRef());
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
       code->ptr()->deopt_info_array_ = Array::null();
       code->ptr()->static_calls_target_table_ = Array::null();
       code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
@@ -1573,8 +1594,11 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->return_address_metadata_ = Object::null();
 
       code->ptr()->compile_timestamp_ = 0;
+#endif
       code->ptr()->state_bits_ = d->Read<int32_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
       code->ptr()->lazy_deopt_pc_offset_ = -1;
+#endif
     }
   }
 };
@@ -2100,7 +2124,9 @@ class ICDataSerializationCluster : public SerializationCluster {
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
-      s->Write<int32_t>(ic->ptr()->deopt_id_);
+      if (kind != Snapshot::kAppNoJIT) {
+        NOT_IN_PRECOMPILED(s->Write<int32_t>(ic->ptr()->deopt_id_));
+      }
       s->Write<uint32_t>(ic->ptr()->state_bits_);
 #if defined(TAG_IC_DATA)
       s->Write<int32_t>(ic->ptr()->tag_);
@@ -2146,7 +2172,7 @@ class ICDataDeserializationCluster : public DeserializationCluster {
       for (RawObject** p = to_snapshot + 1; p <= to; p++) {
         *p = Object::null();
       }
-      ic->ptr()->deopt_id_ = d->Read<int32_t>();
+      NOT_IN_PRECOMPILED(ic->ptr()->deopt_id_ = d->Read<int32_t>());
       ic->ptr()->state_bits_ = d->Read<int32_t>();
 #if defined(TAG_IC_DATA)
       ic->ptr()->tag_ = d->Read<int32_t>();
