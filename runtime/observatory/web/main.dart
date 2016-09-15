@@ -5,14 +5,17 @@
 import 'dart:html';
 import 'package:logging/logging.dart';
 import 'package:observatory/elements.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 main() async {
-  Logger.root.level = Level.INFO;
-  Logger.root.onRecord.listen((LogRecord rec) {
-      print('${rec.level.name}: ${rec.time}: ${rec.message}');
+  Chain.capture(() async {
+    Logger.root.level = Level.INFO;
+    Logger.root.onRecord.listen((LogRecord rec) {
+        print('${rec.level.name}: ${rec.time}: ${rec.message}');
+    });
+    await initElements();
+    Logger.root.info('Starting Observatory');
+    document.body.children
+        .insert(0, document.createElement('observatory-application'));
   });
-  await initElements();
-  Logger.root.info('Starting Observatory');
-  document.body.children
-      .insert(0, document.createElement('observatory-application'));
 }
