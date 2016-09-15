@@ -135,7 +135,7 @@ class ProcessCommand extends Command {
 
   String get reproductionCommand {
     var env = new StringBuffer();
-    environmentOverrides.forEach((key, value) =>
+    environmentOverrides?.forEach((key, value) =>
         (io.Platform.operatingSystem == 'windows')
             ? env.write('set $key=${escapeCommandLineArgument(value)} & ')
             : env.write('$key=${escapeCommandLineArgument(value)} '));
