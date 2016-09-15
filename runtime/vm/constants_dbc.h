@@ -220,6 +220,16 @@ namespace dart {
 //
 //    FP[rA] <- op(FP[rD]). Assumes FP[rD] is an unboxed double.
 //
+//  - DTruncate, DFloor, DCeil rA, rD
+//
+//    Applies trunc(), floor(), or ceil() to the unboxed double in FP[rD], and
+//    stores the result in FP[rA].
+//
+//  - DoubleToFloat, FloatToDouble rA, rD
+//
+//    Convert the unboxed float or double in FP[rD] as indicated, and store the
+//    result in FP[rA].
+//
 //  - BitOr, BitAnd, BitXor rA, rB, rC
 //
 //    FP[rA] <- FP[rB] op FP[rC]. These instructions expect their operands to be
@@ -348,9 +358,11 @@ namespace dart {
 //    Store FP[rC] into array FP[rA] at index FP[rB]. No typechecking is done.
 //    FP[rA] is assumed to be a RawArray, FP[rB] to be a smi.
 //
-//  - StoreIndexed{N}{Float64, Uint8, OneByteString} rA, rB, rC
+//  - StoreIndexed{N}{Type} rA, rB, rC
 //
-//    Where N is '' or '8'. N may only be '8' for Float64.
+//    Where Type is Float32, Float64, Uint8, or OneByteString
+//    Where N is '', '4', or '8'. N may only be '4' for Float32 and '8' for
+//    Float64.
 //
 //    Store the unboxed double or tagged Smi in FP[rC] into the typed data array
 //    at FP[rA] at index FP[rB]. If N is not '', the index is assumed to be
@@ -367,8 +379,9 @@ namespace dart {
 //
 //  - LoadIndexed{N}{Type} rA, rB, rC
 //
-//    Where Type is Float64, OneByteString, TwoByteString, Uint8, or Int8,
-//    and N is '' or '8'. N may only be '8' for Float64.
+//    Where Type is Float32, Float64, OneByteString, TwoByteString, Uint8,
+//    Int8, and N is '', '4', or '8'. N may only be '4' for Float32, and may
+//    only be '8' for Float64.
 //
 //    Loads from typed data array FP[rB] at index FP[rC] into an unboxed double,
 //    or tagged Smi in FP[rA] as indicated by the type in the name. If N is not
@@ -683,6 +696,11 @@ namespace dart {
   V(DSin,                          A_D, reg, reg, ___) \
   V(DPow,                        A_B_C, reg, reg, reg) \
   V(DMod,                        A_B_C, reg, reg, reg) \
+  V(DTruncate,                     A_D, reg, reg, ___) \
+  V(DFloor,                        A_D, reg, reg, ___) \
+  V(DCeil,                         A_D, reg, reg, ___) \
+  V(DoubleToFloat,                 A_D, reg, reg, ___) \
+  V(FloatToDouble,                 A_D, reg, reg, ___) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \
@@ -722,6 +740,8 @@ namespace dart {
   V(StoreIndexedExternalUint8,   A_B_C, reg, reg, reg) \
   V(StoreIndexedOneByteString,   A_B_C, reg, reg, reg) \
   V(StoreIndexedUint32,          A_B_C, reg, reg, reg) \
+  V(StoreIndexedFloat32,         A_B_C, reg, reg, reg) \
+  V(StoreIndexed4Float32,        A_B_C, reg, reg, reg) \
   V(StoreIndexedFloat64,         A_B_C, reg, reg, reg) \
   V(StoreIndexed8Float64,        A_B_C, reg, reg, reg) \
   V(LoadIndexed,                 A_B_C, reg, reg, reg) \
@@ -731,6 +751,8 @@ namespace dart {
   V(LoadIndexedUint32,           A_B_C, reg, reg, reg) \
   V(LoadIndexedExternalUint8,    A_B_C, reg, reg, reg) \
   V(LoadIndexedExternalInt8,     A_B_C, reg, reg, reg) \
+  V(LoadIndexedFloat32,          A_B_C, reg, reg, reg) \
+  V(LoadIndexed4Float32,         A_B_C, reg, reg, reg) \
   V(LoadIndexedFloat64,          A_B_C, reg, reg, reg) \
   V(LoadIndexed8Float64,         A_B_C, reg, reg, reg) \
   V(LoadIndexedOneByteString,    A_B_C, reg, reg, reg) \
