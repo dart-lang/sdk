@@ -418,16 +418,16 @@ class InstanceViewElement extends HtmlElement implements Renderable {
               new CurlyBlockElement(
                   expanded: elements.length <= 100,
                   queue: _r.queue)
-                ..children = [
+                ..content = [
                   new DivElement()..classes = ['memberList']
-                    ..children = elements.map((e) =>
+                    ..children = elements.map((element) =>
                       new DivElement()..classes = ['memberItem']
                         ..children = [
                           new DivElement()..classes = ['memberName']
                             ..text = '[ ${i++} ]',
                           new DivElement()..classes = ['memberValue']
                             ..children = [
-                              anyRef(_isolate, e, _instances,
+                              anyRef(_isolate, element, _instances,
                                      queue: _r.queue)
                             ]
                         ]).toList()

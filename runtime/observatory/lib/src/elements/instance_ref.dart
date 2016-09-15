@@ -244,39 +244,24 @@ class InstanceRefElement extends HtmlElement implements Renderable {
               new FieldRefElement(_isolate, f.decl, _instances,
                   queue: _r.queue),
               new SpanElement()..text = ' = ',
-              f.value.isSentinel
-                ? new SentinelValueElement(f.value.asSentinel, queue: _r.queue)
-                : new InstanceRefElement(_isolate, f.value.asValue, _instances,
-                    queue: _r.queue)
+              anyRef(_isolate, f.value, _instances, queue: _r.queue)
             ]).toList();
       case M.InstanceKind.list:
         var index = 0;
-        return _loadedInstance.elements.map((e) =>
+        return _loadedInstance.elements.map((element) =>
           new DivElement()
             ..children = [
               new SpanElement()..text = '[ ${index++} ] : ',
-              e.isSentinel
-                ? new SentinelValueElement(e.asSentinel, queue: _r.queue)
-                : anyRef(_isolate, e.asValue, _instances, queue: _r.queue)
-                // should be:
-                // new InstanceRefElement(_isolate, e.asValue, _instances,
-                //                        queue: _r.queue)
-                // in some situations we obtain values that are not InstanceRef.
+              anyRef(_isolate, element, _instances, queue: _r.queue)
             ]).toList()..addAll(_createShowMoreButton());
       case M.InstanceKind.map:
-        return _loadedInstance.associations.map((a) =>
+        return _loadedInstance.associations.map((association) =>
           new DivElement()
             ..children = [
               new SpanElement()..text = '[ ',
-              a.key.isSentinel
-                ? new SentinelValueElement(a.key.asSentinel, queue: _r.queue)
-                : new InstanceRefElement(_isolate, a.key.asValue, _instances,
-                    queue: _r.queue),
+              anyRef(_isolate, association.key, _instances, queue: _r.queue),
               new SpanElement()..text = ' ] : ',
-              a.value.isSentinel
-                ? new SentinelValueElement(a.value.asSentinel, queue: _r.queue)
-                : new InstanceRefElement(_isolate, a.value.asValue, _instances,
-                    queue: _r.queue)
+              anyRef(_isolate, association.value, _instances, queue: _r.queue)
             ]).toList()..addAll(_createShowMoreButton());
       case M.InstanceKind.uint8ClampedList:
       case M.InstanceKind.uint8List:
