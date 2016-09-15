@@ -133,6 +133,7 @@ class DartTypeParser {
       case Token.Name:
         scanToken();
         String name = this.tokenText;
+        if (name == '_') return const BottomType();
         var target = lookupType(name);
         if (target == null) {
           return fail('Unresolved type $name');
@@ -263,13 +264,15 @@ class DartTypeParser {
 
 class LazyTypeEnvironment {
   final Map<String, TreeNode> environment = <String, TreeNode>{};
+  final Library dummyLibrary = new Library(new Uri(path: 'dummy.dart'),
+    name: 'lib');
 
   TreeNode lookup(String name) {
     return environment.putIfAbsent(
         name,
         () => name.length == 1
             ? new TypeParameter(name)
-            : new Class(name: name));
+            : new Class(name: name)..parent = dummyLibrary);
   }
 
   DartType parse(String type) => parseDartType(type, lookup);

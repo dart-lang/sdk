@@ -164,6 +164,7 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitInvalidType(InvalidType node) => node;
   DartType visitDynamicType(DynamicType node) => node;
   DartType visitVoidType(VoidType node) => node;
+  DartType visitBottomType(BottomType node) => node;
 
   DartType visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) return node;
@@ -333,6 +334,7 @@ class _TypeUnification {
     if (type1 is DynamicType && type2 is DynamicType) return true;
     if (type1 is VoidType && type2 is VoidType) return true;
     if (type1 is InvalidType && type2 is InvalidType) return true;
+    if (type1 is BottomType && type2 is BottomType) return true;
     if (type1 is InterfaceType && type2 is InterfaceType) {
       if (type1.classNode != type2.classNode) return _fail();
       assert(type1.typeArguments.length == type2.typeArguments.length);

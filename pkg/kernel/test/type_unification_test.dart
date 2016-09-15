@@ -39,6 +39,7 @@ final List<TestCase> testCases = <TestCase>[
   failureCase('<E>(E, S) => E', '<T>(T, T) => T', ['S']),
   successCase(
       '<E>(E) => <T>(T) => Map<E,T>', '<E>(E) => <T>(T) => Map<E,T>', {}),
+  successCase('<E>(E,_) => E', '<T>(T,_) => T', {}),
 
   successCase('(x:int,y:String) => int', '(y:String,x:int) => int', {}),
   successCase('<S,T>(x:S,y:T) => S', '<S,T>(y:T,x:S) => S', {}),
