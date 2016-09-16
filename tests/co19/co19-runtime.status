@@ -82,6 +82,8 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip  # Timeout
 LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
+LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 27378
+LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail # Issue 27378
 
 [ $system == windows ]
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
