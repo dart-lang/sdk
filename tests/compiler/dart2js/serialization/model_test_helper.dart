@@ -38,19 +38,18 @@ main(List<String> args) {
         await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
-      SerializationResult result = await measure(
-          '${entryPoint}', 'serialize', () {
-        return serialize(
-            entryPoint,
+      SerializationResult result =
+          await measure('${entryPoint}', 'serialize', () {
+        return serialize(entryPoint,
             memorySourceFiles: serializedData.toMemorySourceFiles(),
             resolutionInputs: serializedData.toUris(),
             dataUri: Uri.parse('memory:test.data'));
       });
       await checkModels(entryPoint,
-          sourceFiles: serializedData.toMemorySourceFiles(
-              result.serializedData.toMemorySourceFiles()),
-          resolutionInputs: serializedData.toUris(
-              result.serializedData.toUris()));
+          sourceFiles: serializedData
+              .toMemorySourceFiles(result.serializedData.toMemorySourceFiles()),
+          resolutionInputs:
+              serializedData.toUris(result.serializedData.toUris()));
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       await arguments.forEachTest(serializedData, TESTS, checkModels);
@@ -59,33 +58,30 @@ main(List<String> args) {
   });
 }
 
-Future checkModels(
-    Uri entryPoint,
+Future checkModels(Uri entryPoint,
     {Map<String, String> sourceFiles: const <String, String>{},
-     List<Uri> resolutionInputs,
-     int index,
-     Test test,
-     bool verbose: false}) async {
+    List<Uri> resolutionInputs,
+    int index,
+    Test test,
+    bool verbose: false}) async {
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
   String title = '${id}${testDescription}';
-  Compiler compilerNormal = await measure(
-      title, 'compile normal', () async {
+  Compiler compilerNormal = await measure(title, 'compile normal', () async {
     Compiler compilerNormal = compilerFor(
-        memorySourceFiles: sourceFiles,
-        options: [Flags.analyzeOnly]);
+        memorySourceFiles: sourceFiles, options: [Flags.analyzeOnly]);
     compilerNormal.resolution.retainCachesForTesting = true;
     await compilerNormal.run(entryPoint);
     compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
     compilerNormal.world.populate();
     compilerNormal.backend.onResolutionComplete();
-    compilerNormal.deferredLoadTask.onResolutionComplete(
-        compilerNormal.mainFunction);
+    compilerNormal.deferredLoadTask
+        .onResolutionComplete(compilerNormal.mainFunction);
     return compilerNormal;
   });
 
-  Compiler compilerDeserialized = await measure(
-      title, 'compile deserialized', () async {
+  Compiler compilerDeserialized =
+      await measure(title, 'compile deserialized', () async {
     Compiler compilerDeserialized = compilerFor(
         memorySourceFiles: sourceFiles,
         resolutionInputs: resolutionInputs,
@@ -95,15 +91,13 @@ Future checkModels(
     compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
     compilerDeserialized.world.populate();
     compilerDeserialized.backend.onResolutionComplete();
-    compilerDeserialized.deferredLoadTask.onResolutionComplete(
-        compilerDeserialized.mainFunction);
+    compilerDeserialized.deferredLoadTask
+        .onResolutionComplete(compilerDeserialized.mainFunction);
     return compilerDeserialized;
   });
 
   return measure(title, 'check models', () async {
-    checkAllImpacts(
-        compilerNormal, compilerDeserialized,
-        verbose: verbose);
+    checkAllImpacts(compilerNormal, compilerDeserialized, verbose: verbose);
 
     checkSets(
         compilerNormal.resolverWorld.directlyInstantiatedClasses,
@@ -130,32 +124,34 @@ Future checkModels(
         compilerNormal.enqueuer.resolution.processedElements,
         compilerDeserialized.enqueuer.resolution.processedElements,
         "Processed element mismatch",
-        areElementsEquivalent,
-        onSameElement: (a, b) {
-          checkElements(
-              compilerNormal, compilerDeserialized, a, b, verbose: verbose);
-        },
-        verbose: verbose);
+        areElementsEquivalent, onSameElement: (a, b) {
+      checkElements(compilerNormal, compilerDeserialized, a, b,
+          verbose: verbose);
+    }, verbose: verbose);
 
     checkClassHierarchyNodes(
         compilerNormal,
         compilerDeserialized,
-        compilerNormal.world.getClassHierarchyNode(
-            compilerNormal.coreClasses.objectClass),
+        compilerNormal.world
+            .getClassHierarchyNode(compilerNormal.coreClasses.objectClass),
         compilerDeserialized.world.getClassHierarchyNode(
             compilerDeserialized.coreClasses.objectClass),
         verbose: verbose);
 
-    Expect.equals(compilerNormal.enabledInvokeOn,
+    Expect.equals(
+        compilerNormal.enabledInvokeOn,
         compilerDeserialized.enabledInvokeOn,
         "Compiler.enabledInvokeOn mismatch");
-    Expect.equals(compilerNormal.enabledFunctionApply,
+    Expect.equals(
+        compilerNormal.enabledFunctionApply,
         compilerDeserialized.enabledFunctionApply,
         "Compiler.enabledFunctionApply mismatch");
-    Expect.equals(compilerNormal.enabledRuntimeType,
+    Expect.equals(
+        compilerNormal.enabledRuntimeType,
         compilerDeserialized.enabledRuntimeType,
         "Compiler.enabledRuntimeType mismatch");
-    Expect.equals(compilerNormal.hasIsolateSupport,
+    Expect.equals(
+        compilerNormal.hasIsolateSupport,
         compilerDeserialized.hasIsolateSupport,
         "Compiler.hasIsolateSupport mismatch");
     Expect.equals(
@@ -175,57 +171,56 @@ Future checkModels(
         failOnUnfound: false,
         failOnExtra: false,
         onSameElement: (ConstantValue value1, ConstantValue value2) {
-          OutputUnit outputUnit1 = constants1[value1];
-          OutputUnit outputUnit2 = constants2[value2];
-          checkOutputUnits(outputUnit1, outputUnit2,
-              'for ${value1.toStructuredText()} '
-                  'vs ${value2.toStructuredText()}');
-        },
-        onUnfoundElement: (ConstantValue value1) {
-          OutputUnit outputUnit1 = constants1[value1];
-          Expect.isTrue(outputUnit1.isMainOutput,
-              "Missing deferred constant: ${value1.toStructuredText()}");
-        },
-        onExtraElement: (ConstantValue value2) {
-          OutputUnit outputUnit2 = constants2[value2];
-          Expect.isTrue(outputUnit2.isMainOutput,
-              "Extra deferred constant: ${value2.toStructuredText()}");
-        },
-        elementToString: (a) {
-          return '${a.toStructuredText()} -> ${constants1[a]}/${constants2[a]}';
-        });
+      OutputUnit outputUnit1 = constants1[value1];
+      OutputUnit outputUnit2 = constants2[value2];
+      checkOutputUnits(
+          outputUnit1,
+          outputUnit2,
+          'for ${value1.toStructuredText()} '
+          'vs ${value2.toStructuredText()}');
+    }, onUnfoundElement: (ConstantValue value1) {
+      OutputUnit outputUnit1 = constants1[value1];
+      Expect.isTrue(outputUnit1.isMainOutput,
+          "Missing deferred constant: ${value1.toStructuredText()}");
+    }, onExtraElement: (ConstantValue value2) {
+      OutputUnit outputUnit2 = constants2[value2];
+      Expect.isTrue(outputUnit2.isMainOutput,
+          "Extra deferred constant: ${value2.toStructuredText()}");
+    }, elementToString: (a) {
+      return '${a.toStructuredText()} -> ${constants1[a]}/${constants2[a]}';
+    });
   });
 }
 
 void checkElements(
-    Compiler compiler1, Compiler compiler2,
-    Element element1, Element element2,
+    Compiler compiler1, Compiler compiler2, Element element1, Element element2,
     {bool verbose: false}) {
   if (element1.isFunction ||
       element1.isConstructor ||
       (element1.isField && element1.isInstanceMember)) {
     AstElement astElement1 = element1;
     AstElement astElement2 = element2;
-    ClosureClassMap closureData1 =
-        compiler1.closureToClassMapper.computeClosureToClassMapping(
-            astElement1.resolvedAst);
-    ClosureClassMap closureData2 =
-        compiler2.closureToClassMapper.computeClosureToClassMapping(
-            astElement2.resolvedAst);
+    ClosureClassMap closureData1 = compiler1.closureToClassMapper
+        .computeClosureToClassMapping(astElement1.resolvedAst);
+    ClosureClassMap closureData2 = compiler2.closureToClassMapper
+        .computeClosureToClassMapping(astElement2.resolvedAst);
 
-    checkElementIdentities(closureData1, closureData2,
+    checkElementIdentities(
+        closureData1,
+        closureData2,
         '$element1.closureElement',
-        closureData1.closureElement, closureData2.closureElement);
-    checkElementIdentities(closureData1, closureData2,
+        closureData1.closureElement,
+        closureData2.closureElement);
+    checkElementIdentities(
+        closureData1,
+        closureData2,
         '$element1.closureClassElement',
-        closureData1.closureClassElement, closureData2.closureClassElement);
-    checkElementIdentities(closureData1, closureData2,
-        '$element1.callElement',
+        closureData1.closureClassElement,
+        closureData2.closureClassElement);
+    checkElementIdentities(closureData1, closureData2, '$element1.callElement',
         closureData1.callElement, closureData2.callElement);
-    check(closureData1, closureData2,
-        '$element1.thisLocal',
-        closureData1.thisLocal, closureData2.thisLocal,
-        areLocalsEquivalent);
+    check(closureData1, closureData2, '$element1.thisLocal',
+        closureData1.thisLocal, closureData2.thisLocal, areLocalsEquivalent);
     checkMaps(
         closureData1.freeVariableMap,
         closureData2.freeVariableMap,
@@ -250,24 +245,16 @@ void checkElements(
     if (element1 is MemberElement && element2 is MemberElement) {
       MemberElement member1 = element1.implementation;
       MemberElement member2 = element2.implementation;
-      checkSets(
-          member1.nestedClosures,
-          member2.nestedClosures,
-          "$member1.nestedClosures",
-          areElementsEquivalent,
-          verbose: verbose,
+      checkSets(member1.nestedClosures, member2.nestedClosures,
+          "$member1.nestedClosures", areElementsEquivalent, verbose: verbose,
           onSameElement: (a, b) {
-            LocalFunctionElement localFunction1 = a.expression;
-            LocalFunctionElement localFunction2 = b.expression;
-            checkElementIdentities(
-                localFunction1, localFunction2,
-                'enclosingClass',
-                localFunction1.enclosingClass, localFunction2.enclosingClass);
-            testResolvedAstEquivalence(
-                localFunction1.resolvedAst,
-                localFunction2.resolvedAst,
-                const CheckStrategy());
-          });
+        LocalFunctionElement localFunction1 = a.expression;
+        LocalFunctionElement localFunction2 = b.expression;
+        checkElementIdentities(localFunction1, localFunction2, 'enclosingClass',
+            localFunction1.enclosingClass, localFunction2.enclosingClass);
+        testResolvedAstEquivalence(localFunction1.resolvedAst,
+            localFunction2.resolvedAst, const CheckStrategy());
+      });
     }
   }
   JavaScriptBackend backend1 = compiler1.backend;
@@ -280,30 +267,24 @@ void checkElements(
   checkElementOutputUnits(compiler1, compiler2, element1, element2);
 }
 
-void checkMixinUses(
-    Compiler compiler1, Compiler compiler2,
-    ClassElement class1, ClassElement class2,
+void checkMixinUses(Compiler compiler1, Compiler compiler2, ClassElement class1,
+    ClassElement class2,
     {bool verbose: false}) {
-
   checkSets(
       compiler1.world.mixinUsesOf(class1),
       compiler2.world.mixinUsesOf(class2),
       "Mixin uses of $class1 vs $class2",
       areElementsEquivalent,
       verbose: verbose);
-
 }
 
-void checkClassHierarchyNodes(
-    Compiler compiler1,
-    Compiler compiler2,
+void checkClassHierarchyNodes(Compiler compiler1, Compiler compiler2,
     ClassHierarchyNode node1, ClassHierarchyNode node2,
     {bool verbose: false}) {
   if (verbose) {
     print('Checking $node1 vs $node2');
   }
-  Expect.isTrue(
-      areElementsEquivalent(node1.cls, node2.cls),
+  Expect.isTrue(areElementsEquivalent(node1.cls, node2.cls),
       "Element identity mismatch for ${node1.cls} vs ${node2.cls}.");
   Expect.equals(
       node1.isDirectlyInstantiated,
@@ -321,8 +302,8 @@ void checkClassHierarchyNodes(
     bool found = false;
     for (ClassHierarchyNode other in node2.directSubclasses) {
       if (areElementsEquivalent(child.cls, other.cls)) {
-        checkClassHierarchyNodes(compiler1, compiler2,
-            child, other, verbose: verbose);
+        checkClassHierarchyNodes(compiler1, compiler2, child, other,
+            verbose: verbose);
         found = true;
         break;
       }
@@ -331,14 +312,15 @@ void checkClassHierarchyNodes(
       if (child.isInstantiated) {
         print('Missing subclass ${child.cls} of ${node1.cls} '
             'in ${node2.directSubclasses}');
-        print(compiler1.world.dump(
-            verbose ? compiler1.coreClasses.objectClass : node1.cls));
-        print(compiler2.world.dump(
-            verbose ? compiler2.coreClasses.objectClass : node2.cls));
+        print(compiler1.world
+            .dump(verbose ? compiler1.coreClasses.objectClass : node1.cls));
+        print(compiler2.world
+            .dump(verbose ? compiler2.coreClasses.objectClass : node2.cls));
       }
-      Expect.isFalse(child.isInstantiated,
+      Expect.isFalse(
+          child.isInstantiated,
           'Missing subclass ${child.cls} of ${node1.cls} in '
-              '${node2.directSubclasses}');
+          '${node2.directSubclasses}');
     }
   }
   checkMixinUses(compiler1, compiler2, node1.cls, node2.cls, verbose: verbose);
@@ -361,7 +343,7 @@ bool areCapturedVariablesEquivalent(CapturedVariable a, CapturedVariable b) {
   if (a == null || b == null) return false;
   if (a is ClosureFieldElement && b is ClosureFieldElement) {
     return areElementsEquivalent(a.closureClass, b.closureClass) &&
-      areLocalsEquivalent(a.local, b.local);
+        areLocalsEquivalent(a.local, b.local);
   } else if (a is BoxFieldElement && b is BoxFieldElement) {
     return areElementsEquivalent(a.variableElement, b.variableElement) &&
         areLocalsEquivalent(a.box, b.box);
@@ -375,13 +357,14 @@ bool areClosureScopesEquivalent(ClosureScope a, ClosureScope b) {
   if (!areLocalsEquivalent(a.boxElement, b.boxElement)) {
     return false;
   }
-  checkMaps(a.capturedVariables, b.capturedVariables,
+  checkMaps(
+      a.capturedVariables,
+      b.capturedVariables,
       'ClosureScope.capturedVariables',
       areLocalsEquivalent,
       areElementsEquivalent);
   checkSets(a.boxedLoopVariables, b.boxedLoopVariables,
-      'ClosureScope.boxedLoopVariables',
-      areElementsEquivalent);
+      'ClosureScope.boxedLoopVariables', areElementsEquivalent);
   return true;
 }
 
@@ -393,8 +376,7 @@ String nodeToString(Node node) {
   return '(${node.runtimeType}) $text';
 }
 
-void checkElementOutputUnits(
-    Compiler compiler1, Compiler compiler2,
+void checkElementOutputUnits(Compiler compiler1, Compiler compiler2,
     Element element1, Element element2) {
   OutputUnit outputUnit1 =
       compiler1.deferredLoadTask.getOutputUnitForElementForTesting(element1);
@@ -406,11 +388,13 @@ void checkElementOutputUnits(
 void checkOutputUnits(
     OutputUnit outputUnit1, OutputUnit outputUnit2, String message) {
   if (outputUnit1 == null && outputUnit2 == null) return;
-  check(outputUnit1, outputUnit2,
-      'OutputUnit.isMainOutput $message',
+  check(outputUnit1, outputUnit2, 'OutputUnit.isMainOutput $message',
       outputUnit1.isMainOutput, outputUnit2.isMainOutput);
-  checkSetEquivalence(outputUnit1, outputUnit2,
+  checkSetEquivalence(
+      outputUnit1,
+      outputUnit2,
       'OutputUnit.imports $message',
-      outputUnit1.imports, outputUnit2.imports,
+      outputUnit1.imports,
+      outputUnit2.imports,
       (a, b) => areElementsEquivalent(a.declaration, b.declaration));
 }

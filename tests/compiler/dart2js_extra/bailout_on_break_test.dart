@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  operator+(arg) => 42;
+  operator +(arg) => 42;
 }
 
 get42() => 42;
@@ -42,7 +42,8 @@ void testInNestedWhileLoop() {
 
 void testInNestedWhileLoop2() {
   var c = get42();
-  L0: while (true) {
+  L0:
+  while (true) {
     while (true) {
       var e = getNonInt();
       Expect.equals(42, e + 2);
@@ -99,7 +100,8 @@ void testInForLoop() {
 
 void testLabeledIf() {
   var c = get42();
-  L1: if (c == 42) {
+  L1:
+  if (c == 42) {
     var e = getNonInt();
     Expect.equals(42, e + 2);
     if (e == null) break L1;
@@ -113,7 +115,8 @@ void testLabeledIf() {
 
 void testLabeledIf2() {
   var c = get42();
-  L1: if (c == 42) {
+  L1:
+  if (c == 42) {
     var e = getNonInt();
     Expect.equals(42, e + 2);
     if (e == null) break L1;

@@ -11,10 +11,10 @@ typedef void Callback0();
 
 @Native("A")
 class A {
-  foo(Callback0 f) native;
+  foo(Callback0 f) native ;
 }
 
-makeA() native;
+makeA() native ;
 
 void setup() native r"""
 function A() {}
@@ -36,8 +36,9 @@ main() {
   var events = [];
   asyncStart();
   var a = makeA();
-  new Future.microtask(() { events.add("scheduleMicrotask"); })
-      .whenComplete(asyncEnd);
+  new Future.microtask(() {
+    events.add("scheduleMicrotask");
+  }).whenComplete(asyncEnd);
 
   Expect.equals(499, a.foo(() {
     events.add("closure to foo");

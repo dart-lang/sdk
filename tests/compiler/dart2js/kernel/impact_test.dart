@@ -164,8 +164,11 @@ main(List<String> args) {
     Compiler compiler = compilerFor(
         entryPoint: entryPoint,
         memorySourceFiles: SOURCE,
-        options:
-            [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
+        options: [
+          Flags.analyzeAll,
+          Flags.useKernel,
+          Flags.enableAssertMessage
+        ]);
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
     checkLibrary(compiler, compiler.mainApp);

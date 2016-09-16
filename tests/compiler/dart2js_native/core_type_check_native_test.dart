@@ -8,25 +8,21 @@ import "package:expect/expect.dart";
 var inscrutable = (int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
 @Native("A")
-class A {
-}
+class A {}
 
 @Native("B")
-class B implements Comparable {
-}
+class B implements Comparable {}
 
 @Native("C")
-class C implements Pattern {
-}
+class C implements Pattern {}
 
 @Native("D")
-class D implements Pattern, Comparable {
-}
+class D implements Pattern, Comparable {}
 
-makeA() native;
-makeB() native;
-makeC() native;
-makeD() native;
+makeA() native ;
+makeB() native ;
+makeC() native ;
+makeD() native ;
 
 void setup() native """
 function A() {};
@@ -38,7 +34,6 @@ makeC = function() { return new C; }
 function D() {};
 makeD = function() { return new D; }
 """;
-
 
 checkTest(value, expectComparable, expectPattern) {
   Expect.equals(expectComparable, value is Comparable);
@@ -59,19 +54,28 @@ checkCast(value, expectComparable, expectPattern) {
 }
 
 checkAll(check) {
-  var things =
-      [[], 4, 4.2, 'foo', new Object(), makeA(), makeB(), makeC(), makeD()];
+  var things = [
+    [],
+    4,
+    4.2,
+    'foo',
+    new Object(),
+    makeA(),
+    makeB(),
+    makeC(),
+    makeD()
+  ];
   value(i) => things[inscrutable(i)];
 
-  check(value(0), false, false);  // List
-  check(value(1), true, false);   // int
-  check(value(2), true, false);   // num
-  check(value(3), true, true);    // String
-  check(value(4), false, false);  // Object
-  check(value(5), false, false);  // A
-  check(value(6), true, false);   // B
-  check(value(7), false, true);   // C
-  check(value(8), true, true);    // D
+  check(value(0), false, false); // List
+  check(value(1), true, false); // int
+  check(value(2), true, false); // num
+  check(value(3), true, true); // String
+  check(value(4), false, false); // Object
+  check(value(5), false, false); // A
+  check(value(6), true, false); // B
+  check(value(7), false, true); // C
+  check(value(8), true, true); // D
 }
 
 main() {

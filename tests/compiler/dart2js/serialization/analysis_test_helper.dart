@@ -37,13 +37,12 @@ main(List<String> args) {
   });
 }
 
-Future analyze(
-    Uri entryPoint,
+Future analyze(Uri entryPoint,
     {Map<String, String> sourceFiles: const <String, String>{},
-     List<Uri> resolutionInputs,
-     int index,
-     Test test,
-     bool verbose: false}) async {
+    List<Uri> resolutionInputs,
+    int index,
+    Test test,
+    bool verbose: false}) async {
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
   String title = '${id}${testDescription}';
@@ -58,10 +57,8 @@ Future analyze(
     if (test != null) {
       Expect.equals(test.expectedErrorCount, diagnosticCollector.errors.length,
           "Unexpected error count.");
-      Expect.equals(
-          test.expectedWarningCount,
-          diagnosticCollector.warnings.length,
-          "Unexpected warning count.");
+      Expect.equals(test.expectedWarningCount,
+          diagnosticCollector.warnings.length, "Unexpected warning count.");
       Expect.equals(test.expectedHintCount, diagnosticCollector.hints.length,
           "Unexpected hint count.");
       Expect.equals(test.expectedInfoCount, diagnosticCollector.infos.length,
@@ -69,4 +66,3 @@ Future analyze(
     }
   });
 }
-

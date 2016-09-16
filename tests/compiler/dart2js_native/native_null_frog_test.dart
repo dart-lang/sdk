@@ -7,16 +7,15 @@ import "package:expect/expect.dart";
 
 // Test for values of some basic types.
 
-
 @Native("A")
 class A {
-  returnNull() native;
-  returnUndefined() native;
-  returnEmptyString() native;
-  returnZero() native;
+  returnNull() native ;
+  returnUndefined() native ;
+  returnEmptyString() native ;
+  returnZero() native ;
 }
 
-A makeA() native;
+A makeA() native ;
 
 void setup() native """
 function A() {}
@@ -26,7 +25,6 @@ A.prototype.returnEmptyString = function() { return ""; };
 A.prototype.returnZero = function() { return 0; };
 makeA = function(){return new A;};
 """;
-
 
 main() {
   setup();

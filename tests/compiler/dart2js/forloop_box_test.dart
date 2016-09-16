@@ -29,11 +29,11 @@ main() {
 
 main() {
   asyncTest(() => compileAll(TEST).then((generated) {
-    Expect.isTrue(generated.contains('main_closure(i)'),
-        'for-loop variable was boxed');
-  }));
+        Expect.isTrue(generated.contains('main_closure(i)'),
+            'for-loop variable was boxed');
+      }));
   asyncTest(() => compileAll(NEGATIVE_TEST).then((generated) {
-    Expect.isFalse(generated.contains('main_closure(i)'),
-        'for-loop variable was not boxed');
-  }));
+        Expect.isFalse(generated.contains('main_closure(i)'),
+            'for-loop variable was not boxed');
+      }));
 }

@@ -29,11 +29,10 @@ foo() {
   i--;
   i--;
   i--;
-  i -= 8007199254740992;   // In JS semantics [i] would be -3, now.
+  i -= 8007199254740992; // In JS semantics [i] would be -3, now.
   return a[i];
 }
 
 main() {
-  Expect.throws(() => foo(),
-                (e) => e is RangeError);
+  Expect.throws(() => foo(), (e) => e is RangeError);
 }

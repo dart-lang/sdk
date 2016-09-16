@@ -13,5 +13,4 @@ class Base {}
 
 class DerivedNotUsed extends Base {}
 
-main() {
-}
+main() {}

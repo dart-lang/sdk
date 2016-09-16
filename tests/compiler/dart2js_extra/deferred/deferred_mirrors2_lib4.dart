@@ -5,5 +5,4 @@
 import 'deferred_mirrors2_lib5.dart' show Injectable;
 
 @Injectable()
-class A {
-}
+class A {}

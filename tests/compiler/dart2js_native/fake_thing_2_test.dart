@@ -10,16 +10,14 @@ import "package:expect/expect.dart";
 // The difference between fake_thing_test and fake_thing_2_test is the
 // presence of a used declared native class.
 
-class Thing {
-}
+class Thing {}
 
 @Native("NT")
-class NativeThing {
-}
+class NativeThing {}
 
-make1() native;
-make2() native;
-make3() native;
+make1() native ;
+make2() native ;
+make3() native ;
 
 void setup() native r"""
 function A() {}

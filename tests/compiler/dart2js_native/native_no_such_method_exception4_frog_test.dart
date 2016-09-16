@@ -24,7 +24,7 @@ class B {
   baz() => 42;
 }
 
-makeA() native;
+makeA() native ;
 
 setup() native """
   function A() {}

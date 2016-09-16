@@ -42,7 +42,7 @@ check(value1, value2, {identityHashCode}) {
 bools() {
   check(true, false, identityHashCode: false);
 
-  Expect.equals(true.hashCode, hash(true));   // First can be optimized.
+  Expect.equals(true.hashCode, hash(true)); // First can be optimized.
   Expect.equals(false.hashCode, hash(false));
 }
 

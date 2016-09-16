@@ -17,15 +17,14 @@ bool foo(bar) {
 
 main() {
   asyncTest(() => compile(TEST_ONE, entry: 'foo', check: (String generated) {
+        // Check that no boolify code is generated.
+        RegExp regexp = new RegExp("=== true");
+        Iterator matches = regexp.allMatches(generated).iterator;
+        Expect.isFalse(matches.moveNext());
 
-    // Check that no boolify code is generated.
-    RegExp regexp = new RegExp("=== true");
-    Iterator matches = regexp.allMatches(generated).iterator;
-    Expect.isFalse(matches.moveNext());
-
-    regexp = new RegExp("===");
-    matches = regexp.allMatches(generated).iterator;
-    Expect.isTrue(matches.moveNext());
-    Expect.isFalse(matches.moveNext());
-  }));
+        regexp = new RegExp("===");
+        matches = regexp.allMatches(generated).iterator;
+        Expect.isTrue(matches.moveNext());
+        Expect.isFalse(matches.moveNext());
+      }));
 }

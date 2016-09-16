@@ -24,6 +24,6 @@ main() {
 
 void main() {
   asyncTest(() => compileAll(TEST).then((generated) {
-    Expect.isTrue(generated.contains('return c + c;'));
-  }));
+        Expect.isTrue(generated.contains('return c + c;'));
+      }));
 }

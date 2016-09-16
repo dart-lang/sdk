@@ -7,8 +7,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
-Future compileAndFind(String code, String name,
-                    check(compiler, element)) {
+Future compileAndFind(String code, String name, check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
   return compiler.run(uri).then((_) {
@@ -18,36 +17,26 @@ Future compileAndFind(String code, String name,
 }
 
 void checkPrintType(String expression, checkType(compiler, type)) {
-  asyncTest(() => compileAndFind(
-      'main() { print($expression); }',
-      'print',
-      (compiler, printElement) {
-        var parameter =
-          printElement.functionSignature.requiredParameters.first;
-        var type =
-            compiler.globalInference.results.typeOf(parameter);
+  asyncTest(() => compileAndFind('main() { print($expression); }', 'print',
+          (compiler, printElement) {
+        var parameter = printElement.functionSignature.requiredParameters.first;
+        var type = compiler.globalInference.results.typeOf(parameter);
+        checkType(compiler, type);
+      }));
+
+  asyncTest(() =>
+      compileAndFind('main() { var x = print; print($expression); }', 'print',
+          (compiler, printElement) {
+        var parameter = printElement.functionSignature.requiredParameters.first;
+        var type = compiler.globalInference.results.typeOf(parameter);
         checkType(compiler, type);
       }));
 
   asyncTest(() => compileAndFind(
-      'main() { var x = print; print($expression); }',
-      'print',
-      (compiler, printElement) {
-        var parameter =
-          printElement.functionSignature.requiredParameters.first;
-        var type =
-            compiler.globalInference.results.typeOf(parameter);
-        checkType(compiler, type);
-      }));
-
-  asyncTest(() => compileAndFind(
-      'main() { print($expression); print($expression); }',
-      'print',
-      (compiler, printElement) {
-        var parameter =
-          printElement.functionSignature.requiredParameters.first;
-        var type =
-            compiler.globalInference.results.typeOf(parameter);
+          'main() { print($expression); print($expression); }', 'print',
+          (compiler, printElement) {
+        var parameter = printElement.functionSignature.requiredParameters.first;
+        var type = compiler.globalInference.results.typeOf(parameter);
         checkType(compiler, type);
       }));
 }
@@ -77,28 +66,20 @@ void testBasicTypes() {
 }
 
 void testOptionalParameters() {
-  compileAndFind(
-      'fisk(a, [b, c]) {} main() { fisk(1); }',
-      'fisk',
+  compileAndFind('fisk(a, [b, c]) {} main() { fisk(1); }', 'fisk',
       (compiler, fiskElement) {
-        var firstParameter = fiskElement.functionSignature
-            .requiredParameters[0];
-        var secondParameter = fiskElement.functionSignature
-          .optionalParameters[0];
-        var thirdParameter = fiskElement.functionSignature
-          .optionalParameters[1];
-        var commonMasks = compiler.commonMasks;
-        var inference = compiler.globalInference;
-        Expect.identical(
-            commonMasks.uint31Type,
-            inference.results.typeOf(firstParameter));
-        Expect.identical(
-            commonMasks.nullType,
-            inference.results.typeOf(secondParameter));
-        Expect.identical(
-            commonMasks.nullType,
-            inference.results.typeOf(thirdParameter));
-      });
+    var firstParameter = fiskElement.functionSignature.requiredParameters[0];
+    var secondParameter = fiskElement.functionSignature.optionalParameters[0];
+    var thirdParameter = fiskElement.functionSignature.optionalParameters[1];
+    var commonMasks = compiler.commonMasks;
+    var inference = compiler.globalInference;
+    Expect.identical(
+        commonMasks.uint31Type, inference.results.typeOf(firstParameter));
+    Expect.identical(
+        commonMasks.nullType, inference.results.typeOf(secondParameter));
+    Expect.identical(
+        commonMasks.nullType, inference.results.typeOf(thirdParameter));
+  });
 }
 
 void main() {

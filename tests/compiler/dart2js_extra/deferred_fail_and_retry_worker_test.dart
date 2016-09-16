@@ -13,7 +13,8 @@ import "dart:js" as js;
 
 void test(SendPort sendPort) {
   // Patch XMLHttpRequest to fail on first load.
-  js.context.callMethod("eval", ["""
+  js.context.callMethod("eval", [
+    """
     oldXMLHttpRequest = XMLHttpRequest;
     XMLHttpRequest = function() {
       XMLHttpRequest = oldXMLHttpRequest;
@@ -28,7 +29,8 @@ void test(SendPort sendPort) {
         instance.open(x, "non_existing.js");
       }
     }
-  """]);
+  """
+  ]);
   lib.loadLibrary().then((_) {
     sendPort.send("Library should not have loaded");
   }, onError: (error) {
@@ -40,7 +42,6 @@ void test(SendPort sendPort) {
     });
   });
 }
-
 
 main() {
   ReceivePort receivePort = new ReceivePort();

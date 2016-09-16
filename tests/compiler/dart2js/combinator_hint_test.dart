@@ -17,38 +17,33 @@ import 'lib.dart' show Foo;
 
 main() {}
 """,
-
   'hide_local.dart': """
 import 'lib.dart' hide Foo;
 
 main() {}
 """,
-
   'show_package.dart': """
 import 'package:pkg/pkg.dart' show Foo;
 
 main() {}
 """,
-
   'hide_package.dart': """
 import 'package:pkg/pkg.dart' hide Foo;
 
 main() {}
 """,
-
   'lib.dart': '',
-
   'pkg/pkg/pkg.dart': '',
 };
 
 Future<Compiler> test(Uri entryPoint,
-                      {bool showPackageWarnings: false,
-                       bool suppressHints: false,
-                       int hints: 0,
-                       Compiler cachedCompiler}) async {
+    {bool showPackageWarnings: false,
+    bool suppressHints: false,
+    int hints: 0,
+    Compiler cachedCompiler}) async {
   print('==================================================================');
   print('test: $entryPoint showPackageWarnings=$showPackageWarnings '
-        'suppressHints=$suppressHints');
+      'suppressHints=$suppressHints');
   var options = [Flags.analyzeOnly];
   if (showPackageWarnings) {
     options.add(Flags.showPackageWarnings);
@@ -64,41 +59,36 @@ Future<Compiler> test(Uri entryPoint,
       packageRoot: Uri.parse('memory:pkg/'),
       diagnosticHandler: collector,
       cachedCompiler: cachedCompiler);
-  Expect.equals(0, collector.errors.length,
-                'Unexpected errors: ${collector.errors}');
+  Expect.equals(
+      0, collector.errors.length, 'Unexpected errors: ${collector.errors}');
   Expect.equals(0, collector.warnings.length,
-                'Unexpected warnings: ${collector.warnings}');
-  Expect.equals(hints, collector.hints.length,
-                'Unexpected hints: ${collector.hints}');
-  Expect.equals(0, collector.infos.length,
-                'Unexpected infos: ${collector.infos}');
+      'Unexpected warnings: ${collector.warnings}');
+  Expect.equals(
+      hints, collector.hints.length, 'Unexpected hints: ${collector.hints}');
+  Expect.equals(
+      0, collector.infos.length, 'Unexpected infos: ${collector.infos}');
   print('==================================================================');
   return result.compiler;
 }
 
 Future<Compiler> testUri(Uri entrypoint,
-                         {bool suppressed: false,
-                          Compiler cachedCompiler}) async {
-  cachedCompiler = await test(
-      entrypoint,
+    {bool suppressed: false, Compiler cachedCompiler}) async {
+  cachedCompiler = await test(entrypoint,
       showPackageWarnings: true,
       suppressHints: false,
       hints: 1,
       cachedCompiler: cachedCompiler);
-  cachedCompiler = await test(
-      entrypoint,
+  cachedCompiler = await test(entrypoint,
       showPackageWarnings: false,
       suppressHints: false,
       hints: suppressed ? 0 : 1,
       cachedCompiler: cachedCompiler);
-  cachedCompiler = await test(
-      entrypoint,
+  cachedCompiler = await test(entrypoint,
       showPackageWarnings: true,
       suppressHints: true,
       hints: 0,
       cachedCompiler: cachedCompiler);
-  cachedCompiler = await test(
-      entrypoint,
+  cachedCompiler = await test(entrypoint,
       showPackageWarnings: false,
       suppressHints: true,
       hints: 0,
@@ -108,18 +98,13 @@ Future<Compiler> testUri(Uri entrypoint,
 
 void main() {
   asyncTest(() async {
-    Compiler cachedCompiler = await testUri(
-        Uri.parse('memory:show_local.dart'));
-    cachedCompiler = await testUri(
-        Uri.parse('memory:hide_local.dart'),
+    Compiler cachedCompiler =
+        await testUri(Uri.parse('memory:show_local.dart'));
+    cachedCompiler = await testUri(Uri.parse('memory:hide_local.dart'),
         cachedCompiler: cachedCompiler);
-    cachedCompiler = await testUri(
-        Uri.parse('memory:show_package.dart'),
+    cachedCompiler = await testUri(Uri.parse('memory:show_package.dart'),
         cachedCompiler: cachedCompiler);
-    cachedCompiler = await testUri(
-        Uri.parse('memory:hide_package.dart'),
-        suppressed: true,
-        cachedCompiler: cachedCompiler);
+    cachedCompiler = await testUri(Uri.parse('memory:hide_package.dart'),
+        suppressed: true, cachedCompiler: cachedCompiler);
   });
 }
-

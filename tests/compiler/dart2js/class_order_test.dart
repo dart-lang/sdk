@@ -37,10 +37,10 @@ main() {
   RegExp regexp = new RegExp(r"foo\$0?:(.|\n)*bar\$0:(.|\n)*gee\$0:");
 
   asyncTest(() => compileAll(TEST_ONE).then((generated) {
-    Expect.isTrue(regexp.hasMatch(generated));
-  }));
+        Expect.isTrue(regexp.hasMatch(generated));
+      }));
 
   asyncTest(() => compileAll(TEST_TWO).then((generated) {
-    Expect.isTrue(regexp.hasMatch(generated));
-  }));
+        Expect.isTrue(regexp.hasMatch(generated));
+      }));
 }

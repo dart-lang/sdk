@@ -5,21 +5,45 @@
 import "package:expect/expect.dart";
 
 class A {
-  foo() { return 499; }
-  bar(x) { return x + 499; }
-  baz() { return 54; }
-  titi() { return 123; }
+  foo() {
+    return 499;
+  }
+
+  bar(x) {
+    return x + 499;
+  }
+
+  baz() {
+    return 54;
+  }
+
+  titi() {
+    return 123;
+  }
 }
 
 class B {
-  foo() { return 42; }
-  bar(x) { return x + 42; }
-  toto() { return foo() + 42; }
+  foo() {
+    return 42;
+  }
+
+  bar(x) {
+    return x + 42;
+  }
+
+  toto() {
+    return foo() + 42;
+  }
 }
 
 class C extends A {
-  foo() { return 99; }
-  bar(x) { return x + 99; }
+  foo() {
+    return 99;
+  }
+
+  bar(x) {
+    return x + 99;
+  }
 }
 
 void main() {

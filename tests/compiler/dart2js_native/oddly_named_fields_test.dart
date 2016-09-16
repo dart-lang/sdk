@@ -63,54 +63,98 @@ import 'dart:_js_helper';
 
 @Native("NativeClassWithOddNames")
 class NativeClassWithOddNames {
-  @JSName('break') bool breakValue;
-  @JSName('case') bool caseValue;
-  @JSName('catch') bool catchValue;
-  @JSName('class') bool classValue;
-  @JSName('const') bool constValue;
-  @JSName('continue') bool continueValue;
-  @JSName('debugger') bool debuggerValue;
-  @JSName('default') bool defaultValue;
-  @JSName('delete') bool deleteValue;
-  @JSName('do') bool doValue;
-  @JSName('else') bool elseValue;
-  @JSName('enum') bool enumValue;
-  @JSName('export') bool exportValue;
-  @JSName('extends') bool extendsValue;
-  @JSName('false') bool falseValue;
-  @JSName('finally') bool finallyValue;
-  @JSName('for') bool forValue;
-  @JSName('function') bool functionValue;
-  @JSName('if') bool ifValue;
-  @JSName('implements') bool implementsValue;
-  @JSName('import') bool importValue;
-  @JSName('in') bool inValue;
-  @JSName('instanceof') bool instanceofValue;
-  @JSName('interface') bool interfaceValue;
-  @JSName('let') bool letValue;
-  @JSName('new') bool newValue;
-  @JSName('null') bool nullValue;
-  @JSName('package') bool packageValue;
-  @JSName('private') bool privateValue;
-  @JSName('protected') bool protectedValue;
-  @JSName('public') bool publicValue;
-  @JSName('return') bool returnValue;
-  @JSName('static') bool staticValue;
-  @JSName('super') bool superValue;
-  @JSName('switch') bool switchValue;
-  @JSName('this') bool thisValue;
-  @JSName('throw') bool throwValue;
-  @JSName('true') bool trueValue;
-  @JSName('try') bool tryValue;
-  @JSName('typeof') bool typeofValue;
-  @JSName('var') bool varValue;
-  @JSName('void') bool voidValue;
-  @JSName('while') bool whileValue;
-  @JSName('with') bool withValue;
-  @JSName('yield') bool yieldValue;
+  @JSName('break')
+  bool breakValue;
+  @JSName('case')
+  bool caseValue;
+  @JSName('catch')
+  bool catchValue;
+  @JSName('class')
+  bool classValue;
+  @JSName('const')
+  bool constValue;
+  @JSName('continue')
+  bool continueValue;
+  @JSName('debugger')
+  bool debuggerValue;
+  @JSName('default')
+  bool defaultValue;
+  @JSName('delete')
+  bool deleteValue;
+  @JSName('do')
+  bool doValue;
+  @JSName('else')
+  bool elseValue;
+  @JSName('enum')
+  bool enumValue;
+  @JSName('export')
+  bool exportValue;
+  @JSName('extends')
+  bool extendsValue;
+  @JSName('false')
+  bool falseValue;
+  @JSName('finally')
+  bool finallyValue;
+  @JSName('for')
+  bool forValue;
+  @JSName('function')
+  bool functionValue;
+  @JSName('if')
+  bool ifValue;
+  @JSName('implements')
+  bool implementsValue;
+  @JSName('import')
+  bool importValue;
+  @JSName('in')
+  bool inValue;
+  @JSName('instanceof')
+  bool instanceofValue;
+  @JSName('interface')
+  bool interfaceValue;
+  @JSName('let')
+  bool letValue;
+  @JSName('new')
+  bool newValue;
+  @JSName('null')
+  bool nullValue;
+  @JSName('package')
+  bool packageValue;
+  @JSName('private')
+  bool privateValue;
+  @JSName('protected')
+  bool protectedValue;
+  @JSName('public')
+  bool publicValue;
+  @JSName('return')
+  bool returnValue;
+  @JSName('static')
+  bool staticValue;
+  @JSName('super')
+  bool superValue;
+  @JSName('switch')
+  bool switchValue;
+  @JSName('this')
+  bool thisValue;
+  @JSName('throw')
+  bool throwValue;
+  @JSName('true')
+  bool trueValue;
+  @JSName('try')
+  bool tryValue;
+  @JSName('typeof')
+  bool typeofValue;
+  @JSName('var')
+  bool varValue;
+  @JSName('void')
+  bool voidValue;
+  @JSName('while')
+  bool whileValue;
+  @JSName('with')
+  bool withValue;
+  @JSName('yield')
+  bool yieldValue;
 
   void testMyFields() {
-
     if (breakValue != null) throw 'incorrect initialization of "breakValue"';
     breakValue = true;
     if (!breakValue) throw 'incorrect value in "breakValue"';
@@ -392,7 +436,6 @@ class NativeClassWithOddNames {
     if (!yieldValue) throw 'incorrect value in "yieldValue"';
     yieldValue = false;
     if (yieldValue) throw 'incorrect value in "yieldValue"';
-
   }
 }
 
@@ -444,7 +487,6 @@ class ClassWithOddNames {
   bool yieldValue;
 
   void testMyFields() {
-
     if (breakValue != null) throw 'incorrect initialization of "breakValue"';
     breakValue = true;
     if (!breakValue) throw 'incorrect value in "breakValue"';
@@ -726,7 +768,6 @@ class ClassWithOddNames {
     if (!yieldValue) throw 'incorrect value in "yieldValue"';
     yieldValue = false;
     if (yieldValue) throw 'incorrect value in "yieldValue"';
-
   }
 }
 
@@ -740,8 +781,7 @@ testObjectStronglyTyped(object) {
   object.breakValue = false;
   if (object.breakValue) throw 'incorrect value in "breakValue"';
 
-  if (object.caseValue == null)
-    throw 'incorrect initialization of "caseValue"';
+  if (object.caseValue == null) throw 'incorrect initialization of "caseValue"';
   object.caseValue = true;
   if (!object.caseValue) throw 'incorrect value in "caseValue"';
   object.caseValue = false;
@@ -796,22 +836,19 @@ testObjectStronglyTyped(object) {
   object.deleteValue = false;
   if (object.deleteValue) throw 'incorrect value in "deleteValue"';
 
-  if (object.doValue == null)
-    throw 'incorrect initialization of "doValue"';
+  if (object.doValue == null) throw 'incorrect initialization of "doValue"';
   object.doValue = true;
   if (!object.doValue) throw 'incorrect value in "doValue"';
   object.doValue = false;
   if (object.doValue) throw 'incorrect value in "doValue"';
 
-  if (object.elseValue == null)
-    throw 'incorrect initialization of "elseValue"';
+  if (object.elseValue == null) throw 'incorrect initialization of "elseValue"';
   object.elseValue = true;
   if (!object.elseValue) throw 'incorrect value in "elseValue"';
   object.elseValue = false;
   if (object.elseValue) throw 'incorrect value in "elseValue"';
 
-  if (object.enumValue == null)
-    throw 'incorrect initialization of "enumValue"';
+  if (object.enumValue == null) throw 'incorrect initialization of "enumValue"';
   object.enumValue = true;
   if (!object.enumValue) throw 'incorrect value in "enumValue"';
   object.enumValue = false;
@@ -845,8 +882,7 @@ testObjectStronglyTyped(object) {
   object.finallyValue = false;
   if (object.finallyValue) throw 'incorrect value in "finallyValue"';
 
-  if (object.forValue == null)
-    throw 'incorrect initialization of "forValue"';
+  if (object.forValue == null) throw 'incorrect initialization of "forValue"';
   object.forValue = true;
   if (!object.forValue) throw 'incorrect value in "forValue"';
   object.forValue = false;
@@ -859,8 +895,7 @@ testObjectStronglyTyped(object) {
   object.functionValue = false;
   if (object.functionValue) throw 'incorrect value in "functionValue"';
 
-  if (object.ifValue == null)
-    throw 'incorrect initialization of "ifValue"';
+  if (object.ifValue == null) throw 'incorrect initialization of "ifValue"';
   object.ifValue = true;
   if (!object.ifValue) throw 'incorrect value in "ifValue"';
   object.ifValue = false;
@@ -880,8 +915,7 @@ testObjectStronglyTyped(object) {
   object.importValue = false;
   if (object.importValue) throw 'incorrect value in "importValue"';
 
-  if (object.inValue == null)
-    throw 'incorrect initialization of "inValue"';
+  if (object.inValue == null) throw 'incorrect initialization of "inValue"';
   object.inValue = true;
   if (!object.inValue) throw 'incorrect value in "inValue"';
   object.inValue = false;
@@ -901,22 +935,19 @@ testObjectStronglyTyped(object) {
   object.interfaceValue = false;
   if (object.interfaceValue) throw 'incorrect value in "interfaceValue"';
 
-  if (object.letValue == null)
-    throw 'incorrect initialization of "letValue"';
+  if (object.letValue == null) throw 'incorrect initialization of "letValue"';
   object.letValue = true;
   if (!object.letValue) throw 'incorrect value in "letValue"';
   object.letValue = false;
   if (object.letValue) throw 'incorrect value in "letValue"';
 
-  if (object.newValue == null)
-    throw 'incorrect initialization of "newValue"';
+  if (object.newValue == null) throw 'incorrect initialization of "newValue"';
   object.newValue = true;
   if (!object.newValue) throw 'incorrect value in "newValue"';
   object.newValue = false;
   if (object.newValue) throw 'incorrect value in "newValue"';
 
-  if (object.nullValue == null)
-    throw 'incorrect initialization of "nullValue"';
+  if (object.nullValue == null) throw 'incorrect initialization of "nullValue"';
   object.nullValue = true;
   if (!object.nullValue) throw 'incorrect value in "nullValue"';
   object.nullValue = false;
@@ -978,8 +1009,7 @@ testObjectStronglyTyped(object) {
   object.switchValue = false;
   if (object.switchValue) throw 'incorrect value in "switchValue"';
 
-  if (object.thisValue == null)
-    throw 'incorrect initialization of "thisValue"';
+  if (object.thisValue == null) throw 'incorrect initialization of "thisValue"';
   object.thisValue = true;
   if (!object.thisValue) throw 'incorrect value in "thisValue"';
   object.thisValue = false;
@@ -992,15 +1022,13 @@ testObjectStronglyTyped(object) {
   object.throwValue = false;
   if (object.throwValue) throw 'incorrect value in "throwValue"';
 
-  if (object.trueValue == null)
-    throw 'incorrect initialization of "trueValue"';
+  if (object.trueValue == null) throw 'incorrect initialization of "trueValue"';
   object.trueValue = true;
   if (!object.trueValue) throw 'incorrect value in "trueValue"';
   object.trueValue = false;
   if (object.trueValue) throw 'incorrect value in "trueValue"';
 
-  if (object.tryValue == null)
-    throw 'incorrect initialization of "tryValue"';
+  if (object.tryValue == null) throw 'incorrect initialization of "tryValue"';
   object.tryValue = true;
   if (!object.tryValue) throw 'incorrect value in "tryValue"';
   object.tryValue = false;
@@ -1013,15 +1041,13 @@ testObjectStronglyTyped(object) {
   object.typeofValue = false;
   if (object.typeofValue) throw 'incorrect value in "typeofValue"';
 
-  if (object.varValue == null)
-    throw 'incorrect initialization of "varValue"';
+  if (object.varValue == null) throw 'incorrect initialization of "varValue"';
   object.varValue = true;
   if (!object.varValue) throw 'incorrect value in "varValue"';
   object.varValue = false;
   if (object.varValue) throw 'incorrect value in "varValue"';
 
-  if (object.voidValue == null)
-    throw 'incorrect initialization of "voidValue"';
+  if (object.voidValue == null) throw 'incorrect initialization of "voidValue"';
   object.voidValue = true;
   if (!object.voidValue) throw 'incorrect value in "voidValue"';
   object.voidValue = false;
@@ -1034,8 +1060,7 @@ testObjectStronglyTyped(object) {
   object.whileValue = false;
   if (object.whileValue) throw 'incorrect value in "whileValue"';
 
-  if (object.withValue == null)
-    throw 'incorrect initialization of "withValue"';
+  if (object.withValue == null) throw 'incorrect initialization of "withValue"';
   object.withValue = true;
   if (!object.withValue) throw 'incorrect value in "withValue"';
   object.withValue = false;
@@ -1061,8 +1086,7 @@ testObjectWeaklyTyped(object) {
   object.breakValue = false;
   if (object.breakValue) throw 'incorrect value in "breakValue"';
 
-  if (object.caseValue == null)
-    throw 'incorrect initialization of "caseValue"';
+  if (object.caseValue == null) throw 'incorrect initialization of "caseValue"';
   object.caseValue = true;
   if (!object.caseValue) throw 'incorrect value in "caseValue"';
   object.caseValue = false;
@@ -1117,22 +1141,19 @@ testObjectWeaklyTyped(object) {
   object.deleteValue = false;
   if (object.deleteValue) throw 'incorrect value in "deleteValue"';
 
-  if (object.doValue == null)
-    throw 'incorrect initialization of "doValue"';
+  if (object.doValue == null) throw 'incorrect initialization of "doValue"';
   object.doValue = true;
   if (!object.doValue) throw 'incorrect value in "doValue"';
   object.doValue = false;
   if (object.doValue) throw 'incorrect value in "doValue"';
 
-  if (object.elseValue == null)
-    throw 'incorrect initialization of "elseValue"';
+  if (object.elseValue == null) throw 'incorrect initialization of "elseValue"';
   object.elseValue = true;
   if (!object.elseValue) throw 'incorrect value in "elseValue"';
   object.elseValue = false;
   if (object.elseValue) throw 'incorrect value in "elseValue"';
 
-  if (object.enumValue == null)
-    throw 'incorrect initialization of "enumValue"';
+  if (object.enumValue == null) throw 'incorrect initialization of "enumValue"';
   object.enumValue = true;
   if (!object.enumValue) throw 'incorrect value in "enumValue"';
   object.enumValue = false;
@@ -1166,8 +1187,7 @@ testObjectWeaklyTyped(object) {
   object.finallyValue = false;
   if (object.finallyValue) throw 'incorrect value in "finallyValue"';
 
-  if (object.forValue == null)
-    throw 'incorrect initialization of "forValue"';
+  if (object.forValue == null) throw 'incorrect initialization of "forValue"';
   object.forValue = true;
   if (!object.forValue) throw 'incorrect value in "forValue"';
   object.forValue = false;
@@ -1180,8 +1200,7 @@ testObjectWeaklyTyped(object) {
   object.functionValue = false;
   if (object.functionValue) throw 'incorrect value in "functionValue"';
 
-  if (object.ifValue == null)
-    throw 'incorrect initialization of "ifValue"';
+  if (object.ifValue == null) throw 'incorrect initialization of "ifValue"';
   object.ifValue = true;
   if (!object.ifValue) throw 'incorrect value in "ifValue"';
   object.ifValue = false;
@@ -1201,8 +1220,7 @@ testObjectWeaklyTyped(object) {
   object.importValue = false;
   if (object.importValue) throw 'incorrect value in "importValue"';
 
-  if (object.inValue == null)
-    throw 'incorrect initialization of "inValue"';
+  if (object.inValue == null) throw 'incorrect initialization of "inValue"';
   object.inValue = true;
   if (!object.inValue) throw 'incorrect value in "inValue"';
   object.inValue = false;
@@ -1222,22 +1240,19 @@ testObjectWeaklyTyped(object) {
   object.interfaceValue = false;
   if (object.interfaceValue) throw 'incorrect value in "interfaceValue"';
 
-  if (object.letValue == null)
-    throw 'incorrect initialization of "letValue"';
+  if (object.letValue == null) throw 'incorrect initialization of "letValue"';
   object.letValue = true;
   if (!object.letValue) throw 'incorrect value in "letValue"';
   object.letValue = false;
   if (object.letValue) throw 'incorrect value in "letValue"';
 
-  if (object.newValue == null)
-    throw 'incorrect initialization of "newValue"';
+  if (object.newValue == null) throw 'incorrect initialization of "newValue"';
   object.newValue = true;
   if (!object.newValue) throw 'incorrect value in "newValue"';
   object.newValue = false;
   if (object.newValue) throw 'incorrect value in "newValue"';
 
-  if (object.nullValue == null)
-    throw 'incorrect initialization of "nullValue"';
+  if (object.nullValue == null) throw 'incorrect initialization of "nullValue"';
   object.nullValue = true;
   if (!object.nullValue) throw 'incorrect value in "nullValue"';
   object.nullValue = false;
@@ -1299,8 +1314,7 @@ testObjectWeaklyTyped(object) {
   object.switchValue = false;
   if (object.switchValue) throw 'incorrect value in "switchValue"';
 
-  if (object.thisValue == null)
-    throw 'incorrect initialization of "thisValue"';
+  if (object.thisValue == null) throw 'incorrect initialization of "thisValue"';
   object.thisValue = true;
   if (!object.thisValue) throw 'incorrect value in "thisValue"';
   object.thisValue = false;
@@ -1313,15 +1327,13 @@ testObjectWeaklyTyped(object) {
   object.throwValue = false;
   if (object.throwValue) throw 'incorrect value in "throwValue"';
 
-  if (object.trueValue == null)
-    throw 'incorrect initialization of "trueValue"';
+  if (object.trueValue == null) throw 'incorrect initialization of "trueValue"';
   object.trueValue = true;
   if (!object.trueValue) throw 'incorrect value in "trueValue"';
   object.trueValue = false;
   if (object.trueValue) throw 'incorrect value in "trueValue"';
 
-  if (object.tryValue == null)
-    throw 'incorrect initialization of "tryValue"';
+  if (object.tryValue == null) throw 'incorrect initialization of "tryValue"';
   object.tryValue = true;
   if (!object.tryValue) throw 'incorrect value in "tryValue"';
   object.tryValue = false;
@@ -1334,15 +1346,13 @@ testObjectWeaklyTyped(object) {
   object.typeofValue = false;
   if (object.typeofValue) throw 'incorrect value in "typeofValue"';
 
-  if (object.varValue == null)
-    throw 'incorrect initialization of "varValue"';
+  if (object.varValue == null) throw 'incorrect initialization of "varValue"';
   object.varValue = true;
   if (!object.varValue) throw 'incorrect value in "varValue"';
   object.varValue = false;
   if (object.varValue) throw 'incorrect value in "varValue"';
 
-  if (object.voidValue == null)
-    throw 'incorrect initialization of "voidValue"';
+  if (object.voidValue == null) throw 'incorrect initialization of "voidValue"';
   object.voidValue = true;
   if (!object.voidValue) throw 'incorrect value in "voidValue"';
   object.voidValue = false;
@@ -1355,8 +1365,7 @@ testObjectWeaklyTyped(object) {
   object.whileValue = false;
   if (object.whileValue) throw 'incorrect value in "whileValue"';
 
-  if (object.withValue == null)
-    throw 'incorrect initialization of "withValue"';
+  if (object.withValue == null) throw 'incorrect initialization of "withValue"';
   object.withValue = true;
   if (!object.withValue) throw 'incorrect value in "withValue"';
   object.withValue = false;
@@ -1370,7 +1379,7 @@ testObjectWeaklyTyped(object) {
   if (object.yieldValue) throw 'incorrect value in "yieldValue"';
 }
 
-NativeClassWithOddNames makeNativeClassWithOddNames() native;
+NativeClassWithOddNames makeNativeClassWithOddNames() native ;
 
 setup() native """
 function NativeClassWithOddNames() {}

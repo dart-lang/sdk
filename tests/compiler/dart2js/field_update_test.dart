@@ -80,12 +80,11 @@ void main() {
 }
 """;
 
-
 main() {
   test(String code, Function f) {
     asyncTest(() => compileAll(code, disableInlining: true).then((generated) {
-      Expect.isTrue(f(generated));
-    }));
+          Expect.isTrue(f(generated));
+        }));
   }
 
   test(TEST_1, (generated) => generated.contains(r'return this.a++;'));

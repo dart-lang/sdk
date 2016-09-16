@@ -12,7 +12,7 @@ void do1() {
     if (x == 10) cond = false;
     result += x;
     x = x + 1;
-  } while(cond);
+  } while (cond);
   Expect.equals(55, result);
 }
 
@@ -46,9 +46,9 @@ void do4() {
       if (j == 9) cond2 = false;
       result = result + 1;
       j = j + 1;
-    } while(cond2);
+    } while (cond2);
     i = i + 1;
-  } while(cond1);
+  } while (cond1);
   Expect.equals(100, result);
 }
 

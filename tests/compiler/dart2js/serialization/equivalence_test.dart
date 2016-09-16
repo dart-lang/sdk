@@ -92,15 +92,11 @@ main(List<String> arguments) {
         entryPoint: entryPoint,
         options: [Flags.analyzeAll, Flags.genericMethodSyntax]);
     Compiler compiler = result.compiler;
-    testSerialization(
-        compiler.libraryLoader.libraries,
-        compiler.reporter,
-        compiler.resolution,
-        compiler.libraryLoader,
-        outPath: outPath,
-        prettyPrint: prettyPrint);
-    Expect.isFalse(compiler.reporter.hasReportedError,
-        "Unexpected errors occured.");
+    testSerialization(compiler.libraryLoader.libraries, compiler.reporter,
+        compiler.resolution, compiler.libraryLoader,
+        outPath: outPath, prettyPrint: prettyPrint);
+    Expect.isFalse(
+        compiler.reporter.hasReportedError, "Unexpected errors occured.");
   });
 }
 
@@ -110,7 +106,7 @@ void testSerialization(
     Resolution resolution,
     LibraryProvider libraryProvider,
     {String outPath,
-     bool prettyPrint}) {
+    bool prettyPrint}) {
   Serializer serializer = new Serializer();
   for (LibraryElement library1 in libraries1) {
     serializer.serialize(library1);
@@ -129,11 +125,11 @@ void testSerialization(
   Deserializer deserializer = new Deserializer.fromText(
       new DeserializationContext(reporter, resolution, libraryProvider),
       Uri.parse('out1.data'),
-      text, const JsonSerializationDecoder());
+      text,
+      const JsonSerializationDecoder());
   List<LibraryElement> libraries2 = <LibraryElement>[];
   for (LibraryElement library1 in libraries1) {
-    LibraryElement library2 =
-        deserializer.lookupLibrary(library1.canonicalUri);
+    LibraryElement library2 = deserializer.lookupLibrary(library1.canonicalUri);
     if (library2 == null) {
       throw new ArgumentError('No library ${library1.canonicalUri} found.');
     }
@@ -150,10 +146,10 @@ void testSerialization(
   Deserializer deserializer3 = new Deserializer.fromText(
       new DeserializationContext(reporter, resolution, libraryProvider),
       Uri.parse('out2.data'),
-      text2, const JsonSerializationDecoder());
+      text2,
+      const JsonSerializationDecoder());
   for (LibraryElement library1 in libraries1) {
-    LibraryElement library2 =
-        deserializer.lookupLibrary(library1.canonicalUri);
+    LibraryElement library2 = deserializer.lookupLibrary(library1.canonicalUri);
     if (library2 == null) {
       throw new ArgumentError('No library ${library1.canonicalUri} found.');
     }
@@ -170,8 +166,7 @@ void testSerialization(
 /// Check the equivalence of [library1] and [library2] and their content.
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-checkLibraryContent(
-    Object object1, object2, String property,
+checkLibraryContent(Object object1, object2, String property,
     LibraryElement library1, LibraryElement library2) {
   checkElementProperties(object1, object2, property, library1, library2);
 }
@@ -179,8 +174,7 @@ checkLibraryContent(
 /// Check the equivalence of [element1] and [element2] and their properties.
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-checkElementProperties(
-    Object object1, object2, String property,
+checkElementProperties(Object object1, object2, String property,
     Element element1, Element element2) {
   currentCheck =
       new Check(currentCheck, object1, object2, property, element1, element2);
@@ -189,8 +183,8 @@ checkElementProperties(
 }
 
 /// Checks the equivalence of [constructor1] and [constructor2].
-void constantConstructorEquivalence(ConstantConstructor constructor1,
-                                    ConstantConstructor constructor2) {
+void constantConstructorEquivalence(
+    ConstantConstructor constructor1, ConstantConstructor constructor2) {
   const ConstantConstructorEquivalence().visit(constructor1, constructor2);
 }
 
@@ -200,32 +194,27 @@ class ConstantConstructorEquivalence
   const ConstantConstructorEquivalence();
 
   @override
-  void visit(ConstantConstructor constructor1,
-             ConstantConstructor constructor2) {
+  void visit(
+      ConstantConstructor constructor1, ConstantConstructor constructor2) {
     if (identical(constructor1, constructor2)) return;
-    check(constructor1, constructor2, 'kind',
-          constructor1.kind, constructor2.kind);
+    check(constructor1, constructor2, 'kind', constructor1.kind,
+        constructor2.kind);
     constructor1.accept(this, constructor2);
   }
 
   @override
-  visitGenerative(
-      GenerativeConstantConstructor constructor1,
+  visitGenerative(GenerativeConstantConstructor constructor1,
       GenerativeConstantConstructor constructor2) {
-    checkTypes(
-        constructor1, constructor2, 'type',
-        constructor1.type, constructor2.type);
+    checkTypes(constructor1, constructor2, 'type', constructor1.type,
+        constructor2.type);
     check(constructor1, constructor2, 'defaultValues.length',
-          constructor1.defaultValues.length,
-          constructor2.defaultValues.length);
+        constructor1.defaultValues.length, constructor2.defaultValues.length);
     constructor1.defaultValues.forEach((k, v) {
-      checkConstants(
-          constructor1, constructor2, 'defaultValue[$k]',
-          v, constructor2.defaultValues[k]);
+      checkConstants(constructor1, constructor2, 'defaultValue[$k]', v,
+          constructor2.defaultValues[k]);
     });
     check(constructor1, constructor2, 'fieldMap.length',
-          constructor1.fieldMap.length,
-          constructor2.fieldMap.length);
+        constructor1.fieldMap.length, constructor2.fieldMap.length);
     constructor1.fieldMap.forEach((k1, v1) {
       bool matched = false;
       constructor2.fieldMap.forEach((k2, v2) {
@@ -243,17 +232,20 @@ class ConstantConstructorEquivalence
       }
     });
     checkConstants(
-        constructor1, constructor2, 'superConstructorInvocation',
+        constructor1,
+        constructor2,
+        'superConstructorInvocation',
         constructor1.superConstructorInvocation,
         constructor2.superConstructorInvocation);
   }
 
   @override
-  visitRedirectingFactory(
-      RedirectingFactoryConstantConstructor constructor1,
+  visitRedirectingFactory(RedirectingFactoryConstantConstructor constructor1,
       RedirectingFactoryConstantConstructor constructor2) {
     checkConstants(
-        constructor1, constructor2, 'targetConstructorInvocation',
+        constructor1,
+        constructor2,
+        'targetConstructorInvocation',
         constructor1.targetConstructorInvocation,
         constructor2.targetConstructorInvocation);
   }
@@ -263,15 +255,15 @@ class ConstantConstructorEquivalence
       RedirectingGenerativeConstantConstructor constructor1,
       RedirectingGenerativeConstantConstructor constructor2) {
     check(constructor1, constructor2, 'defaultValues.length',
-          constructor1.defaultValues.length,
-          constructor2.defaultValues.length);
+        constructor1.defaultValues.length, constructor2.defaultValues.length);
     constructor1.defaultValues.forEach((k, v) {
-      checkConstants(
-          constructor1, constructor2, 'defaultValue[$k]',
-          v, constructor2.defaultValues[k]);
+      checkConstants(constructor1, constructor2, 'defaultValue[$k]', v,
+          constructor2.defaultValues[k]);
     });
     checkConstants(
-        constructor1, constructor2, 'thisConstructorInvocation',
+        constructor1,
+        constructor2,
+        'thisConstructorInvocation',
         constructor1.thisConstructorInvocation,
         constructor2.thisConstructorInvocation);
   }
@@ -281,9 +273,9 @@ class ConstantConstructorEquivalence
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 checkElementLists(Object object1, Object object2, String property,
-                  Iterable<Element> list1, Iterable<Element> list2) {
-  checkListEquivalence(object1, object2, property,
-                  list1, list2, checkElementProperties);
+    Iterable<Element> list1, Iterable<Element> list2) {
+  checkListEquivalence(
+      object1, object2, property, list1, list2, checkElementProperties);
 }
 
 /// Check the equivalence of the two metadata annotations, [metadata1] and
@@ -292,8 +284,8 @@ checkElementLists(Object object1, Object object2, String property,
 /// Uses [object1], [object2] and [property] to provide context for failures.
 checkMetadata(Object object1, Object object2, String property,
     MetadataAnnotation metadata1, MetadataAnnotation metadata2) {
-  check(object1, object2, property,
-      metadata1, metadata2, areMetadataAnnotationsEquivalent);
+  check(object1, object2, property, metadata1, metadata2,
+      areMetadataAnnotationsEquivalent);
 }
 
 /// Visitor that checks for equivalence of [Element] properties.
@@ -310,24 +302,20 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     if (element1 == element2) return;
     check(element1, element2, 'kind', element1.kind, element2.kind);
     element1.accept(this, element2);
-    check(element1, element2, 'isSynthesized',
-        element1.isSynthesized, element2.isSynthesized);
-    check(element1, element2, 'isLocal',
-        element1.isLocal, element2.isLocal);
-    check(element1, element2, 'isFinal',
-        element1.isFinal, element2.isFinal);
-    check(element1, element2, 'isConst',
-        element1.isConst, element2.isConst);
-    check(element1, element2, 'isAbstract',
-        element1.isAbstract, element2.isAbstract);
-    check(element1, element2, 'isStatic',
-        element1.isStatic, element2.isStatic);
-    check(element1, element2, 'isTopLevel',
-        element1.isTopLevel, element2.isTopLevel);
-    check(element1, element2, 'isClassMember',
-        element1.isClassMember, element2.isClassMember);
-    check(element1, element2, 'isInstanceMember',
-        element1.isInstanceMember, element2.isInstanceMember);
+    check(element1, element2, 'isSynthesized', element1.isSynthesized,
+        element2.isSynthesized);
+    check(element1, element2, 'isLocal', element1.isLocal, element2.isLocal);
+    check(element1, element2, 'isFinal', element1.isFinal, element2.isFinal);
+    check(element1, element2, 'isConst', element1.isConst, element2.isConst);
+    check(element1, element2, 'isAbstract', element1.isAbstract,
+        element2.isAbstract);
+    check(element1, element2, 'isStatic', element1.isStatic, element2.isStatic);
+    check(element1, element2, 'isTopLevel', element1.isTopLevel,
+        element2.isTopLevel);
+    check(element1, element2, 'isClassMember', element1.isClassMember,
+        element2.isClassMember);
+    check(element1, element2, 'isInstanceMember', element1.isInstanceMember,
+        element2.isInstanceMember);
     List<MetadataAnnotation> metadata1 = <MetadataAnnotation>[];
     metadata1.addAll(element1.metadata);
     if (element1.isPatched) {
@@ -338,8 +326,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     if (element2.isPatched) {
       metadata2.addAll(element2.implementation.metadata);
     }
-    checkListEquivalence(element1, element2, 'metadata',
-        metadata1, metadata2, checkMetadata);
+    checkListEquivalence(
+        element1, element2, 'metadata', metadata1, metadata2, checkMetadata);
   }
 
   @override
@@ -351,18 +339,22 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   void visitLibraryElement(LibraryElement element1, LibraryElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
     check(element1, element2, 'name', element1.name, element2.name);
-    check(element1, element2, 'libraryName',
-          element1.libraryName, element2.libraryName);
+    check(element1, element2, 'libraryName', element1.libraryName,
+        element2.libraryName);
     visitMembers(element1, element2);
     visit(element1.entryCompilationUnit, element2.entryCompilationUnit);
 
     checkElementLists(
-        element1, element2, 'compilationUnits',
+        element1,
+        element2,
+        'compilationUnits',
         LibrarySerializer.getCompilationUnits(element1),
         LibrarySerializer.getCompilationUnits(element2));
 
     checkElementLists(
-        element1, element2, 'imports',
+        element1,
+        element2,
+        'imports',
         LibrarySerializer.getImports(element1),
         LibrarySerializer.getImports(element2));
     checkElementLists(
@@ -374,7 +366,9 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'importScope', imported1, imported2);
 
     checkElementListIdentities(
-        element1, element2, 'exportScope',
+        element1,
+        element2,
+        'exportScope',
         LibrarySerializer.getExportedElements(element1),
         LibrarySerializer.getExportedElements(element2));
 
@@ -383,27 +377,22 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     }
   }
 
-  void checkImportsFor(Element element1, Element element2,
-      Element import1, Element import2) {
+  void checkImportsFor(
+      Element element1, Element element2, Element import1, Element import2) {
     List<ImportElement> imports1 = element1.library.getImportsFor(import1);
     List<ImportElement> imports2 = element2.library.getImportsFor(import2);
-    checkElementListIdentities(
-        element1, element2, 'importsFor($import1/$import2)',
-        imports1, imports2);
+    checkElementListIdentities(element1, element2,
+        'importsFor($import1/$import2)', imports1, imports2);
   }
 
   @override
-  void visitCompilationUnitElement(CompilationUnitElement element1,
-                                   CompilationUnitElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
+  void visitCompilationUnitElement(
+      CompilationUnitElement element1, CompilationUnitElement element2) {
+    check(element1, element2, 'name', element1.name, element2.name);
     checkElementIdentities(
-        element1, element2, 'library',
-        element1.library, element2.library);
-    check(element1, element2,
-          'script.resourceUri',
-          element1.script.resourceUri, element2.script.resourceUri);
+        element1, element2, 'library', element1.library, element2.library);
+    check(element1, element2, 'script.resourceUri', element1.script.resourceUri,
+        element2.script.resourceUri);
     List<Element> members1 = <Element>[];
     List<Element> members2 = <Element>[];
     element1.forEachLocalMember((Element member) {
@@ -416,8 +405,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'localMembers', members1, members2);
   }
 
-  void visitMembers(ScopeContainerElement element1,
-                    ScopeContainerElement element2) {
+  void visitMembers(
+      ScopeContainerElement element1, ScopeContainerElement element2) {
     Set<String> names = new Set<String>();
     Iterable<Element> members1 = element1.isLibrary
         ? LibrarySerializer.getMembers(element1)
@@ -458,8 +447,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           throw message;
         }
       }
-      currentCheck = new Check(currentCheck, element1, element2,
-          'member:$name', member1, member2);
+      currentCheck = new Check(
+          currentCheck, element1, element2, 'member:$name', member1, member2);
       visit(member1, member2);
       currentCheck = currentCheck.parent;
     }
@@ -468,99 +457,81 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   @override
   void visitClassElement(ClassElement element1, ClassElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
-    check(element1, element2, 'name',
-        element1.name, element2.name);
+    check(element1, element2, 'name', element1.name, element2.name);
     if (!element1.isUnnamedMixinApplication) {
-      check(element1, element2, 'sourcePosition',
-          element1.sourcePosition, element2.sourcePosition);
+      check(element1, element2, 'sourcePosition', element1.sourcePosition,
+          element2.sourcePosition);
     } else {
       check(element1, element2, 'sourcePosition.uri',
           element1.sourcePosition.uri, element2.sourcePosition.uri);
       MixinApplicationElement mixin1 = element1;
       MixinApplicationElement mixin2 = element2;
-      checkElementIdentities(mixin1, mixin2, 'subclass',
-          mixin1.subclass, mixin2.subclass);
-      checkTypes(mixin1, mixin2, 'mixinType',
-          mixin1.mixinType, mixin2.mixinType);
+      checkElementIdentities(
+          mixin1, mixin2, 'subclass', mixin1.subclass, mixin2.subclass);
+      checkTypes(
+          mixin1, mixin2, 'mixinType', mixin1.mixinType, mixin2.mixinType);
     }
     checkElementIdentities(
-        element1, element2, 'library',
-        element1.library, element2.library);
-    checkElementIdentities(
-        element1, element2, 'compilationUnit',
+        element1, element2, 'library', element1.library, element2.library);
+    checkElementIdentities(element1, element2, 'compilationUnit',
         element1.compilationUnit, element2.compilationUnit);
-    checkTypeLists(
-        element1, element2, 'typeVariables',
-        element1.typeVariables, element2.typeVariables);
+    checkTypeLists(element1, element2, 'typeVariables', element1.typeVariables,
+        element2.typeVariables);
     checkTypes(
-        element1, element2, 'thisType',
-        element1.thisType, element2.thisType);
+        element1, element2, 'thisType', element1.thisType, element2.thisType);
     checkTypes(
-        element1, element2, 'rawType',
-        element1.rawType, element2.rawType);
-    check(element1, element2, 'isObject',
-        element1.isObject, element2.isObject);
-    checkTypeLists(element1, element2, 'typeVariables',
-        element1.typeVariables, element2.typeVariables);
-    check(element1, element2, 'isAbstract',
-        element1.isAbstract, element2.isAbstract);
+        element1, element2, 'rawType', element1.rawType, element2.rawType);
+    check(element1, element2, 'isObject', element1.isObject, element2.isObject);
+    checkTypeLists(element1, element2, 'typeVariables', element1.typeVariables,
+        element2.typeVariables);
+    check(element1, element2, 'isAbstract', element1.isAbstract,
+        element2.isAbstract);
     check(element1, element2, 'isUnnamedMixinApplication',
         element1.isUnnamedMixinApplication, element2.isUnnamedMixinApplication);
-    check(element1, element2, 'isProxy',
-        element1.isProxy, element2.isProxy);
-    check(element1, element2, 'isInjected',
-        element1.isInjected, element2.isInjected);
-    check(element1, element2, 'isEnumClass',
-        element1.isEnumClass, element2.isEnumClass);
+    check(element1, element2, 'isProxy', element1.isProxy, element2.isProxy);
+    check(element1, element2, 'isInjected', element1.isInjected,
+        element2.isInjected);
+    check(element1, element2, 'isEnumClass', element1.isEnumClass,
+        element2.isEnumClass);
     if (element1.isEnumClass) {
       EnumClassElement enum1 = element1;
       EnumClassElement enum2 = element2;
-      checkElementLists(enum1, enum2, 'enumValues',
-          enum1.enumValues, enum2.enumValues);
+      checkElementLists(
+          enum1, enum2, 'enumValues', enum1.enumValues, enum2.enumValues);
     }
     if (!element1.isObject) {
-      checkTypes(element1, element2, 'supertype',
-          element1.supertype, element2.supertype);
+      checkTypes(element1, element2, 'supertype', element1.supertype,
+          element2.supertype);
     }
-    check(element1, element2, 'hierarchyDepth',
-        element1.hierarchyDepth, element2.hierarchyDepth);
-    checkTypeLists(
-        element1, element2, 'allSupertypes',
-        element1.allSupertypes.toList(),
-        element2.allSupertypes.toList());
+    check(element1, element2, 'hierarchyDepth', element1.hierarchyDepth,
+        element2.hierarchyDepth);
+    checkTypeLists(element1, element2, 'allSupertypes',
+        element1.allSupertypes.toList(), element2.allSupertypes.toList());
     OrderedTypeSet typeSet1 = element1.allSupertypesAndSelf;
     OrderedTypeSet typeSet2 = element2.allSupertypesAndSelf;
-    checkListEquivalence(
-        element1, element2, 'allSupertypes',
-        typeSet1.levelOffsets,
-        typeSet2.levelOffsets,
-        check);
-    check(element1, element2, 'allSupertypesAndSelf.levels',
-        typeSet1.levels, typeSet2.levels);
-    checkTypeLists(
-        element1, element2, 'supertypes',
-        typeSet1.supertypes.toList(),
-        typeSet2.supertypes.toList());
-    checkTypeLists(
-        element1, element2, 'types',
-        typeSet1.types.toList(),
+    checkListEquivalence(element1, element2, 'allSupertypes',
+        typeSet1.levelOffsets, typeSet2.levelOffsets, check);
+    check(element1, element2, 'allSupertypesAndSelf.levels', typeSet1.levels,
+        typeSet2.levels);
+    checkTypeLists(element1, element2, 'supertypes',
+        typeSet1.supertypes.toList(), typeSet2.supertypes.toList());
+    checkTypeLists(element1, element2, 'types', typeSet1.types.toList(),
         typeSet2.types.toList());
 
-    checkTypeLists(
-        element1, element2, 'interfaces',
-        element1.interfaces.toList(),
-        element2.interfaces.toList());
+    checkTypeLists(element1, element2, 'interfaces',
+        element1.interfaces.toList(), element2.interfaces.toList());
 
     List<ConstructorElement> getConstructors(ClassElement cls) {
       return cls.implementation.constructors.map((c) => c.declaration).toList();
     }
 
-    checkElementLists(
-        element1, element2, 'constructors',
-        getConstructors(element1),
-        getConstructors(element2));
+    checkElementLists(element1, element2, 'constructors',
+        getConstructors(element1), getConstructors(element2));
 
-    checkElementIdentities(element1, element2, 'defaultConstructor',
+    checkElementIdentities(
+        element1,
+        element2,
+        'defaultConstructor',
         element1.lookupDefaultConstructor(),
         element2.lookupDefaultConstructor());
 
@@ -569,8 +540,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     ClassElement superclass1 = element1.superclass;
     ClassElement superclass2 = element2.superclass;
     while (superclass1 != null && superclass1.isMixinApplication) {
-      checkElementProperties(element1, element2, 'supermixin',
-          superclass1, superclass2);
+      checkElementProperties(
+          element1, element2, 'supermixin', superclass1, superclass2);
       superclass1 = superclass1.superclass;
       superclass2 = superclass2.superclass;
     }
@@ -579,141 +550,133 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   @override
   void visitFieldElement(FieldElement element1, FieldElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
-    check(element1, element2, 'name',
-          element1.name, element2.name);
-    check(element1, element2, 'sourcePosition',
-          element1.sourcePosition, element2.sourcePosition);
-    checkTypes(
-        element1, element2, 'type',
-        element1.type, element2.type);
+    check(element1, element2, 'name', element1.name, element2.name);
+    check(element1, element2, 'sourcePosition', element1.sourcePosition,
+        element2.sourcePosition);
+    checkTypes(element1, element2, 'type', element1.type, element2.type);
     checkConstants(
-        element1, element2, 'constant',
-        element1.constant, element2.constant);
-    check(element1, element2, 'isTopLevel',
-          element1.isTopLevel, element2.isTopLevel);
-    check(element1, element2, 'isStatic',
-          element1.isStatic, element2.isStatic);
-    check(element1, element2, 'isInstanceMember',
-          element1.isInstanceMember, element2.isInstanceMember);
-    check(element1, element2, 'isInjected',
-        element1.isInjected, element2.isInjected);
+        element1, element2, 'constant', element1.constant, element2.constant);
+    check(element1, element2, 'isTopLevel', element1.isTopLevel,
+        element2.isTopLevel);
+    check(element1, element2, 'isStatic', element1.isStatic, element2.isStatic);
+    check(element1, element2, 'isInstanceMember', element1.isInstanceMember,
+        element2.isInstanceMember);
+    check(element1, element2, 'isInjected', element1.isInjected,
+        element2.isInjected);
 
     checkElementIdentities(
-        element1, element2, 'library',
-        element1.library, element2.library);
-    checkElementIdentities(
-        element1, element2, 'compilationUnit',
+        element1, element2, 'library', element1.library, element2.library);
+    checkElementIdentities(element1, element2, 'compilationUnit',
         element1.compilationUnit, element2.compilationUnit);
-    checkElementIdentities(
-        element1, element2, 'enclosingClass',
+    checkElementIdentities(element1, element2, 'enclosingClass',
         element1.enclosingClass, element2.enclosingClass);
   }
 
   @override
-  void visitFunctionElement(FunctionElement element1,
-                            FunctionElement element2) {
+  void visitFunctionElement(
+      FunctionElement element1, FunctionElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
-    check(element1, element2, 'name',
-          element1.name, element2.name);
-    check(element1, element2, 'sourcePosition',
-          element1.sourcePosition, element2.sourcePosition);
-    checkTypes(
-        element1, element2, 'type',
-        element1.type, element2.type);
-    checkListEquivalence(
-        element1, element2, 'parameters',
-        element1.parameters, element2.parameters,
-        checkElementProperties);
-    check(element1, element2, 'isOperator',
-          element1.isOperator, element2.isOperator);
-    check(
-        element1, element2, 'asyncMarker',
-        element1.asyncMarker,
+    check(element1, element2, 'name', element1.name, element2.name);
+    check(element1, element2, 'sourcePosition', element1.sourcePosition,
+        element2.sourcePosition);
+    checkTypes(element1, element2, 'type', element1.type, element2.type);
+    checkListEquivalence(element1, element2, 'parameters', element1.parameters,
+        element2.parameters, checkElementProperties);
+    check(element1, element2, 'isOperator', element1.isOperator,
+        element2.isOperator);
+    check(element1, element2, 'asyncMarker', element1.asyncMarker,
         element2.asyncMarker);
-    check(element1, element2, 'isInjected',
-        element1.isInjected, element2.isInjected);
+    check(element1, element2, 'isInjected', element1.isInjected,
+        element2.isInjected);
 
     checkElementIdentities(
-        element1, element2, 'library',
-        element1.library, element2.library);
-    checkElementIdentities(
-        element1, element2, 'compilationUnit',
+        element1, element2, 'library', element1.library, element2.library);
+    checkElementIdentities(element1, element2, 'compilationUnit',
         element1.compilationUnit, element2.compilationUnit);
-    checkElementIdentities(
-        element1, element2, 'enclosingClass',
+    checkElementIdentities(element1, element2, 'enclosingClass',
         element1.enclosingClass, element2.enclosingClass);
 
     check(
-        element1, element2, 'functionSignature.type',
+        element1,
+        element2,
+        'functionSignature.type',
         element1.functionSignature.type,
         element2.functionSignature.type,
         areTypesEquivalent);
     checkElementLists(
-        element1, element2, 'functionSignature.requiredParameters',
+        element1,
+        element2,
+        'functionSignature.requiredParameters',
         element1.functionSignature.requiredParameters,
         element2.functionSignature.requiredParameters);
     checkElementLists(
-        element1, element2, 'functionSignature.optionalParameters',
+        element1,
+        element2,
+        'functionSignature.optionalParameters',
         element1.functionSignature.optionalParameters,
         element2.functionSignature.optionalParameters);
     check(
-        element1, element2, 'functionSignature.requiredParameterCount',
+        element1,
+        element2,
+        'functionSignature.requiredParameterCount',
         element1.functionSignature.requiredParameterCount,
         element2.functionSignature.requiredParameterCount);
     check(
-        element1, element2, 'functionSignature.optionalParameterCount',
+        element1,
+        element2,
+        'functionSignature.optionalParameterCount',
         element1.functionSignature.optionalParameterCount,
         element2.functionSignature.optionalParameterCount);
     check(
-        element1, element2, 'functionSignature.optionalParametersAreNamed',
+        element1,
+        element2,
+        'functionSignature.optionalParametersAreNamed',
         element1.functionSignature.optionalParametersAreNamed,
         element2.functionSignature.optionalParametersAreNamed);
     check(
-        element1, element2, 'functionSignature.hasOptionalParameters',
+        element1,
+        element2,
+        'functionSignature.hasOptionalParameters',
         element1.functionSignature.hasOptionalParameters,
         element2.functionSignature.hasOptionalParameters);
     check(
-        element1, element2, 'functionSignature.parameterCount',
+        element1,
+        element2,
+        'functionSignature.parameterCount',
         element1.functionSignature.parameterCount,
         element2.functionSignature.parameterCount);
     checkElementLists(
-        element1, element2, 'functionSignature.orderedOptionalParameters',
+        element1,
+        element2,
+        'functionSignature.orderedOptionalParameters',
         element1.functionSignature.orderedOptionalParameters,
         element2.functionSignature.orderedOptionalParameters);
-    checkTypeLists(element1, element2, 'typeVariables',
-        element1.typeVariables, element2.typeVariables);
+    checkTypeLists(element1, element2, 'typeVariables', element1.typeVariables,
+        element2.typeVariables);
   }
 
   @override
-  void visitConstructorElement(ConstructorElement element1,
-                               ConstructorElement element2) {
+  void visitConstructorElement(
+      ConstructorElement element1, ConstructorElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
-    checkElementIdentities(
-        element1, element2, 'enclosingClass',
+    checkElementIdentities(element1, element2, 'enclosingClass',
         element1.enclosingClass, element2.enclosingClass);
-    check(
-        element1, element2, 'name',
-        element1.name, element2.name);
+    check(element1, element2, 'name', element1.name, element2.name);
     if (!element1.isSynthesized) {
-      check(element1, element2, 'sourcePosition',
-          element1.sourcePosition, element2.sourcePosition);
+      check(element1, element2, 'sourcePosition', element1.sourcePosition,
+          element2.sourcePosition);
     } else {
       check(element1, element2, 'sourcePosition.uri',
           element1.sourcePosition.uri, element2.sourcePosition.uri);
     }
-    checkListEquivalence(
-        element1, element2, 'parameters',
-        element1.parameters, element2.parameters,
-        checkElementProperties);
-    checkTypes(
-        element1, element2, 'type',
-        element1.type, element2.type);
-    check(element1, element2, 'isExternal',
-          element1.isExternal, element2.isExternal);
+    checkListEquivalence(element1, element2, 'parameters', element1.parameters,
+        element2.parameters, checkElementProperties);
+    checkTypes(element1, element2, 'type', element1.type, element2.type);
+    check(element1, element2, 'isExternal', element1.isExternal,
+        element2.isExternal);
     if (element1.isConst && !element1.isExternal) {
       constantConstructorEquivalence(
-          element1.constantConstructor,
-          element2.constantConstructor);
+          element1.constantConstructor, element2.constantConstructor);
     }
     check(element1, element2, 'isRedirectingGenerative',
         element1.isRedirectingGenerative, element2.isRedirectingGenerative);
@@ -722,160 +685,151 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     checkElementIdentities(element1, element2, 'effectiveTarget',
         element1.effectiveTarget, element2.effectiveTarget);
     if (element1.isRedirectingFactory) {
-      checkElementIdentities(element1, element2, 'immediateRedirectionTarget',
+      checkElementIdentities(
+          element1,
+          element2,
+          'immediateRedirectionTarget',
           element1.immediateRedirectionTarget,
           element2.immediateRedirectionTarget);
-      checkElementIdentities(element1, element2, 'redirectionDeferredPrefix',
+      checkElementIdentities(
+          element1,
+          element2,
+          'redirectionDeferredPrefix',
           element1.redirectionDeferredPrefix,
           element2.redirectionDeferredPrefix);
-      check(element1, element2, 'isEffectiveTargetMalformed',
+      check(
+          element1,
+          element2,
+          'isEffectiveTargetMalformed',
           element1.isEffectiveTargetMalformed,
           element2.isEffectiveTargetMalformed);
     }
     checkElementIdentities(element1, element2, 'definingConstructor',
         element1.definingConstructor, element2.definingConstructor);
     check(
-        element1, element2, 'effectiveTargetType',
+        element1,
+        element2,
+        'effectiveTargetType',
         element1.computeEffectiveTargetType(element1.enclosingClass.thisType),
         element2.computeEffectiveTargetType(element2.enclosingClass.thisType),
         areTypesEquivalent);
     check(
-        element1, element2, 'effectiveTargetType.raw',
+        element1,
+        element2,
+        'effectiveTargetType.raw',
         element1.computeEffectiveTargetType(element1.enclosingClass.rawType),
         element2.computeEffectiveTargetType(element2.enclosingClass.rawType),
         areTypesEquivalent);
-    checkElementIdentities(element1, element2, 'immediateRedirectionTarget',
+    checkElementIdentities(
+        element1,
+        element2,
+        'immediateRedirectionTarget',
         element1.immediateRedirectionTarget,
         element2.immediateRedirectionTarget);
     checkElementIdentities(element1, element2, 'redirectionDeferredPrefix',
         element1.redirectionDeferredPrefix, element2.redirectionDeferredPrefix);
-    check(element1, element2, 'isInjected',
-        element1.isInjected, element2.isInjected);
+    check(element1, element2, 'isInjected', element1.isInjected,
+        element2.isInjected);
   }
 
   @override
-  void visitAbstractFieldElement(AbstractFieldElement element1,
-                                 AbstractFieldElement element2) {
+  void visitAbstractFieldElement(
+      AbstractFieldElement element1, AbstractFieldElement element2) {
     visit(element1.getter, element2.getter);
     visit(element1.setter, element2.setter);
   }
 
   @override
-  void visitTypeVariableElement(TypeVariableElement element1,
-                                TypeVariableElement element2) {
+  void visitTypeVariableElement(
+      TypeVariableElement element1, TypeVariableElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
     check(element1, element2, 'name', element1.name, element2.name);
-    check(element1, element2, 'sourcePosition',
-          element1.sourcePosition, element2.sourcePosition);
+    check(element1, element2, 'sourcePosition', element1.sourcePosition,
+        element2.sourcePosition);
     check(element1, element2, 'index', element1.index, element2.index);
-    checkTypes(
-        element1, element2, 'type',
-        element1.type, element2.type);
-    checkTypes(
-        element1, element2, 'bound',
-        element1.bound, element2.bound);
+    checkTypes(element1, element2, 'type', element1.type, element2.type);
+    checkTypes(element1, element2, 'bound', element1.bound, element2.bound);
   }
 
   @override
-  void visitTypedefElement(TypedefElement element1,
-                           TypedefElement element2) {
+  void visitTypedefElement(TypedefElement element1, TypedefElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
     check(element1, element2, 'name', element1.name, element2.name);
-    check(element1, element2, 'sourcePosition',
-          element1.sourcePosition, element2.sourcePosition);
-    checkTypes(
-        element1, element2, 'alias',
-        element1.alias, element2.alias);
-    checkTypeLists(
-        element1, element2, 'typeVariables',
-        element1.typeVariables, element2.typeVariables);
+    check(element1, element2, 'sourcePosition', element1.sourcePosition,
+        element2.sourcePosition);
+    checkTypes(element1, element2, 'alias', element1.alias, element2.alias);
+    checkTypeLists(element1, element2, 'typeVariables', element1.typeVariables,
+        element2.typeVariables);
     checkElementIdentities(
-        element1, element2, 'library',
-        element1.library, element2.library);
-    checkElementIdentities(
-        element1, element2, 'compilationUnit',
+        element1, element2, 'library', element1.library, element2.library);
+    checkElementIdentities(element1, element2, 'compilationUnit',
         element1.compilationUnit, element2.compilationUnit);
     // TODO(johnniwinther): Check the equivalence of typedef parameters.
   }
 
   @override
-  void visitParameterElement(ParameterElement element1,
-                             ParameterElement element2) {
+  void visitParameterElement(
+      ParameterElement element1, ParameterElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
-    checkElementIdentities(
-        element1, element2, 'functionDeclaration',
+    checkElementIdentities(element1, element2, 'functionDeclaration',
         element1.functionDeclaration, element2.functionDeclaration);
     check(element1, element2, 'name', element1.name, element2.name);
-    check(element1, element2, 'sourcePosition',
-          element1.sourcePosition, element2.sourcePosition);
-    checkTypes(
-        element1, element2, 'type',
-        element1.type, element2.type);
-    check(
-        element1, element2, 'isOptional',
-        element1.isOptional, element2.isOptional);
-    check(
-        element1, element2, 'isNamed',
-        element1.isNamed, element2.isNamed);
+    check(element1, element2, 'sourcePosition', element1.sourcePosition,
+        element2.sourcePosition);
+    checkTypes(element1, element2, 'type', element1.type, element2.type);
+    check(element1, element2, 'isOptional', element1.isOptional,
+        element2.isOptional);
+    check(element1, element2, 'isNamed', element1.isNamed, element2.isNamed);
     check(element1, element2, 'name', element1.name, element2.name);
     if (element1.isOptional) {
       checkConstants(
-          element1, element2, 'constant',
-          element1.constant, element2.constant);
+          element1, element2, 'constant', element1.constant, element2.constant);
     }
-    checkElementIdentities(
-        element1, element2, 'compilationUnit',
+    checkElementIdentities(element1, element2, 'compilationUnit',
         element1.compilationUnit, element2.compilationUnit);
   }
 
   @override
-  void visitFieldParameterElement(InitializingFormalElement element1,
-                                  InitializingFormalElement element2) {
+  void visitFieldParameterElement(
+      InitializingFormalElement element1, InitializingFormalElement element2) {
     visitParameterElement(element1, element2);
-    checkElementIdentities(
-        element1, element2, 'fieldElement',
+    checkElementIdentities(element1, element2, 'fieldElement',
         element1.fieldElement, element2.fieldElement);
   }
 
   @override
   void visitImportElement(ImportElement element1, ImportElement element2) {
     check(element1, element2, 'uri', element1.uri, element2.uri);
-    check(
-        element1, element2, 'isDeferred',
-        element1.isDeferred, element2.isDeferred);
+    check(element1, element2, 'isDeferred', element1.isDeferred,
+        element2.isDeferred);
     checkElementProperties(
-        element1, element2, 'prefix',
-        element1.prefix, element2.prefix);
-    checkElementIdentities(
-        element1, element2, 'importedLibrary',
+        element1, element2, 'prefix', element1.prefix, element2.prefix);
+    checkElementIdentities(element1, element2, 'importedLibrary',
         element1.importedLibrary, element2.importedLibrary);
   }
 
   @override
   void visitExportElement(ExportElement element1, ExportElement element2) {
     check(element1, element2, 'uri', element1.uri, element2.uri);
-    checkElementIdentities(
-        element1, element2, 'importedLibrary',
+    checkElementIdentities(element1, element2, 'importedLibrary',
         element1.exportedLibrary, element2.exportedLibrary);
   }
 
   @override
   void visitPrefixElement(PrefixElement element1, PrefixElement element2) {
-    check(
-        element1, element2, 'isDeferred',
-        element1.isDeferred, element2.isDeferred);
-    checkElementIdentities(
-        element1, element2, 'deferredImport',
+    check(element1, element2, 'isDeferred', element1.isDeferred,
+        element2.isDeferred);
+    checkElementIdentities(element1, element2, 'deferredImport',
         element1.deferredImport, element2.deferredImport);
     if (element1.isDeferred) {
-      checkElementProperties(element1, element2,
-          'loadLibrary', element1.loadLibrary, element2.loadLibrary);
+      checkElementProperties(element1, element2, 'loadLibrary',
+          element1.loadLibrary, element2.loadLibrary);
     }
     element1.forEachLocalMember((Element member1) {
       String name = member1.name;
       Element member2 = element2.lookupLocalMember(name);
-      checkElementIdentities(element1, element2, 'lookupLocalMember:$name',
-          member1, member2);
+      checkElementIdentities(
+          element1, element2, 'lookupLocalMember:$name', member1, member2);
       checkImportsFor(element1, element2, member1, member2);
     });
   }
@@ -883,7 +837,7 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   @override
   void visitErroneousElement(
       ErroneousElement element1, ErroneousElement element2) {
-    check(element1, element2, 'messageKind',
-        element1.messageKind, element2.messageKind);
+    check(element1, element2, 'messageKind', element1.messageKind,
+        element2.messageKind);
   }
 }

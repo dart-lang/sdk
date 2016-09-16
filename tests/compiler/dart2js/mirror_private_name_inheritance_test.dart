@@ -9,7 +9,7 @@ import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart' show runCompiler;
 import 'compiler_helper.dart' show findElement;
 
-const MEMORY_SOURCE_FILES = const <String, String> {
+const MEMORY_SOURCE_FILES = const <String, String>{
   'main.dart': """
 @MirrorsUsed(targets: 'Super')
 import 'dart:mirrors';
@@ -40,7 +40,8 @@ void main() {
     var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     var compiler = result.compiler;
 
-    var superclass = findElement(compiler, 'Super', Uri.parse('memory:lib.dart'));
+    var superclass =
+        findElement(compiler, 'Super', Uri.parse('memory:lib.dart'));
     var subclass = findElement(compiler, 'Subclass');
     var oracle = compiler.backend.isAccessibleByReflection;
     print(superclass.lookupMember('_private'));

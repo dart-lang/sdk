@@ -21,9 +21,9 @@ foo() => 1;
 bar() => () => 2;
 
 main() {
-  bar();  // Call bar, so it is included in the program.
+  bar(); // Call bar, so it is included in the program.
 
   var lm = currentMirrorSystem().findLibrary(const Symbol('test'));
   Expect.equals(1, lm.invoke(const Symbol('foo'), []).reflectee);
-  Expect.throws(() => lm.invoke(const Symbol('bar'),  []));
+  Expect.throws(() => lm.invoke(const Symbol('bar'), []));
 }

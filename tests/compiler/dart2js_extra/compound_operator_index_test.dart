@@ -43,6 +43,7 @@ B getB(trace) {
   trace.add(-1);
   return new B(trace);
 }
+
 int getIndex(trace) {
   trace.add(-2);
   return 42;

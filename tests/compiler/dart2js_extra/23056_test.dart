@@ -21,7 +21,8 @@ class A extends Object with M {
   bool get foo => super.foo;
 }
 
-@AssumeDynamic() @NoInline()
+@AssumeDynamic()
+@NoInline()
 bool hide(bool x) => x;
 
 main() {

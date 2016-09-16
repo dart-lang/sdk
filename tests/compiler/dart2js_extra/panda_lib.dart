@@ -5,6 +5,5 @@
 library panda_lib;
 
 class Panda {
-  Panda() {
-  }
+  Panda() {}
 }

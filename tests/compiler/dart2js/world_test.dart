@@ -8,8 +8,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/src/elements/elements.dart'
-       show Element, ClassElement;
+import 'package:compiler/src/elements/elements.dart' show Element, ClassElement;
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/world.dart' show ClassWorld;
 
@@ -21,7 +20,8 @@ void main() {
 }
 
 testClassSets() async {
-  var env = await TypeEnvironment.create(r"""
+  var env = await TypeEnvironment.create(
+      r"""
       class A implements X {}
       class B {}
       class C_Super extends A {}
@@ -56,21 +56,20 @@ testClassSets() async {
   ClassElement G = env.getElement("G");
   ClassElement X = env.getElement("X");
 
-  void checkClasses(
-      String property,
-      ClassElement cls,
-      Iterable<ClassElement> foundClasses,
-      List<ClassElement> expectedClasses,
+  void checkClasses(String property, ClassElement cls,
+      Iterable<ClassElement> foundClasses, List<ClassElement> expectedClasses,
       {bool exact: true}) {
-
     for (ClassElement expectedClass in expectedClasses) {
-      Expect.isTrue(foundClasses.contains(expectedClass),
+      Expect.isTrue(
+          foundClasses.contains(expectedClass),
           "Expect $expectedClass in '$property' on $cls. "
           "Found:\n ${foundClasses.join('\n ')}\n"
           "${env.compiler.world.dump(cls)}");
     }
     if (exact) {
-      Expect.equals(expectedClasses.length, foundClasses.length,
+      Expect.equals(
+          expectedClasses.length,
+          foundClasses.length,
           "Unexpected classes "
           "${foundClasses.where((c) => !expectedClasses.contains(c))} "
           "in '$property' on $cls.\n"
@@ -78,14 +77,11 @@ testClassSets() async {
     }
   }
 
-  void check(
-      String property,
-      ClassElement cls,
-      Iterable<ClassElement> foundClasses,
-      List<ClassElement> expectedClasses,
+  void check(String property, ClassElement cls,
+      Iterable<ClassElement> foundClasses, List<ClassElement> expectedClasses,
       {bool exact: true,
-       void forEach(ClassElement cls, ForEachFunction f),
-       int getCount(ClassElement cls)}) {
+      void forEach(ClassElement cls, ForEachFunction f),
+      int getCount(ClassElement cls)}) {
     checkClasses(property, cls, foundClasses, expectedClasses, exact: exact);
 
     if (forEach != null) {
@@ -93,69 +89,49 @@ testClassSets() async {
       forEach(cls, (ClassElement c) {
         visited.add(c);
       });
-      checkClasses(
-          'forEach($property)', cls, visited, expectedClasses, exact: exact);
+      checkClasses('forEach($property)', cls, visited, expectedClasses,
+          exact: exact);
     }
 
     if (getCount != null && exact) {
       int count = getCount(cls);
-      Expect.equals(expectedClasses.length, count,
+      Expect.equals(
+          expectedClasses.length,
+          count,
           "Unexpected class count in '$property' on $cls.\n"
           "${env.compiler.world.dump(cls)}");
     }
-
   }
 
-  void testSubclasses(
-      ClassElement cls,
-      List<ClassElement> expectedClasses,
+  void testSubclasses(ClassElement cls, List<ClassElement> expectedClasses,
       {bool exact: true}) {
-    check(
-      'subclassesOf',
-      cls,
-      classWorld.subclassesOf(cls),
-      expectedClasses,
-      exact: exact);
+    check('subclassesOf', cls, classWorld.subclassesOf(cls), expectedClasses,
+        exact: exact);
   }
 
   void testStrictSubclasses(
-      ClassElement cls,
-      List<ClassElement> expectedClasses,
+      ClassElement cls, List<ClassElement> expectedClasses,
       {bool exact: true}) {
-    check(
-      'strictSubclassesOf',
-      cls,
-      classWorld.strictSubclassesOf(cls),
-      expectedClasses,
-      exact: exact,
-      forEach: classWorld.forEachStrictSubclassOf,
-      getCount: classWorld.strictSubclassCount);
+    check('strictSubclassesOf', cls, classWorld.strictSubclassesOf(cls),
+        expectedClasses,
+        exact: exact,
+        forEach: classWorld.forEachStrictSubclassOf,
+        getCount: classWorld.strictSubclassCount);
   }
 
-  void testStrictSubtypes(
-      ClassElement cls,
-      List<ClassElement> expectedClasses,
+  void testStrictSubtypes(ClassElement cls, List<ClassElement> expectedClasses,
       {bool exact: true}) {
-    check(
-      'strictSubtypesOf',
-      cls,
-      classWorld.strictSubtypesOf(cls),
-      expectedClasses,
-      exact: exact,
-      forEach: classWorld.forEachStrictSubtypeOf,
-      getCount: classWorld.strictSubtypeCount);
+    check('strictSubtypesOf', cls, classWorld.strictSubtypesOf(cls),
+        expectedClasses,
+        exact: exact,
+        forEach: classWorld.forEachStrictSubtypeOf,
+        getCount: classWorld.strictSubtypeCount);
   }
 
-  void testMixinUses(
-      ClassElement cls,
-      List<ClassElement> expectedClasses,
+  void testMixinUses(ClassElement cls, List<ClassElement> expectedClasses,
       {bool exact: true}) {
-    check(
-      'mixinUsesOf',
-      cls,
-      classWorld.mixinUsesOf(cls),
-      expectedClasses,
-      exact: exact);
+    check('mixinUsesOf', cls, classWorld.mixinUsesOf(cls), expectedClasses,
+        exact: exact);
   }
 
   testSubclasses(Object_, [A, B, C, D, E, F, G], exact: false);
@@ -200,7 +176,8 @@ testClassSets() async {
 }
 
 testProperties() async {
-  var env = await TypeEnvironment.create(r"""
+  var env = await TypeEnvironment.create(
+      r"""
       class A {}
       class A1 extends A {}
       class A2 implements A {}
@@ -259,9 +236,7 @@ testProperties() async {
       useMockCompiler: false);
   ClassWorld classWorld = env.compiler.world;
 
-  check(String name,
-      {bool hasStrictSubtype,
-       bool hasOnlySubclasses}) {
+  check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
     ClassElement cls = env.getElement(name);
     Expect.equals(hasStrictSubtype, classWorld.hasAnyStrictSubtype(cls),
         "Unexpected hasAnyStrictSubtype property on $cls.");

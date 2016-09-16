@@ -6,13 +6,13 @@
 // into the compiler.
 
 library sha1_test;
+
 import 'package:compiler/src/hash/sha1.dart';
 
 import "package:unittest/unittest.dart";
 
 part 'sha1_long_test_vectors.dart';
 part 'sha1_short_test_vectors.dart';
-
 
 void main() {
   test('expected values', _testExpectedValues);

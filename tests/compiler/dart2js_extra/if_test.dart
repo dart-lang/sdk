@@ -39,8 +39,7 @@ int if4() {
 int if5() {
   if (true) {
     if (false) return 42;
-  } else {
-  }
+  } else {}
   return 499;
 }
 

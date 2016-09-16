@@ -33,8 +33,7 @@ main() {
         Expect.fail('"$message" should contain "$tag"');
       }
       // When minified we will accept quoted names up to 3 characters.
-      Expect.isTrue(
-          message.contains(new RegExp("'..?.?'")),
+      Expect.isTrue(message.contains(new RegExp("'..?.?'")),
           '"$message" should contain minified name');
     }
   }

@@ -22,4 +22,3 @@ main() {
   var m = f();
   Expect.equals(m(66).foo(), "G(66).foo");
 }
-

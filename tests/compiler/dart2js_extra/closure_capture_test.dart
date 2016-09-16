@@ -6,14 +6,18 @@ import "package:expect/expect.dart";
 
 closure0() {
   var x = 499;
-  var f = () { return x; };
+  var f = () {
+    return x;
+  };
   Expect.equals(499, f());
 }
 
 class A {
   closure1() {
     var x = 499;
-    var f = () { return x; };
+    var f = () {
+      return x;
+    };
     Expect.equals(499, f());
   }
 }
@@ -24,12 +28,16 @@ applyFun(f) {
 
 closure2() {
   var x = 499;
-  Expect.equals(499, applyFun(() { return x; }));
+  Expect.equals(499, applyFun(() {
+    return x;
+  }));
 }
 
 closure3() {
   var y = 400;
-  var f = (x) { return y + x; };
+  var f = (x) {
+    return y + x;
+  };
   Expect.equals(499, f(99));
 }
 
@@ -39,12 +47,16 @@ applyFun2(f) {
 
 closure4() {
   var z = 9;
-  Expect.equals(499, applyFun2((x, y) { return x + y + z; }));
+  Expect.equals(499, applyFun2((x, y) {
+    return x + y + z;
+  }));
 }
 
 closure5() {
   var x = 498;
-  var f = () { return x; };
+  var f = () {
+    return x;
+  };
   x++;
   Expect.equals(499, f());
 }
@@ -52,7 +64,9 @@ closure5() {
 class A2 {
   closure6() {
     var x = 498;
-    var f = () { return x; };
+    var f = () {
+      return x;
+    };
     x++;
     Expect.equals(499, f());
   }
@@ -60,21 +74,27 @@ class A2 {
 
 closure7() {
   var x = 498;
-  var f = () { return x; };
+  var f = () {
+    return x;
+  };
   x++;
   Expect.equals(499, applyFun(f));
 }
 
 closure8() {
   var y = 399;
-  var f = (x) { return y + x; };
+  var f = (x) {
+    return y + x;
+  };
   y++;
   Expect.equals(499, f(99));
 }
 
 closure9() {
   var z = 9;
-  Expect.equals(499, applyFun2((x, y) { return x + y + z; }));
+  Expect.equals(499, applyFun2((x, y) {
+    return x + y + z;
+  }));
 }
 
 main() {

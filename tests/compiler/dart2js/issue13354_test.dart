@@ -29,28 +29,30 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var commonMasks = compiler.commonMasks;
-    var typesInferrer = compiler.globalInference.typesInferrer;
+        var commonMasks = compiler.commonMasks;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkReturn(String name, type) {
-      var element = findElement(compiler, name);
-      Expect.equals(
-          type,
-          simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
-          name);
-    }
+        checkReturn(String name, type) {
+          var element = findElement(compiler, name);
+          Expect.equals(
+              type,
+              simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
+              name);
+        }
 
-    checkReturnInClass(String className, String methodName, type) {
-      var cls = findElement(compiler, className);
-      var element = cls.lookupLocalMember(methodName);
-      Expect.equals(type,
-          simplify(typesInferrer.getReturnTypeOfElement(element), compiler));
-    }
+        checkReturnInClass(String className, String methodName, type) {
+          var cls = findElement(compiler, className);
+          var element = cls.lookupLocalMember(methodName);
+          Expect.equals(
+              type,
+              simplify(
+                  typesInferrer.getReturnTypeOfElement(element), compiler));
+        }
 
-    checkReturn('bar', commonMasks.uint31Type);
-    checkReturn('baz', commonMasks.functionType);
+        checkReturn('bar', commonMasks.uint31Type);
+        checkReturn('baz', commonMasks.functionType);
 
-    checkReturnInClass('A', 'foo', commonMasks.uint31Type);
-    checkReturnInClass('B', 'foo', commonMasks.functionType);
-  }));
+        checkReturnInClass('A', 'foo', commonMasks.uint31Type);
+        checkReturnInClass('B', 'foo', commonMasks.functionType);
+      }));
 }

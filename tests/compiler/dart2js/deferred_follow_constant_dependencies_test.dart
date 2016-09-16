@@ -32,14 +32,16 @@ void main() {
     backend.constants.compiledConstants.forEach(addConstantWithDependendencies);
     for (String stringValue in ["cA", "cB", "cC"]) {
       ConstantValue constant = allConstants.firstWhere((constant) {
-        return constant.isString
-            && constant.primitiveValue.slowToString() == stringValue;
+        return constant.isString &&
+            constant.primitiveValue.slowToString() == stringValue;
       });
       Expect.notEquals(null, outputUnitForConstant(constant),
           "Constant value ${constant.toStructuredText()} has no output unit.");
-      Expect.notEquals(mainOutputUnit, outputUnitForConstant(constant),
+      Expect.notEquals(
+          mainOutputUnit,
+          outputUnitForConstant(constant),
           "Constant value ${constant.toStructuredText()} "
-              "is in the main output unit.");
+          "is in the main output unit.");
     }
   });
 }
@@ -54,17 +56,20 @@ void main() {
 // lib1 and lib2 also import lib4 deferred, but lib1 uses lib4.bar1 and lib2
 // uses lib4.bar2.  So two output units should be created for lib4, one for each
 // import.
-const Map MEMORY_SOURCE_FILES = const {"main.dart": """
+const Map MEMORY_SOURCE_FILES = const {
+  "main.dart": """
 import 'lib.dart' deferred as lib;
 
 void main() {
   print(lib.L);
 }
-""", "lib.dart": """
+""",
+  "lib.dart": """
 class C {
   final a;
   const C(this.a);
 }
 
 const L = const {"cA": const C(const {"cB": "cC"})};
-""",};
+""",
+};

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Regression test for issue 21666 - problems with method that has super calls.
 //
 // Use a method and getter with super calls in various ways.
@@ -12,8 +11,13 @@ import 'package:expect/expect.dart';
 @MirrorsUsed(targets: const [A, B, Object])
 import 'dart:mirrors';
 
-class X { const X(); }
-class Y { const Y(); }
+class X {
+  const X();
+}
+
+class Y {
+  const Y();
+}
 
 typedef fInt(int x);
 typedef fString(String x);

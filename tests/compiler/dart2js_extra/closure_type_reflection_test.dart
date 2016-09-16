@@ -18,5 +18,5 @@ class C {
 
 main() {
   Expect.equals("ClassMirror on 'A'",
-                reflect(new C().foo).function.returnType.toString());
+      reflect(new C().foo).function.returnType.toString());
 }

@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart' show runCompiler, OutputCollector;
 
-const MEMORY_SOURCE_FILES = const <String, String> {
+const MEMORY_SOURCE_FILES = const <String, String>{
   'main.dart': """
 library main;
 

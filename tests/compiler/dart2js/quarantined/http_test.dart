@@ -32,9 +32,9 @@ Future handleRequest(HttpRequest request) {
   final File file = new File(requestPath.toFilePath());
   return file.exists().then((bool found) {
     if (found) {
-      file.openRead()
-          .pipe(request.response)
-          .catchError((e) { _sendNotFound(request.response); });
+      file.openRead().pipe(request.response).catchError((e) {
+        _sendNotFound(request.response);
+      });
     } else {
       _sendNotFound(request.response);
     }
@@ -65,17 +65,17 @@ cleanup() {
 Future testNonHttp() {
   String inFilePath = pathOfData.resolve('http_launch_main.dart').toFilePath();
   List<String> args = [inFilePath, "--out=" + outFilePath];
-  return launchDart2Js(args)
-      .then(check)
-      .then((_) { cleanup(); });
+  return launchDart2Js(args).then(check).then((_) {
+    cleanup();
+  });
 }
 
 Future testHttpMain(String serverUrl) {
   String inFilePath = '$serverUrl/http_launch_main.dart';
   List<String> args = [inFilePath, "--out=" + outFilePath];
-  return launchDart2Js(args)
-      .then(check)
-      .then((_) { cleanup(); });
+  return launchDart2Js(args).then(check).then((_) {
+    cleanup();
+  });
 }
 
 Future testHttpLib(String serverUrl) {
@@ -89,19 +89,23 @@ Future testHttpLib(String serverUrl) {
   return launchDart2Js(args)
       .then(check)
       .whenComplete(file.deleteSync)
-      .then((_) { cleanup(); });
+      .then((_) {
+    cleanup();
+  });
 }
 
 Future testHttpPackage(String serverUrl) {
   String inFilePath =
       pathOfData.resolve('http_launch_main_package.dart').toFilePath();
   String packageRoot = '$serverUrl/packages/';
-  List<String> args = [inFilePath,
-                       "--out=" + outFilePath,
-                       "--package-root=" + packageRoot];
-  return launchDart2Js(args)
-      .then(check)
-      .then((_) { cleanup(); });
+  List<String> args = [
+    inFilePath,
+    "--out=" + outFilePath,
+    "--package-root=" + packageRoot
+  ];
+  return launchDart2Js(args).then(check).then((_) {
+    cleanup();
+  });
 }
 
 Future testBadHttp(String serverUrl) {
@@ -115,7 +119,9 @@ Future testBadHttp(String serverUrl) {
   return launchDart2Js(args)
       .then((pr) => checkNotFound(pr, "not_existing.dart"))
       .whenComplete(file.deleteSync)
-      .then((_) { cleanup(); });
+      .then((_) {
+    cleanup();
+  });
 }
 
 Future testBadHttp2(String serverUrl) {
@@ -123,7 +129,9 @@ Future testBadHttp2(String serverUrl) {
   List<String> args = [inFilePath, "--out=" + outFilePath];
   return launchDart2Js(args)
       .then((processResult) => checkNotFound(processResult, "not_found.dart"))
-      .then((_) { cleanup(); });
+      .then((_) {
+    cleanup();
+  });
 }
 
 serverRunning(HttpServer server, String scheme) {
@@ -135,41 +143,39 @@ serverRunning(HttpServer server, String scheme) {
   asyncStart();
   server.listen(handleRequest);
   return new Future.value()
-       .then((_) => cleanup())  // Make sure we start fresh.
-       .then((_) => testNonHttp())
-       .then((_) => testHttpMain(serverUrl))
-       .then((_) => testHttpLib(serverUrl))
-       .then((_) => testHttpPackage(serverUrl))
-       .then((_) => testBadHttp(serverUrl))
-       .then((_) => testBadHttp2(serverUrl))
-       .whenComplete(() => tempDir.delete(recursive: true))
-       .whenComplete(server.close)
-       .then((_) => asyncEnd());
+      .then((_) => cleanup()) // Make sure we start fresh.
+      .then((_) => testNonHttp())
+      .then((_) => testHttpMain(serverUrl))
+      .then((_) => testHttpLib(serverUrl))
+      .then((_) => testHttpPackage(serverUrl))
+      .then((_) => testBadHttp(serverUrl))
+      .then((_) => testBadHttp2(serverUrl))
+      .whenComplete(() => tempDir.delete(recursive: true))
+      .whenComplete(server.close)
+      .then((_) => asyncEnd());
 }
 
 Future testHttp() {
-  return HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 0)
+  return HttpServer
+      .bind(InternetAddress.LOOPBACK_IP_V4, 0)
       .then((HttpServer server) => serverRunning(server, "http"));
 }
 
 void initializeSSL() {
   Uri pathOfPkcert = pathOfData.resolve('pkcert');
   String testPkcertDatabase = pathOfPkcert.toFilePath();
-  SecureSocket.initialize(database: testPkcertDatabase,
-                          password: 'dartdart');
+  SecureSocket.initialize(database: testPkcertDatabase, password: 'dartdart');
 }
 
 Future testHttps() {
   initializeSSL();
-  return HttpServer.bindSecure(InternetAddress.LOOPBACK_IP_V4,
-                               0,
-                               certificateName: 'localhost_cert')
+  return HttpServer
+      .bindSecure(InternetAddress.LOOPBACK_IP_V4, 0,
+          certificateName: 'localhost_cert')
       .then((HttpServer server) => serverRunning(server, "https"));
 }
 
 main() {
   asyncStart();
-  testHttp()
-    .then((_) => testHttps)
-    .whenComplete(asyncEnd);
+  testHttp().then((_) => testHttps).whenComplete(asyncEnd);
 }

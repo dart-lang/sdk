@@ -37,7 +37,9 @@ class MyIterable<T> extends IterableBase<T> {
 class MyListIterator<T> implements Iterator<T> {
   final List<T> values;
   int index;
-  MyListIterator(List<T> values) : this.values = values, index = -1;
+  MyListIterator(List<T> values)
+      : this.values = values,
+        index = -1;
 
   bool moveNext() => ++index < values.length;
   T get current => (0 <= index && index < values.length) ? values[index] : null;
@@ -48,13 +50,17 @@ void main() {
   testIterator([], new MyIterable([]));
   testIterator([1], [1]);
   testIterator([1], new MyIterable([1]));
-  testIterator([1,2,3], [1,2,3]);
-  testIterator([1,2,3], new MyIterable([1,2,3]));
-  testIterator(["a","b","c"], ["a","b","c"]);
-  testIterator(["a","b","c"], new MyIterable(["a","b","c"]));
+  testIterator([1, 2, 3], [1, 2, 3]);
+  testIterator([1, 2, 3], new MyIterable([1, 2, 3]));
+  testIterator(["a", "b", "c"], ["a", "b", "c"]);
+  testIterator(["a", "b", "c"], new MyIterable(["a", "b", "c"]));
 
   // Several nested for-in's.
-  for (var x in [[["a"]]]) {
+  for (var x in [
+    [
+      ["a"]
+    ]
+  ]) {
     for (var y in x) {
       for (var z in y) {
         Expect.equals("a", z);
@@ -63,7 +69,10 @@ void main() {
   }
 
   // Simultaneous iteration of the same iterable.
-  for (var iterable in [[1,2,3], new MyIterable([1,2,3])]) {
+  for (var iterable in [
+    [1, 2, 3],
+    new MyIterable([1, 2, 3])
+  ]) {
     int result = 0;
     for (var x in iterable) {
       for (var y in iterable) {
@@ -76,7 +85,7 @@ void main() {
   // Using the same variable (showing that the expression is evaluated
   // in the outer scope).
   int result = 0;
-  var x = [1,2,3];
+  var x = [1, 2, 3];
   for (var x in x) {
     result += x;
   }

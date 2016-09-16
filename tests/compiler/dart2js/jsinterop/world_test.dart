@@ -7,8 +7,7 @@ library jsinterop.world_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/src/elements/elements.dart'
-    show Element, ClassElement;
+import 'package:compiler/src/elements/elements.dart' show Element, ClassElement;
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/world.dart';
 import '../type_test_helper.dart';
@@ -22,8 +21,9 @@ void main() {
 testClasses() async {
   test(String mainSource,
       {List<String> directlyInstantiated: const <String>[],
-       List<String> indirectlyInstantiated: const <String>[]}) async {
-    TypeEnvironment env = await TypeEnvironment.create(r"""
+      List<String> indirectlyInstantiated: const <String>[]}) async {
+    TypeEnvironment env = await TypeEnvironment.create(
+        r"""
 @JS()
 class A {
   get foo;
@@ -72,11 +72,13 @@ newC() => new C(foo: 2);
 newD() => new D(foo: 3);
 newE() => new E(4);
 newF() => new F(5);
-""", mainSource: """
+""",
+        mainSource: """
 import 'package:js/js.dart';
 
 $mainSource
-""", useMockCompiler: false);
+""",
+        useMockCompiler: false);
     Map<String, ClassElement> classEnvironment = <String, ClassElement>{};
 
     ClassElement registerClass(ClassElement cls) {
@@ -113,20 +115,23 @@ $mainSource
       bool isInstantiated = false;
       if (directlyInstantiated.contains(name)) {
         isInstantiated = true;
-        Expect.isTrue(world.isDirectlyInstantiated(cls),
+        Expect.isTrue(
+            world.isDirectlyInstantiated(cls),
             "Expected $name to be directly instantiated in `${mainSource}`:"
-                "\n${world.dump(cls)}");
+            "\n${world.dump(cls)}");
       }
       if (indirectlyInstantiated.contains(name)) {
         isInstantiated = true;
-        Expect.isTrue(world.isIndirectlyInstantiated(cls),
+        Expect.isTrue(
+            world.isIndirectlyInstantiated(cls),
             "Expected $name to be indirectly instantiated in `${mainSource}`:"
-                "\n${world.dump(cls)}");
+            "\n${world.dump(cls)}");
       }
       if (!isInstantiated && (name != 'Object' && name != 'Interceptor')) {
-        Expect.isFalse(world.isInstantiated(cls),
+        Expect.isFalse(
+            world.isInstantiated(cls),
             "Expected $name to be uninstantiated in `${mainSource}`:"
-                "\n${world.dump(cls)}");
+            "\n${world.dump(cls)}");
       }
     }
   }
@@ -149,11 +154,9 @@ $mainSource
       directlyInstantiated: ['A', 'B', 'C', 'D'],
       indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
 
-  await test('main() => newE();',
-      directlyInstantiated: ['E']);
+  await test('main() => newE();', directlyInstantiated: ['E']);
 
-  await test('main() => newF();',
-      directlyInstantiated: ['F']);
+  await test('main() => newF();', directlyInstantiated: ['F']);
 
   await test('main() => [newD(), newE()];',
       directlyInstantiated: ['A', 'B', 'C', 'D', 'E'],

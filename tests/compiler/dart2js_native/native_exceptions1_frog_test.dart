@@ -16,11 +16,10 @@ import "package:expect/expect.dart";
 // is no place in the Dart language to communicate (3).  So we use the following
 // fake body technique.
 
-
 // The exception type.
 @Native("E")
 class E {
-  E._used() native;  // Bogus native constructor, called only from fake body.
+  E._used() native ; // Bogus native constructor, called only from fake body.
 
   final int code;
 }
@@ -31,7 +30,7 @@ class A {
   // Exception class E is created.
   @Creates("E")
   @Returns('int')
-  op(int x) native;
+  op(int x) native ;
 }
 
 // This class is here just so that a dynamic context is polymorphic.
@@ -40,7 +39,7 @@ class B {
   op(String x) => 123;
 }
 
-makeA() native;
+makeA() native ;
 
 void setup1() native """
 // Ensure we are not relying on global names 'A' and 'E'.

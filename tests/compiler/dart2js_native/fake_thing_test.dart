@@ -10,11 +10,10 @@ import "package:expect/expect.dart";
 // This test currently fails because we do not recognize the need for
 // interceptors without native *classes*.
 
-class Thing {
-}
+class Thing {}
 
-make1() native;
-make2() native;
+make1() native ;
+make2() native ;
 
 void setup() native r"""
 function A() {}

@@ -7,7 +7,7 @@
 import 'package:expect/expect.dart';
 
 m(x) => print('x: $x');
-    
+
 test() => Function.apply(m, []);
 
 main() {

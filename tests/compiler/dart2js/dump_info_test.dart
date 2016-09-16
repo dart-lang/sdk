@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
 
-const String TEST_BASIC= r"""
+const String TEST_BASIC = r"""
 library main;
 
 int a = 2;
@@ -141,15 +141,14 @@ runTests() async {
     }));
   });
 
-  await  jsonTest(TEST_STATICS, (map) {
+  await jsonTest(TEST_STATICS, (map) {
     var functions = map['elements']['function'].values;
     var classes = map['elements']['class'].values;
     Expect.isTrue(functions.any((fn) {
       return fn['name'] == 'does_something';
     }));
     Expect.isTrue(classes.any((cls) {
-      return cls['name'] == 'ContainsStatics' &&
-          cls['children'].length >= 1;
+      return cls['name'] == 'ContainsStatics' && cls['children'].length >= 1;
     }));
   });
 
@@ -157,12 +156,10 @@ runTests() async {
     var functions = map['elements']['function'].values;
     var classes = map['elements']['class'].values;
     Expect.isTrue(functions.any((fn) {
-      return fn['name'] == 'double' &&
-          fn['inlinedCount'] == 1;
+      return fn['name'] == 'double' && fn['inlinedCount'] == 1;
     }));
     Expect.isTrue(classes.any((cls) {
-      return cls['name'] == 'Doubler' &&
-          cls['children'].length >= 1;
+      return cls['name'] == 'Doubler' && cls['children'].length >= 1;
     }));
   });
 

@@ -9,28 +9,22 @@ library dart2js.test.mirrors_used_test;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 
-import 'memory_compiler.dart' show
-    runCompiler;
+import 'memory_compiler.dart' show runCompiler;
 
-import 'package:compiler/src/apiimpl.dart' show
-    CompilerImpl;
+import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 
-import 'package:compiler/src/constants/values.dart' show
-    ConstantValue,
-    TypeConstantValue;
+import 'package:compiler/src/constants/values.dart'
+    show ConstantValue, TypeConstantValue;
 
-import 'package:compiler/src/elements/elements.dart' show
-    Element,
-    Elements;
+import 'package:compiler/src/elements/elements.dart' show Element, Elements;
 
-import 'package:compiler/src/js_backend/js_backend.dart' show
-    JavaScriptBackend;
+import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
 
-import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
-    as full show Emitter;
+import 'package:compiler/src/js_emitter/full_emitter/emitter.dart' as full
+    show Emitter;
 
-import 'package:compiler/src/old_to_new_api.dart' show
-    LegacyCompilerDiagnostics;
+import 'package:compiler/src/old_to_new_api.dart'
+    show LegacyCompilerDiagnostics;
 
 void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
   if (kind.name == 'verbose info') {
@@ -52,9 +46,9 @@ void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
 void main() {
   asyncTest(() async {
     var result = await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES,
-      diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
-      options: ['--enable-experimental-mirrors']);
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
+        options: ['--enable-experimental-mirrors']);
     CompilerImpl compiler = result.compiler;
     print('');
     List generatedCode =
@@ -77,25 +71,27 @@ void main() {
 
     // The following names should be retained:
     List expectedNames = [
-        'Foo', // The name of class Foo.
-        r'Foo$', // The name of class Foo's constructor.
-        r'get$field']; // The (getter) name of Foo.field.
+      'Foo', // The name of class Foo.
+      r'Foo$', // The name of class Foo's constructor.
+      r'get$field'
+    ]; // The (getter) name of Foo.field.
     // TODO(ahe): Check for the following names, currently they are not being
     // recorded correctly, but are being emitted.
     [
-        'Foo_staticMethod', // The name of Foo.staticMethod.
-        r'instanceMethod$0']; // The name of Foo.instanceMethod.
+      'Foo_staticMethod', // The name of Foo.staticMethod.
+      r'instanceMethod$0'
+    ]; // The name of Foo.instanceMethod.
 
     // We always include the names of some native classes.
     List<Element> nativeClasses = [
-          compiler.coreClasses.intClass,
-          compiler.coreClasses.doubleClass,
-          compiler.coreClasses.numClass,
-          compiler.coreClasses.stringClass,
-          compiler.coreClasses.boolClass,
-          compiler.coreClasses.nullClass,
-          compiler.coreClasses.listClass
-        ];
+      compiler.coreClasses.intClass,
+      compiler.coreClasses.doubleClass,
+      compiler.coreClasses.numClass,
+      compiler.coreClasses.stringClass,
+      compiler.coreClasses.boolClass,
+      compiler.coreClasses.nullClass,
+      compiler.coreClasses.listClass
+    ];
     JavaScriptBackend backend = compiler.backend;
     Iterable<String> nativeNames = nativeClasses.map(backend.namer.className);
     expectedNames = expectedNames.map(backend.namer.asName).toList();
@@ -105,9 +101,9 @@ void main() {
     // emitter is the full emitter.
     full.Emitter fullEmitter = backend.emitter.emitter;
     Set recordedNames = new Set()
-        ..addAll(fullEmitter.recordedMangledNames)
-        ..addAll(fullEmitter.mangledFieldNames.keys)
-        ..addAll(fullEmitter.mangledGlobalFieldNames.keys);
+      ..addAll(fullEmitter.recordedMangledNames)
+      ..addAll(fullEmitter.mangledFieldNames.keys)
+      ..addAll(fullEmitter.mangledGlobalFieldNames.keys);
     Expect.setEquals(new Set.from(expectedNames), recordedNames);
 
     for (var library in compiler.libraryLoader.libraries) {
@@ -131,12 +127,12 @@ void main() {
     Set<ConstantValue> compiledConstants = backend.constants.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
-    backend.processMetadata(
-        compiler.enqueuer.resolution.processedElements, (metadata) {
+    backend.processMetadata(compiler.enqueuer.resolution.processedElements,
+        (metadata) {
       ConstantValue constant =
           backend.constants.getConstantValueForMetadata(metadata);
-      Expect.isFalse(compiledConstants.contains(constant),
-                     constant.toStructuredText());
+      Expect.isFalse(
+          compiledConstants.contains(constant), constant.toStructuredText());
       metadataCount++;
     });
 
@@ -153,13 +149,12 @@ void main() {
         fooConstantCount++;
       }
     }
-    Expect.equals(
-        1, fooConstantCount,
+    Expect.equals(1, fooConstantCount,
         "The type literal 'Foo' is duplicated or missing.");
   });
 }
 
-const MEMORY_SOURCE_FILES = const <String, String> {
+const MEMORY_SOURCE_FILES = const <String, String>{
   'main.dart': """
 // The repeated constant value for symbols and targets used to crash dart2js in
 // host-checked mode, and could potentially lead to other problems.

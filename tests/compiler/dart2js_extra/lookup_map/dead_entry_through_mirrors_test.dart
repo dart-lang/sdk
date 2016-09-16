@@ -10,16 +10,20 @@ import 'package:expect/expect.dart';
 @MirrorsUsed(targets: const [A])
 import 'dart:mirrors';
 
-class A{}
-class B{}
+class A {}
+
+class B {}
+
 const map = const LookupMap(const [
-    A, "the-text-for-A",
-    B, "the-text-for-B",
+  A,
+  "the-text-for-A",
+  B,
+  "the-text-for-B",
 ]);
 
 main() {
-  LibraryMirror lib = currentMirrorSystem().findLibrary(
-      #dead_entry_through_mirrors_test);
+  LibraryMirror lib =
+      currentMirrorSystem().findLibrary(#dead_entry_through_mirrors_test);
 
   // `A` is included by @MirrorsUsed, so its entry is retained too.
   ClassMirror aClass = lib.declarations[#A];

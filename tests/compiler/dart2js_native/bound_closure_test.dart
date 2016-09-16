@@ -8,25 +8,25 @@ import "package:expect/expect.dart";
 // Test calling convention of property extraction closures.
 
 class AA {
-  bar(a, [b = 'A']) => 'AA.bar($a, $b)';   // bar is plain dart convention.
-  foo(a, [b = 'A']) => 'AA.foo($a, $b)';   // foo has interceptor convention.
+  bar(a, [b = 'A']) => 'AA.bar($a, $b)'; // bar is plain dart convention.
+  foo(a, [b = 'A']) => 'AA.foo($a, $b)'; // foo has interceptor convention.
 }
 
 @Native("BB")
 class BB {
-  foo(a, [b = 'B']) native;
+  foo(a, [b = 'B']) native ;
 }
 
 @Native("CC")
 class CC extends BB {
-  foo(a, [b = 'C']) native;
+  foo(a, [b = 'C']) native ;
 
   get superfoo => super.foo;
 }
 
-makeBB() native;
-makeCC() native;
-inscrutable(a) native;
+makeBB() native ;
+makeCC() native ;
+inscrutable(a) native ;
 
 void setup() native r"""
 function BB() {}
@@ -43,7 +43,6 @@ makeBB = function(){return new BB;};
 makeCC = function(){return new CC;};
 inscrutable = function(a){return a;};
 """;
-
 
 main() {
   setup();

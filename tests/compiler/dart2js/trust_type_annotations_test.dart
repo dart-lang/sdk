@@ -50,30 +50,31 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri, trustTypeAnnotations: true);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    ClassElement classA = findElement(compiler, "A");
+        ClassElement classA = findElement(compiler, "A");
 
-    checkReturn(String name, TypeMask type) {
-      var element = classA.lookupMember(name);
-      var mask = typesInferrer.getReturnTypeOfElement(element);
-      Expect.isTrue(type.containsMask(
-          typesInferrer.getReturnTypeOfElement(element), compiler.world));
-    }
-    checkType(String name, type) {
-      var element = classA.lookupMember(name);
-      Expect.isTrue(type.containsMask(
-                typesInferrer.getTypeOfElement(element), compiler.world));
-    }
+        checkReturn(String name, TypeMask type) {
+          var element = classA.lookupMember(name);
+          var mask = typesInferrer.getReturnTypeOfElement(element);
+          Expect.isTrue(type.containsMask(
+              typesInferrer.getReturnTypeOfElement(element), compiler.world));
+        }
 
-    var intMask = new TypeMask.subtype(
-        compiler.coreClasses.intClass, compiler.world);
+        checkType(String name, type) {
+          var element = classA.lookupMember(name);
+          Expect.isTrue(type.containsMask(
+              typesInferrer.getTypeOfElement(element), compiler.world));
+        }
 
-    checkReturn('foo', intMask);
-    checkReturn('faa', intMask);
-    checkType('aField', intMask);
-    checkReturn('bar', intMask);
-    checkReturn('baz', intMask);
-    checkReturn('tear', intMask);
-  }));
+        var intMask =
+            new TypeMask.subtype(compiler.coreClasses.intClass, compiler.world);
+
+        checkReturn('foo', intMask);
+        checkReturn('faa', intMask);
+        checkType('aField', intMask);
+        checkReturn('bar', intMask);
+        checkReturn('baz', intMask);
+        checkReturn('tear', intMask);
+      }));
 }

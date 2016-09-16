@@ -92,32 +92,36 @@ main() {
 }
 """;
 
-
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkReturn(String name, type) {
-      var element = findElement(compiler, name);
-      Expect.equals(type,
-          simplify(typesInferrer.getReturnTypeOfElement(element), compiler));
-    }
+        checkReturn(String name, type) {
+          var element = findElement(compiler, name);
+          Expect.equals(
+              type,
+              simplify(
+                  typesInferrer.getReturnTypeOfElement(element), compiler));
+        }
 
-    var subclassOfInterceptor =
-        findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+        var subclassOfInterceptor =
+            findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 
-    checkReturn('returnDyn1', subclassOfInterceptor);
-    checkReturn('returnDyn2', subclassOfInterceptor);
-    checkReturn('returnDyn3', subclassOfInterceptor);
-    checkReturn('returnDyn4', compiler.commonMasks.dynamicType.nonNullable());
-    checkReturn('returnDyn5', compiler.commonMasks.dynamicType.nonNullable());
-    checkReturn('returnDyn6', compiler.commonMasks.dynamicType.nonNullable());
-    checkReturn('returnDyn7', subclassOfInterceptor);
-    checkReturn('returnDyn7b', subclassOfInterceptor);
-    checkReturn('returnDyn8', subclassOfInterceptor);
-    checkReturn('returnDyn9', subclassOfInterceptor);
-    checkReturn('returnString', compiler.commonMasks.stringType);
-  }));
+        checkReturn('returnDyn1', subclassOfInterceptor);
+        checkReturn('returnDyn2', subclassOfInterceptor);
+        checkReturn('returnDyn3', subclassOfInterceptor);
+        checkReturn(
+            'returnDyn4', compiler.commonMasks.dynamicType.nonNullable());
+        checkReturn(
+            'returnDyn5', compiler.commonMasks.dynamicType.nonNullable());
+        checkReturn(
+            'returnDyn6', compiler.commonMasks.dynamicType.nonNullable());
+        checkReturn('returnDyn7', subclassOfInterceptor);
+        checkReturn('returnDyn7b', subclassOfInterceptor);
+        checkReturn('returnDyn8', subclassOfInterceptor);
+        checkReturn('returnDyn9', subclassOfInterceptor);
+        checkReturn('returnString', compiler.commonMasks.stringType);
+      }));
 }

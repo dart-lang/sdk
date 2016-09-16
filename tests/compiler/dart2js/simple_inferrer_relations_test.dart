@@ -49,9 +49,9 @@ main() {
 
 void main() {
   asyncTest(() => compileAll(TEST).then((generated) {
-    if (generated.contains(r'=== true')) {
-      print(generated);
-      Expect.fail("missing elision of '=== true'");
-    }
-  }));
+        if (generated.contains(r'=== true')) {
+          print(generated);
+          Expect.fail("missing elision of '=== true'");
+        }
+      }));
 }

@@ -24,6 +24,6 @@ main() {
   Expect.equals(42, new B().foo(0));
   // In checked mode we should get a type error. In unchecked mode it should be
   // an argument error.
-  Expect.throws(() => new A().foo('foo'),
-                (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => new A().foo('foo'), (e) => e is ArgumentError || e is TypeError);
 }

@@ -28,19 +28,18 @@ main() {
 }
 """;
 
-
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkReturnInClass(String className, String methodName, type) {
-      var cls = findElement(compiler, className);
-      var element = cls.lookupLocalMember(methodName);
-      Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
-    }
+        checkReturnInClass(String className, String methodName, type) {
+          var cls = findElement(compiler, className);
+          var element = cls.lookupLocalMember(methodName);
+          Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
+        }
 
-    checkReturnInClass('A', '+', compiler.commonMasks.uint31Type);
-  }));
+        checkReturnInClass('A', '+', compiler.commonMasks.uint31Type);
+      }));
 }

@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 // Dart2js crashed when the global metadata had escaped characters. That
 // happens, for example, when tearing off a function that uses a default
 // argument containing escape characters.
-foo([a='\u00a0']) => a;
+foo([a = '\u00a0']) => a;
 bar() => '';
 
 @NoInline()

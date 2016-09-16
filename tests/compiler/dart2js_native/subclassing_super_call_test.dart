@@ -5,20 +5,19 @@
 import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
-import 'dart:_interceptors' show
-    findInterceptorForType, findConstructorForNativeSubclassType;
+import 'dart:_interceptors'
+    show findInterceptorForType, findConstructorForNativeSubclassType;
 
 // Test for super access from classes that extend native classes.
 
 @Native("N1")
-class N1 {
-}
+class N1 {}
 
 @Native("N2")
 class N2 extends N1 {
   N2.init();
   String text;
-  foo() native;
+  foo() native ;
 }
 
 class AA extends N2 {
@@ -27,7 +26,7 @@ class AA extends N2 {
   afun() => 'afun:$afield';
 }
 
-class BB extends AA  {
+class BB extends AA {
   BB.init() : super.init();
 
   get text => super.text;
@@ -39,10 +38,10 @@ class BB extends AA  {
   afun() => super.afun();
 }
 
-BB makeBB() native;
+BB makeBB() native ;
 
 @Creates('=Object')
-getBBPrototype() native;
+getBBPrototype() native ;
 
 void setup() native r"""
 function N2() {}
@@ -113,7 +112,6 @@ testSuperOnSubclassOfNative() {
 
   Expect.equals('afun:one', b1.afun());
   Expect.equals('afun:two', b2.afun());
-
 
   inscrutable(b1).afield = inscrutable('three');
   inscrutable(b2).afield = inscrutable('four');

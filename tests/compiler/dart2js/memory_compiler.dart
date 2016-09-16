@@ -6,28 +6,23 @@ library dart2js.test.memory_compiler;
 
 import 'dart:async';
 
-import 'package:compiler/compiler.dart' show
-    DiagnosticHandler;
-import 'package:compiler/compiler_new.dart' show
-    CompilationResult,
-    CompilerDiagnostics,
-    CompilerOutput,
-    Diagnostic,
-    PackagesDiscoveryProvider;
-import 'package:compiler/src/diagnostics/messages.dart' show
-    Message;
-import 'package:compiler/src/null_compiler_output.dart' show
-    NullCompilerOutput;
-import 'package:compiler/src/library_loader.dart' show
-    LoadedLibraries;
-import 'package:compiler/src/options.dart' show
-    CompilerOptions;
+import 'package:compiler/compiler.dart' show DiagnosticHandler;
+import 'package:compiler/compiler_new.dart'
+    show
+        CompilationResult,
+        CompilerDiagnostics,
+        CompilerOutput,
+        Diagnostic,
+        PackagesDiscoveryProvider;
+import 'package:compiler/src/diagnostics/messages.dart' show Message;
+import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
+import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
+import 'package:compiler/src/options.dart' show CompilerOptions;
 
 import 'memory_source_file_helper.dart';
 
 export 'output_collector.dart';
-export 'package:compiler/compiler_new.dart' show
-    CompilationResult;
+export 'package:compiler/compiler_new.dart' show CompilationResult;
 export 'diagnostic_helper.dart';
 
 class MultiDiagnostics implements CompilerDiagnostics {
@@ -36,8 +31,8 @@ class MultiDiagnostics implements CompilerDiagnostics {
   const MultiDiagnostics([this.diagnosticsList = const []]);
 
   @override
-  void report(Message message, Uri uri, int begin, int end,
-              String text, Diagnostic kind) {
+  void report(Message message, Uri uri, int begin, int end, String text,
+      Diagnostic kind) {
     for (CompilerDiagnostics diagnostics in diagnosticsList) {
       diagnostics.report(message, uri, begin, end, text, kind);
     }
@@ -45,17 +40,15 @@ class MultiDiagnostics implements CompilerDiagnostics {
 }
 
 CompilerDiagnostics createCompilerDiagnostics(
-    CompilerDiagnostics diagnostics,
-    SourceFileProvider provider,
-    {bool showDiagnostics: true,
-     bool verbose: false}) {
+    CompilerDiagnostics diagnostics, SourceFileProvider provider,
+    {bool showDiagnostics: true, bool verbose: false}) {
   CompilerDiagnostics handler = diagnostics;
   if (showDiagnostics) {
     if (diagnostics == null) {
       handler = new FormattingDiagnosticHandler(provider)..verbose = verbose;
     } else {
-      var formattingHandler =
-          new FormattingDiagnosticHandler(provider)..verbose = verbose;
+      var formattingHandler = new FormattingDiagnosticHandler(provider)
+        ..verbose = verbose;
       handler = new MultiDiagnostics([diagnostics, formattingHandler]);
     }
   } else if (diagnostics == null) {
@@ -69,18 +62,18 @@ Expando<MemorySourceFileProvider> expando =
 
 Future<CompilationResult> runCompiler(
     {Map<String, String> memorySourceFiles: const <String, String>{},
-     Uri entryPoint,
-     List<Uri> entryPoints,
-     List<Uri> resolutionInputs,
-     CompilerDiagnostics diagnosticHandler,
-     CompilerOutput outputProvider,
-     List<String> options: const <String>[],
-     CompilerImpl cachedCompiler,
-     bool showDiagnostics: true,
-     Uri packageRoot,
-     Uri packageConfig,
-     PackagesDiscoveryProvider packagesDiscoveryProvider,
-     void beforeRun(CompilerImpl compiler)}) async {
+    Uri entryPoint,
+    List<Uri> entryPoints,
+    List<Uri> resolutionInputs,
+    CompilerDiagnostics diagnosticHandler,
+    CompilerOutput outputProvider,
+    List<String> options: const <String>[],
+    CompilerImpl cachedCompiler,
+    bool showDiagnostics: true,
+    Uri packageRoot,
+    Uri packageConfig,
+    PackagesDiscoveryProvider packagesDiscoveryProvider,
+    void beforeRun(CompilerImpl compiler)}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
   }
@@ -106,16 +99,16 @@ Future<CompilationResult> runCompiler(
 
 CompilerImpl compilerFor(
     {Uri entryPoint,
-     List<Uri> resolutionInputs,
-     Map<String, String> memorySourceFiles: const <String, String>{},
-     CompilerDiagnostics diagnosticHandler,
-     CompilerOutput outputProvider,
-     List<String> options: const <String>[],
-     CompilerImpl cachedCompiler,
-     bool showDiagnostics: true,
-     Uri packageRoot,
-     Uri packageConfig,
-     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
+    List<Uri> resolutionInputs,
+    Map<String, String> memorySourceFiles: const <String, String>{},
+    CompilerDiagnostics diagnosticHandler,
+    CompilerOutput outputProvider,
+    List<String> options: const <String>[],
+    CompilerImpl cachedCompiler,
+    bool showDiagnostics: true,
+    Uri packageRoot,
+    Uri packageConfig,
+    PackagesDiscoveryProvider packagesDiscoveryProvider}) {
   Uri libraryRoot = Uri.base.resolve('sdk/');
   if (packageRoot == null &&
       packageConfig == null &&
@@ -143,8 +136,7 @@ CompilerImpl compilerFor(
     provider = expando[cachedCompiler.provider];
     provider.memorySourceFiles = memorySourceFiles;
   }
-  diagnosticHandler = createCompilerDiagnostics(
-      diagnosticHandler, provider,
+  diagnosticHandler = createCompilerDiagnostics(diagnosticHandler, provider,
       showDiagnostics: showDiagnostics,
       verbose: options.contains('-v') || options.contains('--verbose'));
 
@@ -187,8 +179,8 @@ CompilerImpl compilerFor(
     // this call.
     compiler.onLibrariesLoaded(new MemoryLoadedLibraries(copiedLibraries));
 
-    compiler.backend.constantCompilerTask.copyConstantValues(
-        cachedCompiler.backend.constantCompilerTask);
+    compiler.backend.constantCompilerTask
+        .copyConstantValues(cachedCompiler.backend.constantCompilerTask);
 
     Iterable cachedTreeElements =
         cachedCompiler.enqueuer.resolution.processedElements;
@@ -241,10 +233,8 @@ class MemoryLoadedLibraries implements LoadedLibraries {
   Uri get rootUri => null;
 }
 
-
 DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
-                                          SourceFileProvider provider,
-                                          bool showDiagnostics) {
+    SourceFileProvider provider, bool showDiagnostics) {
   var handler = diagnosticHandler;
   if (showDiagnostics) {
     if (diagnosticHandler == null) {

@@ -10,22 +10,19 @@ import "package:expect/expect.dart";
 // Test for dartNativeDispatchHooksTransformer, getTag hook.
 
 @Native("T1A")
-class T1A {
-}
+class T1A {}
 
 @Native("T1B")
-class T1B {
-}
+class T1B {}
 
 @Native("T1C")
-class T1C {
-}
+class T1C {}
 
-makeT1A() native;
-makeT1B() native;
-makeT1C() native;
+makeT1A() native ;
+makeT1B() native ;
+makeT1C() native ;
 
-int getTagCallCount() native;
+int getTagCallCount() native ;
 
 void setup() native r'''
 function T1A() { }       // Normal native class.

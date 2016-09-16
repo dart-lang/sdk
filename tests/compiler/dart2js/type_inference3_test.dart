@@ -16,7 +16,7 @@ sum(param0, param1) {
 
 main() {
   asyncTest(() => compile(TEST_ONE, entry: 'sum', check: (String generated) {
-    RegExp regexp = new RegExp(getNumberTypeCheck('(param1|b)'));
-    Expect.isTrue(regexp.hasMatch(generated));
-  }));
+        RegExp regexp = new RegExp(getNumberTypeCheck('(param1|b)'));
+        Expect.isTrue(regexp.hasMatch(generated));
+      }));
 }

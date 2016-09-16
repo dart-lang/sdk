@@ -12,7 +12,8 @@ import "dart:js" as js;
 main() {
   // We patch document.body.appendChild to change the script src on first
   // invocation.
-  js.context.callMethod("eval", ["""
+  js.context.callMethod("eval", [
+    """
     if (self.document) {
       oldAppendChild = document.body.appendChild;
       document.body.appendChild = function(element) {
@@ -28,7 +29,8 @@ main() {
         load("non_existing.js");
       }
     }
-  """]);
+  """
+  ]);
 
   asyncStart();
   lib.loadLibrary().then((_) {

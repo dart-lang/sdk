@@ -21,14 +21,16 @@ check(String text) {
     Expect.isTrue(start < text.length,
         'start=$start < text.length=${text.length}: $text');
 
-    Expect.isTrue(end <= text.length,
-        'end=$end <= text.length=${text.length}: $text');
+    Expect.isTrue(
+        end <= text.length, 'end=$end <= text.length=${text.length}: $text');
 
     Expect.isTrue(start <= end, 'start=$end <= end=$end: $text');
 
     var substring = text.substring(start, end);
 
-    Expect.stringEquals(token.value, substring,
+    Expect.stringEquals(
+        token.value,
+        substring,
         'token.value=${token.value} == '
         'text.substring(start,end)=${substring}: $text');
 
@@ -39,12 +41,12 @@ check(String text) {
 }
 
 main() {
-    check('foo'); // identifier
-    check('\'\''); // empty string
-    check('\'foo\''); // simple string
-    check('\'\$foo\''); // interpolation, identifier
-    check('\'\${foo}\''); // interpolation, expression
+  check('foo'); // identifier
+  check('\'\''); // empty string
+  check('\'foo\''); // simple string
+  check('\'\$foo\''); // interpolation, identifier
+  check('\'\${foo}\''); // interpolation, expression
 
-    check('//'); // single line comment
-    check('/**/'); // multi line comment
+  check('//'); // single line comment
+  check('/**/'); // multi line comment
 }

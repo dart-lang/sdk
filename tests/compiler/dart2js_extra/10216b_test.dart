@@ -6,12 +6,11 @@ import "package:expect/expect.dart";
 
 // Tests codegen of methods reached only via mixin.
 
-class A  {
+class A {
   foo(x, [y]) => '$x;$y';
 }
 
-class B extends A with M1, M2, M3 {
-}
+class B extends A with M1, M2, M3 {}
 
 class M1 {}
 
@@ -26,10 +25,10 @@ class M3 {}
 
 test() {
   var b = [new A(), new B()].last as B;
-  Expect.equals('1;2', b.foo(1,2));
+  Expect.equals('1;2', b.foo(1, 2));
   Expect.equals('2;null', b.foo(2));
   Expect.equals('P 3', b.plain(3));
-  Expect.equals('100,4', b.bar(4,100));
+  Expect.equals('100,4', b.bar(4, 100));
   Expect.equals('null,5', b.bar(5));
 }
 

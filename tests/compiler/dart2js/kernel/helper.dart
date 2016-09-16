@@ -6,14 +6,15 @@ import 'dart:async';
 
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/elements.dart' show Element;
-import 'package:compiler/src/js_backend/backend.dart' as js show JavaScriptBackend;
+import 'package:compiler/src/js_backend/backend.dart' as js
+    show JavaScriptBackend;
 import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:test/test.dart';
 
 import '../memory_compiler.dart';
 
-Future<String> compile(String code, {String entry: 'main',
-    bool useKernel: true}) async {
+Future<String> compile(String code,
+    {String entry: 'main', bool useKernel: true}) async {
   List<String> options = <String>[
     Flags.disableTypeInference,
     Flags.disableInlining,
@@ -24,8 +25,7 @@ Future<String> compile(String code, {String entry: 'main',
     code = "$code\n\nmain() => $entry;";
   }
   CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': code},
-      options: options);
+      memorySourceFiles: {'main.dart': code}, options: options);
   expect(result.isSuccess, isTrue);
   Compiler compiler = result.compiler;
   Element element = compiler.mainApp.find(entry);

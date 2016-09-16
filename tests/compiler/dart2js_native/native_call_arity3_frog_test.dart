@@ -11,19 +11,19 @@ import "package:expect/expect.dart";
 
 @Native("A")
 class A {
-  int foo(int x) native;
+  int foo(int x) native ;
 }
 
 @Native("B")
 class B {
-  int foo([x = null, y, z = null]) native;
+  int foo([x = null, y, z = null]) native ;
 }
 
 // TODO(sra): Add a case where the parameters have default values.  Wait until
 // dart:html need non-null default values.
 
-A makeA() native;
-B makeB() native;
+A makeA() native ;
+B makeB() native ;
 
 void setup() native """
 function A() {}
@@ -35,7 +35,6 @@ B.prototype.foo = function () { return arguments.length; };
 makeA = function(){return new A;};
 makeB = function(){return new B;};
 """;
-
 
 testDynamicContext() {
   var things = [makeA(), makeB()];

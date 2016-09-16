@@ -103,19 +103,14 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
   void checkRelated(Node node, DartType left, DartType right) {
     if (hasEmptyIntersection(left, right)) {
       reporter.reportHintMessage(
-          node,
-          MessageKind.NO_COMMON_SUBTYPES,
-          {'left': left, 'right': right});
+          node, MessageKind.NO_COMMON_SUBTYPES, {'left': left, 'right': right});
     }
   }
 
   /// Check weakly typed collection methods, like `Map.containsKey`,
   /// `Map.containsValue` and `Iterable.contains`.
-  void checkDynamicInvoke(
-      Node node,
-      DartType receiverType,
-      List<DartType> argumentTypes,
-      Selector selector) {
+  void checkDynamicInvoke(Node node, DartType receiverType,
+      List<DartType> argumentTypes, Selector selector) {
     if (selector.name == 'containsKey' &&
         selector.callStructure == CallStructure.ONE_ARG) {
       InterfaceType mapType = findMapType(receiverType);
@@ -124,21 +119,21 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
         checkRelated(node, keyType, argumentTypes.first);
       }
     } else if (selector.name == 'containsValue' &&
-               selector.callStructure == CallStructure.ONE_ARG) {
+        selector.callStructure == CallStructure.ONE_ARG) {
       InterfaceType mapType = findMapType(receiverType);
       if (mapType != null) {
         DartType valueType = findMapValueType(mapType);
         checkRelated(node, valueType, argumentTypes.first);
       }
     } else if (selector.name == 'contains' &&
-               selector.callStructure == CallStructure.ONE_ARG) {
+        selector.callStructure == CallStructure.ONE_ARG) {
       InterfaceType iterableType = findIterableType(receiverType);
       if (iterableType != null) {
         DartType elementType = findIterableElementType(iterableType);
         checkRelated(node, elementType, argumentTypes.first);
       }
     } else if (selector.name == 'remove' &&
-               selector.callStructure == CallStructure.ONE_ARG) {
+        selector.callStructure == CallStructure.ONE_ARG) {
       InterfaceType mapType = findMapType(receiverType);
       if (mapType != null) {
         DartType keyType = findMapKeyType(mapType);
@@ -361,61 +356,47 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   @override
   DartType visitDynamicPropertyInvoke(
-      Send node,
-      Node receiver,
-      NodeList arguments,
-      Selector selector, _) {
+      Send node, Node receiver, NodeList arguments, Selector selector, _) {
     DartType receiverType = apply(receiver);
     List<DartType> argumentTypes = findArgumentTypes(arguments);
-    FunctionType methodType = lookupInterfaceMemberInvocationType(
-        receiverType, selector.memberName);
+    FunctionType methodType =
+        lookupInterfaceMemberInvocationType(receiverType, selector.memberName);
     checkDynamicInvoke(node, receiverType, argumentTypes, selector);
     return findReturnType(methodType);
   }
 
   @override
   DartType visitThisPropertyInvoke(
-      Send node,
-      NodeList arguments,
-      Selector selector, _) {
+      Send node, NodeList arguments, Selector selector, _) {
     DartType receiverType = thisType;
     List<DartType> argumentTypes = findArgumentTypes(arguments);
-    FunctionType methodType = lookupInterfaceMemberInvocationType(
-        receiverType, selector.memberName);
+    FunctionType methodType =
+        lookupInterfaceMemberInvocationType(receiverType, selector.memberName);
     checkDynamicInvoke(node, receiverType, argumentTypes, selector);
     return findReturnType(methodType);
   }
 
   @override
   DartType visitIfNotNullDynamicPropertyInvoke(
-      Send node,
-      Node receiver,
-      NodeList arguments,
-      Selector selector, _) {
+      Send node, Node receiver, NodeList arguments, Selector selector, _) {
     DartType receiverType = apply(receiver);
     List<DartType> argumentTypes = findArgumentTypes(arguments);
-    FunctionType methodType = lookupInterfaceMemberInvocationType(
-        receiverType, selector.memberName);
+    FunctionType methodType =
+        lookupInterfaceMemberInvocationType(receiverType, selector.memberName);
     checkDynamicInvoke(node, receiverType, argumentTypes, selector);
     return findReturnType(methodType);
   }
 
   @override
-  DartType visitTopLevelFunctionInvoke(
-      Send node,
-      MethodElement function,
-      NodeList arguments,
-      CallStructure callStructure, _) {
+  DartType visitTopLevelFunctionInvoke(Send node, MethodElement function,
+      NodeList arguments, CallStructure callStructure, _) {
     apply(arguments);
     return findReturnType(function.type);
   }
 
   @override
-  DartType visitStaticFunctionInvoke(
-      Send node,
-      MethodElement function,
-      NodeList arguments,
-      CallStructure callStructure, _) {
+  DartType visitStaticFunctionInvoke(Send node, MethodElement function,
+      NodeList arguments, CallStructure callStructure, _) {
     apply(arguments);
     return findReturnType(function.type);
   }

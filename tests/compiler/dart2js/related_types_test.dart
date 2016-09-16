@@ -264,17 +264,17 @@ main(List<String> arguments) {
         memorySourceFiles: {'main.dart': CODE},
         options: [Flags.analyzeOnly, Flags.analyzeMain],
         diagnosticHandler: collector);
-    Expect.isFalse(collector.hasRegularMessages, "Unexpected analysis messages.");
+    Expect.isFalse(
+        collector.hasRegularMessages, "Unexpected analysis messages.");
     Compiler compiler = result.compiler;
-
 
     void checkMember(MemberElement member) {
       if (!member.name.startsWith('test_')) return;
 
       collector.clear();
       checkMemberElement(compiler, member);
-      Expect.equals(1, collector.hints.length,
-          "Unexpected hint count for $member.");
+      Expect.equals(
+          1, collector.hints.length, "Unexpected hint count for $member.");
       Expect.equals(
           MessageKind.NO_COMMON_SUBTYPES,
           collector.hints.first.message.kind,

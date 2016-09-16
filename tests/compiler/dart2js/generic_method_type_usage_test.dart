@@ -53,7 +53,6 @@ main() {
   print(aFunction<Set>(null));
 }
 ''',
-
   'cannot_new_method_type_variable.dart': '''
 class C {
   X aMethod<X>() => new X();
@@ -63,7 +62,6 @@ main() {
   new C().aMethod<Set>();
 }
 ''',
-
   'cannot_new_function_type_variable.dart': '''
 X aFunction<X>() => new X(42);
 
@@ -72,7 +70,6 @@ main() {
 }
 ''',
 };
-
 
 Future runTest(Uri main, {MessageKind warning, MessageKind info}) async {
   print("----\nentry-point: $main\n");
@@ -101,15 +98,12 @@ Future runTest(Uri main, {MessageKind warning, MessageKind info}) async {
 
 void main() {
   asyncTest(() async {
-    await runTest(
-        Uri.parse('memory:type_variable_is_dynamic.dart'));
+    await runTest(Uri.parse('memory:type_variable_is_dynamic.dart'));
 
-    await runTest(
-        Uri.parse('memory:cannot_new_method_type_variable.dart'),
+    await runTest(Uri.parse('memory:cannot_new_method_type_variable.dart'),
         warning: MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE);
 
-    await runTest(
-        Uri.parse('memory:cannot_new_function_type_variable.dart'),
+    await runTest(Uri.parse('memory:cannot_new_function_type_variable.dart'),
         warning: MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE);
   });
 }

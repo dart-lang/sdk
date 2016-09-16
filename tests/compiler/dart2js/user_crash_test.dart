@@ -13,34 +13,43 @@ final EXCEPTION = 'Crash';
 main() {
   asyncTest(() async {
     test('Empty program', await run());
-    test('Crash diagnostics',
-         await run(diagnostics: new CrashingDiagnostics()),
-         expectedLines: [
-           'Uncaught exception in diagnostic handler: $EXCEPTION',
-           null /* Stack trace*/],
-         expectedExceptions: [EXCEPTION]);
-    test('Throw in package discovery',
-         await run(packagesDiscoveryProvider: (_) { throw EXCEPTION; }),
-         expectedLines: [
-           'Uncaught exception in package discovery: $EXCEPTION',
-           null /* Stack trace*/],
-         expectedExceptions: [EXCEPTION]);
-    test('new Future.error in package discovery',
-         await run(packagesDiscoveryProvider:
-             (_) => new Future.error(EXCEPTION)),
-         expectedExceptions: [EXCEPTION]);
+    test('Crash diagnostics', await run(diagnostics: new CrashingDiagnostics()),
+        expectedLines: [
+          'Uncaught exception in diagnostic handler: $EXCEPTION',
+          null /* Stack trace*/
+        ],
+        expectedExceptions: [
+          EXCEPTION
+        ]);
+    test(
+        'Throw in package discovery',
+        await run(packagesDiscoveryProvider: (_) {
+          throw EXCEPTION;
+        }),
+        expectedLines: [
+          'Uncaught exception in package discovery: $EXCEPTION',
+          null /* Stack trace*/
+        ],
+        expectedExceptions: [
+          EXCEPTION
+        ]);
+    test(
+        'new Future.error in package discovery',
+        await run(
+            packagesDiscoveryProvider: (_) => new Future.error(EXCEPTION)),
+        expectedExceptions: [EXCEPTION]);
     test('Throw in input provider',
-         await run(memorySourceFiles: new CrashingMap()),
-         expectedLines: [
-           'Uncaught exception in input provider: $EXCEPTION',
-           null, // Stack trace
-           'memory:main.dart:\nError: $EXCEPTION' /* READ_SELF_ERROR */]);
+        await run(memorySourceFiles: new CrashingMap()),
+        expectedLines: [
+          'Uncaught exception in input provider: $EXCEPTION',
+          null, // Stack trace
+          'memory:main.dart:\nError: $EXCEPTION' /* READ_SELF_ERROR */
+        ]);
   });
 }
 
 void test(String title, RunResult result,
-          {List expectedLines: const [],
-           List expectedExceptions: const []}) {
+    {List expectedLines: const [], List expectedExceptions: const []}) {
   print('--------------------------------------------------------------------');
   print('Running $title');
   print('--------------------------------------------------------------------');
@@ -61,8 +70,8 @@ void test(String title, RunResult result,
 
 Future<RunResult> run(
     {Map<String, String> memorySourceFiles: const {'main.dart': 'main() {}'},
-     CompilerDiagnostics diagnostics,
-     PackagesDiscoveryProvider packagesDiscoveryProvider}) async {
+    CompilerDiagnostics diagnostics,
+    PackagesDiscoveryProvider packagesDiscoveryProvider}) async {
   RunResult result = new RunResult();
   await runZoned(() async {
     try {
@@ -74,10 +83,8 @@ Future<RunResult> run(
     } catch (e) {
       result.exceptions.add(e);
     }
-
-  },
-  zoneSpecification: new ZoneSpecification(print:
-    (Zone self, ZoneDelegate parent, Zone zone, String line) {
+  }, zoneSpecification: new ZoneSpecification(
+      print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
     result.lines.add(line);
   }));
   return result;

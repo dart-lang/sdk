@@ -7,28 +7,21 @@ import "package:expect/expect.dart";
 // Tests that is-tests are also available for superclasses if the class is
 // never instantiated and not explicitly tested against.
 
-class A {
-}
+class A {}
 
-class B extends A {
-}
+class B extends A {}
 
-class C<T> implements A {
-}
+class C<T> implements A {}
 
-class D<T,L> {
-}
+class D<T, L> {}
 
-class F {
-}
+class F {}
 
-class E<T,L> extends D<L,T> {
-}
+class E<T, L> extends D<L, T> {}
 
-class G extends F {
-}
+class G extends F {}
 
-main () {
+main() {
   var l = [new A(), new B(), new C<E<G, G>>()];
   Expect.isTrue(l[0] is A);
   Expect.isTrue(l[1] is B);
@@ -41,4 +34,3 @@ main () {
     Expect.equals(e is C<D<F, G>>, i == 2);
   }
 }
-

@@ -26,7 +26,8 @@ class Check {
   final Object value1;
   final Object value2;
 
-  Check(this.parent, this.object1, this.object2, this.property, this.value1, this.value2);
+  Check(this.parent, this.object1, this.object2, this.property, this.value1,
+      this.value2);
 
   String printOn(StringBuffer sb, String indent) {
     if (parent != null) {
@@ -59,62 +60,55 @@ class CheckStrategy implements TestStrategy {
 
   @override
   bool test(var object1, var object2, String property, var value1, var value2,
-            [bool equivalence(a, b) = equality]) {
+      [bool equivalence(a, b) = equality]) {
     return check(object1, object2, property, value1, value2, equivalence);
   }
 
   @override
   bool testLists(
-      Object object1, Object object2, String property,
-      List list1, List list2,
+      Object object1, Object object2, String property, List list1, List list2,
       [bool elementEquivalence(a, b) = equality]) {
-    return checkListEquivalence(
-        object1, object2, property, list1, list2,
+    return checkListEquivalence(object1, object2, property, list1, list2,
         (o1, o2, p, v1, v2) {
-          if (!elementEquivalence(v1, v2)) {
-            throw "$o1.$p = '${v1}' <> "
-                  "$o2.$p = '${v2}'";
-          }
-          return true;
-        });
+      if (!elementEquivalence(v1, v2)) {
+        throw "$o1.$p = '${v1}' <> "
+            "$o2.$p = '${v2}'";
+      }
+      return true;
+    });
   }
 
   @override
   bool testSets(
-      var object1, var object2, String property,
-      Iterable set1, Iterable set2,
+      var object1, var object2, String property, Iterable set1, Iterable set2,
       [bool elementEquivalence(a, b) = equality]) {
     return checkSetEquivalence(
-        object1, object2,property, set1, set2, elementEquivalence);
+        object1, object2, property, set1, set2, elementEquivalence);
   }
 
   @override
-  bool testMaps(
-      var object1, var object2, String property, Map map1, Map map2,
+  bool testMaps(var object1, var object2, String property, Map map1, Map map2,
       [bool keyEquivalence(a, b) = equality,
       bool valueEquivalence(a, b) = equality]) {
-    return checkMapEquivalence(object1, object2, property,
-        map1, map2, keyEquivalence, valueEquivalence);
+    return checkMapEquivalence(object1, object2, property, map1, map2,
+        keyEquivalence, valueEquivalence);
   }
 
   @override
-  bool testElements(
-      Object object1, Object object2, String property,
+  bool testElements(Object object1, Object object2, String property,
       Element element1, Element element2) {
     return checkElementIdentities(
         object1, object2, property, element1, element2);
   }
 
   @override
-  bool testTypes(
-      Object object1, Object object2, String property,
+  bool testTypes(Object object1, Object object2, String property,
       DartType type1, DartType type2) {
     return checkTypes(object1, object2, property, type1, type2);
   }
 
   @override
-  bool testConstants(
-      Object object1, Object object2, String property,
+  bool testConstants(Object object1, Object object2, String property,
       ConstantExpression exp1, ConstantExpression exp2) {
     return checkConstants(object1, object2, property, exp1, exp2);
   }
@@ -126,17 +120,14 @@ class CheckStrategy implements TestStrategy {
   }
 
   @override
-  bool testTypeLists(
-      Object object1, Object object2, String property,
+  bool testTypeLists(Object object1, Object object2, String property,
       List<DartType> list1, List<DartType> list2) {
     return checkTypeLists(object1, object2, property, list1, list2);
   }
 
   @override
-  bool testConstantLists(
-      Object object1, Object object2, String property,
-      List<ConstantExpression> list1,
-      List<ConstantExpression> list2) {
+  bool testConstantLists(Object object1, Object object2, String property,
+      List<ConstantExpression> list1, List<ConstantExpression> list2) {
     return checkConstantLists(object1, object2, property, list1, list2);
   }
 
@@ -147,19 +138,19 @@ class CheckStrategy implements TestStrategy {
   }
 
   @override
-  bool testNodes(Object object1, Object object2, String property,
-      Node node1, Node node2) {
-    return new NodeEquivalenceVisitor(this).testNodes(
-        object1, object2, property, node1, node2);
+  bool testNodes(
+      Object object1, Object object2, String property, Node node1, Node node2) {
+    return new NodeEquivalenceVisitor(this)
+        .testNodes(object1, object2, property, node1, node2);
   }
 }
 
 /// Check that the values [property] of [object1] and [object2], [value1] and
 /// [value2] respectively, are equal and throw otherwise.
 bool check(var object1, var object2, String property, var value1, var value2,
-           [bool equivalence(a, b) = equality]) {
-  currentCheck = new Check(
-      currentCheck, object1, object2, property, value1, value2);
+    [bool equivalence(a, b) = equality]) {
+  currentCheck =
+      new Check(currentCheck, object1, object2, property, value1, value2);
   if (!equivalence(value1, value2)) {
     throw currentCheck;
   }
@@ -172,26 +163,26 @@ bool check(var object1, var object2, String property, var value1, var value2,
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkListEquivalence(
-    Object object1, Object object2, String property,
-    Iterable list1, Iterable list2,
+    Object object1,
+    Object object2,
+    String property,
+    Iterable list1,
+    Iterable list2,
     void checkEquivalence(o1, o2, property, a, b)) {
   currentCheck =
       new Check(currentCheck, object1, object2, property, list1, list2);
   for (int i = 0; i < list1.length && i < list2.length; i++) {
     checkEquivalence(
-        object1, object2, property,
-        list1.elementAt(i), list2.elementAt(i));
+        object1, object2, property, list1.elementAt(i), list2.elementAt(i));
   }
   for (int i = list1.length; i < list2.length; i++) {
-    throw
-        'Missing equivalent for element '
+    throw 'Missing equivalent for element '
         '#$i ${list2.elementAt(i)} in `${property}` on $object2.\n'
         '`${property}` on $object1:\n ${list1.join('\n ')}\n'
         '`${property}` on $object2:\n ${list2.join('\n ')}';
   }
   for (int i = list2.length; i < list1.length; i++) {
-    throw
-        'Missing equivalent for element '
+    throw 'Missing equivalent for element '
         '#$i ${list1.elementAt(i)} in `${property}` on $object1.\n'
         '`${property}` on $object1:\n ${list1.join('\n ')}\n'
         '`${property}` on $object2:\n ${list2.join('\n ')}';
@@ -207,12 +198,8 @@ bool checkListEquivalence(
 /// but not in [set2] are added to [unfound], and the set of elements in [set2]
 /// but not in [set1] are returned.
 Set computeSetDifference(
-    Iterable set1,
-    Iterable set2,
-    List<List> common,
-    List unfound,
-    {bool sameElement(a, b): equality,
-     void checkElements(a, b)}) {
+    Iterable set1, Iterable set2, List<List> common, List unfound,
+    {bool sameElement(a, b): equality, void checkElements(a, b)}) {
   // TODO(johnniwinther): Avoid the quadratic cost here. Some ideas:
   // - convert each set to a list and sort it first, then compare by walking
   // both lists in parallel
@@ -245,22 +232,15 @@ Set computeSetDifference(
 /// [elementEquivalence] to compute the pair-wise equivalence.
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkSetEquivalence(
-    var object1,
-    var object2,
-    String property,
-    Iterable set1,
-    Iterable set2,
-    bool sameElement(a, b),
+bool checkSetEquivalence(var object1, var object2, String property,
+    Iterable set1, Iterable set2, bool sameElement(a, b),
     {void onSameElement(a, b)}) {
   List<List> common = <List>[];
   List unfound = [];
-  Set remaining =
-      computeSetDifference(set1, set2, common, unfound,
-          sameElement: sameElement, checkElements: onSameElement);
+  Set remaining = computeSetDifference(set1, set2, common, unfound,
+      sameElement: sameElement, checkElements: onSameElement);
   if (unfound.isNotEmpty || remaining.isNotEmpty) {
-    String message =
-        "Set mismatch for `$property` on $object1 vs $object2: \n"
+    String message = "Set mismatch for `$property` on $object1 vs $object2: \n"
         "Common:\n ${common.join('\n ')}\n"
         "Unfound:\n ${unfound.join('\n ')}\n"
         "Extra: \n ${remaining.join('\n ')}";
@@ -273,19 +253,12 @@ bool checkSetEquivalence(
 /// [elementEquivalence] to compute the pair-wise equivalence.
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkMapEquivalence(
-    var object1,
-    var object2,
-    String property,
-    Map map1,
-    Map map2,
-    bool sameKey(a, b),
-    bool sameValue(a, b)) {
+bool checkMapEquivalence(var object1, var object2, String property, Map map1,
+    Map map2, bool sameKey(a, b), bool sameValue(a, b)) {
   List<List> common = <List>[];
   List unfound = [];
-  Set remaining =
-      computeSetDifference(map1.keys, map2.keys, common, unfound,
-          sameElement: sameKey);
+  Set remaining = computeSetDifference(map1.keys, map2.keys, common, unfound,
+      sameElement: sameKey);
   if (unfound.isNotEmpty || remaining.isNotEmpty) {
     String message =
         "Map key mismatch for `$property` on $object1 vs $object2: \n"
@@ -295,8 +268,8 @@ bool checkMapEquivalence(
     throw message;
   }
   for (List pair in common) {
-    check(object1, object2, 'Map value for `$property`',
-        map1[pair[0]], map2[pair[1]], sameValue);
+    check(object1, object2, 'Map value for `$property`', map1[pair[0]],
+        map2[pair[1]], sameValue);
   }
   return true;
 }
@@ -305,32 +278,28 @@ bool checkMapEquivalence(
 /// and [element2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkElementIdentities(
-    Object object1, Object object2, String property,
+bool checkElementIdentities(Object object1, Object object2, String property,
     Element element1, Element element2) {
   if (identical(element1, element2)) return true;
-  return check(object1, object2,
-      property, element1, element2, areElementsEquivalent);
+  return check(
+      object1, object2, property, element1, element2, areElementsEquivalent);
 }
 
 /// Checks the pair-wise equivalence of the identity (but not properties) of the
 /// elements in [list] and [list2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkElementListIdentities(
-    Object object1, Object object2, String property,
+bool checkElementListIdentities(Object object1, Object object2, String property,
     Iterable<Element> list1, Iterable<Element> list2) {
   return checkListEquivalence(
-      object1, object2, property,
-      list1, list2, checkElementIdentities);
+      object1, object2, property, list1, list2, checkElementIdentities);
 }
 
 /// Checks the equivalence of [type1] and [type2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkTypes(
-    Object object1, Object object2, String property,
-    DartType type1, DartType type2) {
+bool checkTypes(Object object1, Object object2, String property, DartType type1,
+    DartType type2) {
   if (identical(type1, type2)) return true;
   if (type1 == null || type2 == null) {
     return check(object1, object2, property, type1, type2);
@@ -343,8 +312,7 @@ bool checkTypes(
 /// Checks the pair-wise equivalence of the types in [list1] and [list2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkTypeLists(
-    Object object1, Object object2, String property,
+bool checkTypeLists(Object object1, Object object2, String property,
     List<DartType> list1, List<DartType> list2) {
   return checkListEquivalence(
       object1, object2, property, list1, list2, checkTypes);
@@ -353,8 +321,7 @@ bool checkTypeLists(
 /// Checks the equivalence of [exp1] and [exp2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkConstants(
-    Object object1, Object object2, String property,
+bool checkConstants(Object object1, Object object2, String property,
     ConstantExpression exp1, ConstantExpression exp2) {
   if (identical(exp1, exp2)) return true;
   if (exp1 == null || exp2 == null) {
@@ -368,42 +335,40 @@ bool checkConstants(
 /// Checks the equivalence of [value1] and [value2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkConstantValues(
-    Object object1, Object object2, String property,
+bool checkConstantValues(Object object1, Object object2, String property,
     ConstantValue value1, ConstantValue value2) {
   if (identical(value1, value2)) return true;
   if (value1 == null || value2 == null) {
     return check(object1, object2, property, value1, value2);
   } else {
-    return check(object1, object2, property, value1, value2,
-        (a, b) => const ConstantValueEquivalence(
-            const CheckStrategy()).visit(a, b));
+    return check(
+        object1,
+        object2,
+        property,
+        value1,
+        value2,
+        (a, b) =>
+            const ConstantValueEquivalence(const CheckStrategy()).visit(a, b));
   }
 }
 
 /// Checks the pair-wise equivalence of the constants in [list1] and [list2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkConstantLists(
-    Object object1, Object object2, String property,
-    List<ConstantExpression> list1,
-    List<ConstantExpression> list2) {
+bool checkConstantLists(Object object1, Object object2, String property,
+    List<ConstantExpression> list1, List<ConstantExpression> list2) {
   return checkListEquivalence(
-      object1, object2, property,
-      list1, list2, checkConstants);
+      object1, object2, property, list1, list2, checkConstants);
 }
 
 /// Checks the pair-wise equivalence of the constants values in [list1] and
 /// [list2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkConstantValueLists(
-    Object object1, Object object2, String property,
-    List<ConstantValue> list1,
-    List<ConstantValue> list2) {
+bool checkConstantValueLists(Object object1, Object object2, String property,
+    List<ConstantValue> list1, List<ConstantValue> list2) {
   return checkListEquivalence(
-      object1, object2, property,
-      list1, list2, checkConstantValues);
+      object1, object2, property, list1, list2, checkConstantValues);
 }
 
 /// Check member property equivalence between all members common to [compiler1]
@@ -413,10 +378,9 @@ void checkLoadedLibraryMembers(
     Compiler compiler2,
     bool hasProperty(Element member1),
     void checkMemberProperties(Compiler compiler1, Element member1,
-                               Compiler compiler2, Element member2,
-                               {bool verbose}),
+        Compiler compiler2, Element member2,
+        {bool verbose}),
     {bool verbose: false}) {
-
   void checkMembers(Element member1, Element member2) {
     if (member1.isClass && member2.isClass) {
       ClassElement class1 = member1;
@@ -425,9 +389,7 @@ void checkLoadedLibraryMembers(
 
       if (hasProperty(member1)) {
         if (areElementsEquivalent(member1, member2)) {
-          checkMemberProperties(
-              compiler1, member1,
-              compiler2, member2,
+          checkMemberProperties(compiler1, member1, compiler2, member2,
               verbose: verbose);
         }
       }
@@ -456,9 +418,7 @@ void checkLoadedLibraryMembers(
     }
 
     if (areElementsEquivalent(member1, member2)) {
-      checkMemberProperties(
-          compiler1, member1,
-          compiler2, member2,
+      checkMemberProperties(compiler1, member1, compiler2, member2,
           verbose: verbose);
     }
   }
@@ -470,30 +430,22 @@ void checkLoadedLibraryMembers(
       library1.forEachLocalMember((Element member1) {
         checkMembers(member1, library2.localLookup(member1.name));
       });
-
     }
   }
 }
 
 /// Check equivalence of all resolution impacts.
-void checkAllImpacts(
-    Compiler compiler1,
-    Compiler compiler2,
+void checkAllImpacts(Compiler compiler1, Compiler compiler2,
     {bool verbose: false}) {
-  checkLoadedLibraryMembers(
-      compiler1,
-      compiler2,
-      (Element member1) {
-        return compiler1.resolution.hasResolutionImpact(member1);
-      },
-      checkImpacts,
-      verbose: verbose);
+  checkLoadedLibraryMembers(compiler1, compiler2, (Element member1) {
+    return compiler1.resolution.hasResolutionImpact(member1);
+  }, checkImpacts, verbose: verbose);
 }
 
 /// Check equivalence of resolution impact for [member1] and [member2].
-void checkImpacts(Compiler compiler1, Element member1,
-                  Compiler compiler2, Element member2,
-                  {bool verbose: false}) {
+void checkImpacts(
+    Compiler compiler1, Element member1, Compiler compiler2, Element member2,
+    {bool verbose: false}) {
   ResolutionImpact impact1 = compiler1.resolution.getResolutionImpact(member1);
   ResolutionImpact impact2 = compiler2.resolution.getResolutionImpact(member2);
 
@@ -514,10 +466,7 @@ void checkImpacts(Compiler compiler1, Element member1,
 }
 
 void checkSets(
-    Iterable set1,
-    Iterable set2,
-    String messagePrefix,
-    bool sameElement(a, b),
+    Iterable set1, Iterable set2, String messagePrefix, bool sameElement(a, b),
     {bool failOnUnfound: true,
     bool failOnExtra: true,
     bool verbose: false,
@@ -527,10 +476,8 @@ void checkSets(
     String elementToString(key): defaultToString}) {
   List<List> common = <List>[];
   List unfound = [];
-  Set remaining = computeSetDifference(
-      set1, set2, common, unfound,
-      sameElement: sameElement,
-      checkElements: onSameElement);
+  Set remaining = computeSetDifference(set1, set2, common, unfound,
+      sameElement: sameElement, checkElements: onSameElement);
   if (onUnfoundElement != null) {
     unfound.forEach(onUnfoundElement);
   }
@@ -569,11 +516,7 @@ void checkSets(
 
 String defaultToString(obj) => '$obj';
 
-void checkMaps(
-    Map map1,
-    Map map2,
-    String messagePrefix,
-    bool sameKey(a, b),
+void checkMaps(Map map1, Map map2, String messagePrefix, bool sameKey(a, b),
     bool sameValue(a, b),
     {bool failOnUnfound: true,
     bool failOnMismatch: true,
@@ -583,16 +526,14 @@ void checkMaps(
   List<List> common = <List>[];
   List unfound = [];
   List<List> mismatch = <List>[];
-  Set remaining = computeSetDifference(
-      map1.keys, map2.keys, common, unfound,
-      sameElement: sameKey,
-      checkElements: (k1, k2) {
-        var v1 = map1[k1];
-        var v2 = map2[k2];
-        if (!sameValue(v1, v2)) {
-          mismatch.add([k1, k2]);
-        }
-      });
+  Set remaining = computeSetDifference(map1.keys, map2.keys, common, unfound,
+      sameElement: sameKey, checkElements: (k1, k2) {
+    var v1 = map1[k1];
+    var v2 = map2[k2];
+    if (!sameValue(v1, v2)) {
+      mismatch.add([k1, k2]);
+    }
+  });
   StringBuffer sb = new StringBuffer();
   sb.write("$messagePrefix:");
   if (verbose) {
@@ -651,25 +592,17 @@ void checkMaps(
   }
 }
 
-void checkAllResolvedAsts(
-    Compiler compiler1,
-    Compiler compiler2,
+void checkAllResolvedAsts(Compiler compiler1, Compiler compiler2,
     {bool verbose: false}) {
-  checkLoadedLibraryMembers(
-      compiler1,
-      compiler2,
-      (Element member1) {
-        return member1 is ExecutableElement &&
-            compiler1.resolution.hasResolvedAst(member1);
-      },
-      checkResolvedAsts,
-      verbose: verbose);
+  checkLoadedLibraryMembers(compiler1, compiler2, (Element member1) {
+    return member1 is ExecutableElement &&
+        compiler1.resolution.hasResolvedAst(member1);
+  }, checkResolvedAsts, verbose: verbose);
 }
 
-
 /// Check equivalence of [impact1] and [impact2].
-void checkResolvedAsts(Compiler compiler1, Element member1,
-    Compiler compiler2, Element member2,
+void checkResolvedAsts(
+    Compiler compiler1, Element member1, Compiler compiler2, Element member2,
     {bool verbose: false}) {
   if (!compiler2.serialization.isDeserialized(member2)) {
     return;
@@ -683,8 +616,7 @@ void checkResolvedAsts(Compiler compiler1, Element member1,
     print('Checking resolved asts for $member1 vs $member2');
   }
 
-  testResolvedAstEquivalence(
-      resolvedAst1, resolvedAst2, const CheckStrategy());
+  testResolvedAstEquivalence(resolvedAst1, resolvedAst2, const CheckStrategy());
 }
 
 /// Returns the test arguments for testing the [index]th skipped test. The
@@ -710,7 +642,7 @@ List<String> testSegment(int index, int count, int skip) {
 
   if (index == 1 && skip != 0) {
     return ['${skip}', segmentNumber(index)];
-  } else if (index  == count) {
+  } else if (index == count) {
     return [segmentNumber(index - 1)];
   } else {
     return [segmentNumber(index - 1), segmentNumber(index)];

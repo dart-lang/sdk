@@ -4,7 +4,6 @@
 
 // Test the exit code of dart2js in case of exceptions, errors, warnings, etc.
 
-
 import 'dart:async';
 import 'dart:io' show Platform;
 
@@ -37,13 +36,14 @@ class TestCompiler extends apiimpl.CompilerImpl {
   final Function onTest;
   TestDiagnosticReporter reporter;
 
-  TestCompiler(api.CompilerInput inputProvider,
-               api.CompilerOutput outputProvider,
-               api.CompilerDiagnostics handler,
-               CompilerOptions options,
-               String this.testMarker,
-               String this.testType,
-               Function this.onTest)
+  TestCompiler(
+      api.CompilerInput inputProvider,
+      api.CompilerOutput outputProvider,
+      api.CompilerDiagnostics handler,
+      CompilerOptions options,
+      String this.testMarker,
+      String this.testType,
+      Function this.onTest)
       : reporter = new TestDiagnosticReporter(),
         super(inputProvider, outputProvider, handler, options) {
     reporter.compiler = this;
@@ -87,37 +87,35 @@ class TestCompiler extends apiimpl.CompilerImpl {
   test(String marker) {
     if (marker == testMarker) {
       switch (testType) {
-      case 'assert':
-        onTest(testMarker, testType);
-        assert(false);
-        break;
-      case 'invariant':
-        onTest(testMarker, testType);
-        invariant(NO_LOCATION_SPANNABLE, false, message: marker);
-        break;
-      case 'warning':
-        onTest(testMarker, testType);
-        reporter.reportWarningMessage(
-            NO_LOCATION_SPANNABLE,
-            MessageKind.GENERIC, {'text': marker});
-        break;
-      case 'error':
-        onTest(testMarker, testType);
-        reporter.reportErrorMessage(
-            NO_LOCATION_SPANNABLE,
-            MessageKind.GENERIC, {'text': marker});
-        break;
-      case 'internalError':
-        onTest(testMarker, testType);
-        reporter.internalError(NO_LOCATION_SPANNABLE, marker);
-        break;
-      case 'NoSuchMethodError':
-        onTest(testMarker, testType);
-        null.foo;
-        break;
-      case '':
-        onTest(testMarker, testType);
-        break;
+        case 'assert':
+          onTest(testMarker, testType);
+          assert(false);
+          break;
+        case 'invariant':
+          onTest(testMarker, testType);
+          invariant(NO_LOCATION_SPANNABLE, false, message: marker);
+          break;
+        case 'warning':
+          onTest(testMarker, testType);
+          reporter.reportWarningMessage(
+              NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {'text': marker});
+          break;
+        case 'error':
+          onTest(testMarker, testType);
+          reporter.reportErrorMessage(
+              NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {'text': marker});
+          break;
+        case 'internalError':
+          onTest(testMarker, testType);
+          reporter.internalError(NO_LOCATION_SPANNABLE, marker);
+          break;
+        case 'NoSuchMethodError':
+          onTest(testMarker, testType);
+          null.foo;
+          break;
+        case '':
+          onTest(testMarker, testType);
+          break;
       }
     }
   }
@@ -154,10 +152,7 @@ class TestResolver extends ResolverTask {
 
   TestResolver(TestCompiler compiler, ConstantCompiler constantCompiler)
       : this.compiler = compiler,
-        super(
-            compiler.resolution,
-            constantCompiler,
-            compiler.world,
+        super(compiler.resolution, constantCompiler, compiler.world,
             compiler.measurer);
 
   void computeClassMembers(ClassElement element) {
@@ -177,6 +172,7 @@ Future testExitCode(
       testOccurred = true;
     }
   }
+
   return new Future(() {
     Future<api.CompilationResult> compile(
         CompilerOptions compilerOptions,
@@ -186,14 +182,8 @@ Future testExitCode(
       compilerOutput = const NullCompilerOutput();
       // Use this to silence the test when debugging:
       // handler = (uri, begin, end, message, kind) {};
-      Compiler compiler = new TestCompiler(
-          compilerInput,
-          compilerOutput,
-          compilerDiagnostics,
-          compilerOptions,
-          marker,
-          type,
-          onTest);
+      Compiler compiler = new TestCompiler(compilerInput, compilerOutput,
+          compilerDiagnostics, compilerOptions, marker, type, onTest);
       return compiler.run(compilerOptions.entryPoint).then((bool success) {
         return new api.CompilationResult(compiler, isSuccess: success);
       });
@@ -205,8 +195,10 @@ Future testExitCode(
       Expect.isTrue(testOccurred, 'testExitCode($marker, $type) did not occur');
       if (foundExitCode == null) foundExitCode = 0;
       print('testExitCode($marker, $type) '
-            'exitCode=$foundExitCode expected=$expectedExitCode');
-      Expect.equals(expectedExitCode, foundExitCode,
+          'exitCode=$foundExitCode expected=$expectedExitCode');
+      Expect.equals(
+          expectedExitCode,
+          foundExitCode,
           'testExitCode($marker, $type) '
           'exitCode=$foundExitCode expected=${expectedExitCode}');
       checkedResults++;
@@ -216,14 +208,16 @@ Future testExitCode(
       if (foundExitCode == null) {
         foundExitCode = exitCode;
       }
-    };
+    }
+
+    ;
 
     entry.exitFunc = exit;
     entry.compileFunc = compile;
 
     List<String> args = new List<String>.from(options)
-        ..add("--library-root=${Platform.script.resolve('../../../sdk/')}")
-        ..add("tests/compiler/dart2js/data/exit_code_helper.dart");
+      ..add("--library-root=${Platform.script.resolve('../../../sdk/')}")
+      ..add("tests/compiler/dart2js/data/exit_code_helper.dart");
     Future result = entry.internalMain(args);
     return result.catchError((e, s) {
       // Capture crashes.
@@ -232,7 +226,7 @@ Future testExitCode(
 }
 
 Future testExitCodes(
-    String marker, Map<String,int> expectedExitCodes, List<String> options) {
+    String marker, Map<String, int> expectedExitCodes, List<String> options) {
   return Future.forEach(expectedExitCodes.keys, (String type) {
     return testExitCode(marker, type, expectedExitCodes[type], options);
   });
@@ -285,8 +279,8 @@ void main() {
       totalExpectedErrors += expected.length;
       await testExitCodes(marker, expected, []);
 
-      expected = _expectedExitCode(
-          beforeRun: tests[marker], fatalWarnings: true);
+      expected =
+          _expectedExitCode(beforeRun: tests[marker], fatalWarnings: true);
       totalExpectedErrors += expected.length;
       await testExitCodes(marker, expected, ['--fatal-warnings']);
     }

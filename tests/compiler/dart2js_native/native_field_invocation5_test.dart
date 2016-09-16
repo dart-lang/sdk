@@ -5,8 +5,8 @@
 import "dart:_js_helper";
 import "package:expect/expect.dart";
 
-makeCC() native;
-nativeFirst(x, y) native;
+makeCC() native ;
+nativeFirst(x, y) native ;
 
 void setup() native """
 function CC() {}

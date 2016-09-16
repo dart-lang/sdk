@@ -30,7 +30,6 @@ main(List<String> arguments) async {
       } else if (argument.startsWith('--out=')) {
         /// Generate visualization for the first configuration.
         outputPath = argument.substring('--out='.length);
-
       } else if (argument.startsWith('-o')) {
         /// Generate visualization for the first configuration.
         outputPath = argument.substring('-o'.length);
@@ -69,11 +68,8 @@ main(List<String> arguments) async {
       }
       generateMultiConfigs = true;
     } else {
-      outputConfigurations.registerPathUri(
-          configurations.first,
-          files.first,
-          outputPath,
-          Uri.base.resolve(nativeToUriPath(outputPath)));
+      outputConfigurations.registerPathUri(configurations.first, files.first,
+          outputPath, Uri.base.resolve(nativeToUriPath(outputPath)));
     }
   }
 
@@ -81,8 +77,7 @@ main(List<String> arguments) async {
   for (String config in configurations) {
     List<String> options = TEST_CONFIGURATIONS[config];
     for (String file in files) {
-      Measurement measurement = await runTest(
-          config, TEST_FILES[file], options,
+      Measurement measurement = await runTest(config, TEST_FILES[file], options,
           outputUri: outputConfigurations.getUri(config, file),
           verbose: !measure);
       measurements.add(measurement);
@@ -92,9 +87,7 @@ main(List<String> arguments) async {
     print(measurement);
   }
   if (generateMultiConfigs) {
-    outputMultiConfigs(
-        Uri.base.resolve(outputPath),
-        outputConfigurations);
+    outputMultiConfigs(Uri.base.resolve(outputPath), outputConfigurations);
   }
 }
 
@@ -125,11 +118,8 @@ class OutputConfigurations implements Configurations {
 }
 
 Future<Measurement> runTest(
-    String config,
-    String filename,
-    List<String> options,
-    {Uri outputUri,
-     bool verbose}) async {
+    String config, String filename, List<String> options,
+    {Uri outputUri, bool verbose}) async {
   TestResult result =
       await runTests(config, filename, options, verbose: verbose);
   if (outputUri != null) {
@@ -144,7 +134,9 @@ Future<Measurement> runTest(
     }
     createTraceSourceMapHtml(outputUri, result.processor, result.userInfoList);
   }
-  return new Measurement(config, filename,
+  return new Measurement(
+      config,
+      filename,
       result.missingCodePointsMap.values.fold(0, (s, i) => s + i.length),
       result.userInfoList.fold(0, (s, i) => s + i.codePoints.length));
 }
@@ -161,6 +153,6 @@ class Measurement {
   String toString() {
     double percentage = 100 * missing / count;
     return "Config '${config}', file: '${filename}': "
-           "$missing of $count ($percentage%) missing";
+        "$missing of $count ($percentage%) missing";
   }
 }

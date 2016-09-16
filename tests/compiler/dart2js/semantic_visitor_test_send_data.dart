@@ -8,64 +8,69 @@ const Map<String, List<Test>> SEND_TESTS = const {
   'Parameters': const [
     // Parameters
     const Test('m(o) => o;',
-        const Visit(VisitKind.VISIT_PARAMETER_GET,
-                    element: 'parameter(m#o)')),
-    const Test('m(o) { o = 42; }',
+        const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#o)')),
+    const Test(
+        'm(o) { o = 42; }',
         const Visit(VisitKind.VISIT_PARAMETER_SET,
-                    element: 'parameter(m#o)',
-                    rhs:'42')),
-    const Test('m(o) { o(null, 42); }',
+            element: 'parameter(m#o)', rhs: '42')),
+    const Test(
+        'm(o) { o(null, 42); }',
         const Visit(VisitKind.VISIT_PARAMETER_INVOKE,
-                    element: 'parameter(m#o)',
-                    arguments: '(null,42)',
-                    selector: 'CallStructure(arity=2)')),
-    const Test('m(final o) { o = 42; }',
+            element: 'parameter(m#o)',
+            arguments: '(null,42)',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        'm(final o) { o = 42; }',
         const Visit(VisitKind.VISIT_FINAL_PARAMETER_SET,
-                    element: 'parameter(m#o)',
-                    rhs:'42')),
+            element: 'parameter(m#o)', rhs: '42')),
   ],
   'Local variables': const [
     // Local variables
-    const Test('m() { var o; return o; }',
+    const Test(
+        'm() { var o; return o; }',
         const Visit(VisitKind.VISIT_LOCAL_VARIABLE_GET,
-                    element: 'variable(m#o)')),
-    const Test('m() { var o; o = 42; }',
+            element: 'variable(m#o)')),
+    const Test(
+        'm() { var o; o = 42; }',
         const Visit(VisitKind.VISIT_LOCAL_VARIABLE_SET,
-                    element: 'variable(m#o)',
-                    rhs:'42')),
-    const Test('m() { var o; o(null, 42); }',
+            element: 'variable(m#o)', rhs: '42')),
+    const Test(
+        'm() { var o; o(null, 42); }',
         const Visit(VisitKind.VISIT_LOCAL_VARIABLE_INVOKE,
-                    element: 'variable(m#o)',
-                    arguments: '(null,42)',
-                    selector: 'CallStructure(arity=2)')),
-    const Test('m() { final o = 0; o = 42; }',
+            element: 'variable(m#o)',
+            arguments: '(null,42)',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        'm() { final o = 0; o = 42; }',
         const Visit(VisitKind.VISIT_FINAL_LOCAL_VARIABLE_SET,
-                    element: 'variable(m#o)',
-                    rhs:'42')),
-    const Test('m() { const o = 0; o = 42; }',
+            element: 'variable(m#o)', rhs: '42')),
+    const Test(
+        'm() { const o = 0; o = 42; }',
         const Visit(VisitKind.VISIT_FINAL_LOCAL_VARIABLE_SET,
-                    element: 'variable(m#o)',
-                    rhs:'42')),
+            element: 'variable(m#o)', rhs: '42')),
   ],
   'Local functions': const [
     // Local functions
-    const Test('m() { o(a, b) {}; return o; }',
+    const Test(
+        'm() { o(a, b) {}; return o; }',
         const Visit(VisitKind.VISIT_LOCAL_FUNCTION_GET,
-                    element: 'function(m#o)')),
-    const Test('m() { o(a, b) {}; o(null, 42); }',
+            element: 'function(m#o)')),
+    const Test(
+        'm() { o(a, b) {}; o(null, 42); }',
         const Visit(VisitKind.VISIT_LOCAL_FUNCTION_INVOKE,
-                    element: 'function(m#o)',
-                    arguments: '(null,42)',
-                    selector: 'CallStructure(arity=2)')),
-    const Test('m() { o(a) {}; o(null, 42); }',
+            element: 'function(m#o)',
+            arguments: '(null,42)',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        'm() { o(a) {}; o(null, 42); }',
         const Visit(VisitKind.VISIT_LOCAL_FUNCTION_INCOMPATIBLE_INVOKE,
-                    element: 'function(m#o)',
-                    arguments: '(null,42)',
-                    selector: 'CallStructure(arity=2)')),
-    const Test('m() { o(a, b) {}; o = 42; }',
+            element: 'function(m#o)',
+            arguments: '(null,42)',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        'm() { o(a, b) {}; o = 42; }',
         const Visit(VisitKind.VISIT_LOCAL_FUNCTION_SET,
-                    element: 'function(m#o)',
-                    rhs: '42')),
+            element: 'function(m#o)', rhs: '42')),
   ],
   'Static fields': const [
     // Static fields
@@ -74,8 +79,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         class C { static var o; }
         m() => C.o;
         ''',
-        const Visit(VisitKind.VISIT_STATIC_FIELD_GET,
-                    element: 'field(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_FIELD_GET, element: 'field(C#o)')),
     const Test.clazz(
         '''
         class C {
@@ -83,8 +87,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => o;
         }
         ''',
-        const Visit(VisitKind.VISIT_STATIC_FIELD_GET,
-                    element: 'field(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_FIELD_GET, element: 'field(C#o)')),
     const Test.clazz(
         '''
         class C {
@@ -92,8 +95,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => C.o;
         }
         ''',
-        const Visit(VisitKind.VISIT_STATIC_FIELD_GET,
-                    element: 'field(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_FIELD_GET, element: 'field(C#o)')),
     const Test.prefix(
         '''
         class C {
@@ -101,8 +103,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         'm() => p.C.o;',
-        const Visit(VisitKind.VISIT_STATIC_FIELD_GET,
-                    element: 'field(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_FIELD_GET, element: 'field(C#o)')),
     const Test.clazz(
         '''
         class C {
@@ -111,7 +112,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_GET,
-                    error: MessageKind.NO_INSTANCE_AVAILABLE)),
+            error: MessageKind.NO_INSTANCE_AVAILABLE)),
     const Test.prefix(
         '''
         class C {
@@ -120,10 +121,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() => p.C.o;',
         const [
-          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
-                      element: 'prefix(p)'),
-          const Visit(VisitKind.VISIT_STATIC_FIELD_GET,
-                      element: 'field(C#o)'),
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS, element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_GET, element: 'field(C#o)'),
         ],
         isDeferred: true),
     const Test(
@@ -133,8 +132,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         m() => C.o;
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                    name: 'o')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET, name: 'o')),
     const Test(
         '''
         class C {
@@ -142,9 +140,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         m() { C.o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
-                    rhs: '42')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET, name: 'o', rhs: '42')),
     const Test(
         '''
         class C {
@@ -152,15 +148,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         m() => C.o;
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                    name: 'o')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET, name: 'o')),
     const Test.prefix(
         '''
         ''',
         'm() => p.C.o;',
         const [
           const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
-                      receiver: 'p.C', name: 'o'),
+              receiver: 'p.C', name: 'o'),
           const Visit(VisitKind.VISIT_UNRESOLVED_GET, name: 'C'),
         ]),
     const Test.prefix(
@@ -176,11 +171,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() => p.C.o;',
         const [
           const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
-                      receiver: 'p.C', name: 'o'),
-          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
-                      element: 'prefix(p)'),
-          const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                      name: 'C'),
+              receiver: 'p.C', name: 'o'),
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS, element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_UNRESOLVED_GET, name: 'C'),
         ],
         isDeferred: true),
     const Test.prefix(
@@ -190,10 +183,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() => p.C.o;',
         const [
-          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
-                      element: 'prefix(p)'),
-          const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                      name: 'o'),
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS, element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_UNRESOLVED_GET, name: 'o'),
         ],
         isDeferred: true),
     const Test(
@@ -210,8 +201,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { C.o = 42; }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -220,8 +210,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -230,8 +219,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test.prefix(
         '''
         class C {
@@ -240,8 +228,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() { p.C.o = 42; }',
         const Visit(VisitKind.VISIT_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -250,8 +237,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_SET,
-                    error: MessageKind.NO_INSTANCE_AVAILABLE,
-                    rhs: '42')),
+            error: MessageKind.NO_INSTANCE_AVAILABLE, rhs: '42')),
     const Test(
         '''
         class C {
@@ -260,8 +246,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { C.o(null, 42); }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_INVOKE,
-                    element: 'field(C#o)',
-                    arguments: '(null,42)')),
+            element: 'field(C#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -270,8 +255,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_INVOKE,
-                    element: 'field(C#o)',
-                    arguments: '(null,42)')),
+            element: 'field(C#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -280,8 +264,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_INVOKE,
-                    element: 'field(C#o)',
-                    arguments: '(null,42)')),
+            element: 'field(C#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -290,8 +273,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_INVOKE,
-                    error: MessageKind.NO_INSTANCE_AVAILABLE,
-                    arguments: '(null,42)')),
+            error: MessageKind.NO_INSTANCE_AVAILABLE, arguments: '(null,42)')),
     const Test.prefix(
         '''
         class C {
@@ -300,24 +282,21 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() { p.C.o(null, 42); }',
         const Visit(VisitKind.VISIT_STATIC_FIELD_INVOKE,
-                    element: 'field(C#o)',
-                    arguments: '(null,42)')),
+            element: 'field(C#o)', arguments: '(null,42)')),
     const Test(
         '''
         class C {}
         m() => C.this(null, 42);
         ''',
         const Visit(VisitKind.ERROR_INVALID_INVOKE,
-                    error: MessageKind.THIS_PROPERTY,
-                    arguments: '(null,42)')),
+            error: MessageKind.THIS_PROPERTY, arguments: '(null,42)')),
     const Test(
         '''
         class C { static final o = 0; }
         m() { C.o = 42; }
         ''',
         const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -326,8 +305,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -336,8 +314,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test.prefix(
         '''
         class C {
@@ -346,16 +323,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() { p.C.o = 42; }',
         const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test(
         '''
         class C { static const o = 0; }
         m() { C.o = 42; }
         ''',
         const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -364,8 +339,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -374,8 +348,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
     const Test.prefix(
         '''
         class C {
@@ -384,8 +357,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() { p.C.o = 42; }',
         const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
-                    element: 'field(C#o)',
-                    rhs: '42')),
+            element: 'field(C#o)', rhs: '42')),
   ],
   'Static properties': const [
     // Static properties
@@ -396,8 +368,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         m() => C.o;
         ''',
-        const Visit(VisitKind.VISIT_STATIC_GETTER_GET,
-                    element: 'getter(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_GETTER_GET, element: 'getter(C#o)')),
     const Test.clazz(
         '''
         class C {
@@ -405,8 +376,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => o;
         }
         ''',
-        const Visit(VisitKind.VISIT_STATIC_GETTER_GET,
-                    element: 'getter(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_GETTER_GET, element: 'getter(C#o)')),
     const Test.clazz(
         '''
         class C {
@@ -414,8 +384,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => C.o;
         }
         ''',
-        const Visit(VisitKind.VISIT_STATIC_GETTER_GET,
-                    element: 'getter(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_GETTER_GET, element: 'getter(C#o)')),
     const Test.prefix(
         '''
         class C {
@@ -423,16 +392,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         'm() => p.C.o;',
-        const Visit(VisitKind.VISIT_STATIC_GETTER_GET,
-                    element: 'getter(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_GETTER_GET, element: 'getter(C#o)')),
     const Test(
         '''
         class C { static get o => 42; }
         m() { C.o = 42; }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SET,
-                    element: 'getter(C#o)',
-                    rhs: '42')),
+            element: 'getter(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -441,8 +408,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SET,
-                    element: 'getter(C#o)',
-                    rhs: '42')),
+            element: 'getter(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -451,8 +417,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SET,
-                    element: 'getter(C#o)',
-                    rhs: '42')),
+            element: 'getter(C#o)', rhs: '42')),
     const Test.prefix(
         '''
         class C {
@@ -461,8 +426,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() { p.C.o = 42; }',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SET,
-                    element: 'getter(C#o)',
-                    rhs: '42')),
+            element: 'getter(C#o)', rhs: '42')),
     const Test(
         '''
         class C {
@@ -470,8 +434,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         m() => C.o;
         ''',
-        const Visit(VisitKind.VISIT_STATIC_SETTER_GET,
-                    element: 'setter(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_SETTER_GET, element: 'setter(C#o)')),
     const Test.clazz(
         '''
         class C {
@@ -479,8 +442,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => o;
         }
         ''',
-        const Visit(VisitKind.VISIT_STATIC_SETTER_GET,
-                    element: 'setter(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_SETTER_GET, element: 'setter(C#o)')),
 
     const Test.clazz(
         '''
@@ -489,8 +451,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => C.o;
         }
         ''',
-        const Visit(VisitKind.VISIT_STATIC_SETTER_GET,
-                    element: 'setter(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_SETTER_GET, element: 'setter(C#o)')),
     const Test.prefix(
         '''
         class C {
@@ -498,16 +459,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         'm() => p.C.o;',
-        const Visit(VisitKind.VISIT_STATIC_SETTER_GET,
-                    element: 'setter(C#o)')),
+        const Visit(VisitKind.VISIT_STATIC_SETTER_GET, element: 'setter(C#o)')),
     const Test(
         '''
         class C { static set o(_) {} }
         m() { C.o = 42; }
         ''',
         const Visit(VisitKind.VISIT_STATIC_SETTER_SET,
-                    element: 'setter(C#o)',
-                    rhs: '42')),
+            element: 'setter(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -516,8 +475,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_SETTER_SET,
-                    element: 'setter(C#o)',
-                    rhs: '42')),
+            element: 'setter(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -526,8 +484,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_SETTER_SET,
-                    element: 'setter(C#o)',
-                    rhs: '42')),
+            element: 'setter(C#o)', rhs: '42')),
     const Test.prefix(
         '''
         class C {
@@ -536,16 +493,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() { p.C.o = 42; }',
         const Visit(VisitKind.VISIT_STATIC_SETTER_SET,
-                    element: 'setter(C#o)',
-                    rhs: '42')),
+            element: 'setter(C#o)', rhs: '42')),
     const Test(
         '''
         class C { static get o => null; }
         m() => C.o(null, 42);
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_INVOKE,
-                    element: 'getter(C#o)',
-                    arguments: '(null,42)')),
+            element: 'getter(C#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -554,8 +509,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_INVOKE,
-                    element: 'getter(C#o)',
-                    arguments: '(null,42)')),
+            element: 'getter(C#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -564,8 +518,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_INVOKE,
-                    element: 'getter(C#o)',
-                    arguments: '(null,42)')),
+            element: 'getter(C#o)', arguments: '(null,42)')),
     const Test.prefix(
         '''
         class C {
@@ -574,16 +527,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() { p.C.o(null, 42); }',
         const Visit(VisitKind.VISIT_STATIC_GETTER_INVOKE,
-                    element: 'getter(C#o)',
-                    arguments: '(null,42)')),
+            element: 'getter(C#o)', arguments: '(null,42)')),
     const Test(
         '''
         class C { static set o(_) {} }
         m() => C.o(null, 42);
         ''',
         const Visit(VisitKind.VISIT_STATIC_SETTER_INVOKE,
-                    element: 'setter(C#o)',
-                    arguments: '(null,42)')),
+            element: 'setter(C#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -592,8 +543,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_SETTER_INVOKE,
-                    element: 'setter(C#o)',
-                    arguments: '(null,42)')),
+            element: 'setter(C#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -602,8 +552,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_SETTER_INVOKE,
-                    element: 'setter(C#o)',
-                    arguments: '(null,42)')),
+            element: 'setter(C#o)', arguments: '(null,42)')),
     const Test.prefix(
         '''
         class C {
@@ -612,8 +561,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() { p.C.o(null, 42); }',
         const Visit(VisitKind.VISIT_STATIC_SETTER_INVOKE,
-                    element: 'setter(C#o)',
-                    arguments: '(null,42)')),
+            element: 'setter(C#o)', arguments: '(null,42)')),
   ],
   'Static functions': const [
     // Static functions
@@ -623,7 +571,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => C.o;
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_GET,
-                    element: 'function(C#o)')),
+            element: 'function(C#o)')),
     const Test.clazz(
         '''
         class C {
@@ -632,7 +580,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_GET,
-                    element: 'function(C#o)')),
+            element: 'function(C#o)')),
     const Test.clazz(
         '''
         class C {
@@ -641,7 +589,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_GET,
-                    element: 'function(C#o)')),
+            element: 'function(C#o)')),
     const Test.prefix(
         '''
         class C { static o(a, b) {} }
@@ -650,15 +598,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => p.C.o;
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_GET,
-                    element: 'function(C#o)')),
+            element: 'function(C#o)')),
     const Test(
         '''
         class C { static o(a, b) {} }
         m() { C.o = 42; }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_SET,
-                    element: 'function(C#o)',
-                    rhs: '42')),
+            element: 'function(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -667,8 +614,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_SET,
-                    element: 'function(C#o)',
-                    rhs: '42')),
+            element: 'function(C#o)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -677,8 +623,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_SET,
-                    element: 'function(C#o)',
-                    rhs: '42')),
+            element: 'function(C#o)', rhs: '42')),
     const Test.prefix(
         '''
         class C { static o(a, b) {} }
@@ -687,16 +632,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { p.C.o = 42; }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_SET,
-                    element: 'function(C#o)',
-                    rhs: '42')),
+            element: 'function(C#o)', rhs: '42')),
     const Test(
         '''
         class C { static o(a, b) {} }
         m() => C.o(null, 42);
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_INVOKE,
-                    element: 'function(C#o)',
-                    arguments: '(null,42)')),
+            element: 'function(C#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -705,8 +648,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_INVOKE,
-                    element: 'function(C#o)',
-                    arguments: '(null,42)')),
+            element: 'function(C#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -715,8 +657,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_INVOKE,
-                    element: 'function(C#o)',
-                    arguments: '(null,42)')),
+            element: 'function(C#o)', arguments: '(null,42)')),
     const Test.prefix(
         '''
         class C {
@@ -725,16 +666,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() { p.C.o(null, 42); }',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_INVOKE,
-                    element: 'function(C#o)',
-                    arguments: '(null,42)')),
+            element: 'function(C#o)', arguments: '(null,42)')),
     const Test(
         '''
         class C { static o(a, b) {} }
         m() => C.o(null);
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_INCOMPATIBLE_INVOKE,
-                    element: 'function(C#o)',
-                    arguments: '(null)')),
+            element: 'function(C#o)', arguments: '(null)')),
   ],
   'Top level fields': const [
     // Top level fields
@@ -743,42 +682,35 @@ const Map<String, List<Test>> SEND_TESTS = const {
         var o;
         m() => o;
         ''',
-        const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_GET,
-                    element: 'field(o)')),
+        const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_GET, element: 'field(o)')),
     const Test.prefix(
         '''
         var o;
         ''',
         'm() => p.o;',
-        const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_GET,
-                    element: 'field(o)')),
+        const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_GET, element: 'field(o)')),
     const Test.prefix(
         '''
         var o;
         ''',
         'm() => p.o;',
         const [
-          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
-                      element: 'prefix(p)'),
-          const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_GET,
-                      element: 'field(o)'),
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS, element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_GET, element: 'field(o)'),
         ],
         isDeferred: true),
     const Test.prefix(
         '''
         ''',
         'm() => p.o;',
-        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                    name: 'o')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET, name: 'o')),
     const Test.prefix(
         '''
         ''',
         'm() => p.o;',
         const [
-          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
-                      element: 'prefix(p)'),
-          const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                      name: 'o'),
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS, element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_UNRESOLVED_GET, name: 'o'),
         ],
         isDeferred: true),
     const Test.prefix(
@@ -786,98 +718,85 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() => p;',
         const Visit(VisitKind.ERROR_INVALID_GET,
-                    error: MessageKind.PREFIX_AS_EXPRESSION)),
+            error: MessageKind.PREFIX_AS_EXPRESSION)),
     const Test(
         '''
         var o;
         m() { o = 42; }
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_SET,
-                    element: 'field(o)',
-                    rhs: '42')),
+            element: 'field(o)', rhs: '42')),
     const Test.prefix(
         '''
         var o;
         ''',
         'm() { p.o = 42; }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_SET,
-                    element: 'field(o)',
-                    rhs: '42')),
+            element: 'field(o)', rhs: '42')),
     const Test.prefix(
         '''
         ''',
         'm() { p = 42; }',
         const Visit(VisitKind.ERROR_INVALID_SET,
-                    error: MessageKind.PREFIX_AS_EXPRESSION,
-                    rhs: '42')),
+            error: MessageKind.PREFIX_AS_EXPRESSION, rhs: '42')),
     const Test(
         '''
         final o = 0;
         m() { o = 42; }
         ''',
         const Visit(VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
-                    element: 'field(o)',
-                    rhs: '42')),
+            element: 'field(o)', rhs: '42')),
     const Test.prefix(
         '''
         final o = 0;
         ''',
         'm() { p.o = 42; }',
         const Visit(VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
-                    element: 'field(o)',
-                    rhs: '42')),
+            element: 'field(o)', rhs: '42')),
     const Test(
         '''
         const o = 0;
         m() { o = 42; }
         ''',
         const Visit(VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
-                    element: 'field(o)',
-                    rhs: '42')),
+            element: 'field(o)', rhs: '42')),
     const Test.prefix(
         '''
         const o = 0;
         ''',
         'm() { p.o = 42; }',
         const Visit(VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
-                    element: 'field(o)',
-                    rhs: '42')),
+            element: 'field(o)', rhs: '42')),
     const Test(
         '''
         var o;
         m() { o(null, 42); }
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_INVOKE,
-                    element: 'field(o)',
-                    arguments: '(null,42)')),
+            element: 'field(o)', arguments: '(null,42)')),
     const Test.prefix(
         '''
         var o;
         ''',
         'm() { p.o(null, 42); }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_INVOKE,
-                    element: 'field(o)',
-                    arguments: '(null,42)')),
+            element: 'field(o)', arguments: '(null,42)')),
     const Test.prefix(
         '''
         ''',
         'm() { p(null, 42); }',
         const Visit(VisitKind.ERROR_INVALID_INVOKE,
-                    error: MessageKind.PREFIX_AS_EXPRESSION,
-                    arguments: '(null,42)')),
+            error: MessageKind.PREFIX_AS_EXPRESSION, arguments: '(null,42)')),
     const Test(
         '''
         m() => o;
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                    name: 'o')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET, name: 'o')),
     const Test(
         '''
         m() { o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
-                    rhs: '42')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET, name: 'o', rhs: '42')),
   ],
   'Top level properties': const [
     // Top level properties
@@ -887,7 +806,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => o;
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_GET,
-                    element: 'getter(o)')),
+            element: 'getter(o)')),
     const Test.prefix(
         '''
         get o => null;
@@ -896,14 +815,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => p.o;
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_GET,
-                    element: 'getter(o)')),
+            element: 'getter(o)')),
     const Test(
         '''
         set o(_) {}
         m() => o;
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
-                    element: 'setter(o)')),
+            element: 'setter(o)')),
     const Test.prefix(
         '''
         set o(_) {}
@@ -912,71 +831,63 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => p.o;
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
-                    element: 'setter(o)')),
+            element: 'setter(o)')),
     const Test(
         '''
         get o => null;
         m() { o = 42; }
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SET,
-                    element: 'getter(o)',
-                    rhs: '42')),
+            element: 'getter(o)', rhs: '42')),
     const Test.prefix(
         '''
         get o => null;
         ''',
         'm() { p.o = 42; }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SET,
-                    element: 'getter(o)',
-                    rhs: '42')),
+            element: 'getter(o)', rhs: '42')),
     const Test(
         '''
         set o(_) {}
         m() { o = 42; }
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_SET,
-                    element: 'setter(o)',
-                    rhs: '42')),
+            element: 'setter(o)', rhs: '42')),
     const Test.prefix(
         '''
         set o(_) {}
         ''',
         'm() { p.o = 42; }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_SET,
-                    element: 'setter(o)',
-                    rhs: '42')),
+            element: 'setter(o)', rhs: '42')),
     const Test(
         '''
         get o => null;
         m() => o(null, 42);
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_INVOKE,
-                    element: 'getter(o)',
-                    arguments: '(null,42)')),
+            element: 'getter(o)', arguments: '(null,42)')),
     const Test.prefix(
         '''
         get o => null;
         ''',
         'm() { p.o(null, 42); }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_INVOKE,
-                    element: 'getter(o)',
-                    arguments: '(null,42)')),
+            element: 'getter(o)', arguments: '(null,42)')),
     const Test(
         '''
         set o(_) {}
         m() => o(null, 42);
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
-                    element: 'setter(o)',
-                    arguments: '(null,42)')),
+            element: 'setter(o)', arguments: '(null,42)')),
     const Test.prefix(
         '''
         set o(_) {}
         ''',
         'm() { p.o(null, 42); }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
-                    element: 'setter(o)',
-                    arguments: '(null,42)')),
+            element: 'setter(o)', arguments: '(null,42)')),
   ],
   'Top level functions': const [
     // Top level functions
@@ -986,49 +897,43 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => o;
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_GET,
-                    element: 'function(o)')),
+            element: 'function(o)')),
     const Test(
         '''
         o(a, b) {}
         m() => o(null, 42);
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
-                    element: 'function(o)',
-                    arguments: '(null,42)')),
+            element: 'function(o)', arguments: '(null,42)')),
     const Test(
         '''
         o(a, b) {}
         m() => o(null);
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INCOMPATIBLE_INVOKE,
-                    element: 'function(o)',
-                    arguments: '(null)')),
+            element: 'function(o)', arguments: '(null)')),
     const Test.prefix(
         '''
         o(a, b) {}
         ''',
         'm() { p.o(null, 42); }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
-                    element: 'function(o)',
-                    arguments: '(null,42)')),
+            element: 'function(o)', arguments: '(null,42)')),
     const Test(
         '''
         m() => o(null, 42);
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
-                    name: 'o',
-                    arguments: '(null,42)')),
+            name: 'o', arguments: '(null,42)')),
     const Test.prefix(
         '''
         o(a, b) {}
         ''',
         'm() => p.o(null, 42);',
         const [
-          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
-                      element: 'prefix(p)'),
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS, element: 'prefix(p)'),
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
-                      element: 'function(o)',
-                      arguments: '(null,42)'),
+              element: 'function(o)', arguments: '(null,42)'),
         ],
         isDeferred: true),
     const Test.prefix(
@@ -1036,18 +941,15 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() => p.o(null, 42);',
         const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
-                    name: 'o',
-                    arguments: '(null,42)')),
+            name: 'o', arguments: '(null,42)')),
     const Test.prefix(
         '''
         ''',
         'm() => p.o(null, 42);',
         const [
-          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
-                      element: 'prefix(p)'),
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS, element: 'prefix(p)'),
           const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
-                      name: 'o',
-                      arguments: '(null,42)'),
+              name: 'o', arguments: '(null,42)'),
         ],
         isDeferred: true),
     const Test.prefix(
@@ -1055,53 +957,39 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         'm() => p(null, 42);',
         const Visit(VisitKind.ERROR_INVALID_INVOKE,
-                    error: MessageKind.PREFIX_AS_EXPRESSION,
-                    arguments: '(null,42)')),
+            error: MessageKind.PREFIX_AS_EXPRESSION, arguments: '(null,42)')),
     const Test(
         '''
         o(a, b) {}
         m() { o = 42; }
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_SET,
-                    element: 'function(o)',
-                    rhs: '42')),
+            element: 'function(o)', rhs: '42')),
     const Test.prefix(
         '''
         o(a, b) {}
         ''',
         'm() { p.o = 42; }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_SET,
-                    element: 'function(o)',
-                    rhs: '42')),
+            element: 'function(o)', rhs: '42')),
   ],
   'Dynamic properties': const [
     // Dynamic properties
-    const Test('m(o) => o.foo;',
-        const [
-          const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
-                      receiver: 'o',
-                      name: 'foo'),
-          const Visit(VisitKind.VISIT_PARAMETER_GET,
-                      element: 'parameter(m#o)'),
-        ]),
-    const Test('m(o) { o.foo = 42; }',
-        const [
-          const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_SET,
-                      receiver: 'o',
-                      name: 'foo',
-                      rhs: '42'),
-          const Visit(VisitKind.VISIT_PARAMETER_GET,
-                      element: 'parameter(m#o)'),
-        ]),
-    const Test('m(o) { o.foo(null, 42); }',
-        const [
-          const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_INVOKE,
-                      receiver: 'o',
-                      name: 'foo',
-                      arguments: '(null,42)'),
-          const Visit(VisitKind.VISIT_PARAMETER_GET,
-                      element: 'parameter(m#o)'),
-        ]),
+    const Test('m(o) => o.foo;', const [
+      const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
+          receiver: 'o', name: 'foo'),
+      const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#o)'),
+    ]),
+    const Test('m(o) { o.foo = 42; }', const [
+      const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_SET,
+          receiver: 'o', name: 'foo', rhs: '42'),
+      const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#o)'),
+    ]),
+    const Test('m(o) { o.foo(null, 42); }', const [
+      const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_INVOKE,
+          receiver: 'o', name: 'foo', arguments: '(null,42)'),
+      const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#o)'),
+    ]),
   ],
   'This access': const [
     // This access
@@ -1119,8 +1007,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { this(null, 42); }
         }
         ''',
-        const Visit(VisitKind.VISIT_THIS_INVOKE,
-                    arguments: '(null,42)')),
+        const Visit(VisitKind.VISIT_THIS_INVOKE, arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -1129,8 +1016,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_INVOKE,
-                    error: MessageKind.NO_THIS_AVAILABLE,
-                    arguments: '(null,42)')),
+            error: MessageKind.NO_THIS_AVAILABLE, arguments: '(null,42)')),
   ],
   'This properties': const [
     // This properties
@@ -1141,8 +1027,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => foo;
         }
         ''',
-        const Visit(VisitKind.VISIT_THIS_PROPERTY_GET,
-                    name: 'foo')),
+        const Visit(VisitKind.VISIT_THIS_PROPERTY_GET, name: 'foo')),
     const Test.clazz(
         '''
         class C {
@@ -1150,8 +1035,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => this.foo;
         }
         ''',
-        const Visit(VisitKind.VISIT_THIS_PROPERTY_GET,
-                    name: 'foo')),
+        const Visit(VisitKind.VISIT_THIS_PROPERTY_GET, name: 'foo')),
     const Test.clazz(
         '''
         class C {
@@ -1159,8 +1043,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => foo;
         }
         ''',
-        const Visit(VisitKind.VISIT_THIS_PROPERTY_GET,
-                    name: 'foo')),
+        const Visit(VisitKind.VISIT_THIS_PROPERTY_GET, name: 'foo')),
     const Test.clazz(
         '''
         class C {
@@ -1169,7 +1052,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_GET,
-                    error: MessageKind.NO_THIS_AVAILABLE)),
+            error: MessageKind.NO_THIS_AVAILABLE)),
     const Test.clazz(
         '''
         class C {
@@ -1177,8 +1060,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => this.foo;
         }
         ''',
-        const Visit(VisitKind.VISIT_THIS_PROPERTY_GET,
-                    name: 'foo')),
+        const Visit(VisitKind.VISIT_THIS_PROPERTY_GET, name: 'foo')),
     const Test.clazz(
         '''
         class C {
@@ -1186,9 +1068,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { foo = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_THIS_PROPERTY_SET,
-                    name: 'foo',
-                    rhs: '42')),
+        const Visit(VisitKind.VISIT_THIS_PROPERTY_SET, name: 'foo', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -1196,9 +1076,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { this.foo = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_THIS_PROPERTY_SET,
-                    name: 'foo',
-                    rhs: '42')),
+        const Visit(VisitKind.VISIT_THIS_PROPERTY_SET, name: 'foo', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -1206,9 +1084,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { foo = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_THIS_PROPERTY_SET,
-                    name: 'foo',
-                    rhs: '42')),
+        const Visit(VisitKind.VISIT_THIS_PROPERTY_SET, name: 'foo', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -1216,9 +1092,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { this.foo = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_THIS_PROPERTY_SET,
-                    name: 'foo',
-                    rhs: '42')),
+        const Visit(VisitKind.VISIT_THIS_PROPERTY_SET, name: 'foo', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -1227,8 +1101,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_THIS_PROPERTY_INVOKE,
-                    name: 'foo',
-                    arguments: '(null,42)')),
+            name: 'foo', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -1237,8 +1110,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_THIS_PROPERTY_INVOKE,
-                    name: 'foo',
-                    arguments: '(null,42)')),
+            name: 'foo', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C {
@@ -1247,8 +1119,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_INVOKE,
-                    error: MessageKind.NO_THIS_AVAILABLE,
-                    arguments: '(null,42)')),
+            error: MessageKind.NO_THIS_AVAILABLE, arguments: '(null,42)')),
   ],
   'Super fields': const [
     // Super fields
@@ -1261,8 +1132,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => super.o;
         }
         ''',
-        const Visit(VisitKind.VISIT_SUPER_FIELD_GET,
-                    element: 'field(B#o)')),
+        const Visit(VisitKind.VISIT_SUPER_FIELD_GET, element: 'field(B#o)')),
     const Test.clazz(
         '''
         class B {
@@ -1273,8 +1143,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_FIELD_SET,
-                    element: 'field(B#o)',
-                    rhs: '42')),
+            element: 'field(B#o)', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -1285,8 +1154,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_FINAL_SUPER_FIELD_SET,
-                    element: 'field(B#o)',
-                    rhs: '42')),
+            element: 'field(B#o)', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -1297,10 +1165,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_FIELD_INVOKE,
-                element: 'field(B#o)',
-                arguments: '(null,42)')),
+            element: 'field(B#o)', arguments: '(null,42)')),
     const Test.clazz(
-            '''
+        '''
         class B {
         }
         class C extends B {
@@ -1309,15 +1176,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GET)),
     const Test.clazz(
-            '''
+        '''
     class B {
     }
     class C extends B {
       m() => super.o = 42;
     }
     ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SET,
-                    rhs: '42')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SET, rhs: '42')),
   ],
   'Super properties': const [
     // Super properties
@@ -1330,8 +1196,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => super.o;
         }
         ''',
-        const Visit(VisitKind.VISIT_SUPER_GETTER_GET,
-                    element: 'getter(B#o)')),
+        const Visit(VisitKind.VISIT_SUPER_GETTER_GET, element: 'getter(B#o)')),
     const Test.clazz(
         '''
         class B {
@@ -1341,8 +1206,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => super.o;
         }
         ''',
-        const Visit(VisitKind.VISIT_SUPER_SETTER_GET,
-                    element: 'setter(B#o)')),
+        const Visit(VisitKind.VISIT_SUPER_SETTER_GET, element: 'setter(B#o)')),
     const Test.clazz(
         '''
         class B {
@@ -1353,8 +1217,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_SET,
-                    element: 'getter(B#o)',
-                    rhs: '42')),
+            element: 'getter(B#o)', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -1365,8 +1228,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_SETTER_SET,
-                    element: 'setter(B#o)',
-                    rhs: '42')),
+            element: 'setter(B#o)', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -1377,8 +1239,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_INVOKE,
-                    element: 'getter(B#o)',
-                    arguments: '(null,42)')),
+            element: 'getter(B#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class B {
@@ -1389,8 +1250,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_SETTER_INVOKE,
-                    element: 'setter(B#o)',
-                    arguments: '(null,42)')),
+            element: 'setter(B#o)', arguments: '(null,42)')),
   ],
   'Super methods': const [
     // Super methods
@@ -1404,7 +1264,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_GET,
-                    element: 'function(B#o)')),
+            element: 'function(B#o)')),
     const Test.clazz(
         '''
         class B {
@@ -1415,8 +1275,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_SET,
-                    element: 'function(B#o)',
-                    rhs: '42')),
+            element: 'function(B#o)', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -1427,8 +1286,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_INVOKE,
-                    element: 'function(B#o)',
-                    arguments: '(null,42)')),
+            element: 'function(B#o)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class B {
@@ -1439,10 +1297,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_INCOMPATIBLE_INVOKE,
-                    element: 'function(B#o)',
-                    arguments: '(null)')),
+            element: 'function(B#o)', arguments: '(null)')),
     const Test.clazz(
-            '''
+        '''
             class B {
             }
             class C extends B {
@@ -1450,14 +1307,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
             }
             ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INVOKE,
-                    arguments: '(null,42)')),
+            arguments: '(null,42)')),
   ],
   'Expression invoke': const [
     // Expression invoke
-    const Test('m() => (a, b){}(null, 42);',
+    const Test(
+        'm() => (a, b){}(null, 42);',
         const Visit(VisitKind.VISIT_EXPRESSION_INVOKE,
-                    receiver: '(a,b){}',
-                    arguments: '(null,42)')),
+            receiver: '(a,b){}', arguments: '(null,42)')),
   ],
   'Class type literals': const [
     // Class type literals
@@ -1466,57 +1323,49 @@ const Map<String, List<Test>> SEND_TESTS = const {
         class C {}
         m() => C;
         ''',
-        const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_GET,
-                    constant: 'C')),
+        const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_GET, constant: 'C')),
     const Test(
         '''
         class C {}
         m() => C(null, 42);
         ''',
         const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_INVOKE,
-                    constant: 'C',
-                    arguments: '(null,42)')),
+            constant: 'C', arguments: '(null,42)')),
     const Test(
         '''
         class C {}
         m() => C = 42;
         ''',
         const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_SET,
-                    constant: 'C',
-                    rhs: '42')),
+            constant: 'C', rhs: '42')),
     const Test(
         '''
         class C {}
         m() => C += 42;
         ''',
         const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_COMPOUND,
-                    constant: 'C',
-                    operator: '+=',
-                    rhs: '42')),
+            constant: 'C', operator: '+=', rhs: '42')),
     const Test(
         '''
         class C {}
         m() => C ??= 42;
         ''',
         const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_SET_IF_NULL,
-                    constant: 'C',
-                    rhs: '42')),
+            constant: 'C', rhs: '42')),
     const Test(
         '''
         class C {}
         m() => ++C;
         ''',
         const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_PREFIX,
-                    constant: 'C',
-                    operator: '++')),
+            constant: 'C', operator: '++')),
     const Test(
         '''
         class C {}
         m() => C--;
         ''',
         const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_POSTFIX,
-                    constant: 'C',
-                    operator: '--')),
+            constant: 'C', operator: '--')),
     const Test(
         '''
         class C {}
@@ -1524,9 +1373,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
-                      receiver: '(C)', name: 'hashCode'),
-          const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_GET,
-                      constant: 'C'),
+              receiver: '(C)', name: 'hashCode'),
+          const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_GET, constant: 'C'),
         ]),
   ],
   'Typedef type literals': const [
@@ -1536,57 +1384,49 @@ const Map<String, List<Test>> SEND_TESTS = const {
         typedef F();
         m() => F;
         ''',
-        const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_GET,
-                    constant: 'F')),
+        const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_GET, constant: 'F')),
     const Test(
         '''
         typedef F();
         m() => F(null, 42);
         ''',
         const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_INVOKE,
-                    constant: 'F',
-                    arguments: '(null,42)')),
+            constant: 'F', arguments: '(null,42)')),
     const Test(
         '''
         typedef F();
         m() => F = 42;
         ''',
         const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET,
-                    constant: 'F',
-                    rhs: '42')),
+            constant: 'F', rhs: '42')),
     const Test(
         '''
         typedef F();
         m() => F += 42;
         ''',
         const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_COMPOUND,
-                    constant: 'F',
-                    operator: '+=',
-                    rhs: '42')),
+            constant: 'F', operator: '+=', rhs: '42')),
     const Test(
         '''
         typedef F();
         m() => F ??= 42;
         ''',
         const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET_IF_NULL,
-                    constant: 'F',
-                    rhs: '42')),
+            constant: 'F', rhs: '42')),
     const Test(
         '''
         typedef F();
         m() => ++F;
         ''',
         const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_PREFIX,
-                    constant: 'F',
-                    operator: '++')),
+            constant: 'F', operator: '++')),
     const Test(
         '''
         typedef F();
         m() => F--;
         ''',
         const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_POSTFIX,
-                    constant: 'F',
-                    operator: '--')),
+            constant: 'F', operator: '--')),
   ],
   'Type variable type literals': const [
     // Type variable type literals
@@ -1597,7 +1437,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_GET,
-                    element: 'type_variable(C#T)')),
+            element: 'type_variable(C#T)')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1605,8 +1445,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_INVOKE,
-                    element: 'type_variable(C#T)',
-                    arguments: '(null,42)')),
+            element: 'type_variable(C#T)', arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1614,8 +1453,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
-                    element: 'type_variable(C#T)',
-                    rhs: '42')),
+            element: 'type_variable(C#T)', rhs: '42')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1623,9 +1461,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_COMPOUND,
-                    element: 'type_variable(C#T)',
-                    operator: '+=',
-                    rhs: '42')),
+            element: 'type_variable(C#T)', operator: '+=', rhs: '42')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1633,8 +1469,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET_IF_NULL,
-                    element: 'type_variable(C#T)',
-                    rhs: '42')),
+            element: 'type_variable(C#T)', rhs: '42')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1642,8 +1477,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_PREFIX,
-                    element: 'type_variable(C#T)',
-                    operator: '++')),
+            element: 'type_variable(C#T)', operator: '++')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1651,8 +1485,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_POSTFIX,
-                    element: 'type_variable(C#T)',
-                    operator: '--')),
+            element: 'type_variable(C#T)', operator: '--')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1660,7 +1493,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_GET,
-                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER)),
+            error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER)),
     const Test.clazz(
         '''
         class C<T> {
@@ -1668,8 +1501,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_INVOKE,
-                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-                    arguments: '(null,42)')),
+            error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+            arguments: '(null,42)')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1677,8 +1510,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_SET_IF_NULL,
-                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-                    rhs: '42')),
+            error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER, rhs: '42')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1686,8 +1518,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_SET_IF_NULL,
-                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-                    rhs: '42')),
+            error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER, rhs: '42')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1695,8 +1526,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_PREFIX,
-                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-                    operator: '++')),
+            error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+            operator: '++')),
     const Test.clazz(
         '''
         class C<T> {
@@ -1704,8 +1535,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_POSTFIX,
-                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-                    operator: '--')),
+            error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+            operator: '--')),
   ],
   'Dynamic type literals': const [
     // Dynamic type literals
@@ -1714,7 +1545,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => dynamic;
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_GET,
-                    constant: 'dynamic')),
+            constant: 'dynamic')),
     // TODO(johnniwinther): Update these to expect the constant to be `dynamic`
     // instead of `Type`. Currently the compile time constant evaluator cannot
     // detect `dynamic` as a constant subexpression.
@@ -1723,44 +1554,37 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { dynamic(null, 42); }
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_INVOKE,
-                    constant: 'Type',
-                    arguments: '(null,42)')),
+            constant: 'Type', arguments: '(null,42)')),
     const Test(
         '''
         m() => dynamic = 42;
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET,
-                    constant: 'dynamic',
-                    rhs: '42')),
+            constant: 'dynamic', rhs: '42')),
     const Test(
         '''
         m() => dynamic += 42;
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_COMPOUND,
-                    constant: 'dynamic',
-                    operator: '+=',
-                    rhs: '42')),
+            constant: 'dynamic', operator: '+=', rhs: '42')),
     const Test(
         '''
         m() => dynamic ??= 42;
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET_IF_NULL,
-                    constant: 'dynamic',
-                    rhs: '42')),
+            constant: 'dynamic', rhs: '42')),
     const Test(
         '''
         m() => ++dynamic;
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_PREFIX,
-                    constant: 'dynamic',
-                    operator: '++')),
+            constant: 'dynamic', operator: '++')),
     const Test(
         '''
         m() => dynamic--;
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_POSTFIX,
-                    constant: 'dynamic',
-                    operator: '--')),
+            constant: 'dynamic', operator: '--')),
   ],
   'Assert': const [
     // Assert
@@ -1769,8 +1593,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { assert(m()); }
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
-                    element: 'function(m)',
-                    arguments: '()')),
+            element: 'function(m)', arguments: '()')),
   ],
   'Logical and': const [
     // Logical and
@@ -1822,91 +1645,91 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => 2 + 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '+', right: '3')),
+            left: '2', operator: '+', right: '3')),
     const Test(
         '''
         m() => 2 - 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '-', right: '3')),
+            left: '2', operator: '-', right: '3')),
     const Test(
         '''
         m() => 2 * 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '*', right: '3')),
+            left: '2', operator: '*', right: '3')),
     const Test(
         '''
         m() => 2 / 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '/', right: '3')),
+            left: '2', operator: '/', right: '3')),
     const Test(
         '''
         m() => 2 ~/ 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '~/', right: '3')),
+            left: '2', operator: '~/', right: '3')),
     const Test(
         '''
         m() => 2 % 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '%', right: '3')),
+            left: '2', operator: '%', right: '3')),
     const Test(
         '''
         m() => 2 << 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '<<', right: '3')),
+            left: '2', operator: '<<', right: '3')),
     const Test(
         '''
         m() => 2 >> 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '>>', right: '3')),
+            left: '2', operator: '>>', right: '3')),
     const Test(
         '''
         m() => 2 <= 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '<=', right: '3')),
+            left: '2', operator: '<=', right: '3')),
     const Test(
         '''
         m() => 2 < 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '<', right: '3')),
+            left: '2', operator: '<', right: '3')),
     const Test(
         '''
         m() => 2 >= 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '>=', right: '3')),
+            left: '2', operator: '>=', right: '3')),
     const Test(
         '''
         m() => 2 > 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '>', right: '3')),
+            left: '2', operator: '>', right: '3')),
     const Test(
         '''
         m() => 2 & 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '&', right: '3')),
+            left: '2', operator: '&', right: '3')),
     const Test(
         '''
         m() => 2 | 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '|', right: '3')),
+            left: '2', operator: '|', right: '3')),
     const Test(
         '''
         m() => 2 ^ 3;
         ''',
         const Visit(VisitKind.VISIT_BINARY,
-                    left: '2', operator: '^', right: '3')),
+            left: '2', operator: '^', right: '3')),
     const Test.clazz(
         '''
         class B {
@@ -1917,9 +1740,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_BINARY,
-                    element: 'function(B#+)',
-                    operator: '+',
-                    right: '42')),
+            element: 'function(B#+)', operator: '+', right: '42')),
     const Test.clazz(
         '''
         class B {}
@@ -1928,20 +1749,19 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_BINARY,
-                    operator: '+',
-                    right: '42')),
+            operator: '+', right: '42')),
     const Test(
         '''
         m() => 2 === 3;
         ''',
         const Visit(VisitKind.ERROR_UNDEFINED_BINARY_EXPRESSION,
-                    left: '2', operator: '===', right: '3')),
+            left: '2', operator: '===', right: '3')),
     const Test(
         '''
         m() => 2 !== 3;
         ''',
         const Visit(VisitKind.ERROR_UNDEFINED_BINARY_EXPRESSION,
-                    left: '2', operator: '!==', right: '3')),
+            left: '2', operator: '!==', right: '3')),
     const Test.clazz(
         '''
         class B {
@@ -1952,9 +1772,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_BINARY,
-                    error: MessageKind.NO_SUPER_IN_STATIC,
-                    operator: '+',
-                    right: '42')),
+            error: MessageKind.NO_SUPER_IN_STATIC, operator: '+', right: '42')),
   ],
   'Index': const [
     // Index
@@ -1962,20 +1780,19 @@ const Map<String, List<Test>> SEND_TESTS = const {
         '''
         m() => 2[3];
         ''',
-        const Visit(VisitKind.VISIT_INDEX,
-                    receiver: '2', index: '3')),
+        const Visit(VisitKind.VISIT_INDEX, receiver: '2', index: '3')),
     const Test(
         '''
         m() => --2[3];
         ''',
         const Visit(VisitKind.VISIT_INDEX_PREFIX,
-                    receiver: '2', index: '3', operator: '--')),
+            receiver: '2', index: '3', operator: '--')),
     const Test(
         '''
         m() => 2[3]++;
         ''',
         const Visit(VisitKind.VISIT_INDEX_POSTFIX,
-                    receiver: '2', index: '3', operator: '++')),
+            receiver: '2', index: '3', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -1986,8 +1803,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_INDEX,
-                    element: 'function(B#[])',
-                    index: '42')),
+            element: 'function(B#[])', index: '42')),
     const Test.clazz(
         '''
         class B {
@@ -1996,8 +1812,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => super[42];
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX,
-                    index: '42')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX, index: '42')),
     const Test.clazz(
         '''
         class B {
@@ -2008,8 +1823,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_INDEX,
-                    error: MessageKind.NO_SUPER_IN_STATIC,
-                    index: '42')),
+            error: MessageKind.NO_SUPER_IN_STATIC, index: '42')),
     const Test.clazz(
         '''
         class B {
@@ -2021,10 +1835,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_INDEX_PREFIX,
-                    getter: 'function(B#[])',
-                    setter: 'function(B#[]=)',
-                    index: '42',
-                    operator: '++')),
+            getter: 'function(B#[])',
+            setter: 'function(B#[]=)',
+            index: '42',
+            operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -2035,9 +1849,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_PREFIX,
-                    setter: 'function(B#[]=)',
-                    index: '42',
-                    operator: '++')),
+            setter: 'function(B#[]=)', index: '42', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -2047,8 +1859,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_PREFIX,
-                    index: '42',
-                    operator: '++')),
+            index: '42', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -2059,9 +1870,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_PREFIX,
-                    getter: 'function(B#[])',
-                    index: '42',
-                    operator: '++')),
+            getter: 'function(B#[])', index: '42', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -2073,9 +1882,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_INDEX_PREFIX,
-                    error: MessageKind.NO_SUPER_IN_STATIC,
-                    index: '42',
-                    operator: '++')),
+            error: MessageKind.NO_SUPER_IN_STATIC,
+            index: '42',
+            operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -2087,10 +1896,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_INDEX_POSTFIX,
-                    getter: 'function(B#[])',
-                    setter: 'function(B#[]=)',
-                    index: '42',
-                    operator: '--')),
+            getter: 'function(B#[])',
+            setter: 'function(B#[]=)',
+            index: '42',
+            operator: '--')),
     const Test.clazz(
         '''
         class B {
@@ -2101,9 +1910,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_POSTFIX,
-                    setter: 'function(B#[]=)',
-                    index: '42',
-                    operator: '--')),
+            setter: 'function(B#[]=)', index: '42', operator: '--')),
     const Test.clazz(
         '''
         class B {
@@ -2113,8 +1920,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_POSTFIX,
-                    index: '42',
-                    operator: '--')),
+            index: '42', operator: '--')),
     const Test.clazz(
         '''
         class B {
@@ -2125,9 +1931,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_POSTFIX,
-                    getter: 'function(B#[])',
-                    index: '42',
-                    operator: '--')),
+            getter: 'function(B#[])', index: '42', operator: '--')),
     const Test.clazz(
         '''
         class B {
@@ -2139,17 +1943,15 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_INDEX_POSTFIX,
-                    error: MessageKind.NO_SUPER_IN_STATIC,
-                    index: '42',
-                    operator: '--')),
+            error: MessageKind.NO_SUPER_IN_STATIC,
+            index: '42',
+            operator: '--')),
     const Test(
         '''
         m() => [][42] ??= 0;
         ''',
         const Visit(VisitKind.VISIT_INDEX_SET_IF_NULL,
-                    receiver: '[] ',
-                    index: '42',
-                    rhs: '0')),
+            receiver: '[] ', index: '42', rhs: '0')),
     const Test.clazz(
         '''
         class B {
@@ -2161,10 +1963,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_INDEX_SET_IF_NULL,
-                    getter: 'function(B#[])',
-                    setter: 'function(B#[]=)',
-                    index: '42',
-                    rhs: '0')),
+            getter: 'function(B#[])',
+            setter: 'function(B#[]=)',
+            index: '42',
+            rhs: '0')),
     const Test.clazz(
         '''
         class B {
@@ -2175,9 +1977,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_SET_IF_NULL,
-                    setter: 'function(B#[]=)',
-                    index: '42',
-                    rhs: '0')),
+            setter: 'function(B#[]=)', index: '42', rhs: '0')),
     const Test.clazz(
         '''
         class B {
@@ -2188,9 +1988,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_SET_IF_NULL,
-                    getter: 'function(B#[])',
-                    index: '42',
-                    rhs: '0')),
+            getter: 'function(B#[])', index: '42', rhs: '0')),
     const Test.clazz(
         '''
         class B {
@@ -2200,8 +1998,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_SET_IF_NULL,
-                    index: '42',
-                    rhs: '0')),
+            index: '42', rhs: '0')),
   ],
   'Equals': const [
     // Equals
@@ -2209,8 +2006,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         '''
         m() => 2 == 3;
         ''',
-        const Visit(VisitKind.VISIT_EQUALS,
-                    left: '2', right: '3')),
+        const Visit(VisitKind.VISIT_EQUALS, left: '2', right: '3')),
     const Test.clazz(
         '''
         class B {
@@ -2221,8 +2017,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_EQUALS,
-                    element: 'function(B#==)',
-                    right: '42')),
+            element: 'function(B#==)', right: '42')),
     const Test.clazz(
         '''
         class B {
@@ -2233,8 +2028,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_EQUALS,
-                    error: MessageKind.NO_SUPER_IN_STATIC,
-                    right: '42')),
+            error: MessageKind.NO_SUPER_IN_STATIC, right: '42')),
   ],
   'Not equals': const [
     // Not equals
@@ -2242,8 +2036,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         '''
         m() => 2 != 3;
         ''',
-        const Visit(VisitKind.VISIT_NOT_EQUALS,
-                    left: '2', right: '3')),
+        const Visit(VisitKind.VISIT_NOT_EQUALS, left: '2', right: '3')),
     const Test.clazz(
         '''
         class B {
@@ -2254,8 +2047,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_NOT_EQUALS,
-                    element: 'function(B#==)',
-                    right: '42')),
+            element: 'function(B#==)', right: '42')),
     const Test.clazz(
         '''
         class B {
@@ -2266,8 +2058,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_NOT_EQUALS,
-                    error: MessageKind.NO_SUPER_IN_STATIC,
-                    right: '42')),
+            error: MessageKind.NO_SUPER_IN_STATIC, right: '42')),
   ],
   'Unary expression': const [
     // Unary expression
@@ -2275,14 +2066,12 @@ const Map<String, List<Test>> SEND_TESTS = const {
         '''
         m() => -false;
         ''',
-        const Visit(VisitKind.VISIT_UNARY,
-                    expression: 'false', operator: '-')),
+        const Visit(VisitKind.VISIT_UNARY, expression: 'false', operator: '-')),
     const Test(
         '''
         m() => ~false;
         ''',
-        const Visit(VisitKind.VISIT_UNARY,
-                    expression: 'false', operator: '~')),
+        const Visit(VisitKind.VISIT_UNARY, expression: 'false', operator: '~')),
     const Test.clazz(
         '''
         class B {
@@ -2293,7 +2082,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_UNARY,
-                    element: 'function(B#unary-)', operator: '-')),
+            element: 'function(B#unary-)', operator: '-')),
     const Test.clazz(
         '''
         class B {
@@ -2302,8 +2091,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => -super;
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_UNARY,
-                    operator: '-')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_UNARY, operator: '-')),
     const Test.clazz(
         '''
         class B {
@@ -2314,7 +2102,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_UNARY,
-                    element: 'function(B#~)', operator: '~')),
+            element: 'function(B#~)', operator: '~')),
     const Test.clazz(
         '''
         class B {
@@ -2325,8 +2113,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_UNARY,
-                    error: MessageKind.NO_SUPER_IN_STATIC,
-                    operator: '-')),
+            error: MessageKind.NO_SUPER_IN_STATIC, operator: '-')),
     const Test(
         '''
         m() => !0;
@@ -2391,8 +2178,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const [
           const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_COMPOUND,
               receiver: 'a', name: 'b', operator: '+=', rhs: '42'),
-          const Visit(VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)')
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)')
         ]),
     const Test(
         '''
@@ -2447,8 +2233,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => a += 42;
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SETTER_COMPOUND,
-            getter: 'getter(a)', setter: 'setter(a)',
-            operator: '+=', rhs: '42')),
+            getter: 'getter(a)',
+            setter: 'setter(a)',
+            operator: '+=',
+            rhs: '42')),
     const Test(
         '''
         class C {
@@ -2495,9 +2283,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_COMPOUND,
-                    error: MessageKind.NO_INSTANCE_AVAILABLE,
-                    operator: '+=',
-                    rhs: '42')),
+            error: MessageKind.NO_INSTANCE_AVAILABLE,
+            operator: '+=',
+            rhs: '42')),
     const Test.prefix(
         '''
         ''',
@@ -2505,9 +2293,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { p += 42; }
         ''',
         const Visit(VisitKind.ERROR_INVALID_COMPOUND,
-                    error: MessageKind.PREFIX_AS_EXPRESSION,
-                    operator: '+=',
-                    rhs: '42')),
+            error: MessageKind.PREFIX_AS_EXPRESSION,
+            operator: '+=',
+            rhs: '42')),
     const Test(
         '''
         class C {
@@ -2517,8 +2305,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => C.a += 42;
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_COMPOUND,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '+=', rhs: '42')),
+            getter: 'getter(C#a)',
+            setter: 'setter(C#a)',
+            operator: '+=',
+            rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -2528,8 +2318,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_COMPOUND,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '+=', rhs: '42')),
+            getter: 'getter(C#a)',
+            setter: 'setter(C#a)',
+            operator: '+=',
+            rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -2539,8 +2331,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_COMPOUND,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '+=', rhs: '42')),
+            getter: 'getter(C#a)',
+            setter: 'setter(C#a)',
+            operator: '+=',
+            rhs: '42')),
     const Test.prefix(
         '''
         class C {
@@ -2552,8 +2346,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => p.C.a += 42;
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_COMPOUND,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '+=', rhs: '42')),
+            getter: 'getter(C#a)',
+            setter: 'setter(C#a)',
+            operator: '+=',
+            rhs: '42')),
     // TODO(johnniwinther): Enable these when dart2js supports method and setter
     // with the same name.
     /*const Test(
@@ -2653,8 +2449,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_COMPOUND,
-            getter: 'getter(B#a)', setter: 'setter(B#a)',
-            operator: '+=', rhs: '42')),
+            getter: 'getter(B#a)',
+            setter: 'setter(B#a)',
+            operator: '+=',
+            rhs: '42')),
     const Test.clazz(
         '''
         class A {
@@ -2668,8 +2466,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_COMPOUND,
-            getter: 'getter(A#a)', setter: 'setter(B#a)',
-            operator: '+=', rhs: '42')),
+            getter: 'getter(A#a)',
+            setter: 'setter(B#a)',
+            operator: '+=',
+            rhs: '42')),
     const Test.clazz(
         '''
         class A {
@@ -2684,8 +2484,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_FIELD_COMPOUND,
-            getter: 'getter(B#a)', setter: 'field(A#a)',
-            operator: '+=', rhs: '42')),
+            getter: 'getter(B#a)',
+            setter: 'field(A#a)',
+            operator: '+=',
+            rhs: '42')),
     const Test.clazz(
         '''
         class A {
@@ -2700,8 +2502,10 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_COMPOUND,
-            getter: 'field(A#a)', setter: 'setter(B#a)',
-            operator: '+=', rhs: '42')),
+            getter: 'field(A#a)',
+            setter: 'setter(B#a)',
+            operator: '+=',
+            rhs: '42')),
     const Test.clazz(
         '''
         class A {
@@ -2719,8 +2523,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         // [VISIT_SUPER_FIELD_FIELD_COMPOUND] when dart2js supports shadow
         // setters.
         const Visit(VisitKind.VISIT_SUPER_FINAL_FIELD_COMPOUND,
-            element: 'field(B#a)',
-            operator: '+=', rhs: '42')),
+            element: 'field(B#a)', operator: '+=', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -2731,8 +2534,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_COMPOUND,
-            element: 'function(B#a)',
-            operator: '+=', rhs: '42')),
+            element: 'function(B#a)', operator: '+=', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -2864,8 +2666,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_COMPOUND_INDEX_SET,
-            getter: 'function(B#[])', setter: 'function(B#[]=)',
-            index: '1', operator: '+=', rhs: '42')),
+            getter: 'function(B#[])',
+            setter: 'function(B#[]=)',
+            index: '1',
+            operator: '+=',
+            rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -2876,8 +2681,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
-            setter: 'function(B#[]=)',
-            index: '1', operator: '+=', rhs: '42')),
+            setter: 'function(B#[]=)', index: '1', operator: '+=', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -2898,8 +2702,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_COMPOUND_INDEX_SET,
-            getter: 'function(B#[])',
-            index: '1', operator: '+=', rhs: '42')),
+            getter: 'function(B#[])', index: '1', operator: '+=', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -2912,7 +2715,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.ERROR_INVALID_COMPOUND_INDEX_SET,
             error: MessageKind.NO_SUPER_IN_STATIC,
-            index: '1', operator: '+=', rhs: '42')),
+            index: '1',
+            operator: '+=',
+            rhs: '42')),
   ],
   'Prefix expression': const [
     // Prefix expression
@@ -2923,8 +2728,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const [
           const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_PREFIX,
               receiver: 'a', name: 'b', operator: '--'),
-          const Visit(VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)')
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)')
         ]),
     const Test(
         '''
@@ -2979,8 +2783,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => --a;
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SETTER_PREFIX,
-            getter: 'getter(a)', setter: 'setter(a)',
-            operator: '--')),
+            getter: 'getter(a)', setter: 'setter(a)', operator: '--')),
     const Test(
         '''
         class C {
@@ -3027,8 +2830,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_PREFIX,
-                    error: MessageKind.NO_INSTANCE_AVAILABLE,
-                    operator: '++')),
+            error: MessageKind.NO_INSTANCE_AVAILABLE, operator: '++')),
     const Test.prefix(
         '''
         ''',
@@ -3036,8 +2838,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { ++p; }
         ''',
         const Visit(VisitKind.ERROR_INVALID_PREFIX,
-                    error: MessageKind.PREFIX_AS_EXPRESSION,
-                    operator: '++')),
+            error: MessageKind.PREFIX_AS_EXPRESSION, operator: '++')),
     const Test(
         '''
         class C {
@@ -3047,8 +2848,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => ++C.a;
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_PREFIX,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '++')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', operator: '++')),
     const Test.clazz(
         '''
         class C {
@@ -3058,8 +2858,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_PREFIX,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '--')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', operator: '--')),
     const Test.clazz(
         '''
         class C {
@@ -3069,8 +2868,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_PREFIX,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '--')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', operator: '--')),
     const Test.prefix(
         '''
         class C {
@@ -3082,8 +2880,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => ++p.C.a;
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_PREFIX,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '++')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', operator: '++')),
     const Test.clazz(
         '''
         class C {
@@ -3135,8 +2932,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_PREFIX,
-            getter: 'getter(B#a)', setter: 'setter(B#a)',
-            operator: '--')),
+            getter: 'getter(B#a)', setter: 'setter(B#a)', operator: '--')),
     const Test.clazz(
         '''
         class A {
@@ -3150,8 +2946,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_PREFIX,
-            getter: 'getter(A#a)', setter: 'setter(B#a)',
-            operator: '++')),
+            getter: 'getter(A#a)', setter: 'setter(B#a)', operator: '++')),
     const Test.clazz(
         '''
         class A {
@@ -3166,8 +2961,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_FIELD_PREFIX,
-            getter: 'getter(B#a)', setter: 'field(A#a)',
-            operator: '--')),
+            getter: 'getter(B#a)', setter: 'field(A#a)', operator: '--')),
     const Test.clazz(
         '''
         class A {
@@ -3182,8 +2976,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_PREFIX,
-            getter: 'field(A#a)', setter: 'setter(B#a)',
-            operator: '++')),
+            getter: 'field(A#a)', setter: 'setter(B#a)', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -3194,8 +2987,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_PREFIX,
-            element: 'function(B#a)',
-            operator: '++')),
+            element: 'function(B#a)', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -3204,8 +2996,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => ++super.a;
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_PREFIX,
-            operator: '++')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_PREFIX, operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -3305,8 +3096,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         '''
         m() => ++unresolved;
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_PREFIX,
-            operator: '++')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_PREFIX, operator: '++')),
   ],
   'Postfix expression': const [
     // Postfix expression
@@ -3317,8 +3107,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const [
           const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_POSTFIX,
               receiver: 'a', name: 'b', operator: '--'),
-          const Visit(VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)')
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)')
         ]),
     const Test(
         '''
@@ -3373,8 +3162,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => a--;
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SETTER_POSTFIX,
-            getter: 'getter(a)', setter: 'setter(a)',
-            operator: '--')),
+            getter: 'getter(a)', setter: 'setter(a)', operator: '--')),
     const Test(
         '''
         class C {
@@ -3421,8 +3209,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_POSTFIX,
-                    error: MessageKind.NO_INSTANCE_AVAILABLE,
-                    operator: '--')),
+            error: MessageKind.NO_INSTANCE_AVAILABLE, operator: '--')),
     const Test.prefix(
         '''
         ''',
@@ -3430,8 +3217,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { p--; }
         ''',
         const Visit(VisitKind.ERROR_INVALID_POSTFIX,
-                    error: MessageKind.PREFIX_AS_EXPRESSION,
-                    operator: '--')),
+            error: MessageKind.PREFIX_AS_EXPRESSION, operator: '--')),
     const Test(
         '''
         class C {
@@ -3441,8 +3227,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => C.a++;
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_POSTFIX,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '++')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', operator: '++')),
     const Test.clazz(
         '''
         class C {
@@ -3452,8 +3237,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_POSTFIX,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '--')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', operator: '--')),
     const Test.clazz(
         '''
         class C {
@@ -3463,8 +3247,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_POSTFIX,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '--')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', operator: '--')),
     const Test.prefix(
         '''
         class C {
@@ -3476,8 +3259,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => p.C.a++;
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_POSTFIX,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            operator: '++')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', operator: '++')),
     const Test.clazz(
         '''
         class C {
@@ -3529,8 +3311,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_POSTFIX,
-            getter: 'getter(B#a)', setter: 'setter(B#a)',
-            operator: '--')),
+            getter: 'getter(B#a)', setter: 'setter(B#a)', operator: '--')),
     const Test.clazz(
         '''
         class A {
@@ -3544,8 +3325,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_POSTFIX,
-            getter: 'getter(A#a)', setter: 'setter(B#a)',
-            operator: '++')),
+            getter: 'getter(A#a)', setter: 'setter(B#a)', operator: '++')),
     const Test.clazz(
         '''
         class A {
@@ -3560,8 +3340,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_FIELD_POSTFIX,
-            getter: 'getter(B#a)', setter: 'field(A#a)',
-            operator: '--')),
+            getter: 'getter(B#a)', setter: 'field(A#a)', operator: '--')),
     const Test.clazz(
         '''
         class A {
@@ -3576,8 +3355,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_POSTFIX,
-            getter: 'field(A#a)', setter: 'setter(B#a)',
-            operator: '++')),
+            getter: 'field(A#a)', setter: 'setter(B#a)', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -3588,8 +3366,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_POSTFIX,
-            element: 'function(B#a)',
-            operator: '++')),
+            element: 'function(B#a)', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -3598,8 +3375,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => super.a++;
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_POSTFIX,
-            operator: '++')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_POSTFIX, operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -3699,8 +3475,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         '''
         m() => unresolved++;
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_POSTFIX,
-            operator: '++')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_POSTFIX, operator: '++')),
   ],
   'Constructor invocations': const [
     const Test(
@@ -3717,8 +3492,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => const bool.fromEnvironment('foo');
         ''',
         const Visit(VisitKind.VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
-            constant:
-                'const bool.fromEnvironment("foo")')),
+            constant: 'const bool.fromEnvironment("foo")')),
     const Test(
         '''
         m() => const bool.fromEnvironment('foo', defaultValue: true);
@@ -3736,8 +3510,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => const String.fromEnvironment('foo');
         ''',
         const Visit(VisitKind.VISIT_STRING_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
-            constant:
-                'const String.fromEnvironment("foo")')),
+            constant: 'const String.fromEnvironment("foo")')),
     const Test(
         '''
         class Class {
@@ -3914,23 +3687,20 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         m() => new Class.unresolved(true, 42);
         ''',
-        const Visit(
-            VisitKind.VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
+        const Visit(VisitKind.VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
             arguments: '(true,42)')),
     const Test(
         '''
         m() => new Unresolved(true, 42);
         ''',
-        const Visit(
-            VisitKind.VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
+        const Visit(VisitKind.VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
             arguments: '(true,42)')),
     const Test(
         '''
         abstract class AbstractClass {}
         m() => new AbstractClass();
         ''',
-        const Visit(
-            VisitKind.VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+        const Visit(VisitKind.VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
             element: 'generative_constructor(AbstractClass#)',
             type: 'AbstractClass',
             arguments: '()',
@@ -3998,13 +3768,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m(a) => a?.b;
         ''',
         const [
-          const Visit(
-              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_GET,
-              receiver: 'a',
-              name: 'b'),
-          const Visit(
-              VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)'),
+          const Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_GET,
+              receiver: 'a', name: 'b'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)'),
         ]),
     const Test(
         '''
@@ -4013,107 +3779,78 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         m(a) => C?.b;
         ''',
-        const Visit(
-            VisitKind.VISIT_STATIC_FIELD_GET,
-            element: 'field(C#b)')),
+        const Visit(VisitKind.VISIT_STATIC_FIELD_GET, element: 'field(C#b)')),
     const Test(
         '''
         m(a) => a?.b = 42;
         ''',
         const [
-          const Visit(
-              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET,
-              receiver: 'a',
-              name: 'b',
-              rhs: '42'),
-          const Visit(
-              VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)'),
+          const Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET,
+              receiver: 'a', name: 'b', rhs: '42'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)'),
         ]),
     const Test(
         '''
         m(a) => a?.b(42, true);
         ''',
         const [
-          const Visit(
-              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_INVOKE,
+          const Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_INVOKE,
               receiver: 'a',
               arguments: '(42,true)',
               selector: 'Selector(call, b, arity=2)'),
-          const Visit(
-              VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)'),
         ]),
     const Test(
         '''
         m(a) => ++a?.b;
         ''',
         const [
-          const Visit(
-              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_PREFIX,
+          const Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_PREFIX,
               receiver: 'a', name: 'b', operator: '++'),
-          const Visit(
-              VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)'),
         ]),
     const Test(
         '''
         m(a) => a?.b--;
         ''',
         const [
-          const Visit(
-              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_POSTFIX,
+          const Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_POSTFIX,
               receiver: 'a', name: 'b', operator: '--'),
-          const Visit(
-              VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)'),
         ]),
     const Test(
         '''
         m(a) => a?.b *= 42;
         ''',
         const [
-          const Visit(
-              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_COMPOUND,
+          const Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_COMPOUND,
               receiver: 'a', name: 'b', operator: '*=', rhs: '42'),
-          const Visit(
-              VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)'),
         ]),
     const Test(
         '''
         m(a) => a?.b ??= 42;
         ''',
         const [
-          const Visit(
-              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET_IF_NULL,
+          const Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET_IF_NULL,
               receiver: 'a', name: 'b', rhs: '42'),
-          const Visit(
-              VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)'),
         ]),
     const Test(
         '''
         m(a, b) => a ?? b;
         ''',
         const [
-          const Visit(VisitKind.VISIT_IF_NULL,
-                      left: 'a', right: 'b'),
-          const Visit(
-              VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)'),
-          const Visit(
-              VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#b)'),
-       ]),
+          const Visit(VisitKind.VISIT_IF_NULL, left: 'a', right: 'b'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#b)'),
+        ]),
     const Test(
         '''
         m(a) => a ??= 42;
         ''',
-        const Visit(
-            VisitKind.VISIT_PARAMETER_SET_IF_NULL,
-            element: 'parameter(m#a)',
-            rhs: '42')),
+        const Visit(VisitKind.VISIT_PARAMETER_SET_IF_NULL,
+            element: 'parameter(m#a)', rhs: '42')),
     const Test.prefix(
         '''
         var o;
@@ -4130,8 +3867,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const [
           const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_SET_IF_NULL,
               receiver: 'a', name: 'b', rhs: '42'),
-          const Visit(VisitKind.VISIT_PARAMETER_GET,
-              element: 'parameter(m#a)')
+          const Visit(VisitKind.VISIT_PARAMETER_GET, element: 'parameter(m#a)')
         ]),
     const Test(
         '''
@@ -4186,8 +3922,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => a ??= 42;
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SETTER_SET_IF_NULL,
-            getter: 'getter(a)', setter: 'setter(a)',
-            rhs: '42')),
+            getter: 'getter(a)', setter: 'setter(a)', rhs: '42')),
     const Test(
         '''
         class C {
@@ -4234,8 +3969,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.ERROR_INVALID_SET_IF_NULL,
-                    error: MessageKind.NO_INSTANCE_AVAILABLE,
-                    rhs: '42')),
+            error: MessageKind.NO_INSTANCE_AVAILABLE, rhs: '42')),
     const Test.prefix(
         '''
         ''',
@@ -4243,8 +3977,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { p ??= 42; }
         ''',
         const Visit(VisitKind.ERROR_INVALID_SET_IF_NULL,
-                    error: MessageKind.PREFIX_AS_EXPRESSION,
-                    rhs: '42')),
+            error: MessageKind.PREFIX_AS_EXPRESSION, rhs: '42')),
     const Test(
         '''
         class C {
@@ -4254,8 +3987,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => C.a ??= 42;
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_SET_IF_NULL,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            rhs: '42')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -4265,8 +3997,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_SET_IF_NULL,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            rhs: '42')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -4276,8 +4007,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_SET_IF_NULL,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            rhs: '42')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', rhs: '42')),
     const Test.prefix(
         '''
         class C {
@@ -4289,8 +4019,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => p.C.a ??= 42;
         ''',
         const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_SET_IF_NULL,
-            getter: 'getter(C#a)', setter: 'setter(C#a)',
-            rhs: '42')),
+            getter: 'getter(C#a)', setter: 'setter(C#a)', rhs: '42')),
     // TODO(johnniwinther): Enable these when dart2js supports method and setter
     // with the same name.
     /*const Test(
@@ -4390,8 +4119,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_SET_IF_NULL,
-            getter: 'getter(B#a)', setter: 'setter(B#a)',
-            rhs: '42')),
+            getter: 'getter(B#a)', setter: 'setter(B#a)', rhs: '42')),
     const Test.clazz(
         '''
         class A {
@@ -4405,8 +4133,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_SET_IF_NULL,
-            getter: 'getter(A#a)', setter: 'setter(B#a)',
-            rhs: '42')),
+            getter: 'getter(A#a)', setter: 'setter(B#a)', rhs: '42')),
     const Test.clazz(
         '''
         class A {
@@ -4421,8 +4148,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_FIELD_SET_IF_NULL,
-            getter: 'getter(B#a)', setter: 'field(A#a)',
-            rhs: '42')),
+            getter: 'getter(B#a)', setter: 'field(A#a)', rhs: '42')),
     const Test.clazz(
         '''
         class A {
@@ -4437,8 +4163,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_SET_IF_NULL,
-            getter: 'field(A#a)', setter: 'setter(B#a)',
-            rhs: '42')),
+            getter: 'field(A#a)', setter: 'setter(B#a)', rhs: '42')),
     const Test.clazz(
         '''
         class A {
@@ -4456,8 +4181,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         // [VISIT_SUPER_FIELD_FIELD_SET_IF_NULL] when dart2js supports shadow
         // setters.
         const Visit(VisitKind.VISIT_SUPER_FINAL_FIELD_SET_IF_NULL,
-            element: 'field(B#a)',
-            rhs: '42')),
+            element: 'field(B#a)', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -4468,8 +4192,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_SET_IF_NULL,
-            element: 'function(B#a)',
-            rhs: '42')),
+            element: 'function(B#a)', rhs: '42')),
     const Test.clazz(
         '''
         class B {

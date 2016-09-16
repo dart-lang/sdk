@@ -12,8 +12,8 @@ void record(result) {
 
 main(args) {
   counter++;
-  operations(args.length > 0,
-      0, 1.5, args[0], new Complex(0, 1), new Complex(1.5, 2.5));
+  operations(args.length > 0, 0, 1.5, args[0], new Complex(0, 1),
+      new Complex(1.5, 2.5));
   return counter;
 }
 

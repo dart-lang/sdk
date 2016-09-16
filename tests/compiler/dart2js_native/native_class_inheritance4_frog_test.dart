@@ -14,7 +14,9 @@ class A {
   var _field;
 
   int get X => _field;
-  void set X(int x) { _field = x; }
+  void set X(int x) {
+    _field = x;
+  }
 
   int method(int z) => _field + z;
 }
@@ -24,13 +26,15 @@ class B extends A {
   var _field2;
 
   int get X => _field2;
-  void set X(int x) { _field2 = x; }
+  void set X(int x) {
+    _field2 = x;
+  }
 
   int method(int z) => _field2 + z;
 }
 
-A makeA() native;
-B makeB() native;
+A makeA() native ;
+B makeB() native ;
 
 void setup() native r"""
 function inherits(child, parent) {
@@ -52,7 +56,7 @@ makeB = function(){return new B;};
 """;
 
 testBasicA_dynamic() {
-  setup();  // Fresh constructors.
+  setup(); // Fresh constructors.
 
   var a = [makeA()][0];
 
@@ -63,7 +67,7 @@ testBasicA_dynamic() {
 }
 
 testBasicA_typed() {
-  setup();  // Fresh constructors.
+  setup(); // Fresh constructors.
 
   A a = makeA();
 
@@ -74,7 +78,7 @@ testBasicA_typed() {
 }
 
 testBasicB_dynamic() {
-  setup();  // Fresh constructors.
+  setup(); // Fresh constructors.
 
   var b = [makeB()][0];
 
@@ -87,7 +91,7 @@ testBasicB_dynamic() {
 }
 
 testBasicB_typed() {
-  setup();  // Fresh constructors.
+  setup(); // Fresh constructors.
 
   B b = makeB();
 
@@ -100,7 +104,7 @@ testBasicB_typed() {
 }
 
 testAB_dynamic() {
-  setup();  // Fresh constructors.
+  setup(); // Fresh constructors.
 
   var things = [makeA(), makeB()];
   var a = things[0];
@@ -121,7 +125,7 @@ testAB_dynamic() {
 }
 
 testAB_typed() {
-  setup();  // Fresh constructors.
+  setup(); // Fresh constructors.
 
   A a = makeA();
   B b = makeB();

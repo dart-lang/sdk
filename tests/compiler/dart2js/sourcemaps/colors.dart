@@ -72,7 +72,6 @@ class RGBA extends RGB {
 
     return sb.toString();
   }
-
 }
 
 /// A web color defined as HSV.
@@ -95,12 +94,12 @@ class HSV implements Color {
       // Grey.
       return new RGB(v, v, v);
     }
-    h /= 60.0;  // Sector 0 to 5.
+    h /= 60.0; // Sector 0 to 5.
     int i = h.floor();
     double f = h - i; // Factorial part of [h].
     double p = v * (1.0 - s);
     double q = v * (1.0 - s * f);
-    double t = v * (1.0 - s * (1.0 - f ));
+    double t = v * (1.0 - s * (1.0 - f));
     switch (i) {
       case 0:
         return new RGB(v, t, p);
@@ -112,7 +111,7 @@ class HSV implements Color {
         return new RGB(p, q, v);
       case 4:
         return new RGB(t, p, v);
-      default:    // case 5:
+      default: // case 5:
         return new RGB(v, p, q);
     }
   }

@@ -8,8 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
-import 'package:compiler/src/common/names.dart' show
-    Uris;
+import 'package:compiler/src/common/names.dart' show Uris;
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart' show DartType;
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -17,13 +16,12 @@ import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
-import 'package:compiler/src/js_backend/backend_helpers.dart' show
-    BackendHelpers;
-import 'package:compiler/src/js_backend/lookup_map_analysis.dart' show
-    LookupMapAnalysis;
+import 'package:compiler/src/js_backend/backend_helpers.dart'
+    show BackendHelpers;
+import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
+    show LookupMapAnalysis;
 import 'package:compiler/src/io/source_file.dart';
-import 'package:compiler/src/options.dart' show
-    CompilerOptions;
+import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/resolution/members.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/scope.dart';
@@ -34,18 +32,14 @@ import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/old_to_new_api.dart';
 import 'parser_helper.dart';
 
-import 'package:compiler/src/elements/modelx.dart' show
-    ElementX,
-    LibraryElementX,
-    ErroneousElementX,
-    FunctionElementX;
+import 'package:compiler/src/elements/modelx.dart'
+    show ElementX, LibraryElementX, ErroneousElementX, FunctionElementX;
 
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common/tasks.dart' show Measurer;
 
-import 'package:compiler/src/deferred_load.dart' show
-    DeferredLoadTask,
-    OutputUnit;
+import 'package:compiler/src/deferred_load.dart'
+    show DeferredLoadTask, OutputUnit;
 
 import 'mock_libraries.dart';
 import 'diagnostic_helper.dart';
@@ -58,9 +52,11 @@ typedef String LibrarySourceProvider(Uri uri);
 
 class MockCompiler extends Compiler {
   api.DiagnosticHandler diagnosticHandler;
+
   /// Expected number of warnings. If `null`, the number of warnings is
   /// not checked.
   final int expectedWarnings;
+
   /// Expected number of errors. If `null`, the number of errors is not checked.
   final int expectedErrors;
   final Map<String, SourceFile> sourceFiles;
@@ -74,70 +70,68 @@ class MockCompiler extends Compiler {
 
   MockCompiler.internal(
       {Map<String, String> coreSource,
-       bool enableTypeAssertions: false,
-       bool enableUserAssertions: false,
-       bool enableMinification: false,
-       bool disableTypeInference: false,
-       bool analyzeAll: false,
-       bool analyzeOnly: false,
-       bool preserveComments: false,
-       // Our unit tests check code generation output that is
-       // affected by inlining support.
-       bool disableInlining: true,
-       bool trustTypeAnnotations: false,
-       bool trustJSInteropTypeAnnotations: false,
-       bool enableAsyncAwait: false,
-       int this.expectedWarnings,
-       int this.expectedErrors,
-       api.CompilerOutputProvider outputProvider,
-       String patchVersion,
-       LibrarySourceProvider this.librariesOverride})
+      bool enableTypeAssertions: false,
+      bool enableUserAssertions: false,
+      bool enableMinification: false,
+      bool disableTypeInference: false,
+      bool analyzeAll: false,
+      bool analyzeOnly: false,
+      bool preserveComments: false,
+      // Our unit tests check code generation output that is
+      // affected by inlining support.
+      bool disableInlining: true,
+      bool trustTypeAnnotations: false,
+      bool trustJSInteropTypeAnnotations: false,
+      bool enableAsyncAwait: false,
+      int this.expectedWarnings,
+      int this.expectedErrors,
+      api.CompilerOutputProvider outputProvider,
+      String patchVersion,
+      LibrarySourceProvider this.librariesOverride})
       : sourceFiles = new Map<String, SourceFile>(),
         testedPatchVersion = patchVersion,
-        super(options: new CompilerOptions(
-              entryPoint: new Uri(scheme: 'mock'),
-              libraryRoot: Uri.parse('placeholder_library_root_for_mock/'),
-              enableTypeAssertions: enableTypeAssertions,
-              enableUserAssertions: enableUserAssertions,
-              disableInlining: disableInlining,
-              enableAssertMessage: true,
-              enableMinification: enableMinification,
-              disableTypeInference: disableTypeInference,
-              analyzeAll: analyzeAll,
-              analyzeOnly: analyzeOnly,
-              preserveComments: preserveComments,
-              trustTypeAnnotations: trustTypeAnnotations,
-              trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
-              shownPackageWarnings: const []),
-              outputProvider: new LegacyCompilerOutput(outputProvider)) {
-
+        super(
+            options: new CompilerOptions(
+                entryPoint: new Uri(scheme: 'mock'),
+                libraryRoot: Uri.parse('placeholder_library_root_for_mock/'),
+                enableTypeAssertions: enableTypeAssertions,
+                enableUserAssertions: enableUserAssertions,
+                disableInlining: disableInlining,
+                enableAssertMessage: true,
+                enableMinification: enableMinification,
+                disableTypeInference: disableTypeInference,
+                analyzeAll: analyzeAll,
+                analyzeOnly: analyzeOnly,
+                preserveComments: preserveComments,
+                trustTypeAnnotations: trustTypeAnnotations,
+                trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
+                shownPackageWarnings: const []),
+            outputProvider: new LegacyCompilerOutput(outputProvider)) {
     deferredLoadTask = new MockDeferredLoadTask(this);
 
-    registerSource(Uris.dart_core,
-                   buildLibrarySource(DEFAULT_CORE_LIBRARY, coreSource));
+    registerSource(
+        Uris.dart_core, buildLibrarySource(DEFAULT_CORE_LIBRARY, coreSource));
     registerSource(PATCH_CORE, DEFAULT_PATCH_CORE_SOURCE);
 
     registerSource(BackendHelpers.DART_JS_HELPER,
-                   buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY));
+        buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY));
     registerSource(BackendHelpers.DART_FOREIGN_HELPER,
-                   buildLibrarySource(DEFAULT_FOREIGN_HELPER_LIBRARY));
+        buildLibrarySource(DEFAULT_FOREIGN_HELPER_LIBRARY));
     registerSource(BackendHelpers.DART_INTERCEPTORS,
-                   buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY));
+        buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY));
     registerSource(BackendHelpers.DART_ISOLATE_HELPER,
-                   buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
+        buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
     registerSource(Uris.dart_mirrors, DEFAULT_MIRRORS_SOURCE);
-    registerSource(BackendHelpers.DART_JS_MIRRORS,
-        DEFAULT_JS_MIRRORS_SOURCE);
+    registerSource(BackendHelpers.DART_JS_MIRRORS, DEFAULT_JS_MIRRORS_SOURCE);
 
     Map<String, String> asyncLibrarySource = <String, String>{};
     asyncLibrarySource.addAll(DEFAULT_ASYNC_LIBRARY);
     if (enableAsyncAwait) {
       asyncLibrarySource.addAll(ASYNC_AWAIT_LIBRARY);
     }
-    registerSource(Uris.dart_async,
-                   buildLibrarySource(asyncLibrarySource));
+    registerSource(Uris.dart_async, buildLibrarySource(asyncLibrarySource));
     registerSource(LookupMapAnalysis.PACKAGE_LOOKUP_MAP,
-                   buildLibrarySource(DEFAULT_LOOKUP_MAP_LIBRARY));
+        buildLibrarySource(DEFAULT_LOOKUP_MAP_LIBRARY));
   }
 
   String get patchVersion {
@@ -148,8 +142,7 @@ class MockCompiler extends Compiler {
   Future<Uri> init([String mainSource = ""]) {
     Uri uri = new Uri(scheme: "mock");
     registerSource(uri, mainSource);
-    return libraryLoader.loadLibrary(uri)
-        .then((LibraryElement library) {
+    return libraryLoader.loadLibrary(uri).then((LibraryElement library) {
       mainApp = library;
       // We need to make sure the Object class is resolved. When registering a
       // dynamic invocation the ArgumentTypesRegistry eventually iterates over
@@ -166,11 +159,11 @@ class MockCompiler extends Compiler {
       if (expectedErrors != null &&
           expectedErrors != diagnosticCollector.errors.length) {
         throw "unexpected error during compilation "
-              "${diagnosticCollector.errors}";
+            "${diagnosticCollector.errors}";
       } else if (expectedWarnings != null &&
-                 expectedWarnings != diagnosticCollector.warnings.length) {
+          expectedWarnings != diagnosticCollector.warnings.length) {
         throw "unexpected warnings during compilation "
-              "${diagnosticCollector.warnings}";
+            "${diagnosticCollector.warnings}";
       } else {
         return result;
       }
@@ -193,9 +186,7 @@ class MockCompiler extends Compiler {
   }
 
   void reportDiagnostic(DiagnosticMessage message,
-                        List<DiagnosticMessage> infoMessages,
-                        api.Diagnostic kind) {
-
+      List<DiagnosticMessage> infoMessages, api.Diagnostic kind) {
     void processMessage(DiagnosticMessage message, api.Diagnostic kind) {
       SourceSpan span = message.sourceSpan;
       Uri uri;
@@ -222,16 +213,15 @@ class MockCompiler extends Compiler {
     return resolveNodeStatement(parsedTree, new MockElement(mainApp));
   }
 
-  TreeElementMapping resolveNodeStatement(Node tree,
-                                          ExecutableElement element) {
-    ResolverVisitor visitor =
-        new ResolverVisitor(
-            this.resolution,
-            element,
-            new ResolutionRegistry(this.backend,
-                new CollectingTreeElements(element)),
-            scope: new MockTypeVariablesScope(
-                element.enclosingElement.buildScope()));
+  TreeElementMapping resolveNodeStatement(
+      Node tree, ExecutableElement element) {
+    ResolverVisitor visitor = new ResolverVisitor(
+        this.resolution,
+        element,
+        new ResolutionRegistry(
+            this.backend, new CollectingTreeElements(element)),
+        scope:
+            new MockTypeVariablesScope(element.enclosingElement.buildScope()));
     if (visitor.scope is LibraryScope ||
         visitor.scope is MockTypeVariablesScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
@@ -243,13 +233,12 @@ class MockCompiler extends Compiler {
 
   resolverVisitor() {
     Element mockElement = new MockElement(mainApp.entryCompilationUnit);
-    ResolverVisitor visitor =
-        new ResolverVisitor(
-            this.resolution,
-            mockElement,
-            new ResolutionRegistry(
-                this.backend, new CollectingTreeElements(mockElement)),
-            scope: mockElement.enclosingElement.buildScope());
+    ResolverVisitor visitor = new ResolverVisitor(
+        this.resolution,
+        mockElement,
+        new ResolutionRegistry(
+            this.backend, new CollectingTreeElements(mockElement)),
+        scope: mockElement.enclosingElement.buildScope());
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;
   }
@@ -347,7 +336,7 @@ class MockDeferredLoadTask extends DeferredLoadTask {
 }
 
 api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
-                                    {bool verbose: false}) {
+    {bool verbose: false}) {
   return (uri, int begin, int end, String message, kind) {
     if (kind == api.Diagnostic.VERBOSE_INFO && !verbose) return;
     SourceFile sourceFile;
@@ -366,8 +355,7 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
 
 class MockElement extends FunctionElementX {
   MockElement(Element enclosingElement)
-      : super('', ElementKind.FUNCTION, Modifiers.EMPTY,
-              enclosingElement);
+      : super('', ElementKind.FUNCTION, Modifiers.EMPTY, enclosingElement);
 
   get node => null;
 
@@ -382,17 +370,17 @@ class MockElement extends FunctionElementX {
 
 // TODO(herhut): Disallow warnings and errors during compilation by default.
 MockCompiler compilerFor(String code, Uri uri,
-                         {bool analyzeAll: false,
-                          bool analyzeOnly: false,
-                          Map<String, String> coreSource,
-                          bool disableInlining: true,
-                          bool minify: false,
-                          bool trustTypeAnnotations: false,
-                          bool enableTypeAssertions: false,
-                          bool enableUserAssertions: false,
-                          int expectedErrors,
-                          int expectedWarnings,
-                          api.CompilerOutputProvider outputProvider}) {
+    {bool analyzeAll: false,
+    bool analyzeOnly: false,
+    Map<String, String> coreSource,
+    bool disableInlining: true,
+    bool minify: false,
+    bool trustTypeAnnotations: false,
+    bool enableTypeAssertions: false,
+    bool enableUserAssertions: false,
+    int expectedErrors,
+    int expectedWarnings,
+    api.CompilerOutputProvider outputProvider}) {
   MockCompiler compiler = new MockCompiler.internal(
       analyzeAll: analyzeAll,
       analyzeOnly: analyzeOnly,

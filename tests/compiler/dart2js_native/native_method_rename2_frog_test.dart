@@ -10,17 +10,17 @@ import 'dart:_js_helper' show Native, JSName;
 @Native("A")
 class A {
   @JSName('fooA')
-  int foo() native;
+  int foo() native ;
 }
 
 @Native("B")
 class B extends A {
   @JSName('fooB')
-  int foo() native;
+  int foo() native ;
 }
 
-makeA() native;
-makeB() native;
+makeA() native ;
+makeB() native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
@@ -52,11 +52,19 @@ testDynamic() {
   Expect.equals(100, a.foo());
   Expect.equals(200, b.foo());
 
-  expectNoSuchMethod((){ a.fooA(); }, 'fooA should be invisible on A');
-  expectNoSuchMethod((){ b.fooA(); }, 'fooA should be invisible on B');
+  expectNoSuchMethod(() {
+    a.fooA();
+  }, 'fooA should be invisible on A');
+  expectNoSuchMethod(() {
+    b.fooA();
+  }, 'fooA should be invisible on B');
 
-  expectNoSuchMethod((){ a.fooB(); }, 'fooB should be absent on A');
-  expectNoSuchMethod((){ b.fooB(); }, 'fooA should be invisible on B');
+  expectNoSuchMethod(() {
+    a.fooB();
+  }, 'fooB should be absent on A');
+  expectNoSuchMethod(() {
+    b.fooB();
+  }, 'fooA should be invisible on B');
 }
 
 testTyped() {

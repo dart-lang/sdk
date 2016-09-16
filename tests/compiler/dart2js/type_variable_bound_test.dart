@@ -17,7 +17,7 @@ Future compile(String source) {
   });
 }
 
-Future test(String source, {var errors, var warnings}) async{
+Future test(String source, {var errors, var warnings}) async {
   if (errors == null) errors = [];
   if (errors is! List) errors = [errors];
   if (warnings == null) warnings = [];
@@ -25,17 +25,21 @@ Future test(String source, {var errors, var warnings}) async{
   var compiler = await compile(source);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   Expect.equals(!errors.isEmpty, compiler.compilationFailed);
-  Expect.equals(errors.length, collector.errors.length,
-                'unexpected error count: ${collector.errors.length} '
-                'expected ${errors.length}');
-  Expect.equals(warnings.length, collector.warnings.length,
-                'unexpected warning count: ${collector.warnings.length} '
-                'expected ${warnings.length}');
+  Expect.equals(
+      errors.length,
+      collector.errors.length,
+      'unexpected error count: ${collector.errors.length} '
+      'expected ${errors.length}');
+  Expect.equals(
+      warnings.length,
+      collector.warnings.length,
+      'unexpected warning count: ${collector.warnings.length} '
+      'expected ${warnings.length}');
 
-  for (int i = 0 ; i < errors.length ; i++) {
+  for (int i = 0; i < errors.length; i++) {
     Expect.equals(errors[i], collector.errors.elementAt(i).message.kind);
   }
-  for (int i = 0 ; i < warnings.length ; i++) {
+  for (int i = 0; i < warnings.length; i++) {
     Expect.equals(warnings[i], collector.warnings.elementAt(i).message.kind);
   }
 }
@@ -50,14 +54,14 @@ void main() {
 """);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   Expect.isFalse(compiler.compilationFailed);
-  Expect.isTrue(collector.errors.isEmpty,
-                'unexpected errors: ${collector.errors}');
+  Expect.isTrue(
+      collector.errors.isEmpty, 'unexpected errors: ${collector.errors}');
   Expect.equals(1, collector.warnings.length,
-                'expected exactly one warning, but got ${collector.warnings}');
+      'expected exactly one warning, but got ${collector.warnings}');
 
   print(collector.warnings.elementAt(0));
   Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                collector.warnings.elementAt(0).message.kind);
+      collector.warnings.elementAt(0).message.kind);
   Expect.equals("T",
       collector.warnings.elementAt(0).message.arguments['typeVariableName']);
 }
@@ -75,15 +79,15 @@ void main() {
   print(collector.errors);
   Expect.isTrue(collector.errors.isEmpty, 'unexpected errors');
   Expect.equals(2, collector.warnings.length,
-                'expected exactly two errors, but got ${collector.warnings}');
+      'expected exactly two errors, but got ${collector.warnings}');
 
   Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                collector.warnings.elementAt(0).message.kind);
+      collector.warnings.elementAt(0).message.kind);
   Expect.equals("T",
       collector.warnings.elementAt(0).message.arguments['typeVariableName']);
 
   Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                collector.warnings.elementAt(1).message.kind);
+      collector.warnings.elementAt(1).message.kind);
   Expect.equals("S",
       collector.warnings.elementAt(1).message.arguments['typeVariableName']);
 }
@@ -101,20 +105,20 @@ void main() {
   print(collector.errors);
   Expect.isTrue(collector.errors.isEmpty, 'unexpected errors');
   Expect.equals(3, collector.warnings.length,
-                'expected exactly one error, but got ${collector.warnings}');
+      'expected exactly one error, but got ${collector.warnings}');
 
   Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                collector.warnings.elementAt(0).message.kind);
+      collector.warnings.elementAt(0).message.kind);
   Expect.equals("T",
       collector.warnings.elementAt(0).message.arguments['typeVariableName']);
 
   Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                collector.warnings.elementAt(1).message.kind);
+      collector.warnings.elementAt(1).message.kind);
   Expect.equals("S",
       collector.warnings.elementAt(1).message.arguments['typeVariableName']);
 
   Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                collector.warnings.elementAt(2).message.kind);
+      collector.warnings.elementAt(2).message.kind);
   Expect.equals("U",
       collector.warnings.elementAt(2).message.arguments['typeVariableName']);
 }
@@ -132,15 +136,15 @@ void main() {
   print(collector.errors);
   Expect.isTrue(collector.errors.isEmpty, 'unexpected errors');
   Expect.equals(2, collector.warnings.length,
-                'expected exactly one error, but got ${collector.warnings}');
+      'expected exactly one error, but got ${collector.warnings}');
 
   Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                collector.warnings.elementAt(0).message.kind);
+      collector.warnings.elementAt(0).message.kind);
   Expect.equals("S",
       collector.warnings.elementAt(0).message.arguments['typeVariableName']);
 
   Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                collector.warnings.elementAt(1).message.kind);
+      collector.warnings.elementAt(1).message.kind);
   Expect.equals("U",
       collector.warnings.elementAt(1).message.arguments['typeVariableName']);
 }
@@ -160,17 +164,20 @@ void main() {
 }
 
 Future test6() {
-  return test(r"""
+  return test(
+      r"""
 class A<T extends num> {}
 
 void main() {
   new A<String>();
 }
-""", warnings: MessageKind.INVALID_TYPE_VARIABLE_BOUND);
+""",
+      warnings: MessageKind.INVALID_TYPE_VARIABLE_BOUND);
 }
 
 Future test7() {
-  return test(r"""
+  return test(
+      r"""
 class A<T extends num> {}
 class B<T> extends A<T> {} // Warning produced here.
 
@@ -178,7 +185,8 @@ void main() {
   new B(); // No warning produced here.
   new B<String>(); // No warning produced here.
 }
-""", warnings: MessageKind.INVALID_TYPE_VARIABLE_BOUND);
+""",
+      warnings: MessageKind.INVALID_TYPE_VARIABLE_BOUND);
 }
 
 Future test8() {
@@ -209,7 +217,8 @@ void main() {
 }
 
 Future test9() {
-  return test(r"""
+  return test(
+      r"""
 class B<T extends B<T>> {}
 class C<T extends B<T>> extends B<T> {}
 class D<T extends C<T>> extends C<T> {}
@@ -220,8 +229,11 @@ void main() {
   new D<B<F>>(); // Warning: B<F> is not a subtype of C<T>.
   new E<D<F>>(); // Warning: E<F> is not a subtype of E<T>.
 }
-""", warnings: [MessageKind.INVALID_TYPE_VARIABLE_BOUND,
-                MessageKind.INVALID_TYPE_VARIABLE_BOUND]);
+""",
+      warnings: [
+        MessageKind.INVALID_TYPE_VARIABLE_BOUND,
+        MessageKind.INVALID_TYPE_VARIABLE_BOUND
+      ]);
 }
 
 Future test10() {
@@ -242,7 +254,8 @@ main() {
 // TODO(het): The error is reported twice because both the Dart and JS constant
 // compilers are run on the const constructor, investigate why.
 Future test11() {
-  return test(r"""
+  return test(
+      r"""
 class A {
   const A();
 }
@@ -256,7 +269,8 @@ class Test<T extends A> {
 main() {
   print(const Test<B>());
 }
-""", errors: [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+""",
+      errors: [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
 }
 
 main() {

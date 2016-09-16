@@ -25,19 +25,24 @@ test(List events, Map<int, List<int>> expectedPositions) {
 
   expectedPositions.forEach((int offset, List<int> expectedPosition) {
     if (expectedPosition == null) {
-      Expect.throws(() => lineColumnProvider.getLine(offset),
-                    (e) => true,
-                    'Expected out-of-bounds offset: $offset\n'
-                    'text:"""${sink.text}"""\n'
-                    'lineColumnProvider:$lineColumnProvider');
+      Expect.throws(
+          () => lineColumnProvider.getLine(offset),
+          (e) => true,
+          'Expected out-of-bounds offset: $offset\n'
+          'text:"""${sink.text}"""\n'
+          'lineColumnProvider:$lineColumnProvider');
     } else {
       int line = lineColumnProvider.getLine(offset);
       int column = lineColumnProvider.getColumn(line, offset);
-      Expect.equals(expectedPosition[0], line,
+      Expect.equals(
+          expectedPosition[0],
+          line,
           'Unexpected result: $offset -> $expectedPosition = [$line,$column]\n'
           'text:"""${sink.text}"""\n'
           'lineColumnProvider:$lineColumnProvider');
-      Expect.equals(expectedPosition[1], column,
+      Expect.equals(
+          expectedPosition[1],
+          column,
           'Unexpected result: $offset -> $expectedPosition = [$line,$column]\n'
           'text:"""${sink.text}"""\n'
           'lineColumnProvider:$lineColumnProvider');
@@ -46,19 +51,39 @@ test(List events, Map<int, List<int>> expectedPositions) {
 }
 
 main() {
-  test([""], {0: [0, 0], 1: null});
+  test([
+    ""
+  ], {
+    0: [0, 0],
+    1: null
+  });
 
-  test([" "], {0: [0, 0], 1: [0, 1], 2: null});
+  test([
+    " "
+  ], {
+    0: [0, 0],
+    1: [0, 1],
+    2: null
+  });
 
-  test(["\n "], {0: [0, 0], 1: [1, 0], 2: [1, 1], 3: null});
+  test([
+    "\n "
+  ], {
+    0: [0, 0],
+    1: [1, 0],
+    2: [1, 1],
+    3: null
+  });
 
-  Map positions = {0: [0, 0],
-                   1: [0, 1],
-                   2: [1, 0],
-                   3: [1, 1],
-                   4: [2, 0],
-                   5: [2, 1],
-                   6: null};
+  Map positions = {
+    0: [0, 0],
+    1: [0, 1],
+    2: [1, 0],
+    3: [1, 1],
+    4: [2, 0],
+    5: [2, 1],
+    6: null
+  };
 
   test(["a\nb\nc"], positions);
 

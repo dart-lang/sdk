@@ -18,13 +18,12 @@ foo(j) {
 
 main() {
   asyncTest(() => compile(TEST_ONE, entry: 'foo', check: (String generated) {
-
-    // Test for absence of an illegal argument exception. This means that the
-    // arguments are known to be integers.
-    Expect.isFalse(generated.contains('iae'));
-    // Also make sure that we are not just in bailout mode without speculative
-    // types by grepping for the integer-bailout check on argument j.
-    RegExp regexp = new RegExp(getIntTypeCheck('[aji]'));
-    Expect.isTrue(regexp.hasMatch(generated));
-  }));
+        // Test for absence of an illegal argument exception. This means that the
+        // arguments are known to be integers.
+        Expect.isFalse(generated.contains('iae'));
+        // Also make sure that we are not just in bailout mode without speculative
+        // types by grepping for the integer-bailout check on argument j.
+        RegExp regexp = new RegExp(getIntTypeCheck('[aji]'));
+        Expect.isTrue(regexp.hasMatch(generated));
+      }));
 }

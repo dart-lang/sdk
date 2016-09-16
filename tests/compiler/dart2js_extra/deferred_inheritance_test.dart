@@ -18,13 +18,14 @@ class B extends A {}
 /// If the check `y is A` is generated as `y.$isA` then the issue is not
 /// exposed. We use `AssumeDynamic` to ensure that we generate as `y instanceof
 /// A` in JS.
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 check(y) => Expect.isTrue(y is A);
 
 main() {
   check(new B());
   d.loadLibrary().then((_) {
-      check(new d.C());
-      check(new B()); // This fails if we overwrite the inheritance chain.
+    check(new d.C());
+    check(new B()); // This fails if we overwrite the inheritance chain.
   });
 }

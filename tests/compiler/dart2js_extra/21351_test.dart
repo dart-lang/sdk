@@ -7,8 +7,8 @@ class A {
   bool get flag => _flag;
 }
 
-main () {
-  var value1, value2; 
+main() {
+  var value1, value2;
   var count = 0;
 
   for (var x = 0; x < 10; x++) {
@@ -27,4 +27,3 @@ main () {
 
   if (count == 0) throw "FAIL";
 }
-

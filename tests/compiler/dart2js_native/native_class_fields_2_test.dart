@@ -15,7 +15,6 @@ class A {
   int gettersCalled;
 }
 
-
 void setup() native r"""
 function getter() {
   this.gettersCalled++;
@@ -36,37 +35,37 @@ function A(){
 makeA = function() { return new A; };
 """;
 
-A makeA() native;
+A makeA() native ;
 
 class B {
-  void a() { }
-  void a0() { }
-  void a1() { }
-  void a2() { }
-  void a3() { }
-  void a4() { }
-  void a5() { }
-  void a6() { }
-  void a7() { }
-  void a8() { }
-  void a9() { }
-  void a10() { }
-  void a11() { }
-  void a12() { }
-  void a13() { }
-  void a14() { }
-  void a15() { }
-  void a16() { }
-  void a17() { }
-  void a18() { }
-  void a19() { }
-  void a20() { }
-  void a21() { }
-  void a22() { }
-  void a23() { }
-  void a24() { }
-  void a25() { }
-  void a26() { }
+  void a() {}
+  void a0() {}
+  void a1() {}
+  void a2() {}
+  void a3() {}
+  void a4() {}
+  void a5() {}
+  void a6() {}
+  void a7() {}
+  void a8() {}
+  void a9() {}
+  void a10() {}
+  void a11() {}
+  void a12() {}
+  void a13() {}
+  void a14() {}
+  void a15() {}
+  void a16() {}
+  void a17() {}
+  void a18() {}
+  void a19() {}
+  void a20() {}
+  void a21() {}
+  void a22() {}
+  void a23() {}
+  void a24() {}
+  void a25() {}
+  void a26() {}
   int z = 0;
 }
 
@@ -80,34 +79,90 @@ main() {
   // these functions.  The important thing is that none of them have been
   // renamed to be called 'z' by the minifier, because then the getter will be
   // hit.
-  try { x.a(); } catch(e) { }
-  try { x.a0(); } catch(e) { }
-  try { x.a1(); } catch(e) { }
-  try { x.a2(); } catch(e) { }
-  try { x.a3(); } catch(e) { }
-  try { x.a4(); } catch(e) { }
-  try { x.a5(); } catch(e) { }
-  try { x.a6(); } catch(e) { }
-  try { x.a7(); } catch(e) { }
-  try { x.a8(); } catch(e) { }
-  try { x.a9(); } catch(e) { }
-  try { x.a10(); } catch(e) { }
-  try { x.a11(); } catch(e) { }
-  try { x.a12(); } catch(e) { }
-  try { x.a13(); } catch(e) { }
-  try { x.a14(); } catch(e) { }
-  try { x.a15(); } catch(e) { }
-  try { x.a16(); } catch(e) { }
-  try { x.a17(); } catch(e) { }
-  try { x.a18(); } catch(e) { }
-  try { x.a19(); } catch(e) { }
-  try { x.a20(); } catch(e) { }
-  try { x.a21(); } catch(e) { }
-  try { x.a12(); } catch(e) { }
-  try { x.a23(); } catch(e) { }
-  try { x.a24(); } catch(e) { }
-  try { x.a25(); } catch(e) { }
-  try { x.a26(); } catch(e) { }
+  try {
+    x.a();
+  } catch (e) {}
+  try {
+    x.a0();
+  } catch (e) {}
+  try {
+    x.a1();
+  } catch (e) {}
+  try {
+    x.a2();
+  } catch (e) {}
+  try {
+    x.a3();
+  } catch (e) {}
+  try {
+    x.a4();
+  } catch (e) {}
+  try {
+    x.a5();
+  } catch (e) {}
+  try {
+    x.a6();
+  } catch (e) {}
+  try {
+    x.a7();
+  } catch (e) {}
+  try {
+    x.a8();
+  } catch (e) {}
+  try {
+    x.a9();
+  } catch (e) {}
+  try {
+    x.a10();
+  } catch (e) {}
+  try {
+    x.a11();
+  } catch (e) {}
+  try {
+    x.a12();
+  } catch (e) {}
+  try {
+    x.a13();
+  } catch (e) {}
+  try {
+    x.a14();
+  } catch (e) {}
+  try {
+    x.a15();
+  } catch (e) {}
+  try {
+    x.a16();
+  } catch (e) {}
+  try {
+    x.a17();
+  } catch (e) {}
+  try {
+    x.a18();
+  } catch (e) {}
+  try {
+    x.a19();
+  } catch (e) {}
+  try {
+    x.a20();
+  } catch (e) {}
+  try {
+    x.a21();
+  } catch (e) {}
+  try {
+    x.a12();
+  } catch (e) {}
+  try {
+    x.a23();
+  } catch (e) {}
+  try {
+    x.a24();
+  } catch (e) {}
+  try {
+    x.a25();
+  } catch (e) {}
+  try {
+    x.a26();
+  } catch (e) {}
   Expect.equals(0, x.gettersCalled);
   Expect.equals(42, x.z);
   Expect.equals(1, x.gettersCalled);

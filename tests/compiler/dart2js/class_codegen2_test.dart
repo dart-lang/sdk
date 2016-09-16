@@ -89,10 +89,10 @@ main() {
   // { a: true, }. Make sure this doesn't happen again.
   RegExp danglingComma = new RegExp(r',[ \n]*}');
 
-  asyncTest(() => Future.forEach([TEST_ONE, TEST_TWO, TEST_THREE, TEST_FOUR],
-      (test) {
-    return compileAll(test).then((generated) {
-      Expect.isFalse(danglingComma.hasMatch(generated));
-    });
-  }));
+  asyncTest(
+      () => Future.forEach([TEST_ONE, TEST_TWO, TEST_THREE, TEST_FOUR], (test) {
+            return compileAll(test).then((generated) {
+              Expect.isFalse(danglingComma.hasMatch(generated));
+            });
+          }));
 }

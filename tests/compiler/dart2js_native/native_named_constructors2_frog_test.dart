@@ -7,24 +7,23 @@ import "package:expect/expect.dart";
 
 // Native class with named constructors and static methods.
 
-
-
 @Native("A")
 class A {
-
   factory A(int len) => _construct(len);
 
-  factory A.fromString(String s)  => _construct(s.length);
+  factory A.fromString(String s) => _construct(s.length);
 
   // Only functions with zero parameters are allowed with "native r'...'".
   factory A.nativeConstructor() native r'return makeA(102);';
 
-  static A _construct(v) { return makeA(v); }
+  static A _construct(v) {
+    return makeA(v);
+  }
 
-  foo() native;
+  foo() native ;
 }
 
-makeA(v) native;
+makeA(v) native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.

@@ -9,19 +9,19 @@ import "package:compiler/src/world.dart";
 import 'type_test_helper.dart';
 
 main() {
-
   asyncTest(() async {
-    TypeEnvironment env = await TypeEnvironment.create(r"""
+    TypeEnvironment env = await TypeEnvironment.create(
+        r"""
       class A {}
       class B {}
       """,
-      mainSource: r"""
+        mainSource: r"""
       main() {
         new A();
         new B();
       }
       """,
-      useMockCompiler: false);
+        useMockCompiler: false);
     World world = env.compiler.world;
     world.populate();
     FlatTypeMask mask1 = new FlatTypeMask.exact(env.getElement('A'));

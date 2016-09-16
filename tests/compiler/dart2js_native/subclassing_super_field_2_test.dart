@@ -5,8 +5,8 @@
 import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
-import 'dart:_interceptors' show
-    findInterceptorForType, findConstructorForNativeSubclassType;
+import 'dart:_interceptors'
+    show findInterceptorForType, findConstructorForNativeSubclassType;
 
 // Test for fields with same name as native fields.  We expect N.foo to have the
 // property name 'foo' and A.foo and B.foo to have non-conflicting names.
@@ -20,10 +20,10 @@ class N {
 class A extends N {
   var foo = 222;
   A.init() : super.init();
-  Nfoo() => super.foo;     // TODO(sra): Fix compiler assert.
+  Nfoo() => super.foo; // TODO(sra): Fix compiler assert.
 }
 
-class B extends A  {
+class B extends A {
   var foo = 333;
   B.init() : super.init();
   Afoo() => super.foo;
@@ -32,10 +32,10 @@ class B extends A  {
   toString() => '[N.foo = ${Nfoo()}, A.foo = ${Afoo()}, B.foo = ${Bfoo()}]';
 }
 
-B makeB() native;
+B makeB() native ;
 
 @Creates('=Object')
-getBPrototype() native;
+getBPrototype() native ;
 
 void setup() native r"""
 function B() { this.foo = 111; }  // N.foo

@@ -75,13 +75,20 @@ testAllLikeSet() {
   // For a variety of inputs and operations, test that Setlet behaves just like
   // Set.
   var samples = [
-      [], [1], [1, 2], [2, 1], [1, 3], [3, 1], [1, 2, 3], [3, 1, 2],
-      [1, 2, 3, 4, 5, 6, 7],
-      [1, 2, 3, 4, 5, 6, 7, 8, 9],
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-      [1, 2, 3, 4, 5, 6, 7, 8, 9],
-      [6, 7, 8, 9, 10, 11],
-      [7, 8, 6, 5],
+    [],
+    [1],
+    [1, 2],
+    [2, 1],
+    [1, 3],
+    [3, 1],
+    [1, 2, 3],
+    [3, 1, 2],
+    [1, 2, 3, 4, 5, 6, 7],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [6, 7, 8, 9, 10, 11],
+    [7, 8, 6, 5],
   ];
 
   for (var a in samples) {
@@ -105,7 +112,6 @@ testAllLikeSet() {
     }
   }
 }
-
 
 testSetXElement(name, fn, a, b) {
   var set1 = new LinkedHashSet.from(a);
@@ -137,12 +143,11 @@ checkResult(operationName, setResult, setletResult) {
   if (setResult == null || setResult is bool || setResult is num) {
     Expect.equals(setResult, setletResult, '$operationName');
   } else if (setResult is Iterable) {
-    Expect.isTrue(setletResult is Iterable,
-        '$operationName: returns Iterable');
+    Expect.isTrue(setletResult is Iterable, '$operationName: returns Iterable');
     Expect.equals(setResult.isEmpty, setletResult.isEmpty,
         '$operationName: same isEmpty');
-    Expect.equals(setResult.length, setletResult.length,
-        '$operationName: same length');
+    Expect.equals(
+        setResult.length, setletResult.length, '$operationName: same length');
     Expect.listEquals(setResult.toList(), setletResult.toList(),
         '$operationName: same toList() result');
   } else {

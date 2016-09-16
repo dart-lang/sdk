@@ -114,39 +114,46 @@ main() {
 }
 """;
 
-
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkReturn(String name, type) {
-      var element = findElement(compiler, name);
-      Expect.equals(type,
-          simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
-          name);
-    }
+        checkReturn(String name, type) {
+          var element = findElement(compiler, name);
+          Expect.equals(
+              type,
+              simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
+              name);
+        }
 
-    checkReturn('returnInt1', compiler.commonMasks.uint31Type);
-    checkReturn('returnInt2', compiler.commonMasks.uint31Type);
-    checkReturn('returnInt3', compiler.commonMasks.uint31Type);
-    checkReturn('returnInt4', compiler.commonMasks.uint31Type);
-    checkReturn('returnIntOrNull', compiler.commonMasks.uint31Type.nullable());
+        checkReturn('returnInt1', compiler.commonMasks.uint31Type);
+        checkReturn('returnInt2', compiler.commonMasks.uint31Type);
+        checkReturn('returnInt3', compiler.commonMasks.uint31Type);
+        checkReturn('returnInt4', compiler.commonMasks.uint31Type);
+        checkReturn(
+            'returnIntOrNull', compiler.commonMasks.uint31Type.nullable());
 
-    checkReturn('returnDyn1', compiler.commonMasks.dynamicType.nonNullable());
-    checkReturn('returnDyn2', compiler.commonMasks.dynamicType.nonNullable());
-    checkReturn('returnDyn3', compiler.commonMasks.dynamicType.nonNullable());
-    checkReturn('returnNum1', compiler.commonMasks.numType);
+        checkReturn(
+            'returnDyn1', compiler.commonMasks.dynamicType.nonNullable());
+        checkReturn(
+            'returnDyn2', compiler.commonMasks.dynamicType.nonNullable());
+        checkReturn(
+            'returnDyn3', compiler.commonMasks.dynamicType.nonNullable());
+        checkReturn('returnNum1', compiler.commonMasks.numType);
 
-    checkReturnInClass(String className, String methodName, type) {
-      var cls = findElement(compiler, className);
-      var element = cls.lookupLocalMember(methodName);
-      Expect.equals(type,
-          simplify(typesInferrer.getReturnTypeOfElement(element), compiler));
-    }
-    var cls = findElement(compiler, 'A');
-    checkReturnInClass('A', 'foo', new TypeMask.nonNullExact(cls,
-        compiler.world));
-  }));
+        checkReturnInClass(String className, String methodName, type) {
+          var cls = findElement(compiler, className);
+          var element = cls.lookupLocalMember(methodName);
+          Expect.equals(
+              type,
+              simplify(
+                  typesInferrer.getReturnTypeOfElement(element), compiler));
+        }
+
+        var cls = findElement(compiler, 'A');
+        checkReturnInClass(
+            'A', 'foo', new TypeMask.nonNullExact(cls, compiler.world));
+      }));
 }
