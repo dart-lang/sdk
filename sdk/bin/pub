@@ -79,8 +79,7 @@ fi
 # Use the Dart binary in the built SDK so pub can find the version file next
 # to it.
 DART="$BUILD_DIR/dart-sdk/bin/dart"
-PACKAGES_DIR="$BUILD_DIR/packages/"
 
 # Run pub.
 PUB="$SDK_DIR/../third_party/pkg/pub/bin/pub.dart"
-exec "$DART" "${VM_OPTIONS[@]}" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
+exec "$DART" "${VM_OPTIONS[@]}" "$PUB" "$@"

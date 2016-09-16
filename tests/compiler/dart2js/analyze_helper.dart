@@ -220,8 +220,7 @@ Future analyze(List<Uri> uriList,
 """);
 
   var libraryRoot = currentDirectory.resolve('sdk/');
-  var packageRoot =
-      currentDirectory.resolve(Platform.packageRoot);
+  var packageConfig = currentDirectory.resolve('.packages');
   var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, skipList, provider);
   options = <String>[Flags.analyzeOnly, '--categories=Client,Server',
@@ -249,7 +248,7 @@ Future analyze(List<Uri> uriList,
       handler,
       new CompilerOptions.parse(
           libraryRoot: libraryRoot,
-          packageRoot: packageRoot,
+          packageConfig: packageConfig,
           options: options,
           environment: {}));
   String MESSAGE = """

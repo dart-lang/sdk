@@ -9,7 +9,6 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
-        '../../pkg/pkg.gyp:pkg_packages',
       ],
       'actions': [
         {
@@ -27,7 +26,6 @@
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/dartdevc.dart.snapshot',
-            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/dev_compiler/bin/dartdevc.dart'
           ],
         },

@@ -124,6 +124,10 @@ CompilerImpl compilerFor(
       packageRoot = Uri.base.resolve(Platform.packageRoot);
     } else if (Platform.packageConfig != null) {
       packageConfig = Uri.base.resolve(Platform.packageConfig);
+    } else {
+      // The tests are run with the base directory as the SDK root
+      // so just use the .packages file there.
+      packageConfig = Uri.base.resolve('.packages');
     }
   }
 

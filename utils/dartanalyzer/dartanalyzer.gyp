@@ -9,7 +9,6 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
-        '../../pkg/pkg.gyp:pkg_packages',
       ],
       'actions': [
         {
@@ -27,7 +26,6 @@
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/dartanalyzer.dart.snapshot',
-            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/analyzer_cli/bin/analyzer.dart',
           ],
         },
@@ -40,11 +38,25 @@
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer"])',
           ],
           'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/sdk_summary_bundle.bin',
+          ],
+          'action': [
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
+            'single-output',
+            '<(SHARED_INTERMEDIATE_DIR)/sdk_summary_bundle.bin',
+          ],
+        },
+        {
+          'action_name': 'extract_spec_summary',
+          'inputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/sdk_summary_bundle.bin',
+          ],
+          'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/spec.sum',
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
             'build-spec',
             '<(SHARED_INTERMEDIATE_DIR)/spec.sum',
@@ -63,7 +75,6 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
             'build-strong',
             '<(SHARED_INTERMEDIATE_DIR)/strong.sum',

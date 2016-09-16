@@ -30,6 +30,7 @@ no_assert_test: Fail, OK # This is testing a vm flag.
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
 package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
+io/addlatexhash_test: Fail # Package root changed to implicit package spec.
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $checked ]
 # These tests have type errors on purpose.

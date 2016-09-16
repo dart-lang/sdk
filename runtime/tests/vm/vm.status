@@ -17,6 +17,9 @@ cc/Fail0: Fail
 cc/Fail1: Fail
 cc/Fail2: Fail
 
+cc/Dart2JSCompileAll: Crash # Issue 27369
+cc/Dart2JSCompilerStats: Crash # Issue 27369
+
 cc/SNPrint_BadArgs: Skip
 
 # Flaky on buildbot. Issue 5133 and 10409.

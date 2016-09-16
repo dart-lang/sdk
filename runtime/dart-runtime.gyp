@@ -186,7 +186,6 @@
       'target_name': 'runtime_all',
       'type': 'none',
       'dependencies': [
-        '../pkg/pkg.gyp:pkg_packages',
         'sample_extension',
       ],
     },

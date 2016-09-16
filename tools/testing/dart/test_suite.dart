@@ -956,6 +956,7 @@ class StandardTestSuite extends TestSuite {
     // pubspec.yaml file and if so, create a custom package root for it.
     List<Command> baseCommands = <Command>[];
     Path packageRoot;
+    Path packages;
     if (configuration['use_repository_packages'] ||
         configuration['use_public_packages']) {
       Path pubspecYamlFile = _findPubspecYamlFile(filePath);
@@ -995,11 +996,11 @@ class StandardTestSuite extends TestSuite {
           multiHtmlTestExpectations[fullTestName] =
               testExpectations.expectations(fullTestName);
         }
-        enqueueBrowserTest(baseCommands, packageRoot, info, testName,
+        enqueueBrowserTest(baseCommands, packageRoot, packages, info, testName,
             multiHtmlTestExpectations);
       } else {
         enqueueBrowserTest(
-            baseCommands, packageRoot, info, testName, expectations);
+            baseCommands, packageRoot, packages, info, testName, expectations);
       }
     } else {
       enqueueStandardTest(baseCommands, info, testName, expectations);
@@ -1200,7 +1201,7 @@ class StandardTestSuite extends TestSuite {
    * compilation and many browser runs).
    */
   void enqueueBrowserTest(List<Command> baseCommands, Path packageRoot,
-      TestInformation info, String testName, expectations) {
+      Path packages, TestInformation info, String testName, expectations) {
     RegExp badChars = new RegExp('[-=/]');
     List VmOptionsList = getVmOptions(info.optionsFromFile);
     bool multipleOptions = VmOptionsList.length > 1;
@@ -1208,14 +1209,15 @@ class StandardTestSuite extends TestSuite {
       String optionsName =
           multipleOptions ? vmOptions.join('-').replaceAll(badChars, '') : '';
       String tempDir = createOutputDirectory(info.filePath, optionsName);
-      enqueueBrowserTestWithOptions(baseCommands, packageRoot, info, testName,
-          expectations, vmOptions, tempDir);
+      enqueueBrowserTestWithOptions(baseCommands, packageRoot, packages,
+          info, testName, expectations, vmOptions, tempDir);
     }
   }
 
   void enqueueBrowserTestWithOptions(
       List<Command> baseCommands,
       Path packageRoot,
+      Path packages,
       TestInformation info,
       String testName,
       expectations,
@@ -1584,13 +1586,12 @@ class StandardTestSuite extends TestSuite {
   String packagesArgument(String packageRootFromFile,
                              String packagesFromFile) {
     if (packagesFromFile != null) {
-      return "--packages=$packagesFromFile";
+      return '--packages=$packagesFromFile';
+    } else if (packageRootFromFile != null && packageRootFromFile != 'none') {
+      return '--package-root=$packageRootFromFile';
+    } else {
+    return null;
     }
-    if (packageRootFromFile == "none") {
-      return null;
-    }
-    packageRootFromFile ??= "$buildDir/packages/";
-    return "--package-root=$packageRootFromFile";
   }
 
   /**
@@ -1843,7 +1844,7 @@ class PKGTestSuite extends StandardTestSuite {
             recursive: true);
 
   void enqueueBrowserTest(List<Command> baseCommands, Path packageRoot,
-      TestInformation info, String testName, expectations) {
+      packages, TestInformation info, String testName, expectations) {
     String runtime = configuration['runtime'];
     Path filePath = info.filePath;
     Path dir = filePath.directoryPath;
@@ -1852,7 +1853,7 @@ class PKGTestSuite extends StandardTestSuite {
     File customHtml = new File(customHtmlPath.toNativePath());
     if (!customHtml.existsSync()) {
       super.enqueueBrowserTest(
-          baseCommands, packageRoot, info, testName, expectations);
+          baseCommands, packageRoot, packages, info, testName, expectations);
     } else {
       Path relativeHtml = customHtmlPath.relativeTo(TestUtils.dartDir);
       List<Command> commands = []..addAll(baseCommands);
