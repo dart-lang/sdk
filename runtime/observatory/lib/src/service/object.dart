@@ -77,6 +77,14 @@ class NetworkRpcException extends RpcException
   String toString() => 'NetworkRpcException(${message})';
 }
 
+Future<ServiceObject> ignoreNetworkErrors(
+    Object error, [ServiceObject resultOnNetworkError = null]) {
+  if (error is NetworkRpcException) {
+    return new Future.value(resultOnNetworkError);
+  }
+  return new Future.error(error);
+}
+
 class MalformedResponseRpcException extends RpcException {
   MalformedResponseRpcException(String message, this.response) : super(message);
 
@@ -400,7 +408,9 @@ abstract class HeapObject extends ServiceObject implements M.Object {
     // Load the full class object if the isolate is runnable.
     if (clazz != null) {
       if (clazz.isolate.runnable) {
-        clazz.load();
+        // No one awaits on this request so we silence any network errors
+        // that occur here but forward other errors.
+        clazz.load().catchError((error) => ignoreNetworkErrors(error, clazz));
       }
     }
 
@@ -860,24 +870,18 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     Map params = {
       'streamId': streamId,
     };
-    return invokeRpc('streamListen', params).catchError((e) {
-      // Ignore network errors on stream listen.
-      if (e is NetworkRpcException) {
-        return null;
-      }
-    });
+    // Ignore network errors on stream listen.
+    return invokeRpc('streamListen', params).catchError(
+        (e) => ignoreNetworkErrors(e));
   }
 
   Future<ServiceObject> _streamCancel(String streamId) {
     Map params = {
       'streamId': streamId,
     };
-    return invokeRpc('streamCancel', params).catchError((e) {
-      // Ignore network errors on stream cancel.
-      if (e is NetworkRpcException) {
-        return null;
-      }
-    });
+    // Ignore network errors on stream cancel.
+    return invokeRpc('streamCancel', params).catchError(
+        (e) => ignoreNetworkErrors(e));
   }
 
   // A map from stream id to event stream state.
