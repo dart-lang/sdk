@@ -38,21 +38,6 @@
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer"])',
           ],
           'outputs': [
-            '<(SHARED_INTERMEDIATE_DIR)/sdk_summary_bundle.bin',
-          ],
-          'action': [
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
-            'single-output',
-            '<(SHARED_INTERMEDIATE_DIR)/sdk_summary_bundle.bin',
-          ],
-        },
-        {
-          'action_name': 'extract_spec_summary',
-          'inputs': [
-            '<(SHARED_INTERMEDIATE_DIR)/sdk_summary_bundle.bin',
-          ],
-          'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/spec.sum',
           ],
           'action': [
