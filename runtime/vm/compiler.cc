@@ -165,6 +165,10 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Error& error =
       Error::Handle(Compiler::CompileFunction(thread, function));
   if (!error.IsNull()) {
+    if (error.IsLanguageError()) {
+      Exceptions::ThrowCompileTimeError(LanguageError::Cast(error));
+      UNREACHABLE();
+    }
     Exceptions::PropagateError(error);
   }
 }

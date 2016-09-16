@@ -113,6 +113,7 @@ class ClassSerializationCluster : public SerializationCluster {
       s->WriteRef(*p);
     }
     intptr_t class_id = cls->ptr()->id_;
+    ASSERT(class_id != kIllegalCid);
     s->WriteCid(class_id);
     s->Write<int32_t>(cls->ptr()->instance_size_in_words_);
     s->Write<int32_t>(cls->ptr()->next_field_offset_in_words_);

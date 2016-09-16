@@ -69,6 +69,7 @@ class ObjectPointerVisitor;
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
+  V(_CompileTimeError, "_CompileTimeError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
   V(CheckAssertion, "_checkAssertion")                                         \

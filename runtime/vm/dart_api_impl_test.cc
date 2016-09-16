@@ -570,7 +570,6 @@ TEST_CASE(Dart_PropagateError) {
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  EXPECT(!Dart_ErrorHasException(result));
   EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
 
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
@@ -584,7 +583,6 @@ TEST_CASE(Dart_PropagateError) {
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  EXPECT(!Dart_ErrorHasException(result));
   EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
 
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
@@ -598,7 +596,6 @@ TEST_CASE(Dart_PropagateError) {
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  EXPECT(!Dart_ErrorHasException(result));
   EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
 
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);

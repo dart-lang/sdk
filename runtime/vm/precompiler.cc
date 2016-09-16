@@ -389,6 +389,7 @@ void Precompiler::DoCompileAll(
       I->object_store()->set_completer_class(null_class);
       I->object_store()->set_stream_iterator_class(null_class);
       I->object_store()->set_symbol_class(null_class);
+      I->object_store()->set_compiletime_error_class(null_class);
     }
     DropClasses();
     DropLibraries();

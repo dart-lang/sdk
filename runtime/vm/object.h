@@ -5349,6 +5349,8 @@ class LanguageError : public Error {
 
   virtual const char* ToErrorCString() const;
 
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+
  private:
   RawError* previous_error() const {
     return raw_ptr()->previous_error_;
@@ -5358,7 +5360,6 @@ class LanguageError : public Error {
   RawScript* script() const { return raw_ptr()->script_; }
   void set_script(const Script& value) const;
 
-  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(TokenPosition value) const;
 
   bool report_after_token() const { return raw_ptr()->report_after_token_; }

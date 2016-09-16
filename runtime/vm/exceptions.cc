@@ -651,6 +651,13 @@ void Exceptions::ThrowRangeError(const char* argument_name,
 }
 
 
+void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, String::Handle(error.FormatMessage()));
+  Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
+}
+
+
 RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
   const String* class_name = NULL;
@@ -724,6 +731,11 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kCyclicInitializationError:
       library = Library::CoreLibrary();
       class_name = &Symbols::CyclicInitializationError();
+      break;
+    case kCompileTimeError:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::_CompileTimeError();
+      break;
   }
 
   return DartLibraryCalls::InstanceCreate(library,

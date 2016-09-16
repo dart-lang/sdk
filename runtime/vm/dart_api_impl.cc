@@ -184,6 +184,15 @@ static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
 }
 
 
+static bool IsCompiletimeErrorObject(Zone* zone, const Object& obj) {
+  Isolate* I = Thread::Current()->isolate();
+  const Class& error_class =
+      Class::Handle(zone, I->object_store()->compiletime_error_class());
+  ASSERT(!error_class.IsNull());
+  return (obj.GetClassId() == error_class.id());
+}
+
+
 static bool GetNativeStringArgument(NativeArguments* arguments,
                                     int arg_index,
                                     Dart_Handle* str,
@@ -761,6 +770,13 @@ DART_EXPORT bool Dart_IsUnhandledExceptionError(Dart_Handle object) {
 
 
 DART_EXPORT bool Dart_IsCompilationError(Dart_Handle object) {
+  if (Dart_IsUnhandledExceptionError(object)) {
+    DARTSCOPE(Thread::Current());
+    const UnhandledException& error =
+        UnhandledException::Cast(Object::Handle(Z, Api::UnwrapHandle(object)));
+    const Instance& exc = Instance::Handle(Z, error.exception());
+    return IsCompiletimeErrorObject(Z, exc);
+  }
   return Api::ClassId(object) == kLanguageErrorCid;
 }
 

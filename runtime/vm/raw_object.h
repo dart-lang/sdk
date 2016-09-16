@@ -1603,7 +1603,7 @@ class RawLanguageError : public RawError {
   }
   TokenPosition token_pos_;  // Source position in script_.
   bool report_after_token_;  // Report message at or after the token.
-  int8_t kind_;  // Of type LanguageError::Kind.
+  int8_t kind_;  // Of type Report::Kind.
 };
 
 
