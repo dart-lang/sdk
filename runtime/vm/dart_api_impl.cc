@@ -770,7 +770,7 @@ DART_EXPORT bool Dart_IsUnhandledExceptionError(Dart_Handle object) {
 
 
 DART_EXPORT bool Dart_IsCompilationError(Dart_Handle object) {
-  if (Dart_IsUnhandledExceptionError(object)) {
+  if (::Dart_IsUnhandledExceptionError(object)) {
     DARTSCOPE(Thread::Current());
     const UnhandledException& error =
         UnhandledException::Cast(Object::Handle(Z, Api::UnwrapHandle(object)));
