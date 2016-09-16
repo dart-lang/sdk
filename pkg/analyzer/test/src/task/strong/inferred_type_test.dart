@@ -2807,6 +2807,32 @@ main() {
     expect(fns[9].type.toString(), '() → Stream<int>');
   }
 
+  void test_inferParameterType_setter_fromField() {
+    var mainUnit = checkFile('''
+class C extends D {
+  /*error:INVALID_FIELD_OVERRIDE*/set foo(x) {}
+}
+class D {
+  int foo;
+}
+''');
+    var f = mainUnit.getType('C').accessors[0];
+    expect(f.type.toString(), '(int) → void');
+  }
+
+  void test_inferParameterType_setter_fromSetter() {
+    var mainUnit = checkFile('''
+class C extends D {
+  set foo(x) {}
+}
+class D {
+  set foo(int x) {}
+}
+''');
+    var f = mainUnit.getType('C').accessors[0];
+    expect(f.type.toString(), '(int) → void');
+  }
+
   void test_inferred_nonstatic_field_depends_on_static_field_complex() {
     var mainUnit = checkFile('''
 class C {

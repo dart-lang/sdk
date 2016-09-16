@@ -3997,6 +3997,9 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   ParameterElementForLink_VariableSetter(this.enclosingElement);
 
   @override
+  bool get isCovariant => false;
+
+  @override
   bool get isSynthetic => true;
 
   @override
