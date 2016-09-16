@@ -22,7 +22,6 @@ BackgroundFinalizer::BackgroundFinalizer(Isolate* isolate,
   PageSpace* old_space = isolate->heap()->old_space();
   MonitorLocker ml(old_space->tasks_lock());
   old_space->set_tasks(old_space->tasks() + 1);
-  ml.Notify();
 }
 
 
@@ -49,7 +48,7 @@ void BackgroundFinalizer::Run() {
     PageSpace* old_space = isolate_->heap()->old_space();
     MonitorLocker ml(old_space->tasks_lock());
     old_space->set_tasks(old_space->tasks() - 1);
-    ml.Notify();
+    ml.NotifyAll();
   }
 }
 
