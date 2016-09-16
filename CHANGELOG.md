@@ -7,6 +7,16 @@
   [article on native extensions](https://www.dartlang.org/articles/dart-vm/native-extensions)
   to reflect the VM's improved behavior.
 
+* We have improved the way the VM searches for trusted root certificates for
+  secure socket connections on Linux. First, the VM will look for trusted root
+  certificates in standard locations on the file system
+  (/etc/pki/tls/certs/ca-bundle.crt followed by /etc/ssl/certs), and only if
+  these do not exist will it fall back on the builtin trusted root certificates.
+  This behavior can be overridden on Linux with the new flags
+  --root-certs-file and --root-certs-cache. The former is the path to a file
+  containing the trusted root certificates, and the latter is the path to a
+  directory containing root certificate files hashed using `c_rehash`.
+
 ### Core library changes
 * `dart:core`: Remove deprecated `Resource` class.
   Use the class in `package:resource` instead.
@@ -21,7 +31,7 @@
   * Added `WebSocket.addUtf8Text` to allow sending a pre-encoded text message
     without a round-trip UTF-8 conversion.
 
-## Strong Mode
+### Strong Mode
 
 * Breaking change - it is an error if a generic type parameter cannot be
     inferred (SDK issue [26992](https://github.com/dart-lang/sdk/issues/26992)).
