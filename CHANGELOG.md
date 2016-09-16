@@ -7,6 +7,11 @@
   [article on native extensions](https://www.dartlang.org/articles/dart-vm/native-extensions)
   to reflect the VM's improved behavior.
 
+* Linux builds of the VM will now use the tcmalloc library for memory
+  allocation. This has the advantages of better debugging and profiling support
+  and faster small allocations, with the cost of slightly larger initial memory
+  footprint, and slightly slower large allocations.
+
 * We have improved the way the VM searches for trusted root certificates for
   secure socket connections on Linux. First, the VM will look for trusted root
   certificates in standard locations on the file system
