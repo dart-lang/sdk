@@ -8,9 +8,14 @@ import 'type_unification_test.dart' show testCases;
 import 'package:test/test.dart';
 
 checkType(DartType type) {
-  var other = substitute(type, {new TypeParameter(): const DynamicType()});
+  var map = {new TypeParameter(): const DynamicType()};
+  var other = substitute(type, map);
   if (!identical(type, other)) {
     fail('Identity substitution test failed for $type');
+  }
+  other = substituteBounds(type, map, map);
+  if (!identical(type, other)) {
+    fail('Identity bounded substitution test failed for $type');
   }
 }
 

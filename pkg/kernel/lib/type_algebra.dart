@@ -17,7 +17,7 @@ import 'type_algebra.dart' as toplevel;
 /// to efficiently check if a distinct type was created.
 DartType substitute(DartType type, Map<TypeParameter, DartType> substitution) {
   if (substitution.isEmpty) return type;
-  return new _TypeSubstitutor(substitution).visit(type);
+  return new _TypeSubstitutor(substitution, substitution).visit(type);
 }
 
 /// Returns a mapping from the type parameters declared on the class of [type]
@@ -55,6 +55,32 @@ DartType substituteThisType(DartType type, InterfaceType thisType) {
   if (thisType == null) return type;
   return substitutePairwise(
       type, thisType.classNode.typeParameters, thisType.typeArguments);
+}
+
+/// Returns a type where all occurrences of the given type parameters have been
+/// replaced with the corresponding upper or lower bound, depending on the
+/// variance of the context where it occurs.
+///
+/// For example the type `(T) => T` with the bounds `bottom <: T <: num`
+/// becomes `(bottom) => num` (in this example, `num` is the upper bound,
+/// and `bottom` is the lower bound).
+///
+/// This is a way to obtain an upper bound for a type while eliminating all
+/// references to certain type variables.
+///
+/// This will copy only the subterms of [type] that contain substituted
+/// variables; all other [DartType] objects will be reused.
+///
+/// In particular, if no variables were substituted, this is guaranteed to
+/// return the [type] instance (not a copy), so the caller may use [identical]
+/// to efficiently check if a distinct type was created.
+DartType substituteBounds(
+    DartType type,
+    Map<TypeParameter, DartType> upperBounds,
+    Map<TypeParameter, DartType> lowerBounds) {
+  assert(upperBounds.length == lowerBounds.length);
+  if (upperBounds.isEmpty) return type;
+  return new _TypeSubstitutor(upperBounds, lowerBounds).visit(type);
 }
 
 /// Like [substitute], except when a type in the [substitution] map references
@@ -143,8 +169,10 @@ class FreshTypeParameters {
 // ------------------------------------------------------------------------
 
 class _TypeSubstitutor extends DartTypeVisitor<DartType> {
-  final Map<TypeParameter, DartType> substitution;
+  final Map<TypeParameter, DartType> upperBounds;
+  final Map<TypeParameter, DartType> lowerBounds;
   final _TypeSubstitutor outer;
+  bool covariantContext = true;
 
   /// The number of times a variable from this environment has been used in
   /// a substitution.
@@ -154,10 +182,16 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   /// check quickly if anything happened in a substitution.
   int useCounter = 0;
 
-  _TypeSubstitutor(this.substitution, [this.outer]);
+  _TypeSubstitutor(this.upperBounds, this.lowerBounds, [this.outer]);
 
-  _TypeSubstitutor.inner(this.outer)
-      : substitution = <TypeParameter, DartType>{};
+  _TypeSubstitutor newInnerEnvironment() {
+    var map = <TypeParameter, DartType>{};
+    return new _TypeSubstitutor(map, map, this);
+  }
+
+  void invertVariance() {
+    covariantContext = !covariantContext;
+  }
 
   DartType visit(DartType node) => node.accept(this);
 
@@ -181,13 +215,13 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   TypeParameter freshTypeParameter(TypeParameter node) {
     var fresh = new TypeParameter(node.name);
-    substitution[node] = new TypeParameterType(fresh);
+    upperBounds[node] = new TypeParameterType(fresh);
     fresh.bound = visit(node.bound);
     return fresh;
   }
 
   DartType visitFunctionType(FunctionType node) {
-    assert(!node.typeParameters.any(substitution.containsKey));
+    assert(!node.typeParameters.any(upperBounds.containsKey));
     // This is a bit tricky because we have to generate fresh type parameters
     // in order to change the bounds.  At the same time, if the function type
     // was unaltered, we have to return the [node] object (not a copy!).
@@ -199,9 +233,10 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     // any uses, but does not tell if the resulting function type is distinct.
     // Our own use counter will get incremented if something from our
     // environment has been used inside the function.
-    var inner =
-        node.typeParameters.isEmpty ? this : new _TypeSubstitutor.inner(this);
+    var inner = node.typeParameters.isEmpty ? this : newInnerEnvironment();
     int before = this.useCounter;
+    // Invert the variance when translating parameters.
+    inner.invertVariance();
     var typeParameters = inner.freshTypeParameters(node.typeParameters);
     var positionalParameters = node.positionalParameters.isEmpty
         ? const <DartType>[]
@@ -209,6 +244,7 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     var namedParameters = node.namedParameters.isEmpty
         ? const <String, DartType>{}
         : _mapValues(node.namedParameters, inner.visit);
+    inner.invertVariance();
     var returnType = inner.visit(node.returnType);
     if (this.useCounter == before) return node;
     return new FunctionType(positionalParameters, returnType,
@@ -229,7 +265,9 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType getSubstitute(TypeParameter variable) {
     var environment = this;
     while (environment != null) {
-      var replacement = environment.substitution[variable];
+      var replacement = covariantContext
+          ? environment.upperBounds[variable]
+          : environment.lowerBounds[variable];
       if (replacement != null) {
         bumpCountersUntil(environment);
         return replacement;
@@ -248,8 +286,14 @@ class _DeepTypeSubstitutor extends _TypeSubstitutor {
   int depth = 0;
   bool isInfinite = false;
 
-  _DeepTypeSubstitutor(Map<TypeParameter, DartType> substitution)
-      : super(substitution);
+  _DeepTypeSubstitutor(Map<TypeParameter, DartType> substitution,
+      [_DeepTypeSubstitutor outer])
+      : super(substitution, substitution, outer);
+
+  @override
+  _TypeSubstitutor newInnerEnvironment() {
+    return new _DeepTypeSubstitutor(<TypeParameter, DartType>{}, this);
+  }
 
   @override
   DartType visitTypeParameterType(TypeParameterType node) {
@@ -257,14 +301,14 @@ class _DeepTypeSubstitutor extends _TypeSubstitutor {
     if (replacement == null) return node;
     if (isInfinite) return replacement;
     ++depth;
-    if (depth > substitution.length) {
+    if (depth > upperBounds.length) {
       isInfinite = true;
       --depth;
       return replacement;
     } else {
       replacement = visit(replacement);
       // Update type to the fully fleshed-out type.
-      substitution[node.parameter] = replacement;
+      upperBounds[node.parameter] = replacement;
       --depth;
       return replacement;
     }

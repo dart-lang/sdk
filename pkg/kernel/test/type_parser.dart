@@ -254,6 +254,11 @@ class DartTypeParser {
       return fail('Shadowing a type parameter is not allowed');
     }
     localTypeParameters[typeParameter.name] = typeParameter;
+    var next = peekToken();
+    if (next == Token.Colon) {
+      scanToken();
+      typeParameter.bound = parseType();
+    }
     return typeParameter;
   }
 
