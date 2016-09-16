@@ -4087,22 +4087,35 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     ReferencedNames referencedNames = new ReferencedNames(_source);
     new ReferencedNamesBuilder(referencedNames).build(unit);
     //
-    // Record outputs.
+    // Compute source lists.
     //
     List<Source> explicitlyImportedSources =
         explicitlyImportedSourceSet.toList();
     List<Source> exportedSources = exportedSourceSet.toList();
     List<Source> importedSources = importedSourceSet.toList();
     List<Source> includedSources = includedSourceSet.toList();
-    List<AnalysisError> parseErrors = getUniqueErrors(errorListener.errors);
     List<Source> unitSources = <Source>[_source]..addAll(includedSourceSet);
-    List<Source> referencedSources = (new Set<Source>()
-          ..addAll(importedSources)
-          ..addAll(exportedSources)
-          ..addAll(unitSources))
-        .toList();
     List<LibrarySpecificUnit> librarySpecificUnits =
         unitSources.map((s) => new LibrarySpecificUnit(_source, s)).toList();
+    //
+    // Compute referenced sources.
+    //
+    Set<Source> referencedSources = new Set<Source>();
+    referencedSources.add(coreLibrarySource);
+    referencedSources.addAll(unitSources);
+    for (Directive directive in unit.directives) {
+      if (directive is NamespaceDirective) {
+        referencedSources.add(directive.uriSource);
+        for (Configuration configuration in directive.configurations) {
+          referencedSources.add(configuration.uriSource);
+        }
+      }
+    }
+    referencedSources.removeWhere((source) => source == null);
+    //
+    // Record outputs.
+    //
+    List<AnalysisError> parseErrors = getUniqueErrors(errorListener.errors);
     outputs[EXPLICITLY_IMPORTED_LIBRARIES] = explicitlyImportedSources;
     outputs[EXPORTED_LIBRARIES] = exportedSources;
     outputs[IMPORTED_LIBRARIES] = importedSources;
@@ -4111,7 +4124,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     outputs[PARSE_ERRORS] = parseErrors;
     outputs[PARSED_UNIT] = unit;
     outputs[REFERENCED_NAMES] = referencedNames;
-    outputs[REFERENCED_SOURCES] = referencedSources;
+    outputs[REFERENCED_SOURCES] = referencedSources.toList();
     outputs[SOURCE_KIND] = sourceKind;
     outputs[UNITS] = unitSources;
   }

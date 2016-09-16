@@ -3274,6 +3274,16 @@ export 'bar.dart'
     expect(export.selectedSource.shortName, 'bar_io.dart');
     expect(export.configurations[0].uriSource.shortName, 'bar_io.dart');
     expect(export.configurations[1].uriSource.shortName, 'bar_html.dart');
+
+    var refSources = outputs[REFERENCED_SOURCES] as List<Source>;
+    var refNames = refSources.map((source) => source.shortName).toList();
+    expect(refNames, contains('test.dart'));
+    expect(refNames, contains('foo.dart'));
+    expect(refNames, contains('foo_io.dart'));
+    expect(refNames, contains('foo_html.dart'));
+    expect(refNames, contains('bar.dart'));
+    expect(refNames, contains('bar_io.dart'));
+    expect(refNames, contains('bar_html.dart'));
   }
 
   test_perform_library_configurations_bool2() {
