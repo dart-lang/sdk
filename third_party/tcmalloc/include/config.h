@@ -85,7 +85,9 @@
 #define HAVE_GETPAGESIZE 1
 
 /* Define to 1 if you have the <glob.h> header file. */
+#if !defined(__ANDROID__)
 #define HAVE_GLOB_H 1
+#endif
 
 /* Define to 1 if you have the <grp.h> header file. */
 #define HAVE_GRP_H 1
@@ -170,7 +172,9 @@
 #define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/syscall.h> header file. */
+#if !defined(__ANDROID__)
 #define HAVE_SYS_SYSCALL_H 1
+#endif
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
@@ -203,7 +207,9 @@
 #define HAVE___ATTRIBUTE__ 1
 
 /* Define to 1 if compiler supports __environ */
+#if !defined(__ANDROID__)
 #define HAVE___ENVIRON 1
+#endif
 
 /* Define to 1 if the system has the type `__int64'. */
 /* #undef HAVE___INT64 */

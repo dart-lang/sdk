@@ -65,17 +65,22 @@
         '-fno-builtin-posix_memalign',
         '-fno-builtin-valloc',
         '-fno-builtin-pvalloc',
+        '-fpermissive',
       ],
       'cflags!': [
         '-Werror',
         '-Wvla',
       ],
       'link_settings': {
-        'ldflags': [
-          # Don't let linker rip this symbol out, otherwise the heap&cpu
-          # profilers will not initialize properly on startup.
-          '-Wl,-uIsHeapProfilerRunning,-uProfilerStart',
-        ],
+        'configurations': {
+          'Dart_Linux_Base': {
+            'ldflags': [
+              # Don't let linker rip this symbol out, otherwise the heap&cpu
+              # profilers will not initialize properly on startup.
+              '-Wl,-uIsHeapProfilerRunning,-uProfilerStart',
+            ],
+          },
+        },
       },
       'sources!': [
         # No debug allocator.
