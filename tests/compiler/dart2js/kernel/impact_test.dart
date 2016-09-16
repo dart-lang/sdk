@@ -41,6 +41,10 @@ main() {
   testUnaryMinus();
   testIfThen();
   testIfThenElse();
+  testTopLevelInvoke();
+  testTopLevelInvokeTyped();
+  testTopLevelField();
+  testTopLevelFieldTyped();
 }
 
 testEmpty() {}
@@ -74,6 +78,40 @@ testIfThenElse() {
     return 1;
   }
 }
+topLevelFunction1(a) {}
+topLevelFunction2(a, [b, c]) {}
+topLevelFunction3(a, {b, c}) {}
+testTopLevelInvoke() {
+  topLevelFunction1(0);
+  topLevelFunction2(1);
+  topLevelFunction2(2, 3);
+  topLevelFunction2(4, 5, 6);
+  topLevelFunction3(7);
+  topLevelFunction3(8, b: 9);
+  topLevelFunction3(10, c: 11);
+  topLevelFunction3(12, b: 13, c: 14);
+  topLevelFunction3(15, c: 16, b: 17);
+}
+void topLevelFunction1Typed(int a) {}
+int topLevelFunction2Typed(String a, [num b, double c]) => null;
+double topLevelFunction3Typed(bool a, {List<int> b, Map<String, bool> c}) {
+  return null;
+}
+testTopLevelInvokeTyped() {
+  topLevelFunction1Typed(0);
+  topLevelFunction2Typed('1');
+  topLevelFunction2Typed('2', 3);
+  topLevelFunction2Typed('3', 5, 6.0);
+  topLevelFunction3Typed(true);
+  topLevelFunction3Typed(false, b: []);
+  topLevelFunction3Typed(null, c: {});
+  topLevelFunction3Typed(true, b: [13], c: {'14': true});
+  topLevelFunction3Typed(false, c: {'16': false}, b: [17]);
+}
+var topLevelField;
+testTopLevelField() => topLevelField;
+int topLevelFieldTyped;
+testTopLevelFieldTyped() => topLevelFieldTyped;
 '''
 };
 

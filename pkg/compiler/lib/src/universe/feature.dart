@@ -40,6 +40,9 @@ enum Feature {
   /// A fall through in a switch case.
   FALL_THROUGH_ERROR,
 
+  /// A field without an initializer.
+  FIELD_WITHOUT_INITIALIZER,
+
   /// A ++/-- operation.
   INC_DEC_OPERATION,
 

@@ -456,8 +456,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             resolver.constantCompiler.compileConstant(parameter);
       });
     });
+    if (!functionSignature.returnType.isDynamic) {
+      registry.registerTypeUse(
+          new TypeUse.checkedModeCheck(functionSignature.returnType));
+    }
     functionSignature.forEachParameter((ParameterElement element) {
-      registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
+      if (!element.type.isDynamic) {
+        registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
+      }
     });
   }
 

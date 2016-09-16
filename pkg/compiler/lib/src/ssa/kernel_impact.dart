@@ -24,19 +24,27 @@ ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
   AstElement element = resolvedAst.element.implementation;
   JavaScriptBackend backend = compiler.backend;
   Kernel kernel = backend.kernelTask.kernel;
-  ir.Procedure function = kernel.functions[element];
-  if (function == null) {
-    print("FOUND NULL FUNCTION: $element");
-    print(kernel.functions);
-  }
   KernelImpactBuilder builder =
-      new KernelImpactBuilder(function, element, resolvedAst, compiler, kernel);
-  return builder.build();
+      new KernelImpactBuilder(resolvedAst, compiler, kernel);
+  if (element.isFunction) {
+    ir.Procedure function = kernel.functions[element];
+    if (function == null) {
+      print("FOUND NULL FUNCTION: $element");
+    } else {
+      return builder.buildProcedure(function);
+    }
+  } else {
+    ir.Field field = kernel.fields[element];
+    if (field == null) {
+      print("FOUND NULL FUNCTION: $element");
+    } else {
+      return builder.buildField(field);
+    }
+  }
+  return null;
 }
 
 class KernelImpactBuilder extends ir.Visitor {
-  final ir.Procedure function;
-  final FunctionElement functionElement;
   final ResolvedAst resolvedAst;
   final Compiler compiler;
 
@@ -45,36 +53,46 @@ class KernelImpactBuilder extends ir.Visitor {
   ResolutionWorldImpactBuilder impactBuilder;
   KernelAstAdapter astAdapter;
 
-  KernelImpactBuilder(this.function, this.functionElement, this.resolvedAst,
-      this.compiler, Kernel kernel) {
-    this.impactBuilder = new ResolutionWorldImpactBuilder('$functionElement');
+  KernelImpactBuilder(this.resolvedAst, this.compiler, Kernel kernel) {
+    this.impactBuilder =
+        new ResolutionWorldImpactBuilder('${resolvedAst.element}');
     this.astAdapter = new KernelAstAdapter(kernel, compiler.backend,
         resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
   }
 
-  ResolutionImpact build() {
-    if (function.kind == ir.ProcedureKind.Method ||
-        function.kind == ir.ProcedureKind.Operator) {
-      buildMethod(function);
-    } else {
-      compiler.reporter.internalError(
-          functionElement,
-          "Unable to compute resolution impact for this kind of Kernel "
-          "procedure: ${function.kind}");
-    }
-    return impactBuilder;
-  }
-
   /// Add a checked-mode type use of [type] if it is not `dynamic`.
-  DartType checkType(DartType type) {
+  DartType checkType(ir.DartType irType) {
+    DartType type = astAdapter.getDartType(irType);
     if (!type.isDynamic) {
       impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
     }
     return type;
   }
 
-  void buildMethod(ir.Procedure method) {
-    method.function.body.accept(this);
+  ResolutionImpact buildField(ir.Field field) {
+    checkType(field.type);
+    if (field.initializer != null) {
+      field.initializer.accept(this);
+    } else {
+      impactBuilder.registerFeature(Feature.FIELD_WITHOUT_INITIALIZER);
+    }
+    return impactBuilder;
+  }
+
+  ResolutionImpact buildProcedure(ir.Procedure procedure) {
+    if (procedure.kind == ir.ProcedureKind.Method ||
+        procedure.kind == ir.ProcedureKind.Operator) {
+      checkType(procedure.function.returnType);
+      procedure.function.positionalParameters.forEach((v) => checkType(v.type));
+      procedure.function.namedParameters.forEach((v) => checkType(v.type));
+      procedure.function.body.accept(this);
+    } else {
+      compiler.reporter.internalError(
+          resolvedAst.element,
+          "Unable to compute resolution impact for this kind of Kernel "
+          "procedure: ${procedure.kind}");
+    }
+    return impactBuilder;
   }
 
   void visitNodes(Iterable<ir.Node> nodes) {
@@ -138,8 +156,7 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitListLiteral(ir.ListLiteral literal) {
     visitNodes(literal.expressions);
-    DartType elementType =
-        checkType(astAdapter.getDartType(literal.typeArgument));
+    DartType elementType = checkType(literal.typeArgument);
 
     impactBuilder.registerListLiteral(new ListLiteralUse(
         compiler.coreTypes.listType(elementType),
@@ -150,8 +167,8 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitMapLiteral(ir.MapLiteral literal) {
     visitNodes(literal.entries);
-    DartType keyType = checkType(astAdapter.getDartType(literal.keyType));
-    DartType valueType = checkType(astAdapter.getDartType(literal.valueType));
+    DartType keyType = checkType(literal.keyType);
+    DartType valueType = checkType(literal.valueType);
     impactBuilder.registerMapLiteral(new MapLiteralUse(
         compiler.coreTypes.mapType(keyType, valueType),
         isConstant: literal.isConst,
@@ -178,6 +195,12 @@ class KernelImpactBuilder extends ir.Visitor {
     Element target = astAdapter.getElement(invocation.target).declaration;
     impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
         target, astAdapter.getCallStructure(invocation.arguments)));
+  }
+
+  @override
+  void visitStaticGet(ir.StaticGet node) {
+    Element target = astAdapter.getElement(node.target).declaration;
+    impactBuilder.registerStaticUse(new StaticUse.staticGet(target));
   }
 
   @override

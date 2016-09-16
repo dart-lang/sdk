@@ -400,8 +400,7 @@ class ResolverTask extends CompilerTask {
         reporter.reportErrorMessage(
             element, MessageKind.FINAL_WITHOUT_INITIALIZER);
       } else {
-        // TODO(johnniwinther): Register a feature instead.
-        registry.registerTypeUse(new TypeUse.instantiation(coreTypes.nullType));
+        registry.registerFeature(Feature.FIELD_WITHOUT_INITIALIZER);
       }
 
       if (Elements.isStaticOrTopLevelField(element)) {
