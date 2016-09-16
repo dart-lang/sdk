@@ -2039,12 +2039,14 @@ abstract class Configuration extends AstNode {
    * Return the URI of the implementation library to be used if the condition is
    * true.
    */
+  @deprecated
   StringLiteral get libraryUri;
 
   /**
    * Set the URI of the implementation library to be used if the condition is
    * true to the given [uri].
    */
+  @deprecated
   void set libraryUri(StringLiteral uri);
 
   /**
@@ -2070,12 +2072,24 @@ abstract class Configuration extends AstNode {
   void set rightParenthesis(Token token);
 
   /**
-   * Return the source to which the [libraryUri] was resolved.
+   * Return the URI of the implementation library to be used if the condition is
+   * true.
+   */
+  StringLiteral get uri;
+
+  /**
+   * Set the URI of the implementation library to be used if the condition is
+   * true to the given [uri].
+   */
+  void set uri(StringLiteral uri);
+
+  /**
+   * Return the source to which the [uri] was resolved.
    */
   Source get uriSource;
 
   /**
-   * Set the source to which the [libraryUri] was resolved to the given [source].
+   * Set the source to which the [uri] was resolved to the given [source].
    */
   void set uriSource(Source source);
 

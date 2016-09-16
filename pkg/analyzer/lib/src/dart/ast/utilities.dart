@@ -277,7 +277,7 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.equalToken),
       cloneNode(node.value),
       cloneToken(node.rightParenthesis),
-      cloneNode(node.libraryUri));
+      cloneNode(node.uri));
 
   @override
   ConstructorDeclaration visitConstructorDeclaration(
@@ -1267,7 +1267,7 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.equalToken, other.equalToken) &&
         isEqualNodes(node.value, other.value) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
-        isEqualNodes(node.libraryUri, other.libraryUri);
+        isEqualNodes(node.uri, other.uri);
   }
 
   @override
@@ -2856,7 +2856,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _mapToken(node.equalToken),
       _cloneNode(node.value),
       _mapToken(node.rightParenthesis),
-      _cloneNode(node.libraryUri));
+      _cloneNode(node.uri));
 
   @override
   ConstructorDeclaration visitConstructorDeclaration(
@@ -4170,8 +4170,8 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (identical(node.value, _oldNode)) {
       node.value = _newNode as StringLiteral;
       return true;
-    } else if (identical(node.libraryUri, _oldNode)) {
-      node.libraryUri = _newNode as StringLiteral;
+    } else if (identical(node.uri, _oldNode)) {
+      node.uri = _newNode as StringLiteral;
       return true;
     }
     return visitNode(node);
@@ -5360,7 +5360,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.equalToken, toNode.equalToken),
         _isEqualNodes(node.value, toNode.value),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.libraryUri, toNode.libraryUri))) {
+        _isEqualNodes(node.uri, toNode.uri))) {
       return true;
     }
     return false;
@@ -6907,7 +6907,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNode(node.name);
     _visitNodeWithPrefix(" == ", node.value);
     _writer.print(') ');
-    _visitNode(node.libraryUri);
+    _visitNode(node.uri);
     return null;
   }
 

@@ -6683,7 +6683,7 @@ void''');
     expect(configuration.equalToken, isNull);
     expect(configuration.value, isNull);
     expect(configuration.rightParenthesis, isNotNull);
-    expect(configuration.libraryUri, isNotNull);
+    expect(configuration.uri, isNotNull);
   }
 
   void test_parseConfiguration_noOperator_simpleIdentifier() {
@@ -6695,7 +6695,7 @@ void''');
     expect(configuration.equalToken, isNull);
     expect(configuration.value, isNull);
     expect(configuration.rightParenthesis, isNotNull);
-    expect(configuration.libraryUri, isNotNull);
+    expect(configuration.uri, isNotNull);
   }
 
   void test_parseConfiguration_operator_dottedIdentifier() {
@@ -6707,7 +6707,7 @@ void''');
     expect(configuration.equalToken, isNotNull);
     expect(configuration.value, isNotNull);
     expect(configuration.rightParenthesis, isNotNull);
-    expect(configuration.libraryUri, isNotNull);
+    expect(configuration.uri, isNotNull);
   }
 
   void test_parseConfiguration_operator_simpleIdentifier() {
@@ -6719,7 +6719,7 @@ void''');
     expect(configuration.equalToken, isNotNull);
     expect(configuration.value, isNotNull);
     expect(configuration.rightParenthesis, isNotNull);
-    expect(configuration.libraryUri, isNotNull);
+    expect(configuration.uri, isNotNull);
   }
 
   void test_parseConstExpression_instanceCreation() {

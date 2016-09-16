@@ -2609,7 +2609,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   Token rightParenthesis;
 
-  StringLiteral _libraryUri;
+  StringLiteral _uri;
 
   @override
   Source uriSource;
@@ -2624,7 +2624,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
       StringLiteralImpl libraryUri) {
     _name = _becomeParentOf(name);
     _value = _becomeParentOf(value);
-    _libraryUri = _becomeParentOf(libraryUri);
+    _uri = _becomeParentOf(libraryUri);
   }
 
   @override
@@ -2638,17 +2638,19 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
     ..add(equalToken)
     ..add(_value)
     ..add(rightParenthesis)
-    ..add(_libraryUri);
+    ..add(_uri);
 
   @override
-  Token get endToken => _libraryUri.endToken;
+  Token get endToken => _uri.endToken;
 
+  @deprecated
   @override
-  StringLiteral get libraryUri => _libraryUri;
+  StringLiteral get libraryUri => _uri;
 
+  @deprecated
   @override
   void set libraryUri(StringLiteral libraryUri) {
-    _libraryUri = _becomeParentOf(libraryUri as AstNodeImpl);
+    _uri = _becomeParentOf(libraryUri as AstNodeImpl);
   }
 
   @override
@@ -2657,6 +2659,14 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   void set name(DottedName name) {
     _name = _becomeParentOf(name as AstNodeImpl);
+  }
+
+  @override
+  StringLiteral get uri => _uri;
+
+  @override
+  void set uri(StringLiteral uri) {
+    _uri = _becomeParentOf(uri as AstNodeImpl);
   }
 
   @override
@@ -2675,7 +2685,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   void visitChildren(AstVisitor visitor) {
     _name?.accept(visitor);
     _value?.accept(visitor);
-    _libraryUri?.accept(visitor);
+    _uri?.accept(visitor);
   }
 }
 

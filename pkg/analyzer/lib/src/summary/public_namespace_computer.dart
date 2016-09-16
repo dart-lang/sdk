@@ -27,7 +27,7 @@ UnlinkedConfigurationBuilder serializeConfiguration(
   return new UnlinkedConfigurationBuilder(
       name: configuration.name.components.map((i) => i.name).join('.'),
       value: configuration.value?.stringValue ?? 'true',
-      uri: configuration.libraryUri.stringValue);
+      uri: configuration.uri.stringValue);
 }
 
 class _CombinatorEncoder extends SimpleAstVisitor<UnlinkedCombinatorBuilder> {
