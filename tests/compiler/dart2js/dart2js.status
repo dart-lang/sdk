@@ -19,9 +19,6 @@ async_await_syntax_test: Pass # DON'T CHANGE THIS LINE -- SEE ABOVE.
 # building function type tests.
 simple_function_subtype_test: Fail
 
-library_resolution_test: Fail # Issue 27378
-analyze_test_test: Fail # Issue 27378
-
 simple_inferrer_const_closure_test: Fail # Issue 16507
 simple_inferrer_const_closure2_test: Fail # Issue 16507
 simple_inferrer_global_field_closure_test: Fail # Issue 16507
