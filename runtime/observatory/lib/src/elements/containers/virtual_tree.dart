@@ -25,10 +25,8 @@ void virtualTreeUpdateLines(SpanElement element, int n) {
 }
 
 class VirtualTreeElement extends HtmlElement implements Renderable {
-  static const tag =
-      const Tag<VirtualTreeElement>('virtual-tree', dependencies: const [
-        VirtualCollectionElement.tag
-      ]);
+  static const tag = const Tag<VirtualTreeElement>('virtual-tree',
+      dependencies: const [VirtualCollectionElement.tag]);
 
   RenderingScheduler<VirtualTreeElement> _r;
 
@@ -59,14 +57,17 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
     e._children = children;
     e._collection = new VirtualCollectionElement(() {
       var element;
-      return element = create(({bool autoToggleSingleChildNodes: false,
+      return element = create((
+          {bool autoToggleSingleChildNodes: false,
           bool autoToggleWholeTree: false}) {
         var item = e._collection.getItemFromElement(element);
         if (e.isExpanded(item)) {
-          e.collapse(item, autoCollapseWholeTree: autoToggleWholeTree,
+          e.collapse(item,
+              autoCollapseWholeTree: autoToggleWholeTree,
               autoCollapseSingleChildNodes: autoToggleSingleChildNodes);
         } else {
-          e.expand(item, autoExpandWholeTree: autoToggleWholeTree,
+          e.expand(item,
+              autoExpandWholeTree: autoToggleWholeTree,
               autoExpandSingleChildNodes: autoToggleSingleChildNodes);
         }
       });
@@ -83,7 +84,8 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
     return _expanded.contains(item);
   }
 
-  void expand(item, {bool autoExpandSingleChildNodes : false,
+  void expand(item,
+      {bool autoExpandSingleChildNodes: false,
       bool autoExpandWholeTree: false}) {
     if (_expanded.add(item)) _r.dirty();
     if (autoExpandWholeTree) {
@@ -99,7 +101,8 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
     }
   }
 
-  void collapse(item, {bool autoCollapseSingleChildNodes : false,
+  void collapse(item,
+      {bool autoCollapseSingleChildNodes: false,
       bool autoCollapseWholeTree: false}) {
     if (_expanded.remove(item)) _r.dirty();
     if (autoCollapseWholeTree) {
@@ -121,9 +124,10 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
     _r.enable();
   }
 
- @override
+  @override
   detached() {
-    super.detached(); _r.disable(notify: true);
+    super.detached();
+    _r.disable(notify: true);
     children = const [];
   }
 
@@ -142,6 +146,7 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
       }
       return [item];
     }
+
     _collection.items = _items.expand(_toList);
     var depth = 0;
     Iterable _toDepth(item) {
@@ -149,12 +154,12 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
         Iterable children = _children(item);
         if (children.isNotEmpty) {
           depth++;
-          return children.expand(_toDepth).toList()
-              ..insert(0, --depth);
+          return children.expand(_toDepth).toList()..insert(0, --depth);
         }
       }
       return [depth];
     }
+
     _depths = _items.expand(_toDepth).toList();
   }
 }

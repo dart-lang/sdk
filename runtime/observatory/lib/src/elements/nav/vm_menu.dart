@@ -4,8 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart' as M
-  show VM, EventRepository;
+import 'package:observatory/models.dart' as M show VM, EventRepository;
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
@@ -14,7 +13,7 @@ import 'package:observatory/src/elements/nav/menu_item.dart';
 
 class NavVMMenuElement extends HtmlElement implements Renderable {
   static const tag = const Tag<NavVMMenuElement>('nav-vm-menu',
-                     dependencies: const [NavMenuItemElement.tag]);
+      dependencies: const [NavMenuItemElement.tag]);
 
   RenderingScheduler _r;
 
@@ -34,7 +33,7 @@ class NavVMMenuElement extends HtmlElement implements Renderable {
   }
 
   factory NavVMMenuElement(M.VM vm, M.EventRepository events,
-                           {RenderingQueue queue}) {
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(events != null);
     NavVMMenuElement e = document.createElement(tag.name);
@@ -49,8 +48,10 @@ class NavVMMenuElement extends HtmlElement implements Renderable {
   @override
   void attached() {
     super.attached();
-    _updatesSubscription = _events.onVMUpdate
-        .listen((e) { _vm = e.vm; _r.dirty(); });
+    _updatesSubscription = _events.onVMUpdate.listen((e) {
+      _vm = e.vm;
+      _r.dirty();
+    });
     _r.enable();
   }
 
@@ -63,15 +64,10 @@ class NavVMMenuElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    final content = (
-      _vm.isolates.map((isolate) {
-        return new NavMenuItemElement(isolate.name, queue: _r.queue,
-            link: Uris.inspect(isolate));
-      }).toList()
-      ..addAll(_content)
-    );
-    children = [
-      navMenu(vm.displayName, link: Uris.vm(), content: content)
-    ];
+    final content = (_vm.isolates.map((isolate) {
+      return new NavMenuItemElement(isolate.name,
+          queue: _r.queue, link: Uris.inspect(isolate));
+    }).toList()..addAll(_content));
+    children = [navMenu(vm.displayName, link: Uris.vm(), content: content)];
   }
 }

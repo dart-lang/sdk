@@ -5,6 +5,6 @@
 part of models;
 
 abstract class AllocationProfileRepository {
-  Future<AllocationProfile> get(IsolateRef isolate, {bool gc: false,
-                                                     bool reset: false});
+  Future<AllocationProfile> get(IsolateRef isolate,
+      {bool gc: false, bool reset: false});
 }

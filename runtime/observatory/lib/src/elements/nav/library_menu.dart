@@ -58,8 +58,9 @@ class NavLibraryMenuElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      navMenu(library.name, content: _content,
-                link: Uris.inspect(isolate, object: library).toString())
+      navMenu(library.name,
+          content: _content,
+          link: Uris.inspect(isolate, object: library).toString())
     ];
   }
 }

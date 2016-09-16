@@ -4,11 +4,7 @@
 
 part of models;
 
-enum HeapSnapshotLoadingStatus {
-  fetching,
-  loading,
-  loaded
-}
+enum HeapSnapshotLoadingStatus { fetching, loading, loaded }
 
 bool isHeapSnapshotProgressRunning(HeapSnapshotLoadingStatus status) {
   switch (status) {
@@ -35,5 +31,5 @@ abstract class HeapSnapshotLoadingProgress {
 
 abstract class HeapSnapshotRepository {
   Stream<HeapSnapshotLoadingProgressEvent> get(IsolateRef isolate,
-                                               {bool gc: false});
+      {bool gc: false});
 }

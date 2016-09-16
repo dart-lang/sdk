@@ -24,25 +24,24 @@ import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ScriptViewElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ScriptViewElement>('script-view',
-                                                  dependencies: const [
-                                                    ContextRefElement.tag,
-                                                    CurlyBlockElement.tag,
-                                                    NavTopMenuElement.tag,
-                                                    NavVMMenuElement.tag,
-                                                    NavIsolateMenuElement.tag,
-                                                    NavLibraryMenuElement.tag,
-                                                    NavRefreshElement.tag,
-                                                    NavNotifyElement.tag,
-                                                    ObjectCommonElement.tag,
-                                                    ScriptInsetElement.tag,
-                                                    ViewFooterElement.tag
-                                                  ]);
+  static const tag =
+      const Tag<ScriptViewElement>('script-view', dependencies: const [
+    ContextRefElement.tag,
+    CurlyBlockElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavLibraryMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ObjectCommonElement.tag,
+    ScriptInsetElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<ScriptViewElement> _r;
 
-  Stream<RenderedEvent<ScriptViewElement>> get onRendered =>
-      _r.onRendered;
+  Stream<RenderedEvent<ScriptViewElement>> get onRendered => _r.onRendered;
 
   M.VM _vm;
   M.IsolateRef _isolate;
@@ -57,23 +56,25 @@ class ScriptViewElement extends HtmlElement implements Renderable {
   M.InstanceRepository _instances;
   int _pos;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.Script get script => _script;
 
-  factory ScriptViewElement(M.VM vm, M.IsolateRef isolate,
-                                      M.Script script,
-                                      M.EventRepository events,
-                                      M.NotificationRepository notifications,
-                                      M.ScriptRepository scripts,
-                                      M.RetainedSizeRepository retainedSizes,
-                                      M.ReachableSizeRepository reachableSizes,
-                                      M.InboundReferencesRepository references,
-                                      M.RetainingPathRepository retainingPaths,
-                                      M.InstanceRepository instances,
-                                      {int pos, RenderingQueue queue}) {
+  factory ScriptViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.Script script,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.ScriptRepository scripts,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.InstanceRepository instances,
+      {int pos,
+      RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -126,34 +127,40 @@ class ScriptViewElement extends HtmlElement implements Renderable {
         new NavLibraryMenuElement(_isolate, _script.library, queue: _r.queue),
         navMenu('object'),
         new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _script = await _scripts.get(_isolate, _script.id);
-              _r.dirty();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _script = await _scripts.get(_isolate, _script.id);
+            _r.dirty();
+          }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Script',
           new HRElement(),
           new ObjectCommonElement(_isolate, _script, _retainedSizes,
-                                  _reachableSizes, _references, _retainingPaths,
-                                  _instances, queue: _r.queue),
+              _reachableSizes, _references, _retainingPaths, _instances,
+              queue: _r.queue),
           new BRElement(),
-          new DivElement()..classes = ['memberList']
+          new DivElement()
+            ..classes = ['memberList']
             ..children = [
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'load time',
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = '${_script.loadTime}'
                 ],
             ],
           new HRElement(),
-          new ScriptInsetElement(_isolate, _script, _scripts, _instances,
-                                 _events, currentPos: _pos, queue: _r.queue),
+          new ScriptInsetElement(
+              _isolate, _script, _scripts, _instances, _events,
+              currentPos: _pos, queue: _r.queue),
           new ViewFooterElement(queue: _r.queue)
         ]
     ];

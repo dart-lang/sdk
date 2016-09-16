@@ -12,8 +12,10 @@ import 'package:observatory/src/elements/nav/notify_exception.dart';
 
 class NavNotifyElement extends HtmlElement implements Renderable {
   static const tag = const Tag<NavNotifyElement>('nav-notify',
-          dependencies: const [ NavNotifyEventElement.tag,
-                                NavNotifyExceptionElement.tag ]);
+      dependencies: const [
+        NavNotifyEventElement.tag,
+        NavNotifyExceptionElement.tag
+      ]);
 
   RenderingScheduler _r;
 
@@ -30,7 +32,7 @@ class NavNotifyElement extends HtmlElement implements Renderable {
       _notifyOnPause = _r.checkAndReact(_notifyOnPause, value);
 
   factory NavNotifyElement(M.NotificationRepository repository,
-                           {bool notifyOnPause: true, RenderingQueue queue}) {
+      {bool notifyOnPause: true, RenderingQueue queue}) {
     assert(repository != null);
     assert(notifyOnPause != null);
     NavNotifyElement e = document.createElement(tag.name);
@@ -62,8 +64,8 @@ class NavNotifyElement extends HtmlElement implements Renderable {
       new DivElement()
         ..children = [
           new DivElement()
-            ..children = _repository.list()
-              .where(_filter).map(_toElement).toList()
+            ..children =
+                _repository.list().where(_filter).map(_toElement).toList()
         ]
     ];
   }
@@ -78,12 +80,11 @@ class NavNotifyElement extends HtmlElement implements Renderable {
   HtmlElement _toElement(M.Notification notification) {
     if (notification is M.EventNotification) {
       return new NavNotifyEventElement(notification.event, queue: _r.queue)
-          ..onDelete.listen((_) => _repository.delete(notification));
+        ..onDelete.listen((_) => _repository.delete(notification));
     } else if (notification is M.ExceptionNotification) {
-      return new NavNotifyExceptionElement(
-              notification.exception, stacktrace: notification.stacktrace,
-              queue: _r.queue)
-          ..onDelete.listen((_) => _repository.delete(notification));
+      return new NavNotifyExceptionElement(notification.exception,
+          stacktrace: notification.stacktrace, queue: _r.queue)
+        ..onDelete.listen((_) => _repository.delete(notification));
     } else {
       assert(false);
       return new DivElement()..text = 'Invalid Notification Type';

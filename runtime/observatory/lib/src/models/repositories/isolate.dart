@@ -4,7 +4,7 @@
 
 part of models;
 
-abstract class IsolateRepository{
+abstract class IsolateRepository {
   Future<Isolate> get(IsolateRef isolate);
   Future reloadSources(IsolateRef isolate);
 }

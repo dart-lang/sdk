@@ -36,22 +36,19 @@ enum _SortingField {
   className,
 }
 
-enum _SortingDirection {
-  ascending,
-  descending
-}
+enum _SortingDirection { ascending, descending }
 
-class AllocationProfileElement  extends HtmlElement implements Renderable {
+class AllocationProfileElement extends HtmlElement implements Renderable {
   static const tag = const Tag<AllocationProfileElement>('allocation-profile',
-                                            dependencies: const [
-                                              ClassRefElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              VirtualCollectionElement.tag
-                                            ]);
+      dependencies: const [
+        ClassRefElement.tag,
+        NavTopMenuElement.tag,
+        NavVMMenuElement.tag,
+        NavIsolateMenuElement.tag,
+        NavRefreshElement.tag,
+        NavNotifyElement.tag,
+        VirtualCollectionElement.tag
+      ]);
 
   RenderingScheduler<AllocationProfileElement> _r;
 
@@ -67,20 +64,20 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
   bool _autoRefresh = false;
   bool _isCompacted = false;
   StreamSubscription _gcSubscription;
-  _SortingField _sortingField =
-      _SortingField.className;
-  _SortingDirection _sortingDirection =
-      _SortingDirection.ascending;
+  _SortingField _sortingField = _SortingField.className;
+  _SortingDirection _sortingDirection = _SortingDirection.ascending;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
 
-  factory AllocationProfileElement(M.VM vm, M.IsolateRef isolate,
-                                   M.EventRepository events,
-                                   M.NotificationRepository notifications,
-                                   M.AllocationProfileRepository repository,
-                                   {RenderingQueue queue}) {
+  factory AllocationProfileElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.AllocationProfileRepository repository,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -125,16 +122,18 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('allocation profile'),
-        new NavRefreshElement(label: 'Download', disabled: _profile == null,
-            queue: _r.queue)
-          ..onRefresh.listen((_) => _downloadCSV()),
+        new NavRefreshElement(
+            label: 'Download',
+            disabled: _profile == null,
+            queue: _r.queue)..onRefresh.listen((_) => _downloadCSV()),
         new NavRefreshElement(label: 'Reset Accumulator', queue: _r.queue)
           ..onRefresh.listen((_) => _refresh(reset: true)),
         new NavRefreshElement(label: 'GC', queue: _r.queue)
           ..onRefresh.listen((_) => _refresh(gc: true)),
         new NavRefreshElement(queue: _r.queue)
           ..onRefresh.listen((_) => _refresh()),
-        new DivElement()..classes = ['nav-option']
+        new DivElement()
+          ..classes = ['nav-option']
           ..children = [
             new CheckboxInputElement()
               ..id = 'allocation-profile-auto-refresh'
@@ -146,7 +145,8 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
           ],
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Allocation Profile',
           new HRElement()
@@ -154,10 +154,9 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
     ];
     if (_profile == null) {
       children.addAll([
-        new DivElement()..classes = ['content-centered-big']
-          ..children = [
-            new HeadingElement.h2()..text = 'Loading...'
-          ]
+        new DivElement()
+          ..classes = ['content-centered-big']
+          ..children = [new HeadingElement.h2()..text = 'Loading...']
       ]);
     } else {
       final newChartHost = new DivElement()..classes = ['host'];
@@ -165,64 +164,84 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
       final oldChartHost = new DivElement()..classes = ['host'];
       final oldChartLegend = new DivElement()..classes = ['legend'];
       children.addAll([
-        new DivElement()..classes = ['content-centered-big']
-          ..children = _isCompacted ? [] : [
-            new DivElement()..classes = ['memberList']
-              ..children = [
-                new DivElement()..classes = ['memberItem']
-                  ..children = [
-                    new DivElement()..classes = ['memberName']
-                      ..text = 'last forced GC at',
-                    new DivElement()..classes = ['memberValue']
-                      ..text = _profile.lastServiceGC == null ? '---'
-                                 : '${_profile.lastServiceGC}',
-                  ],
-                new DivElement()..classes = ['memberItem']
-                  ..children = [
-                    new DivElement()..classes = ['memberName']
-                      ..text = 'last accumulator reset at',
-                    new DivElement()..classes = ['memberValue']
-                      ..text = _profile.lastAccumulatorReset == null ? '---'
-                                 : '${_profile.lastAccumulatorReset}',
-                  ]
-              ],
-            new HRElement(),
-          ],
-        new DivElement()..classes = ['content-centered-big', 'compactable']
+        new DivElement()
+          ..classes = ['content-centered-big']
+          ..children = _isCompacted
+              ? []
+              : [
+                  new DivElement()
+                    ..classes = ['memberList']
+                    ..children = [
+                      new DivElement()
+                        ..classes = ['memberItem']
+                        ..children = [
+                          new DivElement()
+                            ..classes = ['memberName']
+                            ..text = 'last forced GC at',
+                          new DivElement()
+                            ..classes = ['memberValue']
+                            ..text = _profile.lastServiceGC == null
+                                ? '---'
+                                : '${_profile.lastServiceGC}',
+                        ],
+                      new DivElement()
+                        ..classes = ['memberItem']
+                        ..children = [
+                          new DivElement()
+                            ..classes = ['memberName']
+                            ..text = 'last accumulator reset at',
+                          new DivElement()
+                            ..classes = ['memberValue']
+                            ..text = _profile.lastAccumulatorReset == null
+                                ? '---'
+                                : '${_profile.lastAccumulatorReset}',
+                        ]
+                    ],
+                  new HRElement(),
+                ],
+        new DivElement()
+          ..classes = ['content-centered-big', 'compactable']
           ..children = [
-            new DivElement()..classes = ['heap-space', 'left']
+            new DivElement()
+              ..classes = ['heap-space', 'left']
               ..children = _isCompacted
-                ? [
-                  new HeadingElement.h2()
-                    ..text = 'New Generation '
-                             '(${_usedCaption(_profile.newSpace)})',
-                ]
-                : [
-                  new HeadingElement.h2()..text = 'New Generation',
-                  new BRElement(),
-                  new DivElement()..classes = ['memberList']
-                    ..children = _createSpaceMembers(_profile.newSpace),
-                  new BRElement(),
-                  new DivElement()..classes = ['chart']
-                    ..children = [newChartLegend, newChartHost]
-                ],
-            new DivElement()..classes = ['heap-space', 'right']
+                  ? [
+                      new HeadingElement.h2()
+                        ..text = 'New Generation '
+                            '(${_usedCaption(_profile.newSpace)})',
+                    ]
+                  : [
+                      new HeadingElement.h2()..text = 'New Generation',
+                      new BRElement(),
+                      new DivElement()
+                        ..classes = ['memberList']
+                        ..children = _createSpaceMembers(_profile.newSpace),
+                      new BRElement(),
+                      new DivElement()
+                        ..classes = ['chart']
+                        ..children = [newChartLegend, newChartHost]
+                    ],
+            new DivElement()
+              ..classes = ['heap-space', 'right']
               ..children = _isCompacted
-                ? [
-                  new HeadingElement.h2()
-                    ..text = '(${_usedCaption(_profile.newSpace)}) '
-                             'Old Generation',
-                ]
-                : [
-                  new HeadingElement.h2()..text = 'Old Generation',
-                  new BRElement(),
-                  new DivElement()..classes = ['memberList']
-                    ..children = _createSpaceMembers(_profile.oldSpace),
-                  new BRElement(),
-                  new DivElement()..classes = ['chart']
-                    ..children = [oldChartLegend, oldChartHost]
-                ],
-            new ButtonElement()..classes = ['compact']
+                  ? [
+                      new HeadingElement.h2()
+                        ..text = '(${_usedCaption(_profile.newSpace)}) '
+                            'Old Generation',
+                    ]
+                  : [
+                      new HeadingElement.h2()..text = 'Old Generation',
+                      new BRElement(),
+                      new DivElement()
+                        ..classes = ['memberList']
+                        ..children = _createSpaceMembers(_profile.oldSpace),
+                      new BRElement(),
+                      new DivElement()
+                        ..classes = ['chart']
+                        ..children = [oldChartLegend, oldChartHost]
+                    ],
+            new ButtonElement()
+              ..classes = ['compact']
               ..text = _isCompacted ? 'expand ▼' : 'compact ▲'
               ..onClick.listen((_) {
                 _isCompacted = !_isCompacted;
@@ -234,11 +253,10 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
           ..classes = _isCompacted ? ['collection', 'expanded'] : ['collection']
           ..children = [
             new VirtualCollectionElement(
-              _createCollectionLine,
-              _updateCollectionLine,
-              createHeader: _createCollectionHeader,
-              items: _profile.members.toList()..sort(_createSorter()),
-              queue: _r.queue)
+                _createCollectionLine, _updateCollectionLine,
+                createHeader: _createCollectionHeader,
+                items: _profile.members.toList()..sort(_createSorter()),
+                queue: _r.queue)
           ]
       ]);
       _renderGraph(newChartHost, newChartLegend, _profile.newSpace);
@@ -297,114 +315,122 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
     }
   }
 
-  static Element _createCollectionLine() =>
-    new DivElement()
-      ..classes = ['collection-item']
-      ..children = [
-        new SpanElement()..classes = ['bytes']
-          ..text = '0B',
-        new SpanElement()..classes = ['instances']
-          ..text = '0',
-        new SpanElement()..classes = ['bytes']
-          ..text = '0B',
-        new SpanElement()..classes = ['instances']
-          ..text = '0',
-        new SpanElement()..classes = ['bytes']
-          ..text = '0B',
-        new SpanElement()..classes = ['instances']
-          ..text = '0',
-        new SpanElement()..classes = ['bytes']
-          ..text = '0B',
-        new SpanElement()..classes = ['instances']
-          ..text = '0',
-        new SpanElement()..classes = ['bytes']
-          ..text = '0B',
-        new SpanElement()..classes = ['instances']
-          ..text = '0',
-        new SpanElement()..classes = ['bytes']
-          ..text = '0B',
-        new SpanElement()..classes = ['instances']
-          ..text = '0',
-        new SpanElement()..classes = ['name']
-      ];
+  static Element _createCollectionLine() => new DivElement()
+    ..classes = ['collection-item']
+    ..children = [
+      new SpanElement()
+        ..classes = ['bytes']
+        ..text = '0B',
+      new SpanElement()
+        ..classes = ['instances']
+        ..text = '0',
+      new SpanElement()
+        ..classes = ['bytes']
+        ..text = '0B',
+      new SpanElement()
+        ..classes = ['instances']
+        ..text = '0',
+      new SpanElement()
+        ..classes = ['bytes']
+        ..text = '0B',
+      new SpanElement()
+        ..classes = ['instances']
+        ..text = '0',
+      new SpanElement()
+        ..classes = ['bytes']
+        ..text = '0B',
+      new SpanElement()
+        ..classes = ['instances']
+        ..text = '0',
+      new SpanElement()
+        ..classes = ['bytes']
+        ..text = '0B',
+      new SpanElement()
+        ..classes = ['instances']
+        ..text = '0',
+      new SpanElement()
+        ..classes = ['bytes']
+        ..text = '0B',
+      new SpanElement()
+        ..classes = ['instances']
+        ..text = '0',
+      new SpanElement()..classes = ['name']
+    ];
 
-  Element _createCollectionHeader() =>
-    new DivElement()
-      ..children = [
-        new DivElement()
-          ..classes = ['collection-item']
-          ..children = [
-            new SpanElement()..classes = ['group']
-              ..text = 'Accumulated',
-            new SpanElement()..classes = ['group']
-              ..text = 'Current',
-            new SpanElement()..classes = ['group']
-              ..text = '(NEW) Accumulated',
-            new SpanElement()..classes = ['group']
-              ..text = '(NEW) Current',
-            new SpanElement()..classes = ['group']
-              ..text = '(OLD) Accumulated',
-            new SpanElement()..classes = ['group']
-              ..text = '(OLD) Current',
-          ],
-        new DivElement()
-          ..classes = ['collection-item']
-          ..children = [
-            _createHeaderButton(const ['bytes'], 'Size',
-                                _SortingField.accumulatedSize,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['instances'], 'Instances',
-                                _SortingField.accumulatedInstances,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                                _SortingField.currentSize,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['instances'], 'Instances',
-                                _SortingField.currentInstances,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                                _SortingField.newAccumulatedSize,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['instances'], 'Instances',
-                                _SortingField.newAccumulatedInstances,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                                _SortingField.newCurrentSize,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['instances'], 'Instances',
-                                _SortingField.newCurrentInstances,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                                _SortingField.oldAccumulatedSize,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['instances'], 'Instances',
-                                _SortingField.oldAccumulatedInstances,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                                _SortingField.oldCurrentSize,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['instances'], 'Instances',
-                                _SortingField.oldCurrentInstances,
-                                _SortingDirection.descending),
-            _createHeaderButton(const ['name'], 'Class',
-                                _SortingField.className,
-                                _SortingDirection.ascending)
-          ],
-      ];
+  Element _createCollectionHeader() => new DivElement()
+    ..children = [
+      new DivElement()
+        ..classes = ['collection-item']
+        ..children = [
+          new SpanElement()
+            ..classes = ['group']
+            ..text = 'Accumulated',
+          new SpanElement()
+            ..classes = ['group']
+            ..text = 'Current',
+          new SpanElement()
+            ..classes = ['group']
+            ..text = '(NEW) Accumulated',
+          new SpanElement()
+            ..classes = ['group']
+            ..text = '(NEW) Current',
+          new SpanElement()
+            ..classes = ['group']
+            ..text = '(OLD) Accumulated',
+          new SpanElement()
+            ..classes = ['group']
+            ..text = '(OLD) Current',
+        ],
+      new DivElement()
+        ..classes = ['collection-item']
+        ..children = [
+          _createHeaderButton(const ['bytes'], 'Size',
+              _SortingField.accumulatedSize, _SortingDirection.descending),
+          _createHeaderButton(const ['instances'], 'Instances',
+              _SortingField.accumulatedInstances, _SortingDirection.descending),
+          _createHeaderButton(const ['bytes'], 'Size',
+              _SortingField.currentSize, _SortingDirection.descending),
+          _createHeaderButton(const ['instances'], 'Instances',
+              _SortingField.currentInstances, _SortingDirection.descending),
+          _createHeaderButton(const ['bytes'], 'Size',
+              _SortingField.newAccumulatedSize, _SortingDirection.descending),
+          _createHeaderButton(
+              const ['instances'],
+              'Instances',
+              _SortingField.newAccumulatedInstances,
+              _SortingDirection.descending),
+          _createHeaderButton(const ['bytes'], 'Size',
+              _SortingField.newCurrentSize, _SortingDirection.descending),
+          _createHeaderButton(const ['instances'], 'Instances',
+              _SortingField.newCurrentInstances, _SortingDirection.descending),
+          _createHeaderButton(const ['bytes'], 'Size',
+              _SortingField.oldAccumulatedSize, _SortingDirection.descending),
+          _createHeaderButton(
+              const ['instances'],
+              'Instances',
+              _SortingField.oldAccumulatedInstances,
+              _SortingDirection.descending),
+          _createHeaderButton(const ['bytes'], 'Size',
+              _SortingField.oldCurrentSize, _SortingDirection.descending),
+          _createHeaderButton(const ['instances'], 'Instances',
+              _SortingField.oldCurrentInstances, _SortingDirection.descending),
+          _createHeaderButton(const ['name'], 'Class', _SortingField.className,
+              _SortingDirection.ascending)
+        ],
+    ];
 
-  ButtonElement _createHeaderButton(List<String> classes,
-                                    String text,
-                                    _SortingField field,
-                                    _SortingDirection direction) =>
-      new ButtonElement()..classes = classes
-          ..text = _sortingField != field ? text :
-                     _sortingDirection == _SortingDirection.ascending
-                     ? '$text▼' : '$text▲'
-          ..onClick.listen((_) => _setSorting(field, direction));
+  ButtonElement _createHeaderButton(List<String> classes, String text,
+          _SortingField field, _SortingDirection direction) =>
+      new ButtonElement()
+        ..classes = classes
+        ..text = _sortingField != field
+            ? text
+            : _sortingDirection == _SortingDirection.ascending
+                ? '$text▼'
+                : '$text▲'
+        ..onClick.listen((_) => _setSorting(field, direction));
 
-
-  void _setSorting(_SortingField field,
-                   _SortingDirection defaultDirection) {
+  void _setSorting(_SortingField field, _SortingDirection defaultDirection) {
     if (_sortingField == field) {
       switch (_sortingDirection) {
         case _SortingDirection.descending:
@@ -421,8 +447,7 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-  void _updateCollectionLine(Element e, M.ClassHeapStats item,
-      index) {
+  void _updateCollectionLine(Element e, M.ClassHeapStats item, index) {
     e.children[0].text = Utils.formatSize(_getAccumulatedSize(item));
     e.children[1].text = '${_getAccumulatedInstances(item)}';
     e.children[2].text = Utils.formatSize(_getCurrentSize(item));
@@ -436,93 +461,110 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
     e.children[10].text = Utils.formatSize(_getOldCurrentSize(item));
     e.children[11].text = '${_getOldCurrentInstances(item)}';
     e.children[12] = new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
-                      ..classes = ['name'];
+      ..classes = ['name'];
   }
 
   static String _usedCaption(M.HeapSpace space) =>
-    '${Utils.formatSize(space.used)}'
-    ' of '
-    '${Utils.formatSize(space.capacity)}';
+      '${Utils.formatSize(space.used)}'
+      ' of '
+      '${Utils.formatSize(space.capacity)}';
 
   static List<Element> _createSpaceMembers(M.HeapSpace space) {
     final used = _usedCaption(space);
     final ext = '${Utils.formatSize(space.external)}';
     final collections = '${space.collections}';
     final avgCollectionTime =
-      '${Utils.formatDurationInMilliseconds(space.avgCollectionTime)} ms';
+        '${Utils.formatDurationInMilliseconds(space.avgCollectionTime)} ms';
     final totalCollectionTime =
-      '${Utils.formatDurationInSeconds(space.totalCollectionTime)} secs';
+        '${Utils.formatDurationInSeconds(space.totalCollectionTime)} secs';
     final avgCollectionPeriod =
-      '${Utils.formatDurationInMilliseconds(space.avgCollectionPeriod)} ms';
+        '${Utils.formatDurationInMilliseconds(space.avgCollectionPeriod)} ms';
     return [
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'used',
-          new DivElement()..classes = ['memberValue']
+          new DivElement()
+            ..classes = ['memberValue']
             ..text = used
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'external',
-          new DivElement()..classes = ['memberValue']
+          new DivElement()
+            ..classes = ['memberValue']
             ..text = ext
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
-          ..text = 'collections',
-          new DivElement()..classes = ['memberValue']
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = 'collections',
+          new DivElement()
+            ..classes = ['memberValue']
             ..text = collections
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'average collection time',
-          new DivElement()..classes = ['memberValue']
+          new DivElement()
+            ..classes = ['memberValue']
             ..text = avgCollectionTime
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'cumulative collection time',
-          new DivElement()..classes = ['memberValue']
+          new DivElement()
+            ..classes = ['memberValue']
             ..text = totalCollectionTime
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'average time between collections',
-          new DivElement()..classes = ['memberValue']
+          new DivElement()
+            ..classes = ['memberValue']
             ..text = avgCollectionPeriod
         ]
     ];
   }
 
   static final _columns = [
-      new ChartColumnSpec(label: 'Type', type: ChartColumnSpec.TYPE_STRING),
-      new ChartColumnSpec(label: 'Size', formatter: (v) => v.toString())
+    new ChartColumnSpec(label: 'Type', type: ChartColumnSpec.TYPE_STRING),
+    new ChartColumnSpec(label: 'Size', formatter: (v) => v.toString())
   ];
 
   static void _renderGraph(Element host, Element legend, M.HeapSpace space) {
-    final series = [new ChartSeries("Work", [1], new PieChartRenderer(
-      sortDataByValue: false
-    ))];
+    final series = [
+      new ChartSeries("Work", [1], new PieChartRenderer(sortDataByValue: false))
+    ];
     final rect = host.getBoundingClientRect();
     final minSize = new Rect.size(rect.width, rect.height);
     final config = new ChartConfig(series, [0])
-        ..minimumSize = minSize
-        ..legend = new ChartLegend(legend, showValues: true);
+      ..minimumSize = minSize
+      ..legend = new ChartLegend(legend, showValues: true);
     final data = new ChartData(_columns, [
       ['Used', space.used],
       ['Free', space.capacity - space.used],
       ['External', space.external]
     ]);
 
-    new LayoutArea(host, data, config, state: new ChartState(),
-        autoUpdate: true)
-      ..draw();
+    new LayoutArea(host, data, config,
+        state: new ChartState(), autoUpdate: true)..draw();
   }
 
   Future _refresh({bool gc: false, bool reset: false}) async {
@@ -534,25 +576,29 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
 
   void _downloadCSV() {
     assert(_profile != null);
-    final header = ['"Accumulator Size"',
-                    '"Accumulator Instances"',
-                    '"Current Size"',
-                    '"Current Instances"',
-                    '"(NEW) Accumulator Size"',
-                    '"(NEW) Accumulator Instances"',
-                    '"(NEW) Current Size"',
-                    '"(NEW) Current Instances"',
-                    '"(OLD) Accumulator Size"',
-                    '"(OLD) Accumulator Instances"',
-                    '"(OLD) Current Size"',
-                    '"(OLD) Current Instances"',
-                    'Class'
-                    ].join(',') + '\n';
+    final header = [
+          '"Accumulator Size"',
+          '"Accumulator Instances"',
+          '"Current Size"',
+          '"Current Instances"',
+          '"(NEW) Accumulator Size"',
+          '"(NEW) Accumulator Instances"',
+          '"(NEW) Current Size"',
+          '"(NEW) Current Instances"',
+          '"(OLD) Accumulator Size"',
+          '"(OLD) Accumulator Instances"',
+          '"(OLD) Current Size"',
+          '"(OLD) Current Instances"',
+          'Class'
+        ].join(',') +
+        '\n';
     AnchorElement tl = document.createElement('a');
-    tl..attributes['href'] = 'data:text/plain;charset=utf-8,' +
-        Uri.encodeComponent(header +
-                            (_profile.members.toList()..sort(_createSorter()))
-                                    .map(_csvOut).join('\n'))
+    tl
+      ..attributes['href'] = 'data:text/plain;charset=utf-8,' +
+          Uri.encodeComponent(header +
+              (_profile.members.toList()..sort(_createSorter()))
+                  .map(_csvOut)
+                  .join('\n'))
       ..attributes['download'] = 'heap-profile.csv'
       ..click();
   }
@@ -587,16 +633,14 @@ class AllocationProfileElement  extends HtmlElement implements Renderable {
       s.newSpace.accumulated.bytes;
   static int _getNewAccumulatedInstances(M.ClassHeapStats s) =>
       s.newSpace.accumulated.instances;
-  static int _getNewCurrentSize(M.ClassHeapStats s) =>
-      s.newSpace.current.bytes;
+  static int _getNewCurrentSize(M.ClassHeapStats s) => s.newSpace.current.bytes;
   static int _getNewCurrentInstances(M.ClassHeapStats s) =>
       s.newSpace.current.instances;
   static int _getOldAccumulatedSize(M.ClassHeapStats s) =>
       s.oldSpace.accumulated.bytes;
   static int _getOldAccumulatedInstances(M.ClassHeapStats s) =>
       s.oldSpace.accumulated.instances;
-  static int _getOldCurrentSize(M.ClassHeapStats s) =>
-      s.oldSpace.current.bytes;
+  static int _getOldCurrentSize(M.ClassHeapStats s) => s.oldSpace.current.bytes;
   static int _getOldCurrentInstances(M.ClassHeapStats s) =>
       s.oldSpace.current.instances;
 }

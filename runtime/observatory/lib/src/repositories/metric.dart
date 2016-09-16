@@ -20,16 +20,16 @@ class MetricSample implements M.MetricSample {
 }
 
 class MetricRepository implements M.MetricRepository {
-  final Map<S.Isolate, Map<Metric, List<M.MetricSample>>> _samples
-    = <S.Isolate, Map<Metric, List<M.MetricSample>>>{};
-  final Map<S.Isolate, Map<Metric, int>> _rates
-    = <S.Isolate, Map<Metric, int>>{};
-  final Map<S.Isolate, Map<Metric, int>> _sizes
-    = <S.Isolate, Map<Metric, int>>{};
+  final Map<S.Isolate, Map<Metric, List<M.MetricSample>>> _samples =
+      <S.Isolate, Map<Metric, List<M.MetricSample>>>{};
+  final Map<S.Isolate, Map<Metric, int>> _rates =
+      <S.Isolate, Map<Metric, int>>{};
+  final Map<S.Isolate, Map<Metric, int>> _sizes =
+      <S.Isolate, Map<Metric, int>>{};
   Timer _timer;
   int count = 0;
 
-  Future<Iterable<Metric>> list(M.IsolateRef i) async{
+  Future<Iterable<Metric>> list(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     if (_samples.containsKey(isolate)) {
@@ -47,10 +47,12 @@ class MetricRepository implements M.MetricRepository {
       final rates = _rates[isolate] = <Metric, int>{};
       final sizes = _sizes[isolate] = <Metric, int>{};
       final metrics = []
-        ..addAll(isolate.dartMetrics.keys.map((name) =>
-            new Metric(name, isolate.dartMetrics[name])).toList())
-        ..addAll(isolate.nativeMetrics.keys.map((name) =>
-            new Metric(name, isolate.nativeMetrics[name])).toList());
+        ..addAll(isolate.dartMetrics.keys
+            .map((name) => new Metric(name, isolate.dartMetrics[name]))
+            .toList())
+        ..addAll(isolate.nativeMetrics.keys
+            .map((name) => new Metric(name, isolate.nativeMetrics[name]))
+            .toList());
       for (final metric in metrics) {
         samples[metric] = [new MetricSample(metric.internal.value)];
         rates[metric] = _rateToInteger(M.MetricSamplingRate.off);
@@ -79,12 +81,18 @@ class MetricRepository implements M.MetricRepository {
       final metrics = _rates[i];
       if (metrics.containsKey(m)) {
         switch (metrics[m]) {
-          case 0: return M.MetricSamplingRate.off;
-          case 1: return M.MetricSamplingRate.e100ms;
-          case 10: return M.MetricSamplingRate.e1s;
-          case 20: return M.MetricSamplingRate.e2s;
-          case 40: return M.MetricSamplingRate.e4s;
-          case 80: return M.MetricSamplingRate.e8s;
+          case 0:
+            return M.MetricSamplingRate.off;
+          case 1:
+            return M.MetricSamplingRate.e100ms;
+          case 10:
+            return M.MetricSamplingRate.e1s;
+          case 20:
+            return M.MetricSamplingRate.e2s;
+          case 40:
+            return M.MetricSamplingRate.e4s;
+          case 80:
+            return M.MetricSamplingRate.e8s;
         }
       }
     }
@@ -107,9 +115,12 @@ class MetricRepository implements M.MetricRepository {
       final metrics = _sizes[i];
       if (metrics.containsKey(m)) {
         switch (metrics[m]) {
-          case 10: return M.MetricBufferSize.n10samples;
-          case 100: return M.MetricBufferSize.n100samples;
-          case 1000: return M.MetricBufferSize.n1000samples;
+          case 10:
+            return M.MetricBufferSize.n10samples;
+          case 100:
+            return M.MetricBufferSize.n100samples;
+          case 1000:
+            return M.MetricBufferSize.n1000samples;
         }
       }
     }
@@ -129,21 +140,30 @@ class MetricRepository implements M.MetricRepository {
 
   static int _rateToInteger(M.MetricSamplingRate r) {
     switch (r) {
-      case M.MetricSamplingRate.off: return 0;
-      case M.MetricSamplingRate.e100ms: return 1;
-      case M.MetricSamplingRate.e1s: return 10;
-      case M.MetricSamplingRate.e2s: return 20;
-      case M.MetricSamplingRate.e4s: return 40;
-      case M.MetricSamplingRate.e8s: return 80;
+      case M.MetricSamplingRate.off:
+        return 0;
+      case M.MetricSamplingRate.e100ms:
+        return 1;
+      case M.MetricSamplingRate.e1s:
+        return 10;
+      case M.MetricSamplingRate.e2s:
+        return 20;
+      case M.MetricSamplingRate.e4s:
+        return 40;
+      case M.MetricSamplingRate.e8s:
+        return 80;
     }
     throw new Exception('Unknown MetricSamplingRate ($r)');
   }
 
   static int _sizeToInteger(M.MetricBufferSize s) {
     switch (s) {
-      case M.MetricBufferSize.n10samples: return 10;
-      case M.MetricBufferSize.n100samples: return 100;
-      case M.MetricBufferSize.n1000samples: return 1000;
+      case M.MetricBufferSize.n10samples:
+        return 10;
+      case M.MetricBufferSize.n100samples:
+        return 100;
+      case M.MetricBufferSize.n1000samples:
+        return 1000;
     }
     throw new Exception('Unknown MetricBufferSize ($s)');
   }

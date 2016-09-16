@@ -43,9 +43,7 @@ bool hasDartCode(FunctionKind kind) =>
     isDartFunction(kind) || isStubFunction(kind);
 
 String getFunctionFullName(FunctionRef function) {
-  var content = <String>[
-    function.name
-  ];
+  var content = <String>[function.name];
   ObjectRef owner = function.dartOwner;
   while (owner is FunctionRef) {
     FunctionRef function = (owner as FunctionRef);
@@ -82,8 +80,10 @@ abstract class Function extends Object implements FunctionRef {
 
   /// The compiled code associated with this function. [optional]
   CodeRef get code;
+
   /// [optional]
   CodeRef get unoptimizedCode;
+
   /// [optional]
   FieldRef get field;
   int get usageCounter;

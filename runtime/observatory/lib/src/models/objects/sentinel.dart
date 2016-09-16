@@ -7,14 +7,19 @@ part of models;
 enum SentinelKind {
   /// Indicates that the object referred to has been collected by the GC.
   collected,
+
   /// Indicates that an object id has expired.
   expired,
+
   /// Indicates that a variable or field has not been initialized.
   notInitialized,
+
   /// Indicates that a variable or field is in the process of being initialized.
   initializing,
+
   /// Indicates that a variable has been eliminated by the optimizing compiler.
   optimizedOut,
+
   /// Reserved for future use.
   free,
 }

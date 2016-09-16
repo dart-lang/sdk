@@ -12,15 +12,11 @@ import 'package:observatory/src/elements/source_link.dart';
 
 class IsolateLocationElement extends HtmlElement implements Renderable {
   static const tag = const Tag<IsolateLocationElement>('isolate-location',
-                                                    dependencies: const [
-                                                       FunctionRefElement.tag,
-                                                       SourceLinkElement.tag
-                                                    ]);
+      dependencies: const [FunctionRefElement.tag, SourceLinkElement.tag]);
 
   RenderingScheduler<IsolateLocationElement> _r;
 
-  Stream<RenderedEvent<IsolateLocationElement>> get onRendered =>
-      _r.onRendered;
+  Stream<RenderedEvent<IsolateLocationElement>> get onRendered => _r.onRendered;
 
   M.Isolate _isolate;
   M.EventRepository _events;
@@ -28,10 +24,9 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
   StreamSubscription _debugSubscription;
   StreamSubscription _isolateSubscription;
 
-  factory IsolateLocationElement(M.Isolate isolate,
-                                 M.EventRepository events,
-                                 M.ScriptRepository scripts,
-                                 {RenderingQueue queue}) {
+  factory IsolateLocationElement(
+      M.Isolate isolate, M.EventRepository events, M.ScriptRepository scripts,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
     assert(scripts != null);
@@ -70,14 +65,13 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
       case M.IsolateStatus.running:
         children = [
           new SpanElement()..text = 'at ',
-          new FunctionRefElement(_isolate,
-                                 M.topFrame(_isolate.pauseEvent).function,
-                                 queue: _r.queue),
+          new FunctionRefElement(
+              _isolate, M.topFrame(_isolate.pauseEvent).function,
+              queue: _r.queue),
           new SpanElement()..text = ' (',
-          new SourceLinkElement(_isolate,
-                                M.topFrame(_isolate.pauseEvent).location,
-                                _scripts,
-                                queue: _r.queue),
+          new SourceLinkElement(
+              _isolate, M.topFrame(_isolate.pauseEvent).location, _scripts,
+              queue: _r.queue),
           new SpanElement()..text = ') '
         ];
         break;
@@ -98,14 +92,13 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
           if (M.topFrame(_isolate.pauseEvent) != null) {
             content.addAll([
               new SpanElement()..text = ' at ',
-              new FunctionRefElement(_isolate,
-                                     M.topFrame(_isolate.pauseEvent).function,
-                                     queue: _r.queue),
+              new FunctionRefElement(
+                  _isolate, M.topFrame(_isolate.pauseEvent).function,
+                  queue: _r.queue),
               new SpanElement()..text = ' (',
-              new SourceLinkElement(_isolate,
-                                    M.topFrame(_isolate.pauseEvent).location,
-                                    _scripts,
-                                    queue: _r.queue),
+              new SourceLinkElement(
+                  _isolate, M.topFrame(_isolate.pauseEvent).location, _scripts,
+                  queue: _r.queue),
               new SpanElement()..text = ') '
             ]);
           }

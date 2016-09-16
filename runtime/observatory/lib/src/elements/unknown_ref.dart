@@ -4,8 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart' as M
-  show IsolateRef, UnknownObjectRef;
+import 'package:observatory/models.dart' as M show IsolateRef, UnknownObjectRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -24,8 +23,8 @@ class UnknownObjectRefElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.UnknownObjectRef get obj => _obj;
 
-  factory UnknownObjectRefElement(M.IsolateRef isolate,
-      M.UnknownObjectRef obj, {RenderingQueue queue}) {
+  factory UnknownObjectRefElement(M.IsolateRef isolate, M.UnknownObjectRef obj,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(obj != null);
     UnknownObjectRefElement e = document.createElement(tag.name);

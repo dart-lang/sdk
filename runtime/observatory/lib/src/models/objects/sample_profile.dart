@@ -4,10 +4,7 @@
 
 part of models;
 
-enum ProfileTreeDirection {
-  inclusive,
-  exclusive
-}
+enum ProfileTreeDirection { inclusive, exclusive }
 
 abstract class SampleProfile {
   int get sampleCount;

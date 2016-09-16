@@ -25,8 +25,8 @@ import 'package:observatory/src/elements/type_arguments_ref.dart';
 import 'package:observatory/src/elements/token_stream_ref.dart';
 import 'package:observatory/src/elements/unknown_ref.dart';
 
-Element anyRef(M.IsolateRef isolate, ref,
-    M.InstanceRepository instances, {RenderingQueue queue}) {
+Element anyRef(M.IsolateRef isolate, ref, M.InstanceRepository instances,
+    {RenderingQueue queue}) {
   if (ref is M.Guarded) {
     if (ref.isSentinel) {
       return anyRef(isolate, ref.asSentinel, instances, queue: queue);
@@ -40,11 +40,11 @@ Element anyRef(M.IsolateRef isolate, ref,
       return new CodeRefElement(isolate, ref, queue: queue);
     } else if (ref is M.ContextRef) {
       return new ContextRefElement(isolate, ref, queue: queue);
-    } else if (ref is M.Error ) {
+    } else if (ref is M.Error) {
       return new ErrorRefElement(ref, queue: queue);
     } else if (ref is M.FieldRef) {
       return new FieldRefElement(isolate, ref, instances, queue: queue);
-    }  else if (ref is M.FunctionRef) {
+    } else if (ref is M.FunctionRef) {
       return new FunctionRefElement(isolate, ref, queue: queue);
     } else if (ref is M.ICDataRef) {
       return new ICDataRefElement(isolate, ref, queue: queue);

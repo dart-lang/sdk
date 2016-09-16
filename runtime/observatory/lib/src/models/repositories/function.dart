@@ -4,6 +4,6 @@
 
 part of models;
 
-abstract class FunctionRepository{
+abstract class FunctionRepository {
   Future<Function> get(IsolateRef isolate, String id);
 }

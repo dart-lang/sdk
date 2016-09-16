@@ -18,12 +18,14 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class FlagListElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<FlagListElement>('flag-list',
-                     dependencies: const [NavNotifyElement.tag,
-                                          NavRefreshElement.tag,
-                                          NavTopMenuElement.tag,
-                                          NavVMMenuElement.tag,
-                                          ViewFooterElement.tag,]);
+  static const tag =
+      const Tag<FlagListElement>('flag-list', dependencies: const [
+    NavNotifyElement.tag,
+    NavRefreshElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    ViewFooterElement.tag,
+  ]);
 
   RenderingScheduler _r;
 
@@ -37,11 +39,9 @@ class FlagListElement extends HtmlElement implements Renderable {
 
   M.VMRef get vm => _vm;
 
-  factory FlagListElement(M.VMRef vm,
-                          M.EventRepository events,
-                          M.FlagsRepository repository,
-                          M.NotificationRepository notifications,
-                          {RenderingQueue queue}) {
+  factory FlagListElement(M.VMRef vm, M.EventRepository events,
+      M.FlagsRepository repository, M.NotificationRepository notifications,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(events != null);
     assert(repository != null);
@@ -131,15 +131,19 @@ class FlagListElement extends HtmlElement implements Renderable {
 
   static List<Element> _renderFlag(M.Flag flag) {
     return [
-      new SpanElement()..classes = ['comment']
+      new SpanElement()
+        ..classes = ['comment']
         ..text = '// ${flag.comment}',
-      new DivElement()..classes = flag.modified ? ['flag', 'modified']
-                                                : ['flag', 'unmodified']
+      new DivElement()
+        ..classes =
+            flag.modified ? ['flag', 'modified'] : ['flag', 'unmodified']
         ..children = [
-          new SpanElement()..classes = ['name']
+          new SpanElement()
+            ..classes = ['name']
             ..text = flag.name,
           new SpanElement()..text = '=',
-          new SpanElement()..classes = ['value']
+          new SpanElement()
+            ..classes = ['value']
             ..text = flag.valueAsString ?? 'NULL'
         ],
       new BRElement(),

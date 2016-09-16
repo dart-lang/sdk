@@ -8,12 +8,11 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
 typedef HtmlElement VirtualCollectionCreateCallback();
-typedef void VirtualCollectionUpdateCallback(HtmlElement el, dynamic item,
-    int index);
+typedef void VirtualCollectionUpdateCallback(
+    HtmlElement el, dynamic item, int index);
 
 class VirtualCollectionElement extends HtmlElement implements Renderable {
-  static const tag =
-      const Tag<VirtualCollectionElement>('virtual-collection');
+  static const tag = const Tag<VirtualCollectionElement>('virtual-collection');
 
   RenderingScheduler<VirtualCollectionElement> _r;
 
@@ -39,9 +38,9 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-
   factory VirtualCollectionElement(VirtualCollectionCreateCallback create,
-      VirtualCollectionUpdateCallback update, {Iterable items: const [],
+      VirtualCollectionUpdateCallback update,
+      {Iterable items: const [],
       VirtualCollectionCreateCallback createHeader,
       RenderingQueue queue}) {
     assert(create != null);
@@ -68,7 +67,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _onResizeSubscription = window.onResize.listen(_onResize);
   }
 
- @override
+  @override
   detached() {
     super.detached();
     _r.disable(notify: true);
@@ -87,7 +86,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       return null;
     }
     final item_index =
-      _top + el_index - (_shifter.children.length * _inverse_preload).floor();
+        _top + el_index - (_shifter.children.length * _inverse_preload).floor();
     if (0 <= item_index && item_index < items.length) {
       return _items[item_index];
     }
@@ -98,6 +97,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   /// 1/preload_size of the number of items in the visble area.
   /// See shared.css for the "top:-25%;".
   static const int _preload = 2;
+
   /// L = length of all the elements loaded
   /// l = length of the visible area
   ///
@@ -119,8 +119,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       children = [
         _scroller
           ..children = [
-            _shifter
-              ..children = [_create()]
+            _shifter..children = [_create()]
           ],
       ];
       if (_createHeader != null) {

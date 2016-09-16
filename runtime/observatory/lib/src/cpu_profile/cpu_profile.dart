@@ -43,8 +43,7 @@ class CallTree<NodeT extends CallTreeNode> {
 
 class CodeCallTree extends CallTree<CodeCallTreeNode>
     implements M.CodeCallTree {
-  CodeCallTree(bool inclusive, CodeCallTreeNode root)
-      : super(inclusive, root) {
+  CodeCallTree(bool inclusive, CodeCallTreeNode root) : super(inclusive, root) {
     _setCodePercentage(null, root);
   }
 
@@ -73,8 +72,8 @@ class CodeCallTree extends CallTree<CodeCallTreeNode>
     }
   }
 
-  _recordCallerAndCalleesInner(CodeCallTreeNode caller,
-                               CodeCallTreeNode callee) {
+  _recordCallerAndCalleesInner(
+      CodeCallTreeNode caller, CodeCallTreeNode callee) {
     if (caller != null) {
       caller.profileCode._recordCallee(callee.profileCode, callee.count);
       callee.profileCode._recordCaller(caller.profileCode, caller.count);
@@ -164,8 +163,7 @@ class FunctionCallTreeNode extends CallTreeNode {
     return false;
   }
 
-  setCodeAttributes() {
-  }
+  setCodeAttributes() {}
 }
 
 /// Predicate filter function. Returns true if path from root to [node] and all
@@ -176,8 +174,10 @@ typedef bool CallTreeNodeFilter(CallTreeNode node);
 abstract class _FilteredCallTreeBuilder {
   /// The filter.
   final CallTreeNodeFilter filter;
+
   /// The unfiltered tree.
   final CallTree _unfilteredTree;
+
   /// The filtered tree (construct by [build]).
   final CallTree filtered;
   final List _currentPath = [];
@@ -194,8 +194,7 @@ abstract class _FilteredCallTreeBuilder {
     _descend(_unfilteredTree.root);
   }
 
-  CallTreeNode _findInChildren(CallTreeNode current,
-                               CallTreeNode needle) {
+  CallTreeNode _findInChildren(CallTreeNode current, CallTreeNode needle) {
     for (var child in current.children) {
       if (child.profileData == needle.profileData) {
         return child;
@@ -283,12 +282,15 @@ abstract class _FilteredCallTreeBuilder {
 }
 
 class _FilteredFunctionCallTreeBuilder extends _FilteredCallTreeBuilder {
-  _FilteredFunctionCallTreeBuilder(CallTreeNodeFilter filter,
-                                   FunctionCallTree tree)
-    : super(filter, tree,
-            new FunctionCallTree(tree.inclusive,
-                new FunctionCallTreeNode(tree.root.profileData,
-                                         tree.root.count)));
+  _FilteredFunctionCallTreeBuilder(
+      CallTreeNodeFilter filter, FunctionCallTree tree)
+      : super(
+            filter,
+            tree,
+            new FunctionCallTree(
+                tree.inclusive,
+                new FunctionCallTreeNode(
+                    tree.root.profileData, tree.root.count)));
 
   _copyNode(FunctionCallTreeNode node) {
     return new FunctionCallTreeNode(node.profileData, node.count);
@@ -296,12 +298,12 @@ class _FilteredFunctionCallTreeBuilder extends _FilteredCallTreeBuilder {
 }
 
 class _FilteredCodeCallTreeBuilder extends _FilteredCallTreeBuilder {
-  _FilteredCodeCallTreeBuilder(CallTreeNodeFilter filter,
-                               CodeCallTree tree)
-    : super(filter, tree,
+  _FilteredCodeCallTreeBuilder(CallTreeNodeFilter filter, CodeCallTree tree)
+      : super(
+            filter,
+            tree,
             new CodeCallTree(tree.inclusive,
-                new CodeCallTreeNode(tree.root.profileData,
-                                     tree.root.count)));
+                new CodeCallTreeNode(tree.root.profileData, tree.root.count)));
 
   _copyNode(CodeCallTreeNode node) {
     return new CodeCallTreeNode(node.profileData, node.count);
@@ -321,8 +323,8 @@ class FunctionCallTree extends CallTree implements M.FunctionCallTree {
     return treeFilter.filtered;
   }
 
-  void _setFunctionPercentage(FunctionCallTreeNode parent,
-                              FunctionCallTreeNode node) {
+  void _setFunctionPercentage(
+      FunctionCallTreeNode parent, FunctionCallTreeNode node) {
     assert(node != null);
     var parentPercentage = 1.0;
     var parentCount = node.count;
@@ -340,11 +342,13 @@ class FunctionCallTree extends CallTree implements M.FunctionCallTree {
     }
   }
 
-  _markFunctionCallsInner(FunctionCallTreeNode caller,
-                          FunctionCallTreeNode callee) {
+  _markFunctionCallsInner(
+      FunctionCallTreeNode caller, FunctionCallTreeNode callee) {
     if (caller != null) {
-      caller.profileFunction._recordCallee(callee.profileFunction, callee.count);
-      callee.profileFunction._recordCaller(caller.profileFunction, caller.count);
+      caller.profileFunction
+          ._recordCallee(callee.profileFunction, callee.count);
+      callee.profileFunction
+          ._recordCaller(caller.profileFunction, caller.count);
     }
     for (var child in callee.children) {
       _markFunctionCallsInner(callee, child);
@@ -395,7 +399,7 @@ class ProfileCode implements M.ProfileCode {
     assert(profileTicks != null);
     assert((profileTicks.length % 3) == 0);
     for (var i = 0; i < profileTicks.length; i += 3) {
-      var address = int.parse(profileTicks[i], radix:16);
+      var address = int.parse(profileTicks[i], radix: 16);
       var exclusive = int.parse(profileTicks[i + 1]);
       var inclusive = int.parse(profileTicks[i + 2]);
       var tick = new CodeTick(exclusive, inclusive);
@@ -425,7 +429,7 @@ class ProfileCode implements M.ProfileCode {
       attributes.add('stub');
     } else if (code.kind == M.CodeKind.dart) {
       if (code.isNative) {
-        attributes.add('ffi');  // Not to be confused with a C function.
+        attributes.add('ffi'); // Not to be confused with a C function.
       } else {
         attributes.add('dart');
       }
@@ -457,21 +461,19 @@ class ProfileCode implements M.ProfileCode {
     formattedExclusivePercent =
         Utils.formatPercent(exclusiveTicks, profile.sampleCount);
 
-    formattedCpuTime =
-        Utils.formatTimeMilliseconds(
-            profile.approximateMillisecondsForCount(exclusiveTicks));
+    formattedCpuTime = Utils.formatTimeMilliseconds(
+        profile.approximateMillisecondsForCount(exclusiveTicks));
 
-    formattedOnStackTime =
-        Utils.formatTimeMilliseconds(
-            profile.approximateMillisecondsForCount(inclusiveTicks));
+    formattedOnStackTime = Utils.formatTimeMilliseconds(
+        profile.approximateMillisecondsForCount(inclusiveTicks));
 
     formattedInclusiveTicks =
-      '${Utils.formatPercent(inclusiveTicks, profile.sampleCount)} '
-      '($inclusiveTicks)';
+        '${Utils.formatPercent(inclusiveTicks, profile.sampleCount)} '
+        '($inclusiveTicks)';
 
     formattedExclusiveTicks =
-      '${Utils.formatPercent(exclusiveTicks, profile.sampleCount)} '
-      '($exclusiveTicks)';
+        '${Utils.formatPercent(exclusiveTicks, profile.sampleCount)} '
+        '($exclusiveTicks)';
   }
 
   _recordCaller(ProfileCode caller, int count) {
@@ -580,7 +582,7 @@ class ProfileFunction implements M.ProfileFunction {
     } else if (M.isSyntheticFunction(function.kind)) {
       attribs.add('synthetic');
     } else if (function.isNative) {
-      attribs.add('ffi');  // Not to be confused with a C function.
+      attribs.add('ffi'); // Not to be confused with a C function.
     } else {
       attribs.add('dart');
     }
@@ -607,13 +609,11 @@ class ProfileFunction implements M.ProfileFunction {
     formattedExclusivePercent =
         Utils.formatPercent(exclusiveTicks, profile.sampleCount);
 
-    formattedCpuTime =
-        Utils.formatTimeMilliseconds(
-            profile.approximateMillisecondsForCount(exclusiveTicks));
+    formattedCpuTime = Utils.formatTimeMilliseconds(
+        profile.approximateMillisecondsForCount(exclusiveTicks));
 
-    formattedOnStackTime =
-        Utils.formatTimeMilliseconds(
-            profile.approximateMillisecondsForCount(inclusiveTicks));
+    formattedOnStackTime = Utils.formatTimeMilliseconds(
+        profile.approximateMillisecondsForCount(inclusiveTicks));
 
     formattedInclusiveTicks =
         '${Utils.formatPercent(inclusiveTicks, profile.sampleCount)} '
@@ -641,10 +641,8 @@ class ProfileFunction implements M.ProfileFunction {
   }
 }
 
-
 // TODO(johnmccutchan): Rename to SampleProfile
 class CpuProfile extends M.SampleProfile {
-
   Isolate isolate;
 
   int sampleCount = 0;
@@ -718,7 +716,7 @@ class CpuProfile extends M.SampleProfile {
 
   static Future sleep([Duration duration = const Duration(microseconds: 0)]) {
     final Completer completer = new Completer();
-    new Timer(duration, () => completer.complete() );
+    new Timer(duration, () => completer.complete());
     return completer.future;
   }
 
@@ -757,8 +755,7 @@ class CpuProfile extends M.SampleProfile {
         stackDepth = profile['stackDepth'];
         timeSpan = profile['timeSpan'];
 
-        num length = profile['codes'].length +
-                        profile['functions'].length;
+        num length = profile['codes'].length + profile['functions'].length;
 
         // Process code table.
         for (var codeRegion in profile['codes']) {

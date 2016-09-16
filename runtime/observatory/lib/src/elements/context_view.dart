@@ -22,19 +22,19 @@ import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ContextViewElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ContextViewElement>('context-view',
-                                            dependencies: const [
-                                              ContextRefElement.tag,
-                                              CurlyBlockElement.tag,
-                                              NavClassMenuElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              ObjectCommonElement.tag,
-                                              ViewFooterElement.tag
-                                            ]);
+  static const tag =
+      const Tag<ContextViewElement>('context-view', dependencies: const [
+    ContextRefElement.tag,
+    CurlyBlockElement.tag,
+    NavClassMenuElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ObjectCommonElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<ContextViewElement> _r;
 
@@ -52,22 +52,24 @@ class ContextViewElement extends HtmlElement implements Renderable {
   M.RetainingPathRepository _retainingPaths;
   M.InstanceRepository _instances;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.Context get context => _context;
 
-  factory ContextViewElement(M.VM vm, M.IsolateRef isolate, M.Context context,
-                            M.EventRepository events,
-                            M.NotificationRepository notifications,
-                            M.ContextRepository contexts,
-                            M.RetainedSizeRepository retainedSizes,
-                            M.ReachableSizeRepository reachableSizes,
-                            M.InboundReferencesRepository references,
-                            M.RetainingPathRepository retainingPaths,
-                            M.InstanceRepository instances,
-                            {RenderingQueue queue}) {
+  factory ContextViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.Context context,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.ContextRepository contexts,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -119,37 +121,43 @@ class ContextViewElement extends HtmlElement implements Renderable {
         new NavClassMenuElement(_isolate, _context.clazz, queue: _r.queue),
         navMenu('instance'),
         new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _context = await _contexts.get(_isolate, _context.id);
-              _r.dirty();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _context = await _contexts.get(_isolate, _context.id);
+            _r.dirty();
+          }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Context',
           new HRElement(),
           new ObjectCommonElement(_isolate, _context, _retainedSizes,
-                                  _reachableSizes, _references, _retainingPaths,
-                                  _instances, queue: _r.queue)
+              _reachableSizes, _references, _retainingPaths, _instances,
+              queue: _r.queue)
         ]
     ];
     if (_context.parentContext != null) {
       content.addAll([
         new BRElement(),
-        new DivElement()..classes = ['content-centered-big']
+        new DivElement()
+          ..classes = ['content-centered-big']
           ..children = [
-            new DivElement()..classes = ['memberList']
+            new DivElement()
+              ..classes = ['memberList']
               ..children = [
-                new DivElement()..classes = ['memberItem']
+                new DivElement()
+                  ..classes = ['memberItem']
                   ..children = [
-                    new DivElement()..classes = ['memberName']
+                    new DivElement()
+                      ..classes = ['memberName']
                       ..text = 'parent context',
-                    new DivElement()..classes = ['memberName']
+                    new DivElement()
+                      ..classes = ['memberName']
                       ..children = [
                         new ContextRefElement(_isolate, _context.parentContext,
-                                              queue: _r.queue)
+                            queue: _r.queue)
                       ]
                   ]
               ]
@@ -160,29 +168,36 @@ class ContextViewElement extends HtmlElement implements Renderable {
     if (_context.variables.isNotEmpty) {
       int index = 0;
       content.addAll([
-        new DivElement()..classes = ['content-centered-big']
+        new DivElement()
+          ..classes = ['content-centered-big']
           ..children = [
             new SpanElement()..text = 'Variables ',
-            new CurlyBlockElement(expanded: _context.variables.length > 8,
-                                  queue: _r.queue)
+            new CurlyBlockElement(
+                expanded: _context.variables.length > 8, queue: _r.queue)
               ..content = [
-                new DivElement()..classes = ['memberList']
-                  ..children = _context.variables.map((variable)
-                    => new DivElement()..classes = ['memberItem']
-                      ..children = [
-                        new DivElement()..classes = ['memberName']
-                          ..text = '[ ${++index} ]',
-                        new DivElement()..classes = ['memberName']
-                          ..children = [
-                            anyRef(_isolate, variable.value, _instances,
-                                   queue: _r.queue)
-                          ]
-                      ]).toList()
+                new DivElement()
+                  ..classes = ['memberList']
+                  ..children = _context.variables
+                      .map((variable) => new DivElement()
+                        ..classes = ['memberItem']
+                        ..children = [
+                          new DivElement()
+                            ..classes = ['memberName']
+                            ..text = '[ ${++index} ]',
+                          new DivElement()
+                            ..classes = ['memberName']
+                            ..children = [
+                              anyRef(_isolate, variable.value, _instances,
+                                  queue: _r.queue)
+                            ]
+                        ])
+                      .toList()
               ]
           ]
       ]);
     }
-    content.add(new DivElement()..classes = ['content-centered-big']
+    content.add(new DivElement()
+      ..classes = ['content-centered-big']
       ..children = [new ViewFooterElement(queue: _r.queue)]);
     children = content;
   }

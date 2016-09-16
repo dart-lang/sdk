@@ -21,15 +21,13 @@ class FlagsRepository implements M.FlagsRepository {
 
   FlagsRepository(this.vm);
 
-  Future<Iterable<Flag>> list() async{
+  Future<Iterable<Flag>> list() async {
     List<Map> flags = ((await vm.getFlagList()) as S.ServiceMap)['flags'];
     return flags.map(_toFlag);
   }
 
-  static _toFlag(Map map){
-    return new Flag(map['name'],
-                    map['comment'],
-                    map['modified'],
-                    map['valueAsString']);
+  static _toFlag(Map map) {
+    return new Flag(
+        map['name'], map['comment'], map['modified'], map['valueAsString']);
   }
 }

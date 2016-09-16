@@ -8,14 +8,14 @@ navMenu(String label, {String link: '', Iterable<Element> content: const []}) {
   assert(label != null);
   assert(content != null);
   assert(link != null);
-  return new LIElement()..classes = ['nav-menu']
+  return new LIElement()
+    ..classes = ['nav-menu']
     ..children = [
-      new SpanElement()..classes = ['nav-menu_label']
+      new SpanElement()
+        ..classes = ['nav-menu_label']
         ..children = [
-          new AnchorElement(href: link)
-            ..text = label,
-          new UListElement()
-            ..children = content
+          new AnchorElement(href: link)..text = label,
+          new UListElement()..children = content
         ]
     ];
 }

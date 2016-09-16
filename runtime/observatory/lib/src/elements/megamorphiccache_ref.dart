@@ -5,7 +5,7 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M
-  show IsolateRef, MegamorphicCacheRef;
+    show IsolateRef, MegamorphicCacheRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -25,8 +25,9 @@ class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.MegamorphicCacheRef get cache => _cache;
 
-  factory MegamorphicCacheRefElement(M.IsolateRef isolate,
-      M.MegamorphicCacheRef cache, {RenderingQueue queue}) {
+  factory MegamorphicCacheRefElement(
+      M.IsolateRef isolate, M.MegamorphicCacheRef cache,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cache != null);
     MegamorphicCacheRefElement e = document.createElement(tag.name);
@@ -55,7 +56,8 @@ class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _cache))
         ..children = [
-          new SpanElement()..classes = ['emphasize']
+          new SpanElement()
+            ..classes = ['emphasize']
             ..text = 'MegarmorphicCache',
           new SpanElement()..text = ' (${_cache.selector})'
         ]

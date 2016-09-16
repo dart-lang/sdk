@@ -8,9 +8,8 @@ class ReachableSizeRepository implements M.ReachableSizeRepository {
   Future<M.Guarded<M.Instance>> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
-    final response = await isolate.invokeRpc('_getReachableSize', {
-        'targetId' : id
-    });
+    final response =
+        await isolate.invokeRpc('_getReachableSize', {'targetId': id});
     return new S.Guarded<S.Instance>(response);
   }
 }

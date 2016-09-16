@@ -22,19 +22,19 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ObjectPoolViewElement  extends HtmlElement implements Renderable {
-  static const tag = const Tag<ObjectPoolViewElement>('object-pool-view',
-                                                    dependencies: const [
-                                                      ContextRefElement.tag,
-                                                      CurlyBlockElement.tag,
-                                                      NavTopMenuElement.tag,
-                                                      NavVMMenuElement.tag,
-                                                      NavIsolateMenuElement.tag,
-                                                      NavRefreshElement.tag,
-                                                      NavNotifyElement.tag,
-                                                      ObjectCommonElement.tag,
-                                                      ViewFooterElement.tag
-                                                    ]);
+class ObjectPoolViewElement extends HtmlElement implements Renderable {
+  static const tag =
+      const Tag<ObjectPoolViewElement>('object-pool-view', dependencies: const [
+    ContextRefElement.tag,
+    CurlyBlockElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ObjectCommonElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<ObjectPoolViewElement> _r;
 
@@ -52,23 +52,24 @@ class ObjectPoolViewElement  extends HtmlElement implements Renderable {
   M.RetainingPathRepository _retainingPaths;
   M.InstanceRepository _instances;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.ObjectPoolRef get pool => _pool;
 
-  factory ObjectPoolViewElement(M.VM vm, M.IsolateRef isolate,
-                                M.ObjectPool pool,
-                                M.EventRepository events,
-                                M.NotificationRepository notifications,
-                                M.ObjectPoolRepository pools,
-                                M.RetainedSizeRepository retainedSizes,
-                                M.ReachableSizeRepository reachableSizes,
-                                M.InboundReferencesRepository references,
-                                M.RetainingPathRepository retainingPaths,
-                                M.InstanceRepository instances,
-                                {RenderingQueue queue}) {
+  factory ObjectPoolViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.ObjectPool pool,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.ObjectPoolRepository pools,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -119,32 +120,37 @@ class ObjectPoolViewElement  extends HtmlElement implements Renderable {
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('instance'),
         new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _pool = await _pools.get(_isolate, _pool.id);
-              _r.dirty();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _pool = await _pools.get(_isolate, _pool.id);
+            _r.dirty();
+          }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'ObjectPool',
           new HRElement(),
           new ObjectCommonElement(_isolate, _pool, _retainedSizes,
-                                  _reachableSizes, _references, _retainingPaths,
-                                  _instances, queue: _r.queue),
+              _reachableSizes, _references, _retainingPaths, _instances,
+              queue: _r.queue),
           new HRElement(),
           new HeadingElement.h3()..text = 'entries (${_pool.entries.length})',
-          new DivElement()..classes = ['memberList']
-            ..children = _pool.entries.map((entry)
-              => new DivElement()..classes = ['memberItem']
-                ..children = [
-                  new DivElement()..classes = ['memberName',
-                                                     'hexadecimal']
-                    ..text = '[PP+0x${entry.offset.toRadixString(16)}]',
-                  new DivElement()..classes = ['memberName']
-                    ..children = _createEntry(entry)
-                ]).toList(),
+          new DivElement()
+            ..classes = ['memberList']
+            ..children = _pool.entries
+                .map((entry) => new DivElement()
+                  ..classes = ['memberItem']
+                  ..children = [
+                    new DivElement()
+                      ..classes = ['memberName', 'hexadecimal']
+                      ..text = '[PP+0x${entry.offset.toRadixString(16)}]',
+                    new DivElement()
+                      ..classes = ['memberName']
+                      ..children = _createEntry(entry)
+                  ])
+                .toList(),
           new HRElement(),
           new ViewFooterElement(queue: _r.queue)
         ]
@@ -153,20 +159,18 @@ class ObjectPoolViewElement  extends HtmlElement implements Renderable {
 
   List<Element> _createEntry(M.ObjectPoolEntry entry) {
     switch (entry.kind) {
-      case  M.ObjectPoolEntryKind.object:
-      return [
-        anyRef(_isolate, entry.asObject, _instances, queue: _r.queue)
-      ];
-      case  M.ObjectPoolEntryKind.immediate:
-      return [
-        new SpanElement()
-          ..text = 'Immediate 0x${entry.asInteger.toRadixString(16)}'
-      ];
-      case  M.ObjectPoolEntryKind.nativeEntry:
-      return [
-        new SpanElement()
-          ..text = 'NativeEntry 0x${entry.asInteger.toRadixString(16)}'
-      ];
+      case M.ObjectPoolEntryKind.object:
+        return [anyRef(_isolate, entry.asObject, _instances, queue: _r.queue)];
+      case M.ObjectPoolEntryKind.immediate:
+        return [
+          new SpanElement()
+            ..text = 'Immediate 0x${entry.asInteger.toRadixString(16)}'
+        ];
+      case M.ObjectPoolEntryKind.nativeEntry:
+        return [
+          new SpanElement()
+            ..text = 'NativeEntry 0x${entry.asInteger.toRadixString(16)}'
+        ];
     }
     throw new Exception('Unkown ObjectPoolEntryKind (${entry.kind})');
   }

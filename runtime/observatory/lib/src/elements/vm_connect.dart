@@ -20,11 +20,13 @@ import 'package:observatory/src/elements/vm_connect_target.dart';
 typedef void CrashDumpLoadCallback(Map dump);
 
 class VMConnectElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<VMConnectElement>('vm-connect',
-                     dependencies: const [NavTopMenuElement.tag,
-                                          NavNotifyElement.tag,
-                                          ViewFooterElement.tag,
-                                          VMConnectTargetElement.tag]);
+  static const tag =
+      const Tag<VMConnectElement>('vm-connect', dependencies: const [
+    NavTopMenuElement.tag,
+    NavNotifyElement.tag,
+    ViewFooterElement.tag,
+    VMConnectTargetElement.tag
+  ]);
 
   RenderingScheduler _r;
 
@@ -38,9 +40,8 @@ class VMConnectElement extends HtmlElement implements Renderable {
   String _address;
 
   factory VMConnectElement(M.TargetRepository targets,
-                           CrashDumpLoadCallback loadDump,
-                           M.NotificationRepository notifications,
-                           {String address: '', RenderingQueue queue}) {
+      CrashDumpLoadCallback loadDump, M.NotificationRepository notifications,
+      {String address: '', RenderingQueue queue}) {
     assert(address != null);
     assert(loadDump != null);
     assert(notifications != null);
@@ -83,7 +84,8 @@ class VMConnectElement extends HtmlElement implements Renderable {
         ..classes = ['content-centered']
         ..children = [
           new HeadingElement.h1()..text = 'Connect to a Dart VM',
-          new BRElement(), new HRElement(),
+          new BRElement(),
+          new HRElement(),
           new DivElement()
             ..classes = ['flex-row']
             ..children = [
@@ -98,12 +100,13 @@ class VMConnectElement extends HtmlElement implements Renderable {
                           ObservatoryApplication.app;
                       final bool current = app.isConnectedVMTarget(target);
                       return new LIElement()
-                        ..children = [new VMConnectTargetElement(target,
-                          current: current, queue: _r.queue)
-                          ..onConnect.listen(_connect)
-                          ..onDelete.listen(_delete)
+                        ..children = [
+                          new VMConnectTargetElement(target,
+                              current: current, queue: _r.queue)
+                            ..onConnect.listen(_connect)
+                            ..onDelete.listen(_delete)
                         ];
-                      }).toList(),
+                    }).toList(),
                   new HRElement(),
                   new FormElement()
                     ..autocomplete = 'on'
@@ -114,7 +117,9 @@ class VMConnectElement extends HtmlElement implements Renderable {
                         ..classes = ['vm_connect']
                         ..text = 'Connect'
                         ..onClick.listen((e) {
-                          e.preventDefault(); _create(); }),
+                          e.preventDefault();
+                          _create();
+                        }),
                     ],
                   new BRElement(),
                   new PreElement()
@@ -122,19 +127,19 @@ class VMConnectElement extends HtmlElement implements Renderable {
                     ..text = 'Run Standalone with: \'--observe\'',
                   new HRElement()
                 ],
-              new DivElement()
-                ..classes = ['flex-item-20-percent'],
+              new DivElement()..classes = ['flex-item-20-percent'],
               new DivElement()
                 ..classes = ['flex-item-40-percent']
                 ..children = [
                   new HeadingElement.h2()..text = 'Crash dump',
                   new BRElement(),
                   _createCrushDumpLoader(),
-                  new BRElement(), new BRElement(),
+                  new BRElement(),
+                  new BRElement(),
                   new PreElement()
                     ..classes = ['well']
                     ..text = 'Request a crash dump with:\n'
-                      '\'curl $host:$port/_getCrashDump > dump.json\'',
+                        '\'curl $host:$port/_getCrashDump > dump.json\'',
                   new HRElement()
                 ]
             ],
@@ -148,9 +153,10 @@ class VMConnectElement extends HtmlElement implements Renderable {
       ..classes = ['textbox']
       ..placeholder = 'localhost:8181'
       ..value = _address
-      ..onKeyUp
-        .where((e) => e.key == '\n')
-        .listen((e) { e.preventDefault(); _create(); });
+      ..onKeyUp.where((e) => e.key == '\n').listen((e) {
+        e.preventDefault();
+        _create();
+      });
     textbox.onInput.listen((e) {
       _address = textbox.value;
     });
@@ -170,17 +176,21 @@ class VMConnectElement extends HtmlElement implements Renderable {
     });
     return e;
   }
+
   void _create() {
     if (_address == null || _address.isEmpty) return;
     _targets.add(_normalizeStandaloneAddress(_address));
   }
+
   void _connect(TargetEvent e) {
     _targets.setCurrent(e.target);
   }
+
   void _delete(TargetEvent e) => _targets.delete(e.target);
 
   static String _normalizeStandaloneAddress(String networkAddress) {
-    if (!networkAddress.startsWith('http') && !networkAddress.startsWith('ws')) {
+    if (!networkAddress.startsWith('http') &&
+        !networkAddress.startsWith('ws')) {
       networkAddress = 'http://$networkAddress';
     }
     try {

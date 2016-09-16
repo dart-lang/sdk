@@ -5,7 +5,7 @@
 part of repositories;
 
 class IsolateRepository extends M.IsolateRepository {
-  Future<M.Isolate> get(M.IsolateRef i) async{
+  Future<M.Isolate> get(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     try {
@@ -16,7 +16,7 @@ class IsolateRepository extends M.IsolateRepository {
     return isolate;
   }
 
-  Future reloadSources(M.IsolateRef i) async{
+  Future reloadSources(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     await isolate.reloadSources();

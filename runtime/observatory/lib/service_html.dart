@@ -16,11 +16,8 @@ export 'package:observatory/service_common.dart';
 class _HtmlWebSocket implements CommonWebSocket {
   WebSocket _webSocket;
 
-  void connect(String address,
-               void onOpen(),
-               void onMessage(dynamic data),
-               void onError(),
-               void onClose()) {
+  void connect(String address, void onOpen(), void onMessage(dynamic data),
+      void onError(), void onClose()) {
     _webSocket = new WebSocket(address);
     _webSocket.onClose.listen((CloseEvent) => onClose());
     _webSocket.onError.listen((Event) => onError());
@@ -44,9 +41,8 @@ class _HtmlWebSocket implements CommonWebSocket {
     fileReader.readAsArrayBuffer(data);
     return fileReader.onLoadEnd.first.then((e) {
       var result = fileReader.result;
-      return new ByteData.view(result.buffer,
-                               result.offsetInBytes,
-                               result.length);
+      return new ByteData.view(
+          result.buffer, result.offsetInBytes, result.length);
     });
   }
 }

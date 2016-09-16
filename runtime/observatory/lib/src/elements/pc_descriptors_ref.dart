@@ -4,8 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart' as M
-  show IsolateRef, PcDescriptorsRef;
+import 'package:observatory/models.dart' as M show IsolateRef, PcDescriptorsRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -16,7 +15,7 @@ class PcDescriptorsRefElement extends HtmlElement implements Renderable {
   RenderingScheduler<PcDescriptorsRefElement> _r;
 
   Stream<RenderedEvent<PcDescriptorsRefElement>> get onRendered =>
-    _r.onRendered;
+      _r.onRendered;
 
   M.IsolateRef _isolate;
   M.PcDescriptorsRef _descriptors;
@@ -24,8 +23,9 @@ class PcDescriptorsRefElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.PcDescriptorsRef get descriptors => _descriptors;
 
-  factory PcDescriptorsRefElement(M.IsolateRef isolate,
-      M.PcDescriptorsRef descriptors, {RenderingQueue queue}) {
+  factory PcDescriptorsRefElement(
+      M.IsolateRef isolate, M.PcDescriptorsRef descriptors,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(descriptors != null);
     PcDescriptorsRefElement e = document.createElement(tag.name);
@@ -52,8 +52,8 @@ class PcDescriptorsRefElement extends HtmlElement implements Renderable {
 
   void render() {
     final text = (_descriptors.name == null || _descriptors.name == '')
-      ? 'PcDescriptors'
-      : _descriptors.name;
+        ? 'PcDescriptors'
+        : _descriptors.name;
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _descriptors))
         ..text = text

@@ -28,9 +28,8 @@ class LoggingListElement extends HtmlElement implements Renderable {
 
   set level(Level value) => _level = _r.checkAndReact(_level, value);
 
-  factory LoggingListElement(M.IsolateRef isolate,
-                             M.EventRepository events,
-                             {RenderingQueue queue}) {
+  factory LoggingListElement(M.IsolateRef isolate, M.EventRepository events,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
     LoggingListElement e = document.createElement(tag.name);
@@ -65,17 +64,22 @@ class LoggingListElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    children = _logs.where(_shouldBeVisible).map((logRecord) =>
-      new DivElement()..classes = ['logItem', logRecord['level'].name]
-        ..children = [
-          new SpanElement()..classes = ['level']
-            ..text = logRecord['level'].name,
-          new SpanElement()..classes = ['time']
-            ..text = Utils.formatDateTime(logRecord['time']),
-          new SpanElement()..classes = ['message']
-            ..text = logRecord["message"].valueAsString
-        ]
-    ).toList();
+    children = _logs
+        .where(_shouldBeVisible)
+        .map((logRecord) => new DivElement()
+          ..classes = ['logItem', logRecord['level'].name]
+          ..children = [
+            new SpanElement()
+              ..classes = ['level']
+              ..text = logRecord['level'].name,
+            new SpanElement()
+              ..classes = ['time']
+              ..text = Utils.formatDateTime(logRecord['time']),
+            new SpanElement()
+              ..classes = ['message']
+              ..text = logRecord["message"].valueAsString
+          ])
+        .toList();
   }
 
   bool _shouldBeVisible(Map record) => _level.compareTo(record['level']) <= 0;

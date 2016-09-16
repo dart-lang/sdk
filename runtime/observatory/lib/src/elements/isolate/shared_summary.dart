@@ -12,11 +12,9 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate/counter_chart.dart';
 
 class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
-  static const tag =
-    const Tag<IsolateSharedSummaryElement>('isolate-shared-summary',
-                                           dependencies: const [
-                                             IsolateCounterChartElement.tag
-                                           ]);
+  static const tag = const Tag<IsolateSharedSummaryElement>(
+      'isolate-shared-summary',
+      dependencies: const [IsolateCounterChartElement.tag]);
 
   RenderingScheduler<IsolateSharedSummaryElement> _r;
 
@@ -27,9 +25,9 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
   M.EventRepository _events;
   StreamSubscription _isolateSubscription;
 
-  factory IsolateSharedSummaryElement(M.Isolate isolate,
-                                      M.EventRepository events,
-                                      {RenderingQueue queue}) {
+  factory IsolateSharedSummaryElement(
+      M.Isolate isolate, M.EventRepository events,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
     IsolateSharedSummaryElement e = document.createElement(tag.name);
@@ -62,22 +60,30 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
     final oldHeapUsed = Utils.formatSize(_isolate.oldSpace.used);
     final oldHeapCapacity = Utils.formatSize(_isolate.oldSpace.capacity);
     final content = [
-      new DivElement()..classes = ['menu']
+      new DivElement()
+        ..classes = ['menu']
         ..children = [
-          new DivElement()..classes = ['memberList']
+          new DivElement()
+            ..classes = ['memberList']
             ..children = [
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'new heap',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = '$newHeapUsed of $newHeapCapacity',
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'old heap',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = '$oldHeapUsed of $oldHeapCapacity',
                 ]
             ],
@@ -85,8 +91,7 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
           new DivElement()
             ..children = [
               new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.debugger(_isolate))
-                ..text = 'debug'
+              new AnchorElement(href: Uris.debugger(_isolate))..text = 'debug'
             ],
           new DivElement()
             ..children = [
@@ -115,14 +120,12 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
           new DivElement()
             ..children = [
               new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.heapMap(_isolate))
-                ..text = 'heap map'
+              new AnchorElement(href: Uris.heapMap(_isolate))..text = 'heap map'
             ],
           new DivElement()
             ..children = [
               new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.metrics(_isolate))
-                ..text = 'metrics'
+              new AnchorElement(href: Uris.metrics(_isolate))..text = 'metrics'
             ],
           new DivElement()
             ..children = [
@@ -139,28 +142,29 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
           new DivElement()
             ..children = [
               new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.ports(_isolate))
-                ..text = 'ports'
+              new AnchorElement(href: Uris.ports(_isolate))..text = 'ports'
             ],
           new DivElement()
             ..children = [
               new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.logging(_isolate))
-                ..text = 'logging'
+              new AnchorElement(href: Uris.logging(_isolate))..text = 'logging'
             ]
-      ],
+        ],
       new IsolateCounterChartElement(_isolate.counters, queue: _r.queue)
     ];
     if (_isolate.error != null) {
       children = [
-        new PreElement()..classes = ['errorBox']
+        new PreElement()
+          ..classes = ['errorBox']
           ..text = _isolate.error.message,
-        new DivElement()..classes = ['summary']
+        new DivElement()
+          ..classes = ['summary']
           ..children = content
       ];
     } else {
       children = [
-        new DivElement()..classes = ['summary']
+        new DivElement()
+          ..classes = ['summary']
           ..children = content
       ];
     }

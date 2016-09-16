@@ -10,11 +10,11 @@ class SortedTableColumn {
   static String toStringFormatter(dynamic v) {
     return v != null ? v.toString() : '<null>';
   }
+
   final String label;
   final ValueFormatter formatter;
   SortedTableColumn.withFormatter(this.label, this.formatter);
-  SortedTableColumn(this.label)
-      : formatter = toStringFormatter;
+  SortedTableColumn(this.label) : formatter = toStringFormatter;
 }
 
 class SortedTableRow {
@@ -35,13 +35,13 @@ class SortedTable {
     assert(index < columns.length);
     _sortColumnIndex = index;
   }
+
   int get sortColumnIndex => _sortColumnIndex;
   bool _sortDescending = true;
   bool get sortDescending => _sortDescending;
   set sortDescending(var descending) {
     _sortDescending = descending;
   }
-
 
   dynamic getSortKeyFor(int row, int col) {
     return rows[row].values[col];

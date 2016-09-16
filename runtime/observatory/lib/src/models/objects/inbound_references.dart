@@ -10,10 +10,13 @@ abstract class InboundReferences {
 
 abstract class InboundReference {
   ObjectRef get source;
+
   /// [optional]
   ObjectRef get parentField;
+
   /// [optional]
   int get parentListIndex;
+
   /// [optional]
   int get parentWordOffset;
 }

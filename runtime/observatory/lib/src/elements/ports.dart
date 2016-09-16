@@ -19,16 +19,15 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class PortsElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<PortsElement>('ports-page',
-                                             dependencies: const [
-                                               NavTopMenuElement.tag,
-                                               NavVMMenuElement.tag,
-                                               NavIsolateMenuElement.tag,
-                                               NavRefreshElement.tag,
-                                               NavNotifyElement.tag,
-                                               InstanceRefElement.tag,
-                                               ViewFooterElement.tag
-                                             ]);
+  static const tag = const Tag<PortsElement>('ports-page', dependencies: const [
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    InstanceRefElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<PortsElement> _r;
 
@@ -42,18 +41,19 @@ class PortsElement extends HtmlElement implements Renderable {
   M.InstanceRepository _instances;
   M.Ports _isolatePorts;
 
-
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.PortsRepository get ports => _ports;
   M.VMRef get vm => _vm;
 
-  factory PortsElement(M.VM vm, M.IsolateRef isolate,
-                            M.EventRepository events,
-                            M.NotificationRepository notifications,
-                            M.PortsRepository ports,
-                            M.InstanceRepository instances,
-                            {RenderingQueue queue}) {
+  factory PortsElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.PortsRepository ports,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -102,9 +102,9 @@ class PortsElement extends HtmlElement implements Renderable {
         ..classes = ['content-centered']
         ..children = [
           new HeadingElement.h1()..text = 'Ports',
-          new BRElement(), new HRElement(),
-          new DivElement()
-            ..children = _createList(),
+          new BRElement(),
+          new HRElement(),
+          new DivElement()..children = _createList(),
           new HRElement()
         ],
       new ViewFooterElement(queue: _r.queue)
@@ -116,21 +116,25 @@ class PortsElement extends HtmlElement implements Renderable {
       return const [];
     }
     int i = 0;
-    return _isolatePorts.elements.map((port) =>
-      new DivElement()..classes = ['memberItem']
-        ..children = [
-          new DivElement()..classes = ['memberName']
-            ..children = [
-              new SpanElement()..classes = ['port-number']
-                ..text = '[ ${++i} ] ',
-              new SpanElement()..text = '${port.name}'
-            ],
-          new DivElement()..classes = ['memberValue']
-            ..children = [
-              anyRef(_isolate, port.handler, _instances, queue: _r.queue)
-            ]
-        ]
-    ).toList();
+    return _isolatePorts.elements
+        .map((port) => new DivElement()
+          ..classes = ['memberItem']
+          ..children = [
+            new DivElement()
+              ..classes = ['memberName']
+              ..children = [
+                new SpanElement()
+                  ..classes = ['port-number']
+                  ..text = '[ ${++i} ] ',
+                new SpanElement()..text = '${port.name}'
+              ],
+            new DivElement()
+              ..classes = ['memberValue']
+              ..children = [
+                anyRef(_isolate, port.handler, _instances, queue: _r.queue)
+              ]
+          ])
+        .toList();
   }
 
   Future _refresh() async {

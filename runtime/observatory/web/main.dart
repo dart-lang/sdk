@@ -11,7 +11,7 @@ main() async {
   Chain.capture(() async {
     Logger.root.level = Level.INFO;
     Logger.root.onRecord.listen((LogRecord rec) {
-        print('${rec.level.name}: ${rec.time}: ${rec.message}');
+      print('${rec.level.name}: ${rec.time}: ${rec.message}');
     });
     await initElements();
     Logger.root.info('Starting Observatory');

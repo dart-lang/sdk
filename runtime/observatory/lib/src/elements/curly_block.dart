@@ -37,14 +37,15 @@ class CurlyBlockElement extends HtmlElement implements Renderable {
     if (_expanded != value) _onToggle.add(new CurlyBlockToggleEvent(this));
     _expanded = _r.checkAndReact(_expanded, value);
   }
+
   set disabled(bool value) => _disabled = _r.checkAndReact(_disabled, value);
   set content(Iterable<Element> value) {
     _content = value.toList();
     _r.dirty();
   }
 
-  factory CurlyBlockElement({bool expanded: false, bool disabled: false,
-      RenderingQueue queue}) {
+  factory CurlyBlockElement(
+      {bool expanded: false, bool disabled: false, RenderingQueue queue}) {
     assert(expanded != null);
     assert(disabled != null);
     CurlyBlockElement e = document.createElement(tag.name);
@@ -58,11 +59,15 @@ class CurlyBlockElement extends HtmlElement implements Renderable {
   CurlyBlockElement.created() : super.created();
 
   @override
-  void attached() { super.attached(); _r.enable(); }
+  void attached() {
+    super.attached();
+    _r.enable();
+  }
 
   @override
   void detached() {
-    super.detached(); _r.disable(notify: true);
+    super.detached();
+    _r.disable(notify: true);
     children = [];
   }
 
@@ -75,18 +80,19 @@ class CurlyBlockElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    List<Element> content = [
-      new SpanElement()..text = '{'
-    ];
+    List<Element> content = [new SpanElement()..text = '{'];
     SpanElement label = new SpanElement()
       ..classes = disabled ? ['curly-block', 'disabled'] : ['curly-block']
-      ..innerHtml = expanded ?
-        '&nbsp;&nbsp;&#8863;&nbsp;&nbsp;' : '&nbsp;&nbsp;&#8862;&nbsp;&nbsp;';
+      ..innerHtml = expanded
+          ? '&nbsp;&nbsp;&#8863;&nbsp;&nbsp;'
+          : '&nbsp;&nbsp;&#8862;&nbsp;&nbsp;';
     if (disabled) {
       content.add(label);
     } else {
       content.add(new AnchorElement()
-        ..onClick.listen((_) { toggle(); })
+        ..onClick.listen((_) {
+          toggle();
+        })
         ..children = [label]);
     }
     if (expanded) {

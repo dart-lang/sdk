@@ -121,7 +121,6 @@ class ObservatoryApplication {
     _loggingSubscription = null;
   }
 
-
   final ObservatoryApplicationElement rootElement;
 
   ServiceObject lastErrorOrException;
@@ -138,6 +137,7 @@ class ObservatoryApplication {
   void _deletePauseEvents(e) {
     notifications.deletePauseEvents(isolate: e.isolate);
   }
+
   void _addNotification(M.Event e) {
     notifications.add(new EventNotification(e));
   }
@@ -284,5 +284,5 @@ class ObservatoryApplication {
   }
 
   // This map keeps track of which curly-blocks have been expanded by the user.
-  Map<String,bool> expansions = {};
+  Map<String, bool> expansions = {};
 }

@@ -20,15 +20,14 @@ import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class VMViewElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<VMViewElement>('vm-view',
-                                            dependencies: const [
-                                              IsolateSummaryElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              ViewFooterElement.tag
-                                            ]);
+  static const tag = const Tag<VMViewElement>('vm-view', dependencies: const [
+    IsolateSummaryElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<VMViewElement> _r;
 
@@ -46,11 +45,13 @@ class VMViewElement extends HtmlElement implements Renderable {
   M.VMRef get vm => _vm;
   M.NotificationRepository get notifications => _notifications;
 
-  factory VMViewElement(M.VM vm, M.EventRepository events,
-                        M.NotificationRepository notifications,
-                        M.IsolateRepository isolates,
-                        M.ScriptRepository scripts,
-                        {RenderingQueue queue}) {
+  factory VMViewElement(
+      M.VM vm,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.IsolateRepository isolates,
+      M.ScriptRepository scripts,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(events != null);
     assert(notifications != null);
@@ -96,94 +97,126 @@ class VMViewElement extends HtmlElement implements Renderable {
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _r.dirty();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _r.dirty();
+          }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h1()..text = 'VM',
           new HRElement(),
-          new DivElement()..classes = ['memberList']
+          new DivElement()
+            ..classes = ['memberList']
             ..children = [
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'name',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = _vm.displayName
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'version',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = _vm.version
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'started at',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = '${_vm.startTime}'
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'uptime',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = '$uptime'
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'refreshed at',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = '${new DateTime.now()}'
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'pid',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = '${_vm.pid}'
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'peak memory',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = Utils.formatSize(_vm.maxRSS)
                 ],
               new BRElement(),
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..children = [
                       new SpanElement()..text = 'see ',
                       new AnchorElement(href: Uris.flags())..text = 'flags'
                     ],
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..children = [
                       new SpanElement()..text = 'view ',
-                      new AnchorElement(href: Uris.timeline())..text = 'timeline'
+                      new AnchorElement(href: Uris.timeline())
+                        ..text = 'timeline'
                     ]
                 ]
             ],
           new BRElement(),
           new HeadingElement.h1()..text = 'Isolates (${isolates.length})',
           new HRElement(),
-          new UListElement()..classes = ['list-group']
-            ..children = isolates.expand((i) => [
-              new LIElement()..classes = ['list-group-item']
-                ..children = [
-                  new IsolateSummaryElement(i, _isolates, _events, _scripts,
-                                            queue: _r.queue)
-                ],
-              new HRElement()
-            ]).toList(),
+          new UListElement()
+            ..classes = ['list-group']
+            ..children = isolates
+                .expand((i) => [
+                      new LIElement()
+                        ..classes = ['list-group-item']
+                        ..children = [
+                          new IsolateSummaryElement(
+                              i, _isolates, _events, _scripts,
+                              queue: _r.queue)
+                        ],
+                      new HRElement()
+                    ])
+                .toList(),
           new ViewFooterElement(queue: _r.queue)
         ]
     ];

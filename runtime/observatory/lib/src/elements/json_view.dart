@@ -16,11 +16,11 @@ import 'package:observatory/src/elements/view_footer.dart';
 
 class JSONViewElement extends HtmlElement implements Renderable {
   static const tag = const Tag<JSONViewElement>('json-view',
-                                                dependencies: const [
-                                                  NavTopMenuElement.tag,
-                                                  NavNotifyElement.tag,
-                                                  ViewFooterElement.tag
-                                                ]);
+      dependencies: const [
+        NavTopMenuElement.tag,
+        NavNotifyElement.tag,
+        ViewFooterElement.tag
+      ]);
 
   RenderingScheduler<JSONViewElement> _r;
 
@@ -29,13 +29,11 @@ class JSONViewElement extends HtmlElement implements Renderable {
   M.NotificationRepository _notifications;
   Map _map;
 
-
   M.NotificationRepository get notifications => _notifications;
   Map get map => _map;
 
-  factory JSONViewElement(Map map,
-                          M.NotificationRepository notifications,
-                          {RenderingQueue queue}) {
+  factory JSONViewElement(Map map, M.NotificationRepository notifications,
+      {RenderingQueue queue}) {
     assert(notifications != null);
     assert(map != null);
     JSONViewElement e = document.createElement(tag.name);
@@ -66,19 +64,18 @@ class JSONViewElement extends HtmlElement implements Renderable {
         new NavTopMenuElement(queue: _r.queue),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Object',
           new HRElement(),
-          new PreElement()
-            ..text = JSONPretty.stringify(_map),
+          new PreElement()..text = JSONPretty.stringify(_map),
           new HRElement(),
           new ViewFooterElement(queue: _r.queue)
         ]
     ];
   }
 }
-
 
 class JSONPretty {
   JSONPretty._();
@@ -149,7 +146,7 @@ class JSONPretty {
   }
 
   void _writeIndent(int depth) {
-    const tab = '  ';  // 2 spaces.
+    const tab = '  '; // 2 spaces.
     _buffer.write(tab * depth);
   }
 

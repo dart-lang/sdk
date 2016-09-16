@@ -14,16 +14,13 @@ import 'package:observatory/utils.dart';
 
 class TopRetainingInstancesElement extends HtmlElement implements Renderable {
   static const tag = const Tag<TopRetainingInstancesElement>(
-    'top-retainig-instances',
-    dependencies: const [
-        CurlyBlockElement.tag,
-        InstanceRefElement.tag
-    ]);
+      'top-retainig-instances',
+      dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
 
   RenderingScheduler<TopRetainingInstancesElement> _r;
 
   Stream<RenderedEvent<TopRetainingInstancesElement>> get onRendered =>
-    _r.onRendered;
+      _r.onRendered;
 
   M.IsolateRef _isolate;
   M.ClassRef _cls;
@@ -35,7 +32,9 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.ClassRef get cls => _cls;
 
-  factory TopRetainingInstancesElement(M.IsolateRef isolate, M.ClassRef cls,
+  factory TopRetainingInstancesElement(
+      M.IsolateRef isolate,
+      M.ClassRef cls,
       M.TopRetainingInstancesRepository topRetainingInstances,
       M.InstanceRepository instances,
       {RenderingQueue queue}) {
@@ -71,7 +70,8 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
     children = [
       new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
         ..content = [
-          new DivElement()..classes = ['memberList']
+          new DivElement()
+            ..classes = ['memberList']
             ..children = _createContent()
         ]
         ..onToggle.listen((e) async {
@@ -93,20 +93,21 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
 
   List<Element> _createContent() {
     if (_topRetaining == null) {
-      return [
-        new SpanElement()..text = 'Loading...'
-      ];
+      return [new SpanElement()..text = 'Loading...'];
     }
-    return _topRetaining.map((r) =>
-      new DivElement()..classes = ['memberItem']
-        ..children = [
-          new DivElement()..classes = ['memberName']
-            ..text = '${Utils.formatSize(r.retainedSize)} ',
-          new DivElement()..classes = ['memberValue']
-            ..children = [
-              anyRef(_isolate, r.object, _instances, queue: _r.queue)
-            ]
-        ]
-    ).toList();
+    return _topRetaining
+        .map((r) => new DivElement()
+          ..classes = ['memberItem']
+          ..children = [
+            new DivElement()
+              ..classes = ['memberName']
+              ..text = '${Utils.formatSize(r.retainedSize)} ',
+            new DivElement()
+              ..classes = ['memberValue']
+              ..children = [
+                anyRef(_isolate, r.object, _instances, queue: _r.queue)
+              ]
+          ])
+        .toList();
   }
 }

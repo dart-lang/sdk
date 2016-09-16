@@ -27,22 +27,22 @@ import 'package:observatory/src/elements/source_link.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class FieldViewElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<FieldViewElement>('field-view',
-                                            dependencies: const [
-                                              ClassRefElement.tag,
-                                              CurlyBlockElement.tag,
-                                              NavClassMenuElement.tag,
-                                              NavLibraryMenuElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              ObjectCommonElement.tag,
-                                              ScriptInsetElement.tag,
-                                              SourceLinkElement.tag,
-                                              ViewFooterElement.tag
-                                            ]);
+  static const tag =
+      const Tag<FieldViewElement>('field-view', dependencies: const [
+    ClassRefElement.tag,
+    CurlyBlockElement.tag,
+    NavClassMenuElement.tag,
+    NavLibraryMenuElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ObjectCommonElement.tag,
+    ScriptInsetElement.tag,
+    SourceLinkElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<FieldViewElement> _r;
 
@@ -63,24 +63,26 @@ class FieldViewElement extends HtmlElement implements Renderable {
   M.ScriptRepository _scripts;
   M.InstanceRepository _instances;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.Field get field => _field;
 
-  factory FieldViewElement(M.VM vm, M.IsolateRef isolate, M.Field field,
-                            M.EventRepository events,
-                            M.NotificationRepository notifications,
-                            M.FieldRepository fields,
-                            M.ClassRepository classes,
-                            M.RetainedSizeRepository retainedSizes,
-                            M.ReachableSizeRepository reachableSizes,
-                            M.InboundReferencesRepository references,
-                            M.RetainingPathRepository retainingPaths,
-                            M.ScriptRepository scripts,
-                            M.InstanceRepository instances,
-                            {RenderingQueue queue}) {
+  factory FieldViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.Field field,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.FieldRepository fields,
+      M.ClassRepository classes,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.ScriptRepository scripts,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -145,36 +147,39 @@ class FieldViewElement extends HtmlElement implements Renderable {
     } else if (_field.isConst) {
       header += 'const ';
     }
-    if (_field.declaredType.name == 'dynamic'){
+    if (_field.declaredType.name == 'dynamic') {
       header += 'var';
     } else {
       header += _field.declaredType.name;
     }
     children = [
       navBar(_createMenu()),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = '$header ${field.name}',
           new HRElement(),
           new ObjectCommonElement(_isolate, _field, _retainedSizes,
-                                  _reachableSizes, _references, _retainingPaths,
-                                  _instances, queue: _r.queue),
+              _reachableSizes, _references, _retainingPaths, _instances,
+              queue: _r.queue),
           new BRElement(),
-          new DivElement()..classes = ['memberList']
+          new DivElement()
+            ..classes = ['memberList']
             ..children = _createMembers(),
           new HRElement(),
           new DivElement()
-            ..children = _field.location == null ? const []
-              : [
-                  new ScriptInsetElement(_isolate, _field.location.script,
-                                         _scripts, _instances, _events,
-                                         startPos: field.location.tokenPos,
-                                         endPos: field.location.tokenPos,
-                                         queue: _r.queue)
-              ],
+            ..children = _field.location == null
+                ? const []
+                : [
+                    new ScriptInsetElement(_isolate, _field.location.script,
+                        _scripts, _instances, _events,
+                        startPos: field.location.tokenPos,
+                        endPos: field.location.tokenPos,
+                        queue: _r.queue)
+                  ],
           new ViewFooterElement(queue: _r.queue)
         ]
-      ];
+    ];
   }
 
   List<Element> _createMenu() {
@@ -185,19 +190,18 @@ class FieldViewElement extends HtmlElement implements Renderable {
     ];
     if (_library != null) {
       menu.add(new NavLibraryMenuElement(_isolate, _field.dartOwner,
-                                         queue: _r.queue));
+          queue: _r.queue));
     } else if (_field.dartOwner is M.ClassRef) {
       menu.add(
-        new NavClassMenuElement(_isolate, _field.dartOwner, queue: _r.queue)
-      );
+          new NavClassMenuElement(_isolate, _field.dartOwner, queue: _r.queue));
     }
     menu.addAll([
       navMenu(_field.name),
       new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) {
-            e.element.disabled = true;
-            _refresh();
-          }),
+        ..onRefresh.listen((e) {
+          e.element.disabled = true;
+          _refresh();
+        }),
       new NavNotifyElement(_notifications, queue: _r.queue)
     ]);
     return menu;
@@ -205,56 +209,63 @@ class FieldViewElement extends HtmlElement implements Renderable {
 
   List<Element> _createMembers() {
     final members = <Element>[
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'owner',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..children = [
               _field.dartOwner == null
-                ? (new SpanElement()..text = '...')
-                : anyRef(_isolate, _field.dartOwner, _instances,
-                         queue: _r.queue)
+                  ? (new SpanElement()..text = '...')
+                  : anyRef(_isolate, _field.dartOwner, _instances,
+                      queue: _r.queue)
             ]
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'script',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..children = [
               new SourceLinkElement(_isolate, field.location, _scripts,
-                                    queue: _r.queue)
+                  queue: _r.queue)
             ]
         ]
     ];
     if (!_field.isStatic) {
-      members.add(
-        new DivElement()..classes = ['memberItem']
-          ..title = 'The types observed for this field at runtime. '
-                    'Fields that are observed to have a single type at runtime '
-                    'or to never be null may allow for additional optimization.'
-          ..children = [
-            new DivElement()..classes = ['memberName']
-              ..text = 'observed types',
-            new DivElement()..classes = ['memberName']
-              ..children = _createGuard()
-          ]
-      );
+      members.add(new DivElement()
+        ..classes = ['memberItem']
+        ..title = 'The types observed for this field at runtime. '
+            'Fields that are observed to have a single type at runtime '
+            'or to never be null may allow for additional optimization.'
+        ..children = [
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = 'observed types',
+          new DivElement()
+            ..classes = ['memberName']
+            ..children = _createGuard()
+        ]);
     }
     if (_field.staticValue != null) {
-      members.add(
-        new DivElement()..classes = ['memberItem']
-          ..children = [
-            new DivElement()..classes = ['memberName']
-              ..text = 'static value',
-            new DivElement()..classes = ['memberName']
-              ..children = [
-                anyRef(_isolate, _field.staticValue, _instances,
-                       queue: _r.queue)
-              ]
-          ]
-      );
+      members.add(new DivElement()
+        ..classes = ['memberItem']
+        ..children = [
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = 'static value',
+          new DivElement()
+            ..classes = ['memberName']
+            ..children = [
+              anyRef(_isolate, _field.staticValue, _instances, queue: _r.queue)
+            ]
+        ]);
     }
     return members;
   }
@@ -269,13 +280,13 @@ class FieldViewElement extends HtmlElement implements Renderable {
         guard.add(new SpanElement()..text = 'various');
         break;
       case M.GuardClassKind.single:
-        guard.add(new ClassRefElement(_isolate, _field.guardClass,
-                                      queue: _r.queue));
+        guard.add(
+            new ClassRefElement(_isolate, _field.guardClass, queue: _r.queue));
         break;
     }
     guard.add(new SpanElement()
-      ..text = _field.guardNullable ? '— null observed' : '— null not observed'
-    );
+      ..text =
+          _field.guardNullable ? '— null observed' : '— null not observed');
     return guard;
   }
 

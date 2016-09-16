@@ -4,6 +4,6 @@
 
 part of models;
 
-abstract class MegamorphicCacheRepository{
+abstract class MegamorphicCacheRepository {
   Future<MegamorphicCache> get(IsolateRef isolate, String id);
 }

@@ -19,17 +19,17 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ObjectStoreViewElement  extends HtmlElement implements Renderable {
+class ObjectStoreViewElement extends HtmlElement implements Renderable {
   static const tag = const Tag<ObjectStoreViewElement>('objectstore-view',
-                                            dependencies: const [
-                                              InstanceRefElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              ViewFooterElement.tag
-                                            ]);
+      dependencies: const [
+        InstanceRefElement.tag,
+        NavTopMenuElement.tag,
+        NavVMMenuElement.tag,
+        NavIsolateMenuElement.tag,
+        NavRefreshElement.tag,
+        NavNotifyElement.tag,
+        ViewFooterElement.tag
+      ]);
 
   RenderingScheduler<ObjectStoreViewElement> _r;
 
@@ -43,17 +43,18 @@ class ObjectStoreViewElement  extends HtmlElement implements Renderable {
   M.ObjectStoreRepository _stores;
   M.InstanceRepository _instances;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
 
-  factory ObjectStoreViewElement(M.VM vm, M.IsolateRef isolate,
-                                 M.EventRepository events,
-                                 M.NotificationRepository notifications,
-                                 M.ObjectStoreRepository stores,
-                                 M.InstanceRepository instances,
-                                 {RenderingQueue queue}) {
+  factory ObjectStoreViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.ObjectStoreRepository stores,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -95,30 +96,36 @@ class ObjectStoreViewElement  extends HtmlElement implements Renderable {
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         new NavRefreshElement(disabled: _store == null, queue: _r.queue)
-            ..onRefresh.listen((e) => _refresh()),
+          ..onRefresh.listen((e) => _refresh()),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h1()
             ..text = fields == null
-              ? 'Object Store'
-              : 'Object Store (${fields.length})',
+                ? 'Object Store'
+                : 'Object Store (${fields.length})',
           new HRElement(),
           fields == null
-            ? (new HeadingElement.h2()..text = 'Loading...')
-            : (new DivElement()..classes = ['memberList']
-               ..children = fields.map((field) =>
-                 new DivElement()..classes = ['memberItem']
-                   ..children = [
-                     new DivElement()..classes = ['memberName']
-                       ..text = field.name,
-                     new DivElement()..classes = ['memberValue']
-                       ..children = [
-                         anyRef(_isolate, field.value, _instances,
+              ? (new HeadingElement.h2()..text = 'Loading...')
+              : (new DivElement()
+                ..classes = ['memberList']
+                ..children = fields
+                    .map((field) => new DivElement()
+                      ..classes = ['memberItem']
+                      ..children = [
+                        new DivElement()
+                          ..classes = ['memberName']
+                          ..text = field.name,
+                        new DivElement()
+                          ..classes = ['memberValue']
+                          ..children = [
+                            anyRef(_isolate, field.value, _instances,
                                 queue: _r.queue)
-                       ]
-                   ]).toList()),
+                          ]
+                      ])
+                    .toList()),
           new ViewFooterElement(queue: _r.queue)
         ]
     ];

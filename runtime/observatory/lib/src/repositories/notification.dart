@@ -25,8 +25,7 @@ class NotificationRepository implements M.NotificationRepository {
   Iterable<M.Notification> list() => _list;
 
   void delete(M.Notification notification) {
-    if (_list.remove(notification))
-    _notify();
+    if (_list.remove(notification)) _notify();
   }
 
   void deleteAll() {
@@ -52,13 +51,13 @@ class NotificationRepository implements M.NotificationRepository {
     if (isolate == null) {
       deleteWhere((notification) {
         return notification is M.EventNotification &&
-               M.Event.isPauseEvent(notification.event);
+            M.Event.isPauseEvent(notification.event);
       });
     } else {
       deleteWhere((notification) {
         return notification is M.EventNotification &&
-               M.Event.isPauseEvent(notification.event) &&
-               notification.event.isolate == isolate;
+            M.Event.isPauseEvent(notification.event) &&
+            notification.event.isolate == isolate;
       });
     }
   }
@@ -66,7 +65,7 @@ class NotificationRepository implements M.NotificationRepository {
   void deleteDisconnectEvents() {
     deleteWhere((notification) {
       return notification is M.EventNotification &&
-             notification.event is M.ConnectionClosedEvent;
+          notification.event is M.ConnectionClosedEvent;
     });
   }
 }

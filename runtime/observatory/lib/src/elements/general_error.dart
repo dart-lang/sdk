@@ -15,8 +15,7 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 
 class GeneralErrorElement extends HtmlElement implements Renderable {
   static const tag = const Tag<GeneralErrorElement>('general-error',
-                     dependencies: const [NavTopMenuElement.tag,
-                                          NavNotifyElement.tag]);
+      dependencies: const [NavTopMenuElement.tag, NavNotifyElement.tag]);
 
   RenderingScheduler _r;
 
@@ -29,9 +28,8 @@ class GeneralErrorElement extends HtmlElement implements Renderable {
 
   set message(String value) => _message = _r.checkAndReact(_message, value);
 
-
   factory GeneralErrorElement(M.NotificationRepository notifications,
-                           {String message: '', RenderingQueue queue}) {
+      {String message: '', RenderingQueue queue}) {
     assert(notifications != null);
     assert(message != null);
     GeneralErrorElement e = document.createElement(tag.name);
@@ -62,11 +60,13 @@ class GeneralErrorElement extends HtmlElement implements Renderable {
         new NavTopMenuElement(queue: _r.queue),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered']
+      new DivElement()
+        ..classes = ['content-centered']
         ..children = [
           new HeadingElement.h1()..text = 'Error',
           new BRElement(),
-          new DivElement()..classes = ['well']
+          new DivElement()
+            ..classes = ['well']
             ..text = message
         ]
     ];

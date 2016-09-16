@@ -29,9 +29,8 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-
-  factory NavMenuItemElement(String label, {String link,
-                             RenderingQueue queue}) {
+  factory NavMenuItemElement(String label,
+      {String link, RenderingQueue queue}) {
     assert(label != null);
     NavMenuItemElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
@@ -60,10 +59,8 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
       new LIElement()
         ..classes = ['nav-menu-item']
         ..children = [
-          new AnchorElement(href: link)
-            ..text = label,
-          new UListElement()
-            ..children = _content
+          new AnchorElement(href: link)..text = label,
+          new UListElement()..children = _content
         ]
     ];
   }

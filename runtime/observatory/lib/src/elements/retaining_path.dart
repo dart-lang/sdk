@@ -13,15 +13,11 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 
 class RetainingPathElement extends HtmlElement implements Renderable {
   static const tag = const Tag<RetainingPathElement>('retaining-path',
-    dependencies: const [
-        CurlyBlockElement.tag,
-        InstanceRefElement.tag
-    ]);
+      dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
 
   RenderingScheduler<RetainingPathElement> _r;
 
-  Stream<RenderedEvent<RetainingPathElement>> get onRendered =>
-    _r.onRendered;
+  Stream<RenderedEvent<RetainingPathElement>> get onRendered => _r.onRendered;
 
   M.IsolateRef _isolate;
   M.ObjectRef _object;
@@ -87,9 +83,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
 
   List<Element> _createContent() {
     if (_path == null) {
-      return [
-        new SpanElement()..text = 'Loading'
-      ];
+      return [new SpanElement()..text = 'Loading'];
     }
     return _path.elements.map(_createItem).toList();
   }
@@ -98,30 +92,26 @@ class RetainingPathElement extends HtmlElement implements Renderable {
     final content = <Element>[];
 
     if (item.parentField != null) {
-      content.add(
-        new SpanElement()
-          ..children = [
-              new SpanElement()..text = 'from ',
-              anyRef(_isolate, item.parentField, _instances, queue: _r.queue),
-              new SpanElement()..text = ' of ',
-          ]);
+      content.add(new SpanElement()
+        ..children = [
+          new SpanElement()..text = 'from ',
+          anyRef(_isolate, item.parentField, _instances, queue: _r.queue),
+          new SpanElement()..text = ' of ',
+        ]);
     } else if (item.parentListIndex != null) {
       content.add(
-        new SpanElement()
-          ..text = 'from [ ${item.parentListIndex} ] of ');
+          new SpanElement()..text = 'from [ ${item.parentListIndex} ] of ');
     } else if (item.parentWordOffset != null) {
-      content.add(
-        new SpanElement()
-          ..text = 'from word [ ${item.parentWordOffset} ] of ');
+      content.add(new SpanElement()
+        ..text = 'from word [ ${item.parentWordOffset} ] of ');
     } else {
       content.add(new SpanElement()..text = 'from ');
     }
 
-    content.add(
-      anyRef(_isolate, item.source, _instances, queue: _r.queue)
-    );
+    content.add(anyRef(_isolate, item.source, _instances, queue: _r.queue));
 
-    return new DivElement()..classes = ['indent']
-            ..children = content;
+    return new DivElement()
+      ..classes = ['indent']
+      ..children = content;
   }
 }

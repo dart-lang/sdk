@@ -22,9 +22,9 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.Metric get metric => _metric;
 
-  factory MetricDetailsElement(M.IsolateRef isolate, M.Metric metric,
-                               M.MetricRepository metrics,
-                               {RenderingQueue queue}) {
+  factory MetricDetailsElement(
+      M.IsolateRef isolate, M.Metric metric, M.MetricRepository metrics,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(metric != null);
     assert(metrics != null);
@@ -53,34 +53,47 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new DivElement()..classes = ['memberList']
+      new DivElement()
+        ..classes = ['memberList']
         ..children = [
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'name',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..text = _metric.name,
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'description',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..text = _metric.description,
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'refresh rate',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = _createRefreshRateSelect(),
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'buffer size',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = _createBufferSizeSelect(),
             ]
         ]
@@ -94,15 +107,15 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
       s = new SelectElement()
         ..value = _rateToString(current)
         ..children = M.MetricSamplingRate.values.map((rate) {
-            return new OptionElement(value: _rateToString(current),
-                selected: current == rate)
-              ..text = _rateToString(rate);
-          }).toList(growable: false)
+          return new OptionElement(
+              value: _rateToString(current),
+              selected: current == rate)..text = _rateToString(rate);
+        }).toList(growable: false)
         ..onChange.listen((_) {
-            _metrics.setSamplingRate(_isolate, _metric,
-                M.MetricSamplingRate.values[s.selectedIndex]);
-            _r.dirty();
-          })
+          _metrics.setSamplingRate(
+              _isolate, _metric, M.MetricSamplingRate.values[s.selectedIndex]);
+          _r.dirty();
+        })
     ];
   }
 
@@ -113,35 +126,44 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
       s = new SelectElement()
         ..value = _sizeToString(current)
         ..children = M.MetricBufferSize.values.map((rate) {
-            return new OptionElement(value: _sizeToString(current),
-                selected: current == rate)
-              ..text = _sizeToString(rate);
-          }).toList(growable: false)
+          return new OptionElement(
+              value: _sizeToString(current),
+              selected: current == rate)..text = _sizeToString(rate);
+        }).toList(growable: false)
         ..onChange.listen((_) {
-            _metrics.setBufferSize(_isolate, _metric,
-                M.MetricBufferSize.values[s.selectedIndex]);
-            _r.dirty();
-          })
+          _metrics.setBufferSize(
+              _isolate, _metric, M.MetricBufferSize.values[s.selectedIndex]);
+          _r.dirty();
+        })
     ];
   }
 
   static String _rateToString(M.MetricSamplingRate rate) {
     switch (rate) {
-      case M.MetricSamplingRate.off: return 'Never';
-      case M.MetricSamplingRate.e100ms: return 'Ten times per second';
-      case M.MetricSamplingRate.e1s: return 'Once a second';
-      case M.MetricSamplingRate.e2s: return 'Every two seconds';
-      case M.MetricSamplingRate.e4s: return 'Every four seconds';
-      case M.MetricSamplingRate.e8s: return 'Every eight seconds';
+      case M.MetricSamplingRate.off:
+        return 'Never';
+      case M.MetricSamplingRate.e100ms:
+        return 'Ten times per second';
+      case M.MetricSamplingRate.e1s:
+        return 'Once a second';
+      case M.MetricSamplingRate.e2s:
+        return 'Every two seconds';
+      case M.MetricSamplingRate.e4s:
+        return 'Every four seconds';
+      case M.MetricSamplingRate.e8s:
+        return 'Every eight seconds';
     }
     throw new Exception('Unknown MetricSamplingRate ($rate)');
   }
 
   static String _sizeToString(M.MetricBufferSize size) {
     switch (size) {
-      case M.MetricBufferSize.n10samples: return '10';
-      case M.MetricBufferSize.n100samples: return '100';
-      case M.MetricBufferSize.n1000samples: return '1000';
+      case M.MetricBufferSize.n10samples:
+        return '10';
+      case M.MetricBufferSize.n100samples:
+        return '100';
+      case M.MetricBufferSize.n1000samples:
+        return '1000';
     }
     throw new Exception('Unknown MetricSamplingRate ($size)');
   }

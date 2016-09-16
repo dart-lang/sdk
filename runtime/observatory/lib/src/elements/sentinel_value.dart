@@ -54,19 +54,18 @@ class SentinelValueElement extends HtmlElement implements Renderable {
         return 'This object has been reclaimed by the garbage collector.';
       case M.SentinelKind.expired:
         return 'The handle to this object has expired. '
-               'Consider refreshing the page.';
+            'Consider refreshing the page.';
       case M.SentinelKind.notInitialized:
         return 'This object will be initialized once it is accessed by '
-               'the program.';
+            'the program.';
       case M.SentinelKind.initializing:
         return 'This object is currently being initialized.';
       case M.SentinelKind.optimizedOut:
         return 'This object is no longer needed and has been removed by the '
-               'optimizing compiler.';
+            'optimizing compiler.';
       case M.SentinelKind.free:
         return '';
     }
     throw new Exception('Unknown SentinelKind: $kind');
   }
-
 }

@@ -18,7 +18,6 @@ class SourceInsetElement extends HtmlElement implements Renderable {
 
   Stream<RenderedEvent<SourceInsetElement>> get onRendered => _r.onRendered;
 
-
   M.IsolateRef _isolate;
   M.SourceLocation _location;
   M.ScriptRepository _scripts;
@@ -31,14 +30,16 @@ class SourceInsetElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.SourceLocation get location => _location;
 
-  factory SourceInsetElement(M.IsolateRef isolate, M.SourceLocation location,
-                           M.ScriptRepository scripts,
-                           M.InstanceRepository instances,
-                           M.EventRepository events,
-                           {int currentPos,
-                           bool inDebuggerContext: false,
-                           Iterable variables: const [],
-                           RenderingQueue queue}) {
+  factory SourceInsetElement(
+      M.IsolateRef isolate,
+      M.SourceLocation location,
+      M.ScriptRepository scripts,
+      M.InstanceRepository instances,
+      M.EventRepository events,
+      {int currentPos,
+      bool inDebuggerContext: false,
+      Iterable variables: const [],
+      RenderingQueue queue}) {
     assert(isolate != null);
     assert(location != null);
     assert(scripts != null);
@@ -76,14 +77,14 @@ class SourceInsetElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new ScriptInsetElement(_isolate, _location.script,
-                             _scripts, _instances, _events,
-                             startPos: _location.tokenPos,
-                             endPos: _location.endTokenPos,
-                             currentPos: _currentPos,
-                             inDebuggerContext: _inDebuggerContext,
-                             variables: _variables,
-                             queue: _r.queue)
+      new ScriptInsetElement(
+          _isolate, _location.script, _scripts, _instances, _events,
+          startPos: _location.tokenPos,
+          endPos: _location.endTokenPos,
+          currentPos: _currentPos,
+          inDebuggerContext: _inDebuggerContext,
+          variables: _variables,
+          queue: _r.queue)
     ];
   }
 }

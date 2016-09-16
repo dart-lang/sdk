@@ -16,6 +16,7 @@ abstract class Renderable {
 class RenderedEvent<T> {
   /// Renderable to which the event is related
   final T element;
+
   /// Is another rendering scheduled for this element.
   final bool otherRenderScheduled;
 
@@ -31,12 +32,16 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   bool _dirty = false;
   bool _renderingScheduled = false;
   bool _notificationScheduled = false;
+
   /// Element managed by this scheduler.
   final T element;
+
   /// Queue used for rendering operations.
   final RenderingQueue queue;
+
   /// Does the element need a new rendering cycle.
   bool get isDirty => _dirty;
+
   /// Is the scheduler enabled.
   bool get isEnabled => _enabled;
 
@@ -48,7 +53,9 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   /// If no queue is provided it will create a new default configured queue.
   factory RenderingScheduler(T element, {RenderingQueue queue}) {
     assert(element != null);
-    if (queue == null) { queue = new RenderingQueue(); }
+    if (queue == null) {
+      queue = new RenderingQueue();
+    }
     return new RenderingScheduler<T>._(element, queue);
   }
 
@@ -83,8 +90,10 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   /// If value changes a new rendering is scheduled.
   /// set attr(T v) => _attr = _r.checkAndReact(_attr, v);
   dynamic checkAndReact(dynamic oldValue, dynamic newValue) {
-    if (oldValue != newValue) dirty();
-    else scheduleNotification();
+    if (oldValue != newValue)
+      dirty();
+    else
+      scheduleNotification();
     return newValue;
   }
 

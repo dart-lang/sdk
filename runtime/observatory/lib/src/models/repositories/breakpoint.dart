@@ -4,7 +4,7 @@
 
 part of models;
 
-abstract class BreakpointRepository{
+abstract class BreakpointRepository {
   Future addOnActivation(IsolateRef isolate, Instance closure);
   Future remove(IsolateRef isolate, Breakpoint breakpoint);
 }

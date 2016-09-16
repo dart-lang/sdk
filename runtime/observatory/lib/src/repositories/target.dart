@@ -11,7 +11,6 @@ class TargetChangeEvent implements M.TargetChangeEvent {
 }
 
 class TargetRepository implements M.TargetRepository {
-
   static const _historyKey = 'history';
 
   final StreamController<TargetChangeEvent> _onChange;
@@ -82,13 +81,13 @@ class TargetRepository implements M.TargetRepository {
     }
     _list.addAll(loaded.map((i) => new SC.WebSocketVMTarget.fromMap(i)));
     _list.sort((SC.WebSocketVMTarget a, SC.WebSocketVMTarget b) {
-       return b.lastConnectionTime.compareTo(a.lastConnectionTime);
+      return b.lastConnectionTime.compareTo(a.lastConnectionTime);
     });
   }
 
   /// After making a change, update settings.
   void _store() {
-    _settings.set(_historyKey,  _list);
+    _settings.set(_historyKey, _list);
   }
 
   /// Find by networkAddress.

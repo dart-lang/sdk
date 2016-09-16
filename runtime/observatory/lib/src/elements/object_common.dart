@@ -14,13 +14,13 @@ import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/utils.dart';
 
 class ObjectCommonElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ObjectCommonElement>('object-common',
-      dependencies: const [
-        ClassRefElement.tag,
-        InboundReferencesElement.tag,
-        RetainingPathElement.tag,
-        SentinelValueElement.tag
-      ]);
+  static const tag =
+      const Tag<ObjectCommonElement>('object-common', dependencies: const [
+    ClassRefElement.tag,
+    InboundReferencesElement.tag,
+    RetainingPathElement.tag,
+    SentinelValueElement.tag
+  ]);
 
   RenderingScheduler<ObjectCommonElement> _r;
 
@@ -41,13 +41,15 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.Object get object => _object;
 
-  factory ObjectCommonElement(M.IsolateRef isolate, M.Object object,
-                              M.RetainedSizeRepository retainedSizes,
-                              M.ReachableSizeRepository reachableSizes,
-                              M.InboundReferencesRepository references,
-                              M.RetainingPathRepository retainingPaths,
-                              M.InstanceRepository instances,
-                              {RenderingQueue queue}) {
+  factory ObjectCommonElement(
+      M.IsolateRef isolate,
+      M.Object object,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(object != null);
     assert(retainedSizes != null);
@@ -86,67 +88,85 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
   InboundReferencesElement _inbounds;
 
   void render() {
-    _path = _path ?? new RetainingPathElement(_isolate, _object,
-                                              _retainingPaths, _instances,
-                                              queue: _r.queue);
-    _inbounds = _inbounds ?? new InboundReferencesElement(_isolate, _object,
-                                                          _references,
-                                                          _instances,
-                                                          queue: _r.queue);
+    _path = _path ??
+        new RetainingPathElement(_isolate, _object, _retainingPaths, _instances,
+            queue: _r.queue);
+    _inbounds = _inbounds ??
+        new InboundReferencesElement(_isolate, _object, _references, _instances,
+            queue: _r.queue);
     children = [
-      new DivElement()..classes = ['memberList']
+      new DivElement()
+        ..classes = ['memberList']
         ..children = [
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Class ',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = [
                   _object.clazz == null
-                    ? (new SpanElement()..text = '...')
-                    : new ClassRefElement(_isolate, _object.clazz,
-                                          queue: _r.queue)
+                      ? (new SpanElement()..text = '...')
+                      : new ClassRefElement(_isolate, _object.clazz,
+                          queue: _r.queue)
                 ]
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..title = 'Space for this object in memory'
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Shallow size ',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..text = Utils.formatSize(_object.size ?? 0)
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..title = 'Space reachable from this object, '
-                      'excluding class references'
+                'excluding class references'
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Reachable size ',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = _createReachableSizeValue()
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..title = 'Space that would be reclaimed if references to this '
-                      'object were replaced with null'
+                'object were replaced with null'
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Retained size ',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = _createRetainedSizeValue()
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Retaining path ',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = [_path]
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..title = 'Objects which directly reference this object'
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Inbound references ',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = [_inbounds]
             ]
         ]
@@ -157,29 +177,26 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_reachableSize != null) {
       if (_reachableSize.isSentinel) {
-        content.add(
-          new SentinelValueElement(_reachableSize.asSentinel, queue: _r.queue)
-        );
+        content.add(new SentinelValueElement(_reachableSize.asSentinel,
+            queue: _r.queue));
       } else {
-        content.add(
-          new SpanElement()..text = Utils.formatSize(int.parse(
-              _reachableSize.asValue.valueAsString))
-        );
+        content.add(new SpanElement()
+          ..text = Utils
+              .formatSize(int.parse(_reachableSize.asValue.valueAsString)));
       }
     } else {
-      content.add(
-        new SpanElement()..text = '...'
-      );
+      content.add(new SpanElement()..text = '...');
     }
-    final button = new ButtonElement()..classes = ['reachable_size']
+    final button = new ButtonElement()
+      ..classes = ['reachable_size']
       ..disabled = _loadingReachableBytes
       ..text = '↺';
     button.onClick.listen((_) async {
-        button.disabled = true;
-        _loadingReachableBytes = true;
-        _reachableSize = await _reachableSizes.get(_isolate, _object.id);
-        _r.dirty();
-      });
+      button.disabled = true;
+      _loadingReachableBytes = true;
+      _reachableSize = await _reachableSizes.get(_isolate, _object.id);
+      _r.dirty();
+    });
     content.add(button);
     return content;
   }
@@ -188,29 +205,26 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_retainedSize != null) {
       if (_retainedSize.isSentinel) {
-        content.add(
-          new SentinelValueElement(_retainedSize.asSentinel, queue: _r.queue)
-        );
+        content.add(new SentinelValueElement(_retainedSize.asSentinel,
+            queue: _r.queue));
       } else {
-        content.add(
-          new SpanElement()..text = Utils.formatSize(int.parse(
-              _retainedSize.asValue.valueAsString))
-        );
+        content.add(new SpanElement()
+          ..text =
+              Utils.formatSize(int.parse(_retainedSize.asValue.valueAsString)));
       }
     } else {
-      content.add(
-        new SpanElement()..text = '...'
-      );
+      content.add(new SpanElement()..text = '...');
     }
-    final button = new ButtonElement()..classes = ['retained_size']
+    final button = new ButtonElement()
+      ..classes = ['retained_size']
       ..disabled = _loadingRetainedBytes
       ..text = '↺';
     button.onClick.listen((_) async {
-        button.disabled = true;
-        _loadingRetainedBytes = true;
-        _retainedSize = await _retainedSizes.get(_isolate, _object.id);
-        _r.dirty();
-      });
+      button.disabled = true;
+      _loadingRetainedBytes = true;
+      _retainedSize = await _retainedSizes.get(_isolate, _object.id);
+      _r.dirty();
+    });
     content.add(button);
     return content;
   }

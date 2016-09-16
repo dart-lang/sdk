@@ -15,7 +15,7 @@ class HeapSnapshot implements M.HeapSnapshot {
 
   static Future sleep([Duration duration = const Duration(microseconds: 0)]) {
     final Completer completer = new Completer();
-    new Timer(duration, () => completer.complete() );
+    new Timer(duration, () => completer.complete());
     return completer.future;
   }
 
@@ -42,9 +42,8 @@ class HeapSnapshot implements M.HeapSnapshot {
     return progress.stream;
   }
 
-  Future<List<MergedVertex>> buildMergedVertices(S.Isolate isolate,
-                                                 ObjectGraph graph,
-                                                 signal) async {
+  Future<List<MergedVertex>> buildMergedVertices(
+      S.Isolate isolate, ObjectGraph graph, signal) async {
     final cidToMergedVertex = {};
 
     int count = 0;
@@ -99,12 +98,12 @@ class HeapSnapshot implements M.HeapSnapshot {
   }
 
   List<Future<S.ServiceObject>> getMostRetained(S.Isolate isolate,
-                                                {int classId, int limit}) {
+      {int classId, int limit}) {
     var result = [];
-    for (ObjectVertex v in graph.getMostRetained(classId: classId,
-                                                 limit: limit)) {
-      result.add(isolate.getObjectByAddress(v.address)
-                        .then((S.ServiceObject obj) {
+    for (ObjectVertex v
+        in graph.getMostRetained(classId: classId, limit: limit)) {
+      result.add(
+          isolate.getObjectByAddress(v.address).then((S.ServiceObject obj) {
         if (obj is S.HeapObject) {
           obj.retainedSize = v.retainedSize;
         } else {
@@ -131,24 +130,25 @@ class HeapSnapshotDominatorNode implements M.HeapSnapshotDominatorNode {
       });
     }
   }
+
   Iterable<HeapSnapshotDominatorNode> _children;
   Iterable<HeapSnapshotDominatorNode> get children {
     if (_children != null) {
       return _children;
     } else {
-      return _children = new List.unmodifiable(
-        v.dominatorTreeChildren().map((v) {
-          return new HeapSnapshotDominatorNode(isolate, v);
-        })
-      );
+      return _children =
+          new List.unmodifiable(v.dominatorTreeChildren().map((v) {
+        return new HeapSnapshotDominatorNode(isolate, v);
+      }));
     }
   }
+
   int get retainedSize => v.retainedSize;
   int get shallowSize => v.shallowSize;
 
   HeapSnapshotDominatorNode(S.Isolate isolate, ObjectVertex vertex)
-    : isolate = isolate,
-      v = vertex;
+      : isolate = isolate,
+        v = vertex;
 }
 
 class MergedEdge {
@@ -180,10 +180,9 @@ class MergedVertex implements M.HeapSnapshotClassReferences {
       // It is important to keep the template.
       // https://github.com/dart-lang/sdk/issues/27144
       return _inbounds = new List<HeapSnapshotClassInbound>.unmodifiable(
-        incomingEdges.map((edge) {
-          return new HeapSnapshotClassInbound(this, edge);
-        })
-      );
+          incomingEdges.map((edge) {
+        return new HeapSnapshotClassInbound(this, edge);
+      }));
     }
   }
 
@@ -195,10 +194,9 @@ class MergedVertex implements M.HeapSnapshotClassReferences {
       // It is important to keep the template.
       // https://github.com/dart-lang/sdk/issues/27144
       return _outbounds = new List<HeapSnapshotClassOutbound>.unmodifiable(
-        outgoingEdges.values.map((edge) {
-          return new HeapSnapshotClassOutbound(this, edge);
-        })
-      );
+          outgoingEdges.values.map((edge) {
+        return new HeapSnapshotClassOutbound(this, edge);
+      }));
     }
   }
 
@@ -208,8 +206,9 @@ class MergedVertex implements M.HeapSnapshotClassReferences {
 class HeapSnapshotClassInbound implements M.HeapSnapshotClassInbound {
   final MergedVertex vertex;
   final MergedEdge edge;
-  S.Class get source => edge.sourceVertex != vertex ? edge.sourceVertex.clazz
-                                                    : edge.targetVertex.clazz;
+  S.Class get source => edge.sourceVertex != vertex
+      ? edge.sourceVertex.clazz
+      : edge.targetVertex.clazz;
   int get count => edge.count;
   int get shallowSize => edge.shallowSize;
   int get retainedSize => edge.retainedSize;
@@ -220,8 +219,9 @@ class HeapSnapshotClassInbound implements M.HeapSnapshotClassInbound {
 class HeapSnapshotClassOutbound implements M.HeapSnapshotClassOutbound {
   final MergedVertex vertex;
   final MergedEdge edge;
-  S.Class get target => edge.sourceVertex != vertex ? edge.sourceVertex.clazz
-                                                    : edge.targetVertex.clazz;
+  S.Class get target => edge.sourceVertex != vertex
+      ? edge.sourceVertex.clazz
+      : edge.targetVertex.clazz;
   int get count => edge.count;
   int get shallowSize => edge.shallowSize;
   int get retainedSize => edge.retainedSize;

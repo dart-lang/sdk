@@ -28,26 +28,26 @@ import 'package:observatory/src/elements/script_ref.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class LibraryViewElement  extends HtmlElement implements Renderable {
-  static const tag = const Tag<LibraryViewElement>('library-view',
-                                                   dependencies: const [
-                                                     ClassRefElement.tag,
-                                                     CurlyBlockElement.tag,
-                                                     EvalBoxElement.tag,
-                                                     FieldRefElement.tag,
-                                                     FunctionRefElement.tag,
-                                                     LibraryRefElement.tag,
-                                                     NavTopMenuElement.tag,
-                                                     NavVMMenuElement.tag,
-                                                     NavIsolateMenuElement.tag,
-                                                     NavLibraryMenuElement.tag,
-                                                     NavRefreshElement.tag,
-                                                     NavNotifyElement.tag,
-                                                     ObjectCommonElement.tag,
-                                                     ScriptRefElement.tag,
-                                                     ScriptInsetElement.tag,
-                                                     ViewFooterElement.tag
-                                                   ]);
+class LibraryViewElement extends HtmlElement implements Renderable {
+  static const tag =
+      const Tag<LibraryViewElement>('library-view', dependencies: const [
+    ClassRefElement.tag,
+    CurlyBlockElement.tag,
+    EvalBoxElement.tag,
+    FieldRefElement.tag,
+    FunctionRefElement.tag,
+    LibraryRefElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavLibraryMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ObjectCommonElement.tag,
+    ScriptRefElement.tag,
+    ScriptInsetElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<LibraryViewElement> _r;
 
@@ -69,25 +69,27 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
   M.EvalRepository _eval;
   Iterable<M.Field> _variables;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.Library get library => _library;
 
-  factory LibraryViewElement(M.VM vm, M.IsolateRef isolate, M.Library library,
-                            M.EventRepository events,
-                            M.NotificationRepository notifications,
-                            M.LibraryRepository libraries,
-                            M.FieldRepository fields,
-                            M.RetainedSizeRepository retainedSizes,
-                            M.ReachableSizeRepository reachableSizes,
-                            M.InboundReferencesRepository references,
-                            M.RetainingPathRepository retainingPaths,
-                            M.ScriptRepository scripts,
-                            M.InstanceRepository instances,
-                            M.EvalRepository eval,
-                            {RenderingQueue queue}) {
+  factory LibraryViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.Library library,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.LibraryRepository libraries,
+      M.FieldRepository fields,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.ScriptRepository scripts,
+      M.InstanceRepository instances,
+      M.EvalRepository eval,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -145,39 +147,47 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         new NavLibraryMenuElement(_isolate, _library, queue: _r.queue),
         new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _refresh();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _refresh();
+          }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'ICData',
           new HRElement(),
           new ObjectCommonElement(_isolate, _library, _retainedSizes,
-                                  _reachableSizes, _references, _retainingPaths,
-                                  _instances, queue: _r.queue),
-          new DivElement()..classes = ['memberList']
+              _reachableSizes, _references, _retainingPaths, _instances,
+              queue: _r.queue),
+          new DivElement()
+            ..classes = ['memberList']
             ..children = [
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'uri',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = _library.uri
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'vm name',
-                  new DivElement()..classes = ['memberValue']
+                  new DivElement()
+                    ..classes = ['memberValue']
                     ..text = _library.vmName
                 ]
             ],
           new HRElement(),
           new EvalBoxElement(_isolate, _library, _instances, _eval,
-                             queue: _r.queue),
+              queue: _r.queue),
           new HRElement(),
           _createDependencies(),
           new BRElement(),
@@ -189,8 +199,9 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
           new BRElement(),
           _createFunctions(),
           new HRElement(),
-          new ScriptInsetElement(_isolate, _library.rootScript, _scripts,
-                                 _instances, _events, queue: _r.queue),
+          new ScriptInsetElement(
+              _isolate, _library.rootScript, _scripts, _instances, _events,
+              queue: _r.queue),
           new HRElement(),
           new ViewFooterElement(queue: _r.queue)
         ]
@@ -201,8 +212,8 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
     _library = await _libraries.get(_isolate, _library.id);
     _variables = null;
     _r.dirty();
-    _variables = await Future.wait(_library.variables.map((field) =>
-        _fields.get(_isolate, field.id)));
+    _variables = await Future.wait(
+        _library.variables.map((field) => _fields.get(_isolate, field.id)));
     _r.dirty();
   }
 
@@ -215,15 +226,17 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
       ..children = [
         new SpanElement()..text = 'dependencies (${dependencies.length}) ',
         new CurlyBlockElement(queue: _r.queue)
-          ..content = dependencies.map((d) =>
-            new DivElement()..classes = ['indent']
-              ..children = [
-                new SpanElement()..text = d.isImport ? 'import ' : 'export ',
-                new LibraryRefElement(_isolate, d.target, queue: _r.queue),
-                new SpanElement()..text = d.prefix == null ? ''
-                                                           : ' as ${d.prefix}',
-                new SpanElement()..text = d.isDeferred ? ' deferred' : '',
-              ]).toList()
+          ..content = dependencies
+              .map((d) => new DivElement()
+                ..classes = ['indent']
+                ..children = [
+                  new SpanElement()..text = d.isImport ? 'import ' : 'export ',
+                  new LibraryRefElement(_isolate, d.target, queue: _r.queue),
+                  new SpanElement()
+                    ..text = d.prefix == null ? '' : ' as ${d.prefix}',
+                  new SpanElement()..text = d.isDeferred ? ' deferred' : '',
+                ])
+              .toList()
       ];
   }
 
@@ -236,11 +249,13 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
       ..children = [
         new SpanElement()..text = 'scripts (${scripts.length}) ',
         new CurlyBlockElement(queue: _r.queue)
-          ..content = scripts.map((s) =>
-            new DivElement()..classes = ['indent']
-              ..children = [
-                new ScriptRefElement(_isolate, s, queue: _r.queue)
-              ]).toList()
+          ..content = scripts
+              .map((s) => new DivElement()
+                ..classes = ['indent']
+                ..children = [
+                  new ScriptRefElement(_isolate, s, queue: _r.queue)
+                ])
+              .toList()
       ];
   }
 
@@ -253,11 +268,13 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
       ..children = [
         new SpanElement()..text = 'classes (${classes.length}) ',
         new CurlyBlockElement(queue: _r.queue)
-          ..content = classes.map((c) =>
-            new DivElement()..classes = ['indent']
-              ..children = [
-                new ClassRefElement(_isolate, c, queue: _r.queue)
-              ]).toList()
+          ..content = classes
+              .map((c) => new DivElement()
+                ..classes = ['indent']
+                ..children = [
+                  new ClassRefElement(_isolate, c, queue: _r.queue)
+                ])
+              .toList()
       ];
   }
 
@@ -272,23 +289,28 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
         new CurlyBlockElement(queue: _r.queue)
           ..content = [
             _variables == null
-              ? (new SpanElement()..text = 'loading...')
-              : (new DivElement()..classes = ['indent', 'memberList']
-                  ..children = _variables.map((f) =>
-                    new DivElement()..classes = ['memberItem']
-                      ..children = [
-                        new DivElement()..classes = ['memberName']
-                          ..children = [
-                            new FieldRefElement(_isolate, f, _instances,
-                                queue: _r.queue)
-                          ],
-                        new DivElement()..classes = ['memberValue']
-                          ..children = [
-                            new SpanElement()..text = ' = ',
-                            anyRef(_isolate, f.staticValue, _instances,
-                                   queue: _r.queue)
-                          ]
-                      ]).toList())
+                ? (new SpanElement()..text = 'loading...')
+                : (new DivElement()
+                  ..classes = ['indent', 'memberList']
+                  ..children = _variables
+                      .map((f) => new DivElement()
+                        ..classes = ['memberItem']
+                        ..children = [
+                          new DivElement()
+                            ..classes = ['memberName']
+                            ..children = [
+                              new FieldRefElement(_isolate, f, _instances,
+                                  queue: _r.queue)
+                            ],
+                          new DivElement()
+                            ..classes = ['memberValue']
+                            ..children = [
+                              new SpanElement()..text = ' = ',
+                              anyRef(_isolate, f.staticValue, _instances,
+                                  queue: _r.queue)
+                            ]
+                        ])
+                      .toList())
           ]
       ];
   }
@@ -302,11 +324,13 @@ class LibraryViewElement  extends HtmlElement implements Renderable {
       ..children = [
         new SpanElement()..text = 'functions (${functions.length}) ',
         new CurlyBlockElement(queue: _r.queue)
-          ..content = functions.map((f) =>
-            new DivElement()..classes = ['indent']
-              ..children = [
-                new FunctionRefElement(_isolate, f, queue: _r.queue)
-              ]).toList()
+          ..content = functions
+              .map((f) => new DivElement()
+                ..classes = ['indent']
+                ..children = [
+                  new FunctionRefElement(_isolate, f, queue: _r.queue)
+                ])
+              .toList()
       ];
   }
 }

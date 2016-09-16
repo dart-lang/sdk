@@ -5,7 +5,7 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M
-  show IsolateRef, LocalVarDescriptorsRef;
+    show IsolateRef, LocalVarDescriptorsRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -24,8 +24,9 @@ class LocalVarDescriptorsRefElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.LocalVarDescriptorsRef get localVar => _localVar;
 
-  factory LocalVarDescriptorsRefElement(M.IsolateRef isolate,
-      M.LocalVarDescriptorsRef localVar, {RenderingQueue queue}) {
+  factory LocalVarDescriptorsRefElement(
+      M.IsolateRef isolate, M.LocalVarDescriptorsRef localVar,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(localVar != null);
     LocalVarDescriptorsRefElement e = document.createElement(tag.name);
@@ -52,8 +53,8 @@ class LocalVarDescriptorsRefElement extends HtmlElement implements Renderable {
 
   void render() {
     final text = (_localVar.name == null || _localVar.name == '')
-      ? 'LocalVarDescriptors'
-      : _localVar.name;
+        ? 'LocalVarDescriptors'
+        : _localVar.name;
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _localVar))
         ..text = text

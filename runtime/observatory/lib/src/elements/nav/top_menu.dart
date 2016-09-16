@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/nav/menu_item.dart';
 
 class NavTopMenuElement extends HtmlElement implements Renderable {
   static const tag = const Tag<NavTopMenuElement>('nav-top-menu',
-                     dependencies: const [NavMenuItemElement.tag]);
+      dependencies: const [NavMenuItemElement.tag]);
 
   RenderingScheduler _r;
 
@@ -52,8 +52,6 @@ class NavTopMenuElement extends HtmlElement implements Renderable {
     final content = ([
       new NavMenuItemElement('Connect to a VM', link: Uris.vmConnect()),
     ]..addAll(_content));
-    children = [
-      navMenu('Observatory', link: Uris.vm(), content: content)
-    ];
+    children = [navMenu('Observatory', link: Uris.vm(), content: content)];
   }
 }
