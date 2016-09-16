@@ -39,12 +39,25 @@ main() {
   testNonEmptyMapLiteral();
   testNot();
   testUnaryMinus();
+  testConditional();
+  testPostInc(null);
+  testPostDec(null);
+  testPreInc(null);
+  testPreDec(null);
   testIfThen();
   testIfThenElse();
   testTopLevelInvoke();
   testTopLevelInvokeTyped();
   testTopLevelField();
   testTopLevelFieldTyped();
+  testDynamicInvoke(null);
+  testDynamicGet(null);
+  testDynamicSet(null);
+  testLocalWithInitializer();
+  testInvokeIndex(null);
+  testInvokeIndexSet(null);
+  testAssert();
+  testAssertWithMessage();
 }
 
 testEmpty() {}
@@ -67,6 +80,11 @@ testEmptyMapLiteralConstant() => const {};
 testNonEmptyMapLiteral() => {0: true};
 testNot() => !false;
 testUnaryMinus() => -1;
+testConditional() => true ? 1 : '';
+testPostInc(o) => o++;
+testPostDec(o) => o--;
+testPreInc(o) => ++o;
+testPreDec(o) => --o;
 testIfThen() {
   if (false) return 42;
   return 1;
@@ -112,6 +130,30 @@ var topLevelField;
 testTopLevelField() => topLevelField;
 int topLevelFieldTyped;
 testTopLevelFieldTyped() => topLevelFieldTyped;
+testDynamicInvoke(o) {
+  o.f1(0);
+  o.f2(1);
+  o.f3(2, 3);
+  o.f4(4, 5, 6);
+  o.f5(7);
+  o.f6(8, b: 9);
+  o.f7(10, c: 11);
+  o.f8(12, b: 13, c: 14);
+  o.f9(15, c: 16, b: 17);
+}
+testDynamicGet(o) => o.foo;
+testDynamicSet(o) => o.foo = 42;
+testLocalWithInitializer() {
+  var l = 42;
+}
+testInvokeIndex(o) => o[42];
+testInvokeIndexSet(o) => o[42] = null;
+testAssert() {
+  assert(true);
+}
+testAssertWithMessage() {
+  assert(true, 'ok');
+}
 '''
 };
 
@@ -122,11 +164,21 @@ main(List<String> args) {
     Compiler compiler = compilerFor(
         entryPoint: entryPoint,
         memorySourceFiles: SOURCE,
-        options: [Flags.analyzeOnly, Flags.useKernel]);
+        options:
+            [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    compiler.mainApp
-        .forEachLocalMember((element) => checkElement(compiler, element));
+    checkLibrary(compiler, compiler.mainApp);
+  });
+}
+
+void checkLibrary(Compiler compiler, LibraryElement library) {
+  library.forEachLocalMember((AstElement element) {
+    if (element.isClass) {
+      // TODO(johnniwinther): Handle class members.
+    } else {
+      checkElement(compiler, element);
+    }
   });
 }
 

@@ -43,9 +43,6 @@ enum Feature {
   /// A field without an initializer.
   FIELD_WITHOUT_INITIALIZER,
 
-  /// A ++/-- operation.
-  INC_DEC_OPERATION,
-
   /// A field whose initialization is not a constant.
   LAZY_FIELD,
 

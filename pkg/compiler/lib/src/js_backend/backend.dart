@@ -2825,9 +2825,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
               new TypeUse.instantiation(backend.coreTypes.nullType));
           registerBackendImpact(transformed, impacts.nullLiteral);
           break;
-        case Feature.INC_DEC_OPERATION:
-          registerBackendImpact(transformed, impacts.incDecOperation);
-          break;
         case Feature.LAZY_FIELD:
           registerBackendImpact(transformed, impacts.lazyField);
           break;

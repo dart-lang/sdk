@@ -3409,7 +3409,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           ? new PrefixStructure(semantics, operator)
           : new PostfixStructure(semantics, operator);
       registry.registerSendStructure(node, sendStructure);
-      registry.registerFeature(Feature.INC_DEC_OPERATION);
+      registry.registerConstantLiteral(new IntConstantExpression(1));
     } else {
       Node rhs = node.arguments.head;
       visitExpression(rhs);

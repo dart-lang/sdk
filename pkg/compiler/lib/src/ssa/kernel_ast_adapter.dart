@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
+import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
@@ -91,20 +92,26 @@ class KernelAstAdapter {
     return new CallStructure(argumentCount, namedArguments);
   }
 
+  Name getName(ir.Name name) {
+    return new Name(
+        name.name, name.isPrivate ? getElement(name.library) : null);
+  }
+
   // TODO(het): Create the selector directly from the invocation
   Selector getSelector(ir.InvocationExpression invocation) {
-    SelectorKind kind = Elements.isOperatorName(invocation.name.name)
-        ? SelectorKind.OPERATOR
-        : SelectorKind.CALL;
-    if (invocation.name.name == '[]' || invocation.name.name == '[]=') {
-      kind = SelectorKind.INDEX;
+    Name name = getName(invocation.name);
+    SelectorKind kind;
+    if (Elements.isOperatorName(invocation.name.name)) {
+      if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
+        kind = SelectorKind.INDEX;
+      } else {
+        kind = SelectorKind.OPERATOR;
+      }
+    } else {
+      kind = SelectorKind.CALL;
     }
 
-    ir.Name irName = invocation.name;
-    Name name = new Name(
-        irName.name, irName.isPrivate ? getElement(irName.library) : null);
     CallStructure callStructure = getCallStructure(invocation.arguments);
-
     return new Selector(kind, name, callStructure);
   }
 

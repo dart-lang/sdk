@@ -11,9 +11,11 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/kernel.dart';
+import '../kernel/kernel_debug.dart';
 import '../kernel/kernel_visitor.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
 import '../universe/feature.dart';
+import '../universe/selector.dart';
 import '../universe/use.dart';
 
 import 'kernel_ast_adapter.dart';
@@ -212,7 +214,32 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   @override
+  void visitPropertyGet(ir.PropertyGet node) {
+    node.receiver.accept(this);
+    impactBuilder.registerDynamicUse(new DynamicUse(
+        new Selector.getter(astAdapter.getName(node.name)), null));
+  }
+
+  @override
+  void visitPropertySet(ir.PropertySet node) {
+    node.receiver.accept(this);
+    node.value.accept(this);
+    impactBuilder.registerDynamicUse(new DynamicUse(
+        new Selector.setter(astAdapter.getName(node.name)), null));
+  }
+
+  @override
   void visitNot(ir.Not not) {
     not.operand.accept(this);
   }
+
+  @override
+  void visitAssertStatement(ir.AssertStatement node) {
+    impactBuilder.registerFeature(
+        node.message != null ? Feature.ASSERT_WITH_MESSAGE : Feature.ASSERT);
+    node.visitChildren(this);
+  }
+
+  @override
+  void defaultNode(ir.Node node) => node.visitChildren(this);
 }

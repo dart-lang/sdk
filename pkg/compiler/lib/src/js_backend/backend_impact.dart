@@ -306,16 +306,6 @@ class BackendImpacts {
     return _constSymbol;
   }
 
-  BackendImpact _incDecOperation;
-
-  BackendImpact get incDecOperation {
-    if (_incDecOperation == null) {
-      _incDecOperation =
-          _needsInt('Needed for the `+ 1` or `- 1` operation of ++/--.');
-    }
-    return _incDecOperation;
-  }
-
   /// Helper for registering that `int` is needed.
   BackendImpact _needsInt(String reason) {
     // TODO(johnniwinther): Register [reason] for use in dump-info.
