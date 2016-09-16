@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -375,7 +376,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   ExportDirective visitExportDirective(ExportDirective node) {
-    ExportDirective directive = new ExportDirective(
+    ExportDirectiveImpl directive = new ExportDirective(
         cloneNode(node.documentationComment),
         cloneNodeList(node.metadata),
         cloneToken(node.keyword),
@@ -383,7 +384,8 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.configurations),
         cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
-    directive.source = node.source;
+    directive.selectedSource = node.selectedSource;
+    directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
     return directive;
   }
@@ -546,7 +548,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   ImportDirective visitImportDirective(ImportDirective node) {
-    ImportDirective directive = new ImportDirective(
+    ImportDirectiveImpl directive = new ImportDirective(
         cloneNode(node.documentationComment),
         cloneNodeList(node.metadata),
         cloneToken(node.keyword),
@@ -557,7 +559,8 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNode(node.prefix),
         cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
-    directive.source = node.source;
+    directive.selectedSource = node.selectedSource;
+    directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
     return directive;
   }
@@ -705,7 +708,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneToken(node.partKeyword),
         cloneNode(node.uri),
         cloneToken(node.semicolon));
-    directive.source = node.source;
+    directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
     return directive;
   }

@@ -519,9 +519,10 @@ class FixProcessor {
   }
 
   void _addFix_addPartOfDirective() {
+    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral && node.parent is PartDirective) {
       PartDirective directive = node.parent;
-      Source partSource = directive.source;
+      Source partSource = directive.uriSource;
       CompilationUnit partUnit;
       partUnit = context.getResolvedCompilationUnit2(partSource, partSource);
       if (partUnit != null) {
@@ -1187,9 +1188,11 @@ class FixProcessor {
   }
 
   void _addFix_createImportUri() {
+    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
+    // TODO(brianwilkerson) Support the case where the node's parent is a Configuration.
     if (node is SimpleStringLiteral && node.parent is ImportDirective) {
       ImportDirective importDirective = node.parent;
-      Source source = importDirective.source;
+      Source source = importDirective.uriSource;
       if (source != null) {
         String file = source.fullName;
         if (isAbsolute(file) && AnalysisEngine.isDartFileName(file)) {
@@ -1407,9 +1410,10 @@ class FixProcessor {
   }
 
   void _addFix_createPartUri() {
+    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral && node.parent is PartDirective) {
       PartDirective partDirective = node.parent;
-      Source source = partDirective.source;
+      Source source = partDirective.uriSource;
       if (source != null) {
         String libName = unitLibraryElement.name;
         SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');

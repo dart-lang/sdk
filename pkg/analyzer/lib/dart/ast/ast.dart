@@ -2070,6 +2070,16 @@ abstract class Configuration extends AstNode {
   void set rightParenthesis(Token token);
 
   /**
+   * Return the source to which the [libraryUri] was resolved.
+   */
+  Source get uriSource;
+
+  /**
+   * Set the source to which the [libraryUri] was resolved to the given [source].
+   */
+  void set uriSource(Source source);
+
+  /**
    * Return the value to which the value of the declared variable will be
    * compared, or `null` if the condition does not include an equality test.
    */
@@ -5928,6 +5938,14 @@ abstract class NamespaceDirective extends UriBasedDirective {
   void set keyword(Token token);
 
   /**
+   * Return the source that was selected based on the declared variables. This
+   * will be the source from the first configuration whose condition is true, or
+   * the [uriSource] if either there are no configurations or if there are no
+   * configurations whose condition is true.
+   */
+  Source get selectedSource;
+
+  /**
    * Return the semicolon terminating the directive.
    */
   Token get semicolon;
@@ -7851,11 +7869,13 @@ abstract class UriBasedDirective extends Directive {
   /**
    * Return the source to which the URI was resolved.
    */
+  @deprecated
   Source get source;
 
   /**
    * Set the source to which the URI was resolved to the given [source].
    */
+  @deprecated
   void set source(Source source);
 
   /**
@@ -7869,22 +7889,32 @@ abstract class UriBasedDirective extends Directive {
   void set uri(StringLiteral uri);
 
   /**
-   * Return the content of the URI.
+   * Return the content of the [uri].
    */
   String get uriContent;
 
   /**
-   * Set the content of the URI to the given [content].
+   * Set the content of the [uri] to the given [content].
    */
   void set uriContent(String content);
 
   /**
-   * Return the element associated with the URI of this directive, or `null` if
-   * the AST structure has not been resolved or if the URI could not be
+   * Return the element associated with the [uri] of this directive, or `null`
+   * if the AST structure has not been resolved or if the URI could not be
    * resolved. Examples of the latter case include a directive that contains an
    * invalid URL or a URL that does not exist.
    */
   Element get uriElement;
+
+  /**
+   * Return the source to which the [uri] was resolved.
+   */
+  Source get uriSource;
+
+  /**
+   * Set the source to which the [uri] was resolved to the given [source].
+   */
+  void set uriSource(Source source);
 
   /**
    * Validate this directive, but do not check for existence. Return a code

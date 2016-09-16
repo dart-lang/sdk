@@ -16,6 +16,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show NamespaceDirectiveImpl, UriBasedDirectiveImpl;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -1523,7 +1525,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         directivesToResolve.add(directive);
       } else if (directive is PartDirective) {
         StringLiteral partUri = directive.uri;
-        Source partSource = directive.source;
+        Source partSource = directive.uriSource;
         hasPartDirective = true;
         CompilationUnit partUnit = partUnitMap[partSource];
         if (partUnit != null) {
@@ -3983,6 +3985,16 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   ]);
 
   /**
+   * The source that is being parsed.
+   */
+  Source _source;
+
+  /**
+   * The [ErrorReporter] to report errors to.
+   */
+  ErrorReporter _errorReporter;
+
+  /**
    * Initialize a newly created task to parse the content of the Dart file
    * associated with the given [target] in the given [context].
    */
@@ -3994,17 +4006,20 @@ class ParseDartTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    Source source = getRequiredSource();
+    _source = getRequiredSource();
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT_NAME);
     int modificationTime = getRequiredInput(MODIFICATION_TIME_INPUT_NAME);
     Token tokenStream = getRequiredInput(TOKEN_STREAM_INPUT_NAME);
 
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    Parser parser = new Parser(source, errorListener);
+    _errorReporter = new ErrorReporter(errorListener, _source);
+
+    Parser parser = new Parser(_source, errorListener);
     AnalysisOptions options = context.analysisOptions;
     parser.enableAssertInitializer = options.enableAssertInitializer;
     parser.parseAsync = options.enableAsync;
-    parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
+    parser.parseFunctionBodies =
+        options.analyzeFunctionBodiesPredicate(_source);
     parser.parseGenericMethods = options.enableGenericMethods;
     parser.parseGenericMethodComments = options.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
@@ -4024,8 +4039,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
       } else {
         hasNonPartOfDirective = true;
         if (directive is UriBasedDirective) {
-          Source referencedSource =
-              resolveDirective(context, source, directive, errorListener);
+          Source referencedSource = _resolveDirective(directive);
           if (referencedSource != null) {
             if (directive is ExportDirective) {
               exportedSourceSet.add(referencedSource);
@@ -4070,7 +4084,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     //
     // Compute referenced names.
     //
-    ReferencedNames referencedNames = new ReferencedNames(source);
+    ReferencedNames referencedNames = new ReferencedNames(_source);
     new ReferencedNamesBuilder(referencedNames).build(unit);
     //
     // Record outputs.
@@ -4081,14 +4095,14 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     List<Source> importedSources = importedSourceSet.toList();
     List<Source> includedSources = includedSourceSet.toList();
     List<AnalysisError> parseErrors = getUniqueErrors(errorListener.errors);
-    List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
+    List<Source> unitSources = <Source>[_source]..addAll(includedSourceSet);
     List<Source> referencedSources = (new Set<Source>()
           ..addAll(importedSources)
           ..addAll(exportedSources)
           ..addAll(unitSources))
         .toList();
     List<LibrarySpecificUnit> librarySpecificUnits =
-        unitSources.map((s) => new LibrarySpecificUnit(source, s)).toList();
+        unitSources.map((s) => new LibrarySpecificUnit(_source, s)).toList();
     outputs[EXPLICITLY_IMPORTED_LIBRARIES] = explicitlyImportedSources;
     outputs[EXPORTED_LIBRARIES] = exportedSources;
     outputs[IMPORTED_LIBRARIES] = importedSources;
@@ -4100,6 +4114,76 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     outputs[REFERENCED_SOURCES] = referencedSources;
     outputs[SOURCE_KIND] = sourceKind;
     outputs[UNITS] = unitSources;
+  }
+
+  /**
+   * Return the result of resolving the URI of the given URI-based [directive]
+   * against the URI of the given library, or `null` if the URI is not valid.
+   */
+  Source _resolveDirective(UriBasedDirective directive) {
+    bool isImport = directive is ImportDirective;
+
+    // Resolve the default URI.
+    Source defaultSource;
+    {
+      StringLiteral uriLiteral = directive.uri;
+      String uriContent = uriLiteral.stringValue;
+      if (uriContent != null) {
+        uriContent = uriContent.trim();
+        directive.uriContent = uriContent;
+      }
+      defaultSource = _resolveUri(isImport, uriLiteral, uriContent);
+      directive.uriSource = defaultSource;
+    }
+
+    // Resolve all configurations and try to choose one.
+    if (directive is NamespaceDirectiveImpl) {
+      Source configurationSource;
+      for (Configuration configuration in directive.configurations) {
+        Source source = _resolveUri(isImport, configuration.libraryUri,
+            configuration.libraryUri.stringValue);
+        configuration.uriSource = source;
+        if (configurationSource == null) {
+          String variableName =
+              configuration.name.components.map((i) => i.name).join('.');
+          String variableValue = context.declaredVariables.get(variableName);
+          if (configuration.value != null &&
+                  variableValue == configuration.value.stringValue ||
+              variableValue == 'true') {
+            configurationSource = source;
+          }
+        }
+      }
+      Source referencedSource = configurationSource ?? defaultSource;
+      directive.selectedSource = referencedSource;
+      return referencedSource;
+    }
+    return defaultSource;
+  }
+
+  /**
+   * Return the result of resolve the given [uriContent], reporting errors
+   * against the [uriLiteral].
+   */
+  Source _resolveUri(
+      bool isImport, StringLiteral uriLiteral, String uriContent) {
+    UriValidationCode code =
+        UriBasedDirectiveImpl.validateUri(isImport, uriLiteral, uriContent);
+    if (code == null) {
+      String encodedUriContent = Uri.encodeFull(uriContent);
+      return context.sourceFactory.resolveUri(_source, encodedUriContent);
+    } else if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
+      return null;
+    } else if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.URI_WITH_INTERPOLATION, uriLiteral);
+      return null;
+    } else if (code == UriValidationCode.INVALID_URI) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INVALID_URI, uriLiteral, [uriContent]);
+      return null;
+    }
+    throw new AnalysisException('Failed to handle validation code: $code');
   }
 
   /**
@@ -4122,45 +4206,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   static ParseDartTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ParseDartTask(context, target);
-  }
-
-  /**
-   * Return the result of resolving the URI of the given URI-based [directive]
-   * against the URI of the given library, or `null` if the URI is not valid.
-   *
-   * Resolution is to be performed in the given [context]. Errors should be
-   * reported to the [errorListener].
-   */
-  static Source resolveDirective(AnalysisContext context, Source librarySource,
-      UriBasedDirective directive, AnalysisErrorListener errorListener) {
-    StringLiteral uriLiteral = directive.uri;
-    String uriContent = uriLiteral.stringValue;
-    if (uriContent != null) {
-      uriContent = uriContent.trim();
-      directive.uriContent = uriContent;
-    }
-    UriValidationCode code = directive.validate();
-    if (code == null) {
-      String encodedUriContent = Uri.encodeFull(uriContent);
-      Source source =
-          context.sourceFactory.resolveUri(librarySource, encodedUriContent);
-      directive.source = source;
-      return source;
-    }
-    if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
-      return null;
-    }
-    if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
-      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
-          uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
-      return null;
-    }
-    if (code == UriValidationCode.INVALID_URI) {
-      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
-          uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
-      return null;
-    }
-    throw new AnalysisException('Failed to handle validation code: $code');
   }
 }
 
@@ -6174,7 +6219,33 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    * report an error if it does not.
    */
   void validateReferencedSource(UriBasedDirective directive) {
-    Source source = directive.source;
+    if (directive is NamespaceDirective) {
+      for (Configuration configuration in directive.configurations) {
+        Source source = configuration.uriSource;
+        StringLiteral uriLiteral = configuration.libraryUri;
+        String uriContent = uriLiteral?.stringValue?.trim();
+        if (source != null) {
+          int modificationTime = sourceTimeMap[source] ?? -1;
+          if (modificationTime >= 0) {
+            continue;
+          }
+        } else {
+          // Don't report errors already reported by ParseDartTask.resolveDirective
+          if (UriBasedDirectiveImpl.validateUri(
+                  directive is ImportDirective, uriLiteral, uriContent) !=
+              null) {
+            continue;
+          }
+        }
+        CompileTimeErrorCode errorCode =
+            CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        if (_isGenerated(source)) {
+          errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
+        }
+        errorReporter.reportErrorForNode(errorCode, uriLiteral, [uriContent]);
+      }
+    }
+    Source source = directive.uriSource;
     if (source != null) {
       int modificationTime = sourceTimeMap[source] ?? -1;
       if (modificationTime >= 0) {

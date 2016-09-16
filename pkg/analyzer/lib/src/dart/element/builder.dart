@@ -169,7 +169,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   Object visitExportDirective(ExportDirective node) {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
-    Source exportedSource = node.source;
+    Source exportedSource = node.selectedSource;
     int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
     // The exported source will be null if the URI in the export
     // directive was invalid.
@@ -211,7 +211,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   Object visitImportDirective(ImportDirective node) {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
-    Source importedSource = node.source;
+    Source importedSource = node.selectedSource;
     int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
     // The imported source will be null if the URI in the import
     // directive was invalid.

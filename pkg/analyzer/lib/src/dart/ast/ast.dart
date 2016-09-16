@@ -2595,15 +2595,24 @@ class ConditionalExpressionImpl extends ExpressionImpl
 class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   Token ifKeyword;
+
   @override
   Token leftParenthesis;
+
   DottedName _name;
+
   @override
   Token equalToken;
+
   StringLiteral _value;
+
   @override
   Token rightParenthesis;
+
   StringLiteral _libraryUri;
+
+  @override
+  Source uriSource;
 
   ConfigurationImpl(
       this.ifKeyword,
@@ -7455,6 +7464,9 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token semicolon;
 
+  @override
+  Source selectedSource;
+
   /**
    * Initialize a newly created namespace directive. Either or both of the
    * [comment] and [metadata] can be `null` if the directive does not have the
@@ -7485,6 +7497,16 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata => keyword;
+
+  @deprecated
+  @override
+  Source get source => selectedSource;
+
+  @deprecated
+  @override
+  void set source(Source source) {
+    selectedSource = source;
+  }
 
   @override
   LibraryElement get uriElement;
@@ -10496,15 +10518,11 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
    */
   StringLiteral _uri;
 
-  /**
-   * The content of the URI.
-   */
+  @override
   String uriContent;
 
-  /**
-   * The source to which the URI was resolved.
-   */
-  Source source;
+  @override
+  Source uriSource;
 
   /**
    * Initialize a newly create URI-based directive. Either or both of the
@@ -10517,6 +10535,16 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     _uri = _becomeParentOf(uri);
   }
 
+  @deprecated
+  @override
+  Source get source => uriSource;
+
+  @deprecated
+  @override
+  void set source(Source source) {
+    uriSource = source;
+  }
+
   @override
   StringLiteral get uri => _uri;
 
@@ -10527,15 +10555,28 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
 
   @override
   UriValidationCode validate() {
-    StringLiteral uriLiteral = this.uri;
+    return validateUri(this is ImportDirective, uri, uriContent);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _uri?.accept(visitor);
+  }
+
+  /**
+   * Validate this directive, but do not check for existence. Return a code
+   * indicating the problem if there is one, or `null` no problem.
+   */
+  static UriValidationCode validateUri(
+      bool isImport, StringLiteral uriLiteral, String uriContent) {
     if (uriLiteral is StringInterpolation) {
       return UriValidationCode.URI_WITH_INTERPOLATION;
     }
-    String uriContent = this.uriContent;
     if (uriContent == null) {
       return UriValidationCode.INVALID_URI;
     }
-    if (this is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
+    if (isImport && uriContent.startsWith(_DART_EXT_SCHEME)) {
       return UriValidationCode.URI_WITH_DART_EXT_SCHEME;
     }
     Uri uri;
@@ -10548,12 +10589,6 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
       return UriValidationCode.INVALID_URI;
     }
     return null;
-  }
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _uri?.accept(visitor);
   }
 }
 

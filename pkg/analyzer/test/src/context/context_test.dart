@@ -1942,7 +1942,7 @@ class ClassA {}''');
     CompilationUnit unit = context.computeResult(scripts[0], PARSED_UNIT);
     ImportDirective importNode = unit.directives[0] as ImportDirective;
     expect(importNode.uriContent, isNotNull);
-    expect(importNode.source, libSource);
+    expect(importNode.uriSource, libSource);
   }
 
   void test_performAnalysisTask_addPart() {
