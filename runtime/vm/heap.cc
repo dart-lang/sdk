@@ -562,6 +562,13 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
 
 
 bool Heap::Verify(MarkExpectation mark_expectation) const {
+// TODO(27373): Remove this test when the issue is fixed.
+#if defined(ARCH_IS_64_BIT)
+  if ((Dart::snapshot_kind() == Snapshot::kAppNoJIT) ||
+      (Dart::snapshot_kind() == Snapshot::kAppWithJIT)) {
+    return true;
+  }
+#endif
   HeapIterationScope heap_iteration_scope;
   return VerifyGC(mark_expectation);
 }
