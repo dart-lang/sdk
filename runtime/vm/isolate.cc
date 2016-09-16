@@ -8,6 +8,7 @@
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/text_buffer.h"
+#include "vm/atomic.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
 #include "vm/compiler.h"
@@ -142,19 +143,19 @@ NoOOBMessageScope::~NoOOBMessageScope() {
 }
 
 
-
 NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
     : StackResource(thread),
       isolate_(isolate) {
   ASSERT(isolate_ != NULL);
-  isolate_->no_reload_scope_depth_++;
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+  AtomicOperations::FetchAndIncrement(&(isolate_->no_reload_scope_depth_));
 }
 
 
 NoReloadScope::~NoReloadScope() {
-  isolate_->no_reload_scope_depth_--;
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+  uintptr_t previous_value =
+      AtomicOperations::FetchAndDecrement(&(isolate_->no_reload_scope_depth_));
+  // If the previous value was 0 we have underflowed.
+  ASSERT(previous_value != 0);
 }
 
 
@@ -1074,7 +1075,8 @@ void Isolate::DoneLoading() {
 bool Isolate::CanReload() const {
 #ifndef PRODUCT
   return !ServiceIsolate::IsServiceIsolateDescendant(this) &&
-         is_runnable() && !IsReloading() && (no_reload_scope_depth_ == 0) &&
+         is_runnable() && !IsReloading() &&
+         (AtomicOperations::LoadRelaxed(&no_reload_scope_depth_) == 0) &&
          IsolateCreationEnabled();
 #else
   return false;
