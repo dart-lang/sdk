@@ -73,6 +73,23 @@
     }
     ```
 
+* Breaking change - infer list and map literals from the context type as well as
+    their values, consistent with generic methods and instance creation
+    (SDK issue [27151](https://github.com/dart-lang/sdk/issues/27151)).
+
+    ```dart
+    import 'dart:async';
+    main() async {
+      var b = new Future<B>.value(new B());
+      var c = new Future<C>.value(new C());
+      var/*infer List<Future<A>>*/ list = [b, c];
+      var/*infer List<A>*/ result = await Future.wait(list);
+    }
+    class A {}
+    class B extends A {}
+    class C extends A {}
+    ```
+
 ## 1.19.0
 
 ### Language changes
