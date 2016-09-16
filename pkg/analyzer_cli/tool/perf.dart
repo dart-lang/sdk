@@ -6,22 +6,22 @@
 library analyzer_cli.tool.perf;
 
 import 'dart:io' show exit;
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/file_system/file_system.dart'
-    show ResourceProvider, ResourceUriResolver
-    hide File;
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
+import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
-import 'package:analyzer/src/error.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:package_config/discovery.dart';
 
 /// Cummulative total number of chars scanned.
 int scanTotalChars = 0;
@@ -34,14 +34,14 @@ SourceFactory sources;
 
 main(args) {
   // TODO(sigmund): provide sdk folder as well.
-  if (args.length < 2) {
+  if (args.length < 3) {
     print('usage: perf.dart <bench-id> <package-root> <entry.dart>');
     exit(1);
   }
   var totalTimer = new Stopwatch()..start();
 
   var bench = args[0];
-  var packageRoot = args[1];
+  var packageRoot = Uri.base.resolve(args[1]);
   var entryUri = Uri.base.resolve(args[2]);
 
   setup(packageRoot);
@@ -57,16 +57,18 @@ main(args) {
   }
 
   totalTimer.stop();
-  report("Total", totalTimer.elapsedMicroseconds);
+  report("total", totalTimer.elapsedMicroseconds);
 }
 
 /// Sets up analyzer to be able to load and resolve app, packages, and sdk
 /// sources.
-void setup(String packageRoot) {
+void setup(Uri packageRoot) {
   var provider = PhysicalResourceProvider.INSTANCE;
+  var packageMap = new ContextBuilder(provider, null, null)
+      .convertPackagesToMap(getPackagesDirectory(packageRoot));
   sources = new SourceFactory([
     new ResourceUriResolver(provider),
-    new PackageUriResolver([new JavaFile(packageRoot)]),
+    new PackageMapUriResolver(provider, packageMap),
     new DartUriResolver(
         new FolderBasedDartSdk(provider, provider.getFolder("sdk"))),
   ]);
@@ -92,8 +94,8 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
   print('input size: ${scanTotalChars} chars');
   var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("Loader", loadTime);
-  report("Scanner", scanTimer.elapsedMicroseconds);
+  report("load", loadTime);
+  report("scan", scanTimer.elapsedMicroseconds);
   return files;
 }
 
@@ -114,10 +116,10 @@ void parseFiles(Set<Source> files) {
 
   // Report size and scanning time again. See discussion above.
   if (old != scanTotalChars) print('input size changed? ${old} chars');
-  report("Scanner", scanTimer.elapsedMicroseconds);
+  report("scan", scanTimer.elapsedMicroseconds);
 
   var pTime = parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("Parser", pTime);
+  report("parse", pTime);
 }
 
 /// Add to [files] all sources reachable from [start].
@@ -125,9 +127,10 @@ void collectSources(Source start, Set<Source> files) {
   if (!files.add(start)) return;
   var unit = parseDirectives(start);
   for (var directive in unit.directives) {
-    if (directive is! UriBasedDirective) continue;
-    var next = sources.resolveUri(start, directive.uri.stringValue);
-    collectSources(next, files);
+    if (directive is UriBasedDirective) {
+      var next = sources.resolveUri(start, directive.uri.stringValue);
+      collectSources(next, files);
+    }
   }
 }
 
@@ -163,7 +166,7 @@ Token tokenize(Source source) {
 /// [scanTotalChars] characters.
 void report(String name, int time) {
   var sb = new StringBuffer();
-  sb.write('$name: ${time ~/ 1000} ms');
+  sb.write('$name: $time us, ${time ~/ 1000} ms');
   sb.write(', ${scanTotalChars * 1000 ~/ time} chars/ms');
   print('$sb');
 }
