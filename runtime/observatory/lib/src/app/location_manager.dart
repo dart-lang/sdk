@@ -90,7 +90,7 @@ class LocationManager {
 
   /// Notify the current page that something has changed.
   _visit() {
-    runZoned(() => _app._visit(_uri, internalArguments), onError: (e, st) {
+    Chain.capture(() => _app._visit(_uri, internalArguments), onError: (e, st) {
       if (e is IsolateNotFound) {
         var newPath = ((_app.vm == null || _app.vm.isDisconnected)
             ? '/vm-connect'

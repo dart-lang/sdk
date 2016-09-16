@@ -11,7 +11,6 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/utils.dart';
 
 class InstanceRefElement extends HtmlElement implements Renderable {

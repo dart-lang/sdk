@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
+import 'package:stack_trace/stack_trace.dart';
 import 'service_test_common.dart';
 
 /// Will be set to the http address of the VM's service protocol before
@@ -271,7 +272,7 @@ class _FlutterDeviceServiceTesterRunner {
     serviceWebsocketAddress = 'ws://localhost:$port/ws';
     serviceHttpAddress = 'http://localhost:$port';
     var name = Platform.script.pathSegments.last;
-    runZoned(() async {
+    Chain.capture(() async {
       var vm =
           new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
       print('Loading VM...');
@@ -338,7 +339,7 @@ class _ServiceTesterRunner {
       serviceWebsocketAddress = 'ws://localhost:$port/ws';
       serviceHttpAddress = 'http://localhost:$port';
       var name = Platform.script.pathSegments.last;
-      runZoned(() async {
+      Chain.capture(() async {
         var vm =
             new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
         print('Loading VM...');
