@@ -26,7 +26,7 @@ import 'memory_compiler.dart';
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
-  "/test/src/util/": const [
+  "/test/lib/src/util/": const [
       "Library 'package:async/async.dart' doesn't export a "
       "'ForkableStream' declaration.",
   ],

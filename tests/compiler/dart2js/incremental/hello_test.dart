@@ -5,68 +5,56 @@
 // Test a sequence of modifications to hello-world which used to cause problems
 // on Try Dart.
 
-import 'dart:io' show
-    Platform;
+import 'dart:io' show Platform;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'package:dart2js_incremental/dart2js_incremental.dart' show
-    IncrementalCompiler;
+import 'package:dart2js_incremental/dart2js_incremental.dart'
+    show IncrementalCompiler;
 
-import 'package:compiler/compiler.dart' show
-    Diagnostic;
+import 'package:compiler/compiler.dart' show Diagnostic;
 
-import 'package:compiler/src/null_compiler_output.dart' show
-    NullCompilerOutput;
+import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 
-import 'package:compiler/src/old_to_new_api.dart' show
-    LegacyCompilerDiagnostics;
+import 'package:compiler/src/old_to_new_api.dart'
+    show LegacyCompilerDiagnostics;
 
-import 'package:async_helper/async_helper.dart' show
-    asyncTest;
+import 'package:async_helper/async_helper.dart' show asyncTest;
 
-import 'package:expect/expect.dart' show
-    Expect;
+import 'package:expect/expect.dart' show Expect;
 
-import '../memory_source_file_helper.dart' show
-    MemorySourceFileProvider;
+import '../memory_source_file_helper.dart' show MemorySourceFileProvider;
 
 var tests = {
-'/test1.dart':
-'''
+  '/test1.dart': '''
 var greeting = "Hello, World!";
 
 void main() {
   print(greeting);
 }
 ''',
-'/test2.dart':
-'''
+  '/test2.dart': '''
 va greeting = "Hello, World!";
 
 void main() {
   print(greeting);
 }
 ''',
-'/test3.dart':
-'''
+  '/test3.dart': '''
  greeting = "Hello, World!";
 
 void main() {
   print(greeting);
 }
 ''',
-'/test4.dart':
-'''
+  '/test4.dart': '''
 in greeting = "Hello, World!";
 
 void main() {
   print(greeting);
 }
 ''',
-'/test5.dart':
-'''
+  '/test5.dart': '''
 int greeting = "Hello, World!";
 
 void main() {
@@ -85,39 +73,31 @@ var testResults = {
 
 main() {
   Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
-  MemorySourceFileProvider provider =
-      new MemorySourceFileProvider(tests);
-  asyncTest(() => runTests(libraryRoot, packageRoot, provider));
+  Uri packageConfig = Uri.base.resolve('.packages');
+  MemorySourceFileProvider provider = new MemorySourceFileProvider(tests);
+  asyncTest(() => runTests(libraryRoot, packageConfig, provider));
 }
 
 Future runTests(
-    Uri libraryRoot,
-    Uri packageRoot,
-    MemorySourceFileProvider provider) {
+    Uri libraryRoot, Uri packageConfig, MemorySourceFileProvider provider) {
   IncrementalCompiler compiler = new IncrementalCompiler(
       diagnosticHandler: new LegacyCompilerDiagnostics(handler),
       inputProvider: provider,
       outputProvider: const NullCompilerOutput(),
       options: ['--analyze-main'],
       libraryRoot: libraryRoot,
-      packageRoot: packageRoot);
+      packageConfig: packageConfig);
 
   return Future.forEach(tests.keys, (String testName) {
     Uri testUri = Uri.parse('memory:$testName');
     return compiler.compile(testUri).then((bool success) {
-      Expect.equals(
-          testResults[testName], success,
+      Expect.equals(testResults[testName], success,
           'Compilation unexpectedly ${success ? "succeed" : "failed"}.');
     });
   });
 }
 
-void handler(Uri uri,
-             int begin,
-             int end,
-             String message,
-             Diagnostic kind) {
+void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
   if (kind != Diagnostic.VERBOSE_INFO) {
     print('$uri:$begin:$end:$message:$kind');
   }

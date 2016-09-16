@@ -74,7 +74,7 @@ testMissingImports() async {
   collector.checkMessages([
       const Expected.error(MessageKind.READ_SCRIPT_ERROR),
       const Expected.error(MessageKind.LIBRARY_NOT_FOUND),
-      const Expected.error(MessageKind.READ_SCRIPT_ERROR),
+      const Expected.error(MessageKind.LIBRARY_NOT_FOUND),
       const Expected.error(MessageKind.READ_SCRIPT_ERROR),
       const Expected.warning(MessageKind.NOT_ASSIGNABLE)]);
 }

@@ -54,6 +54,7 @@ const List<String> INCREMENTAL_OPTIONS = const <String>[
 class IncrementalCompiler {
   final Uri libraryRoot;
   final Uri packageRoot;
+  final Uri packageConfig;
   final CompilerInput inputProvider;
   final CompilerDiagnostics diagnosticHandler;
   final List<String> options;
@@ -67,6 +68,7 @@ class IncrementalCompiler {
   IncrementalCompiler({
       this.libraryRoot,
       this.packageRoot,
+      this.packageConfig,
       this.inputProvider,
       this.diagnosticHandler,
       this.options,
@@ -107,6 +109,7 @@ class IncrementalCompiler {
         cachedCompiler: _compiler,
         libraryRoot: libraryRoot,
         packageRoot: packageRoot,
+        packageConfig: packageConfig,
         inputProvider: inputProvider,
         diagnosticHandler: diagnosticHandler,
         options: options,
