@@ -346,6 +346,20 @@ class ComplexParserTest extends ParserTestCase {
         BinaryExpression, expression.condition);
   }
 
+  void test_conditionalExpression_precedence_nullableType() {
+    enableNnbd = true;
+    Expression expression = parseExpression('x is String ? (x + y) : z');
+    expect(expression, isNotNull);
+    expect(expression, new isInstanceOf<ConditionalExpression>());
+    ConditionalExpression conditional = expression;
+    Expression condition = conditional.condition;
+    expect(condition, new isInstanceOf<IsExpression>());
+    Expression thenExpression = conditional.thenExpression;
+    expect(thenExpression, new isInstanceOf<ParenthesizedExpression>());
+    Expression elseExpression = conditional.elseExpression;
+    expect(elseExpression, new isInstanceOf<SimpleIdentifier>());
+  }
+
   void test_constructor_initializer_withParenthesizedExpression() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
 class C {
@@ -395,7 +409,7 @@ class C {
         BinaryExpression, expression.leftOperand);
   }
 
-  void test_ifNullExpression_precendce_logicalOr_right() {
+  void test_ifNullExpression_precedence_logicalOr_right() {
     BinaryExpression expression = parseExpression('x ?? y || z');
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.rightOperand);
@@ -403,38 +417,50 @@ class C {
 
   void test_logicalAndExpression() {
     BinaryExpression expression = parseExpression("x && y && z");
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
-        BinaryExpression, expression.leftOperand);
+    expect(expression.leftOperand, new isInstanceOf<BinaryExpression>());
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_left() {
     BinaryExpression expression = parseExpression("x | y < z");
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
-        BinaryExpression, expression.leftOperand);
+    expect(expression.leftOperand, new isInstanceOf<BinaryExpression>());
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_right() {
     BinaryExpression expression = parseExpression("x < y | z");
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
-        BinaryExpression, expression.rightOperand);
+    expect(expression.rightOperand, new isInstanceOf<BinaryExpression>());
+  }
+
+  void test_logicalAndExpression_precedence_nullableType() {
+    enableNnbd = true;
+    BinaryExpression expression = parseExpression("x is C? && y is D");
+    expect(expression.leftOperand, new isInstanceOf<IsExpression>());
+    expect(expression.rightOperand, new isInstanceOf<IsExpression>());
   }
 
   void test_logicalOrExpression() {
     BinaryExpression expression = parseExpression("x || y || z");
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
-        BinaryExpression, expression.leftOperand);
+    expect(expression.leftOperand, new isInstanceOf<BinaryExpression>());
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_left() {
     BinaryExpression expression = parseExpression("x && y || z");
-    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
-        BinaryExpression, expression.leftOperand);
+    expect(expression.leftOperand, new isInstanceOf<BinaryExpression>());
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_right() {
     BinaryExpression expression = parseExpression("x || y && z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.rightOperand);
+  }
+
+  void test_logicalOrExpression_precedence_nullableType() {
+    enableNnbd = true;
+    BinaryExpression expression = parseExpression("a is X? || (b ? c : d)");
+    expect(expression.leftOperand, new isInstanceOf<IsExpression>());
+    expect(
+        expression.rightOperand, new isInstanceOf<ParenthesizedExpression>());
+    expect((expression.rightOperand as ParenthesizedExpression).expression,
+        new isInstanceOf<ConditionalExpression>());
   }
 
   void test_multipleLabels_statement() {
@@ -2418,6 +2444,12 @@ class ParserTestCase extends EngineTestCase {
   bool enableLazyAssignmentOperators = false;
 
   /**
+   * A flag indicating whether the parser is to parse the non-nullable modifier
+   * in type names.
+   */
+  bool enableNnbd = false;
+
+  /**
    * Return a CommentAndMetadata object with the given values that can be used for testing.
    *
    * @param comment the comment to be wrapped in the object
@@ -2473,6 +2505,7 @@ class ParserTestCase extends EngineTestCase {
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
+    parser.enableNnbd = enableNnbd;
     Object result =
         invokeParserMethodImpl(parser, methodName, objects, tokenStream);
     //
@@ -2603,6 +2636,7 @@ class ParserTestCase extends EngineTestCase {
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
+    parser.enableNnbd = enableNnbd;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     listener.assertErrorsWithCodes(errorCodes);
@@ -2629,6 +2663,7 @@ class ParserTestCase extends EngineTestCase {
     Parser parser = createParser(listener);
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
+    parser.enableNnbd = enableNnbd;
     Expression expression = parser.parseExpression(token);
     expect(expression, isNotNull);
     listener.assertErrorsWithCodes(errorCodes);
@@ -9096,6 +9131,17 @@ void''');
     expect(parameter.parameters, isNotNull);
   }
 
+  void test_parseNormalFormalParameter_function_noType_nullable() {
+    enableNnbd = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "a()?)");
+    expect(parameter.returnType, isNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNull);
+    expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNotNull);
+  }
+
   void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
     enableGenericMethodComments = true;
     FunctionTypedFormalParameter parameter =
@@ -9114,6 +9160,21 @@ void''');
     expect(parameter.identifier, isNotNull);
     expect(parameter.typeParameters, isNotNull);
     expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNull);
+    expect(parameter.question, isNull);
+  }
+
+  void
+      test_parseNormalFormalParameter_function_noType_typeParameters_nullable() {
+    enableGenericMethods = true;
+    enableNnbd = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "a<E>()?)");
+    expect(parameter.returnType, isNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNotNull);
+    expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNotNull);
   }
 
   void test_parseNormalFormalParameter_function_type() {
@@ -9123,6 +9184,18 @@ void''');
     expect(parameter.identifier, isNotNull);
     expect(parameter.typeParameters, isNull);
     expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_type_nullable() {
+    enableNnbd = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "A a()?)");
+    expect(parameter.returnType, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNull);
+    expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNotNull);
   }
 
   void test_parseNormalFormalParameter_function_type_typeParameterComments() {
@@ -9133,6 +9206,7 @@ void''');
     expect(parameter.identifier, isNotNull);
     expect(parameter.typeParameters, isNotNull);
     expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_type_typeParameters() {
@@ -9143,6 +9217,19 @@ void''');
     expect(parameter.identifier, isNotNull);
     expect(parameter.typeParameters, isNotNull);
     expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_type_typeParameters_nullable() {
+    enableGenericMethods = true;
+    enableNnbd = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "A a<E>()?)");
+    expect(parameter.returnType, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNotNull);
+    expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNotNull);
   }
 
   void test_parseNormalFormalParameter_function_void() {
@@ -9152,6 +9239,18 @@ void''');
     expect(parameter.identifier, isNotNull);
     expect(parameter.typeParameters, isNull);
     expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_void_nullable() {
+    enableNnbd = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "void a()?)");
+    expect(parameter.returnType, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNull);
+    expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNotNull);
   }
 
   void test_parseNormalFormalParameter_function_void_typeParameterComments() {
@@ -9162,6 +9261,7 @@ void''');
     expect(parameter.identifier, isNotNull);
     expect(parameter.typeParameters, isNotNull);
     expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_void_typeParameters() {
@@ -9172,6 +9272,19 @@ void''');
     expect(parameter.identifier, isNotNull);
     expect(parameter.typeParameters, isNotNull);
     expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_void_typeParameters_nullable() {
+    enableGenericMethods = true;
+    enableNnbd = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "void a<E>()?)");
+    expect(parameter.returnType, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNotNull);
+    expect(parameter.parameters, isNotNull);
+    expect(parameter.question, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_const_noType() {
@@ -10372,12 +10485,30 @@ void''');
     TypeName typeName = parse4("parseTypeName", "List<int>");
     expect(typeName.name, isNotNull);
     expect(typeName.typeArguments, isNotNull);
+    expect(typeName.question, isNull);
+  }
+
+  void test_parseTypeName_parameterized_nullable() {
+    enableNnbd = true;
+    TypeName typeName = parse4("parseTypeName", "List<int>?");
+    expect(typeName.name, isNotNull);
+    expect(typeName.typeArguments, isNotNull);
+    expect(typeName.question, isNotNull);
   }
 
   void test_parseTypeName_simple() {
     TypeName typeName = parse4("parseTypeName", "int");
     expect(typeName.name, isNotNull);
     expect(typeName.typeArguments, isNull);
+    expect(typeName.question, isNull);
+  }
+
+  void test_parseTypeName_simple_nullable() {
+    enableNnbd = true;
+    TypeName typeName = parse4("parseTypeName", "String?");
+    expect(typeName.name, isNotNull);
+    expect(typeName.typeArguments, isNull);
+    expect(typeName.question, isNotNull);
   }
 
   void test_parseTypeParameter_bounded() {

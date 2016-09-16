@@ -5453,6 +5453,9 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
    */
   FormalParameterList _parameters;
 
+  @override
+  Token question;
+
   /**
    * Initialize a newly created formal parameter. Either or both of the
    * [comment] and [metadata] can be `null` if the parameter does not have the
@@ -5465,7 +5468,8 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
       TypeNameImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters)
+      FormalParameterListImpl parameters,
+      this.question)
       : super(comment, metadata, identifier) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
@@ -10290,6 +10294,9 @@ class TypeNameImpl extends AstNodeImpl implements TypeName {
    */
   TypeArgumentList _typeArguments;
 
+  @override
+  Token question;
+
   /**
    * The type being named, or `null` if the AST structure has not been resolved.
    */
@@ -10299,7 +10306,8 @@ class TypeNameImpl extends AstNodeImpl implements TypeName {
    * Initialize a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  TypeNameImpl(IdentifierImpl name, TypeArgumentListImpl typeArguments) {
+  TypeNameImpl(
+      IdentifierImpl name, TypeArgumentListImpl typeArguments, this.question) {
     _name = _becomeParentOf(name);
     _typeArguments = _becomeParentOf(typeArguments);
   }

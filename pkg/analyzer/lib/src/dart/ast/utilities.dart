@@ -7203,6 +7203,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNode(node.identifier);
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
+    if (node.question != null) {
+      _writer.print('?');
+    }
     return null;
   }
 
@@ -7649,6 +7652,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitTypeName(TypeName node) {
     _visitNode(node.name);
     _visitNode(node.typeArguments);
+    if (node.question != null) {
+      _writer.print('?');
+    }
     return null;
   }
 

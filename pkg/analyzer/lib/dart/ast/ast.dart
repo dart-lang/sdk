@@ -4292,9 +4292,10 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
           TypeName returnType,
           SimpleIdentifier identifier,
           TypeParameterList typeParameters,
-          FormalParameterList parameters) =>
+          FormalParameterList parameters,
+          {Token question: null}) =>
       new FunctionTypedFormalParameterImpl(comment, metadata, returnType,
-          identifier, typeParameters, parameters);
+          identifier, typeParameters, parameters, question);
 
   /**
    * Return the parameters of the function-typed parameter.
@@ -4306,6 +4307,18 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters);
+
+  /**
+   * Return the question mark marking this as a nullable type, or `null` if
+   * the type is non-nullable.
+   */
+  Token get question;
+
+  /**
+   * Return the question mark marking this as a nullable type to the given
+   * [question].
+   */
+  void set question(Token question);
 
   /**
    * Return the return type of the function, or `null` if the function does not
@@ -7724,8 +7737,9 @@ abstract class TypeName extends AstNode {
    * Initialize a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  factory TypeName(Identifier name, TypeArgumentList typeArguments) =>
-      new TypeNameImpl(name, typeArguments);
+  factory TypeName(Identifier name, TypeArgumentList typeArguments,
+          {Token question: null}) =>
+      new TypeNameImpl(name, typeArguments, question);
 
   /**
    * Return `true` if this type is a deferred type.
@@ -7744,6 +7758,18 @@ abstract class TypeName extends AstNode {
    * Set the name of the type to the given [identifier].
    */
   void set name(Identifier identifier);
+
+  /**
+   * Return the question mark marking this as a nullable type, or `null` if
+   * the type is non-nullable.
+   */
+  Token get question;
+
+  /**
+   * Return the question mark marking this as a nullable type to the given
+   * [question].
+   */
+  void set question(Token question);
 
   /**
    * Return the type being named, or `null` if the AST structure has not been

@@ -90,7 +90,7 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'parseTypeArgumentList_0': new MethodTrampoline(
       0, (Parser target) => target.parseTypeArgumentList()),
   'parseTypeName_0':
-      new MethodTrampoline(0, (Parser target) => target.parseTypeName()),
+      new MethodTrampoline(0, (Parser target) => target.parseTypeName(false)),
   'parseTypeParameter_0':
       new MethodTrampoline(0, (Parser target) => target.parseTypeParameter()),
   'parseTypeParameterList_0': new MethodTrampoline(
@@ -683,6 +683,12 @@ class Parser {
   bool _enableAssertInitializer = false;
 
   /**
+   * A flag indicating whether the parser is to parse the non-nullable modifier
+   * in type names.
+   */
+  bool _enableNnbd = false;
+
+  /**
    * A flag indicating whether the parser is to parse the async support.
    */
   bool _parseAsync = true;
@@ -761,6 +767,20 @@ class Parser {
    */
   void set enableAssertInitializer(bool enable) {
     _enableAssertInitializer = enable;
+  }
+
+  /**
+   * Return `true` if the parser is to parse the non-nullable modifier in type
+   * names.
+   */
+  bool get enableNnbd => _enableNnbd;
+
+  /**
+   * Set whether the parser is to parse the non-nullable modifier in type names
+   * to match the given [enable] flag.
+   */
+  void set enableNnbd(bool enable) {
+    _enableNnbd = enable;
   }
 
   /**
@@ -1521,7 +1541,7 @@ class Parser {
    *         type ('.' identifier)?
    */
   ConstructorName parseConstructorName() {
-    TypeName type = parseTypeName();
+    TypeName type = parseTypeName(false);
     Token period = null;
     SimpleIdentifier name = null;
     if (_matches(TokenType.PERIOD)) {
@@ -1637,7 +1657,7 @@ class Parser {
    */
   ExtendsClause parseExtendsClause() {
     Token keyword = getAndAdvance();
-    TypeName superclass = parseTypeName();
+    TypeName superclass = parseTypeName(false);
     return new ExtendsClause(keyword, superclass);
   }
 
@@ -1718,9 +1738,9 @@ class Parser {
   ImplementsClause parseImplementsClause() {
     Token keyword = getAndAdvance();
     List<TypeName> interfaces = <TypeName>[];
-    interfaces.add(parseTypeName());
+    interfaces.add(parseTypeName(false));
     while (_optional(TokenType.COMMA)) {
-      interfaces.add(parseTypeName());
+      interfaces.add(parseTypeName(false));
     }
     return new ImplementsClause(keyword, interfaces);
   }
@@ -1822,13 +1842,18 @@ class Parser {
           _reportErrorForToken(
               ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword);
         }
+        Token question = null;
+        if (enableNnbd && _matches(TokenType.QUESTION)) {
+          question = getAndAdvance();
+        }
         return new FunctionTypedFormalParameter(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             holder.type,
             new SimpleIdentifier(identifier.token, isDeclaration: true),
             typeParameters,
-            parameters);
+            parameters,
+            question: question);
       } else {
         return new FieldFormalParameter(
             commentAndMetadata.comment,
@@ -1901,7 +1926,7 @@ class Parser {
     if (_currentToken.keyword == Keyword.VOID) {
       return new TypeName(new SimpleIdentifier(getAndAdvance()), null);
     } else {
-      return parseTypeName();
+      return parseTypeName(false);
     }
   }
 
@@ -1991,9 +2016,9 @@ class Parser {
    */
   TypeArgumentList parseTypeArgumentList() {
     Token leftBracket = getAndAdvance();
-    List<TypeName> arguments = <TypeName>[parseTypeName()];
+    List<TypeName> arguments = <TypeName>[parseTypeName(false)];
     while (_optional(TokenType.COMMA)) {
-      arguments.add(parseTypeName());
+      arguments.add(parseTypeName(false));
     }
     Token rightBracket = _expectGt();
     return new TypeArgumentList(leftBracket, arguments, rightBracket);
@@ -2005,8 +2030,8 @@ class Parser {
    *     type ::=
    *         qualified typeArguments?
    */
-  TypeName parseTypeName() {
-    TypeName realType = _parseTypeName();
+  TypeName parseTypeName(bool inExpression) {
+    TypeName realType = _parseTypeName(inExpression);
     // If this is followed by a generic method type comment, allow the comment
     // type to replace the real type name.
     // TODO(jmesserly): this feels like a big hammer. Can we restrict it to
@@ -2026,7 +2051,7 @@ class Parser {
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     if (_matchesKeyword(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
-      TypeName bound = parseTypeName();
+      TypeName bound = parseTypeName(false);
       return new TypeParameter(commentAndMetadata.comment,
           commentAndMetadata.metadata, name, keyword, bound);
     }
@@ -2063,9 +2088,9 @@ class Parser {
    */
   WithClause parseWithClause() {
     Token withKeyword = getAndAdvance();
-    List<TypeName> types = <TypeName>[parseTypeName()];
+    List<TypeName> types = <TypeName>[parseTypeName(false)];
     while (_optional(TokenType.COMMA)) {
-      types.add(parseTypeName());
+      types.add(parseTypeName(false));
     }
     return new WithClause(withKeyword, types);
   }
@@ -2098,6 +2123,30 @@ class Parser {
     } else {
       buffer.write(Character.toChars(scalarValue));
     }
+  }
+
+  /**
+   * Clone all token starting from the given [token] up to the end of the token
+   * stream, and return the first token in the new token stream.
+   */
+  Token _cloneTokens(Token token) {
+    if (token == null) {
+      return null;
+    }
+    token = token is CommentToken ? token.parent : token;
+    Token head = new Token(TokenType.EOF, -1);
+    head.setNext(head);
+    Token current = head;
+    while (token.type != TokenType.EOF) {
+      Token clone = token.copy();
+      current.setNext(clone);
+      current = clone;
+      token = token.next;
+    }
+    Token tail = new Token(TokenType.EOF, 0);
+    tail.setNext(tail);
+    current.setNext(tail);
+    return head.next;
   }
 
   /**
@@ -2494,6 +2543,23 @@ class Parser {
     lastToken.setNext(_currentToken);
     previous.setNext(firstToken);
     _currentToken = firstToken;
+  }
+
+  /**
+   * Return `true` if the current token could be the question mark in a
+   * condition expression. The current token is assumed to be a question mark.
+   */
+  bool _isConditionalOperator() {
+    void parseOperation(Parser parser) {
+      parser.parseExpressionWithoutCascade();
+    }
+
+    Token token = _skip(_currentToken.next, parseOperation);
+    if (token == null || !_tokenMatches(token, TokenType.COLON)) {
+      return false;
+    }
+    token = _skip(token.next, parseOperation);
+    return token != null;
   }
 
   /**
@@ -3507,7 +3573,7 @@ class Parser {
       SimpleIdentifier className,
       TypeParameterList typeParameters) {
     Token equals = _expect(TokenType.EQ);
-    TypeName superclass = parseTypeName();
+    TypeName superclass = parseTypeName(false);
     WithClause withClause = null;
     if (_matchesKeyword(Keyword.WITH)) {
       withClause = parseWithClause();
@@ -4580,7 +4646,7 @@ class Parser {
     if (keyword == Keyword.FINAL || keyword == Keyword.CONST) {
       keywordToken = getAndAdvance();
       if (_isTypedIdentifier(_currentToken)) {
-        type = parseTypeName();
+        type = parseTypeName(false);
       } else {
         // Support `final/*=T*/ x;`
         type = _parseOptionalTypeNameComment();
@@ -6217,7 +6283,7 @@ class Parser {
 
   TypeName _parseOptionalTypeNameComment() {
     if (_injectGenericCommentTypeAssign()) {
-      return _parseTypeName();
+      return _parseTypeName(false);
     }
     return null;
   }
@@ -6555,7 +6621,7 @@ class Parser {
     Keyword keyword = _currentToken.keyword;
     if (keyword == Keyword.AS) {
       Token asOperator = getAndAdvance();
-      return new AsExpression(expression, asOperator, parseTypeName());
+      return new AsExpression(expression, asOperator, parseTypeName(true));
     } else if (keyword == Keyword.IS) {
       Token isOperator = getAndAdvance();
       Token notOperator = null;
@@ -6563,7 +6629,7 @@ class Parser {
         notOperator = getAndAdvance();
       }
       return new IsExpression(
-          expression, isOperator, notOperator, parseTypeName());
+          expression, isOperator, notOperator, parseTypeName(true));
     } else if (_currentToken.type.isRelationalOperator) {
       Token operator = getAndAdvance();
       return new BinaryExpression(
@@ -7002,7 +7068,7 @@ class Parser {
       TypeName exceptionType = null;
       if (_matchesString(_ON)) {
         onKeyword = getAndAdvance();
-        exceptionType = parseTypeName();
+        exceptionType = parseTypeName(false);
       }
       Token catchKeyword = null;
       Token leftParenthesis = null;
@@ -7092,7 +7158,7 @@ class Parser {
     return _parseFunctionTypeAlias(commentAndMetadata, keyword);
   }
 
-  TypeName _parseTypeName() {
+  TypeName _parseTypeName(bool inExpression) {
     Identifier typeName;
     if (_matchesIdentifier()) {
       typeName = _parsePrefixedIdentifierUnchecked();
@@ -7104,7 +7170,13 @@ class Parser {
       _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TYPE_NAME);
     }
     TypeArgumentList typeArguments = _parseOptionalTypeArguments();
-    return new TypeName(typeName, typeArguments);
+    Token question = null;
+    if (enableNnbd && _matches(TokenType.QUESTION)) {
+      if (!inExpression || !_isConditionalOperator()) {
+        question = getAndAdvance();
+      }
+    }
+    return new TypeName(typeName, typeArguments, question: question);
   }
 
   /**
@@ -7513,6 +7585,40 @@ class Parser {
       return null;
     }
     return firstToken;
+  }
+
+  /**
+   * Execute the given [parseOperation] in a temporary parser whose current
+   * token has been set to the given [startToken]. If the parse does not
+   * generate any errors or exceptions, then return the token following the
+   * matching portion of the token stream. Otherwise, return `null`.
+   *
+   * Note: This is an extremely inefficient way of testing whether the tokens in
+   * the token stream match a given production. It should not be used for
+   * production code.
+   */
+  Token _skip(Token startToken, parseOperation(Parser parser)) {
+    BooleanErrorListener listener = new BooleanErrorListener();
+    Parser parser = new Parser(_source, listener);
+    parser._currentToken = _cloneTokens(startToken);
+    parser._enableAssertInitializer = _enableAssertInitializer;
+    parser._enableNnbd = _enableNnbd;
+    parser._inAsync = _inAsync;
+    parser._inGenerator = _inGenerator;
+    parser._inInitializer = _inInitializer;
+    parser._inLoop = _inLoop;
+    parser._inSwitch = _inSwitch;
+    parser._parseAsync = _parseAsync;
+    parser._parseFunctionBodies = _parseFunctionBodies;
+    try {
+      parseOperation(parser);
+    } catch (exception) {
+      return null;
+    }
+    if (listener.errorReported) {
+      return null;
+    }
+    return parser._currentToken;
   }
 
   /**
