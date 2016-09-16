@@ -22,6 +22,7 @@ namespace dart {
 class Heap;
 class Isolate;
 class JSONObject;
+class ObjectSet;
 class ScavengerVisitor;
 
 // Wrapper around VirtualMemory that adds caching and handles the empty case.
@@ -181,10 +182,7 @@ class Scavenger {
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
-  void StartEndAddress(uword* start, uword* end) const {
-    *start = to_->start();
-    *end = to_->end();
-  }
+  void AddRegionsToObjectSet(ObjectSet* set) const;
 
   void WriteProtect(bool read_only);
 

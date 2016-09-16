@@ -9,6 +9,7 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
+#include "vm/object_set.h"
 #include "vm/object_id_ring.h"
 #include "vm/safepoint.h"
 #include "vm/stack_frame.h"
@@ -742,6 +743,11 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
     visitor->VisitObject(raw_obj);
     cur += raw_obj->Size();
   }
+}
+
+
+void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
+  set->AddRegion(to_->start(), to_->end());
 }
 
 

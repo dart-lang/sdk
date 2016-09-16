@@ -166,7 +166,8 @@ class Heap {
 
   intptr_t Collections(Space space) const;
 
-  ObjectSet* CreateAllocatedObjectSet(MarkExpectation mark_expectation) const;
+  ObjectSet* CreateAllocatedObjectSet(Zone* zone,
+                                      MarkExpectation mark_expectation) const;
 
   static const char* GCReasonToString(GCReason gc_reason);
 
@@ -329,10 +330,7 @@ class Heap {
   bool BeginOldSpaceGC(Thread* thread);
   void EndOldSpaceGC();
 
-  // If this heap is non-empty, updates start and end to the smallest range that
-  // contains both the original [start, end) and the [lowest, highest) addresses
-  // of this heap.
-  void GetMergedAddressRange(uword* start, uword* end) const;
+  void AddRegionsToObjectSet(ObjectSet* set) const;
 
   Isolate* isolate_;
 
