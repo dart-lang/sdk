@@ -41,6 +41,10 @@
             '<@(boringssl_linux_arm_sources)',
             '<@(boringssl_linux_aarch64_sources)',
           ],
+          'defines': [
+            '_BSD_SOURCE',
+            '_XOPEN_SOURCE=700',
+          ],
         }],
         ['OS == "win"', {
           'defines': [ 'OPENSSL_NO_ASM', 'WIN32_LEAN_AND_MEAN' ],
