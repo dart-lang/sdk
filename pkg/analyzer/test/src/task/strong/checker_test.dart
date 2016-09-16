@@ -500,12 +500,7 @@ void main() {
   }
 
   void test_covariantOverride() {
-    addFile(r'''
-library meta;
-class _Checked { const _Checked(); }
-const Object checked = const _Checked();
-    ''', name: '/meta.dart');
-
+    _addMetaLibrary();
     checkFile(r'''
 import 'meta.dart';
 class C {
@@ -538,12 +533,7 @@ class G_error extends E implements D {
   }
 
   void test_covariantOverride_leastUpperBound() {
-    addFile(r'''
-library meta;
-class _Checked { const _Checked(); }
-const Object checked = const _Checked();
-    ''', name: '/meta.dart');
-
+    _addMetaLibrary();
     checkFile(r'''
 import "meta.dart";
 abstract class Top {}
@@ -568,12 +558,7 @@ abstract class TakesBottom implements TakesLeft, TakesRight {
   }
 
   void test_covariantOverride_markerIsInherited() {
-    addFile(r'''
-library meta;
-class _Checked { const _Checked(); }
-const Object checked = const _Checked();
-    ''', name: '/meta.dart');
-
+    _addMetaLibrary();
     checkFile(r'''
 import 'meta.dart';
 class C {
@@ -3115,6 +3100,37 @@ abstract class D extends C {
     check(implicitCasts: false);
   }
 
+  void test_overrideNarrowsType_noDuplicateError() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25232
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+abstract class A { void test(A arg) { } }
+abstract class B extends A {
+  /*error:INVALID_METHOD_OVERRIDE*/void test(B arg) { }
+}
+abstract class X implements A { }
+class C extends B with X { }
+
+// We treat "implements A" as asking for another check.
+// This feels inconsistent to me.
+class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
+    ''');
+  }
+
+  void test_overrideNarrowsType_legalWithChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25232
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+abstract class A { void test(A arg) { } }
+abstract class B extends A { void test(@checked B arg) { } }
+abstract class X implements A { }
+class C extends B with X { }
+class D extends B implements A { }
+    ''');
+  }
+
   void test_privateOverride() {
     addFile(
         '''
@@ -3839,4 +3855,12 @@ void main () {
 }
 ''');
   }
+}
+
+void _addMetaLibrary() {
+  addFile(r'''
+library meta;
+class _Checked { const _Checked(); }
+const Object checked = const _Checked();
+    ''', name: '/meta.dart');
 }

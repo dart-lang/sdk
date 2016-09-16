@@ -5043,7 +5043,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               _typeProvider, foundConcreteFT);
           requiredMemberFT = _typeSystem.functionTypeToConcreteType(
               _typeProvider, requiredMemberFT);
-          if (_typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
+
+          // Strong mode does override checking for types in CodeChecker, so
+          // we can skip it here. Doing it here leads to unnecessary duplicate
+          // error messages in subclasses that inherit from one that has an
+          // override error.
+          //
+          // See: https://github.com/dart-lang/sdk/issues/25232
+          if (_options.strongMode ||
+              _typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
             continue;
           }
         }
