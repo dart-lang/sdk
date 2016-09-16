@@ -148,14 +148,15 @@ NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
       isolate_(isolate) {
   ASSERT(isolate_ != NULL);
   AtomicOperations::FetchAndIncrement(&(isolate_->no_reload_scope_depth_));
+  ASSERT(
+      AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >= 0);
 }
 
 
 NoReloadScope::~NoReloadScope() {
-  uintptr_t previous_value =
-      AtomicOperations::FetchAndDecrement(&(isolate_->no_reload_scope_depth_));
-  // If the previous value was 0 we have underflowed.
-  ASSERT(previous_value != 0);
+  AtomicOperations::FetchAndDecrement(&(isolate_->no_reload_scope_depth_));
+  ASSERT(
+      AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >= 0);
 }
 
 

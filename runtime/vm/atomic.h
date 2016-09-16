@@ -20,6 +20,7 @@ class AtomicOperations : public AllStatic {
   // NOTE: Not to be used for any atomic operations involving memory locations
   // that are accessed by generated code.
   static uintptr_t FetchAndIncrement(uintptr_t* p);
+  static intptr_t FetchAndIncrement(intptr_t* p);
 
   // Atomically increment the value at p by 'value'.
   //
@@ -34,6 +35,7 @@ class AtomicOperations : public AllStatic {
   // NOTE: Not to be used for any atomic operations involving memory locations
   // that are accessed by generated code.
   static uintptr_t FetchAndDecrement(uintptr_t* p);
+  static intptr_t FetchAndDecrement(intptr_t* p);
 
   // Atomically decrement the value at p by 'value'.
   //
