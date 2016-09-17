@@ -1604,7 +1604,9 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
       }
 
       inferredTypes[i] =
-          variance.passedIn || lowerBound.isBottom ? upperBound : lowerBound;
+          variance.passedIn && !upperBound.isDynamic || lowerBound.isBottom
+              ? upperBound
+              : lowerBound;
     }
 
     // Return the instantiated type.

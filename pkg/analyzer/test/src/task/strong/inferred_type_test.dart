@@ -1767,6 +1767,20 @@ class C extends A {}
     ''');
   }
 
+  void test_genericFunctions_returnTypedef() {
+    checkFile(r'''
+typedef void ToValue<T>(T value);
+
+main() {
+  ToValue/*<T>*/ f/*<T>*/(dynamic /*=T*/ x) => null;
+  var x = f/*<int>*/(42);
+  var y = f(42);
+  ToValue<int> takesInt = x;
+  takesInt = y;
+}
+    ''');
+  }
+
   void test_genericMethods_basicDownwardInference() {
     checkFile(r'''
 /*=T*/ f/*<S, T>*/(/*=S*/ s) => null;
