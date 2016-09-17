@@ -532,6 +532,20 @@ class G_error extends E implements D {
     ''');
   }
 
+  void test_covariantOverride_fields() {
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+class A {
+  get foo => '';
+  set foo(_) {}
+}
+class B extends A {
+  @checked int foo;
+}
+    ''');
+  }
+
   void test_covariantOverride_leastUpperBound() {
     _addMetaLibrary();
     checkFile(r'''

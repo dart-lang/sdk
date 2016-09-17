@@ -7198,6 +7198,19 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   }
 
   @override
+  bool get isCovariant {
+    if (inheritsCovariant) {
+      return true;
+    }
+    for (ElementAnnotationImpl annotation in setter.variable.metadata) {
+      if (annotation.isCovariant) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   DartType get type => setter.variable.type;
 
   @override
