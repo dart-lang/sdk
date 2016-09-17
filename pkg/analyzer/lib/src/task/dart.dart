@@ -4153,8 +4153,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     if (directive is NamespaceDirectiveImpl) {
       Source configurationSource;
       for (Configuration configuration in directive.configurations) {
-        Source source = _resolveUri(isImport, configuration.libraryUri,
-            configuration.libraryUri.stringValue);
+        Source source = _resolveUri(
+            isImport, configuration.uri, configuration.uri.stringValue);
         configuration.uriSource = source;
         if (configurationSource == null) {
           String variableName =
@@ -6235,7 +6235,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     if (directive is NamespaceDirective) {
       for (Configuration configuration in directive.configurations) {
         Source source = configuration.uriSource;
-        StringLiteral uriLiteral = configuration.libraryUri;
+        StringLiteral uriLiteral = configuration.uri;
         String uriContent = uriLiteral?.stringValue?.trim();
         if (source != null) {
           int modificationTime = sourceTimeMap[source] ?? -1;
