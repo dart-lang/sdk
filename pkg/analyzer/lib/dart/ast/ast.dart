@@ -5973,6 +5973,14 @@ abstract class NamespaceDirective extends UriBasedDirective {
   Source get selectedSource;
 
   /**
+   * Return the content of the URI that was selected based on the declared
+   * variables. This will be the URI from the first configuration whose
+   * condition is true, or the [uriContent] if either there are no
+   * configurations or if there are no configurations whose condition is true.
+   */
+  String get selectedUriContent;
+
+  /**
    * Return the semicolon terminating the directive.
    */
   Token get semicolon;

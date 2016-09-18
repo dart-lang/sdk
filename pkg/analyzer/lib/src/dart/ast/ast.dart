@@ -7479,6 +7479,9 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   Token semicolon;
 
   @override
+  String selectedUriContent;
+
+  @override
   Source selectedSource;
 
   /**

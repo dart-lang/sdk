@@ -4151,25 +4151,29 @@ class ParseDartTask extends SourceBasedAnalysisTask {
 
     // Resolve all configurations and try to choose one.
     if (directive is NamespaceDirectiveImpl) {
-      Source configurationSource;
+      String configuredUriContent;
+      Source configuredSource;
       for (Configuration configuration in directive.configurations) {
-        Source source = _resolveUri(
-            isImport, configuration.uri, configuration.uri.stringValue);
+        String uriContent = configuration.uri.stringValue;
+        Source source = _resolveUri(isImport, configuration.uri, uriContent);
         configuration.uriSource = source;
-        if (configurationSource == null) {
+        if (configuredSource == null) {
           String variableName =
               configuration.name.components.map((i) => i.name).join('.');
           String variableValue = context.declaredVariables.get(variableName);
           if (configuration.value != null &&
                   variableValue == configuration.value.stringValue ||
               variableValue == 'true') {
-            configurationSource = source;
+            configuredUriContent = configuration.uri.stringValue;
+            configuredSource = source;
           }
         }
       }
-      Source referencedSource = configurationSource ?? defaultSource;
-      directive.selectedSource = referencedSource;
-      return referencedSource;
+      String selectedContentUri = configuredUriContent ?? directive.uriContent;
+      Source selectedSource = configuredSource ?? defaultSource;
+      directive.selectedUriContent = selectedContentUri;
+      directive.selectedSource = selectedSource;
+      return selectedSource;
     }
     return defaultSource;
   }

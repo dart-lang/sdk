@@ -356,6 +356,52 @@ library libB;
     }
   }
 
+  test_perform_configurations_export() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    newSource('/foo.dart', '');
+    var foo_io = newSource('/foo_io.dart', '');
+    newSource('/foo_html.dart', '');
+    var testSource = newSource(
+        '/test.dart',
+        r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    // Perform the task.
+    computeResult(testSource, LIBRARY_ELEMENT2,
+        matcher: isBuildDirectiveElementsTask);
+    LibraryElement testLibrary = outputs[LIBRARY_ELEMENT2];
+    // Validate the export element.
+    ExportElement export = testLibrary.exports[0];
+    expect(export.exportedLibrary.source, foo_io);
+    expect(export.uri, 'foo_io.dart');
+  }
+
+  test_perform_configurations_import() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    newSource('/foo.dart', '');
+    var foo_io = newSource('/foo_io.dart', '');
+    newSource('/foo_html.dart', '');
+    var testSource = newSource(
+        '/test.dart',
+        r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    // Perform the task.
+    computeResult(testSource, LIBRARY_ELEMENT2,
+        matcher: isBuildDirectiveElementsTask);
+    LibraryElement testLibrary = outputs[LIBRARY_ELEMENT2];
+    // Validate the import element.
+    ImportElement import = testLibrary.imports[0];
+    expect(import.importedLibrary.source, foo_io);
+    expect(import.uri, 'foo_io.dart');
+  }
+
   test_perform_dartCoreContext() {
     List<Source> sources = newSources({'/libA.dart': ''});
     Source source = sources[0];

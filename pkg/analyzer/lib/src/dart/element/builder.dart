@@ -182,7 +182,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         exportElement.uriOffset = uriLiteral.offset;
         exportElement.uriEnd = uriLiteral.end;
       }
-      exportElement.uri = node.uriContent;
+      exportElement.uri = node.selectedUriContent;
       exportElement.combinators = _buildCombinators(node);
       exportElement.exportedLibrary = exportedLibrary;
       setElementDocumentationComment(exportElement, node);
@@ -227,7 +227,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         importElement.uriOffset = uriLiteral.offset;
         importElement.uriEnd = uriLiteral.end;
       }
-      importElement.uri = node.uriContent;
+      importElement.uri = node.selectedUriContent;
       importElement.deferred = node.deferredKeyword != null;
       importElement.combinators = _buildCombinators(node);
       importElement.importedLibrary = importedLibrary;

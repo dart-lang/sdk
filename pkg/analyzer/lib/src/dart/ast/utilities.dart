@@ -384,6 +384,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.configurations),
         cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
+    directive.selectedUriContent = node.selectedUriContent;
     directive.selectedSource = node.selectedSource;
     directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
@@ -559,6 +560,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNode(node.prefix),
         cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
+    directive.selectedUriContent = node.selectedUriContent;
     directive.selectedSource = node.selectedSource;
     directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
