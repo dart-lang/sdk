@@ -91,8 +91,9 @@ class PrelinkerTest extends SummarizeElementsTest {
       return namespace;
     }
 
-    linked = new LinkedLibrary.fromBuffer(
-        prelink(unlinkedUnits[0], getPart, getImport).toBuffer());
+    linked = new LinkedLibrary.fromBuffer(prelink(
+            unlinkedUnits[0], getPart, getImport, context.declaredVariables.get)
+        .toBuffer());
     validateLinkedLibrary(linked);
   }
 }

@@ -100,10 +100,14 @@ bool isIncrementOrDecrement(UnlinkedExprAssignOperator operator) {
  * build unit, and whose values are the corresponding
  * [LinkedLibraryBuilder]s.
  */
-Map<String, LinkedLibraryBuilder> link(Set<String> libraryUris,
-    GetDependencyCallback getDependency, GetUnitCallback getUnit, bool strong) {
+Map<String, LinkedLibraryBuilder> link(
+    Set<String> libraryUris,
+    GetDependencyCallback getDependency,
+    GetUnitCallback getUnit,
+    GetDeclaredVariable getDeclaredVariable,
+    bool strong) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
-      setupForLink(libraryUris, getUnit);
+      setupForLink(libraryUris, getUnit, getDeclaredVariable);
   relink(linkedLibraries, getDependency, getUnit, strong);
   return linkedLibraries;
 }
@@ -135,8 +139,8 @@ void relink(Map<String, LinkedLibraryBuilder> libraries,
  * the libraries in this build unit, and whose values are the corresponding
  * [LinkedLibraryBuilder]s.
  */
-Map<String, LinkedLibraryBuilder> setupForLink(
-    Set<String> libraryUris, GetUnitCallback getUnit) {
+Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
+    GetUnitCallback getUnit, GetDeclaredVariable getDeclaredVariable) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       <String, LinkedLibraryBuilder>{};
   for (String absoluteUri in libraryUris) {
@@ -146,7 +150,8 @@ Map<String, LinkedLibraryBuilder> setupForLink(
     linkedLibraries[absoluteUri] = prelink(
         getUnit(absoluteUri),
         getRelativeUnit,
-        (String relativeUri) => getRelativeUnit(relativeUri)?.publicNamespace);
+        (String relativeUri) => getRelativeUnit(relativeUri)?.publicNamespace,
+        getDeclaredVariable);
   }
   return linkedLibraries;
 }

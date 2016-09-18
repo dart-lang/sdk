@@ -33,8 +33,10 @@ class LinkerUnitTest extends SummaryLinkerTest {
 
   void createLinker(String text, {String path: '/test.dart'}) {
     linkerInputs = createLinkerInputs(text, path: path);
-    Map<String, LinkedLibraryBuilder> linkedLibraries =
-        setupForLink(linkerInputs.linkedLibraries, linkerInputs.getUnit);
+    Map<String, LinkedLibraryBuilder> linkedLibraries = setupForLink(
+        linkerInputs.linkedLibraries,
+        linkerInputs.getUnit,
+        linkerInputs.getDeclaredVariable);
     linker = new Linker(linkedLibraries, linkerInputs.getDependency,
         linkerInputs.getUnit, true);
   }

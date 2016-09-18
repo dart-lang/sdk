@@ -762,15 +762,19 @@ abstract class _AstResynthesizeTestMixin
       return unit;
     }
 
-    Set<String> nonSdkLibraryUris = context.sources
+    Set<String> nonSdkLibraryUris = serializedSources
         .where((Source source) =>
             !source.isInSystemLibrary &&
             context.computeKindOf(source) == SourceKind.LIBRARY)
         .map((Source source) => source.uri.toString())
         .toSet();
 
-    Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
-        getDependency, getUnit, context.analysisOptions.strongMode);
+    Map<String, LinkedLibrary> linkedSummaries = link(
+        nonSdkLibraryUris,
+        getDependency,
+        getUnit,
+        context.declaredVariables.get,
+        context.analysisOptions.strongMode);
 
     return new TestSummaryResynthesizer(
         null,
@@ -843,8 +847,8 @@ abstract class _AstResynthesizeTestMixin
 
     UnlinkedUnit definingUnit = _getUnlinkedUnit(librarySource);
     if (definingUnit != null) {
-      LinkedLibraryBuilder linkedLibrary =
-          prelink(definingUnit, getPart, getImport);
+      LinkedLibraryBuilder linkedLibrary = prelink(
+          definingUnit, getPart, getImport, context.declaredVariables.get);
       linkedLibrary.dependencies.skip(1).forEach((LinkedDependency d) {
         _serializeLibrary(resolveRelativeUri(d.uri));
       });

@@ -3030,6 +3030,51 @@ main(F f) {}
     checkLibrary('export "a.dart";');
   }
 
+  test_export_configurations_useDefault() {
+    context.declaredVariables.define('dart.library.io', 'false');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    LibraryElementImpl library = checkLibrary(r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    expect(library.exports[0].uri, 'foo.dart');
+    expect(library.exports[0].exportedLibrary.source.shortName, 'foo.dart');
+  }
+
+  test_export_configurations_useFirst() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    LibraryElementImpl library = checkLibrary(r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    expect(library.exports[0].uri, 'foo_io.dart');
+    expect(library.exports[0].exportedLibrary.source.shortName, 'foo_io.dart');
+  }
+
+  test_export_configurations_useSecond() {
+    context.declaredVariables.define('dart.library.io', 'false');
+    context.declaredVariables.define('dart.library.html', 'true');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    LibraryElementImpl library = checkLibrary(r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    ExportElement export = library.exports[0];
+    expect(export.uri, 'foo_html.dart');
+    expect(export.exportedLibrary.source.shortName, 'foo_html.dart');
+  }
+
   test_export_function() {
     addLibrarySource('/a.dart', 'f() {}');
     checkLibrary('export "a.dart";');
@@ -3078,6 +3123,47 @@ main(F f) {}
   test_export_variable_final() {
     addLibrarySource('/a.dart', 'final x = 0;');
     checkLibrary('export "a.dart";');
+  }
+
+  test_exportImport_configurations_useDefault() {
+    context.declaredVariables.define('dart.library.io', 'false');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource(
+        '/bar.dart',
+        r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    LibraryElementImpl library = checkLibrary(r'''
+import 'bar.dart';
+class B extends A {}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo.dart');
+  }
+
+  test_exportImport_configurations_useFirst() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource(
+        '/bar.dart',
+        r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    var library = checkLibrary(r'''
+import 'bar.dart';
+class B extends A {}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_exports() {
@@ -3392,6 +3478,39 @@ get x => null;''');
 
   test_implicitTopLevelVariable_setterFirst() {
     checkLibrary('void set x(int value) {} int get x => 0;');
+  }
+
+  test_import_configurations_useDefault() {
+    context.declaredVariables.define('dart.library.io', 'false');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    var library = checkLibrary(r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+
+class B extends A {}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo.dart');
+  }
+
+  test_import_configurations_useFirst() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    var library = checkLibrary(r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+
+class B extends A {}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_import_deferred() {

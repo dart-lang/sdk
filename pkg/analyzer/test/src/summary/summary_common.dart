@@ -6062,13 +6062,15 @@ f(MyFunction myFunction) {}
       // Element model does not provide access to configurations.
       return;
     }
-    addNamedSource('/foo.dart', 'bar() {}');
-    addNamedSource('/foo_io.dart', 'bar() {}');
-    addNamedSource('/foo_html.dart', 'bar() {}');
+    addNamedSource('/foo.dart', 'class A {}');
+    addNamedSource('/foo_io.dart', 'class A {}');
+    addNamedSource('/foo_html.dart', 'class A {}');
     String libraryText = r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.flavor == 'html') 'foo_html.dart';
+
+class B extends A {}
 ''';
     serializeLibraryText(libraryText);
     UnlinkedExportPublic exp = unlinkedUnits[0].publicNamespace.exports[0];

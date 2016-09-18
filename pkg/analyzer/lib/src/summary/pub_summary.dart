@@ -741,6 +741,9 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
       return store.linkedMap[uri];
     }, (String uri) {
       return store.unlinkedMap[uri];
+    }, (String name) {
+      // TODO(scheglov) decide how to use declared variables in Pub
+      return null;
     }, strong);
     // Assemble linked bundles and put them into the store.
     for (_LinkedNode node in scc) {

@@ -395,8 +395,12 @@ class BuildMode {
       });
     }
 
-    Map<String, LinkedLibraryBuilder> linkResult =
-        link(sourceUris, _getDependency, _getUnit, options.strongMode);
+    Map<String, LinkedLibraryBuilder> linkResult = link(
+        sourceUris,
+        _getDependency,
+        _getUnit,
+        context.declaredVariables.get,
+        options.strongMode);
     linkResult.forEach(assembler.addLinkedLibrary);
   }
 }

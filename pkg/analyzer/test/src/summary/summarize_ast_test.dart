@@ -153,8 +153,12 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
   void serializeLibraryText(String text, {bool allowErrors: false}) {
     Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
     LinkerInputs linkerInputs = createLinkerInputs(text);
-    linked = link(linkerInputs.linkedLibraries, linkerInputs.getDependency,
-        linkerInputs.getUnit, strongMode)[linkerInputs.testDartUri.toString()];
+    linked = link(
+        linkerInputs.linkedLibraries,
+        linkerInputs.getDependency,
+        linkerInputs.getUnit,
+        (name) => null,
+        strongMode)[linkerInputs.testDartUri.toString()];
     expect(linked, isNotNull);
     validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[linkerInputs.unlinkedDefiningUnit];
@@ -202,6 +206,10 @@ class LinkerInputs {
       this._dependentUnlinkedUnits);
 
   Set<String> get linkedLibraries => _uriToUnit.keys.toSet();
+
+  String getDeclaredVariable(String name) {
+    return null;
+  }
 
   LinkedLibrary getDependency(String absoluteUri) {
     Map<String, LinkedLibrary> sdkLibraries =
@@ -299,6 +307,7 @@ abstract class SummaryLinkerTest {
         linkerInputs.linkedLibraries,
         linkerInputs.getDependency,
         linkerInputs.getUnit,
+        linkerInputs.getDeclaredVariable,
         true);
     linkedLibraries.forEach(assembler.addLinkedLibrary);
     linkerInputs._uriToUnit.forEach((String uri, UnlinkedUnit unit) {

@@ -4003,6 +4003,11 @@ class ExportElementImpl extends UriReferencedElementImpl
   List<NamespaceCombinator> _combinators;
 
   /**
+   * The URI that was selected based on the [context] declared variables.
+   */
+  String _selectedUri;
+
+  /**
    * Initialize a newly created export element at the given [offset].
    */
   ExportElementImpl(int offset)
@@ -4035,8 +4040,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   LibraryElement get exportedLibrary {
     if (_unlinkedExportNonPublic != null && _exportedLibrary == null) {
       LibraryElementImpl library = enclosingElement as LibraryElementImpl;
-      _exportedLibrary = library.resynthesizerContext
-          .buildExportedLibrary(_unlinkedExportPublic.uri);
+      _exportedLibrary = library.resynthesizerContext.buildExportedLibrary(uri);
     }
     return _exportedLibrary;
   }
@@ -4078,7 +4082,8 @@ class ExportElementImpl extends UriReferencedElementImpl
   @override
   String get uri {
     if (_unlinkedExportPublic != null) {
-      return _unlinkedExportPublic.uri;
+      return _selectedUri ??= _selectUri(
+          _unlinkedExportPublic.uri, _unlinkedExportPublic.configurations);
     }
     return super.uri;
   }
@@ -4867,6 +4872,11 @@ class ImportElementImpl extends UriReferencedElementImpl
   PrefixElement _prefix;
 
   /**
+   * The URI that was selected based on the [context] declared variables.
+   */
+  String _selectedUri;
+
+  /**
    * Initialize a newly created import element at the given [offset].
    * The offset may be `-1` if the import is synthetic.
    */
@@ -5006,7 +5016,8 @@ class ImportElementImpl extends UriReferencedElementImpl
       if (_unlinkedImport.isImplicit) {
         return null;
       }
-      return _unlinkedImport.uri;
+      return _selectedUri ??=
+          _selectUri(_unlinkedImport.uri, _unlinkedImport.configurations);
     }
     return super.uri;
   }
@@ -8201,6 +8212,17 @@ abstract class UriReferencedElementImpl extends ElementImpl
    */
   void set uriOffset(int offset) {
     _uriOffset = offset;
+  }
+
+  String _selectUri(
+      String defaultUri, List<UnlinkedConfiguration> configurations) {
+    for (UnlinkedConfiguration configuration in configurations) {
+      if (context.declaredVariables.get(configuration.name) ==
+          configuration.value) {
+        return configuration.uri;
+      }
+    }
+    return defaultUri;
   }
 }
 
