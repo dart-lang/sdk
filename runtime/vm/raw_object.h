@@ -841,6 +841,7 @@ class RawFunction : public RawObject {
   RawAbstractType* result_type_;
   RawArray* parameter_types_;
   RawArray* parameter_names_;
+  RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawObject* data_;  // Additional data specific to the function kind.
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
@@ -1747,10 +1748,14 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawSmi* hash_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
+  RawFunction* parameterized_function_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->parameterized_function_);
+  }
   classid_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
+  uint8_t parent_level_;  // Max 255 levels of nested generic functions is OK.
   int8_t type_state_;
 
   friend class CidRewriteVisitor;

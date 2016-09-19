@@ -2289,6 +2289,27 @@ class Function : public Object {
   RawArray* parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
 
+  // The type parameters (and their bounds) are specified as an array of
+  // TypeParameter.
+  RawTypeArguments* type_parameters() const {
+      return raw_ptr()->type_parameters_;
+  }
+  void set_type_parameters(const TypeArguments& value) const;
+  intptr_t NumTypeParameters(Thread* thread) const;
+  intptr_t NumTypeParameters() const {
+    return NumTypeParameters(Thread::Current());
+  }
+
+  // Return a TypeParameter if the type_name is a type parameter of this
+  // function or of one of its parent functions.
+  // Unless NULL, adjust function_level accordingly (in and out parameter).
+  // Return null otherwise.
+  RawTypeParameter* LookupTypeParameter(const String& type_name,
+                                        intptr_t* function_level) const;
+
+  // Return true if this function declares type parameters.
+  bool IsGeneric() const { return NumTypeParameters() > 0; }
+
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
   void InstallOptimizedCode(const Code& code, bool is_osr) const;
@@ -6106,6 +6127,15 @@ class TypeParameter : public AbstractType {
   virtual bool HasResolvedTypeClass() const { return false; }
   classid_t parameterized_class_id() const;
   RawClass* parameterized_class() const;
+  RawFunction* parameterized_function() const {
+    return raw_ptr()->parameterized_function_;
+  }
+  bool IsClassTypeParameter() const {
+    return parameterized_class_id() != kIllegalCid;
+  }
+  bool IsFunctionTypeParameter() const {
+    return parameterized_function() != Function::null();
+  }
   RawString* name() const { return raw_ptr()->name_; }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
@@ -6152,7 +6182,9 @@ class TypeParameter : public AbstractType {
     return RoundedAllocationSize(sizeof(RawTypeParameter));
   }
 
+  // Only one of parameterized_class and parameterized_function is non-null.
   static RawTypeParameter* New(const Class& parameterized_class,
+                               const Function& parameterized_function,
                                intptr_t index,
                                const String& name,
                                const AbstractType& bound,
@@ -6163,6 +6195,7 @@ class TypeParameter : public AbstractType {
   void SetHash(intptr_t value) const;
 
   void set_parameterized_class(const Class& value) const;
+  void set_parameterized_function(const Function& value) const;
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
   void set_type_state(int8_t state) const;

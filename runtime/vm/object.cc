@@ -2483,8 +2483,6 @@ void Class::set_super_type(const AbstractType& value) const {
 }
 
 
-// Return a TypeParameter if the type_name is a type parameter of this class.
-// Return null otherwise.
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   ASSERT(!type_name.IsNull());
   Thread* thread = Thread::Current();
@@ -5503,6 +5501,12 @@ RawFunction* Function::parent_function() const {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
     return ClosureData::Cast(obj).parent_function();
+  } else if (IsSignatureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    // Parent function may be null or data_ may already be set to function type.
+    if (!obj.IsNull() && obj.IsFunction()) {
+      return Function::Cast(obj).raw();
+    }
   }
   return Function::null();
 }
@@ -5513,6 +5517,9 @@ void Function::set_parent_function(const Function& value) const {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
     ClosureData::Cast(obj).set_parent_function(value);
+    return;
+  } else if (IsSignatureFunction()) {
+    set_data(value);  // Temporarily set during parsing only.
     return;
   }
   UNREACHABLE();
@@ -5858,6 +5865,61 @@ void Function::SetParameterNameAt(intptr_t index, const String& value) const {
 
 void Function::set_parameter_names(const Array& value) const {
   StorePointer(&raw_ptr()->parameter_names_, value.raw());
+}
+
+
+void Function::set_type_parameters(const TypeArguments& value) const {
+  StorePointer(&raw_ptr()->type_parameters_, value.raw());
+}
+
+
+intptr_t Function::NumTypeParameters(Thread* thread) const {
+  if (type_parameters() == TypeArguments::null()) {
+    return 0;
+  }
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  TypeArguments& type_params = thread->TypeArgumentsHandle();
+  type_params = type_parameters();
+  return type_params.Length();
+}
+
+
+RawTypeParameter* Function::LookupTypeParameter(
+    const String& type_name, intptr_t* function_level) const {
+  ASSERT(!type_name.IsNull());
+  Thread* thread = Thread::Current();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  TypeArguments& type_params = thread->TypeArgumentsHandle();
+  TypeParameter&  type_param = thread->TypeParameterHandle();
+  String& type_param_name = thread->StringHandle();
+  Function& function = thread->FunctionHandle();
+
+  function ^= this->raw();
+  intptr_t parent_level = -1;
+  while (!function.IsNull()) {
+    type_params ^= function.type_parameters();
+    if (!type_params.IsNull()) {
+      parent_level++;
+      const intptr_t num_type_params = type_params.Length();
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type_param ^= type_params.TypeAt(i);
+        type_param_name = type_param.name();
+        if (type_param_name.Equals(type_name)) {
+          if (parent_level > 0) {
+            // TODO(regis): Clone type parameter and set parent_level.
+          }
+          return type_param.raw();
+        }
+      }
+    }
+    function ^= function.parent_function();
+    if (function_level != NULL) {
+      (*function_level)--;
+    }
+  }
+  return TypeParameter::null();
 }
 
 
@@ -17708,6 +17770,11 @@ RawClass* TypeParameter::parameterized_class() const {
 }
 
 
+void TypeParameter::set_parameterized_function(const Function& value) const {
+  StorePointer(&raw_ptr()->parameterized_function_, value.raw());
+}
+
+
 void TypeParameter::set_index(intptr_t value) const {
   ASSERT(value >= 0);
   ASSERT(Utils::IsInt(16, value));
@@ -17818,6 +17885,7 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
   }
   // No need to clone bound, as it is not part of the finalization state.
   return TypeParameter::New(Class::Handle(parameterized_class()),
+                            Function::Handle(parameterized_function()),
                             index(),
                             String::Handle(name()),
                             AbstractType::Handle(bound()),
@@ -17837,7 +17905,9 @@ RawAbstractType* TypeParameter::CloneUninstantiated(
   const intptr_t new_index = index() +
       new_owner.NumTypeArguments() - old_owner.NumTypeArguments();
   AbstractType& upper_bound = AbstractType::Handle(bound());
+  ASSERT(parameterized_function() == Function::null());
   clone = TypeParameter::New(new_owner,
+                             Function::Handle(),
                              new_index,
                              String::Handle(name()),
                              upper_bound,  // Not cloned yet.
@@ -17888,12 +17958,15 @@ RawTypeParameter* TypeParameter::New() {
 
 
 RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
+                                     const Function& parameterized_function,
                                      intptr_t index,
                                      const String& name,
                                      const AbstractType& bound,
                                      TokenPosition token_pos) {
+  ASSERT(parameterized_class.IsNull() != parameterized_function.IsNull());
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
   result.set_parameterized_class(parameterized_class);
+  result.set_parameterized_function(parameterized_function);
   result.set_index(index);
   result.set_name(name);
   result.set_bound(bound);

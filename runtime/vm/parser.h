@@ -510,9 +510,8 @@ class Parser : public ValueObject {
   void ParseLibraryImportObsoleteSyntax();
   void ParseLibraryIncludeObsoleteSyntax();
 
-  void ResolveTypeFromClass(const Class& cls,
-                            ClassFinalizer::FinalizationKind finalization,
-                            AbstractType* type);
+  void ResolveType(ClassFinalizer::FinalizationKind finalization,
+                   AbstractType* type);
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
                              bool allow_deferred_type = false,
                              bool consume_unresolved_prefix = true);
@@ -522,7 +521,7 @@ class Parser : public ValueObject {
       bool consume_unresolved_prefix,
       LibraryPrefix* prefix);
 
-  void ParseTypeParameters(const Class& cls);
+  void ParseTypeParameters(bool parameterizing_class);
   RawTypeArguments* ParseTypeArguments(
       ClassFinalizer::FinalizationKind finalization);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
@@ -661,9 +660,11 @@ class Parser : public ValueObject {
   LocalVariable* LookupTypeArgumentsParameter(LocalScope* from_scope,
                                               bool test_only);
   void CaptureInstantiator();
+  void CaptureFunctionInstantiator();
   AstNode* LoadReceiver(TokenPosition token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
   AstNode* LoadClosure(PrimaryNode* primary);
+  AstNode* LoadTypeParameter(PrimaryNode* primary);
   InstanceGetterNode* CallGetter(TokenPosition token_pos,
                                  AstNode* object,
                                  const String& name);
@@ -826,7 +827,8 @@ class Parser : public ValueObject {
   bool IsInstantiatorRequired() const;
   bool ResolveIdentInLocalScope(TokenPosition ident_pos,
                                 const String &ident,
-                                AstNode** node);
+                                AstNode** node,
+                                intptr_t* function_level);
   static const bool kResolveLocally = true;
   static const bool kResolveIncludingImports = false;
 
