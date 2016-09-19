@@ -1,3 +1,21 @@
+## 1.0.4
+* Introduce `@virtual` to allow field overrides in strong mode
+    (SDK issue [27384](https://github.com/dart-lang/sdk/issues/27384)).
+
+    ```dart
+    import 'package:meta/meta.dart' show virtual;
+    class Base {
+      @virtual int x;
+    }
+    class Derived extends Base {
+      int x;
+
+      // Expose the hidden storage slot:
+      int get superX => super.x;
+      set superX(int v) { super.x = v; }
+    }
+    ```
+
 ## 1.0.3
 * Introduce `@checked` to override a method and tighten a parameter
     type (SDK issue [25578](https://github.com/dart-lang/sdk/issues/25578)).

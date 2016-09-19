@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -74,10 +75,10 @@ Element _getKnownElement(Expression expression) {
 
 /// Return the field on type corresponding to member, or null if none
 /// exists or the "field" is actually a getter/setter.
-PropertyInducingElement _getMemberField(
+FieldElement _getMemberField(
     InterfaceType type, PropertyAccessorElement member) {
   String memberName = member.name;
-  PropertyInducingElement field;
+  FieldElement field;
   if (member.isGetter) {
     // The subclass member is an explicit getter or a field
     // - lookup the getter on the superclass.
@@ -1388,9 +1389,10 @@ class _OverrideChecker {
 
     if (isSubclass && element is PropertyAccessorElement) {
       // Disallow any overriding if the base class defines this member
-      // as a field.  We effectively treat fields as final / non-virtual.
-      PropertyInducingElement field = _getMemberField(type, element);
-      if (field != null) {
+      // as a field.  We effectively treat fields as final / non-virtual,
+      // unless they are explicitly marked as @virtual
+      var field = _getMemberField(type, element);
+      if (field != null && !field.isVirtual) {
         _checker._recordMessage(
             errorLocation, StrongModeCode.INVALID_FIELD_OVERRIDE, [
           element.enclosingElement.name,

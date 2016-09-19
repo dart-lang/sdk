@@ -73,6 +73,23 @@
     }
     ```
 
+* New feature - use `@virtual` to allow field overrides in strong mode
+    (SDK issue [27384](https://github.com/dart-lang/sdk/issues/27384)).
+
+    ```dart
+    import 'package:meta/meta.dart' show virtual;
+    class Base {
+      @virtual int x;
+    }
+    class Derived extends Base {
+      int x;
+
+      // Expose the hidden storage slot:
+      int get superX => super.x;
+      set superX(int v) { super.x = v; }
+    }
+    ```
+
 * Breaking change - infer list and map literals from the context type as well as
     their values, consistent with generic methods and instance creation
     (SDK issue [27151](https://github.com/dart-lang/sdk/issues/27151)).

@@ -1166,6 +1166,11 @@ abstract class FieldElement
    */
   bool get isEnumConstant;
 
+  /**
+   * Returns `true` if this field can be overridden in strong mode.
+   */
+  bool get isVirtual;
+
   @override
   AstNode computeNode();
 }

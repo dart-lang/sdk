@@ -4002,6 +4002,9 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   ParameterElementForLink_VariableSetter(this.enclosingElement);
 
   @override
+  bool inheritsCovariant = false;
+
+  @override
   bool get isCovariant => false;
 
   @override

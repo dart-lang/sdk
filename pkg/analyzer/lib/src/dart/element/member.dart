@@ -276,6 +276,9 @@ class FieldMember extends VariableMember implements FieldElement {
   bool get isEnumConstant => baseElement.isEnumConstant;
 
   @override
+  bool get isVirtual => baseElement.isVirtual;
+
+  @override
   DartType get propagatedType => substituteFor(baseElement.propagatedType);
 
   @override

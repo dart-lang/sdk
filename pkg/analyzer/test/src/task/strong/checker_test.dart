@@ -540,8 +540,18 @@ class A {
   get foo => '';
   set foo(_) {}
 }
+
 class B extends A {
-  @checked int foo;
+  @checked num foo;
+}
+class C extends A {
+  @checked @virtual num foo;
+}
+class D extends C {
+  @virtual int foo;
+}
+class E extends D {
+  @virtual /*error:INVALID_METHOD_OVERRIDE*/num foo;
 }
     ''');
   }
@@ -750,6 +760,36 @@ class H implements F {
   /*error:INVALID_METHOD_OVERRIDE*/final ToVoid<dynamic> g = null;
 }
  ''');
+  }
+
+  void test_fieldOverride_virtual() {
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+class C {
+  @virtual int x;
+}
+class OverrideGetter extends C {
+  int get x => 42;
+}
+class OverrideSetter extends C {
+  set x(int v) {}
+}
+class OverrideBoth extends C {
+  int get x => 42;
+  set x(int v) {}
+}
+class OverrideWithField extends C {
+  int x;
+
+  // expose the hidden storage slot
+  int get superX => super.x;
+  set superX(int v) { super.x = v; }
+}
+class VirtualNotInherited extends OverrideWithField {
+  /*error:INVALID_FIELD_OVERRIDE*/int x;
+}
+    ''');
   }
 
   void test_fieldSetterOverride() {
@@ -3876,5 +3916,8 @@ void _addMetaLibrary() {
 library meta;
 class _Checked { const _Checked(); }
 const Object checked = const _Checked();
+
+class _Virtual { const _Virtual(); }
+const Object virtual = const _Virtual();
     ''', name: '/meta.dart');
 }

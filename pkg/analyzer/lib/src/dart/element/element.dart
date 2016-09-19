@@ -2514,6 +2514,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _REQUIRED_VARIABLE_NAME = "required";
 
   /**
+   * The name of the top-level variable used to mark a member as intended to be
+   * overridden.
+   */
+  static String _VIRTUAL_VARIABLE_NAME = "virtual";
+
+  /**
    * The element representing the field, variable, or constructor being used as
    * an annotation.
    */
@@ -2614,6 +2620,18 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
           element.name == _REQUIRED_VARIABLE_NAME &&
           element.library?.name == _META_LIB_NAME;
+
+  /**
+   * Return `true` if this annotation marks the associated member as supporting
+   * overrides.
+   *
+   * This is currently used by fields in Strong Mode, as other members are
+   * already virtual-by-default.
+   */
+  bool get isVirtual =>
+      element is PropertyAccessorElement &&
+      element.name == _VIRTUAL_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   /**
    * Get the library containing this annotation.
@@ -4184,6 +4202,16 @@ class FieldElementImpl extends PropertyInducingElementImpl
       return _unlinkedVariable.isStatic;
     }
     return hasModifier(Modifier.STATIC);
+  }
+
+  @override
+  bool get isVirtual {
+    for (ElementAnnotationImpl annotation in metadata) {
+      if (annotation.isVirtual) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override

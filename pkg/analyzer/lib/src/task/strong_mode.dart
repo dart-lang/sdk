@@ -306,11 +306,7 @@ class InstanceMemberInferrer {
     for (int i = 0; i < length; ++i) {
       ParameterElement parameter = parameters[i];
       if (parameter is ParameterElementImpl) {
-        // If a parameter is covariant, any parameters that override it are too.
-        parameter.inheritsCovariant = overriddenTypes.any((f) {
-          var param = _getCorrespondingParameter(parameter, i, f.parameters);
-          return param != null && param.isCovariant;
-        });
+        _inferParameterCovariance(parameter, i, overriddenTypes);
 
         if (parameter.hasImplicitType) {
           parameter.type = _computeParameterType(parameter, i, overriddenTypes);
@@ -327,9 +323,19 @@ class InstanceMemberInferrer {
    * which no type was provided, infer the type of the field.
    */
   void _inferField(FieldElement fieldElement) {
-    if (!fieldElement.isSynthetic &&
-        !fieldElement.isStatic &&
-        fieldElement.hasImplicitType) {
+    if (fieldElement.isSynthetic || fieldElement.isStatic) {
+      return;
+    }
+    List<ExecutableElement> overriddenSetters =
+        inheritanceManager.lookupOverrides(
+            fieldElement.enclosingElement, fieldElement.name + '=');
+    var setter = fieldElement.setter;
+    if (setter != null && overriddenSetters.isNotEmpty) {
+      _inferParameterCovariance(
+          setter.parameters[0], 0, overriddenSetters.map((s) => s.type));
+    }
+
+    if (fieldElement.hasImplicitType) {
       //
       // First look for overridden getters with the same name as the field.
       //
@@ -339,9 +345,7 @@ class InstanceMemberInferrer {
       if (overriddenGetters.isNotEmpty && _onlyGetters(overriddenGetters)) {
         newType =
             _computeReturnType(overriddenGetters.map((e) => e.returnType));
-        List<ExecutableElement> overriddenSetters =
-            inheritanceManager.lookupOverrides(
-                fieldElement.enclosingElement, fieldElement.name + '=');
+
         if (!_isCompatible(newType, overriddenSetters)) {
           newType = null;
         }
@@ -373,6 +377,17 @@ class InstanceMemberInferrer {
     if (field != null && element.hasImplicitType) {
       (element as FieldFormalParameterElementImpl).type = field.type;
     }
+  }
+
+  /**
+   * If a parameter is covariant, any parameters that override it are too.
+   */
+  void _inferParameterCovariance(ParameterElementImpl parameter, int index,
+      Iterable<FunctionType> overriddenTypes) {
+    parameter.inheritsCovariant = overriddenTypes.any((f) {
+      var param = _getCorrespondingParameter(parameter, index, f.parameters);
+      return param != null && param.isCovariant;
+    });
   }
 
   /**
