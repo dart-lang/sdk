@@ -3415,8 +3415,16 @@ abstract class LibraryElementForLink<
    * Return the [LibraryElement] corresponding to the given dependency [index].
    */
   LibraryElementForLink _getDependency(int index) {
-    return _dependencies[index] ??= _linker.getLibrary(resolveRelativeUri(
-        _absoluteUri, Uri.parse(_linkedLibrary.dependencies[index].uri)));
+    LibraryElementForLink result = _dependencies[index];
+    if (result == null) {
+      String relativeUri = _linkedLibrary.dependencies[index].uri;
+      Uri absoluteUri = relativeUri.isEmpty
+          ? _absoluteUri
+          : resolveRelativeUri(_absoluteUri, Uri.parse(relativeUri));
+      result = _linker.getLibrary(absoluteUri);
+      _dependencies[index] = result;
+    }
+    return result;
   }
 
   /**
@@ -3999,10 +4007,10 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   @override
   final PropertyAccessorElementForLink_Variable enclosingElement;
 
-  ParameterElementForLink_VariableSetter(this.enclosingElement);
-
   @override
   bool inheritsCovariant = false;
+
+  ParameterElementForLink_VariableSetter(this.enclosingElement);
 
   @override
   bool get isCovariant => false;
