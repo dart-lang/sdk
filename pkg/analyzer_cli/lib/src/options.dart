@@ -113,9 +113,6 @@ class CommandLineOptions {
   /// Whether to use machine format for error display
   final bool machineFormat;
 
-  /// The path to the root folder of the incremental cache.
-  final String incrementalCachePath;
-
   /// The path to the package root
   final String packageRootPath;
 
@@ -186,7 +183,6 @@ class CommandLineOptions {
         lints = args['lints'],
         log = args['log'],
         machineFormat = args['machine'] || args['format'] == 'machine',
-        incrementalCachePath = args['incremental-cache-path'],
         packageConfigPath = args['packages'],
         packageRootPath = args['package-root'],
         perfReport = args['x-perf-report'],
@@ -363,13 +359,6 @@ class CommandLineOptions {
               'of "libraryUri".',
           allowMultiple: true,
           splitCommas: false)
-      //
-      // Incremental analysis.
-      //
-      ..addOption('incremental-cache-path',
-          help: 'The path to the folder with information to support '
-              'incremental analysis, e.g. summary files, errors, etc.',
-          hide: true)
       //
       // Build mode.
       //
