@@ -23,7 +23,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:path/path.dart' as path;
 
 /**
  * Serialize all the elements in [lib] to a summary using [ctx] as the context
@@ -153,31 +152,6 @@ class PackageBundleAssembler {
   PackageBundleAssembler({bool excludeHashes: false})
       : _excludeHashes = excludeHashes,
         _unlinkedUnitHashes = excludeHashes ? null : <String>[];
-
-  /**
-   * Add a fallback library to the package bundle, corresponding to the library
-   * whose defining compilation unit is located at [source].  Caller must also
-   * call [addFallbackUnit] for all compilation units contained in the library
-   * (including the defining compilation unit).
-   */
-  void addFallbackLibrary(Source source) {
-    String uri = source.uri.toString();
-    _linkedLibraryUris.add(uri);
-    _linkedLibraries.add(new LinkedLibraryBuilder(fallbackMode: true));
-  }
-
-  /**
-   * Add a fallback compilation unit to the package bundle, corresponding to
-   * the compilation unit located at [source].
-   */
-  void addFallbackUnit(Source source) {
-    String uri = source.uri.toString();
-    UnlinkedUnitBuilder unit = new UnlinkedUnitBuilder(
-        fallbackModePath: path.relative(source.fullName));
-    _unlinkedUnitUris.add(uri);
-    _unlinkedUnits.add(unit);
-    _unlinkedUnitMap[uri] = unit;
-  }
 
   void addLinkedLibrary(String uri, LinkedLibraryBuilder library) {
     _linkedLibraries.add(library);

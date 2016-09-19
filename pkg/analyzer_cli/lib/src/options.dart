@@ -62,9 +62,6 @@ class CommandLineOptions {
   /// build mode.
   final String buildSummaryOutputSemantic;
 
-  /// Whether to output a summary in "fallback mode".
-  final bool buildSummaryFallback;
-
   /// Whether to suppress a nonzero exit code in build mode.
   final bool buildSuppressExitCode;
 
@@ -165,7 +162,6 @@ class CommandLineOptions {
       : buildAnalysisOutput = args['build-analysis-output'],
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
-        buildSummaryFallback = args['build-summary-fallback'],
         buildSummaryInputs = args['build-summary-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
@@ -423,11 +419,6 @@ class CommandLineOptions {
       ..addFlag('build-summary-exclude-informative',
           help: 'Exclude @informative information (docs, offsets, etc).  '
               'Deprecated: please use --build-summary-output-semantic instead.',
-          defaultsTo: false,
-          negatable: false,
-          hide: true)
-      ..addFlag('build-summary-fallback',
-          help: 'If outputting a summary, output it in fallback mode.',
           defaultsTo: false,
           negatable: false,
           hide: true)

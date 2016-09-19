@@ -192,13 +192,7 @@ class BuildMode {
         excludeHashes: options.buildSummaryExcludeInformative &&
             options.buildSummaryOutputSemantic == null);
     if (_shouldOutputSummary) {
-      if (!options.buildSummaryFallback) {
-        _serializeAstBasedSummary(explicitSources);
-      } else {
-        for (Source source in explicitSources) {
-          assembler.addFallbackUnit(source);
-        }
-      }
+      _serializeAstBasedSummary(explicitSources);
       // Write the whole package bundle.
       assembler.recordDependencies(summaryDataStore);
       PackageBundleBuilder bundle = assembler.assemble();
