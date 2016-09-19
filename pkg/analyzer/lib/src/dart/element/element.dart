@@ -3987,10 +3987,11 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
+    safelyVisitChildren(typeParameters, visitor);
+    safelyVisitChildren(parameters, visitor);
     safelyVisitChildren(_functions, visitor);
     safelyVisitChildren(_labels, visitor);
     safelyVisitChildren(_localVariables, visitor);
-    safelyVisitChildren(parameters, visitor);
   }
 }
 
