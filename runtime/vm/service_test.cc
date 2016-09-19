@@ -168,6 +168,7 @@ TEST_CASE(Service_IsolateStickyError) {
 
   // Set the sticky error.
   Dart_SetStickyError(result);
+  Dart_SetPausedOnExit(true);
   EXPECT(Dart_HasStickyError());
 
   {
