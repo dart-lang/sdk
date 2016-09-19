@@ -286,6 +286,16 @@ class CommandLineOptionsTest extends AbstractStatusTest {
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
 
+  test_buildSummaryInputs_commaSeparated_normalMode() {
+    _parse([
+      '--build-summary-input=/path/to/aaa.sum,/path/to/bbb.sum',
+      '/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isFalse);
+    expect(
+        options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
+  }
+
   test_buildSummaryInputs_separateFlags() {
     _parse([
       '--build-mode',
@@ -294,6 +304,17 @@ class CommandLineOptionsTest extends AbstractStatusTest {
       'package:p/foo.dart|/path/to/p/lib/foo.dart'
     ]);
     expect(options.buildMode, isTrue);
+    expect(
+        options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
+  }
+
+  test_buildSummaryInputs_separateFlags_normalMode() {
+    _parse([
+      '--build-summary-input=/path/to/aaa.sum',
+      '--build-summary-input=/path/to/bbb.sum',
+      'package:p/foo.dart|/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isFalse);
     expect(
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
