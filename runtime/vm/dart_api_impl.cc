@@ -185,11 +185,17 @@ static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
 
 
 static bool IsCompiletimeErrorObject(Zone* zone, const Object& obj) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // All compile-time errors were handled at snapshot generation time and
+  // compiletime_error_class was removed.
+  return false;
+#else
   Isolate* I = Thread::Current()->isolate();
   const Class& error_class =
       Class::Handle(zone, I->object_store()->compiletime_error_class());
   ASSERT(!error_class.IsNull());
   return (obj.GetClassId() == error_class.id());
+#endif
 }
 
 
