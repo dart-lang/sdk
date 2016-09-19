@@ -8,7 +8,6 @@ import 'dart:core';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -137,7 +136,6 @@ class BuildMode {
   PackageBundleAssembler assembler;
   final Set<Source> processedSources = new Set<Source>();
   final Map<Uri, UnlinkedUnit> uriToUnit = <Uri, UnlinkedUnit>{};
-  PackageBundle sdkBundle;
 
   BuildMode(this.resourceProvider, this.options, this.stats);
 
@@ -194,29 +192,12 @@ class BuildMode {
         excludeHashes: options.buildSummaryExcludeInformative &&
             options.buildSummaryOutputSemantic == null);
     if (_shouldOutputSummary) {
-      if (options.buildSummaryOnlyAst && !options.buildSummaryFallback) {
+      if (!options.buildSummaryFallback) {
         _serializeAstBasedSummary(explicitSources);
       } else {
         for (Source source in explicitSources) {
-          if (context.computeKindOf(source) == SourceKind.LIBRARY) {
-            if (options.buildSummaryFallback) {
-              assembler.addFallbackLibrary(source);
-            } else {
-              LibraryElement libraryElement =
-                  context.computeLibraryElement(source);
-              assembler.serializeLibraryElement(libraryElement);
-            }
-          }
-          if (options.buildSummaryFallback) {
-            assembler.addFallbackUnit(source);
-          }
+          assembler.addFallbackUnit(source);
         }
-      }
-      if (!options.buildSummaryOnlyAst) {
-        // In non-AST mode, the SDK bundle wasn't added to the summaryDataStore
-        // because it is automatically loaded during analysis.  However we still
-        // want the SDK bundle to be noted as a dependency, so add it now.
-        summaryDataStore.addBundle(null, sdkBundle);
       }
       // Write the whole package bundle.
       assembler.recordDependencies(summaryDataStore);
@@ -267,6 +248,7 @@ class BuildMode {
         recordDependencyInfo: _shouldOutputSummary);
 
     DartSdk sdk;
+    PackageBundle sdkBundle;
     if (options.dartSdkSummaryPath != null) {
       SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
           options.dartSdkSummaryPath, options.strongMode);
@@ -277,15 +259,13 @@ class BuildMode {
           resourceProvider.getFolder(options.dartSdkPath), options.strongMode);
       dartSdk.analysisOptions =
           Driver.createAnalysisOptionsForCommandLineOptions(options);
-      dartSdk.useSummary = !options.buildSummaryOnlyAst;
+      dartSdk.useSummary = false;
       sdk = dartSdk;
       sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
     }
 
-    // In AST mode include SDK bundle to avoid parsing SDK sources.
-    if (options.buildSummaryOnlyAst) {
-      summaryDataStore.addBundle(null, sdkBundle);
-    }
+    // Include SDK bundle to avoid parsing SDK sources.
+    summaryDataStore.addBundle(null, sdkBundle);
 
     // Create the context.
     context = AnalysisEngine.instance.createAnalysisContext();
@@ -302,13 +282,6 @@ class BuildMode {
         contextOptions.analyzeFunctionBodies = false;
       }
     });
-
-    if (!options.buildSummaryOnlyAst) {
-      // Configure using summaries.
-      context.typeProvider = sdk.context.typeProvider;
-      context.resultProvider =
-          new InputPackagesResultProvider(context, summaryDataStore);
-    }
   }
 
   /**
