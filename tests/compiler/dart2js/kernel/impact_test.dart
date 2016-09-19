@@ -18,6 +18,8 @@ import '../serialization/test_helper.dart';
 
 const Map<String, String> SOURCE = const <String, String>{
   'main.dart': '''
+import 'helper.dart';
+
 main() {
   testEmpty();
   testNull();
@@ -58,6 +60,10 @@ main() {
   testInvokeIndexSet(null);
   testAssert();
   testAssertWithMessage();
+  testFactoryInvoke();
+  testFactoryInvokeGeneric();
+  testFactoryInvokeGenericRaw();
+  testFactoryInvokeGenericDynamic();
 }
 
 testEmpty() {}
@@ -154,7 +160,27 @@ testAssert() {
 testAssertWithMessage() {
   assert(true, 'ok');
 }
-'''
+testFactoryInvoke() {
+  new Class.fact();
+}
+testFactoryInvokeGeneric() {
+  new GenericClass<int, String>.fact();
+}
+testFactoryInvokeGenericRaw() {
+  new GenericClass.fact();
+}
+testFactoryInvokeGenericDynamic() {
+  new GenericClass<dynamic, dynamic>.fact();
+}
+''',
+  'helper.dart': '''
+class Class {
+  factory Class.fact() => null;
+}
+class GenericClass<X, Y> {
+  factory GenericClass.fact() => null;
+}
+''',
 };
 
 main(List<String> args) {

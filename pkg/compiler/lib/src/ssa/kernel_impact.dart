@@ -195,8 +195,44 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitStaticInvocation(ir.StaticInvocation invocation) {
     _visitArguments(invocation.arguments);
     Element target = astAdapter.getElement(invocation.target).declaration;
-    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-        target, astAdapter.getCallStructure(invocation.arguments)));
+    if (target.isFactoryConstructor) {
+      impactBuilder.registerStaticUse(new StaticUse.constructorInvoke(
+          target, astAdapter.getCallStructure(invocation.arguments)));
+      // TODO(johnniwinther): We should not mark the type as instantiated but
+      // rather follow the type arguments directly.
+      //
+      // Consider this:
+      //
+      //    abstract class A<T> {
+      //      factory A.regular() => new B<T>();
+      //      factory A.redirect() = B<T>;
+      //    }
+      //
+      //    class B<T> implements A<T> {}
+      //
+      //    main() {
+      //      print(new A<int>.regular() is B<int>);
+      //      print(new A<String>.redirect() is B<String>);
+      //    }
+      //
+      // To track that B is actually instantiated as B<int> and B<String> we
+      // need to follow the type arguments passed to A.regular and A.redirect
+      // to B. Currently, we only do this soundly if we register A<int> and
+      // A<String> as instantiated. We should instead register that A.T is
+      // instantiated as int and String.
+      ClassElement cls =
+          astAdapter.getElement(invocation.target.enclosingClass);
+      List<DartType> typeArguments =
+          astAdapter.getDartTypes(invocation.arguments.types);
+      impactBuilder.registerTypeUse(
+          new TypeUse.instantiation(new InterfaceType(cls, typeArguments)));
+      if (typeArguments.any((DartType type) => !type.isDynamic)) {
+        impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+      }
+    } else {
+      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+          target, astAdapter.getCallStructure(invocation.arguments)));
+    }
   }
 
   @override

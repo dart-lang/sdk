@@ -173,6 +173,10 @@ class KernelAstAdapter {
   DartType getDartType(ir.DartType type) {
     return type.accept(_typeConverter);
   }
+
+  List<DartType> getDartTypes(List<ir.DartType> types) {
+    return types.map(getDartType).toList();
+  }
 }
 
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
