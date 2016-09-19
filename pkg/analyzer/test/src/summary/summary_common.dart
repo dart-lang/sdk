@@ -6,11 +6,9 @@ library analyzer.test.src.summary.summary_common;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -18,8 +16,6 @@ import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
-import 'package:analyzer/src/summary/summarize_elements.dart'
-    as summarize_elements;
 import 'package:path/path.dart' show posix;
 import 'package:unittest/unittest.dart';
 
@@ -108,26 +104,16 @@ class SerializedMockSdk {
 
   static SerializedMockSdk _serializeMockSdk() {
     try {
-      AnalysisContext analysisContext = new MockSdk().context;
       Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
       Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
-      List<LibraryElement> libraries = [
-        analysisContext.typeProvider.objectType.element.library,
-        analysisContext.typeProvider.futureType.element.library,
-        analysisContext.computeLibraryElement(
-            analysisContext.sourceFactory.resolveUri(null, 'dart:math')),
-      ];
-      for (LibraryElement library in libraries) {
-        summarize_elements.LibrarySerializationResult serializedLibrary =
-            summarize_elements.serializeLibrary(
-                library, analysisContext.typeProvider, false);
-        uriToLinkedLibrary[library.source.uri.toString()] =
-            new LinkedLibrary.fromBuffer(serializedLibrary.linked.toBuffer());
-        for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
-          uriToUnlinkedUnit[serializedLibrary.unitUris[i]] =
-              new UnlinkedUnit.fromBuffer(
-                  serializedLibrary.unlinkedUnits[i].toBuffer());
-        }
+      PackageBundle bundle = new MockSdk().getLinkedBundle();
+      for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
+        String uri = bundle.unlinkedUnitUris[i];
+        uriToUnlinkedUnit[uri] = bundle.unlinkedUnits[i];
+      }
+      for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
+        String uri = bundle.linkedLibraryUris[i];
+        uriToLinkedLibrary[uri] = bundle.linkedLibraries[i];
       }
       return new SerializedMockSdk._(uriToUnlinkedUnit, uriToLinkedLibrary);
     } catch (_) {

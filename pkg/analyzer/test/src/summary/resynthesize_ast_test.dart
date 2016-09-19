@@ -208,12 +208,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
     super.test_constructors_inferFromArguments_redirectingFactory();
   }
 
-  @override
-  @failingTest
-  void test_genericMethods_inferJSBuiltin() {
-    super.test_genericMethods_inferJSBuiltin();
-  }
-
   void test_infer_extractIndex_custom() {
     var unit = checkFile('''
 class A {
