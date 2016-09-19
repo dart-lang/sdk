@@ -1521,9 +1521,10 @@ static void ShutdownIsolate(uword parameter) {
 
 
 void Isolate::SetStickyError(RawError* sticky_error) {
-  ASSERT(sticky_error_ == Error::null());
+  ASSERT(((sticky_error_ == Error::null()) ||
+         (sticky_error == Error::null())) &&
+         (sticky_error != sticky_error_));
   sticky_error_ = sticky_error;
-  message_handler()->PausedOnExit(true);
 }
 
 
