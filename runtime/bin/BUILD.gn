@@ -2,18 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-
-declare_args() {
-  dart_io_support = false
-
-  # TODO(zra, jamesr): Remove this check once we start building boringssl for
-  # the fuchsia port.
-  if (!defined(is_fuchsia) || !is_fuchsia) {
-    dart_boringssl_path = "../../third_party/boringssl"
-  }
-}
-
-
 resources_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
                 [rebase_path("vmservice/vmservice_sources.gypi")],
@@ -346,7 +334,7 @@ source_set("embedded_dart_io") {
     ]
   } else {
     deps = [
-      rebase_path(dart_boringssl_path, "."),
+      "//third_party/boringssl",
     ]
   }
 

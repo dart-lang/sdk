@@ -5,7 +5,6 @@
 !.gitignore
 !pkg
 !pkg_tested
-!/boringssl
 !/tcmalloc
 !drt_resources
 !d8
