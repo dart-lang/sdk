@@ -3708,9 +3708,13 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
     // If the right hand side is an expression that does not contain
     // a safe point for the debugger to stop, add an explicit stub
     // call.
-    if ((node->value()->IsLiteralNode() ||
-         node->value()->IsLoadLocalNode() ||
-         node->value()->IsClosureNode()) &&
+    AstNode* val = node->value();
+    if (val->IsAssignableNode()) {
+      val = val->AsAssignableNode()->expr();
+    }
+    if ((val->IsLiteralNode() ||
+         val->IsLoadLocalNode() ||
+         val->IsClosureNode()) &&
          node->token_pos().IsDebugPause()) {
       AddInstruction(new(Z) DebugStepCheckInstr(
           node->token_pos(), RawPcDescriptors::kRuntimeCall));
