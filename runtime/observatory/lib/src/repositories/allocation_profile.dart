@@ -7,8 +7,8 @@ part of repositories;
 class AllocationProfileRepository implements M.AllocationProfileRepository {
   static const _api = '_getAllocationProfile';
 
-  Future<M.AllocationProfile> get(M.IsolateRef i, {bool gc: false,
-                                                   bool reset: false}) async {
+  Future<M.AllocationProfile> get(M.IsolateRef i,
+      {bool gc: false, bool reset: false}) async {
     assert(gc != null);
     assert(reset != null);
     S.Isolate isolate = i as S.Isolate;

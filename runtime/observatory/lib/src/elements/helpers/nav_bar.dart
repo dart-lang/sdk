@@ -9,7 +9,6 @@ Element navBar(Iterable<Element> content) {
   return document.createElement('nav')
     ..classes = ['nav-bar']
     ..children = [
-      new UListElement()
-        ..children = content,
+      new UListElement()..children = content,
     ];
 }

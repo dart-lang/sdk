@@ -14,9 +14,8 @@ class TopRetainingInstancesRepository
     final raw = await isolate.fetchHeapSnapshot(true).last;
     final snapshot = new HeapSnapshot();
     await snapshot.loadProgress(isolate, raw).last;
-    return (await Future.wait(snapshot.getMostRetained(isolate,
-                                                      classId: cls.vmCid,
-                                                      limit: 10)))
-           .map((object) => new S.RetainingObject(object));
+    return (await Future.wait(
+            snapshot.getMostRetained(isolate, classId: cls.vmCid, limit: 10)))
+        .map((object) => new S.RetainingObject(object));
   }
 }

@@ -6,7 +6,7 @@
 
 class A {
   var method;
-  
+
   noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
       return method;
@@ -14,20 +14,20 @@ class A {
       method = invocation.positionalArguments[0];
       return null;
     } else if (invocation.isMethod) {
-      return Function.apply(method, invocation.positionalArguments,
-          invocation.namedArguments);
+      return Function.apply(
+          method, invocation.positionalArguments, invocation.namedArguments);
     } else {
       throw new NoSuchMethodError(this, invocation.memberName,
           invocation.positionalArguments, invocation.namedArguments);
     }
   }
-  
+
   init() {
     closure_fails = (String str) {
       return str.toUpperCase();
     };
   }
-  
+
   run() {
     print(closure_fails("Hello World"));
   }
@@ -38,4 +38,3 @@ void main() {
   a.init();
   a.run();
 }
-

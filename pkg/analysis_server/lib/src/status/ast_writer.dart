@@ -62,6 +62,8 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['abstract keyword'] = node.abstractKeyword;
     } else if (node is CompilationUnit) {
       properties['element'] = node.element;
+    } else if (node is Configuration) {
+      properties['uriSource'] = node.uriSource;
     } else if (node is ConstructorName) {
       properties['static element'] = node.staticElement;
     } else if (node is DeclaredIdentifier) {
@@ -69,7 +71,8 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['keyword'] = node.keyword;
     } else if (node is ExportDirective) {
       properties['element'] = node.element;
-      properties['source'] = node.source;
+      properties['selectedSource'] = node.selectedSource;
+      properties['uriSource'] = node.uriSource;
     } else if (node is FieldDeclaration) {
       properties['static keyword'] = node.staticKeyword;
     } else if (node is FormalParameter) {
@@ -88,7 +91,8 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['propagated type'] = node.propagatedType;
     } else if (node is ImportDirective) {
       properties['element'] = node.element;
-      properties['source'] = node.source;
+      properties['selectedSource'] = node.selectedSource;
+      properties['uriSource'] = node.uriSource;
     } else if (node is IndexExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
@@ -113,7 +117,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['propagated type'] = node.propagatedType;
     } else if (node is PartDirective) {
       properties['element'] = node.element;
-      properties['source'] = node.source;
+      properties['uriSource'] = node.uriSource;
     } else if (node is PartOfDirective) {
       properties['element'] = node.element;
     } else if (node is PostfixExpression) {

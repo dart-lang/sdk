@@ -16,7 +16,8 @@ class C<T> {
   Map<String, ItemListFilter<T>> f = {};
 }
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 confuse(x) => x;
 
 main() {

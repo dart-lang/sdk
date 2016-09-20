@@ -18,6 +18,7 @@ foo(a) {
 
 main() {
   asyncTest(() => compileAll(TEST).then((generated) {
-    Expect.isFalse(generated.contains('return 42'), 'dead code not eliminated');
-  }));
+        Expect.isFalse(
+            generated.contains('return 42'), 'dead code not eliminated');
+      }));
 }

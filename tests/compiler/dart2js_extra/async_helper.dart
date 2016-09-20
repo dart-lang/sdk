@@ -18,6 +18,7 @@ void asyncTest(void test(void onDone(bool success))) {
     if (!success) throw 'test failed';
     print('unittest-suite-success');
   }
+
   test(onDone);
   print('unittest-suite-wait-for-done');
 }

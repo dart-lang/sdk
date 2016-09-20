@@ -54,8 +54,8 @@ final toplevelFinalField = toplevelFunction;
 const toplevelConstField = toplevelFunction;
 
 get toplevelGetter => () {
-  counter++;
-};
+      counter++;
+    };
 
 typedef F();
 
@@ -71,9 +71,8 @@ class B {
   };
 
   get superGetter => () {
-    counter++;
-  };
-
+        counter++;
+      };
 }
 
 class C<T> extends B {
@@ -92,8 +91,8 @@ class C<T> extends B {
   static const staticConstField = staticFunction;
 
   static get staticGetter => () {
-    counter++;
-  };
+        counter++;
+      };
 
   instanceMethod() {
     counter++;
@@ -104,8 +103,8 @@ class C<T> extends B {
   };
 
   get instanceGetter => () {
-    counter++;
-  };
+        counter++;
+      };
 
   instanceInvokes() {
     instanceMethod();

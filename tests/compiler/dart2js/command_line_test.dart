@@ -19,8 +19,7 @@ main() {
     await test([], exitCode: 1);
     await test(['foo.dart']);
     await test([Flags.resolveOnly, 'foo.dart'],
-        resolveOnly: true,
-        resolutionOutput: Uri.base.resolve('out.data'));
+        resolveOnly: true, resolutionOutput: Uri.base.resolve('out.data'));
     await test(['--resolution-input=bar.dart', 'foo.dart'],
         resolutionInputs: [Uri.base.resolve('bar.dart')]);
     await test([Flags.resolveOnly, '--resolution-input=bar.dart', 'foo.dart'],
@@ -34,9 +33,9 @@ main() {
 
 Future test(List<String> arguments,
     {int exitCode,
-     bool resolveOnly: false,
-     Uri resolutionOutput,
-     List<Uri> resolutionInputs}) async {
+    bool resolveOnly: false,
+    Uri resolutionOutput,
+    List<Uri> resolutionInputs}) async {
   print('--------------------------------------------------------------------');
   print('dart2js ${arguments.join(' ')}');
   print('--------------------------------------------------------------------');
@@ -62,13 +61,13 @@ Future test(List<String> arguments,
   Expect.equals(exitCode, actualExitCode, "Unexpected exit code");
   if (actualExitCode == null) {
     Expect.isNotNull(options, "Missing options object");
-    Expect.equals(resolveOnly, options.resolveOnly,
-        "Unexpected resolveOnly value");
+    Expect.equals(
+        resolveOnly, options.resolveOnly, "Unexpected resolveOnly value");
     Expect.equals(resolutionOutput, options.resolutionOutput,
         "Unexpected resolutionOutput value");
     if (resolutionInputs == null) {
-      Expect.isNull(options.resolutionInputs,
-          "Unexpected resolutionInputs value");
+      Expect.isNull(
+          options.resolutionInputs, "Unexpected resolutionInputs value");
     } else {
       Expect.listEquals(resolutionInputs, options.resolutionInputs,
           "Unexpected resolutionInputs value");

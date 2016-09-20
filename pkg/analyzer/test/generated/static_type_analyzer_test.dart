@@ -1100,7 +1100,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     Identifier identifier = AstFactory.identifier3('a');
     Expression node = AstFactory.listLiteral([identifier]);
     DartType resultType = _analyze(node);
-    expect(resultType, isNull);
+    _assertType2(
+        _typeProvider.listType
+            .instantiate(<DartType>[_typeProvider.dynamicType]),
+        resultType);
     _listener.assertNoErrors();
   }
 

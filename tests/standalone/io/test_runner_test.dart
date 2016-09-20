@@ -15,6 +15,16 @@ import "process_test_util.dart";
 final DEFAULT_TIMEOUT = 10;
 final LONG_TIMEOUT = 30;
 
+List<String> packageOptions() {
+  if (Platform.packageRoot != null) {
+    return <String>['--package-root=${Platform.packageRoot}'];
+  } else if (Platform.packageConfig != null) {
+    return <String>['--packages=${Platform.packageConfig}'];
+  } else {
+    return <String>[];
+  }
+}
+
 class TestController {
   static int numTests = 0;
   static int numCompletedTests = 0;
@@ -84,9 +94,11 @@ class CustomTestSuite extends TestSuite {
   }
 
   TestCase _makeNormalTestCase(name, expectations) {
+    var args = packageOptions();
+    args.addAll([Platform.script.toFilePath(), name]);
     var command = CommandBuilder.instance.getProcessCommand(
         'custom', Platform.executable,
-        ['--package-root=${Platform.packageRoot}', Platform.script.toFilePath(), name],
+        args,
         {});
     return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
   }

@@ -23,39 +23,26 @@ import 'package:observatory/src/elements/sample_buffer_control.dart';
 import 'package:observatory/src/elements/stack_trace_tree_config.dart';
 import 'package:observatory/utils.dart';
 
-enum _Table {
-  functions,
-  caller,
-  callee
-}
+enum _Table { functions, caller, callee }
 
-enum _SortingField {
-  exclusive,
-  inclusive,
-  caller,
-  callee,
-  method
-}
+enum _SortingField { exclusive, inclusive, caller, callee, method }
 
-enum _SortingDirection {
-  ascending,
-  descending
-}
+enum _SortingDirection { ascending, descending }
 
-class CpuProfileTableElement  extends HtmlElement implements Renderable {
+class CpuProfileTableElement extends HtmlElement implements Renderable {
   static const tag = const Tag<CpuProfileTableElement>('cpu-profile-table',
-                                            dependencies: const [
-                                              FunctionRefElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              SampleBufferControlElement.tag,
-                                              StackTraceTreeConfigElement.tag,
-                                              CpuProfileVirtualTreeElement.tag,
-                                              VirtualCollectionElement.tag
-                                            ]);
+      dependencies: const [
+        FunctionRefElement.tag,
+        NavTopMenuElement.tag,
+        NavVMMenuElement.tag,
+        NavIsolateMenuElement.tag,
+        NavRefreshElement.tag,
+        NavNotifyElement.tag,
+        SampleBufferControlElement.tag,
+        StackTraceTreeConfigElement.tag,
+        CpuProfileVirtualTreeElement.tag,
+        VirtualCollectionElement.tag
+      ]);
 
   RenderingScheduler<CpuProfileTableElement> _r;
 
@@ -69,28 +56,29 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
   Stream<M.SampleProfileLoadingProgressEvent> _progressStream;
   M.SampleProfileLoadingProgress _progress;
   final _sortingField = <_Table, _SortingField>{
-    _Table.functions :  _SortingField.exclusive,
-    _Table.caller :  _SortingField.caller,
-    _Table.callee :  _SortingField.callee,
+    _Table.functions: _SortingField.exclusive,
+    _Table.caller: _SortingField.caller,
+    _Table.callee: _SortingField.callee,
   };
   final _sortingDirection = <_Table, _SortingDirection>{
-    _Table.functions :  _SortingDirection.descending,
-    _Table.caller :  _SortingDirection.descending,
-    _Table.callee :  _SortingDirection.descending,
+    _Table.functions: _SortingDirection.descending,
+    _Table.caller: _SortingDirection.descending,
+    _Table.callee: _SortingDirection.descending,
   };
   String _filter = '';
-
 
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.IsolateSampleProfileRepository get profiles => _profiles;
   M.VMRef get vm => _vm;
 
-  factory CpuProfileTableElement(M.VM vm, M.IsolateRef isolate,
-                            M.EventRepository events,
-                            M.NotificationRepository notifications,
-                            M.IsolateSampleProfileRepository profiles,
-                            {RenderingQueue queue}) {
+  factory CpuProfileTableElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.IsolateSampleProfileRepository profiles,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -129,10 +117,9 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('cpu profile (table)'),
-        new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen(_refresh),
+        new NavRefreshElement(queue: _r.queue)..onRefresh.listen(_refresh),
         new NavRefreshElement(label: 'Clear', queue: _r.queue)
-            ..onRefresh.listen(_clearCpuProfile),
+          ..onRefresh.listen(_clearCpuProfile),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
     ];
@@ -141,7 +128,7 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
       return;
     }
     content.add(new SampleBufferControlElement(_progress, _progressStream,
-      showTag: false, queue: _r.queue));
+        showTag: false, queue: _r.queue));
     if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
       content.add(new BRElement());
       content.addAll(_createTables());
@@ -157,51 +144,50 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
   VirtualCollectionElement _callees;
 
   List<Element> _createTables() {
-    _functions = _functions ?? new VirtualCollectionElement(
-        _createFunction,
-        _updateFunction,
-        createHeader: _createFunctionHeader,
-        queue: _r.queue
-    );
+    _functions = _functions ??
+        new VirtualCollectionElement(_createFunction, _updateFunction,
+            createHeader: _createFunctionHeader, queue: _r.queue);
     _functions.items = _progress.profile.functions.toList()
-        ..sort(_createSorter(_Table.functions));
+      ..sort(_createSorter(_Table.functions));
     _functions.takeIntoView(_selected);
-    _callers = _callers ?? new VirtualCollectionElement(
-        _createCaller,
-        _updateCaller,
-        createHeader: _createCallerHeader,
-        queue: _r.queue
-    );
-    _callees = _callees ?? new VirtualCollectionElement(
-        _createCallee,
-        _updateCallee,
-        createHeader: _createCalleeHeader,
-        queue: _r.queue
-    );
+    _callers = _callers ??
+        new VirtualCollectionElement(_createCaller, _updateCaller,
+            createHeader: _createCallerHeader, queue: _r.queue);
+    _callees = _callees ??
+        new VirtualCollectionElement(_createCallee, _updateCallee,
+            createHeader: _createCalleeHeader, queue: _r.queue);
     if (_selected != null) {
       _callers.items = _selected.callers.keys.toList()
-          ..sort(_createSorter(_Table.caller));
+        ..sort(_createSorter(_Table.caller));
       _callees.items = _selected.callees.keys.toList()
-          ..sort(_createSorter(_Table.callee));
+        ..sort(_createSorter(_Table.callee));
     } else {
       _callers.items = const [];
       _callees.items = const [];
     }
     return [
-      new DivElement()..classes = ['profile-trees']
+      new DivElement()
+        ..classes = ['profile-trees']
         ..children = [
-          new DivElement()..classes = ['profile-trees-all']
+          new DivElement()
+            ..classes = ['profile-trees-all']
             ..children = [_functions],
-          new DivElement()..classes = ['profile-trees-current']
+          new DivElement()
+            ..classes = ['profile-trees-current']
             ..children = [
-              new DivElement()..classes = ['profile-trees-caller']
+              new DivElement()
+                ..classes = ['profile-trees-caller']
                 ..children = [_callers],
-              new DivElement()..classes = ['profile-trees-selected']
+              new DivElement()
+                ..classes = ['profile-trees-selected']
                 ..children = _selected == null
                     ? [new SpanElement()..text = 'No element selected']
-                    : [new FunctionRefElement(_isolate, _selected.function,
-                                             queue : _r.queue)],
-              new DivElement()..classes = ['profile-trees-callee']
+                    : [
+                        new FunctionRefElement(_isolate, _selected.function,
+                            queue: _r.queue)
+                      ],
+              new DivElement()
+                ..classes = ['profile-trees-callee']
                 ..children = [_callees]
             ]
         ]
@@ -212,9 +198,11 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
     final element = new DivElement()
       ..classes = ['function-item']
       ..children = [
-        new SpanElement()..classes = ['exclusive']
+        new SpanElement()
+          ..classes = ['exclusive']
           ..text = '0%',
-        new SpanElement()..classes = ['inclusive']
+        new SpanElement()
+          ..classes = ['inclusive']
           ..text = '0%',
         new SpanElement()..classes = ['name']
       ];
@@ -240,48 +228,41 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
         queue: _r.queue)..classes = ['name'];
   }
 
-  Element _createFunctionHeader() =>
-    new DivElement()
-      ..classes = ['function-item']
-        ..children = [
-          _createHeaderButton(const ['exclusive'], 'Execution(%)',
-                              _Table.functions,
-                              _SortingField.exclusive,
-                              _SortingDirection.descending),
-          _createHeaderButton(const ['inclusive'], 'Stack(%)',
-                              _Table.functions,
-                              _SortingField.inclusive,
-                              _SortingDirection.descending),
-          _createHeaderButton(const ['name'], 'Method',
-                              _Table.functions,
-                              _SortingField.method,
-                              _SortingDirection.ascending),
-      ];
+  Element _createFunctionHeader() => new DivElement()
+    ..classes = ['function-item']
+    ..children = [
+      _createHeaderButton(const ['exclusive'], 'Execution(%)', _Table.functions,
+          _SortingField.exclusive, _SortingDirection.descending),
+      _createHeaderButton(const ['inclusive'], 'Stack(%)', _Table.functions,
+          _SortingField.inclusive, _SortingDirection.descending),
+      _createHeaderButton(const ['name'], 'Method', _Table.functions,
+          _SortingField.method, _SortingDirection.ascending),
+    ];
 
-    void _setSorting(_Table table,
-                     _SortingField field,
-                     _SortingDirection defaultDirection) {
-      if (_sortingField[table] == field) {
-        switch (_sortingDirection[table]) {
-          case _SortingDirection.descending:
-            _sortingDirection[table] = _SortingDirection.ascending;
-            break;
-          case _SortingDirection.ascending:
-            _sortingDirection[table] = _SortingDirection.descending;
-            break;
-        }
-      } else {
-        _sortingDirection[table] = defaultDirection;
-        _sortingField[table] = field;
+  void _setSorting(
+      _Table table, _SortingField field, _SortingDirection defaultDirection) {
+    if (_sortingField[table] == field) {
+      switch (_sortingDirection[table]) {
+        case _SortingDirection.descending:
+          _sortingDirection[table] = _SortingDirection.ascending;
+          break;
+        case _SortingDirection.ascending:
+          _sortingDirection[table] = _SortingDirection.descending;
+          break;
       }
-      _r.dirty();
+    } else {
+      _sortingDirection[table] = defaultDirection;
+      _sortingField[table] = field;
     }
+    _r.dirty();
+  }
 
   Element _createCallee() {
     final element = new DivElement()
       ..classes = ['function-item']
       ..children = [
-        new SpanElement()..classes = ['inclusive']
+        new SpanElement()
+          ..classes = ['inclusive']
           ..text = '0%',
         new SpanElement()..classes = ['name']
       ];
@@ -301,25 +282,21 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
         queue: _r.queue)..classes = ['name'];
   }
 
-  Element _createCalleeHeader() =>
-    new DivElement()
-      ..classes = ['function-item']
-        ..children = [
-          _createHeaderButton(const ['inclusive'], 'Callees(%)',
-                              _Table.callee,
-                              _SortingField.callee,
-                              _SortingDirection.descending),
-          _createHeaderButton(const ['name'], 'Method',
-                              _Table.callee,
-                              _SortingField.method,
-                              _SortingDirection.ascending),
-      ];
+  Element _createCalleeHeader() => new DivElement()
+    ..classes = ['function-item']
+    ..children = [
+      _createHeaderButton(const ['inclusive'], 'Callees(%)', _Table.callee,
+          _SortingField.callee, _SortingDirection.descending),
+      _createHeaderButton(const ['name'], 'Method', _Table.callee,
+          _SortingField.method, _SortingDirection.ascending),
+    ];
 
   Element _createCaller() {
     final element = new DivElement()
       ..classes = ['function-item']
       ..children = [
-        new SpanElement()..classes = ['inclusive']
+        new SpanElement()
+          ..classes = ['inclusive']
           ..text = '0%',
         new SpanElement()..classes = ['name']
       ];
@@ -339,51 +316,59 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
         queue: _r.queue)..classes = ['name'];
   }
 
-  Element _createCallerHeader() =>
-    new DivElement()
-      ..classes = ['function-item']
-        ..children = [
-          _createHeaderButton(const ['inclusive'], 'Callers(%)',
-                              _Table.caller,
-                              _SortingField.caller,
-                              _SortingDirection.descending),
-          _createHeaderButton(const ['name'], 'Method',
-                              _Table.caller,
-                              _SortingField.method,
-                              _SortingDirection.ascending),
-      ];
+  Element _createCallerHeader() => new DivElement()
+    ..classes = ['function-item']
+    ..children = [
+      _createHeaderButton(const ['inclusive'], 'Callers(%)', _Table.caller,
+          _SortingField.caller, _SortingDirection.descending),
+      _createHeaderButton(const ['name'], 'Method', _Table.caller,
+          _SortingField.method, _SortingDirection.ascending),
+    ];
 
-  ButtonElement _createHeaderButton(List<String> classes,
-                                    String text,
-                                    _Table table,
-                                    _SortingField field,
-                                    _SortingDirection direction) =>
-      new ButtonElement()..classes = classes
-          ..text = _sortingField[table] != field ? text :
-                     _sortingDirection[table] == _SortingDirection.ascending
-                     ? '$text▼' : '$text▲'
-          ..onClick.listen((_) => _setSorting(table, field, direction));
+  ButtonElement _createHeaderButton(List<String> classes, String text,
+          _Table table, _SortingField field, _SortingDirection direction) =>
+      new ButtonElement()
+        ..classes = classes
+        ..text = _sortingField[table] != field
+            ? text
+            : _sortingDirection[table] == _SortingDirection.ascending
+                ? '$text▼'
+                : '$text▲'
+        ..onClick.listen((_) => _setSorting(table, field, direction));
 
   List<Element> _createTree() {
     CpuProfileVirtualTreeElement tree;
     return [
-      new StackTraceTreeConfigElement(showMode: false,
-        showDirection: false, mode: ProfileTreeMode.function,
-        direction: M.ProfileTreeDirection.exclusive, filter: _filter,
-        queue: _r.queue)
+      new StackTraceTreeConfigElement(
+          showMode: false,
+          showDirection: false,
+          mode: ProfileTreeMode.function,
+          direction: M.ProfileTreeDirection.exclusive,
+          filter: _filter,
+          queue: _r.queue)
         ..onFilterChange.listen((e) {
           _filter = e.element.filter.trim();
           tree.filters = _filter.isNotEmpty
-            ? [_filterTree, (node) { return node.name.contains(_filter); }]
-            : [_filterTree];
+              ? [
+                  _filterTree,
+                  (node) {
+                    return node.name.contains(_filter);
+                  }
+                ]
+              : [_filterTree];
         }),
       new BRElement(),
       tree = new CpuProfileVirtualTreeElement(_isolate, _progress.profile,
-        mode: ProfileTreeMode.function,
-        direction: M.ProfileTreeDirection.exclusive,
-        queue: _r.queue)
-          ..filters = _filter.isNotEmpty
-            ? [_filterTree, (node) { return node.name.contains(_filter); }]
+          mode: ProfileTreeMode.function,
+          direction: M.ProfileTreeDirection.exclusive,
+          queue: _r.queue)
+        ..filters = _filter.isNotEmpty
+            ? [
+                _filterTree,
+                (node) {
+                  return node.name.contains(_filter);
+                }
+              ]
             : [_filterTree]
     ];
   }
@@ -432,8 +417,7 @@ class CpuProfileTableElement  extends HtmlElement implements Renderable {
         getter = _getCallerT;
         break;
       case _SortingField.method:
-        getter = (M.ProfileFunction s) =>
-          M.getFunctionFullName(s.function);
+        getter = (M.ProfileFunction s) => M.getFunctionFullName(s.function);
         break;
     }
     switch (_sortingDirection[table]) {

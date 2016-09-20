@@ -797,14 +797,17 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return relate(
         this,
         type,
-        (DartType t, DartType s) =>
+        (DartType t, DartType s, _, __) =>
             (t as TypeImpl).isMoreSpecificThan(s, withDynamic),
         new TypeSystemImpl().instantiateToBounds);
   }
 
   @override
   bool isSubtypeOf(DartType type) {
-    return relate(this, type, (DartType t, DartType s) => t.isAssignableTo(s),
+    return relate(
+        this,
+        type,
+        (DartType t, DartType s, _, __) => t.isAssignableTo(s),
         new TypeSystemImpl().instantiateToBounds);
   }
 
@@ -966,17 +969,18 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    *
    * Used for the various relations on function types which have the same
    * structural rules for handling optional parameters and arity, but use their
-   * own relation for comparing corresponding paramaters or return types.
+   * own relation for comparing corresponding parameters or return types.
    *
    * If [returnRelation] is omitted, uses [parameterRelation] for both.
    */
   static bool relate(
       FunctionType t,
       DartType other,
-      bool parameterRelation(DartType t, DartType s),
+      bool parameterRelation(
+          DartType t, DartType s, bool tIsCovariant, bool sIsCovariant),
       DartType instantiateToBounds(DartType t),
       {bool returnRelation(DartType t, DartType s)}) {
-    returnRelation ??= parameterRelation;
+    returnRelation ??= (t, s) => parameterRelation(t, s, false, false);
 
     // Trivial base cases.
     if (other == null) {
@@ -1014,12 +1018,39 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
 
     // Test the parameter types.
-    List<DartType> tRequired = t.normalParameterTypes;
-    List<DartType> sRequired = s.normalParameterTypes;
-    List<DartType> tOptional = t.optionalParameterTypes;
-    List<DartType> sOptional = s.optionalParameterTypes;
-    Map<String, DartType> tNamed = t.namedParameterTypes;
-    Map<String, DartType> sNamed = s.namedParameterTypes;
+
+    // TODO(jmesserly): this could be implemented with less allocation if we
+    // wanted, by taking advantage of the fact that positional arguments must
+    // appear before named ones.
+    var tRequired = <ParameterElement>[];
+    var tOptional = <ParameterElement>[];
+    var tNamed = <String, ParameterElement>{};
+    for (var p in t.parameters) {
+      var kind = p.parameterKind;
+      if (kind == ParameterKind.REQUIRED) {
+        tRequired.add(p);
+      } else if (kind == ParameterKind.POSITIONAL) {
+        tOptional.add(p);
+      } else {
+        assert(kind == ParameterKind.NAMED);
+        tNamed[p.name] = p;
+      }
+    }
+
+    var sRequired = <ParameterElement>[];
+    var sOptional = <ParameterElement>[];
+    var sNamed = <String, ParameterElement>{};
+    for (var p in s.parameters) {
+      var kind = p.parameterKind;
+      if (kind == ParameterKind.REQUIRED) {
+        sRequired.add(p);
+      } else if (kind == ParameterKind.POSITIONAL) {
+        sOptional.add(p);
+      } else {
+        assert(kind == ParameterKind.NAMED);
+        sNamed[p.name] = p;
+      }
+    }
 
     // If one function has positional and the other has named parameters,
     // they don't relate.
@@ -1037,19 +1068,21 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // For each named parameter in s, make sure we have a corresponding one
     // that relates.
     for (String key in sNamed.keys) {
-      var tParamType = tNamed[key];
-      if (tParamType == null) {
+      var tParam = tNamed[key];
+      if (tParam == null) {
         return false;
       }
-      if (!parameterRelation(tParamType, sNamed[key])) {
+      var sParam = sNamed[key];
+      if (!parameterRelation(
+          tParam.type, sParam.type, tParam.isCovariant, sParam.isCovariant)) {
         return false;
       }
     }
 
     // Make sure all of the positional parameters (both required and optional)
     // relate to each other.
-    List<DartType> tPositional = tRequired;
-    List<DartType> sPositional = sRequired;
+    var tPositional = tRequired;
+    var sPositional = sRequired;
 
     if (tOptional.isNotEmpty) {
       tPositional = tPositional.toList()..addAll(tOptional);
@@ -1070,7 +1103,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
 
     for (int i = 0; i < sPositional.length; i++) {
-      if (!parameterRelation(tPositional[i], sPositional[i])) {
+      var tParam = tPositional[i];
+      var sParam = sPositional[i];
+      if (!parameterRelation(
+          tParam.type, sParam.type, tParam.isCovariant, sParam.isCovariant)) {
         return false;
       }
     }

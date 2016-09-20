@@ -5,13 +5,17 @@
 import "package:expect/expect.dart";
 
 closure0() {
-  var f = () { return 499; };
+  var f = () {
+    return 499;
+  };
   Expect.equals(499, f());
 }
 
 class A {
   closure1() {
-    var f = () { return 499; };
+    var f = () {
+      return 499;
+    };
     Expect.equals(499, f());
   }
 }
@@ -21,11 +25,15 @@ applyFun(f) {
 }
 
 closure2() {
-  Expect.equals(499, applyFun(() { return 499; }));
+  Expect.equals(499, applyFun(() {
+    return 499;
+  }));
 }
 
 closure3() {
-  var f = (x) { return 400 + x; };
+  var f = (x) {
+    return 400 + x;
+  };
   Expect.equals(499, f(99));
 }
 
@@ -34,7 +42,9 @@ applyFun2(f) {
 }
 
 closure4() {
-  Expect.equals(499, applyFun2((x, y) { return x + y; }));
+  Expect.equals(499, applyFun2((x, y) {
+    return x + y;
+  }));
 }
 
 main() {

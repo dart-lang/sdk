@@ -18,15 +18,16 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-
-class ClassTreeElement extends HtmlElement implements Renderable{
-  static const tag = const Tag<ClassTreeElement>('class-tree',
-                     dependencies: const [ClassRefElement.tag,
-                                          NavIsolateMenuElement.tag,
-                                          NavNotifyElement.tag,
-                                          NavTopMenuElement.tag,
-                                          NavVMMenuElement.tag,
-                                          VirtualTreeElement.tag]);
+class ClassTreeElement extends HtmlElement implements Renderable {
+  static const tag =
+      const Tag<ClassTreeElement>('class-tree', dependencies: const [
+    ClassRefElement.tag,
+    NavIsolateMenuElement.tag,
+    NavNotifyElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    VirtualTreeElement.tag
+  ]);
 
   RenderingScheduler _r;
 
@@ -41,11 +42,13 @@ class ClassTreeElement extends HtmlElement implements Renderable{
   final _subclasses = <String, Iterable<M.Class>>{};
   final _mixins = <String, List<M.Instance>>{};
 
-  factory ClassTreeElement(M.VMRef vm, M.IsolateRef isolate,
-                           M.EventRepository events,
-                           M.NotificationRepository notifications,
-                           M.ClassRepository classes,
-                           {RenderingQueue queue}) {
+  factory ClassTreeElement(
+      M.VMRef vm,
+      M.IsolateRef isolate,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.ClassRepository classes,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -92,16 +95,18 @@ class ClassTreeElement extends HtmlElement implements Renderable{
         ..classes = ['content-centered']
         ..children = [
           new HeadingElement.h1()..text = 'Class Hierarchy',
-          new BRElement(), new HRElement(),
-          _object == null ? (new HeadingElement.h2()..text = 'Loading...')
-                          : _createTree()
+          new BRElement(),
+          new HRElement(),
+          _object == null
+              ? (new HeadingElement.h2()..text = 'Loading...')
+              : _createTree()
         ]
     ];
   }
 
   Element _createTree() {
     _tree = new VirtualTreeElement(_create, _update, _children,
-                                   items: [_object], queue: _r.queue);
+        items: [_object], queue: _r.queue);
     _tree.expand(_object, autoExpandSingleChildNodes: true);
     return _tree;
   }
@@ -116,10 +121,9 @@ class ClassTreeElement extends HtmlElement implements Renderable{
 
   Future<M.Class> _register(M.Class cls) async {
     _subclasses[cls.id] = await Future.wait(
-      (await Future.wait(cls.subclasses.map(_getActualChildrens)))
-      .expand((f) => f)
-      .map(_register)
-    );
+        (await Future.wait(cls.subclasses.map(_getActualChildrens)))
+            .expand((f) => f)
+            .map(_register));
     return cls;
   }
 
@@ -132,20 +136,22 @@ class ClassTreeElement extends HtmlElement implements Renderable{
       return [cls];
     }
     return (await Future.wait(cls.subclasses.map(_getActualChildrens)))
-      .expand((f) => f)
-      ..forEach((subcls) {
-        _mixins[subcls.id] = (_mixins[subcls.id] ?? [])..add(cls.mixin);
-      });
+        .expand((f) => f)
+          ..forEach((subcls) {
+            _mixins[subcls.id] = (_mixins[subcls.id] ?? [])..add(cls.mixin);
+          });
   }
 
   static Element _create(toggle) {
-    return new DivElement()..classes = ['class-tree-item']
-        ..children = [
-          new SpanElement()..classes = ['lines'],
-          new ButtonElement()..classes = ['expander']
-            ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-          new SpanElement()..classes = ['name']
-        ];
+    return new DivElement()
+      ..classes = ['class-tree-item']
+      ..children = [
+        new SpanElement()..classes = ['lines'],
+        new ButtonElement()
+          ..classes = ['expander']
+          ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
+        new SpanElement()..classes = ['name']
+      ];
   }
 
   void _update(HtmlElement el, M.Class cls, int index) {
@@ -164,12 +170,15 @@ class ClassTreeElement extends HtmlElement implements Renderable{
   }
 
   List<Element> _createMixins(List<M.Instance> types) {
-    final  children = types.expand((type) => [
-      new SpanElement()..text = ', ',
-      type.typeClass == null
-          ? (new SpanElement()..text = type.name.split('<').first)
-          : new ClassRefElement(_isolate, type.typeClass, queue: _r.queue)
-    ]).toList();
+    final children = types
+        .expand((type) => [
+              new SpanElement()..text = ', ',
+              type.typeClass == null
+                  ? (new SpanElement()..text = type.name.split('<').first)
+                  : new ClassRefElement(_isolate, type.typeClass,
+                      queue: _r.queue)
+            ])
+        .toList();
     children.first.text = ' with ';
     return children;
   }

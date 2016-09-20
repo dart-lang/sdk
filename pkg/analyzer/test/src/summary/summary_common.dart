@@ -6,11 +6,9 @@ library analyzer.test.src.summary.summary_common;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -18,8 +16,6 @@ import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
-import 'package:analyzer/src/summary/summarize_elements.dart'
-    as summarize_elements;
 import 'package:path/path.dart' show posix;
 import 'package:unittest/unittest.dart';
 
@@ -108,26 +104,16 @@ class SerializedMockSdk {
 
   static SerializedMockSdk _serializeMockSdk() {
     try {
-      AnalysisContext analysisContext = new MockSdk().context;
       Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
       Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
-      List<LibraryElement> libraries = [
-        analysisContext.typeProvider.objectType.element.library,
-        analysisContext.typeProvider.futureType.element.library,
-        analysisContext.computeLibraryElement(
-            analysisContext.sourceFactory.resolveUri(null, 'dart:math')),
-      ];
-      for (LibraryElement library in libraries) {
-        summarize_elements.LibrarySerializationResult serializedLibrary =
-            summarize_elements.serializeLibrary(
-                library, analysisContext.typeProvider, false);
-        uriToLinkedLibrary[library.source.uri.toString()] =
-            new LinkedLibrary.fromBuffer(serializedLibrary.linked.toBuffer());
-        for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
-          uriToUnlinkedUnit[serializedLibrary.unitUris[i]] =
-              new UnlinkedUnit.fromBuffer(
-                  serializedLibrary.unlinkedUnits[i].toBuffer());
-        }
+      PackageBundle bundle = new MockSdk().getLinkedBundle();
+      for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
+        String uri = bundle.unlinkedUnitUris[i];
+        uriToUnlinkedUnit[uri] = bundle.unlinkedUnits[i];
+      }
+      for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
+        String uri = bundle.linkedLibraryUris[i];
+        uriToLinkedLibrary[uri] = bundle.linkedLibraries[i];
       }
       return new SerializedMockSdk._(uriToUnlinkedUnit, uriToLinkedLibrary);
     } catch (_) {
@@ -1305,35 +1291,6 @@ class E {}
   test_class_no_interface() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.interfaces, isEmpty);
-  }
-
-  test_unresolved_import() {
-    allowMissingFiles = true;
-    serializeLibraryText("import 'foo.dart';", allowErrors: true);
-    expect(unlinkedUnits[0].imports, hasLength(2));
-    expect(unlinkedUnits[0].imports[0].uri, 'foo.dart');
-    // Note: imports[1] is the implicit import of dart:core.
-    expect(unlinkedUnits[0].imports[1].isImplicit, true);
-    expect(linked.importDependencies, hasLength(2));
-    checkDependency(
-        linked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
-  }
-
-  test_unresolved_export() {
-    allowMissingFiles = true;
-    serializeLibraryText("export 'foo.dart';", allowErrors: true);
-    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
-    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, 'foo.dart');
-    expect(linked.exportDependencies, hasLength(1));
-    checkDependency(
-        linked.exportDependencies[0], absUri('/foo.dart'), 'foo.dart');
-  }
-
-  test_unresolved_part() {
-    allowMissingFiles = true;
-    serializeLibraryText("part 'foo.dart';", allowErrors: true);
-    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
-    expect(unlinkedUnits[0].publicNamespace.parts[0], 'foo.dart');
   }
 
   test_class_no_mixins() {
@@ -6086,6 +6043,38 @@ f(MyFunction myFunction) {}
         ReferenceKind.classOrEnum);
   }
 
+  test_export_configurations() {
+    if (!checkAstDerivedData) {
+      // Element model does not provide access to configurations.
+      return;
+    }
+    addNamedSource('/foo.dart', 'class A {}');
+    addNamedSource('/foo_io.dart', 'class A {}');
+    addNamedSource('/foo_html.dart', 'class A {}');
+    String libraryText = r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.flavor == 'html') 'foo_html.dart';
+
+class B extends A {}
+''';
+    serializeLibraryText(libraryText);
+    UnlinkedExportPublic exp = unlinkedUnits[0].publicNamespace.exports[0];
+    expect(exp.configurations, hasLength(2));
+    {
+      UnlinkedConfiguration configuration = exp.configurations[0];
+      expect(configuration.name, 'dart.library.io');
+      expect(configuration.value, 'true');
+      expect(configuration.uri, 'foo_io.dart');
+    }
+    {
+      UnlinkedConfiguration configuration = exp.configurations[1];
+      expect(configuration.name, 'dart.flavor');
+      expect(configuration.value, 'html');
+      expect(configuration.uri, 'foo_html.dart');
+    }
+  }
+
   test_export_dependency() {
     serializeLibraryText('export "dart:async";');
     expect(unlinkedUnits[0].exports, hasLength(1));
@@ -6289,8 +6278,10 @@ f(MyFunction myFunction) {}
     String uriString = '"a.dart"';
     String libraryText = 'export $uriString;';
     serializeLibraryText(libraryText);
-    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
-    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, 'a.dart');
+    var unlinkedExports = unlinkedUnits[0].publicNamespace.exports;
+    expect(unlinkedExports, hasLength(1));
+    expect(unlinkedExports[0].uri, 'a.dart');
+    expect(unlinkedExports[0].configurations, isEmpty);
   }
 
   test_export_variable() {
@@ -7905,6 +7896,36 @@ get f => null;''';
     int bDep =
         checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
     expect(aDep, lessThan(bDep));
+  }
+
+  test_import_configurations() {
+    if (!checkAstDerivedData) {
+      // Element model does not provide access to configurations.
+      return;
+    }
+    addNamedSource('/foo.dart', 'bar() {}');
+    addNamedSource('/foo_io.dart', 'bar() {}');
+    addNamedSource('/foo_html.dart', 'bar() {}');
+    String libraryText = r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.flavor == 'html') 'foo_html.dart';
+''';
+    serializeLibraryText(libraryText);
+    UnlinkedImport imp = unlinkedUnits[0].imports[0];
+    expect(imp.configurations, hasLength(2));
+    {
+      UnlinkedConfiguration configuration = imp.configurations[0];
+      expect(configuration.name, 'dart.library.io');
+      expect(configuration.value, 'true');
+      expect(configuration.uri, 'foo_io.dart');
+    }
+    {
+      UnlinkedConfiguration configuration = imp.configurations[1];
+      expect(configuration.name, 'dart.flavor');
+      expect(configuration.value, 'html');
+      expect(configuration.uri, 'foo_html.dart');
+    }
   }
 
   test_import_deferred() {
@@ -10071,6 +10092,35 @@ typedef F();''';
     serializeLibraryText('  int a = 1;  ');
     UnlinkedUnit unit = unlinkedUnits[0];
     _assertCodeRange(unit.codeRange, 0, 14);
+  }
+
+  test_unresolved_export() {
+    allowMissingFiles = true;
+    serializeLibraryText("export 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, 'foo.dart');
+    expect(linked.exportDependencies, hasLength(1));
+    checkDependency(
+        linked.exportDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
+  test_unresolved_import() {
+    allowMissingFiles = true;
+    serializeLibraryText("import 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].uri, 'foo.dart');
+    // Note: imports[1] is the implicit import of dart:core.
+    expect(unlinkedUnits[0].imports[1].isImplicit, true);
+    expect(linked.importDependencies, hasLength(2));
+    checkDependency(
+        linked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
+  test_unresolved_part() {
+    allowMissingFiles = true;
+    serializeLibraryText("part 'foo.dart';", allowErrors: true);
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0], 'foo.dart');
   }
 
   test_unresolved_reference_in_multiple_parts() {

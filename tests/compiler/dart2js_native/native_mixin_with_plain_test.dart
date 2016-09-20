@@ -38,9 +38,8 @@ class D extends C with M {
   get mm => 'D.mm($cc)';
 }
 
-
-makeA() native;
-makeB() native;
+makeA() native ;
+makeB() native ;
 
 void setup() native """
 function A() {this.aa = 'aa'}
@@ -52,7 +51,7 @@ makeB = function(){return new B;};
 main() {
   setup();
   var things = [makeA, makeB, () => new C(), () => new D(), () => new M()]
-      .map((f)=>f())
+      .map((f) => f())
       .toList();
   var a = things[0];
   var b = things[1];
@@ -104,5 +103,4 @@ main() {
   Expect.isTrue(d is C);
   Expect.isTrue(d is D);
   Expect.isTrue(d is M);
-
 }

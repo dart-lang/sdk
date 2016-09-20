@@ -29,7 +29,7 @@ vars.update({
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
   "charcode_tag": "@1.1.0",
-  "collection_rev": "@f6135e6350c63eb3f4dd12953b8d4363faff16fc",
+  "collection_tag": "@1.9.1",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
@@ -48,6 +48,7 @@ vars.update({
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observatory_pub_packages_rev": "@26aad88f1c1915d39bbcbff3cad589e2402fdcf1",
   "package_config_rev": "@0.1.3",
+  "package_resolver_tag": "@1.0.2",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
@@ -94,7 +95,7 @@ deps.update({
   "src/dart/third_party/pkg/dart2js_info":
       (Var("github_mirror") % "dart2js_info") + Var("dart2js_info_rev"),
   "src/dart/third_party/pkg/collection":
-      (Var("github_mirror") % "collection") + Var("collection_rev"),
+      (Var("github_mirror") % "collection") + Var("collection_tag"),
   "src/dart/third_party/pkg/glob":
       (Var("github_mirror") % "glob") + Var("glob_rev"),
   "src/dart/third_party/pkg/html":
@@ -125,8 +126,11 @@ deps.update({
   "src/dart/third_party/observatory_pub_packages":
       (Var("github_mirror") % "observatory_pub_packages") +
       Var("observatory_pub_packages_rev"),
-  "src/dart/third_party/pkg/package_config":
+  "src/dart/third_party/pkg_tested/package_config":
       (Var("github_mirror") % "package_config") + Var("package_config_rev"),
+  "src/dart/third_party/pkg_tested/package_resolver":
+      "https://github.com/dart-lang/package_resolver.git" +
+      Var("package_resolver_tag"),
   "src/dart/third_party/pkg/path":
       (Var("github_mirror") % "path") + Var("path_rev"),
   "src/dart/third_party/pkg/plugin":
@@ -228,5 +232,21 @@ hooks.append({
     "--extract",
     "--directory",
     "src/dart/tools/sdks",
+  ],
+})
+hooks.append({
+  "name": "unittest",
+  # Unittest is an early version, 0.11.6, of the package "test"
+  # Do not use it in any new tests.
+  "pattern": ".",
+  "action": [
+    "download_from_google_storage",
+    "--no_auth",
+    "--no_resume",
+    "--bucket",
+    "dart-dependencies",
+    "--extract",
+    "-s",
+    "src/dart/third_party/pkg/unittest.tar.gz.sha1",
   ],
 })

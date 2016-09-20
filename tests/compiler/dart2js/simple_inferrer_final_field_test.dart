@@ -31,20 +31,21 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkFieldTypeInClass(String className, String fieldName, type) {
-      var cls = findElement(compiler, className);
-      var element = cls.lookupLocalMember(fieldName);
-      Expect.equals(type,
-          simplify(typesInferrer.getTypeOfElement(element), compiler));
-    }
+        checkFieldTypeInClass(String className, String fieldName, type) {
+          var cls = findElement(compiler, className);
+          var element = cls.lookupLocalMember(fieldName);
+          Expect.equals(type,
+              simplify(typesInferrer.getTypeOfElement(element), compiler));
+        }
 
-    checkFieldTypeInClass('A', 'intField', compiler.commonMasks.uint31Type);
-    checkFieldTypeInClass('A', 'giveUpField1',
-        findTypeMask(compiler, 'Interceptor', 'nonNullSubclass'));
-    checkFieldTypeInClass('A', 'giveUpField2',
-        compiler.commonMasks.dynamicType.nonNullable());
-    checkFieldTypeInClass('A', 'fieldParameter', compiler.commonMasks.uint31Type);
-  }));
+        checkFieldTypeInClass('A', 'intField', compiler.commonMasks.uint31Type);
+        checkFieldTypeInClass('A', 'giveUpField1',
+            findTypeMask(compiler, 'Interceptor', 'nonNullSubclass'));
+        checkFieldTypeInClass('A', 'giveUpField2',
+            compiler.commonMasks.dynamicType.nonNullable());
+        checkFieldTypeInClass(
+            'A', 'fieldParameter', compiler.commonMasks.uint31Type);
+      }));
 }

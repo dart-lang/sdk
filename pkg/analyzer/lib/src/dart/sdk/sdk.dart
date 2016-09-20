@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -16,7 +17,6 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -155,9 +155,12 @@ abstract class AbstractDartSdk implements DartSdk {
 
   @override
   PackageBundle getLinkedBundle() {
-    bool strongMode = _analysisOptions?.strongMode ?? false;
-    _sdkBundle ??= getSummarySdkBundle(strongMode);
-    return _sdkBundle;
+    if (_useSummary) {
+      bool strongMode = _analysisOptions?.strongMode ?? false;
+      _sdkBundle ??= getSummarySdkBundle(strongMode);
+      return _sdkBundle;
+    }
+    return null;
   }
 
   String getRelativePathFromFile(File file);

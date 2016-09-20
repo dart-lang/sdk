@@ -8,17 +8,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
+import 'package:stack_trace/stack_trace.dart';
 import 'service_test_common.dart';
 
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.
 String serviceHttpAddress;
 String serviceWebsocketAddress;
-
-bool _isWebSocketDisconnect(e) {
-  return e is NetworkRpcException;
-}
-
 
 const String _TESTEE_ENV_KEY = 'SERVICE_TEST_TESTEE';
 const Map<String, String> _TESTEE_SPAWN_ENV = const {
@@ -271,7 +267,7 @@ class _FlutterDeviceServiceTesterRunner {
     serviceWebsocketAddress = 'ws://localhost:$port/ws';
     serviceHttpAddress = 'http://localhost:$port';
     var name = Platform.script.pathSegments.last;
-    runZoned(() async {
+    Chain.capture(() async {
       var vm =
           new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
       print('Loading VM...');
@@ -302,11 +298,8 @@ class _FlutterDeviceServiceTesterRunner {
           await test(isolate);
         }
       }
-    }, onError: (e, st) {
-        if (!_isWebSocketDisconnect(e)) {
-          print('Unexpected exception in service tests: $e $st');
-          throw e;
-        }
+    }, onError: (error, stackTrace) {
+      print('Unexpected exception in service tests: $error\n$stackTrace');
     });
   }
 }
@@ -338,7 +331,7 @@ class _ServiceTesterRunner {
       serviceWebsocketAddress = 'ws://localhost:$port/ws';
       serviceHttpAddress = 'http://localhost:$port';
       var name = Platform.script.pathSegments.last;
-      runZoned(() async {
+      Chain.capture(() async {
         var vm =
             new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
         print('Loading VM...');
@@ -371,19 +364,10 @@ class _ServiceTesterRunner {
         }
 
         await process.requestExit();
-      }, onError: (e, st) {
+      }, onError: (error, stackTrace) {
         process.requestExit();
-        // TODO: remove this workaround.
-        // This is necessary due to non awaited operations.
-        // E.G. object.dart (398~402)
-        // When an exception is thrown inside a test (directly or via await) the
-        // stacktrace is non-null and shows where the exception has been thrown.
-        // If vice versa the exception is due to an error in a non-awaited
-        // Future the stacktrace is null.
-        if (st != null || !_isWebSocketDisconnect(e)) {
-          print('Unexpected exception in service tests: $e $st');
-          throw e;
-        }
+        print('Unexpected exception in service tests: $error\n$stackTrace');
+        throw error;
       });
     });
   }

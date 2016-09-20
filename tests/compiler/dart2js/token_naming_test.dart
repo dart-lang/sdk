@@ -39,7 +39,7 @@ int main() {
   Expect.equals("h_", forwardN(scope, 63 * 5));
   // Likewise, ensure we skip s.
   Expect.equals("t_", forwardN(scope, 63 * 11));
-  // And wrap around another digit. 
+  // And wrap around another digit.
   Expect.equals("a__", forwardN(scope, 63 * 33));
 
   // Test a filtered scope.

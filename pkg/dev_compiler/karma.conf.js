@@ -89,5 +89,9 @@ module.exports = function(config) {
     configuration.client.captureConsole = true;
   }
 
+  if (process.env.DDC_BROWSERS) {
+    configuration.browsers = process.env.DDC_BROWSERS.split(':');
+  }
+
   config.set(configuration);
 };

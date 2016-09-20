@@ -17,8 +17,8 @@ import 'test_data.dart';
 
 void main(List<String> args) {
   asyncTest(() async {
-    SerializedData data = await serializeDartCore(
-        arguments: new Arguments.from(args));
+    SerializedData data =
+        await serializeDartCore(arguments: new Arguments.from(args));
     Map<String, String> sourceFiles = data.toMemorySourceFiles();
     List<Uri> resolutionInputs = data.toUris();
     Uri extraUri = Uri.parse('memory:extraUri');

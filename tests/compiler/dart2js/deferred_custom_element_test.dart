@@ -31,7 +31,8 @@ void main() {
 // The main library imports a file defining a custom element.
 // Registering this class implicitly causes the constructors to be
 // live. Check that this is handled.
-const Map MEMORY_SOURCE_FILES = const {"main.dart": """
+const Map MEMORY_SOURCE_FILES = const {
+  "main.dart": """
 import "lib.dart" deferred as a;
 import 'dart:html';
 
@@ -39,7 +40,8 @@ main() {
   document.registerElement("foo-tag", a.a);
   a.foo();
 }
-""", "lib.dart": """
+""",
+  "lib.dart": """
 import 'dart:html';
 var a = CustomType;
 
@@ -49,4 +51,5 @@ class CustomType extends HtmlElement {
 }
 
 foo() {}
-""",};
+""",
+};

@@ -17,6 +17,8 @@ dev_compiler/test/*: Skip
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
 
+dart_messages/test/dart_messages_test: Skip  # Requires a package root.
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949

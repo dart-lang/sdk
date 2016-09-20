@@ -23,19 +23,19 @@ import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class MegamorphicCacheViewElement extends HtmlElement implements Renderable {
-  static const tag =
-         const Tag<MegamorphicCacheViewElement>('megamorphiccache-view',
-                                                dependencies: const [
-                                                  ContextRefElement.tag,
-                                                  CurlyBlockElement.tag,
-                                                  NavTopMenuElement.tag,
-                                                  NavVMMenuElement.tag,
-                                                  NavIsolateMenuElement.tag,
-                                                  NavRefreshElement.tag,
-                                                  NavNotifyElement.tag,
-                                                  ObjectCommonElement.tag,
-                                                  ViewFooterElement.tag
-                                                ]);
+  static const tag = const Tag<MegamorphicCacheViewElement>(
+      'megamorphiccache-view',
+      dependencies: const [
+        ContextRefElement.tag,
+        CurlyBlockElement.tag,
+        NavTopMenuElement.tag,
+        NavVMMenuElement.tag,
+        NavIsolateMenuElement.tag,
+        NavRefreshElement.tag,
+        NavNotifyElement.tag,
+        ObjectCommonElement.tag,
+        ViewFooterElement.tag
+      ]);
 
   RenderingScheduler<MegamorphicCacheViewElement> _r;
 
@@ -54,23 +54,24 @@ class MegamorphicCacheViewElement extends HtmlElement implements Renderable {
   M.RetainingPathRepository _retainingPaths;
   M.InstanceRepository _instances;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.MegamorphicCache get cache => _cache;
 
-  factory MegamorphicCacheViewElement(M.VM vm, M.IsolateRef isolate,
-                                      M.MegamorphicCache cache,
-                                      M.EventRepository events,
-                                      M.NotificationRepository notifications,
-                                      M.MegamorphicCacheRepository caches,
-                                      M.RetainedSizeRepository retainedSizes,
-                                      M.ReachableSizeRepository reachableSizes,
-                                      M.InboundReferencesRepository references,
-                                      M.RetainingPathRepository retainingPaths,
-                                      M.InstanceRepository instances,
-                                      {RenderingQueue queue}) {
+  factory MegamorphicCacheViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.MegamorphicCache cache,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.MegamorphicCacheRepository caches,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -121,55 +122,69 @@ class MegamorphicCacheViewElement extends HtmlElement implements Renderable {
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('megamorphic inline cache'),
         new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _cache = await _caches.get(_isolate, _cache.id);
-              _r.dirty();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _cache = await _caches.get(_isolate, _cache.id);
+            _r.dirty();
+          }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Megamorphic Cache',
           new HRElement(),
           new ObjectCommonElement(_isolate, _cache, _retainedSizes,
-                                  _reachableSizes, _references, _retainingPaths,
-                                  _instances, queue: _r.queue),
+              _reachableSizes, _references, _retainingPaths, _instances,
+              queue: _r.queue),
           new BRElement(),
-          new DivElement()..classes = ['memberList']
+          new DivElement()
+            ..classes = ['memberList']
             ..children = [
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'selector',
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = '${_cache.selector}'
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'mask',
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = '${_cache.mask}'
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'buckets',
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..children = [
                       anyRef(_isolate, _cache.buckets, _instances,
-                             queue: _r.queue)
+                          queue: _r.queue)
                     ]
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'argumentsDescriptor',
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..children = [
                       anyRef(_isolate, _cache.argumentsDescriptor, _instances,
-                             queue: _r.queue)
+                          queue: _r.queue)
                     ]
                 ]
             ],

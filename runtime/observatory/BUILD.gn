@@ -121,7 +121,7 @@ action("pub_build_observatory") {
   ]
 
   outputs = [
-    "$root_out_dir/observatory/build/web/index.html.polymer.bootstrap.dart.js",
+    "$root_out_dir/observatory/build/web/main.dart.js",
   ]
 }
 
@@ -134,7 +134,7 @@ action("deploy_observatory") {
 
   inputs = [
     script,
-    "$root_out_dir/observatory/build/web/index.html.polymer.bootstrap.dart.js",
+    "$root_out_dir/observatory/build/web/main.dart.js",
   ]
 
   args = [
@@ -148,7 +148,7 @@ action("deploy_observatory") {
   ]
 
   outputs = [
-    "$root_out_dir/observatory/deployed/web/index.html.polymer.bootstrap.dart.js",
+    "$root_out_dir/observatory/deployed/web/main.dart.js",
   ]
 }
 
@@ -161,7 +161,7 @@ action("archive_observatory") {
 
   inputs = [
     script,
-    "$root_out_dir/observatory/deployed/web/index.html.polymer.bootstrap.dart.js",
+    "$root_out_dir/observatory/deployed/web/main.dart.js",
   ]
 
   args = [

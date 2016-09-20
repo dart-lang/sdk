@@ -7,12 +7,10 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/types/types.dart'
-    show ContainerTypeMask, TypeMask;
+import 'package:compiler/src/types/types.dart' show ContainerTypeMask, TypeMask;
 
 import 'compiler_helper.dart';
 import 'type_mask_test_helper.dart';
-
 
 const String TEST = r'''
 var myList = [];
@@ -28,17 +26,17 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkType(String name, type) {
-      var element = findElement(compiler, name);
-      ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
-      Expect.equals(type, simplify(mask.elementType, compiler), name);
-    }
+        checkType(String name, type) {
+          var element = findElement(compiler, name);
+          ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
+          Expect.equals(type, simplify(mask.elementType, compiler), name);
+        }
 
-    var interceptorType =
-      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+        var interceptorType =
+            findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 
-    checkType('myList', interceptorType);
-  }));
+        checkType('myList', interceptorType);
+      }));
 }

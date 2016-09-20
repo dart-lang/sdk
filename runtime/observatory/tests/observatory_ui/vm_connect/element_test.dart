@@ -45,7 +45,6 @@ main() {
       document.body.append(e);
       await e.onRendered.first;
       expect(targets.listInvoked, isTrue, reason: 'should invoke list()');
-      expect(targets.currentInvoked, isTrue, reason: 'should invoke current');
       expect(e.children.length, isNonZero, reason: 'has elements');
       expect(e.querySelectorAll(nTag).length, equals(1));
       expect(e.querySelectorAll(tTag).length, equals(2));
@@ -72,7 +71,7 @@ main() {
   });
   group('invokes', () {
     test('add on click', () async {
-      final address = 'ws://host:1234';
+      final address = 'ws://host:1234/ws';
       final list = <TargetMock>[const TargetMock(name: 't-1')];
       final targets = new TargetRepositoryMock(list: list,
           add: expectAsync((String val) {

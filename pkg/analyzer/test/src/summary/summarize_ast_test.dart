@@ -7,9 +7,9 @@ library analyzer.test.src.summary.summarize_ast_test;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -137,6 +137,8 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
   @override
   List<UnlinkedUnit> unlinkedUnits;
 
+  LinkerInputs linkerInputs;
+
   @override
   bool get checkAstDerivedData => true;
 
@@ -152,9 +154,13 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
   @override
   void serializeLibraryText(String text, {bool allowErrors: false}) {
     Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
-    LinkerInputs linkerInputs = createLinkerInputs(text);
-    linked = link(linkerInputs.linkedLibraries, linkerInputs.getDependency,
-        linkerInputs.getUnit, strongMode)[linkerInputs.testDartUri.toString()];
+    linkerInputs = createLinkerInputs(text);
+    linked = link(
+        linkerInputs.linkedLibraries,
+        linkerInputs.getDependency,
+        linkerInputs.getUnit,
+        (name) => null,
+        strongMode)[linkerInputs.testDartUri.toString()];
     expect(linked, isNotNull);
     validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[linkerInputs.unlinkedDefiningUnit];
@@ -202,6 +208,10 @@ class LinkerInputs {
       this._dependentUnlinkedUnits);
 
   Set<String> get linkedLibraries => _uriToUnit.keys.toSet();
+
+  String getDeclaredVariable(String name) {
+    return null;
+  }
 
   LinkedLibrary getDependency(String absoluteUri) {
     Map<String, LinkedLibrary> sdkLibraries =
@@ -299,6 +309,7 @@ abstract class SummaryLinkerTest {
         linkerInputs.linkedLibraries,
         linkerInputs.getDependency,
         linkerInputs.getUnit,
+        linkerInputs.getDeclaredVariable,
         true);
     linkedLibraries.forEach(assembler.addLinkedLibrary);
     linkerInputs._uriToUnit.forEach((String uri, UnlinkedUnit unit) {

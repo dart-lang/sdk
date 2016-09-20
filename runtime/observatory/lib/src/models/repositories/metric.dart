@@ -4,20 +4,9 @@
 
 part of models;
 
-enum MetricBufferSize {
-  n10samples,
-  n100samples,
-  n1000samples
-}
+enum MetricBufferSize { n10samples, n100samples, n1000samples }
 
-enum MetricSamplingRate {
-  off,
-  e100ms,
-  e1s,
-  e2s,
-  e4s,
-  e8s
-}
+enum MetricSamplingRate { off, e100ms, e1s, e2s, e4s, e8s }
 
 abstract class MetricRepository {
   Future<Iterable<Metric>> list(IsolateRef isolate);

@@ -33,9 +33,8 @@ Future runTest() async {
     // First parameter is uint31|String|bool.
     var mask1 = typesInferrer.getTypeOfElement(foo.parameters[0]);
     Expect.isTrue(mask1.isUnion);
-    var expectedTypes = new Set.from([commonMasks.uint31Type,
-                                      commonMasks.stringType,
-                                      commonMasks.boolType]);
+    var expectedTypes = new Set.from(
+        [commonMasks.uint31Type, commonMasks.stringType, commonMasks.boolType]);
     for (var typeMask in mask1.disjointMasks) {
       Expect.isFalse(typeMask.isNullable);
       var simpleType = simplify(typeMask, compiler);

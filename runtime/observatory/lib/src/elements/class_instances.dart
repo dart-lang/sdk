@@ -16,13 +16,13 @@ import 'package:observatory/src/elements/top_retaining_instances.dart';
 import 'package:observatory/utils.dart';
 
 class ClassInstancesElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ClassInstancesElement>('class-instances',
-      dependencies: const [
-        ClassRefElement.tag,
-        InboundReferencesElement.tag,
-        RetainingPathElement.tag,
-        TopRetainingInstancesElement.tag
-      ]);
+  static const tag =
+      const Tag<ClassInstancesElement>('class-instances', dependencies: const [
+    ClassRefElement.tag,
+    InboundReferencesElement.tag,
+    RetainingPathElement.tag,
+    TopRetainingInstancesElement.tag
+  ]);
 
   RenderingScheduler<ClassInstancesElement> _r;
 
@@ -43,7 +43,9 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.Class get cls => _cls;
 
-  factory ClassInstancesElement(M.IsolateRef isolate, M.Class cls,
+  factory ClassInstancesElement(
+      M.IsolateRef isolate,
+      M.Class cls,
       M.RetainedSizeRepository retainedSizes,
       M.ReachableSizeRepository reachableSizes,
       M.StronglyReachableInstancesRepository stronglyReachableInstances,
@@ -88,54 +90,74 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
   TopRetainingInstancesElement _topRetainig;
 
   void render() {
-    _strong = _strong ?? new StronglyReachableInstancesElement(_isolate,
-      _cls, _stronglyReachableInstances, _instances, queue: _r.queue);
-    _topRetainig = _topRetainig ?? new TopRetainingInstancesElement(_isolate,
-      _cls, _topRetainingInstances, _instances, queue: _r.queue);
-    final instanceCount = _cls.newSpace.current.instances +
-                          _cls.oldSpace.current.instances;
-    final size = Utils.formatSize(_cls.newSpace.current.bytes +
-                                  _cls.oldSpace.current.bytes);
+    _strong = _strong ??
+        new StronglyReachableInstancesElement(
+            _isolate, _cls, _stronglyReachableInstances, _instances,
+            queue: _r.queue);
+    _topRetainig = _topRetainig ??
+        new TopRetainingInstancesElement(
+            _isolate, _cls, _topRetainingInstances, _instances,
+            queue: _r.queue);
+    final instanceCount =
+        _cls.newSpace.current.instances + _cls.oldSpace.current.instances;
+    final size = Utils
+        .formatSize(_cls.newSpace.current.bytes + _cls.oldSpace.current.bytes);
     children = [
-      new DivElement()..classes = ['memberList']
+      new DivElement()
+        ..classes = ['memberList']
         ..children = [
-          new DivElement()..classes = const ['memberItem']
+          new DivElement()
+            ..classes = const ['memberItem']
             ..children = [
-              new DivElement()..classes = const ['memberName']
+              new DivElement()
+                ..classes = const ['memberName']
                 ..text = 'currently allocated',
-              new DivElement()..classes = const ['memberValue']
+              new DivElement()
+                ..classes = const ['memberValue']
                 ..text = 'count ${instanceCount} (shallow size ${size})'
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'strongly reachable ',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = [_strong]
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..title = 'Space reachable from this object, '
-                      'excluding class references'
+                'excluding class references'
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Reachable size ',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = _createReachableSizeValue()
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..title = 'Space that would be reclaimed if references to this '
-                      'object were replaced with null'
+                'object were replaced with null'
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Retained size ',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = _createRetainedSizeValue()
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'toplist by retained memory ',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = [_topRetainig]
             ]
         ]
@@ -146,29 +168,26 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_reachableSize != null) {
       if (_reachableSize.isSentinel) {
-        content.add(
-          new SentinelValueElement(_reachableSize.asSentinel, queue: _r.queue)
-        );
+        content.add(new SentinelValueElement(_reachableSize.asSentinel,
+            queue: _r.queue));
       } else {
-        content.add(
-          new SpanElement()..text = Utils.formatSize(int.parse(
-              _reachableSize.asValue.valueAsString))
-        );
+        content.add(new SpanElement()
+          ..text = Utils
+              .formatSize(int.parse(_reachableSize.asValue.valueAsString)));
       }
     } else {
-      content.add(
-        new SpanElement()..text = '...'
-      );
+      content.add(new SpanElement()..text = '...');
     }
-    final button = new ButtonElement()..classes = ['reachable_size']
+    final button = new ButtonElement()
+      ..classes = ['reachable_size']
       ..disabled = _loadingReachableBytes
       ..text = '↺';
     button.onClick.listen((_) async {
-        button.disabled = true;
-        _loadingReachableBytes = true;
-        _reachableSize = await _reachableSizes.get(_isolate, _cls.id);
-        _r.dirty();
-      });
+      button.disabled = true;
+      _loadingReachableBytes = true;
+      _reachableSize = await _reachableSizes.get(_isolate, _cls.id);
+      _r.dirty();
+    });
     content.add(button);
     return content;
   }
@@ -177,29 +196,26 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_retainedSize != null) {
       if (_retainedSize.isSentinel) {
-        content.add(
-          new SentinelValueElement(_retainedSize.asSentinel, queue: _r.queue)
-        );
+        content.add(new SentinelValueElement(_retainedSize.asSentinel,
+            queue: _r.queue));
       } else {
-        content.add(
-          new SpanElement()..text = Utils.formatSize(int.parse(
-              _retainedSize.asValue.valueAsString))
-        );
+        content.add(new SpanElement()
+          ..text =
+              Utils.formatSize(int.parse(_retainedSize.asValue.valueAsString)));
       }
     } else {
-      content.add(
-        new SpanElement()..text = '...'
-      );
+      content.add(new SpanElement()..text = '...');
     }
-    final button = new ButtonElement()..classes = ['retained_size']
+    final button = new ButtonElement()
+      ..classes = ['retained_size']
       ..disabled = _loadingRetainedBytes
       ..text = '↺';
     button.onClick.listen((_) async {
-        button.disabled = true;
-        _loadingRetainedBytes = true;
-        _retainedSize = await _retainedSizes.get(_isolate, _cls.id);
-        _r.dirty();
-      });
+      button.disabled = true;
+      _loadingRetainedBytes = true;
+      _retainedSize = await _retainedSizes.get(_isolate, _cls.id);
+      _r.dirty();
+    });
     content.add(button);
     return content;
   }

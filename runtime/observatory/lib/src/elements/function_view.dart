@@ -30,25 +30,25 @@ import 'package:observatory/src/elements/source_link.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class FunctionViewElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<FunctionViewElement>('function-view',
-                                            dependencies: const [
-                                              ClassRefElement.tag,
-                                              CodeRefElement.tag,
-                                              CurlyBlockElement.tag,
-                                              FieldRefElement.tag,
-                                              InstanceRefElement.tag,
-                                              NavClassMenuElement.tag,
-                                              NavLibraryMenuElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              ObjectCommonElement.tag,
-                                              SourceLinkElement.tag,
-                                              SourceInsetElement.tag,
-                                              ViewFooterElement.tag
-                                            ]);
+  static const tag =
+      const Tag<FunctionViewElement>('function-view', dependencies: const [
+    ClassRefElement.tag,
+    CodeRefElement.tag,
+    CurlyBlockElement.tag,
+    FieldRefElement.tag,
+    InstanceRefElement.tag,
+    NavClassMenuElement.tag,
+    NavLibraryMenuElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ObjectCommonElement.tag,
+    SourceLinkElement.tag,
+    SourceInsetElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<FunctionViewElement> _r;
 
@@ -69,24 +69,26 @@ class FunctionViewElement extends HtmlElement implements Renderable {
   M.ScriptRepository _scripts;
   M.InstanceRepository _instances;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.Function get function => _function;
 
-  factory FunctionViewElement(M.VM vm, M.IsolateRef isolate, M.Function function,
-                              M.EventRepository events,
-                              M.NotificationRepository notifications,
-                              M.FunctionRepository functions,
-                              M.ClassRepository classes,
-                              M.RetainedSizeRepository retainedSizes,
-                              M.ReachableSizeRepository reachableSizes,
-                              M.InboundReferencesRepository references,
-                              M.RetainingPathRepository retainingPaths,
-                              M.ScriptRepository scripts,
-                              M.InstanceRepository instances,
-                              {RenderingQueue queue}) {
+  factory FunctionViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.Function function,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.FunctionRepository functions,
+      M.ClassRepository classes,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.ScriptRepository scripts,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -140,26 +142,30 @@ class FunctionViewElement extends HtmlElement implements Renderable {
   void render() {
     children = [
       navBar(_createMenu()),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Function ${_function.name}',
           new HRElement(),
           new ObjectCommonElement(_isolate, _function, _retainedSizes,
-                                  _reachableSizes, _references, _retainingPaths,
-                                  _instances, queue: _r.queue),
+              _reachableSizes, _references, _retainingPaths, _instances,
+              queue: _r.queue),
           new BRElement(),
-          new DivElement()..classes = ['memberList']
+          new DivElement()
+            ..classes = ['memberList']
             ..children = _createMembers(),
           new HRElement(),
           new DivElement()
-            ..children = _function.location == null ? const []
-              : [
-                  new SourceInsetElement(_isolate, _function.location, _scripts,
-                                         _instances, _events, queue: _r.queue)
-              ],
+            ..children = _function.location == null
+                ? const []
+                : [
+                    new SourceInsetElement(_isolate, _function.location,
+                        _scripts, _instances, _events,
+                        queue: _r.queue)
+                  ],
           new ViewFooterElement(queue: _r.queue)
         ]
-      ];
+    ];
   }
 
   List<Element> _createMenu() {
@@ -170,19 +176,18 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     ];
     if (_library != null) {
       menu.add(new NavLibraryMenuElement(_isolate, _function.dartOwner,
-                                         queue: _r.queue));
+          queue: _r.queue));
     } else if (_function.dartOwner is M.ClassRef) {
-      menu.add(
-        new NavClassMenuElement(_isolate, _function.dartOwner, queue: _r.queue)
-      );
+      menu.add(new NavClassMenuElement(_isolate, _function.dartOwner,
+          queue: _r.queue));
     }
     menu.addAll([
       navMenu(_function.name),
       new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) {
-            e.element.disabled = true;
-            _refresh();
-          }),
+        ..onRefresh.listen((e) {
+          e.element.disabled = true;
+          _refresh();
+        }),
       new NavNotifyElement(_notifications, queue: _r.queue)
     ]);
     return menu;
@@ -190,149 +195,189 @@ class FunctionViewElement extends HtmlElement implements Renderable {
 
   List<Element> _createMembers() {
     final members = <Element>[
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'kind',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..children = [
               new SpanElement()
                 ..text = '${_function.isStatic ? "static ": ""}'
-                         '${_function.isConst ? "const ": ""}'
-                         '${_functionKindToString(_function.kind)}'
+                    '${_function.isConst ? "const ": ""}'
+                    '${_functionKindToString(_function.kind)}'
             ]
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'owner',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..children = [
               _function.dartOwner == null
-                ? (new SpanElement()..text = '...')
-                : anyRef(_isolate, _function.dartOwner, _instances,
-                         queue: _r.queue)
+                  ? (new SpanElement()..text = '...')
+                  : anyRef(_isolate, _function.dartOwner, _instances,
+                      queue: _r.queue)
             ]
         ]
     ];
     if (_function.field != null) {
-      members.add(
-        new DivElement()..classes = ['memberItem']
-          ..children = [
-            new DivElement()..classes = ['memberName']
-              ..text = 'script',
-            new DivElement()..classes = ['memberName']
-              ..children = [
-                new FieldRefElement(_isolate, _function.field, _instances,
-                                    queue: _r.queue)
-              ]
-          ]
-      );
-    }
-    members.add(
-      new DivElement()..classes = ['memberItem']
+      members.add(new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'script',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..children = [
-              new SourceLinkElement(_isolate, _function.location, _scripts,
-                                    queue: _r.queue)
+              new FieldRefElement(_isolate, _function.field, _instances,
+                  queue: _r.queue)
             ]
-        ]
-    );
-    if (_function.code != null) {
-      members.add(
-        new DivElement()..classes = ['memberItem']
+        ]);
+    }
+    members.add(new DivElement()
+      ..classes = ['memberItem']
+      ..children = [
+        new DivElement()
+          ..classes = ['memberName']
+          ..text = 'script',
+        new DivElement()
+          ..classes = ['memberName']
           ..children = [
-            new DivElement()..classes = ['memberName']
-              ..text = 'current code',
-            new DivElement()..classes = ['memberName']
-              ..children = [
-                new CodeRefElement(_isolate, _function.code, queue: _r.queue)
-              ]
+            new SourceLinkElement(_isolate, _function.location, _scripts,
+                queue: _r.queue)
           ]
-      );
+      ]);
+    if (_function.code != null) {
+      members.add(new DivElement()
+        ..classes = ['memberItem']
+        ..children = [
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = 'current code',
+          new DivElement()
+            ..classes = ['memberName']
+            ..children = [
+              new CodeRefElement(_isolate, _function.code, queue: _r.queue)
+            ]
+        ]);
     }
     if (_function.unoptimizedCode != null) {
-      members.add(
-        new DivElement()..classes = ['memberItem']
-          ..children = [
-            new DivElement()..classes = ['memberName']
-              ..text = 'unoptimized code',
-            new DivElement()..classes = ['memberName']
-              ..children = [
-                new CodeRefElement(_isolate, _function.unoptimizedCode,
-                                   queue: _r.queue),
-                new SpanElement()
-                  ..title = 'This count is used to determine when a function '
-                             'will be optimized.  It is a combination of call '
-                             'counts and other factors.'
-                  ..text = ' (usage count: ${function.usageCounter })'
-              ]
-          ]
-      );
-    }
-    members.addAll([
-      new DivElement()..classes = ['memberItem']
-        ..text = ' ',
-      new DivElement()..classes = ['memberItem']
+      members.add(new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
-            ..text = 'ic data array',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = 'unoptimized code',
+          new DivElement()
+            ..classes = ['memberName']
             ..children = [
-              new InstanceRefElement(_isolate, _function.icDataArray,
-                                     _instances, queue: _r.queue)
+              new CodeRefElement(_isolate, _function.unoptimizedCode,
+                  queue: _r.queue),
+              new SpanElement()
+                ..title = 'This count is used to determine when a function '
+                    'will be optimized.  It is a combination of call '
+                    'counts and other factors.'
+                ..text = ' (usage count: ${function.usageCounter })'
             ]
-        ],
-      new DivElement()..classes = ['memberItem']
+        ]);
+    }
+    members.add(new DivElement()
+      ..classes = ['memberItem']
+      ..text = ' ');
+
+    if (_function.icDataArray != null) {
+      members.add(new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = 'ic data array',
+          new DivElement()
+            ..classes = ['memberName']
+            ..children = [
+              new InstanceRefElement(
+                  _isolate, _function.icDataArray, _instances,
+                  queue: _r.queue)
+            ]
+        ]);
+    }
+
+    members.addAll([
+      new DivElement()
+        ..classes = ['memberItem']
+        ..children = [
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'deoptimizations',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = '${_function.deoptimizations}'
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'optimizable',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = _function.isOptimizable ? 'yes' : 'no'
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'inlinable',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = _function.isInlinable ? 'yes' : 'no'
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'intrinsic',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = _function.hasIntrinsic ? 'yes' : 'no'
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'recognized',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = _function.isRecognized ? 'yes' : 'no'
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'native',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = _function.isNative ? 'yes' : 'no'
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'vm name',
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = _function.vmName
         ]
     ]);
@@ -350,7 +395,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
   }
 
   static String _functionKindToString(M.FunctionKind kind) {
-    switch(kind) {
+    switch (kind) {
       case M.FunctionKind.regular:
         return 'regular';
       case M.FunctionKind.closure:

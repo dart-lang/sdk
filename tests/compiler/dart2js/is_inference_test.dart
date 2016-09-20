@@ -83,11 +83,11 @@ Future compileAndTest(String code) {
 
 main() {
   asyncTest(() => Future.wait([
-    compileAndTest(TEST_IF),
-    compileAndTest(TEST_IF_ELSE),
-    compileAndTest(TEST_IF_RETURN),
-    compileAndTest(TEST_IF_NOT_ELSE),
-    compileAndTest(TEST_IF_NOT_RETURN),
-    compileAndTest(TEST_IF_NOT_ELSE_RETURN),
-  ]));
+        compileAndTest(TEST_IF),
+        compileAndTest(TEST_IF_ELSE),
+        compileAndTest(TEST_IF_RETURN),
+        compileAndTest(TEST_IF_NOT_ELSE),
+        compileAndTest(TEST_IF_NOT_RETURN),
+        compileAndTest(TEST_IF_NOT_ELSE_RETURN),
+      ]));
 }

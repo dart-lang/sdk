@@ -12,9 +12,10 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1869,7 +1870,7 @@ part 'my_part.dart';
         Uri.parse('package:my/test.dart'));
     // configure SourceFactory
     UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'my': [provider.getResource('/my/lib')],
+      'my': <Folder>[provider.getResource('/my/lib')],
     });
     context.sourceFactory = new SourceFactory(
         [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);

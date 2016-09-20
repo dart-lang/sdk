@@ -1019,6 +1019,7 @@ dart.registerExtension = function(jsType, dartExtType) {
   if (!jsType) return;
   let extProto = dartExtType.prototype;
   let jsProto = jsType.prototype;
+  if (!jsProto) return;
   jsProto[dart._extensionType] = dartExtType;
   dart._installProperties(jsProto, extProto);
   let originalSigFn = dart.getOwnPropertyDescriptor(dartExtType, dart._methodSig).get;
@@ -1759,7 +1760,7 @@ dart.stackTrace = function(exception) {
 };
 dart.nullSafe = function(obj, ...callbacks) {
   if (obj == null) return obj;
-  for (const callback of callbacks) {
+  for (let callback of callbacks) {
     obj = callback(obj);
     if (obj == null) break;
   }

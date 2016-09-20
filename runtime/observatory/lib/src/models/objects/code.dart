@@ -4,13 +4,7 @@
 
 part of models;
 
-enum CodeKind {
-  dart,
-  native,
-  stub,
-  tag,
-  collected
-}
+enum CodeKind { dart, native, stub, tag, collected }
 
 bool isSyntheticCode(CodeKind kind) {
   switch (kind) {

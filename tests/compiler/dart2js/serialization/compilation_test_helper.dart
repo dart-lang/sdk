@@ -29,8 +29,7 @@ main(List<String> args) {
       SerializationResult result = await serialize(entryPoint,
           memorySourceFiles: serializedData.toMemorySourceFiles(),
           resolutionInputs: serializedData.toUris());
-      await compile(
-          entryPoint,
+      await compile(entryPoint,
           resolutionInputs: result.serializedData.toUris(),
           sourceFiles: result.serializedData.toMemorySourceFiles());
     } else {
@@ -41,13 +40,12 @@ main(List<String> args) {
   });
 }
 
-Future compile(
-    Uri entryPoint,
+Future compile(Uri entryPoint,
     {Map<String, String> sourceFiles: const <String, String>{},
-     List<Uri> resolutionInputs,
-     int index,
-     Test test,
-     bool verbose: false}) async {
+    List<Uri> resolutionInputs,
+    int index,
+    Test test,
+    bool verbose: false}) async {
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
   String title = '${id}${testDescription}';
@@ -68,4 +66,3 @@ Future compile(
     print(outputCollector.getOutput('', 'js'));
   }
 }
-

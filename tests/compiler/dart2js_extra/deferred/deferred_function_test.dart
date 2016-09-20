@@ -17,7 +17,9 @@ readFoo() {
 }
 
 main() {
-  Expect.throws(() { lib.foo('a'); }, isError);
+  Expect.throws(() {
+    lib.foo('a');
+  }, isError);
   Expect.throws(readFoo, isError);
   int counter = 0;
   asyncStart();
@@ -38,6 +40,8 @@ main() {
     asyncEnd();
   });
   Expect.equals(0, counter);
-  Expect.throws(() { lib.foo('a'); }, isError);
+  Expect.throws(() {
+    lib.foo('a');
+  }, isError);
   Expect.throws(readFoo, isError);
 }

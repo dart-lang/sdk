@@ -21,7 +21,7 @@ Stream makeMeAStream() {
 
 Trace t1 = new Trace();
 
-consumeOne() async {
+Future consumeOne() async {
   // Equivalent to await for (x in makeMeAStream()) { ... }
   var s = makeMeAStream();
   var it = new StreamIterator(s);
@@ -34,7 +34,7 @@ consumeOne() async {
 
 Trace t2 = new Trace();
 
-consumeTwo() async {
+Future consumeTwo() async {
   await for (var x in makeMeAStream()) {
     t2.record(x);
   }
@@ -43,7 +43,7 @@ consumeTwo() async {
 
 Trace t3 = new Trace();
 
-consumeNested() async {
+Future consumeNested() async {
   await for (var x in makeMeAStream()) {
     t3.record(x);
     await for (var y in makeMeAStream()) {
@@ -56,7 +56,7 @@ consumeNested() async {
 
 Trace t4 = new Trace();
 
-consumeSomeOfInfinite() async {
+Future consumeSomeOfInfinite() async {
   int i = 0;
   await for (var x in infiniteStream()) {
     i++;

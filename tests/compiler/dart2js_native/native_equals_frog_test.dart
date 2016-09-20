@@ -7,13 +7,13 @@ import "package:expect/expect.dart";
 
 @Native("A")
 class A {}
-makeA() native;
+
+makeA() native ;
 
 void setup() native """
 function A() {}
 makeA = function(){return new A;};
 """;
-
 
 main() {
   setup();

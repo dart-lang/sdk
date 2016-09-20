@@ -39,16 +39,17 @@ analyze(String code,
       memorySourceFiles: {'main.dart': code}, options: ['--analyze-only']);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  Expect.equals(proxyConstantComputed,
+  Expect.equals(
+      proxyConstantComputed,
       compiler.resolution.wasProxyConstantComputedTestingOnly,
       "Unexpected computation of proxy constant.");
 
   checkInstantiated(
-      compiler, compiler.commonElements.coreLibrary.find('_Proxy'),
+      compiler,
+      compiler.commonElements.coreLibrary.find('_Proxy'),
       proxyConstantComputed);
-  checkInstantiated(
-      compiler, compiler.commonElements.coreLibrary.find('Deprecated'),
-      deprecatedClass);
+  checkInstantiated(compiler,
+      compiler.commonElements.coreLibrary.find('Deprecated'), deprecatedClass);
 
   LibraryElement jsHelperLibrary =
       compiler.libraryLoader.lookupLibrary(BackendHelpers.DART_JS_HELPER);

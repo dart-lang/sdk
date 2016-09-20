@@ -32,7 +32,7 @@ var inscrutable;
 main() {
   inscrutable = (x) => x;
 
-  var array =  ['foo', 'bar', [] , [], new A(), new A(), const [], const A()];
+  var array = ['foo', 'bar', [], [], new A(), new A(), const [], const A()];
 
   array = inscrutable(array);
   getter1 = inscrutable(getter1);

@@ -10,7 +10,7 @@ import 'memory_compiler.dart' show runCompiler;
 import 'compiler_helper.dart' show findElement;
 import 'type_mask_test_helper.dart';
 
-const MEMORY_SOURCE_FILES = const <String, String> {
+const MEMORY_SOURCE_FILES = const <String, String>{
   'main.dart': """
 @MirrorsUsed(targets: 'field')
 import 'dart:mirrors';
@@ -31,7 +31,6 @@ void main() {
     var commonMasks = compiler.commonMasks;
     var typesInferrer = compiler.globalInference.typesInferrer;
     Expect.equals(commonMasks.uint31Type,
-                  simplify(typesInferrer.getTypeOfElement(element), compiler),
-                  'field');
+        simplify(typesInferrer.getTypeOfElement(element), compiler), 'field');
   });
 }

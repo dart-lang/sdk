@@ -619,7 +619,9 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     // This is not really resolving a type-annotation, but the name of the
     // constructor. Therefore we allow deferred types.
     DartType type = resolver.resolveTypeAnnotation(node,
-        malformedIsError: inConstContext, deferredIsMalformed: false);
+        malformedIsError: inConstContext,
+        deferredIsMalformed: false,
+        registerCheckedModeCheck: false);
     Send send = node.typeName.asSend();
     PrefixElement prefix;
     if (send != null) {

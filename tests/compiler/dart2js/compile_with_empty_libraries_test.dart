@@ -13,6 +13,6 @@ const String TEST = r"main() {}";
 main() {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler =
-    new MockCompiler.internal(librariesOverride: (_) => '');
+      new MockCompiler.internal(librariesOverride: (_) => '');
   asyncTest(() => compiler.run(uri));
 }

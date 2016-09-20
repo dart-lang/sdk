@@ -4,15 +4,12 @@
 
 import 'package:expect/expect.dart';
 
-import 'package:compiler/src/diagnostics/messages.dart'
-    show MessageKind;
+import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/elements/modelx.dart'
-    show ErroneousElementX;
+import 'package:compiler/src/elements/modelx.dart' show ErroneousElementX;
 
 void main() {
-  ErroneousElement e = new ErroneousElementX(MessageKind.GENERIC,
-                                             {'text': 'error'},
-                                             'foo', null);
+  ErroneousElement e = new ErroneousElementX(
+      MessageKind.GENERIC, {'text': 'error'}, 'foo', null);
   Expect.stringEquals('<foo: error>', '$e');
 }

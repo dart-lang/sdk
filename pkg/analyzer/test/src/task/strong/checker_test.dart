@@ -499,6 +499,121 @@ void main() {
 ''');
   }
 
+  void test_covariantOverride() {
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+class C {
+  num f(num x) => x;
+}
+class D extends C {
+  int f(@checked int x) => x;
+}
+class E extends D {
+  int f(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
+}
+class F extends E {
+  int f(@checked int x) => x;
+}
+class G extends E implements D {}
+
+class D_error extends C {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(int x) => x;
+}
+class E_error extends D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(@checked double x) => 0;
+}
+class F_error extends E {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(@checked double x) => 0;
+}
+class G_error extends E implements D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(@checked double x) => 0;
+}
+    ''');
+  }
+
+  void test_covariantOverride_fields() {
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+class A {
+  get foo => '';
+  set foo(_) {}
+}
+
+class B extends A {
+  @checked num foo;
+}
+class C extends A {
+  @checked @virtual num foo;
+}
+class D extends C {
+  @virtual int foo;
+}
+class E extends D {
+  @virtual /*error:INVALID_METHOD_OVERRIDE*/num foo;
+}
+    ''');
+  }
+
+  void test_covariantOverride_leastUpperBound() {
+    _addMetaLibrary();
+    checkFile(r'''
+import "meta.dart";
+abstract class Top {}
+abstract class Left implements Top {}
+abstract class Right implements Top {}
+abstract class Bottom implements Left, Right {}
+
+abstract class TakesLeft {
+  m(Left x);
+}
+abstract class TakesRight {
+  m(Right x);
+}
+abstract class TakesTop implements TakesLeft, TakesRight {
+  m(Top x); // works today
+}
+abstract class TakesBottom implements TakesLeft, TakesRight {
+  // LUB(Left, Right) == Top, so this is an implicit cast from Top to Bottom.
+  m(@checked Bottom x);
+}
+    ''');
+  }
+
+  void test_covariantOverride_markerIsInherited() {
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+class C {
+  num f(@checked num x) => x;
+}
+class D extends C {
+  int f(int x) => x;
+}
+class E extends D {
+  int f(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
+}
+class F extends E {
+  int f(int x) => x;
+}
+class G extends E implements D {}
+
+class D_error extends C {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(String x) => 0;
+}
+class E_error extends D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(double x) => 0;
+}
+class F_error extends E {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(double x) => 0;
+}
+class G_error extends E implements D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(double x) => 0;
+}
+    ''');
+  }
+
   void test_dynamicInvocation() {
     checkFile('''
 typedef dynamic A(dynamic x);
@@ -645,6 +760,36 @@ class H implements F {
   /*error:INVALID_METHOD_OVERRIDE*/final ToVoid<dynamic> g = null;
 }
  ''');
+  }
+
+  void test_fieldOverride_virtual() {
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+class C {
+  @virtual int x;
+}
+class OverrideGetter extends C {
+  int get x => 42;
+}
+class OverrideSetter extends C {
+  set x(int v) {}
+}
+class OverrideBoth extends C {
+  int get x => 42;
+  set x(int v) {}
+}
+class OverrideWithField extends C {
+  int x;
+
+  // expose the hidden storage slot
+  int get superX => super.x;
+  set superX(int v) { super.x = v; }
+}
+class VirtualNotInherited extends OverrideWithField {
+  /*error:INVALID_FIELD_OVERRIDE*/int x;
+}
+    ''');
   }
 
   void test_fieldSetterOverride() {
@@ -3009,6 +3154,37 @@ abstract class D extends C {
     check(implicitCasts: false);
   }
 
+  void test_overrideNarrowsType_noDuplicateError() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25232
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+abstract class A { void test(A arg) { } }
+abstract class B extends A {
+  /*error:INVALID_METHOD_OVERRIDE*/void test(B arg) { }
+}
+abstract class X implements A { }
+class C extends B with X { }
+
+// We treat "implements A" as asking for another check.
+// This feels inconsistent to me.
+class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
+    ''');
+  }
+
+  void test_overrideNarrowsType_legalWithChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25232
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+abstract class A { void test(A arg) { } }
+abstract class B extends A { void test(@checked B arg) { } }
+abstract class X implements A { }
+class C extends B with X { }
+class D extends B implements A { }
+    ''');
+  }
+
   void test_privateOverride() {
     addFile(
         '''
@@ -3733,4 +3909,15 @@ void main () {
 }
 ''');
   }
+}
+
+void _addMetaLibrary() {
+  addFile(r'''
+library meta;
+class _Checked { const _Checked(); }
+const Object checked = const _Checked();
+
+class _Virtual { const _Virtual(); }
+const Object virtual = const _Virtual();
+    ''', name: '/meta.dart');
 }

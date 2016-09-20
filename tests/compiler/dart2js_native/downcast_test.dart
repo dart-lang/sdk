@@ -7,8 +7,7 @@
 import "dart:_js_helper";
 import "package:expect/expect.dart";
 
-abstract class J {
-}
+abstract class J {}
 
 abstract class I extends J {
   I read();
@@ -20,16 +19,15 @@ abstract class I extends J {
 @Native("A")
 class A implements I {
   // The native class accepts only other native instances.
-  A read() native;
-  write(A x) native;
+  A read() native ;
+  write(A x) native ;
 }
 
 @Native("B")
-class B extends A {
-}
+class B extends A {}
 
-makeA() native;
-makeB() native;
+makeA() native ;
+makeB() native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.

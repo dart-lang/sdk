@@ -13,15 +13,17 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -2491,7 +2493,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       DartType expectedStaticType,
       ErrorCode errorCode) {
     // TODO(leafp): Move the Downcast functionality here.
-    // TODO(leafp): Support strict downcasts
     if (!_expressionIsAssignableAtType(
         expression, actualStaticType, expectedStaticType)) {
       _errorReporter.reportTypeErrorForNode(
@@ -5038,11 +5039,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           FunctionType requiredMemberFT = _inheritanceManager
               .substituteTypeArgumentsInMemberFromInheritance(
                   requiredMemberType, memberName, enclosingType);
-          foundConcreteFT =
-              _typeSystem.typeToConcreteType(_typeProvider, foundConcreteFT);
-          requiredMemberFT =
-              _typeSystem.typeToConcreteType(_typeProvider, requiredMemberFT);
-          if (_typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
+          foundConcreteFT = _typeSystem.functionTypeToConcreteType(
+              _typeProvider, foundConcreteFT);
+          requiredMemberFT = _typeSystem.functionTypeToConcreteType(
+              _typeProvider, requiredMemberFT);
+
+          // Strong mode does override checking for types in CodeChecker, so
+          // we can skip it here. Doing it here leads to unnecessary duplicate
+          // error messages in subclasses that inherit from one that has an
+          // override error.
+          //
+          // See: https://github.com/dart-lang/sdk/issues/25232
+          if (_options.strongMode ||
+              _typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
             continue;
           }
         }
@@ -6229,11 +6238,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _expressionIsAssignableAtType(Expression expression,
       DartType actualStaticType, DartType expectedStaticType) {
     bool concrete = _options.strongMode && checker.isKnownFunction(expression);
-    if (concrete) {
-      actualStaticType =
-          _typeSystem.typeToConcreteType(_typeProvider, actualStaticType);
+    if (concrete && actualStaticType is FunctionType) {
+      actualStaticType = _typeSystem.functionTypeToConcreteType(
+          _typeProvider, actualStaticType);
       // TODO(leafp): Move the Downcast functionality here.
-      // TODO(leafp): Support strict downcasts
     }
     return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType);
   }

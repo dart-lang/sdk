@@ -12,16 +12,17 @@ main() {
   // compactness.  Test that we don't also declare it at the start of the
   // method.
   asyncTest(() => compile(
-      'final List a = const ["bar", "baz"];'
-      'int foo() {'
-      '  for (int i = 0; i < a.length; i++) {'
-      '    print(a[i]);'
-      '  }'
-      '}',
-      entry: 'foo', minify: false).then((String generated) {
-    RegExp re = new RegExp(r"var ");
-    Expect.isTrue(re.hasMatch(generated));
-    print(generated);
-    Expect.equals(1, re.allMatches(generated).length);
-  }));
+          'final List a = const ["bar", "baz"];'
+          'int foo() {'
+          '  for (int i = 0; i < a.length; i++) {'
+          '    print(a[i]);'
+          '  }'
+          '}',
+          entry: 'foo',
+          minify: false).then((String generated) {
+        RegExp re = new RegExp(r"var ");
+        Expect.isTrue(re.hasMatch(generated));
+        print(generated);
+        Expect.equals(1, re.allMatches(generated).length);
+      }));
 }

@@ -7,8 +7,13 @@ library function_ref_element;
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M
-  show IsolateRef, FunctionRef, isSyntheticFunction, ClassRef, ObjectRef,
-       getFunctionFullName;
+    show
+        IsolateRef,
+        FunctionRef,
+        isSyntheticFunction,
+        ClassRef,
+        ObjectRef,
+        getFunctionFullName;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
@@ -60,8 +65,10 @@ class FunctionRefElement extends HtmlElement implements Renderable {
 
   void render() {
     var content = <Element>[
-      new AnchorElement(href: M.isSyntheticFunction(_function.kind) ? null
-        : Uris.inspect(_isolate, object: _function))
+      new AnchorElement(
+          href: M.isSyntheticFunction(_function.kind)
+              ? null
+              : Uris.inspect(_isolate, object: _function))
         ..text = _function.name
     ];
     if (qualified) {
@@ -70,8 +77,10 @@ class FunctionRefElement extends HtmlElement implements Renderable {
         M.FunctionRef function = (owner as M.FunctionRef);
         content.addAll([
           new SpanElement()..text = '.',
-          new AnchorElement(href: M.isSyntheticFunction(function.kind) ? null
-            : Uris.inspect(_isolate, object: function))
+          new AnchorElement(
+              href: M.isSyntheticFunction(function.kind)
+                  ? null
+                  : Uris.inspect(_isolate, object: function))
             ..text = function.name
         ]);
         owner = function.dartOwner;

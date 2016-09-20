@@ -509,7 +509,7 @@ stackTrace(exception) => JS('', '''(() => {
 ///
 nullSafe(obj, @rest callbacks) => JS('', '''(() => {
   if ($obj == null) return $obj;
-  for (const callback of $callbacks) {
+  for (let callback of $callbacks) {
     $obj = callback($obj);
     if ($obj == null) break;
   }

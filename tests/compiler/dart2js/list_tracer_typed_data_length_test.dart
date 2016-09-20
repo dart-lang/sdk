@@ -4,8 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/types/types.dart'
-    show ContainerTypeMask, TypeMask;
+import 'package:compiler/src/types/types.dart' show ContainerTypeMask, TypeMask;
 import 'package:compiler/src/compiler.dart';
 
 import 'memory_compiler.dart';
@@ -13,7 +12,7 @@ import 'compiler_helper.dart' show findElement;
 import 'type_mask_test_helper.dart';
 
 const TEST = const {
-  'main.dart' : r'''
+  'main.dart': r'''
 import 'dart:typed_data';
 
 var myList = new Float32List(42);
@@ -23,7 +22,8 @@ main() {
   var a = new Float32List(9);
   return myList[0] + myOtherList[0];
 }
-'''};
+'''
+};
 
 void main() {
   asyncTest(() async {

@@ -12,6 +12,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -20,10 +22,10 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/utilities.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -7282,7 +7284,7 @@ class ResolverVisitor extends ScopedVisitor {
           originalType.typeFormals.isNotEmpty &&
           ts is StrongTypeSystemImpl) {
         contextType = ts.inferGenericFunctionCall(typeProvider, originalType,
-            DartType.EMPTY_LIST, DartType.EMPTY_LIST, returnContextType);
+            DartType.EMPTY_LIST, DartType.EMPTY_LIST, originalType.returnType, returnContextType);
       }
 
       InferenceContext.setType(node.argumentList, contextType);
@@ -7334,7 +7336,8 @@ class ResolverVisitor extends ScopedVisitor {
         !FunctionTypeImpl.relate(
             expectedClosureType,
             staticClosureType,
-            (DartType t, DartType s) => (t as TypeImpl).isMoreSpecificThan(s),
+            (DartType t, DartType s, _, __) =>
+                (t as TypeImpl).isMoreSpecificThan(s),
             new TypeSystemImpl().instantiateToBounds,
             returnRelation: (s, t) => true)) {
       return;

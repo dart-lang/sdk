@@ -12,14 +12,13 @@ class Node {
   final parentNode;
 }
 
-makeNode(parent) native;
+makeNode(parent) native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
 function Node(parent){ this.parentNode = parent; }
 makeNode = function(p){return new Node(p);};
 """;
-
 
 main() {
   setup();

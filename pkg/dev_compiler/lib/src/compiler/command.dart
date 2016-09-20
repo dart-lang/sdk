@@ -91,6 +91,15 @@ void _compile(ArgResults argResults, void printFn(Object obj)) {
   }
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);
+  bool singleOutFile = argResults['single-out-file'];
+  if (singleOutFile) {
+    for (var format in moduleFormats) {
+      if (format != ModuleFormat.amd && format != ModuleFormat.legacy) {
+        _usageException('Format $format cannot be combined with '
+            'single-out-file. Only amd and legacy modes are supported.');
+      }
+    }
+  }
 
   if (outPaths.isEmpty) {
     _usageException('Please include the output file location. For example:\n'
@@ -137,7 +146,7 @@ void _compile(ArgResults argResults, void printFn(Object obj)) {
   // Write JS file, as well as source map and summary (if requested).
   for (var i = 0; i < outPaths.length; i++) {
     var outPath = outPaths[i];
-    module.writeCodeSync(moduleFormats[i], outPath);
+    module.writeCodeSync(moduleFormats[i], singleOutFile, outPath);
     if (module.summaryBytes != null) {
       var summaryPath =
           path.withoutExtension(outPath) + '.${compilerOpts.summaryExtension}';

@@ -66,31 +66,30 @@ main() {
 """;
 }
 
-
 main() {
   asyncTest(() => compileAll(TEST1).then((generated) {
-    Expect.isTrue(generated.contains('if (typeof t1'));
-  }));
+        Expect.isTrue(generated.contains('if (typeof t1'));
+      }));
 
   asyncTest(() => compileAll(TEST2).then((generated) {
-    Expect.isTrue(generated.contains('if (typeof t1'));
-  }));
+        Expect.isTrue(generated.contains('if (typeof t1'));
+      }));
 
   asyncTest(() => compileAll(TEST3).then((generated) {
-    Expect.isTrue(generated.contains('if (typeof t1'));
-  }));
+        Expect.isTrue(generated.contains('if (typeof t1'));
+      }));
 
   asyncTest(() => compileAll(TEST4).then((generated) {
-    Expect.isTrue(generated.contains('if (typeof t1'));
-  }));
+        Expect.isTrue(generated.contains('if (typeof t1'));
+      }));
 
   asyncTest(() => compileAll(TEST5).then((generated) {
-    Expect.isFalse(generated.contains('iae'));
-  }));
+        Expect.isFalse(generated.contains('iae'));
+      }));
 
   asyncTest(() => compileAll(TEST6).then((generated) {
-    Expect.isFalse(generated.contains('iae'));
-  }));
+        Expect.isFalse(generated.contains('iae'));
+      }));
 
   var memberInvocations = const <String>[
     'first',
@@ -101,14 +100,14 @@ main() {
     'removeAt(0)',
     'removeLast()',
   ];
-  memberInvocations.map((member) => generateTest('$member'))
+  memberInvocations
+      .map((member) => generateTest('$member'))
       .forEach((String test) {
     asyncTest(() => compileAll(test, expectedErrors: 0, expectedWarnings: 0)
-        .then((generated) {
-      Expect.isTrue(generated.contains('+ 42'));
-      Expect.isFalse(generated.contains('if (typeof t1'));
-      Expect.isFalse(generated.contains('if (t1 == null)'));
-    }));
+            .then((generated) {
+          Expect.isTrue(generated.contains('+ 42'));
+          Expect.isFalse(generated.contains('if (typeof t1'));
+          Expect.isFalse(generated.contains('if (t1 == null)'));
+        }));
   });
-
 }

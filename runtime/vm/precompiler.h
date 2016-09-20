@@ -382,8 +382,9 @@ class Precompiler : public ValueObject {
 
   void BindStaticCalls();
   void SwitchICCalls();
+  void ShareMegamorphicBuckets();
   void DedupStackmaps();
-  void DedupStackmapLists();
+  void DedupLists();
   void DedupInstructions();
   void ResetPrecompilerState();
 

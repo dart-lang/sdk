@@ -14,9 +14,7 @@ import 'package:observatory/src/elements/instance_ref.dart';
 
 class EvalBoxElement extends HtmlElement implements Renderable {
   static const tag = const Tag<EvalBoxElement>('eval-box',
-                                                dependencies: const [
-                                                  InstanceRefElement.tag
-                                                ]);
+      dependencies: const [InstanceRefElement.tag]);
 
   RenderingScheduler<EvalBoxElement> _r;
 
@@ -35,11 +33,10 @@ class EvalBoxElement extends HtmlElement implements Renderable {
   M.ObjectRef get context => _context;
 
   factory EvalBoxElement(M.IsolateRef isolate, M.ObjectRef context,
-                         M.InstanceRepository instances,
-                         M.EvalRepository eval,
-                         {bool multiline: false,
-                          Iterable<String> quickExpressions: const [],
-                          RenderingQueue queue}) {
+      M.InstanceRepository instances, M.EvalRepository eval,
+      {bool multiline: false,
+      Iterable<String> quickExpressions: const [],
+      RenderingQueue queue}) {
     assert(isolate != null);
     assert(context != null);
     assert(instances != null);
@@ -75,22 +72,23 @@ class EvalBoxElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new DivElement()..classes = ['quicks']
-        ..children = _quickExpressions.map((q) =>
-          new ButtonElement()
-            ..text = q
-            ..onClick.listen((_) {
-              _expression = q;
-              _run();
-            })
-        ),
-      new DivElement()..classes = ['heading']
+      new DivElement()
+        ..classes = ['quicks']
+        ..children = _quickExpressions.map((q) => new ButtonElement()
+          ..text = q
+          ..onClick.listen((_) {
+            _expression = q;
+            _run();
+          })),
+      new DivElement()
+        ..classes = ['heading']
         ..children = [
           new FormElement()
             ..autocomplete = 'on'
             ..children = [
               _multiline ? _createEvalTextArea() : _createEvalTextBox(),
-              new SpanElement()..classes = ['buttons']
+              new SpanElement()
+                ..classes = ['buttons']
                 ..children = [
                   _createEvalButton(),
                   _createMultilineCheckbox(),
@@ -99,33 +97,39 @@ class EvalBoxElement extends HtmlElement implements Renderable {
             ]
         ],
       new TableElement()
-        ..children = _results.reversed.map((result) =>
-          new TableRowElement()
-            ..children = [
-              new TableCellElement()..classes = ['historyExpr']
-                ..children = [
-                  new ButtonElement()..text = result.expression
-                    ..onClick.listen((_) {
-                      _expression = result.expression;
-                      _r.dirty();
-                    })
-                ],
-              new TableCellElement()..classes = ['historyValue']
-                ..children = [
-                  result.isPending
-                    ? (new SpanElement()..text = 'Pending...')
-                    : anyRef(_isolate, result.value, _instances,
-                             queue: _r.queue)
-                ],
-              new TableCellElement()..classes = ['historyDelete']
-                ..children = [
-                  new ButtonElement()..text = '✖ Remove'
-                    ..onClick.listen((_) {
-                      _results.remove(result);
-                      _r.dirty();
-                    })
-                ]
-            ]).toList()
+        ..children = _results.reversed
+            .map((result) => new TableRowElement()
+              ..children = [
+                new TableCellElement()
+                  ..classes = ['historyExpr']
+                  ..children = [
+                    new ButtonElement()
+                      ..text = result.expression
+                      ..onClick.listen((_) {
+                        _expression = result.expression;
+                        _r.dirty();
+                      })
+                  ],
+                new TableCellElement()
+                  ..classes = ['historyValue']
+                  ..children = [
+                    result.isPending
+                        ? (new SpanElement()..text = 'Pending...')
+                        : anyRef(_isolate, result.value, _instances,
+                            queue: _r.queue)
+                  ],
+                new TableCellElement()
+                  ..classes = ['historyDelete']
+                  ..children = [
+                    new ButtonElement()
+                      ..text = '✖ Remove'
+                      ..onClick.listen((_) {
+                        _results.remove(result);
+                        _r.dirty();
+                      })
+                  ]
+              ])
+            .toList()
     ];
   }
 
@@ -134,12 +138,10 @@ class EvalBoxElement extends HtmlElement implements Renderable {
       ..classes = ['textbox']
       ..placeholder = 'evaluate an expression'
       ..value = _expression
-      ..onKeyUp
-        .where((e) => e.key == '\n')
-        .listen((e) {
-          e.preventDefault();
-          _run();
-        });
+      ..onKeyUp.where((e) => e.key == '\n').listen((e) {
+        e.preventDefault();
+        _run();
+      });
     area.onInput.listen((e) {
       _expression = area.value;
     });
@@ -152,12 +154,10 @@ class EvalBoxElement extends HtmlElement implements Renderable {
       ..classes = ['textbox']
       ..placeholder = 'evaluate an expression'
       ..value = _expression
-      ..onKeyUp
-        .where((e) => e.key == '\n')
-        .listen((e) {
-          e.preventDefault();
-          _run();
-        });
+      ..onKeyUp.where((e) => e.key == '\n').listen((e) {
+        e.preventDefault();
+        _run();
+      });
     textbox.onInput.listen((e) {
       _expression = textbox.value;
     });
@@ -175,13 +175,12 @@ class EvalBoxElement extends HtmlElement implements Renderable {
   }
 
   CheckboxInputElement _createMultilineCheckbox() {
-    final checkbox = new CheckboxInputElement()
-      ..checked = _multiline;
+    final checkbox = new CheckboxInputElement()..checked = _multiline;
     checkbox.onClick.listen((e) {
-        e.preventDefault();
-        _multiline = checkbox.checked;
-        _r.dirty();
-      });
+      e.preventDefault();
+      _multiline = checkbox.checked;
+      _r.dirty();
+    });
     return checkbox;
   }
 
@@ -193,8 +192,8 @@ class EvalBoxElement extends HtmlElement implements Renderable {
     _results.add(result);
     _r.dirty();
     final index = _results.indexOf(result);
-    _results[index] = new _ExpressionDescription(expression,
-        await _eval.evaluate(_isolate, _context, expression));
+    _results[index] = new _ExpressionDescription(
+        expression, await _eval.evaluate(_isolate, _context, expression));
     _r.dirty();
   }
 }
@@ -205,6 +204,5 @@ class _ExpressionDescription {
   bool get isPending => value == null;
 
   _ExpressionDescription(this.expression, this.value);
-  _ExpressionDescription.pending(this.expression)
-    : value = null;
+  _ExpressionDescription.pending(this.expression) : value = null;
 }

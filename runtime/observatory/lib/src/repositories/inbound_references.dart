@@ -8,10 +8,8 @@ class InboundReferencesRepository implements M.InboundReferencesRepository {
   Future<M.InboundReferences> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
-    final response = await isolate.invokeRpc('_getInboundReferences', {
-        'targetId' : id,
-        'limit': 100
-    });
+    final response = await isolate
+        .invokeRpc('_getInboundReferences', {'targetId': id, 'limit': 100});
     return new S.InboundReferences(response);
   }
 }

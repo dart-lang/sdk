@@ -28,14 +28,15 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -518,9 +519,10 @@ class FixProcessor {
   }
 
   void _addFix_addPartOfDirective() {
+    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral && node.parent is PartDirective) {
       PartDirective directive = node.parent;
-      Source partSource = directive.source;
+      Source partSource = directive.uriSource;
       CompilationUnit partUnit;
       partUnit = context.getResolvedCompilationUnit2(partSource, partSource);
       if (partUnit != null) {
@@ -1186,9 +1188,11 @@ class FixProcessor {
   }
 
   void _addFix_createImportUri() {
+    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
+    // TODO(brianwilkerson) Support the case where the node's parent is a Configuration.
     if (node is SimpleStringLiteral && node.parent is ImportDirective) {
       ImportDirective importDirective = node.parent;
-      Source source = importDirective.source;
+      Source source = importDirective.uriSource;
       if (source != null) {
         String file = source.fullName;
         if (isAbsolute(file) && AnalysisEngine.isDartFileName(file)) {
@@ -1406,9 +1410,10 @@ class FixProcessor {
   }
 
   void _addFix_createPartUri() {
+    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral && node.parent is PartDirective) {
       PartDirective partDirective = node.parent;
-      Source source = partDirective.source;
+      Source source = partDirective.uriSource;
       if (source != null) {
         String libName = unitLibraryElement.name;
         SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');

@@ -19,11 +19,11 @@ foo() {
 
 main() {
   asyncTest(() => compile(TEST, entry: 'foo', enableTypeAssertions: true,
-      check: (String generated) {
-    Expect.isTrue(!generated.contains('eqB'));
+          check: (String generated) {
+        Expect.isTrue(!generated.contains('eqB'));
 
-    RegExp regexp = new RegExp('==');
-    Iterator<Match> matches = regexp.allMatches(generated).iterator;
-    checkNumberOfMatches(matches, 4);
-  }));
+        RegExp regexp = new RegExp('==');
+        Iterator<Match> matches = regexp.allMatches(generated).iterator;
+        checkNumberOfMatches(matches, 4);
+      }));
 }

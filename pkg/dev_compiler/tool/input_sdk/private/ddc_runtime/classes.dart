@@ -422,6 +422,10 @@ registerExtension(jsType, dartExtType) => JS(
   let extProto = $dartExtType.prototype;
   let jsProto = $jsType.prototype;
 
+  // TODO(vsm): This sometimes doesn't exist on FF.  These types will be
+  // broken.
+  if (!jsProto) return;
+
   // Mark the JS type's instances so we can easily check for extensions.
   jsProto[$_extensionType] = $dartExtType;
   $_installProperties(jsProto, extProto);

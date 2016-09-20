@@ -681,7 +681,8 @@ class SsaConditionMerger extends HGraphVisitor {
     // A [HIs] instruction uses its input multiple times, so we
     // avoid generating it at use site.
     if (user is HIs) return false;
-    return true;
+    // Avoid code motion into a loop.
+    return user.hasSameLoopHeaderAs(input);
   }
 
   void visitBasicBlock(HBasicBlock block) {

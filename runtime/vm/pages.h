@@ -23,6 +23,7 @@ DECLARE_FLAG(bool, write_protect_code);
 class Heap;
 class JSONObject;
 class ObjectPointerVisitor;
+class ObjectSet;
 
 // A page containing old generation objects.
 class HeapPage {
@@ -269,7 +270,7 @@ class PageSpace {
   // Collect the garbage in the page space using mark-sweep.
   void MarkSweep(bool invoke_api_callbacks);
 
-  void StartEndAddress(uword* start, uword* end) const;
+  void AddRegionsToObjectSet(ObjectSet* set) const;
 
   void InitGrowthControl() {
     page_space_controller_.set_last_usage(usage_);

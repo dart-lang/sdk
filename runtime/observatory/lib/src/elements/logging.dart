@@ -22,17 +22,17 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class LoggingPageElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<LoggingPageElement>('logging-page',
-                                            dependencies: const [
-                                              LoggingListElement.tag,
-                                              NavClassMenuElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              ViewFooterElement.tag
-                                            ]);
+  static const tag =
+      const Tag<LoggingPageElement>('logging-page', dependencies: const [
+    LoggingListElement.tag,
+    NavClassMenuElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<LoggingPageElement> _r;
 
@@ -44,15 +44,13 @@ class LoggingPageElement extends HtmlElement implements Renderable {
   M.NotificationRepository _notifications;
   Level _level = Level.ALL;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
 
   factory LoggingPageElement(M.VM vm, M.IsolateRef isolate,
-                            M.EventRepository events,
-                            M.NotificationRepository notifications,
-                            {RenderingQueue queue}) {
+      M.EventRepository events, M.NotificationRepository notifications,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -93,18 +91,18 @@ class LoggingPageElement extends HtmlElement implements Renderable {
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('logging'),
         new NavRefreshElement(label: 'clear', queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _logs = null;
-              _r.dirty();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _logs = null;
+            _r.dirty();
+          }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Logging',
-          new SpanElement()
-            ..text = 'Show messages with severity ',
+          new SpanElement()..text = 'Show messages with severity ',
           _createLevelSelector(),
           new HRElement(),
           _logs
@@ -114,12 +112,11 @@ class LoggingPageElement extends HtmlElement implements Renderable {
 
   Element _createLevelSelector() {
     var s = new SelectElement()
-        ..value = _level.name
-        ..children = Level.LEVELS.map((level) {
-            return new OptionElement(value : level.name,
-                selected: _level == level)
-              ..text = level.name;
-          }).toList(growable: false);
+      ..value = _level.name
+      ..children = Level.LEVELS.map((level) {
+        return new OptionElement(value: level.name, selected: _level == level)
+          ..text = level.name;
+      }).toList(growable: false);
     s.onChange.listen((_) {
       _level = Level.LEVELS[s.selectedIndex];
       _r.dirty();

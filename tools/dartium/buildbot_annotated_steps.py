@@ -116,6 +116,7 @@ def main():
   # successful.
   if result == 0 and info.channel == 'be':
     result = upload_steps.ArchiveAndUpload(info, archive_latest=True) or result
+  return result
 
 if __name__ == '__main__':
   sys.exit(main())

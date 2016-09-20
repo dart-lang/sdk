@@ -19,18 +19,18 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ICDataViewElement  extends HtmlElement implements Renderable {
-  static const tag = const Tag<ICDataViewElement>('icdata-view',
-                                            dependencies: const [
-                                              CurlyBlockElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              ObjectCommonElement.tag,
-                                              ViewFooterElement.tag
-                                            ]);
+class ICDataViewElement extends HtmlElement implements Renderable {
+  static const tag =
+      const Tag<ICDataViewElement>('icdata-view', dependencies: const [
+    CurlyBlockElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ObjectCommonElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<ICDataViewElement> _r;
 
@@ -48,22 +48,24 @@ class ICDataViewElement  extends HtmlElement implements Renderable {
   M.RetainingPathRepository _retainingPaths;
   M.InstanceRepository _instances;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.ICData get icdata => _icdata;
 
-  factory ICDataViewElement(M.VM vm, M.IsolateRef isolate, M.ICData icdata,
-                            M.EventRepository events,
-                            M.NotificationRepository notifications,
-                            M.ICDataRepository icdatas,
-                            M.RetainedSizeRepository retainedSizes,
-                            M.ReachableSizeRepository reachableSizes,
-                            M.InboundReferencesRepository references,
-                            M.RetainingPathRepository retainingPaths,
-                            M.InstanceRepository instances,
-                            {RenderingQueue queue}) {
+  factory ICDataViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.ICData icdata,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.ICDataRepository icdatas,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -114,68 +116,83 @@ class ICDataViewElement  extends HtmlElement implements Renderable {
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('icdata'),
         new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _icdata = await _icdatas.get(_isolate, _icdata.id);
-              _r.dirty();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _icdata = await _icdatas.get(_isolate, _icdata.id);
+            _r.dirty();
+          }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'ICData',
           new HRElement(),
           new ObjectCommonElement(_isolate, _icdata, _retainedSizes,
-                                  _reachableSizes, _references, _retainingPaths,
-                                  _instances, queue: _r.queue),
-          new DivElement()..classes = ['memberList']
+              _reachableSizes, _references, _retainingPaths, _instances,
+              queue: _r.queue),
+          new DivElement()
+            ..classes = ['memberList']
             ..children = [
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'selector',
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = _icdata.selector
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'owner',
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..children = [
                       _icdata.dartOwner == null
-                        ? (new SpanElement()..text = '<none>')
-                        : anyRef(_isolate, _icdata.dartOwner, _instances,
-                                queue: _r.queue)
+                          ? (new SpanElement()..text = '<none>')
+                          : anyRef(_isolate, _icdata.dartOwner, _instances,
+                              queue: _r.queue)
                     ]
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'argumentsDescriptor',
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..children = [
                       _icdata.argumentsDescriptor == null
-                        ? (new SpanElement()..text = '<none>')
-                        : anyRef(_isolate, _icdata.argumentsDescriptor,
-                                 _instances, queue: _r.queue)
+                          ? (new SpanElement()..text = '<none>')
+                          : anyRef(
+                              _isolate, _icdata.argumentsDescriptor, _instances,
+                              queue: _r.queue)
                     ]
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'entries',
-                  new DivElement()..classes = ['memberName']
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..children = [
                       _icdata.entries == null
-                        ? (new SpanElement()..text = '<none>')
-                        : anyRef(_isolate, _icdata.entries, _instances,
-                                 queue: _r.queue)
+                          ? (new SpanElement()..text = '<none>')
+                          : anyRef(_isolate, _icdata.entries, _instances,
+                              queue: _r.queue)
                     ]
                 ]
             ],
-            new HRElement(),
-            new ViewFooterElement(queue: _r.queue)
+          new HRElement(),
+          new ViewFooterElement(queue: _r.queue)
         ]
     ];
   }

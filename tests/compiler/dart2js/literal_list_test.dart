@@ -17,8 +17,8 @@ foo() {
 
 main() {
   asyncTest(() => compile(TEST_ONE, entry: 'foo', check: (String generated) {
-    Expect.isTrue(generated.contains('print([1, 2]);'));
-    Expect.isTrue(generated.contains('print([3]);'));
-    Expect.isTrue(generated.contains('print([4, 5]);'));
-  }));
+        Expect.isTrue(generated.contains('print([1, 2]);'));
+        Expect.isTrue(generated.contains('print([3]);'));
+        Expect.isTrue(generated.contains('print([4, 5]);'));
+      }));
 }

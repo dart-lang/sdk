@@ -1166,6 +1166,11 @@ abstract class FieldElement
    */
   bool get isEnumConstant;
 
+  /**
+   * Returns `true` if this field can be overridden in strong mode.
+   */
+  bool get isVirtual;
+
   @override
   AstNode computeNode();
 }
@@ -1611,6 +1616,12 @@ abstract class ParameterElement
    * Return the Dart code of the default value, or `null` if no default value.
    */
   String get defaultValueCode;
+
+  /**
+   * Return `true` if this parameter is covariant, meaning it is allowed to have
+   * a narrower type in an override.
+   */
+  bool get isCovariant;
 
   /**
    * Return `true` if this parameter is an initializing formal parameter.

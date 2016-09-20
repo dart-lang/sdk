@@ -17,6 +17,6 @@ class C {
 }
 
 main() {
-  Expect.isFalse(reflect(new C().foo).function.returnType.toString()
-      .contains('dynamic'));
+  Expect.isFalse(
+      reflect(new C().foo).function.returnType.toString().contains('dynamic'));
 }

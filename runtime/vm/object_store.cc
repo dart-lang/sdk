@@ -35,6 +35,7 @@ ObjectStore::ObjectStore()
     int32x4_type_(Type::null()),
     float64x2_type_(Type::null()),
     string_type_(Type::null()),
+    compiletime_error_class_(Class::null()),
     future_class_(Class::null()),
     completer_class_(Class::null()),
     stream_iterator_class_(Class::null()),
@@ -242,6 +243,11 @@ void ObjectStore::InitKnownObjects() {
   const Library& internal_lib = Library::Handle(internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());
   set_symbol_class(cls);
+
+  const Library& core_lib = Library::Handle(core_library());
+  cls = core_lib.LookupClassAllowPrivate(Symbols::_CompileTimeError());
+  ASSERT(!cls.IsNull());
+  set_compiletime_error_class(cls);
 
   // Cache the core private functions used for fast instance of checks.
   simple_instance_of_function_ =

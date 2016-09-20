@@ -15,11 +15,13 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class IsolateReconnectElement extends HtmlElement implements Renderable{
+class IsolateReconnectElement extends HtmlElement implements Renderable {
   static const tag = const Tag<IsolateReconnectElement>('isolate-reconnect',
-                     dependencies: const [NavTopMenuElement.tag,
-                                          NavNotifyElement.tag,
-                                          ViewFooterElement.tag]);
+      dependencies: const [
+        NavTopMenuElement.tag,
+        NavNotifyElement.tag,
+        ViewFooterElement.tag
+      ]);
 
   RenderingScheduler _r;
 
@@ -32,7 +34,7 @@ class IsolateReconnectElement extends HtmlElement implements Renderable{
   M.EventRepository _events;
   StreamSubscription _subscription;
 
-  M.VM get vm  => _vm;
+  M.VM get vm => _vm;
   String get missing => _missing;
   Uri get uri => _uri;
 
@@ -85,26 +87,29 @@ class IsolateReconnectElement extends HtmlElement implements Renderable{
         ..classes = ['content-centered']
         ..children = [
           new HeadingElement.h1()..text = 'Isolate $_missing no longer exists',
-          new BRElement(), new HRElement(),
-          new DivElement()..classes = ['memberList']
+          new BRElement(),
+          new HRElement(),
+          new DivElement()
+            ..classes = ['memberList']
             ..children = (_vm.isolates.map((isolate) {
               final query = new Map.from(_uri.queryParameters);
               query['isolateId'] = isolate.id;
               final href = new Uri(path: _uri.path, queryParameters: query);
-              return new DivElement()..classes = ['memberItem', 'doubleSpaced']
+              return new DivElement()
+                ..classes = ['memberItem', 'doubleSpaced']
                 ..children = [
                   new SpanElement()..text = 'Continue in ',
-                  new AnchorElement(href: '#$href')..classes = ['isolate-link']
+                  new AnchorElement(href: '#$href')
+                    ..classes = ['isolate-link']
                     ..text = '${isolate.id} (${isolate.name})'
                 ];
-            }).toList()..add(
-              new DivElement()..classes = ['memberItem', 'doubleSpaced']
+            }).toList()
+              ..add(new DivElement()
+                ..classes = ['memberItem', 'doubleSpaced']
                 ..children = [
                   new SpanElement()..text = 'Go to ',
-                  new AnchorElement(href: Uris.vm())
-                    ..text = 'isolates summary',
-                ]
-            ))
+                  new AnchorElement(href: Uris.vm())..text = 'isolates summary',
+                ]))
         ],
       new ViewFooterElement(queue: _r.queue)
     ];

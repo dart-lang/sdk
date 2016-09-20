@@ -6,6 +6,7 @@ transformers:
 - $dart2js:
     suppressWarnings: false
     commandLineOptions: [--show-package-warnings]
+    minify: false
 dependencies:
   args: any
   charted: ^0.3.0

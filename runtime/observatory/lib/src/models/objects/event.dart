@@ -11,9 +11,12 @@ abstract class Event {
   /// event was created.
   DateTime get timestamp;
   static bool isPauseEvent(Event event) {
-    return event is PauseStartEvent || event is PauseExitEvent ||
-        event is PauseBreakpointEvent || event is PauseInterruptedEvent ||
-        event is PauseExceptionEvent || event is NoneEvent;
+    return event is PauseStartEvent ||
+        event is PauseExitEvent ||
+        event is PauseBreakpointEvent ||
+        event is PauseInterruptedEvent ||
+        event is PauseExceptionEvent ||
+        event is NoneEvent;
   }
 }
 
@@ -60,6 +63,7 @@ abstract class PauseExitEvent extends DebugEvent {}
 abstract class PauseBreakpointEvent extends DebugEvent {
   /// [optional] The breakpoint at which we are currently paused.
   Breakpoint get breakpoint;
+
   /// The list of breakpoints at which we are currently paused
   /// for a PauseBreakpoint event.
   ///
@@ -69,6 +73,7 @@ abstract class PauseBreakpointEvent extends DebugEvent {
   /// If there is more than one breakpoint set at the program position,
   /// then all of them will be provided.
   Iterable<Breakpoint> get pauseBreakpoints;
+
   /// The top stack frame associated with this event.
   Frame get topFrame;
   bool get atAsyncSuspension;
@@ -78,6 +83,7 @@ abstract class PauseInterruptedEvent extends DebugEvent {
   /// [optional] The top stack frame associated with this event. There will be
   /// no top frame if the isolate is idle (waiting in the message loop).
   Frame get topFrame;
+
   /// Is the isolate paused at an await, yield, or yield* statement?
   bool get atAsyncSuspension;
 }
@@ -85,6 +91,7 @@ abstract class PauseInterruptedEvent extends DebugEvent {
 abstract class PauseExceptionEvent extends DebugEvent {
   /// The top stack frame associated with this event.
   Frame get topFrame;
+
   /// The exception associated with this event
   InstanceRef get exception;
 }
@@ -126,8 +133,10 @@ abstract class GCEvent extends Event {
 abstract class ExtensionEvent extends Event {
   /// The isolate with which this event is associated.
   IsolateRef get isolate;
+
   /// The extension event kind.
   String get extensionKind;
+
   /// The extension event data.
   ExtensionData get extensionData;
 }
@@ -143,6 +152,7 @@ abstract class LoggingEvent extends Event {
 abstract class TimelineEventsEvent extends Event {
   /// The isolate with which this event is associated.
   IsolateRef get isolate;
+
   /// An array of TimelineEvents
   Iterable<TimelineEvent> get timelineEvents;
 }

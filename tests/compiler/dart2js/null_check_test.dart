@@ -18,6 +18,6 @@ main() {
 
 main() {
   asyncTest(() => compileAll(TEST1).then((generated) {
-    Expect.isFalse(generated.contains('foo.length'));
-  }));
+        Expect.isFalse(generated.contains('foo.length'));
+      }));
 }

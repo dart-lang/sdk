@@ -1,5 +1,4 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
-
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,19 +7,15 @@ import 'package:analyzer/file_system/file_system.dart'
     show ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
+import 'package:analyzer/source/custom_resolver.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart'
-    show
-        CustomUriResolver,
-        DartUriResolver,
-        PackageUriResolver,
-        SourceFactory,
-        UriResolver;
+import 'package:analyzer/src/generated/source.dart'
+    show DartUriResolver, SourceFactory, UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummaryUriResolver, InputPackagesResultProvider, SummaryDataStore;
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
@@ -157,26 +152,39 @@ SourceFactory _createSourceFactory(AnalyzerOptions options,
     List<UriResolver> fileResolvers,
     SummaryDataStore summaryData,
     ResourceProvider resourceProvider}) {
+  resourceProvider ??= PhysicalResourceProvider.INSTANCE;
   var resolvers = <UriResolver>[];
   if (options.customUrlMappings.isNotEmpty) {
-    resolvers.add(new CustomUriResolver(options.customUrlMappings));
+    resolvers.add(
+        new CustomUriResolver(resourceProvider, options.customUrlMappings));
   }
   resolvers.add(sdkResolver);
   if (summaryData != null) {
     resolvers.add(new InSummaryUriResolver(resourceProvider, summaryData));
   }
 
-  if (fileResolvers == null) fileResolvers = createFileResolvers(options);
+  if (fileResolvers == null)
+    fileResolvers =
+        createFileResolvers(options, resourceProvider: resourceProvider);
   resolvers.addAll(fileResolvers);
   return new SourceFactory(resolvers, null, resourceProvider);
 }
 
-List<UriResolver> createFileResolvers(AnalyzerOptions options) {
+List<UriResolver> createFileResolvers(AnalyzerOptions options,
+    {ResourceProvider resourceProvider}) {
+  resourceProvider ??= PhysicalResourceProvider.INSTANCE;
+  UriResolver packageResolver() {
+    ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
+    builder.defaultPackagesDirectoryPath = options.packageRoot;
+    return new PackageMapUriResolver(resourceProvider,
+        builder.convertPackagesToMap(builder.createPackageMap('')));
+  }
+
   return [
-    new ResourceUriResolver(PhysicalResourceProvider.INSTANCE),
+    new ResourceUriResolver(resourceProvider),
     options.useMultiPackage
         ? new MultiPackageResolver(options.packagePaths)
-        : new PackageUriResolver([new JavaFile(options.packageRoot)])
+        : packageResolver()
   ];
 }
 

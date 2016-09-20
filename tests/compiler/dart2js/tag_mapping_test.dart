@@ -26,18 +26,18 @@ void main() {
   };
 
   asyncTest(() => compileSources(sources, (MockCompiler compiler) {
-    LibraryElement mainApp =
-        compiler.libraryLoader.lookupLibrary(Uri.parse('source:/main.dart'));
-    LibraryElement lib =
-        compiler.libraryLoader.lookupLibrary(Uri.parse('source:/library.dart'));
-    Expect.isNotNull(mainApp, 'Could not find main.dart library');
-    Expect.isNotNull(lib, 'Could not find library.dart library');
+        LibraryElement mainApp = compiler.libraryLoader
+            .lookupLibrary(Uri.parse('source:/main.dart'));
+        LibraryElement lib = compiler.libraryLoader
+            .lookupLibrary(Uri.parse('source:/library.dart'));
+        Expect.isNotNull(mainApp, 'Could not find main.dart library');
+        Expect.isNotNull(lib, 'Could not find library.dart library');
 
-    ImportElement import = mainApp.imports.single;
-    Expect.isNotNull(import, 'Could not find import tag in $mainApp');
+        ImportElement import = mainApp.imports.single;
+        Expect.isNotNull(import, 'Could not find import tag in $mainApp');
 
-    // Test that we can get from the import tag in main.dart to the
-    // library element representing library.dart.
-    Expect.identical(lib, import.importedLibrary);
-  }));
+        // Test that we can get from the import tag in main.dart to the
+        // library element representing library.dart.
+        Expect.identical(lib, import.importedLibrary);
+      }));
 }

@@ -5,8 +5,6 @@
 part of app;
 
 class LocationManager {
-  final _defaultPath = '/vm';
-
   final ObservatoryApplication _app;
 
   /// [internalArguments] are parameters specified after a '---' in the
@@ -14,6 +12,7 @@ class LocationManager {
   final Map<String, String> internalArguments = new Map<String, String>();
 
   Uri _uri;
+
   /// [uri] is the application uri. Application uris consist of a path and
   /// the queryParameters map.
   Uri get uri => _uri;
@@ -25,12 +24,12 @@ class LocationManager {
     if ((window.location.hash == '') || (window.location.hash == '#')) {
       // Observatory has loaded but no application path has been specified,
       // use the default.
-      applicationPath = makeLink(_defaultPath);
+      // By default we navigate to the VM page.
+      applicationPath = Uris.vm();
     }
     // Update current application path.
-    window.history.replaceState(applicationPath,
-                                document.title,
-                                applicationPath);
+    window.history
+        .replaceState(applicationPath, document.title, applicationPath);
     _updateApplicationLocation(applicationPath);
   }
 
@@ -54,7 +53,7 @@ class LocationManager {
   /// Update the application location. After this function returns,
   /// [uri] and [debugArguments] will be updated.
   _updateApplicationLocation(String url) {
-    if (url == makeLink('/vm-connect')) {
+    if (url == Uris.vmConnect()) {
       // When we go to the vm-connect page, drop all notifications.
       _app.notifications.deleteAll();
     }
@@ -91,11 +90,11 @@ class LocationManager {
 
   /// Notify the current page that something has changed.
   _visit() {
-    runZoned(() => _app._visit(_uri, internalArguments),
-             onError: (e, st) {
+    Chain.capture(() => _app._visit(_uri, internalArguments), onError: (e, st) {
       if (e is IsolateNotFound) {
         var newPath = ((_app.vm == null || _app.vm.isDisconnected)
-                       ? '/vm-connect' : '/isolate-reconnect');
+            ? '/vm-connect'
+            : '/isolate-reconnect');
         var parameters = {};
         parameters.addAll(_uri.queryParameters);
         parameters['originalUri'] = _uri.toString();
@@ -111,15 +110,6 @@ class LocationManager {
 
   /// Navigate to [url].
   void go(String url, [bool addToBrowserHistory = true]) {
-    if ((url != makeLink('/vm-connect')) &&
-        (_app.vm == null || _app.vm.isDisconnected)) {
-      if (!window.confirm('Connection with VM has been lost. '
-                          'Proceeding will lose current page.')) {
-        return;
-      }
-      url = makeLink('/vm-connect');
-    }
-
     if (addToBrowserHistory) {
       _addToBrowserHistory(url);
     }
@@ -130,7 +120,8 @@ class LocationManager {
   /// Starting with the current uri path and queryParameters, update
   /// queryParameters present in [updateParameters], then generate a new uri
   /// and navigate to that.
-  goReplacingParameters(Map updatedParameters, [bool addToBrowserHistory = true]) {
+  goReplacingParameters(Map updatedParameters,
+      [bool addToBrowserHistory = true]) {
     go(makeLinkReplacingParameters(updatedParameters), addToBrowserHistory);
   }
 
@@ -158,9 +149,9 @@ class LocationManager {
   /// Utility event handler when clicking on application url link.
   void onGoto(MouseEvent event) {
     if ((event.button > 0) ||
-        event.metaKey      ||
-        event.ctrlKey      ||
-        event.shiftKey     ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
         event.altKey) {
       // Mouse event is not a left-click OR
       // mouse event is a left-click with a modifier key:

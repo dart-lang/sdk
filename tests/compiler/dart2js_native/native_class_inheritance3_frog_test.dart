@@ -10,30 +10,26 @@ import "package:expect/expect.dart";
 // noSuchMethod is cached on Object.prototype.
 
 @Native("A1")
-class A1 {
-}
+class A1 {}
 
 @Native("B1")
-class B1 extends A1 {
-}
+class B1 extends A1 {}
 
-makeA1() native;
-makeB1() native;
-
+makeA1() native ;
+makeB1() native ;
 
 @Native("A2")
 class A2 {
-  foo([a=99]) native;
+  foo([a = 99]) native ;
 }
 
 @Native("B2")
-class B2 extends A2 {
-}
+class B2 extends A2 {}
 
-makeA2() native;
-makeB2() native;
+makeA2() native ;
+makeB2() native ;
 
-makeObject() native;
+makeObject() native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
@@ -65,7 +61,6 @@ makeB2 = function(){return new B2};
 makeObject = function(){return new Object};
 """;
 
-
 main() {
   setup();
 
@@ -86,7 +81,6 @@ main() {
   Expect.equals('A2.foo(99)', b2.foo());
   Expect.equals('A2.foo(1)', a2.foo(1));
   Expect.equals('A2.foo(2)', b2.foo(2));
-
 
   expectNoSuchMethod(() => b1.foo(3), 'b1.foo(3)');
   expectNoSuchMethod(() => a1.foo(4), 'a1.foo(4)');

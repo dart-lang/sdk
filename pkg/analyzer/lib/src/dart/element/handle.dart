@@ -585,6 +585,9 @@ class FieldElementHandle extends PropertyInducingElementHandle
   bool get isEnumConstant => actualElement.isEnumConstant;
 
   @override
+  bool get isVirtual => actualElement.isVirtual;
+
+  @override
   ElementKind get kind => ElementKind.FIELD;
 
   @override
@@ -893,6 +896,9 @@ class ParameterElementHandle extends VariableElementHandle
 
   @override
   String get defaultValueCode => actualElement.defaultValueCode;
+
+  @override
+  bool get isCovariant => actualElement.isCovariant;
 
   @override
   bool get isInitializingFormal => actualElement.isInitializingFormal;

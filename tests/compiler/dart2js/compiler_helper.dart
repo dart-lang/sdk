@@ -7,12 +7,10 @@ library compiler_helper;
 import 'dart:async';
 import "package:expect/expect.dart";
 
-import 'package:compiler/src/elements/elements.dart'
-       as lego;
+import 'package:compiler/src/elements/elements.dart' as lego;
 export 'package:compiler/src/elements/elements.dart';
 
-import 'package:compiler/src/js_backend/js_backend.dart'
-       as js;
+import 'package:compiler/src/js_backend/js_backend.dart' as js;
 
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
@@ -22,16 +20,13 @@ export 'package:compiler/src/diagnostics/messages.dart';
 export 'package:compiler/src/diagnostics/source_span.dart';
 export 'package:compiler/src/diagnostics/spannable.dart';
 
-import 'package:compiler/src/types/types.dart'
-       as types;
-export 'package:compiler/src/types/types.dart'
-       show TypeMask;
+import 'package:compiler/src/types/types.dart' as types;
+export 'package:compiler/src/types/types.dart' show TypeMask;
 
 import 'package:compiler/src/util/util.dart';
 export 'package:compiler/src/util/util.dart';
 
-import 'package:compiler/src/compiler.dart'
-       show Compiler;
+import 'package:compiler/src/compiler.dart' show Compiler;
 
 export 'package:compiler/src/tree/tree.dart';
 
@@ -50,15 +45,15 @@ export 'output_collector.dart';
 /// returning. If [useMock] is `true` the [MockCompiler] is used for
 /// compilation, otherwise the memory compiler is used.
 Future<String> compile(String code,
-                       {String entry: 'main',
-                        bool enableTypeAssertions: false,
-                        bool minify: false,
-                        bool analyzeAll: false,
-                        bool disableInlining: true,
-                        bool trustJSInteropTypeAnnotations: false,
-                        bool useMock: false,
-                        void check(String generatedEntry),
-                        bool returnAll: false}) async {
+    {String entry: 'main',
+    bool enableTypeAssertions: false,
+    bool minify: false,
+    bool analyzeAll: false,
+    bool disableInlining: true,
+    bool trustJSInteropTypeAnnotations: false,
+    bool useMock: false,
+    void check(String generatedEntry),
+    bool returnAll: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
   if (useMock) {
     // TODO(johnniwinther): Remove this when no longer needed by
@@ -77,8 +72,8 @@ Future<String> compile(String code,
     lego.Element element = compiler.mainApp.find(entry);
     if (element == null) return null;
     compiler.phase = Compiler.PHASE_RESOLVING;
-    compiler.backend.enqueueHelpers(compiler.enqueuer.resolution,
-                                    compiler.globalDependencies);
+    compiler.backend.enqueueHelpers(
+        compiler.enqueuer.resolution, compiler.globalDependencies);
     compiler.processQueue(compiler.enqueuer.resolution, element);
     compiler.world.populate();
     compiler.backend.onResolutionComplete();
@@ -94,8 +89,7 @@ Future<String> compile(String code,
     }
     return returnAll ? outputCollector.getOutput('', 'js') : generated;
   } else {
-    List<String> options = <String>[
-        Flags.disableTypeInference];
+    List<String> options = <String>[Flags.disableTypeInference];
     if (enableTypeAssertions) {
       options.add(Flags.enableCheckedMode);
     }
@@ -115,7 +109,7 @@ Future<String> compile(String code,
 
     Map<String, String> source;
     if (entry != 'main') {
-      source = {'main.dart': "$code\n\nmain() => $entry;" };
+      source = {'main.dart': "$code\n\nmain() => $entry;"};
     } else {
       source = {'main.dart': code};
     }
@@ -125,7 +119,7 @@ Future<String> compile(String code,
         options: options,
         outputProvider: outputCollector);
     Expect.isTrue(result.isSuccess);
-    Compiler compiler =  result.compiler;
+    Compiler compiler = result.compiler;
     lego.Element element = compiler.mainApp.find(entry);
     js.JavaScriptBackend backend = compiler.backend;
     String generated = backend.getGeneratedCode(element);
@@ -137,45 +131,46 @@ Future<String> compile(String code,
 }
 
 Future<String> compileAll(String code,
-                          {Map<String, String> coreSource,
-                           bool disableInlining: true,
-                           bool trustTypeAnnotations: false,
-                           bool minify: false,
-                           int expectedErrors,
-                           int expectedWarnings}) {
+    {Map<String, String> coreSource,
+    bool disableInlining: true,
+    bool trustTypeAnnotations: false,
+    bool minify: false,
+    int expectedErrors,
+    int expectedWarnings}) {
   Uri uri = new Uri(scheme: 'source');
   OutputCollector outputCollector = new OutputCollector();
-  MockCompiler compiler = compilerFor(
-      code, uri, coreSource: coreSource, disableInlining: disableInlining,
-      minify: minify, expectedErrors: expectedErrors,
+  MockCompiler compiler = compilerFor(code, uri,
+      coreSource: coreSource,
+      disableInlining: disableInlining,
+      minify: minify,
+      expectedErrors: expectedErrors,
       trustTypeAnnotations: trustTypeAnnotations,
       expectedWarnings: expectedWarnings,
       outputProvider: outputCollector);
   compiler.diagnosticHandler = createHandler(compiler, code);
   return compiler.run(uri).then((compilationSucceded) {
-    Expect.isTrue(compilationSucceded,
-                  'Unexpected compilation error(s): '
-                  '${compiler.diagnosticCollector.errors}');
+    Expect.isTrue(
+        compilationSucceded,
+        'Unexpected compilation error(s): '
+        '${compiler.diagnosticCollector.errors}');
     return outputCollector.getOutput('', 'js');
   });
 }
 
-Future compileAndCheck(String code,
-                       String name,
-                       check(MockCompiler compiler, lego.Element element),
-                       {int expectedErrors, int expectedWarnings}) {
+Future compileAndCheck(String code, String name,
+    check(MockCompiler compiler, lego.Element element),
+    {int expectedErrors, int expectedWarnings}) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri,
-      expectedErrors: expectedErrors,
-      expectedWarnings: expectedWarnings);
+      expectedErrors: expectedErrors, expectedWarnings: expectedWarnings);
   return compiler.run(uri).then((_) {
     lego.Element element = findElement(compiler, name);
     return check(compiler, element);
   });
 }
 
-Future compileSources(Map<String, String> sources,
-               check(MockCompiler compiler)) {
+Future compileSources(
+    Map<String, String> sources, check(MockCompiler compiler)) {
   Uri base = new Uri(scheme: 'source', path: '/');
   Uri mainUri = base.resolve('main.dart');
   String mainCode = sources['main.dart'];
@@ -203,7 +198,7 @@ lego.Element findElement(compiler, String name, [Uri library]) {
 }
 
 types.TypeMask findTypeMask(compiler, String name,
-                            [String how = 'nonNullExact']) {
+    [String how = 'nonNullExact']) {
   var sourceName = name;
   var element = compiler.mainApp.find(sourceName);
   if (element == null) {
@@ -235,7 +230,7 @@ String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 String getIntTypeCheck(String variable) {
   return "\\($variable ?!== ?\\($variable ?\\| ?0\\)|"
-         "\\($variable ?>>> ?0 ?!== ?$variable";
+      "\\($variable ?>>> ?0 ?!== ?$variable";
 }
 
 String getNumberTypeCheck(String variable) {
@@ -252,19 +247,18 @@ void checkNumberOfMatches(Iterator it, int nb) {
 }
 
 Future compileAndMatch(String code, String entry, RegExp regexp,
-                       {bool useMock: false}) {
-  return compile(code, entry: entry,
-      useMock: useMock,
+    {bool useMock: false}) {
+  return compile(code, entry: entry, useMock: useMock,
       check: (String generated) {
-    Expect.isTrue(regexp.hasMatch(generated),
-                  '"$generated" does not match /$regexp/');
+    Expect.isTrue(
+        regexp.hasMatch(generated), '"$generated" does not match /$regexp/');
   });
 }
 
 Future compileAndDoNotMatch(String code, String entry, RegExp regexp) {
   return compile(code, entry: entry, check: (String generated) {
-    Expect.isFalse(regexp.hasMatch(generated),
-                   '"$generated" has a match in /$regexp/');
+    Expect.isFalse(
+        regexp.hasMatch(generated), '"$generated" has a match in /$regexp/');
   });
 }
 

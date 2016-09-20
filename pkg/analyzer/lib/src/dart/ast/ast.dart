@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
+import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
@@ -938,9 +939,9 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   String toSource() {
-    StringBuffer buffer = new StringBuffer();
-    accept(new ToSourceVisitor(buffer));
-    return buffer.toString();
+    PrintStringWriter writer = new PrintStringWriter();
+    accept(new ToSourceVisitor(writer));
+    return writer.toString();
   }
 
   @override
@@ -2594,15 +2595,24 @@ class ConditionalExpressionImpl extends ExpressionImpl
 class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   Token ifKeyword;
+
   @override
   Token leftParenthesis;
+
   DottedName _name;
+
   @override
   Token equalToken;
+
   StringLiteral _value;
+
   @override
   Token rightParenthesis;
-  StringLiteral _libraryUri;
+
+  StringLiteral _uri;
+
+  @override
+  Source uriSource;
 
   ConfigurationImpl(
       this.ifKeyword,
@@ -2614,7 +2624,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
       StringLiteralImpl libraryUri) {
     _name = _becomeParentOf(name);
     _value = _becomeParentOf(value);
-    _libraryUri = _becomeParentOf(libraryUri);
+    _uri = _becomeParentOf(libraryUri);
   }
 
   @override
@@ -2628,17 +2638,19 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
     ..add(equalToken)
     ..add(_value)
     ..add(rightParenthesis)
-    ..add(_libraryUri);
+    ..add(_uri);
 
   @override
-  Token get endToken => _libraryUri.endToken;
+  Token get endToken => _uri.endToken;
 
+  @deprecated
   @override
-  StringLiteral get libraryUri => _libraryUri;
+  StringLiteral get libraryUri => _uri;
 
+  @deprecated
   @override
   void set libraryUri(StringLiteral libraryUri) {
-    _libraryUri = _becomeParentOf(libraryUri as AstNodeImpl);
+    _uri = _becomeParentOf(libraryUri as AstNodeImpl);
   }
 
   @override
@@ -2647,6 +2659,14 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   void set name(DottedName name) {
     _name = _becomeParentOf(name as AstNodeImpl);
+  }
+
+  @override
+  StringLiteral get uri => _uri;
+
+  @override
+  void set uri(StringLiteral uri) {
+    _uri = _becomeParentOf(uri as AstNodeImpl);
   }
 
   @override
@@ -2665,7 +2685,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   void visitChildren(AstVisitor visitor) {
     _name?.accept(visitor);
     _value?.accept(visitor);
-    _libraryUri?.accept(visitor);
+    _uri?.accept(visitor);
   }
 }
 
@@ -5443,6 +5463,9 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
    */
   FormalParameterList _parameters;
 
+  @override
+  Token question;
+
   /**
    * Initialize a newly created formal parameter. Either or both of the
    * [comment] and [metadata] can be `null` if the parameter does not have the
@@ -5455,7 +5478,8 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
       TypeNameImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters)
+      FormalParameterListImpl parameters,
+      this.question)
       : super(comment, metadata, identifier) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
@@ -7454,6 +7478,12 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token semicolon;
 
+  @override
+  String selectedUriContent;
+
+  @override
+  Source selectedSource;
+
   /**
    * Initialize a newly created namespace directive. Either or both of the
    * [comment] and [metadata] can be `null` if the directive does not have the
@@ -7484,6 +7514,16 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata => keyword;
+
+  @deprecated
+  @override
+  Source get source => selectedSource;
+
+  @deprecated
+  @override
+  void set source(Source source) {
+    selectedSource = source;
+  }
 
   @override
   LibraryElement get uriElement;
@@ -10267,6 +10307,9 @@ class TypeNameImpl extends AstNodeImpl implements TypeName {
    */
   TypeArgumentList _typeArguments;
 
+  @override
+  Token question;
+
   /**
    * The type being named, or `null` if the AST structure has not been resolved.
    */
@@ -10276,7 +10319,8 @@ class TypeNameImpl extends AstNodeImpl implements TypeName {
    * Initialize a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  TypeNameImpl(IdentifierImpl name, TypeArgumentListImpl typeArguments) {
+  TypeNameImpl(
+      IdentifierImpl name, TypeArgumentListImpl typeArguments, this.question) {
     _name = _becomeParentOf(name);
     _typeArguments = _becomeParentOf(typeArguments);
   }
@@ -10495,15 +10539,11 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
    */
   StringLiteral _uri;
 
-  /**
-   * The content of the URI.
-   */
+  @override
   String uriContent;
 
-  /**
-   * The source to which the URI was resolved.
-   */
-  Source source;
+  @override
+  Source uriSource;
 
   /**
    * Initialize a newly create URI-based directive. Either or both of the
@@ -10516,6 +10556,16 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     _uri = _becomeParentOf(uri);
   }
 
+  @deprecated
+  @override
+  Source get source => uriSource;
+
+  @deprecated
+  @override
+  void set source(Source source) {
+    uriSource = source;
+  }
+
   @override
   StringLiteral get uri => _uri;
 
@@ -10526,15 +10576,28 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
 
   @override
   UriValidationCode validate() {
-    StringLiteral uriLiteral = this.uri;
+    return validateUri(this is ImportDirective, uri, uriContent);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _uri?.accept(visitor);
+  }
+
+  /**
+   * Validate this directive, but do not check for existence. Return a code
+   * indicating the problem if there is one, or `null` no problem.
+   */
+  static UriValidationCode validateUri(
+      bool isImport, StringLiteral uriLiteral, String uriContent) {
     if (uriLiteral is StringInterpolation) {
       return UriValidationCode.URI_WITH_INTERPOLATION;
     }
-    String uriContent = this.uriContent;
     if (uriContent == null) {
       return UriValidationCode.INVALID_URI;
     }
-    if (this is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
+    if (isImport && uriContent.startsWith(_DART_EXT_SCHEME)) {
       return UriValidationCode.URI_WITH_DART_EXT_SCHEME;
     }
     Uri uri;
@@ -10547,12 +10610,6 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
       return UriValidationCode.INVALID_URI;
     }
     return null;
-  }
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _uri?.accept(visitor);
   }
 }
 

@@ -15,16 +15,15 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-
 class SentinelViewElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<SentinelViewElement>('sentinel-view',
-                                                    dependencies: const [
-                                                      NavTopMenuElement.tag,
-                                                      NavVMMenuElement.tag,
-                                                      NavIsolateMenuElement.tag,
-                                                      NavNotifyElement.tag,
-                                                      ViewFooterElement.tag
-                                                    ]);
+  static const tag =
+      const Tag<SentinelViewElement>('sentinel-view', dependencies: const [
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavNotifyElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<SentinelViewElement> _r;
 
@@ -38,10 +37,13 @@ class SentinelViewElement extends HtmlElement implements Renderable {
 
   M.Sentinel get sentinel => _sentinel;
 
-  factory SentinelViewElement(M.VM vm, M.IsolateRef isolate, M.Sentinel sentinel,
-                              M.EventRepository events,
-                              M.NotificationRepository notifications,
-                              {RenderingQueue queue}) {
+  factory SentinelViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.Sentinel sentinel,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(sentinel != null);
@@ -82,13 +84,13 @@ class SentinelViewElement extends HtmlElement implements Renderable {
         navMenu('sentinel'),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()
             ..text = 'Sentinel: #{_sentinel.valueAsString}',
           new HRElement(),
-          new DivElement()
-            ..text = _sentinelKindToDescription(_sentinel.kind),
+          new DivElement()..text = _sentinelKindToDescription(_sentinel.kind),
           new HRElement(),
           new ViewFooterElement(queue: _r.queue)
         ]
@@ -101,19 +103,18 @@ class SentinelViewElement extends HtmlElement implements Renderable {
         return 'This object has been reclaimed by the garbage collector.';
       case M.SentinelKind.expired:
         return 'The handle to this object has expired. '
-               'Consider refreshing the page.';
+            'Consider refreshing the page.';
       case M.SentinelKind.notInitialized:
         return 'This object will be initialized once it is accessed by '
-               'the program.';
+            'the program.';
       case M.SentinelKind.initializing:
         return 'This object is currently being initialized.';
       case M.SentinelKind.optimizedOut:
         return 'This object is no longer needed and has been removed by the '
-               'optimizing compiler.';
+            'optimizing compiler.';
       case M.SentinelKind.free:
         return '';
     }
     throw new Exception('Unknown SentinelKind: $kind');
   }
-
 }

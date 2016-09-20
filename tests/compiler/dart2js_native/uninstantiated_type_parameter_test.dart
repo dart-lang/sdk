@@ -7,15 +7,12 @@ import "package:expect/expect.dart";
 
 // Test for uninstantiated native classes as type parameters.
 
-class UA {
-}
+class UA {}
 
 @Native("B")
-class UB {
-}
+class UB {}
 
-class C<T> {
-}
+class C<T> {}
 
 main() {
   var a = new C<UA>();

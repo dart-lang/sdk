@@ -57,7 +57,6 @@ const String TEST_3 = r"""
   }
 """;
 
-
 main() {
   RegExp directivePattern = new RegExp(
       //      \1                    \2        \3
@@ -88,8 +87,8 @@ main() {
   }
 
   asyncTest(() => Future.wait([
-    check(TEST_1),
-    check(TEST_2),
-    check(TEST_3),
-  ]));
+        check(TEST_1),
+        check(TEST_2),
+        check(TEST_3),
+      ]));
 }

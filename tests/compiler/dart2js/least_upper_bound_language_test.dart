@@ -13,8 +13,8 @@ import 'warnings_checker.dart';
 /// can contain a list of line numbers for keys 'missing' and 'unexpected' for
 /// the warnings of each category.
 const Map<String, dynamic> TESTS = const {
-    'language/least_upper_bound_test.dart': null,
-    'language/least_upper_bound_expansive_test.dart': null,
+  'language/least_upper_bound_test.dart': null,
+  'language/least_upper_bound_expansive_test.dart': null,
 };
 
 void main() {

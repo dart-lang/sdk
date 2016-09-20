@@ -12,9 +12,8 @@ import '../memory_compiler.dart';
 void main() {
   asyncTest(() async {
     DiagnosticCollector collector = new DiagnosticCollector();
-    await runCompiler(
-        diagnosticHandler: collector,
-        memorySourceFiles: const {'main.dart': '''
+    await runCompiler(diagnosticHandler: collector, memorySourceFiles: const {
+      'main.dart': '''
 import 'package:js/js.dart';
 
 @JS()
@@ -23,13 +22,11 @@ class A {
 }
 
 main() => new A();
-'''});
-    Expect.equals(0, collector.errors.length,
-        'Unexpected error count.');
-    Expect.equals(1, collector.warnings.length,
-        'Unexpected warning count.');
+'''
+    });
+    Expect.equals(0, collector.errors.length, 'Unexpected error count.');
+    Expect.equals(1, collector.warnings.length, 'Unexpected warning count.');
     Expect.equals(MessageKind.ABSTRACT_GETTER,
-        collector.warnings.first.messageKind,
-        'Unexpected warning.');
+        collector.warnings.first.messageKind, 'Unexpected warning.');
   });
 }

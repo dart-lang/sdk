@@ -72,5 +72,4 @@ abstract class InstanceSet {
   Iterable<ObjectRef> get samples;
 }
 
-abstract class TopRetainedInstances {
-}
+abstract class TopRetainedInstances {}

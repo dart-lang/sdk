@@ -106,12 +106,17 @@ class PauseBreakpointEvent implements M.PauseBreakpointEvent {
   final Iterable<M.Breakpoint> pauseBreakpoints;
   final M.Frame topFrame;
   final bool atAsyncSuspension;
+
   /// [optional]
   final M.Breakpoint breakpoint;
-  PauseBreakpointEvent(this.timestamp, this.isolate,
-      Iterable<M.Breakpoint> pauseBreakpoints, this.topFrame,
-      this.atAsyncSuspension, [this.breakpoint])
-    : pauseBreakpoints = new List.unmodifiable(pauseBreakpoints){
+  PauseBreakpointEvent(
+      this.timestamp,
+      this.isolate,
+      Iterable<M.Breakpoint> pauseBreakpoints,
+      this.topFrame,
+      this.atAsyncSuspension,
+      [this.breakpoint])
+      : pauseBreakpoints = new List.unmodifiable(pauseBreakpoints) {
     assert(timestamp != null);
     assert(isolate != null);
     assert(pauseBreakpoints != null);
@@ -125,8 +130,8 @@ class PauseInterruptedEvent implements M.PauseInterruptedEvent {
   final M.IsolateRef isolate;
   final M.Frame topFrame;
   final bool atAsyncSuspension;
-  PauseInterruptedEvent(this.timestamp, this.isolate, this.topFrame,
-      this.atAsyncSuspension) {
+  PauseInterruptedEvent(
+      this.timestamp, this.isolate, this.topFrame, this.atAsyncSuspension) {
     assert(timestamp != null);
     assert(isolate != null);
     assert(atAsyncSuspension != null);
@@ -138,8 +143,8 @@ class PauseExceptionEvent implements M.PauseExceptionEvent {
   final M.IsolateRef isolate;
   final M.Frame topFrame;
   final M.InstanceRef exception;
-  PauseExceptionEvent(this.timestamp, this.isolate, this.topFrame,
-      this.exception) {
+  PauseExceptionEvent(
+      this.timestamp, this.isolate, this.topFrame, this.exception) {
     assert(timestamp != null);
     assert(isolate != null);
     assert(topFrame != null);
@@ -235,8 +240,8 @@ class ExtensionEvent implements M.ExtensionEvent {
   final M.IsolateRef isolate;
   final String extensionKind;
   final M.ExtensionData extensionData;
-  ExtensionEvent(this.timestamp, this.isolate, this.extensionKind,
-      this.extensionData) {
+  ExtensionEvent(
+      this.timestamp, this.isolate, this.extensionKind, this.extensionData) {
     assert(timestamp != null);
     assert(isolate != null);
     assert(extensionKind != null);
@@ -248,9 +253,9 @@ class TimelineEventsEvent implements M.TimelineEventsEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
   final Iterable<M.TimelineEvent> timelineEvents;
-  TimelineEventsEvent(this.timestamp, this.isolate,
-      Iterable<M.TimelineEvent> timelineEvents)
-    : timelineEvents = new List.unmodifiable(timelineEvents){
+  TimelineEventsEvent(
+      this.timestamp, this.isolate, Iterable<M.TimelineEvent> timelineEvents)
+      : timelineEvents = new List.unmodifiable(timelineEvents) {
     assert(timestamp != null);
     assert(isolate != null);
     assert(timelineEvents != null);
@@ -267,7 +272,7 @@ class ConnectionClosedEvent implements M.ConnectionClosedEvent {
 }
 
 M.Event createEventFromServiceEvent(S.ServiceEvent event) {
-  switch(event.kind) {
+  switch (event.kind) {
     case S.ServiceEvent.kVMUpdate:
       return new VMUpdateEvent(event.timestamp, event.vm);
     case S.ServiceEvent.kIsolateStart:
@@ -277,18 +282,19 @@ M.Event createEventFromServiceEvent(S.ServiceEvent event) {
     case S.ServiceEvent.kIsolateUpdate:
       return new IsolateUpdateEvent(event.timestamp, event.isolate);
     case S.ServiceEvent.kIsolateReload:
-      return new IsolateReloadEvent(event.timestamp, event.isolate, event.error);
+      return new IsolateReloadEvent(
+          event.timestamp, event.isolate, event.error);
     case S.ServiceEvent.kIsolateExit:
       return new IsolateExitEvent(event.timestamp, event.isolate);
     case S.ServiceEvent.kBreakpointAdded:
-      return new BreakpointAddedEvent(event.timestamp, event.isolate,
-          event.breakpoint);
+      return new BreakpointAddedEvent(
+          event.timestamp, event.isolate, event.breakpoint);
     case S.ServiceEvent.kBreakpointResolved:
-      return new BreakpointResolvedEvent(event.timestamp, event.isolate,
-          event.breakpoint);
+      return new BreakpointResolvedEvent(
+          event.timestamp, event.isolate, event.breakpoint);
     case S.ServiceEvent.kBreakpointRemoved:
-      return new BreakpointRemovedEvent(event.timestamp, event.isolate,
-        event.breakpoint);
+      return new BreakpointRemovedEvent(
+          event.timestamp, event.isolate, event.breakpoint);
     case S.ServiceEvent.kDebuggerSettingsUpdate:
       return new DebuggerSettingsUpdateEvent(event.timestamp, event.isolate);
     case S.ServiceEvent.kResume:
@@ -298,8 +304,12 @@ M.Event createEventFromServiceEvent(S.ServiceEvent event) {
     case S.ServiceEvent.kPauseExit:
       return new PauseExitEvent(event.timestamp, event.isolate);
     case S.ServiceEvent.kPauseBreakpoint:
-      return new PauseBreakpointEvent(event.timestamp, event.isolate,
-          event.pauseBreakpoints, event.topFrame, event.atAsyncSuspension,
+      return new PauseBreakpointEvent(
+          event.timestamp,
+          event.isolate,
+          event.pauseBreakpoints,
+          event.topFrame,
+          event.atAsyncSuspension,
           event.breakpoint);
     case S.Isolate.kLoggingStream:
       return new LoggingEvent(event.timestamp, event.isolate, event.logRecord);
@@ -307,11 +317,10 @@ M.Event createEventFromServiceEvent(S.ServiceEvent event) {
       return new PauseInterruptedEvent(event.timestamp, event.isolate,
           event.topFrame, event.atAsyncSuspension);
     case S.ServiceEvent.kPauseException:
-      return new PauseExceptionEvent(event.timestamp, event.isolate,
-          event.topFrame, event.exception);
+      return new PauseExceptionEvent(
+          event.timestamp, event.isolate, event.topFrame, event.exception);
     case S.ServiceEvent.kInspect:
-      return new InspectEvent(event.timestamp, event.isolate,
-          event.inspectee);
+      return new InspectEvent(event.timestamp, event.isolate, event.inspectee);
     case S.ServiceEvent.kGC:
       return new GCEvent(event.timestamp, event.isolate);
     case S.ServiceEvent.kNone:

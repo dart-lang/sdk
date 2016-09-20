@@ -244,6 +244,7 @@ class IncrementalCompilationUnitElementBuilder {
         }
       }
     }
+
     void processFieldDeclaration(FieldDeclaration node, bool isNew) {
       for (VariableDeclaration field in node.fields.variables) {
         PropertyInducingElement element = field.element;
@@ -269,6 +270,7 @@ class IncrementalCompilationUnitElementBuilder {
         }
       }
     }
+
     void processMethodDeclaration(MethodDeclaration node, bool isNew) {
       Element element = node.element;
       if (element is MethodElement) {
@@ -287,6 +289,7 @@ class IncrementalCompilationUnitElementBuilder {
         }
       }
     }
+
     // Replace new nodes with the identical old nodes.
     bool newHasConstructor = false;
     for (ClassMember newNode in newClass.members) {
@@ -409,7 +412,11 @@ class IncrementalCompilationUnitElementBuilder {
       // URI's must be resolved to the same sources.
       if (newDirective is UriBasedDirective &&
           oldDirective is UriBasedDirective) {
-        if (oldDirective.source != newDirective.source) {
+        Source source(UriBasedDirective directive) =>
+            directive is NamespaceDirective
+                ? directive.selectedSource
+                : directive.uriSource;
+        if (source(oldDirective) != source(newDirective)) {
           continue;
         }
       }
@@ -536,6 +543,7 @@ class IncrementalCompilationUnitElementBuilder {
         }
       }
     }
+
     if (node is FieldDeclaration) {
       addPropertyAccessors(node.fields);
     } else if (node is TopLevelVariableDeclaration) {

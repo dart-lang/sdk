@@ -5,11 +5,12 @@
 import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS_INTERCEPTOR_CONSTANT, JS;
 import 'dart:_js_helper' show Native, Creates;
-import 'dart:_interceptors' show
-    Interceptor,
-    JavaScriptObject,
-    PlainJavaScriptObject,
-    UnknownJavaScriptObject;
+import 'dart:_interceptors'
+    show
+        Interceptor,
+        JavaScriptObject,
+        PlainJavaScriptObject,
+        UnknownJavaScriptObject;
 
 // Test for safe formatting of JavaScript objects by Error.safeToString.
 
@@ -24,14 +25,14 @@ class Rascal {
   toString() => 'RRRRRRRR';
 }
 
-makeA() native;
-makeB() native;
-makeC() native;
-makeD() native;
-makeE() native;
-makeP() native;
-makeQ() native;
-makeR() native;
+makeA() native ;
+makeB() native ;
+makeC() native ;
+makeD() native ;
+makeE() native ;
+makeP() native ;
+makeQ() native ;
+makeR() native ;
 
 void setup() native r"""
 makeA = function(){return {hello: 123};};
@@ -71,7 +72,6 @@ makeR = function(){return new RRRR();};
 
 """;
 
-
 expectTypeName(expectedName, s) {
   var m = new RegExp(r"Instance of '(.*)'").firstMatch(s);
   Expect.isNotNull(m);
@@ -88,7 +88,6 @@ final unknownJsString =
 
 final interceptorString =
     Error.safeToString(JS_INTERCEPTOR_CONSTANT(Interceptor));
-
 
 testDistinctInterceptors() {
   // Test invariants needed for the other tests.
@@ -110,7 +109,6 @@ testDistinctInterceptors() {
   Expect.equals(unknownJsString, unk2);
 }
 
-
 testExternal() {
   var x = makeA();
   Expect.equals(plainJsString, Error.safeToString(x));
@@ -131,7 +129,7 @@ testExternal() {
 
 testNative() {
   var x = makeP();
-  Expect.isTrue(x is Purple);  // This test forces Purple to be distinguished.
+  Expect.isTrue(x is Purple); // This test forces Purple to be distinguished.
   Expect.notEquals(plainJsString, Error.safeToString(x));
   Expect.notEquals(unknownJsString, Error.safeToString(x));
   Expect.notEquals(interceptorString, Error.safeToString(x));
@@ -143,8 +141,7 @@ testNative() {
   print('Q:  $x  ${Error.safeToString(x)}');
   // We are going to get either the general interceptor or the JavaScript
   // constructor.
-  Expect.isTrue(
-      "Instance of 'QQQQ'" == Error.safeToString(x) ||
+  Expect.isTrue("Instance of 'QQQQ'" == Error.safeToString(x) ||
       interceptorString == Error.safeToString(x));
 
   x = makeR();

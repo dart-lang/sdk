@@ -15,8 +15,7 @@ void main() {
   asyncTest(() async {
     OutputCollector collector = new OutputCollector();
     CompilationResult result = await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES,
-      outputProvider: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
 
     lookupLibrary(name) {
@@ -40,7 +39,7 @@ void main() {
     var fooMain = compiler.mainApp.find("foo");
     var ou_lib1_lib2 = outputUnitForElement(fooMain);
 
-    String mainOutput = collector.getOutput("","js");
+    String mainOutput = collector.getOutput("", "js");
     String lib1Output = collector.getOutput("out_${ou_lib1.name}", "part.js");
     String lib2Output = collector.getOutput("out_${ou_lib2.name}", "part.js");
     String lib12Output =
@@ -84,7 +83,8 @@ void main() {
 }
 
 // Make sure that deferred constants are not inlined into the main hunk.
-const Map MEMORY_SOURCE_FILES = const {"main.dart": """
+const Map MEMORY_SOURCE_FILES = const {
+  "main.dart": """
 import "dart:async";
 
 import 'lib1.dart' deferred as lib1;
@@ -119,7 +119,8 @@ void main() {
     });
   });
 }
-""", "lib1.dart": """
+""",
+  "lib1.dart": """
 import "main.dart" as main;
 const C1 = "string1";
 const C2 = 1010;
@@ -133,7 +134,8 @@ foo() {
   print("lib1");
   main.foo();
 }
-""", "lib2.dart": """
+""",
+  "lib2.dart": """
 import "main.dart" as main;
 const C4 = "string4";
 const C5 = const main.C(1);
@@ -142,4 +144,5 @@ foo() {
   print("lib2");
   main.foo();
 }
-"""};
+"""
+};

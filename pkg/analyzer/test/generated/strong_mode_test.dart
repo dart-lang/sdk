@@ -8,8 +8,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -1448,6 +1448,12 @@ class D<S> {
 
     checkBody("C");
     checkBody("D");
+  }
+
+  void test_genericFunction_upwardsAndDownwards() {
+    // Regression tests for https://github.com/dart-lang/sdk/issues/27151.
+    resolveTestUnit(r'List<num> x = [1, 2];');
+    expectInitializerType('x', 'List<int>');
   }
 
   void test_genericMethod() {

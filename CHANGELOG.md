@@ -7,6 +7,21 @@
   [article on native extensions](https://www.dartlang.org/articles/dart-vm/native-extensions)
   to reflect the VM's improved behavior.
 
+* Linux builds of the VM will now use the tcmalloc library for memory
+  allocation. This has the advantages of better debugging and profiling support
+  and faster small allocations, with the cost of slightly larger initial memory
+  footprint, and slightly slower large allocations.
+
+* We have improved the way the VM searches for trusted root certificates for
+  secure socket connections on Linux. First, the VM will look for trusted root
+  certificates in standard locations on the file system
+  (/etc/pki/tls/certs/ca-bundle.crt followed by /etc/ssl/certs), and only if
+  these do not exist will it fall back on the builtin trusted root certificates.
+  This behavior can be overridden on Linux with the new flags
+  --root-certs-file and --root-certs-cache. The former is the path to a file
+  containing the trusted root certificates, and the latter is the path to a
+  directory containing root certificate files hashed using `c_rehash`.
+
 ### Core library changes
 * `dart:core`: Remove deprecated `Resource` class.
   Use the class in `package:resource` instead.
@@ -21,7 +36,7 @@
   * Added `WebSocket.addUtf8Text` to allow sending a pre-encoded text message
     without a round-trip UTF-8 conversion.
 
-## Strong Mode
+### Strong Mode
 
 * Breaking change - it is an error if a generic type parameter cannot be
     inferred (SDK issue [26992](https://github.com/dart-lang/sdk/issues/26992)).
@@ -37,6 +52,59 @@
       num n;
       C<int> cOfInt = new C(n);
     }
+    ```
+
+* New feature - use `@checked` to override a method and tighten a parameter
+    type (SDK issue [25578](https://github.com/dart-lang/sdk/issues/25578)).
+
+    ```dart
+    import 'package:meta/meta.dart' show checked;
+    class View {
+      addChild(View v) {}
+    }
+    class MyView extends View {
+      // this override is legal, it will check at runtime if we actually
+      // got a MyView.
+      addChild(@checked MyView v) {}
+    }
+    main() {
+      dynamic mv = new MyView();
+      mv.addChild(new View()); // runtime error
+    }
+    ```
+
+* New feature - use `@virtual` to allow field overrides in strong mode
+    (SDK issue [27384](https://github.com/dart-lang/sdk/issues/27384)).
+
+    ```dart
+    import 'package:meta/meta.dart' show virtual;
+    class Base {
+      @virtual int x;
+    }
+    class Derived extends Base {
+      int x;
+
+      // Expose the hidden storage slot:
+      int get superX => super.x;
+      set superX(int v) { super.x = v; }
+    }
+    ```
+
+* Breaking change - infer list and map literals from the context type as well as
+    their values, consistent with generic methods and instance creation
+    (SDK issue [27151](https://github.com/dart-lang/sdk/issues/27151)).
+
+    ```dart
+    import 'dart:async';
+    main() async {
+      var b = new Future<B>.value(new B());
+      var c = new Future<C>.value(new C());
+      var/*infer List<Future<A>>*/ list = [b, c];
+      var/*infer List<A>*/ result = await Future.wait(list);
+    }
+    class A {}
+    class B extends A {}
+    class C extends A {}
     ```
 
 ## 1.19.0

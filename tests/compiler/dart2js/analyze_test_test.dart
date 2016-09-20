@@ -7,13 +7,10 @@ library dart2js.analyze_test.test;
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/apiimpl.dart' show
-    CompilerImpl;
+import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/diagnostics/messages.dart' show
-    MessageKind;
-import 'package:compiler/src/filenames.dart' show
-    nativeToUriPath;
+import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
+import 'package:compiler/src/filenames.dart' show nativeToUriPath;
 
 import 'analyze_helper.dart';
 import 'memory_compiler.dart';
@@ -25,10 +22,13 @@ import 'memory_compiler.dart';
  * the error/warning message in the list of white-listings for each file.
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
-const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
-  "/test/src/util/": const [
-      "Library 'package:async/async.dart' doesn't export a "
-      "'ForkableStream' declaration.",
+const Map<String, List/*<String|MessageKind>*/ > WHITE_LIST = const {
+  "/test/lib/src/util/": const [
+    "Library 'package:async/async.dart' doesn't export a "
+        "'ForkableStream' declaration.",
+  ],
+  "/utils.dart": const [
+    "Duplicated library name 'utils'.",
   ],
 };
 
@@ -79,8 +79,8 @@ main(List<String> arguments) {
           if (line.startsWith('Analyzing uri: ')) {
             int filenameOffset = line.indexOf('tests/compiler/dart2js/');
             if (filenameOffset != -1) {
-              uriList.add(Uri.base.resolve(
-                  nativeToUriPath(line.substring(filenameOffset))));
+              uriList.add(Uri.base
+                  .resolve(nativeToUriPath(line.substring(filenameOffset))));
             }
           }
         }
@@ -98,10 +98,7 @@ main(List<String> arguments) {
     if (uriList.isEmpty) {
       uriList = computeInputUris(filter: filter);
     }
-    await analyze(
-        uriList,
-        WHITE_LIST,
-        mode: AnalysisMode.URI,
-        options: options);
+    await analyze(uriList, WHITE_LIST,
+        mode: AnalysisMode.URI, options: options);
   });
 }

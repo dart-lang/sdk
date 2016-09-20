@@ -14,25 +14,26 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ErrorViewElement extends HtmlElement implements Renderable{
+class ErrorViewElement extends HtmlElement implements Renderable {
   static const tag = const Tag<ErrorViewElement>('error-view',
-                     dependencies: const [NavTopMenuElement.tag,
-                                          NavNotifyElement.tag,
-                                          ViewFooterElement.tag]);
+      dependencies: const [
+        NavTopMenuElement.tag,
+        NavNotifyElement.tag,
+        ViewFooterElement.tag
+      ]);
 
   RenderingScheduler _r;
 
-  Stream<RenderedEvent<ErrorViewElement>> get onRendered =>
-      _r.onRendered;
+  Stream<RenderedEvent<ErrorViewElement>> get onRendered => _r.onRendered;
 
   M.Error _error;
   M.NotificationRepository _notifications;
 
   M.Error get error => _error;
 
-  factory ErrorViewElement(M.NotificationRepository notifications,
-                           M.Error error,
-                          {RenderingQueue queue}) {
+  factory ErrorViewElement(
+      M.NotificationRepository notifications, M.Error error,
+      {RenderingQueue queue}) {
     assert(error != null);
     assert(notifications != null);
     ErrorViewElement e = document.createElement(tag.name);
@@ -69,17 +70,16 @@ class ErrorViewElement extends HtmlElement implements Renderable{
           new HeadingElement.h1()
             ..text = 'Error: ${_kindToString(_error.kind)}',
           new BRElement(),
-          new DivElement()..classes = ['well']
-            ..children = [
-              new PreElement()..text = error.message
-            ]
+          new DivElement()
+            ..classes = ['well']
+            ..children = [new PreElement()..text = error.message]
         ],
       new ViewFooterElement(queue: _r.queue)
     ];
   }
 
   static String _kindToString(M.ErrorKind kind) {
-    switch(kind) {
+    switch (kind) {
       case M.ErrorKind.unhandledException:
         return 'Unhandled Exception';
       case M.ErrorKind.languageError:

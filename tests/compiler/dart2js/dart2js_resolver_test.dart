@@ -12,8 +12,6 @@ import 'analyze_test_test.dart';
 main() {
   asyncTest(() async {
     List<Uri> uriList = computeInputUris();
-    await resolver.resolve(uriList,
-        packageRoot: Uri.base.resolve(Platform.packageRoot),
-        platformConfig: "lib/dart_shared.platform");
+    await resolver.resolve(uriList, platformConfig: "lib/dart_shared.platform");
   });
 }

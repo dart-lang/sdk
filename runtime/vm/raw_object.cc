@@ -442,6 +442,9 @@ intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
     visitor->VisitPointers(raw_obj->from(), raw_obj->to());
     return Function::InstanceSize();
   }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   visitor->VisitPointers(raw_obj->from(), raw_obj->to_no_code());
 
   if (ShouldVisitCode(raw_obj->ptr()->code_)) {
@@ -457,6 +460,7 @@ intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
   } else {
     visitor->add_skipped_code_function(raw_obj);
   }
+#endif
   return Function::InstanceSize();
 }
 

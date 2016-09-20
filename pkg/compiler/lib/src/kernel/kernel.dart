@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'dart:async';
 import 'dart:collection' show Queue;
 
 import 'package:kernel/ast.dart' as ir;
@@ -18,8 +19,10 @@ import '../elements/elements.dart'
         ClassElement,
         ConstructorElement,
         Element,
+        ExportElement,
         FieldElement,
         FunctionElement,
+        ImportElement,
         LibraryElement,
         MixinApplicationElement,
         TypeVariableElement;
@@ -115,6 +118,10 @@ class Kernel {
       irLibrary = libraryToIr(element.library);
     }
     return new ir.Name(name, irLibrary);
+  }
+
+  Future<ir.Library> loadLibrary(Uri uri) async {
+    return libraryToIr(await compiler.libraryLoader.loadLibrary(uri));
   }
 
   ir.Library libraryToIr(LibraryElement library) {
@@ -489,6 +496,10 @@ class Kernel {
     throw message;
   }
 
+  forEachLibraryElement(f(LibraryElement library)) {
+    return compiler.libraryLoader.libraries.forEach(f);
+  }
+
   ConstructorTarget computeEffectiveTarget(
       ConstructorElement constructor, DartType type) {
     constructor = constructor.implementation;
@@ -503,6 +514,59 @@ class Kernel {
       functionToIr(constructor);
     }
     return new ConstructorTarget(constructor, type);
+  }
+
+  /// Compute all the dependencies on the library with [uri] (including the
+  /// library itself). This is useful for creating a Kernel IR `Program`.
+  List<ir.Library> libraryDependencies(Uri uri) {
+    List<ir.Library> result = <ir.Library>[];
+    Queue<LibraryElement> notProcessed = new Queue<LibraryElement>();
+    Set<LibraryElement> seen = new Set<LibraryElement>();
+    LibraryElement library = compiler.libraryLoader.lookupLibrary(uri);
+    void processLater(LibraryElement library) {
+      if (library != null) {
+        notProcessed.addLast(library);
+      }
+    }
+
+    processLater(library);
+    seen.add(library);
+    LibraryElement core =
+        compiler.libraryLoader.lookupLibrary(Uri.parse("dart:core"));
+    if (seen.add(core)) {
+      // `dart:core` is implicitly imported by most libraries, and for some
+      // reason not included in `library.imports` below.
+      processLater(core);
+    }
+    while (notProcessed.isNotEmpty) {
+      LibraryElement library = notProcessed.removeFirst();
+      ir.Library irLibrary = libraryToIr(library);
+      for (ImportElement import in library.imports) {
+        if (seen.add(import.importedLibrary)) {
+          processLater(import.importedLibrary);
+        }
+      }
+      for (ExportElement export in library.exports) {
+        if (seen.add(export.exportedLibrary)) {
+          processLater(export.exportedLibrary);
+        }
+      }
+      for (ImportElement import in library.implementation.imports) {
+        if (seen.add(import.importedLibrary)) {
+          processLater(import.importedLibrary);
+        }
+      }
+      for (ExportElement export in library.implementation.exports) {
+        if (seen.add(export.exportedLibrary)) {
+          processLater(export.exportedLibrary);
+        }
+      }
+      if (irLibrary != null) {
+        result.add(irLibrary);
+      }
+    }
+    processWorkQueue();
+    return result;
   }
 
   /// Returns true if [element] is synthesized to recover or represent a

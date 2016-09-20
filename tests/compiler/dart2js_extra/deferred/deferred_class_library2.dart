@@ -19,7 +19,7 @@ class Constant {
   final value;
   const Constant(this.value);
 
-  operator==(other) => other is Constant && value == other.value;
+  operator ==(other) => other is Constant && value == other.value;
   get hashCode => 0;
 }
 
@@ -35,15 +35,15 @@ class Gee {
 
   Gee([this.c = const Constant(111)]);
   const Gee.n321([this.c = const Constant(321)]);
-  Gee.n135({ arg: const Constant(135) }) : this.c = arg;
-  const Gee.n246({ arg: const Constant(246) }) : this.c = arg;
+  Gee.n135({arg: const Constant(135)}) : this.c = arg;
+  const Gee.n246({arg: const Constant(246)}) : this.c = arg;
   const Gee.n888() : this.c = const Constant(888);
   const Gee.constant(this.c);
 }
 
 class Gee2 extends Gee {
   Gee2() : super(const Constant(979));
-  const Gee2.n321(): super.n321();
-  const Gee2.n151(): super.constant(const Constant(151));
+  const Gee2.n321() : super.n321();
+  const Gee2.n151() : super.constant(const Constant(151));
   const Gee2.n888() : super.n888();
 }

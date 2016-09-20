@@ -9,10 +9,11 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart' show AstNode, SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
@@ -415,17 +416,16 @@ class GatheringErrorListener implements AnalysisErrorListener {
   }
 
   /**
-   * Return `true` if the two errors are equivalent.
-   *
-   * @param firstError the first error being compared
-   * @param secondError the second error being compared
-   * @return `true` if the two errors are equivalent
+   * Return `true` if the [actualError] matches the [expectedError].
    */
-  bool _equalErrors(AnalysisError firstError, AnalysisError secondError) =>
-      identical(firstError.errorCode, secondError.errorCode) &&
-      firstError.offset == secondError.offset &&
-      firstError.length == secondError.length &&
-      _equalSources(firstError.source, secondError.source);
+  bool _equalErrors(AnalysisError expectedError, AnalysisError actualError) {
+    Source expectedSource = expectedError.source;
+    return identical(expectedError.errorCode, actualError.errorCode) &&
+        expectedError.offset == actualError.offset &&
+        expectedError.length == actualError.length &&
+        (expectedSource == null ||
+            _equalSources(expectedSource, actualError.source));
+  }
 
   /**
    * Return `true` if the two sources are equivalent.

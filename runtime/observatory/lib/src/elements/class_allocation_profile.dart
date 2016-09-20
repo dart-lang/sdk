@@ -13,17 +13,17 @@ import 'package:observatory/src/elements/stack_trace_tree_config.dart';
 
 class ClassAllocationProfileElement extends HtmlElement implements Renderable {
   static const tag = const Tag<ClassAllocationProfileElement>(
-    'class-allocation-profile',
-    dependencies: const [
-      SampleBufferControlElement.tag,
-      StackTraceTreeConfigElement.tag,
-      CpuProfileVirtualTreeElement.tag,
-    ]);
+      'class-allocation-profile',
+      dependencies: const [
+        SampleBufferControlElement.tag,
+        StackTraceTreeConfigElement.tag,
+        CpuProfileVirtualTreeElement.tag,
+      ]);
 
   RenderingScheduler<ClassAllocationProfileElement> _r;
 
   Stream<RenderedEvent<ClassAllocationProfileElement>> get onRendered =>
-    _r.onRendered;
+      _r.onRendered;
 
   M.IsolateRef _isolate;
   M.Class _cls;
@@ -34,13 +34,12 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
   ProfileTreeMode _mode = ProfileTreeMode.function;
   M.ProfileTreeDirection _direction = M.ProfileTreeDirection.exclusive;
 
-
-
   M.IsolateRef get isolate => _isolate;
   M.Class get cls => _cls;
 
   factory ClassAllocationProfileElement(M.IsolateRef isolate, M.Class cls,
-      M.ClassSampleProfileRepository profiles, {RenderingQueue queue}) {
+      M.ClassSampleProfileRepository profiles,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cls != null);
     assert(profiles != null);
@@ -85,14 +84,17 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
       CpuProfileVirtualTreeElement tree;
       content.addAll([
         new BRElement(),
-        new StackTraceTreeConfigElement(mode: _mode, direction: _direction,
-          showFilter: false, queue: _r.queue)
-            ..onModeChange.listen((e) {
-              _mode = tree.mode = e.element.mode;
-            })
-            ..onDirectionChange.listen((e) {
-              _direction = tree.direction = e.element.direction;
-            }),
+        new StackTraceTreeConfigElement(
+            mode: _mode,
+            direction: _direction,
+            showFilter: false,
+            queue: _r.queue)
+          ..onModeChange.listen((e) {
+            _mode = tree.mode = e.element.mode;
+          })
+          ..onDirectionChange.listen((e) {
+            _direction = tree.direction = e.element.direction;
+          }),
         new BRElement(),
         tree = new CpuProfileVirtualTreeElement(_isolate, _progress.profile,
             queue: _r.queue)

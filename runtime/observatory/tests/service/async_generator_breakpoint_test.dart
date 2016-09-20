@@ -75,7 +75,7 @@ testAsync(Isolate isolate) async {
       var bp = event.breakpoint;
       print('Hit $bp');
       hits.add(bp);
-      isolate.resume();
+      await isolate.resume();
 
       if (hits.length == 5) break;
     }

@@ -17,10 +17,10 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart' show CompileTimeErrorCode;
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
-import 'package:analyzer/src/generated/error.dart' show CompileTimeErrorCode;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -2441,6 +2441,12 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
  */
 class ElementAnnotationImpl implements ElementAnnotation {
   /**
+   * The name of the top-level variable used to mark a method parameter as
+   * covariant.
+   */
+  static String _COVARIANT_VARIABLE_NAME = "checked";
+
+  /**
    * The name of the class used to mark an element as being deprecated.
    */
   static String _DEPRECATED_CLASS_NAME = "Deprecated";
@@ -2508,6 +2514,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _REQUIRED_VARIABLE_NAME = "required";
 
   /**
+   * The name of the top-level variable used to mark a member as intended to be
+   * overridden.
+   */
+  static String _VIRTUAL_VARIABLE_NAME = "virtual";
+
+  /**
    * The element representing the field, variable, or constructor being used as
    * an annotation.
    */
@@ -2542,6 +2554,15 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   AnalysisContext get context => compilationUnit.library.context;
+
+  /**
+   * Return `true` if this annotation marks the associated parameter as being
+   * covariant, meaning it is allowed to have a narrower type in an override.
+   */
+  bool get isCovariant =>
+      element is PropertyAccessorElement &&
+      element.name == _COVARIANT_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isDeprecated {
@@ -2599,6 +2620,18 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
           element.name == _REQUIRED_VARIABLE_NAME &&
           element.library?.name == _META_LIB_NAME;
+
+  /**
+   * Return `true` if this annotation marks the associated member as supporting
+   * overrides.
+   *
+   * This is currently used by fields in Strong Mode, as other members are
+   * already virtual-by-default.
+   */
+  bool get isVirtual =>
+      element is PropertyAccessorElement &&
+      element.name == _VIRTUAL_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   /**
    * Get the library containing this annotation.
@@ -3954,10 +3987,11 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
+    safelyVisitChildren(typeParameters, visitor);
+    safelyVisitChildren(parameters, visitor);
     safelyVisitChildren(_functions, visitor);
     safelyVisitChildren(_labels, visitor);
     safelyVisitChildren(_localVariables, visitor);
-    safelyVisitChildren(parameters, visitor);
   }
 }
 
@@ -3986,6 +4020,11 @@ class ExportElementImpl extends UriReferencedElementImpl
    * order in which they were specified.
    */
   List<NamespaceCombinator> _combinators;
+
+  /**
+   * The URI that was selected based on the [context] declared variables.
+   */
+  String _selectedUri;
 
   /**
    * Initialize a newly created export element at the given [offset].
@@ -4020,8 +4059,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   LibraryElement get exportedLibrary {
     if (_unlinkedExportNonPublic != null && _exportedLibrary == null) {
       LibraryElementImpl library = enclosingElement as LibraryElementImpl;
-      _exportedLibrary = library.resynthesizerContext
-          .buildExportedLibrary(_unlinkedExportPublic.uri);
+      _exportedLibrary = library.resynthesizerContext.buildExportedLibrary(uri);
     }
     return _exportedLibrary;
   }
@@ -4063,7 +4101,8 @@ class ExportElementImpl extends UriReferencedElementImpl
   @override
   String get uri {
     if (_unlinkedExportPublic != null) {
-      return _unlinkedExportPublic.uri;
+      return _selectedUri ??= _selectUri(
+          _unlinkedExportPublic.uri, _unlinkedExportPublic.configurations);
     }
     return super.uri;
   }
@@ -4164,6 +4203,16 @@ class FieldElementImpl extends PropertyInducingElementImpl
       return _unlinkedVariable.isStatic;
     }
     return hasModifier(Modifier.STATIC);
+  }
+
+  @override
+  bool get isVirtual {
+    for (ElementAnnotationImpl annotation in metadata) {
+      if (annotation.isVirtual) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -4852,6 +4901,11 @@ class ImportElementImpl extends UriReferencedElementImpl
   PrefixElement _prefix;
 
   /**
+   * The URI that was selected based on the [context] declared variables.
+   */
+  String _selectedUri;
+
+  /**
    * Initialize a newly created import element at the given [offset].
    * The offset may be `-1` if the import is synthetic.
    */
@@ -4991,7 +5045,8 @@ class ImportElementImpl extends UriReferencedElementImpl
       if (_unlinkedImport.isImplicit) {
         return null;
       }
-      return _unlinkedImport.uri;
+      return _selectedUri ??=
+          _selectUri(_unlinkedImport.uri, _unlinkedImport.configurations);
     }
     return super.uri;
   }
@@ -6753,6 +6808,13 @@ class ParameterElementImpl extends VariableElementImpl
   int _visibleRangeLength = -1;
 
   /**
+   * True if this parameter inherits from a covariant parameter. This happens
+   * when it overrides a method in a supertype that has a corresponding
+   * covariant parameter.
+   */
+  bool inheritsCovariant = false;
+
+  /**
    * Initialize a newly created parameter element to have the given [name] and
    * [nameOffset].
    */
@@ -6904,6 +6966,19 @@ class ParameterElementImpl extends VariableElementImpl
       return false;
     }
     return super.isConst;
+  }
+
+  @override
+  bool get isCovariant {
+    if (inheritsCovariant) {
+      return true;
+    }
+    for (ElementAnnotationImpl annotation in metadata) {
+      if (annotation.isCovariant) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -7160,6 +7235,19 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
     enclosingElement = setter;
     synthetic = true;
     parameterKind = ParameterKind.REQUIRED;
+  }
+
+  @override
+  bool get isCovariant {
+    if (inheritsCovariant) {
+      return true;
+    }
+    for (ElementAnnotationImpl annotation in setter.variable.metadata) {
+      if (annotation.isCovariant) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -8153,6 +8241,17 @@ abstract class UriReferencedElementImpl extends ElementImpl
    */
   void set uriOffset(int offset) {
     _uriOffset = offset;
+  }
+
+  String _selectUri(
+      String defaultUri, List<UnlinkedConfiguration> configurations) {
+    for (UnlinkedConfiguration configuration in configurations) {
+      if (context.declaredVariables.get(configuration.name) ==
+          configuration.value) {
+        return configuration.uri;
+      }
+    }
+    return defaultUri;
   }
 }
 

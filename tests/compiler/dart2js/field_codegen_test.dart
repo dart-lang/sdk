@@ -21,10 +21,10 @@ main() { return x; }
 
 main() {
   asyncTest(() => compileAll(TEST_NULL0).then((generated) {
-    Expect.isTrue(generated.contains("null"));
-  }));
+        Expect.isTrue(generated.contains("null"));
+      }));
 
   asyncTest(() => compileAll(TEST_NULL1).then((generated) {
-    Expect.isTrue(generated.contains("null"));
-  }));
+        Expect.isTrue(generated.contains("null"));
+      }));
 }

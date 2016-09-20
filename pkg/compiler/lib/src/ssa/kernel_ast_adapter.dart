@@ -5,46 +5,46 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
+import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
+import '../kernel/kernel.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-
 import 'types.dart';
 
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
 class KernelAstAdapter {
+  final Kernel kernel;
   final JavaScriptBackend _backend;
   final ResolvedAst _resolvedAst;
   final Map<ir.Node, ast.Node> _nodeToAst;
   final Map<ir.Node, Element> _nodeToElement;
   DartTypeConverter _typeConverter;
 
-  KernelAstAdapter(
-      this._backend,
-      this._resolvedAst,
-      this._nodeToAst,
-      this._nodeToElement,
-      Map<FunctionElement, ir.Member> functions,
-      Map<ClassElement, ir.Class> classes,
-      Map<LibraryElement, ir.Library> libraries) {
-    for (FunctionElement functionElement in functions.keys) {
-      _nodeToElement[functions[functionElement]] = functionElement;
+  KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
+      this._nodeToAst, this._nodeToElement) {
+    // TODO(het): Maybe just use all of the kernel maps directly?
+    for (FieldElement fieldElement in kernel.fields.keys) {
+      _nodeToElement[kernel.fields[fieldElement]] = fieldElement;
     }
-    for (ClassElement classElement in classes.keys) {
-      _nodeToElement[classes[classElement]] = classElement;
+    for (FunctionElement functionElement in kernel.functions.keys) {
+      _nodeToElement[kernel.functions[functionElement]] = functionElement;
     }
-    for (LibraryElement libraryElement in libraries.keys) {
-      _nodeToElement[libraries[libraryElement]] = libraryElement;
+    for (ClassElement classElement in kernel.classes.keys) {
+      _nodeToElement[kernel.classes[classElement]] = classElement;
+    }
+    for (LibraryElement libraryElement in kernel.libraries.keys) {
+      _nodeToElement[kernel.libraries[libraryElement]] = libraryElement;
     }
     _typeConverter = new DartTypeConverter(this);
   }
@@ -73,12 +73,11 @@ class KernelAstAdapter {
     return result;
   }
 
-  bool getCanThrow(ir.Procedure procedure) {
-    FunctionElement function = getElement(procedure);
-    return !_compiler.world.getCannotThrow(function);
+  bool getCanThrow(ir.Node procedure) {
+    return !_compiler.world.getCannotThrow(getElement(procedure));
   }
 
-  TypeMask returnTypeOf(ir.Procedure node) {
+  TypeMask returnTypeOf(ir.Member node) {
     return TypeMaskFactory.inferredReturnTypeForElement(
         getElement(node), _compiler);
   }
@@ -93,18 +92,34 @@ class KernelAstAdapter {
     return new CallStructure(argumentCount, namedArguments);
   }
 
-  // TODO(het): Create the selector directly from the invocation
-  Selector getSelector(ir.MethodInvocation invocation) {
-    SelectorKind kind = Elements.isOperatorName(invocation.name.name)
-        ? SelectorKind.OPERATOR
-        : SelectorKind.CALL;
+  Name getName(ir.Name name) {
+    return new Name(
+        name.name, name.isPrivate ? getElement(name.library) : null);
+  }
 
-    ir.Name irName = invocation.name;
+  // TODO(het): Create the selector directly from the invocation
+  Selector getSelector(ir.InvocationExpression invocation) {
+    Name name = getName(invocation.name);
+    SelectorKind kind;
+    if (Elements.isOperatorName(invocation.name.name)) {
+      if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
+        kind = SelectorKind.INDEX;
+      } else {
+        kind = SelectorKind.OPERATOR;
+      }
+    } else {
+      kind = SelectorKind.CALL;
+    }
+
+    CallStructure callStructure = getCallStructure(invocation.arguments);
+    return new Selector(kind, name, callStructure);
+  }
+
+  Selector getGetterSelector(ir.PropertyGet getter) {
+    ir.Name irName = getter.name;
     Name name = new Name(
         irName.name, irName.isPrivate ? getElement(irName.library) : null);
-    CallStructure callStructure = getCallStructure(invocation.arguments);
-
-    return new Selector(kind, name, callStructure);
+    return new Selector.getter(name);
   }
 
   TypeMask typeOfInvocation(ir.MethodInvocation invocation) {
@@ -112,17 +127,55 @@ class KernelAstAdapter {
         .typeOfSend(getNode(invocation), _elements);
   }
 
+  TypeMask typeOfGet(ir.PropertyGet getter) {
+    return _compiler.globalInference.results
+        .typeOfSend(getNode(getter), _elements);
+  }
+
+  TypeMask inferredTypeOf(ir.Member node) {
+    return TypeMaskFactory.inferredTypeForElement(getElement(node), _compiler);
+  }
+
   TypeMask selectorTypeOf(ir.MethodInvocation invocation) {
     return TypeMaskFactory.inferredTypeForSelector(
         getSelector(invocation), typeOfInvocation(invocation), _compiler);
   }
 
-  bool isIntercepted(ir.MethodInvocation invocation) {
-    return _backend.isInterceptedSelector(getSelector(invocation));
+  TypeMask selectorGetterTypeOf(ir.PropertyGet getter) {
+    return TypeMaskFactory.inferredTypeForSelector(
+        getGetterSelector(getter), typeOfGet(getter), _compiler);
   }
+
+  ConstantValue getConstantFor(ir.Node node) {
+    ConstantValue constantValue =
+        _backend.constants.getConstantValueForNode(getNode(node), _elements);
+    assert(invariant(getNode(node), constantValue != null,
+        message: 'No constant computed for $node'));
+    return constantValue;
+  }
+
+  bool isIntercepted(ir.Node node) {
+    Selector selector;
+    if (node is ir.PropertyGet) {
+      selector = getGetterSelector(node);
+    } else {
+      selector = getSelector(node);
+    }
+    return _backend.isInterceptedSelector(selector);
+  }
+
+  ir.Procedure get mapLiteralConstructor =>
+      kernel.functions[_backend.helpers.mapLiteralConstructor];
+
+  ir.Procedure get mapLiteralConstructorEmpty =>
+      kernel.functions[_backend.helpers.mapLiteralConstructorEmpty];
 
   DartType getDartType(ir.DartType type) {
     return type.accept(_typeConverter);
+  }
+
+  List<DartType> getDartTypes(List<ir.DartType> types) {
+    return types.map(getDartType).toList();
   }
 }
 

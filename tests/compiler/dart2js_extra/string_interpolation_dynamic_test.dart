@@ -20,7 +20,6 @@ bool bfun() => true;
 String sfun() => "sfun";
 void nfun() => null;
 
-
 void testEscapes() {
   // Test that escaping the '$' prevents string interpolation.
   String x = inscrutable("NOT HERE");
@@ -33,7 +32,6 @@ void testEscapes() {
   Expect.equals(r'a${x}', """a\${x}""");
   Expect.equals(r'a$x', """a\$x""");
 }
-
 
 void testMultiLine() {
   var a = inscrutable("string");
@@ -59,16 +57,19 @@ void testMultiLine() {
 
   // Newlines at beginning of multiline strings are not included, but only
   // if they are in the source.
-  Expect.equals("\n", """${''}
+  Expect.equals(
+      "\n",
+      """${''}
 """);
   Expect.equals("\r", """${''}""");
-  Expect.equals("\r\n", """${''}
+  Expect.equals(
+      "\r\n",
+      """${''}
 """);
   Expect.equals("\n", """${'\n'}""");
   Expect.equals("\r", """${'\r'}""");
   Expect.equals("\r\n", """${'\r\n'}""");
 }
-
 
 void testSimple() {
   var a = inscrutable("string");
@@ -91,17 +92,16 @@ void testSimple() {
   Expect.equals("423.1415falsenull!string", "$b$c$d$n!$a");
 
   // Function calls as expressions.
-  Expect.equals("sfun372.71828truenull",
-                "${sfun()}${ifun()}${dfun()}${bfun()}${nfun()}");
-  Expect.equals("nullsfun372.71828true",
-                "${nfun()}${sfun()}${ifun()}${dfun()}${bfun()}");
-  Expect.equals("truenullsfun372.71828",
-                "${bfun()}${nfun()}${sfun()}${ifun()}${dfun()}");
-  Expect.equals("2.71828truenullsfun37",
-                "${dfun()}${bfun()}${nfun()}${sfun()}${ifun()}");
-  Expect.equals("372.71828truenullsfun",
-                "${ifun()}${dfun()}${bfun()}${nfun()}${sfun()}");
-
+  Expect.equals(
+      "sfun372.71828truenull", "${sfun()}${ifun()}${dfun()}${bfun()}${nfun()}");
+  Expect.equals(
+      "nullsfun372.71828true", "${nfun()}${sfun()}${ifun()}${dfun()}${bfun()}");
+  Expect.equals(
+      "truenullsfun372.71828", "${bfun()}${nfun()}${sfun()}${ifun()}${dfun()}");
+  Expect.equals(
+      "2.71828truenullsfun37", "${dfun()}${bfun()}${nfun()}${sfun()}${ifun()}");
+  Expect.equals(
+      "372.71828truenullsfun", "${ifun()}${dfun()}${bfun()}${nfun()}${sfun()}");
 
   // String contents around interpolated parts.
   Expect.equals("stringstring", "$a$a");
@@ -124,7 +124,6 @@ void testSimple() {
   // Lotsa-nested.
   Expect.equals("42", "${'${"${'${"${'${"$b"}'}"}'}"}'}");
 }
-
 
 void main() {
   testSimple();

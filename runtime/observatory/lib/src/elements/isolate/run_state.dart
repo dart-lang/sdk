@@ -13,17 +13,15 @@ class IsolateRunStateElement extends HtmlElement implements Renderable {
 
   RenderingScheduler<IsolateRunStateElement> _r;
 
-  Stream<RenderedEvent<IsolateRunStateElement>> get onRendered =>
-      _r.onRendered;
+  Stream<RenderedEvent<IsolateRunStateElement>> get onRendered => _r.onRendered;
 
   M.Isolate _isolate;
   M.EventRepository _events;
   StreamSubscription _debugSubscription;
   StreamSubscription _isolateSubscription;
 
-  factory IsolateRunStateElement(M.Isolate isolate,
-                                        M.EventRepository events,
-                                        {RenderingQueue queue}) {
+  factory IsolateRunStateElement(M.Isolate isolate, M.EventRepository events,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
     IsolateRunStateElement e = document.createElement(tag.name);

@@ -4,7 +4,9 @@
 
 import "package:expect/expect.dart";
 
-getZero() { return 0; }
+getZero() {
+  return 0;
+}
 
 main() {
   int i = getZero();

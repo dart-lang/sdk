@@ -8,9 +8,8 @@ class RetainedSizeRepository implements M.RetainedSizeRepository {
   Future<M.Guarded<M.Instance>> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
-    final response = await isolate.invokeRpc('_getRetainedSize', {
-        'targetId' : id
-    });
+    final response =
+        await isolate.invokeRpc('_getRetainedSize', {'targetId': id});
     return new S.Guarded<S.Instance>(response);
   }
 }

@@ -54,29 +54,29 @@ main() {
   RegExp regexp = new RegExp('=== true');
 
   asyncTest(() => Future.wait([
-    compile(TEST_EQUAL, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('=== true'));
-      Expect.isTrue(generated.contains('eqB'));
-    }),
-    compile(TEST_EQUAL_NULL, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('=== true'));
-      Expect.isTrue(generated.contains('== null'));
-    }),
-    compile(TEST_LESS, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('=== true'));
-      Expect.isTrue(generated.contains('ltB'));
-    }),
-    compile(TEST_LESS_EQUAL, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('=== true'));
-      Expect.isTrue(generated.contains('leB'));
-    }),
-    compile(TEST_GREATER, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('=== true'));
-      Expect.isTrue(generated.contains('gtB'));
-    }),
-    compile(TEST_GREATER_EQUAL, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('=== true'));
-      Expect.isTrue(generated.contains('geB'));
-    }),
-  ]));
+        compile(TEST_EQUAL, entry: 'foo', check: (String generated) {
+          Expect.isFalse(generated.contains('=== true'));
+          Expect.isTrue(generated.contains('eqB'));
+        }),
+        compile(TEST_EQUAL_NULL, entry: 'foo', check: (String generated) {
+          Expect.isFalse(generated.contains('=== true'));
+          Expect.isTrue(generated.contains('== null'));
+        }),
+        compile(TEST_LESS, entry: 'foo', check: (String generated) {
+          Expect.isFalse(generated.contains('=== true'));
+          Expect.isTrue(generated.contains('ltB'));
+        }),
+        compile(TEST_LESS_EQUAL, entry: 'foo', check: (String generated) {
+          Expect.isFalse(generated.contains('=== true'));
+          Expect.isTrue(generated.contains('leB'));
+        }),
+        compile(TEST_GREATER, entry: 'foo', check: (String generated) {
+          Expect.isFalse(generated.contains('=== true'));
+          Expect.isTrue(generated.contains('gtB'));
+        }),
+        compile(TEST_GREATER_EQUAL, entry: 'foo', check: (String generated) {
+          Expect.isFalse(generated.contains('=== true'));
+          Expect.isTrue(generated.contains('geB'));
+        }),
+      ]));
 }

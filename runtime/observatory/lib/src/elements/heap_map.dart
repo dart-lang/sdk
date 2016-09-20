@@ -19,20 +19,19 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
-class HeapMapElement  extends HtmlElement implements Renderable {
-  static const tag = const Tag<HeapMapElement>('heap-map',
-                                            dependencies: const [
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                            ]);
+
+class HeapMapElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<HeapMapElement>('heap-map', dependencies: const [
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+  ]);
 
   RenderingScheduler<HeapMapElement> _r;
 
-  Stream<RenderedEvent<HeapMapElement>> get onRendered =>
-      _r.onRendered;
+  Stream<RenderedEvent<HeapMapElement>> get onRendered => _r.onRendered;
 
   M.VM _vm;
   M.IsolateRef _isolate;
@@ -43,9 +42,8 @@ class HeapMapElement  extends HtmlElement implements Renderable {
   M.NotificationRepository get notifications => _notifications;
 
   factory HeapMapElement(M.VM vm, M.IsolateRef isolate,
-                         M.EventRepository events,
-                         M.NotificationRepository notifications,
-                         {RenderingQueue queue}) {
+      M.EventRepository events, M.NotificationRepository notifications,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -95,10 +93,10 @@ class HeapMapElement  extends HtmlElement implements Renderable {
   void render() {
     if (_canvas == null) {
       _canvas = new CanvasElement()
-                  ..width = 1
-                  ..height= 1
-                  ..onMouseMove.listen(_handleMouseMove)
-                  ..onMouseDown.listen(_handleClick);
+        ..width = 1
+        ..height = 1
+        ..onMouseMove.listen(_handleMouseMove)
+        ..onMouseDown.listen(_handleClick);
     }
     children = [
       navBar([
@@ -110,13 +108,15 @@ class HeapMapElement  extends HtmlElement implements Renderable {
           ..onRefresh.listen((_) => _refresh()),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = _status,
           new HRElement(),
         ],
-        new DivElement()..classes = ['flex-row']
-          ..children = [_canvas]
+      new DivElement()
+        ..classes = ['flex-row']
+        ..children = [_canvas]
     ];
   }
 
@@ -189,8 +189,9 @@ class HeapMapElement  extends HtmlElement implements Renderable {
         break;
       }
     }
-    return new ObjectInfo(int.parse(page['objectStart']) +
-                          pageOffset * _fragmentation['unitSizeBytes'],
+    return new ObjectInfo(
+        int.parse(page['objectStart']) +
+            pageOffset * _fragmentation['unitSizeBytes'],
         size * _fragmentation['unitSizeBytes']);
   }
 
@@ -213,8 +214,8 @@ class HeapMapElement  extends HtmlElement implements Renderable {
     isolate.getObjectByAddress(address).then((result) {
       if (result.type != 'Sentinel') {
         new AnchorElement(
-          href: Uris.inspect(_isolate, object: result as S.HeapObject)
-        ).click();
+                href: Uris.inspect(_isolate, object: result as S.HeapObject))
+            .click();
       }
     });
   }
@@ -229,10 +230,10 @@ class HeapMapElement  extends HtmlElement implements Renderable {
     var width = max(_canvas.parent.client.width, 1);
     _pageHeight = _PAGE_SEPARATION_HEIGHT +
         _fragmentation['pageSizeBytes'] ~/
-        _fragmentation['unitSizeBytes'] ~/ width;
+            _fragmentation['unitSizeBytes'] ~/
+            width;
     var height = min(_pageHeight * pages.length, _MAX_CANVAS_HEIGHT);
-    _fragmentationData =
-        _canvas.context2D.createImageData(width, height);
+    _fragmentationData = _canvas.context2D.createImageData(width, height);
     _canvas.width = _fragmentationData.width;
     _canvas.height = _fragmentationData.height;
     _renderPages(0);
@@ -294,12 +295,10 @@ class PixelReference {
 
   PixelReference._fromDataIndex(this._data, this._dataIndex);
 
-  Point<int> get point =>
-      new Point(index % _data.width, index ~/ _data.width);
+  Point<int> get point => new Point(index % _data.width, index ~/ _data.width);
 
   void set color(Iterable<int> color) {
-    _data.data.setRange(
-        _dataIndex, _dataIndex + NUM_COLOR_COMPONENTS, color);
+    _data.data.setRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS, color);
   }
 
   Iterable<int> get color =>

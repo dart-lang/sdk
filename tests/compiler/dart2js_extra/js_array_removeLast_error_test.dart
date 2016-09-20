@@ -7,9 +7,9 @@
 
 import 'package:expect/expect.dart';
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 confuse(x) => x;
-
 
 Error getError(action()) {
   try {

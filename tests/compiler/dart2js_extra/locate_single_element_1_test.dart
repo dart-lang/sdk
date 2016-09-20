@@ -7,23 +7,25 @@
 import 'package:expect/expect.dart';
 
 class T {
-  foo() => 'T.foo';  // This is the single element.
+  foo() => 'T.foo'; // This is the single element.
 }
 
 class C implements T {
   // There is a warning that C does not implement 'foo'.
 }
 
-@NoInline() @AssumeDynamic()
-assumeT(x) {  // returns inferred subtype(T).
+@NoInline()
+@AssumeDynamic()
+assumeT(x) {
+  // returns inferred subtype(T).
   if (x is T) return x;
   throw "Not T";
 }
 
 var log = [];
 demo() {
-  log.add(new T());  // T is created.
-  var a = assumeT(new C());  // C is created.
+  log.add(new T()); // T is created.
+  var a = assumeT(new C()); // C is created.
 
   // The call "a.foo()" should be a NoSuchMethodError, but a bug in
   // locateSingleElement used to lead to T.foo being inlined.  There is a single

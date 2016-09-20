@@ -55,15 +55,15 @@ Future testReserialization(Uri entryPoint) async {
     LibraryElement library2 = libraries2.firstWhere((LibraryElement library2) {
       return library2.canonicalUri == library1.canonicalUri;
     });
-    Expect.isNotNull(library2,
-        "No library found for ${library1.canonicalUri}.");
+    Expect.isNotNull(
+        library2, "No library found for ${library1.canonicalUri}.");
     checkLibraryContent('library1', 'library2', 'library', library1, library2);
 
     LibraryElement library3 = libraries3.firstWhere((LibraryElement library3) {
       return library3.canonicalUri == library1.canonicalUri;
     });
-    Expect.isNotNull(library3,
-        "No library found for ${library1.canonicalUri}.");
+    Expect.isNotNull(
+        library3, "No library found for ${library1.canonicalUri}.");
     checkLibraryContent('library1', 'library3', 'library', library1, library3);
   }
 

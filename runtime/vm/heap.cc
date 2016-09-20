@@ -518,45 +518,33 @@ void Heap::Init(Isolate* isolate,
 }
 
 
-void Heap::GetMergedAddressRange(uword* start, uword* end) const {
-  if (new_space_.CapacityInWords() != 0) {
-    uword new_start;
-    uword new_end;
-    new_space_.StartEndAddress(&new_start, &new_end);
-    *start = Utils::Minimum(new_start, *start);
-    *end = Utils::Maximum(new_end, *end);
-  }
-  if (old_space_.CapacityInWords() != 0) {
-    uword old_start;
-    uword old_end;
-    old_space_.StartEndAddress(&old_start, &old_end);
-    *start = Utils::Minimum(old_start, *start);
-    *end = Utils::Maximum(old_end, *end);
-  }
-  ASSERT(*start <= *end);
+void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
+  new_space_.AddRegionsToObjectSet(set);
+  old_space_.AddRegionsToObjectSet(set);
 }
 
 
 ObjectSet* Heap::CreateAllocatedObjectSet(
+    Zone* zone,
     MarkExpectation mark_expectation) const {
-  uword start = static_cast<uword>(-1);
-  uword end = 0;
-  Isolate* vm_isolate = Dart::vm_isolate();
-  vm_isolate->heap()->GetMergedAddressRange(&start, &end);
-  this->GetMergedAddressRange(&start, &end);
+  ObjectSet* allocated_set = new(zone) ObjectSet(zone);
 
-  ObjectSet* allocated_set = new ObjectSet(start, end);
+  this->AddRegionsToObjectSet(allocated_set);
   {
     VerifyObjectVisitor object_visitor(
         isolate(), allocated_set, mark_expectation);
     this->VisitObjects(&object_visitor);
   }
+
+  Isolate* vm_isolate = Dart::vm_isolate();
+  vm_isolate->heap()->AddRegionsToObjectSet(allocated_set);
   {
     // VM isolate heap is premarked.
     VerifyObjectVisitor vm_object_visitor(
         isolate(), allocated_set, kRequireMarked);
     vm_isolate->heap()->VisitObjects(&vm_object_visitor);
   }
+
   return allocated_set;
 }
 
@@ -568,10 +556,12 @@ bool Heap::Verify(MarkExpectation mark_expectation) const {
 
 
 bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
-  ObjectSet* allocated_set = CreateAllocatedObjectSet(mark_expectation);
+  StackZone stack_zone(Thread::Current());
+  ObjectSet* allocated_set = CreateAllocatedObjectSet(stack_zone.GetZone(),
+                                                      mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
   VisitObjectPointers(&visitor);
-  delete allocated_set;
+
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;
 }

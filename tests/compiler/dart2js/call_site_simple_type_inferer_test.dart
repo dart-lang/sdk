@@ -8,18 +8,15 @@ import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'type_mask_test_helper.dart';
 
-void compileAndFind(String code,
-                    String className,
-                    String memberName,
-                    bool disableInlining,
-                    check(compiler, element)) {
+void compileAndFind(String code, String className, String memberName,
+    bool disableInlining, check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri, disableInlining: disableInlining);
   asyncTest(() => compiler.run(uri).then((_) {
-    var cls = findElement(compiler, className);
-    var member = cls.lookupLocalMember(memberName);
-    return check(compiler, member);
-  }));
+        var cls = findElement(compiler, className);
+        var member = cls.lookupLocalMember(memberName);
+        return check(compiler, member);
+      }));
 }
 
 const String TEST_1 = r"""
@@ -210,22 +207,16 @@ const String TEST_18 = r"""
 """;
 
 void doTest(String test, bool enableInlining, Function f) {
-  compileAndFind(
-    test,
-    'A',
-    'x',
-    enableInlining,
-    (compiler, element) {
-      var expectedTypes = f(compiler);
-      var signature = element.functionSignature;
-      int index = 0;
-      var inferrer = compiler.globalInference.typesInferrer;
-      signature.forEachParameter((Element element) {
-        Expect.equals(expectedTypes[index++],
-            simplify(inferrer.getTypeOfElement(element), compiler),
-            test);
-      });
-      Expect.equals(index, expectedTypes.length);
+  compileAndFind(test, 'A', 'x', enableInlining, (compiler, element) {
+    var expectedTypes = f(compiler);
+    var signature = element.functionSignature;
+    int index = 0;
+    var inferrer = compiler.globalInference.typesInferrer;
+    signature.forEachParameter((Element element) {
+      Expect.equals(expectedTypes[index++],
+          simplify(inferrer.getTypeOfElement(element), compiler), test);
+    });
+    Expect.equals(index, expectedTypes.length);
   });
 }
 
@@ -246,40 +237,66 @@ void test() {
   runTest(TEST_5, (compiler) => [compiler.commonMasks.numType]);
   runTest(TEST_6, (compiler) => [compiler.commonMasks.numType]);
   runTest(TEST_7a, (compiler) => [subclassOfInterceptor(compiler)]);
-  runTest(TEST_7b,
-      (compiler) => [compiler.commonMasks.dynamicType.nonNullable()]);
+  runTest(
+      TEST_7b, (compiler) => [compiler.commonMasks.dynamicType.nonNullable()]);
 
-  runTest(TEST_8, (compiler) => [compiler.commonMasks.uint31Type,
-      subclassOfInterceptor(compiler),
-      compiler.commonMasks.dynamicType.nonNullable()]);
-  runTest(TEST_9, (compiler) => [compiler.commonMasks.uint31Type,
-      compiler.commonMasks.uint31Type]);
-  runTest(TEST_10, (compiler) => [compiler.commonMasks.uint31Type,
-      compiler.commonMasks.uint31Type]);
-  runTest(TEST_11, (compiler) => [subclassOfInterceptor(compiler),
-      subclassOfInterceptor(compiler)]);
+  runTest(
+      TEST_8,
+      (compiler) => [
+            compiler.commonMasks.uint31Type,
+            subclassOfInterceptor(compiler),
+            compiler.commonMasks.dynamicType.nonNullable()
+          ]);
+  runTest(
+      TEST_9,
+      (compiler) =>
+          [compiler.commonMasks.uint31Type, compiler.commonMasks.uint31Type]);
+  runTest(
+      TEST_10,
+      (compiler) =>
+          [compiler.commonMasks.uint31Type, compiler.commonMasks.uint31Type]);
+  runTest(
+      TEST_11,
+      (compiler) =>
+          [subclassOfInterceptor(compiler), subclassOfInterceptor(compiler)]);
 
-  runTest(TEST_12, (compiler) => [compiler.commonMasks.stringType,
-      compiler.commonMasks.uint31Type]);
+  runTest(
+      TEST_12,
+      (compiler) =>
+          [compiler.commonMasks.stringType, compiler.commonMasks.uint31Type]);
 
   runTest(TEST_13, (compiler) => [compiler.commonMasks.numType]);
 
-  runTest(TEST_14, (compiler) => [compiler.commonMasks.uint31Type,
-      compiler.commonMasks.stringType]);
+  runTest(
+      TEST_14,
+      (compiler) =>
+          [compiler.commonMasks.uint31Type, compiler.commonMasks.stringType]);
 
-  runTest(TEST_15, (compiler) => [compiler.commonMasks.stringType,
-      compiler.commonMasks.boolType]);
+  runTest(
+      TEST_15,
+      (compiler) =>
+          [compiler.commonMasks.stringType, compiler.commonMasks.boolType]);
 
-  runTest(TEST_16, (compiler) => [compiler.commonMasks.uint31Type,
-      compiler.commonMasks.uint31Type,
-      compiler.commonMasks.stringType]);
+  runTest(
+      TEST_16,
+      (compiler) => [
+            compiler.commonMasks.uint31Type,
+            compiler.commonMasks.uint31Type,
+            compiler.commonMasks.stringType
+          ]);
 
-  runTest(TEST_17, (compiler) => [compiler.commonMasks.uint31Type,
-      compiler.commonMasks.boolType,
-      compiler.commonMasks.doubleType]);
+  runTest(
+      TEST_17,
+      (compiler) => [
+            compiler.commonMasks.uint31Type,
+            compiler.commonMasks.boolType,
+            compiler.commonMasks.doubleType
+          ]);
 
-  runTest(TEST_18, (compiler) => [subclassOfInterceptor(compiler),
-      subclassOfInterceptor(compiler)]);
+  runTest(
+      TEST_18,
+      (compiler) =>
+          [subclassOfInterceptor(compiler), subclassOfInterceptor(compiler)]);
 }
 
 void main() {

@@ -1262,6 +1262,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.offset = node.offset;
     b.combinators = node.combinators.map(serializeCombinator).toList();
+    b.configurations = node.configurations.map(serializeConfiguration).toList();
     if (node.prefix != null) {
       b.prefixReference = serializeReference(null, node.prefix.name);
       b.prefixOffset = node.prefix.offset;

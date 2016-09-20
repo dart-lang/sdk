@@ -7,7 +7,8 @@ import "package:expect/expect.dart";
 break1(int x, int y, int ew, int ez) {
   int w = 1;
   int z = 0;
-  bk1: if (x == 2) {
+  bk1:
+  if (x == 2) {
     z = 1;
     if (y == 3) {
       w = 2;
@@ -32,7 +33,8 @@ break1(int x, int y, int ew, int ez) {
 break2(int x, int y, int ew, int ez) {
   int w = 1;
   int z = 0;
-  bk1: do {
+  bk1:
+  do {
     if (x == 2) {
       z = 1;
       if (y == 3) {
@@ -85,13 +87,17 @@ break3(int x, int y, int ew, int ez) {
 
 obscureBreaks(x) {
   bool result = true;
-  bar: do {
+  bar:
+  do {
     if (x == 1) {
-      foo: break;
+      foo:
+      break;
     } else if (x == 2) {
-      foo: break bar;
+      foo:
+      break bar;
     } else if (x == 3) {
-      bar: break;
+      bar:
+      break;
     } else if (x == 4) {
       break bar;
     } else {
@@ -103,25 +109,31 @@ obscureBreaks(x) {
 
 ifBreaks(x, y) {
   int res = 2;
-  foo: if (x == 1) bar: {
-         if (y == 2) {
-           res = 4;
-           break foo;
-         } else if (y == 3) {
-           res = 5;
-           break bar;
-         }
-         res = 3;
-       } else baz: {
-         if (y == 2) {
-           res = 7;
-           break foo;
-         } else if (y == 3) {
-           res = 8;
-           break baz;
-         }
-         res = 6;
-       }
+  foo:
+  if (x == 1)
+    bar:
+    {
+      if (y == 2) {
+        res = 4;
+        break foo;
+      } else if (y == 3) {
+        res = 5;
+        break bar;
+      }
+      res = 3;
+    }
+  else
+    baz:
+    {
+      if (y == 2) {
+        res = 7;
+        break foo;
+      } else if (y == 3) {
+        res = 8;
+        break baz;
+      }
+      res = 6;
+    }
   return res;
 }
 

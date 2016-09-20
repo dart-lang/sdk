@@ -14,6 +14,7 @@ Future<CompilerImpl> reuseCompiler(
      CompilerImpl cachedCompiler,
      Uri libraryRoot,
      Uri packageRoot,
+     Uri packageConfig,
      bool packagesAreImmutable: false,
      Map<String, dynamic> environment,
      Future<bool> reuseLibrary(LibraryElement library)}) {
@@ -60,6 +61,7 @@ Future<CompilerImpl> reuseCompiler(
         new CompilerOptions.parse(
             libraryRoot: libraryRoot,
             packageRoot: packageRoot,
+            packageConfig: packageConfig,
             options: options,
             environment: environment));
     JavaScriptBackend backend = compiler.backend;

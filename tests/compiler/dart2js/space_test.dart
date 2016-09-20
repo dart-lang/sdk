@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:compiler/src/dart2js.dart'
-  as dart2js;
+import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:compiler/src/commandline_options.dart';
 
 main() {
@@ -13,7 +12,9 @@ main() {
   Uri libraryRoot = script.resolve('../../../sdk/');
   Directory.current = script.resolve("path with spaces").toFilePath();
 
-  return dart2js.main(["--library-root=${libraryRoot.toFilePath()}",
-                       Flags.analyzeOnly,
-                       "file with spaces.dart"]);
+  return dart2js.main([
+    "--library-root=${libraryRoot.toFilePath()}",
+    Flags.analyzeOnly,
+    "file with spaces.dart"
+  ]);
 }

@@ -6,8 +6,7 @@ library error_ref_element;
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart'
-  show ErrorRef;
+import 'package:observatory/models.dart' show ErrorRef;
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
@@ -46,8 +45,6 @@ class ErrorRefElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    children = [
-      new PreElement()..text = error.message
-    ];
+    children = [new PreElement()..text = error.message];
   }
 }

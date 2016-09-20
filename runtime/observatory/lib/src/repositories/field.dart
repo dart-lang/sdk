@@ -5,7 +5,7 @@
 part of repositories;
 
 class FieldRepository extends M.FieldRepository {
-  Future<M.Field> get(M.IsolateRef i, String id) async{
+  Future<M.Field> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     return (await isolate.getObject(id)) as S.Field;

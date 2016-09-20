@@ -4,8 +4,10 @@
 
 library analyzer.test.src.task.html_work_manager_test;
 
+import 'package:analyzer/error/error.dart' show AnalysisError;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/error/codes.dart' show HtmlErrorCode;
 import 'package:analyzer/src/generated/engine.dart'
     show
         AnalysisEngine,
@@ -14,8 +16,6 @@ import 'package:analyzer/src/generated/engine.dart'
         CacheState,
         ChangeNoticeImpl,
         InternalAnalysisContext;
-import 'package:analyzer/src/generated/error.dart'
-    show AnalysisError, HtmlErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';

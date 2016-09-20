@@ -7,15 +7,6 @@
 
 
 /**
- * Kind of a source in the cache.
- */
-enum CacheSourceKind : byte {
-  library,
-
-  part
-}
-
-/**
  * Enum used to indicate the kind of a name in index.
  */
 enum IndexNameKind : byte {
@@ -791,78 +782,6 @@ enum UnlinkedParamKind : byte {
 }
 
 /**
- * Information about an analysis error in a source.
- */
-table CacheAnalysisError {
-  /**
-   * The correction to be displayed for this error, or `null` if there is no
-   * correction information for this error. The correction should indicate how
-   * the user can fix the error.
-   */
-  correction:string (id: 4);
-
-  /**
-   * The unique name of the error code.
-   */
-  errorCodeUniqueName:string (id: 0);
-
-  /**
-   * Length of the error range.
-   */
-  length:uint (id: 2);
-
-  /**
-   * The message to be displayed for this error. The message should indicate
-   * what is wrong and why it is wrong.
-   */
-  message:string (id: 3);
-
-  /**
-   * Offset of the error range relative to the beginning of the file.
-   */
-  offset:uint (id: 1);
-}
-
-/**
- * Information about a source that depends only on its content.
- */
-table CacheSourceContent {
-  /**
-   * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
-   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
-   */
-  exportedUris:[string] (id: 2);
-
-  /**
-   * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
-   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
-   */
-  importedUris:[string] (id: 1);
-
-  /**
-   * The kind of the source.
-   */
-  kind:CacheSourceKind (id: 0);
-
-  /**
-   * The list of part URIs, e.g. `foo/bar.dart`.  Empty if [kind] is
-   * [CacheSourceKind.part].
-   */
-  partUris:[string] (id: 3);
-}
-
-/**
- * Errors of a source in a library, which depends on the import/export closure
- * of the containing library and the source.
- */
-table CacheSourceErrorsInLibrary {
-  /**
-   * The list of errors in the source in the library.
-   */
-  errors:[CacheAnalysisError] (id: 0);
-}
-
-/**
  * Information about an element code range.
  */
 table CodeRange {
@@ -1533,6 +1452,28 @@ table UnlinkedCombinator {
 }
 
 /**
+ * Unlinked summary information about a single import or export configuration.
+ */
+table UnlinkedConfiguration {
+  /**
+   * The name of the declared variable whose value is being used in the
+   * condition.
+   */
+  name:string (id: 0);
+
+  /**
+   * The URI of the implementation library to be used if the condition is true.
+   */
+  uri:string (id: 2);
+
+  /**
+   * The value to which the value of the declared variable will be compared,
+   * or `true` if the condition does not include an equality test.
+   */
+  value:string (id: 1);
+}
+
+/**
  * Unlinked summary information about a compile-time constant expression, or a
  * potentially constant expression.
  *
@@ -1931,9 +1872,15 @@ table UnlinkedExportNonPublic {
  */
 table UnlinkedExportPublic {
   /**
-   * Combinators contained in this import declaration.
+   * Combinators contained in this export declaration.
    */
   combinators:[UnlinkedCombinator] (id: 1);
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  configurations:[UnlinkedConfiguration] (id: 2);
 
   /**
    * URI used in the source code to reference the exported library.
@@ -1954,6 +1901,12 @@ table UnlinkedImport {
    * Combinators contained in this import declaration.
    */
   combinators:[UnlinkedCombinator] (id: 4);
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  configurations:[UnlinkedConfiguration] (id: 10);
 
   /**
    * Indicates whether the import declaration uses the `deferred` keyword.

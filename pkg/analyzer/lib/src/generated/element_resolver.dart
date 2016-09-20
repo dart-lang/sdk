@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show
         ChildEntities,
@@ -20,8 +21,8 @@ import 'package:analyzer/src/dart/ast/ast.dart'
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /**
@@ -419,7 +420,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
-    _resolveMetadataForParameter(node.element, node);
+    _resolveMetadataForParameter(node);
     return super.visitFieldFormalParameter(node);
   }
 
@@ -463,7 +464,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    _resolveMetadataForParameter(node.element, node);
+    _resolveMetadataForParameter(node);
     return null;
   }
 
@@ -1055,7 +1056,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _resolveMetadataForParameter(node.element, node);
+    _resolveMetadataForParameter(node);
     return null;
   }
 
@@ -2270,8 +2271,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * Given a [node] that can have annotations associated with it, resolve the
    * annotations in the element model representing annotations to the node.
    */
-  void _resolveMetadataForParameter(
-      Element element, NormalFormalParameter node) {
+  void _resolveMetadataForParameter(NormalFormalParameter node) {
     _resolveAnnotations(node.metadata);
   }
 

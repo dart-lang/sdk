@@ -16,9 +16,7 @@ class TargetEvent {
 }
 
 class VMConnectTargetElement extends HtmlElement implements Renderable {
-
-  static const tag =
-    const Tag<VMConnectTargetElement>('vm-connect-target');
+  static const tag = const Tag<VMConnectTargetElement>('vm-connect-target');
 
   RenderingScheduler<VMConnectTargetElement> _r;
 
@@ -37,8 +35,8 @@ class VMConnectTargetElement extends HtmlElement implements Renderable {
   M.Target get target => _target;
   bool get current => _current;
 
-  factory VMConnectTargetElement(M.Target target, {bool current: false,
-      RenderingQueue queue}) {
+  factory VMConnectTargetElement(M.Target target,
+      {bool current: false, RenderingQueue queue}) {
     assert(target != null);
     assert(current != null);
     VMConnectTargetElement e = document.createElement(tag.name);
@@ -77,7 +75,8 @@ class VMConnectTargetElement extends HtmlElement implements Renderable {
         ..text = current ? '${target.name} (Connected)' : '${target.name}'
         ..onClick.where(_filter).map(_toEvent).listen(_connect),
       new ButtonElement()
-        ..text = '✖ Remove' ..classes = ['delete-button']
+        ..text = '✖ Remove'
+        ..classes = ['delete-button']
         ..onClick.map(_toEvent).listen(_delete)
     ];
   }
@@ -95,7 +94,10 @@ class VMConnectTargetElement extends HtmlElement implements Renderable {
   }
 
   static bool _filter(MouseEvent event) {
-    return !(event.button > 0 || event.metaKey || event.ctrlKey ||
-        event.shiftKey || event.altKey);
+    return !(event.button > 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey);
   }
 }

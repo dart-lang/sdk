@@ -39,6 +39,7 @@ abstract class LibraryDependency {
   bool get isImport;
   bool get isDeferred;
   LibraryRef get target;
+
   /// [optional]
   String get prefix;
 }

@@ -26,6 +26,22 @@ UNIT_TEST_CASE(FetchAndDecrement) {
 }
 
 
+UNIT_TEST_CASE(FetchAndIncrementSigned) {
+  intptr_t v = -42;
+  EXPECT_EQ(static_cast<intptr_t>(-42),
+            AtomicOperations::FetchAndIncrement(&v));
+  EXPECT_EQ(static_cast<intptr_t>(-41), v);
+}
+
+
+UNIT_TEST_CASE(FetchAndDecrementSigned) {
+  intptr_t v = -42;
+  EXPECT_EQ(static_cast<intptr_t>(-42),
+            AtomicOperations::FetchAndDecrement(&v));
+  EXPECT_EQ(static_cast<intptr_t>(-43), v);
+}
+
+
 UNIT_TEST_CASE(IncrementBy) {
   intptr_t v = 42;
   AtomicOperations::IncrementBy(&v, 100);

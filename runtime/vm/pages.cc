@@ -10,6 +10,7 @@
 #include "vm/gc_sweeper.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
+#include "vm/object_set.h"
 #include "vm/os_thread.h"
 #include "vm/safepoint.h"
 #include "vm/virtual_memory.h"
@@ -588,16 +589,11 @@ bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
 }
 
 
-void PageSpace::StartEndAddress(uword* start, uword* end) const {
+void PageSpace::AddRegionsToObjectSet(ObjectSet* set) const {
   ASSERT((pages_ != NULL) || (exec_pages_ != NULL) || (large_pages_ != NULL));
-  *start = static_cast<uword>(~0);
-  *end = 0;
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    *start = Utils::Minimum(*start, it.page()->object_start());
-    *end = Utils::Maximum(*end, it.page()->object_end());
+    set->AddRegion(it.page()->object_start(), it.page()->object_end());
   }
-  ASSERT(*start != static_cast<uword>(~0));
-  ASSERT(*end != 0);
 }
 
 

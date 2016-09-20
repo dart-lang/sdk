@@ -10,5 +10,5 @@ import 'package:expect/expect.dart';
 main() {
   Expect.equals(3, reflect([1, 2, 3]).getField(#length).reflectee);
   Expect.throws(() => reflect({"hest": 42}).getField(#length),
-                (e) => e is UnsupportedError);
+      (e) => e is UnsupportedError);
 }

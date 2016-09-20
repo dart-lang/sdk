@@ -23,7 +23,6 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   Stream<RenderedEvent<ScriptInsetElement>> get onRendered => _r.onRendered;
 
-
   M.IsolateRef _isolate;
   M.ScriptRef _script;
   M.Script _loadedScript;
@@ -40,14 +39,18 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.ScriptRef get script => _script;
 
-  factory ScriptInsetElement(M.IsolateRef isolate, M.ScriptRef script,
-                             M.ScriptRepository scripts,
-                             M.InstanceRepository instances,
-                             M.EventRepository events,
-                             {int startPos, int endPos, int currentPos,
-                              bool inDebuggerContext: false,
-                              Iterable variables: const [],
-                              RenderingQueue queue}) {
+  factory ScriptInsetElement(
+      M.IsolateRef isolate,
+      M.ScriptRef script,
+      M.ScriptRepository scripts,
+      M.InstanceRepository instances,
+      M.EventRepository events,
+      {int startPos,
+      int endPos,
+      int currentPos,
+      bool inDebuggerContext: false,
+      Iterable variables: const [],
+      RenderingQueue queue}) {
     assert(isolate != null);
     assert(script != null);
     assert(scripts != null);
@@ -72,31 +75,34 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   ScriptInsetElement.created() : super.created();
 
+  bool get noSource => _startPos == -1;
+
   @override
   void attached() {
     super.attached();
     _r.enable();
     _subscription = _events.onDebugEvent
-      .where((e) => (e is M.BreakpointAddedEvent) ||
-                    (e is M.BreakpointResolvedEvent) ||
-                    (e is M.BreakpointRemovedEvent))
-      .map((e) => e.breakpoint)
-      .listen((M.Breakpoint b) {
-          final loc = b.location;
-          int line;
-          if (loc.script.id == script.id) {
-            if (loc.tokenPos != null) {
-              line = _loadedScript.tokenToLine(loc.tokenPos);
-            } else {
-              line = loc.line;
-            }
-          } else {
-            line = loc.line;
-          }
-          if ((line == null) || ((line >= _startLine) && (line <= _endLine))) {
-            _r.dirty();
-          }
-        });
+        .where((e) =>
+            (e is M.BreakpointAddedEvent) ||
+            (e is M.BreakpointResolvedEvent) ||
+            (e is M.BreakpointRemovedEvent))
+        .map((e) => e.breakpoint)
+        .listen((M.Breakpoint b) {
+      final loc = b.location;
+      int line;
+      if (loc.script.id == script.id) {
+        if (loc.tokenPos != null) {
+          line = _loadedScript.tokenToLine(loc.tokenPos);
+        } else {
+          line = loc.line;
+        }
+      } else {
+        line = loc.line;
+      }
+      if ((line == null) || ((line >= _startLine) && (line <= _endLine))) {
+        _r.dirty();
+      }
+    });
     _refresh();
   }
 
@@ -109,7 +115,9 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    if (_loadedScript == null) {
+    if (noSource) {
+      children = [new SpanElement()..text = 'No source'];
+    } else if (_loadedScript == null) {
       children = [new SpanElement()..text = 'Loading...'];
     } else {
       final table = linesTable();
@@ -174,26 +182,31 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     element.title = "";
     return element;
   }
+
   Element hitsUnknown(Element element) {
     element.classes.add('hitsNone');
     element.title = "";
     return element;
   }
+
   Element hitsNotExecuted(Element element) {
     element.classes.add('hitsNotExecuted');
     element.title = "Line did not execute";
     return element;
   }
+
   Element hitsExecuted(Element element) {
     element.classes.add('hitsExecuted');
     element.title = "Line did execute";
     return element;
   }
+
   Element hitsCompiled(Element element) {
     element.classes.add('hitsCompiled');
     element.title = "Line in compiled function";
     return element;
   }
+
   Element hitsNotCompiled(Element element) {
     element.classes.add('hitsNotCompiled');
     element.title = "Line in uncompiled function";
@@ -204,17 +217,20 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   // Build _rangeMap and _callSites from a source report.
   Future _refreshSourceReport() async {
-    var reports = [S.Isolate.kCallSitesReport,
-                   S.Isolate.kPossibleBreakpointsReport];
+    if (noSource) return;
+
+    var reports = [
+      S.Isolate.kCallSitesReport,
+      S.Isolate.kPossibleBreakpointsReport
+    ];
     if (_includeProfile) {
       reports.add(S.Isolate.kProfileReport);
     }
     S.Isolate isolate = _isolate as S.Isolate;
-    var sourceReport = await isolate.getSourceReport(
-        reports,
-        script, _startPos, _endPos);
-    _possibleBreakpointLines = S.getPossibleBreakpointLines(sourceReport,
-                                                            script);
+    var sourceReport =
+        await isolate.getSourceReport(reports, script, _startPos, _endPos);
+    _possibleBreakpointLines =
+        S.getPossibleBreakpointLines(sourceReport, script);
     _rangeMap.clear();
     _callSites.clear();
     _profileMap.clear();
@@ -267,23 +283,21 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   Future _computeAnnotations() async {
     _startLine = (_startPos != null
-                  ? _loadedScript.tokenToLine(_startPos)
-                  : 1 + _loadedScript.lineOffset);
-    _currentLine = (_currentPos != null
-                    ? _loadedScript.tokenToLine(_currentPos)
-                    : null);
-    _currentCol = (_currentPos != null
-                   ? (_loadedScript.tokenToCol(_currentPos))
-                   : null);
+        ? _loadedScript.tokenToLine(_startPos)
+        : 1 + _loadedScript.lineOffset);
+    _currentLine =
+        (_currentPos != null ? _loadedScript.tokenToLine(_currentPos) : null);
+    _currentCol =
+        (_currentPos != null ? (_loadedScript.tokenToCol(_currentPos)) : null);
     if (_currentCol != null) {
-      _currentCol--;  // make this 0-based.
+      _currentCol--; // make this 0-based.
     }
 
     S.Script script = _loadedScript as S.Script;
 
     _endLine = (_endPos != null
-                ? _loadedScript.tokenToLine(_endPos)
-                : script.lines.length + _loadedScript.lineOffset);
+        ? _loadedScript.tokenToLine(_endPos)
+        : script.lines.length + _loadedScript.lineOffset);
 
     if (_startLine == null || _endLine == null) {
       return;
@@ -332,8 +346,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       if (bpts != null) {
         for (var bpt in bpts) {
           if (bpt.location != null) {
-            _annotations.add(new BreakpointAnnotation(_isolate, _instances,
-                                                     _r.queue, bpt));
+            _annotations.add(
+                new BreakpointAnnotation(_isolate, _instances, _r.queue, bpt));
           }
         }
       }
@@ -376,9 +390,12 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       var pattern = new RegExp("library ${script.library.name}");
       var match = pattern.firstMatch(line.text);
       if (match != null) {
-        var anno = new LibraryAnnotation(_isolate, _instances, _r.queue,
-          _loadedScript.library,
-          Uris.inspect(isolate, object: _loadedScript.library));
+        var anno = new LibraryAnnotation(
+            _isolate,
+            _instances,
+            _r.queue,
+            _loadedScript.library,
+            Uris.inspect(isolate, object: _loadedScript.library));
         anno.line = line.line;
         anno.columnStart = match.start + 8;
         anno.columnStop = match.end;
@@ -388,9 +405,12 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       pattern = new RegExp("part of ${script.library.name}");
       match = pattern.firstMatch(line.text);
       if (match != null) {
-        var anno = new LibraryAnnotation(_isolate, _instances, _r.queue,
-          _loadedScript.library,
-          Uris.inspect(isolate, object: _loadedScript.library));
+        var anno = new LibraryAnnotation(
+            _isolate,
+            _instances,
+            _r.queue,
+            _loadedScript.library,
+            Uris.inspect(isolate, object: _loadedScript.library));
         anno.line = line.line;
         anno.columnStart = match.start + 8;
         anno.columnStop = match.end;
@@ -439,7 +459,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
           M.Library target = resolveDependency(match[1]);
           if (target != null) {
             var anno = new LibraryAnnotation(_isolate, _instances, _r.queue,
-              target, Uris.inspect(isolate, object: target));
+                target, Uris.inspect(isolate, object: target));
             anno.line = line.line;
             anno.columnStart = match.start + 8;
             anno.columnStop = match.end - 1;
@@ -481,7 +501,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
           S.Script part = resolvePart(match[1]);
           if (part != null) {
             var anno = new PartAnnotation(_isolate, _instances, _r.queue, part,
-              Uris.inspect(isolate, object: part));
+                Uris.inspect(isolate, object: part));
             anno.line = line.line;
             anno.columnStart = match.start + 6;
             anno.columnStop = match.end - 1;
@@ -497,7 +517,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     for (var cls in script.library.classes) {
       if ((cls.location != null) && (cls.location.script == script)) {
         var a = new ClassDeclarationAnnotation(_isolate, _instances, _r.queue,
-          cls, Uris.inspect(isolate, object: cls));
+            cls, Uris.inspect(isolate, object: cls));
         _annotations.add(a);
       }
     }
@@ -508,7 +528,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     for (var field in script.library.variables) {
       if ((field.location != null) && (field.location.script == script)) {
         var a = new FieldDeclarationAnnotation(_isolate, _instances, _r.queue,
-          field, Uris.inspect(isolate, object: field));
+            field, Uris.inspect(isolate, object: field));
         _annotations.add(a);
       }
     }
@@ -516,7 +536,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       for (var field in cls.fields) {
         if ((field.location != null) && (field.location.script == script)) {
           var a = new FieldDeclarationAnnotation(_isolate, _instances, _r.queue,
-            field, Uris.inspect(isolate, object: field));
+              field, Uris.inspect(isolate, object: field));
           _annotations.add(a);
         }
       }
@@ -533,7 +553,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
         // We annotate a field declaration with the field instead of the
         // implicit getter or setter.
         var a = new FunctionDeclarationAnnotation(_isolate, _instances,
-          _r.queue, func, Uris.inspect(isolate, object: func));
+            _r.queue, func, Uris.inspect(isolate, object: func));
         _annotations.add(a);
       }
     }
@@ -547,7 +567,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
           // We annotate a field declaration with the field instead of the
           // implicit getter or setter.
           var a = new FunctionDeclarationAnnotation(_isolate, _instances,
-            _r.queue, func, Uris.inspect(isolate, object: func));
+              _r.queue, func, Uris.inspect(isolate, object: func));
           _annotations.add(a);
         }
       }
@@ -556,8 +576,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   void addCallSiteAnnotations() {
     for (var callSite in _callSites) {
-      _annotations.add(new CallSiteAnnotation(_isolate, _instances, _r.queue,
-        callSite));
+      _annotations.add(
+          new CallSiteAnnotation(_isolate, _instances, _r.queue, callSite));
     }
   }
 
@@ -569,15 +589,12 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       for (var variable in _variables) {
         // Find variable usage locations.
         var locations = script.scanForLocalVariableLocations(
-              variable['name'],
-              variable['_tokenPos'],
-              variable['_endTokenPos']);
+            variable['name'], variable['_tokenPos'], variable['_endTokenPos']);
 
         // Annotate locations.
         for (var location in locations) {
-          _annotations.add(new LocalVariableAnnotation(_isolate, _instances,
-                                                       _r.queue, location,
-                                                       variable['value']));
+          _annotations.add(new LocalVariableAnnotation(
+              _isolate, _instances, _r.queue, location, variable['value']));
         }
       }
     }
@@ -592,16 +609,14 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       button.disabled = false;
     });
     button.title = 'Refresh coverage';
-    button.children = [
-      _iconRefresh.clone(true)
-    ];
+    button.children = [_iconRefresh.clone(true)];
     return button;
   }
 
   ButtonElement _newToggleProfileButton() {
     ButtonElement button = new ButtonElement();
-    button.classes = _includeProfile ? ['toggle-profile', 'enabled']
-                                     : ['toggle-profile'];
+    button.classes =
+        _includeProfile ? ['toggle-profile', 'enabled'] : ['toggle-profile'];
     button.title = 'Toggle CPU profile information';
     button.onClick.listen((_) async {
       _includeProfile = !_includeProfile;
@@ -610,9 +625,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       _refresh();
       button.disabled = false;
     });
-    button.children = [
-      _iconWhatsHot.clone(true)
-    ];
+    button.children = [_iconWhatsHot.clone(true)];
     return button;
   }
 
@@ -631,8 +644,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     }
 
     var endLine = (_endPos != null
-                   ? _loadedScript.tokenToLine(_endPos)
-                   : script.lines.length + _loadedScript.lineOffset);
+        ? _loadedScript.tokenToLine(_endPos)
+        : script.lines.length + _loadedScript.lineOffset);
     var lineNumPad = endLine.toString().length;
 
     _annotationsCursor = 0;
@@ -650,7 +663,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
           int lastBlank = i - 1;
           if (blankLineCount < 4) {
             // Too few blank lines for an elipsis.
-            for (int j = firstBlank; j  <= lastBlank; j++) {
+            for (int j = firstBlank; j <= lastBlank; j++) {
               table.append(lineElement(script.getLine(j), lineNumPad));
             }
           } else {
@@ -787,17 +800,18 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       busy = true;
       if (line.breakpoints == null) {
         // No breakpoint.  Add it.
-        line.script.isolate.addBreakpoint(line.script, line.line)
-          .catchError((e, st) {
-            if (e is! S.ServerRpcException ||
-                (e as S.ServerRpcException).code !=
-                S.ServerRpcException.kCannotAddBreakpoint) {
-              ObservatoryApplication.app.handleException(e, st);
-            }})
-          .whenComplete(() {
-            busy = false;
-            update();
-          });
+        line.script.isolate
+            .addBreakpoint(line.script, line.line)
+            .catchError((e, st) {
+          if (e is! S.ServerRpcException ||
+              (e as S.ServerRpcException).code !=
+                  S.ServerRpcException.kCannotAddBreakpoint) {
+            ObservatoryApplication.app.handleException(e, st);
+          }
+        }).whenComplete(() {
+          busy = false;
+          update();
+        });
       } else {
         // Existing breakpoint.  Remove it.
         List pending = [];
@@ -880,7 +894,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       var position = 0;
       consumeUntil(var stop) {
         if (stop <= position) {
-          return null;  // Empty gap between annotations/boundries.
+          return null; // Empty gap between annotations/boundries.
         }
         if (stop > line.text.length) {
           // Approximated token length can run past the end of the line.
@@ -954,9 +968,10 @@ void addInfoBox(Element content, Function infoBoxGenerator) {
     infoBox.style.whiteSpace = 'normal';
     content.append(infoBox);
   }
+
   content.onClick.listen((event) {
     show = !show;
-    if (infoBox == null) buildInfoBox();  // Created lazily on the first click.
+    if (infoBox == null) buildInfoBox(); // Created lazily on the first click.
     infoBox.style.display = show ? 'block' : 'none';
     content.style.backgroundColor = show ? 'white' : originalBackground;
   });
@@ -966,7 +981,6 @@ void addInfoBox(Element content, Function infoBoxGenerator) {
   content.style.cursor = 'pointer';
 }
 
-
 void addLink(Element content, String target) {
   // Ick, destructive but still compatible with also adding an info box.
   var a = new AnchorElement(href: target);
@@ -974,7 +988,6 @@ void addLink(Element content, String target) {
   content.text = '';
   content.append(a);
 }
-
 
 abstract class Annotation implements Comparable<Annotation> {
   M.IsolateRef _isolate;
@@ -1030,16 +1043,15 @@ abstract class Annotation implements Comparable<Annotation> {
 }
 
 class CurrentExecutionAnnotation extends Annotation {
-  int priority = 0;  // highest priority.
+  int priority = 0; // highest priority.
 
   CurrentExecutionAnnotation(M.IsolateRef isolate,
-                             M.InstanceRepository instances,
-                             RenderingQueue queue)
-    : super(isolate, instances, queue);
+      M.InstanceRepository instances, RenderingQueue queue)
+      : super(isolate, instances, queue);
 
   void applyStyleTo(element) {
     if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
+      return; // TODO(rmacnak): Handling overlapping annotations.
     }
     element.classes.add("currentCol");
     element.title = "Current execution";
@@ -1051,14 +1063,14 @@ class BreakpointAnnotation extends Annotation {
   int priority = 1;
 
   BreakpointAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
-                       RenderingQueue queue, this.bpt)
-    : super(isolate, instances, queue) {
+      RenderingQueue queue, this.bpt)
+      : super(isolate, instances, queue) {
     var script = bpt.location.script;
     var location = bpt.location;
     if (location.tokenPos != null) {
       var pos = location.tokenPos;
       line = script.tokenToLine(pos);
-      columnStart = script.tokenToCol(pos) - 1;  // tokenToCol is 1-origin.
+      columnStart = script.tokenToCol(pos) - 1; // tokenToCol is 1-origin.
     } else if (location is M.UnresolvedSourceLocation) {
       line = location.line;
       columnStart = location.column;
@@ -1075,7 +1087,7 @@ class BreakpointAnnotation extends Annotation {
 
   void applyStyleTo(element) {
     if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
+      return; // TODO(rmacnak): Handling overlapping annotations.
     }
     var script = bpt.location.script;
     var pos = bpt.location.tokenPos;
@@ -1096,12 +1108,12 @@ class LibraryAnnotation extends Annotation {
   int priority = 2;
 
   LibraryAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
-                    RenderingQueue queue, this.target, this.url)
-    : super(isolate, instances, queue);
+      RenderingQueue queue, this.target, this.url)
+      : super(isolate, instances, queue);
 
   void applyStyleTo(element) {
     if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
+      return; // TODO(rmacnak): Handling overlapping annotations.
     }
     element.title = "library ${target.uri}";
     addLink(element, url);
@@ -1114,12 +1126,12 @@ class PartAnnotation extends Annotation {
   int priority = 2;
 
   PartAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
-                RenderingQueue queue, this.part, this.url)
-    : super(isolate, instances, queue);
+      RenderingQueue queue, this.part, this.url)
+      : super(isolate, instances, queue);
 
   void applyStyleTo(element) {
     if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
+      return; // TODO(rmacnak): Handling overlapping annotations.
     }
     element.title = "script ${part.uri}";
     addLink(element, url);
@@ -1131,8 +1143,8 @@ class LocalVariableAnnotation extends Annotation {
   int priority = 2;
 
   LocalVariableAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
-                          RenderingQueue queue, S.LocalVarLocation location,
-                          this.value): super(isolate, instances, queue) {
+      RenderingQueue queue, S.LocalVarLocation location, this.value)
+      : super(isolate, instances, queue) {
     line = location.line;
     columnStart = location.column;
     columnStop = location.endColumn;
@@ -1140,7 +1152,7 @@ class LocalVariableAnnotation extends Annotation {
 
   void applyStyleTo(element) {
     if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
+      return; // TODO(rmacnak): Handling overlapping annotations.
     }
     element.style.fontWeight = "bold";
     element.title = "${value.shortName}";
@@ -1152,22 +1164,22 @@ class CallSiteAnnotation extends Annotation {
   int priority = 2;
 
   CallSiteAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
-                     RenderingQueue queue, this.callSite)
-    : super(isolate, instances, queue) {
+      RenderingQueue queue, this.callSite)
+      : super(isolate, instances, queue) {
     line = callSite.line;
-    columnStart = callSite.column - 1;  // Call site is 1-origin.
+    columnStart = callSite.column - 1; // Call site is 1-origin.
     var tokenLength = callSite.script.guessTokenLength(line, columnStart);
     if (tokenLength == null) {
-      tokenLength = callSite.name.length;  // Approximate.
-      if (callSite.name.startsWith("get:") ||
-          callSite.name.startsWith("set:")) tokenLength -= 4;
+      tokenLength = callSite.name.length; // Approximate.
+      if (callSite.name.startsWith("get:") || callSite.name.startsWith("set:"))
+        tokenLength -= 4;
     }
     columnStop = columnStart + tokenLength;
   }
 
   void applyStyleTo(element) {
     if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
+      return; // TODO(rmacnak): Handling overlapping annotations.
     }
     element.style.fontWeight = "bold";
     element.title = "Call site: ${callSite.name}";
@@ -1205,8 +1217,8 @@ abstract class DeclarationAnnotation extends Annotation {
   int priority = 2;
 
   DeclarationAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
-                        RenderingQueue queue, decl, this.url)
-    : super(isolate, instances, queue) {
+      RenderingQueue queue, decl, this.url)
+      : super(isolate, instances, queue) {
     assert(decl.loaded);
     S.SourceLocation location = decl.location;
     if (location == null) {
@@ -1243,15 +1255,18 @@ abstract class DeclarationAnnotation extends Annotation {
 class ClassDeclarationAnnotation extends DeclarationAnnotation {
   S.Class klass;
 
-  ClassDeclarationAnnotation(M.IsolateRef isolate,
-                             M.InstanceRepository instances,
-                             RenderingQueue queue, S.Class cls, String url)
-    : klass = cls,
-      super(isolate, instances, queue, cls, url);
+  ClassDeclarationAnnotation(
+      M.IsolateRef isolate,
+      M.InstanceRepository instances,
+      RenderingQueue queue,
+      S.Class cls,
+      String url)
+      : klass = cls,
+        super(isolate, instances, queue, cls, url);
 
   void applyStyleTo(element) {
     if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
+      return; // TODO(rmacnak): Handling overlapping annotations.
     }
     element.title = "class ${klass.name}";
     addLink(element, url);
@@ -1261,15 +1276,18 @@ class ClassDeclarationAnnotation extends DeclarationAnnotation {
 class FieldDeclarationAnnotation extends DeclarationAnnotation {
   S.Field field;
 
-  FieldDeclarationAnnotation(M.IsolateRef isolate,
-                             M.InstanceRepository instances,
-                             RenderingQueue queue, S.Field fld, String url)
-    : field = fld,
-      super(isolate, instances, queue, fld, url);
+  FieldDeclarationAnnotation(
+      M.IsolateRef isolate,
+      M.InstanceRepository instances,
+      RenderingQueue queue,
+      S.Field fld,
+      String url)
+      : field = fld,
+        super(isolate, instances, queue, fld, url);
 
   void applyStyleTo(element) {
     if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
+      return; // TODO(rmacnak): Handling overlapping annotations.
     }
     var tooltip = "field ${field.name}";
     element.title = tooltip;
@@ -1280,16 +1298,18 @@ class FieldDeclarationAnnotation extends DeclarationAnnotation {
 class FunctionDeclarationAnnotation extends DeclarationAnnotation {
   S.ServiceFunction function;
 
-  FunctionDeclarationAnnotation(M.IsolateRef isolate,
-                                M.InstanceRepository instances,
-                                RenderingQueue queue, S.ServiceFunction func,
-                                String url)
-    : function = func,
-      super(isolate, instances, queue, func, url);
+  FunctionDeclarationAnnotation(
+      M.IsolateRef isolate,
+      M.InstanceRepository instances,
+      RenderingQueue queue,
+      S.ServiceFunction func,
+      String url)
+      : function = func,
+        super(isolate, instances, queue, func, url);
 
   void applyStyleTo(element) {
     if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
+      return; // TODO(rmacnak): Handling overlapping annotations.
     }
     var tooltip = "method ${function.name}";
     if (function.isOptimizable == false) {
@@ -1305,8 +1325,8 @@ class FunctionDeclarationAnnotation extends DeclarationAnnotation {
 
     if (function.isOptimizable == false ||
         function.isInlinable == false ||
-        function.deoptimizations >0) {
-      element.style.backgroundColor = "#EEA7A7";  // Low-saturation red.
+        function.deoptimizations > 0) {
+      element.style.backgroundColor = "#EEA7A7"; // Low-saturation red.
     }
 
     addLink(element, url);
@@ -1316,8 +1336,8 @@ class FunctionDeclarationAnnotation extends DeclarationAnnotation {
 class ScriptLineProfile {
   ScriptLineProfile(this.line, this.sampleCount);
 
-  static const kHotThreshold = 0.05;  // 5%.
-  static const kMediumThreshold = 0.02;  // 2%.
+  static const kHotThreshold = 0.05; // 5%.
+  static const kMediumThreshold = 0.02; // 2%.
 
   final int line;
   final int sampleCount;
@@ -1354,27 +1374,31 @@ class ScriptLineProfile {
 }
 
 final SvgSvgElement _iconRefresh = new SvgSvgElement()
-    ..setAttribute('width', '24')
-    ..setAttribute('height', '24')
-    ..children = [
-      new PathElement()
-        ..setAttribute('d', 'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 '
-                            '3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 '
-                            '7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 '
-                            '0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 '
-                            '1.78L13 11h7V4l-2.35 2.35z')
-    ];
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PathElement()
+      ..setAttribute(
+          'd',
+          'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 '
+          '3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 '
+          '7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 '
+          '0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 '
+          '1.78L13 11h7V4l-2.35 2.35z')
+  ];
 
 final SvgSvgElement _iconWhatsHot = new SvgSvgElement()
-    ..setAttribute('width', '24')
-    ..setAttribute('height', '24')
-    ..children = [
-      new PathElement()
-        ..setAttribute('d', 'M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 '
-                            '3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 '
-                            '4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 '
-                            '17.41 3.8 13.5.67zM11.71 19c-1.78 '
-                            '0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 '
-                            '1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 '
-                            '4.04 0 2.65-2.15 4.8-4.8 4.8z')
-    ];
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PathElement()
+      ..setAttribute(
+          'd',
+          'M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 '
+          '3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 '
+          '4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 '
+          '17.41 3.8 13.5.67zM11.71 19c-1.78 '
+          '0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 '
+          '1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 '
+          '4.04 0 2.65-2.15 4.8-4.8 4.8z')
+  ];

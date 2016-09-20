@@ -10,11 +10,11 @@ import 'codegen_helper.dart';
 
 void main() {
   asyncTest(() => generate(SOURCE).then((result) {
-    var code = result['test'];
-    Expect.isNotNull(code);
-    Expect.equals(0, new RegExp('add').allMatches(code).length);
-    Expect.equals(3, new RegExp('\\+').allMatches(code).length);
-  }));
+        var code = result['test'];
+        Expect.isNotNull(code);
+        Expect.equals(0, new RegExp('add').allMatches(code).length);
+        Expect.equals(3, new RegExp('\\+').allMatches(code).length);
+      }));
 }
 
 const String SOURCE = """

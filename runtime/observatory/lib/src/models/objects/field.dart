@@ -28,11 +28,7 @@ abstract class FieldRef extends ObjectRef {
   bool get isStatic;
 }
 
-enum GuardClassKind {
-  unknown,
-  single,
-  dynamic
-}
+enum GuardClassKind { unknown, single, dynamic }
 
 abstract class Field extends Object implements FieldRef {
   /// [optional] The value of this field, if the field is static.

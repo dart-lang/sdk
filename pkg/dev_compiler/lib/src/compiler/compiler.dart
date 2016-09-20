@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashSet, Queue;
-import 'dart:convert' show JSON;
+import 'dart:convert' show BASE64, JSON, UTF8;
 import 'dart:io' show File;
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/analyzer.dart'
@@ -161,6 +161,9 @@ class CompilerOptions {
   /// into the output JavaScript module.
   final bool sourceMapComment;
 
+  /// Whether to emit the source mapping file inline as a data url.
+  final bool inlineSourceMap;
+
   /// Whether to emit a summary file containing API signatures.
   ///
   /// This is required for a modular build process.
@@ -208,9 +211,14 @@ class CompilerOptions {
   // TODO(ochafik): Simplify this code when our target platforms catch up.
   final bool destructureNamedParams;
 
+  /// Mapping from absolute file paths to bazel short path to substitute in
+  /// source maps.
+  final Map<String, String> bazelMapping;
+
   const CompilerOptions(
       {this.sourceMap: true,
       this.sourceMapComment: true,
+      this.inlineSourceMap: false,
       this.summarizeApi: true,
       this.summaryExtension: 'sum',
       this.unsafeForceCompile: false,
@@ -221,11 +229,13 @@ class CompilerOptions {
       this.hoistSignatureTypes: false,
       this.nameTypeTests: true,
       this.hoistTypeTests: true,
-      this.useAngular2Whitelist: false});
+      this.useAngular2Whitelist: false,
+      this.bazelMapping: const {}});
 
   CompilerOptions.fromArguments(ArgResults args)
       : sourceMap = args['source-map'],
         sourceMapComment = args['source-map-comment'],
+        inlineSourceMap = args['inline-source-map'],
         summarizeApi = args['summarize'],
         summaryExtension = args['summary-extension'],
         unsafeForceCompile = args['unsafe-force-compile'],
@@ -236,7 +246,8 @@ class CompilerOptions {
         hoistSignatureTypes = args['hoist-signature-types'],
         nameTypeTests = args['name-type-tests'],
         hoistTypeTests = args['hoist-type-tests'],
-        useAngular2Whitelist = args['unsafe-angular2-whitelist'];
+        useAngular2Whitelist = args['unsafe-angular2-whitelist'],
+        bazelMapping = _parseBazelMappings(args['bazel-mapping']);
 
   static void addArguments(ArgParser parser) {
     parser
@@ -251,6 +262,8 @@ class CompilerOptions {
               'disable if using X-SourceMap header',
           defaultsTo: true,
           hide: true)
+      ..addFlag('inline-source-map',
+          help: 'emit source mapping inline', defaultsTo: false)
       ..addFlag('emit-metadata',
           help: 'emit metadata annotations queriable via mirrors',
           defaultsTo: false)
@@ -276,7 +289,25 @@ class CompilerOptions {
           help: 'Name types used in type tests', defaultsTo: true, hide: true)
       ..addFlag('hoist-type-tests',
           help: 'Hoist types used in type tests', defaultsTo: true, hide: true)
-      ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: true);
+      ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: true)
+      ..addOption('bazel-mapping',
+          help:
+              '--bazel-mapping=genfiles/to/library.dart,to/library.dart uses \n'
+              'to/library.dart as the path for library.dart in source maps.',
+          allowMultiple: true,
+          splitCommas: false,
+          hide: true);
+  }
+
+  static Map<String, String> _parseBazelMappings(Iterable argument) {
+    var mappings = <String, String>{};
+    for (var mapping in argument) {
+      var splitMapping = mapping.split(',');
+      if (splitMapping.length >= 2) {
+        mappings[path.absolute(splitMapping[0])] = splitMapping[1];
+      }
+    }
+    return mappings;
   }
 }
 
@@ -343,7 +374,8 @@ class JSModuleFile {
   //
   // TODO(jmesserly): this should match our old logic, but I'm not sure we are
   // correctly handling the pointer from the .js file to the .map file.
-  JSModuleCode getCode(ModuleFormat format, String jsUrl, String mapUrl) {
+  JSModuleCode getCode(
+      ModuleFormat format, bool singleOutFile, String jsUrl, String mapUrl) {
     var opts = new JS.JavaScriptPrintingOptions(
         emitTypes: options.closure,
         allowKeywordsInProperties: true,
@@ -358,22 +390,33 @@ class JSModuleFile {
       printer = new JS.SimpleJavaScriptPrintingContext();
     }
 
-    var tree = transformModuleFormat(format, moduleTree);
+    var tree = transformModuleFormat(format, singleOutFile, moduleTree);
     tree.accept(
         new JS.Printer(opts, printer, localNamer: new JS.TemporaryNamer(tree)));
 
-    if (options.sourceMap && options.sourceMapComment) {
-      var relativeMapUrl = path
-          .toUri(path.relative(path.fromUri(mapUrl), from: path.dirname(jsUrl)))
-          .toString();
-      assert(path.dirname(jsUrl) == path.dirname(mapUrl));
-      printer.emit('\n//# sourceMappingURL=$relativeMapUrl\n');
+    Map builtMap;
+    if (options.sourceMap && sourceMap != null) {
+      builtMap =
+          placeSourceMap(sourceMap.build(jsUrl), mapUrl, options.bazelMapping);
+
+      if (options.sourceMapComment) {
+        var relativeMapUrl = path
+            .toUri(
+                path.relative(path.fromUri(mapUrl), from: path.dirname(jsUrl)))
+            .toString();
+        assert(path.dirname(jsUrl) == path.dirname(mapUrl));
+        printer.emit('\n//# sourceMappingURL=');
+        if (options.inlineSourceMap) {
+          var bytes = UTF8.encode(JSON.encode(builtMap));
+          var base64 = BASE64.encode(bytes);
+          printer..emit('data:application/json;base64,')..emit(base64);
+        } else {
+          printer.emit(relativeMapUrl);
+        }
+        printer.emit('\n');
+      }
     }
 
-    Map builtMap;
-    if (sourceMap != null) {
-      builtMap = placeSourceMap(sourceMap.build(jsUrl), mapUrl);
-    }
     return new JSModuleCode(printer.getText(), builtMap);
   }
 
@@ -381,10 +424,22 @@ class JSModuleFile {
   ///
   /// If [mapPath] is not supplied but [options.sourceMap] is set, mapPath
   /// will default to [jsPath].map.
-  void writeCodeSync(ModuleFormat format, String jsPath, [String mapPath]) {
-    if (mapPath == null) mapPath = jsPath + '.map';
-    var code = getCode(format, jsPath, mapPath);
-    new File(jsPath).writeAsStringSync(code.code);
+  void writeCodeSync(ModuleFormat format, bool singleOutFile, String jsPath) {
+    String mapPath = jsPath + '.map';
+    var code = getCode(format, singleOutFile, jsPath, mapPath);
+    var c = code.code;
+    if (singleOutFile) {
+      // In singleOutFile mode we wrap each module in an eval statement to
+      // leverage sourceURL to improve the debugging experience when source maps
+      // are not enabled.
+      c += '\n//# sourceURL=${name}.js\n';
+      c = 'eval(${JSON.encode(c)});\n';
+    }
+    new File(jsPath).writeAsStringSync(c);
+    // TODO(jacobr): it is a bit strange we are writing the source map to a file
+    // even when options.inlineSourceMap is true. To be consistent perhaps we
+    // should also write a copy of the source file without a sourcemap even when
+    // inlineSourceMap is true.
     if (code.sourceMap != null) {
       new File(mapPath).writeAsStringSync(JSON.encode(code.sourceMap));
     }
@@ -411,17 +466,22 @@ class JSModuleCode {
 /// Adjusts the source paths in [sourceMap] to be relative to [sourceMapPath],
 /// and returns the new map.
 // TODO(jmesserly): find a new home for this.
-Map placeSourceMap(Map sourceMap, String sourceMapPath) {
+Map placeSourceMap(
+    Map sourceMap, String sourceMapPath, Map<String, String> bazelMappings) {
   var dir = path.dirname(sourceMapPath);
-
   var map = new Map.from(sourceMap);
-  List list = new List.from(map['sources']);
+  var list = new List.from(map['sources']);
   map['sources'] = list;
-  String relative(String uri) =>
-      path.toUri(path.relative(path.fromUri(uri), from: dir)).toString();
-  for (int i = 0; i < list.length; i++) {
-    list[i] = relative(list[i]);
+  String transformUri(String uri) {
+    var match = bazelMappings[path.absolute(uri)];
+    if (match != null) return match;
+
+    // Fall back to a relative path.
+    return path.toUri(path.relative(path.fromUri(uri), from: dir)).toString();
   }
-  map['file'] = relative(map['file']);
+  for (int i = 0; i < list.length; i++) {
+    list[i] = transformUri(list[i]);
+  }
+  map['file'] = transformUri(map['file']);
   return map;
 }

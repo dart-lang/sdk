@@ -4,8 +4,7 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/types/types.dart'
-    show ContainerTypeMask, TypeMask;
+import 'package:compiler/src/types/types.dart' show ContainerTypeMask, TypeMask;
 
 import 'compiler_helper.dart';
 import 'type_mask_test_helper.dart';
@@ -199,45 +198,45 @@ void doTest(String allocation, {bool nullify}) {
   var compiler = compilerFor(generateTest(allocation), uri,
       expectedErrors: 0, expectedWarnings: 1);
   asyncTest(() => compiler.run(uri).then((_) {
-    var commonMasks = compiler.commonMasks;
-    var typesInferrer = compiler.globalInference.typesInferrer;
+        var commonMasks = compiler.commonMasks;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkType(String name, type) {
-      var element = findElement(compiler, name);
-      ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
-      if (nullify) type = type.nullable();
-      Expect.equals(type, simplify(mask.elementType, compiler), name);
-    }
+        checkType(String name, type) {
+          var element = findElement(compiler, name);
+          ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
+          if (nullify) type = type.nullable();
+          Expect.equals(type, simplify(mask.elementType, compiler), name);
+        }
 
-    checkType('listInField', commonMasks.numType);
-    checkType('listPassedToMethod', commonMasks.numType);
-    checkType('listReturnedFromMethod', commonMasks.numType);
-    checkType('listUsedWithCascade', commonMasks.numType);
-    checkType('listUsedInClosure', commonMasks.numType);
-    checkType('listPassedToSelector', commonMasks.numType);
-    checkType('listReturnedFromSelector', commonMasks.numType);
-    checkType('listUsedWithAddAndInsert', commonMasks.numType);
-    checkType('listUsedWithConstraint', commonMasks.positiveIntType);
-    checkType('listEscapingFromSetter', commonMasks.numType);
-    checkType('listUsedInLocal', commonMasks.numType);
-    checkType('listEscapingInSetterValue', commonMasks.numType);
-    checkType('listEscapingInIndex', commonMasks.numType);
-    checkType('listEscapingInIndexSet', commonMasks.uint31Type);
-    checkType('listEscapingTwiceInIndexSet', commonMasks.numType);
-    checkType('listSetInNonFinalField', commonMasks.numType);
-    checkType('listWithChangedLength', commonMasks.uint31Type.nullable());
+        checkType('listInField', commonMasks.numType);
+        checkType('listPassedToMethod', commonMasks.numType);
+        checkType('listReturnedFromMethod', commonMasks.numType);
+        checkType('listUsedWithCascade', commonMasks.numType);
+        checkType('listUsedInClosure', commonMasks.numType);
+        checkType('listPassedToSelector', commonMasks.numType);
+        checkType('listReturnedFromSelector', commonMasks.numType);
+        checkType('listUsedWithAddAndInsert', commonMasks.numType);
+        checkType('listUsedWithConstraint', commonMasks.positiveIntType);
+        checkType('listEscapingFromSetter', commonMasks.numType);
+        checkType('listUsedInLocal', commonMasks.numType);
+        checkType('listEscapingInSetterValue', commonMasks.numType);
+        checkType('listEscapingInIndex', commonMasks.numType);
+        checkType('listEscapingInIndexSet', commonMasks.uint31Type);
+        checkType('listEscapingTwiceInIndexSet', commonMasks.numType);
+        checkType('listSetInNonFinalField', commonMasks.numType);
+        checkType('listWithChangedLength', commonMasks.uint31Type.nullable());
 
-    checkType('listPassedToClosure', commonMasks.dynamicType);
-    checkType('listReturnedFromClosure', commonMasks.dynamicType);
-    checkType('listUsedWithNonOkSelector', commonMasks.dynamicType);
-    checkType('listPassedAsOptionalParameter', commonMasks.numType);
-    checkType('listPassedAsNamedParameter', commonMasks.numType);
-    checkType('listStoredInList', commonMasks.uint31Type);
-    checkType('listStoredInListButEscapes', commonMasks.dynamicType);
+        checkType('listPassedToClosure', commonMasks.dynamicType);
+        checkType('listReturnedFromClosure', commonMasks.dynamicType);
+        checkType('listUsedWithNonOkSelector', commonMasks.dynamicType);
+        checkType('listPassedAsOptionalParameter', commonMasks.numType);
+        checkType('listPassedAsNamedParameter', commonMasks.numType);
+        checkType('listStoredInList', commonMasks.uint31Type);
+        checkType('listStoredInListButEscapes', commonMasks.dynamicType);
 
-    if (!allocation.contains('filled')) {
-      checkType('listUnset', new TypeMask.nonNullEmpty());
-      checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
-    }
-  }));
+        if (!allocation.contains('filled')) {
+          checkType('listUnset', new TypeMask.nonNullEmpty());
+          checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
+        }
+      }));
 }

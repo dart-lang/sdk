@@ -8,11 +8,11 @@ import 'dart:core';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -741,6 +741,9 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
       return store.linkedMap[uri];
     }, (String uri) {
       return store.unlinkedMap[uri];
+    }, (String name) {
+      // TODO(scheglov) decide how to use declared variables in Pub
+      return null;
     }, strong);
     // Assemble linked bundles and put them into the store.
     for (_LinkedNode node in scc) {

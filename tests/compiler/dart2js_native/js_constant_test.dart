@@ -20,8 +20,8 @@ import "package:expect/expect.dart";
 
 @NoInline()
 checkString(r) {
-  Expect.isTrue(r is String,
-      'Expected string, found ${r} of type ${r.runtimeType}');
+  Expect.isTrue(
+      r is String, 'Expected string, found ${r} of type ${r.runtimeType}');
 }
 
 test1() {
@@ -35,7 +35,6 @@ test2() {
 test3() {
   checkString(JS('', '#.toString()', -0.0));
 }
-
 
 main() {
   test1();

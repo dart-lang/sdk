@@ -4,13 +4,14 @@
 
 import "package:expect/expect.dart";
 
-class A extends Object {
-}
+class A extends Object {}
 
 class Concater {
   final x;
   final y;
-  Concater(x, y) : this.x = x, this.y = y;
+  Concater(x, y)
+      : this.x = x,
+        this.y = y;
   add() => x + y.toString();
 }
 

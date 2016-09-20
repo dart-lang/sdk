@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Test that the proper one-shot interceptor is used for different
 // combinations of named arguments.
 import "package:expect/expect.dart";
@@ -22,7 +21,6 @@ class Other {
 
 @NoInline()
 bool wontTell(bool x) => x;
-
 
 // Ensure that we use the interceptor only once per context so that we
 // actually get a one-shot interceptor. This is a little brittle...
@@ -46,7 +44,7 @@ testD(thing) {
   Expect.equals(3, thing.createFragment(null, validator: 1, treeSanitizer: 1));
 }
 
-main () {
+main() {
   // Ensure we get interceptors into play.
   var thing = wontTell(true) ? new Other() : new DivElement();
   testA(thing);

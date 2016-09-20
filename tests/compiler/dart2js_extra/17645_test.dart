@@ -14,46 +14,49 @@ class A {
 
 var log = [];
 
-test1(a, xs) {  // Called with a = [null|exact=A]
+test1(a, xs) {
+  // Called with a = [null|exact=A]
   log.clear();
   for (var x in xs) {
     if (a != null) {
-      log.add('${a.foo}.$x');  // a.foo must not be hoisted
+      log.add('${a.foo}.$x'); // a.foo must not be hoisted
     }
   }
   return '$log';
 }
 
-test2(a, xs) {  // Called with a = [exact=A]
+test2(a, xs) {
+  // Called with a = [exact=A]
   log.clear();
   for (var x in xs) {
     if (a != null) {
-      log.add('${a.foo}.$x');  // a.foo may be hoisted
+      log.add('${a.foo}.$x'); // a.foo may be hoisted
     }
   }
   return '$log';
 }
 
-test3(a, xs) {  // Called with a = [null|exact=A]
+test3(a, xs) {
+  // Called with a = [null|exact=A]
   log.clear();
   for (var x in xs) {
     if (a is A) {
-      log.add('${a.foo}.$x');  // a.foo must not be hoisted
+      log.add('${a.foo}.$x'); // a.foo must not be hoisted
     }
   }
   return '$log';
 }
 
-test4(a, xs) {  // Called with a = [exact=A]
+test4(a, xs) {
+  // Called with a = [exact=A]
   log.clear();
   for (var x in xs) {
     if (a is A) {
-      log.add('${a.foo}.$x');  // a.foo may be hoisted
+      log.add('${a.foo}.$x'); // a.foo may be hoisted
     }
   }
   return '$log';
 }
-
 
 main() {
   var a1 = new A('a1');
@@ -64,7 +67,6 @@ main() {
 
   Expect.equals('[a1.22]', test2(a1, [22]));
   Expect.equals('[a2.22]', test2(a2, [22]));
-
 
   Expect.equals('[a1.33]', test3(a1, [33]));
   Expect.equals('[]', test3(null, [2]));

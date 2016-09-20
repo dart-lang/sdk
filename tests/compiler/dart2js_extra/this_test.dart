@@ -7,7 +7,9 @@ import "package:expect/expect.dart";
 class A {
   int x;
   getX() => this.x;
-  setX(val) { this.x = val; }
+  setX(val) {
+    this.x = val;
+  }
 }
 
 main() {

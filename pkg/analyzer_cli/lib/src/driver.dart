@@ -32,12 +32,12 @@ import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
-import 'package:analyzer_cli/src/incremental_analyzer.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart';
@@ -78,7 +78,7 @@ class Driver implements CommandLineStarter {
 
   /// The context that was most recently created by a call to [_analyzeAll], or
   /// `null` if [_analyzeAll] hasn't been called yet.
-  AnalysisContext _context;
+  InternalAnalysisContext _context;
 
   /// The total number of source files loaded by an AnalysisContext.
   int _analyzedFileCount = 0;
@@ -86,8 +86,6 @@ class Driver implements CommandLineStarter {
   /// If [_context] is not `null`, the [CommandLineOptions] that guided its
   /// creation.
   CommandLineOptions _previousOptions;
-
-  IncrementalAnalysisSession incrementalSession;
 
   @override
   ResolverProvider packageResolverProvider;
@@ -223,8 +221,6 @@ class Driver implements CommandLineStarter {
       libUris.add(source.uri);
     }
 
-    incrementalSession?.finish();
-
     // Check that each part has a corresponding source in the input list.
     for (Source part in parts) {
       bool found = false;
@@ -311,7 +307,8 @@ class Driver implements CommandLineStarter {
     if (options.enableSuperMixins != _previousOptions.enableSuperMixins) {
       return false;
     }
-    if (options.incrementalCachePath != _previousOptions.incrementalCachePath) {
+    if (!_equalLists(
+        options.buildSummaryInputs, _previousOptions.buildSummaryInputs)) {
       return false;
     }
     return true;
@@ -347,8 +344,11 @@ class Driver implements CommandLineStarter {
   /// Decide on the appropriate method for resolving URIs based on the given
   /// [options] and [customUrlMappings] settings, and return a
   /// [SourceFactory] that has been configured accordingly.
-  SourceFactory _chooseUriResolutionPolicy(CommandLineOptions options,
-      Map<file_system.Folder, YamlMap> embedderMap, _PackageInfo packageInfo) {
+  SourceFactory _chooseUriResolutionPolicy(
+      CommandLineOptions options,
+      Map<file_system.Folder, YamlMap> embedderMap,
+      _PackageInfo packageInfo,
+      SummaryDataStore summaryDataStore) {
     // Create a custom package resolver if one has been specified.
     if (packageResolverProvider != null) {
       file_system.Folder folder = resourceProvider.getResource('.');
@@ -359,6 +359,7 @@ class Driver implements CommandLineStarter {
         // TODO(brianwilkerson) This doesn't handle sdk extensions.
         List<UriResolver> resolvers = <UriResolver>[
           sdkResolver,
+          new InSummaryUriResolver(resourceProvider, summaryDataStore),
           resolver,
           new file_system.ResourceUriResolver(resourceProvider)
         ];
@@ -416,6 +417,9 @@ class Driver implements CommandLineStarter {
     if (packageInfo.packageMap != null) {
       resolvers.add(new SdkExtUriResolver(packageInfo.packageMap));
     }
+
+    // Then package URIs from summaries.
+    resolvers.add(new InSummaryUriResolver(resourceProvider, summaryDataStore));
 
     // Then package URIs.
     if (packageUriResolver != null) {
@@ -505,17 +509,26 @@ class Driver implements CommandLineStarter {
     // No summaries in the presence of embedders or extenders.
     bool useSummaries = embedderMap.isEmpty && !hasSdkExt;
 
+    if (!useSummaries && options.buildSummaryInputs.isNotEmpty) {
+      throw new _DriverError(
+          'Summaries are not yet supported when using Flutter.');
+    }
+
+    // Read any input summaries.
+    SummaryDataStore summaryDataStore = new SummaryDataStore(
+        useSummaries ? options.buildSummaryInputs : <String>[]);
+
     // Once options and embedders are processed, setup the SDK.
     _setupSdk(options, useSummaries);
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
-    SourceFactory sourceFactory =
-        _chooseUriResolutionPolicy(options, embedderMap, packageInfo);
+    SourceFactory sourceFactory = _chooseUriResolutionPolicy(
+        options, embedderMap, packageInfo, summaryDataStore);
 
     _context.sourceFactory = sourceFactory;
-
-    incrementalSession = configureIncrementalAnalysis(options, context);
+    _context.resultProvider =
+        new InputPackagesResultProvider(_context, summaryDataStore);
   }
 
   /// Return discovered packagespec, or `null` if none is found.
@@ -612,8 +625,8 @@ class Driver implements CommandLineStarter {
   /// Analyze a single source.
   ErrorSeverity _runAnalyzer(Source source, CommandLineOptions options) {
     int startTime = currentTimeMillis();
-    AnalyzerImpl analyzer = new AnalyzerImpl(
-        _context, incrementalSession, source, options, stats, startTime);
+    AnalyzerImpl analyzer =
+        new AnalyzerImpl(_context, source, options, stats, startTime);
     var errorSeverity = analyzer.analyzeSync();
     if (errorSeverity == ErrorSeverity.ERROR) {
       io.exitCode = errorSeverity.ordinal;
@@ -691,6 +704,19 @@ class Driver implements CommandLineStarter {
 
     // Process analysis options file (and notify all interested parties).
     _processAnalysisOptions(resourceProvider, context, options);
+  }
+
+  /// Perform a deep comparison of two string lists.
+  static bool _equalLists(List<String> l1, List<String> l2) {
+    if (l1.length != l2.length) {
+      return false;
+    }
+    for (int i = 0; i < l1.length; i++) {
+      if (l1[i] != l2[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Perform a deep comparison of two string maps.

@@ -138,10 +138,15 @@
 #endif  // defined(DEBUG)
 #endif  // defined(PRODUCT)
 
-
 #if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
 #error DART_PRECOMPILED_RUNTIME and DART_PRECOMPILER are mutually exclusive
 #endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define NOT_IN_PRECOMPILED(code)
+#else
+#define NOT_IN_PRECOMPILED(code) code
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

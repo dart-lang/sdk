@@ -4,14 +4,20 @@
 
 import 'package:lookup_map/lookup_map.dart';
 import 'package:expect/expect.dart';
-class A{}
-class B{}
+
+class A {}
+
+class B {}
+
 class S extends LookupMap {
   const S(list) : super(list);
 }
+
 const map = const S(const [
-    A, "the-text-for-A",
-    B, "the-text-for-B",
+  A,
+  "the-text-for-A",
+  B,
+  "the-text-for-B",
 ]);
 
 main() {

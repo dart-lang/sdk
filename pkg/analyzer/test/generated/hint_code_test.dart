@@ -4,8 +4,9 @@
 
 library analyzer.test.generated.hint_code_test;
 
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -108,17 +109,6 @@ m(x) {
     verify([source]);
   }
 
-  void test_canBeNullAfterNullAware_false_propertyAccess() {
-    Source source = addSource(r'''
-m(x) {
-  x?.a?.b;
-}
-''');
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_canBeNullAfterNullAware_false_null() {
     Source source = addSource(r'''
 m(x) {
@@ -128,6 +118,17 @@ m(x) {
   x?.b().hashCode;
   x?.b().runtimeType;
   x?.b().toString();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_false_propertyAccess() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a?.b;
 }
 ''');
     computeLibrarySourceErrors(source);

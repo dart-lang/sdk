@@ -10,6 +10,8 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/options.dart'
+    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';

@@ -46,23 +46,28 @@ List<ModuleFormat> parseModuleFormatOption(ArgResults argResults) {
 /// [allowMultiple] formats to be specified, with each emitted into a separate
 /// file.
 void addModuleFormatOptions(ArgParser argParser, {bool allowMultiple: false}) {
-  argParser.addOption('modules',
-      help: 'module pattern to emit',
-      allowed: [
-        'es6',
-        'common',
-        'amd',
-        'legacy', // deprecated
-        'node', // renamed to commonjs
-        'all' // to emit all flavors for the SDK
-      ],
-      allowedHelp: {
-        'es6': 'ECMAScript 6 modules',
-        'common': 'CommonJS/Node.js modules',
-        'amd': 'AMD/RequireJS modules'
-      },
-      allowMultiple: allowMultiple,
-      defaultsTo: 'amd');
+  argParser
+    ..addOption('modules',
+        help: 'module pattern to emit',
+        allowed: [
+          'es6',
+          'common',
+          'amd',
+          'legacy', // deprecated
+          'node', // renamed to commonjs
+          'all' // to emit all flavors for the SDK
+        ],
+        allowedHelp: {
+          'es6': 'ECMAScript 6 modules',
+          'common': 'CommonJS/Node.js modules',
+          'amd': 'AMD/RequireJS modules'
+        },
+        allowMultiple: allowMultiple,
+        defaultsTo: 'amd')
+    ..addFlag('single-out-file',
+        help: 'emit output so that libraries can be concatenated together into '
+            'a single file. Only compatible with legacy and amd module formats.',
+        defaultsTo: false);
 }
 
 /// Transforms an ES6 [module] into a given module [format].
@@ -73,15 +78,17 @@ void addModuleFormatOptions(ArgParser argParser, {bool allowMultiple: false}) {
 /// structure as possible with the original. The transformation is a shallow one
 /// that affects the top-level module items, especially [ImportDeclaration]s and
 /// [ExportDeclaration]s.
-Program transformModuleFormat(ModuleFormat format, Program module) {
+Program transformModuleFormat(
+    ModuleFormat format, bool singleOutFile, Program module) {
   switch (format) {
     case ModuleFormat.legacy:
-      return new LegacyModuleBuilder().build(module);
+      return new LegacyModuleBuilder(singleOutFile).build(module);
     case ModuleFormat.common:
-      return new CommonJSModuleBuilder().build(module);
+      return new CommonJSModuleBuilder(singleOutFile).build(module);
     case ModuleFormat.amd:
-      return new AmdModuleBuilder().build(module);
+      return new AmdModuleBuilder(singleOutFile).build(module);
     case ModuleFormat.es6:
+      assert(singleOutFile == false);
       return module;
   }
   return null; // unreachable. suppresses a bogus analyzer message
@@ -130,6 +137,10 @@ abstract class _ModuleBuilder {
 /// Generates modules for with our legacy `dart_library.js` loading mechanism.
 // TODO(jmesserly): remove this and replace with something that interoperates.
 class LegacyModuleBuilder extends _ModuleBuilder {
+  /// The legacy module format always generates output compatible with a single
+  /// file mode.
+  LegacyModuleBuilder(bool singleOutFile);
+
   Program build(Program module) {
     // Collect imports/exports/statements.
     visitProgram(module);
@@ -187,6 +198,14 @@ class LegacyModuleBuilder extends _ModuleBuilder {
 
 /// Generates CommonJS modules (used by Node.js).
 class CommonJSModuleBuilder extends _ModuleBuilder {
+  final bool singleOutFile;
+
+  CommonJSModuleBuilder(this.singleOutFile) {
+    // singleOutFile mode is not currently supported by the CommonJS module
+    // builder.
+    assert(singleOutFile == false);
+  }
+
   Program build(Program module) {
     var importStatements = <Statement>[];
 
@@ -236,6 +255,10 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
 
 /// Generates AMD modules (used in browsers with RequireJS).
 class AmdModuleBuilder extends _ModuleBuilder {
+  final bool singleOutFile;
+
+  AmdModuleBuilder(this.singleOutFile);
+
   Program build(Program module) {
     var importStatements = <Statement>[];
 
@@ -277,8 +300,15 @@ class AmdModuleBuilder extends _ModuleBuilder {
           new Return(new ObjectInitializer(exportedProps, multiline: true)));
     }
 
-    var block = js.statement("define(#, function(#) { 'use strict'; #; });",
-        [new ArrayInitializer(dependencies), fnParams, statements]);
+    var block = singleOutFile
+        ? js.statement("define(#, #, function(#) { 'use strict'; #; });", [
+            js.string(module.name, "'"),
+            new ArrayInitializer(dependencies),
+            fnParams,
+            statements
+          ])
+        : js.statement("define(#, function(#) { 'use strict'; #; });",
+            [new ArrayInitializer(dependencies), fnParams, statements]);
 
     return new Program([block]);
   }

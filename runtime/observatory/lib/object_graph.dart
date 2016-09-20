@@ -16,7 +16,7 @@ class _JenkinsSmiHash {
   }
 
   static int finish(int hash) {
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) <<  3));
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
     hash = hash ^ (hash >> 11);
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
@@ -67,7 +67,6 @@ class AddressMapper {
     return id;
   }
 }
-
 
 // Port of dart::ReadStream from vm/datastream.h.
 //
@@ -254,11 +253,13 @@ class ObjectVertex {
       nibble = nibble & 0xF;
       strAddr = nibble.toRadixString(16) + strAddr;
     }
+
     combine32(thirtyTwoBits) {
       for (int shift = 0; shift < 32; shift += 4) {
         combine4((thirtyTwoBits >> shift) & 0xF);
       }
     }
+
     combine32(low32);
     combine32(high32);
     return strAddr;
@@ -337,8 +338,8 @@ class _VerticesIterator implements Iterator<ObjectVertex> {
 
 class ObjectGraph {
   ObjectGraph(List<ByteData> chunks, int nodeCount)
-    : this._chunks = chunks
-    , this._N = nodeCount;
+      : this._chunks = chunks,
+        this._N = nodeCount;
 
   int get size => _size;
   int get vertexCount => _N;
@@ -349,7 +350,7 @@ class ObjectGraph {
 
   Iterable<ObjectVertex> getMostRetained({int classId, int limit}) {
     List<ObjectVertex> _mostRetained =
-      new List<ObjectVertex>.from(vertices.where((u) => !u.isRoot));
+        new List<ObjectVertex>.from(vertices.where((u) => !u.isRoot));
     _mostRetained.sort((u, v) => v.retainedSize - u.retainedSize);
 
     var result = _mostRetained;
@@ -512,7 +513,7 @@ class ObjectGraph {
 
     assert(id == N + 1);
     assert(edge <= E); // edge is smaller because E was computed before we knew
-                       // if references pointed into the VM isolate
+    // if references pointed into the VM isolate
 
     _E = edge;
     _firstSuccs = firstSuccs;
@@ -604,7 +605,7 @@ class ObjectGraph {
     }
 
     // Assign indices into predecessors array.
-    var firstPreds = numPreds;  // Alias.
+    var firstPreds = numPreds; // Alias.
     var nextPreds = new Uint32List(N + 1);
     var predIndex = 0;
     for (var i = 1; i <= N; i++) {
@@ -621,8 +622,8 @@ class ObjectGraph {
       var startSuccIndex = firstSuccs[i];
       var limitSuccIndex = firstSuccs[i + 1];
       for (var succIndex = startSuccIndex;
-           succIndex < limitSuccIndex;
-           succIndex++) {
+          succIndex < limitSuccIndex;
+          succIndex++) {
         var succId = succs[succIndex];
         var predIndex = nextPreds[succId]++;
         preds[predIndex] = i;
@@ -633,12 +634,8 @@ class ObjectGraph {
     _preds = preds;
   }
 
-  static int _eval(int v,
-                   Uint32List ancestor,
-                   Uint32List semi,
-                   Uint32List label,
-                   Uint32List stackNode,
-                   Uint8List stackState) {
+  static int _eval(int v, Uint32List ancestor, Uint32List semi,
+      Uint32List label, Uint32List stackNode, Uint8List stackState) {
     if (ancestor[v] == 0) {
       return label[v];
     } else {
@@ -683,13 +680,8 @@ class ObjectGraph {
 
   // Note the version in the main text of Lengauer & Tarjan incorrectly
   // uses parent instead of ancestor. The correct version is in Appendix B.
-  static void _link(int v,
-                    int w,
-                    Uint32List size,
-                    Uint32List label,
-                    Uint32List semi,
-                    Uint32List child,
-                    Uint32List ancestor) {
+  static void _link(int v, int w, Uint32List size, Uint32List label,
+      Uint32List semi, Uint32List child, Uint32List ancestor) {
     assert(size[0] == 0);
     assert(label[0] == 0);
     assert(semi[0] == 0);
@@ -751,9 +743,7 @@ class ObjectGraph {
       // Lengauer & Tarjan Step 2.
       var startPred = firstPreds[w];
       var limitPred = firstPreds[w + 1];
-      for (var predIndex = startPred;
-           predIndex < limitPred;
-           predIndex++) {
+      for (var predIndex = startPred; predIndex < limitPred; predIndex++) {
         var v = preds[predIndex];
         var u = _eval(v, ancestor, semi, label, stackNode, stackState);
         if (semi[u] < semi[w]) {

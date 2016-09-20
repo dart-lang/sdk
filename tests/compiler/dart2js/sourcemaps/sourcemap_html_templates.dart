@@ -14,8 +14,7 @@ abstract class Configurations {
   String getPath(String config, String file);
 }
 
-void outputMultiConfigs(Uri uri,
-                        Configurations configurations) {
+void outputMultiConfigs(Uri uri, Configurations configurations) {
   StringBuffer sb = new StringBuffer();
   String defaultConfig = configurations.configs.first;
   String defaultFile = configurations.files.first;
@@ -116,10 +115,7 @@ setFile('$defaultFile');
 
 /// Outputs JavaScript/Dart source mapping traces into [uri].
 void outputJsDartTrace(
-    Uri uri,
-    String jsCodeHtml,
-    String dartCodeHtml,
-    String jsTraceHtml) {
+    Uri uri, String jsCodeHtml, String dartCodeHtml, String jsTraceHtml) {
   String html = '''
 <div class="js-buffer">
 ${jsCodeHtml}
@@ -151,10 +147,10 @@ ${jsTraceHtml}
 }
 
 /// Outputs [html] with customized [css] in [uri].
-void outputInTemplate(Uri uri,
-                      String html,
-                      String css) {
-  output(uri, '''
+void outputInTemplate(Uri uri, String html, String css) {
+  output(
+      uri,
+      '''
 <html>
 <head>
 <style>
@@ -243,8 +239,7 @@ $html
 }
 
 /// Outputs [html] in [uri].
-void output(Uri uri,
-            String html) {
+void output(Uri uri, String html) {
   File outputFile = new File.fromUri(uri);
   outputFile.writeAsStringSync(html);
 }

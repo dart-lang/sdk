@@ -1124,8 +1124,13 @@ class StrongGenericFunctionInferenceTest {
 
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
       [DartType returnType]) {
-    FunctionType inferred = typeSystem.inferGenericFunctionCall(typeProvider,
-        ft, ft.parameters.map((p) => p.type).toList(), arguments, returnType);
+    FunctionType inferred = typeSystem.inferGenericFunctionCall(
+        typeProvider,
+        ft,
+        ft.parameters.map((p) => p.type).toList(),
+        arguments,
+        ft.returnType,
+        returnType);
     return inferred?.typeArguments;
   }
 }

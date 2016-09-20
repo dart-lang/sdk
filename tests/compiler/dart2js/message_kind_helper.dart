@@ -8,13 +8,10 @@ import 'package:expect/expect.dart';
 import 'dart:async';
 
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/compiler.dart' show
-    Compiler;
-import 'package:compiler/src/diagnostics/messages.dart' show
-    MessageKind,
-    MessageTemplate;
-import 'package:compiler/compiler_new.dart' show
-    Diagnostic;
+import 'package:compiler/src/compiler.dart' show Compiler;
+import 'package:compiler/src/diagnostics/messages.dart'
+    show MessageKind, MessageTemplate;
+import 'package:compiler/compiler_new.dart' show Diagnostic;
 
 import 'memory_compiler.dart';
 
@@ -25,26 +22,26 @@ const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
 /// However, consider that a single concise diagnostic is easier to understand,
 /// so try to change error reporting logic before adding an exception.
 final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
-    // If you add something here, please file a *new* bug report.
-    // See http://dartbug.com/18361:
-    MessageKind.CANNOT_EXTEND_MALFORMED,
-    MessageKind.CANNOT_IMPLEMENT_MALFORMED,
-    MessageKind.CANNOT_MIXIN,
-    MessageKind.CANNOT_MIXIN_MALFORMED,
-    MessageKind.CANNOT_INSTANTIATE_ENUM,
-    MessageKind.CYCLIC_TYPEDEF_ONE,
-    MessageKind.DUPLICATE_DEFINITION,
-    MessageKind.EQUAL_MAP_ENTRY_KEY,
-    MessageKind.FINAL_FUNCTION_TYPE_PARAMETER,
-    MessageKind.FORMAL_DECLARED_CONST,
-    MessageKind.FORMAL_DECLARED_STATIC,
-    MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
-    MessageKind.HIDDEN_IMPLICIT_IMPORT,
-    MessageKind.HIDDEN_IMPORT,
-    MessageKind.INHERIT_GETTER_AND_METHOD,
-    MessageKind.UNIMPLEMENTED_METHOD,
-    MessageKind.UNIMPLEMENTED_METHOD_ONE,
-    MessageKind.VAR_FUNCTION_TYPE_PARAMETER,
+  // If you add something here, please file a *new* bug report.
+  // See http://dartbug.com/18361:
+  MessageKind.CANNOT_EXTEND_MALFORMED,
+  MessageKind.CANNOT_IMPLEMENT_MALFORMED,
+  MessageKind.CANNOT_MIXIN,
+  MessageKind.CANNOT_MIXIN_MALFORMED,
+  MessageKind.CANNOT_INSTANTIATE_ENUM,
+  MessageKind.CYCLIC_TYPEDEF_ONE,
+  MessageKind.DUPLICATE_DEFINITION,
+  MessageKind.EQUAL_MAP_ENTRY_KEY,
+  MessageKind.FINAL_FUNCTION_TYPE_PARAMETER,
+  MessageKind.FORMAL_DECLARED_CONST,
+  MessageKind.FORMAL_DECLARED_STATIC,
+  MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
+  MessageKind.HIDDEN_IMPLICIT_IMPORT,
+  MessageKind.HIDDEN_IMPORT,
+  MessageKind.INHERIT_GETTER_AND_METHOD,
+  MessageKind.UNIMPLEMENTED_METHOD,
+  MessageKind.UNIMPLEMENTED_METHOD_ONE,
+  MessageKind.VAR_FUNCTION_TYPE_PARAMETER,
 ]);
 
 /// Most messages can be tested without causing a fatal error. Add an exception
@@ -52,7 +49,7 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
 /// Try to avoid adding exceptions here; a fatal error causes the compiler to
 /// stop before analyzing all input, and it isn't safe to reuse it.
 final Set<MessageKind> kindsWithPendingClasses = new Set<MessageKind>.from([
-    // If you add something here, please file a *new* bug report.
+  // If you add something here, please file a *new* bug report.
 ]);
 
 Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
@@ -62,31 +59,33 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
     if (example is String) {
       example = {'main.dart': example};
     } else {
-      Expect.isTrue(example is Map,
-                    "Example must be either a String or a Map.");
+      Expect.isTrue(
+          example is Map, "Example must be either a String or a Map.");
       Expect.isTrue(example.containsKey('main.dart'),
-                    "Example map must contain a 'main.dart' entry.");
+          "Example map must contain a 'main.dart' entry.");
     }
     DiagnosticCollector collector = new DiagnosticCollector();
 
     Compiler compiler = compilerFor(
         memorySourceFiles: example,
         diagnosticHandler: collector,
-        options: [Flags.analyzeOnly,
-                  Flags.enableExperimentalMirrors]..addAll(template.options),
+        options: [Flags.analyzeOnly, Flags.enableExperimentalMirrors]
+          ..addAll(template.options),
         cachedCompiler: cachedCompiler);
 
     return compiler.run(Uri.parse('memory:main.dart')).then((_) {
-      Iterable<CollectedMessage> messages = collector.filterMessagesByKinds(
-          [Diagnostic.ERROR,
-           Diagnostic.WARNING,
-           Diagnostic.HINT,
-           Diagnostic.CRASH]);
+      Iterable<CollectedMessage> messages = collector.filterMessagesByKinds([
+        Diagnostic.ERROR,
+        Diagnostic.WARNING,
+        Diagnostic.HINT,
+        Diagnostic.CRASH
+      ]);
 
       Expect.isFalse(messages.isEmpty, 'No messages in """$example"""');
 
       String expectedText = !template.hasHowToFix
-          ? template.template : '${template.template}\n${template.howToFix}';
+          ? template.template
+          : '${template.template}\n${template.howToFix}';
       String pattern = expectedText.replaceAllMapped(
           new RegExp(ESCAPE_REGEXP), (m) => '\\${m[0]}');
       pattern = pattern.replaceAll(new RegExp(r'#\\\{[^}]*\\\}'), '.*');
@@ -110,7 +109,8 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
           unexpectedMessages.add(message);
         }
       }
-      Expect.isTrue(messageFound,
+      Expect.isTrue(
+          messageFound,
           '${template.kind}} does not match any in\n '
           '${messages.join('\n ')}');
       var reporter = compiler.reporter;
@@ -129,18 +129,16 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
       bool pendingStuff = false;
       for (var e in compiler.resolver.pendingClassesToBePostProcessed) {
         pendingStuff = true;
-        compiler.reporter.reportInfo(
-            e, MessageKind.GENERIC,
+        compiler.reporter.reportInfo(e, MessageKind.GENERIC,
             {'text': 'Pending class to be post-processed.'});
       }
       for (var e in compiler.resolver.pendingClassesToBeResolved) {
         pendingStuff = true;
         compiler.reporter.reportInfo(
-            e, MessageKind.GENERIC,
-            {'text': 'Pending class to be resolved.'});
+            e, MessageKind.GENERIC, {'text': 'Pending class to be resolved.'});
       }
-      Expect.isTrue(!pendingStuff ||
-                    kindsWithPendingClasses.contains(template));
+      Expect
+          .isTrue(!pendingStuff || kindsWithPendingClasses.contains(template));
 
       if (!pendingStuff) {
         // If there is pending stuff, or the compiler was cancelled, we

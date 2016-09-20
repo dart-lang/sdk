@@ -226,7 +226,7 @@ class AnalysisContextFactory {
         ElementFactory.namedParameter2("onError", provider.functionType)
       ]);
       if (!futureThenR.type.isDynamic) {
-        thenMethod.typeParameters = [futureThenR];
+        thenMethod.typeParameters = <TypeParameterElement>[futureThenR];
       }
       thenOnValue.enclosingElement = thenMethod;
       thenOnValue.type = new FunctionTypeImpl(thenOnValue);

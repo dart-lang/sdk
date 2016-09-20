@@ -8,7 +8,7 @@ import 'memory_compiler.dart';
 import 'compiler_helper.dart' show findElement;
 
 var SOURCES = const {
-'AddAll.dart': """
+  'AddAll.dart': """
   var dictionaryA = {'string': "aString", 'int': 42, 'double': 21.5,
                      'list': []};
   var dictionaryB = {'string': "aString", 'int': 42, 'double': 21.5,
@@ -28,7 +28,7 @@ var SOURCES = const {
     nullOrInt = dictionaryB['intTwo'];
   }
 """,
-'Union.dart': """
+  'Union.dart': """
   var dictionaryA = {'string': "aString", 'int': 42, 'double': 21.5,
                      'list': []};
   var dictionaryB = {'string': "aString", 'intTwo': 42, 'list': []};
@@ -44,7 +44,7 @@ var SOURCES = const {
     doubleOrNull = union['double'];
   }
 """,
-'ValueType.dart': """
+  'ValueType.dart': """
   var dictionary = {'string': "aString", 'int': 42, 'double': 21.5, 'list': []};
   var keyD = 'double';
   var keyI = 'int';
@@ -58,7 +58,7 @@ var SOURCES = const {
     var x = [intOrNull, justNull];
   }
 """,
-'Propagation.dart': """
+  'Propagation.dart': """
   class A {
     A();
     foo(value) {
@@ -84,7 +84,7 @@ var SOURCES = const {
     print(it.foo(dictionary) + 2);
   }
 """,
-'Bailout.dart': """
+  'Bailout.dart': """
   var dict = makeMap([1,2]);
   var notInt = 0;
   var alsoNotInt = 0;
@@ -100,7 +100,8 @@ var SOURCES = const {
     alsoNotInt = dict['goo'];
     print("\$notInt and \$alsoNotInt.");
   }
-"""};
+"""
+};
 
 void main() {
   asyncTest(() async {
@@ -133,9 +134,11 @@ void main() {
 
 compileAndTest(source, checker, {createCode: false}) async {
   CompilationResult result = await runCompiler(
-      entryPoint: Uri.parse('memory:'+source),
+      entryPoint: Uri.parse('memory:' + source),
       memorySourceFiles: SOURCES,
-      beforeRun: (compiler) { compiler.stopAfterTypeInference = !createCode; });
+      beforeRun: (compiler) {
+        compiler.stopAfterTypeInference = !createCode;
+      });
   var compiler = result.compiler;
   var commonMasks = compiler.commonMasks;
   var typesInferrer = compiler.globalInference.typesInferrer;
@@ -143,6 +146,7 @@ compileAndTest(source, checker, {createCode: false}) async {
     var element = findElement(compiler, name);
     return typesInferrer.getTypeOfElement(element);
   }
+
   if (!createCode) {
     checker(commonMasks, getType, compiler);
   } else {

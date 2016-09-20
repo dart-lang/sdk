@@ -138,6 +138,9 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 
 [ $compiler == dart2js && $fast_startup ]
 io/observatory_test: Fail # mirrors not supported.
+io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
+io/test_harness_analyzer_test: CompileTimeError # Imports dart:mirrors
+io/test_runner_test: CompileTimeError # Imports dart:mirrors
 
 [ $compiler == dart2js && $browser ]
 *: Skip
@@ -275,8 +278,12 @@ io/named_pipe_script_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
 
+[ $runtime == dart_precompiled || $mode == product ]
+io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
+io/test_harness_analyzer_test: CompileTimeError # Imports dart:mirrors
+io/test_runner_test: CompileTimeError # Imports dart:mirrors
+
 [ $runtime == dart_precompiled || $runtime == dart_app || $mode == product ]
-debugger/*: Skip
 assert_test: SkipByDesign # Requires checked mode.
 no_assert_test: SkipByDesign # Requires checked mode.
 io/code_collection_test: Skip # Incompatible flags

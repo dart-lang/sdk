@@ -6,13 +6,12 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js/placeholder_safety.dart';
 
-void test(String source, int expected, {List notNull: const[]}) {
-  var predicate = (int pos) => ! notNull.contains(pos);
+void test(String source, int expected, {List notNull: const []}) {
+  var predicate = (int pos) => !notNull.contains(pos);
   js.Template template = js.js.parseForeignJS(source);
   int actual = PlaceholderSafetyAnalysis.analyze(template.ast, predicate);
   Expect.equals(expected, actual, 'source: "$source", notNull: $notNull');
 }
-
 
 void main() {
   test('0', 0);
@@ -39,7 +38,7 @@ void main() {
   test('#.x == 1 || # == 1', 1);
   test('# == 1 || #.x == 1', 1);
 
-  test('(# || 1, #)', 1);  // Could also be 2.
+  test('(# || 1, #)', 1); // Could also be 2.
 
   test('(#, null.a, #)', 1);
   test('(#, undefined.a, #)', 1);
@@ -96,7 +95,7 @@ void main() {
   test('# ? # : #', 1);
   test('(# ? 1 : #, #)', 1);
   test('(# ? # : 2, #)', 1);
-  test('(# ? 1 : 2, #)', 1);  // Could also be 4.
+  test('(# ? 1 : 2, #)', 1); // Could also be 4.
 
   test('{A:#, B:#, C:#}', 3);
   test('[#,#,#,#]', 4);

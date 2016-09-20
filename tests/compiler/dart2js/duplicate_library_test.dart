@@ -12,9 +12,8 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'memory_compiler.dart';
 
-void check(String kind,
-           Iterable<CollectedMessage> messages,
-           List<MessageKind> expectedMessageKinds) {
+void check(String kind, Iterable<CollectedMessage> messages,
+    List<MessageKind> expectedMessageKinds) {
   Expect.equals(messages.length, expectedMessageKinds.length,
       "Unexpected $kind count: $messages");
   int i = 0;
@@ -24,8 +23,8 @@ void check(String kind,
 }
 
 Future test(Map<String, String> source,
-            {List<MessageKind> warnings: const <MessageKind>[],
-            List<MessageKind> hints: const <MessageKind>[]}) async {
+    {List<MessageKind> warnings: const <MessageKind>[],
+    List<MessageKind> hints: const <MessageKind>[]}) async {
   DiagnosticCollector collector = new DiagnosticCollector();
   await runCompiler(
       memorySourceFiles: source,
@@ -54,8 +53,10 @@ import 'pkg/lib/foo.dart';
 """,
     'pkg/lib/foo.dart': """
 library lib.foo;
-"""},
-    warnings: [MessageKind.DUPLICATED_LIBRARY_RESOURCE]);
+"""
+  }, warnings: [
+    MessageKind.DUPLICATED_LIBRARY_RESOURCE
+  ]);
 
   await test({
     'main.dart': """
@@ -71,8 +72,10 @@ import 'lib/bar.dart';
 """,
     'pkg/lib/bar.dart': """
 library lib.bar;
-"""},
-    warnings: [MessageKind.DUPLICATED_LIBRARY_RESOURCE]);
+"""
+  }, warnings: [
+    MessageKind.DUPLICATED_LIBRARY_RESOURCE
+  ]);
 
   await test({
     'main.dart': """
@@ -88,8 +91,10 @@ import 'package:lib/baz.dart';
 """,
     'pkg/lib/baz.dart': """
 library lib.baz;
-"""},
-    warnings: [MessageKind.DUPLICATED_LIBRARY_RESOURCE]);
+"""
+  }, warnings: [
+    MessageKind.DUPLICATED_LIBRARY_RESOURCE
+  ]);
 
   await test({
     'main.dart': """
@@ -110,8 +115,10 @@ import 'lib/boz.dart';
 """,
     'pkg/lib/boz.dart': """
 library lib.boz;
-"""},
-    warnings: [MessageKind.DUPLICATED_LIBRARY_RESOURCE]);
+"""
+  }, warnings: [
+    MessageKind.DUPLICATED_LIBRARY_RESOURCE
+  ]);
 
   await test({
     'main.dart': """
@@ -122,8 +129,10 @@ import 'pkg/lib/qux.dart';
 """,
     'pkg/lib/qux.dart': """
 // No library tag.
-"""},
-    hints: [MessageKind.DUPLICATED_RESOURCE]);
+"""
+  }, hints: [
+    MessageKind.DUPLICATED_RESOURCE
+  ]);
 
   await test({
     'main.dart': """
@@ -137,8 +146,9 @@ library lib;
 """,
     'bar.dart': """
 library lib;
-"""},
-    warnings: [MessageKind.DUPLICATED_LIBRARY_NAME,
-               MessageKind.DUPLICATED_LIBRARY_NAME]);
+"""
+  }, warnings: [
+    MessageKind.DUPLICATED_LIBRARY_NAME,
+    MessageKind.DUPLICATED_LIBRARY_NAME
+  ]);
 }
-

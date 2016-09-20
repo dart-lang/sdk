@@ -315,7 +315,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       fields.add(_reifiedTypeArguments(constant.type));
     }
     jsAst.New instantiation = new jsAst.New(constructor, fields);
-    return maybeAddTypeArguments(constant.type, instantiation);
+    return instantiation;
   }
 
   String stripComments(String rawJavaScript) {

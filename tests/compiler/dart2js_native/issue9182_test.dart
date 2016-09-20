@@ -30,7 +30,7 @@ function A(){}
 makeA = function() { return new A; };
 """;
 
-makeA() native;
+makeA() native ;
 
 main() {
   setup();
@@ -39,7 +39,7 @@ main() {
   var foo = things[0];
   var bar = things[1];
 
-  Expect.equals(123, foo.Bar());  // Ensure that Foo.Bar is used.
+  Expect.equals(123, foo.Bar()); // Ensure that Foo.Bar is used.
 
   Expect.equals(30, bar._x);
   Expect.equals(40, bar._y);

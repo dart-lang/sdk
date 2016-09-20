@@ -16,12 +16,7 @@ abstract class IsolateRef {
   String get name;
 }
 
-enum IsolateStatus {
-  loading,
-  idle,
-  running,
-  paused
-}
+enum IsolateStatus { loading, idle, running, paused }
 
 abstract class Isolate extends IsolateRef {
   /// The time that the VM started in milliseconds since the epoch.

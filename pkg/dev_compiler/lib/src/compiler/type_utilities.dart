@@ -73,6 +73,11 @@ class _CacheTable {
     return js.call('# || (# = #)', [temp, temp, typeRep]);
   }
 
+  String _safeTypeName(String name) {
+    if (name == "<bottom>") return "bottom";
+    return name;
+  }
+
   String _typeString(DartType type, {bool flat: false}) {
     if (type is ParameterizedType && type.name != null) {
       var clazz = type.name;
@@ -101,8 +106,7 @@ class _CacheTable {
       return "${paramString}To${rType}";
     }
     if (type is TypeParameterType) return type.name;
-    if (type.name != null) return type.name;
-    return "type";
+    return _safeTypeName(type.name ?? "type");
   }
 
   /// Heuristically choose a good name for the cache and generator

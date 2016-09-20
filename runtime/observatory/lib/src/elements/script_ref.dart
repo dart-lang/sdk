@@ -18,7 +18,6 @@ class ScriptRefElement extends HtmlElement implements Renderable {
 
   Stream<RenderedEvent<ScriptRefElement>> get onRendered => _r.onRendered;
 
-
   M.IsolateRef _isolate;
   M.ScriptRef _script;
 
@@ -26,7 +25,7 @@ class ScriptRefElement extends HtmlElement implements Renderable {
   M.ScriptRef get script => _script;
 
   factory ScriptRefElement(M.IsolateRef isolate, M.ScriptRef script,
-                           {RenderingQueue queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(script != null);
     ScriptRefElement e = document.createElement(tag.name);

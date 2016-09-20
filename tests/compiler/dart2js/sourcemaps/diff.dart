@@ -68,17 +68,15 @@ class CodeLinesColumnBlock extends DiffColumnBlock {
       for (CodeLine codeLine in jsCodeLines) {
         htmlBuffer.write('<tr><td class="${ClassNames.innerCell}">');
         codeLine.printHtmlOn(htmlBuffer, context);
-        htmlBuffer.write(
-            '</td><td '
+        htmlBuffer.write('</td><td '
             'class="${ClassNames.innerCell} ${ClassNames.sourceMapped}">');
         List<CodeLine> lines = jsToDartMap[codeLine];
         if (lines != null) {
           for (CodeLine line in lines) {
-            line.printHtmlOn(htmlBuffer,
-                context.from(includeAnnotation: (a) {
-                  CodeLineAnnotation annotation = a.data;
-                  return annotation.annotationType.isSourceMapped;
-                }));
+            line.printHtmlOn(htmlBuffer, context.from(includeAnnotation: (a) {
+              CodeLineAnnotation annotation = a.data;
+              return annotation.annotationType.isSourceMapped;
+            }));
           }
         }
         htmlBuffer.write('</td></tr>');
@@ -101,16 +99,14 @@ class DiffBlock {
 
   Iterable<DiffColumn> get columns => _columns.keys;
 
-  void printHtmlOn(DiffColumn column,
-                   StringBuffer htmlBuffer,
-                   HtmlPrintContext context) {
+  void printHtmlOn(
+      DiffColumn column, StringBuffer htmlBuffer, HtmlPrintContext context) {
     DiffColumnBlock block = _columns[column];
     if (block != null) {
       block.printHtmlOn(htmlBuffer, context);
     }
   }
 }
-
 
 /// Align the content of [list1] and [list2].
 ///
@@ -127,14 +123,13 @@ class DiffBlock {
 ///
 /// [handleUnmatched] is called when two indices don't match up (none are found
 /// in the other list).
-void align(List list1,
-           List list2,
-           {Interval range1,
-            Interval range2,
-            bool match(a, b),
-            void handleSkew(int listIndex, Interval range),
-            void handleMatched(List<int> indices),
-            void handleUnmatched(List<int> indices)}) {
+void align(List list1, List list2,
+    {Interval range1,
+    Interval range2,
+    bool match(a, b),
+    void handleSkew(int listIndex, Interval range),
+    void handleMatched(List<int> indices),
+    void handleUnmatched(List<int> indices)}) {
   if (match == null) {
     match = (a, b) => a == b;
   }
@@ -146,16 +141,15 @@ void align(List list1,
     range2 = new Interval(0, list2.length);
   }
 
-  Interval findInOther(
-      List thisLines, Interval thisRange,
-      List otherLines, Interval otherRange) {
+  Interval findInOther(List thisLines, Interval thisRange, List otherLines,
+      Interval otherRange) {
     for (int index = otherRange.from; index < otherRange.to; index++) {
       if (match(thisLines[thisRange.from], otherLines[index])) {
         int offset = 1;
         while (thisRange.from + offset < thisRange.to &&
-               otherRange.from + offset < otherRange.to &&
-               match(thisLines[thisRange.from + offset],
-                     otherLines[otherRange.from + offset])) {
+            otherRange.from + offset < otherRange.to &&
+            match(thisLines[thisRange.from + offset],
+                otherLines[otherRange.from + offset])) {
           offset++;
         }
         return new Interval(index, index + offset);
@@ -229,8 +223,7 @@ void align(List list1,
 /// Create a list of blocks containing the diff of the two output [structures]
 /// and the corresponding Dart code.
 List<DiffBlock> createDiffBlocks(
-    List<OutputStructure> structures,
-    SourceFileManager sourceFileManager) {
+    List<OutputStructure> structures, SourceFileManager sourceFileManager) {
   return new DiffCreator(structures, sourceFileManager).computeBlocks();
 }
 
@@ -263,25 +256,23 @@ class DiffCreator {
   /// [mainSources] are tagged as original code sources, the rest as inlined
   /// code sources.
   DiffColumnBlock codeLinesFromCodeSources(
-      Iterable<CodeSource> mainSources,
-      Iterable<CodeSource> codeSources) {
+      Iterable<CodeSource> mainSources, Iterable<CodeSource> codeSources) {
     List<HtmlPart> parts = <HtmlPart>[];
     for (CodeSource codeSource in codeSources) {
       //parts.addAll(codeLinesFromCodeSource(codeSource));
-      String className =
-          mainSources.contains(codeSource)
-              ? ClassNames.originalDart : ClassNames.inlinedDart;
-      parts.add(
-          new TagPart('div',
-              properties: {'class': className},
-              content: codeLinesFromCodeSource(codeSource)));
+      String className = mainSources.contains(codeSource)
+          ? ClassNames.originalDart
+          : ClassNames.inlinedDart;
+      parts.add(new TagPart('div',
+          properties: {'class': className},
+          content: codeLinesFromCodeSource(codeSource)));
     }
     return new PartsColumnBlock(parts);
   }
 
   /// Adds all [CodeSource]s used in [dartCodeLines] to [codeSourceSet].
   void collectCodeSources(Set<CodeSource> codeSourceSet,
-                          Map<CodeLine, List<CodeLine>> dartCodeLines) {
+      Map<CodeLine, List<CodeLine>> dartCodeLines) {
     for (List<CodeLine> codeLines in dartCodeLines.values) {
       for (CodeLine dartCodeLine in codeLines) {
         if (dartCodeLine.lineAnnotation != null) {
@@ -316,9 +307,7 @@ class DiffCreator {
   /// Creates a block containing the code lines in [range] from input number
   /// [index]. If [codeSource] is provided, the block will contain a
   /// corresponding Dart code column.
-  void handleSkew(
-      int index,
-      Interval range,
+  void handleSkew(int index, Interval range,
       [Iterable<CodeSource> mainCodeSources = const <CodeSource>[]]) {
     if (range.isEmpty) return;
 
@@ -331,14 +320,12 @@ class DiffCreator {
         inputLines[index].sublist(range.from, range.to);
     Map<CodeLine, List<CodeLine>> dartCodeLines =
         dartCodeLinesFromJsCodeLines(jsCodeLines);
-    block.addColumnBlock(
-        new DiffColumn('js', index),
+    block.addColumnBlock(new DiffColumn('js', index),
         new CodeLinesColumnBlock(jsCodeLines, dartCodeLines));
     collectCodeSources(codeSources, dartCodeLines);
 
     if (codeSources.isNotEmpty) {
-      block.addColumnBlock(
-          const DiffColumn('dart'),
+      block.addColumnBlock(const DiffColumn('dart'),
           codeLinesFromCodeSources(mainCodeSources, codeSources));
     }
     blocks.add(block);
@@ -347,9 +334,7 @@ class DiffCreator {
   /// Create a block containing the code lines in [ranges] from the
   /// corresponding JavaScript inputs. If [codeSource] is provided, the block
   /// will contain a corresponding Dart code column.
-  void addLines(
-      DiffKind kind,
-      List<Interval> ranges,
+  void addLines(DiffKind kind, List<Interval> ranges,
       [Iterable<CodeSource> mainCodeSources = const <CodeSource>[]]) {
     if (ranges.every((range) => range.isEmpty)) return;
 
@@ -362,9 +347,8 @@ class DiffCreator {
       List<CodeLine> jsCodeLines =
           inputLines[i].sublist(ranges[i].from, ranges[i].to);
       Map<CodeLine, List<CodeLine>> dartCodeLines =
-              dartCodeLinesFromJsCodeLines(jsCodeLines);
-      block.addColumnBlock(
-          new DiffColumn('js', i),
+          dartCodeLinesFromJsCodeLines(jsCodeLines);
+      block.addColumnBlock(new DiffColumn('js', i),
           new CodeLinesColumnBlock(jsCodeLines, dartCodeLines));
       collectCodeSources(codeSources, dartCodeLines);
     }
@@ -402,37 +386,31 @@ class DiffCreator {
       if (current == null) {
         return [
           new Interval(indices[0], indices[0] + 1),
-          new Interval(indices[1], indices[1] + 1)];
+          new Interval(indices[1], indices[1] + 1)
+        ];
       } else {
-        current[0] =
-            new Interval(current[0].from, indices[0] + 1);
-        current[1] =
-            new Interval(current[1].from, indices[1] + 1);
+        current[0] = new Interval(current[0].from, indices[0] + 1);
+        current[1] = new Interval(current[1].from, indices[1] + 1);
         return current;
       }
     }
 
-    align(
-        inputLines[0],
-        inputLines[1],
+    align(inputLines[0], inputLines[1],
         range1: range1,
         range2: range2,
-        match: match,
-        handleSkew: (int listIndex, Interval range) {
-          flushMatching();
-          flushUnmatched();
-          handleSkew(listIndex, range);
-        },
-        handleMatched: (List<int> indices) {
-          flushUnmatched();
-          currentMatchedIntervals =
-              updateIntervals(currentMatchedIntervals, indices);
-        },
-        handleUnmatched: (List<int> indices) {
-          flushMatching();
-          currentUnmatchedIntervals =
-              updateIntervals(currentUnmatchedIntervals, indices);
-        });
+        match: match, handleSkew: (int listIndex, Interval range) {
+      flushMatching();
+      flushUnmatched();
+      handleSkew(listIndex, range);
+    }, handleMatched: (List<int> indices) {
+      flushUnmatched();
+      currentMatchedIntervals =
+          updateIntervals(currentMatchedIntervals, indices);
+    }, handleUnmatched: (List<int> indices) {
+      flushMatching();
+      currentUnmatchedIntervals =
+          updateIntervals(currentUnmatchedIntervals, indices);
+    });
 
     flushMatching();
     flushUnmatched();
@@ -449,8 +427,7 @@ class DiffCreator {
   void addSkewedEntity(int index, OutputEntity entity) {
     if (entity.canHaveChildren) {
       handleSkew(index, entity.header);
-      addSkewedChildren(
-          index, entity, new Interval(0, entity.children.length));
+      addSkewedChildren(index, entity, new Interval(0, entity.children.length));
       handleSkew(index, entity.footer);
     } else {
       handleSkew(index, entity.interval, codeSourceFromEntities([entity]));
@@ -470,26 +447,25 @@ class DiffCreator {
     align(classes[0].children, classes[1].children,
         match: (a, b) => a.name == b.name,
         handleSkew: (int listIndex, Interval childRange) {
-          addSkewedChildren(listIndex, classes[listIndex], childRange);
-        },
-        handleMatched: (List<int> indices) {
-          List<BasicEntity> entities =  [
-              classes[0].getChild(indices[0]),
-              classes[1].getChild(indices[1])];
-          if (entities.every((e) => e is Statics)) {
-            addMatchingContainers(entities);
-          } else {
-            addLines(DiffKind.MATCHING,
-                     entities.map((e) => e.interval).toList(),
-                     codeSourceFromEntities(entities));
-          }
-        },
-        handleUnmatched: (List<int> indices) {
-          List<Interval> intervals =  [
-              classes[0].getChild(indices[0]).interval,
-              classes[1].getChild(indices[1]).interval];
-          addLines(DiffKind.UNMATCHED, intervals);
-        });
+      addSkewedChildren(listIndex, classes[listIndex], childRange);
+    }, handleMatched: (List<int> indices) {
+      List<BasicEntity> entities = [
+        classes[0].getChild(indices[0]),
+        classes[1].getChild(indices[1])
+      ];
+      if (entities.every((e) => e is Statics)) {
+        addMatchingContainers(entities);
+      } else {
+        addLines(DiffKind.MATCHING, entities.map((e) => e.interval).toList(),
+            codeSourceFromEntities(entities));
+      }
+    }, handleUnmatched: (List<int> indices) {
+      List<Interval> intervals = [
+        classes[0].getChild(indices[0]).interval,
+        classes[1].getChild(indices[1]).interval
+      ];
+      addLines(DiffKind.UNMATCHED, intervals);
+    });
     addLines(DiffKind.MATCHING, classes.map((c) => c.footer).toList());
   }
 
@@ -498,34 +474,32 @@ class DiffCreator {
   void addMatchingBlocks(List<int> indices) {
     List<LibraryBlock> blocks = [
       structures[0].getChild(indices[0]),
-      structures[1].getChild(indices[1])];
+      structures[1].getChild(indices[1])
+    ];
 
     addLines(DiffKind.MATCHING, blocks.map((b) => b.header).toList());
     align(blocks[0].children, blocks[1].children,
         match: (a, b) => a.name == b.name,
         handleSkew: (int listIndex, Interval childRange) {
-          addSkewedChildren(
-              listIndex, blocks[listIndex], childRange);
-        },
-        handleMatched: (List<int> indices) {
-          List<BasicEntity> entities =  [
-              blocks[0].getChild(indices[0]),
-              blocks[1].getChild(indices[1])];
-          if (entities.every((e) => e is LibraryClass)) {
-            addMatchingContainers(entities);
-          } else {
-            addLines(
-                DiffKind.MATCHING,
-                entities.map((e) => e.interval).toList(),
-                codeSourceFromEntities(entities));
-          }
-        },
-        handleUnmatched: (List<int> indices) {
-          List<Interval> intervals =  [
-              blocks[0].getChild(indices[0]).interval,
-              blocks[1].getChild(indices[1]).interval];
-          addLines(DiffKind.UNMATCHED, intervals);
-        });
+      addSkewedChildren(listIndex, blocks[listIndex], childRange);
+    }, handleMatched: (List<int> indices) {
+      List<BasicEntity> entities = [
+        blocks[0].getChild(indices[0]),
+        blocks[1].getChild(indices[1])
+      ];
+      if (entities.every((e) => e is LibraryClass)) {
+        addMatchingContainers(entities);
+      } else {
+        addLines(DiffKind.MATCHING, entities.map((e) => e.interval).toList(),
+            codeSourceFromEntities(entities));
+      }
+    }, handleUnmatched: (List<int> indices) {
+      List<Interval> intervals = [
+        blocks[0].getChild(indices[0]).interval,
+        blocks[1].getChild(indices[1]).interval
+      ];
+      addLines(DiffKind.UNMATCHED, intervals);
+    });
     addLines(DiffKind.MATCHING, blocks.map((b) => b.footer).toList());
   }
 
@@ -533,8 +507,9 @@ class DiffCreator {
   /// [OutputStructure]s.
   void addUnmatchedBlocks(List<int> indices) {
     List<LibraryBlock> blocks = [
-       structures[0].getChild(indices[0]),
-       structures[1].getChild(indices[1])];
+      structures[0].getChild(indices[0]),
+      structures[1].getChild(indices[1])
+    ];
     addLines(DiffKind.UNMATCHED, [blocks[0].interval, blocks[1].interval]);
   }
 
@@ -542,12 +517,11 @@ class DiffCreator {
   List<DiffBlock> computeBlocks() {
     addRaw(structures[0].header, structures[1].header);
 
-    align(structures[0].children,
-          structures[1].children,
-          match: (a, b) => a.name == b.name,
-          handleSkew: addBlock,
-          handleMatched: addMatchingBlocks,
-          handleUnmatched: addUnmatchedBlocks);
+    align(structures[0].children, structures[1].children,
+        match: (a, b) => a.name == b.name,
+        handleSkew: addBlock,
+        handleMatched: addMatchingBlocks,
+        handleUnmatched: addUnmatchedBlocks);
 
     addRaw(structures[0].footer, structures[1].footer);
 
@@ -562,18 +536,15 @@ class DiffCreator {
     String elementName = codeSource.name;
     HtmlLine line = new HtmlLine();
     line.htmlParts.add(new ConstHtmlPart('<span class="comment">'));
-    line.htmlParts.add(new HtmlText(
-        '${elementName}: ${sourceFile.filename}'));
+    line.htmlParts.add(new HtmlText('${elementName}: ${sourceFile.filename}'));
     line.htmlParts.add(new ConstHtmlPart('</span>'));
     lines.add(line);
     if (codeSource.begin != null) {
       int startLine = sourceFile.getLine(codeSource.begin);
       int endLine = sourceFile.getLine(codeSource.end) + 1;
       for (CodeLine codeLine in convertAnnotatedCodeToCodeLines(
-          sourceFile.slowText(),
-          const <Annotation>[],
-          startLine: startLine,
-          endLine: endLine)) {
+          sourceFile.slowText(), const <Annotation>[],
+          startLine: startLine, endLine: endLine)) {
         codeLine.lineAnnotation = codeSource;
         lines.add(codeLine);
       }
@@ -597,8 +568,9 @@ class DiffCreator {
       for (Annotation annotation in jsCodeLine.annotations) {
         CodeLineAnnotation codeLineAnnotation = annotation.data;
         for (CodeSource codeSource in codeLineAnnotation.codeSources) {
-          codeSourceMap.putIfAbsent(codeSource.uri,
-              () => new Set<CodeSource>()).add(codeSource);
+          codeSourceMap
+              .putIfAbsent(codeSource.uri, () => new Set<CodeSource>())
+              .add(codeSource);
         }
       }
     }
@@ -608,13 +580,9 @@ class DiffCreator {
 
       Set<CodeSource> codeSources = codeSourceMap[currentUri];
       SourceFile sourceFile = sourceFileManager.getSourceFile(currentUri);
-      List<CodeLine> annotatedDartCodeLines =
-          convertAnnotatedCodeToCodeLines(
-              sourceFile.slowText(),
-              annotations,
-              startLine: interval.from,
-              endLine: interval.to,
-              uri: currentUri);
+      List<CodeLine> annotatedDartCodeLines = convertAnnotatedCodeToCodeLines(
+          sourceFile.slowText(), annotations,
+          startLine: interval.from, endLine: interval.to, uri: currentUri);
       if (codeSources != null) {
         CodeSource currentCodeSource;
         Interval currentLineInterval;
@@ -648,8 +616,8 @@ class DiffCreator {
         }
       }
       while (index < annotatedDartCodeLines.length) {
-        jsToDartMap[codeLineInterval.keys.last].add(
-            annotatedDartCodeLines[index++]);
+        jsToDartMap[codeLineInterval.keys.last]
+            .add(annotatedDartCodeLines[index++]);
       }
 
       currentUri = null;
@@ -681,10 +649,8 @@ class DiffCreator {
             restart(jsCodeLine, location, line);
           }
 
-          annotations.add(new Annotation(
-              codeLineAnnotation.annotationType,
-              location.offset,
-              'id=${codeLineAnnotation.annotationId}',
+          annotations.add(new Annotation(codeLineAnnotation.annotationType,
+              location.offset, 'id=${codeLineAnnotation.annotationId}',
               data: codeLineAnnotation));
         }
       }
@@ -756,7 +722,8 @@ class AnnotationType {
     WITH_SOURCE_INFO,
     WITHOUT_SOURCE_INFO,
     ADDITIONAL_SOURCE_INFO,
-    UNUSED_SOURCE_INFO];
+    UNUSED_SOURCE_INFO
+  ];
 }
 
 class CodeLineAnnotation {
@@ -769,11 +736,11 @@ class CodeLineAnnotation {
 
   CodeLineAnnotation(
       {this.annotationId,
-       this.annotationType,
-       this.codeLocations,
-       this.codeSources,
-       this.stepInfo,
-       this.sourceMappingIndex});
+      this.annotationType,
+      this.codeLocations,
+      this.codeSources,
+      this.stepInfo,
+      this.sourceMappingIndex});
 
   Map toJson(JsonStrategy strategy) {
     return {
@@ -793,9 +760,8 @@ class CodeLineAnnotation {
         codeLocations: json['codeLocations']
             .map((j) => CodeLocation.fromJson(j, strategy))
             .toList(),
-        codeSources: json['codeSources']
-            .map((j) => CodeSource.fromJson(j))
-            .toList(),
+        codeSources:
+            json['codeSources'].map((j) => CodeSource.fromJson(j)).toList(),
         stepInfo: json['stepInfo'],
         sourceMappingIndex: json['sourceMappingIndex']);
   }

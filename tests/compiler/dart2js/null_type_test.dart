@@ -15,6 +15,6 @@ foo() {
 
 main() {
   asyncTest(() => compile(TEST_ONE, entry: 'foo', check: (String generated) {
-    Expect.isFalse(generated.contains('typeof (void 0)'));
-  }));
+        Expect.isFalse(generated.contains('typeof (void 0)'));
+      }));
 }

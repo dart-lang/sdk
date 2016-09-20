@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
@@ -18,7 +19,6 @@ import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -34,6 +34,8 @@ import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+
+export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -2360,66 +2362,6 @@ class PerformanceStatistics {
   static final CacheConsistencyValidationStatistics
       cacheConsistencyValidationStatistics =
       new CacheConsistencyValidationStatistics();
-}
-
-/**
- * An error listener that will record the errors that are reported to it in a
- * way that is appropriate for caching those errors within an analysis context.
- */
-class RecordingErrorListener implements AnalysisErrorListener {
-  /**
-   * A map of sets containing the errors that were collected, keyed by each
-   * source.
-   */
-  Map<Source, HashSet<AnalysisError>> _errors =
-      new HashMap<Source, HashSet<AnalysisError>>();
-
-  /**
-   * Return the errors collected by the listener.
-   */
-  List<AnalysisError> get errors {
-    int numEntries = _errors.length;
-    if (numEntries == 0) {
-      return AnalysisError.NO_ERRORS;
-    }
-    List<AnalysisError> resultList = new List<AnalysisError>();
-    for (HashSet<AnalysisError> errors in _errors.values) {
-      resultList.addAll(errors);
-    }
-    return resultList;
-  }
-
-  /**
-   * Add all of the errors recorded by the given [listener] to this listener.
-   */
-  void addAll(RecordingErrorListener listener) {
-    for (AnalysisError error in listener.errors) {
-      onError(error);
-    }
-  }
-
-  /**
-   * Return the errors collected by the listener for the given [source].
-   */
-  List<AnalysisError> getErrorsForSource(Source source) {
-    HashSet<AnalysisError> errorsForSource = _errors[source];
-    if (errorsForSource == null) {
-      return AnalysisError.NO_ERRORS;
-    } else {
-      return new List.from(errorsForSource);
-    }
-  }
-
-  @override
-  void onError(AnalysisError error) {
-    Source source = error.source;
-    HashSet<AnalysisError> errorsForSource = _errors[source];
-    if (_errors[source] == null) {
-      errorsForSource = new HashSet<AnalysisError>();
-      _errors[source] = errorsForSource;
-    }
-    errorsForSource.add(error);
-  }
 }
 
 /**

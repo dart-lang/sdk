@@ -7,87 +7,120 @@ part of models;
 enum InstanceKind {
   /// A general instance of the Dart class Object.
   plainInstance,
+
   /// null instance.
   vNull,
+
   /// true or false.
   bool,
+
   /// An instance of the Dart class double.
   double,
+
   /// An instance of the Dart class int.
   int,
+
   /// An instance of the Dart class String.
   string,
+
   /// An instance of the built-in VM List implementation. User-defined
   /// Lists will be PlainInstance.
   list,
+
   /// An instance of the built-in VM Map implementation. User-defined
   /// Maps will be PlainInstance.
   map,
+
   /// Vector instance kinds.
   float32x4,
+
   /// Vector instance kinds.
   float64x2,
+
   /// Vector instance kinds.
   int32x4,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   uint8ClampedList,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   uint8List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   uint16List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   uint32List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   uint64List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   int8List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   int16List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   int32List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   int64List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   float32List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   float64List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   int32x4List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   float32x4List,
+
   /// An instance of the built-in VM TypedData implementations. User-defined
   /// TypedDatas will be PlainInstance.
   float64x2List,
+
   /// An instance of the Dart class StackTrace.
   stackTrace,
+
   /// An instance of the built-in VM Closure implementation. User-defined
   /// Closures will be PlainInstance.
   closure,
+
   /// An instance of the Dart class MirrorReference.
   mirrorReference,
+
   /// An instance of the Dart class RegExp.
   regExp,
+
   /// An instance of the Dart class WeakProperty.
   weakProperty,
+
   /// An instance of the Dart class Type.
   type,
+
   /// An instance of the Dart class TypeParameter.
   typeParameter,
+
   /// An instance of the Dart class TypeRef.
   typeRef,
+
   /// An instance of the Dart class BoundedType.
   boundedType,
 }
@@ -110,7 +143,7 @@ bool isTypedData(InstanceKind kind) {
     case InstanceKind.float64x2List:
       return true;
     default:
-    return false;
+      return false;
   }
 }
 
@@ -121,7 +154,7 @@ bool isSimdValue(InstanceKind kind) {
     case InstanceKind.int32x4:
       return true;
     default:
-    return false;
+      return false;
   }
 }
 
@@ -133,7 +166,7 @@ bool isAbstractType(InstanceKind kind) {
     case InstanceKind.boundedType:
       return true;
     default:
-    return false;
+      return false;
   }
 }
 

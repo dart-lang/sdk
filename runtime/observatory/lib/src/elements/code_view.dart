@@ -10,7 +10,7 @@ import 'package:observatory/cpu_profile.dart';
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/app.dart'
-  show SortedTable, SortedTableColumn, SortedTableRow;
+    show SortedTable, SortedTableColumn, SortedTableRow;
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
@@ -37,19 +37,19 @@ class InlineTable extends SortedTable {
 }
 
 class CodeViewElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<CodeViewElement>('code-view',
-                                            dependencies: const [
-                                              CurlyBlockElement.tag,
-                                              FunctionRefElement.tag,
-                                              NavClassMenuElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              ObjectCommonElement.tag,
-                                              ObjectPoolRefElement.tag,
-                                            ]);
+  static const tag =
+      const Tag<CodeViewElement>('code-view', dependencies: const [
+    CurlyBlockElement.tag,
+    FunctionRefElement.tag,
+    NavClassMenuElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ObjectCommonElement.tag,
+    ObjectPoolRefElement.tag,
+  ]);
 
   RenderingScheduler<CodeViewElement> _r;
 
@@ -70,21 +70,23 @@ class CodeViewElement extends HtmlElement implements Renderable {
 
   static const kDisassemblyColumnIndex = 3;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.Code get context => _code;
 
-  factory CodeViewElement(M.VM vm, M.IsolateRef isolate, M.Code code,
-                          M.EventRepository events,
-                          M.NotificationRepository notifications,
-                          M.RetainedSizeRepository retainedSizes,
-                          M.ReachableSizeRepository reachableSizes,
-                          M.InboundReferencesRepository references,
-                          M.RetainingPathRepository retainingPaths,
-                          M.InstanceRepository instances,
-                          {RenderingQueue queue}) {
+  factory CodeViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.Code code,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -112,18 +114,18 @@ class CodeViewElement extends HtmlElement implements Renderable {
 
   CodeViewElement.created() : super.created() {
     var columns = [
-        new SortedTableColumn('Address'),
-        new SortedTableColumn('Inclusive'),
-        new SortedTableColumn('Exclusive'),
-        new SortedTableColumn('Disassembly'),
-        new SortedTableColumn('Objects'),
+      new SortedTableColumn('Address'),
+      new SortedTableColumn('Inclusive'),
+      new SortedTableColumn('Exclusive'),
+      new SortedTableColumn('Disassembly'),
+      new SortedTableColumn('Objects'),
     ];
     disassemblyTable = new DisassemblyTable(columns);
     columns = [
-        new SortedTableColumn('Address'),
-        new SortedTableColumn('Inclusive'),
-        new SortedTableColumn('Exclusive'),
-        new SortedTableColumn('Functions'),
+      new SortedTableColumn('Address'),
+      new SortedTableColumn('Inclusive'),
+      new SortedTableColumn('Exclusive'),
+      new SortedTableColumn('Functions'),
     ];
     inlineTable = new InlineTable(columns);
   }
@@ -149,43 +151,48 @@ class CodeViewElement extends HtmlElement implements Renderable {
   void render() {
     if (_inlineRangeTable == null) {
       _inlineRangeTable = new TableElement()..classes = ['table'];
-      _inlineRangeTable.createTHead()
-        .children = [
-          new TableRowElement()
-            ..children = [
-               document.createElement('th')..classes = ['address']
-                ..text = 'Address Range',
-              document.createElement('th')..classes = ['tick']
-                ..text = 'Inclusive',
-              document.createElement('th')..classes = ['tick']
-                ..text = 'Exclusive',
-              document.createElement('th')
-                ..text = 'Functions',
-            ]
-        ];
+      _inlineRangeTable.createTHead().children = [
+        new TableRowElement()
+          ..children = [
+            document.createElement('th')
+              ..classes = ['address']
+              ..text = 'Address Range',
+            document.createElement('th')
+              ..classes = ['tick']
+              ..text = 'Inclusive',
+            document.createElement('th')
+              ..classes = ['tick']
+              ..text = 'Exclusive',
+            document.createElement('th')..text = 'Functions',
+          ]
+      ];
       _inlineRangeTableBody = _inlineRangeTable.createTBody();
       _inlineRangeTableBody.classes = ['monospace'];
     }
     if (_disassemblyTable == null) {
       _disassemblyTable = new TableElement()..classes = ['table'];
-      _disassemblyTable.createTHead()
-        .children = [
-          new TableRowElement()
-            ..children = [
-              document.createElement('th')..classes = ['address']
-                ..text = 'Address Range',
-              document.createElement('th')..classes = ['tick']
-                ..title = 'Ticks with PC on the stack'
-                ..text = 'Inclusive',
-              document.createElement('th')..classes = ['tick']
-                ..title = 'Ticks with PC at top of stack'
-                ..text = 'Exclusive',
-              document.createElement('th')..classes = ['disassembly']
-                ..text = 'Disassembly',
-              document.createElement('th')..classes = ['object']
-                ..text = 'Object',
-            ]
-        ];
+      _disassemblyTable.createTHead().children = [
+        new TableRowElement()
+          ..children = [
+            document.createElement('th')
+              ..classes = ['address']
+              ..text = 'Address Range',
+            document.createElement('th')
+              ..classes = ['tick']
+              ..title = 'Ticks with PC on the stack'
+              ..text = 'Inclusive',
+            document.createElement('th')
+              ..classes = ['tick']
+              ..title = 'Ticks with PC at top of stack'
+              ..text = 'Exclusive',
+            document.createElement('th')
+              ..classes = ['disassembly']
+              ..text = 'Disassembly',
+            document.createElement('th')
+              ..classes = ['object']
+              ..text = 'Object',
+          ]
+      ];
       _disassemblyTableBody = _disassemblyTable.createTBody();
       _disassemblyTableBody.classes = ['monospace'];
     }
@@ -198,100 +205,126 @@ class CodeViewElement extends HtmlElement implements Renderable {
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu(_code.name),
         new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _refresh();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _refresh();
+          }),
         new NavRefreshElement(label: 'refresh ticks', queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _refreshTicks();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _refreshTicks();
+          }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h1()
             ..text = (M.isDartCode(_code.kind) && _code.isOptimized)
-              ? 'Optimized code for ${_code.name}'
-              : 'Code for ${_code.name}',
+                ? 'Optimized code for ${_code.name}'
+                : 'Code for ${_code.name}',
           new HRElement(),
           new ObjectCommonElement(_isolate, _code, _retainedSizes,
-                                  _reachableSizes, _references, _retainingPaths,
-                                  _instances, queue: _r.queue),
+              _reachableSizes, _references, _retainingPaths, _instances,
+              queue: _r.queue),
           new BRElement(),
-          new DivElement()..classes = ['memberList']
+          new DivElement()
+            ..classes = ['memberList']
             ..children = [
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                    new DivElement()..classes = ['memberName']
-                      ..text = 'Kind',
-                    new DivElement()..classes = ['memberValue']
-                      ..text = _codeKindToString(_code.kind)
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'Kind',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..text = _codeKindToString(_code.kind)
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = M.isDartCode(_code.kind)
-                  ? const []
-                  : [
-                    new DivElement()..classes = ['memberName']
-                      ..text = 'Optimized',
-                    new DivElement()..classes = ['memberValue']
-                      ..text = _code.isOptimized ? 'Yes' : 'No'
-                  ],
-              new DivElement()..classes = ['memberItem']
+                    ? const []
+                    : [
+                        new DivElement()
+                          ..classes = ['memberName']
+                          ..text = 'Optimized',
+                        new DivElement()
+                          ..classes = ['memberValue']
+                          ..text = _code.isOptimized ? 'Yes' : 'No'
+                      ],
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                    new DivElement()..classes = ['memberName']
-                      ..text = 'Function',
-                    new DivElement()..classes = ['memberValue']
-                      ..children = [
-                        new FunctionRefElement(_isolate, _code.function,
-                                               queue: _r.queue)
-                      ]
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'Function',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..children = [
+                      new FunctionRefElement(_isolate, _code.function,
+                          queue: _r.queue)
+                    ]
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = code.profile == null
-                  ? const []
-                  : [
-                    new DivElement()..classes = ['memberName']
-                      ..text = 'Inclusive',
-                    new DivElement()..classes = ['memberValue']
-                      ..text = '${code.profile.formattedInclusiveTicks}'
-                  ],
-              new DivElement()..classes = ['memberItem']
+                    ? const []
+                    : [
+                        new DivElement()
+                          ..classes = ['memberName']
+                          ..text = 'Inclusive',
+                        new DivElement()
+                          ..classes = ['memberValue']
+                          ..text = '${code.profile.formattedInclusiveTicks}'
+                      ],
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = code.profile == null
-                  ? const []
-                  : [
-                    new DivElement()..classes = ['memberName']
-                      ..text = 'Exclusive',
-                    new DivElement()..classes = ['memberValue']
-                      ..text = '${code.profile.formattedExclusiveTicks}'
-                  ],
-              new DivElement()..classes = ['memberItem']
+                    ? const []
+                    : [
+                        new DivElement()
+                          ..classes = ['memberName']
+                          ..text = 'Exclusive',
+                        new DivElement()
+                          ..classes = ['memberValue']
+                          ..text = '${code.profile.formattedExclusiveTicks}'
+                      ],
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = [
-                    new DivElement()..classes = ['memberName']
-                      ..text = 'Object pool',
-                    new DivElement()..classes = ['memberValue']
-                      ..children = [
-                        new ObjectPoolRefElement(_isolate, _code.objectPool,
-                                                 queue: _r.queue)
-                      ]
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'Object pool',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..children = [
+                      new ObjectPoolRefElement(_isolate, _code.objectPool,
+                          queue: _r.queue)
+                    ]
                 ],
-              new DivElement()..classes = ['memberItem']
+              new DivElement()
+                ..classes = ['memberItem']
                 ..children = inlinedFunctions.isNotEmpty
-                  ? const []
-                  : [
-                    new DivElement()..classes = ['memberName']
-                      ..text = 'inlined functions (${inlinedFunctions.length})',
-                    new DivElement()..classes = ['memberValue']
-                      ..children = [
-                        new CurlyBlockElement(
-                            expanded: inlinedFunctions.length < 8,
-                            queue: _r.queue)
-                          ..content = inlinedFunctions.map((f) =>
-                            new FunctionRefElement(_isolate, f, queue: _r.queue)
-                          ).toList()
+                    ? const []
+                    : [
+                        new DivElement()
+                          ..classes = ['memberName']
+                          ..text =
+                              'inlined functions (${inlinedFunctions.length})',
+                        new DivElement()
+                          ..classes = ['memberValue']
+                          ..children = [
+                            new CurlyBlockElement(
+                                expanded: inlinedFunctions.length < 8,
+                                queue: _r.queue)
+                              ..content = inlinedFunctions
+                                  .map((f) => new FunctionRefElement(
+                                      _isolate, f,
+                                      queue: _r.queue))
+                                  .toList()
+                          ]
                       ]
-                ]
             ],
           new HRElement(),
           _inlineRangeTable,
@@ -312,8 +345,8 @@ class CodeViewElement extends HtmlElement implements Renderable {
   Future _refreshTicks() async {
     S.Code code = _code as S.Code;
     final isolate = code.isolate;
-    S.ServiceMap response = await isolate.invokeRpc('_getCpuProfile',
-                                                    { 'tags': 'None' });
+    S.ServiceMap response =
+        await isolate.invokeRpc('_getCpuProfile', {'tags': 'None'});
     final cpuProfile = new CpuProfile();
     await cpuProfile.load(isolate, response);
     _r.dirty();
@@ -345,8 +378,8 @@ class CodeViewElement extends HtmlElement implements Renderable {
     if (intervalTick.inclusiveTicks == intervalTick.exclusiveTicks) {
       return '';
     }
-    var pcent = Utils.formatPercent(intervalTick.inclusiveTicks,
-                                    code.profile.profile.sampleCount);
+    var pcent = Utils.formatPercent(
+        intervalTick.inclusiveTicks, code.profile.profile.sampleCount);
     return '$pcent (${intervalTick.inclusiveTicks})';
   }
 
@@ -359,11 +392,10 @@ class CodeViewElement extends HtmlElement implements Renderable {
     if (intervalTick == null) {
       return '';
     }
-    var pcent = Utils.formatPercent(intervalTick.exclusiveTicks,
-                                    code.profile.profile.sampleCount);
+    var pcent = Utils.formatPercent(
+        intervalTick.exclusiveTicks, code.profile.profile.sampleCount);
     return '$pcent (${intervalTick.exclusiveTicks})';
   }
-
 
   String _formattedInclusive(S.CodeInstruction instruction) {
     S.Code code = _code as S.Code;
@@ -378,8 +410,8 @@ class CodeViewElement extends HtmlElement implements Renderable {
     if (tick.inclusiveTicks == tick.exclusiveTicks) {
       return '';
     }
-    var pcent = Utils.formatPercent(tick.inclusiveTicks,
-                                    code.profile.profile.sampleCount);
+    var pcent = Utils.formatPercent(
+        tick.inclusiveTicks, code.profile.profile.sampleCount);
     return '$pcent (${tick.inclusiveTicks})';
   }
 
@@ -392,8 +424,8 @@ class CodeViewElement extends HtmlElement implements Renderable {
     if (tick == null) {
       return '';
     }
-    var pcent = Utils.formatPercent(tick.exclusiveTicks,
-                                    code.profile.profile.sampleCount);
+    var pcent = Utils.formatPercent(
+        tick.exclusiveTicks, code.profile.profile.sampleCount);
     return '$pcent (${tick.exclusiveTicks})';
   }
 
@@ -404,11 +436,13 @@ class CodeViewElement extends HtmlElement implements Renderable {
       return;
     }
     for (S.CodeInstruction instruction in code.instructions) {
-      var row = [_formattedAddress(instruction),
-                 _formattedInclusive(instruction),
-                 _formattedExclusive(instruction),
-                 instruction.human,
-                 instruction.object];
+      var row = [
+        _formattedAddress(instruction),
+        _formattedInclusive(instruction),
+        _formattedExclusive(instruction),
+        instruction.human,
+        instruction.object
+      ];
       disassemblyTable.addRow(new SortedTableRow(row));
     }
   }
@@ -442,7 +476,6 @@ class CodeViewElement extends HtmlElement implements Renderable {
       final cell = tr.children[i];
       final content = row.values[i];
       if (content is S.HeapObject) {
-        print(content.runtimeType);
         cell.children = [
           anyRef(_isolate, content, _instances, queue: _r.queue)
         ];
@@ -472,7 +505,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
     if (tableBody.children.length > disassemblyTable.sortedRows.length) {
       // Shrink the table.
       var deadRows =
-      tableBody.children.length - disassemblyTable.sortedRows.length;
+          tableBody.children.length - disassemblyTable.sortedRows.length;
       for (var i = 0; i < deadRows; i++) {
         tableBody.children.removeLast();
       }
@@ -505,10 +538,12 @@ class CodeViewElement extends HtmlElement implements Renderable {
     inlineTable.clearRows();
     S.Code code = _code as S.Code;
     for (S.CodeInlineInterval interval in code.inlineIntervals) {
-      var row = [interval,
-                 _formattedInclusiveInterval(interval),
-                 _formattedExclusiveInterval(interval),
-                 interval.functions];
+      var row = [
+        interval,
+        _formattedInclusiveInterval(interval),
+        _formattedExclusiveInterval(interval),
+        interval.functions
+      ];
       inlineTable.addRow(new SortedTableRow(row));
     }
   }
@@ -557,8 +592,8 @@ class CodeViewElement extends HtmlElement implements Renderable {
     var functionsCell = tr.children[functionsColumn];
     functionsCell.children.clear();
     for (var func in functions) {
-      functionsCell.children.add(
-        new FunctionRefElement(_isolate, func, queue: _r.queue));
+      functionsCell.children
+          .add(new FunctionRefElement(_isolate, func, queue: _r.queue));
       var gap = new SpanElement();
       gap.style.minWidth = '1em';
       gap.text = ' ';
@@ -571,8 +606,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
     // Resize DOM table.
     if (tableBody.children.length > inlineTable.sortedRows.length) {
       // Shrink the table.
-      var deadRows =
-      tableBody.children.length - inlineTable.sortedRows.length;
+      var deadRows = tableBody.children.length - inlineTable.sortedRows.length;
       for (var i = 0; i < deadRows; i++) {
         tableBody.children.removeLast();
       }
@@ -599,11 +633,16 @@ class CodeViewElement extends HtmlElement implements Renderable {
 
   static String _codeKindToString(M.CodeKind kind) {
     switch (kind) {
-      case M.CodeKind.dart: return 'dart';
-      case M.CodeKind.native: return 'native';
-      case M.CodeKind.stub: return 'stub';
-      case M.CodeKind.tag: return 'tag';
-      case M.CodeKind.collected: return 'collected';
+      case M.CodeKind.dart:
+        return 'dart';
+      case M.CodeKind.native:
+        return 'native';
+      case M.CodeKind.stub:
+        return 'stub';
+      case M.CodeKind.tag:
+        return 'tag';
+      case M.CodeKind.collected:
+        return 'collected';
     }
     throw new Exception('Unkown CodeKind ($kind)');
   }

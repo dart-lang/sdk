@@ -7,8 +7,7 @@ import "package:expect/expect.dart";
 
 // Test for correct simple is-checks on hidden native classes.
 
-abstract class J {
-}
+abstract class J {}
 
 abstract class I extends J {
   I read();
@@ -20,16 +19,15 @@ abstract class I extends J {
 @Native("A")
 class A implements I {
   // The native class accepts only other native instances.
-  A read() native;
-  write(A x) native;
+  A read() native ;
+  write(A x) native ;
 }
 
 @Native("B")
-class B extends A {
-}
+class B extends A {}
 
-makeA() native;
-makeB() native;
+makeA() native ;
+makeB() native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
@@ -72,11 +70,11 @@ main() {
   Expect.isTrue(b1 is I);
   Expect.isTrue(b1 is A);
   Expect.isTrue(b1 is B);
-  Expect.isTrue(b1 is !C);
+  Expect.isTrue(b1 is! C);
 
   Expect.isTrue(a1 is J);
   Expect.isTrue(a1 is I);
   Expect.isTrue(a1 is A);
-  Expect.isTrue(a1 is !B);
-  Expect.isTrue(a1 is !C);
+  Expect.isTrue(a1 is! B);
+  Expect.isTrue(a1 is! C);
 }

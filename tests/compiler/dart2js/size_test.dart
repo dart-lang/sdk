@@ -26,13 +26,13 @@ const Map<String, String> DEFAULT_CORELIB_WITH_LIST = const <String, String>{
 };
 
 main() {
-  asyncTest(() => compileAll(TEST, coreSource: DEFAULT_CORELIB_WITH_LIST).
-      then((generated) {
-    return MockCompiler.create((MockCompiler compiler) {
-      var backend = compiler.backend;
+  asyncTest(() =>
+      compileAll(TEST, coreSource: DEFAULT_CORELIB_WITH_LIST).then((generated) {
+        return MockCompiler.create((MockCompiler compiler) {
+          var backend = compiler.backend;
 
-      // Make sure no class is emitted.
-      Expect.isFalse(generated.contains('finishClasses'));
-    });
-  }));
+          // Make sure no class is emitted.
+          Expect.isFalse(generated.contains('finishClasses'));
+        });
+      }));
 }

@@ -100,10 +100,14 @@ bool isIncrementOrDecrement(UnlinkedExprAssignOperator operator) {
  * build unit, and whose values are the corresponding
  * [LinkedLibraryBuilder]s.
  */
-Map<String, LinkedLibraryBuilder> link(Set<String> libraryUris,
-    GetDependencyCallback getDependency, GetUnitCallback getUnit, bool strong) {
+Map<String, LinkedLibraryBuilder> link(
+    Set<String> libraryUris,
+    GetDependencyCallback getDependency,
+    GetUnitCallback getUnit,
+    GetDeclaredVariable getDeclaredVariable,
+    bool strong) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
-      setupForLink(libraryUris, getUnit);
+      setupForLink(libraryUris, getUnit, getDeclaredVariable);
   relink(linkedLibraries, getDependency, getUnit, strong);
   return linkedLibraries;
 }
@@ -135,8 +139,8 @@ void relink(Map<String, LinkedLibraryBuilder> libraries,
  * the libraries in this build unit, and whose values are the corresponding
  * [LinkedLibraryBuilder]s.
  */
-Map<String, LinkedLibraryBuilder> setupForLink(
-    Set<String> libraryUris, GetUnitCallback getUnit) {
+Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
+    GetUnitCallback getUnit, GetDeclaredVariable getDeclaredVariable) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       <String, LinkedLibraryBuilder>{};
   for (String absoluteUri in libraryUris) {
@@ -146,7 +150,8 @@ Map<String, LinkedLibraryBuilder> setupForLink(
     linkedLibraries[absoluteUri] = prelink(
         getUnit(absoluteUri),
         getRelativeUnit,
-        (String relativeUri) => getRelativeUnit(relativeUri)?.publicNamespace);
+        (String relativeUri) => getRelativeUnit(relativeUri)?.publicNamespace,
+        getDeclaredVariable);
   }
   return linkedLibraries;
 }
@@ -2624,7 +2629,12 @@ class ExprTypeComputer {
         });
         // Perform inference.
         FunctionType inferred = ts.inferGenericFunctionCall(
-            typeProvider, rawMethodType, paramTypes, argTypes, null);
+            typeProvider,
+            rawMethodType,
+            paramTypes,
+            argTypes,
+            rawMethodType.returnType,
+            null);
         return inferred;
       }
     }
@@ -3405,8 +3415,16 @@ abstract class LibraryElementForLink<
    * Return the [LibraryElement] corresponding to the given dependency [index].
    */
   LibraryElementForLink _getDependency(int index) {
-    return _dependencies[index] ??= _linker.getLibrary(resolveRelativeUri(
-        _absoluteUri, Uri.parse(_linkedLibrary.dependencies[index].uri)));
+    LibraryElementForLink result = _dependencies[index];
+    if (result == null) {
+      String relativeUri = _linkedLibrary.dependencies[index].uri;
+      Uri absoluteUri = relativeUri.isEmpty
+          ? _absoluteUri
+          : resolveRelativeUri(_absoluteUri, Uri.parse(relativeUri));
+      result = _linker.getLibrary(absoluteUri);
+      _dependencies[index] = result;
+    }
+    return result;
   }
 
   /**
@@ -3901,6 +3919,9 @@ class ParameterElementForLink implements ParameterElementImpl {
   DartType _inferredType;
   DartType _declaredType;
 
+  @override
+  bool inheritsCovariant = false;
+
   ParameterElementForLink(this.enclosingElement, this._unlinkedParam,
       this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
     if (_unlinkedParam.initializer?.bodyExpr != null) {
@@ -3914,6 +3935,9 @@ class ParameterElementForLink implements ParameterElementImpl {
   @override
   bool get hasImplicitType =>
       !_unlinkedParam.isFunctionTyped && _unlinkedParam.type == null;
+
+  @override
+  bool get isCovariant => false;
 
   @override
   String get name => _unlinkedParam.name;
@@ -3983,7 +4007,13 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   @override
   final PropertyAccessorElementForLink_Variable enclosingElement;
 
+  @override
+  bool inheritsCovariant = false;
+
   ParameterElementForLink_VariableSetter(this.enclosingElement);
+
+  @override
+  bool get isCovariant => false;
 
   @override
   bool get isSynthetic => true;

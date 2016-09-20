@@ -21,7 +21,6 @@ main() {
         expect(options, isNotNull);
         expect(options.buildMode, isFalse);
         expect(options.buildAnalysisOutput, isNull);
-        expect(options.buildSummaryFallback, isFalse);
         expect(options.buildSummaryInputs, isEmpty);
         expect(options.buildSummaryOnly, isFalse);
         expect(options.buildSummaryOutput, isNull);
@@ -264,17 +263,6 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.sourceFiles, isEmpty);
   }
 
-  test_buildSummaryFallback() {
-    _parse([
-      '--build-mode',
-      '--build-summary-output=//path/to/output.sum',
-      '--build-summary-fallback',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart'
-    ]);
-    expect(options.buildMode, isTrue);
-    expect(options.buildSummaryFallback, isTrue);
-  }
-
   test_buildSummaryInputs_commaSeparated() {
     _parse([
       '--build-mode',
@@ -282,6 +270,16 @@ class CommandLineOptionsTest extends AbstractStatusTest {
       'package:p/foo.dart|/path/to/p/lib/foo.dart'
     ]);
     expect(options.buildMode, isTrue);
+    expect(
+        options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
+  }
+
+  test_buildSummaryInputs_commaSeparated_normalMode() {
+    _parse([
+      '--build-summary-input=/path/to/aaa.sum,/path/to/bbb.sum',
+      '/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isFalse);
     expect(
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
@@ -294,6 +292,17 @@ class CommandLineOptionsTest extends AbstractStatusTest {
       'package:p/foo.dart|/path/to/p/lib/foo.dart'
     ]);
     expect(options.buildMode, isTrue);
+    expect(
+        options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
+  }
+
+  test_buildSummaryInputs_separateFlags_normalMode() {
+    _parse([
+      '--build-summary-input=/path/to/aaa.sum',
+      '--build-summary-input=/path/to/bbb.sum',
+      'package:p/foo.dart|/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isFalse);
     expect(
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }

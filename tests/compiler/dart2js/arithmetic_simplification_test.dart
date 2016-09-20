@@ -41,7 +41,6 @@ void main() {
 }
 """;
 
-
 const String INT_TIMES_ONE = """
 int foo(x) => x;
 void main() {
@@ -81,13 +80,13 @@ main() {
   var oneTimes = new RegExp(r"1 \*");
 
   asyncTest(() => Future.wait([
-    compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero),
-    compileAndDoNotMatch(ZERO_PLUS_INT, 'main', zeroPlus),
-    compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero),
-    compileAndMatch(ZERO_PLUS_NUM, 'main', zeroPlus),
-    compileAndDoNotMatch(INT_TIMES_ONE, 'main', timesOne),
-    compileAndDoNotMatch(ONE_TIMES_INT, 'main', oneTimes),
-    compileAndDoNotMatch(NUM_TIMES_ONE, 'main', timesOne),
-    compileAndDoNotMatch(ONE_TIMES_NUM, 'main', oneTimes),
-  ]));
+        compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero),
+        compileAndDoNotMatch(ZERO_PLUS_INT, 'main', zeroPlus),
+        compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero),
+        compileAndMatch(ZERO_PLUS_NUM, 'main', zeroPlus),
+        compileAndDoNotMatch(INT_TIMES_ONE, 'main', timesOne),
+        compileAndDoNotMatch(ONE_TIMES_INT, 'main', oneTimes),
+        compileAndDoNotMatch(NUM_TIMES_ONE, 'main', timesOne),
+        compileAndDoNotMatch(ONE_TIMES_NUM, 'main', oneTimes),
+      ]));
 }

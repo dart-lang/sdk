@@ -16,16 +16,18 @@ class N {}
 
 class A extends N {}
 
-class B extends A with M {       // native mixin application.
+class B extends A with M {
+  // native mixin application.
 }
 
-class C extends Object with M {  // non-native mixin application.
+class C extends Object with M {
+  // non-native mixin application.
 }
 
-B makeB() native;
+B makeB() native ;
 
 @Creates('=Object')
-getBPrototype() native;
+getBPrototype() native ;
 
 void setup() native r"""
 function B() {}
@@ -55,10 +57,18 @@ isM(x) => x is M;
 asM(x) => x as M;
 setM(x) => gM = x;
 
-checkTrue(f) => (x) { Expect.isTrue(f(x)); };
-checkFalse(f) => (x) { Expect.isFalse(f(x)); };
-checkId(f) => (x) { Expect.identical(x, f(x)); };
-checkThrows(f) => (x) { Expect.throws(() => f(x)); };
+checkTrue(f) => (x) {
+      Expect.isTrue(f(x));
+    };
+checkFalse(f) => (x) {
+      Expect.isFalse(f(x));
+    };
+checkId(f) => (x) {
+      Expect.identical(x, f(x));
+    };
+checkThrows(f) => (x) {
+      Expect.throws(() => f(x));
+    };
 
 bool get checkedMode {
   try {
@@ -78,7 +88,6 @@ main() {
   B b = makeB();
   C c = new C();
 
-
   checkFalse(isA)(1);
   checkFalse(isB)(1);
   checkFalse(isC)(1);
@@ -94,7 +103,6 @@ main() {
   checkFalse(isA)(c);
   checkFalse(isB)(c);
 
-
   checkThrows(asA)(1);
   checkThrows(asB)(1);
   checkThrows(asC)(1);
@@ -109,7 +117,6 @@ main() {
   checkId(asM)(c);
   checkThrows(asA)(c);
   checkThrows(asB)(c);
-
 
   if (checkedMode) {
     checkThrows(setA)(1);

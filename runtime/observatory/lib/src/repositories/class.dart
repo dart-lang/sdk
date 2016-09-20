@@ -10,6 +10,7 @@ class ClassRepository extends M.ClassRepository {
     assert(isolate != null);
     return isolate.getClassHierarchy();
   }
+
   Future<M.Class> get(M.IsolateRef i, String id) async {
     final isolate = i as S.Isolate;
     assert(isolate != null);

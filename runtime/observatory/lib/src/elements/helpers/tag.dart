@@ -8,10 +8,11 @@ import 'dart:html';
 class Tag<T extends HtmlElement> {
   /// Tag name.
   final String name;
+
   /// Dependend tags that need to be registred for this tag to work properly.
   final Iterable<Tag> dependencies;
 
-  const Tag(this.name, {this.dependencies : const []});
+  const Tag(this.name, {this.dependencies: const []});
 
   static final Map<Type, String> _tagByClass = <Type, String>{};
   static final Map<String, Type> _classByTag = <String, Type>{};

@@ -1147,6 +1147,11 @@
             },
           },
         }],
+        ['OS == "linux" and asan == 0', {
+          'dependencies': [
+            '../third_party/tcmalloc/tcmalloc.gypi:tcmalloc',
+          ],
+        }],
       ],
       'configurations': {
         'Dart_Linux_Base': {
@@ -1392,6 +1397,11 @@
           'link_settings': {
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
+        }],
+        ['OS == "linux" and asan == 0', {
+          'dependencies': [
+            '../third_party/tcmalloc/tcmalloc.gypi:tcmalloc',
+          ],
         }],
       ],
       'configurations': {

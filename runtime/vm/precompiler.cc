@@ -389,6 +389,7 @@ void Precompiler::DoCompileAll(
       I->object_store()->set_completer_class(null_class);
       I->object_store()->set_stream_iterator_class(null_class);
       I->object_store()->set_symbol_class(null_class);
+      I->object_store()->set_compiletime_error_class(null_class);
     }
     DropClasses();
     DropLibraries();
@@ -396,8 +397,9 @@ void Precompiler::DoCompileAll(
     BindStaticCalls();
     SwitchICCalls();
 
+    ShareMegamorphicBuckets();
     DedupStackmaps();
-    DedupStackmapLists();
+    DedupLists();
 
     if (FLAG_dedup_instructions) {
       // Reduces binary size but obfuscates profiler results.
@@ -2152,6 +2154,29 @@ void Precompiler::SwitchICCalls() {
 }
 
 
+void Precompiler::ShareMegamorphicBuckets() {
+  const GrowableObjectArray& table = GrowableObjectArray::Handle(Z,
+      I->object_store()->megamorphic_cache_table());
+  if (table.IsNull()) return;
+  MegamorphicCache& cache = MegamorphicCache::Handle(Z);
+
+  const intptr_t capacity = 1;
+  const Array& buckets = Array::Handle(Z,
+      Array::New(MegamorphicCache::kEntryLength * capacity, Heap::kOld));
+  const Function& handler =
+      Function::Handle(Z, MegamorphicCacheTable::miss_handler(I));
+  MegamorphicCache::SetEntry(buckets, 0,
+                             MegamorphicCache::smi_illegal_cid(), handler);
+
+  for (intptr_t i = 0; i < table.Length(); i++) {
+    cache ^= table.At(i);
+    cache.set_buckets(buckets);
+    cache.set_mask(capacity - 1);
+    cache.set_filled_entry_count(0);
+  }
+}
+
+
 void Precompiler::DedupStackmaps() {
   class DedupStackmapsVisitor : public FunctionVisitor {
    public:
@@ -2202,50 +2227,73 @@ void Precompiler::DedupStackmaps() {
 }
 
 
-void Precompiler::DedupStackmapLists() {
-  class DedupStackmapListsVisitor : public FunctionVisitor {
+void Precompiler::DedupLists() {
+  class DedupListsVisitor : public FunctionVisitor {
    public:
-    explicit DedupStackmapListsVisitor(Zone* zone) :
+    explicit DedupListsVisitor(Zone* zone) :
       zone_(zone),
-      canonical_stackmap_lists_(),
+      canonical_lists_(),
       code_(Code::Handle(zone)),
-      stackmaps_(Array::Handle(zone)),
-      stackmap_(Stackmap::Handle(zone)) {
+      list_(Array::Handle(zone)) {
     }
 
     void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
       code_ = function.CurrentCode();
-      stackmaps_ = code_.stackmaps();
-      if (stackmaps_.IsNull()) return;
+      if (!code_.IsNull()) {
+        list_ = code_.stackmaps();
+        if (!list_.IsNull()) {
+          list_ = DedupList(list_);
+          code_.set_stackmaps(list_);
+        }
+      }
 
-      stackmaps_ = DedupStackmapList(stackmaps_);
-      code_.set_stackmaps(stackmaps_);
+      list_ = function.parameter_types();
+      if (!list_.IsNull()) {
+        if (!function.IsSignatureFunction() &&
+            !function.IsClosureFunction() &&
+            (function.name() != Symbols::Call().raw()) &&
+            !list_.InVMHeap()) {
+          // Parameter types not needed for function type tests.
+          for (intptr_t i = 0; i < list_.Length(); i++) {
+            list_.SetAt(i, Object::dynamic_type());
+          }
+        }
+        list_ = DedupList(list_);
+        function.set_parameter_types(list_);
+      }
+
+      list_ = function.parameter_names();
+      if (!list_.IsNull()) {
+        if (!function.HasOptionalNamedParameters() &&
+            !list_.InVMHeap()) {
+          // Parameter names not needed for resolution.
+          for (intptr_t i = 0; i < list_.Length(); i++) {
+            list_.SetAt(i, Symbols::OptimizedOut());
+          }
+        }
+        list_ = DedupList(list_);
+        function.set_parameter_names(list_);
+      }
     }
 
-    RawArray* DedupStackmapList(const Array& stackmaps) {
-      const Array* canonical_stackmap_list =
-          canonical_stackmap_lists_.LookupValue(&stackmaps);
-      if (canonical_stackmap_list == NULL) {
-        canonical_stackmap_lists_.Insert(
-            &Array::ZoneHandle(zone_, stackmaps.raw()));
-        return stackmaps.raw();
+    RawArray* DedupList(const Array& list) {
+      const Array* canonical_list = canonical_lists_.LookupValue(&list);
+      if (canonical_list == NULL) {
+        canonical_lists_.Insert(&Array::ZoneHandle(zone_, list.raw()));
+        return list.raw();
       } else {
-        return canonical_stackmap_list->raw();
+        return canonical_list->raw();
       }
     }
 
    private:
     Zone* zone_;
-    ArraySet canonical_stackmap_lists_;
+    ArraySet canonical_lists_;
     Code& code_;
-    Array& stackmaps_;
-    Stackmap& stackmap_;
+    Array& list_;
   };
 
-  DedupStackmapListsVisitor visitor(Z);
+  DedupListsVisitor visitor(Z);
   VisitFunctions(&visitor);
 }
 

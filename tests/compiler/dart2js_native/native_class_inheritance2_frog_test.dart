@@ -12,26 +12,24 @@ import "package:expect/expect.dart";
 
 @Native("A")
 class A {
-  foo([a=100]) native;
+  foo([a = 100]) native ;
 }
 
 @Native("B")
-class B extends A {
-}
+class B extends A {}
 
 @Native("C")
 class C extends B {
-  foo([z=300]) native;
+  foo([z = 300]) native ;
 }
 
 @Native("D")
-class D extends C {
-}
+class D extends C {}
 
-makeA() native;
-makeB() native;
-makeC() native;
-makeD() native;
+makeA() native ;
+makeB() native ;
+makeC() native ;
+makeD() native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
@@ -62,7 +60,6 @@ makeB = function(){return new B};
 makeC = function(){return new C};
 makeD = function(){return new D};
 """;
-
 
 main() {
   setup();

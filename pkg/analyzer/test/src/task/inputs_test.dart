@@ -123,7 +123,7 @@ class ConstantTaskInputTest extends EngineTestCase {
 @reflectiveTest
 class ListTaskInputImplTest extends EngineTestCase {
   static final AnalysisTarget target = new TestSource();
-  static final result1 =
+  static final ResultDescriptor<List<AnalysisTarget>> result1 =
       new ResultDescriptorImpl<List<AnalysisTarget>>('result1', null);
   static final result2 = new ResultDescriptorImpl<int>('result2', null);
 
@@ -897,7 +897,7 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
 
   test_currentResult_afterTwoMoveNext_withConstantInput() {
     ConstantTaskInput<int> constantInput = new ConstantTaskInput<int>(11);
-    Map<String, TaskInput> inputDescriptors = {
+    Map<String, TaskInput> inputDescriptors = <String, TaskInput>{
       'one': input1,
       'constant': constantInput,
       'two': input2
@@ -947,7 +947,7 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
 
   test_currentTarget_afterTwoMoveNext_withConstantInput() {
     ConstantTaskInput<int> constantInput = new ConstantTaskInput<int>(11);
-    Map<String, TaskInput> inputDescriptors = {
+    Map<String, TaskInput> inputDescriptors = <String, TaskInput>{
       'one': input1,
       'constant': constantInput,
       'two': input2

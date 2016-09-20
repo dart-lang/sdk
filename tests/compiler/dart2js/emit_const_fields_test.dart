@@ -20,8 +20,7 @@ main() {
 
 main() {
   asyncTest(() => compileAll(TEST_GUIDE).then((generated) {
-    Expect.isTrue(generated.contains("42"));
-    Expect.isFalse(generated.contains("TITLE"));
-  }));
+        Expect.isTrue(generated.contains("42"));
+        Expect.isFalse(generated.contains("TITLE"));
+      }));
 }
-

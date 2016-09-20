@@ -15,7 +15,7 @@ class TooHigh {
   static load1() {
     var a = confuse(true) ? 'AB' : 'ABCDE';
     try {
-      return confuse(a)[3];  // dynamic receiver for indexer.
+      return confuse(a)[3]; // dynamic receiver for indexer.
     } catch (e) {
       return e;
     }
@@ -30,9 +30,10 @@ class TooHigh {
     }
     Expect.fail('unreached');
   }
+
   static load2x(i) {
     var a = confuse(true) ? 'AB' : 'ABCDE';
-    return a[i];  // 'a' is String of unknown length.
+    return a[i]; // 'a' is String of unknown length.
   }
 
   static test() {
@@ -47,7 +48,7 @@ class Negative {
   static load1() {
     var a = confuse(true) ? 'AB' : 'ABCDE';
     try {
-      return confuse(a)[-3];  // dynamic receiver for indexer.
+      return confuse(a)[-3]; // dynamic receiver for indexer.
     } catch (e) {
       return e;
     }
@@ -62,9 +63,10 @@ class Negative {
     }
     Expect.fail('unreached');
   }
+
   static load2x(i) {
     var a = confuse(true) ? 'AB' : 'ABCDE';
-    return a[i];  // 'a' is String of unknown length.
+    return a[i]; // 'a' is String of unknown length.
   }
 
   static test() {
@@ -79,7 +81,7 @@ class Empty {
   static load1() {
     var a = confuse(true) ? '' : 'ABCDE';
     try {
-      return confuse(a)[-3];  // dynamic receiver for indexer.
+      return confuse(a)[-3]; // dynamic receiver for indexer.
     } catch (e) {
       return e;
     }
@@ -94,9 +96,10 @@ class Empty {
     }
     Expect.fail('unreached');
   }
+
   static load2x(i) {
     var a = confuse(true) ? '' : 'ABCDE';
-    return a[i];  // 'a' is String of unknown length.
+    return a[i]; // 'a' is String of unknown length.
   }
 
   static test() {
@@ -111,7 +114,7 @@ class BadType {
   static load1() {
     var a = confuse(true) ? 'AB' : 'ABCDE';
     try {
-      return confuse(a)['a'];  // dynamic receiver for indexer.
+      return confuse(a)['a']; // dynamic receiver for indexer.
     } catch (e) {
       return e;
     }
@@ -126,9 +129,10 @@ class BadType {
     }
     Expect.fail('unreached');
   }
+
   static load2x(i) {
     var a = confuse(true) ? 'AB' : 'ABCDE';
-    return a[i];  // 'a' is String of unknown length.
+    return a[i]; // 'a' is String of unknown length.
   }
 
   static test() {

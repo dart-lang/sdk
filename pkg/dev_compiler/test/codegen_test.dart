@@ -170,7 +170,7 @@ void _writeModule(String outPath, String expectPath, ModuleFormat format,
   if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
   new File(outPath + '.txt').writeAsStringSync(errors);
 
-  result.writeCodeSync(format, outPath + '.js');
+  result.writeCodeSync(format, false, outPath + '.js');
 
   if (result.summaryBytes != null) {
     new File(outPath + '.sum').writeAsBytesSync(result.summaryBytes);
@@ -184,7 +184,7 @@ void _writeModule(String outPath, String expectPath, ModuleFormat format,
 
     var expectFile = new File(expectPath + '.js');
     if (result.isValid) {
-      result.writeCodeSync(format, expectFile.path);
+      result.writeCodeSync(format, false, expectFile.path);
     } else {
       expectFile.writeAsStringSync("//FAILED TO COMPILE");
     }

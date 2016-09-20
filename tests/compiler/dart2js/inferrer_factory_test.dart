@@ -24,9 +24,8 @@ main() {
 
 main() {
   asyncTest(() => compileAll(TEST1).then((generated) {
-    // Check that we're using the index operator on the object returned
-    // by the A factory.
-    Expect.isTrue(generated.contains('[0] = 42'));
-  }));
+        // Check that we're using the index operator on the object returned
+        // by the A factory.
+        Expect.isTrue(generated.contains('[0] = 42'));
+      }));
 }
-

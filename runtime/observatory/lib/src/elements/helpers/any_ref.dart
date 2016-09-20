@@ -25,11 +25,14 @@ import 'package:observatory/src/elements/type_arguments_ref.dart';
 import 'package:observatory/src/elements/token_stream_ref.dart';
 import 'package:observatory/src/elements/unknown_ref.dart';
 
-Element anyRef(M.IsolateRef isolate, ref,
-    M.InstanceRepository instances, {RenderingQueue queue}) {
+Element anyRef(M.IsolateRef isolate, ref, M.InstanceRepository instances,
+    {RenderingQueue queue}) {
   if (ref is M.Guarded) {
-    return anyRef(isolate, ref.asSentinel ?? ref.asValue, instances,
-        queue: queue);
+    if (ref.isSentinel) {
+      return anyRef(isolate, ref.asSentinel, instances, queue: queue);
+    } else {
+      return anyRef(isolate, ref.asValue, instances, queue: queue);
+    }
   } else if (ref is M.ObjectRef) {
     if (ref is M.ClassRef) {
       return new ClassRefElement(isolate, ref, queue: queue);
@@ -37,11 +40,11 @@ Element anyRef(M.IsolateRef isolate, ref,
       return new CodeRefElement(isolate, ref, queue: queue);
     } else if (ref is M.ContextRef) {
       return new ContextRefElement(isolate, ref, queue: queue);
-    } else if (ref is M.Error ) {
+    } else if (ref is M.Error) {
       return new ErrorRefElement(ref, queue: queue);
     } else if (ref is M.FieldRef) {
       return new FieldRefElement(isolate, ref, instances, queue: queue);
-    }  else if (ref is M.FunctionRef) {
+    } else if (ref is M.FunctionRef) {
       return new FunctionRefElement(isolate, ref, queue: queue);
     } else if (ref is M.ICDataRef) {
       return new ICDataRefElement(isolate, ref, queue: queue);
@@ -72,5 +75,5 @@ Element anyRef(M.IsolateRef isolate, ref,
   } else if (ref is M.Sentinel) {
     return new SentinelValueElement(ref, queue: queue);
   }
-  throw new Exception('Unknown runtimeType (${ref.runtimeType})');
+  throw new Exception('Unknown ref type (${ref.runtimeType})');
 }

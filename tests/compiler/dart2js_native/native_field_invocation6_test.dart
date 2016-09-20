@@ -5,8 +5,8 @@
 import "dart:_js_helper";
 import "package:expect/expect.dart";
 
-makeA() native;
-nativeFirst(x, y) native;
+makeA() native ;
+nativeFirst(x, y) native ;
 
 void setup() native """
 nativeFirst = function(x, y) { return x; }
@@ -14,7 +14,6 @@ nativeFirst = function(x, y) { return x; }
 function A() {}
 makeA = function() { return new A; }
 """;
-
 
 @Native("A")
 class A {

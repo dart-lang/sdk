@@ -44,7 +44,7 @@ main() {
     element = compiler.mainApp.find('d');
     var mask4 = typesInferrer.getReturnTypeOfElement(element);
 
-    Expect.notEquals(mask1.union(mask2, compiler.world),
-                     mask3.union(mask4, compiler.world));
+    Expect.notEquals(
+        mask1.union(mask2, compiler.world), mask3.union(mask4, compiler.world));
   });
 }

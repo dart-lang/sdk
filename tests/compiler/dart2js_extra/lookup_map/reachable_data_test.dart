@@ -5,17 +5,27 @@
 import 'package:lookup_map/lookup_map.dart';
 import 'package:expect/expect.dart';
 
-class A{}
-class B{}
-class C{}
-class D{}
-class E{}
+class A {}
+
+class B {}
+
+class C {}
+
+class D {}
+
+class E {}
+
 const map = const LookupMap(const [
-    A, const ["the-text-for-A", B],
-    B, const ["the-text-for-B", C],
-    C, const ["the-text-for-C"],
-    D, const ["the-text-for-D", E],
-    E, const ["the-text-for-E"],
+  A,
+  const ["the-text-for-A", B],
+  B,
+  const ["the-text-for-B", C],
+  C,
+  const ["the-text-for-C"],
+  D,
+  const ["the-text-for-D", E],
+  E,
+  const ["the-text-for-E"],
 ]);
 main() {
   Expect.equals(map[map[A][1]][0], 'the-text-for-B');

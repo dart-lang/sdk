@@ -2483,8 +2483,6 @@ void Class::set_super_type(const AbstractType& value) const {
 }
 
 
-// Return a TypeParameter if the type_name is a type parameter of this class.
-// Return null otherwise.
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   ASSERT(!type_name.IsNull());
   Thread* thread = Thread::Current();
@@ -5299,9 +5297,13 @@ bool Function::HasCode() const {
 
 
 void Function::ClearCode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(Thread::Current()->IsMutatorThread());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+#endif
 }
 
 
@@ -5373,9 +5375,13 @@ void Function::SwitchToLazyCompiledUnoptimizedCode() const {
 
 
 void Function::set_unoptimized_code(const Code& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(value.IsNull() || !value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
+#endif
 }
 
 
@@ -5495,6 +5501,12 @@ RawFunction* Function::parent_function() const {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
     return ClosureData::Cast(obj).parent_function();
+  } else if (IsSignatureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    // Parent function may be null or data_ may already be set to function type.
+    if (!obj.IsNull() && obj.IsFunction()) {
+      return Function::Cast(obj).raw();
+    }
   }
   return Function::null();
 }
@@ -5505,6 +5517,9 @@ void Function::set_parent_function(const Function& value) const {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
     ClosureData::Cast(obj).set_parent_function(value);
+    return;
+  } else if (IsSignatureFunction()) {
+    set_data(value);  // Temporarily set during parsing only.
     return;
   }
   UNREACHABLE();
@@ -5853,6 +5868,61 @@ void Function::set_parameter_names(const Array& value) const {
 }
 
 
+void Function::set_type_parameters(const TypeArguments& value) const {
+  StorePointer(&raw_ptr()->type_parameters_, value.raw());
+}
+
+
+intptr_t Function::NumTypeParameters(Thread* thread) const {
+  if (type_parameters() == TypeArguments::null()) {
+    return 0;
+  }
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  TypeArguments& type_params = thread->TypeArgumentsHandle();
+  type_params = type_parameters();
+  return type_params.Length();
+}
+
+
+RawTypeParameter* Function::LookupTypeParameter(
+    const String& type_name, intptr_t* function_level) const {
+  ASSERT(!type_name.IsNull());
+  Thread* thread = Thread::Current();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  TypeArguments& type_params = thread->TypeArgumentsHandle();
+  TypeParameter&  type_param = thread->TypeParameterHandle();
+  String& type_param_name = thread->StringHandle();
+  Function& function = thread->FunctionHandle();
+
+  function ^= this->raw();
+  intptr_t parent_level = -1;
+  while (!function.IsNull()) {
+    type_params ^= function.type_parameters();
+    if (!type_params.IsNull()) {
+      parent_level++;
+      const intptr_t num_type_params = type_params.Length();
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type_param ^= type_params.TypeAt(i);
+        type_param_name = type_param.name();
+        if (type_param_name.Equals(type_name)) {
+          if (parent_level > 0) {
+            // TODO(regis): Clone type parameter and set parent_level.
+          }
+          return type_param.raw();
+        }
+      }
+    }
+    function ^= function.parent_function();
+    if (function_level != NULL) {
+      (*function_level)--;
+    }
+  }
+  return TypeParameter::null();
+}
+
+
 void Function::set_kind(RawFunction::Kind value) const {
   set_kind_tag(KindBits::update(value, raw_ptr()->kind_tag_));
 }
@@ -5871,8 +5941,12 @@ void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
 
 
 void Function::set_token_pos(TokenPosition token_pos) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(!token_pos.IsClassifying() || IsMethodExtractor());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
+#endif
 }
 
 
@@ -6527,16 +6601,16 @@ RawFunction* Function::New(const String& name,
   result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
-  result.set_was_compiled(false);
+  NOT_IN_PRECOMPILED(result.set_was_compiled(false));
   result.set_owner(owner);
-  result.set_token_pos(token_pos);
-  result.set_end_token_pos(token_pos);
+  NOT_IN_PRECOMPILED(result.set_token_pos(token_pos));
+  NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));
   result.set_num_fixed_parameters(0);
   result.set_num_optional_parameters(0);
-  result.set_usage_counter(0);
-  result.set_deoptimization_counter(0);
-  result.set_optimized_instruction_count(0);
-  result.set_optimized_call_site_count(0);
+  NOT_IN_PRECOMPILED(result.set_usage_counter(0));
+  NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
+  NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
+  NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
@@ -12599,8 +12673,12 @@ void ICData::set_arguments_descriptor(const Array& value) const {
 
 
 void ICData::set_deopt_id(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(value <= kMaxInt32);
   StoreNonPointer(&raw_ptr()->deopt_id_, value);
+#endif
 }
 
 
@@ -13512,7 +13590,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
   result.set_owner(owner);
   result.set_target_name(target_name);
   result.set_arguments_descriptor(arguments_descriptor);
-  result.set_deopt_id(deopt_id);
+  NOT_IN_PRECOMPILED(result.set_deopt_id(deopt_id));
   result.set_state_bits(0);
 #if defined(TAG_IC_DATA)
   result.set_tag(-1);
@@ -13700,13 +13778,21 @@ void Code::set_stackmaps(const Array& maps) const {
 
 
 void Code::set_deopt_info_array(const Array& array) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(array.IsOld());
   StorePointer(&raw_ptr()->deopt_info_array_, array.raw());
+#endif
 }
 
 
 void Code::set_static_calls_target_table(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   StorePointer(&raw_ptr()->static_calls_target_table_, value.raw());
+#endif
 #if defined(DEBUG)
   // Check that the table is sorted by pc offsets.
   // FlowGraphCompiler::AddStaticCallTarget adds pc-offsets to the table while
@@ -13769,6 +13855,9 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
 
 
 intptr_t Code::BinarySearchInSCallTable(uword pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   NoSafepointScope no_safepoint;
   const Array& table = Array::Handle(raw_ptr()->static_calls_target_table_);
   RawObject* key = reinterpret_cast<RawObject*>(Smi::New(pc - PayloadStart()));
@@ -13786,11 +13875,16 @@ intptr_t Code::BinarySearchInSCallTable(uword pc) const {
       return real_index;
     }
   }
+#endif
   return -1;
 }
 
 
 RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return Function::null();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   if (i < 0) {
     return Function::null();
@@ -13800,10 +13894,15 @@ RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
   Function& function = Function::Handle();
   function ^= array.At(i + kSCallTableFunctionEntry);
   return function.raw();
+#endif
 }
 
 
 RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return Code::null();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   if (i < 0) {
     return Code::null();
@@ -13813,10 +13912,14 @@ RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
   Code& code = Code::Handle();
   code ^= array.At(i + kSCallTableCodeEntry);
   return code.raw();
+#endif
 }
 
 
 void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   ASSERT(i >= 0);
   const Array& array =
@@ -13824,10 +13927,14 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
   ASSERT(code.IsNull() ||
          (code.function() == array.At(i + kSCallTableFunctionEntry)));
   array.SetAt(i + kSCallTableCodeEntry, code);
+#endif
 }
 
 
 void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   ASSERT(i >= 0);
   const Array& array =
@@ -13841,6 +13948,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
   }
 #endif
   array.SetAt(i + kSCallTableCodeEntry, code);
+#endif
 }
 
 
@@ -13861,26 +13969,41 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
 
 
 const Code::Comments& Code::comments() const  {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Comments* comments = new Code::Comments(Array::Handle());
+#else
   Comments* comments = new Code::Comments(Array::Handle(raw_ptr()->comments_));
+#endif
   return *comments;
 }
 
 
 void Code::set_comments(const Code::Comments& comments) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(comments.comments_.IsOld());
   StorePointer(&raw_ptr()->comments_, comments.comments_.raw());
+#endif
 }
 
 
 void Code::SetPrologueOffset(intptr_t offset) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(offset >= 0);
   StoreSmi(
       reinterpret_cast<RawSmi* const *>(&raw_ptr()->return_address_metadata_),
       Smi::New(offset));
+#endif
 }
 
 
 intptr_t Code::GetPrologueOffset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return -1;
+#else
   const Object& object = Object::Handle(raw_ptr()->return_address_metadata_);
   // In the future we may put something other than a smi in
   // |return_address_metadata_|.
@@ -13888,20 +14011,28 @@ intptr_t Code::GetPrologueOffset() const {
     return -1;
   }
   return Smi::Cast(object).Value();
+#endif
 }
 
 
 RawArray* Code::GetInlinedIntervals() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedIntervalsIndex));
+#endif
 }
 
 
 void Code::SetInlinedIntervals(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13911,20 +14042,28 @@ void Code::SetInlinedIntervals(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedIntervalsIndex, value);
+#endif
 }
 
 
 RawArray* Code::GetInlinedIdToFunction() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedIdToFunctionIndex));
+#endif
 }
 
 
 void Code::SetInlinedIdToFunction(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13934,20 +14073,28 @@ void Code::SetInlinedIdToFunction(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedIdToFunctionIndex, value);
+#endif
 }
 
 
 RawArray* Code::GetInlinedIdToTokenPos() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedIdToTokenPosIndex));
+#endif
 }
 
 
 void Code::SetInlinedIdToTokenPos(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13957,20 +14104,28 @@ void Code::SetInlinedIdToTokenPos(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedIdToTokenPosIndex, value);
+#endif
 }
 
 
 RawArray* Code::GetInlinedCallerIdMap() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedCallerIdMapIndex));
+#endif
 }
 
 
 void Code::SetInlinedCallerIdMap(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13980,6 +14135,7 @@ void Code::SetInlinedCallerIdMap(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedCallerIdMapIndex, value);
+#endif
 }
 
 
@@ -14296,6 +14452,9 @@ void Code::DisableStubCode() const {
 
 
 void Code::SetActiveInstructions(RawInstructions* instructions) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
@@ -14304,6 +14463,7 @@ void Code::SetActiveInstructions(RawInstructions* instructions) const {
                   Instructions::UncheckedEntryPoint(instructions));
   StoreNonPointer(&raw_ptr()->checked_entry_point_,
                   Instructions::CheckedEntryPoint(instructions));
+#endif
 }
 
 
@@ -15351,11 +15511,11 @@ RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
   const Class& cls = Class::Handle(zone, this->clazz());
   {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    result ^= cls.LookupCanonicalInstance(zone, *this);
+    if (!result.IsNull()) {
+      return result.raw();
+    }
     if (IsNew()) {
-      result ^= cls.LookupCanonicalInstance(zone, *this);
-      if (!result.IsNull()) {
-        return result.raw();
-      }
       ASSERT((isolate == Dart::vm_isolate()) || !InVMHeap());
       // Create a canonical object in old space.
       result ^= Object::Clone(*this, Heap::kOld);
@@ -15377,12 +15537,6 @@ bool Instance::CheckIsCanonical(Thread* thread) const {
   const Class& cls = Class::Handle(zone, this->clazz());
   SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
   result ^= cls.LookupCanonicalInstance(zone, *this);
-  // TODO(johnmccutchan) : Temporary workaround for issue (26988).
-  if ((result.raw() != raw()) &&
-      isolate->HasAttemptedReload() &&
-      (GetClassId() == kImmutableArrayCid)) {
-    return true;
-  }
   return (result.raw() == this->raw());
 }
 #endif  // DEBUG
@@ -17610,6 +17764,11 @@ RawClass* TypeParameter::parameterized_class() const {
 }
 
 
+void TypeParameter::set_parameterized_function(const Function& value) const {
+  StorePointer(&raw_ptr()->parameterized_function_, value.raw());
+}
+
+
 void TypeParameter::set_index(intptr_t value) const {
   ASSERT(value >= 0);
   ASSERT(Utils::IsInt(16, value));
@@ -17720,6 +17879,7 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
   }
   // No need to clone bound, as it is not part of the finalization state.
   return TypeParameter::New(Class::Handle(parameterized_class()),
+                            Function::Handle(parameterized_function()),
                             index(),
                             String::Handle(name()),
                             AbstractType::Handle(bound()),
@@ -17739,7 +17899,9 @@ RawAbstractType* TypeParameter::CloneUninstantiated(
   const intptr_t new_index = index() +
       new_owner.NumTypeArguments() - old_owner.NumTypeArguments();
   AbstractType& upper_bound = AbstractType::Handle(bound());
+  ASSERT(parameterized_function() == Function::null());
   clone = TypeParameter::New(new_owner,
+                             Function::Handle(),
                              new_index,
                              String::Handle(name()),
                              upper_bound,  // Not cloned yet.
@@ -17790,12 +17952,15 @@ RawTypeParameter* TypeParameter::New() {
 
 
 RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
+                                     const Function& parameterized_function,
                                      intptr_t index,
                                      const String& name,
                                      const AbstractType& bound,
                                      TokenPosition token_pos) {
+  ASSERT(parameterized_class.IsNull() != parameterized_function.IsNull());
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
   result.set_parameterized_class(parameterized_class);
+  result.set_parameterized_function(parameterized_function);
   result.set_index(index);
   result.set_name(name);
   result.set_bound(bound);
@@ -21417,6 +21582,7 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
 
 uword Array::ComputeCanonicalTableHash() const {
   ASSERT(!IsNull());
+  NoSafepointScope no_safepoint;
   intptr_t len = Length();
   uword hash = len;
   uword value = reinterpret_cast<uword>(GetTypeArguments());

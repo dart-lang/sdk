@@ -13,15 +13,12 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 
 class InboundReferencesElement extends HtmlElement implements Renderable {
   static const tag = const Tag<InboundReferencesElement>('inbound-references',
-    dependencies: const [
-        CurlyBlockElement.tag,
-        InstanceRefElement.tag
-    ]);
+      dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
 
   RenderingScheduler<InboundReferencesElement> _r;
 
   Stream<RenderedEvent<InboundReferencesElement>> get onRendered =>
-    _r.onRendered;
+      _r.onRendered;
 
   M.IsolateRef _isolate;
   M.ObjectRef _object;
@@ -97,30 +94,27 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
     if (reference.parentField != null) {
       content.addAll([
         new SpanElement()..text = 'from ',
-        anyRef(_isolate, reference.parentField, _instances,
-                            queue: _r.queue),
+        anyRef(_isolate, reference.parentField, _instances, queue: _r.queue),
         new SpanElement()..text = ' of '
       ]);
     } else if (reference.parentListIndex != null) {
-      content.add(
-        new SpanElement()
-          ..text = 'from [ ${reference.parentListIndex} ] of '
-      );
+      content.add(new SpanElement()
+        ..text = 'from [ ${reference.parentListIndex} ] of ');
     } else if (reference.parentWordOffset != null) {
-      content.add(
-        new SpanElement()
-          ..text = 'from word [ ${reference.parentWordOffset} ] of '
-      );
+      content.add(new SpanElement()
+        ..text = 'from word [ ${reference.parentWordOffset} ] of ');
     }
 
     content.addAll([
       anyRef(_isolate, reference.source, _instances, queue: _r.queue),
       new SpanElement()..text = ' referenced by ',
-      new InboundReferencesElement(_isolate, reference.source, _references,
-                                   _instances, queue: _r.queue )
+      new InboundReferencesElement(
+          _isolate, reference.source, _references, _instances,
+          queue: _r.queue)
     ]);
 
-    return new DivElement()..classes = ['indent']
-             ..children = content;
+    return new DivElement()
+      ..classes = ['indent']
+      ..children = content;
   }
 }

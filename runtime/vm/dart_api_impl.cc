@@ -184,6 +184,21 @@ static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
 }
 
 
+static bool IsCompiletimeErrorObject(Zone* zone, const Object& obj) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // All compile-time errors were handled at snapshot generation time and
+  // compiletime_error_class was removed.
+  return false;
+#else
+  Isolate* I = Thread::Current()->isolate();
+  const Class& error_class =
+      Class::Handle(zone, I->object_store()->compiletime_error_class());
+  ASSERT(!error_class.IsNull());
+  return (obj.GetClassId() == error_class.id());
+#endif
+}
+
+
 static bool GetNativeStringArgument(NativeArguments* arguments,
                                     int arg_index,
                                     Dart_Handle* str,
@@ -761,6 +776,13 @@ DART_EXPORT bool Dart_IsUnhandledExceptionError(Dart_Handle object) {
 
 
 DART_EXPORT bool Dart_IsCompilationError(Dart_Handle object) {
+  if (::Dart_IsUnhandledExceptionError(object)) {
+    DARTSCOPE(Thread::Current());
+    const UnhandledException& error =
+        UnhandledException::Cast(Object::Handle(Z, Api::UnwrapHandle(object)));
+    const Instance& exc = Instance::Handle(Z, error.exception());
+    return IsCompiletimeErrorObject(Z, exc);
+  }
   return Api::ClassId(object) == kLanguageErrorCid;
 }
 
@@ -1451,11 +1473,11 @@ DART_EXPORT void Dart_SetStickyError(Dart_Handle error) {
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
-  if (isolate->sticky_error() != Error::null()) {
+  if ((isolate->sticky_error() != Error::null()) && !::Dart_IsNull(error)) {
     FATAL1("%s expects there to be no sticky error.", CURRENT_FUNC);
   }
-  if (!::Dart_IsUnhandledExceptionError(error)) {
-    FATAL1("%s expects the error to be an unhandled exception error.",
+  if (!::Dart_IsUnhandledExceptionError(error) && !::Dart_IsNull(error)) {
+    FATAL1("%s expects the error to be an unhandled exception error or null.",
             CURRENT_FUNC);
   }
   isolate->SetStickyError(
@@ -1468,6 +1490,19 @@ DART_EXPORT bool Dart_HasStickyError() {
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->sticky_error() != Error::null();
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetStickyError() {
+  Isolate* I = Isolate::Current();
+  CHECK_ISOLATE(I);
+  NoSafepointScope no_safepoint_scope;
+  if (I->sticky_error() != Object::null()) {
+    Dart_Handle error =
+        Api::NewHandle(Thread::Current(), I->sticky_error());
+    return error;
+  }
+  return Dart_Null();
 }
 
 

@@ -24,9 +24,9 @@ class MetricGraphElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.Metric get metric => _metric;
 
-  factory MetricGraphElement(M.IsolateRef isolate, M.Metric metric,
-                               M.MetricRepository metrics,
-                               {RenderingQueue queue}) {
+  factory MetricGraphElement(
+      M.IsolateRef isolate, M.Metric metric, M.MetricRepository metrics,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(metric != null);
     assert(metrics != null);
@@ -56,15 +56,17 @@ class MetricGraphElement extends HtmlElement implements Renderable {
   }
 
   final _columns = [
-      new ChartColumnSpec(label: 'Time', type: ChartColumnSpec.TYPE_TIMESTAMP),
-      new ChartColumnSpec(label: 'Value', formatter: (v) => v.toString())
+    new ChartColumnSpec(label: 'Time', type: ChartColumnSpec.TYPE_TIMESTAMP),
+    new ChartColumnSpec(label: 'Value', formatter: (v) => v.toString())
   ];
 
   void render() {
     final min = _metrics.getMinValue(_isolate, _metric);
     final max = _metrics.getMaxValue(_isolate, _metric);
-    final rows = _metrics.getSamples(_isolate, _metric).map((s) =>
-      [s.time.millisecondsSinceEpoch, s.value]).toList();
+    final rows = _metrics
+        .getSamples(_isolate, _metric)
+        .map((s) => [s.time.millisecondsSinceEpoch, s.value])
+        .toList();
     final current = rows.last.last;
 
     var message = 'current: $current';
@@ -77,34 +79,47 @@ class MetricGraphElement extends HtmlElement implements Renderable {
 
     final host = new DivElement();
     children = [
-      new DivElement()..classes = ['memberList']
+      new DivElement()
+        ..classes = ['memberList']
         ..children = [
-          new DivElement()..classes = ['memberItem']
-            ..children = min == null ? const [] : [
-              new DivElement()..classes = ['memberName']
-                ..text = 'min',
-              new DivElement()..classes = ['memberValue']
-                ..text = '$min'
-            ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
+            ..children = min == null
+                ? const []
+                : [
+                    new DivElement()
+                      ..classes = ['memberName']
+                      ..text = 'min',
+                    new DivElement()
+                      ..classes = ['memberValue']
+                      ..text = '$min'
+                  ],
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'current',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..text = '$current'
             ],
-          new DivElement()..classes = ['memberItem']
-            ..children = max == null ? const [] : [
-              new DivElement()..classes = ['memberName']
-                ..text = 'max',
-              new DivElement()..classes = ['memberValue']
-                ..text = '$max'
-            ]
+          new DivElement()
+            ..classes = ['memberItem']
+            ..children = max == null
+                ? const []
+                : [
+                    new DivElement()
+                      ..classes = ['memberName']
+                      ..text = 'max',
+                    new DivElement()
+                      ..classes = ['memberValue']
+                      ..text = '$max'
+                  ]
         ],
-      new DivElement()..classes = ['graph']
-        ..children = [
-          host
-        ]
+      new DivElement()
+        ..classes = ['graph']
+        ..children = [host]
     ];
     if (rows.length <= 1) {
       return;

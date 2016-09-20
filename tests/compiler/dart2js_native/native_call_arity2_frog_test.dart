@@ -10,16 +10,16 @@ import "package:expect/expect.dart";
 
 @Native("A")
 class A {
-  int foo([x, y]) native;
+  int foo([x, y]) native ;
 }
 
 @Native("B")
 class B extends A {
-  int foo([x, y]) native;
+  int foo([x, y]) native ;
 }
 
-makeA() native;
-makeB() native;
+makeA() native ;
+makeB() native ;
 
 void setup() native """
 function inherits(child, parent) {

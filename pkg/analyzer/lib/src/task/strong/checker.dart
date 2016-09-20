@@ -13,21 +13,14 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/error.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart';
 
 import 'ast_properties.dart';
-
-bool isKnownFunction(Expression expression) {
-  var element = _getKnownElement(expression);
-  // First class functions and static methods, where we know the original
-  // declaration, will have an exact type, so we know a downcast will fail.
-  return element is FunctionElement ||
-      element is MethodElement && element.isStatic;
-}
 
 /// Given an [expression] and a corresponding [typeSystem] and [typeProvider],
 /// gets the known static type of the expression.
@@ -50,9 +43,20 @@ DartType getDefiniteType(
   return type;
 }
 
-bool _hasStrictArrow(Expression expression) {
+bool isKnownFunction(Expression expression) {
   var element = _getKnownElement(expression);
-  return element is FunctionElement || element is MethodElement;
+  // First class functions and static methods, where we know the original
+  // declaration, will have an exact type, so we know a downcast will fail.
+  return element is FunctionElement ||
+      element is MethodElement && element.isStatic;
+}
+
+DartType _elementType(Element e) {
+  if (e == null) {
+    // Malformed code - just return dynamic.
+    return DynamicTypeImpl.instance;
+  }
+  return (e as dynamic).type;
 }
 
 Element _getKnownElement(Expression expression) {
@@ -69,20 +73,12 @@ Element _getKnownElement(Expression expression) {
   return null;
 }
 
-DartType _elementType(Element e) {
-  if (e == null) {
-    // Malformed code - just return dynamic.
-    return DynamicTypeImpl.instance;
-  }
-  return (e as dynamic).type;
-}
-
-// Return the field on type corresponding to member, or null if none
-// exists or the "field" is actually a getter/setter.
-PropertyInducingElement _getMemberField(
+/// Return the field on type corresponding to member, or null if none
+/// exists or the "field" is actually a getter/setter.
+FieldElement _getMemberField(
     InterfaceType type, PropertyAccessorElement member) {
   String memberName = member.name;
-  PropertyInducingElement field;
+  FieldElement field;
   if (member.isGetter) {
     // The subclass member is an explicit getter or a field
     // - lookup the getter on the superclass.
@@ -108,6 +104,11 @@ PropertyInducingElement _getMemberField(
 /// declared type.
 FunctionType _getMemberType(InterfaceType type, ExecutableElement member) =>
     _memberTypeGetter(member)(type);
+
+bool _hasStrictArrow(Expression expression) {
+  var element = _getKnownElement(expression);
+  return element is FunctionElement || element is MethodElement;
+}
 
 _MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
   String memberName = member.name;
@@ -640,6 +641,20 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    if (!node.isConst &&
+        !node.isFinal &&
+        node.initializer == null &&
+        rules.isNonNullableType(node?.element?.type)) {
+      _recordMessage(
+          node,
+          StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
+          [node.name, node?.element?.type]);
+    }
+    return super.visitVariableDeclaration(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     TypeName type = node.type;
     if (type == null) {
@@ -655,20 +670,6 @@ class CodeChecker extends RecursiveAstVisitor {
       }
     }
     node.visitChildren(this);
-  }
-
-  @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
-    if (!node.isConst &&
-        !node.isFinal &&
-        node.initializer == null &&
-        rules.isNonNullableType(node?.element?.type)) {
-      _recordMessage(
-          node,
-          StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
-          [node.name, node?.element?.type]);
-    }
-    return super.visitVariableDeclaration(node);
   }
 
   @override
@@ -877,10 +878,11 @@ class CodeChecker extends RecursiveAstVisitor {
   /// Checks if the assignment is valid with respect to non-nullable types.
   /// Returns `false` if a nullable expression is assigned to a variable of
   /// non-nullable type and `true` otherwise.
-  bool _checkNonNullAssignment(Expression expression, DartType to, DartType from) {
+  bool _checkNonNullAssignment(
+      Expression expression, DartType to, DartType from) {
     if (rules.isNonNullableType(to) && rules.isNullableType(from)) {
-      _recordMessage(expression, StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          [from, to]);
+      _recordMessage(
+          expression, StaticTypeWarningCode.INVALID_ASSIGNMENT, [from, to]);
       return false;
     }
     return true;
@@ -922,6 +924,9 @@ class CodeChecker extends RecursiveAstVisitor {
       // We assume Analyzer has done this already.
     }
   }
+
+  DartType _getDefiniteType(Expression expr) =>
+      getDefiniteType(expr, rules, typeProvider);
 
   /// Gets the expected return type of the given function [body], either from
   /// a normal return/yield, or from a yield*.
@@ -976,9 +981,6 @@ class CodeChecker extends RecursiveAstVisitor {
       return null;
     }
   }
-
-  DartType _getDefiniteType(Expression expr) =>
-      getDefiniteType(expr, rules, typeProvider);
 
   /// Given an expression, return its type assuming it is
   /// in the caller position of a call (that is, accounting
@@ -1121,13 +1123,11 @@ class CodeChecker extends RecursiveAstVisitor {
 /// applications.
 class _OverrideChecker {
   final StrongTypeSystemImpl rules;
-  final TypeProvider _typeProvider;
   final CodeChecker _checker;
 
   _OverrideChecker(CodeChecker checker)
       : _checker = checker,
-        rules = checker.rules,
-        _typeProvider = checker.typeProvider;
+        rules = checker.rules;
 
   void check(ClassDeclaration node) {
     if (node.element.type.isObject) return;
@@ -1389,9 +1389,10 @@ class _OverrideChecker {
 
     if (isSubclass && element is PropertyAccessorElement) {
       // Disallow any overriding if the base class defines this member
-      // as a field.  We effectively treat fields as final / non-virtual.
-      PropertyInducingElement field = _getMemberField(type, element);
-      if (field != null) {
+      // as a field.  We effectively treat fields as final / non-virtual,
+      // unless they are explicitly marked as @virtual
+      var field = _getMemberField(type, element);
+      if (field != null && !field.isVirtual) {
         _checker._recordMessage(
             errorLocation, StrongModeCode.INVALID_FIELD_OVERRIDE, [
           element.enclosingElement.name,
@@ -1409,24 +1410,8 @@ class _OverrideChecker {
         concreteSubType = rules.instantiateToBounds(concreteSubType);
       }
     }
-    concreteSubType =
-        rules.typeToConcreteType(_typeProvider, concreteSubType);
-    concreteBaseType =
-        rules.typeToConcreteType(_typeProvider, concreteBaseType);
 
-    if (!rules.isSubtypeOf(concreteSubType, concreteBaseType)) {
-      // See whether non-subtype cases fit one of our common patterns:
-      //
-      // Common pattern 1: Inferable return type (on getters and methods)
-      //   class A {
-      //     int get foo => ...;
-      //     String toString() { ... }
-      //   }
-      //   class B extends A {
-      //     get foo => e; // no type specified.
-      //     toString() { ... } // no return type specified.
-      //   }
-
+    if (!rules.isOverrideSubtypeOf(concreteSubType, concreteBaseType)) {
       ErrorCode errorCode;
       if (errorLocation is ExtendsClause) {
         errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE;
@@ -1444,7 +1429,12 @@ class _OverrideChecker {
         baseType
       ]);
     }
-    return true;
+
+    // If we have any covariant parameters and we're comparing against a
+    // superclass, we check all superclasses instead of stopping the search.
+    bool hasCovariant = element.parameters.any((p) => p.isCovariant);
+    bool keepSearching = hasCovariant && isSubclass;
+    return !keepSearching;
   }
 
   /// Check overrides between a class and its superclasses and mixins. For

@@ -4,38 +4,30 @@
 
 library test.src.serialization.elements_test;
 
-import 'dart:convert';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../abstract_single_unit.dart';
 import '../context/abstract_context.dart';
-import 'summary_common.dart' show canonicalize;
-
-main() {
-  groupSep = ' | ';
-  defineReflectiveTests(ResynthesizeElementTest);
-}
 
 /**
  * Abstract base class for resynthesizing and comparing elements.
@@ -1134,64 +1126,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   AnalysisOptionsImpl createOptions() =>
       new AnalysisOptionsImpl()..enableGenericMethods = true;
 
-  /**
-   * Serialize the given [library] into a summary.  Then create a
-   * [TestSummaryResynthesizer] which can deserialize it, along with any
-   * references it makes to `dart:core`.
-   *
-   * Errors will lead to a test failure unless [allowErrors] is `true`.
-   */
-  TestSummaryResynthesizer encodeLibrary(LibraryElementImpl library,
-      {bool allowErrors: false, bool dumpSummaries: false}) {
-    if (!allowErrors) {
-      assertNoErrors(library.source);
-    }
-    addLibrary('dart:core');
-    addLibrary('dart:async');
-    addLibrary('dart:math');
-    return encodeLibraryElement(library, dumpSummaries: dumpSummaries);
-  }
-
-  /**
-   * Convert the library element [library] into a summary, and then create a
-   * [TestSummaryResynthesizer] which can deserialize it.
-   *
-   * Caller is responsible for checking the library for errors, and adding any
-   * dependent libraries using [addLibrary].
-   */
-  TestSummaryResynthesizer encodeLibraryElement(LibraryElementImpl library,
-      {bool dumpSummaries: false}) {
-    Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
-    LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
-      LibrarySerializationResult serialized = serializeLibrary(
-          lib, context.typeProvider, context.analysisOptions.strongMode);
-      for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
-        unlinkedSummaries[serialized.unitUris[i]] =
-            new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
-      }
-      return new LinkedLibrary.fromBuffer(serialized.linked.toBuffer());
-    }
-
-    Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{
-      library.source.uri.toString(): getLinkedSummaryFor(library)
-    };
-    for (Source source in otherLibrarySources) {
-      LibraryElement original = context.computeLibraryElement(source);
-      String uri = source.uri.toString();
-      linkedSummaries[uri] = getLinkedSummaryFor(original);
-    }
-    if (dumpSummaries) {
-      unlinkedSummaries.forEach((String path, UnlinkedUnit unit) {
-        print('Unlinked $path: ${JSON.encode(canonicalize(unit))}');
-      });
-      linkedSummaries.forEach((String path, LinkedLibrary lib) {
-        print('Linked $path: ${JSON.encode(canonicalize(lib))}');
-      });
-    }
-    return new TestSummaryResynthesizer(
-        null, context, unlinkedSummaries, linkedSummaries, allowMissingFiles);
-  }
-
   ElementImpl getActualElement(Element element, String desc) {
     if (element == null) {
       return null;
@@ -1339,114 +1273,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
     throw new UnimplementedError(
         'Modifier $modifier for ${element?.runtimeType}');
-  }
-}
-
-@reflectiveTest
-class ResynthesizeElementTest extends ResynthesizeTest {
-  @override
-  LibraryElementImpl checkLibrary(String text,
-      {bool allowErrors: false, bool dumpSummaries: false}) {
-    Source source = addTestSource(text);
-    LibraryElementImpl original = context.computeLibraryElement(source);
-    LibraryElementImpl resynthesized = resynthesizeLibraryElement(
-        encodeLibrary(original,
-            allowErrors: allowErrors, dumpSummaries: dumpSummaries),
-        source.uri.toString(),
-        original);
-    checkLibraryElements(original, resynthesized);
-    return resynthesized;
-  }
-
-  @override
-  SummaryResynthesizer encodeDecodeLibrarySource(Source librarySource) {
-    LibraryElement libraryElement =
-        context.computeLibraryElement(librarySource);
-    return encodeLibrary(libraryElement);
-  }
-
-  /**
-   * Serialize the given [library] into a summary.  Then create a
-   * [TestSummaryResynthesizer] which can deserialize it, along with any
-   * references it makes to `dart:core`.
-   *
-   * Errors will lead to a test failure unless [allowErrors] is `true`.
-   */
-  TestSummaryResynthesizer encodeLibrary(LibraryElementImpl library,
-      {bool allowErrors: false, bool dumpSummaries: false}) {
-    if (!allowErrors) {
-      assertNoErrors(library.source);
-    }
-    addLibrary('dart:core');
-    addLibrary('dart:async');
-    addLibrary('dart:math');
-    return encodeLibraryElement(library, dumpSummaries: dumpSummaries);
-  }
-
-  /**
-   * Convert the library element [library] into a summary, and then create a
-   * [TestSummaryResynthesizer] which can deserialize it.
-   *
-   * Caller is responsible for checking the library for errors, and adding any
-   * dependent libraries using [addLibrary].
-   */
-  TestSummaryResynthesizer encodeLibraryElement(LibraryElementImpl library,
-      {bool dumpSummaries: false}) {
-    Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
-    LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
-      LibrarySerializationResult serialized = serializeLibrary(
-          lib, context.typeProvider, context.analysisOptions.strongMode);
-      for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
-        unlinkedSummaries[serialized.unitUris[i]] =
-            new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
-      }
-      return new LinkedLibrary.fromBuffer(serialized.linked.toBuffer());
-    }
-
-    Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{
-      library.source.uri.toString(): getLinkedSummaryFor(library)
-    };
-    for (Source source in otherLibrarySources) {
-      LibraryElement original = context.computeLibraryElement(source);
-      String uri = source.uri.toString();
-      linkedSummaries[uri] = getLinkedSummaryFor(original);
-    }
-    if (dumpSummaries) {
-      unlinkedSummaries.forEach((String path, UnlinkedUnit unit) {
-        print('Unlinked $path: ${JSON.encode(canonicalize(unit))}');
-      });
-      linkedSummaries.forEach((String path, LinkedLibrary lib) {
-        print('Linked $path: ${JSON.encode(canonicalize(lib))}');
-      });
-    }
-    return new TestSummaryResynthesizer(
-        null, context, unlinkedSummaries, linkedSummaries, allowMissingFiles);
-  }
-
-  /**
-   * Resynthesize the library element associated with [uri] using
-   * [resynthesizer], and verify that it only had to consult one summary in
-   * order to do so.  [original] is consulted merely to verify that no
-   * unnecessary resynthesis work was performed.
-   */
-  LibraryElementImpl resynthesizeLibraryElement(
-      TestSummaryResynthesizer resynthesizer,
-      String uri,
-      LibraryElement original) {
-    LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
-    checkMinimalResynthesisWork(resynthesizer, original);
-    return resynthesized;
-  }
-
-  test_core() {
-    addLibrary('dart:async');
-    addLibrary('dart:math');
-    String uri = 'dart:core';
-    LibraryElementImpl original =
-        context.computeLibraryElement(context.sourceFactory.forUri(uri));
-    LibraryElementImpl resynthesized = resynthesizeLibraryElement(
-        encodeLibraryElement(original), uri, original);
-    checkLibraryElements(original, resynthesized);
   }
 }
 
@@ -3029,6 +2855,51 @@ main(F f) {}
     checkLibrary('export "a.dart";');
   }
 
+  test_export_configurations_useDefault() {
+    context.declaredVariables.define('dart.library.io', 'false');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    LibraryElementImpl library = checkLibrary(r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    expect(library.exports[0].uri, 'foo.dart');
+    expect(library.exports[0].exportedLibrary.source.shortName, 'foo.dart');
+  }
+
+  test_export_configurations_useFirst() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    LibraryElementImpl library = checkLibrary(r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    expect(library.exports[0].uri, 'foo_io.dart');
+    expect(library.exports[0].exportedLibrary.source.shortName, 'foo_io.dart');
+  }
+
+  test_export_configurations_useSecond() {
+    context.declaredVariables.define('dart.library.io', 'false');
+    context.declaredVariables.define('dart.library.html', 'true');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    LibraryElementImpl library = checkLibrary(r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    ExportElement export = library.exports[0];
+    expect(export.uri, 'foo_html.dart');
+    expect(export.exportedLibrary.source.shortName, 'foo_html.dart');
+  }
+
   test_export_function() {
     addLibrarySource('/a.dart', 'f() {}');
     checkLibrary('export "a.dart";');
@@ -3077,6 +2948,47 @@ main(F f) {}
   test_export_variable_final() {
     addLibrarySource('/a.dart', 'final x = 0;');
     checkLibrary('export "a.dart";');
+  }
+
+  test_exportImport_configurations_useDefault() {
+    context.declaredVariables.define('dart.library.io', 'false');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource(
+        '/bar.dart',
+        r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    LibraryElementImpl library = checkLibrary(r'''
+import 'bar.dart';
+class B extends A {}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo.dart');
+  }
+
+  test_exportImport_configurations_useFirst() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource(
+        '/bar.dart',
+        r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    var library = checkLibrary(r'''
+import 'bar.dart';
+class B extends A {}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_exports() {
@@ -3391,6 +3303,39 @@ get x => null;''');
 
   test_implicitTopLevelVariable_setterFirst() {
     checkLibrary('void set x(int value) {} int get x => 0;');
+  }
+
+  test_import_configurations_useDefault() {
+    context.declaredVariables.define('dart.library.io', 'false');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    var library = checkLibrary(r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+
+class B extends A {}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo.dart');
+  }
+
+  test_import_configurations_useFirst() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    var library = checkLibrary(r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+
+class B extends A {}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_import_deferred() {

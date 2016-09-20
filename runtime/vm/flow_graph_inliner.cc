@@ -961,9 +961,9 @@ class CallSiteInliner : public ValueObject {
       } else {
         error = thread()->sticky_error();
         thread()->clear_sticky_error();
-        ASSERT(error.IsLanguageError());
 
-        if (LanguageError::Cast(error).kind() == Report::kBailout) {
+        if (error.IsLanguageError() &&
+            (LanguageError::Cast(error).kind() == Report::kBailout)) {
           if (error.raw() == Object::background_compilation_error().raw()) {
              // Fall through to exit the compilation, and retry it later.
           } else {
@@ -976,18 +976,20 @@ class CallSiteInliner : public ValueObject {
           }
         } else {
           // Fall through to exit long jump scope.
-          ASSERT(FLAG_precompiled_mode);
         }
       }
     }
 
     // Propagate a compile-time error. In precompilation we attempt to
     // inline functions that have never been compiled before; when JITing we
-    // should only see compile-time errors in unoptimized compilation.
+    // should only see language errors in unoptimized compilation.
+    // Otherwise, there can be an out-of-memory error (unhandled exception).
     // In background compilation we may abort compilation as the state
     // changes while compiling. Propagate that 'error' and retry compilation
     // later.
-    ASSERT(FLAG_precompiled_mode || Compiler::IsBackgroundCompilation());
+    ASSERT(FLAG_precompiled_mode ||
+           Compiler::IsBackgroundCompilation() ||
+           error.IsUnhandledException());
     Thread::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
     return false;

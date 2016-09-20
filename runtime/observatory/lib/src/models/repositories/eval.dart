@@ -4,7 +4,7 @@
 
 part of models;
 
-abstract class EvalRepository{
-  Future<ObjectRef> evaluate(IsolateRef isolate, ObjectRef context,
-                             String expression);
+abstract class EvalRepository {
+  Future<ObjectRef> evaluate(
+      IsolateRef isolate, ObjectRef context, String expression);
 }

@@ -4,6 +4,6 @@
 
 part of models;
 
-abstract class ContextRepository{
+abstract class ContextRepository {
   Future<Context> get(IsolateRef isolate, String id);
 }

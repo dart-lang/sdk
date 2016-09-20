@@ -5,7 +5,7 @@
 part of repositories;
 
 class HeapSnapshotLoadingProgressEvent
-  implements M.HeapSnapshotLoadingProgressEvent {
+    implements M.HeapSnapshotLoadingProgressEvent {
   final HeapSnapshotLoadingProgress progress;
   HeapSnapshotLoadingProgressEvent(this.progress);
 }
@@ -13,8 +13,7 @@ class HeapSnapshotLoadingProgressEvent
 class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
   StreamController<HeapSnapshotLoadingProgressEvent> _onProgress =
       new StreamController<HeapSnapshotLoadingProgressEvent>.broadcast();
-  Stream<HeapSnapshotLoadingProgressEvent> get onProgress =>
-      _onProgress.stream;
+  Stream<HeapSnapshotLoadingProgressEvent> get onProgress => _onProgress.stream;
 
   final S.Isolate isolate;
   final bool gc;
@@ -23,7 +22,7 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
   String _stepDescription = '';
   double _progress = 0.0;
   final Stopwatch _fetchingTime = new Stopwatch();
-  final Stopwatch  _loadingTime = new Stopwatch();
+  final Stopwatch _loadingTime = new Stopwatch();
   HeapSnapshot _snapshot;
 
   M.HeapSnapshotLoadingStatus get status => _status;
@@ -34,7 +33,7 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
   HeapSnapshot get snapshot => _snapshot;
 
   HeapSnapshotLoadingProgress(this.isolate, this.gc) {
-      _run();
+    _run();
   }
 
   Future _run() async {
@@ -51,7 +50,7 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
         if (status is List) {
           _progress = status[0] * 100.0 / status[1];
           _stepDescription = 'Receiving snapshot chunk ${status[0] + 1}'
-                            ' of ${status[1]}...';
+              ' of ${status[1]}...';
           _triggerOnProgress();
         }
       });
@@ -91,7 +90,7 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
 
   void reuse() {
     _onProgress =
-      new StreamController<HeapSnapshotLoadingProgressEvent>.broadcast();
+        new StreamController<HeapSnapshotLoadingProgressEvent>.broadcast();
     (() async {
       _triggerOnProgress();
       _onProgress.close();
@@ -99,11 +98,9 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
   }
 }
 
-class HeapSnapshotRepository
-    implements M.HeapSnapshotRepository {
-
+class HeapSnapshotRepository implements M.HeapSnapshotRepository {
   Stream<HeapSnapshotLoadingProgressEvent> get(M.IsolateRef i,
-                                               {bool gc: false}) {
+      {bool gc: false}) {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     assert(gc != null);

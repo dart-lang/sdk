@@ -11,11 +11,11 @@ typedef void Callback2(arg1, arg2);
 
 @Native("A")
 class A {
-  foo1(Callback1 closure, [arg1 = 0]) native;
-  foo2(Callback2 closure, [arg1 = 0, arg2 = 1]) native;
+  foo1(Callback1 closure, [arg1 = 0]) native ;
+  foo2(Callback2 closure, [arg1 = 0, arg2 = 1]) native ;
 }
 
-makeA() native;
+makeA() native ;
 
 void setup() native """
 function A() {}
@@ -25,7 +25,6 @@ A.prototype.foo2 = function(closure, arg1, arg2) {
 };
 makeA = function(){return new A;};
 """;
-
 
 main() {
   setup();

@@ -154,27 +154,27 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var commonMasks = compiler.commonMasks;
-    var typesInferrer = compiler.globalInference.typesInferrer;
+        var commonMasks = compiler.commonMasks;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkType(String name, type) {
-      var element = findElement(compiler, name);
-      var mask = typesInferrer.getReturnTypeOfElement(element);
-      Expect.equals(type.nullable(), simplify(mask, compiler), name);
-    }
+        checkType(String name, type) {
+          var element = findElement(compiler, name);
+          var mask = typesInferrer.getReturnTypeOfElement(element);
+          Expect.equals(type.nullable(), simplify(mask, compiler), name);
+        }
 
-    checkType('testFunctionStatement', commonMasks.uint31Type);
-    checkType('testFunctionExpression', commonMasks.uint31Type);
-    checkType('testStoredInInstance', commonMasks.uint31Type);
-    checkType('testStoredInStatic', commonMasks.uint31Type);
-    checkType('testStoredInMapOfList', commonMasks.uint31Type);
-    checkType('testStoredInListOfList', commonMasks.uint31Type);
-    checkType('testStoredInListOfListUsingInsert', commonMasks.uint31Type);
-    checkType('testStoredInListOfListUsingAdd', commonMasks.uint31Type);
-    checkType('testPassedInParameter', commonMasks.uint31Type);
-    checkType('testStaticClosure1', commonMasks.uint31Type);
-    checkType('testStaticClosure2', commonMasks.numType);
-    checkType('testStaticClosure3', commonMasks.uint31Type);
-    checkType('testStaticClosure4', commonMasks.numType);
-  }));
+        checkType('testFunctionStatement', commonMasks.uint31Type);
+        checkType('testFunctionExpression', commonMasks.uint31Type);
+        checkType('testStoredInInstance', commonMasks.uint31Type);
+        checkType('testStoredInStatic', commonMasks.uint31Type);
+        checkType('testStoredInMapOfList', commonMasks.uint31Type);
+        checkType('testStoredInListOfList', commonMasks.uint31Type);
+        checkType('testStoredInListOfListUsingInsert', commonMasks.uint31Type);
+        checkType('testStoredInListOfListUsingAdd', commonMasks.uint31Type);
+        checkType('testPassedInParameter', commonMasks.uint31Type);
+        checkType('testStaticClosure1', commonMasks.uint31Type);
+        checkType('testStaticClosure2', commonMasks.numType);
+        checkType('testStaticClosure3', commonMasks.uint31Type);
+        checkType('testStaticClosure4', commonMasks.numType);
+      }));
 }

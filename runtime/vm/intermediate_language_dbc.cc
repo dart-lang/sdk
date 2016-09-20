@@ -34,9 +34,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(BinaryInt32Op)                                                             \
   M(Int32ToDouble)                                                             \
   M(DoubleToInteger)                                                           \
-  M(DoubleToDouble)                                                            \
-  M(DoubleToFloat)                                                             \
-  M(FloatToDouble)                                                             \
   M(BoxInt64)                                                                  \
   M(MergedMath)                                                                \
   M(GuardFieldClass)                                                           \
@@ -743,6 +740,20 @@ EMIT_NATIVE_CODE(StoreIndexed, 3, Location::NoLocation(),
       }
       break;
     }
+    case kTypedDataFloat32ArrayCid:
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() == 1) {
+        __ StoreIndexedFloat32(array, index, value);
+      } else if (index_scale() == 4) {
+        __ StoreIndexed4Float32(array, index, value);
+      } else {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ StoreIndexedFloat32(array, temp, value);
+      }
+      break;
     case kTypedDataFloat64ArrayCid:
       if (IsExternal()) {
         Unsupported(compiler);
@@ -807,10 +818,18 @@ EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister(),
         Unsupported(compiler);
         UNREACHABLE();
       }
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
       __ LoadIndexedTwoByteString(result, array, index);
       break;
     case kTypedDataInt32ArrayCid:
       ASSERT(representation() == kUnboxedInt32);
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
       if (index_scale() == 1) {
         __ LoadIndexedInt32(result, array, index);
       } else {
@@ -820,6 +839,10 @@ EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister(),
       break;
     case kTypedDataUint32ArrayCid:
       ASSERT(representation() == kUnboxedUint32);
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
       if (index_scale() == 1) {
         __ LoadIndexedUint32(result, array, index);
       } else {
@@ -827,7 +850,25 @@ EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister(),
         __ LoadIndexedUint32(result, array, temp);
       }
       break;
+    case kTypedDataFloat32ArrayCid:
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() == 1) {
+        __ LoadIndexedFloat32(result, array, index);
+      } else if (index_scale() == 4) {
+        __ LoadIndexed4Float32(result, array, index);
+      } else {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ LoadIndexedFloat32(result, array, temp);
+      }
+      break;
     case kTypedDataFloat64ArrayCid:
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
       if (index_scale() == 1) {
         __ LoadIndexedFloat64(result, array, index);
       } else if (index_scale() == 8) {
@@ -916,14 +957,37 @@ EMIT_NATIVE_CODE(AllocateObject,
                  LocationSummary::kCall) {
   if (ArgumentCount() == 1) {
     // Allocate with type arguments.
-    __ PushConstant(cls());
-    __ AllocateT();
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
-                                   Thread::kNoDeoptId,
-                                   token_pos());
-    compiler->RecordSafepoint(locs());
     if (compiler->is_optimizing()) {
+      // If we're optimizing, try a streamlined fastpath.
+      const intptr_t instance_size = cls().instance_size();
+      Isolate* isolate = Isolate::Current();
+      if (Heap::IsAllocatableInNewSpace(instance_size) &&
+          !cls().TraceAllocation(isolate)) {
+        uword tags = 0;
+        tags = RawObject::SizeTag::update(instance_size, tags);
+        ASSERT(cls().id() != kIllegalCid);
+        tags = RawObject::ClassIdTag::update(cls().id(), tags);
+        if (Smi::IsValid(tags)) {
+          const intptr_t tags_kidx = __ AddConstant(
+              Smi::Handle(Smi::New(tags)));
+          __ AllocateTOpt(locs()->out(0).reg(), tags_kidx);
+          __ Nop(cls().type_arguments_field_offset());
+        }
+      }
+      __ PushConstant(cls());
+      __ AllocateT();
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                     Thread::kNoDeoptId,
+                                     token_pos());
+      compiler->RecordSafepoint(locs());
       __ PopLocal(locs()->out(0).reg());
+    } else {
+      __ PushConstant(cls());
+      __ AllocateT();
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                     Thread::kNoDeoptId,
+                                     token_pos());
+      compiler->RecordSafepoint(locs());
     }
   } else if (compiler->is_optimizing()) {
     // If we're optimizing, try a streamlined fastpath.
@@ -1020,6 +1084,8 @@ EMIT_NATIVE_CODE(AllocateUninitializedContext,
                  0, Location::RequiresRegister(),
                  LocationSummary::kCall) {
   ASSERT(compiler->is_optimizing());
+  __ AllocateUninitializedContext(locs()->out(0).reg(),
+                                  num_context_variables());
   __ AllocateContext(num_context_variables());
   compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
@@ -1569,6 +1635,39 @@ EMIT_NATIVE_CODE(MathUnary, 1, Location::RequiresRegister()) {
     Unsupported(compiler);
     UNREACHABLE();
   }
+}
+
+
+EMIT_NATIVE_CODE(DoubleToDouble, 1, Location::RequiresRegister()) {
+  const Register in = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  switch (recognized_kind()) {
+    case MethodRecognizer::kDoubleTruncate:
+      __ DTruncate(result, in);
+      break;
+    case MethodRecognizer::kDoubleFloor:
+      __ DFloor(result, in);
+      break;
+    case MethodRecognizer::kDoubleCeil:
+      __ DCeil(result, in);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+
+EMIT_NATIVE_CODE(DoubleToFloat, 1, Location::RequiresRegister()) {
+  const Register in = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  __ DoubleToFloat(result, in);
+}
+
+
+EMIT_NATIVE_CODE(FloatToDouble, 1, Location::RequiresRegister()) {
+  const Register in = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  __ FloatToDouble(result, in);
 }
 
 

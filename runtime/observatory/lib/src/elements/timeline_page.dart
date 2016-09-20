@@ -18,22 +18,16 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-enum _Profile {
-  none,
-  dart,
-  vm,
-  all,
-  custom
-}
+enum _Profile { none, dart, vm, all, custom }
 
 class TimelinePageElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<TimelinePageElement>('timeline-page',
-                                                    dependencies: const [
-                                                      NavTopMenuElement.tag,
-                                                      NavVMMenuElement.tag,
-                                                      NavRefreshElement.tag,
-                                                      NavNotifyElement.tag
-                                                    ]);
+  static const tag =
+      const Tag<TimelinePageElement>('timeline-page', dependencies: const [
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag
+  ]);
 
   RenderingScheduler<TimelinePageElement> _r;
 
@@ -50,9 +44,9 @@ class TimelinePageElement extends HtmlElement implements Renderable {
   M.VMRef get vm => _vm;
   M.NotificationRepository get notifications => _notifications;
 
-  factory TimelinePageElement(M.VM vm, M.EventRepository events,
-                              M.NotificationRepository notifications,
-                              {RenderingQueue queue}) {
+  factory TimelinePageElement(
+      M.VM vm, M.EventRepository events, M.NotificationRepository notifications,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(events != null);
     assert(notifications != null);
@@ -64,7 +58,7 @@ class TimelinePageElement extends HtmlElement implements Renderable {
     return e;
   }
 
-   TimelinePageElement.created() : super.created();
+  TimelinePageElement.created() : super.created();
 
   @override
   attached() {
@@ -92,29 +86,38 @@ class TimelinePageElement extends HtmlElement implements Renderable {
     }
     _content.children = [
       new HeadingElement.h1()..text = 'Timeline settings',
-      new DivElement()..classes = ['memberList']
+      new DivElement()
+        ..classes = ['memberList']
         ..children = [
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Recorder:',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..text = _recorderName
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Recorded Streams Profile:',
-              new DivElement()..classes = ['memberValue']
+              new DivElement()
+                ..classes = ['memberValue']
                 ..children = _createProfileSelect()
             ],
-          new DivElement()..classes = ['memberItem']
+          new DivElement()
+            ..classes = ['memberItem']
             ..children = [
-              new DivElement()..classes = ['memberName']
+              new DivElement()
+                ..classes = ['memberName']
                 ..text = 'Recorded Streams:',
-              new DivElement()..classes = ['memberValue']
-                ..children =
-                  _availableStreams.map(_makeStreamToggle).toList()
+              new DivElement()
+                ..classes = ['memberValue']
+                ..children = _availableStreams.map(_makeStreamToggle).toList()
             ]
         ]
     ];
@@ -124,36 +127,35 @@ class TimelinePageElement extends HtmlElement implements Renderable {
           new NavTopMenuElement(queue: _r.queue),
           new NavVMMenuElement(_vm, _events, queue: _r.queue),
           new NavRefreshElement(queue: _r.queue)
-              ..onRefresh.listen((e) async {
-                e.element.disabled = true;
-                await _refresh();
-                e.element.disabled = false;
-              }),
+            ..onRefresh.listen((e) async {
+              e.element.disabled = true;
+              await _refresh();
+              e.element.disabled = false;
+            }),
           new NavRefreshElement(label: 'clear', queue: _r.queue)
-              ..onRefresh.listen((e) async {
-                e.element.disabled = true;
-                await _clear();
-                e.element.disabled = false;
-              }),
+            ..onRefresh.listen((e) async {
+              e.element.disabled = true;
+              await _clear();
+              e.element.disabled = false;
+            }),
           new NavRefreshElement(label: 'save', queue: _r.queue)
-              ..onRefresh.listen((e) async {
-                e.element.disabled = true;
-                await _save();
-                e.element.disabled = false;
-              }),
+            ..onRefresh.listen((e) async {
+              e.element.disabled = true;
+              await _save();
+              e.element.disabled = false;
+            }),
           new NavRefreshElement(label: 'load', queue: _r.queue)
-              ..onRefresh.listen((e) async {
-                e.element.disabled = true;
-                await _load();
-                e.element.disabled = false;
-              }),
+            ..onRefresh.listen((e) async {
+              e.element.disabled = true;
+              await _load();
+              e.element.disabled = false;
+            }),
           new NavNotifyElement(_notifications, queue: _r.queue)
         ]),
         _content,
-        new DivElement()..classes = ['iframe']
-          ..children = [
-            _frame
-          ]
+        new DivElement()
+          ..classes = ['iframe']
+          ..children = [_frame]
       ];
     }
   }
@@ -161,28 +163,35 @@ class TimelinePageElement extends HtmlElement implements Renderable {
   List<Element> _createProfileSelect() {
     var s;
     return [
-      s = new SelectElement()..classes = ['direction-select']
+      s = new SelectElement()
+        ..classes = ['direction-select']
         ..value = _profileToString(_profile)
         ..children = _Profile.values.map((direction) {
-            return new OptionElement(value: _profileToString(direction),
-                selected: _profile == direction)
-              ..text = _profileToString(direction);
-          }).toList(growable: false)
+          return new OptionElement(
+              value: _profileToString(direction),
+              selected: _profile == direction)
+            ..text = _profileToString(direction);
+        }).toList(growable: false)
         ..onChange.listen((_) {
-            _profile = _Profile.values[s.selectedIndex];
-            _applyPreset();
-            _r.dirty();
-          })
+          _profile = _Profile.values[s.selectedIndex];
+          _applyPreset();
+          _r.dirty();
+        })
     ];
   }
 
   String _profileToString(_Profile profile) {
     switch (profile) {
-     case _Profile.none: return 'none';
-     case _Profile.dart: return 'Dart Developer';
-     case _Profile.vm: return 'VM Developer';
-     case _Profile.all: return 'All';
-     case _Profile.custom: return 'Custom';
+      case _Profile.none:
+        return 'none';
+      case _Profile.dart:
+        return 'Dart Developer';
+      case _Profile.vm:
+        return 'VM Developer';
+      case _Profile.all:
+        return 'All';
+      case _Profile.custom:
+        return 'Custom';
     }
     throw new Exception('Unkown Profile ${profile}');
   }
@@ -221,7 +230,8 @@ class TimelinePageElement extends HtmlElement implements Renderable {
         'isolateIds': isolateIds
       }
     };
-    _frame.contentWindow.postMessage(JSON.encode(message), window.location.href);
+    _frame.contentWindow
+        .postMessage(JSON.encode(message), window.location.href);
     return null;
   }
 
@@ -231,12 +241,18 @@ class TimelinePageElement extends HtmlElement implements Renderable {
   }
 
   // Dart developers care about the following streams:
-  List<String> _dartPreset =
-      ['GC', 'Compiler', 'Dart'];
+  List<String> _dartPreset = ['GC', 'Compiler', 'Dart'];
 
   // VM developers care about the following streams:
-  List<String> _vmPreset =
-      ['GC', 'Compiler', 'Dart', 'Debugger', 'Embedder', 'Isolate', 'VM'];
+  List<String> _vmPreset = [
+    'GC',
+    'Compiler',
+    'Dart',
+    'Debugger',
+    'Embedder',
+    'Isolate',
+    'VM'
+  ];
 
   void _applyPreset() {
     switch (_profile) {
@@ -307,12 +323,12 @@ class TimelinePageElement extends HtmlElement implements Renderable {
     _recorderName = response['recorderName'];
     // Update the set of available streams.
     _availableStreams.clear();
-    response['availableStreams'].forEach(
-        (String streamName) => _availableStreams.add(streamName));
+    response['availableStreams']
+        .forEach((String streamName) => _availableStreams.add(streamName));
     // Update the set of recorded streams.
     _recordedStreams.clear();
-    response['recordedStreams'].forEach(
-        (String streamName) => _recordedStreams.add(streamName));
+    response['recordedStreams']
+        .forEach((String streamName) => _recordedStreams.add(streamName));
     _r.dirty();
   }
 }

@@ -48,10 +48,6 @@ class CommandLineOptions {
   /// Whether to skip analysis when creating summaries in build mode.
   final bool buildSummaryOnly;
 
-  /// Whether to create summaries using only ASTs, i.e. don't perform
-  /// resolution.
-  final bool buildSummaryOnlyAst;
-
   /// Whether to use diet parsing, i.e. skip function bodies. We don't need to
   /// analyze function bodies to use summaries during future compilation steps.
   final bool buildSummaryOnlyDiet;
@@ -65,9 +61,6 @@ class CommandLineOptions {
   /// The path to output the semantic-only summary when creating summaries in
   /// build mode.
   final String buildSummaryOutputSemantic;
-
-  /// Whether to output a summary in "fallback mode".
-  final bool buildSummaryFallback;
 
   /// Whether to suppress a nonzero exit code in build mode.
   final bool buildSuppressExitCode;
@@ -120,9 +113,6 @@ class CommandLineOptions {
   /// Whether to use machine format for error display
   final bool machineFormat;
 
-  /// The path to the root folder of the incremental cache.
-  final String incrementalCachePath;
-
   /// The path to the package root
   final String packageRootPath;
 
@@ -169,10 +159,8 @@ class CommandLineOptions {
       : buildAnalysisOutput = args['build-analysis-output'],
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
-        buildSummaryFallback = args['build-summary-fallback'],
         buildSummaryInputs = args['build-summary-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
-        buildSummaryOnlyAst = args['build-summary-only-ast'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
         buildSummaryExcludeInformative =
             args['build-summary-exclude-informative'],
@@ -195,7 +183,6 @@ class CommandLineOptions {
         lints = args['lints'],
         log = args['log'],
         machineFormat = args['machine'] || args['format'] == 'machine',
-        incrementalCachePath = args['incremental-cache-path'],
         packageConfigPath = args['packages'],
         packageRootPath = args['package-root'],
         perfReport = args['x-perf-report'],
@@ -373,13 +360,6 @@ class CommandLineOptions {
           allowMultiple: true,
           splitCommas: false)
       //
-      // Incremental analysis.
-      //
-      ..addOption('incremental-cache-path',
-          help: 'The path to the folder with information to support '
-              'incremental analysis, e.g. summary files, errors, etc.',
-          hide: true)
-      //
       // Build mode.
       //
       ..addFlag('persistent_worker',
@@ -416,7 +396,7 @@ class CommandLineOptions {
           negatable: false,
           hide: true)
       ..addFlag('build-summary-only-ast',
-          help: 'Generate summaries using ASTs.',
+          help: 'deprecated -- Generate summaries using ASTs.',
           defaultsTo: false,
           negatable: false,
           hide: true)
@@ -428,11 +408,6 @@ class CommandLineOptions {
       ..addFlag('build-summary-exclude-informative',
           help: 'Exclude @informative information (docs, offsets, etc).  '
               'Deprecated: please use --build-summary-output-semantic instead.',
-          defaultsTo: false,
-          negatable: false,
-          hide: true)
-      ..addFlag('build-summary-fallback',
-          help: 'If outputting a summary, output it in fallback mode.',
           defaultsTo: false,
           negatable: false,
           hide: true)

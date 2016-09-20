@@ -10,7 +10,9 @@ class Sub extends Super {
   Sub(var x) : super(x.y);
 }
 
-class X { var y; }
+class X {
+  var y;
+}
 
 main() {
   new Sub(new X());

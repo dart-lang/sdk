@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -21,7 +22,6 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -1942,7 +1942,7 @@ class ClassA {}''');
     CompilationUnit unit = context.computeResult(scripts[0], PARSED_UNIT);
     ImportDirective importNode = unit.directives[0] as ImportDirective;
     expect(importNode.uriContent, isNotNull);
-    expect(importNode.source, libSource);
+    expect(importNode.uriSource, libSource);
   }
 
   void test_performAnalysisTask_addPart() {

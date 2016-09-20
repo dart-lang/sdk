@@ -32,15 +32,17 @@ Uri mock1LibraryUri = sdkRoot.resolve("lib/mock1.dart");
 Uri mock2LibraryUri = sdkRoot.resolve("lib/mock2.dart");
 
 class CustomCompiler extends CompilerImpl {
-  CustomCompiler(provider, handler, libraryRoot, packageRoot)
-      : super(provider, const NullCompilerOutput(), handler,
+  CustomCompiler(provider, handler, libraryRoot, packageConfig)
+      : super(
+            provider,
+            const NullCompilerOutput(),
+            handler,
             new CompilerOptions(
-                libraryRoot: libraryRoot,
-                packageRoot: packageRoot));
+                libraryRoot: libraryRoot, packageConfig: packageConfig));
 }
 
 main() async {
-  Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
+  Uri packageConfig = Uri.base.resolve('.packages');
 
   var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   var handler = new FormattingDiagnosticHandler(provider);
@@ -55,8 +57,8 @@ main() async {
     return provider.readStringFromUri(uri);
   }
 
-  String expectedMessage = MessageTemplate.TEMPLATES[
-          MessageKind.LIBRARY_NOT_FOUND]
+  String expectedMessage = MessageTemplate
+      .TEMPLATES[MessageKind.LIBRARY_NOT_FOUND]
       .message({'resolvedUri': 'dart:mock2.dart'}).computeMessage();
 
   int actualMessageCount = 0;
@@ -77,7 +79,7 @@ main() async {
       new LegacyCompilerInput(wrappedProvider),
       new LegacyCompilerDiagnostics(wrappedHandler),
       sdkRoot,
-      packageRoot);
+      packageConfig);
 
   asyncStart();
   await compiler.setupSdk();

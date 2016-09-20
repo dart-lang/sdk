@@ -299,6 +299,40 @@
         }]]
       },
 
+      # These flags are needed for tcmalloc to be able to collect stack traces
+      # for heap profiling on mips.
+      'Dart_Linux_xmips_Debug': {
+        'abstract': 1,
+        'target_conditions': [
+          ['_toolset=="target"', {
+            'cflags!': [
+              '-fno-exceptions',
+            ],
+            'cflags': [
+              '-fexceptions',
+              '-funwind-tables',
+            ],
+          }],
+        ],
+      },
+
+      # These flags are needed for tcmalloc to be able to collect stack traces
+      # for heap profiling on mips.
+      'Dart_Linux_xmips_Release': {
+        'abstract': 1,
+        'target_conditions': [
+          ['_toolset=="target"', {
+            'cflags!': [
+              '-fno-exceptions',
+            ],
+            'cflags': [
+              '-fexceptions',
+              '-funwind-tables',
+            ],
+          }],
+        ],
+      },
+
       # MIPS native build
       'Dart_Linux_mips_Base': {
         'abstract': 1,

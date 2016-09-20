@@ -4,6 +4,7 @@
 
 library analyzer.test.source.sdk_ext_test;
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -44,7 +45,7 @@ class SdkExtUriResolverTest {
 
   test_create_noSdkExtPackageMap() {
     var resolver = new SdkExtUriResolver({
-      'fox': [resourceProvider.getResource('/empty')]
+      'fox': <Folder>[resourceProvider.getResource('/empty')]
     });
     expect(resolver.length, equals(0));
   }
@@ -56,7 +57,7 @@ class SdkExtUriResolverTest {
 
   test_create_sdkExtPackageMap() {
     var resolver = new SdkExtUriResolver({
-      'fox': [resourceProvider.getResource('/tmp')]
+      'fox': <Folder>[resourceProvider.getResource('/tmp')]
     });
     // We have four mappings.
     expect(resolver.length, equals(4));
@@ -69,7 +70,7 @@ class SdkExtUriResolverTest {
 
   test_restoreAbsolute() {
     var resolver = new SdkExtUriResolver({
-      'fox': [resourceProvider.getResource('/tmp')]
+      'fox': <Folder>[resourceProvider.getResource('/tmp')]
     });
     var source = resolver.resolveAbsolute(Uri.parse('dart:fox'));
     expect(source, isNotNull);

@@ -26,11 +26,13 @@
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
+            '<(PRODUCT_DIR)/.packages',
           ],
           'action': [
-            'python', '../tools/make_links.py',
+            'python', '../tools/make_links.py', '--create-links',
+            '--create-package-file',
             '--timestamp_file=<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
-            '<(PRODUCT_DIR)/packages',
+            '<(PRODUCT_DIR)',
             '<@(_inputs)',
             # Pub imports dart2js as compiler_unsupported so it can work outside
             # the SDK. Map that to the compiler package.

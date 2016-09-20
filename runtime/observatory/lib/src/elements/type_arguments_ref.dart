@@ -14,7 +14,8 @@ class TypeArgumentsRefElement extends HtmlElement implements Renderable {
 
   RenderingScheduler<TypeArgumentsRefElement> _r;
 
-  Stream<RenderedEvent<TypeArgumentsRefElement>> get onRendered => _r.onRendered;
+  Stream<RenderedEvent<TypeArgumentsRefElement>> get onRendered =>
+      _r.onRendered;
 
   M.IsolateRef _isolate;
   M.TypeArgumentsRef _arguments;
@@ -50,8 +51,8 @@ class TypeArgumentsRefElement extends HtmlElement implements Renderable {
 
   void render() {
     final text = (_arguments.name == null || _arguments.name == '')
-      ? 'TypeArguments'
-      : _arguments.name;
+        ? 'TypeArguments'
+        : _arguments.name;
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _arguments))
         ..text = text

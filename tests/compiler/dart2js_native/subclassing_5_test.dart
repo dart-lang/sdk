@@ -19,8 +19,7 @@ class N {}
 
 class A extends N {}
 
-class B extends A with M {
-}
+class B extends A with M {}
 
 class Checks<T> {
   bool isCheck(x) => x is T;
@@ -28,17 +27,17 @@ class Checks<T> {
     T z = x;
     Expect.identical(x, z);
   }
+
   void castCheck(x) {
     var z = x as T;
     Expect.identical(x, z);
   }
 }
 
-
-makeB() native;
+makeB() native ;
 
 @Creates('=Object')
-getBPrototype() native;
+getBPrototype() native ;
 
 void setup() native r"""
 function B() {}
@@ -46,13 +45,11 @@ makeB = function(){return new B;};
 getBPrototype = function(){return B.prototype;};
 """;
 
-
 bool isCheckedMode() {
   var isChecked = false;
   assert(isChecked = true);
   return isChecked;
 }
-
 
 testIsI(x) {
   Expect.isTrue(x is I);
@@ -73,7 +70,6 @@ testIsA(x) {
 testIsB(x) {
   Expect.isTrue(x is B);
 }
-
 
 testAssignI(x) {
   I z = x;
@@ -100,7 +96,6 @@ testAssignB(x) {
   Expect.identical(x, z);
 }
 
-
 testCastI(x) {
   var z = x as I;
   Expect.identical(x, z);
@@ -125,7 +120,6 @@ testCastB(x) {
   var z = x as B;
   Expect.identical(x, z);
 }
-
 
 var inscrutable;
 

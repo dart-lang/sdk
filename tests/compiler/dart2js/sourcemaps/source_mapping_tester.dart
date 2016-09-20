@@ -26,7 +26,7 @@ main(List<String> arguments) {
 }
 
 void test(List<String> arguments,
-          {WhiteListFunction whiteListFunction: emptyWhiteListFunction}) {
+    {WhiteListFunction whiteListFunction: emptyWhiteListFunction}) {
   Set<String> configurations = new Set<String>();
   Set<String> files = new Set<String>();
   for (String argument in arguments) {
@@ -49,11 +49,10 @@ void test(List<String> arguments,
       List<String> options = TEST_CONFIGURATIONS[config];
       for (String file in files) {
         String filename = TEST_FILES[file];
-        TestResult result = await runTests(
-            config, filename, options);
+        TestResult result = await runTests(config, filename, options);
         if (result.missingCodePointsMap.isNotEmpty) {
-          errorsFound = result.printMissingCodePoints(
-              whiteListFunction(config, file));
+          errorsFound =
+              result.printMissingCodePoints(whiteListFunction(config, file));
           true;
         }
         if (result.multipleNodesMap.isNotEmpty) {
@@ -66,7 +65,8 @@ void test(List<String> arguments,
         }
       }
     }
-    Expect.isFalse(errorsFound,
+    Expect.isFalse(
+        errorsFound,
         "Errors found. "
         "Run the test with a URI option, "
         "`source_mapping_test_viewer [--out=<uri>] [configs] [tests]`, to "
@@ -80,24 +80,25 @@ void test(List<String> arguments,
 /// test-file name is added to [files], and `true` is returned.
 /// On failure, a message is printed and `false` is returned.
 ///
-bool parseArgument(String argument,
-                   Set<String> configurations,
-                   Set<String> files) {
+bool parseArgument(
+    String argument, Set<String> configurations, Set<String> files) {
   if (TEST_CONFIGURATIONS.containsKey(argument)) {
     configurations.add(argument);
   } else if (TEST_FILES.containsKey(argument)) {
     files.add(argument);
   } else {
     print("Unknown configuration or file '$argument'. "
-          "Must be one of '${TEST_CONFIGURATIONS.keys.join("', '")}' or "
-          "'${TEST_FILES.keys.join("', '")}'.");
+        "Must be one of '${TEST_CONFIGURATIONS.keys.join("', '")}' or "
+        "'${TEST_FILES.keys.join("', '")}'.");
     return false;
   }
   return true;
 }
 
 const Map<String, List<String>> TEST_CONFIGURATIONS = const {
-  'ssa': const ['--use-new-source-info', ],
+  'ssa': const [
+    '--use-new-source-info',
+  ],
   'old': const [],
 };
 
@@ -107,14 +108,11 @@ const Map<String, String> TEST_FILES = const <String, String>{
 };
 
 Future<TestResult> runTests(
-    String config,
-    String filename,
-    List<String> options,
+    String config, String filename, List<String> options,
     {bool verbose: true}) async {
   SourceMapProcessor processor = new SourceMapProcessor(filename);
   SourceMaps sourceMaps = await processor.process(
-      ['--csp', '--disable-inlining']
-      ..addAll(options),
+      ['--csp', '--disable-inlining']..addAll(options),
       verbose: verbose);
   TestResult result = new TestResult(config, filename, processor);
   for (SourceMapInfo info in sourceMaps.elementSourceMapInfos.values) {
@@ -128,12 +126,11 @@ Future<TestResult> runTests(
     Map<int, Set<SourceLocation>> offsetToLocationsMap =
         <int, Set<SourceLocation>>{};
     for (Node node in info.nodeMap.nodes) {
-      info.nodeMap[node].forEach(
-            (int targetOffset, List<SourceLocation> sourceLocations) {
+      info.nodeMap[node]
+          .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
         if (sourceLocations.length > 1) {
-          Map<Node, List<SourceLocation>> multipleMap =
-              result.multipleNodesMap.putIfAbsent(info,
-                  () => <Node, List<SourceLocation>>{});
+          Map<Node, List<SourceLocation>> multipleMap = result.multipleNodesMap
+              .putIfAbsent(info, () => <Node, List<SourceLocation>>{});
           multipleMap[node] = sourceLocations;
         } else {
           offsetToLocationsMap
@@ -142,12 +139,11 @@ Future<TestResult> runTests(
         }
       });
     }
-    offsetToLocationsMap.forEach(
-          (int targetOffset, Set<SourceLocation> sourceLocations) {
+    offsetToLocationsMap
+        .forEach((int targetOffset, Set<SourceLocation> sourceLocations) {
       if (sourceLocations.length > 1) {
-        Map<int, Set<SourceLocation>> multipleMap =
-            result.multipleOffsetsMap.putIfAbsent(info,
-                () => <int, Set<SourceLocation>>{});
+        Map<int, Set<SourceLocation>> multipleMap = result.multipleOffsetsMap
+            .putIfAbsent(info, () => <int, Set<SourceLocation>>{});
         multipleMap[targetOffset] = sourceLocations;
       }
     });
@@ -180,7 +176,7 @@ class TestResult {
     bool allWhiteListed = true;
     missingCodePointsMap.forEach((info, missingCodePoints) {
       print("Missing code points for ${info.element} in '$file' "
-            "in config '$config':");
+          "in config '$config':");
       for (CodePoint codePoint in missingCodePoints) {
         if (codePointWhiteList(codePoint)) {
           print("  $codePoint (white-listed)");
@@ -197,8 +193,8 @@ class TestResult {
     multipleNodesMap.forEach((info, multipleMap) {
       multipleMap.forEach((node, sourceLocations) {
         print('Multiple source locations:\n ${sourceLocations.join('\n ')}\n'
-              'for `${nodeToString(node)}` in ${info.element} in '
-              '$file.');
+            'for `${nodeToString(node)}` in ${info.element} in '
+            '$file.');
       });
     });
   }
@@ -206,8 +202,7 @@ class TestResult {
   void printMultipleOffsets() {
     multipleOffsetsMap.forEach((info, multipleMap) {
       multipleMap.forEach((targetOffset, sourceLocations) {
-        print(
-            'Multiple source locations:\n ${sourceLocations.join('\n ')}\n'
+        print('Multiple source locations:\n ${sourceLocations.join('\n ')}\n'
             'for offset $targetOffset in ${info.element} in $file.');
       });
     });

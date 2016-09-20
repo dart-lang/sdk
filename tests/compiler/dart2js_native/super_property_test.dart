@@ -20,6 +20,7 @@ class B extends A {
   set foo(value) {
     super.foo = value;
   }
+
   get foo => super.foo;
 }
 
@@ -33,11 +34,12 @@ class D extends C {
   set foo(value) {
     super.foo = value;
   }
+
   get foo => super.foo;
 }
 
-makeA() native;
-makeB() native;
+makeA() native ;
+makeB() native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
@@ -49,12 +51,12 @@ makeB = function(){return new B};
 
 testThing(a) {
   a.foo = 123;
-  Expect.equals(123,  a.foo);
-  Expect.equals(123,  a.get_foo());
+  Expect.equals(123, a.foo);
+  Expect.equals(123, a.get_foo());
 
   a.bar = 234;
-  Expect.equals(234,  a.foo);
-  Expect.equals(234,  a.get_foo());
+  Expect.equals(234, a.foo);
+  Expect.equals(234, a.get_foo());
 }
 
 main() {

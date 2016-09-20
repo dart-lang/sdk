@@ -9,12 +9,13 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl, CacheState;
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -180,7 +181,8 @@ f() {
     Annotation annotation = unit.declarations
         .firstWhere((m) => m is FunctionDeclaration)
         .metadata[0];
-    List<ConstantEvaluationTarget> expectedConstants = [
+    List<ConstantEvaluationTarget> expectedConstants =
+        <ConstantEvaluationTarget>[
       unitElement.accessors.firstWhere((e) => e.isGetter).variable,
       unitElement.types[0].fields[0],
       unitElement.functions[0].localVariables[0],
@@ -352,6 +354,52 @@ library libB;
       HideElementCombinator combinator = combinators[1];
       expect(combinator.hiddenNames, ['C', 'D']);
     }
+  }
+
+  test_perform_configurations_export() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    newSource('/foo.dart', '');
+    var foo_io = newSource('/foo_io.dart', '');
+    newSource('/foo_html.dart', '');
+    var testSource = newSource(
+        '/test.dart',
+        r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    // Perform the task.
+    computeResult(testSource, LIBRARY_ELEMENT2,
+        matcher: isBuildDirectiveElementsTask);
+    LibraryElement testLibrary = outputs[LIBRARY_ELEMENT2];
+    // Validate the export element.
+    ExportElement export = testLibrary.exports[0];
+    expect(export.exportedLibrary.source, foo_io);
+    expect(export.uri, 'foo_io.dart');
+  }
+
+  test_perform_configurations_import() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    newSource('/foo.dart', '');
+    var foo_io = newSource('/foo_io.dart', '');
+    newSource('/foo_html.dart', '');
+    var testSource = newSource(
+        '/test.dart',
+        r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    // Perform the task.
+    computeResult(testSource, LIBRARY_ELEMENT2,
+        matcher: isBuildDirectiveElementsTask);
+    LibraryElement testLibrary = outputs[LIBRARY_ELEMENT2];
+    // Validate the import element.
+    ImportElement import = testLibrary.imports[0];
+    expect(import.importedLibrary.source, foo_io);
+    expect(import.uri, 'foo_io.dart');
   }
 
   test_perform_dartCoreContext() {
@@ -3237,6 +3285,118 @@ class A {''');
     expect(outputs[UNITS], hasLength(2));
   }
 
+  test_perform_library_configurations_bool1() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    newSource('/foo.dart', '');
+    newSource('/foo_io.dart', '');
+    newSource('/foo_html.dart', '');
+    newSource('/bar.dart', '');
+    newSource('/bar_io.dart', '');
+    newSource('/bar_html.dart', '');
+    _performParseTask(r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+export 'bar.dart'
+  if (dart.library.io) 'bar_io.dart'
+  if (dart.library.html) 'bar_html.dart';
+''');
+    var unit = outputs[PARSED_UNIT] as CompilationUnit;
+
+    var imported = outputs[IMPORTED_LIBRARIES] as List<Source>;
+    _assertContainsOnlyShortName(imported, 'foo_io.dart');
+
+    var import = unit.directives[0] as ImportDirective;
+    expect(import.uriSource.shortName, 'foo.dart');
+    expect(import.selectedSource.shortName, 'foo_io.dart');
+    expect(import.configurations[0].uriSource.shortName, 'foo_io.dart');
+    expect(import.configurations[1].uriSource.shortName, 'foo_html.dart');
+
+    var exported = outputs[EXPORTED_LIBRARIES] as List<Source>;
+    _assertContainsOnlyShortName(exported, 'bar_io.dart');
+
+    var export = unit.directives[1] as ExportDirective;
+    expect(export.uriSource.shortName, 'bar.dart');
+    expect(export.selectedSource.shortName, 'bar_io.dart');
+    expect(export.configurations[0].uriSource.shortName, 'bar_io.dart');
+    expect(export.configurations[1].uriSource.shortName, 'bar_html.dart');
+
+    var refSources = outputs[REFERENCED_SOURCES] as List<Source>;
+    var refNames = refSources.map((source) => source.shortName).toList();
+    expect(refNames, contains('test.dart'));
+    expect(refNames, contains('foo.dart'));
+    expect(refNames, contains('foo_io.dart'));
+    expect(refNames, contains('foo_html.dart'));
+    expect(refNames, contains('bar.dart'));
+    expect(refNames, contains('bar_io.dart'));
+    expect(refNames, contains('bar_html.dart'));
+  }
+
+  test_perform_library_configurations_bool2() {
+    context.declaredVariables.define('dart.library.html', 'true');
+    newSource('/foo.dart', '');
+    newSource('/foo_io.dart', '');
+    newSource('/foo_html.dart', '');
+    _performParseTask(r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    var imported = outputs[IMPORTED_LIBRARIES] as List<Source>;
+    _assertContainsOnlyShortName(imported, 'foo_html.dart');
+  }
+
+  test_perform_library_configurations_default() {
+    context.declaredVariables.define('dart.library.io', 'false');
+    newSource('/foo.dart', '');
+    newSource('/foo_io.dart', '');
+    newSource('/foo_html.dart', '');
+    _performParseTask(r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    var imported = outputs[IMPORTED_LIBRARIES] as List<Source>;
+    _assertContainsOnlyShortName(imported, 'foo.dart');
+  }
+
+  test_perform_library_configurations_preferFirst() {
+    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables.define('dart.library.html', 'true');
+    newSource('/foo.dart', '');
+    newSource('/foo_io.dart', '');
+    newSource('/foo_html.dart', '');
+    _performParseTask(r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+
+    var imported = outputs[IMPORTED_LIBRARIES] as List<Source>;
+    _assertContainsOnlyShortName(imported, 'foo_io.dart');
+
+    var unit = outputs[PARSED_UNIT] as CompilationUnit;
+    var import = unit.directives[0] as ImportDirective;
+    expect(import.uriSource.shortName, 'foo.dart');
+    expect(import.selectedSource.shortName, 'foo_io.dart');
+    expect(import.configurations[0].uriSource.shortName, 'foo_io.dart');
+    expect(import.configurations[1].uriSource.shortName, 'foo_html.dart');
+  }
+
+  test_perform_library_configurations_value() {
+    context.declaredVariables.define('dart.platform', 'Windows');
+    newSource('/foo.dart', '');
+    newSource('/foo_posix.dart', '');
+    newSource('/foo_windows.dart', '');
+    _performParseTask(r'''
+import 'foo.dart'
+  if (dart.platform == 'Posix') 'foo_posix.dart'
+  if (dart.platform == 'Windows') 'foo_windows.dart';
+''');
+    var imported = outputs[IMPORTED_LIBRARIES] as List<Source>;
+    _assertContainsOnlyShortName(imported, 'foo_windows.dart');
+  }
+
   test_perform_library_selfReferenceAsPart() {
     _performParseTask(r'''
 library lib;
@@ -3261,6 +3421,20 @@ class B {}''');
     expect(outputs[REFERENCED_SOURCES], hasLength(2));
     expect(outputs[SOURCE_KIND], SourceKind.PART);
     expect(outputs[UNITS], hasLength(1));
+  }
+
+  /**
+   * Assert that [sources] contains either just a source with the given
+   * [expectedShortName], or it and the `dart:core` source.
+   */
+  void _assertContainsOnlyShortName(
+      List<Source> sources, String expectedShortName) {
+    Iterable<String> shortNames = sources.map((s) => s.shortName);
+    if (shortNames.length == 2) {
+      expect(shortNames, unorderedEquals(['core.dart', expectedShortName]));
+    } else {
+      expect(shortNames, unorderedEquals([expectedShortName]));
+    }
   }
 
   void _performParseTask(String content) {

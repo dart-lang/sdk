@@ -26,13 +26,12 @@ use(x) {
 }
 """;
 
-
 main() {
   asyncTest(() => Future.wait([
-      compileAll(TEST_ONE).then((String generated) {
-        Expect.isFalse(generated.contains('Tarantula!'),
-            "failed to remove 'foo'");
-        Expect.isTrue(generated.contains('Coelacanth!'));
-      }),
-  ]));
+        compileAll(TEST_ONE).then((String generated) {
+          Expect.isFalse(
+              generated.contains('Tarantula!'), "failed to remove 'foo'");
+          Expect.isTrue(generated.contains('Coelacanth!'));
+        }),
+      ]));
 }

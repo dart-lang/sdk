@@ -129,7 +129,7 @@ class WebCompileCommand extends Command {
 
       var moduleCode = module.isValid
           ? module
-              .getCode(ModuleFormat.legacy, unit.name, unit.name + '.map')
+              .getCode(ModuleFormat.legacy, false, unit.name, unit.name + '.map')
               .code
           : '';
 

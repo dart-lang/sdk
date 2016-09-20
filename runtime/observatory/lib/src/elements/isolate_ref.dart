@@ -6,8 +6,7 @@ library isolate_ref_element;
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart' as M
-  show IsolateRef, EventRepository;
+import 'package:observatory/models.dart' as M show IsolateRef, EventRepository;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -18,7 +17,6 @@ class IsolateRefElement extends HtmlElement implements Renderable {
   RenderingScheduler<IsolateRefElement> _r;
 
   Stream<RenderedEvent<IsolateRefElement>> get onRendered => _r.onRendered;
-
 
   M.IsolateRef _isolate;
   M.EventRepository _events;
@@ -43,8 +41,11 @@ class IsolateRefElement extends HtmlElement implements Renderable {
   void attached() {
     super.attached();
     _updatesSubscription = _events.onIsolateUpdate
-      .where((e) => e.isolate.id == isolate.id)
-      .listen((e) { _isolate = e.isolate; _r.dirty(); });
+        .where((e) => e.isolate.id == isolate.id)
+        .listen((e) {
+      _isolate = e.isolate;
+      _r.dirty();
+    });
     _r.enable();
   }
 

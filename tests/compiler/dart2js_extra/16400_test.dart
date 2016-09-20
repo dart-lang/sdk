@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  L: {
+  L:
+  {
     var seeMe = 0;
     if (seeMe == 0) {
       ++seeMe;
@@ -17,4 +18,3 @@ main() {
     }
   }
 }
-

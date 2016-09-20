@@ -176,7 +176,8 @@ class TypeResolver {
           } else {
             type = new InterfaceType(
                 cls.declaration, arguments.toList(growable: false));
-            addTypeVariableBoundsCheck = true;
+            addTypeVariableBoundsCheck =
+                arguments.any((DartType type) => !type.isDynamic);
           }
         }
       } else if (element.isTypedef) {
@@ -195,7 +196,8 @@ class TypeResolver {
             type = typdef.rawType;
           } else {
             type = new TypedefType(typdef, arguments.toList(growable: false));
-            addTypeVariableBoundsCheck = true;
+            addTypeVariableBoundsCheck =
+                arguments.any((DartType type) => !type.isDynamic);
           }
         }
       } else if (element.isTypeVariable) {

@@ -9,8 +9,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/models.dart' show ConnectionException;
 
-
-class ExceptionDeleteEvent{
+class ExceptionDeleteEvent {
   final Exception exception;
   final StackTrace stacktrace;
 
@@ -23,7 +22,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
   RenderingScheduler _r;
 
   Stream<RenderedEvent<NavNotifyExceptionElement>> get onRendered =>
-                                                                  _r.onRendered;
+      _r.onRendered;
 
   final StreamController<ExceptionDeleteEvent> _onDelete =
       new StreamController<ExceptionDeleteEvent>.broadcast();
@@ -31,7 +30,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
 
   Exception _exception;
   StackTrace _stacktrace;
-  
+
   Exception get exception => _exception;
   StackTrace get stacktrace => _stacktrace;
 
@@ -72,16 +71,19 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
     children = [
       new DivElement()
         ..children = [
-        new SpanElement()..text = 'The request cannot be completed because the '
-                                  'VM is currently disconnected',
-        new BRElement(), new BRElement(),
-        new SpanElement()..text = '[',
-        new AnchorElement(href: Uris.vmConnect())
-          ..text = 'Connect to a different VM',
-        new SpanElement()..text = ']',
-        new ButtonElement()..innerHtml = '&times;'
-          ..onClick.map(_toEvent).listen(_delete)
-      ]
+          new SpanElement()
+            ..text = 'The request cannot be completed because the '
+                'VM is currently disconnected',
+          new BRElement(),
+          new BRElement(),
+          new SpanElement()..text = '[',
+          new AnchorElement(href: Uris.vmConnect())
+            ..text = 'Connect to a different VM',
+          new SpanElement()..text = ']',
+          new ButtonElement()
+            ..innerHtml = '&times;'
+            ..onClick.map(_toEvent).listen(_delete)
+        ]
     ];
   }
 
@@ -89,14 +91,16 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
     List<Node> content;
     content = [
       new SpanElement()..text = 'Unexpected exception:',
-      new BRElement(), new BRElement(),
+      new BRElement(),
+      new BRElement(),
       new DivElement()..text = exception.toString(),
       new BRElement()
     ];
     if (stacktrace != null) {
       content.addAll([
         new SpanElement()..text = 'Stacktrace:',
-        new BRElement(), new BRElement(),
+        new BRElement(),
+        new BRElement(),
         new DivElement()..text = stacktrace.toString(),
         new BRElement()
       ]);
@@ -106,13 +110,11 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
       new AnchorElement(href: Uris.vmConnect())
         ..text = 'Connect to a different VM',
       new SpanElement()..text = ']',
-      new ButtonElement()..innerHtml = '&times;'
+      new ButtonElement()
+        ..innerHtml = '&times;'
         ..onClick.map(_toEvent).listen(_delete)
     ]);
-    children = [
-      new DivElement()
-        ..children = content
-    ];
+    children = [new DivElement()..children = content];
   }
 
   ExceptionDeleteEvent _toEvent(_) {

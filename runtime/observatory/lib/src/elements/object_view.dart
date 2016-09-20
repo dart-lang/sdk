@@ -20,18 +20,18 @@ import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ObjectViewElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ObjectViewElement>('object-view',
-                                            dependencies: const [
-                                              ContextRefElement.tag,
-                                              CurlyBlockElement.tag,
-                                              NavTopMenuElement.tag,
-                                              NavVMMenuElement.tag,
-                                              NavIsolateMenuElement.tag,
-                                              NavRefreshElement.tag,
-                                              NavNotifyElement.tag,
-                                              ObjectCommonElement.tag,
-                                              ViewFooterElement.tag
-                                            ]);
+  static const tag =
+      const Tag<ObjectViewElement>('object-view', dependencies: const [
+    ContextRefElement.tag,
+    CurlyBlockElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+    ObjectCommonElement.tag,
+    ViewFooterElement.tag
+  ]);
 
   RenderingScheduler<ObjectViewElement> _r;
 
@@ -49,22 +49,24 @@ class ObjectViewElement extends HtmlElement implements Renderable {
   M.RetainingPathRepository _retainingPaths;
   M.InstanceRepository _instances;
 
-
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.Context get object => _object;
 
-  factory ObjectViewElement(M.VM vm, M.IsolateRef isolate, M.Object object,
-                            M.EventRepository events,
-                            M.NotificationRepository notifications,
-                            M.ObjectRepository objects,
-                            M.RetainedSizeRepository retainedSizes,
-                            M.ReachableSizeRepository reachableSizes,
-                            M.InboundReferencesRepository references,
-                            M.RetainingPathRepository retainingPaths,
-                            M.InstanceRepository instances,
-                            {RenderingQueue queue}) {
+  factory ObjectViewElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.Object object,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.ObjectRepository objects,
+      M.RetainedSizeRepository retainedSizes,
+      M.ReachableSizeRepository reachableSizes,
+      M.InboundReferencesRepository references,
+      M.RetainingPathRepository retainingPaths,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -115,20 +117,21 @@ class ObjectViewElement extends HtmlElement implements Renderable {
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('object'),
         new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              _object = await _objects.get(_isolate, _object.id);
-              _r.dirty();
-            }),
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            _object = await _objects.get(_isolate, _object.id);
+            _r.dirty();
+          }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Object',
           new HRElement(),
           new ObjectCommonElement(_isolate, _object, _retainedSizes,
-                                  _reachableSizes, _references, _retainingPaths,
-                                  _instances, queue: _r.queue),
+              _reachableSizes, _references, _retainingPaths, _instances,
+              queue: _r.queue),
           new HRElement(),
           new ViewFooterElement(queue: _r.queue)
         ]
