@@ -47,8 +47,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
    */
   bool allowMissingFiles = false;
 
-  bool get checkPropagatedTypes => true;
-
   void addLibrary(String uri) {
     otherLibrarySources.add(context.sourceFactory.forUri(uri));
   }
@@ -712,7 +710,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareElements(resynthesized, original, desc);
     compareParameterElementLists(
         resynthesized.parameters, original.parameters, desc);
-    if (checkPropagatedTypes || !original.hasImplicitReturnType) {
+    if (!original.hasImplicitReturnType) {
       compareTypes(
           resynthesized.returnType, original.returnType, '$desc return type');
     }
@@ -950,9 +948,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       PropertyInducingElementImpl original,
       String desc) {
     compareVariableElements(resynthesized, original, desc);
-    if (checkPropagatedTypes) {
-      compareTypes(resynthesized.propagatedType, original.propagatedType, desc);
-    }
     if (original.getter == null) {
       expect(resynthesized.getter, isNull);
     } else {
