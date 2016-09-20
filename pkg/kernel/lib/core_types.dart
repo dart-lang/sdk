@@ -25,6 +25,7 @@ class CoreTypes {
   Class internalSymbolClass;
   Class typeClass;
   Class functionClass;
+  Class internalContextClass;
 
   Library getCoreLibrary(String uri) => _dartLibraries[uri].library;
 
@@ -66,6 +67,7 @@ class CoreTypes {
     futureClass = dartAsync.require('Future');
     streamClass = dartAsync.require('Stream');
     internalSymbolClass = dartInternal.require('Symbol');
+    internalContextClass = dartInternal.require('Context');
   }
 }
 
