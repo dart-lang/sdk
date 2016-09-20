@@ -415,7 +415,10 @@ class ClosureConverter extends Transformer {
 
     if (!captured.contains(node)) return node;
     context.extend(node, node.initializer ?? new NullLiteral());
-    return null;
+
+    // TODO(ahe): Return null here when the parent has been correctly
+    // rewritten. So far, only for-in is known to use this return value.
+    return new VariableDeclaration(null, initializer: new InvalidExpression());
   }
 
   TreeNode visitVariableGet(VariableGet node) {
