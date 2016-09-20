@@ -467,7 +467,6 @@ if (defined(is_fuchsia) && is_fuchsia) {
       "../vm:libdart_platform",
       "..:libdart",
       ":dart_snapshot_cc",
-      "../../pkg:pkg",  # Pull this out to top-level for a real SDK build.
       "//third_party/zlib",
     ]
 

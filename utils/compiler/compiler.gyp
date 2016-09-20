@@ -23,7 +23,6 @@
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../runtime/lib", "../../sdk/lib/_internal/dartdoc"])',
             'create_snapshot.dart',
             '<(SHARED_INTERMEDIATE_DIR)/dart2js_files.stamp',
-            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             '../../tools/VERSION',
           ],
           'outputs': [

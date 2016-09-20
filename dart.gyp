@@ -13,7 +13,6 @@
         'dart2js',
         'dartanalyzer',
         'dartdevc',
-        'packages',
         'runtime',
         'samples',
       ],
@@ -29,7 +28,6 @@
         'runtime/dart-runtime.gyp:dart_bootstrap#host',
         'runtime/dart-runtime.gyp:run_vm_tests',
         'runtime/dart-runtime.gyp:process_test',
-        'packages',
         'runtime/dart-runtime.gyp:test_extension',
         'runtime/dart-runtime.gyp:sample_extension',
       ],
@@ -43,7 +41,6 @@
       'dependencies': [
         'runtime/dart-runtime.gyp:dart_precompiled_runtime',
         'runtime/dart-runtime.gyp:dart_bootstrap#host',
-        'packages',
       ],
     },
     {
@@ -58,7 +55,6 @@
         'runtime/dart-runtime.gyp:dart_bootstrap#host',
         'runtime/dart-runtime.gyp:run_vm_tests',
         'runtime/dart-runtime.gyp:process_test',
-        'packages',
         'runtime/dart-runtime.gyp:test_extension',
         'runtime/dart-runtime.gyp:sample_extension',
       ],
@@ -113,7 +109,6 @@
       'type': 'none',
       'dependencies': [
         'create_sdk',
-        'packages',
       ],
     },
     {
@@ -128,13 +123,6 @@
           },
         ],
       ]
-    },
-    {
-      'target_name': 'packages',
-      'type': 'none',
-      'dependencies': [
-        'pkg/pkg.gyp:pkg_packages',
-      ],
     },
   ],
 }
