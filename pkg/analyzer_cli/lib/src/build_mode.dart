@@ -253,7 +253,7 @@ class BuildMode {
           resourceProvider.getFolder(options.dartSdkPath), options.strongMode);
       dartSdk.analysisOptions =
           Driver.createAnalysisOptionsForCommandLineOptions(options);
-      dartSdk.useSummary = false;
+      dartSdk.useSummary = !options.buildSummaryOnly;
       sdk = dartSdk;
       sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
     }
@@ -276,6 +276,13 @@ class BuildMode {
         contextOptions.analyzeFunctionBodies = false;
       }
     });
+
+    if (!options.buildSummaryOnly) {
+      // Configure using summaries.
+      context.typeProvider = sdk.context.typeProvider;
+      context.resultProvider =
+          new InputPackagesResultProvider(context, summaryDataStore);
+    }
   }
 
   /**
