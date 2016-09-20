@@ -2144,7 +2144,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
       ASSERT(innermost_function().raw() == signature_function.raw());
       innermost_function_ = signature_function.parent_function();
-      signature_function.set_data(Object::Handle());
+      signature_function.set_data(Object::Handle(Z));
 
       Type& signature_type =
           Type::ZoneHandle(Z, signature_function.SignatureType());
@@ -5481,6 +5481,12 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
         // Postpone resolution in order to avoid resolving the owner and its
         // type parameters, as they are not fully parsed yet.
         type_parameter_bound = ParseType(ClassFinalizer::kDoNotResolve);
+        if (!parameterizing_class) {
+          // TODO(regis): Resolve and finalize function type parameter bounds in
+          // class finalizer. For now, ignore parsed bounds to avoid unresolved
+          // bounds while writing snapshots.
+          type_parameter_bound = I->object_store()->object_type();
+        }
       } else {
         type_parameter_bound = I->object_store()->object_type();
       }
@@ -5491,6 +5497,11 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
           type_parameter_name,
           type_parameter_bound,
           declaration_pos);
+      if (!parameterizing_class) {
+        // TODO(regis): Resolve and finalize function type parameter in
+        // class finalizer. For now, already mark as finalized.
+        type_parameter.SetIsFinalized();
+      }
       type_parameters_array.Add(
           &AbstractType::ZoneHandle(Z, type_parameter.raw()));
       if (FLAG_enable_mirrors && metadata_pos.IsReal()) {

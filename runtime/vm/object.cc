@@ -2424,11 +2424,6 @@ intptr_t Class::NumOwnTypeArguments() const {
 }
 
 
-bool Class::IsGeneric() const {
-  return NumTypeParameters() != 0;
-}
-
-
 intptr_t Class::NumTypeArguments() const {
   // Return cached value if already calculated.
   if (num_type_arguments() != kUnknownNumTypeArguments) {
@@ -5891,6 +5886,7 @@ RawTypeParameter* Function::LookupTypeParameter(
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
   REUSABLE_TYPE_PARAMETER_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
   TypeArguments& type_params = thread->TypeArgumentsHandle();
   TypeParameter&  type_param = thread->TypeParameterHandle();
   String& type_param_name = thread->StringHandle();
@@ -17978,6 +17974,11 @@ void TypeParameter::set_token_pos(TokenPosition token_pos) const {
 }
 
 
+void TypeParameter::set_parent_level(uint8_t value) const {
+  StoreNonPointer(&raw_ptr()->parent_level_, value);
+}
+
+
 void TypeParameter::set_type_state(int8_t state) const {
   ASSERT((state == RawTypeParameter::kAllocated) ||
          (state == RawTypeParameter::kBeingFinalized) ||
@@ -17987,19 +17988,32 @@ void TypeParameter::set_type_state(int8_t state) const {
 
 
 const char* TypeParameter::ToCString() const {
-  const char* format =
-      "TypeParameter: name %s; index: %d; class: %s; bound: %s";
   const char* name_cstr = String::Handle(Name()).ToCString();
-  const Class& cls = Class::Handle(parameterized_class());
-  const char* cls_cstr =
-      cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
   const AbstractType& upper_bound = AbstractType::Handle(bound());
   const char* bound_cstr = String::Handle(upper_bound.Name()).ToCString();
-  intptr_t len = OS::SNPrint(
-      NULL, 0, format, name_cstr, index(), cls_cstr, bound_cstr) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr, bound_cstr);
-  return chars;
+  if (IsFunctionTypeParameter()) {
+    const char* format = "TypeParameter: name %s; index: %d; parent_level: %d, "
+        "function: %s; bound: %s";
+    const Function& function = Function::Handle(parameterized_function());
+    const char* fun_cstr = String::Handle(function.name()).ToCString();
+    intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index(),
+                               parent_level(), fun_cstr, bound_cstr) + 1;
+    char* chars = Thread::Current()->zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, name_cstr, index(), parent_level(),
+                fun_cstr, bound_cstr);
+    return chars;
+  } else {
+    const char* format =
+        "TypeParameter: name %s; index: %d; class: %s; bound: %s";
+    const Class& cls = Class::Handle(parameterized_class());
+    const char* cls_cstr =
+        cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
+    intptr_t len = OS::SNPrint(
+        NULL, 0, format, name_cstr, index(), cls_cstr, bound_cstr) + 1;
+    char* chars = Thread::Current()->zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr, bound_cstr);
+    return chars;
+  }
 }
 
 
