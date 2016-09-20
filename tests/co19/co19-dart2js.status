@@ -588,8 +588,6 @@ WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-004_t0
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-002_t01: Fail # please triage
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-005_t01: Fail # please triage
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: Fail # please triage
 WebPlatformTest/custom-elements/concepts/type_A07_t01: Fail # custom elements not supported
 WebPlatformTest/custom-elements/concepts/type_A08_t01: Fail # please triage
@@ -672,6 +670,8 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Fail # 
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t02: Fail # please triage
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t05: Fail # please triage
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t06: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-005_t01: Fail # please triage
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t01: Fail # please triage
 
 [ $compiler == dart2js && $checked != true ]
 Language/Expressions/Property_Extraction/General_Super_Property_Extraction/getter_lookup_t02: Timeout, Skip # Please triage this failure
