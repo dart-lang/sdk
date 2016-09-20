@@ -2243,9 +2243,9 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
         // Assume the argument escapes. All we do with our initial allocation is
         // have it escape or store it into an object that escapes.
         return false;
-        // TODO(sra): Handle more functions. `setRuntimeTypeInfo` does not
-        // actually kill it's input, but we don't make use of that elsewhere so
-        // there is not point in checking here.
+        // TODO(sra): Handle library functions that we know do not modify or
+        // leak the inputs. For example `setRuntimeTypeInfo` is used to mark
+        // list literals with type information.
       }
       if (use is HPhi) {
         // The initial allocation (it's only alias) gets merged out of the model
@@ -2291,6 +2291,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitLiteralList(HLiteralList instruction) {
     memorySet.registerAllocation(instruction);
     memorySet.killAffectedBy(instruction);
+    // TODO(sra): Set initial keyed values.
+    // TODO(sra): Set initial length.
   }
 
   void visitIndex(HIndex instruction) {
@@ -2310,10 +2312,31 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.registerKeyedValueUpdate(
         receiver, instruction.index, instruction.value);
   }
+
+  // Pure operations that do not escape their inputs.
+  void visitBinaryArithmetic(HBinaryArithmetic instruction) {}
+  void visitConstant(HConstant instruction) {}
+  void visitIf(HIf instruction) {}
+  void visitInterceptor(HInterceptor instruction) {}
+  void visitIs(HIs instruction) {}
+  void visitIsViaInterceptor(HIsViaInterceptor instruction) {}
+  void visitNot(HNot instruction) {}
+  void visitParameterValue(HParameterValue instruction) {}
+  void visitRelational(HRelational instruction) {}
+  void visitStringConcat(HStringConcat instruction) {}
+  void visitTypeKnown(HTypeKnown instruction) {}
+  void visitTypeInfoReadRaw(HTypeInfoReadRaw instruction) {}
+  void visitTypeInfoReadVariable(HTypeInfoReadVariable instruction) {}
+  void visitTypeInfoExpression(HTypeInfoExpression instruction) {}
 }
 
 /**
  * Holds values of memory places.
+ *
+ * Generally, values that name a place (a receiver) have type refinements and
+ * other checks removed to ensure that checks and type refinements do not
+ * confuse aliasing.  Values stored into a memory place keep the type
+ * refinements to help further optimizations.
  */
 class MemorySet {
   final Compiler compiler;
@@ -2379,25 +2402,28 @@ class MemorySet {
    * Returns whether [receiver] escapes the current function.
    */
   bool escapes(HInstruction receiver) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     return !nonEscapingReceivers.contains(receiver);
   }
 
   void registerAllocation(HInstruction instruction) {
+    assert(instruction == instruction.nonCheck());
     nonEscapingReceivers.add(instruction);
   }
 
   /**
-   * Sets `receiver.element` to contain [value]. Kills all potential
-   * places that may be affected by this update.
+   * Sets `receiver.element` to contain [value]. Kills all potential places that
+   * may be affected by this update.
    */
   void registerFieldValueUpdate(
       Element element, HInstruction receiver, HInstruction value) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     if (backend.isNative(element)) {
       return; // TODO(14955): Remove this restriction?
     }
     // [value] is being set in some place in memory, we remove it from
     // the non-escaping set.
-    nonEscapingReceivers.remove(value);
+    nonEscapingReceivers.remove(value.nonCheck());
     Map<HInstruction, HInstruction> map =
         fieldValues.putIfAbsent(element, () => <HInstruction, HInstruction>{});
     map.forEach((key, value) {
@@ -2411,6 +2437,7 @@ class MemorySet {
    */
   void registerFieldValue(
       Element element, HInstruction receiver, HInstruction value) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     if (backend.isNative(element)) {
       return; // TODO(14955): Remove this restriction?
     }
@@ -2420,27 +2447,26 @@ class MemorySet {
   }
 
   /**
-   * Returns the value stored in `receiver.element`. Returns null if
-   * we don't know.
+   * Returns the value stored in `receiver.element`. Returns `null` if we don't
+   * know.
    */
   HInstruction lookupFieldValue(Element element, HInstruction receiver) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     Map<HInstruction, HInstruction> map = fieldValues[element];
     return (map == null) ? null : map[receiver];
   }
 
   /**
-   * Kill all places that may be affected by this [instruction]. Also
-   * update the set of non-escaping objects in case [instruction] has
-   * non-escaping objects in its inputs.
+   * Kill all places that may be affected by this [instruction]. Also update the
+   * set of non-escaping objects in case [instruction] has non-escaping objects
+   * in its inputs.
    */
   void killAffectedBy(HInstruction instruction) {
-    // Even if [instruction] does not have side effects, it may use
-    // non-escaping objects and store them in a new object, which
-    // make these objects escaping.
-    // TODO(ngeoffray): We need a new side effect flag to know whether
-    // an instruction allocates an object.
+    // Even if [instruction] does not have side effects, it may use non-escaping
+    // objects and store them in a new object, which make these objects
+    // escaping.
     instruction.inputs.forEach((input) {
-      nonEscapingReceivers.remove(input);
+      nonEscapingReceivers.remove(input.nonCheck());
     });
 
     if (instruction.sideEffects.changesInstanceProperty() ||
@@ -2491,7 +2517,7 @@ class MemorySet {
    */
   void registerKeyedValueUpdate(
       HInstruction receiver, HInstruction index, HInstruction value) {
-    nonEscapingReceivers.remove(value);
+    nonEscapingReceivers.remove(value.nonCheck());
     keyedValues.forEach((key, values) {
       if (mayAlias(receiver, key)) {
         // Typed arrays that are views of the same buffer may have different
