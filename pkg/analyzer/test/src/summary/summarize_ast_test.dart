@@ -137,6 +137,8 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
   @override
   List<UnlinkedUnit> unlinkedUnits;
 
+  LinkerInputs linkerInputs;
+
   @override
   bool get checkAstDerivedData => true;
 
@@ -152,7 +154,7 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
   @override
   void serializeLibraryText(String text, {bool allowErrors: false}) {
     Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
-    LinkerInputs linkerInputs = createLinkerInputs(text);
+    linkerInputs = createLinkerInputs(text);
     linked = link(
         linkerInputs.linkedLibraries,
         linkerInputs.getDependency,
