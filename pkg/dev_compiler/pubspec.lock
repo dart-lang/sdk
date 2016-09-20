@@ -162,7 +162,7 @@ packages:
       path: "../meta"
       relative: true
     source: path
-    version: "1.0.3"
+    version: "1.0.4"
   mime:
     description:
       name: mime
