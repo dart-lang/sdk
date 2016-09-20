@@ -26,7 +26,7 @@ void VirtualMemory::InitOnce() {
 
 
 VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
-  mx_handle_t vmo = mx_vm_object_create(size);
+  mx_handle_t vmo = mx_vmo_create(size);
   if (vmo <= 0) {
     return NULL;
   }
