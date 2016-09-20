@@ -1016,7 +1016,7 @@ class Class : public Object {
   intptr_t NumOwnTypeArguments() const;
 
   // Return true if this class declares type parameters.
-  bool IsGeneric() const;
+  bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
 
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
@@ -2296,9 +2296,6 @@ class Function : public Object {
   }
   void set_type_parameters(const TypeArguments& value) const;
   intptr_t NumTypeParameters(Thread* thread) const;
-  intptr_t NumTypeParameters() const {
-    return NumTypeParameters(Thread::Current());
-  }
 
   // Return a TypeParameter if the type_name is a type parameter of this
   // function or of one of its parent functions.
@@ -2308,7 +2305,7 @@ class Function : public Object {
                                         intptr_t* function_level) const;
 
   // Return true if this function declares type parameters.
-  bool IsGeneric() const { return NumTypeParameters() > 0; }
+  bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
 
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
@@ -6139,6 +6136,7 @@ class TypeParameter : public AbstractType {
   RawString* name() const { return raw_ptr()->name_; }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
+  intptr_t parent_level() const { return raw_ptr()->parent_level_; }
   RawAbstractType* bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
   // Returns true if bounded_type is below upper_bound, otherwise return false
@@ -6198,6 +6196,7 @@ class TypeParameter : public AbstractType {
   void set_parameterized_function(const Function& value) const;
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
+  void set_parent_level(uint8_t value) const;
   void set_type_state(int8_t state) const;
 
   static RawTypeParameter* New();

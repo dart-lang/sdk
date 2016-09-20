@@ -20,7 +20,6 @@
             '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
             '<(SHARED_INTERMEDIATE_DIR)/dart2js_files.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
-            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',

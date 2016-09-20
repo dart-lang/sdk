@@ -104,11 +104,11 @@ const Map<String, LibraryInfo> libraries = const {
   }
 
   void test_convertPackagesToMap_noPackages() {
-    expect(builder.convertPackagesToMap(Packages.noPackages), isNull);
+    expect(builder.convertPackagesToMap(Packages.noPackages), isEmpty);
   }
 
   void test_convertPackagesToMap_null() {
-    expect(builder.convertPackagesToMap(null), isNull);
+    expect(builder.convertPackagesToMap(null), isEmpty);
   }
 
   void test_convertPackagesToMap_packages() {

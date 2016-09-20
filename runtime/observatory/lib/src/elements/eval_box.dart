@@ -92,7 +92,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
                 ..children = [
                   _createEvalButton(),
                   _createMultilineCheckbox(),
-                  new SpanElement()..text = 'multi-line'
+                  new SpanElement()..text = 'Multi-line'
                 ]
             ]
         ],
@@ -166,7 +166,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
 
   ButtonElement _createEvalButton() {
     final button = new ButtonElement()
-      ..text = 'evaluate'
+      ..text = 'Evaluate'
       ..onClick.listen((e) {
         e.preventDefault();
         _run();

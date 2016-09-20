@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/options.dart';
@@ -25,7 +26,6 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart' as context;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -322,11 +322,9 @@ abstract class ContextManager {
 abstract class ContextManagerCallbacks {
   /**
    * Create and return a new analysis context rooted at the given [folder], with
-   * the given analysis [options], allowing [disposition] to govern details of
-   * how the context is to be created.
+   * the given analysis [options].
    */
-  AnalysisContext addContext(
-      Folder folder, AnalysisOptions options, FolderDisposition disposition);
+  AnalysisContext addContext(Folder folder, AnalysisOptions options);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -1037,7 +1035,7 @@ class ContextManagerImpl implements ContextManager {
     applyToAnalysisOptions(options, optionMap);
 
     info.setDependencies(dependencies);
-    info.context = callbacks.addContext(folder, options, disposition);
+    info.context = callbacks.addContext(folder, options);
     folderMap[folder] = info.context;
     info.context.name = folder.path;
 
@@ -1128,42 +1126,10 @@ class ContextManagerImpl implements ContextManager {
    * Set up a [SourceFactory] that resolves packages as appropriate for the
    * given [disposition].
    */
-  SourceFactory _createSourceFactory(InternalAnalysisContext context,
-      AnalysisOptions options, FolderDisposition disposition, Folder folder) {
-    List<UriResolver> resolvers = [];
-    List<UriResolver> packageUriResolvers =
-        disposition.createPackageUriResolvers(resourceProvider);
-
-    EmbedderYamlLocator locator =
-        disposition.getEmbedderLocator(resourceProvider);
-    Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
-    EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderYamls);
-    if (embedderSdk.libraryMap.size() == 0) {
-      // There was no embedder file, or the file was empty, so used the default
-      // SDK.
-      resolvers.add(new DartUriResolver(sdkManager.getSdkForOptions(options)));
-    } else {
-      // The embedder file defines an alternate SDK, so use it.
-      List<String> paths = <String>[];
-      for (Folder folder in embedderYamls.keys) {
-        paths.add(folder
-            .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
-            .path);
-      }
-      DartSdk dartSdk =
-          sdkManager.getSdk(new SdkDescription(paths, options), () {
-        embedderSdk.analysisOptions = options;
-        // TODO(brianwilkerson) Enable summary use after we have decided where
-        // summary files for embedder files will live.
-        embedderSdk.useSummary = false;
-        return embedderSdk;
-      });
-      resolvers.add(new DartUriResolver(dartSdk));
-    }
-
-    resolvers.addAll(packageUriResolvers);
-    resolvers.add(new ResourceUriResolver(resourceProvider));
-    return new SourceFactory(resolvers, disposition.packages);
+  SourceFactory _createSourceFactory(
+      InternalAnalysisContext context, AnalysisOptions options, Folder folder) {
+    ContextBuilder builder = callbacks.createContextBuilder(folder, options);
+    return builder.createSourceFactory(folder.path, options);
   }
 
   /**
@@ -1548,10 +1514,8 @@ class ContextManagerImpl implements ContextManager {
     // while we're rerunning "pub list", since any analysis we complete while
     // "pub list" is in progress is just going to get thrown away anyhow.
     List<String> dependencies = <String>[];
-    FolderDisposition disposition = _computeFolderDisposition(
-        info.folder, dependencies.add, _findPackageSpecFile(info.folder));
     info.setDependencies(dependencies);
-    _updateContextPackageUriResolver(info.folder, disposition);
+    _updateContextPackageUriResolver(info.folder);
   }
 
   /**
@@ -1591,11 +1555,10 @@ class ContextManagerImpl implements ContextManager {
     return null;
   }
 
-  void _updateContextPackageUriResolver(
-      Folder contextFolder, FolderDisposition disposition) {
+  void _updateContextPackageUriResolver(Folder contextFolder) {
     AnalysisContext context = folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(
-        context, context.analysisOptions, disposition, contextFolder);
+    context.sourceFactory =
+        _createSourceFactory(context, context.analysisOptions, contextFolder);
     callbacks.updateContextPackageUriResolver(context);
   }
 

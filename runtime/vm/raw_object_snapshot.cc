@@ -258,6 +258,11 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kTypeCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
+  if (ptr()->type_class_id_->IsHeapObject()) {
+    // Type class is still an unresolved class.
+    UNREACHABLE();
+  }
+
   // Lookup the type class.
   RawSmi* raw_type_class_id = Smi::RawCast(ptr()->type_class_id_);
   RawClass* type_class =
@@ -341,6 +346,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_token_pos(
       TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type_parameter.set_index(reader->Read<int16_t>());
+  type_parameter.set_parent_level(reader->Read<uint8_t>());
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -376,6 +382,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   // Write out all the non object pointer fields.
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
   writer->Write<int16_t>(ptr()->index_);
+  writer->Write<uint8_t>(ptr()->parent_level_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.

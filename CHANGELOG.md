@@ -107,6 +107,15 @@
     class C extends A {}
     ```
 
+* Breaking change - ingore `dynamic` when doing inference.
+
+    ```dart
+    main() {
+      dynamic d = 42;
+      List<int> list = /*infer <int>*/[123, /*implicit cast*/d];
+    }
+    ```
+
 ## 1.19.0
 
 ### Language changes

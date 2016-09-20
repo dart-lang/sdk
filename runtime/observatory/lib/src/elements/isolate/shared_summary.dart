@@ -120,18 +120,18 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
           new DivElement()
             ..children = [
               new SpanElement()..text = 'see ',
+              new AnchorElement(href: Uris.heapSnapshot(_isolate))
+                ..text = 'heap snapshot'
+            ],
+          new DivElement()
+            ..children = [
+              new SpanElement()..text = 'see ',
               new AnchorElement(href: Uris.heapMap(_isolate))..text = 'heap map'
             ],
           new DivElement()
             ..children = [
               new SpanElement()..text = 'see ',
               new AnchorElement(href: Uris.metrics(_isolate))..text = 'metrics'
-            ],
-          new DivElement()
-            ..children = [
-              new SpanElement()..text = 'see ',
-              new AnchorElement(href: Uris.heapSnapshot(_isolate))
-                ..text = 'heap snapshot'
             ],
           new DivElement()
             ..children = [

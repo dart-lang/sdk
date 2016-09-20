@@ -1640,8 +1640,12 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
         // We already know L <: T2, for some L.
         // So update L to reflect the new constraint LUB(L, T1) <: T2
         //
-        bound.lower =
-            _typeSystem.getLeastUpperBound(_typeProvider, bound.lower, t1);
+
+        // Heuristic: we intentionally ignore `dynamic` when doing inference.
+        if (!t1.isDynamic) {
+          bound.lower =
+              _typeSystem.getLeastUpperBound(_typeProvider, bound.lower, t1);
+        }
         // Optimistically assume we will be able to satisfy the constraint.
         return true;
       }

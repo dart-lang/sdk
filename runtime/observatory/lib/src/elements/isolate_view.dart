@@ -138,7 +138,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-        new NavRefreshElement(label: 'reload source', queue: _r.queue)
+        new NavRefreshElement(label: 'Reload Source', queue: _r.queue)
           ..onRefresh.listen((e) async {
             e.element.disabled = true;
             await _isolates.reloadSources(_isolate);

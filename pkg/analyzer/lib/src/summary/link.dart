@@ -3862,7 +3862,6 @@ class NonstaticMemberElementForLink extends Object
       // TODO(paulberry): handle .call on function types and .toString or
       // .hashCode on all types.
     }
-    // TODO(paulberry, scheglov): implement for propagated types
     return DynamicTypeImpl.instance;
   }
 
@@ -4959,7 +4958,6 @@ abstract class VariableElementForLink
 
   @override
   DartType get propagatedType {
-    // TODO(paulberry): implement propagated types in the linker.
     return DynamicTypeImpl.instance;
   }
 

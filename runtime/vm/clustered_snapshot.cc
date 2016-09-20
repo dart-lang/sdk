@@ -2723,6 +2723,11 @@ class TypeSerializationCluster : public SerializationCluster {
       s->Push(*p);
     }
 
+    if (type->ptr()->type_class_id_->IsHeapObject()) {
+      // Type class is still an unresolved class.
+      UNREACHABLE();
+    }
+
     RawSmi* raw_type_class_id = Smi::RawCast(type->ptr()->type_class_id_);
     RawClass* type_class =
         s->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
@@ -2954,6 +2959,7 @@ class TypeParameterSerializationCluster : public SerializationCluster {
       s->Write<int32_t>(type->ptr()->parameterized_class_id_);
       s->WriteTokenPosition(type->ptr()->token_pos_);
       s->Write<int16_t>(type->ptr()->index_);
+      s->Write<uint8_t>(type->ptr()->parent_level_);
       s->Write<int8_t>(type->ptr()->type_state_);
     }
   }
@@ -2996,6 +3002,7 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
       type->ptr()->parameterized_class_id_ = d->Read<int32_t>();
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->index_ = d->Read<int16_t>();
+      type->ptr()->parent_level_ = d->Read<uint8_t>();
       type->ptr()->type_state_ = d->Read<int8_t>();
     }
   }

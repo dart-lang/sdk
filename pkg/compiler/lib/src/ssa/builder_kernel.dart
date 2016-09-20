@@ -103,20 +103,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return graph;
   }
 
-  void buildProcedure(ir.Procedure procedure) {
-    if (procedure.kind == ir.ProcedureKind.Method ||
-        procedure.kind == ir.ProcedureKind.Operator ||
-        procedure.kind == ir.ProcedureKind.Getter ||
-        procedure.kind == ir.ProcedureKind.Factory) {
-      buildMethod(procedure);
-    } else {
-      compiler.reporter.internalError(
-          targetElement,
-          "Unable to convert this kind of Kernel "
-          "procedure to SSA: ${procedure.kind}");
-    }
-  }
-
   void buildField(ir.Field field) {
     openFunction();
     field.initializer.accept(this);
@@ -142,10 +128,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         expression, graph.addConstantNull(compiler), null, backend.boolType));
   }
 
-  /// Builds a SSA graph for [method].
-  void buildMethod(ir.Procedure method) {
+  /// Builds a SSA graph for [procedure].
+  void buildProcedure(ir.Procedure procedure) {
     openFunction();
-    method.function.body.accept(this);
+    procedure.function.body.accept(this);
     closeFunction();
   }
 
@@ -336,23 +322,32 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   void visitStaticGet(ir.StaticGet staticGet) {
     var staticTarget = staticGet.target;
-    Element element = astAdapter.getElement(staticTarget).declaration;
     if (staticTarget is ir.Procedure &&
         staticTarget.kind == ir.ProcedureKind.Getter) {
       // Invoke the getter
-      _pushStaticInvocation(
-          target, const <HInstruction>[], astAdapter.returnTypeOf(target));
+      _pushStaticInvocation(staticTarget, const <HInstruction>[],
+          astAdapter.returnTypeOf(staticTarget));
     } else {
+      Element element = astAdapter.getElement(staticTarget).declaration;
       push(new HStatic(element, astAdapter.inferredTypeOf(staticTarget)));
     }
   }
 
   @override
   void visitStaticSet(ir.StaticSet staticSet) {
-    VariableElement field = astAdapter.getElement(staticSet.target);
     staticSet.value.accept(this);
     HInstruction value = pop();
-    add(new HStaticStore(field, value));
+
+    var staticTarget = staticSet.target;
+    if (staticTarget is ir.Procedure) {
+      // Invoke the setter
+      _pushStaticInvocation(staticTarget, <HInstruction>[value],
+          astAdapter.returnTypeOf(staticTarget));
+      pop();
+    } else {
+      // TODO(het): check or trust type
+      add(new HStaticStore(astAdapter.getElement(staticTarget), value));
+    }
     stack.add(value);
   }
 

@@ -93,6 +93,9 @@ initializing_formal_capture_test: CompiletimeError # DartOptions not passed to c
 initializing_formal_final_test: CompiletimeError # DartOptions not passed to compiler.
 initializing_formal_type_test: CompiletimeError # DartOptions not passed to compiler.
 
+library_env_test/has_no_io_support: Pass # Issue 27398
+library_env_test/has_io_support: RuntimeError # Issue 27398
+
 [ $compiler == dart2js ]
 invocation_mirror_empty_arguments_test: Fail # Issue 24331
 nan_identical_test: Fail # Issue 11551

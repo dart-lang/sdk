@@ -39,12 +39,6 @@ main() {
 @reflectiveTest
 class AstInferredTypeTest extends AbstractResynthesizeTest
     with _AstResynthesizeTestMixin, InferredTypeMixin {
-  bool get checkPropagatedTypes {
-    // AST-based summaries do not yet handle propagated types.
-    // TODO(paulberry): fix this.
-    return false;
-  }
-
   @override
   bool get mayCheckTypesOfLocals => false;
 
@@ -905,9 +899,6 @@ abstract class _AstResynthesizeTestMixinInterface {
 
 abstract class _ResynthesizeAstTest extends ResynthesizeTest
     with _AstResynthesizeTestMixin {
-  @override
-  bool get checkPropagatedTypes => false;
-
   @override
   LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
