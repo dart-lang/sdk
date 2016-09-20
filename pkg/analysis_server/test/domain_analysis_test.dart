@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -384,40 +385,6 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     }
-  }
-
-  test_packageMapDependencies() async {
-    // Prepare a source file that has errors because it refers to an unknown
-    // package.
-    String pkgFile = '/packages/pkgA/libA.dart';
-    resourceProvider.newFile(
-        pkgFile,
-        '''
-library lib_a;
-class A {}
-''');
-    addTestFile('''
-import 'package:pkgA/libA.dart';
-f(A a) {
-}
-''');
-    String pkgDependency = posix.join(projectPath, 'package_dep');
-    resourceProvider.newFile(pkgDependency, 'contents');
-    packageMapProvider.dependencies.add(pkgDependency);
-    // Create project and wait for analysis
-    createProject();
-    await waitForTasksFinished();
-    expect(filesErrors[testFile], isNotEmpty);
-    // Add the package to the package map and tickle the package dependency.
-    packageMapProvider.packageMap = {
-      'pkgA': <Folder>[resourceProvider.getResource('/packages/pkgA')]
-    };
-    resourceProvider.modifyFile(pkgDependency, 'new contents');
-    // Give the server time to notice the file has changed, then let
-    // analysis complete. There should now be no error.
-    await pumpEventQueue();
-    await waitForTasksFinished();
-    expect(filesErrors[testFile], isEmpty);
   }
 
   test_setRoots_packages() {

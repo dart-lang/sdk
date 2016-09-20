@@ -136,14 +136,13 @@ class ContextBuilder {
   }
 
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
-    if (packages == null || packages == Packages.noPackages) {
-      return null;
-    }
     Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
-    packages.asMap().forEach((String packagePath, Uri uri) {
-      String path = resourceProvider.pathContext.fromUri(uri);
-      folderMap[packagePath] = [resourceProvider.getFolder(path)];
-    });
+    if (packages != null && packages != Packages.noPackages) {
+      packages.asMap().forEach((String packageName, Uri uri) {
+        String path = resourceProvider.pathContext.fromUri(uri);
+        folderMap[packageName] = [resourceProvider.getFolder(path)];
+      });
+    }
     return folderMap;
   }
 
@@ -222,16 +221,11 @@ class ContextBuilder {
     }
     Packages packages = createPackageMap(rootDirectoryPath);
     Map<String, List<Folder>> packageMap = convertPackagesToMap(packages);
-    List<UriResolver> resolvers = <UriResolver>[];
-    resolvers.add(new DartUriResolver(findSdk(packageMap, options)));
-    if (packageMap != null) {
-      // TODO(brianwilkerson) I think that we don't need a PackageUriResolver
-      // when we can pass the packages object to the source factory directly.
-      // Actually, I think we're using it to restoreUri, which could lead to
-      // inconsistencies.
-      resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
-    }
-    resolvers.add(fileResolver);
+    List<UriResolver> resolvers = <UriResolver>[
+      new DartUriResolver(findSdk(packageMap, options)),
+      new PackageMapUriResolver(resourceProvider, packageMap),
+      fileResolver
+    ];
     return new SourceFactory(resolvers, packages, resourceProvider);
   }
 

@@ -200,9 +200,7 @@ class SingleContextManager implements ContextManager {
     }
     // Create or update the analysis context.
     if (context == null) {
-      UriResolver packageResolver = packageResolverProvider(contextFolder);
-      context = callbacks.addContext(contextFolder, defaultContextOptions,
-          new CustomPackageResolverDisposition(packageResolver));
+      context = callbacks.addContext(contextFolder, defaultContextOptions);
       ChangeSet changeSet =
           _buildChangeSet(added: _includedFiles(includedPaths, excludedPaths));
       callbacks.applyChangesToContext(contextFolder, changeSet);

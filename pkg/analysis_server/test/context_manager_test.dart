@@ -14,7 +14,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -470,13 +469,10 @@ test_pack:lib/''');
     String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
 
     newFile([projPath, ContextManagerImpl.PUBSPEC_NAME]);
+    newFile([projPath, ContextManagerImpl.PACKAGE_SPEC_NAME], 'proj:lib/');
     newFile([libPath, 'main.dart']);
     newFile([examplePath, ContextManagerImpl.PUBSPEC_NAME]);
     newFile([examplePath, 'example.dart']);
-
-    packageMapProvider.packageMap['proj'] = <Folder>[
-      resourceProvider.getResource(libPath)
-    ];
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
@@ -568,14 +564,11 @@ test_pack:lib/''');
     String testPath = newFolder([projPath, ContextManagerTest.TEST_NAME]);
 
     newFile([projPath, ContextManagerImpl.PUBSPEC_NAME]);
+    newFile([projPath, ContextManagerImpl.PACKAGE_SPEC_NAME], 'proj:lib/');
     String appPath = newFile([binPath, 'app.dart']);
     newFile([libPath, 'main.dart']);
     newFile([srcPath, 'internal.dart']);
     String testFilePath = newFile([testPath, 'main_test.dart']);
-
-    packageMapProvider.packageMap['proj'] = <Folder>[
-      resourceProvider.getResource(libPath)
-    ];
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     Set<Source> sources = callbacks.currentContextSources[projPath];
@@ -622,51 +615,55 @@ test_pack:lib/''');
     // prepare paths
     String root = '/root';
     String rootFile = '$root/root.dart';
-    String subProjectA = '$root/sub/aaa';
-    String subProjectB = '$root/sub/sub2/bbb';
-    String subProjectA_file = '$subProjectA/bin/a.dart';
-    String subProjectB_file = '$subProjectB/bin/b.dart';
+    String projectA = '$root/sub/aaa';
+    String projectALib = '$root/sub/aaa/lib';
+    String subProjectA_file = '$projectA/bin/a.dart';
+    String projectB = '$root/sub/sub2/bbb';
+    String projectBLib = '$root/sub/sub2/bbb/lib';
+    String subProjectB_file = '$projectB/bin/b.dart';
     // create files
-    resourceProvider.newFile('$subProjectA/pubspec.yaml', 'pubspec');
-    resourceProvider.newFile('$subProjectB/pubspec.yaml', 'pubspec');
+    newFile([projectA, ContextManagerImpl.PUBSPEC_NAME]);
+    newFile([projectA, ContextManagerImpl.PACKAGE_SPEC_NAME], 'foo:lib/');
+    newFile([projectB, ContextManagerImpl.PUBSPEC_NAME]);
+    newFile([projectB, ContextManagerImpl.PACKAGE_SPEC_NAME], 'bar:lib/');
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subProjectA_file, 'library a;');
     resourceProvider.newFile(subProjectB_file, 'library b;');
-    // configure package maps
-    packageMapProvider.packageMaps = {
-      subProjectA: {
-        'foo': [resourceProvider.newFolder('/package/foo')]
-      },
-      subProjectB: {
-        'bar': [resourceProvider.newFolder('/package/bar')]
-      },
-    };
     // set roots
     manager.setRoots(<String>[root], <String>[], <String, String>{});
-    callbacks.assertContextPaths([root, subProjectA, subProjectB]);
+    callbacks.assertContextPaths([root, projectA, projectB]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
-    callbacks.assertContextFiles(subProjectA, [subProjectA_file]);
-    callbacks.assertContextFiles(subProjectB, [subProjectB_file]);
+    callbacks.assertContextFiles(projectA, [subProjectA_file]);
+    callbacks.assertContextFiles(projectB, [subProjectB_file]);
     // verify package maps
-    expect(_packageMap(root), isNull);
-    expect(_packageMap(subProjectA),
-        equals(packageMapProvider.packageMaps[subProjectA]));
-    expect(_packageMap(subProjectB),
-        equals(packageMapProvider.packageMaps[subProjectB]));
+    expect(_packageMap(root), isEmpty);
+    expect(
+        _packageMap(projectA),
+        equals({
+          'foo': [resourceProvider.getFolder(projectALib)]
+        }));
+    expect(
+        _packageMap(projectB),
+        equals({
+          'bar': [resourceProvider.getFolder(projectBLib)]
+        }));
   }
 
   void test_setRoots_addPackageRoot() {
     String packagePathFoo = '/package1/foo';
     String packageRootPath = '/package2/foo';
+    newFile([projPath, ContextManagerImpl.PACKAGE_SPEC_NAME],
+        'foo:file:///package1/foo');
     Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
-    packageMapProvider.packageMap = {
-      'foo': [packageFolder]
-    };
     List<String> includedPaths = <String>[projPath];
     List<String> excludedPaths = <String>[];
     manager.setRoots(includedPaths, excludedPaths, <String, String>{});
-    expect(_currentPackageMap, equals(packageMapProvider.packageMap));
+    expect(
+        _currentPackageMap,
+        equals({
+          'foo': [packageFolder]
+        }));
     manager.setRoots(includedPaths, excludedPaths,
         <String, String>{projPath: packageRootPath});
     _checkPackageRoot(projPath, equals(packageRootPath));
@@ -912,12 +909,15 @@ test_pack:lib/''');
 
   void test_setRoots_newlyAddedFoldersGetProperPackageMap() {
     String packagePath = '/package/foo';
+    newFile([projPath, ContextManagerImpl.PACKAGE_SPEC_NAME],
+        'foo:file:///package/foo');
     Folder packageFolder = resourceProvider.newFolder(packagePath);
-    packageMapProvider.packageMap = {
-      'foo': [packageFolder]
-    };
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    expect(_currentPackageMap, equals(packageMapProvider.packageMap));
+    expect(
+        _currentPackageMap,
+        equals({
+          'foo': [packageFolder]
+        }));
   }
 
   void test_setRoots_noContext_excludedFolder() {
@@ -954,10 +954,8 @@ test_pack:lib/''');
   }
 
   void test_setRoots_packageResolver() {
-    Uri uri = Uri.parse('package:foo/foo.dart');
-    Source source = new TestSource();
-    packageResolver = new TestUriResolver({uri: source});
-    String filePath = posix.join(projPath, 'foo.dart');
+    String filePath = posix.join(projPath, 'lib', 'foo.dart');
+    newFile([projPath, ContextManagerImpl.PACKAGE_SPEC_NAME], 'foo:lib/');
     resourceProvider.newFile(filePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
@@ -966,8 +964,8 @@ test_pack:lib/''');
     expect(contextsInAnalysisRoot, hasLength(1));
     AnalysisContext context = contextsInAnalysisRoot[0];
     expect(context, isNotNull);
-    Source result = context.sourceFactory.forUri2(uri);
-    expect(result, same(source));
+    Source result = context.sourceFactory.forUri('package:foo/foo.dart');
+    expect(result.fullName, filePath);
   }
 
   void test_setRoots_pathContainsDotFile() {
@@ -1096,16 +1094,19 @@ test_pack:lib/''');
     String packagePathFoo = '/package1/foo';
     String packageRootPath = '/package2/foo';
     Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
-    packageMapProvider.packageMap = {
-      'foo': [packageFolder]
-    };
+    newFile([projPath, ContextManagerImpl.PACKAGE_SPEC_NAME],
+        'foo:file:///package1/foo');
     List<String> includedPaths = <String>[projPath];
     List<String> excludedPaths = <String>[];
     manager.setRoots(includedPaths, excludedPaths,
         <String, String>{projPath: packageRootPath});
     _checkPackageRoot(projPath, equals(packageRootPath));
     manager.setRoots(includedPaths, excludedPaths, <String, String>{});
-    expect(_currentPackageMap, equals(packageMapProvider.packageMap));
+    expect(
+        _currentPackageMap,
+        equals({
+          'foo': [packageFolder]
+        }));
   }
 
   void test_setRoots_rootPathContainsDotFile() {
@@ -1614,37 +1615,7 @@ test_pack:lib/''');
     });
   }
 
-  test_watch_modifyPackageMapDependency() {
-    // create a dependency file
-    String dependencyPath = posix.join(projPath, 'dep');
-    resourceProvider.newFile(dependencyPath, 'contents');
-    packageMapProvider.dependencies.add(dependencyPath);
-    // create a Dart file
-    String dartFilePath = posix.join(projPath, 'main.dart');
-    resourceProvider.newFile(dartFilePath, 'contents');
-    // the created context has the expected empty package map
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    expect(_currentPackageMap, isEmpty);
-    // configure package map
-    String packagePath = '/package/foo';
-    resourceProvider.newFolder(packagePath);
-    packageMapProvider.packageMap = {
-      'foo': [resourceProvider.newFolder(projPath)]
-    };
-    // Changing a .dart file in the project shouldn't cause a new
-    // package map to be picked up.
-    resourceProvider.modifyFile(dartFilePath, 'new contents');
-    return pumpEventQueue().then((_) {
-      expect(_currentPackageMap, isEmpty);
-      // However, changing the package map dependency should.
-      resourceProvider.modifyFile(dependencyPath, 'new contents');
-      return pumpEventQueue().then((_) {
-        expect(_currentPackageMap, equals(packageMapProvider.packageMap));
-      });
-    });
-  }
-
-  test_watch_modifyPackageMapDependency_fail() {
+  test_watch_modifyPackageMapDependency_fail() async {
     // create a dependency file
     String dependencyPath = posix.join(projPath, 'dep');
     resourceProvider.newFile(dependencyPath, 'contents');
@@ -1659,10 +1630,9 @@ test_pack:lib/''');
     // re-run, and arrange for it to return null from computePackageMap().
     packageMapProvider.packageMap = null;
     resourceProvider.modifyFile(dependencyPath, 'new contents');
-    return pumpEventQueue().then((_) {
-      // The package map should have been changed to null.
-      expect(_currentPackageMap, isNull);
-    });
+    await pumpEventQueue();
+    // The package map should have been changed to null.
+    expect(_currentPackageMap, isEmpty);
   }
 
   test_watch_modifyPackagespec() {
@@ -2648,31 +2618,15 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
 
   @override
-  AnalysisContext addContext(
-      Folder folder, AnalysisOptions options, FolderDisposition disposition) {
+  AnalysisContext addContext(Folder folder, AnalysisOptions options) {
     String path = folder.path;
     expect(currentContextPaths, isNot(contains(path)));
     currentContextTimestamps[path] = now;
     currentContextFilePaths[path] = <String, int>{};
     currentContextSources[path] = new HashSet<Source>();
-    currentContext = AnalysisEngine.instance.createAnalysisContext();
-    List<UriResolver> resolvers = [];
-    if (currentContext is InternalAnalysisContext) {
-      EmbedderYamlLocator embedderYamlLocator =
-          disposition.getEmbedderLocator(resourceProvider);
-      EmbedderSdk sdk =
-          new EmbedderSdk(resourceProvider, embedderYamlLocator.embedderYamls);
-      if (sdk.libraryMap.size() > 0) {
-        // We have some embedder dart: uri mappings, add the resolver
-        // to the list.
-        resolvers.add(new DartUriResolver(sdk));
-      }
-    }
-    resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
-    resolvers.add(new ResourceUriResolver(resourceProvider));
-    currentContext.analysisOptions = options;
-    currentContext.sourceFactory =
-        new SourceFactory(resolvers, disposition.packages);
+
+    ContextBuilder builder = createContextBuilder(folder, options);
+    currentContext = builder.buildContext(folder.path);
     return currentContext;
   }
 

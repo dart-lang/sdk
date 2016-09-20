@@ -26,6 +26,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
@@ -33,7 +34,6 @@ import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -1598,8 +1598,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
-  AnalysisContext addContext(
-      Folder folder, AnalysisOptions options, FolderDisposition disposition) {
+  AnalysisContext addContext(Folder folder, AnalysisOptions options) {
     ContextBuilder builder = createContextBuilder(folder, options);
     AnalysisContext context = builder.buildContext(folder.path);
 
