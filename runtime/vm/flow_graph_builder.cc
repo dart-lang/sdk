@@ -3704,6 +3704,19 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
     StoreStaticFieldNode* node,
     bool result_is_needed,
     TokenPosition token_pos) {
+  if (FLAG_support_debugger) {
+    // If the right hand side is an expression that does not contain
+    // a safe point for the debugger to stop, add an explicit stub
+    // call.
+    if ((node->value()->IsLiteralNode() ||
+         node->value()->IsLoadLocalNode() ||
+         node->value()->IsClosureNode()) &&
+         node->token_pos().IsDebugPause()) {
+      AddInstruction(new(Z) DebugStepCheckInstr(
+          node->token_pos(), RawPcDescriptors::kRuntimeCall));
+    }
+  }
+
   ValueGraphVisitor for_value(owner());
   node->value()->Visit(&for_value);
   Append(for_value);
