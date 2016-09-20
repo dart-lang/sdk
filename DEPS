@@ -151,7 +151,7 @@ deps = {
       Var("boringssl_rev"),
 
   Var("dart_root") + "/third_party/root_certificates":
-      "https://github.com/dart-lang/root_certificates.git" +
+      (Var("github_mirror") % "root_certificates") +
       Var("root_certificates_rev"),
 
   Var("dart_root") + "/third_party/jinja2":
@@ -191,7 +191,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/collection":
       (Var("github_mirror") % "collection") + Var("collection_tag"),
   Var("dart_root") + "/third_party/pkg/convert":
-      "https://github.com/dart-lang/convert.git" + Var("convert_tag"),
+      (Var("github_mirror") % "convert") + Var("convert_tag"),
   Var("dart_root") + "/third_party/pkg/crypto":
       (Var("github_mirror") % "crypto") + Var("crypto_tag"),
   Var("dart_root") + "/third_party/pkg/csslib":
@@ -290,7 +290,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/shelf":
       (Var("github_mirror") % "shelf") + Var("shelf_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
-      "https://github.com/dart-lang/shelf_packages_handler.git"
+      (Var("github_mirror") % "shelf_packages_handler")
       + Var("shelf_packages_handler_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_static":
       (Var("github_mirror") % "shelf_static") + Var("shelf_static_tag"),
