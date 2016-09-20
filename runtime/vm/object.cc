@@ -15511,11 +15511,11 @@ RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
   const Class& cls = Class::Handle(zone, this->clazz());
   {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    result ^= cls.LookupCanonicalInstance(zone, *this);
+    if (!result.IsNull()) {
+      return result.raw();
+    }
     if (IsNew()) {
-      result ^= cls.LookupCanonicalInstance(zone, *this);
-      if (!result.IsNull()) {
-        return result.raw();
-      }
       ASSERT((isolate == Dart::vm_isolate()) || !InVMHeap());
       // Create a canonical object in old space.
       result ^= Object::Clone(*this, Heap::kOld);
@@ -15537,12 +15537,6 @@ bool Instance::CheckIsCanonical(Thread* thread) const {
   const Class& cls = Class::Handle(zone, this->clazz());
   SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
   result ^= cls.LookupCanonicalInstance(zone, *this);
-  // TODO(johnmccutchan) : Temporary workaround for issue (26988).
-  if ((result.raw() != raw()) &&
-      isolate->HasAttemptedReload() &&
-      (GetClassId() == kImmutableArrayCid)) {
-    return true;
-  }
   return (result.raw() == this->raw());
 }
 #endif  // DEBUG
@@ -21588,6 +21582,7 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
 
 uword Array::ComputeCanonicalTableHash() const {
   ASSERT(!IsNull());
+  NoSafepointScope no_safepoint;
   intptr_t len = Length();
   uword hash = len;
   uword value = reinterpret_cast<uword>(GetTypeArguments());

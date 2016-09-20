@@ -1504,6 +1504,9 @@ static void ShutdownIsolate(uword parameter) {
     // TODO(27003): Enable for precompiled.
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
     if (!isolate->HasAttemptedReload()) {
+      // For this verification we need to stop the background compiler earlier.
+      // This would otherwise happen in Dart::ShowdownIsolate.
+      isolate->StopBackgroundCompiler();
       isolate->heap()->CollectAllGarbage();
       VerifyCanonicalVisitor check_canonical(thread);
       isolate->heap()->IterateObjects(&check_canonical);
