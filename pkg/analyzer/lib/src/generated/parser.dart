@@ -17,8 +17,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/generated/shared_messages.dart'
-    as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -8185,31 +8183,60 @@ class ParserErrorCode extends ErrorCode {
       'BREAK_OUTSIDE_OF_LOOP',
       "A break statement cannot be used outside of a loop or switch statement");
 
-  static const ParserErrorCode CLASS_IN_CLASS = shared_messages.CLASS_IN_CLASS;
+  static const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
+      'CLASS_IN_CLASS',
+      "Classes can't be declared inside other classes.",
+      "Try moving the class to the top-level.");
 
   static const ParserErrorCode COLON_IN_PLACE_OF_IN = const ParserErrorCode(
       'COLON_IN_PLACE_OF_IN', "For-in loops use 'in' rather than a colon");
 
-  static const ParserErrorCode CONST_AND_FINAL =
-      shared_messages.CONST_AND_FINAL;
+  static const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
+      'CONST_AND_FINAL',
+      "Members can't be declared to be both 'const' and 'final'.",
+      "Try removing either the 'const' or 'final' keyword.");
 
-  static const ParserErrorCode CONST_AND_VAR = shared_messages.CONST_AND_VAR;
+  static const ParserErrorCode CONST_AND_VAR = const ParserErrorCode(
+      'CONST_AND_VAR',
+      "Members can't be declared to be both 'const' and 'var'.",
+      "Try removing either the 'const' or 'var' keyword.");
 
-  static const ParserErrorCode CONST_CLASS = shared_messages.CONST_CLASS;
+  static const ParserErrorCode CONST_CLASS = const ParserErrorCode(
+      'CONST_CLASS',
+      "Classes can't be declared to be 'const'.",
+      "Try removing the 'const' keyword or moving to the class' constructor(s).");
 
   static const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY =
-      shared_messages.CONST_CONSTRUCTOR_WITH_BODY;
+      const ParserErrorCode(
+          'CONST_CONSTRUCTOR_WITH_BODY',
+          "Const constructor can't have a body.",
+          "Try removing the 'const' keyword or the body.");
 
-  static const ParserErrorCode CONST_ENUM = shared_messages.CONST_ENUM;
+  static const ParserErrorCode CONST_ENUM = const ParserErrorCode(
+      'CONST_ENUM',
+      "Enums can't be declared to be 'const'.",
+      "Try removing the 'const' keyword.");
 
-  static const ParserErrorCode CONST_FACTORY = shared_messages.CONST_FACTORY;
+  static const ParserErrorCode CONST_FACTORY = const ParserErrorCode(
+      'CONST_FACTORY',
+      "Only redirecting factory constructors can be declared to be 'const'.",
+      "Try removing the 'const' keyword or replacing the body with '=' followed by a valid target.");
 
-  static const ParserErrorCode CONST_METHOD = shared_messages.CONST_METHOD;
+  static const ParserErrorCode CONST_METHOD = const ParserErrorCode(
+      'CONST_METHOD',
+      "Getters, setters and methods can't be declared to be 'const'.",
+      "Try removing the 'const' keyword.");
 
-  static const ParserErrorCode CONST_TYPEDEF = shared_messages.CONST_TYPEDEF;
+  static const ParserErrorCode CONST_TYPEDEF = const ParserErrorCode(
+      'CONST_TYPEDEF',
+      "Type aliases can't be declared to be 'const'.",
+      "Try removing the 'const' keyword.");
 
   static const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE =
-      shared_messages.CONSTRUCTOR_WITH_RETURN_TYPE;
+      const ParserErrorCode(
+          'CONSTRUCTOR_WITH_RETURN_TYPE',
+          "Constructors can't have a return type.",
+          "Try removing the return type.");
 
   static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'CONTINUE_OUTSIDE_OF_LOOP',
@@ -8469,7 +8496,8 @@ class ParserErrorCode extends ErrorCode {
           "Expected an expression after the assignment operator");
 
   static const ParserErrorCode MISSING_EXPRESSION_IN_THROW =
-      shared_messages.MISSING_EXPRESSION_IN_THROW;
+      const ParserErrorCode('MISSING_EXPRESSION_IN_THROW',
+          "Missing expression after 'throw'.", "Did you mean 'rethrow'?");
 
   static const ParserErrorCode MISSING_FUNCTION_BODY = const ParserErrorCode(
       'MISSING_FUNCTION_BODY', "A function body must be provided");
