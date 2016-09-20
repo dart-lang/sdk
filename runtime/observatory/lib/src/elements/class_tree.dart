@@ -94,7 +94,8 @@ class ClassTreeElement extends HtmlElement implements Renderable {
       new DivElement()
         ..classes = ['content-centered']
         ..children = [
-          new HeadingElement.h1()..text = 'Class Hierarchy',
+          new HeadingElement.h1()
+            ..text = 'Class Hierarchy (${_subclasses.length})',
           new BRElement(),
           new HRElement(),
           _object == null

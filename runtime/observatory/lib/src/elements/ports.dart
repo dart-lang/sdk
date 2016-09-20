@@ -73,6 +73,10 @@ class PortsElement extends HtmlElement implements Renderable {
 
   PortsElement.created() : super.created();
 
+  int get portCount {
+    return _isolatePorts == null ? 0 : _isolatePorts.elements.length;
+  }
+
   @override
   void attached() {
     super.attached();
@@ -101,11 +105,10 @@ class PortsElement extends HtmlElement implements Renderable {
       new DivElement()
         ..classes = ['content-centered']
         ..children = [
-          new HeadingElement.h1()..text = 'Ports',
-          new BRElement(),
+          new HeadingElement.h1()..text = 'Ports ($portCount)',
           new HRElement(),
+          new BRElement(),
           new DivElement()..children = _createList(),
-          new HRElement()
         ],
       new ViewFooterElement(queue: _r.queue)
     ];

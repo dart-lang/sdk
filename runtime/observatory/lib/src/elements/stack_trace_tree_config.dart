@@ -161,6 +161,14 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     return members;
   }
 
+  String get modeDescription {
+    if (_mode == ProfileTreeMode.function) {
+      return 'Inlined frames expanded.';
+    } else {
+      return 'Inlined frames not expanded.';
+    }
+  }
+
   List<Element> _createModeSelect() {
     var s;
     return [
@@ -174,9 +182,20 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
         }).toList(growable: false)
         ..onChange.listen((_) {
           _mode = ProfileTreeMode.values[s.selectedIndex];
+          _r.dirty();
         })
         ..onChange.map(_toEvent).listen(_triggerModeChange),
+      new SpanElement()
+        ..text = ' $modeDescription'
     ];
+  }
+
+  String get directionDescription {
+    if (_direction == M.ProfileTreeDirection.inclusive) {
+      return 'Tree is rooted at "main". Child nodes are callees.';
+    } else {
+      return 'Tree is rooted at top-of-stack. Child nodes are callers.';
+    }
   }
 
   List<Element> _createDirectionSelect() {
@@ -193,12 +212,11 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
         }).toList(growable: false)
         ..onChange.listen((_) {
           _direction = M.ProfileTreeDirection.values[s.selectedIndex];
+          _r.dirty();
         })
         ..onChange.map(_toEvent).listen(_triggerDirectionChange),
       new SpanElement()
-        ..text = 'Tree is rooted at ' +
-            (_direction == 'Down' ? '"main"' : 'function / code') +
-            '. Child nodes are callers.'
+        ..text = ' $directionDescription'
     ];
   }
 

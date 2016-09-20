@@ -87,8 +87,8 @@ class IsolateReconnectElement extends HtmlElement implements Renderable {
         ..classes = ['content-centered']
         ..children = [
           new HeadingElement.h1()..text = 'Isolate $_missing no longer exists',
-          new BRElement(),
           new HRElement(),
+          new BRElement(),
           new DivElement()
             ..classes = ['memberList']
             ..children = (_vm.isolates.map((isolate) {

@@ -84,21 +84,21 @@ class VMConnectElement extends HtmlElement implements Renderable {
         ..classes = ['content-centered']
         ..children = [
           new HeadingElement.h1()..text = 'Connect to a Dart VM',
-          new BRElement(),
           new HRElement(),
+          new BRElement(),
           new DivElement()
             ..classes = ['flex-row']
             ..children = [
               new DivElement()
                 ..classes = ['flex-item-40-percent']
                 ..children = [
-                  new HeadingElement.h2()..text = 'WebSocket',
+                  new HeadingElement.h2()..text = 'Connect over WebSocket',
                   new BRElement(),
                   new UListElement()
                     ..children = _targets.list().map((target) {
                       final ObservatoryApplication app =
                           ObservatoryApplication.app;
-                      final bool current = (app != null) ? 
+                      final bool current = (app != null) ?
                           app.isConnectedVMTarget(target) : false;
                       return new LIElement()
                         ..children = [
@@ -126,13 +126,12 @@ class VMConnectElement extends HtmlElement implements Renderable {
                   new PreElement()
                     ..classes = ['well']
                     ..text = 'Run Standalone with: \'--observe\'',
-                  new HRElement()
                 ],
               new DivElement()..classes = ['flex-item-20-percent'],
               new DivElement()
                 ..classes = ['flex-item-40-percent']
                 ..children = [
-                  new HeadingElement.h2()..text = 'Crash dump',
+                  new HeadingElement.h2()..text = 'View crash dump',
                   new BRElement(),
                   _createCrushDumpLoader(),
                   new BRElement(),
@@ -141,7 +140,6 @@ class VMConnectElement extends HtmlElement implements Renderable {
                     ..classes = ['well']
                     ..text = 'Request a crash dump with:\n'
                         '\'curl $host:$port/_getCrashDump > dump.json\'',
-                  new HRElement()
                 ]
             ],
         ],
@@ -152,7 +150,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
   TextInputElement _createAddressBox() {
     var textbox = new TextInputElement()
       ..classes = ['textbox']
-      ..placeholder = 'localhost:8181'
+      ..placeholder = '127.0.0.1:8181'
       ..value = _address
       ..onKeyUp.where((e) => e.key == '\n').listen((e) {
         e.preventDefault();

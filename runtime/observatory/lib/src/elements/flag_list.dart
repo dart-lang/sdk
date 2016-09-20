@@ -11,6 +11,7 @@ import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -100,7 +101,7 @@ class FlagListElement extends HtmlElement implements Renderable {
       navBar([
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        navMenu('flags'),
+        navMenu('flags', link: Uris.flags()),
         new NavRefreshElement(queue: _r.queue)
           ..onRefresh.listen((e) async {
             e.element.disabled = true;
