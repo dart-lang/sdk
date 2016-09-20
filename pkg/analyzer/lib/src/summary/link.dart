@@ -363,6 +363,9 @@ abstract class ClassElementForLink extends Object
   List<PropertyAccessorElementForLink> get accessors;
 
   @override
+  ClassElementForLink get asClass => this;
+
+  @override
   ConstructorElementForLink get asConstructor => unnamedConstructor;
 
   @override
@@ -983,6 +986,23 @@ abstract class CompilationUnitElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  /**
+   * Return the class element for the constructor referred to by the given
+   * [index] in [UnlinkedUnit.references].  If the reference is unresolved,
+   * return [UndefinedElementForLink.instance].
+   */
+  ReferenceableElementForLink resolveConstructorClassRef(int index) {
+    LinkedReference linkedReference = _linkedUnit.references[index];
+    if (linkedReference.kind == ReferenceKind.classOrEnum) {
+      return resolveRef(index);
+    }
+    if (index < _unlinkedUnit.references.length) {
+      UnlinkedReference unlinkedReference = _unlinkedUnit.references[index];
+      return resolveRef(unlinkedReference.prefixReference);
+    }
+    return UndefinedElementForLink.instance;
+  }
 
   /**
    * Return the element referred to by the given [index] in
@@ -2379,11 +2399,10 @@ class ExprTypeComputer {
     stack.length -= numNamed + numPositional;
     strPtr += numNamed;
     EntityRef ref = _getNextRef();
-    ConstructorElementForLink element =
-        unit.resolveRef(ref.reference).asConstructor;
+    ClassElementForLink_Class element =
+        unit.resolveConstructorClassRef(ref.reference).asClass;
     if (element != null) {
-      ClassElementForLink_Class enclosingClass = element.enclosingClass;
-      stack.add(enclosingClass.buildType((int i) {
+      stack.add(element.buildType((int i) {
         // Type argument explicitly specified.
         if (i < ref.typeArguments.length) {
           return unit.resolveTypeRef(
@@ -4358,6 +4377,11 @@ class PropertyAccessorElementForLink_Variable extends Object
  * elements.
  */
 abstract class ReferenceableElementForLink implements Element {
+  /**
+   * If this element is a class reference, return it. Otherwise return `null`.
+   */
+  ClassElementForLink get asClass => null;
+
   /**
    * If this element can be used in a constructor invocation context,
    * return the associated constructor (which may be `this` or some
