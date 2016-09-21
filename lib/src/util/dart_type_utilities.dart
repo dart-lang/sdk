@@ -5,13 +5,60 @@
 library linter.src.util.dart_type_utilities;
 
 import 'dart:collection';
+
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 
 typedef bool AstNodePredicate(AstNode node);
 
 class DartTypeUtilities {
+  static bool extendsClass(DartType type, String className, String library) =>
+      type != null &&
+          type.name == className &&
+          type.element.library.name == library ||
+      (type is InterfaceType &&
+          extendsClass(type.superclass, className, library));
+
+  static bool implementsAnyInterface(
+      DartType type, Iterable<InterfaceTypeDefinition> definitions) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+    bool predicate(InterfaceType i) => definitions
+        .any((d) => i.name == d.name && i.element.library.name == d.library);
+    ClassElement element = type.element;
+    return predicate(type) ||
+        !element.isSynthetic &&
+            type is InterfaceType &&
+            element.allSupertypes.any(predicate);
+  }
+
+  static bool implementsInterface(
+      DartType type, String interface, String library) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+    bool predicate(InterfaceType i) =>
+        i.name == interface && i.element.library.name == library;
+    ClassElement element = type.element;
+    return predicate(type) ||
+        !element.isSynthetic &&
+            type is InterfaceType &&
+            element.allSupertypes.any(predicate);
+  }
+
+  /// Builds the list resulting from traversing the node in DFS and does not
+  /// include the node itself.
+  static Iterable<AstNode> traverseNodesInDFS(AstNode node) {
+    LinkedHashSet<AstNode> nodes = new LinkedHashSet();
+    node.childEntities.where((c) => c is AstNode).forEach((c) {
+      nodes.add(c);
+      nodes.addAll(traverseNodesInDFS(c));
+    });
+    return nodes;
+  }
+
   static bool unrelatedTypes(DartType leftType, DartType rightType) {
     if (leftType == null ||
         leftType.isBottom ||
@@ -34,46 +81,6 @@ class DartTypeUtilities {
     }
     return false;
   }
-
-  static bool implementsInterface(
-      DartType type, String interface, String library) {
-    bool predicate(InterfaceType i) =>
-        i.name == interface && i.element.library.name == library;
-    ClassElement element = type.element;
-    return predicate(type) ||
-        !element.isSynthetic &&
-            type is InterfaceType &&
-            element.allSupertypes.any(predicate);
-  }
-
-  static bool implementsAnyInterface(
-      DartType type, Iterable<InterfaceTypeDefinition> definitions) {
-    bool predicate(InterfaceType i) => definitions
-        .any((d) => i.name == d.name && i.element.library.name == d.library);
-    ClassElement element = type.element;
-    return predicate(type) ||
-        !element.isSynthetic &&
-            type is InterfaceType &&
-            element.allSupertypes.any(predicate);
-  }
-
-  static bool extendsClass(DartType type, String className, String library) =>
-      type != null &&
-          type.name == className &&
-          type.element.library.name == library ||
-      (type is InterfaceType &&
-          extendsClass(type.superclass, className, library));
-
-  /// Builds the list resulting from traversing the node in DFS and does not
-  /// include the node itself.
-  static Iterable<AstNode> traverseNodesInDFS(AstNode node) {
-    LinkedHashSet<AstNode> nodes = new LinkedHashSet();
-    node.childEntities.where((c) => c is AstNode).forEach((c) {
-      nodes.add(c);
-      nodes.addAll(traverseNodesInDFS(c));
-    });
-    return nodes;
-  }
 }
 
 class InterfaceTypeDefinition {
@@ -83,6 +90,11 @@ class InterfaceTypeDefinition {
   InterfaceTypeDefinition(this.name, this.library);
 
   @override
+  int get hashCode {
+    return name.hashCode ^ library.hashCode;
+  }
+
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -90,10 +102,5 @@ class InterfaceTypeDefinition {
     return other is InterfaceTypeDefinition &&
         this.name == other.name &&
         this.library == other.library;
-  }
-
-  @override
-  int get hashCode {
-    return name.hashCode ^ library.hashCode;
   }
 }
