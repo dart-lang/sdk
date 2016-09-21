@@ -46,7 +46,8 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/task/options.dart' show CONFIGURED_ERROR_PROCESSORS;
+import 'package:analyzer/src/task/options.dart'
+    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
@@ -2180,8 +2181,8 @@ class GetHandler {
           }
         }
         buffer.write('<p>element count: ');
-        buffer.write(
-            counter.counts.values.fold(0, (prev, element) => prev + element));
+        buffer.write(counter.counts.values
+            .fold(0, (int prev, int element) => prev + element));
         buffer.write('</p>');
         buffer.write('<p>  (w/docs): ');
         buffer.write(counter.elementsWithDocs);
@@ -2196,8 +2197,8 @@ class GetHandler {
     buffer.write('SDK');
     buffer.write('</h3></p>');
     buffer.write('<p>element count: ');
-    buffer.write(
-        sdkCounter.counts.values.fold(0, (prev, element) => prev + element));
+    buffer.write(sdkCounter.counts.values
+        .fold(0, (int prev, int element) => prev + element));
     buffer.write('</p>');
     buffer.write('<p>  (w/docs): ');
     buffer.write(sdkCounter.elementsWithDocs);

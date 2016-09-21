@@ -187,7 +187,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
 
   test_createWorkOrderForResult_valid() {
     AnalysisTarget target = new TestSource();
-    ResultDescriptor result = new ResultDescriptor('result', null);
+    ResultDescriptor<String> result =
+        new ResultDescriptor<String>('result', null);
     context
         .getCacheEntry(target)
         .setValue(result, '', TargetedResult.EMPTY_LIST);
@@ -479,7 +480,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
   _createWorkOrderForTarget(
       bool complete, bool priorityTarget, bool priorityResult) {
     AnalysisTarget target = new TestSource();
-    ResultDescriptor result = new ResultDescriptor('result', null);
+    ResultDescriptor<String> result =
+        new ResultDescriptor<String>('result', null);
     TaskDescriptor descriptor = new TaskDescriptor(
         'task',
         (context, target) => new TestAnalysisTask(context, target),

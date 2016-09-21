@@ -181,7 +181,8 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
     // Constant expressions are always resolved in summaries.
     if (result == CONSTANT_EXPRESSION_RESOLVED &&
         target is ConstantEvaluationTarget) {
-      entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+      entry.setValue(
+          result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
       return true;
     }
     // Provide results for Source.
@@ -200,23 +201,28 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           result == LIBRARY_ELEMENT) {
         LibraryElement libraryElement =
             resynthesizer.getLibraryElement(uriString);
-        entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
+        entry.setValue(result as ResultDescriptor<LibraryElement>,
+            libraryElement, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == READY_LIBRARY_ELEMENT2 ||
           result == READY_LIBRARY_ELEMENT6 ||
           result == READY_LIBRARY_ELEMENT7) {
-        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        entry.setValue(
+            result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == MODIFICATION_TIME) {
-        entry.setValue(result, 0, TargetedResult.EMPTY_LIST);
+        entry.setValue(
+            result as ResultDescriptor<int>, 0, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == SOURCE_KIND) {
         if (_dataStore.linkedMap.containsKey(uriString)) {
-          entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
+          entry.setValue(result as ResultDescriptor<SourceKind>,
+              SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
           return true;
         }
         if (_dataStore.unlinkedMap.containsKey(uriString)) {
-          entry.setValue(result, SourceKind.PART, TargetedResult.EMPTY_LIST);
+          entry.setValue(result as ResultDescriptor<SourceKind>,
+              SourceKind.PART, TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
@@ -228,7 +234,8 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
               .map((libraryUriString) =>
                   context.sourceFactory.resolveUri(target, libraryUriString))
               .toList(growable: false);
-          entry.setValue(result, librarySources, TargetedResult.EMPTY_LIST);
+          entry.setValue(result as ResultDescriptor<List<Source>>,
+              librarySources, TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
@@ -237,7 +244,8 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         List<int> lineStarts = unlinkedUnit.lineStarts;
         if (lineStarts.isNotEmpty) {
           LineInfo lineInfo = new LineInfo(lineStarts);
-          entry.setValue(result, lineInfo, TargetedResult.EMPTY_LIST);
+          entry.setValue(result as ResultDescriptor<LineInfo>, lineInfo,
+              TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
@@ -254,7 +262,8 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           result == CREATED_RESOLVED_UNIT9 ||
           result == CREATED_RESOLVED_UNIT10 ||
           result == CREATED_RESOLVED_UNIT11) {
-        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        entry.setValue(
+            result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
         return true;
       }
       if (result == COMPILATION_UNIT_ELEMENT) {
@@ -263,13 +272,15 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         CompilationUnitElement unit = resynthesizer.getElement(
             new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
         if (unit != null) {
-          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
+          entry.setValue(result as ResultDescriptor<CompilationUnitElement>,
+              unit, TargetedResult.EMPTY_LIST);
           return true;
         }
       }
     } else if (target is VariableElement) {
       if (result == INFERRED_STATIC_VARIABLE) {
-        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
+        entry.setValue(result as ResultDescriptor<VariableElement>, target,
+            TargetedResult.EMPTY_LIST);
         return true;
       }
     }
