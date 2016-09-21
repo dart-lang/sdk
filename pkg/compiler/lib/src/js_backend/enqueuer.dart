@@ -54,7 +54,8 @@ class CodegenEnqueuer implements Enqueuer {
       new Map<String, Set<Element>>();
   final Set<ClassElement> _processedClasses = new Set<ClassElement>();
   Set<ClassElement> recentClasses = new Setlet<ClassElement>();
-  final Universe universe = new Universe(const TypeMaskStrategy());
+  final CodegenUniverseImpl _universe =
+      new CodegenUniverseImpl(const TypeMaskStrategy());
 
   static final TRACE_MIRROR_ENQUEUING =
       const bool.fromEnvironment("TRACE_MIRROR_ENQUEUING");
@@ -76,6 +77,8 @@ class CodegenEnqueuer implements Enqueuer {
         this._compiler = compiler {
     impactVisitor = new _EnqueuerImpactVisitor(this);
   }
+
+  CodegenUniverse get universe => _universe;
 
   Backend get backend => _compiler.backend;
 
@@ -141,7 +144,7 @@ class CodegenEnqueuer implements Enqueuer {
     task.measure(() {
       ClassElement cls = type.element;
       bool isNative = backend.isNative(cls);
-      universe.registerTypeInstantiation(type,
+      _universe.registerTypeInstantiation(type,
           isNative: isNative,
           byMirrors: mirrorUsage, onImplemented: (ClassElement cls) {
         backend.registerImplementedClass(cls, this, globalDependencies);
@@ -176,8 +179,8 @@ class CodegenEnqueuer implements Enqueuer {
       // Note: this assumes that there are no non-native fields on native
       // classes, which may not be the case when a native class is subclassed.
       if (backend.isNative(cls)) {
-        if (universe.hasInvokedGetter(member, _world) ||
-            universe.hasInvocation(member, _world)) {
+        if (_universe.hasInvokedGetter(member, _world) ||
+            _universe.hasInvocation(member, _world)) {
           addToWorkList(member);
           return;
         } else if (universe.hasInvokedSetter(member, _world)) {
@@ -203,7 +206,7 @@ class CodegenEnqueuer implements Enqueuer {
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
-      if (universe.hasInvokedGetter(function, _world)) {
+      if (_universe.hasInvokedGetter(function, _world)) {
         registerClosurizedMember(function);
         addToWorkList(function);
         return;
@@ -213,25 +216,25 @@ class CodegenEnqueuer implements Enqueuer {
       instanceFunctionsByName
           .putIfAbsent(memberName, () => new Set<Element>())
           .add(member);
-      if (universe.hasInvocation(function, _world)) {
+      if (_universe.hasInvocation(function, _world)) {
         addToWorkList(function);
         return;
       }
     } else if (member.isGetter) {
       FunctionElement getter = member;
-      if (universe.hasInvokedGetter(getter, _world)) {
+      if (_universe.hasInvokedGetter(getter, _world)) {
         addToWorkList(getter);
         return;
       }
       // We don't know what selectors the returned closure accepts. If
       // the set contains any selector we have to assume that it matches.
-      if (universe.hasInvocation(getter, _world)) {
+      if (_universe.hasInvocation(getter, _world)) {
         addToWorkList(getter);
         return;
       }
     } else if (member.isSetter) {
       FunctionElement setter = member;
-      if (universe.hasInvokedSetter(setter, _world)) {
+      if (_universe.hasInvokedSetter(setter, _world)) {
         addToWorkList(setter);
         return;
       }
@@ -280,7 +283,7 @@ class CodegenEnqueuer implements Enqueuer {
 
   void registerDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
-      if (universe.registerDynamicUse(dynamicUse)) {
+      if (_universe.registerDynamicUse(dynamicUse)) {
         handleUnseenSelector(dynamicUse);
       }
     });
@@ -509,7 +512,7 @@ class CodegenEnqueuer implements Enqueuer {
     Element element = staticUse.element;
     assert(invariant(element, element.isDeclaration,
         message: "Element ${element} is not the declaration."));
-    universe.registerStaticUse(staticUse);
+    _universe.registerStaticUse(staticUse);
     backend.registerStaticUse(element, this);
     bool addElement = true;
     switch (staticUse.kind) {
@@ -558,7 +561,7 @@ class CodegenEnqueuer implements Enqueuer {
   }
 
   void _registerIsCheck(DartType type) {
-    type = universe.registerIsCheck(type, _compiler);
+    type = _universe.registerIsCheck(type, _compiler);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
@@ -568,7 +571,6 @@ class CodegenEnqueuer implements Enqueuer {
   void registerCallMethodWithFreeTypeVariables(Element element) {
     backend.registerCallMethodWithFreeTypeVariables(
         element, this, globalDependencies);
-    universe.callMethodsWithFreeTypeVariables.add(element);
   }
 
   void registerClosurizedMember(TypedElement element) {
@@ -578,7 +580,6 @@ class CodegenEnqueuer implements Enqueuer {
           element, this, globalDependencies);
     }
     backend.registerBoundClosure(this);
-    universe.closurizedMembers.add(element);
   }
 
   void forEach(void f(WorkItem work)) {
@@ -611,7 +612,7 @@ class CodegenEnqueuer implements Enqueuer {
   String toString() => 'Enqueuer($name)';
 
   void _forgetElement(Element element) {
-    universe.forgetElement(element, _compiler);
+    _universe.forgetElement(element, _compiler);
     _processedClasses.remove(element);
     instanceMembersByName[element.name]?.remove(element);
     instanceFunctionsByName[element.name]?.remove(element);

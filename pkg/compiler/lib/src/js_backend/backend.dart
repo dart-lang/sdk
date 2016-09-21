@@ -1362,7 +1362,6 @@ class JavaScriptBackend extends Backend {
     if (enqueuer.isResolutionQueue || methodNeedsRti(closure)) {
       registerComputeSignature(enqueuer, registry);
     }
-    super.registerClosureWithFreeTypeVariables(closure, enqueuer, registry);
   }
 
   void registerBoundClosure(Enqueuer enqueuer) {

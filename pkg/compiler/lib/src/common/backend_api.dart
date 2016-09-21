@@ -153,9 +153,7 @@ abstract class Backend extends Target {
   /// Called to instruct the backend to register that a closure exists for a
   /// function on an instantiated generic class.
   void registerClosureWithFreeTypeVariables(
-      Element closure, Enqueuer enqueuer, Registry registry) {
-    enqueuer.universe.closuresWithFreeTypeVariables.add(closure);
-  }
+      Element closure, Enqueuer enqueuer, Registry registry) {}
 
   /// Call this to register that a member has been closurized.
   void registerBoundClosure(Enqueuer enqueuer) {}

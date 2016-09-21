@@ -73,7 +73,7 @@ import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' show GlobalTypeInferenceTask;
 import 'types/masks.dart' show CommonMasks;
 import 'universe/selector.dart' show Selector;
-import 'universe/universe.dart' show Universe;
+import 'universe/universe.dart' show ResolutionUniverse, CodegenUniverse;
 import 'universe/use.dart' show StaticUse;
 import 'universe/world_impact.dart' show ImpactStrategy, WorldImpact;
 import 'util/util.dart' show Link, Setlet;
@@ -327,8 +327,10 @@ abstract class Compiler implements LibraryLoaderListener {
         resolution, backend.constantCompilerTask, openWorld, measurer);
   }
 
-  Universe get resolverWorld => enqueuer.resolution.universe;
-  Universe get codegenWorld => enqueuer.codegen.universe;
+  // TODO(johnniwinther): Rename these appropriately when unification of worlds/
+  // universes is complete.
+  ResolutionUniverse get resolverWorld => enqueuer.resolution.universe;
+  CodegenUniverse get codegenWorld => enqueuer.codegen.universe;
 
   bool get analyzeAll => options.analyzeAll || compileAll;
 

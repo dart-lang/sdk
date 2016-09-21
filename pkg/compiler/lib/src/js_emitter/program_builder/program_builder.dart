@@ -32,7 +32,7 @@ import '../../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../../js_backend/js_backend.dart'
     show Namer, JavaScriptBackend, JavaScriptConstantCompiler, StringBackedName;
 import '../../universe/selector.dart' show Selector;
-import '../../universe/universe.dart' show Universe, SelectorConstraints;
+import '../../universe/universe.dart' show CodegenUniverse, SelectorConstraints;
 import '../js_emitter.dart'
     show
         ClassStubGenerator,
@@ -79,7 +79,7 @@ class ProgramBuilder {
 
   JavaScriptBackend get backend => _compiler.backend;
   BackendHelpers get helpers => backend.helpers;
-  Universe get universe => _compiler.codegenWorld;
+  CodegenUniverse get universe => _compiler.codegenWorld;
 
   /// Mapping from [ClassElement] to constructed [Class]. We need this to
   /// update the superclass in the [Class].

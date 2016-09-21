@@ -364,7 +364,7 @@ class _RuntimeTypes implements RuntimeTypes {
         computeChecks(allInstantiatedArguments, checkedArguments);
   }
 
-  Set<DartType> computeInstantiatedTypesAndClosures(Universe universe) {
+  Set<DartType> computeInstantiatedTypesAndClosures(CodegenUniverse universe) {
     Set<DartType> instantiatedTypes =
         new Set<DartType>.from(universe.instantiatedTypes);
     for (DartType instantiatedType in universe.instantiatedTypes) {

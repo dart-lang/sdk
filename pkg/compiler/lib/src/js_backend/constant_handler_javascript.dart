@@ -274,14 +274,5 @@ class ForgetConstantNodeVisitor extends Visitor {
   void visitNode(Node node) {
     node.visitChildren(this);
     constants.nodeConstantMap.remove(node);
-
-    // TODO(ahe): This doesn't belong here. Rename this class and generalize.
-    var closureClassMap = constants
-        .compiler.closureToClassMapper.closureMappingCache
-        .remove(node);
-    if (closureClassMap != null) {
-      closureClassMap
-          .removeMyselfFrom(constants.compiler.enqueuer.codegen.universe);
-    }
   }
 }
