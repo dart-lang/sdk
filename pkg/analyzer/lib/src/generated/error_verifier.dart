@@ -6361,16 +6361,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   ExecutableElement _getOverriddenMember(Element member) {
-    if (member == null || _inheritanceManager == null) {
+    if (member == null) {
       return null;
     }
-
     ClassElement classElement =
         member.getAncestor((element) => element is ClassElement);
     if (classElement == null) {
       return null;
     }
-    return _inheritanceManager.lookupInheritance(classElement, member.name);
+    String name = member.name;
+    ClassElement superclass = classElement.supertype?.element;
+    while (superclass != null) {
+      ExecutableElement member = superclass.getMethod(name) ?? superclass.getGetter(name) ?? superclass.getSetter(name);
+      if (member != null) {
+        return member;
+      }
+      superclass = superclass.supertype?.element;
+    }
+    return null;
   }
 
   /**

@@ -1859,6 +1859,23 @@ class B extends A {
     verify([source]);
   }
 
+  void test_mustCallSuper_fromInterface() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class C implements A {
+  @override
+  void a() {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
   void test_mustCallSuper_indirect() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -1882,7 +1899,7 @@ class D extends C {
     verify([source]);
   }
 
-  void test_mustCallSuper_OK() {
+  void test_mustCallSuper_overridden() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
 class A {
