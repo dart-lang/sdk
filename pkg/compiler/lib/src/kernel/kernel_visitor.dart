@@ -774,8 +774,8 @@ class KernelVisitor extends Object
     JumpTarget jumpTarget = elements.getTargetDefinition(node);
     ir.Statement body =
         buildContinueTarget(buildStatementInBlock(node.body), node, jumpTarget);
-    ir.ForStatement forStatement =
-        new ir.ForStatement(variables, condition, updates, body);
+    ir.ForStatement forStatement = associateNode(
+        new ir.ForStatement(variables, condition, updates, body), node);
     ir.Statement result = buildBreakTarget(forStatement, node, jumpTarget);
     if (initializer != null) {
       result = new ir.Block(
@@ -1090,7 +1090,9 @@ class KernelVisitor extends Object
     ir.Statement body =
         buildContinueTarget(buildStatementInBlock(node.body), node, jumpTarget);
     return buildBreakTarget(
-        new ir.WhileStatement(condition, body), node, jumpTarget);
+        associateNode(new ir.WhileStatement(condition, body), node),
+        node,
+        jumpTarget);
   }
 
   @override

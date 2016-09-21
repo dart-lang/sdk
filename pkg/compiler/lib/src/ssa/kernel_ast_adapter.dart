@@ -53,7 +53,7 @@ class KernelAstAdapter {
   }
 
   Compiler get _compiler => _backend.compiler;
-  TreeElements get _elements => _resolvedAst.elements;
+  TreeElements get elements => _resolvedAst.elements;
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     ast.Node astNode = getNode(node);
@@ -128,12 +128,12 @@ class KernelAstAdapter {
 
   TypeMask typeOfInvocation(ir.MethodInvocation invocation) {
     return _compiler.globalInference.results
-        .typeOfSend(getNode(invocation), _elements);
+        .typeOfSend(getNode(invocation), elements);
   }
 
   TypeMask typeOfGet(ir.PropertyGet getter) {
     return _compiler.globalInference.results
-        .typeOfSend(getNode(getter), _elements);
+        .typeOfSend(getNode(getter), elements);
   }
 
   TypeMask inferredTypeOf(ir.Member node) {
@@ -152,7 +152,7 @@ class KernelAstAdapter {
 
   ConstantValue getConstantFor(ir.Node node) {
     ConstantValue constantValue =
-        _backend.constants.getConstantValueForNode(getNode(node), _elements);
+        _backend.constants.getConstantValueForNode(getNode(node), elements);
     assert(invariant(getNode(node), constantValue != null,
         message: 'No constant computed for $node'));
     return constantValue;
@@ -167,6 +167,9 @@ class KernelAstAdapter {
     }
     return _backend.isInterceptedSelector(selector);
   }
+
+  JumpTarget getTargetDefinition(ir.Node node) =>
+      elements.getTargetDefinition(getNode(node));
 
   ir.Procedure get mapLiteralConstructor =>
       kernel.functions[_backend.helpers.mapLiteralConstructor];

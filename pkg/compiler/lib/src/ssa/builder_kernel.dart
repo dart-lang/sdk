@@ -13,6 +13,7 @@ import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/kernel.dart';
+import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
 import '../types/masks.dart';
 import '../universe/selector.dart';
@@ -21,6 +22,7 @@ import 'graph_builder.dart';
 import 'kernel_ast_adapter.dart';
 import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
+import 'loop_handler.dart';
 import 'nodes.dart';
 import 'ssa_branch_builder.dart';
 
@@ -49,21 +51,25 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   ir.Node target;
   final AstElement targetElement;
   final ResolvedAst resolvedAst;
-  final Compiler compiler;
   final CodegenRegistry registry;
 
   JavaScriptBackend get backend => compiler.backend;
 
+  TreeElements get elements => resolvedAst.elements;
+
   SourceInformationBuilder sourceInformationBuilder;
   KernelAstAdapter astAdapter;
+  LoopHandler<ir.Node> loopHandler;
 
   KernelSsaBuilder(
       this.targetElement,
       this.resolvedAst,
-      this.compiler,
+      Compiler compiler,
       this.registry,
       SourceInformationStrategy sourceInformationFactory,
       Kernel kernel) {
+    this.compiler = compiler;
+    this.loopHandler = new KernelLoopHandler(this);
     graph.element = targetElement;
     // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
     this.sourceInformationBuilder =
@@ -197,6 +203,55 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // TODO(het): Set a return value instead of closing the function when we
     // support inlining.
     closeAndGotoExit(new HReturn(value, null));
+  }
+
+  @override
+  void visitForStatement(ir.ForStatement forStatement) {
+    assert(isReachable);
+    assert(forStatement.body != null);
+    void buildInitializer() {
+      for (ir.VariableDeclaration declaration in forStatement.variables) {
+        declaration.accept(this);
+      }
+    }
+
+    HInstruction buildCondition() {
+      if (forStatement.condition == null) {
+        return graph.addConstantBool(true, compiler);
+      }
+      forStatement.condition.accept(this);
+      return popBoolified();
+    }
+
+    void buildUpdate() {
+      for (ir.Expression expression in forStatement.updates) {
+        expression.accept(this);
+        assert(!isAborted());
+        // The result of the update instruction isn't used, and can just
+        // be dropped.
+        pop();
+      }
+    }
+
+    void buildBody() {
+      forStatement.body.accept(this);
+    }
+
+    loopHandler.handleLoop(
+        forStatement, buildInitializer, buildCondition, buildUpdate, buildBody);
+  }
+
+  @override
+  void visitWhileStatement(ir.WhileStatement whileStatement) {
+    assert(isReachable);
+    HInstruction buildCondition() {
+      whileStatement.condition.accept(this);
+      return popBoolified();
+    }
+
+    loopHandler.handleLoop(whileStatement, () {}, buildCondition, () {}, () {
+      whileStatement.body.accept(this);
+    });
   }
 
   @override
