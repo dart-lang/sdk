@@ -636,6 +636,7 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     writeWord('field');
+    writeSpace();
     writeAnnotatedType(node.type, annotator?.annotateField(this, node));
     writeName(getMemberName(node));
     if (node.initializer != null) {
@@ -678,11 +679,11 @@ class Printer extends Visitor<Null> {
       writeSpaced('with');
       writeType(node.mixedInType);
     } else if (node.supertype != null) {
-      writeWord('extends');
+      writeSpaced('extends');
       writeType(node.supertype);
     }
     if (node.implementedTypes.isNotEmpty) {
-      writeWord('implements');
+      writeSpaced('implements');
       writeList(node.implementedTypes, writeType);
     }
     endLine(' {');
@@ -841,6 +842,7 @@ class Printer extends Visitor<Null> {
 
   visitThrow(Throw node) {
     writeWord('throw');
+    writeSpace();
     writeExpression(node.expression);
   }
 
@@ -1182,6 +1184,7 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeWord('return');
     if (node.expression != null) {
+      writeSpace();
       writeExpression(node.expression);
     }
     endLine(';');

@@ -152,7 +152,7 @@ abstract class BinaryConstraint extends self::Constraint {
     this.{self::BinaryConstraint::direction} = self::NONE;
   }
   method isSatisfied() → core::bool
-    return!this.{self::BinaryConstraint::direction}.{core::num::==}(self::NONE);
+    return !this.{self::BinaryConstraint::direction}.{core::num::==}(self::NONE);
   method markInputs(core::int mark) → void {
     this.{self::BinaryConstraint::input}().{self::Variable::mark} = mark;
   }
