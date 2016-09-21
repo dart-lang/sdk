@@ -35,6 +35,8 @@ abstract class Target {
   /// Libraries will be loaded in order.
   List<String> get extraRequiredLibraries;
 
+  bool get strongMode;
+
   void transformProgram(Program program);
 
   String toString() => 'Target($name)';
@@ -45,6 +47,7 @@ class NoneTarget extends Target {
 
   NoneTarget(this.flags);
 
+  bool get strongMode => flags.strongMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
   void transformProgram(Program program) {}

@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Callable extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(dynamic x) → dynamic {
+    return "string";
+  }
+}
+class CallableGetter extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get call() → dynamic
+    return new self::Callable::•();
+}
+static method main() → dynamic {
+  dynamic closure = (dynamic x) → dynamic => x;
+  dynamic int1 = closure.call(1);
+  dynamic int2 = closure.call(1);
+  dynamic int3 = closure.call.call(1);
+  dynamic int4 = closure.call.call.call(1);
+  dynamic callable = new self::Callable::•();
+  dynamic string1 = callable.call(1);
+  dynamic string2 = callable.call(1);
+  dynamic string3 = callable.call.call(1);
+  dynamic string4 = callable.call.call.call(1);
+  dynamic callableGetter = new self::CallableGetter::•();
+  dynamic string5 = callableGetter.call(1);
+  dynamic string6 = callableGetter.call(1);
+  dynamic string7 = callableGetter.call.call(1);
+  dynamic string8 = callableGetter.call.call.call(1);
+  dynamic nothing1 = closure.call();
+  dynamic nothing2 = closure.call();
+  dynamic nothing3 = closure.call.call();
+  dynamic nothing4 = closure.call.call.call();
+  dynamic nothing5 = callable.call();
+  dynamic nothing6 = callable.call();
+  dynamic nothing7 = callable.call.call();
+  dynamic nothing8 = callable.call.call.call();
+  dynamic nothing9 = callableGetter.call();
+  dynamic nothing10 = callableGetter.call();
+  dynamic nothing11 = callableGetter.call.call();
+  dynamic nothing12 = callableGetter.call.call.call();
+}

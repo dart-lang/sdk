@@ -2,4 +2,4 @@ analyzer:
   language:
     enableSuperMixins: true
   exclude:
-    - test/type_propagation/testcases/*
+    - testcases/**

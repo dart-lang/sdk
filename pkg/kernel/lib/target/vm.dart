@@ -14,6 +14,8 @@ class VmTarget extends Target {
 
   VmTarget(this.flags);
 
+  bool get strongMode => flags.strongMode;
+    
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to

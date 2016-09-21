@@ -1,0 +1,61 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method method(dynamic x, [dynamic y, dynamic z]) → dynamic {
+    return "string";
+  }
+}
+abstract class External extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method externalMethod(core::int x, [core::int y, core::int z]) → core::String;
+  abstract method listen(self::Listener listener) → void;
+}
+abstract class Listener extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method event(core::String input, [core::int x, core::int y]) → void;
+}
+class TestListener extends self::Listener {
+  constructor •() → void
+    : super self::Listener::•()
+    ;
+  method event(dynamic input, [dynamic x, dynamic y]) → void {}
+}
+class ExtendedListener extends self::Listener {
+  constructor •() → void
+    : super self::Listener::•()
+    ;
+  method event(dynamic input, [dynamic x, dynamic y, dynamic z]) → void {}
+}
+class InvalidListener extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method event(dynamic input, [dynamic x]) → void {}
+}
+external static method createExternal() → self::External;
+static method main() → dynamic {
+  dynamic foo = new self::Foo::•();
+  dynamic string1 = foo.method(1);
+  dynamic string2 = foo.method(1, 2);
+  dynamic string3 = foo.method(1, 2, 3);
+  dynamic extern = self::createExternal();
+  dynamic string4 = extern.externalMethod(1);
+  dynamic string5 = extern.externalMethod(1, 2);
+  dynamic string6 = extern.externalMethod(1, 2, 3);
+  extern.listen(new self::TestListener::•());
+  extern.listen(new self::ExtendedListener::•());
+  extern.listen(new self::InvalidListener::•());
+  dynamic nothing1 = foo.method();
+  dynamic nothing2 = foo.method(1, 2, 3, 4);
+  dynamic nothing3 = extern.externalMethod();
+  dynamic nothing4 = extern.externalMethod(1, 2, 3, 4);
+}
