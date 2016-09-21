@@ -19,6 +19,7 @@ import '../universe/selector.dart';
 
 import 'graph_builder.dart';
 import 'kernel_ast_adapter.dart';
+import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
 import 'ssa_branch_builder.dart';
@@ -564,5 +565,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitNot(ir.Not not) {
     not.operand.accept(this);
     push(new HNot(popBoolified(), backend.boolType));
+  }
+
+  @override
+  void visitStringConcatenation(ir.StringConcatenation stringConcat) {
+    KernelStringBuilder stringBuilder = new KernelStringBuilder(this);
+    stringConcat.accept(stringBuilder);
+    stack.add(stringBuilder.result);
   }
 }
