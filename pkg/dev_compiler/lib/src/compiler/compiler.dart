@@ -9,12 +9,13 @@ import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/analyzer.dart'
     show AnalysisError, CompilationUnit, ErrorSeverity;
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/source_io.dart'
     show Source, SourceKind, UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show InSummarySource;
+    show InSummarySource, InputPackagesResultProvider, SummaryDataStore;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/src/usage_exception.dart' show UsageException;
 import 'package:func/func.dart' show Func1;
@@ -22,7 +23,11 @@ import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
 
 import '../analyzer/context.dart'
-    show AnalyzerOptions, createAnalysisContextWithSources;
+    show
+        AnalyzerOptions,
+        createAnalysisContext,
+        createSdkPathResolver,
+        createSourceFactory;
 import '../js_ast/js_ast.dart' as JS;
 import 'code_generator.dart' show CodeGenerator;
 import 'error_helpers.dart' show errorSeverity, formatError, sortErrors;
@@ -50,9 +55,10 @@ import 'source_map_printer.dart' show SourceMapPrintingContext;
 /// about them.
 class ModuleCompiler {
   final AnalysisContext context;
+  final SummaryDataStore summaryData;
   final ExtensionTypeSet _extensionTypes;
 
-  ModuleCompiler.withContext(AnalysisContext context)
+  ModuleCompiler.withContext(AnalysisContext context, this.summaryData)
       : context = context,
         _extensionTypes = new ExtensionTypeSet(context) {
     if (!context.analysisOptions.strongMode) {
@@ -63,14 +69,33 @@ class ModuleCompiler {
     }
   }
 
-  ModuleCompiler(AnalyzerOptions analyzerOptions,
+  factory ModuleCompiler(AnalyzerOptions options,
       {DartUriResolver sdkResolver,
       ResourceProvider resourceProvider,
-      List<UriResolver> fileResolvers})
-      : this.withContext(createAnalysisContextWithSources(analyzerOptions,
-            sdkResolver: sdkResolver,
-            fileResolvers: fileResolvers,
-            resourceProvider: resourceProvider));
+      List<UriResolver> fileResolvers}) {
+    AnalysisEngine.instance.processRequiredPlugins();
+
+    sdkResolver ??=
+        createSdkPathResolver(options.dartSdkSummaryPath, options.dartSdkPath);
+
+    // Read the summaries.
+    var summaryData =
+        new SummaryDataStore(options.summaryPaths, recordDependencyInfo: true);
+
+    var srcFactory = createSourceFactory(options,
+        sdkResolver: sdkResolver,
+        fileResolvers: fileResolvers,
+        summaryData: summaryData,
+        resourceProvider: resourceProvider);
+
+    var context = createAnalysisContext();
+    context.sourceFactory = srcFactory;
+    context.typeProvider = sdkResolver.dartSdk.context.typeProvider;
+    context.resultProvider =
+        new InputPackagesResultProvider(context, summaryData);
+
+    return new ModuleCompiler.withContext(context, summaryData);
+  }
 
   /// Compiles a single Dart build unit into a JavaScript module.
   ///
@@ -145,7 +170,8 @@ class ModuleCompiler {
       return new JSModuleFile.invalid(unit.name, messages, options);
     }
 
-    var codeGenerator = new CodeGenerator(context, options, _extensionTypes);
+    var codeGenerator =
+        new CodeGenerator(context, summaryData, options, _extensionTypes);
     return codeGenerator.compile(unit, trees, messages);
   }
 }
@@ -479,6 +505,7 @@ Map placeSourceMap(
     // Fall back to a relative path.
     return path.toUri(path.relative(path.fromUri(uri), from: dir)).toString();
   }
+
   for (int i = 0; i < list.length; i++) {
     list[i] = transformUri(list[i]);
   }

@@ -1,19 +1,21 @@
 define(['dart_sdk'], function(dart_sdk) {
   'use strict';
   const core = dart_sdk.core;
+  const _interceptors = dart_sdk._interceptors;
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const varargs = Object.create(null);
   const src__varargs = Object.create(null);
+  let JSArrayOfint = () => (JSArrayOfint = dart.constFn(_interceptors.JSArray$(core.int)))();
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   varargs.varargsTest = function(x, ...others) {
-    let args = [1, others];
+    let args = JSArrayOfint().of([1, core.int._check(others)]);
     dart.dcall(x, ...args);
   };
   dart.fn(varargs.varargsTest, dynamicAnddynamicTodynamic());
   varargs.varargsTest2 = function(x, ...others) {
-    let args = [1, others];
+    let args = JSArrayOfint().of([1, core.int._check(others)]);
     dart.dcall(x, ...args);
   };
   dart.fn(varargs.varargsTest2, dynamicAnddynamicTodynamic());

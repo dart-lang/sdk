@@ -13,11 +13,11 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
+    show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, SourceFactory, UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show InSummaryUriResolver, InputPackagesResultProvider, SummaryDataStore;
+    show InSummaryUriResolver, SummaryDataStore;
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
@@ -98,39 +98,6 @@ class AnalyzerOptions {
   }
 }
 
-/// Creates an [AnalysisContext] with dev_compiler type rules and inference,
-/// using [createSourceFactory] to set up its [SourceFactory].
-AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
-    {DartUriResolver sdkResolver,
-    List<UriResolver> fileResolvers,
-    ResourceProvider resourceProvider}) {
-  AnalysisEngine.instance.processRequiredPlugins();
-
-  sdkResolver ??=
-      createSdkPathResolver(options.dartSdkSummaryPath, options.dartSdkPath);
-
-  // Read the summaries.
-  SummaryDataStore summaryData;
-  if (options.summaryPaths.isNotEmpty) {
-    summaryData = new SummaryDataStore(options.summaryPaths);
-  }
-
-  var srcFactory = _createSourceFactory(options,
-      sdkResolver: sdkResolver,
-      fileResolvers: fileResolvers,
-      summaryData: summaryData,
-      resourceProvider: resourceProvider);
-
-  var context = createAnalysisContext();
-  context.sourceFactory = srcFactory;
-  if (summaryData != null) {
-    context.typeProvider = sdkResolver.dartSdk.context.typeProvider;
-    context.resultProvider =
-        new InputPackagesResultProvider(context, summaryData);
-  }
-  return context;
-}
-
 /// Creates an analysis context that contains our restricted typing rules.
 AnalysisContextImpl createAnalysisContext() {
   var res = AnalysisEngine.instance.createAnalysisContext();
@@ -147,7 +114,7 @@ AnalysisContextImpl createAnalysisContext() {
 ///
 /// If supplied, [fileResolvers] will override the default `file:` and
 /// `package:` URI resolvers.
-SourceFactory _createSourceFactory(AnalyzerOptions options,
+SourceFactory createSourceFactory(AnalyzerOptions options,
     {DartUriResolver sdkResolver,
     List<UriResolver> fileResolvers,
     SummaryDataStore summaryData,

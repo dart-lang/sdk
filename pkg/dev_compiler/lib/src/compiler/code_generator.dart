@@ -14,13 +14,20 @@ import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 import 'package:analyzer/src/dart/element/element.dart'
     show LocalVariableElementImpl;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
+import 'package:analyzer/src/summary/idl.dart' show UnlinkedUnit;
+import 'package:analyzer/src/summary/link.dart' as summary_link;
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/summarize_ast.dart'
+    show serializeAstUnlinked;
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart'
     show isDynamicInvoke, setIsDynamicInvoke;
 import 'package:path/path.dart' show separator;
@@ -47,6 +54,8 @@ import 'type_utilities.dart';
 class CodeGenerator extends GeneralizingAstVisitor
     with ClosureAnnotator, JsTypeRefCodegen, NullableTypeInference {
   final AnalysisContext context;
+  final SummaryDataStore summaryData;
+
   final CompilerOptions options;
   final rules = new StrongTypeSystemImpl();
 
@@ -138,7 +147,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
 
-  CodeGenerator(AnalysisContext c, this.options, this._extensionTypes)
+  CodeGenerator(
+      AnalysisContext c, this.summaryData, this.options, this._extensionTypes)
       : context = c,
         types = c.typeProvider,
         _asyncStreamIterator =
@@ -175,14 +185,37 @@ class CodeGenerator extends GeneralizingAstVisitor
     return new JSModuleFile(unit.name, errors, options, module, dartApiSummary);
   }
 
-  List<int> _summarizeModule(List<CompilationUnit> compilationUnits) {
+  List<int> _summarizeModule(List<CompilationUnit> units) {
     if (!options.summarizeApi) return null;
 
+    if (!units.any((u) => u.element.librarySource.isInSystemLibrary)) {
+      var sdk = context.sourceFactory.dartSdk;
+      summaryData.addBundle(
+          null,
+          sdk is SummaryBasedDartSdk
+              ? sdk.bundle
+              : (sdk as FolderBasedDartSdk).getSummarySdkBundle(true));
+    }
+
     var assembler = new PackageBundleAssembler();
-    compilationUnits
-        .map((u) => u.element.library)
-        .toSet()
-        .forEach(assembler.serializeLibraryElement);
+    assembler.recordDependencies(summaryData);
+
+    var uriToUnit = new Map<String, UnlinkedUnit>.fromIterable(units,
+        key: (u) => u.element.source.uri.toString(), value: (unit) {
+      var unlinked = serializeAstUnlinked(unit);
+      assembler.addUnlinkedUnit(unit.element.source, unlinked);
+      return unlinked;
+    });
+
+    summary_link
+        .link(
+            uriToUnit.keys.toSet(),
+            (uri) => summaryData.linkedMap[uri],
+            (uri) => summaryData.unlinkedMap[uri] ?? uriToUnit[uri],
+            context.declaredVariables.get,
+            true)
+        .forEach(assembler.addLinkedLibrary);
+
     return assembler.assemble().toBuffer();
   }
 

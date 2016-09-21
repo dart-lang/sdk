@@ -663,6 +663,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let IterableAndListTovoid = () => (IterableAndListTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Iterable, core.List])))();
   let _SplayTreeMapNodeTobool = () => (_SplayTreeMapNodeTobool = dart.constFn(dart.definiteFunctionType(core.bool, [collection._SplayTreeMapNode])))();
   let dynamicAndFnTodynamic = () => (dynamicAndFnTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dynamicAnddynamicTodynamic()])))();
+  let StringBufferToString = () => (StringBufferToString = dart.constFn(dart.definiteFunctionType(core.String, [core.StringBuffer])))();
   let Uint8ListAndintAndintTovoid$ = () => (Uint8ListAndintAndintTovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [typed_data.Uint8List, core.int, core.int])))();
   let StringAndFnTodynamic = () => (StringAndFnTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.String, dynamicAnddynamicTodynamic()])))();
   let EventSinkOfStringTo_LineSplitterEventSink = () => (EventSinkOfStringTo_LineSplitterEventSink = dart.constFn(dart.definiteFunctionType(convert._LineSplitterEventSink, [EventSinkOfString()])))();
@@ -8691,7 +8692,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       })(_isolate_helper._Manager._serializePrintMessage);
     }
     static _serializePrintMessage(object) {
-      return _isolate_helper._serializeMessage(dart.map({command: "print", msg: object}, core.String, dart.dynamic));
+      return _isolate_helper._serializeMessage(dart.map({command: "print", msg: core.String._check(object)}, core.String, core.String));
     }
     maybeCloseWorker() {
       if (dart.test(this.isWorker) && dart.test(this.isolates[dartx.isEmpty]) && this.topEventLoop[_activeJsAsyncCount] == 0) {
@@ -9250,7 +9251,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         case 'print':
         {
           if (dart.test(_isolate_helper._globalState.isWorker)) {
-            _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'print', msg: msg}, core.String, dart.dynamic)));
+            _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'print', msg: core.String._check(msg)}, core.String, core.String)));
           } else {
             core.print(dart.dindex(msg, 'msg'));
           }
@@ -9272,7 +9273,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static _log(msg) {
       if (dart.test(_isolate_helper._globalState.isWorker)) {
-        _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'log', msg: msg}, core.String, dart.dynamic)));
+        _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'log', msg: core.String._check(msg)}, core.String, core.String)));
       } else {
         try {
           _isolate_helper.IsolateNatives._consoleLog(msg);
@@ -10668,7 +10669,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let fieldsExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.CLASS_FIELDS_EXTRACTOR);
       let classId = classExtractor(x);
       let fields = fieldsExtractor(x);
-      return ['dart', classId, this.serializeArrayInPlace(_interceptors.JSArray._check(fields))];
+      return JSArrayOfString().of(['dart', classId, core.String._check(this.serializeArrayInPlace(_interceptors.JSArray._check(fields)))]);
     }
   };
   dart.setSignature(_isolate_helper._Serializer, {
@@ -28898,10 +28899,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     decodeStream(byteStream) {
-      return byteStream.transform(core.String)(this.decoder).fold(dart.dynamic)(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
+      return byteStream.transform(core.String)(this.decoder).fold(core.StringBuffer)(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
         dart.dsend(buffer, 'write', string);
         return buffer;
-      })()), dynamicAndStringTodynamic())).then(core.String)(dart.fn(buffer => dart.toString(buffer), dynamicToString()));
+      })()), dynamicAndStringTodynamic())).then(core.String)(dart.fn(buffer => dart.toString(buffer), StringBufferToString()));
     }
     static getByName(name) {
       if (name == null) return null;
@@ -28963,11 +28964,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _subsetMask = Symbol('_subsetMask');
   convert.Converter$ = dart.generic((S, T) => {
     let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
-    let _ConverterStreamEventSinkOfS$dynamic = () => (_ConverterStreamEventSinkOfS$dynamic = dart.constFn(convert._ConverterStreamEventSink$(S, dart.dynamic)))();
+    let _ConverterStreamEventSinkOfS$T = () => (_ConverterStreamEventSinkOfS$T = dart.constFn(convert._ConverterStreamEventSink$(S, T)))();
     let StreamTransformerOfS$T = () => (StreamTransformerOfS$T = dart.constFn(async.StreamTransformer$(S, T)))();
     let SinkOfT = () => (SinkOfT = dart.constFn(core.Sink$(T)))();
     let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
-    let EventSinkTo_ConverterStreamEventSinkOfS$dynamic = () => (EventSinkTo_ConverterStreamEventSinkOfS$dynamic = dart.constFn(dart.definiteFunctionType(_ConverterStreamEventSinkOfS$dynamic(), [async.EventSink])))();
+    let EventSinkOfT = () => (EventSinkOfT = dart.constFn(async.EventSink$(T)))();
+    let EventSinkTo_ConverterStreamEventSinkOfS$T = () => (EventSinkTo_ConverterStreamEventSinkOfS$T = dart.constFn(dart.definiteFunctionType(_ConverterStreamEventSinkOfS$T(), [async.EventSink])))();
     class Converter extends core.Object {
       new() {
       }
@@ -28983,7 +28985,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       bind(stream) {
         StreamOfS()._check(stream);
-        return StreamOfT().eventTransformed(stream, dart.fn(sink => new (_ConverterStreamEventSinkOfS$dynamic())(this, sink), EventSinkTo_ConverterStreamEventSinkOfS$dynamic()));
+        return StreamOfT().eventTransformed(stream, dart.fn(sink => new (_ConverterStreamEventSinkOfS$T())(this, EventSinkOfT()._check(sink)), EventSinkTo_ConverterStreamEventSinkOfS$T()));
       }
     }
     dart.addTypeTests(Converter);
