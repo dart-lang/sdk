@@ -13,7 +13,7 @@ import 'common/backend_api.dart' show Backend;
 import 'common/codegen.dart' show CodegenWorkItem;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
-import 'common/registry.dart' show EagerRegistry, Registry;
+import 'common/registry.dart' show Registry;
 import 'common/resolution.dart'
     show
         ParsingContext,
@@ -244,7 +244,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
     // TODO(johnniwinther): Separate the dependency tracking from the enqueuing
     // for global dependencies.
-    globalDependencies = new GlobalDependencyRegistry(this);
+    globalDependencies = new GlobalDependencyRegistry();
 
     if (makeBackend != null) {
       backend = makeBackend(this);
@@ -310,7 +310,11 @@ abstract class Compiler implements LibraryLoaderListener {
   ClosedWorldRefiner get inferenceWorld => _world;
 
   /// The closed world after resolution and inference.
-  ClosedWorld get closedWorld => _world;
+  ClosedWorld get closedWorld {
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, _world.isClosed,
+        message: "Closed world not computed yet."));
+    return _world;
+  }
 
   /// Creates the scanner task.
   ///
@@ -721,7 +725,7 @@ abstract class Compiler implements LibraryLoaderListener {
         assert(mainFunction != null);
         phase = PHASE_DONE_RESOLVING;
 
-        openWorld.populate();
+        openWorld.closeWorld();
         // Compute whole-program-knowledge that the backend needs. (This might
         // require the information computed in [world.populate].)
         backend.onResolutionComplete();
@@ -2192,16 +2196,10 @@ class _CompilerResolution implements Resolution {
   }
 }
 
-class GlobalDependencyRegistry extends EagerRegistry {
-  final Compiler compiler;
+class GlobalDependencyRegistry extends Registry {
   Setlet<Element> _otherDependencies;
 
-  GlobalDependencyRegistry(this.compiler) : super('GlobalDependencies', null);
-
-  // TODO(johnniwinther): Rename world/universe/enqueuer through out the
-  // compiler.
-  @override
-  Enqueuer get world => compiler.enqueuer.codegen;
+  GlobalDependencyRegistry();
 
   void registerDependency(Element element) {
     if (element == null) return;
@@ -2214,6 +2212,8 @@ class GlobalDependencyRegistry extends EagerRegistry {
   Iterable<Element> get otherDependencies {
     return _otherDependencies != null ? _otherDependencies : const <Element>[];
   }
+
+  String get name => 'GlobalDependencies';
 }
 
 class _ScriptLoader implements ScriptLoader {

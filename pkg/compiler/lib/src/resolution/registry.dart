@@ -18,16 +18,15 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
-import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilder;
+import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart' show EnumSet;
 import '../util/util.dart' show Setlet;
 import 'members.dart' show ResolverVisitor;
 import 'send_structure.dart';
 import 'tree_elements.dart' show TreeElementMapping;
 
-class ResolutionWorldImpactBuilder extends ResolutionImpact
-    with WorldImpactBuilder
-    implements NativeRegistry {
+class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
+    implements NativeRegistry, ResolutionImpact {
   final String name;
   EnumSet<Feature> _features;
   Setlet<MapLiteralUse> _mapLiterals;

@@ -75,7 +75,7 @@ Future<String> compile(String code,
     compiler.backend.enqueueHelpers(
         compiler.enqueuer.resolution, compiler.globalDependencies);
     compiler.processQueue(compiler.enqueuer.resolution, element);
-    compiler.openWorld.populate();
+    compiler.openWorld.closeWorld();
     compiler.backend.onResolutionComplete();
     ResolutionWorkItem resolutionWork = new ResolutionWorkItem(element);
     resolutionWork.run(compiler, compiler.enqueuer.resolution);

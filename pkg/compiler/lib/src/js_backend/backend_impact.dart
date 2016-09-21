@@ -22,7 +22,7 @@ class BackendImpact {
   final List<ClassElement> instantiatedClasses;
   final List<BackendImpact> otherImpacts;
 
-  BackendImpact(
+  const BackendImpact(
       {this.staticUses: const <Element>[],
       this.dynamicUses: const <Selector>[],
       this.instantiatedTypes: const <InterfaceType>[],
@@ -597,5 +597,20 @@ class BackendImpacts {
           instantiatedClasses: [commonElements.functionClass]);
     }
     return _closure;
+  }
+
+  BackendImpact _interceptorUse;
+
+  BackendImpact get interceptorUse {
+    if (_interceptorUse == null) {
+      _interceptorUse = new BackendImpact(staticUses: [
+        helpers.getNativeInterceptorMethod
+      ], instantiatedClasses: [
+        helpers.jsJavaScriptObjectClass,
+        helpers.jsPlainJavaScriptObjectClass,
+        helpers.jsJavaScriptFunctionClass
+      ]);
+    }
+    return _interceptorUse;
   }
 }

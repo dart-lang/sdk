@@ -19,16 +19,13 @@ import '../elements/elements.dart'
 import '../enqueue.dart' show Enqueuer;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
-    show WorldImpact, WorldImpactBuilder, WorldImpactVisitor;
+    show WorldImpact, WorldImpactBuilderImpl, WorldImpactVisitor;
 import '../util/util.dart' show Pair, Setlet;
-import 'registry.dart' show Registry, EagerRegistry;
+import 'registry.dart' show Registry;
 import 'work.dart' show WorkItem;
 
 class CodegenImpact extends WorldImpact {
   const CodegenImpact();
-
-  // TODO(johnniwinther): Remove this.
-  Registry get registry => null;
 
   Iterable<ConstantValue> get compileTimeConstants => const <ConstantValue>[];
 
@@ -49,10 +46,7 @@ class CodegenImpact extends WorldImpact {
   Iterable<Element> get asyncMarkers => const <FunctionElement>[];
 }
 
-class _CodegenImpact extends WorldImpactBuilder implements CodegenImpact {
-  // TODO(johnniwinther): Remove this.
-  final Registry registry;
-
+class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Setlet<ConstantValue> _compileTimeConstants;
   Setlet<Pair<DartType, DartType>> _typeVariableBoundsSubtypeChecks;
   Setlet<String> _constSymbols;
@@ -61,7 +55,7 @@ class _CodegenImpact extends WorldImpactBuilder implements CodegenImpact {
   Setlet<ClassElement> _typeConstants;
   Setlet<FunctionElement> _asyncMarkers;
 
-  _CodegenImpact(this.registry);
+  _CodegenImpact();
 
   void apply(WorldImpactVisitor visitor) {
     staticUses.forEach(visitor.visitStaticUse);
@@ -160,8 +154,7 @@ class CodegenRegistry extends Registry {
   CodegenRegistry(Compiler compiler, AstElement currentElement)
       : this.compiler = compiler,
         this.currentElement = currentElement,
-        this.worldImpact = new _CodegenImpact(new EagerRegistry(
-            'EagerRegistry for $currentElement', compiler.enqueuer.codegen));
+        this.worldImpact = new _CodegenImpact();
 
   bool get isForResolution => false;
 

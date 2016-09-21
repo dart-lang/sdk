@@ -30,7 +30,8 @@ import '../patch_parser.dart'
 import '../serialization/serialization.dart'
     show DeserializerPlugin, SerializerPlugin;
 import '../tree/tree.dart' show Node;
-import '../universe/world_impact.dart' show ImpactStrategy, WorldImpact;
+import '../universe/world_impact.dart'
+    show ImpactStrategy, WorldImpact, WorldImpactBuilder;
 import 'codegen.dart' show CodegenWorkItem;
 import 'registry.dart' show Registry;
 import 'tasks.dart' show CompilerTask;
@@ -116,7 +117,8 @@ abstract class Backend extends Target {
   bool enableDeferredLoadingIfSupported(Spannable node, Registry registry);
 
   /// Called during codegen when [constant] has been used.
-  void registerCompileTimeConstant(ConstantValue constant, Registry registry) {}
+  void computeImpactForCompileTimeConstant(ConstantValue constant,
+      WorldImpactBuilder impactBuilder, bool isForResolution) {}
 
   /// Called to notify to the backend that a class is being instantiated.
   // TODO(johnniwinther): Remove this. It's only called once for each [cls] and
