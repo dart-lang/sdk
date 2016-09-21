@@ -1041,42 +1041,6 @@ class ErrorParserTest extends ParserTestCase {
     listener.assertErrorsWithCodes([ParserErrorCode.EMPTY_ENUM_BODY]);
   }
 
-  void test_enableAsync_false_1() {
-    parseAsync = false;
-    createParser('foo() async {}');
-    FunctionDeclarationStatement statement =
-        parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.ASYNC_NOT_SUPPORTED]);
-    FunctionExpression expr = statement.functionDeclaration.functionExpression;
-    expect(expr.body.isAsynchronous, isTrue);
-    expect(expr.body.isGenerator, isFalse);
-  }
-
-  void test_enableAsync_false_2() {
-    parseAsync = false;
-    createParser('foo() async => 0;');
-    FunctionDeclarationStatement statement =
-        parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.ASYNC_NOT_SUPPORTED]);
-    FunctionExpression expr = statement.functionDeclaration.functionExpression;
-    expect(expr.body.isAsynchronous, isTrue);
-    expect(expr.body.isGenerator, isFalse);
-  }
-
-  void test_enableAsync_false_3() {
-    parseAsync = false;
-    createParser('foo() sync* {}');
-    FunctionDeclarationStatement statement =
-        parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.ASYNC_NOT_SUPPORTED]);
-    FunctionExpression expr = statement.functionDeclaration.functionExpression;
-    expect(expr.body.isAsynchronous, isFalse);
-    expect(expr.body.isGenerator, isTrue);
-  }
-
   void test_enumInClass() {
     ParserTestCase.parseCompilationUnit(
         r'''

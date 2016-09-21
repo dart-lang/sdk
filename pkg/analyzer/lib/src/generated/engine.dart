@@ -1065,6 +1065,7 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to if analysis is to enable async support.
    */
+  @deprecated
   bool get enableAsync;
 
   /**
@@ -1198,12 +1199,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int DEFAULT_CACHE_SIZE = 64;
 
   static const int ENABLE_ASSERT_FLAG = 0x01;
-  static const int ENABLE_ASYNC_FLAG = 0x02;
-  static const int ENABLE_GENERIC_METHODS_FLAG = 0x04;
-  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x08;
-  static const int ENABLE_STRONG_MODE_FLAG = 0x10;
-  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x20;
-  static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
+  static const int ENABLE_GENERIC_METHODS_FLAG = 0x02;
+  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x04;
+  static const int ENABLE_STRONG_MODE_FLAG = 0x08;
+  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x10;
+  static const int ENABLE_SUPER_MIXINS_FLAG = 0x20;
 
   /**
    * The default list of non-nullable type names.
@@ -1229,8 +1229,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool enableAssertMessage = false;
 
+  @deprecated
   @override
-  bool enableAsync = true;
+  bool get enableAsync => true;
+
+  @deprecated
+  void set enableAsync(bool enable) {}
 
   @override
   bool enableGenericMethods = false;
@@ -1333,7 +1337,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = options.dart2jsHint;
     enableAssertInitializer = options.enableAssertInitializer;
     enableAssertMessage = options.enableAssertMessage;
-    enableAsync = options.enableAsync;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableInitializingFormalAccess = options.enableInitializingFormalAccess;
@@ -1399,7 +1402,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   int encodeCrossContextOptions() =>
       (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
-      (enableAsync ? ENABLE_ASYNC_FLAG : 0) |
       (enableGenericMethods ? ENABLE_GENERIC_METHODS_FLAG : 0) |
       (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
       (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
@@ -1409,7 +1411,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableAssertMessage = options.enableAssertMessage;
-    enableAsync = options.enableAsync;
     enableGenericMethods = options.enableGenericMethods;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableSuperMixins = options.enableSuperMixins;
@@ -1440,9 +1441,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
     if (encoding & ENABLE_ASSERT_FLAG > 0) {
       add('assert');
-    }
-    if (encoding & ENABLE_ASYNC_FLAG > 0) {
-      add('async');
     }
     if (encoding & ENABLE_GENERIC_METHODS_FLAG > 0) {
       add('genericMethods');

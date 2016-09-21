@@ -1408,7 +1408,6 @@ class GetHandler {
       _writeOption(
           buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
       _writeOption(buffer, 'Cache size', options.cacheSize);
-      _writeOption(buffer, 'Enable async support', options.enableAsync);
       _writeOption(
           buffer, 'Enable generic methods', options.enableGenericMethods);
       _writeOption(

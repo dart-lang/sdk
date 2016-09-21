@@ -1871,22 +1871,11 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
   void internalPerform() {
     LibraryElement coreLibrary = getRequiredInput(CORE_INPUT);
     LibraryElement asyncLibrary = getOptionalInput(ASYNC_INPUT);
-    if (asyncLibrary == null) {
-      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-      asyncLibrary = (context as AnalysisContextImpl)
-          .createMockAsyncLib(coreLibrary, asyncSource);
-    }
     Namespace coreNamespace = coreLibrary.publicNamespace;
     Namespace asyncNamespace = asyncLibrary.publicNamespace;
     //
     // Record outputs.
     //
-    if (!context.analysisOptions.enableAsync) {
-      AnalysisContextImpl contextImpl = context;
-      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-      asyncLibrary = contextImpl.createMockAsyncLib(coreLibrary, asyncSource);
-      asyncNamespace = asyncLibrary.publicNamespace;
-    }
     TypeProvider typeProvider =
         new TypeProviderImpl.forNamespaces(coreNamespace, asyncNamespace);
     (context as InternalAnalysisContext).typeProvider = typeProvider;
@@ -4017,7 +4006,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     Parser parser = new Parser(_source, errorListener);
     AnalysisOptions options = context.analysisOptions;
     parser.enableAssertInitializer = options.enableAssertInitializer;
-    parser.parseAsync = options.enableAsync;
     parser.parseFunctionBodies =
         options.analyzeFunctionBodiesPredicate(_source);
     parser.parseGenericMethods = options.enableGenericMethods;

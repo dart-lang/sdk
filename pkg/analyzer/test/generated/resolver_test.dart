@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -37,7 +36,6 @@ main() {
   initializeTestEnvironment();
   defineReflectiveTests(AnalysisDeltaTest);
   defineReflectiveTests(ChangeSetTest);
-  defineReflectiveTests(DisableAsyncTestCase);
   defineReflectiveTests(EnclosedScopeTest);
   defineReflectiveTests(ErrorResolverTest);
   defineReflectiveTests(LibraryImportScopeTest);
@@ -139,51 +137,6 @@ class ChangeSetTest extends EngineTestCase {
     changeSet
         .removedContainer(new SourceContainer_ChangeSetTest_test_toString());
     expect(changeSet.toString(), isNotNull);
-  }
-}
-
-@reflectiveTest
-class DisableAsyncTestCase extends ResolverTestCase {
-  @override
-  void setUp() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableAsync = false;
-    resetWithOptions(options);
-  }
-
-  void test_resolve() {
-    Source source = addSource(r'''
-class C {
-  foo() {
-    bar();
-  }
-  bar() {
-    //
-  }
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, []);
-  }
-
-  void test_resolve_async() {
-    Source source = addSource(r'''
-class C {
-  Future foo() async {
-    await bar();
-    return null;
-  }
-  Future bar() {
-    return new Future.delayed(new Duration(milliseconds: 10));
-  }
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      StaticWarningCode.UNDEFINED_CLASS,
-      StaticWarningCode.UNDEFINED_CLASS,
-      StaticWarningCode.UNDEFINED_CLASS,
-      StaticWarningCode.UNDEFINED_CLASS,
-      ParserErrorCode.ASYNC_NOT_SUPPORTED
-    ]);
   }
 }
 
@@ -2548,79 +2501,6 @@ class TypeProviderImplTest extends EngineTestCase {
     expect(provider.streamType, same(streamType));
     expect(provider.stringType, same(stringType));
     expect(provider.symbolType, same(symbolType));
-    expect(provider.typeType, same(typeType));
-  }
-
-  void test_creation_no_async() {
-    //
-    // Create a mock library element with the types expected to be in dart:core.
-    // We cannot use either ElementFactory or TestTypeProvider (which uses
-    // ElementFactory) because we side-effect the elements in ways that would
-    // break other tests.
-    //
-    InterfaceType objectType = _classElement("Object", null).type;
-    InterfaceType boolType = _classElement("bool", objectType).type;
-    InterfaceType numType = _classElement("num", objectType).type;
-    InterfaceType doubleType = _classElement("double", numType).type;
-    InterfaceType functionType = _classElement("Function", objectType).type;
-    InterfaceType intType = _classElement("int", numType).type;
-    InterfaceType iterableType =
-        _classElement("Iterable", objectType, ["T"]).type;
-    InterfaceType listType = _classElement("List", objectType, ["E"]).type;
-    InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
-    InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
-    InterfaceType stringType = _classElement("String", objectType).type;
-    InterfaceType symbolType = _classElement("Symbol", objectType).type;
-    InterfaceType typeType = _classElement("Type", objectType).type;
-    CompilationUnitElementImpl coreUnit =
-        new CompilationUnitElementImpl("core.dart");
-    coreUnit.types = <ClassElement>[
-      boolType.element,
-      doubleType.element,
-      functionType.element,
-      intType.element,
-      iterableType.element,
-      listType.element,
-      mapType.element,
-      objectType.element,
-      stackTraceType.element,
-      stringType.element,
-      symbolType.element,
-      typeType.element
-    ];
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        context, AstFactory.libraryIdentifier2(["dart.core"]));
-    coreLibrary.definingCompilationUnit = coreUnit;
-
-    Source asyncSource = new NonExistingSource(
-        'async.dart', Uri.parse('dart:async'), UriKind.DART_URI);
-    LibraryElementImpl mockAsyncLib = (context as AnalysisContextImpl)
-        .createMockAsyncLib(coreLibrary, asyncSource);
-    expect(mockAsyncLib.source, same(asyncSource));
-    expect(mockAsyncLib.definingCompilationUnit.source, same(asyncSource));
-    expect(mockAsyncLib.publicNamespace, isNotNull);
-
-    //
-    // Create a type provider and ensure that it can return the expected types.
-    //
-    TypeProviderImpl provider = new TypeProviderImpl(coreLibrary, mockAsyncLib);
-    expect(provider.boolType, same(boolType));
-    expect(provider.bottomType, isNotNull);
-    expect(provider.doubleType, same(doubleType));
-    expect(provider.dynamicType, isNotNull);
-    expect(provider.functionType, same(functionType));
-    InterfaceType mockFutureType = mockAsyncLib.getType('Future').type;
-    expect(provider.futureType, same(mockFutureType));
-    expect(provider.intType, same(intType));
-    expect(provider.listType, same(listType));
-    expect(provider.mapType, same(mapType));
-    expect(provider.objectType, same(objectType));
-    expect(provider.stackTraceType, same(stackTraceType));
-    expect(provider.stringType, same(stringType));
-    expect(provider.symbolType, same(symbolType));
-    InterfaceType mockStreamType = mockAsyncLib.getType('Stream').type;
-    expect(provider.streamType, same(mockStreamType));
     expect(provider.typeType, same(typeType));
   }
 

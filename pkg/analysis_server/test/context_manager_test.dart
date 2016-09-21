@@ -1999,7 +1999,6 @@ analyzer:
     - 'test/**'
   language:
     enableGenericMethods: true
-    enableAsync: false
   errors:
     unused_local_variable: false
 linter:
@@ -2023,7 +2022,6 @@ linter:
     // * from `config.yaml`:
     expect(context.analysisOptions.strongMode, isTrue);
     expect(context.analysisOptions.enableSuperMixins, isTrue);
-    expect(context.analysisOptions.enableAsync, isFalse);
     // * from analysis options:
     expect(context.analysisOptions.enableGenericMethods, isTrue);
 
@@ -2097,7 +2095,6 @@ analyzer:
     - 'test/**'
   language:
     enableGenericMethods: true
-    enableAsync: false
   errors:
     unused_local_variable: false
 linter:
@@ -2132,7 +2129,6 @@ linter:
     // * from `_embedder.yaml`:
     expect(context.analysisOptions.strongMode, isTrue);
     expect(context.analysisOptions.enableSuperMixins, isTrue);
-    expect(context.analysisOptions.enableAsync, isFalse);
     // * from analysis options:
     expect(context.analysisOptions.enableGenericMethods, isTrue);
 
@@ -2211,7 +2207,6 @@ analyzer:
     - 'test/**'
   language:
     enableGenericMethods: true
-    enableAsync: false
   errors:
     unused_local_variable: false
 linter:
@@ -2234,7 +2229,6 @@ linter:
     // * from `_embedder.yaml`:
     expect(context.analysisOptions.strongMode, isTrue);
     expect(context.analysisOptions.enableSuperMixins, isTrue);
-    expect(context.analysisOptions.enableAsync, isFalse);
     // * from analysis options:
     expect(context.analysisOptions.enableGenericMethods, isTrue);
 

@@ -135,7 +135,6 @@ const Map<String, LibraryInfo> libraries = const {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
     defaultOptions.enableAssertMessage = !defaultOptions.enableAssertMessage;
-    defaultOptions.enableAsync = !defaultOptions.enableAsync;
     defaultOptions.enableGenericMethods = !defaultOptions.enableGenericMethods;
     defaultOptions.enableStrictCallChecks =
         !defaultOptions.enableStrictCallChecks;
@@ -498,7 +497,7 @@ linter:
     defaultOptions.enableGenericMethods = true;
     builder.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableAsync = true;
+    expected.enableSuperMixins = true;
     expected.enableGenericMethods = true;
     String path = '/some/directory/path';
     String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
@@ -506,7 +505,8 @@ linter:
         filePath,
         '''
 analyzer:
-  enableAsync : true
+  language:
+    enableSuperMixins : true
 ''');
 
     AnalysisEngine engine = AnalysisEngine.instance;
@@ -515,7 +515,9 @@ analyzer:
     try {
       _TestOptionsProcessor processor = new _TestOptionsProcessor();
       processor.expectedOptions = <String, Object>{
-        'analyzer': {'enableAsync': true}
+        'analyzer': {
+          'language': {'enableSuperMixins': true}
+        }
       };
       (plugin.optionsProcessorExtensionPoint as ExtensionPointImpl)
           .add(processor);
@@ -566,14 +568,15 @@ linter:
 
   void test_getAnalysisOptions_noDefault_overrides() {
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableAsync = true;
+    expected.enableSuperMixins = true;
     String path = '/some/directory/path';
     String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
     resourceProvider.newFile(
         filePath,
         '''
 analyzer:
-  enableAsync : true
+  language:
+    enableSuperMixins : true
 ''');
 
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
@@ -643,7 +646,6 @@ analyzer:
     expect(actual.cacheSize, expected.cacheSize);
     expect(actual.dart2jsHint, expected.dart2jsHint);
     expect(actual.enableAssertMessage, expected.enableAssertMessage);
-    expect(actual.enableAsync, expected.enableAsync);
     expect(actual.enableStrictCallChecks, expected.enableStrictCallChecks);
     expect(actual.enableGenericMethods, expected.enableGenericMethods);
     expect(actual.enableSuperMixins, expected.enableSuperMixins);

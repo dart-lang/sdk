@@ -226,11 +226,6 @@ class Parser {
   bool _enableNnbd = false;
 
   /**
-   * A flag indicating whether the parser is to parse the async support.
-   */
-  bool _parseAsync = true;
-
-  /**
    * A flag indicating whether parser is to parse function bodies.
    */
   bool _parseFunctionBodies = true;
@@ -342,10 +337,11 @@ class Parser {
 
   /**
    * Set whether the parser is to parse the async support.
+   *
+   * Support for removing the 'async' library has been removed.
    */
-  void set parseAsync(bool parseAsync) {
-    this._parseAsync = parseAsync;
-  }
+  @deprecated
+  void set parseAsync(bool parseAsync) {}
 
   @deprecated
   bool get parseConditionalDirectives => true;
@@ -3067,9 +3063,6 @@ class Parser {
         if (lexeme == ASYNC) {
           foundAsync = true;
           keyword = getAndAdvance();
-          if (!_parseAsync) {
-            _reportErrorForToken(ParserErrorCode.ASYNC_NOT_SUPPORTED, keyword);
-          }
           if (_matches(TokenType.STAR)) {
             star = getAndAdvance();
             _inGenerator = true;
@@ -3079,9 +3072,6 @@ class Parser {
         } else if (lexeme == SYNC) {
           foundSync = true;
           keyword = getAndAdvance();
-          if (!_parseAsync) {
-            _reportErrorForToken(ParserErrorCode.ASYNC_NOT_SUPPORTED, keyword);
-          }
           if (_matches(TokenType.STAR)) {
             star = getAndAdvance();
             _inGenerator = true;
@@ -7315,7 +7305,6 @@ class Parser {
     parser._inInitializer = _inInitializer;
     parser._inLoop = _inLoop;
     parser._inSwitch = _inSwitch;
-    parser._parseAsync = _parseAsync;
     parser._parseFunctionBodies = _parseFunctionBodies;
     try {
       parseOperation(parser);

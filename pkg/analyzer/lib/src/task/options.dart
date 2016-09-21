@@ -498,14 +498,6 @@ class _OptionsProcessor {
         context.analysisOptions = options;
       }
     }
-    if (feature == AnalyzerOptions.enableAsync) {
-      if (isFalse(value)) {
-        AnalysisOptionsImpl options =
-            new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.enableAsync = false;
-        context.analysisOptions = options;
-      }
-    }
     if (feature == AnalyzerOptions.enableStrictCallChecks) {
       if (isTrue(value)) {
         AnalysisOptionsImpl options =
@@ -574,8 +566,6 @@ class _OptionsProcessor {
     if (boolValue != null) {
       if (feature == AnalyzerOptions.enableAssertInitializer) {
         options.enableAssertInitializer = boolValue;
-      } else if (feature == AnalyzerOptions.enableAsync) {
-        options.enableAsync = boolValue;
       } else if (feature == AnalyzerOptions.enableInitializingFormalAccess) {
         options.enableInitializingFormalAccess = boolValue;
       } else if (feature == AnalyzerOptions.enableSuperMixins) {
