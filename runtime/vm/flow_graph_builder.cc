@@ -3586,10 +3586,14 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // call. Exception: don't do this when assigning to or from internal
   // variables, or for generated code that has no source position.
   if (FLAG_support_debugger) {
-    if ((node->value()->IsLiteralNode() ||
-        (node->value()->IsLoadLocalNode() &&
-            !node->value()->AsLoadLocalNode()->local().IsInternal()) ||
-        node->value()->IsClosureNode()) &&
+    AstNode* rhs = node->value();
+    if (rhs->IsAssignableNode()) {
+      rhs = rhs->AsAssignableNode()->expr();
+    }
+    if ((rhs->IsLiteralNode() ||
+         (rhs->IsLoadLocalNode() &&
+          !rhs->AsLoadLocalNode()->local().IsInternal()) ||
+         rhs->IsClosureNode()) &&
         !node->local().IsInternal() &&
         node->token_pos().IsDebugPause()) {
       AddInstruction(new(Z) DebugStepCheckInstr(
@@ -3708,13 +3712,13 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
     // If the right hand side is an expression that does not contain
     // a safe point for the debugger to stop, add an explicit stub
     // call.
-    AstNode* val = node->value();
-    if (val->IsAssignableNode()) {
-      val = val->AsAssignableNode()->expr();
+    AstNode* rhs = node->value();
+    if (rhs->IsAssignableNode()) {
+      rhs = rhs->AsAssignableNode()->expr();
     }
-    if ((val->IsLiteralNode() ||
-         val->IsLoadLocalNode() ||
-         val->IsClosureNode()) &&
+    if ((rhs->IsLiteralNode() ||
+         rhs->IsLoadLocalNode() ||
+         rhs->IsClosureNode()) &&
          node->token_pos().IsDebugPause()) {
       AddInstruction(new(Z) DebugStepCheckInstr(
           node->token_pos(), RawPcDescriptors::kRuntimeCall));
