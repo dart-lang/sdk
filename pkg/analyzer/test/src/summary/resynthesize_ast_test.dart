@@ -720,12 +720,6 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
   test_syntheticFunctionType_withArguments() {
     super.test_syntheticFunctionType_withArguments();
   }
-
-  @override
-  @failingTest
-  test_unused_type_parameter() {
-    super.test_unused_type_parameter();
-  }
 }
 
 /**

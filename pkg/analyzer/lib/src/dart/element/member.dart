@@ -114,9 +114,6 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     List<DartType> parameterTypes = definingType.element.type.typeArguments;
     FunctionType substitutedType =
         baseType.substitute2(argumentTypes, parameterTypes);
-    if (baseType == substitutedType) {
-      return constructor;
-    }
     return new ConstructorMember(constructor, definingType, substitutedType);
   }
 }
@@ -408,9 +405,6 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
         TypeParameterTypeImpl.getTypes(definingType.typeParameters);
     FunctionType substitutedType =
         baseType.substitute2(argumentTypes, parameterTypes);
-    if (baseType == substitutedType) {
-      return method;
-    }
     return new MethodMember(method, definingType, substitutedType);
   }
 }
@@ -645,9 +639,6 @@ class MethodMember extends ExecutableMember implements MethodElement {
     List<DartType> parameterTypes = definingType.element.type.typeArguments;
     FunctionType substitutedType =
         baseType.substitute2(argumentTypes, parameterTypes);
-    if (baseType == substitutedType) {
-      return method;
-    }
     return new MethodMember(method, definingType, substitutedType);
   }
 }
@@ -776,9 +767,6 @@ class ParameterMember extends VariableMember
           TypeParameterTypeImpl.getTypes(definingType.typeParameters);
       DartType substitutedType =
           baseType.substitute2(argumentTypes, parameterTypes);
-      if (baseType == substitutedType) {
-        return parameter;
-      }
       return new ParameterMember(parameter, definingType, substitutedType);
     }
   }
@@ -990,9 +978,6 @@ class TypeParameterMember extends Member implements TypeParameterElement {
         TypeParameterTypeImpl.getTypes(definingType.typeParameters);
     DartType substitutedBound =
         bound.substitute2(argumentTypes, parameterTypes);
-    if (bound == substitutedBound) {
-      return parameter;
-    }
     return new TypeParameterMember(parameter, definingType, substitutedBound);
   }
 }

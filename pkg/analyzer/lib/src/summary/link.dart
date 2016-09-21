@@ -189,10 +189,8 @@ EntityRefBuilder _createLinkedType(
       result.paramReference =
           typeParameterContext.typeParameterNestingLevel - element.nestingLevel;
     } else {
-      // Out-of-scope type parameters only occur in circumstances where they
-      // are irrelevant (i.e. when a type parameter is unused).  So we can
-      // safely convert them to `dynamic`.
-      result.reference = compilationUnit.addRawReference('dynamic');
+      throw new StateError('The type parameter $type (in ${element?.location}) '
+          'is out of scope on ${typeParameterContext?.location}.');
     }
     return result;
   } else if (type is FunctionType) {

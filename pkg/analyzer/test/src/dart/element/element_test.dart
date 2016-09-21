@@ -2755,15 +2755,17 @@ class InterfaceTypeImplTest extends EngineTestCase {
     expect(typeA.getMethod(methodName), same(methodM));
   }
 
-  void test_getMethod_parameterized() {
+  void test_getMethod_parameterized_doesNotUseTypeParameter() {
     //
-    // class A<E> { E m(E p) {} }
+    // class A<E> { void m() {} }
+    // class B {}
     //
     ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
+    InterfaceType typeB = ElementFactory.classElement2("B").type;
     DartType typeE = classA.type.typeArguments[0];
     String methodName = "m";
     MethodElementImpl methodM =
-        ElementFactory.methodElement(methodName, typeE, [typeE]);
+        ElementFactory.methodElement(methodName, typeB, []);
     classA.methods = <MethodElement>[methodM];
     methodM.type = new FunctionTypeImpl(methodM);
     //
@@ -2775,10 +2777,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
-    expect(methodType.returnType, same(typeI));
-    List<DartType> parameterTypes = methodType.normalParameterTypes;
-    expect(parameterTypes, hasLength(1));
-    expect(parameterTypes[0], same(typeI));
+    expect(methodType.typeParameters, [same(typeE.element)]);
+    expect(methodType.typeArguments, [same(typeI)]);
   }
 
   void test_getMethod_parameterized_flushCached_whenVersionChanges() {
@@ -2804,6 +2804,34 @@ class InterfaceTypeImplTest extends EngineTestCase {
     // Methods list is flushed on version change.
     classA.version++;
     expect(typeAI.methods.single, isNot(same(method)));
+  }
+
+  void test_getMethod_parameterized_usesTypeParameter() {
+    //
+    // class A<E> { E m(E p) {} }
+    //
+    ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
+    DartType typeE = classA.type.typeArguments[0];
+    String methodName = "m";
+    MethodElementImpl methodM =
+        ElementFactory.methodElement(methodName, typeE, [typeE]);
+    classA.methods = <MethodElement>[methodM];
+    methodM.type = new FunctionTypeImpl(methodM);
+    //
+    // A<I>
+    //
+    InterfaceType typeI = ElementFactory.classElement2("I").type;
+    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
+    typeAI.typeArguments = <DartType>[typeI];
+    MethodElement method = typeAI.getMethod(methodName);
+    expect(method, isNotNull);
+    FunctionType methodType = method.type;
+    expect(methodType.typeParameters, [same(typeE.element)]);
+    expect(methodType.typeArguments, [same(typeI)]);
+    expect(methodType.returnType, same(typeI));
+    List<DartType> parameterTypes = methodType.normalParameterTypes;
+    expect(parameterTypes, hasLength(1));
+    expect(parameterTypes[0], same(typeI));
   }
 
   void test_getMethod_unimplemented() {

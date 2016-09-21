@@ -8091,8 +8091,7 @@ class D extends p.C {} // Prevent "unused import" warning
     // The type that is inferred for C.f's parameter g is "() -> void".
     // Since the associated element for that function type is B.f's parameter g,
     // and B has a type parameter, the inferred type will record a type
-    // parameter.  However, since that type parameter is irrelevant, the summary
-    // should encode it as `dynamic`.
+    // parameter.
     UnlinkedClass c = serializeClassText('''
 abstract class B<T> {
   void f(void g());
@@ -8109,7 +8108,7 @@ class C<T> extends B<T> {
     EntityRef typeRef = getTypeRefForSlot(g.inferredTypeSlot);
     checkLinkedTypeRef(typeRef, null, null, 'f',
         expectedKind: ReferenceKind.method, numTypeArguments: 1);
-    checkLinkedDynamicTypeRef(typeRef.typeArguments[0]);
+    checkParamTypeRef(typeRef.typeArguments[0], 1);
   }
 
   test_inferred_type_keeps_leading_dynamic() {
