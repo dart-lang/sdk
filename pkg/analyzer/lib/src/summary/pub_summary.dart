@@ -33,6 +33,12 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
+ * Return the raw string value of the variable with the given [name],
+ * or `null` of the variable is not defined.
+ */
+typedef String _GetDeclaredVariable(String name);
+
+/**
  * Unlinked and linked information about a [PubPackage].
  */
 class LinkedPubPackage {
@@ -84,6 +90,12 @@ class PubSummaryManager {
   static const UNLINKED_SPEC_NAME = 'unlinked_spec.ds';
 
   /**
+   * If `true` (by default), then linking new bundles is allowed.
+   * Otherwise only using existing cached bundles can be used.
+   */
+  final bool allowLinking;
+
+  /**
    * See [PackageBundleAssembler.currentMajorVersion].
    */
   final int majorVersion;
@@ -126,7 +138,8 @@ class PubSummaryManager {
   Completer _onUnlinkedCompleteCompleter;
 
   PubSummaryManager(this.resourceProvider, this.tempFileName,
-      {@visibleForTesting this.majorVersion:
+      {@visibleForTesting this.allowLinking: true,
+      @visibleForTesting this.majorVersion:
           PackageBundleAssembler.currentMajorVersion});
 
   /**
@@ -169,6 +182,7 @@ class PubSummaryManager {
   List<LinkedPubPackage> getLinkedBundles(AnalysisContext context) {
 //    Stopwatch timer = new Stopwatch()..start();
 
+    _GetDeclaredVariable getDeclaredVariable = context.declaredVariables.get;
     SourceFactory sourceFactory = context.sourceFactory;
     _ListedPackages listedPackages = new _ListedPackages(sourceFactory);
 
@@ -195,8 +209,8 @@ class PubSummaryManager {
     List<_LinkedNode> nodes = <_LinkedNode>[];
     Map<String, _LinkedNode> packageToNode = <String, _LinkedNode>{};
     unlinkedBundles.forEach((package, unlinked) {
-      _LinkedNode node = new _LinkedNode(
-          sdkBundle, listedPackages, package, unlinked, packageToNode);
+      _LinkedNode node = new _LinkedNode(sdkBundle, getDeclaredVariable,
+          listedPackages, package, unlinked, packageToNode);
       nodes.add(node);
       packageToNode[package.name] = node;
     });
@@ -211,28 +225,32 @@ class PubSummaryManager {
       _readLinked(node, strong);
     }
 
-    // Fill the store with bundles.
-    // Append the linked SDK bundle.
-    // Append unlinked and (if read from a cache) linked package bundles.
-    SummaryDataStore store = new SummaryDataStore(const <String>[]);
-    store.addBundle(null, sdkBundle);
-    for (_LinkedNode node in nodes) {
-      store.addBundle(null, node.unlinked);
-      if (node.linked != null) {
-        store.addBundle(null, node.linked);
+    // Link new bundles, if allowed.
+    if (allowLinking) {
+      // Fill the store with bundles.
+      // Append the linked SDK bundle.
+      // Append unlinked and (if read from a cache) linked package bundles.
+      SummaryDataStore store = new SummaryDataStore(const <String>[]);
+      store.addBundle(null, sdkBundle);
+      for (_LinkedNode node in nodes) {
+        store.addBundle(null, node.unlinked);
+        if (node.linked != null) {
+          store.addBundle(null, node.linked);
+        }
       }
-    }
 
-    // Link each package node.
-    for (_LinkedNode node in nodes) {
-      if (!node.isEvaluated) {
-        new _LinkedWalker(listedPackages, store, strong).walk(node);
+      // Link each package node.
+      for (_LinkedNode node in nodes) {
+        if (!node.isEvaluated) {
+          new _LinkedWalker(getDeclaredVariable, listedPackages, store, strong)
+              .walk(node);
+        }
       }
-    }
 
-    // Write newly linked bundles.
-    for (_LinkedNode node in nodes) {
-      _writeLinked(node, strong);
+      // Write newly linked bundles.
+      for (_LinkedNode node in nodes) {
+        _writeLinked(node, strong);
+      }
     }
 
     // Create successfully linked packages.
@@ -240,7 +258,7 @@ class PubSummaryManager {
     for (_LinkedNode node in nodes) {
       if (node.linked != null) {
         linkedPackages.add(new LinkedPubPackage(
-            node.package, node.unlinked, node.linked, node._linkedHash));
+            node.package, node.unlinked, node.linked, node.linkedHash));
       }
     }
 
@@ -604,6 +622,7 @@ class PubSummaryManager {
  */
 class _LinkedNode extends Node<_LinkedNode> {
   final PackageBundle sdkBundle;
+  final _GetDeclaredVariable getDeclaredVariable;
   final _ListedPackages listedPackages;
   final PubPackage package;
   final PackageBundle unlinked;
@@ -616,30 +635,31 @@ class _LinkedNode extends Node<_LinkedNode> {
   List<int> linkedNewBytes;
   PackageBundle linked;
 
-  _LinkedNode(this.sdkBundle, this.listedPackages, this.package, this.unlinked,
-      this.packageToNode);
+  _LinkedNode(this.sdkBundle, this.getDeclaredVariable, this.listedPackages,
+      this.package, this.unlinked, this.packageToNode);
 
   @override
   bool get isEvaluated => linked != null || failed;
 
   /**
    * Return the hash string that corresponds to this linked bundle in the
-   * context of its [sdkBundles] and transitive dependencies.  Return `null` if
+   * context of its [sdkBundle] and transitive dependencies.  Return `null` if
    * the hash computation fails, because for example the full transitive
    * dependencies cannot computed.
    */
   String get linkedHash {
     if (_linkedHash == null && transitiveDependencies != null) {
-      // Collect all unlinked API signatures.
+      ApiSignature signature = new ApiSignature();
+      // Add all unlinked API signatures.
       List<String> signatures = <String>[];
       signatures.add(sdkBundle.apiSignature);
       transitiveDependencies
           .map((node) => node.unlinked.apiSignature)
           .forEach(signatures.add);
       signatures.sort();
-      // Combine sorted unlinked API signatures into a single hash.
-      ApiSignature signature = new ApiSignature();
       signatures.forEach(signature.addString);
+      // Combine into a single hash.
+      _appendDeclaredVariables(signature);
       _linkedHash = signature.toHex();
     }
     return _linkedHash;
@@ -709,17 +729,47 @@ class _LinkedNode extends Node<_LinkedNode> {
 
   @override
   String toString() => package.toString();
+
+  /**
+   * Append names and values of all referenced declared variables (even the
+   * ones without actually declared values) to the given [signature].
+   */
+  void _appendDeclaredVariables(ApiSignature signature) {
+    Set<String> nameSet = new Set<String>();
+    for (_LinkedNode node in transitiveDependencies) {
+      for (UnlinkedUnit unit in node.unlinked.unlinkedUnits) {
+        for (UnlinkedImport import in unit.imports) {
+          for (UnlinkedConfiguration configuration in import.configurations) {
+            nameSet.add(configuration.name);
+          }
+        }
+        for (UnlinkedExportPublic export in unit.publicNamespace.exports) {
+          for (UnlinkedConfiguration configuration in export.configurations) {
+            nameSet.add(configuration.name);
+          }
+        }
+      }
+    }
+    List<String> sortedNameList = nameSet.toList()..sort();
+    signature.addInt(sortedNameList.length);
+    for (String name in sortedNameList) {
+      signature.addString(name);
+      signature.addString(getDeclaredVariable(name) ?? '');
+    }
+  }
 }
 
 /**
  * Specialization of [DependencyWalker] for linking packages.
  */
 class _LinkedWalker extends DependencyWalker<_LinkedNode> {
+  final _GetDeclaredVariable getDeclaredVariable;
   final _ListedPackages listedPackages;
   final SummaryDataStore store;
   final bool strong;
 
-  _LinkedWalker(this.listedPackages, this.store, this.strong);
+  _LinkedWalker(
+      this.getDeclaredVariable, this.listedPackages, this.store, this.strong);
 
   @override
   void evaluate(_LinkedNode node) {
@@ -741,10 +791,7 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
       return store.linkedMap[uri];
     }, (String uri) {
       return store.unlinkedMap[uri];
-    }, (String name) {
-      // TODO(scheglov) decide how to use declared variables in Pub
-      return null;
-    }, strong);
+    }, getDeclaredVariable, strong);
     // Assemble linked bundles and put them into the store.
     for (_LinkedNode node in scc) {
       PackageBundleAssembler assembler = new PackageBundleAssembler();
