@@ -171,7 +171,7 @@ class PackageDescriptionTest extends ResolverTestCase {
     DartSdk sdk = new MockSdk();
     AnalysisOptionsImpl options1 = new AnalysisOptionsImpl();
     AnalysisOptionsImpl options2 = new AnalysisOptionsImpl();
-    options2.enableTiming = !options1.enableTiming;
+    options2.enableGenericMethods = !options1.enableGenericMethods;
     PackageDescription first = new PackageDescription(packageId, sdk, options1);
     PackageDescription second =
         new PackageDescription(packageId, sdk, options2);
