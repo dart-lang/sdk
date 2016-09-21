@@ -96,11 +96,11 @@ class LocalContext extends Context {
   final VariableDeclaration self;
   final IntLiteral size;
   final List<VariableDeclaration> variables = <VariableDeclaration>[];
-  
+
   LocalContext._internal(this.converter, this.parent, this.self, this.size);
 
   factory LocalContext(ClosureConverter converter, Context parent) {
-    Class contextClass = converter.coreTypes.internalContextClass;
+    Class contextClass = converter.internalContextClass;
     assert(contextClass.constructors.length == 1);
     IntLiteral zero = new IntLiteral(0);
     VariableDeclaration declaration =
@@ -113,7 +113,7 @@ class LocalContext extends Context {
         new PropertySet(new VariableGet(declaration),
                         new Name('parent'),
                         parent.expression)));
-      
+
     return new LocalContext._internal(converter, parent, declaration, zero);
   }
 
@@ -233,6 +233,7 @@ class ClosureContext extends Context {
 
 class ClosureConverter extends Transformer {
   final CoreTypes coreTypes;
+  Class internalContextClass;
   final Set<VariableDeclaration> captured;
 
   Block _currentBlock;
@@ -240,7 +241,9 @@ class ClosureConverter extends Transformer {
 
   Context context;
 
-  ClosureConverter(this.coreTypes, this.captured);
+  ClosureConverter(this.coreTypes, this.captured) {
+    internalContextClass = coreTypes.getCoreClass('dart:_internal', 'Context');
+  }
 
   void insert(Statement statement) {
     _currentBlock.statements.insert(_insertionIndex++, statement);
@@ -267,7 +270,7 @@ class ClosureConverter extends Transformer {
     if (body is Block) {
       _currentBlock = body;
     } else {
-      _currentBlock = new Block(<Statements>[body]);
+      _currentBlock = new Block(<Statement>[body]);
       node.function.body = body.parent = _currentBlock;
     }
     _insertionIndex = 0;
@@ -275,7 +278,7 @@ class ClosureConverter extends Transformer {
     // TODO: This is really the closure, not the context.
     VariableDeclaration parameter =
         new VariableDeclaration(null,
-            type: new InterfaceType(coreTypes.internalContextClass),
+            type: internalContextClass.rawType,
             isFinal: true);
     node.function.positionalParameters.insert(0, parameter);
     parameter.parent = node.function;
@@ -303,7 +306,7 @@ class ClosureConverter extends Transformer {
     if (body is Block) {
       _currentBlock = body;
     } else {
-      _currentBlock = new Block(<Statements>[body]);
+      _currentBlock = new Block(<Statement>[body]);
       node.function.body = body.parent = _currentBlock;
     }
     _insertionIndex = 0;
@@ -311,7 +314,7 @@ class ClosureConverter extends Transformer {
     // TODO: This is really the closure, not the context.
     VariableDeclaration parameter =
         new VariableDeclaration(null,
-            type: new InterfaceType(coreTypes.internalContextClass),
+            type: internalContextClass.rawType,
             isFinal: true);
     node.function.positionalParameters.insert(0, parameter);
     parameter.parent = node.function;
@@ -339,11 +342,11 @@ class ClosureConverter extends Transformer {
     if (body is Block) {
       _currentBlock = body;
     } else {
-      _currentBlock = new Block(<Statements>[body]);
+      _currentBlock = new Block(<Statement>[body]);
       node.function.body = body.parent = _currentBlock;
     }
     _insertionIndex = 0;
-    
+
     // Start with no context.  This happens after setting up _currentBlock
     // so statements can be emitted into _currentBlock if necessary.
     context = new NoContext(this);
@@ -372,7 +375,7 @@ class ClosureConverter extends Transformer {
     // need to be closure converted?
     node.positionalParameters.where(captured.contains).forEach(extend);
     node.namedParameters.where(captured.contains).forEach(extend);
-    
+
     assert(node.body != null);
     node.body = node.body.accept(this);
     node.body.parent = node;
