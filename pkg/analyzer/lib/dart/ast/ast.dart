@@ -36,6 +36,7 @@
  */
 library analyzer.dart.ast.ast;
 
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -510,7 +511,7 @@ abstract class AssignmentExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AstNode {
+abstract class AstNode implements SyntacticEntity {
   /**
    * An empty list of AST nodes.
    */
@@ -536,7 +537,7 @@ abstract class AstNode {
    * (either AST nodes or tokens) that make up the contents of this node,
    * including doc comments but excluding other comments.
    */
-  Iterable /* AstNode | Token */ get childEntities;
+  Iterable<SyntacticEntity> get childEntities;
 
   /**
    * Return the offset of the character immediately following the last character
@@ -546,6 +547,7 @@ abstract class AstNode {
    * equivalent to the node's offset (because the length is zero (0) by
    * definition).
    */
+  @override
   int get end;
 
   /**
@@ -560,15 +562,10 @@ abstract class AstNode {
    */
   bool get isSynthetic;
 
-  /**
-   * Return the number of characters in the node's source range.
-   */
+  @override
   int get length;
 
-  /**
-   * Return the offset from the beginning of the file to the first character in
-   * the node's source range.
-   */
+  @override
   int get offset;
 
   /**

@@ -7,6 +7,7 @@ library analyzer.src.generated.element_resolver;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -2612,7 +2613,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   Element get bestElement => null;
 
   @override
-  Iterable get childEntities {
+  Iterable<SyntacticEntity> get childEntities {
     // Should never be called, since a SyntheticIdentifier never appears in the
     // AST--it is just used for lookup.
     assert(false);
