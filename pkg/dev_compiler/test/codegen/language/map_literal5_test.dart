@@ -32,7 +32,7 @@ void test(bool b) {
   }
 }
 
-create(bool b) {
+Map create(bool b) {
   return {
     b: 0,
     m(b): n(b),
@@ -40,5 +40,5 @@ create(bool b) {
   };
 }
 
-m(bool b) => b ? 2 : "bar";
-n(bool b) => b ? 3 : "baz";
+Object m(bool b) => b ? 2 : "bar";
+Object n(bool b) => b ? 3 : "baz";
