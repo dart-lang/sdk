@@ -22,7 +22,7 @@ main() {
       }
       """,
         useMockCompiler: false);
-    World world = env.compiler.world;
+    World world = env.compiler.closedWorld;
     world.populate();
     FlatTypeMask mask1 = new FlatTypeMask.exact(env.getElement('A'));
     FlatTypeMask mask2 = new FlatTypeMask.exact(env.getElement('B'));

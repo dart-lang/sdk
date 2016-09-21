@@ -951,7 +951,7 @@ abstract class HInstruction implements Spannable {
   }
 
   bool canBePrimitiveNumber(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     // TODO(sra): It should be possible to test only jsDoubleClass and
@@ -965,14 +965,14 @@ abstract class HInstruction implements Spannable {
   }
 
   bool canBePrimitiveBoolean(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return containsType(instructionType, helpers.jsBoolClass, classWorld);
   }
 
   bool canBePrimitiveArray(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return containsType(instructionType, helpers.jsArrayClass, classWorld) ||
@@ -984,7 +984,7 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isIndexablePrimitive(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return instructionType.containsOnlyString(classWorld) ||
@@ -992,7 +992,7 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isFixedArray(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     // TODO(sra): Recognize the union of these types as well.
@@ -1003,7 +1003,7 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isExtendableArray(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return containsOnlyType(
@@ -1011,7 +1011,7 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isMutableArray(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return isInstanceOf(
@@ -1019,14 +1019,14 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isReadableArray(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return isInstanceOf(instructionType, helpers.jsArrayClass, classWorld);
   }
 
   bool isMutableIndexable(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return isInstanceOf(
@@ -1036,20 +1036,20 @@ abstract class HInstruction implements Spannable {
   bool isArray(Compiler compiler) => isReadableArray(compiler);
 
   bool canBePrimitiveString(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return containsType(instructionType, helpers.jsStringClass, classWorld);
   }
 
   bool isInteger(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     return instructionType.containsOnlyInt(classWorld) &&
         !instructionType.isNullable;
   }
 
   bool isUInt32(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return !instructionType.isNullable &&
@@ -1057,7 +1057,7 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isUInt31(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return !instructionType.isNullable &&
@@ -1065,7 +1065,7 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isPositiveInteger(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return !instructionType.isNullable &&
@@ -1073,7 +1073,7 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isPositiveIntegerOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return isInstanceOf(
@@ -1081,51 +1081,51 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isIntegerOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     return instructionType.containsOnlyInt(classWorld);
   }
 
   bool isNumber(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     return instructionType.containsOnlyNum(classWorld) &&
         !instructionType.isNullable;
   }
 
   bool isNumberOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     return instructionType.containsOnlyNum(classWorld);
   }
 
   bool isDouble(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     return instructionType.containsOnlyDouble(classWorld) &&
         !instructionType.isNullable;
   }
 
   bool isDoubleOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     return instructionType.containsOnlyDouble(classWorld);
   }
 
   bool isBoolean(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     return instructionType.containsOnlyBool(classWorld) &&
         !instructionType.isNullable;
   }
 
   bool isBooleanOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     return instructionType.containsOnlyBool(classWorld);
   }
 
   bool isString(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     return instructionType.containsOnlyString(classWorld) &&
         !instructionType.isNullable;
   }
 
   bool isStringOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     return instructionType.containsOnlyString(classWorld);
   }
 
@@ -1378,7 +1378,7 @@ abstract class HInstruction implements Spannable {
       throw 'creating compound check to $type (this = ${this})';
     } else {
       TypeMask subtype =
-          new TypeMask.subtype(element.declaration, compiler.world);
+          new TypeMask.subtype(element.declaration, compiler.closedWorld);
       return new HTypeConversion(type, kind, subtype, this);
     }
   }

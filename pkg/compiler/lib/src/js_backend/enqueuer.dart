@@ -85,7 +85,7 @@ class CodegenEnqueuer implements Enqueuer {
 
   Registry get mirrorDependencies => _compiler.mirrorDependencies;
 
-  ClassWorld get _world => _compiler.world;
+  ClassWorld get _world => _compiler.closedWorld;
 
   bool get queueIsEmpty => queue.isEmpty;
 
@@ -176,13 +176,11 @@ class CodegenEnqueuer implements Enqueuer {
       // Note: this assumes that there are no non-native fields on native
       // classes, which may not be the case when a native class is subclassed.
       if (backend.isNative(cls)) {
-        _compiler.world.registerUsedElement(member);
         if (universe.hasInvokedGetter(member, _world) ||
             universe.hasInvocation(member, _world)) {
           addToWorkList(member);
           return;
-        }
-        if (universe.hasInvokedSetter(member, _world)) {
+        } else if (universe.hasInvokedSetter(member, _world)) {
           addToWorkList(member);
           return;
         }

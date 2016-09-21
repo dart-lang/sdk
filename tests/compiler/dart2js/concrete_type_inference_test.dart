@@ -60,8 +60,8 @@ void testBasicTypes() {
     Expect.identical(compiler.commonMasks.nullType, type);
   });
   checkPrintType('"foo"', (compiler, type) {
-    Expect.isTrue(
-        compiler.commonMasks.stringType.containsOnlyString(compiler.world));
+    Expect.isTrue(compiler.commonMasks.stringType
+        .containsOnlyString(compiler.closedWorld));
   });
 }
 

@@ -24,7 +24,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
   SsaTypePropagator(Compiler compiler)
       : this.compiler = compiler,
-        this.classWorld = compiler.world;
+        this.classWorld = compiler.closedWorld;
 
   TypeMask computeType(HInstruction instruction) {
     return instruction.accept(this);
@@ -268,7 +268,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           HTypeConversion.RECEIVER_TYPE_CHECK);
       return true;
     } else if (instruction.element == null) {
-      Iterable<Element> targets = compiler.world.allFunctions
+      Iterable<Element> targets = compiler.closedWorld.allFunctions
           .filter(instruction.selector, instruction.mask);
       if (targets.length == 1) {
         Element target = targets.first;
@@ -371,7 +371,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     if (!instruction.selector.isClosureCall) {
       TypeMask newType;
       TypeMask computeNewType() {
-        newType = compiler.world.allFunctions
+        newType = compiler.closedWorld.allFunctions
             .receiverType(instruction.selector, instruction.mask);
         newType = newType.intersection(receiverType, classWorld);
         return newType;

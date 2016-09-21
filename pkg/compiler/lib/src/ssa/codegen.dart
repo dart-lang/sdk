@@ -1656,21 +1656,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
       ClassElement enclosing = node.element.enclosingClass;
-      if (compiler.world.isInstantiated(enclosing)) {
-        return new TypeMask.nonNullExact(enclosing.declaration, compiler.world);
+      if (compiler.closedWorld.isInstantiated(enclosing)) {
+        return new TypeMask.nonNullExact(
+            enclosing.declaration, compiler.closedWorld);
       } else {
         // The element is mixed in so a non-null subtype mask is the most
         // precise we have.
-        assert(invariant(node, compiler.world.isUsedAsMixin(enclosing),
+        assert(invariant(node, compiler.closedWorld.isUsedAsMixin(enclosing),
             message: "Element ${node.element} from $enclosing expected "
                 "to be mixed in."));
         return new TypeMask.nonNullSubtype(
-            enclosing.declaration, compiler.world);
+            enclosing.declaration, compiler.closedWorld);
       }
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
     // might hit a `noSuchMethod`, we register an untyped selector.
-    return compiler.world.extendMaskIfReachesAll(selector, mask);
+    return compiler.closedWorld.extendMaskIfReachesAll(selector, mask);
   }
 
   void registerMethodInvoke(HInvokeDynamic node) {
@@ -2703,7 +2704,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   js.Expression generateReceiverOrArgumentTypeTest(
       HInstruction input, TypeMask checkedType) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     TypeMask inputType = input.instructionType;
     // Figure out if it is beneficial to turn this into a null check.
     // V8 generally prefers 'typeof' checks, but for integers and
@@ -2743,7 +2744,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeConversion(HTypeConversion node) {
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-      ClassWorld classWorld = compiler.world;
+      ClassWorld classWorld = compiler.closedWorld;
       // An int check if the input is not int or null, is not
       // sufficient for doing an argument or receiver check.
       assert(compiler.options.trustTypeAnnotations ||
@@ -2910,10 +2911,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     if (classWorld.isUsedAsMixin(cls)) return true;
 
-    return compiler.world.anyStrictSubclassOf(cls, (ClassElement subclass) {
+    return compiler.closedWorld.anyStrictSubclassOf(cls,
+        (ClassElement subclass) {
       return !backend.rti.isTrivialSubstitution(subclass, cls);
     });
   }

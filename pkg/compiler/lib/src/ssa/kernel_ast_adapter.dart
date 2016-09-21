@@ -74,7 +74,8 @@ class KernelAstAdapter {
   }
 
   bool getCanThrow(ir.Node procedure) {
-    return !_compiler.world.getCannotThrow(getElement(procedure));
+    FunctionElement function = getElement(procedure);
+    return !_compiler.closedWorld.getCannotThrow(function);
   }
 
   TypeMask returnTypeOf(ir.Member node) {
@@ -83,7 +84,7 @@ class KernelAstAdapter {
   }
 
   SideEffects getSideEffects(ir.Node node) {
-    return _compiler.world.getSideEffectsOfElement(getElement(node));
+    return _compiler.closedWorld.getSideEffectsOfElement(getElement(node));
   }
 
   CallStructure getCallStructure(ir.Arguments arguments) {

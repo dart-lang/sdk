@@ -920,7 +920,7 @@ Future testPatchAndSelector() async {
       """,
       runCompiler: true,
       analyzeOnly: true);
-  World world = compiler.world;
+  World world = compiler.openWorld;
   world.populate();
 
   ClassElement cls = ensure(

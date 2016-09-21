@@ -44,7 +44,7 @@ testClassSets() async {
       }
       """,
       useMockCompiler: false);
-  ClassWorld classWorld = env.compiler.world;
+  ClassWorld classWorld = env.compiler.closedWorld;
 
   ClassElement Object_ = env.getElement("Object");
   ClassElement A = env.getElement("A");
@@ -64,7 +64,7 @@ testClassSets() async {
           foundClasses.contains(expectedClass),
           "Expect $expectedClass in '$property' on $cls. "
           "Found:\n ${foundClasses.join('\n ')}\n"
-          "${env.compiler.world.dump(cls)}");
+          "${env.compiler.closedWorld.dump(cls)}");
     }
     if (exact) {
       Expect.equals(
@@ -73,7 +73,7 @@ testClassSets() async {
           "Unexpected classes "
           "${foundClasses.where((c) => !expectedClasses.contains(c))} "
           "in '$property' on $cls.\n"
-          "${env.compiler.world.dump(cls)}");
+          "${env.compiler.closedWorld.dump(cls)}");
     }
   }
 
@@ -99,7 +99,7 @@ testClassSets() async {
           expectedClasses.length,
           count,
           "Unexpected class count in '$property' on $cls.\n"
-          "${env.compiler.world.dump(cls)}");
+          "${env.compiler.closedWorld.dump(cls)}");
     }
   }
 
@@ -234,7 +234,7 @@ testProperties() async {
       }
       """,
       useMockCompiler: false);
-  ClassWorld classWorld = env.compiler.world;
+  ClassWorld classWorld = env.compiler.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
     ClassElement cls = env.getElement(name);

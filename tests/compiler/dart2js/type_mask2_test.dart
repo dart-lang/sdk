@@ -104,7 +104,7 @@ Future testUnionTypeMaskFlatten() async {
       """,
       useMockCompiler: false);
 
-  ClassWorld classWorld = env.compiler.world;
+  ClassWorld classWorld = env.compiler.closedWorld;
 
   ClassElement Object_ = env.getElement("Object");
   ClassElement A = env.getElement("A");
@@ -213,7 +213,7 @@ Future testStringSubtypes() async {
       }
       """,
       useMockCompiler: false);
-  var classWorld = env.compiler.world;
+  var classWorld = env.compiler.closedWorld;
   var backend = env.compiler.backend;
 
   ClassElement Object_ = env.getElement("Object");

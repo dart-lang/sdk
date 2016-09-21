@@ -639,7 +639,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (inferrer.compiler.world.getMightBePassedToApply(declaration)) {
+    if (inferrer.compiler.inferenceWorld
+        .getCurrentlyKnownMightBePassedToApply(declaration)) {
       giveUp(inferrer);
       return safeType(inferrer);
     }
@@ -816,7 +817,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   void addToGraph(TypeGraphInferrerEngine inferrer) {
     assert(receiver != null);
     TypeMask typeMask = computeTypedSelector(inferrer);
-    targets = inferrer.compiler.world.allFunctions.filter(selector, typeMask);
+    targets =
+        inferrer.compiler.closedWorld.allFunctions.filter(selector, typeMask);
     receiver.addUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
@@ -968,16 +970,16 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
     Compiler compiler = inferrer.compiler;
     TypeMask maskToUse =
-        compiler.world.extendMaskIfReachesAll(selector, typeMask);
+        compiler.closedWorld.extendMaskIfReachesAll(selector, typeMask);
     bool canReachAll = compiler.enabledInvokeOn && (maskToUse != typeMask);
 
     // If this call could potentially reach all methods that satisfy
     // the untyped selector (through noSuchMethod's `Invocation`
     // and a call to `delegate`), we iterate over all these methods to
     // update their parameter types.
-    targets = compiler.world.allFunctions.filter(selector, maskToUse);
+    targets = compiler.closedWorld.allFunctions.filter(selector, maskToUse);
     Iterable<Element> typedTargets = canReachAll
-        ? compiler.world.allFunctions.filter(selector, typeMask)
+        ? compiler.closedWorld.allFunctions.filter(selector, typeMask)
         : targets;
 
     // Update the call graph if the targets could have changed.
@@ -1073,7 +1075,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (!abandonInferencing) {
       inferrer.updateSelectorInTree(caller, call, selector, mask);
       Iterable<Element> oldTargets = targets;
-      targets = inferrer.compiler.world.allFunctions.filter(selector, mask);
+      targets =
+          inferrer.compiler.closedWorld.allFunctions.filter(selector, mask);
       for (Element element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
@@ -1734,9 +1737,10 @@ TypeMask _narrowType(Compiler compiler, TypeMask type, DartType annotation,
     otherType = compiler.commonMasks.nullType;
   } else {
     assert(annotation.isInterfaceType);
-    otherType = new TypeMask.nonNullSubtype(annotation.element, compiler.world);
+    otherType =
+        new TypeMask.nonNullSubtype(annotation.element, compiler.closedWorld);
   }
   if (isNullable) otherType = otherType.nullable();
   if (type == null) return otherType;
-  return type.intersection(otherType, compiler.world);
+  return type.intersection(otherType, compiler.closedWorld);
 }

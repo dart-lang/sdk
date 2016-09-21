@@ -345,8 +345,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _indexablePrimitiveTypeCache;
   TypeMask get indexablePrimitiveType {
     if (_indexablePrimitiveTypeCache == null) {
-      _indexablePrimitiveTypeCache =
-          new TypeMask.nonNullSubtype(helpers.jsIndexableClass, compiler.world);
+      _indexablePrimitiveTypeCache = new TypeMask.nonNullSubtype(
+          helpers.jsIndexableClass, compiler.closedWorld);
     }
     return _indexablePrimitiveTypeCache;
   }
@@ -354,8 +354,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _readableArrayTypeCache;
   TypeMask get readableArrayType {
     if (_readableArrayTypeCache == null) {
-      _readableArrayTypeCache =
-          new TypeMask.nonNullSubclass(helpers.jsArrayClass, compiler.world);
+      _readableArrayTypeCache = new TypeMask.nonNullSubclass(
+          helpers.jsArrayClass, compiler.closedWorld);
     }
     return _readableArrayTypeCache;
   }
@@ -364,7 +364,7 @@ class JavaScriptBackend extends Backend {
   TypeMask get mutableArrayType {
     if (_mutableArrayTypeCache == null) {
       _mutableArrayTypeCache = new TypeMask.nonNullSubclass(
-          helpers.jsMutableArrayClass, compiler.world);
+          helpers.jsMutableArrayClass, compiler.closedWorld);
     }
     return _mutableArrayTypeCache;
   }
@@ -372,8 +372,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _fixedArrayTypeCache;
   TypeMask get fixedArrayType {
     if (_fixedArrayTypeCache == null) {
-      _fixedArrayTypeCache =
-          new TypeMask.nonNullExact(helpers.jsFixedArrayClass, compiler.world);
+      _fixedArrayTypeCache = new TypeMask.nonNullExact(
+          helpers.jsFixedArrayClass, compiler.closedWorld);
     }
     return _fixedArrayTypeCache;
   }
@@ -382,7 +382,7 @@ class JavaScriptBackend extends Backend {
   TypeMask get extendableArrayType {
     if (_extendableArrayTypeCache == null) {
       _extendableArrayTypeCache = new TypeMask.nonNullExact(
-          helpers.jsExtendableArrayClass, compiler.world);
+          helpers.jsExtendableArrayClass, compiler.closedWorld);
     }
     return _extendableArrayTypeCache;
   }
@@ -391,7 +391,7 @@ class JavaScriptBackend extends Backend {
   TypeMask get unmodifiableArrayType {
     if (_unmodifiableArrayTypeCache == null) {
       _unmodifiableArrayTypeCache = new TypeMask.nonNullExact(
-          helpers.jsUnmodifiableArrayClass, compiler.world);
+          helpers.jsUnmodifiableArrayClass, compiler.closedWorld);
     }
     return _fixedArrayTypeCache;
   }
@@ -917,8 +917,9 @@ class JavaScriptBackend extends Backend {
     if (elements == null) return false;
     if (elements.isEmpty) return false;
     return elements.any((element) {
-      return selector.applies(element, compiler.world) &&
-          (mask == null || mask.canHit(element, selector, compiler.world));
+      return selector.applies(element, compiler.closedWorld) &&
+          (mask == null ||
+              mask.canHit(element, selector, compiler.closedWorld));
     });
   }
 
@@ -974,7 +975,7 @@ class JavaScriptBackend extends Backend {
   }
 
   Set<ClassElement> nativeSubclassesOfMixin(ClassElement mixin) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     Iterable<MixinApplicationElement> uses = classWorld.mixinUsesOf(mixin);
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
@@ -1883,7 +1884,7 @@ class JavaScriptBackend extends Backend {
     if (!type.isRaw) return false;
     ClassElement classElement = type.element;
     if (isInterceptorClass(classElement)) return false;
-    return compiler.world.hasOnlySubclasses(classElement);
+    return compiler.closedWorld.hasOnlySubclasses(classElement);
   }
 
   bool isNullImplementation(ClassElement cls) {
@@ -2176,8 +2177,9 @@ class JavaScriptBackend extends Backend {
           }
         });
         // 4) all overriding members of subclasses/subtypes (should be resolved)
-        if (compiler.world.hasAnyStrictSubtype(cls)) {
-          compiler.world.forEachStrictSubtypeOf(cls, (ClassElement subcls) {
+        if (compiler.closedWorld.hasAnyStrictSubtype(cls)) {
+          compiler.closedWorld.forEachStrictSubtypeOf(cls,
+              (ClassElement subcls) {
             subcls.forEachClassMember((Member member) {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
@@ -2256,8 +2258,8 @@ class JavaScriptBackend extends Backend {
       reflectableMembers.add(helpers.boundClosureClass);
     }
     // Add typedefs.
-    reflectableMembers
-        .addAll(compiler.world.allTypedefs.where(referencedFromMirrorSystem));
+    reflectableMembers.addAll(
+        compiler.closedWorld.allTypedefs.where(referencedFromMirrorSystem));
     // Register all symbols of reflectable elements
     for (Element element in reflectableMembers) {
       symbolsUsed.add(element.name);
@@ -2300,25 +2302,26 @@ class JavaScriptBackend extends Backend {
     // check for the interface [JavaScriptIndexingBehavior].
     ClassElement typedDataClass = compiler.commonElements.typedDataClass;
     return typedDataClass != null &&
-        compiler.world.isInstantiated(typedDataClass) &&
-        mask.satisfies(typedDataClass, compiler.world) &&
-        mask.satisfies(helpers.jsIndexingBehaviorInterface, compiler.world);
+        compiler.closedWorld.isInstantiated(typedDataClass) &&
+        mask.satisfies(typedDataClass, compiler.closedWorld) &&
+        mask.satisfies(
+            helpers.jsIndexingBehaviorInterface, compiler.closedWorld);
   }
 
   bool couldBeTypedArray(TypeMask mask) {
     bool intersects(TypeMask type1, TypeMask type2) =>
-        !type1.intersection(type2, compiler.world).isEmpty;
+        !type1.intersection(type2, compiler.closedWorld).isEmpty;
     // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
     //               jsIndexingBehaviourInterface.
     ClassElement typedDataClass = compiler.commonElements.typedDataClass;
     return typedDataClass != null &&
-        compiler.world.isInstantiated(typedDataClass) &&
+        compiler.closedWorld.isInstantiated(typedDataClass) &&
         intersects(
-            mask, new TypeMask.subtype(typedDataClass, compiler.world)) &&
+            mask, new TypeMask.subtype(typedDataClass, compiler.closedWorld)) &&
         intersects(
             mask,
             new TypeMask.subtype(
-                helpers.jsIndexingBehaviorInterface, compiler.world));
+                helpers.jsIndexingBehaviorInterface, compiler.closedWorld));
   }
 
   /// Returns all static fields that are referenced through [targetsUsed].
@@ -2524,14 +2527,14 @@ class JavaScriptBackend extends Backend {
           reporter.reportHintMessage(
               element, MessageKind.GENERIC, {'text': "Cannot throw"});
         }
-        compiler.world.registerCannotThrow(element);
+        compiler.inferenceWorld.registerCannotThrow(element);
       } else if (cls == helpers.noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
               element, MessageKind.GENERIC, {'text': "Has no side effects"});
         }
-        compiler.world.registerSideEffectsFree(element);
+        compiler.inferenceWorld.registerSideEffectsFree(element);
       }
     }
     if (hasForceInline && hasNoInline) {
@@ -2890,7 +2893,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case TypeUseKind.TYPE_LITERAL:
           backend.customElementsAnalysis.registerTypeLiteral(type);
           if (type.isTypedef) {
-            backend.compiler.world.allTypedefs.add(type.element);
+            backend.compiler.openWorld.allTypedefs.add(type.element);
           }
           if (type.isTypeVariable && type is! MethodTypeVariableType) {
             // GENERIC_METHODS: The `is!` test above filters away method type

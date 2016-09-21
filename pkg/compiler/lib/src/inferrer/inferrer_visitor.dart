@@ -950,7 +950,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   T get thisType {
     if (_thisType != null) return _thisType;
     ClassElement cls = outermostElement.enclosingClass;
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     if (classWorld.isUsedAsMixin(cls)) {
       return _thisType = types.nonNullSubtype(cls);
     } else {

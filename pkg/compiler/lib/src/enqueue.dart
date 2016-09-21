@@ -227,13 +227,13 @@ class ResolutionEnqueuer extends Enqueuer {
       // Note: this assumes that there are no non-native fields on native
       // classes, which may not be the case when a native class is subclassed.
       if (compiler.backend.isNative(cls)) {
-        compiler.world.registerUsedElement(member);
-        if (universe.hasInvokedGetter(member, compiler.world) ||
-            universe.hasInvocation(member, compiler.world)) {
+        compiler.openWorld.registerUsedElement(member);
+        if (universe.hasInvokedGetter(member, compiler.openWorld) ||
+            universe.hasInvocation(member, compiler.openWorld)) {
           addToWorkList(member);
           return;
         }
-        if (universe.hasInvokedSetter(member, compiler.world)) {
+        if (universe.hasInvokedSetter(member, compiler.openWorld)) {
           addToWorkList(member);
           return;
         }
@@ -257,7 +257,7 @@ class ResolutionEnqueuer extends Enqueuer {
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
-      if (universe.hasInvokedGetter(function, compiler.world)) {
+      if (universe.hasInvokedGetter(function, compiler.openWorld)) {
         registerClosurizedMember(function);
         addToWorkList(function);
         return;
@@ -267,27 +267,27 @@ class ResolutionEnqueuer extends Enqueuer {
       instanceFunctionsByName
           .putIfAbsent(memberName, () => new Set<Element>())
           .add(member);
-      if (universe.hasInvocation(function, compiler.world)) {
+      if (universe.hasInvocation(function, compiler.openWorld)) {
         addToWorkList(function);
         return;
       }
     } else if (member.isGetter) {
       FunctionElement getter = member;
       getter.computeType(resolution);
-      if (universe.hasInvokedGetter(getter, compiler.world)) {
+      if (universe.hasInvokedGetter(getter, compiler.openWorld)) {
         addToWorkList(getter);
         return;
       }
       // We don't know what selectors the returned closure accepts. If
       // the set contains any selector we have to assume that it matches.
-      if (universe.hasInvocation(getter, compiler.world)) {
+      if (universe.hasInvocation(getter, compiler.openWorld)) {
         addToWorkList(getter);
         return;
       }
     } else if (member.isSetter) {
       FunctionElement setter = member;
       setter.computeType(resolution);
-      if (universe.hasInvokedSetter(setter, compiler.world)) {
+      if (universe.hasInvokedSetter(setter, compiler.openWorld)) {
         addToWorkList(setter);
         return;
       }
@@ -537,7 +537,7 @@ class ResolutionEnqueuer extends Enqueuer {
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
     processInstanceMembers(methodName, (Element member) {
-      if (dynamicUse.appliesUnnamed(member, compiler.world)) {
+      if (dynamicUse.appliesUnnamed(member, compiler.openWorld)) {
         if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member);
         }
@@ -548,7 +548,7 @@ class ResolutionEnqueuer extends Enqueuer {
     });
     if (selector.isGetter) {
       processInstanceFunctions(methodName, (Element member) {
-        if (dynamicUse.appliesUnnamed(member, compiler.world)) {
+        if (dynamicUse.appliesUnnamed(member, compiler.openWorld)) {
           registerClosurizedMember(member);
           return true;
         }
@@ -722,7 +722,7 @@ class ResolutionEnqueuer extends Enqueuer {
           element, "Resolution work list is closed. Trying to add $element.");
     }
 
-    compiler.world.registerUsedElement(element);
+    compiler.openWorld.registerUsedElement(element);
 
     ResolutionWorkItem workItem = compiler.resolution.createWorkItem(element);
     queue.add(workItem);

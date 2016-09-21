@@ -126,7 +126,7 @@ class SsaOptimizerTask extends CompilerTask {
 /// of identifying gvn-able lengths and mis-identifies some unions of fixed
 /// length indexables (see TODO) as not fixed length.
 bool isFixedLength(mask, Compiler compiler) {
-  ClassWorld classWorld = compiler.world;
+  ClassWorld classWorld = compiler.closedWorld;
   JavaScriptBackend backend = compiler.backend;
   if (mask.isContainer && mask.length != null) {
     // A container on which we have inferred the length.
@@ -191,7 +191,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // If we can replace [instruction] with [replacement], then
           // [replacement]'s type can be narrowed.
           TypeMask newType = replacement.instructionType
-              .intersection(instruction.instructionType, compiler.world);
+              .intersection(instruction.instructionType, compiler.closedWorld);
           replacement.instructionType = newType;
         }
 
@@ -284,7 +284,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
-    if (!mask.contains(helpers.jsBoolClass, compiler.world)) {
+    if (!mask.contains(helpers.jsBoolClass, compiler.closedWorld)) {
       return graph.addConstantBool(false, compiler);
     }
     return node;
@@ -334,7 +334,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       Element element = helpers.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       TypeMask actualType = node.instructionType;
-      ClassWorld classWorld = compiler.world;
+      ClassWorld classWorld = compiler.closedWorld;
       TypeMask resultType = backend.positiveIntType;
       // If we already have computed a more specific type, keep that type.
       if (HInstruction.isInstanceOf(
@@ -374,7 +374,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask mask = node.mask;
     HInstruction input = node.inputs[1];
 
-    World world = compiler.world;
+    ClassWorld world = compiler.closedWorld;
 
     bool applies(Element element) {
       return selector.applies(element, world) &&
@@ -444,7 +444,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     TypeMask receiverType = node.getDartReceiver(compiler).instructionType;
     Element element =
-        compiler.world.locateSingleElement(node.selector, receiverType);
+        compiler.closedWorld.locateSingleElement(node.selector, receiverType);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null &&
         element.isFunction
@@ -643,7 +643,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler))) {
-      if (leftType.isDisjoint(rightType, compiler.world)) {
+      if (leftType.isDisjoint(rightType, compiler.closedWorld)) {
         return makeFalse();
       }
     }
@@ -734,7 +734,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return graph.addConstantBool(true, compiler);
     }
 
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     HInstruction expression = node.expression;
     if (expression.isInteger(compiler)) {
       if (element == coreClasses.intClass ||
@@ -784,7 +784,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           : new TypeMask.nonNullSubtype(element, classWorld);
       if (expressionMask.union(typeMask, classWorld) == typeMask) {
         return graph.addConstantBool(true, compiler);
-      } else if (expressionMask.isDisjoint(typeMask, compiler.world)) {
+      } else if (expressionMask.isDisjoint(typeMask, compiler.closedWorld)) {
         return graph.addConstantBool(false, compiler);
       }
     }
@@ -815,7 +815,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction removeIfCheckAlwaysSucceeds(HCheck node, TypeMask checkedType) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     if (checkedType.containsAll(classWorld)) return node;
     HInstruction input = node.checkedInput;
     TypeMask inputType = input.instructionType;
@@ -827,7 +827,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   VariableElement findConcreteFieldForDynamicAccess(
       HInstruction receiver, Selector selector) {
     TypeMask receiverType = receiver.instructionType;
-    return compiler.world.locateSingleField(selector, receiverType);
+    return compiler.closedWorld.locateSingleField(selector, receiverType);
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
@@ -905,7 +905,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
-    bool isAssignable = !compiler.world.fieldNeverChanges(field);
+    bool isAssignable = !compiler.closedWorld.fieldNeverChanges(field);
 
     TypeMask type;
     if (backend.isNative(field.enclosingClass)) {
@@ -1036,7 +1036,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     if (classWorld.isUsedAsMixin(cls)) return true;
 
     return classWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
@@ -2056,7 +2056,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
     TypeMask convertedType =
-        new TypeMask.nonNullSubtype(element, compiler.world);
+        new TypeMask.nonNullSubtype(element, compiler.closedWorld);
     HInstruction input = instruction.expression;
 
     for (HIf ifUser in ifUsers) {
@@ -2380,11 +2380,11 @@ class MemorySet {
     // Typed arrays of different types might have a shared buffer.
     if (couldBeTypedArray(first) && couldBeTypedArray(second)) return true;
     return !first.instructionType
-        .isDisjoint(second.instructionType, compiler.world);
+        .isDisjoint(second.instructionType, compiler.closedWorld);
   }
 
   bool isFinal(Element element) {
-    return compiler.world.fieldNeverChanges(element);
+    return compiler.closedWorld.fieldNeverChanges(element);
   }
 
   bool isConcrete(HInstruction instruction) {
@@ -2548,8 +2548,8 @@ class MemorySet {
       HBasicBlock block, int predecessorIndex) {
     if (first == null || second == null) return null;
     if (first == second) return first;
-    TypeMask phiType =
-        second.instructionType.union(first.instructionType, compiler.world);
+    TypeMask phiType = second.instructionType
+        .union(first.instructionType, compiler.closedWorld);
     if (first is HPhi && first.block == block) {
       HPhi phi = first;
       phi.addInput(second);

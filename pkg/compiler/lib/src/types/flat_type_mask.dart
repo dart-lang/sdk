@@ -121,21 +121,22 @@ class FlatTypeMask implements TypeMask {
     // not track correctly the list of truly instantiated classes.
     Backend backend = classWorld.backend;
     if (containsOnlyString(classWorld)) {
-      return cls == classWorld.stringClass ||
+      return cls == classWorld.coreClasses.stringClass ||
           cls == backend.stringImplementation;
     }
     if (containsOnlyBool(classWorld)) {
-      return cls == classWorld.boolClass || cls == backend.boolImplementation;
+      return cls == classWorld.coreClasses.boolClass ||
+          cls == backend.boolImplementation;
     }
     if (containsOnlyInt(classWorld)) {
-      return cls == classWorld.intClass ||
+      return cls == classWorld.coreClasses.intClass ||
           cls == backend.intImplementation ||
           cls == backend.positiveIntImplementation ||
           cls == backend.uint32Implementation ||
           cls == backend.uint31Implementation;
     }
     if (containsOnlyDouble(classWorld)) {
-      return cls == classWorld.doubleClass ||
+      return cls == classWorld.coreClasses.doubleClass ||
           cls == backend.doubleImplementation;
     }
     return false;
@@ -165,7 +166,7 @@ class FlatTypeMask implements TypeMask {
     // TODO(herhut): Add check whether flatOther.base is superclass of
     //               all subclasses of this.base.
     if (flatOther.isSubclass) {
-      if (isSubtype) return (otherBase == classWorld.objectClass);
+      if (isSubtype) return (otherBase == classWorld.coreClasses.objectClass);
       return classWorld.isSubclassOf(base, otherBase);
     }
     assert(flatOther.isSubtype);
@@ -179,7 +180,7 @@ class FlatTypeMask implements TypeMask {
 
   bool containsOnlyInt(ClassWorld classWorld) {
     Backend backend = classWorld.backend;
-    return base == classWorld.intClass ||
+    return base == classWorld.coreClasses.intClass ||
         base == backend.intImplementation ||
         base == backend.positiveIntImplementation ||
         base == backend.uint31Implementation ||
@@ -188,7 +189,7 @@ class FlatTypeMask implements TypeMask {
 
   bool containsOnlyDouble(ClassWorld classWorld) {
     Backend backend = classWorld.backend;
-    return base == classWorld.doubleClass ||
+    return base == classWorld.coreClasses.doubleClass ||
         base == backend.doubleImplementation;
   }
 
@@ -196,18 +197,19 @@ class FlatTypeMask implements TypeMask {
     Backend backend = classWorld.backend;
     return containsOnlyInt(classWorld) ||
         containsOnlyDouble(classWorld) ||
-        base == classWorld.numClass ||
+        base == classWorld.coreClasses.numClass ||
         base == backend.numImplementation;
   }
 
   bool containsOnlyBool(ClassWorld classWorld) {
     Backend backend = classWorld.backend;
-    return base == classWorld.boolClass || base == backend.boolImplementation;
+    return base == classWorld.coreClasses.boolClass ||
+        base == backend.boolImplementation;
   }
 
   bool containsOnlyString(ClassWorld classWorld) {
     Backend backend = classWorld.backend;
-    return base == classWorld.stringClass ||
+    return base == classWorld.coreClasses.stringClass ||
         base == backend.stringImplementation;
   }
 
@@ -245,7 +247,7 @@ class FlatTypeMask implements TypeMask {
    */
   bool containsAll(ClassWorld classWorld) {
     if (isEmptyOrNull || isExact) return false;
-    return identical(base, classWorld.objectClass);
+    return identical(base, classWorld.coreClasses.objectClass);
   }
 
   TypeMask union(TypeMask other, ClassWorld classWorld) {
@@ -299,7 +301,8 @@ class FlatTypeMask implements TypeMask {
     assert(TypeMask.assertIsNormalized(this, classWorld));
     assert(TypeMask.assertIsNormalized(other, classWorld));
     int combined;
-    if ((isExact && other.isExact) || base == classWorld.objectClass) {
+    if ((isExact && other.isExact) ||
+        base == classWorld.coreClasses.objectClass) {
       // Since the other mask is a subclass of this mask, we need the
       // resulting union to be a subclass too. If either one of the
       // masks are nullable the result should be nullable too.
@@ -684,7 +687,7 @@ class FlatTypeMask implements TypeMask {
   Element locateSingleElement(Selector selector, Compiler compiler) {
     if (isEmptyOrNull) return null;
     Iterable<Element> targets =
-        compiler.world.allFunctions.filter(selector, this);
+        compiler.closedWorld.allFunctions.filter(selector, this);
     if (targets.length != 1) return null;
     Element result = targets.first;
     ClassElement enclosing = result.enclosingClass;
@@ -692,7 +695,7 @@ class FlatTypeMask implements TypeMask {
     // all classes in the receiver type [this]. It could be found only in a
     // subclass or in an inheritance-wise unrelated class in case of subtype
     // selectors.
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     if (isSubtype) {
       // if (classWorld.isUsedAsMixin(enclosing)) {
       if (classWorld.everySubtypeIsSubclassOfOrMixinUseOf(base, enclosing)) {

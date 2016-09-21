@@ -218,13 +218,15 @@ class UnionTypeMask implements TypeMask {
     // Ensure the cheap test fails.
     assert(!disjointMasks.any((mask) => mask.containsMask(other, classWorld)));
     // If we cover object, we should never get here.
-    assert(!contains(classWorld.objectClass, classWorld));
+    assert(!contains(classWorld.coreClasses.objectClass, classWorld));
     // Likewise, nullness should be covered.
     assert(isNullable || !other.isNullable);
     // The fast test is precise for exact types.
     if (other.isExact) return false;
     // We cannot contain object.
-    if (other.contains(classWorld.objectClass, classWorld)) return false;
+    if (other.contains(classWorld.coreClasses.objectClass, classWorld)) {
+      return false;
+    }
     FlatTypeMask flat = TypeMask.nonForwardingMask(other);
     // Check we cover the base class.
     if (!contains(flat.base, classWorld)) return false;

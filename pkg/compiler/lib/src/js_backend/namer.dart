@@ -853,7 +853,7 @@ class Namer {
     // mangle the field names of classes extending native classes.
     // Methods on such classes are stored on the interceptor, not the instance,
     // so only fields have the potential to clash with a native property name.
-    ClassWorld classWorld = compiler.world;
+    ClassWorld classWorld = compiler.closedWorld;
     if (classWorld.isUsedAsMixin(enclosingClass) ||
         _isShadowingSuperField(element) ||
         _isUserClassExtendingNative(enclosingClass)) {

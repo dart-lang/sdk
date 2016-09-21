@@ -24,8 +24,8 @@ abstract class _MinifiedFieldNamer implements Namer {
       names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
     } else {
       ClassElement cls = element.enclosingClass;
-      names =
-          new _FieldNamingScope.forClass(cls, compiler.world, fieldRegistry);
+      names = new _FieldNamingScope.forClass(
+          cls, compiler.closedWorld, fieldRegistry);
     }
 
     if (names.containsField(element)) {

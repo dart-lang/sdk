@@ -100,8 +100,8 @@ class RuleSet {
 }
 
 void testUnion(MockCompiler compiler) {
-  RuleSet ruleSet = new RuleSet(
-      'union', (t1, t2) => simplify(t1.union(t2, compiler.world), compiler));
+  RuleSet ruleSet = new RuleSet('union',
+      (t1, t2) => simplify(t1.union(t2, compiler.closedWorld), compiler));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
   check(type1, type2, predicate) => ruleSet.check(type1, type2, predicate);
 
@@ -414,7 +414,7 @@ void testIntersection(MockCompiler compiler) {
   JavaScriptBackend backend = compiler.backend;
   BackendHelpers helpers = backend.helpers;
   RuleSet ruleSet = new RuleSet(
-      'intersection', (t1, t2) => t1.intersection(t2, compiler.world));
+      'intersection', (t1, t2) => t1.intersection(t2, compiler.closedWorld));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
 
   rule(emptyType, emptyType, emptyType);
@@ -555,9 +555,9 @@ void testIntersection(MockCompiler compiler) {
   rule(jsIndexable, nonPrimitive1, emptyType);
   rule(jsIndexable, nonPrimitive2, emptyType);
   rule(jsIndexable, potentialArray,
-      new TypeMask.nonNullSubtype(helpers.jsArrayClass, compiler.world));
+      new TypeMask.nonNullSubtype(helpers.jsArrayClass, compiler.closedWorld));
   rule(jsIndexable, potentialString,
-      new TypeMask.nonNullSubtype(helpers.jsStringClass, compiler.world));
+      new TypeMask.nonNullSubtype(helpers.jsStringClass, compiler.closedWorld));
   rule(jsIndexable, jsBooleanOrNull, emptyType);
   rule(jsIndexable, jsNumberOrNull, emptyType);
   rule(jsIndexable, jsIntegerOrNull, emptyType);
@@ -723,9 +723,9 @@ void testIntersection(MockCompiler compiler) {
 
 void testRegressions(MockCompiler compiler) {
   TypeMask nonNullPotentialString =
-      new TypeMask.nonNullSubtype(patternClass, compiler.world);
+      new TypeMask.nonNullSubtype(patternClass, compiler.closedWorld);
   Expect.equals(potentialString,
-      jsStringOrNull.union(nonNullPotentialString, compiler.world));
+      jsStringOrNull.union(nonNullPotentialString, compiler.closedWorld));
 }
 
 void main() {
@@ -736,7 +736,7 @@ void main() {
     """);
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    World world = compiler.world;
+    World world = compiler.closedWorld;
     helpers.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
         element.ensureResolved(compiler.resolution);
@@ -753,7 +753,7 @@ void main() {
         compiler.enqueuer.resolution, compiler.globalDependencies);
     backend.registerInstantiatedType(patternImplClass.rawType,
         compiler.enqueuer.resolution, compiler.globalDependencies);
-    compiler.world.populate();
+    compiler.openWorld.populate();
 
     // Grab hold of a supertype for String so we can produce potential
     // string types.

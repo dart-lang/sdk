@@ -37,7 +37,7 @@ class CommonMasks {
   final Compiler compiler;
 
   CommonMasks(Compiler compiler)
-      : this.classWorld = compiler.world,
+      : this.classWorld = compiler.closedWorld,
         compiler = compiler;
 
   TypeMask _dynamicType;
@@ -64,10 +64,10 @@ class CommonMasks {
   TypeMask _asyncStarStreamType;
 
   TypeMask get dynamicType => _dynamicType ??=
-      new TypeMask.subclass(classWorld.objectClass, classWorld);
+      new TypeMask.subclass(classWorld.coreClasses.objectClass, classWorld);
 
-  TypeMask get nonNullType => _nonNullType ??=
-      new TypeMask.nonNullSubclass(classWorld.objectClass, classWorld);
+  TypeMask get nonNullType => _nonNullType ??= new TypeMask.nonNullSubclass(
+      classWorld.coreClasses.objectClass, classWorld);
 
   TypeMask get intType => _intType ??= new TypeMask.nonNullSubclass(
       compiler.backend.intImplementation, classWorld);

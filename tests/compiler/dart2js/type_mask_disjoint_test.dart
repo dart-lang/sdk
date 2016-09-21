@@ -36,7 +36,7 @@ main() {
 
 Uri uri = new Uri(scheme: 'source');
 var compiler = compilerFor(CODE, uri);
-var world = compiler.world;
+var world = compiler.closedWorld;
 
 main() {
   asyncTest(() => compiler.run(uri).then((_) {

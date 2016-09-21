@@ -267,7 +267,7 @@ class LocalsHandler {
           new SyntheticLocal('receiver', executableContext);
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
-      ClassWorld classWorld = _compiler.world;
+      ClassWorld classWorld = _compiler.closedWorld;
       HParameterValue value =
           new HParameterValue(parameter, new TypeMask.exact(cls, classWorld));
       builder.graph.explicitReceiverParameter = value;
@@ -625,15 +625,17 @@ class LocalsHandler {
     if (result == null) {
       ThisLocal local = closureData.thisLocal;
       ClassElement cls = local.enclosingClass;
-      ClassWorld classWorld = _compiler.world;
+      ClassWorld classWorld = _compiler.closedWorld;
       if (classWorld.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
         // simplicity, we mark the type as an interface type.
-        result = new TypeMask.nonNullSubtype(cls.declaration, _compiler.world);
+        result =
+            new TypeMask.nonNullSubtype(cls.declaration, _compiler.closedWorld);
       } else {
-        result = new TypeMask.nonNullSubclass(cls.declaration, _compiler.world);
+        result = new TypeMask.nonNullSubclass(
+            cls.declaration, _compiler.closedWorld);
       }
       cachedTypeOfThis = result;
     }

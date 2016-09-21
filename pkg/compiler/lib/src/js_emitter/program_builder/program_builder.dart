@@ -675,7 +675,7 @@ class ProgramBuilder {
 
   bool _methodCanBeApplied(FunctionElement method) {
     return _compiler.enabledFunctionApply &&
-        _compiler.world.getMightBePassedToApply(method);
+        _compiler.closedWorld.getMightBePassedToApply(method);
   }
 
   // TODO(herhut): Refactor incremental compilation and remove method.
@@ -735,8 +735,9 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = universe.hasInvokedGetter(element, _compiler.world) ||
-            (canBeReflected && !element.isOperator);
+        canTearOff =
+            universe.hasInvokedGetter(element, _compiler.closedWorld) ||
+                (canBeReflected && !element.isOperator);
         assert(canTearOff ||
             !universe.methodsNeedingSuperGetter.contains(element));
         tearOffName = namer.getterForElement(element);

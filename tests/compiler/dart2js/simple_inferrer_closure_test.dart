@@ -154,6 +154,6 @@ void main() {
 
         var cls = findElement(compiler, 'A');
         checkReturnInClass(
-            'A', 'foo', new TypeMask.nonNullExact(cls, compiler.world));
+            'A', 'foo', new TypeMask.nonNullExact(cls, compiler.closedWorld));
       }));
 }

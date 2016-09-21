@@ -20,7 +20,7 @@ import 'elements/elements.dart'
         VariableElement;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'ordered_typeset.dart';
-import 'types/masks.dart' show TypeMask, FlatTypeMask;
+import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
@@ -39,30 +39,7 @@ abstract class ClassWorld {
   // TODO(johnniwinther): Refine this into a `BackendClasses` interface.
   Backend get backend;
 
-  // TODO(johnniwinther): Remove the need for this getter.
-  @deprecated
-  Compiler get compiler;
-
-  /// The [ClassElement] for the [Object] class defined in 'dart:core'.
-  ClassElement get objectClass;
-
-  /// The [ClassElement] for the [Function] class defined in 'dart:core'.
-  ClassElement get functionClass;
-
-  /// The [ClassElement] for the [bool] class defined in 'dart:core'.
-  ClassElement get boolClass;
-
-  /// The [ClassElement] for the [num] class defined in 'dart:core'.
-  ClassElement get numClass;
-
-  /// The [ClassElement] for the [int] class defined in 'dart:core'.
-  ClassElement get intClass;
-
-  /// The [ClassElement] for the [double] class defined in 'dart:core'.
-  ClassElement get doubleClass;
-
-  /// The [ClassElement] for the [String] class defined in 'dart:core'.
-  ClassElement get stringClass;
+  CoreClasses get coreClasses;
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassElement cls);
@@ -186,18 +163,98 @@ abstract class ClassWorld {
   ///
   /// If [cls] is provided, the dump will contain only classes related to [cls].
   String dump([ClassElement cls]);
+
+  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
+  /// of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClassWorld].
+  ClassHierarchyNode getClassHierarchyNode(ClassElement cls);
 }
 
-class World implements ClassWorld {
-  ClassElement get objectClass => coreClasses.objectClass;
-  ClassElement get functionClass => coreClasses.functionClass;
-  ClassElement get boolClass => coreClasses.boolClass;
-  ClassElement get numClass => coreClasses.numClass;
-  ClassElement get intClass => coreClasses.intClass;
-  ClassElement get doubleClass => coreClasses.doubleClass;
-  ClassElement get stringClass => coreClasses.stringClass;
-  ClassElement get nullClass => coreClasses.nullClass;
+/// The [ClosedWorld] represents the information known about a program when
+/// compiling with closed-world semantics.
+///
+/// This expands [ClassWorld] with information about live functions,
+/// side effects, and selectors with known single targets.
+abstract class ClosedWorld extends ClassWorld {
+  /// Returns the [FunctionSet] containing all live functions in the closed
+  /// world.
+  FunctionSet get allFunctions;
 
+  /// Returns `true` if the field [element] is known to be effectively final.
+  bool fieldNeverChanges(Element element);
+
+  /// Extends the receiver type [mask] for calling [selector] to take live
+  /// `noSuchMethod` handlers into account.
+  TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask);
+
+  /// Returns all resolved typedefs.
+  Iterable<TypedefElement> get allTypedefs;
+
+  /// Returns the single [Element] that matches a call to [selector] on a
+  /// receiver of type [mask]. If multiple targets exist, `null` is returned.
+  Element locateSingleElement(Selector selector, TypeMask mask);
+
+  /// Returns the single field that matches a call to [selector] on a
+  /// receiver of type [mask]. If multiple targets exist or the single target
+  /// is not a field, `null` is returned.
+  VariableElement locateSingleField(Selector selector, TypeMask mask);
+
+  /// Returns the side effects of executing [element].
+  SideEffects getSideEffectsOfElement(Element element);
+
+  /// Returns the side effects of calling [selector] on a receiver of type
+  /// [mask].
+  SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask);
+
+  /// Returns `true` if [element] is guaranteed not to throw an exception.
+  bool getCannotThrow(Element element);
+
+  /// Returns `true` if [element] is called in a loop.
+  // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
+  bool isCalledInLoop(Element element);
+
+  /// Returns `true` if [element] might be passed to `Function.apply`.
+  // TODO(johnniwinther): Is this 'passed invocation target` or
+  // `passed as argument`?
+  bool getMightBePassedToApply(Element element);
+}
+
+/// Interface for computing side effects and uses of elements. This is used
+/// during type inference to compute the [ClosedWorld] for code generation.
+abstract class ClosedWorldRefiner {
+  /// Registers the side [effects] of executing [element].
+  void registerSideEffects(Element element, SideEffects effects);
+
+  /// Registers the executing of [element] as without side effects.
+  void registerSideEffectsFree(Element element);
+
+  /// Returns the currently known side effects of executing [element].
+  SideEffects getCurrentlyKnownSideEffects(Element element);
+
+  /// Registers that [element] might be passed to `Function.apply`.
+  // TODO(johnniwinther): Is this 'passed invocation target` or
+  // `passed as argument`?
+  void registerMightBePassedToApply(Element element);
+
+  /// Returns `true` if [element] might be passed to `Function.apply` given the
+  /// currently inferred information.
+  bool getCurrentlyKnownMightBePassedToApply(Element element);
+
+  /// Registers that [element] is called in a loop.
+  // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
+  void addFunctionCalledInLoop(Element element);
+
+  /// Registers that [element] is guaranteed not to throw an exception.
+  void registerCannotThrow(Element element);
+
+  /// Adds the closure class [cls] to the inference world. The class is
+  /// considered directly instantiated.
+  void registerClosureClass(ClassElement cls);
+}
+
+class World implements ClosedWorld, ClosedWorldRefiner {
   /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
   /// `FlatTypeMask.flags` property.
   List<Map<ClassElement, TypeMask>> canonicalizedTypeMasks =
@@ -222,10 +279,10 @@ class World implements ClassWorld {
     assert(checkInvariants(x));
     assert(checkInvariants(y, mustBeInstantiated: false));
 
-    if (y == objectClass) return true;
-    if (x == objectClass) return false;
+    if (y == coreClasses.objectClass) return true;
+    if (x == coreClasses.objectClass) return false;
     if (x.asInstanceOf(y) != null) return true;
-    if (y != functionClass) return false;
+    if (y != coreClasses.functionClass) return false;
     return x.callType != null;
   }
 
@@ -234,8 +291,8 @@ class World implements ClassWorld {
     assert(checkInvariants(x));
     assert(checkInvariants(y));
 
-    if (y == objectClass) return true;
-    if (x == objectClass) return false;
+    if (y == coreClasses.objectClass) return true;
+    if (x == coreClasses.objectClass) return false;
     while (x != null && x.hierarchyDepth >= y.hierarchyDepth) {
       if (x == y) return true;
       x = x.superclass;
@@ -263,7 +320,7 @@ class World implements ClassWorld {
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls) {
-    return compiler.resolverWorld.isImplemented(cls);
+    return _compiler.resolverWorld.isImplemented(cls);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
@@ -395,7 +452,7 @@ class World implements ClassWorld {
   /// extend it.
   bool hasOnlySubclasses(ClassElement cls) {
     // TODO(johnniwinther): move this to ClassSet?
-    if (cls == objectClass) return true;
+    if (cls == coreClasses.objectClass) return true;
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) {
       // Vacuously true.
@@ -449,7 +506,7 @@ class World implements ClassWorld {
     List<ClassElement> commonSupertypes = <ClassElement>[];
     OUTER:
     for (Link<DartType> link = typeSet[depth];
-        link.head.element != objectClass;
+        link.head.element != coreClasses.objectClass;
         link = link.tail) {
       ClassElement cls = link.head.element;
       for (Link<OrderedTypeSet> link = otherTypeSets;
@@ -461,7 +518,7 @@ class World implements ClassWorld {
       }
       commonSupertypes.add(cls);
     }
-    commonSupertypes.add(objectClass);
+    commonSupertypes.add(coreClasses.objectClass);
     return commonSupertypes;
   }
 
@@ -554,8 +611,9 @@ class World implements ClassWorld {
     return subclasses.contains(type);
   }
 
-  final Compiler compiler;
-  JavaScriptBackend get backend => compiler.backend;
+  final Compiler _compiler;
+  JavaScriptBackend get backend => _compiler.backend;
+  CommonMasks get commonMasks => _compiler.commonMasks;
   final FunctionSet allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
@@ -587,11 +645,11 @@ class World implements ClassWorld {
 
   final Set<Element> alreadyPopulated;
 
-  bool get isClosed => compiler.phase > Compiler.PHASE_RESOLVING;
+  bool get isClosed => _compiler.phase > Compiler.PHASE_RESOLVING;
 
   // Used by selectors.
   bool isForeign(Element element) {
-    return compiler.backend.isForeign(element);
+    return backend.isForeign(element);
   }
 
   Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {
@@ -600,18 +658,24 @@ class World implements ClassWorld {
 
   World(Compiler compiler)
       : allFunctions = new FunctionSet(compiler),
-        this.compiler = compiler,
+        this._compiler = compiler,
         alreadyPopulated = compiler.cacheStrategy.newSet();
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CoreClasses get coreClasses => _compiler.coreClasses;
 
-  DiagnosticReporter get reporter => compiler.reporter;
+  DiagnosticReporter get reporter => _compiler.reporter;
 
   /// Called to add [cls] to the set of known classes.
   ///
   /// This ensures that class hierarchy queries can be performed on [cls] and
   /// classes that extend or implement it.
-  void registerClass(ClassElement cls, {bool isDirectlyInstantiated: false}) {
+  void registerClass(ClassElement cls) => _registerClass(cls);
+
+  void registerClosureClass(ClassElement cls) {
+    _registerClass(cls, isDirectlyInstantiated: true);
+  }
+
+  void _registerClass(ClassElement cls, {bool isDirectlyInstantiated: false}) {
     _ensureClassSet(cls);
     if (isDirectlyInstantiated) {
       _updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
@@ -700,7 +764,7 @@ class World implements ClassWorld {
     /// properties of the [ClassHierarchyNode] for [cls].
 
     void addSubtypes(ClassElement cls) {
-      if (compiler.options.hasIncrementalSupport &&
+      if (_compiler.options.hasIncrementalSupport &&
           !alreadyPopulated.add(cls)) {
         return;
       }
@@ -729,7 +793,7 @@ class World implements ClassWorld {
     // classes: if the superclass of these classes require RTI, then
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
-    compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
+    _compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
   }
 
   @override
@@ -771,17 +835,17 @@ class World implements ClassWorld {
   }
 
   Element locateSingleElement(Selector selector, TypeMask mask) {
-    mask ??= compiler.commonMasks.dynamicType;
-    return mask.locateSingleElement(selector, compiler);
+    mask ??= commonMasks.dynamicType;
+    return mask.locateSingleElement(selector, _compiler);
   }
 
   TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
     bool canReachAll = true;
     if (mask != null) {
-      canReachAll = compiler.enabledInvokeOn &&
+      canReachAll = _compiler.enabledInvokeOn &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
-    return canReachAll ? compiler.commonMasks.dynamicType : mask;
+    return canReachAll ? commonMasks.dynamicType : mask;
   }
 
   void addFunctionCalledInLoop(Element element) {
@@ -806,8 +870,8 @@ class World implements ClassWorld {
       return true;
     }
     if (element.isInstanceMember) {
-      return !compiler.resolverWorld.hasInvokedSetter(element, this) &&
-          !compiler.resolverWorld.fieldSetters.contains(element);
+      return !_compiler.resolverWorld.hasInvokedSetter(element, this) &&
+          !_compiler.resolverWorld.fieldSetters.contains(element);
     }
     return false;
   }
@@ -824,6 +888,11 @@ class World implements ClassWorld {
     return sideEffects.putIfAbsent(element.declaration, () {
       return new SideEffects();
     });
+  }
+
+  @override
+  SideEffects getCurrentlyKnownSideEffects(Element element) {
+    return getSideEffectsOfElement(element);
   }
 
   void registerSideEffects(Element element, SideEffects effects) {
@@ -885,5 +954,10 @@ class World implements ClassWorld {
     return functionsThatMightBePassedToApply.contains(element);
   }
 
-  bool get hasClosedWorldAssumption => !compiler.options.hasIncrementalSupport;
+  @override
+  bool getCurrentlyKnownMightBePassedToApply(Element element) {
+    return getMightBePassedToApply(element);
+  }
+
+  bool get hasClosedWorldAssumption => !_compiler.options.hasIncrementalSupport;
 }

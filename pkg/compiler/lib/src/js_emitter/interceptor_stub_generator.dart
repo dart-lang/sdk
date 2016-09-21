@@ -248,7 +248,7 @@ class InterceptorStubGenerator {
       bool containsJsIndexable =
           helpers.jsIndexingBehaviorInterface.isResolved &&
               classes.any((cls) {
-                return compiler.world
+                return compiler.closedWorld
                     .isSubtypeOf(cls, helpers.jsIndexingBehaviorInterface);
               });
       // The index set operator requires a check on its set value in

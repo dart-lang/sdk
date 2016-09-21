@@ -55,7 +55,7 @@ class NsmEmitter extends CodeEmitterHelper {
             generator.generateStubForNoSuchMethod(jsName, selector);
         addProperty(method.name, method.code);
         if (reflectionName != null) {
-          bool accessible = compiler.world.allFunctions
+          bool accessible = compiler.closedWorld.allFunctions
               .filter(selector, null)
               .any((Element e) => backend.isAccessibleByReflection(e));
           addProperty(

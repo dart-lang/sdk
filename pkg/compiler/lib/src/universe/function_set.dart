@@ -21,7 +21,7 @@ class FunctionSet {
   final Map<String, FunctionSetNode> nodes = new Map<String, FunctionSetNode>();
   FunctionSet(this.compiler);
 
-  ClassWorld get classWorld => compiler.world;
+  ClassWorld get classWorld => compiler.closedWorld;
 
   FunctionSetNode newNode(String name) => new FunctionSetNode(name);
 
@@ -71,8 +71,10 @@ class FunctionSet {
       Selector selector, ReceiverConstraint constraint, ClassWorld classWorld) {
     return constraint != null
         ? new SelectorMask(selector, constraint)
-        : new SelectorMask(selector,
-            new TypeMask.subclass(classWorld.objectClass, classWorld));
+        : new SelectorMask(
+            selector,
+            new TypeMask.subclass(
+                classWorld.coreClasses.objectClass, classWorld));
   }
 
   /// Returns the set of functions that can be the target of a call to
@@ -276,7 +278,7 @@ class FullFunctionSetQuery implements FunctionSetQuery {
 
   @override
   TypeMask computeMask(ClassWorld classWorld) {
-    assert(classWorld.hasAnyStrictSubclass(classWorld.objectClass));
+    assert(classWorld.hasAnyStrictSubclass(classWorld.coreClasses.objectClass));
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(
         functions.expand((element) {

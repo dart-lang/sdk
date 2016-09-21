@@ -801,9 +801,9 @@ class Elements {
     ClassElement cls = constructor.enclosingClass;
     return cls.library == compiler.commonElements.typedDataLibrary &&
         compiler.backend.isNative(cls) &&
-        compiler.world
+        compiler.closedWorld
             .isSubtypeOf(cls, compiler.commonElements.typedDataClass) &&
-        compiler.world.isSubtypeOf(cls, compiler.coreClasses.listClass) &&
+        compiler.closedWorld.isSubtypeOf(cls, compiler.coreClasses.listClass) &&
         constructor.name == '';
   }
 

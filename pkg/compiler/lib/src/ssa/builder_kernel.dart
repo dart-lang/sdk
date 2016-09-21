@@ -514,7 +514,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         null,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
-        compiler.world.getSideEffectsOfSelector(selector, null);
+        compiler.closedWorld.getSideEffectsOfSelector(selector, null);
     push(instruction);
   }
 
@@ -523,7 +523,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     ir.Constructor target = invocation.target;
     List<HInstruction> arguments = _visitArguments(invocation.arguments);
     TypeMask typeMask = new TypeMask.nonNullExact(
-        astAdapter.getElement(target.enclosingClass), compiler.world);
+        astAdapter.getElement(target.enclosingClass), compiler.closedWorld);
     _pushStaticInvocation(target, arguments, typeMask);
   }
 

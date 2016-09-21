@@ -227,7 +227,7 @@ class _RuntimeTypes implements RuntimeTypes {
       classesNeedingRti.add(cls);
 
       // TODO(ngeoffray): This should use subclasses, not subtypes.
-      compiler.world.forEachStrictSubtypeOf(cls, (ClassElement sub) {
+      compiler.closedWorld.forEachStrictSubtypeOf(cls, (ClassElement sub) {
         potentiallyAddForRti(sub);
       });
 
