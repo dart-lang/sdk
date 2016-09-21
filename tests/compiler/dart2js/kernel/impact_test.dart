@@ -6,18 +6,22 @@ library dart2js.kernel.impact_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common.dart';
+import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
+import 'package:compiler/src/universe/feature.dart';
+import 'package:compiler/src/universe/use.dart';
 import '../memory_compiler.dart';
 import '../serialization/test_helper.dart';
 
 const Map<String, String> SOURCE = const <String, String>{
-  'main.dart': '''
+  'main.dart': r'''
 import 'helper.dart';
 
 main() {
@@ -28,6 +32,9 @@ main() {
   testInt();
   testDouble();
   testString();
+  testStringInterpolation();
+  testStringInterpolationConst();
+  testStringJuxtaposition();
   testSymbol();
   testEmptyListLiteral();
   testEmptyListLiteralDynamic();
@@ -73,6 +80,11 @@ testFalse() => false;
 testInt() => 42;
 testDouble() => 37.5;
 testString() => 'foo';
+testStringInterpolation() => '${0}';
+testStringInterpolationConst() {
+  const b = '${0}';
+}
+testStringJuxtaposition() => 'a' 'b';
 testSymbol() => #main;
 testEmptyListLiteral() => [];
 testEmptyListLiteralDynamic() => <dynamic>[];
@@ -213,7 +225,37 @@ void checkLibrary(Compiler compiler, LibraryElement library) {
 
 void checkElement(Compiler compiler, AstElement element) {
   ResolutionImpact astImpact = compiler.resolution.getResolutionImpact(element);
+  astImpact = laxImpact(element, astImpact);
   ResolutionImpact kernelImpact = build(compiler, element.resolvedAst);
   testResolutionImpactEquivalence(
       astImpact, kernelImpact, const CheckStrategy());
+}
+
+/// Lax the precision of [impact] to meet expectancy of the corresponding impact
+/// generated from kernel.
+ResolutionImpact laxImpact(AstElement element, ResolutionImpact impact) {
+  ResolutionWorldImpactBuilder builder =
+      new ResolutionWorldImpactBuilder('Lax impact of ${element}');
+  impact.staticUses.forEach(builder.registerStaticUse);
+  impact.dynamicUses.forEach(builder.registerDynamicUse);
+  impact.typeUses.forEach(builder.registerTypeUse);
+  impact.constantLiterals.forEach(builder.registerConstantLiteral);
+  impact.constSymbolNames.forEach(builder.registerConstSymbolName);
+  impact.listLiterals.forEach(builder.registerListLiteral);
+  impact.mapLiterals.forEach(builder.registerMapLiteral);
+  for (Feature feature in impact.features) {
+    builder.registerFeature(feature);
+    switch (feature) {
+      case Feature.STRING_INTERPOLATION:
+      case Feature.STRING_JUXTAPOSITION:
+        // These are both converted into a string concatenation in kernel so
+        // we cannot tell the diferrence.
+        builder.registerFeature(Feature.STRING_INTERPOLATION);
+        builder.registerFeature(Feature.STRING_JUXTAPOSITION);
+        break;
+      default:
+    }
+  }
+  impact.nativeData.forEach(builder.registerNativeData);
+  return builder;
 }

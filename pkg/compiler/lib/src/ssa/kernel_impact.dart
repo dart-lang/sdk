@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
+import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
@@ -265,14 +266,16 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   @override
-  void visitNot(ir.Not not) {
-    not.operand.accept(this);
-  }
-
-  @override
   void visitAssertStatement(ir.AssertStatement node) {
     impactBuilder.registerFeature(
         node.message != null ? Feature.ASSERT_WITH_MESSAGE : Feature.ASSERT);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitStringConcatenation(ir.StringConcatenation node) {
+    impactBuilder.registerFeature(Feature.STRING_INTERPOLATION);
+    impactBuilder.registerFeature(Feature.STRING_JUXTAPOSITION);
     node.visitChildren(this);
   }
 

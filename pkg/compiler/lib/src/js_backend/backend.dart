@@ -2996,6 +2996,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           // TODO(johnniwinther): Store the correct use in impacts.
           new StaticUse.foreignUse(staticUse));
     }
+    for (Selector selector in backendImpact.dynamicUses) {
+      assert(selector != null);
+      worldImpact.registerDynamicUse(new DynamicUse(selector, null));
+    }
     for (InterfaceType instantiatedType in backendImpact.instantiatedTypes) {
       backend.registerBackendUse(instantiatedType.element);
       worldImpact.registerTypeUse(new TypeUse.instantiation(instantiatedType));
