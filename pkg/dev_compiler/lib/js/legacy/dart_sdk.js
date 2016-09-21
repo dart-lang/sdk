@@ -19110,7 +19110,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       timeout(timeLimit, opts) {
         let onTimeout = opts && 'onTimeout' in opts ? opts.onTimeout : null;
-        if (dart.test(this[_isComplete])) return new async._Future.immediate(this);
+        if (dart.test(this[_isComplete])) return new (_FutureOfT()).immediate(this);
         let result = new (_FutureOfT())();
         let timer = null;
         if (onTimeout == null) {
@@ -27037,7 +27037,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       static from(elements) {
         if (core.List.is(elements)) {
           let length = elements[dartx.length];
-          let queue = new collection.ListQueue(dart.notNull(length) + 1);
+          let queue = new (ListQueueOfE())(dart.notNull(length) + 1);
           dart.assert(dart.notNull(queue[_table][dartx.length]) > dart.notNull(length));
           for (let i = 0; i < dart.notNull(length); i++) {
             queue[_table][dartx.set](i, E.as(elements[dartx.get](i)));
