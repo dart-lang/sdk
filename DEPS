@@ -92,7 +92,7 @@ vars = {
   "pool_tag": "@1.2.4",
   "protobuf_tag": "@0.5.3",
   "pub_cache_tag": "@v0.1.0",
-  "pub_rev": "@101aa44a4aebaefd0796ce44e6d155cd79fe2db4",
+  "pub_rev": "@4ef3e3e8ad8089733d617505cc66fa3d8049b4ae",
   "pub_semver_tag": "@1.3.0",
   "quiver_tag": "@0.22.0",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
