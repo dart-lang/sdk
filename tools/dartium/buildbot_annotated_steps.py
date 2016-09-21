@@ -53,6 +53,10 @@ def RunDartTests(mode, component, suite, arch, checked, test_filter=None):
     print '@@@STEP_FAILURE@@@'
   return status
 
+def ClearTemp():
+  if platform.system() == 'Windows':
+    shutil.rmtree('C:\\Users\\chrome-bot\\AppData\\Local\\Temp',
+                  ignore_errors=True)
 
 def Test(info, component, suite, checked, test_filter=None):
   """Test a particular component (e.g., dartium or content_shell(drt)).
@@ -70,6 +74,7 @@ def Test(info, component, suite, checked, test_filter=None):
                                         info.name,
                                         info.version,
                                         component, checked)
+  ClearTemp()
   return status
 
 
@@ -97,11 +102,10 @@ def main():
   if info.mode == 'Release' or platform.system() != 'Darwin':
     result = Test(info, 'drt', 'layout', 'unchecked') or result
     result = Test(info, 'drt', 'layout', 'checked') or result
-
   # Run dartium tests
   result = Test(info, 'dartium', 'core', 'unchecked') or result
   result = Test(info, 'dartium', 'core', 'checked') or result
-
+  
   # Run ContentShell tests
   # NOTE: We don't run ContentShell tests on dartium-*-inc builders to keep
   # cycle times down.
