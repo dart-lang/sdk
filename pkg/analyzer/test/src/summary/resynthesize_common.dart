@@ -984,8 +984,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.name, original.name, reason: desc);
   }
 
-  void compareTypeParameterElements(TypeParameterElementImpl resynthesized,
-      TypeParameterElementImpl original, String desc) {
+  void compareTypeParameterElements(TypeParameterElement resynthesized,
+      TypeParameterElement original, String desc) {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
     compareTypes(resynthesized.bound, original.bound, '$desc bound');
