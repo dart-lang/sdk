@@ -1478,8 +1478,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/regress_21793_test_01_multi',
   'language/regress_21912_test_01_multi',
   'language/regress_21912_test_02_multi',
-  'language/regress_21998_3_test',
-  'language/regress_21998_4_test',
   'language/regress_22438_test',
   'language/regress_22936_test_01_multi',
   'language/regress_23038_test_01_multi',
