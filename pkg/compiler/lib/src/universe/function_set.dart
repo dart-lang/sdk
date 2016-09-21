@@ -125,7 +125,7 @@ class SelectorMask {
   String get name => selector.name;
 
   bool applies(Element element, ClassWorld classWorld) {
-    if (!selector.appliesUnnamed(element, classWorld)) return false;
+    if (!selector.appliesUnnamed(element, classWorld.backend)) return false;
     return constraint.canHit(element, selector, classWorld);
   }
 

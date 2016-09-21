@@ -48,7 +48,8 @@ class FlatTypeMask implements TypeMask {
    * Ensures that the generated mask is normalized, i.e., a call to
    * [TypeMask.assertIsNormalized] with the factory's result returns `true`.
    */
-  factory FlatTypeMask.normalized(ClassElement base, int flags, World world) {
+  factory FlatTypeMask.normalized(
+      ClassElement base, int flags, ClassWorld world) {
     if ((flags >> 1) == EMPTY || ((flags >> 1) == EXACT)) {
       return new FlatTypeMask.internal(base, flags);
     }
@@ -601,7 +602,7 @@ class FlatTypeMask implements TypeMask {
       ClassElement enclosingClass = element.enclosingClass;
       return hasConcreteMatch(enclosingClass.superclass, selector, world);
     }
-    return selector.appliesUntyped(element, world);
+    return selector.appliesUntyped(element, world.backend);
   }
 
   bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld) {

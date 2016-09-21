@@ -1352,7 +1352,7 @@ class SimpleTypeInferrerVisitor<T>
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn't break anything
-    if (!selector.applies(target, compiler.closedWorld) ||
+    if (!selector.applies(target, compiler.backend) ||
         (mask != null &&
             !mask.canHit(target, selector, compiler.closedWorld))) {
       return types.dynamicType;

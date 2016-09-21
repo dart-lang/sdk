@@ -170,6 +170,17 @@ abstract class ClassWorld {
   /// This method is only provided for testing. For queries on classes, use the
   /// methods defined in [ClassWorld].
   ClassHierarchyNode getClassHierarchyNode(ClassElement cls);
+
+  /// Returns [ClassSet] for [cls] used to model the extends and implements
+  /// relations of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClassWorld].
+  ClassSet getClassSet(ClassElement cls);
+
+  // TODO(johnniwinther): Find a better strategy for caching these.
+  @deprecated
+  List<Map<ClassElement, TypeMask>> get canonicalizedTypeMasks;
 }
 
 /// The [ClosedWorld] represents the information known about a program when
@@ -254,7 +265,23 @@ abstract class ClosedWorldRefiner {
   void registerClosureClass(ClassElement cls);
 }
 
-class World implements ClosedWorld, ClosedWorldRefiner {
+abstract class OpenWorld implements ClassWorld {
+  /// Called to add [cls] to the set of known classes.
+  ///
+  /// This ensures that class hierarchy queries can be performed on [cls] and
+  /// classes that extend or implement it.
+  void registerClass(ClassElement cls);
+
+  void registerUsedElement(Element element);
+  void registerTypedef(TypedefElement typedef);
+
+  ClosedWorld populate();
+
+  /// Returns an iterable over all mixin applications that mixin [cls].
+  Iterable<MixinApplicationElement> allMixinUsesOf(ClassElement cls);
+}
+
+class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
   /// `FlatTypeMask.flags` property.
   List<Map<ClassElement, TypeMask>> canonicalizedTypeMasks =
@@ -618,7 +645,7 @@ class World implements ClosedWorld, ClosedWorldRefiner {
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
-  final Set<TypedefElement> allTypedefs = new Set<TypedefElement>();
+  final Set<TypedefElement> _allTypedefs = new Set<TypedefElement>();
 
   final Map<ClassElement, Set<MixinApplicationElement>> _mixinUses =
       new Map<ClassElement, Set<MixinApplicationElement>>();
@@ -656,7 +683,7 @@ class World implements ClosedWorld, ClosedWorldRefiner {
     return _typesImplementedBySubclasses[cls.declaration];
   }
 
-  World(Compiler compiler)
+  WorldImpl(Compiler compiler)
       : allFunctions = new FunctionSet(compiler),
         this._compiler = compiler,
         alreadyPopulated = compiler.cacheStrategy.newSet();
@@ -681,6 +708,12 @@ class World implements ClosedWorld, ClosedWorldRefiner {
       _updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
     }
   }
+
+  void registerTypedef(TypedefElement typdef) {
+    _allTypedefs.add(typdef);
+  }
+
+  Iterable<TypedefElement> get allTypedefs => _allTypedefs;
 
   /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
   /// of known classes.
@@ -759,7 +792,7 @@ class World implements ClosedWorld, ClosedWorldRefiner {
     }
   }
 
-  void populate() {
+  ClosedWorld populate() {
     /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
     /// properties of the [ClassHierarchyNode] for [cls].
 
@@ -794,6 +827,8 @@ class World implements ClosedWorld, ClosedWorldRefiner {
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
     _compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
+
+    return this;
   }
 
   @override

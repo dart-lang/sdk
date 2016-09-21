@@ -47,7 +47,7 @@ void main() {
       """,
               useMockCompiler: false)
           .then((env) {
-        World world = env.compiler.closedWorld;
+        ClosedWorld world = env.compiler.closedWorld;
 
         ClassElement A = env.getElement("A");
         ClassElement B = env.getElement("B");

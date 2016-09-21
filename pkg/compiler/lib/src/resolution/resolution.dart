@@ -64,7 +64,7 @@ import 'typedefs.dart';
 class ResolverTask extends CompilerTask {
   final ConstantCompiler constantCompiler;
   final Resolution resolution;
-  final World world;
+  final OpenWorld world;
 
   ResolverTask(
       this.resolution, this.constantCompiler, this.world, Measurer measurer)
@@ -1017,7 +1017,7 @@ class ResolverTask extends CompilerTask {
 
   WorldImpact resolveTypedef(TypedefElementX element) {
     if (element.isResolved) return const ResolutionImpact();
-    world.allTypedefs.add(element);
+    world.registerTypedef(element);
     return _resolveTypeDeclaration(element, () {
       ResolutionRegistry registry = new ResolutionRegistry(
           resolution.target, _ensureTreeElements(element));

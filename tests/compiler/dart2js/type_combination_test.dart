@@ -736,7 +736,7 @@ void main() {
     """);
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    World world = compiler.closedWorld;
+    ClosedWorld world = compiler.closedWorld;
     helpers.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
         element.ensureResolved(compiler.resolution);

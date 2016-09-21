@@ -11,7 +11,7 @@ import '../compiler.dart' show Compiler;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
+import '../world.dart' show ClassWorld, ClosedWorld, OpenWorld;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 
@@ -129,7 +129,7 @@ abstract class Universe {
   Iterable<DartType> get instantiatedTypes;
 
   /// Returns `true` if [member] is invoked as a setter.
-  bool hasInvokedSetter(Element member, World world);
+  bool hasInvokedSetter(Element member, ClassWorld world);
 }
 
 abstract class ResolutionUniverse implements Universe {
@@ -299,10 +299,10 @@ class ResolutionUniverseImpl implements ResolutionUniverse {
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
-      Element member, World world) {
+      Element member, ClassWorld world) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
-      if (selector.appliesUnnamed(member, world)) {
+      if (selector.appliesUnnamed(member, world.backend)) {
         SelectorConstraints masks = selectors[selector];
         if (masks.applies(member, selector, world)) {
           return true;
@@ -312,16 +312,16 @@ class ResolutionUniverseImpl implements ResolutionUniverse {
     return false;
   }
 
-  bool hasInvocation(Element member, World world) {
+  bool hasInvocation(Element member, OpenWorld world) {
     return _hasMatchingSelector(_invokedNames[member.name], member, world);
   }
 
-  bool hasInvokedGetter(Element member, World world) {
+  bool hasInvokedGetter(Element member, OpenWorld world) {
     return _hasMatchingSelector(_invokedGetters[member.name], member, world) ||
         member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
-  bool hasInvokedSetter(Element member, World world) {
+  bool hasInvokedSetter(Element member, OpenWorld world) {
     return _hasMatchingSelector(_invokedSetters[member.name], member, world);
   }
 
@@ -420,7 +420,7 @@ abstract class CodegenUniverse implements Universe {
   void forEachInvokedSetter(
       f(String name, Map<Selector, SelectorConstraints> selectors));
 
-  bool hasInvokedGetter(Element member, World world);
+  bool hasInvokedGetter(Element member, ClosedWorld world);
 
   Map<Selector, SelectorConstraints> invocationsByName(String name);
 
@@ -539,10 +539,10 @@ class CodegenUniverseImpl implements CodegenUniverse {
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
-      Element member, World world) {
+      Element member, ClosedWorld world) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
-      if (selector.appliesUnnamed(member, world)) {
+      if (selector.appliesUnnamed(member, world.backend)) {
         SelectorConstraints masks = selectors[selector];
         if (masks.applies(member, selector, world)) {
           return true;
@@ -552,16 +552,16 @@ class CodegenUniverseImpl implements CodegenUniverse {
     return false;
   }
 
-  bool hasInvocation(Element member, World world) {
+  bool hasInvocation(Element member, ClosedWorld world) {
     return _hasMatchingSelector(_invokedNames[member.name], member, world);
   }
 
-  bool hasInvokedGetter(Element member, World world) {
+  bool hasInvokedGetter(Element member, ClosedWorld world) {
     return _hasMatchingSelector(_invokedGetters[member.name], member, world) ||
         member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
-  bool hasInvokedSetter(Element member, World world) {
+  bool hasInvokedSetter(Element member, ClosedWorld world) {
     return _hasMatchingSelector(_invokedSetters[member.name], member, world);
   }
 

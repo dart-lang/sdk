@@ -19,7 +19,7 @@ import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
+import '../world.dart' show ClassWorld;
 import 'interceptor_simplifier.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -377,7 +377,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     ClassWorld world = compiler.closedWorld;
 
     bool applies(Element element) {
-      return selector.applies(element, world) &&
+      return selector.applies(element, backend) &&
           (mask == null || mask.canHit(element, selector, world));
     }
 
@@ -426,7 +426,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return result;
       }
     } else if (selector.isGetter) {
-      if (selector.applies(helpers.jsIndexableLength, world)) {
+      if (selector.applies(helpers.jsIndexableLength, backend)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }

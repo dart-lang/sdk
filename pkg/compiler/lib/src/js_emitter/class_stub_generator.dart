@@ -92,7 +92,7 @@ class ClassStubGenerator {
     Set<Selector> generatedSelectors = new Set<Selector>();
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
-      if (!selector.appliesUnnamed(member, compiler.closedWorld)) continue;
+      if (!selector.appliesUnnamed(member, backend)) continue;
       if (selectors[selector].applies(member, selector, compiler.closedWorld)) {
         generatedSelectors.add(selector);
 

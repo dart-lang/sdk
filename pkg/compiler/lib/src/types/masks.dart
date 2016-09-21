@@ -18,7 +18,7 @@ import '../universe/universe.dart'
         UniverseSelectorConstraints,
         SelectorConstraintsStrategy;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
+import '../world.dart' show ClassWorld;
 import 'abstract_value_domain.dart' show AbstractValue;
 
 part 'container_type_mask.dart';

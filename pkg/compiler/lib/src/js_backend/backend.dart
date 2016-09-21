@@ -917,7 +917,7 @@ class JavaScriptBackend extends Backend {
     if (elements == null) return false;
     if (elements.isEmpty) return false;
     return elements.any((element) {
-      return selector.applies(element, compiler.closedWorld) &&
+      return selector.applies(element, this) &&
           (mask == null ||
               mask.canHit(element, selector, compiler.closedWorld));
     });
@@ -2892,7 +2892,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case TypeUseKind.TYPE_LITERAL:
           backend.customElementsAnalysis.registerTypeLiteral(type);
           if (type.isTypedef) {
-            backend.compiler.openWorld.allTypedefs.add(type.element);
+            backend.compiler.openWorld.registerTypedef(type.element);
           }
           if (type.isTypeVariable && type is! MethodTypeVariableType) {
             // GENERIC_METHODS: The `is!` test above filters away method type
