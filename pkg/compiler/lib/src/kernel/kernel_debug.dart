@@ -36,6 +36,23 @@ class DebugPrinter extends Visitor with Indentation, Tagging<Node> {
     openAndCloseNode(node, '${node.runtimeType}', {'value': '${node.value}'});
   }
 
+  @override
+  void visitVariableGet(VariableGet node) {
+    openAndCloseNode(
+        node, '${node.runtimeType}', {'variable': '${node.variable}'});
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    openNode(node, '${node.runtimeType}', {
+      'name': '${node.name}',
+      'isFinal': '${node.isFinal}',
+      'isConst': '${node.isConst}'
+    });
+    node.visitChildren(this);
+    closeNode();
+  }
+
   /// Pretty-prints given node tree into string.
   static String prettyPrint(Node node) {
     var p = new DebugPrinter();

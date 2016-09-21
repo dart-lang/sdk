@@ -63,6 +63,9 @@ main() {
   testDynamicGet(null);
   testDynamicSet(null);
   testLocalWithInitializer();
+  testLocalFunction();
+  testLocalFunctionInvoke();
+  testLocalFunctionGet();
   testInvokeIndex(null);
   testInvokeIndexSet(null);
   testAssert();
@@ -163,6 +166,17 @@ testDynamicGet(o) => o.foo;
 testDynamicSet(o) => o.foo = 42;
 testLocalWithInitializer() {
   var l = 42;
+}
+testLocalFunction() {
+  localFunction() {}
+}
+testLocalFunctionInvoke() {
+  localFunction() {}
+  localFunction();
+}
+testLocalFunctionGet() {
+  localFunction() {}
+  localFunction;
 }
 testInvokeIndex(o) => o[42];
 testInvokeIndexSet(o) => o[42] = null;

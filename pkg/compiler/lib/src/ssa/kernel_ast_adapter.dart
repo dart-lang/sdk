@@ -46,6 +46,9 @@ class KernelAstAdapter {
     for (LibraryElement libraryElement in kernel.libraries.keys) {
       _nodeToElement[kernel.libraries[libraryElement]] = libraryElement;
     }
+    for (LocalFunctionElement localFunction in kernel.localFunctions.keys) {
+      _nodeToElement[kernel.localFunctions[localFunction]] = localFunction;
+    }
     _typeConverter = new DartTypeConverter(this);
   }
 

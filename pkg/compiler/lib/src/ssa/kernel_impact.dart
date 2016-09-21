@@ -244,10 +244,17 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitMethodInvocation(ir.MethodInvocation invocation) {
-    invocation.receiver.accept(this);
+    var receiver = invocation.receiver;
+    if (receiver is ir.VariableGet &&
+        receiver.variable.isFinal &&
+        receiver.variable.parent is ir.FunctionDeclaration) {
+      // Invocation of a local function. No need for dynamic use.
+    } else {
+      invocation.receiver.accept(this);
+      impactBuilder.registerDynamicUse(
+          new DynamicUse(astAdapter.getSelector(invocation), null));
+    }
     _visitArguments(invocation.arguments);
-    impactBuilder.registerDynamicUse(
-        new DynamicUse(astAdapter.getSelector(invocation), null));
   }
 
   @override
@@ -276,6 +283,13 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitStringConcatenation(ir.StringConcatenation node) {
     impactBuilder.registerFeature(Feature.STRING_INTERPOLATION);
     impactBuilder.registerFeature(Feature.STRING_JUXTAPOSITION);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    impactBuilder
+        .registerStaticUse(new StaticUse.closure(astAdapter.getElement(node)));
     node.visitChildren(this);
   }
 

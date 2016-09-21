@@ -24,6 +24,7 @@ import '../elements/elements.dart'
         FunctionElement,
         ImportElement,
         LibraryElement,
+        LocalFunctionElement,
         MixinApplicationElement,
         TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousFieldElementX;
@@ -49,6 +50,9 @@ class Kernel {
 
   final Map<FunctionElement, ir.Member> functions =
       <FunctionElement, ir.Member>{};
+
+  final Map<LocalFunctionElement, ir.FunctionDeclaration> localFunctions =
+      <LocalFunctionElement, ir.FunctionDeclaration>{};
 
   final Map<FieldElement, ir.Field> fields = <FieldElement, ir.Field>{};
 

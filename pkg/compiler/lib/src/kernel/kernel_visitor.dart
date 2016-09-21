@@ -1689,8 +1689,12 @@ class KernelVisitor extends Object
       LocalFunctionElement localFunction, NodeList parameters, Node body, _) {
     return withCurrentElement(localFunction, () {
       ir.VariableDeclaration local = getLocal(localFunction)..isFinal = true;
-      return new ir.FunctionDeclaration(
+      ir.FunctionDeclaration function = new ir.FunctionDeclaration(
           local, buildFunctionNode(localFunction, body));
+      // Closures can escape their context and we must therefore store them
+      // globally to include them in the world computation.
+      kernel.localFunctions[localFunction] = function;
+      return function;
     });
   }
 
