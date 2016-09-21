@@ -35,7 +35,6 @@ main(List<String> arguments) async {
 
 /// Check all loaded libraries in [compiler] for unrelated types.
 void checkRelatedTypes(Compiler compiler) {
-  compiler.openWorld.closeWorld();
   for (LibraryElement library in compiler.libraryLoader.libraries) {
     checkLibraryElement(compiler, library);
   }

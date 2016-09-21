@@ -275,15 +275,13 @@ abstract class OpenWorld implements ClassWorld {
   void registerUsedElement(Element element);
   void registerTypedef(TypedefElement typedef);
 
-  ClosedWorld closeWorld();
+  ClosedWorld populate();
 
   /// Returns an iterable over all mixin applications that mixin [cls].
   Iterable<MixinApplicationElement> allMixinUsesOf(ClassElement cls);
 }
 
 class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
-  bool _closed = false;
-
   /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
   /// `FlatTypeMask.flags` property.
   List<Map<ClassElement, TypeMask>> canonicalizedTypeMasks =
@@ -674,7 +672,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   final Set<Element> alreadyPopulated;
 
-  bool get isClosed => _closed;
+  bool get isClosed => _compiler.phase > Compiler.PHASE_RESOLVING;
 
   // Used by selectors.
   bool isForeign(Element element) {
@@ -794,7 +792,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     }
   }
 
-  ClosedWorld closeWorld() {
+  ClosedWorld populate() {
     /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
     /// properties of the [ClassHierarchyNode] for [cls].
 
@@ -830,7 +828,6 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     // variables to the super constructor.
     _compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
 
-    _closed = true;
     return this;
   }
 

@@ -47,7 +47,7 @@ class NativeEnqueuer {
   void handleMethodAnnotations(Element method) {}
 
   /// Returns whether native classes are being used.
-  bool get hasInstantiatedNativeClasses => false;
+  bool hasInstantiatedNativeClasses() => false;
 
   /// Emits a summary information using the [log] function.
   void logSummary(log(message)) {}
@@ -73,7 +73,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   final Set<LibraryElement> processedLibraries;
 
-  bool get hasInstantiatedNativeClasses => !registeredClasses.isEmpty;
+  bool hasInstantiatedNativeClasses() => !registeredClasses.isEmpty;
 
   final Set<ClassElement> nativeClassesAndSubclasses = new Set<ClassElement>();
 

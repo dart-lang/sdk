@@ -73,7 +73,7 @@ Future checkModels(Uri entryPoint,
     compilerNormal.resolution.retainCachesForTesting = true;
     await compilerNormal.run(entryPoint);
     compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
-    compilerNormal.openWorld.closeWorld();
+    compilerNormal.openWorld.populate();
     compilerNormal.backend.onResolutionComplete();
     compilerNormal.deferredLoadTask
         .onResolutionComplete(compilerNormal.mainFunction);
@@ -89,7 +89,7 @@ Future checkModels(Uri entryPoint,
     compilerDeserialized.resolution.retainCachesForTesting = true;
     await compilerDeserialized.run(entryPoint);
     compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
-    compilerDeserialized.openWorld.closeWorld();
+    compilerDeserialized.openWorld.populate();
     compilerDeserialized.backend.onResolutionComplete();
     compilerDeserialized.deferredLoadTask
         .onResolutionComplete(compilerDeserialized.mainFunction);

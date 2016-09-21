@@ -22,9 +22,6 @@ import '../dart_types.dart' show DartType;
 import '../dart_types.dart' show InterfaceType;
 import '../elements/elements.dart'
     show ClassElement, FieldElement, LibraryElement, VariableElement;
-import '../enqueue.dart';
-import '../universe/world_impact.dart'
-    show WorldImpact, StagedWorldImpactBuilder;
 import 'js_backend.dart' show JavaScriptBackend;
 
 /// An analysis and optimization to remove unused entries from a `LookupMap`.
@@ -121,17 +118,10 @@ class LookupMapAnalysis {
   /// entry with that key.
   final _pending = <ConstantValue, List<_LookupMapInfo>>{};
 
-  final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
-
   /// Whether the backend is currently processing the codegen queue.
   bool _inCodegen = false;
 
   LookupMapAnalysis(this.backend, this.reporter);
-
-  void onQueueEmpty(Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue) return;
-    enqueuer.applyImpact(null, impactBuilder.flush());
-  }
 
   /// Whether this analysis and optimization is enabled.
   bool get _isEnabled {
@@ -258,17 +248,17 @@ class LookupMapAnalysis {
   }
 
   /// Callback from the enqueuer, invoked when [type] is instantiated.
-  void registerInstantiatedType(InterfaceType type) {
+  void registerInstantiatedType(InterfaceType type, Registry registry) {
     if (!_isEnabled || !_inCodegen) return;
     // TODO(sigmund): only add if .runtimeType is ever used
     _addClassUse(type.element);
     // TODO(sigmund): only do this when type-argument expressions are used?
-    _addGenerics(type);
+    _addGenerics(type, registry);
   }
 
   /// Records generic type arguments in [type], in case they are retrieved and
   /// returned using a type-argument expression.
-  void _addGenerics(InterfaceType type) {
+  void _addGenerics(InterfaceType type, Registry registry) {
     if (!type.isGeneric) return;
     for (var arg in type.typeArguments) {
       if (arg is InterfaceType) {
@@ -276,9 +266,9 @@ class LookupMapAnalysis {
         // Note: this call was needed to generate correct code for
         // type_lookup_map/generic_type_test
         // TODO(sigmund): can we get rid of this?
-        backend.computeImpactForInstantiatedConstantType(
-            backend.typeImplementation.rawType, impactBuilder);
-        _addGenerics(arg);
+        backend.registerInstantiatedConstantType(
+            backend.typeImplementation.rawType, registry);
+        _addGenerics(arg, registry);
       }
     }
   }
@@ -417,8 +407,8 @@ class _LookupMapInfo {
     assert(!usedEntries.containsKey(key));
     ConstantValue constant = unusedEntries.remove(key);
     usedEntries[key] = constant;
-    analysis.backend.computeImpactForCompileTimeConstant(
-        constant, analysis.impactBuilder, false);
+    analysis.backend.registerCompileTimeConstant(
+        constant, analysis.backend.compiler.globalDependencies);
   }
 
   /// Restores [original] to contain all of the entries marked as possibly used.

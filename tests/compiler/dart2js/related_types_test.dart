@@ -267,7 +267,6 @@ main(List<String> arguments) {
     Expect.isFalse(
         collector.hasRegularMessages, "Unexpected analysis messages.");
     Compiler compiler = result.compiler;
-    compiler.openWorld.closeWorld();
 
     void checkMember(MemberElement member) {
       if (!member.name.startsWith('test_')) return;

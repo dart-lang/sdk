@@ -57,7 +57,7 @@ class InterceptorStubGenerator {
     bool hasString = false;
     bool hasNative = false;
     bool anyNativeClasses =
-        compiler.enqueuer.codegen.nativeEnqueuer.hasInstantiatedNativeClasses;
+        compiler.enqueuer.codegen.nativeEnqueuer.hasInstantiatedNativeClasses();
 
     for (ClassElement cls in classes) {
       if (cls == helpers.jsArrayClass ||

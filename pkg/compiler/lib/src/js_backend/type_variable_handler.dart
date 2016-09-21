@@ -15,7 +15,6 @@ import '../js_emitter/js_emitter.dart'
     show CodeEmitterTask, MetadataCollector, Placeholder;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse;
-import '../universe/world_impact.dart';
 import '../util/util.dart';
 import 'backend.dart';
 
@@ -45,10 +44,6 @@ class TypeVariableHandler {
   Map<TypeVariableElement, jsAst.Expression> _typeVariableConstants =
       new Map<TypeVariableElement, jsAst.Expression>();
 
-  /// Impact builder used for the codegen world computation.
-  // TODO(johnniwinther): Add impact builder for resolution.
-  final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
-
   TypeVariableHandler(this._compiler);
 
   ClassElement get _typeVariableClass => _backend.helpers.typeVariableClass;
@@ -56,12 +51,6 @@ class TypeVariableHandler {
   MetadataCollector get _metadataCollector => _task.metadataCollector;
   JavaScriptBackend get _backend => _compiler.backend;
   DiagnosticReporter get reporter => _compiler.reporter;
-
-  void onQueueEmpty(Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue) return;
-
-    enqueuer.applyImpact(null, impactBuilder.flush());
-  }
 
   void registerClassWithTypeVariables(
       ClassElement cls, Enqueuer enqueuer, Registry registry) {
@@ -119,8 +108,9 @@ class TypeVariableHandler {
 
       _backend.constants.evaluate(constant);
       ConstantValue value = _backend.constants.getConstantValue(constant);
-      _backend.computeImpactForCompileTimeConstant(value, impactBuilder, false);
+      _backend.registerCompileTimeConstant(value, _compiler.globalDependencies);
       _backend.addCompileTimeConstantForEmission(value);
+      _backend.constants.addCompileTimeConstantForEmission(value);
       constants
           .add(_reifyTypeVariableConstant(value, currentTypeVariable.element));
     }

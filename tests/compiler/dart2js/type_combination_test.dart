@@ -736,7 +736,7 @@ void main() {
     """);
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    ClosedWorld world = compiler.openWorld.closeWorld();
+    ClosedWorld world = compiler.closedWorld;
     helpers.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
         element.ensureResolved(compiler.resolution);
@@ -753,7 +753,7 @@ void main() {
         compiler.enqueuer.resolution, compiler.globalDependencies);
     backend.registerInstantiatedType(patternImplClass.rawType,
         compiler.enqueuer.resolution, compiler.globalDependencies);
-    compiler.openWorld.closeWorld();
+    compiler.openWorld.populate();
 
     // Grab hold of a supertype for String so we can produce potential
     // string types.

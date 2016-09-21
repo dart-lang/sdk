@@ -37,7 +37,7 @@ class CommonMasks {
   final Compiler compiler;
 
   CommonMasks(Compiler compiler)
-      : this.classWorld = compiler.openWorld,
+      : this.classWorld = compiler.closedWorld,
         compiler = compiler;
 
   TypeMask _dynamicType;
