@@ -700,6 +700,17 @@ main() {
     expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
   }
 
+  void test_constructors_inferFromArguments_factory_callsConstructor() {
+    checkFile(r'''
+class A<T> {
+  A<T> f = /*info:INFERRED_TYPE_ALLOCATION*/new A();
+  A();
+  factory A.factory() => /*info:INFERRED_TYPE_ALLOCATION*/new A();
+  A<T> m() => /*info:INFERRED_TYPE_ALLOCATION*/new A();
+}
+    ''');
+  }
+
   void test_constructors_inferFromArguments_named() {
     var unit = checkFile('''
 class C<T> {
