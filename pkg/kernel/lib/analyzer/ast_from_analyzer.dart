@@ -2535,8 +2535,9 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
       if (targetElement != null &&
           !targetElement.isFactory &&
           targetElement.enclosingElement.isAbstract) {
-        function.body = scope.buildThrowAbstractClassInstantiationError(
-            targetElement.enclosingElement.name)..parent = function;
+        function.body = new ast.ExpressionStatement(
+            scope.buildThrowAbstractClassInstantiationError(
+                targetElement.enclosingElement.name))..parent = function;
       } else if (target == null ||
           !scope.areArgumentsCompatible(targetElement, arguments)) {
         function.body = new ast.ExpressionStatement(
