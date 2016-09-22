@@ -2858,15 +2858,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
     TypeVariableElement element = node.variable.element;
-    ClassElement context = element.enclosingClass;
 
     int index = element.index;
-    use(node.inputs[0]);
+    HInstruction object = node.object;
+    use(object);
     js.Expression receiver = pop();
 
-    if (needsSubstitutionForTypeVariableAccess(context)) {
+    if (typeVariableAccessNeedsSubstitution(element, object.instructionType)) {
       js.Expression typeName =
-          js.quoteName(backend.namer.runtimeTypeName(context));
+          js.quoteName(backend.namer.runtimeTypeName(element.enclosingClass));
       Element helperElement = helpers.getRuntimeTypeArgument;
       registry.registerStaticUse(
           new StaticUse.staticInvoke(helperElement, CallStructure.THREE_ARGS));
@@ -2910,12 +2910,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
+  bool typeVariableAccessNeedsSubstitution(
+      TypeVariableElement element, TypeMask receiverMask) {
+    ClassElement cls = element.enclosingClass;
     ClassWorld classWorld = compiler.closedWorld;
+
+    // See if the receiver type narrows the set of classes to ones that can be
+    // indexed.
+    // TODO(sra): Currently the only convenient query is [singleClass]. We
+    // should iterate over all the concrete classes in [receiverMask].
+    ClassElement receiverClass = receiverMask.singleClass(classWorld);
+    if (receiverClass != null) {
+      if (backend.rti.isTrivialSubstitution(receiverClass, cls)) {
+        return false;
+      }
+    }
+
     if (classWorld.isUsedAsMixin(cls)) return true;
 
-    return compiler.closedWorld.anyStrictSubclassOf(cls,
-        (ClassElement subclass) {
+    return classWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
       return !backend.rti.isTrivialSubstitution(subclass, cls);
     });
   }
