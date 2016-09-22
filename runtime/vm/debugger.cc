@@ -371,10 +371,16 @@ Breakpoint* BreakpointLocation::AddSingleShot(Debugger* dbg) {
 Breakpoint* BreakpointLocation::AddPerClosure(Debugger* dbg,
                                               const Instance& closure,
                                               bool for_over_await) {
-  Breakpoint* bpt = breakpoints();
-  while (bpt != NULL) {
-    if (bpt->IsPerClosure() && bpt->closure() == closure.raw()) break;
-    bpt = bpt->next();
+  Breakpoint* bpt = NULL;
+  // Do not reuse existing breakpoints for stepping over await clauses.
+  // A second async step-over command will set a new breakpoint before
+  // the existing one gets deleted when first async step-over resumes.
+  if (!for_over_await) {
+    bpt = breakpoints();
+    while (bpt != NULL) {
+      if (bpt->IsPerClosure() && (bpt->closure() == closure.raw())) break;
+      bpt = bpt->next();
+    }
   }
   if (bpt == NULL) {
     bpt = new Breakpoint(dbg->nextId(), this);

@@ -28,6 +28,43 @@ Future cancelStreamSubscription(String streamName) async {
   streamSubscriptions.remove(streamName);
 }
 
+Future smartNext(Isolate isolate) async {
+  print('smartNext');
+  if (isolate.status == M.IsolateStatus.paused) {
+    var event = isolate.pauseEvent;
+    if (event.atAsyncSuspension) {
+      return asyncNext(isolate);
+    } else {
+      return syncNext(isolate);
+    }
+  } else {
+    throw 'The program is already running';
+  }
+}
+
+Future asyncNext(Isolate isolate) async {
+  print('asyncNext');
+  if (isolate.status == M.IsolateStatus.paused) {
+    var event = isolate.pauseEvent;
+    if (!event.atAsyncSuspension) {
+      throw 'No async continuation at this location';
+    } else {
+      return isolate.stepOverAsyncSuspension();
+    }
+  } else {
+    throw 'The program is already running';
+  }
+}
+
+Future syncNext(Isolate isolate) async {
+  print('syncNext');
+  if (isolate.status == M.IsolateStatus.paused) {
+    return isolate.stepOver();
+  } else {
+    throw 'The program is already running';
+  }
+}
+
 Future asyncStepOver(Isolate isolate) async {
   final Completer pausedAtSyntheticBreakpoint = new Completer();
   StreamSubscription subscription;
@@ -198,6 +235,8 @@ IsolateTest stoppedAtLine(int line) {
         sb.write(" $f [${await f.location.getLine()}]\n");
       }
       throw sb.toString();
+    } else {
+      print('Program is stopped at line: $line');
     }
   };
 }
