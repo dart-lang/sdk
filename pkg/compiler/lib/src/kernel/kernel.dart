@@ -210,7 +210,8 @@ class Kernel {
           }
         });
         classNode.typeParameters.addAll(typeVariablesToIr(cls.typeVariables));
-        for (ir.InterfaceType interface in typesToIr(cls.interfaces.toList())) {
+        for (ir.InterfaceType interface
+            in typesToIr(cls.interfaces.reverse().toList())) {
           classNode.implementedTypes.add(interface);
         }
       });
@@ -441,9 +442,7 @@ class Kernel {
           isConst: field.isConst);
       addWork(field, () {
         setParent(fieldNode, field);
-        if (!field.isMalformed &&
-            !field.isInstanceMember &&
-            field.initializer != null) {
+        if (!field.isMalformed && field.initializer != null) {
           KernelVisitor visitor =
               new KernelVisitor(field, field.treeElements, this);
           fieldNode.initializer = visitor.buildInitializer()

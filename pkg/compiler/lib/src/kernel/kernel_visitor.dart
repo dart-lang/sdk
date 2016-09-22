@@ -20,6 +20,7 @@ import 'package:kernel/frontend/accessors.dart'
         makeLet,
         makeOrReuseVariable;
 
+import '../common.dart';
 import '../constants/expressions.dart'
     show
         BoolFromEnvironmentConstantExpression,
@@ -1385,22 +1386,6 @@ class KernelVisitor extends Object
         .buildAssignment(visitForValue(rhs), voidContext: isVoidContext);
   }
 
-  void addFieldsWithInitializers(
-      ConstructorElement constructor, List<ir.Initializer> initializers) {
-    constructor.enclosingClass.forEachInstanceField((_, FieldElement element) {
-      // Convert the element into the corresponding IR field before asking
-      // if the initializer exists. This is necessary to ensure that the
-      // element has been analyzed before looking at its initializer.
-      ir.Field field = kernel.fieldToIr(element);
-      if (element.initializer != null) {
-        KernelVisitor visitor =
-            new KernelVisitor(element, element.treeElements, kernel);
-        ir.Expression value = visitor.buildInitializer();
-        initializers.add(new ir.FieldInitializer(field, value));
-      }
-    });
-  }
-
   IrFunction buildGenerativeConstructor(
       ConstructorElement constructor, NodeList parameters, Node body) {
     List<ir.Initializer> constructorInitializers = <ir.Initializer>[];
@@ -1426,13 +1411,11 @@ class KernelVisitor extends Object
       if (kernel.isSyntheticError(constructor.definingConstructor)) {
         constructorInitializers.add(new ir.InvalidInitializer());
       } else {
-        addFieldsWithInitializers(constructor, constructorInitializers);
         constructorInitializers.add(new ir.SuperInitializer(
             kernel.functionToIr(constructor.definingConstructor),
             new ir.Arguments(arguments, named: named, types: null)));
       }
     } else {
-      addFieldsWithInitializers(constructor, constructorInitializers);
       if (parameters != null) {
         // TODO(ahe): the following is a (modified) copy of
         // [SemanticDeclarationResolvedMixin.visitParameters].
@@ -1961,11 +1944,13 @@ class KernelVisitor extends Object
 
   ir.VariableDeclaration getLocal(LocalElement local) {
     return locals.putIfAbsent(local, () {
+      // Currently, initializing formals are not final.
+      bool isFinal = local.isFinal && !local.isInitializingFormal;
       return associateElement(
           new ir.VariableDeclaration(local.name,
               initializer: null,
               type: typeToIrHack(local.type),
-              isFinal: local.isFinal,
+              isFinal: isFinal,
               isConst: local.isConst),
           local);
     });
@@ -1999,7 +1984,11 @@ class KernelVisitor extends Object
           initializer.parent = variable;
         }
       });
-      returnType = typeToIrHack(signature.type.returnType);
+      if (function.isGenerativeConstructor) {
+        returnType = const ir.VoidType();
+      } else {
+        returnType = typeToIrHack(signature.type.returnType);
+      }
       if (function.isFactoryConstructor) {
         InterfaceType type = function.enclosingClass.thisType;
         if (type.isGeneric) {
@@ -2035,8 +2024,20 @@ class KernelVisitor extends Object
           break;
       }
     }
-    ir.Statement body =
-        (bodyNode == null) ? null : buildStatementInBlock(bodyNode);
+    ir.Statement body;
+    if (function.isExternal) {
+      // [body] must be `null`.
+    } else if (function.isConstructor) {
+      // TODO(johnniwinther): Clean this up pending kernel issue #28.
+      ConstructorElement constructor = function;
+      if (constructor.isDefaultConstructor) {
+        body = new ir.EmptyStatement();
+      } else if (bodyNode != null && bodyNode.asEmptyStatement() == null) {
+        body = buildStatementInBlock(bodyNode);
+      }
+    } else if (bodyNode != null) {
+      body = buildStatementInBlock(bodyNode);
+    }
     return associateElement(
         new ir.FunctionNode(body,
             asyncMarker: asyncMarker,

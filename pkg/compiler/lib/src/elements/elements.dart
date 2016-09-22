@@ -1378,6 +1378,9 @@ abstract class ConstructorElement extends FunctionElement
   /// is `C.c`.
   ConstructorElement get definingConstructor;
 
+  /// Returns `true` if this constructor is an implicit default constructor.
+  bool get isDefaultConstructor;
+
   /// The constant constructor defining the binding of fields if `const`,
   /// `null` otherwise.
   ConstantConstructor get constantConstructor;
