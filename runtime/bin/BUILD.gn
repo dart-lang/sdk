@@ -2,6 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+declare_args() {
+  # Whether to fall back to built-in root certificates when they cannot be
+  # verified at the operating system level.
+  dart_use_fallback_root_certificates = false
+}
+
 resources_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
                 [rebase_path("vmservice/vmservice_sources.gypi")],
@@ -326,6 +332,8 @@ source_set("embedded_dart_io") {
 
   if (is_mac || is_ios) {
     libs = [
+      "CoreFoundation.framework",
+      "CoreServices.framework",
       "Security.framework",
     ]
   } else if (defined(is_fuchsia) && is_fuchsia) {
@@ -336,6 +344,11 @@ source_set("embedded_dart_io") {
     deps = [
       "//third_party/boringssl",
     ]
+    if (is_linux && !dart_use_fallback_root_certificates) {
+        defines = [
+          "DART_IO_ROOT_CERTS_DISABLED"
+        ]
+    }
   }
 
   sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
@@ -352,8 +365,9 @@ source_set("embedded_dart_io") {
     "log_win.cc",
     "log.h",
   ]
-  if (is_linux) {
-    sources += [ "../../third_party/root_certificates/root_certificates.cc"]
+
+  if (is_linux && dart_use_fallback_root_certificates) {
+    sources += [ "//third_party/root_certificates/root_certificates.cc"]
   }
 
   include_dirs = [
@@ -442,40 +456,48 @@ if (defined(is_fuchsia) && is_fuchsia) {
     sources = [ "../tests/vm/dart/hello_fuchsia_test.dart" ]
     outputs = [ "$root_out_dir/hello_fuchsia.dart" ]
   }
+}
 
-  executable("dart_no_observatory") {
-    configs += ["..:dart_config",
-                "..:dart_product_config",
-                "..:dart_precompiled_runtime_config",]
-    deps = [
+executable("dart_no_observatory") {
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiled_runtime_config",]
+  deps = [
+    ":gen_resources_cc",
+    ":embedded_dart_io",
+    ":libdart_builtin",
+    "../vm:libdart_platform",
+    "..:libdart",
+    ":dart_snapshot_cc",
+    "//third_party/zlib",
+  ]
+
+  if (defined(is_fuchsia) && is_fuchsia) {
+    deps += [
       ":hello_fuchsia",
-      ":gen_resources_cc",
-      ":embedded_dart_io",
-      ":libdart_builtin",
-      "../vm:libdart_platform",
-      "..:libdart",
-      ":dart_snapshot_cc",
-      "//third_party/zlib",
-    ]
-
-    defines = [
-      "NO_OBSERVATORY",
-    ]
-
-    sources = [
-      "main.cc",
-      "observatory_assets_empty.cc",
-      "vmservice_impl.cc",
-      "vmservice_impl.h",
-      "$target_gen_dir/resources_gen.cc",
-    ]
-
-    include_dirs = [
-      "..",
-      "//third_party",
     ]
   }
 
+  defines = [
+    "NO_OBSERVATORY",
+  ]
+
+  sources = [
+    "main.cc",
+    "observatory_assets_empty.cc",
+    "vmservice_impl.cc",
+    "vmservice_impl.h",
+    "$target_gen_dir/resources_gen.cc",
+  ]
+
+  include_dirs = [
+    "..",
+    "//third_party",
+  ]
+}
+
+
+if (defined(is_fuchsia) && is_fuchsia) {
   action("generate_snapshot_test_dat_file") {
     snapshot_test_dat_file = "$root_gen_dir/snapshot_test.dat"
     snapshot_test_in_dat_file = "../vm/snapshot_test_in.dat"
