@@ -356,6 +356,7 @@ a:focus, a:hover {
   "params": {
     "<b>version</b>": String
     "<b>pid</b>": int
+    "<b>sessionId</b>": <span style="color:#999999">optional</span> String
   }
 }</pre></div>
         <p>
@@ -375,6 +376,9 @@ a:focus, a:hover {
           </dd><dt class="field"><b>pid (int)</b></dt><dd>
            
            <p>The process id of the analysis server process.</p>
+         </dd><dt class="field"><b>sessionId (<span style="color:#999999">optional</span> String)</b></dt><dd>
+           
+           <p>The session id for this session.</p>
          </dd></dl></dd><dt class="notification"><a name="notification_server.error">server.error</a> (<a href="#notification_server.error">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "server.error"
   "params": {

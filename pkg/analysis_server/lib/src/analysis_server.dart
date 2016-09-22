@@ -376,8 +376,9 @@ class AnalysisServer {
     _setupIndexInvalidation();
     pubSummaryManager =
         new PubSummaryManager(resourceProvider, '${io.pid}.temp');
-    Notification notification =
-        new ServerConnectedParams(VERSION, io.pid).toNotification();
+    Notification notification = new ServerConnectedParams(VERSION, io.pid,
+            sessionId: instrumentationService.sessionId)
+        .toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
