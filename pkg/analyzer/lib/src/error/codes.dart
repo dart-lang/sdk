@@ -4681,6 +4681,9 @@ class StrongModeCode extends ErrorCode {
   static const StrongModeCode DOWN_CAST_IMPLICIT = const StrongModeCode(
       ErrorType.HINT, 'DOWN_CAST_IMPLICIT', _implicitCastMessage);
 
+  static const StrongModeCode DOWN_CAST_IMPLICIT_ASSIGN = const StrongModeCode(
+      ErrorType.HINT, 'DOWN_CAST_IMPLICIT_ASSIGN', _implicitCastMessage);
+
   static const StrongModeCode DYNAMIC_CAST = const StrongModeCode(
       ErrorType.HINT, 'DYNAMIC_CAST', _implicitCastMessage);
 

@@ -25579,7 +25579,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           count++;
           if (count > MAX_COUNT) {
             while (dart.notNull(length) > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD && count > HEAD_COUNT) {
-              length = dart.notNull(length) - dart.notNull(core.int._check(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD)));
+              length = dart.notNull(length) - dart.notNull(core.num._check(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD)));
               count--;
             }
             parts[dartx.add]("...");
@@ -25597,7 +25597,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       length = dart.notNull(length) + (ELLIPSIS_SIZE + OVERHEAD);
     }
     while (dart.notNull(length) > LENGTH_LIMIT && dart.notNull(parts[dartx.length]) > HEAD_COUNT) {
-      length = dart.notNull(length) - dart.notNull(core.int._check(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD)));
+      length = dart.notNull(length) - dart.notNull(core.num._check(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD)));
       if (elision == null) {
         elision = "...";
         length = dart.notNull(length) + (ELLIPSIS_SIZE + OVERHEAD);
@@ -78399,13 +78399,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let val = 0;
       for (let measurement of dimensions) {
         if (augmentingMeasurement == html$._MARGIN) {
-          val = dart.notNull(val) + dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`${augmentingMeasurement}-${measurement}`)).value));
+          val = dart.notNull(val) + dart.notNull(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`${augmentingMeasurement}-${measurement}`)).value);
         }
         if (augmentingMeasurement == html$._CONTENT) {
-          val = dart.notNull(val) - dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`${html$._PADDING}-${measurement}`)).value));
+          val = dart.notNull(val) - dart.notNull(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`${html$._PADDING}-${measurement}`)).value);
         }
         if (augmentingMeasurement != html$._MARGIN) {
-          val = dart.notNull(val) - dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`border-${measurement}-width`)).value));
+          val = dart.notNull(val) - dart.notNull(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`border-${measurement}-width`)).value);
         }
       }
       return val;
