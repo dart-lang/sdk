@@ -1619,6 +1619,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * invoked using the call operator '()'.
    */
   bool _isExecutableType(DartType type) {
+    type = type?.resolveToBound(_resolver.typeProvider.objectType);
     if (type.isDynamic || type is FunctionType) {
       return true;
     } else if (!_enableStrictCallChecks &&

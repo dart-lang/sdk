@@ -3164,6 +3164,23 @@ class B extends A {
     verify([source]);
   }
 
+  void test_invocationOfNonFunction_functionTypeTypeParameter() {
+    Source source = addSource(r'''
+typedef void Action<T>(T x);
+class C<T, U extends Action<T>> {
+  T value;
+  U action;
+  C(this.value, [this.action]);
+  void act() {
+    action(value);
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_invocationOfNonFunction_getter() {
     Source source = addSource(r'''
 class A {
