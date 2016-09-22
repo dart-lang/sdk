@@ -15,7 +15,8 @@ class Strength extends core::Object {
   final field core::int/core::int* {int} value;
   final field core::String/core::String* {string} name;
   const constructor •(core::int/core::int* {int} value, core::String/core::String* {string} name) → void
-    : self::Strength::value = value, self::Strength::name = name, super core::Object::•();
+    : self::Strength::value = value, self::Strength::name = name, super core::Object::•()
+    ;
   method nextWeaker() → self::Strength/core::Object+ {*}
     return const <self::Strength>[self::STRONG_PREFERRED, self::PREFERRED, self::STRONG_DEFAULT, self::NORMAL, self::WEAK_DEFAULT, self::WEAKEST].[](this.value);
   static method stronger(self::Strength/self::Strength! {other} s1, self::Strength/self::Strength! {other} s2) → core::bool/core::bool* {other} {
@@ -34,7 +35,8 @@ class Strength extends core::Object {
 abstract class Constraint extends core::Object {
   final field self::Strength/self::Strength! {other} strength;
   const constructor •(self::Strength/self::Strength! {other} strength) → void
-    : self::Constraint::strength = strength, super core::Object::•();
+    : self::Constraint::strength = strength, super core::Object::•()
+    ;
   abstract method isSatisfied() → core::bool/<missing type>;
   abstract method markUnsatisfied() → void/<missing type>;
   abstract method addToGraph() → void/<missing type>;
@@ -114,12 +116,14 @@ abstract class UnaryConstraint extends self::Constraint {
 }
 class StayConstraint extends self::UnaryConstraint {
   constructor •(self::Variable/self::Variable! {null,other} v, self::Strength/self::Strength! {other} str) → void
-    : super self::UnaryConstraint::•(v, str);
+    : super self::UnaryConstraint::•(v, str)
+    ;
   method execute() → void/Null {}
 }
 class EditConstraint extends self::UnaryConstraint {
   constructor •(self::Variable/self::Variable! {null,other} v, self::Strength/self::Strength! {other} str) → void
-    : super self::UnaryConstraint::•(v, str);
+    : super self::UnaryConstraint::•(v, str)
+    ;
   method isInput() → core::bool/core::bool* {other}
     return true;
   method execute() → void/Null {}
@@ -187,7 +191,8 @@ class ScaleConstraint extends self::BinaryConstraint {
   final field self::Variable/self::Variable! {other} scale;
   final field self::Variable/self::Variable! {other} offset;
   constructor •(self::Variable/self::Variable! {null,other} src, self::Variable/self::Variable! {other} scale, self::Variable/self::Variable! {other} offset, self::Variable/self::Variable! {null,other} dest, self::Strength/self::Strength! {other} strength) → void
-    : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength);
+    : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength)
+    ;
   method addToGraph() → void/Null {
     this.{=self::BinaryConstraint::addToGraph}();
     this.scale.addConstraint(this);
@@ -223,7 +228,8 @@ class ScaleConstraint extends self::BinaryConstraint {
 }
 class EqualityConstraint extends self::BinaryConstraint {
   constructor •(self::Variable/self::Variable! {null,other} v1, self::Variable/self::Variable! {other} v2, self::Strength/self::Strength! {other} strength) → void
-    : super self::BinaryConstraint::•(v1, v2, strength);
+    : super self::BinaryConstraint::•(v1, v2, strength)
+    ;
   method execute() → void/Null {
     this.output().value = this.input().value;
   }
@@ -237,7 +243,8 @@ class Variable extends core::Object {
   field core::int/core::num* {int,double} value;
   final field core::String/core::String* {string} name;
   constructor •(core::String/core::String* {string} name, core::int/core::num* {int,double} value) → void
-    : self::Variable::name = name, self::Variable::value = value, super core::Object::•();
+    : self::Variable::name = name, self::Variable::value = value, super core::Object::•()
+    ;
   method addConstraint(self::Constraint/self::Constraint+ {other} c) → void/Null {
     this.constraints.add(c);
   }

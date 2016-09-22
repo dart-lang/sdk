@@ -2463,6 +2463,10 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     constructor.function = scope.buildFunctionNode(node.parameters, node.body,
         inferredReturnType: const ast.VoidType())..parent = constructor;
     handleNativeBody(node.body);
+    if (node.body is EmptyFunctionBody && !constructor.isExternal) {
+      var function = constructor.function;
+      function.body = new ast.EmptyStatement()..parent = function;
+    }
     for (var parameter in node.parameters.parameterElements) {
       if (parameter is FieldFormalParameterElement) {
         var initializer = new ast.FieldInitializer(

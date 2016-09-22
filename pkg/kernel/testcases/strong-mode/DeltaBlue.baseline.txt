@@ -15,7 +15,8 @@ class Strength extends core::Object {
   final field core::int value;
   final field core::String name;
   const constructor •(core::int value, core::String name) → void
-    : self::Strength::value = value, self::Strength::name = name, super core::Object::•();
+    : self::Strength::value = value, self::Strength::name = name, super core::Object::•()
+    ;
   method nextWeaker() → self::Strength
     return const <self::Strength>[self::STRONG_PREFERRED, self::PREFERRED, self::STRONG_DEFAULT, self::NORMAL, self::WEAK_DEFAULT, self::WEAKEST].{core::List::[]}(this.{self::Strength::value});
   static method stronger(self::Strength s1, self::Strength s2) → core::bool {
@@ -34,7 +35,8 @@ class Strength extends core::Object {
 abstract class Constraint extends core::Object {
   final field self::Strength strength;
   const constructor •(self::Strength strength) → void
-    : self::Constraint::strength = strength, super core::Object::•();
+    : self::Constraint::strength = strength, super core::Object::•()
+    ;
   abstract method isSatisfied() → core::bool;
   abstract method markUnsatisfied() → void;
   abstract method addToGraph() → void;
@@ -114,12 +116,14 @@ abstract class UnaryConstraint extends self::Constraint {
 }
 class StayConstraint extends self::UnaryConstraint {
   constructor •(self::Variable v, self::Strength str) → void
-    : super self::UnaryConstraint::•(v, str);
+    : super self::UnaryConstraint::•(v, str)
+    ;
   method execute() → void {}
 }
 class EditConstraint extends self::UnaryConstraint {
   constructor •(self::Variable v, self::Strength str) → void
-    : super self::UnaryConstraint::•(v, str);
+    : super self::UnaryConstraint::•(v, str)
+    ;
   method isInput() → core::bool
     return true;
   method execute() → void {}
@@ -187,7 +191,8 @@ class ScaleConstraint extends self::BinaryConstraint {
   final field self::Variable scale;
   final field self::Variable offset;
   constructor •(self::Variable src, self::Variable scale, self::Variable offset, self::Variable dest, self::Strength strength) → void
-    : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength);
+    : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength)
+    ;
   method addToGraph() → void {
     this.{=self::BinaryConstraint::addToGraph}();
     this.{self::ScaleConstraint::scale}.{self::Variable::addConstraint}(this);
@@ -223,7 +228,8 @@ class ScaleConstraint extends self::BinaryConstraint {
 }
 class EqualityConstraint extends self::BinaryConstraint {
   constructor •(self::Variable v1, self::Variable v2, self::Strength strength) → void
-    : super self::BinaryConstraint::•(v1, v2, strength);
+    : super self::BinaryConstraint::•(v1, v2, strength)
+    ;
   method execute() → void {
     this.{self::BinaryConstraint::output}().{self::Variable::value} = this.{self::BinaryConstraint::input}().{self::Variable::value};
   }
@@ -237,7 +243,8 @@ class Variable extends core::Object {
   field core::int value;
   final field core::String name;
   constructor •(core::String name, core::int value) → void
-    : self::Variable::name = name, self::Variable::value = value, super core::Object::•();
+    : self::Variable::name = name, self::Variable::value = value, super core::Object::•()
+    ;
   method addConstraint(self::Constraint c) → void {
     this.{self::Variable::constraints}.{core::List::add}(c);
   }

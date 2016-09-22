@@ -30,11 +30,13 @@ class Box extends core::Object {
 class FinalBox extends core::Object {
   final field dynamic/core::String* {string} finalField;
   constructor •(dynamic/core::String* {string} finalField) → void
-    : self::FinalBox::finalField = finalField, super core::Object::•();
+    : self::FinalBox::finalField = finalField, super core::Object::•()
+    ;
 }
 class SubFinalBox extends self::FinalBox {
   constructor •(dynamic/core::String* {string} value) → void
-    : super self::FinalBox::•(value);
+    : super self::FinalBox::•(value)
+    ;
 }
 class DynamicReceiver1 extends core::Object {
   constructor •() → void
