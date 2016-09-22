@@ -2,18 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/kernel.dart';
-import 'package:args/args.dart';
 import 'dart:io';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:args/args.dart';
 import 'package:kernel/analyzer/loader.dart';
+import 'package:kernel/kernel.dart';
+import 'package:package_config/discovery.dart';
 
 ArgParser parser = new ArgParser()
   ..addOption('sdk',
       help: 'Path to Dart SDK', valueHelp: 'path', defaultsTo: '/usr/lib/dart')
-  ..addOption('package-root', abbr: 'p',
-      help: 'Path to the package root', valueHelp: 'path')
+  ..addOption('packages',
+      abbr: 'p',
+      help: 'Path to the packages folder or .packages file',
+      valueHelp: 'path')
   ..addFlag('strong', help: 'Use strong mode');
 
 String get usage => '''
@@ -38,11 +41,13 @@ main(List<String> args) {
   }
 
   String sdk = options['sdk'];
-  String packageRoot = options['package-root'];
+  String packageRoot = options['packages'];
   bool strongMode = options['strong'];
 
   String path = options.rest.single;
-  Repository repository = new Repository(sdk: sdk, packageRoot: packageRoot);
+  var packages =
+      getPackagesDirectory(new Uri(scheme: 'file', path: packageRoot));
+  Repository repository = new Repository(sdk: sdk, packages: packages);
 
   new AnalyzerLoader(repository, strongMode: strongMode).loadProgram(path);
 

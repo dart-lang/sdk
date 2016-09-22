@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.repository;
 
-import 'ast.dart';
-import 'package:path/path.dart' as pathlib;
 import 'dart:io';
+
+import 'package:path/path.dart' as pathlib;
+import 'package:package_config/packages.dart';
+
+import 'ast.dart';
 
 /// Resolves import paths and keeps track of which [Library] objects have been
 /// created for a given URI.
@@ -14,14 +17,14 @@ import 'dart:io';
 /// object to the loaders.
 class Repository {
   final String sdk;
-  final String packageRoot;
+  final Packages packages;
   final String workingDirectory;
   final Map<Uri, Library> _uriToLibrary = <Uri, Library>{};
   final List<Library> libraries = <Library>[];
 
   Repository(
       {this.sdk,
-      this.packageRoot,
+      this.packages,
       String workingDirectory})
       : this.workingDirectory = workingDirectory ?? Directory.current.path;
 
@@ -50,10 +53,7 @@ class Repository {
         return pathlib.join(sdk, 'lib', uri.path);
 
       case 'package':
-        if (packageRoot == null) {
-          throw 'Cannot resolve $uri because no package root is set';
-        }
-        return pathlib.join(packageRoot, uri.path);
+        return packages.resolve(uri).path;
 
       case 'file':
         return uri.toFilePath();

@@ -6,17 +6,8 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:test/test.dart';
 import 'class_hierarchy_basic.dart';
-import 'util.dart';
 import 'dart:io';
 import 'dart:math';
-
-/// Checks class hierarchy correctness by comparing every possible query
-/// on a given program against a naive implementation.
-main(List<String> args) {
-  var options = readOptions(args);
-  Program program = options.loadProgram();
-  testClassHierarchyOnProgram(program, verbose: true);
-}
 
 void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
   BasicClassHierarchy basic = new BasicClassHierarchy(program);

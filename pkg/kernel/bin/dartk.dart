@@ -9,14 +9,16 @@ import 'dart:io';
 import 'batch_util.dart';
 
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
 import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/checks.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:package_config/discovery.dart';
+import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as path;
-import 'package:analyzer/src/generated/sdk.dart';
 
 // Returns the path to the current sdk based on `Platform.resolvedExecutable`.
 String currentSdk() {
@@ -35,10 +37,9 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       help: 'Output file.\n'
           '(defaults to "out.dill" if format is "bin", otherwise stdout)')
   ..addOption('sdk', defaultsTo: currentSdk(), help: 'Path to the Dart SDK.')
-  ..addOption('package-root',
-      abbr: 'p',
-      help: 'Path to the packages folder.\n'
-          'The .packages file is not yet supported.')
+  ..addOption('packages',
+      abbr: 'p', help: 'Path to the .packages file or packages folder.')
+  ..addOption('package-root', help: 'Deprecated alias for --packages')
   ..addOption('target',
       abbr: 't',
       help: 'Tailor the IR to the given target.',
@@ -113,10 +114,7 @@ void checkIsDirectoryOrNull(String path, String option) {
     case FileSystemEntityType.NOT_FOUND:
       throw fail('$option not found: $path');
     default:
-      if (path.endsWith('.packages')) {
-        throw fail('The .packages file is not supported yet.');
-      }
-      throw fail('$option is not a directory: $path');
+      fail('$option is not a directory: $path');
   }
 }
 
@@ -128,6 +126,14 @@ void checkIsFile(String path, {String option}) {
 
     case FileSystemEntityType.NOT_FOUND:
       throw fail('$option not found: $path');
+  }
+}
+
+void checkIsFileOrDirectoryOrNull(String path, String option) {
+  if (path == null) return;
+  var stat = new File(path).statSync();
+  if (stat.type == FileSystemEntityType.NOT_FOUND) {
+    fail('$option not found: $path');
   }
 }
 
@@ -149,12 +155,30 @@ void dumpString(String value, [String filename]) {
   }
 }
 
+Future<Packages> createPackages(String packagePath,
+    {String discoverFrom}) async {
+  if (packagePath != null) {
+    var absolutePath = new File(packagePath).absolute.path;
+    if (await new Directory(packagePath).exists()) {
+      return getPackagesDirectory(new Uri.file(absolutePath));
+    } else if (await new File(packagePath).exists()) {
+      return loadPackagesFile(new Uri.file(absolutePath));
+    } else {
+      fail('Packages not found: $packagePath');
+    }
+  }
+  if (discoverFrom != null) {
+    return findPackagesFromFile(Uri.parse(discoverFrom));
+  }
+  return Packages.noPackages;
+}
+
 Map<Uri, Uri> parseCustomUriMappings(List<String> mappings) {
   Map<Uri, Uri> customUriMappings = <Uri, Uri>{};
 
   fatal(String mapping) {
     fail('Invalid uri mapping "$mapping". Each mapping should have the '
-         'form "<scheme>:<name>::<uri>".');
+        'form "<scheme>:<name>::<uri>".');
   }
 
   // Each mapping has the form <uri>::<uri>.
@@ -164,8 +188,7 @@ Map<Uri, Uri> parseCustomUriMappings(List<String> mappings) {
       fatal(mapping);
     }
     Uri fromUri = Uri.parse(parts[0]);
-    if (fromUri.scheme == '' ||
-        fromUri.path.contains('/')) {
+    if (fromUri.scheme == '' || fromUri.path.contains('/')) {
       fatal(mapping);
     }
     Uri toUri = Uri.parse(parts[1]);
@@ -186,15 +209,27 @@ class BatchModeState {
   DartSdk dartSdk;
   String sdk;
   bool strongMode;
+  bool isBatchMode = false;
+  Packages packages;
+  String packagePath;
 
-  AnalysisContext getContext(String sdk_, String packageRoot_, bool strongMode_,
-      Map<Uri, Uri> customUriMappings) {
+  Future<Packages> getPackages(String packagePath_, String file) async {
+    if (packages == null || this.packagePath != packagePath_) {
+      this.packagePath = packagePath_;
+      var discoverFrom = isBatchMode ? null : file;
+      packages = await createPackages(packagePath, discoverFrom: discoverFrom);
+    }
+    return packages;
+  }
+
+  AnalysisContext getContext(
+      String sdk_, bool strongMode_, Map<Uri, Uri> customUriMappings) {
     if (dartSdk == null || this.sdk != sdk_ || this.strongMode != strongMode_) {
       this.sdk = sdk_;
       this.strongMode = strongMode_;
       dartSdk = createDartSdk(sdk_, strongMode_);
     }
-    return createContext(sdk_, packageRoot_, strongMode_,
+    return createContext(sdk_, packages, strongMode_,
         dartSdk: dartSdk, customUriMappings: customUriMappings);
   }
 }
@@ -204,7 +239,7 @@ main(List<String> args) async {
     if (args.length != 1) {
       return fail('--batch cannot be used with other arguments');
     }
-    var batchModeState = new BatchModeState();
+    var batchModeState = new BatchModeState()..isBatchMode = true;
     await runBatch((args) => batchMain(args, batchModeState));
   } else {
     CompilerOutcome outcome = await batchMain(args, new BatchModeState());
@@ -241,7 +276,9 @@ Future<CompilerOutcome> batchMain(
   }
 
   checkIsDirectoryOrNull(options['sdk'], 'Dart SDK');
-  checkIsDirectoryOrNull(options['package-root'], 'Package root');
+
+  String packagePath = options['packages'] ?? options['package-root'];
+  checkIsFileOrDirectoryOrNull(packagePath, 'Package root or .packages');
 
   // Set up logging.
   if (options['verbose']) {
@@ -262,9 +299,9 @@ Future<CompilerOutcome> batchMain(
   String outputFile = options['out'] ?? defaultOutput();
   bool strongMode = options['strong'];
 
+  var packages = await batchModeState.getPackages(packagePath, file);
   var customUriMappings = parseCustomUriMappings(options['url-mapping']);
-  var repository =
-      new Repository(sdk: options['sdk'], packageRoot: options['package-root']);
+  var repository = new Repository(sdk: options['sdk'], packages: packages);
 
   Library library;
   Program program;
@@ -283,7 +320,7 @@ Future<CompilerOutcome> batchMain(
     getLoadedFiles = () => [file];
   } else {
     AnalysisContext context = batchModeState.getContext(
-        repository.sdk, repository.packageRoot, strongMode, customUriMappings);
+        repository.sdk, strongMode, customUriMappings);
     AnalyzerLoader loader = new AnalyzerLoader(repository, context: context);
     if (options['link']) {
       program = loader.loadProgram(file, target: target);

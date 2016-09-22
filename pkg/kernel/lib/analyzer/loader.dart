@@ -13,12 +13,13 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:package_config/packages.dart';
 
 abstract class ReferenceLevelLoader {
   ast.Library getLibraryReference(LibraryElement element);
@@ -55,7 +56,7 @@ class AnalyzerLoader implements ReferenceLevelLoader {
       {AnalysisContext context, bool strongMode: false})
       : this.repository = repository,
         this.context = context ??
-            createContext(repository.sdk, repository.packageRoot, strongMode);
+            createContext(repository.sdk, repository.packages, strongMode);
 
   LibraryElement getLibraryElement(ast.Library node) {
     return context
@@ -532,13 +533,13 @@ class CustomUriResolver extends UriResolver {
   }
 }
 
-AnalysisContext createContext(String sdk, String packageRoot, bool strongMode,
+AnalysisContext createContext(String sdk, Packages packages, bool strongMode,
     {DartSdk dartSdk, Map<Uri, Uri> customUriMappings}) {
   dartSdk ??= createDartSdk(sdk, strongMode);
 
+  var resourceProvider = PhysicalResourceProvider.INSTANCE;
+  var resourceUriResolver = new ResourceUriResolver(resourceProvider);
   List<UriResolver> resolvers = [];
-  var resourceUriResolver =
-      new ResourceUriResolver(PhysicalResourceProvider.INSTANCE);
   if (customUriMappings != null && customUriMappings.length > 0) {
     resolvers
         .add(new CustomUriResolver(resourceUriResolver, customUriMappings));
@@ -546,9 +547,13 @@ AnalysisContext createContext(String sdk, String packageRoot, bool strongMode,
   resolvers.add(new DartUriResolver(dartSdk));
   resolvers.add(resourceUriResolver);
 
-  if (packageRoot != null) {
-    var packageDirectory = new JavaFile(packageRoot);
-    resolvers.add(new PackageUriResolver([packageDirectory]));
+  if (packages != null) {
+    var folderMap = <String, List<Folder>>{};
+    packages.asMap().forEach((String packagePath, Uri uri) {
+      String path = resourceProvider.pathContext.fromUri(uri);
+      folderMap[packagePath] = [resourceProvider.getFolder(path)];
+    });
+    resolvers.add(new PackageMapUriResolver(resourceProvider, folderMap));
   }
 
   AnalysisContext context = AnalysisEngine.instance.createAnalysisContext()
