@@ -463,7 +463,7 @@ class ExpressionScope extends TypeScope {
     for (var parameter in formals) {
       var declaration = makeVariableDeclaration(parameter.element,
           initializer: parameter is DefaultFormalParameter
-              ? buildOptionalExpression(parameter.defaultValue)
+              ? buildOptionalTopLevelExpression(parameter.defaultValue)
               : null,
           type: buildType(parameter.element.type));
       switch (parameter.kind) {
@@ -492,6 +492,10 @@ class ExpressionScope extends TypeScope {
             const ast.DynamicType(),
         asyncMarker: getAsyncMarker(
             isAsync: body.isAsynchronous, isStar: body.isGenerator));
+  }
+
+  ast.Expression buildOptionalTopLevelExpression(Expression node) {
+    return node == null ? null : buildTopLevelExpression(node);
   }
 
   ast.Expression buildTopLevelExpression(Expression node) {
@@ -529,7 +533,11 @@ class ExpressionScope extends TypeScope {
   }
 
   ast.Initializer buildInitializer(ConstructorInitializer node) {
-    return new InitializerBuilder(this).build(node);
+    try {
+      return new InitializerBuilder(this).build(node);
+    } on _CompilationError catch (_) {
+      return new ast.InvalidInitializer();
+    }
   }
 
   bool isFinal(Element element) {
