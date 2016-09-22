@@ -2750,6 +2750,7 @@ class Parser {
   ExtendsClause parseExtendsClause() {
     Token keyword = getAndAdvance();
     TypeName superclass = parseTypeName(false);
+    _mustNotBeNullable(superclass, ParserErrorCode.NULLABLE_TYPE_IN_EXTENDS);
     return new ExtendsClause(keyword, superclass);
   }
 
@@ -3361,10 +3362,11 @@ class Parser {
   ImplementsClause parseImplementsClause() {
     Token keyword = getAndAdvance();
     List<TypeName> interfaces = <TypeName>[];
-    interfaces.add(parseTypeName(false));
-    while (_optional(TokenType.COMMA)) {
-      interfaces.add(parseTypeName(false));
-    }
+    do {
+      TypeName typeName = parseTypeName(false);
+      _mustNotBeNullable(typeName, ParserErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS);
+      interfaces.add(typeName);
+    } while (_optional(TokenType.COMMA));
     return new ImplementsClause(keyword, interfaces);
   }
 
@@ -4927,6 +4929,10 @@ class Parser {
   TypeParameter parseTypeParameter() {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
+    if (_matches(TokenType.QUESTION)) {
+      _reportErrorForCurrentToken(ParserErrorCode.NULLABLE_TYPE_PARAMETER);
+      _advance();
+    }
     if (_matchesKeyword(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
       TypeName bound = parseTypeName(false);
@@ -5160,10 +5166,12 @@ class Parser {
    */
   WithClause parseWithClause() {
     Token withKeyword = getAndAdvance();
-    List<TypeName> types = <TypeName>[parseTypeName(false)];
-    while (_optional(TokenType.COMMA)) {
-      types.add(parseTypeName(false));
-    }
+    List<TypeName> types = <TypeName>[];
+    do {
+      TypeName typeName = parseTypeName(false);
+      _mustNotBeNullable(typeName, ParserErrorCode.NULLABLE_TYPE_IN_WITH);
+      types.add(typeName);
+    } while (_optional(TokenType.COMMA));
     return new WithClause(withKeyword, types);
   }
 
@@ -5952,6 +5960,16 @@ class Parser {
   bool _matchesString(String identifier) =>
       _currentToken.type == TokenType.IDENTIFIER &&
       _currentToken.lexeme == identifier;
+
+  /**
+   * Report an error with the given [errorCode] if the given [typeName] has been
+   * marked as nullable.
+   */
+  void _mustNotBeNullable(TypeName typeName, ParserErrorCode errorCode) {
+    if (typeName.question != null) {
+      _reportErrorForToken(errorCode, typeName.question);
+    }
+  }
 
   /**
    * If the current token has the given [type], then advance to the next token
@@ -8622,6 +8640,27 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode NORMAL_BEFORE_OPTIONAL_PARAMETERS =
       const ParserErrorCode('NORMAL_BEFORE_OPTIONAL_PARAMETERS',
           "Normal parameters must occur before optional parameters");
+
+  static const ParserErrorCode NULLABLE_TYPE_IN_EXTENDS = const ParserErrorCode(
+      'NULLABLE_TYPE_IN_EXTENDS',
+      "A nullable type cannot be used in an extends clause",
+      "Remove the '?' from the type name");
+
+  static const ParserErrorCode NULLABLE_TYPE_IN_IMPLEMENTS =
+      const ParserErrorCode(
+          'NULLABLE_TYPE_IN_IMPLEMENTS',
+          "A nullable type cannot be used in an implements clause",
+          "Remove the '?' from the type name");
+
+  static const ParserErrorCode NULLABLE_TYPE_IN_WITH = const ParserErrorCode(
+      'NULLABLE_TYPE_IN_WITH',
+      "A nullable type cannot be used in a with clause",
+      "Remove the '?' from the type name");
+
+  static const ParserErrorCode NULLABLE_TYPE_PARAMETER = const ParserErrorCode(
+      'NULLABLE_TYPE_PARAMETER',
+      "Type parameters cannot be nullable",
+      "Remove the '?' from the type name");
 
   static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT =
       const ParserErrorCode('POSITIONAL_AFTER_NAMED_ARGUMENT',
