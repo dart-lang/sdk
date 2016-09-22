@@ -8,7 +8,6 @@
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/growable_array.h"
-#include "vm/handles_impl.h"
 #include "vm/locations.h"
 #include "vm/method_recognizer.h"
 #include "vm/object.h"

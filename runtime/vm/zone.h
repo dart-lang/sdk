@@ -71,28 +71,8 @@ class Zone {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
-  Zone()
-    : initial_buffer_(buffer_, kInitialChunkSize),
-      position_(initial_buffer_.start()),
-      limit_(initial_buffer_.end()),
-      head_(NULL),
-      large_segments_(NULL),
-      handles_(),
-      previous_(NULL) {
-    ASSERT(Utils::IsAligned(position_, kAlignment));
-#ifdef DEBUG
-    // Zap the entire initial buffer.
-    memset(initial_buffer_.pointer(), kZapUninitializedByte,
-           initial_buffer_.size());
-#endif
-  }
-
-  ~Zone() {  // Delete all memory associated with the zone.
-    if (FLAG_trace_zones) {
-      DumpZoneSizes();
-    }
-    DeleteAll();
-  }
+  Zone();
+  ~Zone();  // Delete all memory associated with the zone.
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
   static const intptr_t kAlignment = kDoubleSize;
@@ -185,26 +165,10 @@ class Zone {
 class StackZone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Thread.
-  explicit StackZone(Thread* thread) : StackResource(thread), zone_() {
-    if (FLAG_trace_zones) {
-      OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",
-                   reinterpret_cast<intptr_t>(this),
-                   reinterpret_cast<intptr_t>(&zone_));
-    }
-    zone_.Link(thread->zone());
-    thread->set_zone(&zone_);
-  }
+  explicit StackZone(Thread* thread);
 
   // Delete all memory associated with the zone.
-  ~StackZone() {
-    ASSERT(thread()->zone() == &zone_);
-    thread()->set_zone(zone_.previous_);
-    if (FLAG_trace_zones) {
-      OS::PrintErr("*** Deleting Stack zone 0x%" Px "(0x%" Px ")\n",
-                   reinterpret_cast<intptr_t>(this),
-                   reinterpret_cast<intptr_t>(&zone_));
-    }
-  }
+  ~StackZone();
 
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.

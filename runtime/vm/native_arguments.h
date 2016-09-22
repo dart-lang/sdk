@@ -8,7 +8,6 @@
 #include "platform/assert.h"
 #include "platform/memory_sanitizer.h"
 #include "vm/globals.h"
-#include "vm/handles_impl.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 
