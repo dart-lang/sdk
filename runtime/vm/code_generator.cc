@@ -1106,16 +1106,21 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   }
 
   if (old_target.raw() == target_function.raw()) {
-    intptr_t lower, upper;
+    intptr_t lower, upper, unchecked_lower, unchecked_upper;
     if (receiver.GetClassId() < cache.lower_limit()) {
       lower = receiver.GetClassId();
+      unchecked_lower = receiver.GetClassId();
       upper = cache.upper_limit();
+      unchecked_upper = cache.lower_limit() - 1;
     } else {
       lower = cache.lower_limit();
+      unchecked_lower = cache.upper_limit() + 1;
       upper = receiver.GetClassId();
+      unchecked_upper = receiver.GetClassId();
     }
 
-    if (IsSingleTarget(isolate, zone, lower, upper, target_function, name)) {
+    if (IsSingleTarget(isolate, zone, unchecked_lower, unchecked_upper,
+                       target_function, name)) {
       cache.set_lower_limit(lower);
       cache.set_upper_limit(upper);
       // Return the ICData. The single target stub will jump to continue in the
