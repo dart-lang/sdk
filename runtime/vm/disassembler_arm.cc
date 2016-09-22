@@ -116,10 +116,10 @@ void ARMDecoder::PrintCondition(Instr* instr) {
 static const char* reg_names[kNumberOfCpuRegisters] = {
 #if defined(TARGET_ABI_IOS)
   "r0", "r1", "r2", "r3", "r4", "pp", "r6", "fp",
-  "r8", "r9", "r10", "r11", "ip", "sp", "lr", "pc",
+  "r8", "r9", "thr", "r11", "ip", "sp", "lr", "pc",
 #elif defined(TARGET_ABI_EABI)
   "r0", "r1", "r2", "r3", "r4", "pp", "r6", "r7",
-  "r8", "r9", "r10", "fp", "ip", "sp", "lr", "pc",
+  "r8", "r9", "thr", "fp", "ip", "sp", "lr", "pc",
 #else
 #error Unknown ABI
 #endif
