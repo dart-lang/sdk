@@ -50,6 +50,9 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
           'unstable and not well integrated yet.')
   ..addFlag('link', abbr: 'l', help: 'Link the whole program into one file.')
   ..addFlag('no-output', negatable: false, help: 'Do not output any files.')
+  ..addOption('url-mapping',
+      allowMultiple: true,
+      help: 'A custom url mapping of the form `<scheme>:<name>::<uri>`.')
   ..addFlag('verbose',
       abbr: 'v',
       negatable: false,
@@ -146,6 +149,35 @@ void dumpString(String value, [String filename]) {
   }
 }
 
+Map<Uri, Uri> parseCustomUriMappings(List<String> mappings) {
+  Map<Uri, Uri> customUriMappings = <Uri, Uri>{};
+
+  fatal(String mapping) {
+    fail('Invalid uri mapping "$mapping". Each mapping should have the '
+         'form "<scheme>:<name>::<uri>".');
+  }
+
+  // Each mapping has the form <uri>::<uri>.
+  for (var mapping in mappings) {
+    List<String> parts = mapping.split('::');
+    if (parts.length != 2) {
+      fatal(mapping);
+    }
+    Uri fromUri = Uri.parse(parts[0]);
+    if (fromUri.scheme == '' ||
+        fromUri.path.contains('/')) {
+      fatal(mapping);
+    }
+    Uri toUri = Uri.parse(parts[1]);
+    if (toUri.scheme == '') {
+      toUri = new Uri.file(path.absolute(parts[1]));
+    }
+    customUriMappings[fromUri] = toUri;
+  }
+
+  return customUriMappings;
+}
+
 /// Maintains state that should be shared between batched executions when
 /// running in batch mode (for testing purposes).
 ///
@@ -155,14 +187,15 @@ class BatchModeState {
   String sdk;
   bool strongMode;
 
-  AnalysisContext getContext(
-      String sdk_, String packageRoot_, bool strongMode_) {
+  AnalysisContext getContext(String sdk_, String packageRoot_, bool strongMode_,
+      Map<Uri, Uri> customUriMappings) {
     if (dartSdk == null || this.sdk != sdk_ || this.strongMode != strongMode_) {
       this.sdk = sdk_;
       this.strongMode = strongMode_;
       dartSdk = createDartSdk(sdk_, strongMode_);
     }
-    return createContext(sdk_, packageRoot_, strongMode_, dartSdk: dartSdk);
+    return createContext(sdk_, packageRoot_, strongMode_,
+        dartSdk: dartSdk, customUriMappings: customUriMappings);
   }
 }
 
@@ -229,6 +262,7 @@ Future<CompilerOutcome> batchMain(
   String outputFile = options['out'] ?? defaultOutput();
   bool strongMode = options['strong'];
 
+  var customUriMappings = parseCustomUriMappings(options['url-mapping']);
   var repository =
       new Repository(sdk: options['sdk'], packageRoot: options['package-root']);
 
@@ -249,7 +283,7 @@ Future<CompilerOutcome> batchMain(
     getLoadedFiles = () => [file];
   } else {
     AnalysisContext context = batchModeState.getContext(
-        repository.sdk, repository.packageRoot, strongMode);
+        repository.sdk, repository.packageRoot, strongMode, customUriMappings);
     AnalyzerLoader loader = new AnalyzerLoader(repository, context: context);
     if (options['link']) {
       program = loader.loadProgram(file, target: target);

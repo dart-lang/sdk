@@ -499,14 +499,52 @@ DartSdk createDartSdk(String path, bool strongMode) {
         .setCrossContextOptionsFrom(createAnalysisOptions(strongMode));
 }
 
+class CustomUriResolver extends UriResolver {
+  final ResourceUriResolver _resourceUriResolver;
+  final Map<Uri, Uri> _customUrlMappings;
+
+  CustomUriResolver(this._resourceUriResolver, this._customUrlMappings);
+
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    // TODO(kustermann): Once dartk supports configurable imports we should be
+    // able to get rid of this.
+    if (uri.toString() == 'package:mojo/src/internal_contract.dart') {
+      uri = actualUri = Uri.parse('dart:mojo.internal');
+    }
+
+    Uri baseUri = uri;
+    String relative;
+    String path = uri.path;
+    int index = path.indexOf('/');
+    if (index > 0) {
+      baseUri = uri.replace(path: path.substring(0, index));
+      relative = path.substring(index + 1);
+    }
+    Uri baseMapped = _customUrlMappings[baseUri];
+    if (baseMapped == null) return null;
+
+    Uri mapped = relative != null ? baseMapped.resolve(relative) : baseMapped;
+    return _resourceUriResolver.resolveAbsolute(mapped, actualUri);
+  }
+
+  Uri restoreAbsolute(Source source) {
+    return _resourceUriResolver.restoreAbsolute(source);
+  }
+}
+
 AnalysisContext createContext(String sdk, String packageRoot, bool strongMode,
-    {DartSdk dartSdk}) {
+    {DartSdk dartSdk, Map<Uri, Uri> customUriMappings}) {
   dartSdk ??= createDartSdk(sdk, strongMode);
 
-  List<UriResolver> resolvers = [
-    new DartUriResolver(dartSdk),
-    new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
-  ];
+  List<UriResolver> resolvers = [];
+  var resourceUriResolver =
+      new ResourceUriResolver(PhysicalResourceProvider.INSTANCE);
+  if (customUriMappings != null && customUriMappings.length > 0) {
+    resolvers
+        .add(new CustomUriResolver(resourceUriResolver, customUriMappings));
+  }
+  resolvers.add(new DartUriResolver(dartSdk));
+  resolvers.add(resourceUriResolver);
 
   if (packageRoot != null) {
     var packageDirectory = new JavaFile(packageRoot);
