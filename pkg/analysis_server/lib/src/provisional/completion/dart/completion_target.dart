@@ -199,14 +199,14 @@ class CompletionTarget {
             Token commentToken =
                 _getContainingCommentToken(entity.beginToken, offset);
             if (commentToken != null) {
-              entity = commentToken;
               // If the preceding comment is dartdoc token, then update
               // the containing node to be the dartdoc comment.
               // Otherwise completion is not required.
               Comment docComment =
                   _getContainingDocComment(containingNode, commentToken);
               if (docComment != null) {
-                containingNode = docComment;
+                return new CompletionTarget._(
+                    compilationUnit, offset, docComment, commentToken, false);
               } else {
                 return new CompletionTarget._(compilationUnit, offset,
                     compilationUnit, commentToken, true);

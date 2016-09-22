@@ -33,7 +33,6 @@ import '../../generated/resolver_test_case.dart';
 import '../../generated/test_support.dart';
 import '../../utils.dart';
 import '../context/abstract_context.dart';
-import '../context/mock_sdk.dart';
 
 main() {
   initializeTestEnvironment();
