@@ -9954,10 +9954,9 @@ typedef F();''';
   }
 
   test_unused_type_parameter() {
-    if (skipFullyLinkedData) {
+    if (!strongMode || skipFullyLinkedData) {
       return;
     }
-    // Unused type parameters get converted to `dynamic`.
     UnlinkedVariable variable = serializeVariableText('''
 class C<T> {
   void f() {}
@@ -9968,7 +9967,7 @@ var v = c.f;
     EntityRef type =
         getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
     expect(type.typeArguments, hasLength(1));
-    checkLinkedTypeRef(type.typeArguments[0], null, null, 'dynamic');
+    checkLinkedTypeRef(type.typeArguments[0], 'dart:core', 'dart:core', 'int');
   }
 
   test_variable() {
