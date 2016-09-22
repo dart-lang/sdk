@@ -970,15 +970,17 @@ class StandardTestSuite extends TestSuite {
         }
       }
     }
-    if (configuration['package_root'] != null) {
-      packageRoot = new Path(configuration['package_root']);
-      optionsFromFile['packageRoot'] = packageRoot.toNativePath();
+    if (optionsFromFile['packageRoot'] == null &&
+        optionsFromFile['packages'] == null) {
+      if (configuration['package_root'] != null) {
+        packageRoot = new Path(configuration['package_root']);
+        optionsFromFile['packageRoot'] = packageRoot.toNativePath();
+      }
+      if (configuration['packages'] != null) {
+        Path packages = new Path(configuration['packages']);
+        optionsFromFile['packages'] = packages.toNativePath();
+      }
     }
-    if (configuration['packages'] != null) {
-      Path packages = new Path(configuration['packages']);
-      optionsFromFile['packages'] = packages.toNativePath();
-    }
-
     if (new CompilerConfiguration(configuration).hasCompiler &&
         expectCompileError(info)) {
       // If a compile-time error is expected, and we're testing a
@@ -1585,9 +1587,12 @@ class StandardTestSuite extends TestSuite {
 
   String packagesArgument(String packageRootFromFile,
                              String packagesFromFile) {
-    if (packagesFromFile != null) {
+    if (packageRootFromFile == 'none' ||
+        packagesFromFile == 'none') {
+      return null;
+    } else if (packagesFromFile != null) {
       return '--packages=$packagesFromFile';
-    } else if (packageRootFromFile != null && packageRootFromFile != 'none') {
+    } else if (packageRootFromFile != null) {
       return '--package-root=$packageRootFromFile';
     } else {
     return null;
@@ -1712,26 +1717,30 @@ class StandardTestSuite extends TestSuite {
 
     matches = packageRootRegExp.allMatches(contents);
     for (var match in matches) {
-      if (packageRoot != null) {
+      if (packageRoot != null || packages != null) {
         throw new Exception(
-            'More than one "// PackageRoot=" line in test $filePath');
+            'More than one "// Package... line in test $filePath');
       }
       packageRoot = match[1];
       if (packageRoot != 'none') {
-        // PackageRoot=none means that no package-root option should be given.
+        // PackageRoot=none means that no packages or package-root option
+        // should be given. Any other value overrides package-root and
+        // removes any packages option.  Don't use with // Packages=.
         packageRoot = '${filePath.directoryPath.join(new Path(packageRoot))}';
       }
     }
 
     matches = packagesRegExp.allMatches(contents);
     for (var match in matches) {
-      if (packages != null) {
+      if (packages != null || packageRoot != null) {
         throw new Exception(
-            'More than one "// Packages=" line in test $filePath');
+            'More than one "// Package..." line in test $filePath');
       }
       packages = match[1];
       if (packages != 'none') {
-        // Packages=none means that no packages option should be given.
+        // Packages=none means that no packages or package-root option
+        // should be given. Any other value overrides packages and removes
+        // any package-root option. Don't use with // PackageRoot=.
         packages = '${filePath.directoryPath.join(new Path(packages))}';
       }
     }
