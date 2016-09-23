@@ -5007,11 +5007,11 @@ class InferenceContext {
 }
 
 /**
- * This enum holds one of four states of a field initialization state through a constructor
- * signature, not initialized, initialized in the field declaration, initialized in the field
- * formal, and finally, initialized in the initializers list.
+ * The four states of a field initialization state through a constructor
+ * signature, not initialized, initialized in the field declaration, initialized
+ * in the field formal, and finally, initialized in the initializers list.
  */
-class INIT_STATE extends Enum<INIT_STATE> {
+class INIT_STATE implements Comparable<INIT_STATE> {
   static const INIT_STATE NOT_INIT = const INIT_STATE('NOT_INIT', 0);
 
   static const INIT_STATE INIT_IN_DECLARATION =
@@ -5030,7 +5030,26 @@ class INIT_STATE extends Enum<INIT_STATE> {
     INIT_IN_INITIALIZERS
   ];
 
-  const INIT_STATE(String name, int ordinal) : super(name, ordinal);
+  /**
+   * The name of this init state.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the init state.
+   */
+  final int ordinal;
+
+  const INIT_STATE(this.name, this.ordinal);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(INIT_STATE other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }
 
 /**
@@ -5527,7 +5546,8 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
 /**
  * Kind of the redirecting constructor.
  */
-class RedirectingConstructorKind extends Enum<RedirectingConstructorKind> {
+class RedirectingConstructorKind
+    implements Comparable<RedirectingConstructorKind> {
   static const RedirectingConstructorKind CONST =
       const RedirectingConstructorKind('CONST', 0);
 
@@ -5536,8 +5556,26 @@ class RedirectingConstructorKind extends Enum<RedirectingConstructorKind> {
 
   static const List<RedirectingConstructorKind> values = const [CONST, NORMAL];
 
-  const RedirectingConstructorKind(String name, int ordinal)
-      : super(name, ordinal);
+  /**
+   * The name of this redirecting constructor kind.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the redirecting constructor kind.
+   */
+  final int ordinal;
+
+  const RedirectingConstructorKind(this.name, this.ordinal);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(RedirectingConstructorKind other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }
 
 /**
@@ -7283,8 +7321,13 @@ class ResolverVisitor extends ScopedVisitor {
           originalType is FunctionType &&
           originalType.typeFormals.isNotEmpty &&
           ts is StrongTypeSystemImpl) {
-        contextType = ts.inferGenericFunctionCall(typeProvider, originalType,
-            DartType.EMPTY_LIST, DartType.EMPTY_LIST, originalType.returnType, returnContextType);
+        contextType = ts.inferGenericFunctionCall(
+            typeProvider,
+            originalType,
+            DartType.EMPTY_LIST,
+            DartType.EMPTY_LIST,
+            originalType.returnType,
+            returnContextType);
       }
 
       InferenceContext.setType(node.argumentList, contextType);

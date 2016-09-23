@@ -21,7 +21,6 @@ import 'package:analyzer/src/error/codes.dart' show CompileTimeErrorCode;
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
@@ -3074,7 +3073,7 @@ abstract class ElementImpl implements Element {
    * Return `true` if this element has the given [modifier] associated with it.
    */
   bool hasModifier(Modifier modifier) =>
-      BooleanArray.getEnum(_modifiers, modifier);
+      BooleanArray.get(_modifiers, modifier.ordinal);
 
   @override
   bool isAccessibleIn(LibraryElement library) {
@@ -3109,7 +3108,7 @@ abstract class ElementImpl implements Element {
    * correspond to the given [value].
    */
   void setModifier(Modifier modifier, bool value) {
-    _modifiers = BooleanArray.setEnum(_modifiers, modifier, value);
+    _modifiers = BooleanArray.set(_modifiers, modifier.ordinal, value);
   }
 
   @override
@@ -6179,12 +6178,12 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 }
 
 /**
- * The enumeration `Modifier` defines constants for all of the modifiers defined
- * by the Dart language and for a few additional flags that are useful.
+ * The constants for all of the modifiers defined by the Dart language and for a
+ * few additional flags that are useful.
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class Modifier extends Enum<Modifier> {
+class Modifier implements Comparable<Modifier> {
   /**
    * Indicates that the modifier 'abstract' was applied to the element.
    */
@@ -6301,7 +6300,26 @@ class Modifier extends Enum<Modifier> {
     SYNTHETIC
   ];
 
-  const Modifier(String name, int ordinal) : super(name, ordinal);
+  /**
+   * The name of this modifier.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the modifier.
+   */
+  final int ordinal;
+
+  const Modifier(this.name, this.ordinal);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(Modifier other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }
 
 /**

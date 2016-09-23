@@ -688,7 +688,7 @@ abstract class SourceFactory {
  * The enumeration `SourceKind` defines the different kinds of sources that are
  * known to the analysis engine.
  */
-class SourceKind extends Enum<SourceKind> {
+class SourceKind implements Comparable<SourceKind> {
   /**
    * A source containing HTML. The HTML might or might not contain Dart scripts.
    */
@@ -716,7 +716,26 @@ class SourceKind extends Enum<SourceKind> {
 
   static const List<SourceKind> values = const [HTML, LIBRARY, PART, UNKNOWN];
 
-  const SourceKind(String name, int ordinal) : super(name, ordinal);
+  /**
+   * The name of this source kind.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the source kind.
+   */
+  final int ordinal;
+
+  const SourceKind(this.name, this.ordinal);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(SourceKind other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }
 
 /**
@@ -848,7 +867,7 @@ class SourceRange {
  * The enumeration `UriKind` defines the different kinds of URI's that are known to the
  * analysis engine. These are used to keep track of the kind of URI associated with a given source.
  */
-class UriKind extends Enum<UriKind> {
+class UriKind implements Comparable<UriKind> {
   /**
    * A 'dart:' URI.
    */
@@ -867,23 +886,37 @@ class UriKind extends Enum<UriKind> {
   static const List<UriKind> values = const [DART_URI, FILE_URI, PACKAGE_URI];
 
   /**
+   * The name of this URI kind.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the URI kind.
+   */
+  final int ordinal;
+
+  /**
    * The single character encoding used to identify this kind of URI.
    */
   final int encoding;
 
   /**
    * Initialize a newly created URI kind to have the given encoding.
-   *
-   * @param encoding the single character encoding used to identify this kind of URI.
    */
-  const UriKind(String name, int ordinal, this.encoding) : super(name, ordinal);
+  const UriKind(this.name, this.ordinal, this.encoding);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(UriKind other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 
   /**
-   * Return the URI kind represented by the given encoding, or `null` if there is no kind with
-   * the given encoding.
-   *
-   * @param encoding the single character encoding used to identify the URI kind to be returned
-   * @return the URI kind represented by the given encoding
+   * Return the URI kind represented by the given [encoding], or `null` if there
+   * is no kind with the given encoding.
    */
   static UriKind fromEncoding(int encoding) {
     while (true) {

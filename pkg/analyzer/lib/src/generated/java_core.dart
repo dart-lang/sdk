@@ -125,6 +125,7 @@ class Character {
   }
 }
 
+@deprecated
 abstract class Enum<E extends Enum> implements Comparable<E> {
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
