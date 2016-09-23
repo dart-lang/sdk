@@ -296,6 +296,8 @@ class TypeScope extends ReferenceScope {
 
   String get location => '?';
 
+  bool get allowClassTypeParameters => false;
+
   ast.TypeParameter getTypeParameterReference(TypeParameterElement element) {
     return localTypeParameters[element] ??
         loader.tryGetClassTypeParameter(element) ??
@@ -718,6 +720,16 @@ class ExpressionScope extends TypeScope {
   }
 }
 
+/// A scope in which class type parameters are in scope, while not in scope
+/// of a specific member.
+class ClassScope extends ExpressionScope {
+  @override
+  bool get allowClassTypeParameters => true;
+
+  ClassScope(ReferenceLevelLoader loader, ast.Library library)
+      : super(loader, library);
+}
+
 /// Translates expressions, statements, and other constructs into [ast] nodes.
 ///
 /// Naming convention:
@@ -737,6 +749,11 @@ class MemberScope extends ExpressionScope {
   ast.Class get currentClass => currentMember.enclosingClass;
 
   bool get allowThis => _memberHasThis(currentMember);
+
+  @override
+  bool get allowClassTypeParameters {
+    return currentMember.isInstanceMember || currentMember is ast.Constructor;
+  }
 
   /// Returns a string for debugging use, indicating the location of the member
   /// being built.
@@ -1519,6 +1536,9 @@ class ExpressionBuilder
       ConstructorElement element, ast.Arguments arguments) {
     ConstructorElement anchor = null;
     int anchorLifetime = 1;
+    // Ensure class parameters are considered in scope when following
+    // redirecting factories.
+    var classScope = new ClassScope(scope.loader, scope.currentLibrary);
     while (true) {
       if (!element.isConst) {
         return scope
@@ -1532,7 +1552,7 @@ class ExpressionBuilder
       // Update the type arguments inplace on the [arguments] node.
       if (node.redirectedConstructor.type.typeArguments != null) {
         ast.InterfaceType type =
-            scope.buildType(node.redirectedConstructor.type.type);
+            classScope.buildType(node.redirectedConstructor.type.type);
         var targetClass = scope.getClassReference(element.enclosingElement);
         if (targetClass.typeParameters.length != arguments.types.length) {
           return scope.emitInvalidConstant();
@@ -1939,8 +1959,12 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
       DartType type, List<TypeParameterElement> boundVariables) {
     if (type is TypeParameterType) {
       if (boundVariables == null || boundVariables.contains(type)) {
-        return new ast.TypeParameterType(
-            scope.getTypeParameterReference(type.element));
+        var typeParameter = scope.getTypeParameterReference(type.element);
+        if (!scope.allowClassTypeParameters &&
+            typeParameter.parent is ast.Class) {
+          return const ast.InvalidType();
+        }
+        return new ast.TypeParameterType(typeParameter);
       } else {
         return const ast.DynamicType();
       }
@@ -2036,8 +2060,12 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
         return buildClosedTypeFromDartType(functionType.type);
 
       case ElementKind.TYPE_PARAMETER:
-        return new ast.TypeParameterType(
-            scope.getTypeParameterReference(element));
+        var typeParameter = scope.getTypeParameterReference(element);
+        if (!scope.allowClassTypeParameters &&
+            typeParameter.parent is ast.Class) {
+          return const ast.InvalidType();
+        }
+        return new ast.TypeParameterType(typeParameter);
 
       case ElementKind.COMPILATION_UNIT:
       case ElementKind.CONSTRUCTOR:
@@ -2129,7 +2157,8 @@ class InitializerBuilder extends GeneralizingAstVisitor<ast.Initializer> {
 //   To safely compile code with compile-time errors, we may need a recovery
 //   pass to enforce all kernel invariants before it is given to the backend.
 class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
-  final ExpressionScope scope;
+  final ClassScope scope;
+  final ExpressionScope annotationScope;
   final ast.Class currentClass;
   final ClassElement element;
   ast.Library get currentLibrary => currentClass.enclosingLibrary;
@@ -2137,7 +2166,9 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   ClassBodyBuilder(
       ReferenceLevelLoader loader, ast.Class currentClass, this.element)
       : this.currentClass = currentClass,
-        scope = new ExpressionScope(loader, currentClass.enclosingLibrary);
+        scope = new ClassScope(loader, currentClass.enclosingLibrary),
+        annotationScope =
+            new ExpressionScope(loader, currentClass.enclosingLibrary);
 
   void build(CompilationUnitMember node) {
     if (node == null) {
@@ -2158,8 +2189,9 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   void addAnnotations(List<Annotation> annotations) {
+    // Class type parameters are not in scope in the annotation list.
     for (var annotation in annotations) {
-      currentClass.addAnnotation(scope.buildAnnotation(annotation));
+      currentClass.addAnnotation(annotationScope.buildAnnotation(annotation));
     }
   }
 
