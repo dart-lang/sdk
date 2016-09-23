@@ -1,10 +1,19 @@
+# 0.1.27
+
+* Fixed cast exception in `dart_type_utilities` (dart-lang/sdk#27405).
+* New `parameter_assignments` lint.
+* New `prefer_final_fields` lint.
+* New `prefer_final_locals` lint.
+* Markdown link fixes in docs (#306).
+* Miscellaneous solo test running fixes and introduction of `solo_debug` (#304).
+
 # 0.1.26
 
-* Updated tests to use package `test` (#302). 
+* Updated tests to use package `test` (#302).
 
 # 0.1.25
 
-* Fixed false positive on `[]=` in `always_declare_return_types` (#300). 
+* Fixed false positive on `[]=` in `always_declare_return_types` (#300).
 * New `invariant_booleans` lint.
 * New `literal_only_boolean_expressions` lint.
 * Fixed `camel_case_types` to allow `$` in identifiers (#290).
