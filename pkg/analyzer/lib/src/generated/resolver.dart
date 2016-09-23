@@ -52,7 +52,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * The class containing the AST nodes being visited, or `null` if we are not in the scope of
    * a class.
    */
-  ClassElementImpl _enclosingClass;
+  ClassElement _enclosingClass;
 
   /**
    * A flag indicating whether a surrounding member (compilation unit or class)
@@ -87,17 +87,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   LibraryElement _currentLibrary;
 
   /**
-   * The inheritance manager used to find overridden methods.
-   */
-  InheritanceManager _manager;
-
-  /**
    * Create a new instance of the [BestPracticesVerifier].
    *
    * @param errorReporter the error reporter
    */
-  BestPracticesVerifier(this._errorReporter, TypeProvider typeProvider,
-      this._currentLibrary, this._manager,
+  BestPracticesVerifier(
+      this._errorReporter, TypeProvider typeProvider, this._currentLibrary,
       {TypeSystem typeSystem})
       : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
@@ -164,9 +159,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
-    ClassElementImpl outerClass = _enclosingClass;
+    ClassElement outerClass = _enclosingClass;
     bool wasInDeprecatedMember = inDeprecatedMember;
-    ClassElement element = AbstractClassElementImpl.getImpl(node.element);
+    ClassElement element = node.element;
     if (element != null && element.isDeprecated) {
       inDeprecatedMember = true;
     }
@@ -288,10 +283,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitMethodInvocation(MethodInvocation node) {
-    Expression realTarget = node.realTarget;
-    _checkForAbstractSuperMemberReference(realTarget, node.methodName);
     _checkForCanBeNullAfterNullAware(
-        realTarget, node.operator, null, node.methodName);
+        node.realTarget, node.operator, null, node.methodName);
     DartType staticInvokeType = node.staticInvokeType;
     if (staticInvokeType is InterfaceType) {
       MethodElement methodElement = staticInvokeType.lookUpMethod(
@@ -315,10 +308,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPropertyAccess(PropertyAccess node) {
-    Expression realTarget = node.realTarget;
-    _checkForAbstractSuperMemberReference(realTarget, node.propertyName);
     _checkForCanBeNullAfterNullAware(
-        realTarget, node.operator, node.propertyName, null);
+        node.realTarget, node.operator, node.propertyName, null);
     return super.visitPropertyAccess(node);
   }
 
@@ -416,34 +407,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return false;
-  }
-
-  void _checkForAbstractSuperMemberReference(
-      Expression target, SimpleIdentifier name) {
-    if (target is SuperExpression) {
-      Element element = name.staticElement;
-      if (element is ExecutableElement && element.isAbstract) {
-        if (!_enclosingClass.hasNoSuchMethod) {
-          ExecutableElement concrete = null;
-          if (element.kind == ElementKind.METHOD) {
-            concrete = _enclosingClass.lookUpInheritedConcreteMethod(
-                element.displayName, _currentLibrary);
-          } else if (element.kind == ElementKind.GETTER) {
-            concrete = _enclosingClass.lookUpInheritedConcreteGetter(
-                element.displayName, _currentLibrary);
-          } else if (element.kind == ElementKind.SETTER) {
-            concrete = _enclosingClass.lookUpInheritedConcreteSetter(
-                element.displayName, _currentLibrary);
-          }
-          if (concrete == null) {
-            _errorReporter.reportTypeErrorForNode(
-                HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                name,
-                [element.kind.displayName, name.name]);
-          }
-        }
-      }
-    }
   }
 
   /**
@@ -4328,7 +4291,7 @@ class HintGenerator {
     }
     // Dart best practices
     unit.accept(new BestPracticesVerifier(
-        errorReporter, _context.typeProvider, _library, _manager,
+        errorReporter, _context.typeProvider, _library,
         typeSystem: _context.typeSystem));
     unit.accept(new OverrideVerifier(errorReporter, _manager));
     // Find to-do comments
@@ -7320,13 +7283,8 @@ class ResolverVisitor extends ScopedVisitor {
           originalType is FunctionType &&
           originalType.typeFormals.isNotEmpty &&
           ts is StrongTypeSystemImpl) {
-        contextType = ts.inferGenericFunctionCall(
-            typeProvider,
-            originalType,
-            DartType.EMPTY_LIST,
-            DartType.EMPTY_LIST,
-            originalType.returnType,
-            returnContextType);
+        contextType = ts.inferGenericFunctionCall(typeProvider, originalType,
+            DartType.EMPTY_LIST, DartType.EMPTY_LIST, originalType.returnType, returnContextType);
       }
 
       InferenceContext.setType(node.argumentList, contextType);
