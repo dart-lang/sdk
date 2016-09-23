@@ -1382,13 +1382,9 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
   }
 
   int visitLogicalExpression(LogicalExpression node) {
-    int left = build(node.left);
-    int right = build(node.right);
-    if (node.operator == '??') {
-      return environment.getJoin(left, right);
-    } else {
-      return builder.boolNode;
-    }
+    build(node.left);
+    build(node.right);
+    return builder.boolNode;
   }
 
   int visitConditionalExpression(ConditionalExpression node) {

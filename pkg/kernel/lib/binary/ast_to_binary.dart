@@ -246,12 +246,22 @@ class BinaryPrinter extends Visitor {
     writeNodeList(node.procedures);
   }
 
+  void writeAnnotation(Expression annotation) {
+    _variableIndexer ??= new VariableIndexer();
+    _variableIndexer.build(annotation);
+    writeNode(annotation);
+  }
+
+  void writeAnnotationList(List<Expression> annotations) {
+    writeList(annotations, writeAnnotation);
+  }
+
   visitClass(Class node) {
     if (node.isMixinApplication) {
       writeByte(Tag.MixinClass);
       writeByte(node.isAbstract ? 1 : 0);
       writeStringReference(node.name ?? '');
-      writeNodeList(node.annotations);
+      writeAnnotationList(node.annotations);
       _typeParameterIndexer.push(node.typeParameters);
       writeNodeList(node.typeParameters);
       writeNode(node.supertype);
@@ -263,7 +273,7 @@ class BinaryPrinter extends Visitor {
       writeByte(Tag.NormalClass);
       writeByte(node.isAbstract ? 1 : 0);
       writeStringReference(node.name ?? '');
-      writeNodeList(node.annotations);
+      writeAnnotationList(node.annotations);
       _typeParameterIndexer.push(node.typeParameters);
       writeNodeList(node.typeParameters);
       writeOptionalNode(node.supertype);
@@ -282,7 +292,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.Constructor);
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
-    writeNodeList(node.annotations);
+    writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
     writeNodeList(node.initializers);
@@ -294,7 +304,7 @@ class BinaryPrinter extends Visitor {
     writeByte(node.kind.index);
     writeByte(node.flags);
     writeName(node.name ?? '');
-    writeNodeList(node.annotations);
+    writeAnnotationList(node.annotations);
     writeOptionalNode(node.function);
   }
 
@@ -303,7 +313,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.Field);
     writeByte(node.flags);
     writeName(node.name ?? '');
-    writeNodeList(node.annotations);
+    writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalInferredValue(node.inferredValue);
     writeOptionalNode(node.initializer);
@@ -364,6 +374,7 @@ class BinaryPrinter extends Visitor {
   visitVariableGet(VariableGet node) {
     assert(_variableIndexer != null);
     int index = _variableIndexer[node.variable];
+    assert(index != null);
     if (index & Tag.SpecializedPayloadMask == index &&
         node.promotedType == null) {
       writeByte(Tag.SpecializedVariableGet + index);
@@ -497,8 +508,6 @@ class BinaryPrinter extends Visitor {
         return 0;
       case '||':
         return 1;
-      case '??':
-        return 2;
     }
     throw 'Not a logical operator: $operator';
   }
@@ -508,7 +517,6 @@ class BinaryPrinter extends Visitor {
     writeNode(node.left);
     writeByte(logicalOperatorIndex(node.operator));
     writeNode(node.right);
-    writeOptionalNode(node.staticType);
   }
 
   visitConditionalExpression(ConditionalExpression node) {
@@ -865,7 +873,7 @@ class VariableIndexer extends RecursiveVisitor {
   final Map<VariableDeclaration, int> index = <VariableDeclaration, int>{};
   int stackHeight = 0;
 
-  void build(Member node) => node.accept(this);
+  void build(TreeNode node) => node.accept(this);
 
   visitConstructor(Constructor node) {
     node.function.accept(this);

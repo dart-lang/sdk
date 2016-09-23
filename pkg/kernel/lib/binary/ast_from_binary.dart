@@ -503,8 +503,6 @@ class BinaryBuilder {
         return '&&';
       case 1:
         return '||';
-      case 2:
-        return '??';
       default:
         throw fail('Invalid logical operator index: $index');
     }
@@ -584,11 +582,8 @@ class BinaryBuilder {
       case Tag.Not:
         return new Not(readExpression());
       case Tag.LogicalExpression:
-        return new LogicalExpression(
-            readExpression(),
-            logicalOperatorToString(readByte()),
-            readExpression(),
-            readDartTypeOption());
+        return new LogicalExpression(readExpression(),
+            logicalOperatorToString(readByte()), readExpression());
       case Tag.ConditionalExpression:
         return new ConditionalExpression(readExpression(), readExpression(),
             readExpression(), readDartTypeOption());

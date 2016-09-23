@@ -1844,23 +1844,18 @@ class Not extends Expression {
   }
 }
 
-/// Expression of form `x && y`, `x || y`, or `x ?? y`.
+/// Expression of form `x && y` or `x || y`
 class LogicalExpression extends Expression {
   Expression left;
   String operator; // && or || or ??
   Expression right;
 
-  DartType staticType;
-
-  LogicalExpression(this.left, this.operator, this.right, [this.staticType]) {
+  LogicalExpression(this.left, this.operator, this.right) {
     left?.parent = this;
     right?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) {
-    if (staticType != null) return staticType;
-    return operator == '??' ? const DynamicType() : types.boolType;
-  }
+  DartType getStaticType(TypeEnvironment types) => types.boolType;
 
   accept(ExpressionVisitor v) => v.visitLogicalExpression(this);
 

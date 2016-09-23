@@ -460,7 +460,7 @@ type Not extends Expression {
 }
 
 /*
- enum LogicalOperator { &&, ||, ?? }
+ enum LogicalOperator { &&, || }
 */
 
 type LogicalExpression extends Expression {

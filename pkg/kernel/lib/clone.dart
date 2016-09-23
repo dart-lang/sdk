@@ -117,8 +117,8 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitLogicalExpression(LogicalExpression node) {
-    return new LogicalExpression(clone(node.left), node.operator,
-        clone(node.right), visitOptionalType(node.staticType));
+    return new LogicalExpression(
+        clone(node.left), node.operator, clone(node.right));
   }
 
   visitConditionalExpression(ConditionalExpression node) {

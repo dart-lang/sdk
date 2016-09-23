@@ -1204,8 +1204,23 @@ class ExpressionBuilder
           build(node.leftOperand), operator, build(node.rightOperand));
     }
     if (operator == '??') {
-      return new ast.LogicalExpression(build(node.leftOperand), operator,
-          build(node.rightOperand), scope.getInferredType(node));
+      ast.Expression leftOperand = build(node.leftOperand);
+      if (leftOperand is ast.VariableGet) {
+        return new ast.ConditionalExpression(
+            buildIsNull(leftOperand),
+            build(node.rightOperand),
+            new ast.VariableGet(leftOperand.variable),
+            scope.getInferredType(node));
+      } else {
+        var variable = new ast.VariableDeclaration.forValue(leftOperand);
+        return new ast.Let(
+            variable,
+            new ast.ConditionalExpression(
+                buildIsNull(new ast.VariableGet(variable)),
+                build(node.rightOperand),
+                new ast.VariableGet(variable),
+                scope.getInferredType(node)));
+      }
     }
     bool isNegated = false;
     if (operator == '!=') {
