@@ -10,9 +10,16 @@ import '../core_types.dart' show CommonElements;
 import '../dart_types.dart' show InterfaceType;
 import '../elements/elements.dart' show ClassElement, Element;
 import '../universe/selector.dart';
+import '../util/enumset.dart';
 import 'backend_helpers.dart';
 import 'constant_system_javascript.dart';
 import 'js_backend.dart';
+
+/// Backend specific features required by a backend impact.
+enum BackendFeature {
+  needToInitializeIsolateAffinityTag,
+  needToInitializeDispatchProperty,
+}
 
 /// A set of JavaScript backend dependencies.
 class BackendImpact {
@@ -21,13 +28,19 @@ class BackendImpact {
   final List<InterfaceType> instantiatedTypes;
   final List<ClassElement> instantiatedClasses;
   final List<BackendImpact> otherImpacts;
+  final EnumSet<BackendFeature> _features;
 
-  BackendImpact(
+  const BackendImpact(
       {this.staticUses: const <Element>[],
       this.dynamicUses: const <Selector>[],
       this.instantiatedTypes: const <InterfaceType>[],
       this.instantiatedClasses: const <ClassElement>[],
-      this.otherImpacts: const <BackendImpact>[]});
+      this.otherImpacts: const <BackendImpact>[],
+      EnumSet<BackendFeature> features: const EnumSet<BackendFeature>.fixed(0)})
+      : this._features = features;
+
+  Iterable<BackendFeature> get features =>
+      _features.iterable(BackendFeature.values);
 }
 
 /// The JavaScript backend dependencies for various features.
@@ -597,5 +610,26 @@ class BackendImpacts {
           instantiatedClasses: [commonElements.functionClass]);
     }
     return _closure;
+  }
+
+  BackendImpact _interceptorUse;
+
+  BackendImpact get interceptorUse {
+    if (_interceptorUse == null) {
+      _interceptorUse = new BackendImpact(
+          staticUses: [
+            helpers.getNativeInterceptorMethod
+          ],
+          instantiatedClasses: [
+            helpers.jsJavaScriptObjectClass,
+            helpers.jsPlainJavaScriptObjectClass,
+            helpers.jsJavaScriptFunctionClass
+          ],
+          features: new EnumSet<BackendFeature>.fromValues([
+            BackendFeature.needToInitializeDispatchProperty,
+            BackendFeature.needToInitializeIsolateAffinityTag
+          ], fixed: true));
+    }
+    return _interceptorUse;
   }
 }

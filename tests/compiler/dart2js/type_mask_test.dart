@@ -21,7 +21,7 @@ main() {
 main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(CODE, uri);
-  var classWorld = compiler.closedWorld;
+  var classWorld = compiler.openWorld.closeWorld();
 
   asyncTest(() => compiler.run(uri).then((_) {
         var classA = findElement(compiler, 'A');
