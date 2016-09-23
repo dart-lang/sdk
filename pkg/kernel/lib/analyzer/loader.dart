@@ -40,8 +40,8 @@ class DartOptions {
       this.packagePath,
       Map<Uri, Uri> customUriMappings,
       Map<String, String> declaredVariables})
-      : this.customUriMappings = <Uri, Uri>{},
-        this.declaredVariables = <String, String>{};
+      : this.customUriMappings = customUriMappings ?? <Uri, Uri>{},
+        this.declaredVariables = declaredVariables ?? <String, String>{};
 }
 
 abstract class ReferenceLevelLoader {
