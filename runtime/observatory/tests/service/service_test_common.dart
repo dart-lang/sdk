@@ -228,7 +228,7 @@ IsolateTest stoppedAtLine(int line) {
     Script script = await top.location.script.load();
     int actualLine = script.tokenToLine(top.location.tokenPos);
     if (actualLine != line) {
-      var sb = new StringBuffer();
+      StringBuffer sb = new StringBuffer();
       sb.write("Expected to be at line $line but actually at line $actualLine");
       sb.write("\nFull stack trace:\n");
       for (Frame f in stack['frames']) {
@@ -237,6 +237,41 @@ IsolateTest stoppedAtLine(int line) {
       throw sb.toString();
     } else {
       print('Program is stopped at line: $line');
+    }
+  };
+}
+
+
+IsolateTest stoppedInFunction(String functionName, {bool contains: false}) {
+  return (Isolate isolate) async {
+    print("Checking we are in function: $functionName");
+
+    ServiceMap stack = await isolate.getStack();
+    expect(stack.type, equals('Stack'));
+
+    List<Frame> frames = stack['frames'];
+    expect(frames.length, greaterThanOrEqualTo(1));
+
+    Frame topFrame = stack['frames'][0];
+    ServiceFunction function = await topFrame.function.load();
+    final bool matches =
+        contains ? function.name.contains(functionName) :
+                     function.name == functionName;
+    if (!matches) {
+      StringBuffer sb = new StringBuffer();
+      sb.write("Expected to be in function $functionName but "
+               "actually in function ${function.name}");
+      sb.write("\nFull stack trace:\n");
+      for (Frame f in stack['frames']) {
+        await f.function.load();
+        await (f.function.dartOwner as ServiceObject).load();
+        String name = f.function.name;
+        String ownerName = (f.function.dartOwner as ServiceObject).name;
+        sb.write(" $f [$name] [$ownerName]\n");
+      }
+      throw sb.toString();
+    } else {
+      print('Program is stopped in function: $functionName');
     }
   };
 }
@@ -291,6 +326,12 @@ Future<Isolate> stepInto(Isolate isolate) async {
   await isolate.stepInto();
   return hasStoppedAtBreakpoint(isolate);
 }
+
+Future<Isolate> stepOut(Isolate isolate) async {
+  await isolate.stepOut();
+  return hasStoppedAtBreakpoint(isolate);
+}
+
 
 Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
   Library rootLib = await isolate.rootLibrary.load();

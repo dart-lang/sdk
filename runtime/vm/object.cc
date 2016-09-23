@@ -10478,6 +10478,9 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   ASSERT(thread->IsMutatorThread());
   // Force the url to have a hash code.
   url.Hash();
+  const bool dart_scheme = url.StartsWith(Symbols::DartScheme());
+  const bool dart_private_scheme =
+      dart_scheme && url.StartsWith(Symbols::DartSchemePrivate());
   const Library& result = Library::Handle(zone, Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
@@ -10501,8 +10504,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.set_native_entry_symbol_resolver(NULL);
   result.set_is_in_fullsnapshot(false);
   result.StoreNonPointer(&result.raw_ptr()->corelib_imported_, true);
-  result.set_debuggable(false);
-  result.set_is_dart_scheme(url.StartsWith(Symbols::DartScheme()));
+  result.set_debuggable(!dart_private_scheme);
+  result.set_is_dart_scheme(dart_scheme);
   result.StoreNonPointer(&result.raw_ptr()->load_state_,
                          RawLibrary::kAllocated);
   result.StoreNonPointer(&result.raw_ptr()->index_, -1);

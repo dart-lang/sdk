@@ -241,6 +241,14 @@ static void PrintInvalidParamError(JSONStream* js,
 }
 
 
+static void PrintIllegalParamError(JSONStream* js,
+                                   const char* param) {
+  js->PrintError(kInvalidParams,
+                 "%s: illegal '%s' parameter: %s",
+                 js->method(), param, js->LookupParam(param));
+}
+
+
 static void PrintUnrecognizedMethodError(JSONStream* js) {
   js->PrintError(kMethodNotFound, NULL);
 }
@@ -3977,6 +3985,13 @@ static bool SetLibraryDebuggable(Thread* thread, JSONStream* js) {
       BoolParameter::Parse(js->LookupParam("isDebuggable"), false);
   if (obj.IsLibrary()) {
     const Library& lib = Library::Cast(obj);
+    if (lib.is_dart_scheme()) {
+      const String& url = String::Handle(lib.url());
+      if (url.StartsWith(Symbols::DartSchemePrivate())) {
+        PrintIllegalParamError(js, "libraryId");
+        return true;
+      }
+    }
     lib.set_debuggable(is_debuggable);
     PrintSuccess(js);
     return true;
