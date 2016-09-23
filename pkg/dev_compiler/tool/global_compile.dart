@@ -28,6 +28,8 @@ void main(List<String> args) {
         defaultsTo: 'out.js')
     ..addFlag('unsafe-force-compile',
         help: 'Generate code with undefined behavior', negatable: false)
+    ..addFlag('emit-metadata',
+        help: 'Preserve annotations in generated code', negatable: false)
     ..addOption('package-root',
         help: 'Directory containing packages',
         abbr: 'p',
@@ -47,16 +49,22 @@ void main(List<String> args) {
   var unsafe = options['unsafe-force-compile'] as bool;
   var log = options['log'] as bool;
   var tmp = options['tmp'] as String;
+  var metadata = options['emit-metadata'] as bool;
 
   // Build an invocation to dartdevc
   var dartPath = Platform.resolvedExecutable;
   var ddcPath = path.dirname(path.dirname(Platform.script.toFilePath()));
   var template = [
     '$ddcPath/bin/dartdevc.dart',
-    '--no-source-map', // Invalid as we're just concatenating files below
+    '--modules=legacy', // TODO(vsm): Change this to use common format.
+    '--single-out-file',
+    '--inline-source-map',
     '-p',
     packageRoot
   ];
+  if (metadata) {
+    template.add('--emit-metadata');
+  }
   if (unsafe) {
     template.add('--unsafe-force-compile');
   }
@@ -78,11 +86,12 @@ void main(List<String> args) {
   // Prepend Dart runtime files to the output
   var out = new File(outfile);
   var dartLibrary =
-      new File(path.join(ddcPath, 'lib', 'runtime', 'dart_library.js'))
+      new File(path.join(ddcPath, 'lib', 'js', 'legacy', 'dart_library.js'))
           .readAsStringSync();
   out.writeAsStringSync(dartLibrary);
-  var dartSdk = new File(path.join(ddcPath, 'lib', 'runtime', 'dart_sdk.js'))
-      .readAsStringSync();
+  var dartSdk =
+      new File(path.join(ddcPath, 'lib', 'js', 'legacy', 'dart_sdk.js'))
+          .readAsStringSync();
   out.writeAsStringSync(dartSdk, mode: FileMode.APPEND);
 
   // Linearize module concatenation for deterministic output

@@ -31,7 +31,6 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
     return units.map(cr.visitCompilationUnit).toList(growable: false);
   }
 
-
   /// Returns true if the `as` [node] was created by this class.
   // TODO(sra): Find a better way to recognize reified coercion, since we
   // can't set the isSynthetic attribute.
