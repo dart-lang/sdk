@@ -69,6 +69,8 @@ def to_gn_args(args):
 
   gn_args['dart_zlib_path'] = "//runtime/bin/zlib"
 
+  gn_args['dart_use_tcmalloc'] = gn_args['target_os'] == 'linux'
+
   gn_args['is_debug'] = args.mode == 'debug'
   gn_args['is_release'] = args.mode == 'release'
   gn_args['is_product'] = args.mode == 'product'

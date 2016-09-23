@@ -12,6 +12,10 @@ declare_args() {
   # VM, we set this to //runtime/bin/zlib where we have a BUILD.gn file without
   # a dependence on //base.
   dart_zlib_path = "//third_party/zlib"
+
+  # Whether to link the standalone VM against tcmalloc. The standalone build of
+  # the VM enables this only for Linux builds.
+  dart_use_tcmalloc = false
 }
 
 resources_sources_gypi =
@@ -516,6 +520,12 @@ template("dart_executable") {
       "$dart_zlib_path",
     ] + extra_deps
 
+    if (dart_use_tcmalloc) {
+      deps += [
+        "//third_party/tcmalloc",
+      ]
+    }
+
     defines = extra_defines
 
     sources = [
@@ -664,6 +674,12 @@ executable("run_vm_tests") {
   defines = [
     "TESTING",
   ]
+
+  if (dart_use_tcmalloc) {
+    deps += [
+      "//third_party/tcmalloc",
+    ]
+  }
 
   # The VM sources are already included in libdart, so we just want to add in
   # the tests here.

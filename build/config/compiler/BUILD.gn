@@ -114,6 +114,9 @@ config("compiler") {
       # so we do so here. Normal function visibility is controlled by
       # //build/config/gcc:symbol_visibility_hidden.
       "-fvisibility-inlines-hidden",
+
+      # We need the frame pointer for CPU and heap profiling.
+      "-fno-omit-frame-pointer",
     ]
     cflags_cc += common_flags
     cflags_objcc += common_flags
@@ -128,7 +131,6 @@ config("compiler") {
     # MemorySanitizer
     if (using_sanitizer) {
       cflags += [
-        "-fno-omit-frame-pointer",
         "-gline-tables-only",
       ]
     }
@@ -202,7 +204,7 @@ config("compiler") {
   # ----------------------------------
   if (is_mac) {
     # These flags are shared between the C compiler and linker.
-    common_mac_flags = []
+    common_mac_flags = [ "-fno-exceptions" ]
 
     # CPU architecture.
     if (current_cpu == "x64") {
@@ -243,16 +245,21 @@ config("compiler") {
       cflags += [
         "-m64",
         "-march=x86-64",
+        "-msse2",
       ]
       ldflags += [ "-m64" ]
     } else if (current_cpu == "x86") {
-      cflags += [ "-m32" ]
+      cflags += [
+        "-m32",
+        "-msse2",
+        "-mfpmath=sse",
+      ]
       ldflags += [ "-m32" ]
       if (is_clang) {
         cflags += [
           # Else building libyuv gives clang's register allocator issues,
           # see llvm.org/PR15798 / crbug.com/233709
-          "-momit-leaf-frame-pointer",
+          "-mno-omit-leaf-frame-pointer",
 
           # Align the stack on 16-byte boundaries, http://crbug.com/418554.
           "-mstack-alignment=16",
@@ -290,6 +297,15 @@ config("compiler") {
         ]
       }
     } else if (current_cpu == "mipsel") {
+      # We have to explicitly request exceptions to get good heap profiles from
+      # tcmalloc.
+      if (is_debug || is_release) {
+        cflags += [
+          "-fexceptions",
+          "-funwind-tables"
+        ]
+      }
+
       if (mips_arch_variant == "r6") {
         cflags += [
           "-mips32r6",
@@ -339,7 +355,9 @@ config("compiler") {
       }
     }
 
-    cflags += [ "-funwind-tables" ]
+    if (current_cpu != "mipsel") {
+      cflags += [ "-fno-exceptions" ]
+    }
   }
 
   # Linux/Android common flags setup.
@@ -897,7 +915,11 @@ config("no_optimize") {
     ]
     ldflags = common_optimize_on_ldflags
   } else {
-    cflags = [ "-O1" ]
+    cflags = [
+      "-O1",
+      "-fdata-sections",
+      "-ffunction-sections",
+    ]
   }
 }
 
