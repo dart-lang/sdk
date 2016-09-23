@@ -70,6 +70,8 @@ class Zone {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
+  Zone* previous() const { return previous_; }
+
  private:
   Zone();
   ~Zone();  // Delete all memory associated with the zone.

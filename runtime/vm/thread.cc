@@ -21,6 +21,7 @@
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
+#include "vm/zone.h"
 
 namespace dart {
 
@@ -420,6 +421,19 @@ uword Thread::GetAndClearInterrupts() {
   uword interrupt_bits = stack_limit_ & kInterruptsMask;
   stack_limit_ = saved_stack_limit_;
   return interrupt_bits;
+}
+
+
+bool Thread::ZoneIsOwnedByThread(Zone* zone) const {
+  ASSERT(zone != NULL);
+  Zone* current = zone_;
+  while (current != NULL) {
+    if (current == zone) {
+      return true;
+    }
+    current = current->previous();
+  }
+  return false;
 }
 
 

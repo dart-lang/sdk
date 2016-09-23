@@ -26,7 +26,7 @@ void* ZoneAllocated::operator new(uword size) {
 
 
 void* ZoneAllocated::operator new(uword size, Zone* zone) {
-  ASSERT(zone == Thread::Current()->zone());
+  ASSERT(Thread::Current()->ZoneIsOwnedByThread(zone));
   return Allocate(size, zone);
 }
 
