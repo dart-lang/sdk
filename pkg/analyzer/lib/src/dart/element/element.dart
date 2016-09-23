@@ -699,6 +699,18 @@ class ClassElementImpl extends AbstractClassElementImpl
     return false;
   }
 
+  /**
+   * Return `true` if the class has a `noSuchMethod()` method distinct from the
+   * one declared in class `Object`, as per the Dart Language Specification
+   * (section 10.4).
+   */
+  bool get hasNoSuchMethod {
+    MethodElement method =
+        lookUpMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
+    ClassElement definingClass = method?.enclosingElement;
+    return definingClass != null && !definingClass.type.isObject;
+  }
+
   @override
   bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
 

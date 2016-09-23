@@ -65,6 +65,71 @@ class JS {
     });
   }
 
+  void test_abstractSuperMemberReference_getter() {
+    Source source = addSource(r'''
+abstract class A {
+  int get test;
+}
+class B extends A {
+  int get test {
+    super.test;
+    return 0;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    verify([source]);
+  }
+
+  void test_abstractSuperMemberReference_method_invocation() {
+    Source source = addSource(r'''
+abstract class A {
+  void test();
+}
+class B extends A {
+  void test() {
+    super.test();
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    verify([source]);
+  }
+
+  void test_abstractSuperMemberReference_method_reference() {
+    Source source = addSource(r'''
+abstract class A {
+  void test();
+}
+class B extends A {
+  void test() {
+    super.test;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    verify([source]);
+  }
+
+  void test_abstractSuperMemberReference_setter() {
+    Source source = addSource(r'''
+abstract class A {
+  void set test(int v);
+}
+class B extends A {
+  void set test(int v){
+    super.test = 0;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    verify([source]);
+  }
+
   void test_argumentTypeNotAssignable_functionType() {
     Source source = addSource(r'''
 m() {
