@@ -1411,12 +1411,14 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
     // For now we just walk thru the AST nodes and in DEBUG mode we print
     // them otherwise just skip through them, this will be need to be
     // wired to generate the IR format.
+#if !defined(PRODUCT)
 #if defined(DEBUG)
     AstPrinter ast_printer(true);
 #else
     AstPrinter ast_printer(false);
 #endif  // defined(DEBUG).
     ast_printer.PrintFunctionNodes(*parsed_function);
+#endif  // !defined(PRODUCT).
     return Error::null();
   } else {
     Thread* const thread = Thread::Current();
