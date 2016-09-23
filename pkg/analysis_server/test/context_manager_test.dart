@@ -2335,6 +2335,58 @@ analyzer:
     expect(errorProcessors, isEmpty);
   }
 
+  test_optionsFile_update_strongMode() async {
+    var file = resourceProvider.newFile(
+        '$projPath/bin/test.dart',
+        r'''
+main() {
+  var paths = <int>[];
+  var names = <String>[];
+  paths.addAll(names.map((s) => s.length));
+}
+''');
+    resourceProvider.newFile(
+        '$projPath/$optionsFileName',
+        r'''
+analyzer:
+  strong-mode: false
+''');
+    // Create the context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+
+    AnalysisContext context = manager.getContextFor(projPath);
+    Source testSource = context.getSourcesWithFullName(file.path).single;
+
+    // Not strong mode - both in the context and the SDK context.
+    {
+      AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
+      expect(context.analysisOptions.strongMode, isFalse);
+      expect(sdkContext.analysisOptions.strongMode, isFalse);
+      expect(context.computeErrors(testSource), isEmpty);
+    }
+
+    // Update the options file - turn on 'strong-mode'.
+    resourceProvider.updateFile(
+        '$projPath/$optionsFileName',
+        r'''
+analyzer:
+  strong-mode: true
+''');
+    await pumpEventQueue();
+
+    // Strong mode - both in the context and the SDK context.
+    {
+      AnalysisContext context = manager.getContextFor(projPath);
+      AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
+      expect(context.analysisOptions.strongMode, isTrue);
+      expect(sdkContext.analysisOptions.strongMode, isTrue);
+      // The code is strong-mode clean.
+      // Verify that TypeSystem was reset.
+      expect(context.computeErrors(testSource), isEmpty);
+    }
+  }
+
   test_path_filter_analysis_option() async {
     // Create files.
     String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);

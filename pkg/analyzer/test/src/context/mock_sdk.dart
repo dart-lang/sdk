@@ -221,6 +221,7 @@ abstract class Iterable<E> {
 class List<E> implements Iterable<E> {
   List();
   void add(E value) {}
+  void addAll(Iterable<E> iterable) {}
   E operator [](int index) => null;
   void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;

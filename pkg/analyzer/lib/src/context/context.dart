@@ -329,6 +329,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.incrementalValidation = options.incrementalValidation;
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
+    if (this._options.strongMode != options.strongMode) {
+      _typeSystem = null;
+    }
     this._options.strongMode = options.strongMode;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
     this._options.finerGrainedInvalidation = options.finerGrainedInvalidation;

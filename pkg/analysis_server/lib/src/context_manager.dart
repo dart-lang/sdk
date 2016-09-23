@@ -885,13 +885,11 @@ class ContextManagerImpl implements ContextManager {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       var analysisContext = info.context;
       if (analysisContext is context.AnalysisContextImpl) {
-        // TODO(brianwilkerson) This doesn't correctly update the source factory
-        // if the changes necessitate it (such as by changing the setting of the
-        // strong-mode option).
         Map<String, Object> options = readOptions(info.folder);
         processOptionsForContext(info, options,
             optionsRemoved: changeType == ChangeType.REMOVE);
-        analysisContext.invalidateCachedResults();
+        analysisContext.sourceFactory = _createSourceFactory(
+            analysisContext, analysisContext.analysisOptions, info.folder);
         callbacks.applyChangesToContext(info.folder, new ChangeSet());
       }
     }
