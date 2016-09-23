@@ -65,7 +65,12 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('sanity-check', help: 'Perform slow internal correctness checks.')
   ..addFlag('tolerant',
       help: 'Generate kernel even if there are compile-time errors.',
-      defaultsTo: false);
+      defaultsTo: false)
+  ..addOption('D',
+      abbr: 'D',
+      allowMultiple: true,
+      help: 'Define an environment variable.',
+      hide: true);
 
 String getUsage() => """
 Usage: dartk [options] FILE
@@ -80,6 +85,8 @@ Examples:
 
 Options:
 ${parser.usage}
+
+    -D<name>=<value>        Define an environment variable.
 """;
 
 dynamic fail(String message) {
@@ -222,15 +229,17 @@ class BatchModeState {
     return packages;
   }
 
-  AnalysisContext getContext(
-      String sdk_, bool strongMode_, Map<Uri, Uri> customUriMappings) {
+  AnalysisContext getContext(String sdk_, bool strongMode_,
+      Map<Uri, Uri> customUriMappings, Map<String, String> declaredVariables) {
     if (dartSdk == null || this.sdk != sdk_ || this.strongMode != strongMode_) {
       this.sdk = sdk_;
       this.strongMode = strongMode_;
       dartSdk = createDartSdk(sdk_, strongMode_);
     }
     return createContext(sdk_, packages, strongMode_,
-        dartSdk: dartSdk, customUriMappings: customUriMappings);
+        dartSdk: dartSdk,
+        customUriMappings: customUriMappings,
+        declaredVariables: declaredVariables);
   }
 }
 
@@ -313,6 +322,18 @@ Future<CompilerOutcome> batchMain(
   TargetFlags targetFlags = new TargetFlags(strongMode: strongMode);
   Target target = getTarget(options['target'], targetFlags);
 
+  var declaredVariables = <String, String>{};
+  declaredVariables.addAll(target.extraDeclaredVariables);
+  for (String define in options['D']) {
+    int separator = define.indexOf('=');
+    if (separator == -1) {
+      fail('Invalid define: -D$define. Format is -D<name>=<value>');
+    }
+    String name = define.substring(0, separator);
+    String value = define.substring(separator + 1);
+    declaredVariables[name] = value;
+  }
+
   if (file.endsWith('.dill')) {
     var node = loadProgramOrLibraryFromBinary(file, repository);
     library = node is Library ? node : null;
@@ -320,7 +341,7 @@ Future<CompilerOutcome> batchMain(
     getLoadedFiles = () => [file];
   } else {
     AnalysisContext context = batchModeState.getContext(
-        repository.sdk, strongMode, customUriMappings);
+        repository.sdk, strongMode, customUriMappings, declaredVariables);
     AnalyzerLoader loader = new AnalyzerLoader(repository, context: context);
     if (options['link']) {
       program = loader.loadProgram(file, target: target);

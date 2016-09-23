@@ -36,7 +36,14 @@ abstract class Target {
   /// A list of URIs of required libraries, not including dart:core.
   ///
   /// Libraries will be loaded in order.
-  List<String> get extraRequiredLibraries;
+  List<String> get extraRequiredLibraries => <String>[];
+
+  /// Additional declared variables implied by this target.
+  ///
+  /// These can also be passed on the command-line of form `-D<name>=<value>`,
+  /// and those provided on the command-line take precedence over those defined
+  /// by the target.
+  Map<String, String> get extraDeclaredVariables => const <String, String>{};
 
   bool get strongMode;
 

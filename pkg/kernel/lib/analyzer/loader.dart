@@ -534,7 +534,8 @@ class CustomUriResolver extends UriResolver {
 }
 
 AnalysisContext createContext(String sdk, Packages packages, bool strongMode,
-    {DartSdk dartSdk, Map<Uri, Uri> customUriMappings}) {
+    {DartSdk dartSdk, Map<Uri, Uri> customUriMappings,
+     Map<String, String> declaredVariables : const <String, String>{}}) {
   dartSdk ??= createDartSdk(sdk, strongMode);
 
   var resourceProvider = PhysicalResourceProvider.INSTANCE;
@@ -559,6 +560,10 @@ AnalysisContext createContext(String sdk, Packages packages, bool strongMode,
   AnalysisContext context = AnalysisEngine.instance.createAnalysisContext()
     ..sourceFactory = new SourceFactory(resolvers)
     ..analysisOptions = createAnalysisOptions(strongMode);
+
+  declaredVariables.forEach((String name, String value) {
+    context.declaredVariables.define(name, value);
+  });
 
   return context;
 }
