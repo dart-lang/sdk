@@ -89,18 +89,18 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   // If we are in the process of running a sweep, wait for the sweeper to free
   // memory.
   Thread* thread = Thread::Current();
-  {
-    MonitorLocker ml(old_space_.tasks_lock());
-    addr = old_space_.TryAllocate(size, type);
-    while ((addr == 0) && (old_space_.tasks() > 0)) {
-      ml.WaitWithSafepointCheck(thread);
-      addr = old_space_.TryAllocate(size, type);
-    }
-  }
-  if (addr != 0) {
-    return addr;
-  }
   if (thread->CanCollectGarbage()) {
+    {
+      MonitorLocker ml(old_space_.tasks_lock());
+      addr = old_space_.TryAllocate(size, type);
+      while ((addr == 0) && (old_space_.tasks() > 0)) {
+        ml.WaitWithSafepointCheck(thread);
+        addr = old_space_.TryAllocate(size, type);
+      }
+    }
+    if (addr != 0) {
+      return addr;
+    }
     // All GC tasks finished without allocating successfully. Run a full GC.
     CollectAllGarbage();
     addr = old_space_.TryAllocate(size, type);

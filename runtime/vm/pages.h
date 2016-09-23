@@ -412,8 +412,13 @@ class PageSpace {
       // Unlimited.
       return true;
     }
-    ASSERT(CapacityInWords() <= max_capacity_in_words_);
-    return increase_in_words <= (max_capacity_in_words_ - CapacityInWords());
+    // TODO(issue 27413): Make the check against capacity and the bump
+    // of capacity atomic so that CapacityInWords does not exceed
+    // max_capacity_in_words_.
+    intptr_t free_capacity_in_words =
+        (max_capacity_in_words_ - CapacityInWords());
+    return ((free_capacity_in_words > 0) &&
+            (increase_in_words <= free_capacity_in_words));
   }
 
   FreeList freelist_[HeapPage::kNumPageTypes];

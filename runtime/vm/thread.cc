@@ -553,10 +553,13 @@ bool Thread::IsMutatorThread() const {
 
 
 bool Thread::CanCollectGarbage() const {
-  // We have non mutator threads grow the heap instead of triggering
-  // a garbage collection when they are at a safepoint (e.g: background
-  // compiler thread finalizing and installing code at a safepoint).
-  return (IsMutatorThread() || IsAtSafepoint());
+  // We grow the heap instead of triggering a garbage collection when a
+  // thread is at a safepoint in the following situations :
+  //   - background compiler thread finalizing and installing code
+  //   - disassembly of the generated code is done after compilation
+  // So essentially we state that garbage collection is possible only
+  // when we are not at a safepoint.
+  return !IsAtSafepoint();
 }
 
 

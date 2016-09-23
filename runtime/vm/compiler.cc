@@ -1316,9 +1316,12 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
         // We got an error during compilation.
         error = thread->sticky_error();
         thread->clear_sticky_error();
-        // The non-optimizing compiler should not bail out.
-        ASSERT(error.IsLanguageError() &&
-               LanguageError::Cast(error).kind() != Report::kBailout);
+        // The non-optimizing compiler can get an unhandled exception
+        // due to OOM or Stack overflow errors, it should not however
+        // bail out.
+        ASSERT(error.IsUnhandledException() ||
+               (error.IsLanguageError() &&
+                LanguageError::Cast(error).kind() != Report::kBailout));
         return error.raw();
       }
     }
@@ -1339,11 +1342,13 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
       SafepointOperationScope safepoint_scope(thread);
+      NoHeapGrowthControlScope no_growth_control;
       Disassembler::DisassembleCode(function, optimized);
     } else if (FLAG_disassemble_optimized &&
                optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
       SafepointOperationScope safepoint_scope(thread);
+      NoHeapGrowthControlScope no_growth_control;
       Disassembler::DisassembleCode(function, true);
     }
 
