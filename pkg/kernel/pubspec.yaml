@@ -9,6 +9,7 @@ dependencies:
 dev_dependencies:
   test: 0.12.15+6
   stack_trace: ^1.6.6
+  ansicolor: ^0.0.9
 dependency_overrides:
   analyzer: 0.29.0-alpha.1
   test: 0.12.15+6 # Override version constraint on package:test

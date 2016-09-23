@@ -13,6 +13,7 @@ import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/infer_values.dart' as infer_values;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/closure_conversion.dart' as closures;
+import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
 
 import 'batch_util.dart';
 
@@ -77,6 +78,9 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       break;
     case 'closures':
       program = closures.transformProgram(program);
+      break;
+    case 'treeshake':
+      program = treeshaker.transformProgram(program);
       break;
     default: throw 'Unknown transformation';
   }
