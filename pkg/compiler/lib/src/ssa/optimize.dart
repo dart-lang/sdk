@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
@@ -1013,22 +1014,51 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitStringify(HStringify node) {
     HInstruction input = node.inputs[0];
     if (input.isString(compiler)) return input;
-    if (input.isConstant()) {
+
+    HInstruction tryConstant() {
+      if (!input.isConstant()) return null;
       HConstant constant = input;
-      if (!constant.constant.isPrimitive) return node;
+      if (!constant.constant.isPrimitive) return null;
       if (constant.constant.isInt) {
         // Only constant-fold int.toString() when Dart and JS results the same.
         // TODO(18103): We should be able to remove this work-around when issue
         // 18103 is resolved by providing the correct string.
         IntConstantValue intConstant = constant.constant;
         // Very conservative range.
-        if (!intConstant.isUInt32()) return node;
+        if (!intConstant.isUInt32()) return null;
       }
       PrimitiveConstantValue primitive = constant.constant;
       return graph.addConstant(
           constantSystem.createString(primitive.toDartString()), compiler);
     }
-    return node;
+
+    HInstruction tryToString() {
+      // If the `toString` method is guaranteed to return a string we can call
+      // it directly. Keep the stringifier for primitives (since they have fast
+      // path code in the stringifier) and for classes requiring interceptors
+      // (since SsaInstructionSimplifier runs after SsaSimplifyInterceptors).
+      if (input.canBePrimitive(compiler)) return null;
+      if (input.canBeNull()) return null;
+      Selector selector = Selectors.toString_;
+      TypeMask toStringType = TypeMaskFactory.inferredTypeForSelector(
+          selector, input.instructionType, compiler);
+      ClassWorld classWorld = compiler.closedWorld;
+      if (!toStringType.containsOnlyString(classWorld)) return null;
+      // All intercepted classes extend `Interceptor`, so if the receiver can't
+      // be a class extending `Interceptor` then it can be called directly.
+      if (new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, classWorld)
+          .isDisjoint(input.instructionType, classWorld)) {
+        HInstruction result = new HInvokeDynamicMethod(
+            selector,
+            input.instructionType, // receiver mask.
+            <HInstruction>[input, input], // [interceptor, receiver].
+            toStringType)..sourceInformation = node.sourceInformation;
+        return result;
+      }
+      return null;
+    }
+
+    return tryConstant() ?? tryToString() ?? node;
   }
 
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
