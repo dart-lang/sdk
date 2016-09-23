@@ -346,6 +346,8 @@ class CloneVisitor extends TreeVisitor {
         isFinal: node.isFinal,
         isConst: node.isConst,
         isStatic: node.isStatic,
+        hasImplicitGetter: node.hasImplicitGetter,
+        hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags);
   }
 

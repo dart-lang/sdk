@@ -635,6 +635,19 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
+    // Only show implicit getter/setter modifiers in cases where they are
+    // out of the ordinary.
+    if (node.isStatic) {
+      writeModifier(node.hasImplicitGetter, '[getter]');
+      writeModifier(node.hasImplicitSetter, '[setter]');
+    } else {
+      writeModifier(!node.hasImplicitGetter, '[no-getter]');
+      if (node.isFinal) {
+        writeModifier(node.hasImplicitSetter, '[setter]');
+      } else {
+        writeModifier(!node.hasImplicitSetter, '[no-setter]');
+      }
+    }
     writeWord('field');
     writeSpace();
     writeAnnotatedType(node.type, annotator?.annotateField(this, node));

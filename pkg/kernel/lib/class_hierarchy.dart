@@ -306,8 +306,10 @@ class ClassHierarchy {
       }
       for (Field field in classNode.fields) {
         if (field.isStatic) continue;
-        members.add(field);
-        if (!field.isFinal) {
+        if (field.hasImplicitGetter) {
+          members.add(field);
+        }
+        if (field.hasImplicitSetter) {
           setters.add(field);
         }
       }
