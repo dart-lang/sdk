@@ -744,8 +744,12 @@ class Driver implements CommandLineStarter {
             exitCode: ErrorSeverity.ERROR.ordinal);
       }
     } else {
-      return new ContextBuilder(resourceProvider, null, null)
-          .getOptionsFile(options.sourceFiles.first);
+      filePath = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+      file = resourceProvider.getFile(filePath);
+      if (!file.exists) {
+        filePath = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+        file = resourceProvider.getFile(filePath);
+      }
     }
     return file;
   }
