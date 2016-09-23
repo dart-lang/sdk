@@ -6,10 +6,11 @@ library kernel.type_environment;
 import 'ast.dart';
 import 'class_hierarchy.dart';
 import 'core_types.dart';
+import 'type_algebra.dart';
 
 typedef void ErrorHandler(TreeNode node, String message);
 
-class TypeEnvironment {
+class TypeEnvironment extends SubtypeTester {
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
   DartType thisType;
@@ -90,7 +91,7 @@ class TypeEnvironment {
     Class class_ = member.enclosingClass;
     if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
       String name = member.name.name;
-      return name == '+' || name == '-' || name == '*';
+      return name == '+' || name == '-' || name == '*' || name == 'remainder';
     }
     return false;
   }
@@ -108,5 +109,108 @@ class TypeEnvironment {
     if (type1 == type2) return type1;
     if (type1 == doubleType || type2 == doubleType) return doubleType;
     return numType;
+  }
+}
+
+/// The part of [TypeEnvironment] that deals with subtype tests.
+///
+/// This lives in a separate class so it can be tested independently of the SDK.
+abstract class SubtypeTester {
+  InterfaceType get objectType;
+  InterfaceType get rawFunctionType;
+  ClassHierarchy get hierarchy;
+
+  /// Returns true if [subtype] is a subtype of [supertype].
+  bool isSubtypeOf(DartType subtype, DartType supertype) {
+    if (identical(subtype, supertype)) return true;
+    if (subtype is BottomType) return true;
+    if (supertype is DynamicType || supertype == objectType) {
+      return true;
+    }
+    if (subtype is InterfaceType && supertype is InterfaceType) {
+      InterfaceType upcastType =
+          hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);
+      if (upcastType == null) return false;
+      for (int i = 0; i < upcastType.typeArguments.length; ++i) {
+        // Termination: the 'supertype' parameter decreases in size.
+        if (!isSubtypeOf(
+            upcastType.typeArguments[i], supertype.typeArguments[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    if (subtype is TypeParameterType) {
+      if (supertype is TypeParameterType &&
+          subtype.parameter == supertype.parameter) {
+        return true;
+      }
+      // Termination: if there are no cyclically bound type parameters, this
+      // recursive call can only occur a finite number of times, before reaching
+      // a shrinking recursive call (or terminating).
+      return isSubtypeOf(subtype.parameter.bound, supertype);
+    }
+    if (subtype is FunctionType) {
+      if (supertype == rawFunctionType) return true;
+      if (supertype is FunctionType) {
+        return _isFunctionSubtypeOf(subtype, supertype);
+      }
+    }
+    return false;
+  }
+
+  bool _isFunctionSubtypeOf(FunctionType subtype, FunctionType supertype) {
+    if (subtype.requiredParameterCount > supertype.requiredParameterCount) {
+      return false;
+    }
+    if (subtype.positionalParameters.length <
+        supertype.positionalParameters.length) {
+      return false;
+    }
+    if (subtype.typeParameters.length != supertype.typeParameters.length) {
+      return false;
+    }
+    if (subtype.typeParameters.isNotEmpty) {
+      var substitution = <TypeParameter, DartType>{};
+      for (int i = 0; i < subtype.typeParameters.length; ++i) {
+        var subParameter = subtype.typeParameters[i];
+        var superParameter = supertype.typeParameters[i];
+        substitution[subParameter] = new TypeParameterType(superParameter);
+      }
+      for (int i = 0; i < subtype.typeParameters.length; ++i) {
+        var subParameter = subtype.typeParameters[i];
+        var superParameter = supertype.typeParameters[i];
+        var subBound = substitute(subParameter.bound, substitution);
+        // Termination: if there are no cyclically bound type parameters, this
+        // recursive call can only occur a finite number of times before
+        // reaching a shrinking recursive call (or terminating).
+        if (!isSubtypeOf(superParameter.bound, subBound)) {
+          return false;
+        }
+      }
+      subtype = substitute(subtype.withoutTypeParameters, substitution);
+    }
+    if (supertype.returnType is! VoidType &&
+        !isSubtypeOf(subtype.returnType, supertype.returnType)) {
+      return false;
+    }
+    for (int i = 0; i < supertype.positionalParameters.length; ++i) {
+      var supertypeParameter = supertype.positionalParameters[i];
+      var subtypeParameter = subtype.positionalParameters[i];
+      // Termination: Both types shrink in size.
+      if (!isSubtypeOf(supertypeParameter, subtypeParameter)) {
+        return false;
+      }
+    }
+    for (String name in supertype.namedParameters.keys) {
+      var supertypeParameter = supertype.namedParameters[name];
+      var subtypeParameter = subtype.namedParameters[name];
+      if (subtypeParameter == null) return false;
+      // Termination: Both types shrink in size.
+      if (!isSubtypeOf(supertypeParameter, subtypeParameter)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

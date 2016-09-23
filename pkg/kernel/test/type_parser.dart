@@ -134,6 +134,8 @@ class DartTypeParser {
         scanToken();
         String name = this.tokenText;
         if (name == '_') return const BottomType();
+        if (name == 'void') return const VoidType();
+        if (name == 'dynamic') return const DynamicType();
         var target = lookupType(name);
         if (target == null) {
           return fail('Unresolved type $name');
@@ -268,19 +270,33 @@ class DartTypeParser {
 }
 
 class LazyTypeEnvironment {
-  final Map<String, TreeNode> environment = <String, TreeNode>{};
+  final Map<String, Class> classes = <String, Class>{};
+  final Map<String, TypeParameter> typeParameters = <String, TypeParameter>{};
   final Library dummyLibrary = new Library(new Uri(path: 'dummy.dart'),
     name: 'lib');
 
   TreeNode lookup(String name) {
-    return environment.putIfAbsent(
-        name,
-        () => name.length == 1
-            ? new TypeParameter(name)
-            : new Class(name: name)..parent = dummyLibrary);
+    return name.length == 1
+        ? typeParameters.putIfAbsent(name, () => new TypeParameter(name))
+        : classes.putIfAbsent(name, () => makeClass(name));
+  }
+
+  Class makeClass(String name) {
+    var class_ = new Class(name: name);
+    dummyLibrary.addClass(class_);
+    return class_;
+  }
+
+  void clearTypeParameters() {
+    typeParameters.clear();
   }
 
   DartType parse(String type) => parseDartType(type, lookup);
+
+  DartType parseFresh(String type) {
+    clearTypeParameters();
+    return parse(type);
+  }
 
   TypeParameter getTypeParameter(String name) {
     if (name.length != 1) throw 'Type parameter names must have length 1';
