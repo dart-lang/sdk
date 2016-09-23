@@ -302,7 +302,8 @@ abstract class TestSuite {
 
     if (configuration['hot_reload'] || configuration['hot_reload_rollback']) {
       // Handle reload special cases.
-      if (expectations.contains(Expectation.COMPILETIME_ERROR)) {
+      if (expectations.contains(Expectation.COMPILETIME_ERROR) ||
+          testCase.hasCompileError || testCase.expectCompileError) {
         // Running a test that expects a compilation error with hot reloading
         // is redundant with a regular run of the test.
         return;
