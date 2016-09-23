@@ -2,10 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# TODO(zra): These build arguments should likely be moved to a gni file that is
-# included in BUILD.gn files that care about the values of the flags. For now,
-# since the GN build only happens as part of a Mojo build there is no need for
-# the indirection.
 declare_args() {
   # Instead of using is_debug, we introduce a different flag for specifying a
   # Debug build of Dart so that clients can still use a Release build of Dart
@@ -20,6 +16,10 @@ declare_args() {
   # CPU profiling features enabled.
   # 'release' - The VM is built to run with AOT compiled code with no developer
   # features enabled.
+  #
+  # These settings are only used for Flutter, at the moment. A standalone build
+  # of the Dart VM should leave this set to "develop", and should set
+  # 'is_debug', 'is_release', or 'is_product'.
   dart_runtime_mode = "develop"
 
   # Explicitly set the target architecture in case of precompilation. Leaving
@@ -36,8 +36,8 @@ config("dart_public_config") {
   ]
 }
 
-# Controls PRODUCT #define.
-config("dart_product_config") {
+# Adds PRODUCT define if Flutter has specified "release" for dart_runtime_mode
+config("dart_maybe_product_config") {
   defines = []
 
   if ((dart_runtime_mode != "develop") &&
@@ -56,8 +56,9 @@ config("dart_product_config") {
   }
 }
 
-# Controls DART_PRECOMPILED_RUNTIME #define.
-config("dart_precompiled_runtime_config") {
+# Adds the DART_PRECOMPILED_RUNTIME define if Flutter has specified "profile" or
+# "release" for dart_runtime_mode.
+config("dart_maybe_precompiled_runtime_config") {
   defines = []
 
   if ((dart_runtime_mode != "develop") &&
@@ -83,10 +84,20 @@ config("dart_precompiled_runtime_config") {
   }
 }
 
+config("dart_precompiled_runtime_config") {
+  defines = []
+  defines += ["DART_PRECOMPILED_RUNTIME"]
+}
+
 # Controls DART_PRECOMPILER #define.
 config("dart_precompiler_config") {
   defines = []
   defines += ["DART_PRECOMPILER"]
+}
+
+config("dart_no_snapshot_config") {
+  defines = []
+  defines += ["DART_NO_SNAPSHOT"]
 }
 
 config("dart_config") {
@@ -97,23 +108,39 @@ config("dart_config") {
   }
 
   if (dart_target_arch != "") {
-    if (dart_target_arch == "arm") {
+    if ((dart_target_arch == "arm") ||
+        (dart_target_arch == "simarm")) {
       defines += [ "TARGET_ARCH_ARM" ]
       if (target_os == "mac" || target_os == "ios") {
         defines += [ "TARGET_ABI_IOS" ]
       } else {
         defines += [ "TARGET_ABI_EABI" ]
       }
-    } else if (dart_target_arch == "arm64") {
+    } else if ((dart_target_arch == "armv6") ||
+               (dart_target_arch == "simarmv6")) {
+      defines += [ "TARGET_ARCH_ARM" ]
+      defines += [ "TARGET_ARCH_ARM_6" ]
+      defines += [ "TARGET_ABI_EABI" ]
+    } else if ((dart_target_arch == "armv5te") ||
+               (dart_target_arch == "simarmv5te")) {
+      defines += [ "TARGET_ARCH_ARM" ]
+      defines += [ "TARGET_ARCH_ARM_5TE" ]
+      defines += [ "TARGET_ABI_EABI" ]
+    } else if ((dart_target_arch == "arm64") ||
+               (dart_target_arch == "simarm64")) {
       defines += [ "TARGET_ARCH_ARM64" ]
-    } else if (dart_target_arch == "mips") {
+    } else if ((dart_target_arch == "mips") ||
+               (dart_target_arch == "simmips")) {
       defines += [ "TARGET_ARCH_MIPS" ]
     } else if (dart_target_arch == "x64") {
       defines += [ "TARGET_ARCH_X64" ]
     } else if (dart_target_arch == "ia32") {
       defines += [ "TARGET_ARCH_IA32" ]
-    } else if (dart_target_arch == "dbc") {
+    } else if ((dart_target_arch == "dbc") ||
+               (dart_target_arch == "simdbc") ||
+               (dart_target_arch == "simdbc64")) {
       defines += [ "TARGET_ARCH_DBC" ]
+      defines += [ "USING_SIMULATOR" ]
     } else  {
       print("Invalid |dart_target_arch|")
       assert(false)
@@ -159,31 +186,97 @@ config("dart_config") {
   }
 }
 
-static_library("libdart") {
-  configs += [":dart_config",
-              ":dart_product_config",
-              ":dart_precompiled_runtime_config"]
-  deps = [
+template("libdart_library") {
+  extra_configs = []
+  if (defined(invoker.extra_configs)) {
+    extra_configs += invoker.extra_configs
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  static_library(target_name) {
+    configs += [
+      ":dart_config",
+      ":dart_maybe_product_config"
+    ] + extra_configs
+    deps = [
+      "vm:libdart_platform",
+      "third_party/double-conversion/src:libdouble_conversion",
+      ":generate_version_cc_file",
+    ] + extra_deps
+    include_dirs = [
+      ".",
+    ]
+    public_configs = [":dart_public_config"]
+    sources = [
+      "include/dart_api.h",
+      "include/dart_mirrors_api.h",
+      "include/dart_native_api.h",
+      "include/dart_tools_api.h",
+      "vm/dart_api_impl.cc",
+      "vm/debugger_api_impl.cc",
+      "vm/mirrors_api_impl.cc",
+      "vm/native_api_impl.cc",
+      "vm/version.h",
+      "$target_gen_dir/version.cc",
+    ]
+    defines = [
+      "DART_SHARED_LIB",
+    ]
+  }
+}
+
+libdart_library("libdart") {
+  extra_configs = [
+    ":dart_maybe_precompiled_runtime_config"
+  ]
+  extra_deps = [
     "vm:libdart_lib",
     "vm:libdart_vm",
-    "third_party/double-conversion/src:libdouble_conversion",
-    ":generate_version_cc_file",
   ]
-  include_dirs = [
-    ".",
+}
+
+libdart_library("libdart_precompiled_runtime") {
+  extra_configs = [
+    ":dart_precompiled_runtime_config"
   ]
-  public_configs = [":dart_public_config"]
-  sources = [
-    "include/dart_api.h",
-    "include/dart_mirrors_api.h",
-    "include/dart_native_api.h",
-    "include/dart_tools_api.h",
-    "vm/dart_api_impl.cc",
-    "vm/debugger_api_impl.cc",
-    "vm/mirrors_api_impl.cc",
-    "vm/native_api_impl.cc",
-    "vm/version.h",
-    "$target_gen_dir/version.cc",
+  extra_deps = [
+    "vm:libdart_lib_precompiled_runtime",
+    "vm:libdart_vm_precompiled_runtime",
+  ]
+}
+
+libdart_library("libdart_nosnapshot") {
+  extra_configs = [
+    ":dart_no_snapshot_config",
+    ":dart_maybe_precompiled_runtime_config"
+  ]
+  extra_deps = [
+    "vm:libdart_lib_nosnapshot",
+    "vm:libdart_vm_nosnapshot",
+  ]
+}
+
+libdart_library("libdart_nosnapshot_precompiled_runtime") {
+  extra_configs = [
+    ":dart_no_snapshot_config",
+    ":dart_precompiled_runtime_config"
+  ]
+  extra_deps = [
+    "vm:libdart_lib_nosnapshot_precompiled_runtime",
+    "vm:libdart_vm_nosnapshot_precompiled_runtime",
+  ]
+}
+
+libdart_library("libdart_nosnapshot_with_precompiler") {
+  extra_configs = [
+    ":dart_no_snapshot_config",
+    ":dart_precompiler_config",
+  ]
+  extra_deps = [
+    "vm:libdart_lib_nosnapshot_with_precompiler",
+    "vm:libdart_vm_nosnapshot_with_precompiler",
   ]
 }
 
@@ -211,8 +304,7 @@ action("generate_version_cc_file") {
 
 executable("libdart_dependency_helper") {
   configs += [":dart_config",
-              ":dart_product_config",
-              ":dart_precompiled_runtime_config"]
+              ":dart_maybe_product_config"]
   deps = [
     "vm:libdart_lib_nosnapshot",
     "vm:libdart_lib",

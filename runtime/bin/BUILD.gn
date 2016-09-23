@@ -6,6 +6,12 @@ declare_args() {
   # Whether to fall back to built-in root certificates when they cannot be
   # verified at the operating system level.
   dart_use_fallback_root_certificates = false
+
+  # The BUILD.gn file that we pull from chromium as part of zlib has a
+  # dependence on //base, which we don't pull in. In a standalone build of the
+  # VM, we set this to //runtime/bin/zlib where we have a BUILD.gn file without
+  # a dependence on //base.
+  dart_zlib_path = "//third_party/zlib"
 }
 
 resources_sources_gypi =
@@ -37,7 +43,6 @@ action("gen_resources_cc") {
   ] + rebase_path(sources, root_build_dir)
 }
 
-
 template("gen_library_src_path") {
   assert(defined(invoker.sources), "Need sources in $target_name")
   assert(defined(invoker.output), "Need output in $target_name")
@@ -51,16 +56,19 @@ template("gen_library_src_path") {
     outputs = [ invoker.output, ]
     name = invoker.name
     kind = invoker.kind
+    library_name = "dart:${name}"
+    if (defined(invoker.library_name)) {
+      library_name = invoker.library_name
+    }
     args = [
       "--output", rebase_path(invoker.output, root_build_dir),
       "--input_cc", rebase_path("builtin_in.cc", root_build_dir),
       "--include", "bin/builtin.h",
       "--var_name", "dart::bin::Builtin::${name}_${kind}_paths_",
-      "--library_name", "dart:${name}",] +
+      "--library_name", library_name,] +
       rebase_path(invoker.sources, root_build_dir)
   }
 }
-
 
 builtin_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
@@ -74,7 +82,6 @@ gen_library_src_path("generate_builtin_cc_file") {
   sources = builtin_sources_gypi.sources
   output = "$target_gen_dir/builtin_gen.cc"
 }
-
 
 sdk_io_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
@@ -104,13 +111,104 @@ gen_library_src_path("generate_io_patch_cc_file") {
   output = "$target_gen_dir/io_patch_gen.cc"
 }
 
+gen_library_src_path("generate_html_cc_file") {
+  name = "html"
+  kind = "source"
+  sources = ["../../sdk/lib/html/dartium/html_dartium.dart"]
+  output = "$target_gen_dir/html_gen.cc"
+}
+
+gen_library_src_path("generate_html_common_cc_file") {
+  name = "html_common"
+  kind = "source"
+  sources = [
+    "../../sdk/lib/html/html_common/html_common.dart",
+    "../../sdk/lib/html/html_common/css_class_set.dart",
+    "../../sdk/lib/html/html_common/device.dart",
+    "../../sdk/lib/html/html_common/filtered_element_list.dart",
+    "../../sdk/lib/html/html_common/lists.dart",
+    "../../sdk/lib/html/html_common/conversions.dart",
+    "../../sdk/lib/html/html_common/conversions_dartium.dart",
+  ]
+  output = "$target_gen_dir/html_common_gen.cc"
+}
+
+gen_library_src_path("generate_js_cc_file") {
+  name = "js"
+  kind = "source"
+  sources = ["../../sdk/lib/js/dartium/js_dartium.dart"]
+  output = "$target_gen_dir/js_gen.cc"
+}
+
+gen_library_src_path("generate_blink_cc_file") {
+  name = "_blink"
+  kind = "source"
+  sources = ["../../sdk/lib/_blink/dartium/_blink_dartium.dart"]
+  output = "$target_gen_dir/blink_gen.cc"
+}
+
+gen_library_src_path("generate_indexed_db_cc_file") {
+  name = "indexed_db"
+  kind = "source"
+  sources = ["../../sdk/lib/indexed_db/dartium/indexed_db_dartium.dart"]
+  output = "$target_gen_dir/indexed_db_gen.cc"
+}
+
+gen_library_src_path("generate_cached_patches_cc_file") {
+  name = "cached_patches"
+  library_name = "cached_patches.dart"
+  kind = "sources"
+  sources = ["../../sdk/lib/js/dartium/cached_patches.dart"]
+  output = "$target_gen_dir/cached_patches_gen.cc"
+}
+
+gen_library_src_path("generate_web_gl_cc_file") {
+  name = "web_gl"
+  kind = "source"
+  sources = ["../../sdk/lib/web_gl/dartium/web_gl_dartium.dart"]
+  output = "$target_gen_dir/web_gl_gen.cc"
+}
+
+gen_library_src_path("generate_metadata_cc_file") {
+  name = "metadata"
+  library_name = "metadata.dart"
+  kind = "source"
+  sources = ["../../sdk/lib/html/html_common/metadata.dart"]
+  output = "$target_gen_dir/metadata_gen.cc"
+}
+
+gen_library_src_path("generate_web_sql_cc_file") {
+  name = "web_sql"
+  kind = "source"
+  sources = ["../../sdk/lib/web_sql/dartium/web_sql_dartium.dart"]
+  output = "$target_gen_dir/web_sql_gen.cc"
+}
+
+gen_library_src_path("generate_svg_cc_file") {
+  name = "svg"
+  kind = "source"
+  sources = ["../../sdk/lib/svg/dartium/svg_dartium.dart"]
+  output = "$target_gen_dir/svg_gen.cc"
+}
+
+gen_library_src_path("generate_web_audio_cc_file") {
+  name = "web_audio"
+  kind = "source"
+  sources = ["../../sdk/lib/web_audio/dartium/web_audio_dartium.dart"]
+  output = "$target_gen_dir/web_audio_gen.cc"
+}
 
 config("libdart_builtin_config") {
   libs = [
     "dl",
   ]
+  if (is_android) {
+    libs += [
+      "android",
+      "log",
+    ]
+  }
 }
-
 
 builtin_impl_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
@@ -119,12 +217,24 @@ builtin_impl_sources_gypi =
                 ["builtin_impl_sources.gypi"])
 
 static_library("libdart_builtin") {
-  configs += ["..:dart_config", "..:dart_product_config"]
+  configs += ["..:dart_config",
+              "..:dart_maybe_product_config"]
   public_configs = [":libdart_builtin_config"]
   deps = [
     ":generate_builtin_cc_file",
     ":generate_io_cc_file",
     ":generate_io_patch_cc_file",
+    ":generate_html_cc_file",
+    ":generate_html_common_cc_file",
+    ":generate_js_cc_file",
+    ":generate_blink_cc_file",
+    ":generate_indexed_db_cc_file",
+    ":generate_cached_patches_cc_file",
+    ":generate_web_gl_cc_file",
+    ":generate_metadata_cc_file",
+    ":generate_web_sql_cc_file",
+    ":generate_svg_cc_file",
+    ":generate_web_audio_cc_file",
   ]
   include_dirs = [
     "..",
@@ -139,74 +249,6 @@ static_library("libdart_builtin") {
   ] + builtin_impl_sources_gypi.sources
 }
 
-
-static_library("libdart_nosnapshot") {
-  configs += ["..:dart_config",
-              "..:dart_product_config",
-              "..:dart_precompiled_runtime_config"]
-  deps = [
-    "../vm:libdart_lib_nosnapshot",
-    "../vm:libdart_vm_nosnapshot",
-    "../vm:libdart_platform",
-    "../third_party/double-conversion/src:libdouble_conversion",
-    "..:generate_version_cc_file",
-  ]
-
-  sources = [
-    "../include/dart_api.h",
-    "../include/dart_mirrors_api.h",
-    "../include/dart_native_api.h",
-    "../include/dart_tools_api.h",
-    "../vm/dart_api_impl.cc",
-    "../vm/debugger_api_impl.cc",
-    "../vm/mirrors_api_impl.cc",
-    "../vm/native_api_impl.cc",
-    "$target_gen_dir/../version.cc",
-  ]
-
-  include_dirs = [
-    "..",
-  ]
-
-  defines = [
-    "DART_SHARED_LIB",
-  ]
-}
-
-
-static_library("libdart_nosnapshot_with_precompiler") {
-  configs += ["..:dart_config",
-              "..:dart_product_config",
-              "..:dart_precompiler_config"]
-  deps = [
-    "../vm:libdart_lib_nosnapshot_with_precompiler",
-    "../vm:libdart_vm_nosnapshot_with_precompiler",
-    "../vm:libdart_platform",
-    "../third_party/double-conversion/src:libdouble_conversion",
-    "..:generate_version_cc_file",
-  ]
-
-  sources = [
-    "../include/dart_api.h",
-    "../include/dart_mirrors_api.h",
-    "../include/dart_native_api.h",
-    "../include/dart_tools_api.h",
-    "../vm/dart_api_impl.cc",
-    "../vm/debugger_api_impl.cc",
-    "../vm/mirrors_api_impl.cc",
-    "../vm/native_api_impl.cc",
-    "$target_gen_dir/../version.cc",
-  ]
-
-  include_dirs = [
-    "..",
-  ]
-
-  defines = [
-    "DART_SHARED_LIB",
-  ]
-}
-
 io_impl_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
                 [ rebase_path("io_impl_sources.gypi") ],
@@ -215,7 +257,7 @@ io_impl_sources_gypi =
 
 executable("gen_snapshot") {
   configs += ["..:dart_config",
-              "..:dart_product_config",
+              "..:dart_maybe_product_config",
               "..:dart_precompiler_config"]
   deps = [
     ":gen_resources_cc",
@@ -224,7 +266,7 @@ executable("gen_snapshot") {
     ":generate_io_cc_file",
     ":generate_io_patch_cc_file",
     ":libdart_builtin",
-    ":libdart_nosnapshot_with_precompiler",
+    "..:libdart_nosnapshot_with_precompiler",
   ]
 
   sources = [
@@ -260,11 +302,11 @@ executable("gen_snapshot") {
 # (without secure sockets) suitable for linking with gen_snapshot.
 source_set("gen_snapshot_dart_io") {
   configs += ["..:dart_config",
-              "..:dart_product_config",
+              "..:dart_maybe_product_config",
               "..:dart_precompiler_config"]
 
   deps = [
-    "//third_party/zlib",
+    "$dart_zlib_path",
   ]
 
   custom_sources_filter = [
@@ -299,22 +341,16 @@ source_set("gen_snapshot_dart_io") {
 
 source_set("libdart_embedder_noio") {
   configs += ["..:dart_config",
-              "..:dart_product_config",
-              "..:dart_precompiled_runtime_config"]
+              "..:dart_maybe_product_config"]
   deps = [
     "..:libdart",
-    "../vm:libdart_platform",
   ]
 }
 
-
-# A source set for the implementation of 'dart:io' library
-# (without secure sockets).
+# A source set for the implementation of 'dart:io' library.
 source_set("embedded_dart_io") {
   configs += ["..:dart_config",
-              "..:dart_product_config",
-              "..:dart_precompiled_runtime_config"]
-
+              "..:dart_maybe_product_config"]
   custom_sources_filter = [
     "*_test.cc",
     "*_test.h",
@@ -330,6 +366,7 @@ source_set("embedded_dart_io") {
   }
   set_sources_assignment_filter(custom_sources_filter)
 
+  defines = []
   if (is_mac || is_ios) {
     libs = [
       "CoreFoundation.framework",
@@ -337,18 +374,13 @@ source_set("embedded_dart_io") {
       "Security.framework",
     ]
   } else if (defined(is_fuchsia) && is_fuchsia) {
-    defines = [
+    defines += [
       "DART_IO_SECURE_SOCKET_DISABLED"
     ]
   } else {
     deps = [
       "//third_party/boringssl",
     ]
-    if (is_linux && !dart_use_fallback_root_certificates) {
-        defines = [
-          "DART_IO_ROOT_CERTS_DISABLED"
-        ]
-    }
   }
 
   sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
@@ -366,8 +398,14 @@ source_set("embedded_dart_io") {
     "log.h",
   ]
 
-  if (is_linux && dart_use_fallback_root_certificates) {
-    sources += [ "//third_party/root_certificates/root_certificates.cc"]
+  if (is_linux || is_win) {
+    if (dart_use_fallback_root_certificates) {
+      sources += [ "//third_party/root_certificates/root_certificates.cc"]
+    } else {
+      defines += [
+        "DART_IO_ROOT_CERTS_DISABLED",
+      ]
+    }
   }
 
   include_dirs = [
@@ -375,7 +413,6 @@ source_set("embedded_dart_io") {
     "//third_party"
   ]
 }
-
 
 action("generate_snapshot_bin") {
   deps = [
@@ -409,7 +446,6 @@ action("generate_snapshot_bin") {
   ]
 }
 
-
 action("generate_snapshot_file") {
   deps = [
     ":generate_snapshot_bin",
@@ -440,7 +476,6 @@ action("generate_snapshot_file") {
   ]
 }
 
-
 source_set("dart_snapshot_cc") {
   sources = [
     "$root_gen_dir/dart_snapshot.cc",
@@ -451,122 +486,98 @@ source_set("dart_snapshot_cc") {
   ]
 }
 
+template("dart_executable") {
+  extra_configs = []
+  if (defined(invoker.extra_configs)) {
+    extra_configs += invoker.extra_configs
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  extra_defines = []
+  if (defined(invoker.extra_defines)) {
+    extra_defines = invoker.extra_defines
+  }
+  extra_sources = []
+  if (defined(invoker.extra_sources)) {
+    extra_sources += invoker.extra_sources
+  }
+  executable(target_name) {
+    configs += [
+      "..:dart_config",
+      "..:dart_maybe_product_config"
+    ] + extra_configs
+
+    deps = [
+      ":gen_resources_cc",
+      ":embedded_dart_io",
+      ":libdart_builtin",
+      "$dart_zlib_path",
+    ] + extra_deps
+
+    defines = extra_defines
+
+    sources = [
+      "main.cc",
+      "vmservice_impl.cc",
+      "vmservice_impl.h",
+      "$target_gen_dir/resources_gen.cc",
+    ] + extra_sources
+
+    include_dirs = [
+      "..",
+      "//third_party",
+    ]
+
+    ldflags = [
+      "-rdynamic",
+    ]
+  }
+}
+
+if (!defined(is_fuchsia) || !is_fuchsia) {
+  dart_executable("dart") {
+    extra_deps = [
+      "..:libdart",
+      ":dart_snapshot_cc",
+      "../observatory:standalone_observatory_archive",
+    ]
+  }
+
+  dart_executable("dart_precompiled_runtime") {
+    extra_configs = [
+      "..:dart_precompiled_runtime_config"
+    ]
+    extra_deps = [
+      "..:libdart_precompiled_runtime",
+      ":dart_snapshot_cc",
+      "../observatory:standalone_observatory_archive",
+    ]
+  }
+}
+
+dart_executable("dart_bootstrap") {
+  extra_configs = [
+    "..:dart_precompiler_config",
+    "..:dart_no_snapshot_config",
+  ]
+  extra_deps = [
+    "..:libdart",
+  ]
+  extra_defines = [
+    "NO_OBSERVATORY",
+  ]
+  extra_sources = [
+    "observatory_assets_empty.cc",
+    "snapshot_empty.cc",
+  ]
+}
+
 if (defined(is_fuchsia) && is_fuchsia) {
   copy("hello_fuchsia") {
     sources = [ "../tests/vm/dart/hello_fuchsia_test.dart" ]
     outputs = [ "$root_out_dir/hello_fuchsia.dart" ]
-  }
-}
-
-executable("dart_no_observatory") {
-  configs += ["..:dart_config",
-              "..:dart_product_config",
-              "..:dart_precompiled_runtime_config",]
-  deps = [
-    ":gen_resources_cc",
-    ":embedded_dart_io",
-    ":libdart_builtin",
-    "../vm:libdart_platform",
-    "..:libdart",
-    ":dart_snapshot_cc",
-    "//third_party/zlib",
-  ]
-
-  if (defined(is_fuchsia) && is_fuchsia) {
-    deps += [
-      ":hello_fuchsia",
-    ]
-  }
-
-  defines = [
-    "NO_OBSERVATORY",
-  ]
-
-  sources = [
-    "main.cc",
-    "observatory_assets_empty.cc",
-    "vmservice_impl.cc",
-    "vmservice_impl.h",
-    "$target_gen_dir/resources_gen.cc",
-  ]
-
-  include_dirs = [
-    "..",
-    "//third_party",
-  ]
-}
-
-
-if (defined(is_fuchsia) && is_fuchsia) {
-  action("generate_snapshot_test_dat_file") {
-    snapshot_test_dat_file = "$root_gen_dir/snapshot_test.dat"
-    snapshot_test_in_dat_file = "../vm/snapshot_test_in.dat"
-    snapshot_test_dart_file = "../vm/snapshot_test.dart"
-    inputs = [
-      "../tools/create_string_literal.py",
-      snapshot_test_in_dat_file,
-      snapshot_test_dart_file,
-    ]
-
-    outputs = [
-      snapshot_test_dat_file,
-    ]
-
-    script = "../tools/create_string_literal.py"
-    args = [
-      "--output",
-      rebase_path(snapshot_test_dat_file),
-      "--input_cc",
-      rebase_path(snapshot_test_in_dat_file),
-      "--include",
-      "INTENTIONALLY_LEFT_BLANK",
-      "--var_name",
-      "INTENTIONALLY_LEFT_BLANK_TOO",
-      rebase_path(snapshot_test_dart_file),
-    ]
-  }
-
-  executable("run_vm_tests") {
-    testonly = true
-    configs += ["..:dart_config",
-                "..:dart_product_config",
-                "..:dart_precompiled_runtime_config",]
-    deps = [
-      "..:libdart",
-      ":libdart_builtin",
-      ":embedded_dart_io",
-      ":dart_snapshot_cc",
-      ":generate_snapshot_test_dat_file",
-      "../vm:libdart_platform",
-      "//third_party/zlib",
-    ]
-    include_dirs = [
-      "..",
-      "$target_gen_dir",
-    ]
-    defines = [
-      "TESTING",
-    ]
-
-    vm_tests_list = exec_script("../../tools/gypi_to_gn.py",
-                                  [rebase_path("../vm/vm_sources.gypi"),
-                                   "--keep_only=_test.cc",
-                                   "--keep_only=_test.h",],
-                                  "scope",
-                                  ["../vm/vm_sources.gypi"])
-    vm_tests = rebase_path(vm_tests_list.sources, ".", "../vm")
-
-    builtin_impl_tests_list =
-        exec_script("../../tools/gypi_to_gn.py",
-                    [rebase_path("builtin_impl_sources.gypi"),
-                     "--keep_only=_test.cc",
-                     "--keep_only=_test.h",],
-                    "scope",
-                    ["builtin_impl_sources.gypi"])
-
-    sources = [
-      "run_vm_tests.cc",
-    ] + builtin_impl_tests_list.sources + vm_tests
   }
 
   executable("run_vm_tests_fuchsia") {
@@ -581,4 +592,138 @@ if (defined(is_fuchsia) && is_fuchsia) {
       "runtime",
     ]
   }
-}  # defined(is_fuchsia) && is_fuchsia
+}
+
+# This is only needed for the Fuchsia target build until the Observatory is
+# supported.
+dart_executable("dart_no_observatory") {
+  extra_deps = [
+    "..:libdart",
+    ":dart_snapshot_cc",
+  ]
+  if (defined(is_fuchsia) && is_fuchsia) {
+    extra_deps += [ ":hello_fuchsia" ]
+  }
+  extra_defines = [
+    "NO_OBSERVATORY",
+  ]
+  extra_sources = [
+    "observatory_assets_empty.cc",
+  ]
+}
+
+executable("process_test") {
+  sources = [
+    "process_test.cc",
+  ]
+}
+
+action("generate_snapshot_test_dat_file") {
+  snapshot_test_dat_file = "$root_gen_dir/snapshot_test.dat"
+  snapshot_test_in_dat_file = "../vm/snapshot_test_in.dat"
+  snapshot_test_dart_file = "../vm/snapshot_test.dart"
+  inputs = [
+    "../tools/create_string_literal.py",
+    snapshot_test_in_dat_file,
+    snapshot_test_dart_file,
+  ]
+
+  outputs = [
+    snapshot_test_dat_file,
+  ]
+
+  script = "../tools/create_string_literal.py"
+  args = [
+    "--output",
+    rebase_path(snapshot_test_dat_file),
+    "--input_cc",
+    rebase_path(snapshot_test_in_dat_file),
+    "--include",
+    "INTENTIONALLY_LEFT_BLANK",
+    "--var_name",
+    "INTENTIONALLY_LEFT_BLANK_TOO",
+    rebase_path(snapshot_test_dart_file),
+  ]
+}
+
+executable("run_vm_tests") {
+  configs += ["..:dart_config",
+              "..:dart_maybe_product_config"]
+  deps = [
+    "..:libdart",
+    ":libdart_builtin",
+    ":embedded_dart_io",
+    ":dart_snapshot_cc",
+    ":generate_snapshot_test_dat_file",
+    "$dart_zlib_path",
+  ]
+  include_dirs = [
+    "..",
+    "$target_gen_dir",
+  ]
+  defines = [
+    "TESTING",
+  ]
+
+  # The VM sources are already included in libdart, so we just want to add in
+  # the tests here.
+  vm_tests_list = exec_script("../../tools/gypi_to_gn.py",
+                                [rebase_path("../vm/vm_sources.gypi"),
+                                 "--keep_only=_test.cc",
+                                 "--keep_only=_test.h",],
+                                "scope",
+                                ["../vm/vm_sources.gypi"])
+  vm_tests = rebase_path(vm_tests_list.sources, ".", "../vm")
+
+  builtin_impl_tests_list =
+      exec_script("../../tools/gypi_to_gn.py",
+                  [rebase_path("builtin_impl_sources.gypi"),
+                   "--keep_only=_test.cc",
+                   "--keep_only=_test.h",],
+                  "scope",
+                  ["builtin_impl_sources.gypi"])
+
+  sources = [
+    "run_vm_tests.cc",
+  ] + builtin_impl_tests_list.sources + vm_tests
+
+  ldflags = [
+    "-rdynamic",
+  ]
+}
+
+if (!defined(is_fuchsia) || !is_fuchsia) {
+  shared_library("test_extension") {
+    deps = [
+      ":dart",
+    ]
+    sources = [
+      "test_extension.c",
+      "test_extension_dllmain_win.cc",
+    ]
+    include_dirs = [
+      "..",
+    ]
+    defines = [
+      # The only effect of DART_SHARED_LIB is to export the Dart API.
+      "DART_SHARED_LIB",
+    ]
+  }
+
+  shared_library("sample_extension") {
+    deps = [
+      ":dart",
+    ]
+    sources = [
+      "../../samples/sample_extension/sample_extension.cc",
+      "../../samples/sample_extension/sample_extension_dllmain_win.cc",
+    ]
+    include_dirs = [
+      "..",
+    ]
+    defines = [
+      # The only effect of DART_SHARED_LIB is to export the Dart API.
+      "DART_SHARED_LIB",
+    ]
+  }
+}
