@@ -8,7 +8,6 @@ import '../ast.dart';
 import 'tag.dart';
 import 'dart:io';
 import 'ast_from_binary.dart';
-import 'package:path/path.dart' as pathlib;
 
 abstract class BinaryReferenceLoader {
   Library getLibraryReference(Library from, String relativePath);
@@ -110,55 +109,15 @@ class BinaryLoader implements BinaryReferenceLoader {
     }
   }
 
-  void ensureLibraryIsLoaded(Library node) {
-    if (node.isLoaded) return;
-    _buildLibraryBody(node);
-    node.isLoaded = true;
-  }
-
-  void ensureClassIsLoaded(Class classNode) {
-    ensureLibraryIsLoaded(classNode.enclosingLibrary);
-  }
-
-  void ensureMemberIsLoaded(Member member) {
-    ensureLibraryIsLoaded(member.enclosingLibrary);
-  }
-
-  /// Replaces the .dart extension with .dill.
-  String _translateFilename(String filename) {
-    if (filename.endsWith('.dart')) {
-      return pathlib.withoutExtension(filename) + '.dill';
-    } else {
-      return filename;
-    }
-  }
-
-  File _getFileForUri(Uri uri) {
-    var filename = _translateFilename(repository.resolveUri(uri));
-    var file = new File(filename);
-    if (!file.existsSync()) {
-      throw 'Could not find a .dill file for URI "$uri" at $filename. '
-          'Compiling from both .dart and .dill files is not supported.';
-    }
-    return file;
-  }
-
-  void _buildLibraryBody(Library node) {
-    var file = _getFileForUri(node.importUri);
-    var bytes = file.readAsBytesSync();
-    new BinaryBuilder(this, bytes, file.path).readLibraryFile(node);
-  }
-
   Program loadProgram(String filename) {
     var bytes = new File(filename).readAsBytesSync();
     return new BinaryBuilder(this, bytes, filename).readProgramFile();
   }
 
-  TreeNode loadProgramOrLibrary(String path) {
-    var uri = repository.normalizePath(path);
-    var file = _getFileForUri(uri);
-    var bytes = file.readAsBytesSync();
-    return new BinaryBuilder(this, bytes, file.path).readProgramOrLibraryFile(
+  TreeNode loadProgramOrLibrary(String filename) {
+    var uri = repository.normalizePath(filename);
+    var bytes = new File(filename).readAsBytesSync();
+    return new BinaryBuilder(this, bytes, filename).readProgramOrLibraryFile(
         () => repository.getLibraryReference(uri));
   }
 }

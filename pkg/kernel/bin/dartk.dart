@@ -8,16 +8,12 @@ import 'dart:io';
 
 import 'batch_util.dart';
 
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
 import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/checks.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:package_config/discovery.dart';
-import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as path;
 
 // Returns the path to the current sdk based on `Platform.resolvedExecutable`.
@@ -162,24 +158,6 @@ void dumpString(String value, [String filename]) {
   }
 }
 
-Future<Packages> createPackages(String packagePath,
-    {String discoverFrom}) async {
-  if (packagePath != null) {
-    var absolutePath = new File(packagePath).absolute.path;
-    if (await new Directory(packagePath).exists()) {
-      return getPackagesDirectory(new Uri.file(absolutePath));
-    } else if (await new File(packagePath).exists()) {
-      return loadPackagesFile(new Uri.file(absolutePath));
-    } else {
-      fail('Packages not found: $packagePath');
-    }
-  }
-  if (discoverFrom != null) {
-    return findPackagesFromFile(Uri.parse(discoverFrom));
-  }
-  return Packages.noPackages;
-}
-
 Map<Uri, Uri> parseCustomUriMappings(List<String> mappings) {
   Map<Uri, Uri> customUriMappings = <Uri, Uri>{};
 
@@ -213,34 +191,8 @@ Map<Uri, Uri> parseCustomUriMappings(List<String> mappings) {
 ///
 /// This reuses the analyzer's in-memory copy of the Dart SDK between runs.
 class BatchModeState {
-  DartSdk dartSdk;
-  String sdk;
-  bool strongMode;
   bool isBatchMode = false;
-  Packages packages;
-  String packagePath;
-
-  Future<Packages> getPackages(String packagePath_, String file) async {
-    if (packages == null || this.packagePath != packagePath_) {
-      this.packagePath = packagePath_;
-      var discoverFrom = isBatchMode ? null : file;
-      packages = await createPackages(packagePath, discoverFrom: discoverFrom);
-    }
-    return packages;
-  }
-
-  AnalysisContext getContext(String sdk_, bool strongMode_,
-      Map<Uri, Uri> customUriMappings, Map<String, String> declaredVariables) {
-    if (dartSdk == null || this.sdk != sdk_ || this.strongMode != strongMode_) {
-      this.sdk = sdk_;
-      this.strongMode = strongMode_;
-      dartSdk = createDartSdk(sdk_, strongMode_);
-    }
-    return createContext(sdk_, packages, strongMode_,
-        dartSdk: dartSdk,
-        customUriMappings: customUriMappings,
-        declaredVariables: declaredVariables);
-  }
+  DartLoaderBatch batch = new DartLoaderBatch();
 }
 
 main(List<String> args) async {
@@ -308,9 +260,8 @@ Future<CompilerOutcome> batchMain(
   String outputFile = options['out'] ?? defaultOutput();
   bool strongMode = options['strong'];
 
-  var packages = await batchModeState.getPackages(packagePath, file);
   var customUriMappings = parseCustomUriMappings(options['url-mapping']);
-  var repository = new Repository(sdk: options['sdk'], packages: packages);
+  var repository = new Repository();
 
   Library library;
   Program program;
@@ -340,9 +291,16 @@ Future<CompilerOutcome> batchMain(
     program = node is Program ? node : null;
     getLoadedFiles = () => [file];
   } else {
-    AnalysisContext context = batchModeState.getContext(
-        repository.sdk, strongMode, customUriMappings, declaredVariables);
-    AnalyzerLoader loader = new AnalyzerLoader(repository, context: context);
+    DartOptions dartOptions = new DartOptions(
+        strongMode: strongMode,
+        sdk: options['sdk'],
+        packagePath: packagePath,
+        customUriMappings: customUriMappings,
+        declaredVariables: declaredVariables);
+    String packageDiscoveryPath = batchModeState.isBatchMode ? null : file;
+    DartLoader loader = await batchModeState.batch.getLoader(
+        repository, dartOptions,
+        packageDiscoveryPath: packageDiscoveryPath);
     if (options['link']) {
       program = loader.loadProgram(file, target: target);
     } else {

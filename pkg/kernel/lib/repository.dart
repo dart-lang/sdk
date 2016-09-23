@@ -6,26 +6,19 @@ library kernel.repository;
 import 'dart:io';
 
 import 'package:path/path.dart' as pathlib;
-import 'package:package_config/packages.dart';
 
 import 'ast.dart';
 
-/// Resolves import paths and keeps track of which [Library] objects have been
-/// created for a given URI.
+/// Keeps track of which [Library] objects have been created for a given URI.
 ///
 /// To load different files into the same IR, pass in the same repository
 /// object to the loaders.
 class Repository {
-  final String sdk;
-  final Packages packages;
   final String workingDirectory;
   final Map<Uri, Library> _uriToLibrary = <Uri, Library>{};
   final List<Library> libraries = <Library>[];
 
-  Repository(
-      {this.sdk,
-      this.packages,
-      String workingDirectory})
+  Repository({String workingDirectory})
       : this.workingDirectory = workingDirectory ?? Directory.current.path;
 
   /// Get the [Library] object for the library addresesd by [path]; possibly
@@ -37,28 +30,6 @@ class Repository {
   /// Note that this method does not check if the library can be loaded at all.
   Library getLibrary(String path) {
     return getLibraryReference(normalizePath(path));
-  }
-
-  /// Get the system file path to read the given URI.
-  String resolveUri(Uri uri) {
-    switch (uri.scheme) {
-      case 'dart':
-        if (sdk == null) {
-          throw 'Cannot resolve $uri because no sdk path is set';
-        }
-        if (uri.pathSegments.length == 1) {
-          var name = uri.pathSegments.single;
-          return pathlib.join(sdk, 'lib', name, '$name.dart');
-        }
-        return pathlib.join(sdk, 'lib', uri.path);
-
-      case 'package':
-        return packages.resolve(uri).path;
-
-      case 'file':
-        return uri.toFilePath();
-    }
-    throw 'Unrecognized URI scheme: $uri';
   }
 
   String normalizeFileExtension(String path) {

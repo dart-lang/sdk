@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:io';
 
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
@@ -23,24 +22,26 @@ abstract class TestTarget extends Target {
 }
 
 void runBaselineTests(String folderName, TestTarget target) {
-  bool strongMode = target.strongMode;
   String outputDirectory = 'testcases/$folderName';
   String sdk = pathlib.dirname(pathlib.dirname(Platform.resolvedExecutable));
-  DartSdk dartSdk = createDartSdk(sdk, strongMode);
+  var batch = new DartLoaderBatch();
   Directory directory = new Directory(inputDirectory);
   for (FileSystemEntity file in directory.listSync()) {
     if (file is File && file.path.endsWith('.dart')) {
       String name = pathlib.basename(file.path);
-      test(name, () {
+      test(name, () async {
         String dartPath = file.path;
         String shortName = pathlib.withoutExtension(name);
         String filenameOfBaseline = '$outputDirectory/$shortName.baseline.txt';
         String filenameOfCurrent = '$outputDirectory/$shortName.current.txt';
 
-        var repository = new Repository(sdk: sdk);
-        var context = createContext(sdk, null, strongMode, dartSdk: dartSdk);
-        var loader = new AnalyzerLoader(repository,
-            context: context, strongMode: strongMode);
+        var repository = new Repository();
+        var loader = await batch.getLoader(
+            repository,
+            new DartOptions(
+                strongMode: target.strongMode,
+                sdk: sdk,
+                declaredVariables: target.extraDeclaredVariables));
         var program = loader.loadProgram(dartPath, target: target);
         target.transformProgram(program);
 

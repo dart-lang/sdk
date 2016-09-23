@@ -13,7 +13,6 @@
 ///
 library kernel;
 
-import 'analyzer/loader.dart';
 import 'ast.dart';
 import 'binary/ast_to_binary.dart';
 import 'binary/loader.dart';
@@ -39,32 +38,12 @@ Program loadProgramFromBinary(String path) {
 /// the current working directory if no repository is given.
 Library loadLibraryFromBinary(String path, [Repository repository]) {
   repository ??= new Repository();
-  var library = repository.getLibrary(path);
-  new BinaryLoader(repository).ensureLibraryIsLoaded(library);
-  return library;
+  return new BinaryLoader(repository).loadProgramOrLibrary(path);
 }
 
 TreeNode loadProgramOrLibraryFromBinary(String path, [Repository repository]) {
   repository ??= new Repository();
   return new BinaryLoader(repository).loadProgramOrLibrary(path);
-}
-
-/// Loads a .dart library from [path], unless [repository] already has
-/// a loaded version of that library.
-Library loadLibraryFromDart(String path, [Repository repository]) {
-  repository ??= new Repository();
-  return new AnalyzerLoader(repository).loadLibrary(path);
-}
-
-/// Loads a .dart file from [path] and all of its transitive dependencies.
-///
-/// The resulting [Program] will have a main method if the library at [path]
-/// contains a top-level method named "main", otherwise its main reference will
-/// be `null`.
-Program loadProgramFromDart(String path, Repository repository,
-    {bool strongMode: false}) {
-  return new AnalyzerLoader(repository, strongMode: strongMode)
-      .loadProgram(path);
 }
 
 Future writeLibraryToBinary(Library library, String path) {

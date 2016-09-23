@@ -41,15 +41,20 @@ main(List<String> args) {
   }
 
   String sdk = options['sdk'];
-  String packageRoot = options['packages'];
+  String packagePath = options['packages'];
   bool strongMode = options['strong'];
 
   String path = options.rest.single;
   var packages =
-      getPackagesDirectory(new Uri(scheme: 'file', path: packageRoot));
-  Repository repository = new Repository(sdk: sdk, packages: packages);
+      getPackagesDirectory(new Uri(scheme: 'file', path: packagePath));
+  Repository repository = new Repository();
 
-  new AnalyzerLoader(repository, strongMode: strongMode).loadProgram(path);
+  new DartLoader(
+          repository,
+          new DartOptions(
+              strongMode: strongMode, sdk: sdk, packagePath: packagePath),
+          packages)
+      .loadProgram(path);
 
   CacheEntry.recomputedCounts.forEach((key, value) {
     print('Recomputed $key $value times');

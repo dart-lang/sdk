@@ -3,23 +3,46 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.analyzer.loader;
 
+import 'dart:async';
+import 'dart:io' as io;
+
+import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/source_io.dart';
+import 'package:package_config/discovery.dart';
+import 'package:package_config/packages.dart';
+
 import '../ast.dart' as ast;
 import '../repository.dart';
 import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 import 'analyzer.dart';
 import 'ast_from_analyzer.dart';
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:package_config/packages.dart';
+
+/// Options passed to the Dart frontend.
+class DartOptions {
+  bool strongMode;
+  String sdk;
+  String packagePath;
+  Map<Uri, Uri> customUriMappings;
+  Map<String, String> declaredVariables;
+
+  DartOptions(
+      {this.strongMode: false,
+      this.sdk,
+      this.packagePath,
+      Map<Uri, Uri> customUriMappings,
+      Map<String, String> declaredVariables})
+      : this.customUriMappings = <Uri, Uri>{},
+        this.declaredVariables = <String, String>{};
+}
 
 abstract class ReferenceLevelLoader {
   ast.Library getLibraryReference(LibraryElement element);
@@ -36,7 +59,7 @@ abstract class ReferenceLevelLoader {
   bool get strongMode;
 }
 
-class AnalyzerLoader implements ReferenceLevelLoader {
+class DartLoader implements ReferenceLevelLoader {
   final Repository repository;
   final LoadMap<ClassElement, ast.Class> _classes =
       new LoadMap<ClassElement, ast.Class>();
@@ -52,11 +75,9 @@ class AnalyzerLoader implements ReferenceLevelLoader {
 
   bool get strongMode => context.analysisOptions.strongMode;
 
-  AnalyzerLoader(Repository repository,
-      {AnalysisContext context, bool strongMode: false})
-      : this.repository = repository,
-        this.context = context ??
-            createContext(repository.sdk, repository.packages, strongMode);
+  DartLoader(this.repository, DartOptions options, Packages packages,
+      {DartSdk dartSdk})
+      : this.context = createContext(options, packages, dartSdk: dartSdk);
 
   LibraryElement getLibraryElement(ast.Library node) {
     return context
@@ -481,6 +502,54 @@ class LoadMap<K, V> {
   }
 }
 
+/// Creates [DartLoader]s for a given configuration, while reusing the
+/// [DartSdk] and [Packages] object if possible.
+class DartLoaderBatch {
+  Packages packages;
+  DartSdk dartSdk;
+
+  String lastSdk;
+  String lastPackagePath;
+  bool lastStrongMode;
+
+  Future<DartLoader> getLoader(Repository repository, DartOptions options,
+      {String packageDiscoveryPath}) async {
+    if (dartSdk == null ||
+        lastSdk != options.sdk ||
+        lastStrongMode != options.strongMode) {
+      lastSdk = options.sdk;
+      lastStrongMode = options.strongMode;
+      dartSdk = createDartSdk(options.sdk, options.strongMode);
+    }
+    if (packages == null ||
+        lastPackagePath != options.packagePath ||
+        packageDiscoveryPath != null) {
+      lastPackagePath = options.packagePath;
+      packages = await createPackages(options.packagePath,
+          discoveryPath: packageDiscoveryPath);
+    }
+    return new DartLoader(repository, options, packages, dartSdk: dartSdk);
+  }
+}
+
+Future<Packages> createPackages(String packagePath,
+    {String discoveryPath}) async {
+  if (packagePath != null) {
+    var absolutePath = new io.File(packagePath).absolute.path;
+    if (await new io.Directory(packagePath).exists()) {
+      return getPackagesDirectory(new Uri.file(absolutePath));
+    } else if (await new io.File(packagePath).exists()) {
+      return loadPackagesFile(new Uri.file(absolutePath));
+    } else {
+      throw 'Packages not found: $packagePath';
+    }
+  }
+  if (discoveryPath != null) {
+    return findPackagesFromFile(Uri.parse(discoveryPath));
+  }
+  return Packages.noPackages;
+}
+
 AnalysisOptions createAnalysisOptions(bool strongMode) {
   return new AnalysisOptionsImpl()
     ..strongMode = strongMode
@@ -533,14 +602,14 @@ class CustomUriResolver extends UriResolver {
   }
 }
 
-AnalysisContext createContext(String sdk, Packages packages, bool strongMode,
-    {DartSdk dartSdk, Map<Uri, Uri> customUriMappings,
-     Map<String, String> declaredVariables : const <String, String>{}}) {
-  dartSdk ??= createDartSdk(sdk, strongMode);
+AnalysisContext createContext(DartOptions options, Packages packages,
+    {DartSdk dartSdk}) {
+  dartSdk ??= createDartSdk(options.sdk, options.strongMode);
 
   var resourceProvider = PhysicalResourceProvider.INSTANCE;
   var resourceUriResolver = new ResourceUriResolver(resourceProvider);
   List<UriResolver> resolvers = [];
+  var customUriMappings = options.customUriMappings;
   if (customUriMappings != null && customUriMappings.length > 0) {
     resolvers
         .add(new CustomUriResolver(resourceUriResolver, customUriMappings));
@@ -559,9 +628,9 @@ AnalysisContext createContext(String sdk, Packages packages, bool strongMode,
 
   AnalysisContext context = AnalysisEngine.instance.createAnalysisContext()
     ..sourceFactory = new SourceFactory(resolvers)
-    ..analysisOptions = createAnalysisOptions(strongMode);
+    ..analysisOptions = createAnalysisOptions(options.strongMode);
 
-  declaredVariables.forEach((String name, String value) {
+  options.declaredVariables.forEach((String name, String value) {
     context.declaredVariables.define(name, value);
   });
 
