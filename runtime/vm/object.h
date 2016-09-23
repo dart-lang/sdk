@@ -3858,6 +3858,7 @@ class Library : public Object {
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
+  static RawError* ParseAll(Thread* thread);
 
 #if defined(DART_NO_SNAPSHOT)
   // Checks function fingerprints. Prints mismatches and aborts if

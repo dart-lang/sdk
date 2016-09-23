@@ -4598,10 +4598,12 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
                       FLAG_profile_vm);
   if (FLAG_support_ast_printer && FLAG_print_ast) {
     // Print the function ast before IL generation.
-    AstPrinter::PrintFunctionNodes(parsed_function());
+    AstPrinter ast_printer;
+    ast_printer.PrintFunctionNodes(parsed_function());
   }
   if (FLAG_support_ast_printer && FLAG_print_scopes) {
-    AstPrinter::PrintFunctionScope(parsed_function());
+    AstPrinter ast_printer;
+    ast_printer.PrintFunctionScope(parsed_function());
   }
   TargetEntryInstr* normal_entry =
       new(Z) TargetEntryInstr(AllocateBlockId(),

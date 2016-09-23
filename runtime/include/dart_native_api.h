@@ -170,4 +170,10 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
  */
 DART_EXPORT Dart_Handle Dart_CompileAll();
 
+/**
+ * Parses all loaded functions in the current isolate..
+ *
+ */
+DART_EXPORT Dart_Handle Dart_ParseAll();
+
 #endif  /* INCLUDE_DART_NATIVE_API_H_ */  /* NOLINT */

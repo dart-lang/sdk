@@ -40,7 +40,8 @@ static void DumpFunction(const Library& lib,
     EXPECT(parsed_function->node_sequence() != NULL);
     printf("Class %s function %s:\n", cname, fname);
     if (FLAG_support_ast_printer) {
-      AstPrinter::PrintFunctionNodes(*parsed_function);
+      AstPrinter ast_printer;
+      ast_printer.PrintFunctionNodes(*parsed_function);
     } else {
       OS::Print("AST printer not supported.");
     }

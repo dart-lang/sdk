@@ -1197,7 +1197,8 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
     Thread* const thread = Thread::Current();
     if (FLAG_support_ast_printer && FLAG_trace_compiler) {
       THR_Print("compiling expression: ");
-      AstPrinter::PrintNode(fragment);
+      AstPrinter ast_printer;
+      ast_printer.PrintNode(fragment);
     }
 
     // Create a dummy function object for the code generator.
