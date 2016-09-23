@@ -1211,7 +1211,10 @@ class KernelVisitor extends Object
   ir.FunctionExpression visitClosureDeclaration(FunctionExpression node,
       LocalFunctionElement closure, NodeList parameters, Node body, _) {
     return withCurrentElement(closure, () {
-      return new ir.FunctionExpression(buildFunctionNode(closure, body));
+      ir.FunctionExpression function =
+          new ir.FunctionExpression(buildFunctionNode(closure, body));
+      kernel.localFunctions[closure] = function;
+      return function;
     });
   }
 

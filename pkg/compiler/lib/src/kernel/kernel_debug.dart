@@ -53,6 +53,15 @@ class DebugPrinter extends Visitor with Indentation, Tagging<Node> {
     closeNode();
   }
 
+  @override
+  void visitInterfaceType(InterfaceType node) {
+    openNode(node, '${node.runtimeType}', {
+      'name': '${node.classNode.name}',
+    });
+    node.visitChildren(this);
+    closeNode();
+  }
+
   /// Pretty-prints given node tree into string.
   static String prettyPrint(Node node) {
     var p = new DebugPrinter();

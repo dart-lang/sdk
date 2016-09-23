@@ -191,6 +191,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   DartTypeConverter(this.astAdapter);
 
+  DartType visitType(ir.DartType type) => type.accept(this);
+
   List<DartType> visitTypes(List<ir.DartType> types) {
     return new List.generate(
         types.length, (int index) => types[index].accept(this));
@@ -203,7 +205,16 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitFunctionType(ir.FunctionType node) {
-    throw new UnimplementedError("Function types not currently supported");
+    return new FunctionType.synthesized(
+        visitType(node.returnType),
+        visitTypes(node.positionalParameters
+            .take(node.requiredParameterCount)
+            .toList()),
+        visitTypes(node.positionalParameters
+            .skip(node.requiredParameterCount)
+            .toList()),
+        node.namedParameters.keys.toList(),
+        visitTypes(node.namedParameters.values.toList()));
   }
 
   @override

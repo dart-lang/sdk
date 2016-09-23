@@ -51,8 +51,8 @@ class Kernel {
   final Map<FunctionElement, ir.Member> functions =
       <FunctionElement, ir.Member>{};
 
-  final Map<LocalFunctionElement, ir.FunctionDeclaration> localFunctions =
-      <LocalFunctionElement, ir.FunctionDeclaration>{};
+  final Map<LocalFunctionElement, ir.Node> localFunctions =
+      <LocalFunctionElement, ir.Node>{};
 
   final Map<FieldElement, ir.Field> fields = <FieldElement, ir.Field>{};
 

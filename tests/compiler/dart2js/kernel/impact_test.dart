@@ -57,15 +57,22 @@ main() {
   testIfThenElse();
   testTopLevelInvoke();
   testTopLevelInvokeTyped();
+  testTopLevelFunctionTyped();
+  testTopLevelFunctionGet();
   testTopLevelField();
   testTopLevelFieldTyped();
   testDynamicInvoke(null);
   testDynamicGet(null);
   testDynamicSet(null);
+  testLocalWithoutInitializer();
   testLocalWithInitializer();
+  testLocalWithInitializerTyped();
   testLocalFunction();
+  testLocalFunctionTyped();
   testLocalFunctionInvoke();
   testLocalFunctionGet();
+  testClosure();
+  testClosureInvoke();
   testInvokeIndex(null);
   testInvokeIndexSet(null);
   testAssert();
@@ -151,6 +158,19 @@ testTopLevelInvokeTyped() {
   topLevelFunction3Typed(true, b: [13], c: {'14': true});
   topLevelFunction3Typed(false, c: {'16': false}, b: [17]);
 }
+
+topLevelFunctionTyped1(void a(num b)) {}
+topLevelFunctionTyped2(void a(num b, [String c])) {}
+topLevelFunctionTyped3(void a(num b, {String c, int d})) {}
+topLevelFunctionTyped4(void a(num b, {String d, int c})) {}
+testTopLevelFunctionTyped() {
+  topLevelFunctionTyped1(null);
+  topLevelFunctionTyped2(null);
+  topLevelFunctionTyped3(null);
+  topLevelFunctionTyped4(null);
+}
+testTopLevelFunctionGet() => topLevelFunction1;
+
 var topLevelField;
 testTopLevelField() => topLevelField;
 int topLevelFieldTyped;
@@ -168,11 +188,20 @@ testDynamicInvoke(o) {
 }
 testDynamicGet(o) => o.foo;
 testDynamicSet(o) => o.foo = 42;
+testLocalWithoutInitializer() {
+  var l;
+}
 testLocalWithInitializer() {
   var l = 42;
 }
+testLocalWithInitializerTyped() {
+  int l = 42;
+}
 testLocalFunction() {
   localFunction() {}
+}
+testLocalFunctionTyped() {
+  int localFunction(String a) => 42;
 }
 testLocalFunctionInvoke() {
   localFunction() {}
@@ -181,6 +210,12 @@ testLocalFunctionInvoke() {
 testLocalFunctionGet() {
   localFunction() {}
   localFunction;
+}
+testClosure() {
+  () {};
+}
+testClosureInvoke() {
+  () {} ();
 }
 testInvokeIndex(o) => o[42];
 testInvokeIndexSet(o) => o[42] = null;

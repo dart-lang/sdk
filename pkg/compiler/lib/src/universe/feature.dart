@@ -43,6 +43,9 @@ enum Feature {
   /// A field without an initializer.
   FIELD_WITHOUT_INITIALIZER,
 
+  /// A local variable without an initializer.
+  LOCAL_WITHOUT_INITIALIZER,
+
   /// A field whose initialization is not a constant.
   LAZY_FIELD,
 

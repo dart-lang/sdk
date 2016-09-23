@@ -2838,6 +2838,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           registerBackendImpact(transformed, impacts.fallThroughError);
           break;
         case Feature.FIELD_WITHOUT_INITIALIZER:
+        case Feature.LOCAL_WITHOUT_INITIALIZER:
           transformed.registerTypeUse(
               new TypeUse.instantiation(backend.coreTypes.nullType));
           registerBackendImpact(transformed, impacts.nullLiteral);
