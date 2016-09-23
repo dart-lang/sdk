@@ -74,6 +74,10 @@ main() {
   testFactoryInvokeGeneric();
   testFactoryInvokeGenericRaw();
   testFactoryInvokeGenericDynamic();
+  testRedirectingFactoryInvoke();
+  testRedirectingFactoryInvokeGeneric();
+  testRedirectingFactoryInvokeGenericRaw();
+  testRedirectingFactoryInvokeGenericDynamic();
 }
 
 testEmpty() {}
@@ -198,13 +202,29 @@ testFactoryInvokeGenericRaw() {
 testFactoryInvokeGenericDynamic() {
   new GenericClass<dynamic, dynamic>.fact();
 }
+testRedirectingFactoryInvoke() {
+  new Class.redirect();
+}
+testRedirectingFactoryInvokeGeneric() {
+  new GenericClass<int, String>.redirect();
+}
+testRedirectingFactoryInvokeGenericRaw() {
+  new GenericClass.redirect();
+}
+testRedirectingFactoryInvokeGenericDynamic() {
+  new GenericClass<dynamic, dynamic>.redirect();
+}
 ''',
   'helper.dart': '''
 class Class {
+  Class.generative();
   factory Class.fact() => null;
+  factory Class.redirect() = Class.generative;
 }
 class GenericClass<X, Y> {
+  GenericClass.generative();
   factory GenericClass.fact() => null;
+  factory GenericClass.redirect() = GenericClass.generative;
 }
 ''',
 };

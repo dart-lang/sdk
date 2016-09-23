@@ -19,7 +19,6 @@ const String TESTCASE_DIR = 'third_party/pkg/kernel/testcases/';
 
 const List<String> SKIP_TESTS = const <String>[
   'DeltaBlue', // Super calls encoded as `super.{...` and not `this.{...`.
-  'external', // 'dart:_isolate_helper' is imported instead of 'dart:isolate'.
 ];
 
 main(List<String> arguments) {

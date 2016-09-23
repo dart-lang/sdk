@@ -1145,8 +1145,13 @@ class KernelVisitor extends Object
 
   ir.Expression buildConstructorInvoke(NewExpression node, {bool isConst}) {
     ConstructorElement constructor = elements[node.send];
-    ConstructorTarget target =
-        kernel.computeEffectiveTarget(constructor, elements.getType(node));
+    ConstructorTarget target;
+    if (isConst) {
+      target =
+          kernel.computeEffectiveTarget(constructor, elements.getType(node));
+    } else {
+      target = new ConstructorTarget(constructor, elements.getType(node));
+    }
     NodeList arguments = node.send.argumentsNode;
     if (kernel.isSyntheticError(target.element)) {
       return new ir.MethodInvocation(new ir.InvalidExpression(),
