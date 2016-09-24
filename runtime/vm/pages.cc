@@ -1160,57 +1160,58 @@ void PageSpaceController::EvaluateGarbageCollection(
   // G = kA, and estimate k from the previous cycle.
   const intptr_t allocated_since_previous_gc =
       before.used_in_words - last_usage_.used_in_words;
-  ASSERT(allocated_since_previous_gc > 0);
-  const intptr_t garbage = before.used_in_words - after.used_in_words;
-  ASSERT(garbage >= 0);
-  const double k = garbage / static_cast<double>(allocated_since_previous_gc);
-  const int garbage_ratio = static_cast<int>(k * 100);
-  heap_->RecordData(PageSpace::kGarbageRatio, garbage_ratio);
+  if (allocated_since_previous_gc > 0) {
+    const intptr_t garbage = before.used_in_words - after.used_in_words;
+    ASSERT(garbage >= 0);
+    const double k = garbage / static_cast<double>(allocated_since_previous_gc);
+    const int garbage_ratio = static_cast<int>(k * 100);
+    heap_->RecordData(PageSpace::kGarbageRatio, garbage_ratio);
 
-  // Define GC to be 'worthwhile' iff at least fraction t of heap is garbage.
-  double t = 1.0 - desired_utilization_;
-  // If we spend too much time in GC, strive for even more free space.
-  if (gc_time_fraction > garbage_collection_time_ratio_) {
-    t += (gc_time_fraction - garbage_collection_time_ratio_) / 100.0;
-  }
+    // Define GC to be 'worthwhile' iff at least fraction t of heap is garbage.
+    double t = 1.0 - desired_utilization_;
+    // If we spend too much time in GC, strive for even more free space.
+    if (gc_time_fraction > garbage_collection_time_ratio_) {
+      t += (gc_time_fraction - garbage_collection_time_ratio_) / 100.0;
+    }
 
-  const intptr_t grow_ratio = (
-      static_cast<intptr_t>(after.capacity_in_words / desired_utilization_) -
-      after.capacity_in_words) / PageSpace::kPageSizeInWords;
-  if (garbage_ratio == 0) {
-    // No garbage in the previous cycle so it would be hard to compute a
-    // grow_heap_ size based on estimated garbage so we use growth ratio
-    // heuristics instead.
-    grow_heap_ = Utils::Maximum(static_cast<intptr_t>(heap_growth_max_),
-                                grow_ratio);
-  } else {
-    // Find minimum 'grow_heap_' such that after increasing capacity by
-    // 'grow_heap_' pages and filling them, we expect a GC to be worthwhile.
-    intptr_t max = heap_growth_max_;
-    intptr_t min = 0;
-    intptr_t adjustment = 0;
-    intptr_t local_grow_heap = 0;
-    while (min < max) {
-      local_grow_heap = (max + min) / 2;
-      const intptr_t limit =
-          after.capacity_in_words + (grow_heap_ * PageSpace::kPageSizeInWords);
-      const intptr_t allocated_before_next_gc = limit - after.used_in_words;
-      const double estimated_garbage = k * allocated_before_next_gc;
-      if (t <= estimated_garbage / limit) {
-        max = local_grow_heap - 1;
-        adjustment = -1;
-      } else {
-        min = local_grow_heap + 1;
-        adjustment = 1;
+    const intptr_t grow_ratio = (
+        static_cast<intptr_t>(after.capacity_in_words / desired_utilization_) -
+        after.capacity_in_words) / PageSpace::kPageSizeInWords;
+    if (garbage_ratio == 0) {
+      // No garbage in the previous cycle so it would be hard to compute a
+      // grow_heap_ size based on estimated garbage so we use growth ratio
+      // heuristics instead.
+      grow_heap_ = Utils::Maximum(static_cast<intptr_t>(heap_growth_max_),
+                                  grow_ratio);
+    } else {
+      // Find minimum 'grow_heap_' such that after increasing capacity by
+      // 'grow_heap_' pages and filling them, we expect a GC to be worthwhile.
+      intptr_t max = heap_growth_max_;
+      intptr_t min = 0;
+      intptr_t local_grow_heap = 0;
+      while (min < max) {
+        local_grow_heap = (max + min) / 2;
+        const intptr_t limit = after.capacity_in_words +
+            (grow_heap_ * PageSpace::kPageSizeInWords);
+        const intptr_t allocated_before_next_gc = limit - after.used_in_words;
+        const double estimated_garbage = k * allocated_before_next_gc;
+        if (t <= estimated_garbage / limit) {
+          max = local_grow_heap - 1;
+        } else {
+          min = local_grow_heap + 1;
+        }
+      }
+      grow_heap_ = local_grow_heap;
+      ASSERT(grow_heap_ >= 0);
+      // If we are going to grow by heap_grow_max_ then ensure that we
+      // will be growing the heap at least by the growth ratio heuristics.
+      if ((grow_heap_ == heap_growth_max_) && (grow_ratio > grow_heap_)) {
+        grow_heap_ = grow_ratio;
       }
     }
-    grow_heap_ = local_grow_heap + adjustment;
-    ASSERT(grow_heap_ >= 0);
-    // If we are going to grow by heap_grow_max_ then ensure that we
-    // will be growing the heap at least by the growth ratio heuristics.
-    if ((grow_heap_ == heap_growth_max_) && (grow_ratio > grow_heap_)) {
-      grow_heap_ = grow_ratio;
-    }
+  } else {
+    heap_->RecordData(PageSpace::kGarbageRatio, 100);
+    grow_heap_ = 0;
   }
   heap_->RecordData(PageSpace::kPageGrowth, grow_heap_);
 
