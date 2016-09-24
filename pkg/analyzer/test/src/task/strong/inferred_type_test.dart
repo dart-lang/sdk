@@ -910,8 +910,8 @@ void main() {
 import 'dart:async';
 Future test() async {
   dynamic d;
-  List<int> l0 = await /*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d];
-  List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d]);
+  List<int> l0 = await /*info:INFERRED_TYPE_LITERAL,error:COULD_NOT_INFER*/[/*info:DYNAMIC_CAST*/d];
+  List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL,error:COULD_NOT_INFER*/[/*info:DYNAMIC_CAST*/d]);
 }
 ''');
   }
@@ -1891,19 +1891,15 @@ main() {
     checkFile(r'''
 void main() {
   List<int> o;
-  var x = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(int x, y) => x + y);
   int y = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y);
-  var z = o.fold(0, /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
-  y = z;
-  y = x;
+  var z = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
+  y = /*info:DYNAMIC_CAST*/z;
 }
 void functionExpressionInvocation() {
   List<int> o;
-  var x = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(int x, y) => x + y);
   int y = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y);
-  var z = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
-  y = z;
-  y = x;
+  var z = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
+  y = /*info:DYNAMIC_CAST*/z;
 }
 ''');
   }
