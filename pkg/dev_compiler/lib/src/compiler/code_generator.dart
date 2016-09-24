@@ -1884,8 +1884,6 @@ class CodeGenerator extends GeneralizingAstVisitor
       ClassDeclaration node,
       List<FieldDeclaration> fields,
       Map<FieldElement, JS.TemporaryId> virtualFields) {
-    assert(_hasUnnamedConstructor(node.element) == fields.isNotEmpty);
-
     // If we don't have a method body, skip this.
     var superCall = _superConstructorCall(node.element);
     if (fields.isEmpty && superCall == null) return null;
@@ -2059,7 +2057,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       return null;
     }
 
-    if (superCtor.name == '' && !_shouldCallUnnamedSuperCtor(element)) {
+    if (superCtor.name == '' && !_hasUnnamedSuperConstructor(element)) {
       return null;
     }
 
@@ -2068,7 +2066,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     return annotate(js.statement('super.#(#);', [name, args]), node);
   }
 
-  bool _shouldCallUnnamedSuperCtor(ClassElement e) {
+  bool _hasUnnamedSuperConstructor(ClassElement e) {
     var supertype = e.supertype;
     if (supertype == null) return false;
     if (_hasUnnamedConstructor(supertype.element)) return true;
@@ -2081,7 +2079,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   bool _hasUnnamedConstructor(ClassElement e) {
     if (e.type.isObject) return false;
     if (!e.unnamedConstructor.isSynthetic) return true;
-    return e.fields.any((f) => !f.isStatic && !f.isSynthetic);
+    if (e.fields.any((f) => !f.isStatic && !f.isSynthetic)) return true;
+    return _hasUnnamedSuperConstructor(e);
   }
 
   /// Initialize fields. They follow the sequence:

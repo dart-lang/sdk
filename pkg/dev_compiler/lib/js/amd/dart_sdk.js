@@ -4266,12 +4266,20 @@ define([], function() {
   });
   _interceptors.JSMutableArray = JSMutableArray();
   _interceptors.JSFixedArray$ = dart.generic(E => {
-    class JSFixedArray extends _interceptors.JSMutableArray$(E) {}
+    class JSFixedArray extends _interceptors.JSMutableArray$(E) {
+      new() {
+        super.new();
+      }
+    }
     return JSFixedArray;
   });
   _interceptors.JSFixedArray = JSFixedArray();
   _interceptors.JSExtendableArray$ = dart.generic(E => {
-    class JSExtendableArray extends _interceptors.JSMutableArray$(E) {}
+    class JSExtendableArray extends _interceptors.JSMutableArray$(E) {
+      new() {
+        super.new();
+      }
+    }
     return JSExtendableArray;
   });
   _interceptors.JSExtendableArray = JSExtendableArray();
@@ -17068,6 +17076,7 @@ define([], function() {
     class _ControllerStream extends async._StreamImpl$(T) {
       new(controller) {
         this[_controller$] = controller;
+        super.new();
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
         return this[_controller$][_subscribe](onData, onError, onDone, cancelOnError);
@@ -20111,6 +20120,7 @@ define([], function() {
       new(pending) {
         this[_pending] = pending;
         this[_isUsed] = false;
+        super.new();
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
         if (dart.test(this[_isUsed])) dart.throw(new core.StateError("Stream has already been listened to."));
@@ -29213,6 +29223,7 @@ define([], function() {
   convert._ErrorHandlingAsciiDecoderSink = class _ErrorHandlingAsciiDecoderSink extends convert.ByteConversionSinkBase {
     new(utf8Sink) {
       this[_utf8Sink] = utf8Sink;
+      super.new();
     }
     close() {
       this[_utf8Sink].close();
@@ -29247,6 +29258,7 @@ define([], function() {
   convert._SimpleAsciiDecoderSink = class _SimpleAsciiDecoderSink extends convert.ByteConversionSinkBase {
     new(sink) {
       this[_sink$] = sink;
+      super.new();
     }
     close() {
       this[_sink$].close();
@@ -29535,6 +29547,9 @@ define([], function() {
   });
   const _add$1 = Symbol('_add');
   convert._Base64EncoderSink = class _Base64EncoderSink extends convert.ByteConversionSinkBase {
+    new() {
+      super.new();
+    }
     add(source) {
       this[_add$1](source, 0, source[dartx.length], false);
     }
@@ -29557,6 +29572,7 @@ define([], function() {
     new(sink, urlSafe) {
       this[_sink$] = sink;
       this[_encoder] = new convert._BufferCachingBase64Encoder(urlSafe);
+      super.new();
     }
     [_add$1](source, start, end, isLast) {
       let buffer = this[_encoder].encode(source, start, end, isLast);
@@ -29581,6 +29597,7 @@ define([], function() {
     new(sink, urlSafe) {
       this[_sink$] = sink;
       this[_encoder] = new convert._Base64Encoder(urlSafe);
+      super.new();
     }
     [_add$1](source, start, end, isLast) {
       let buffer = this[_encoder].encode(source, start, end, isLast);
@@ -29932,6 +29949,7 @@ define([], function() {
   convert._ByteAdapterSink = class _ByteAdapterSink extends convert.ByteConversionSinkBase {
     new(sink) {
       this[_sink$] = sink;
+      super.new();
     }
     add(chunk) {
       this[_sink$].add(chunk);
@@ -29956,6 +29974,7 @@ define([], function() {
       this[_buffer] = typed_data.Uint8List.new(convert._ByteCallbackSink._INITIAL_BUFFER_SIZE);
       this[_callback] = callback;
       this[_bufferIndex] = 0;
+      super.new();
     }
     add(chunk) {
       let freeCount = dart.notNull(this[_buffer][dartx.length]) - dart.notNull(this[_bufferIndex]);
@@ -31301,6 +31320,7 @@ define([], function() {
   convert._Latin1DecoderSink = class _Latin1DecoderSink extends convert.ByteConversionSinkBase {
     new(sink) {
       this[_sink$] = sink;
+      super.new();
     }
     close() {
       this[_sink$].close();
