@@ -22,7 +22,6 @@
           'action_name': 'pub_build_observatory',
           'inputs': [
             '../../tools/observatory_tool.py',
-            '<(gen_source_dir)/observatory_packages.stamp',
             '<@(_sources)',
           ],
           'outputs': [
