@@ -5977,12 +5977,12 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 
 
 bool Function::IsOptimizable() const {
+  if (FLAG_precompiled_mode) {
+    return true;
+  }
   if (is_native()) {
     // Native methods don't need to be optimized.
     return false;
-  }
-  if (FLAG_precompiled_mode) {
-    return true;
   }
   const intptr_t function_length = end_token_pos().Pos() - token_pos().Pos();
   if (is_optimizable() && (script() != Script::null()) &&
