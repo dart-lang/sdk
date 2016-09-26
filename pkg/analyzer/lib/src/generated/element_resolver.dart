@@ -1991,7 +1991,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             element2.lookUpGetter(name3, _definingLibrary);
         if (getter != null) {
           nameNode3.staticElement = getter;
-          annotation.element = element2;
+          annotation.element = getter;
           _resolveAnnotationElementGetter(annotation, getter);
           return;
         }
