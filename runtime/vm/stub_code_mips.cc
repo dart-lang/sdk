@@ -299,8 +299,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ sw(ZR, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ Comment("CallStaticFunctionStub return");
@@ -331,8 +330,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Setup space on stack for return value and preserve arguments descriptor.
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ sw(ZR, Address(SP, 0 * kWordSize));
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   // Get Code object result and restore arguments descriptor array.
   __ lw(CODE_REG, Address(SP, 0 * kWordSize));
@@ -357,8 +355,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Setup space on stack for return value.
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ sw(ZR, Address(SP, 0 * kWordSize));
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
   // Get Code object result.
   __ lw(CODE_REG, Address(SP, 0 * kWordSize));
@@ -564,8 +561,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   // Push arguments descriptor array.
   // Push original arguments array.
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 3 * kWordSize));
+  __ sw(ZR, Address(SP, 3 * kWordSize));
   __ sw(T6, Address(SP, 2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
@@ -598,8 +594,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   // Push the receiver.
   // Push IC data object.
   // Push arguments descriptor array.
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 3 * kWordSize));
+  __ sw(ZR, Address(SP, 3 * kWordSize));
   __ sw(T6, Address(SP, 2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
@@ -757,8 +752,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Setup space on stack for return value.
   // Push array length as Smi and element type.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 2 * kWordSize));
+  __ sw(ZR, Address(SP, 2 * kWordSize));
   __ sw(A1, Address(SP, 1 * kWordSize));
   __ sw(A0, Address(SP, 0 * kWordSize));
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
@@ -1260,8 +1254,7 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   // Push arguments descriptor array.
   const intptr_t kNumArgs = 3;
   __ addiu(SP, SP, Immediate(-kNumArgs * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 2 * kWordSize));
+  __ sw(ZR, Address(SP, 2 * kWordSize));
   __ sw(T6, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
 
@@ -1524,8 +1517,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ addiu(SP, SP, Immediate(-num_slots * kWordSize));
   __ sw(S5, Address(SP, (num_slots - 1) * kWordSize));
   __ sw(S4, Address(SP, (num_slots - 2) * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, (num_slots - 3) * kWordSize));
+  __ sw(ZR, Address(SP, (num_slots - 3) * kWordSize));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ lw(TMP, Address(T1, -i * kWordSize));
@@ -1777,8 +1769,7 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ sw(ZR, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
 
@@ -1795,8 +1786,7 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ Comment("RuntimeCallBreakpoint stub");
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ sw(ZR, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
 
@@ -1992,8 +1982,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(S4, Address(SP, 2 * kWordSize));
   // Setup space on stack for return value.
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 1 * kWordSize));
+  __ sw(ZR, Address(SP, 1 * kWordSize));
   __ sw(T0, Address(SP, 0 * kWordSize));
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ Comment("OptimizeFunctionStub return");
@@ -2286,9 +2275,9 @@ void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ Push(T0);  // Preserve receiver.
 
-  __ PushObject(Object::null_object());  // Result.
-  __ Push(T0);                           // Arg0: Receiver
-  __ Push(S5);                           // Arg1: UnlinkedCall
+  __ Push(ZR);  // Result slot.
+  __ Push(T0);  // Arg0: Receiver
+  __ Push(S5);  // Arg1: UnlinkedCall
   __ CallRuntime(kUnlinkedCallRuntimeEntry, 2);
   __ Drop(2);
   __ Pop(S5);  // result = IC
@@ -2327,8 +2316,8 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ Push(T0);  // Preserve receiver.
 
-  __ PushObject(Object::null_object());  // Result.
-  __ Push(T0);                           // Arg0: Receiver
+  __ Push(ZR);  // Result slot.
+  __ Push(T0);  // Arg0: Receiver
   __ CallRuntime(kSingleTargetMissRuntimeEntry, 1);
   __ Drop(1);
   __ Pop(S5);  // result = IC
@@ -2348,8 +2337,8 @@ void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ Push(T0);  // Preserve receiver.
 
-  __ PushObject(Object::null_object());  // Result.
-  __ Push(T0);                           // Arg0: Receiver
+  __ Push(ZR);  // Result slot.
+  __ Push(T0);  // Arg0: Receiver
   __ CallRuntime(kMonomorphicMissRuntimeEntry, 1);
   __ Drop(1);
   __ Pop(S5);  // result = IC
