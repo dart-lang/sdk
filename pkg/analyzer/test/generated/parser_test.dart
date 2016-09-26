@@ -1468,7 +1468,7 @@ class Foo {
   }
 
   void test_invalidCodePoint() {
-    createParser("'\\uD900'");
+    createParser("'\\u{110000}'");
     StringLiteral literal = parser.parseStringLiteral();
     expectNotNullIfNoErrors(literal);
     listener.assertErrorsWithCodes([ParserErrorCode.INVALID_CODE_POINT]);

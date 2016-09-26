@@ -5370,25 +5370,24 @@ class Parser {
   }
 
   /**
-   * Append the character equivalent of the given [scalarValue] to the given
+   * Append the character equivalent of the given [codePoint] to the given
    * [builder]. Use the [startIndex] and [endIndex] to report an error, and
-   * don't append anything to the builder, if the scalar value is invalid. The
+   * don't append anything to the builder, if the code point is invalid. The
    * [escapeSequence] is the escape sequence that was parsed to produce the
-   * scalar value (used for error reporting).
+   * code point (used for error reporting).
    */
-  void _appendScalarValue(StringBuffer buffer, String escapeSequence,
-      int scalarValue, int startIndex, int endIndex) {
-    if (scalarValue < 0 ||
-        scalarValue > Character.MAX_CODE_POINT ||
-        (scalarValue >= 0xD800 && scalarValue <= 0xDFFF)) {
+  void _appendCodePoint(StringBuffer buffer, String source,
+      int codePoint, int startIndex, int endIndex) {
+    if (codePoint < 0 || codePoint > Character.MAX_CODE_POINT) {
+      String escapeSequence = source.substring(startIndex, endIndex + 1);
       _reportErrorForCurrentToken(
           ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
       return;
     }
-    if (scalarValue < Character.MAX_VALUE) {
-      buffer.writeCharCode(scalarValue);
+    if (codePoint < Character.MAX_VALUE) {
+      buffer.writeCharCode(codePoint);
     } else {
-      buffer.write(Character.toChars(scalarValue));
+      buffer.write(Character.toChars(codePoint));
     }
   }
 
@@ -7747,8 +7746,7 @@ class Parser {
           // Illegal escape sequence: not enough or too many hex digits
           _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE);
         }
-        _appendScalarValue(buffer, lexeme.substring(index, currentIndex + 1),
-            value, index, currentIndex);
+        _appendCodePoint(buffer, lexeme, value, index, currentIndex);
         return currentIndex + 1;
       } else {
         if (currentIndex + 3 >= length) {
@@ -7767,9 +7765,9 @@ class Parser {
           // Illegal escape sequence: invalid hex digits
           _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE);
         } else {
-          _appendScalarValue(
+          _appendCodePoint(
               buffer,
-              lexeme.substring(index, currentIndex + 1),
+              lexeme,
               (((((Character.digit(firstDigit, 16) << 4) +
                                   Character.digit(secondDigit, 16)) <<
                               4) +
