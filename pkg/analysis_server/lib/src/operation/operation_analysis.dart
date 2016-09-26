@@ -48,12 +48,19 @@ scheduleImplementedNotification(
   for (String file in files) {
     CompilationUnitElement unitElement = server.getCompilationUnitElement(file);
     if (unitElement != null) {
-      ImplementedComputer computer =
-          new ImplementedComputer(searchEngine, unitElement);
-      await computer.compute();
-      var params = new protocol.AnalysisImplementedParams(
-          file, computer.classes, computer.members);
-      server.sendNotification(params.toNotification());
+      try {
+        ImplementedComputer computer =
+            new ImplementedComputer(searchEngine, unitElement);
+        await computer.compute();
+        var params = new protocol.AnalysisImplementedParams(
+            file, computer.classes, computer.members);
+        server.sendNotification(params.toNotification());
+      } catch (exception, stackTrace) {
+        server.sendServerErrorNotification(
+            'Failed to send analysis.implemented notification.',
+            exception,
+            stackTrace);
+      }
     }
   }
 }
