@@ -1967,7 +1967,9 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ sw(A2, Assembler::VMTagAddress());
   // Clear top exit frame.
   __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
-
+  // Restore pool pointer.
+  __ RestoreCodePointer();
+  __ LoadPoolPointer();
   __ jr(A0);  // Jump to the exception handler code.
   __ delay_slot()->mov(SP, A1);  // Stack pointer.
 }

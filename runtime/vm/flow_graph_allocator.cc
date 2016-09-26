@@ -616,6 +616,9 @@ void FlowGraphAllocator::BuildLiveRanges() {
       // TODO(vegorov) support try-catch/finally for DBC.
       flow_graph_.parsed_function().Bailout("FlowGraphAllocator", "Catch");
 #endif
+
+      ProcessEnvironmentUses(catch_entry, catch_entry);  // For lazy deopt
+
       for (intptr_t i = 0;
            i < catch_entry->initial_definitions()->length();
            i++) {

@@ -897,6 +897,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class ComparisonInstr;
   friend class Scheduler;
   friend class BlockEntryInstr;
+  friend class CatchBlockEntryInstr;  // deopt_id_
 
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const {
@@ -1564,7 +1565,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
                        intptr_t catch_try_index,
                        const LocalVariable& exception_var,
                        const LocalVariable& stacktrace_var,
-                       bool needs_stacktrace)
+                       bool needs_stacktrace,
+                       intptr_t deopt_id)
       : BlockEntryInstr(block_id, try_index),
         graph_entry_(graph_entry),
         predecessor_(NULL),
@@ -1572,7 +1574,9 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
         catch_try_index_(catch_try_index),
         exception_var_(exception_var),
         stacktrace_var_(stacktrace_var),
-        needs_stacktrace_(needs_stacktrace) { }
+        needs_stacktrace_(needs_stacktrace) {
+    deopt_id_ = deopt_id;
+  }
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
 

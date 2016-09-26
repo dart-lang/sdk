@@ -536,7 +536,7 @@ class FlowGraphCompiler : public ValueObject {
   uint16_t ToEmbeddableCid(intptr_t cid, Instruction* instruction);
 #endif  // defined(TARGET_ARCH_DBC)
 
-  void AddDeoptIndexAtCall(intptr_t deopt_id, TokenPosition token_pos);
+  void AddDeoptIndexAtCall(intptr_t deopt_id);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
 

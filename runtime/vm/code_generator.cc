@@ -2029,11 +2029,23 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
     CodePatcher::InsertDeoptimizationCallAt(pc, lazy_deopt_jump);
-  }
-  if (FLAG_trace_patching) {
-    const String& name = String::Handle(function.name());
-    OS::PrintErr("InsertDeoptimizationCallAt: %" Px " to %" Px " for %s\n", pc,
-                 lazy_deopt_jump, name.ToCString());
+    if (FLAG_trace_patching) {
+      const String& name = String::Handle(function.name());
+      OS::PrintErr(
+          "InsertDeoptimizationCallAt: 0x%" Px " to 0x%" Px " for %s\n",
+          pc, lazy_deopt_jump, name.ToCString());
+    }
+    const ExceptionHandlers& handlers =
+        ExceptionHandlers::Handle(zone, optimized_code.exception_handlers());
+    RawExceptionHandlers::HandlerInfo info;
+    for (intptr_t i = 0; i < handlers.num_entries(); ++i) {
+      handlers.GetHandlerInfo(i, &info);
+      const uword patch_pc = instrs.PayloadStart() + info.handler_pc_offset;
+      CodePatcher::InsertDeoptimizationCallAt(patch_pc, lazy_deopt_jump);
+      if (FLAG_trace_patching) {
+        OS::PrintErr("  at handler 0x%" Px "\n", patch_pc);
+      }
+    }
   }
   // Mark code as dead (do not GC its embedded objects).
   optimized_code.set_is_alive(false);

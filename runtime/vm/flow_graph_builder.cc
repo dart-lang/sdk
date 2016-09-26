@@ -4321,7 +4321,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
                                   try_handler_index,
                                   catch_block->exception_var(),
                                   catch_block->stacktrace_var(),
-                                  catch_block->needs_stacktrace());
+                                  catch_block->needs_stacktrace(),
+                                  Thread::Current()->GetNextDeoptId());
   owner()->AddCatchEntry(catch_entry);
   AppendFragment(catch_entry, for_catch);
 
@@ -4367,7 +4368,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
                                     catch_handler_index,
                                     catch_block->exception_var(),
                                     catch_block->stacktrace_var(),
-                                    catch_block->needs_stacktrace());
+                                    catch_block->needs_stacktrace(),
+                                    Thread::Current()->GetNextDeoptId());
     owner()->AddCatchEntry(finally_entry);
     AppendFragment(finally_entry, for_finally);
   }

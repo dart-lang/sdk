@@ -2009,7 +2009,9 @@ void FlowGraph::EliminateEnvironments() {
        !block_it.Done();
        block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
-    block->RemoveEnvironment();
+    if (!block->IsCatchBlockEntry()) {
+      block->RemoveEnvironment();
+    }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
       if (!current->CanDeoptimize()) {

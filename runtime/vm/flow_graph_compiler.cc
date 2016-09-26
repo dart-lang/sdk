@@ -536,7 +536,10 @@ void FlowGraphCompiler::VisitBlocks() {
 
     entry->set_offset(assembler()->CodeSize());
     BeginCodeSourceRange();
+    ASSERT(pending_deoptimization_env_ == NULL);
+    pending_deoptimization_env_ = entry->env();
     entry->EmitNativeCode(this);
+    pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
@@ -805,8 +808,7 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
 }
 
 
-void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
-                                            TokenPosition token_pos) {
+void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   CompilerDeoptInfo* info =

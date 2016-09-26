@@ -1894,6 +1894,9 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
   // Clear top exit frame.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
+  // Restore the pool pointer.
+  __ RestoreCodePointer();
+  __ LoadPoolPointer();
   __ ret();  // Jump to the exception handler code.
 }
 
