@@ -23,6 +23,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--packages=../../.packages',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/dartfmt.dart.snapshot',
             '../../third_party/pkg_tested/dart_style/bin/format.dart',
           ],

@@ -26,6 +26,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--packages=../../.packages',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
             '../../third_party/pkg/pub/bin/pub.dart',
           ]

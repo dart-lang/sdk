@@ -24,6 +24,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--packages=../../.packages',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/dartanalyzer.dart.snapshot',
             '../../pkg/analyzer_cli/bin/analyzer.dart',
           ],
@@ -40,6 +41,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--packages=../../.packages',
             '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
             'build-spec',
             '<(SHARED_INTERMEDIATE_DIR)/spec.sum',
@@ -57,6 +59,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--packages=../../.packages',
             '../../pkg/analyzer/tool/summary/build_sdk_summaries.dart',
             'build-strong',
             '<(SHARED_INTERMEDIATE_DIR)/strong.sum',
