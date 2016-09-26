@@ -1146,6 +1146,81 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
 }
 
 
+DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
+#if defined(TARGET_ARCH_DBC)
+  // DBC does not use switchable calls.
+  UNREACHABLE();
+#else
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const UnlinkedCall& unlinked =
+      UnlinkedCall::CheckedHandle(zone, arguments.ArgAt(1));
+
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame->IsDartFrame());
+  const Code& caller_code =
+      Code::Handle(zone, caller_frame->LookupDartCode());
+  const Function& caller_function =
+      Function::Handle(zone, caller_frame->LookupDartFunction());
+
+  const String& name = String::Handle(zone, unlinked.target_name());
+  const Array& descriptor = Array::Handle(zone, unlinked.args_descriptor());
+  const ICData& ic_data =
+      ICData::Handle(zone, ICData::New(caller_function,
+                                       name,
+                                       descriptor,
+                                       Thread::kNoDeoptId,
+                                       1, /* args_tested */
+                                       false /* static_call */));
+
+  Class& cls = Class::Handle(zone, receiver.clazz());
+  ArgumentsDescriptor args_desc(descriptor);
+  Function& target_function = Function::Handle(zone,
+      Resolver::ResolveDynamicForReceiverClass(cls,
+                                               name,
+                                               args_desc));
+  if (target_function.IsNull()) {
+    target_function = InlineCacheMissHelper(receiver, descriptor, name);
+  }
+  if (target_function.IsNull()) {
+    ASSERT(!FLAG_lazy_dispatchers);
+  } else {
+    ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+  }
+
+  if (!target_function.IsNull() &&
+      !target_function.HasOptionalParameters()) {
+    // Patch to monomorphic call.
+    ASSERT(target_function.HasCode());
+    const Code& target_code =
+        Code::Handle(zone, target_function.CurrentCode());
+    const Smi& expected_cid =
+        Smi::Handle(zone, Smi::New(receiver.GetClassId()));
+    CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code,
+                                       expected_cid, target_code);
+
+    // Return the ICData. The miss stub will jump to continue in the IC call
+    // stub.
+    arguments.SetReturn(ic_data);
+    return;
+  }
+
+  // Patch to call through stub.
+  const Code& stub =
+      Code::Handle(zone, StubCode::ICCallThroughCode_entry()->code());
+  ASSERT(!Isolate::Current()->compilation_allowed());
+  CodePatcher::PatchSwitchableCallAt(caller_frame->pc(),
+                                     caller_code,
+                                     ic_data,
+                                     stub);
+
+  // Return the ICData. The miss stub will jump to continue in the IC lookup
+  // stub.
+  arguments.SetReturn(ic_data);
+#endif  // !DBC
+}
+
+
 // Handle a miss of a megamorphic cache.
 //   Arg0: Receiver.
 //   Returns: the ICData used to continue with a polymorphic call.

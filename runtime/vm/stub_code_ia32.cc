@@ -2044,6 +2044,11 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
+  __ int3();
+}
+
+
 void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ int3();
 }

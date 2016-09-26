@@ -646,6 +646,13 @@ intptr_t RawSingleTargetCache::VisitSingleTargetCachePointers(
 }
 
 
+intptr_t RawUnlinkedCall::VisitUnlinkedCallPointers(
+    RawUnlinkedCall* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return UnlinkedCall::InstanceSize();
+}
+
+
 intptr_t RawICData::VisitICDataPointers(RawICData* raw_obj,
                                         ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());

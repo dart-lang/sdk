@@ -2113,7 +2113,11 @@ void Precompiler::SwitchICCalls() {
         pool_(ObjectPool::Handle(zone)),
         entry_(Object::Handle(zone)),
         ic_(ICData::Handle(zone)),
-        target_code_(Code::Handle(zone)) {
+        target_name_(String::Handle(zone)),
+        args_descriptor_(Array::Handle(zone)),
+        unlinked_(UnlinkedCall::Handle(zone)),
+        target_code_(Code::Handle(zone)),
+        canonical_unlinked_calls_() {
     }
 
     void Visit(const Function& function) {
@@ -2131,11 +2135,31 @@ void Precompiler::SwitchICCalls() {
           // calls.
           ic_ ^= entry_.raw();
           ic_.ResetSwitchable(zone_);
+
+          unlinked_ = UnlinkedCall::New();
+          target_name_ = ic_.target_name();
+          unlinked_.set_target_name(target_name_);
+          args_descriptor_ = ic_.arguments_descriptor();
+          unlinked_.set_args_descriptor(args_descriptor_);
+          unlinked_ = DedupUnlinkedCall(unlinked_);
+          pool_.SetObjectAt(i, unlinked_);
         } else if (entry_.raw() ==
                    StubCode::ICCallThroughFunction_entry()->code()) {
-          target_code_ = StubCode::ICCallThroughCode_entry()->code();
+          target_code_ = StubCode::UnlinkedCall_entry()->code();
           pool_.SetObjectAt(i, target_code_);
         }
+      }
+    }
+
+    RawUnlinkedCall* DedupUnlinkedCall(const UnlinkedCall& unlinked) {
+      const UnlinkedCall* canonical_unlinked =
+          canonical_unlinked_calls_.LookupValue(&unlinked);
+      if (canonical_unlinked == NULL) {
+        canonical_unlinked_calls_.Insert(
+            &UnlinkedCall::ZoneHandle(zone_, unlinked.raw()));
+        return unlinked.raw();
+      } else {
+        return canonical_unlinked->raw();
       }
     }
 
@@ -2145,7 +2169,11 @@ void Precompiler::SwitchICCalls() {
     ObjectPool& pool_;
     Object& entry_;
     ICData& ic_;
+    String& target_name_;
+    Array& args_descriptor_;
+    UnlinkedCall& unlinked_;
     Code& target_code_;
+    UnlinkedCallSet canonical_unlinked_calls_;
   };
 
   ASSERT(!I->compilation_allowed());

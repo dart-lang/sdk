@@ -542,6 +542,7 @@ class Object {
   static RawClass* singletargetcache_class() {
     return singletargetcache_class_;
   }
+  static RawClass* unlinkedcall_class() { return unlinkedcall_class_; }
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* megamorphic_cache_class() {
     return megamorphic_cache_class_;
@@ -794,6 +795,7 @@ class Object {
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
   static RawClass* singletargetcache_class_;  // Class of SingleTargetCache.
+  static RawClass* unlinkedcall_class_;  // Class of UnlinkedCall.
   static RawClass* icdata_class_;  // Class of ICData.
   static RawClass* megamorphic_cache_class_;  // Class of MegamorphiCache.
   static RawClass* subtypetestcache_class_;  // Class of SubtypeTestCache.
@@ -1854,6 +1856,25 @@ DEFINE_NON_POINTER_FIELD_ACCESSORS(intptr_t, upper_limit);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache, Object);
+  friend class Class;
+};
+
+
+class UnlinkedCall : public Object {
+ public:
+  RawString* target_name() const { return raw_ptr()->target_name_; }
+  void set_target_name(const String& target_name) const;
+  RawArray* args_descriptor() const { return raw_ptr()->args_descriptor_; }
+  void set_args_descriptor(const Array& args_descriptor) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawUnlinkedCall));
+  }
+
+  static RawUnlinkedCall* New();
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall, Object);
   friend class Class;
 };
 

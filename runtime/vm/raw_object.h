@@ -40,6 +40,7 @@ namespace dart {
   V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(SingleTargetCache)                                                         \
+  V(UnlinkedCall)                                                              \
   V(ICData)                                                                    \
   V(MegamorphicCache)                                                          \
   V(SubtypeTestCache)                                                          \
@@ -1506,6 +1507,19 @@ class RawSingleTargetCache : public RawObject {
   uword entry_point_;
   classid_t lower_limit_;
   classid_t upper_limit_;
+};
+
+
+class RawUnlinkedCall : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall);
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->target_name_);
+  }
+  RawString* target_name_;
+  RawArray* args_descriptor_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
+  }
 };
 
 

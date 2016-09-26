@@ -2167,6 +2167,31 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
 }
 
 
+//  RDI: receiver
+//  RBX: UnlinkedCall
+void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
+  __ EnterStubFrame();
+  __ pushq(RDI);  // Preserve receiver.
+
+  __ PushObject(Object::null_object());  // Result.
+  __ pushq(RDI);                         // Arg0: Receiver
+  __ pushq(RBX);                         // Arg1: UnlinkedCall
+  __ CallRuntime(kUnlinkedCallRuntimeEntry, 2);
+  __ popq(RBX);
+  __ popq(RBX);
+  __ popq(RBX);  // result = IC
+
+  __ popq(RDI);  // Restore receiver.
+  __ LeaveStubFrame();
+
+  __ movq(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ jmp(RCX);
+}
+
+
 // Called from switchable IC calls.
 //  RDI: receiver
 //  RBX: SingleTargetCache

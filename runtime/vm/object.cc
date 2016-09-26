@@ -153,6 +153,7 @@ RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::singletargetcache_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::unlinkedcall_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::megamorphic_cache_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -656,6 +657,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<SingleTargetCache>();
   singletargetcache_class_ = cls.raw();
 
+  cls = Class::New<UnlinkedCall>();
+  unlinkedcall_class_ = cls.raw();
+
   cls = Class::New<ICData>();
   icdata_class_ = cls.raw();
 
@@ -998,6 +1002,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(context, Context);
   SET_CLASS_NAME(context_scope, ContextScope);
   SET_CLASS_NAME(singletargetcache, SingleTargetCache);
+  SET_CLASS_NAME(unlinkedcall, UnlinkedCall);
   SET_CLASS_NAME(icdata, ICData);
   SET_CLASS_NAME(megamorphic_cache, MegamorphicCache);
   SET_CLASS_NAME(subtypetestcache, SubtypeTestCache);
@@ -12645,6 +12650,29 @@ RawSingleTargetCache* SingleTargetCache::New() {
   result.set_lower_limit(kIllegalCid);
   result.set_upper_limit(kIllegalCid);
   return result.raw();
+}
+
+
+void UnlinkedCall::set_target_name(const String& value) const {
+  StorePointer(&raw_ptr()->target_name_, value.raw());
+}
+
+
+void UnlinkedCall::set_args_descriptor(const Array& value) const {
+  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+}
+
+
+const char* UnlinkedCall::ToCString() const {
+  return "UnlinkedCall";
+}
+
+
+RawUnlinkedCall* UnlinkedCall::New() {
+  RawObject* raw = Object::Allocate(UnlinkedCall::kClassId,
+                                    UnlinkedCall::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawUnlinkedCall*>(raw);
 }
 
 
