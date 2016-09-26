@@ -1767,7 +1767,7 @@ abstract class StreamIterator<T> {
   factory StreamIterator(Stream<T> stream)
       // TODO(lrn): use redirecting factory constructor when type
       // arguments are supported.
-      => new _StreamIteratorImpl<T>(stream);
+      => new _StreamIterator<T>(stream);
 
   /**
    * Wait for the next stream value to be available.
@@ -1809,7 +1809,7 @@ abstract class StreamIterator<T> {
    * automatically closed, you must call [cancel] to ensure that the stream
    * is properly closed.
    *
-   * If [moveNext] has been called when the iterator is cancelled,
+   * If [moveNext] has been called when the iterator is canceled,
    * its returned future will complete with `false` as value,
    * as will all further calls to [moveNext].
    *
