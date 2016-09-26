@@ -8,42 +8,10 @@
   },
   'targets': [
     {
-      'target_name': 'fetch_observatory_deps',
-      'type': 'none',
-      'dependencies': [
-        'dart_bootstrap#host',
-      ],
-      'toolsets': ['host'],
-      'actions': [
-        {
-          'action_name': 'get_obsevatory_dependencies',
-          'inputs': [
-            '../../tools/observatory_tool.py',
-            'pubspec.yaml',
-          ],
-          'outputs': [
-            '<(gen_source_dir)/observatory_packages.stamp'
-          ],
-          'action': [
-            'python',
-            '../tools/observatory_tool.py',
-            '--sdk=True',
-            '--stamp',
-            '<(gen_source_dir)/observatory_packages.stamp',
-            '--dart-executable',
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart_bootstrap<(EXECUTABLE_SUFFIX)',
-            '--directory', 'observatory',
-            '--command', 'get',
-          ],
-        }
-      ],
-    },
-    {
       'target_name': 'build_observatory',
       'type': 'none',
       'dependencies': [
         'dart_bootstrap#host',
-        'fetch_observatory_deps#host',
       ],
       'toolsets': ['host'],
       'includes': [
