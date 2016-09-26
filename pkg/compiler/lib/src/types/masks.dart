@@ -18,7 +18,7 @@ import '../universe/universe.dart'
         UniverseSelectorConstraints,
         SelectorConstraintsStrategy;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClassWorld, ClosedWorld;
 import 'abstract_value_domain.dart' show AbstractValue;
 
 part 'container_type_mask.dart';
@@ -31,14 +31,13 @@ part 'union_type_mask.dart';
 part 'value_type_mask.dart';
 
 class CommonMasks {
-  final ClassWorld classWorld;
   // TODO(sigmund): once we split out the backend common elements, depend
   // directly on those instead.
   final Compiler compiler;
 
-  CommonMasks(Compiler compiler)
-      : this.classWorld = compiler.openWorld,
-        compiler = compiler;
+  CommonMasks(this.compiler);
+
+  ClassWorld get classWorld => compiler.closedWorld;
 
   TypeMask _dynamicType;
   TypeMask _nonNullType;

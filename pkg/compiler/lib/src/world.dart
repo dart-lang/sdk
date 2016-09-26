@@ -41,6 +41,43 @@ abstract class ClassWorld {
 
   CoreClasses get coreClasses;
 
+  /// Returns `true` if the class world is closed.
+  bool get isClosed;
+
+  /// Returns `true` if closed-world assumptions can be made, that is,
+  /// incremental compilation isn't enabled.
+  bool get hasClosedWorldAssumption;
+
+  /// Returns a string representation of the closed world.
+  ///
+  /// If [cls] is provided, the dump will contain only classes related to [cls].
+  String dump([ClassElement cls]);
+
+  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
+  /// of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClassWorld].
+  ClassHierarchyNode getClassHierarchyNode(ClassElement cls);
+
+  /// Returns [ClassSet] for [cls] used to model the extends and implements
+  /// relations of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClassWorld].
+  ClassSet getClassSet(ClassElement cls);
+
+  // TODO(johnniwinther): Find a better strategy for caching these.
+  @deprecated
+  List<Map<ClassElement, TypeMask>> get canonicalizedTypeMasks;
+}
+
+/// The [ClosedWorld] represents the information known about a program when
+/// compiling with closed-world semantics.
+///
+/// This expands [ClassWorld] with information about live functions,
+/// side effects, and selectors with known single targets.
+abstract class ClosedWorld extends ClassWorld {
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassElement cls);
 
@@ -53,9 +90,6 @@ abstract class ClassWorld {
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls);
-
-  /// Returns `true` if the class world is closed.
-  bool get isClosed;
 
   /// Return `true` if [x] is a subclass of [y].
   bool isSubclassOf(ClassElement x, ClassElement y);
@@ -155,40 +189,6 @@ abstract class ClassWorld {
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, ClassElement type);
 
-  /// Returns `true` if closed-world assumptions can be made, that is,
-  /// incremental compilation isn't enabled.
-  bool get hasClosedWorldAssumption;
-
-  /// Returns a string representation of the closed world.
-  ///
-  /// If [cls] is provided, the dump will contain only classes related to [cls].
-  String dump([ClassElement cls]);
-
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassElement cls);
-
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
-  ClassSet getClassSet(ClassElement cls);
-
-  // TODO(johnniwinther): Find a better strategy for caching these.
-  @deprecated
-  List<Map<ClassElement, TypeMask>> get canonicalizedTypeMasks;
-}
-
-/// The [ClosedWorld] represents the information known about a program when
-/// compiling with closed-world semantics.
-///
-/// This expands [ClassWorld] with information about live functions,
-/// side effects, and selectors with known single targets.
-abstract class ClosedWorld extends ClassWorld {
   /// Returns the [FunctionSet] containing all live functions in the closed
   /// world.
   FunctionSet get allFunctions;
@@ -305,6 +305,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
   /// instance of [y].
   bool isSubtypeOf(ClassElement x, ClassElement y) {
+    assert(isClosed);
     assert(checkInvariants(x));
     assert(checkInvariants(y, mustBeInstantiated: false));
 
@@ -317,6 +318,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   /// Return `true` if [x] is a (non-strict) subclass of [y].
   bool isSubclassOf(ClassElement x, ClassElement y) {
+    assert(isClosed);
     assert(checkInvariants(x));
     assert(checkInvariants(y));
 
@@ -331,30 +333,35 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   @override
   bool isInstantiated(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
     return node != null && node.isInstantiated;
   }
 
   @override
   bool isDirectlyInstantiated(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
     return node != null && node.isDirectlyInstantiated;
   }
 
   @override
   bool isIndirectlyInstantiated(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
     return node != null && node.isIndirectlyInstantiated;
   }
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls) {
+    assert(isClosed);
     return _compiler.resolverWorld.isImplemented(cls);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
   /// [cls] possibly including [cls] itself, if it is live.
   Iterable<ClassElement> subclassesOf(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     if (hierarchy == null) return const <ClassElement>[];
     return hierarchy.subclassesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED);
@@ -363,6 +370,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns an iterable over the directly instantiated classes that extend
   /// [cls] _not_ including [cls] itself.
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return const <ClassElement>[];
     return subclasses.subclassesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED,
@@ -372,6 +380,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns the number of live classes that extend [cls] _not_
   /// including [cls] itself.
   int strictSubclassCount(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return 0;
     return subclasses.instantiatedSubclassCount;
@@ -381,6 +390,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// itself.
   void forEachStrictSubclassOf(
       ClassElement cls, IterationStep f(ClassElement cls)) {
+    assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return;
     subclasses.forEachSubclass(f, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
@@ -390,6 +400,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
   bool anyStrictSubclassOf(ClassElement cls, bool predicate(ClassElement cls)) {
+    assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return false;
     return subclasses.anySubclass(
@@ -400,6 +411,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// possibly including [cls] itself, if it is live.
   Iterable<ClassElement> subtypesOf(ClassElement cls) {
+    assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) {
       return const <ClassElement>[];
@@ -411,6 +423,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// _not_ including [cls].
   Iterable<ClassElement> strictSubtypesOf(ClassElement cls) {
+    assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) {
       return const <ClassElement>[];
@@ -423,6 +436,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns the number of live classes that implement [cls] _not_
   /// including [cls] itself.
   int strictSubtypeCount(ClassElement cls) {
+    assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return 0;
     return classSet.instantiatedSubtypeCount;
@@ -432,6 +446,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// itself.
   void forEachStrictSubtypeOf(
       ClassElement cls, IterationStep f(ClassElement cls)) {
+    assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return;
     classSet.forEachSubtype(f, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
@@ -441,6 +456,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
   bool anyStrictSubtypeOf(ClassElement cls, bool predicate(ClassElement cls)) {
+    assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return false;
     return classSet.anySubtype(
@@ -450,6 +466,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   /// Returns `true` if [a] and [b] have any known common subtypes.
   bool haveAnyCommonSubtypes(ClassElement a, ClassElement b) {
+    assert(isClosed);
     ClassSet classSetA = _classSets[a.declaration];
     ClassSet classSetB = _classSets[b.declaration];
     if (classSetA == null || classSetB == null) return false;
@@ -466,6 +483,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if any directly instantiated class other than [cls] extends
   /// [cls].
   bool hasAnyStrictSubclass(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return false;
     return subclasses.isIndirectlyInstantiated;
@@ -480,6 +498,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if all directly instantiated classes that implement [cls]
   /// extend it.
   bool hasOnlySubclasses(ClassElement cls) {
+    assert(isClosed);
     // TODO(johnniwinther): move this to ClassSet?
     if (cls == coreClasses.objectClass) return true;
     ClassSet classSet = _classSets[cls.declaration];
@@ -492,6 +511,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   @override
   ClassElement getLubOfInstantiatedSubclasses(ClassElement cls) {
+    assert(isClosed);
     if (backend.isJsInterop(cls)) {
       return backend.helpers.jsJavaScriptObjectClass;
     }
@@ -503,6 +523,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   @override
   ClassElement getLubOfInstantiatedSubtypes(ClassElement cls) {
+    assert(isClosed);
     if (backend.isJsInterop(cls)) {
       return backend.helpers.jsJavaScriptObjectClass;
     }
@@ -512,6 +533,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   /// Returns an iterable over the common supertypes of the [classes].
   Iterable<ClassElement> commonSupertypesOf(Iterable<ClassElement> classes) {
+    assert(isClosed);
     Iterator<ClassElement> iterator = classes.iterator;
     if (!iterator.moveNext()) return const <ClassElement>[];
 
@@ -588,12 +610,14 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   /// Returns `true` if [cls] is mixed into a live class.
   bool isUsedAsMixin(ClassElement cls) {
+    assert(isClosed);
     return !mixinUsesOf(cls).isEmpty;
   }
 
   /// Returns `true` if any live class that mixes in [cls] implements [type].
   bool hasAnySubclassOfMixinUseThatImplements(
       ClassElement cls, ClassElement type) {
+    assert(isClosed);
     return mixinUsesOf(cls)
         .any((use) => hasAnySubclassThatImplements(use, type));
   }
@@ -601,11 +625,13 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if any live class that mixes in [mixin] is also a subclass
   /// of [superclass].
   bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement mixin) {
+    assert(isClosed);
     return mixinUsesOf(mixin).any((each) => each.isSubclassOf(superclass));
   }
 
   /// Returns `true` if [cls] or any superclass mixes in [mixin].
   bool isSubclassOfMixinUseOf(ClassElement cls, ClassElement mixin) {
+    assert(isClosed);
     if (isUsedAsMixin(mixin)) {
       ClassElement current = cls.declaration;
       mixin = mixin.declaration;
@@ -624,6 +650,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
   /// of a mixin application of [y].
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassElement x, ClassElement y) {
+    assert(isClosed);
     x = x.declaration;
     y = y.declaration;
     Map<ClassElement, bool> secondMap =
@@ -635,6 +662,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(
       ClassElement superclass, ClassElement type) {
+    assert(isClosed);
     Set<ClassElement> subclasses = typesImplementedBySubclassesOf(superclass);
     if (subclasses == null) return false;
     return subclasses.contains(type);

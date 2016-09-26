@@ -58,7 +58,7 @@ import '../universe/world_impact.dart'
         WorldImpactVisitor,
         StagedWorldImpactBuilder;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
@@ -983,11 +983,11 @@ class JavaScriptBackend extends Backend {
   }
 
   Set<ClassElement> nativeSubclassesOfMixin(ClassElement mixin) {
-    ClassWorld classWorld = compiler.closedWorld;
-    Iterable<MixinApplicationElement> uses = classWorld.mixinUsesOf(mixin);
+    ClosedWorld closedWorld = compiler.closedWorld;
+    Iterable<MixinApplicationElement> uses = closedWorld.mixinUsesOf(mixin);
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
-      classWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
+      closedWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
         if (isNativeOrExtendsNative(subclass)) {
           if (result == null) result = new Set<ClassElement>();
           result.add(subclass);

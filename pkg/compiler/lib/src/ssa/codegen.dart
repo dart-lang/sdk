@@ -22,7 +22,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'codegen_helpers.dart';
 import 'nodes.dart';
 import 'variable_allocator.dart';
@@ -2704,18 +2704,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   js.Expression generateReceiverOrArgumentTypeTest(
       HInstruction input, TypeMask checkedType) {
-    ClassWorld classWorld = compiler.closedWorld;
+    ClosedWorld closedWorld = compiler.closedWorld;
     TypeMask inputType = input.instructionType;
     // Figure out if it is beneficial to turn this into a null check.
     // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
-    bool isIntCheck = checkedType.containsOnlyInt(classWorld);
+    bool isIntCheck = checkedType.containsOnlyInt(closedWorld);
     bool turnIntoNumCheck = isIntCheck && input.isIntegerOrNull(compiler);
     bool turnIntoNullCheck = !turnIntoNumCheck &&
         (checkedType.nullable() == inputType) &&
         (isIntCheck ||
-            checkedType.satisfies(helpers.jsIndexableClass, classWorld));
+            checkedType.satisfies(helpers.jsIndexableClass, closedWorld));
 
     if (turnIntoNullCheck) {
       use(input);
@@ -2725,15 +2725,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // input is !int
       checkBigInt(input, '!==', input.sourceInformation);
       return pop();
-    } else if (turnIntoNumCheck || checkedType.containsOnlyNum(classWorld)) {
+    } else if (turnIntoNumCheck || checkedType.containsOnlyNum(closedWorld)) {
       // input is !num
       checkNum(input, '!==', input.sourceInformation);
       return pop();
-    } else if (checkedType.containsOnlyBool(classWorld)) {
+    } else if (checkedType.containsOnlyBool(closedWorld)) {
       // input is !bool
       checkBool(input, '!==', input.sourceInformation);
       return pop();
-    } else if (checkedType.containsOnlyString(classWorld)) {
+    } else if (checkedType.containsOnlyString(closedWorld)) {
       // input is !string
       checkString(input, '!==', input.sourceInformation);
       return pop();
@@ -2744,11 +2744,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeConversion(HTypeConversion node) {
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-      ClassWorld classWorld = compiler.closedWorld;
+      ClosedWorld closedWorld = compiler.closedWorld;
       // An int check if the input is not int or null, is not
       // sufficient for doing an argument or receiver check.
       assert(compiler.options.trustTypeAnnotations ||
-          !node.checkedType.containsOnlyInt(classWorld) ||
+          !node.checkedType.containsOnlyInt(closedWorld) ||
           node.checkedInput.isIntegerOrNull(compiler));
       js.Expression test = generateReceiverOrArgumentTypeTest(
           node.checkedInput, node.checkedType);
@@ -2913,22 +2913,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   bool typeVariableAccessNeedsSubstitution(
       TypeVariableElement element, TypeMask receiverMask) {
     ClassElement cls = element.enclosingClass;
-    ClassWorld classWorld = compiler.closedWorld;
+    ClosedWorld closedWorld = compiler.closedWorld;
 
     // See if the receiver type narrows the set of classes to ones that can be
     // indexed.
     // TODO(sra): Currently the only convenient query is [singleClass]. We
     // should iterate over all the concrete classes in [receiverMask].
-    ClassElement receiverClass = receiverMask.singleClass(classWorld);
+    ClassElement receiverClass = receiverMask.singleClass(closedWorld);
     if (receiverClass != null) {
       if (backend.rti.isTrivialSubstitution(receiverClass, cls)) {
         return false;
       }
     }
 
-    if (classWorld.isUsedAsMixin(cls)) return true;
+    if (closedWorld.isUsedAsMixin(cls)) return true;
 
-    return classWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
+    return closedWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
       return !backend.rti.isTrivialSubstitution(subclass, cls);
     });
   }

@@ -867,7 +867,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
    */
   TypeInformation handleIntrisifiedSelector(
       Selector selector, TypeMask mask, TypeGraphInferrerEngine inferrer) {
-    ClassWorld classWorld = inferrer.classWorld;
+    ClassWorld classWorld = inferrer.closedWorld;
     if (!classWorld.backend.intImplementation.isResolved) return null;
     if (mask == null) return null;
     if (!mask.containsOnlyInt(classWorld)) {
@@ -1277,10 +1277,10 @@ class NarrowTypeInformation extends TypeInformation {
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
     TypeMask input = assignments.first.type;
     TypeMask intersection =
-        input.intersection(typeAnnotation, inferrer.classWorld);
+        input.intersection(typeAnnotation, inferrer.closedWorld);
     if (debug.ANOMALY_WARN) {
-      if (!input.containsMask(intersection, inferrer.classWorld) ||
-          !typeAnnotation.containsMask(intersection, inferrer.classWorld)) {
+      if (!input.containsMask(intersection, inferrer.closedWorld) ||
+          !typeAnnotation.containsMask(intersection, inferrer.closedWorld)) {
         print("ANOMALY WARNING: narrowed $input to $intersection via "
             "$typeAnnotation");
       }
@@ -1516,7 +1516,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
       for (var key in typeInfoMap.keys) {
         TypeInformation value = typeInfoMap[key];
         if (!mask.typeMap.containsKey(key) &&
-            !value.type.containsAll(inferrer.classWorld) &&
+            !value.type.containsAll(inferrer.closedWorld) &&
             !value.type.isNullable) {
           return toTypeMask(inferrer);
         }

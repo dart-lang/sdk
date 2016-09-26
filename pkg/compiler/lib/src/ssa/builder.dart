@@ -37,7 +37,7 @@ import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 
 import 'graph_builder.dart';
 import 'jump_handler.dart';
@@ -3366,8 +3366,8 @@ class SsaBuilder extends ast.Visitor
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
-    ClassWorld classWorld = compiler.closedWorld;
-    if (classWorld.isUsedAsMixin(cls)) return true;
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (closedWorld.isUsedAsMixin(cls)) return true;
 
     return compiler.closedWorld.anyStrictSubclassOf(cls,
         (ClassElement subclass) {
@@ -5659,11 +5659,11 @@ class SsaBuilder extends ast.Visitor
 
     TypeMask mask = inferenceResults.typeOfIterator(node, elements);
 
-    ClassWorld classWorld = compiler.closedWorld;
+    ClosedWorld closedWorld = compiler.closedWorld;
     if (mask != null &&
-        mask.satisfies(helpers.jsIndexableClass, classWorld) &&
+        mask.satisfies(helpers.jsIndexableClass, closedWorld) &&
         // String is indexable but not iterable.
-        !mask.satisfies(helpers.jsStringClass, classWorld)) {
+        !mask.satisfies(helpers.jsStringClass, closedWorld)) {
       return buildSyncForInIndexable(node, mask);
     }
     buildSyncForInIterator(node);
@@ -6982,20 +6982,20 @@ class AstInliningState extends InliningState {
 }
 
 class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
-  final ClassWorld classWorld;
+  final ClosedWorld closedWorld;
 
-  TypeBuilder(this.classWorld);
+  TypeBuilder(this.closedWorld);
 
   void visit(DartType type, SsaBuilder builder) => type.accept(this, builder);
 
   void visitVoidType(VoidType type, SsaBuilder builder) {
     ClassElement cls = builder.backend.helpers.VoidRuntimeType;
-    builder.push(new HVoidType(type, new TypeMask.exact(cls, classWorld)));
+    builder.push(new HVoidType(type, new TypeMask.exact(cls, closedWorld)));
   }
 
   void visitTypeVariableType(TypeVariableType type, SsaBuilder builder) {
     ClassElement cls = builder.backend.helpers.RuntimeType;
-    TypeMask instructionType = new TypeMask.subclass(cls, classWorld);
+    TypeMask instructionType = new TypeMask.subclass(cls, closedWorld);
     if (!builder.sourceElement.enclosingElement.isClosure &&
         builder.sourceElement.isInstanceMember) {
       HInstruction receiver = builder.localsHandler.readThis();
@@ -7032,7 +7032,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
 
     ClassElement cls = builder.backend.helpers.RuntimeFunctionType;
     builder.push(
-        new HFunctionType(inputs, type, new TypeMask.exact(cls, classWorld)));
+        new HFunctionType(inputs, type, new TypeMask.exact(cls, closedWorld)));
   }
 
   void visitMalformedType(MalformedType type, SsaBuilder builder) {
@@ -7056,7 +7056,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
       cls = builder.backend.helpers.RuntimeTypeGeneric;
     }
     builder.push(
-        new HInterfaceType(inputs, type, new TypeMask.exact(cls, classWorld)));
+        new HInterfaceType(inputs, type, new TypeMask.exact(cls, closedWorld)));
   }
 
   void visitTypedefType(TypedefType type, SsaBuilder builder) {
@@ -7068,6 +7068,6 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   void visitDynamicType(DynamicType type, SsaBuilder builder) {
     JavaScriptBackend backend = builder.compiler.backend;
     ClassElement cls = backend.helpers.DynamicRuntimeType;
-    builder.push(new HDynamicType(type, new TypeMask.exact(cls, classWorld)));
+    builder.push(new HDynamicType(type, new TypeMask.exact(cls, closedWorld)));
   }
 }

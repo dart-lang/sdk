@@ -10,7 +10,7 @@ import 'type_test_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/elements/elements.dart' show Element, ClassElement;
 import 'package:compiler/src/universe/class_set.dart';
-import 'package:compiler/src/world.dart' show ClassWorld;
+import 'package:compiler/src/world.dart' show ClosedWorld;
 
 void main() {
   asyncTest(() async {
@@ -44,7 +44,7 @@ testClassSets() async {
       }
       """,
       useMockCompiler: false);
-  ClassWorld classWorld = env.compiler.closedWorld;
+  ClosedWorld closedWorld = env.compiler.closedWorld;
 
   ClassElement Object_ = env.getElement("Object");
   ClassElement A = env.getElement("A");
@@ -105,32 +105,32 @@ testClassSets() async {
 
   void testSubclasses(ClassElement cls, List<ClassElement> expectedClasses,
       {bool exact: true}) {
-    check('subclassesOf', cls, classWorld.subclassesOf(cls), expectedClasses,
+    check('subclassesOf', cls, closedWorld.subclassesOf(cls), expectedClasses,
         exact: exact);
   }
 
   void testStrictSubclasses(
       ClassElement cls, List<ClassElement> expectedClasses,
       {bool exact: true}) {
-    check('strictSubclassesOf', cls, classWorld.strictSubclassesOf(cls),
+    check('strictSubclassesOf', cls, closedWorld.strictSubclassesOf(cls),
         expectedClasses,
         exact: exact,
-        forEach: classWorld.forEachStrictSubclassOf,
-        getCount: classWorld.strictSubclassCount);
+        forEach: closedWorld.forEachStrictSubclassOf,
+        getCount: closedWorld.strictSubclassCount);
   }
 
   void testStrictSubtypes(ClassElement cls, List<ClassElement> expectedClasses,
       {bool exact: true}) {
-    check('strictSubtypesOf', cls, classWorld.strictSubtypesOf(cls),
+    check('strictSubtypesOf', cls, closedWorld.strictSubtypesOf(cls),
         expectedClasses,
         exact: exact,
-        forEach: classWorld.forEachStrictSubtypeOf,
-        getCount: classWorld.strictSubtypeCount);
+        forEach: closedWorld.forEachStrictSubtypeOf,
+        getCount: closedWorld.strictSubtypeCount);
   }
 
   void testMixinUses(ClassElement cls, List<ClassElement> expectedClasses,
       {bool exact: true}) {
-    check('mixinUsesOf', cls, classWorld.mixinUsesOf(cls), expectedClasses,
+    check('mixinUsesOf', cls, closedWorld.mixinUsesOf(cls), expectedClasses,
         exact: exact);
   }
 
@@ -234,13 +234,13 @@ testProperties() async {
       }
       """,
       useMockCompiler: false);
-  ClassWorld classWorld = env.compiler.closedWorld;
+  ClosedWorld closedWorld = env.compiler.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
     ClassElement cls = env.getElement(name);
-    Expect.equals(hasStrictSubtype, classWorld.hasAnyStrictSubtype(cls),
+    Expect.equals(hasStrictSubtype, closedWorld.hasAnyStrictSubtype(cls),
         "Unexpected hasAnyStrictSubtype property on $cls.");
-    Expect.equals(hasOnlySubclasses, classWorld.hasOnlySubclasses(cls),
+    Expect.equals(hasOnlySubclasses, closedWorld.hasOnlySubclasses(cls),
         "Unexpected hasOnlySubclasses property on $cls.");
   }
 

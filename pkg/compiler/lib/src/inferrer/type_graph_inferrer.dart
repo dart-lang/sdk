@@ -25,7 +25,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart' show Setlet;
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
 import 'inferrer_visitor.dart' show ArgumentsTypes, TypeSystem;
@@ -37,7 +37,7 @@ import 'type_graph_nodes.dart';
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Compiler compiler;
-  final ClassWorld classWorld;
+  final ClosedWorld closedWorld;
   final CommonMasks commonMasks;
 
   /// [ElementTypeInformation]s for elements.
@@ -74,7 +74,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
 
   TypeInformationSystem(Compiler compiler, this.commonMasks)
       : this.compiler = compiler,
-        this.classWorld = compiler.closedWorld {
+        this.closedWorld = compiler.closedWorld {
     nonNullEmptyType = getConcreteTypeFor(const TypeMask.nonNullEmpty());
   }
 
@@ -242,7 +242,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       return dynamicType;
     }
     return getConcreteTypeFor(
-        firstType.type.union(secondType.type, classWorld));
+        firstType.type.union(secondType.type, closedWorld));
   }
 
   bool selectorNeedsUpdate(TypeInformation info, TypeMask mask) {
@@ -263,10 +263,10 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     }
     // If this is refining to nullable subtype of `Object` just return
     // the receiver. We know the narrowing is useless.
-    if (otherType.isNullable && otherType.containsAll(classWorld)) {
+    if (otherType.isNullable && otherType.containsAll(closedWorld)) {
       return receiver;
     }
-    assert(TypeMask.assertIsNormalized(otherType, classWorld));
+    assert(TypeMask.assertIsNormalized(otherType, closedWorld));
     TypeInformation newType = new NarrowTypeInformation(receiver, otherType);
     allocatedTypes.add(newType);
     return newType;
@@ -276,7 +276,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
     if (annotation.isVoid) return nullType;
-    if (annotation.element == classWorld.coreClasses.objectClass &&
+    if (annotation.element == closedWorld.coreClasses.objectClass &&
         isNullable) {
       return type;
     }
@@ -288,15 +288,15 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       return type;
     } else {
       assert(annotation.isInterfaceType);
-      otherType = annotation.element == classWorld.coreClasses.objectClass
+      otherType = annotation.element == closedWorld.coreClasses.objectClass
           ? dynamicType.type.nonNullable()
-          : new TypeMask.nonNullSubtype(annotation.element, classWorld);
+          : new TypeMask.nonNullSubtype(annotation.element, closedWorld);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type.type.isExact) {
       return type;
     } else {
-      assert(TypeMask.assertIsNormalized(otherType, classWorld));
+      assert(TypeMask.assertIsNormalized(otherType, closedWorld));
       TypeInformation newType = new NarrowTypeInformation(type, otherType);
       allocatedTypes.add(newType);
       return newType;
@@ -342,17 +342,17 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
 
   TypeInformation nonNullSubtype(ClassElement type) {
     return getConcreteTypeFor(
-        new TypeMask.nonNullSubtype(type.declaration, classWorld));
+        new TypeMask.nonNullSubtype(type.declaration, closedWorld));
   }
 
   TypeInformation nonNullSubclass(ClassElement type) {
     return getConcreteTypeFor(
-        new TypeMask.nonNullSubclass(type.declaration, classWorld));
+        new TypeMask.nonNullSubclass(type.declaration, closedWorld));
   }
 
   TypeInformation nonNullExact(ClassElement type) {
     return getConcreteTypeFor(
-        new TypeMask.nonNullExact(type.declaration, classWorld));
+        new TypeMask.nonNullExact(type.declaration, closedWorld));
   }
 
   TypeInformation nonNullEmpty() {
@@ -368,8 +368,8 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       [TypeInformation elementType, int length]) {
     ClassElement typedDataClass = compiler.commonElements.typedDataClass;
     bool isTypedArray = typedDataClass != null &&
-        classWorld.isInstantiated(typedDataClass) &&
-        type.type.satisfies(typedDataClass, classWorld);
+        closedWorld.isInstantiated(typedDataClass) &&
+        type.type.satisfies(typedDataClass, closedWorld);
     bool isConst = (type.type == commonMasks.constListType);
     bool isFixed =
         (type.type == commonMasks.fixedListType) || isConst || isTypedArray;
@@ -405,9 +405,9 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     TypeMask keyType, valueType;
     if (isFixed) {
       keyType = keyTypes.fold(nonNullEmptyType.type,
-          (type, info) => type.union(info.type, classWorld));
+          (type, info) => type.union(info.type, closedWorld));
       valueType = valueTypes.fold(nonNullEmptyType.type,
-          (type, info) => type.union(info.type, classWorld));
+          (type, info) => type.union(info.type, closedWorld));
     } else {
       keyType = valueType = dynamicType.type;
     }
@@ -510,15 +510,15 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       // work the result will be `dynamic`.
       // TODO(sigmund): change to `mask == dynamicType` so we can continue to
       // track the non-nullable bit.
-      if (mask.containsAll(classWorld)) return dynamicType;
+      if (mask.containsAll(closedWorld)) return dynamicType;
       list.add(mask);
     }
 
     TypeMask newType = null;
     for (TypeMask mask in list) {
-      newType = newType == null ? mask : newType.union(mask, classWorld);
+      newType = newType == null ? mask : newType.union(mask, closedWorld);
       // Likewise - stop early if we already reach dynamic.
-      if (newType.containsAll(classWorld)) return dynamicType;
+      if (newType.containsAll(closedWorld)) return dynamicType;
     }
 
     return newType ?? const TypeMask.nonNullEmpty();
@@ -867,7 +867,7 @@ class TypeGraphInferrerEngine
                   // the old type around to ensure that we get a complete view
                   // of the type graph and do not drop any flow edges.
                   TypeMask refinedType = computeTypeMask(compiler, value);
-                  assert(TypeMask.assertIsNormalized(refinedType, classWorld));
+                  assert(TypeMask.assertIsNormalized(refinedType, closedWorld));
                   type = new NarrowTypeInformation(type, refinedType);
                   types.allocatedTypes.add(type);
                 }

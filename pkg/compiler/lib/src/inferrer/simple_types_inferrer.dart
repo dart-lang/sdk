@@ -22,7 +22,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart' show Link, Setlet;
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'inferrer_visitor.dart';
 
 /**
@@ -33,14 +33,14 @@ import 'inferrer_visitor.dart';
 abstract class InferrerEngine<T, V extends TypeSystem>
     implements MinimalInferrerEngine<T> {
   final Compiler compiler;
-  final ClassWorld classWorld;
+  final ClosedWorld closedWorld;
   final V types;
   final Map<ast.Node, T> concreteTypes = new Map<ast.Node, T>();
   final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
 
   InferrerEngine(Compiler compiler, this.types)
       : this.compiler = compiler,
-        this.classWorld = compiler.closedWorld;
+        this.closedWorld = compiler.closedWorld;
 
   CoreClasses get coreClasses => compiler.coreClasses;
 

@@ -77,7 +77,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
       : this.resolvedAst = resolvedAst,
         super(resolvedAst.elements);
 
-  ClassWorld get world => compiler.closedWorld;
+  ClosedWorld get world => compiler.closedWorld;
 
   CoreClasses get coreClasses => compiler.coreClasses;
 

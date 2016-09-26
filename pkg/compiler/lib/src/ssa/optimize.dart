@@ -20,7 +20,7 @@ import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'interceptor_simplifier.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -127,7 +127,7 @@ class SsaOptimizerTask extends CompilerTask {
 /// of identifying gvn-able lengths and mis-identifies some unions of fixed
 /// length indexables (see TODO) as not fixed length.
 bool isFixedLength(mask, Compiler compiler) {
-  ClassWorld classWorld = compiler.closedWorld;
+  ClosedWorld closedWorld = compiler.closedWorld;
   JavaScriptBackend backend = compiler.backend;
   if (mask.isContainer && mask.length != null) {
     // A container on which we have inferred the length.
@@ -136,7 +136,7 @@ bool isFixedLength(mask, Compiler compiler) {
   // TODO(sra): Recognize any combination of fixed length indexables.
   if (mask.containsOnly(backend.helpers.jsFixedArrayClass) ||
       mask.containsOnly(backend.helpers.jsUnmodifiableArrayClass) ||
-      mask.containsOnlyString(classWorld) ||
+      mask.containsOnlyString(closedWorld) ||
       backend.isTypedArray(mask)) {
     return true;
   }
@@ -335,14 +335,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       Element element = helpers.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       TypeMask actualType = node.instructionType;
-      ClassWorld classWorld = compiler.closedWorld;
+      ClosedWorld closedWorld = compiler.closedWorld;
       TypeMask resultType = backend.positiveIntType;
       // If we already have computed a more specific type, keep that type.
       if (HInstruction.isInstanceOf(
-          actualType, helpers.jsUInt31Class, classWorld)) {
+          actualType, helpers.jsUInt31Class, closedWorld)) {
         resultType = backend.uint31Type;
       } else if (HInstruction.isInstanceOf(
-          actualType, helpers.jsUInt32Class, classWorld)) {
+          actualType, helpers.jsUInt32Class, closedWorld)) {
         resultType = backend.uint32Type;
       }
       HFieldGet result = new HFieldGet(element, actualReceiver, resultType,
@@ -375,7 +375,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask mask = node.mask;
     HInstruction input = node.inputs[1];
 
-    ClassWorld world = compiler.closedWorld;
+    ClosedWorld world = compiler.closedWorld;
 
     bool applies(Element element) {
       return selector.applies(element, backend) &&
@@ -735,7 +735,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return graph.addConstantBool(true, compiler);
     }
 
-    ClassWorld classWorld = compiler.closedWorld;
+    ClosedWorld closedWorld = compiler.closedWorld;
     HInstruction expression = node.expression;
     if (expression.isInteger(compiler)) {
       if (element == coreClasses.intClass ||
@@ -779,11 +779,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // raw type.
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expression.instructionType;
-      assert(TypeMask.assertIsNormalized(expressionMask, classWorld));
+      assert(TypeMask.assertIsNormalized(expressionMask, closedWorld));
       TypeMask typeMask = (element == coreClasses.nullClass)
-          ? new TypeMask.subtype(element, classWorld)
-          : new TypeMask.nonNullSubtype(element, classWorld);
-      if (expressionMask.union(typeMask, classWorld) == typeMask) {
+          ? new TypeMask.subtype(element, closedWorld)
+          : new TypeMask.nonNullSubtype(element, closedWorld);
+      if (expressionMask.union(typeMask, closedWorld) == typeMask) {
         return graph.addConstantBool(true, compiler);
       } else if (expressionMask.isDisjoint(typeMask, compiler.closedWorld)) {
         return graph.addConstantBool(false, compiler);
@@ -816,11 +816,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction removeIfCheckAlwaysSucceeds(HCheck node, TypeMask checkedType) {
-    ClassWorld classWorld = compiler.closedWorld;
-    if (checkedType.containsAll(classWorld)) return node;
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (checkedType.containsAll(closedWorld)) return node;
     HInstruction input = node.checkedInput;
     TypeMask inputType = input.instructionType;
-    return inputType.isInMask(checkedType, classWorld) ? input : node;
+    return inputType.isInMask(checkedType, closedWorld) ? input : node;
   }
 
   HInstruction removeCheck(HCheck node) => node.checkedInput;
@@ -1042,12 +1042,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
       Selector selector = Selectors.toString_;
       TypeMask toStringType = TypeMaskFactory.inferredTypeForSelector(
           selector, input.instructionType, compiler);
-      ClassWorld classWorld = compiler.closedWorld;
-      if (!toStringType.containsOnlyString(classWorld)) return null;
+      ClosedWorld closedWorld = compiler.closedWorld;
+      if (!toStringType.containsOnlyString(closedWorld)) return null;
       // All intercepted classes extend `Interceptor`, so if the receiver can't
       // be a class extending `Interceptor` then it can be called directly.
-      if (new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, classWorld)
-          .isDisjoint(input.instructionType, classWorld)) {
+      if (new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, closedWorld)
+          .isDisjoint(input.instructionType, closedWorld)) {
         HInstruction result = new HInvokeDynamicMethod(
             selector,
             input.instructionType, // receiver mask.
@@ -1066,10 +1066,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
-    ClassWorld classWorld = compiler.closedWorld;
-    if (classWorld.isUsedAsMixin(cls)) return true;
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (closedWorld.isUsedAsMixin(cls)) return true;
 
-    return classWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
+    return closedWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
       return !backend.rti.isTrivialSubstitution(subclass, cls);
     });
   }

@@ -13,7 +13,7 @@ import '../js_backend/js_backend.dart';
 import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'builder.dart' show SyntheticLocal;
 import 'graph_builder.dart';
 import 'nodes.dart';
@@ -267,9 +267,9 @@ class LocalsHandler {
           new SyntheticLocal('receiver', executableContext);
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
-      ClassWorld classWorld = _compiler.closedWorld;
+      ClosedWorld closedWorld = _compiler.closedWorld;
       HParameterValue value =
-          new HParameterValue(parameter, new TypeMask.exact(cls, classWorld));
+          new HParameterValue(parameter, new TypeMask.exact(cls, closedWorld));
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
     }
@@ -625,8 +625,8 @@ class LocalsHandler {
     if (result == null) {
       ThisLocal local = closureData.thisLocal;
       ClassElement cls = local.enclosingClass;
-      ClassWorld classWorld = _compiler.closedWorld;
-      if (classWorld.isUsedAsMixin(cls)) {
+      ClosedWorld closedWorld = _compiler.closedWorld;
+      if (closedWorld.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
