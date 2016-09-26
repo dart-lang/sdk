@@ -19,6 +19,7 @@ import 'package:kernel/frontend/accessors.dart'
         makeBinary,
         makeLet,
         makeOrReuseVariable;
+import 'package:kernel/transformations/flags.dart';
 
 import '../common.dart';
 import '../constants/expressions.dart'
@@ -183,6 +184,7 @@ class KernelVisitor extends Object
   TreeElements elements;
   AstElement currentElement;
   final Kernel kernel;
+  int transformerFlags = 0;
 
   final Map<JumpTarget, ir.LabeledStatement> continueTargets =
       <JumpTarget, ir.LabeledStatement>{};
@@ -2194,6 +2196,7 @@ class KernelVisitor extends Object
   @override
   ir.SuperMethodInvocation visitSuperBinary(Send node, FunctionElement function,
       BinaryOperator operator, Node argument, _) {
+    transformerFlags |= TransformerFlag.superCalls;
     return new ir.SuperMethodInvocation(
         kernel.irName(operator.selectorName, currentElement),
         new ir.Arguments(<ir.Expression>[visitForValue(argument)]),
@@ -2234,6 +2237,7 @@ class KernelVisitor extends Object
 
   ir.SuperMethodInvocation buildSuperEquals(
       FunctionElement function, Node argument) {
+    transformerFlags |= TransformerFlag.superCalls;
     return new ir.SuperMethodInvocation(
         kernel.irName(function.name, function),
         new ir.Arguments(<ir.Expression>[visitForValue(argument)],
@@ -2313,6 +2317,7 @@ class KernelVisitor extends Object
   }
 
   Accessor buildSuperPropertyAccessor(Element getter, [Element setter]) {
+    transformerFlags |= TransformerFlag.superCalls;
     if (setter == null &&
         getter.isField &&
         !getter.isFinal &&
@@ -2413,6 +2418,7 @@ class KernelVisitor extends Object
 
   ir.SuperMethodInvocation buildSuperMethodInvoke(
       MethodElement method, NodeList arguments) {
+    transformerFlags |= TransformerFlag.superCalls;
     return new ir.SuperMethodInvocation(kernel.irName(method.name, method),
         buildArguments(arguments), kernel.functionToIr(method));
   }
@@ -2472,6 +2478,7 @@ class KernelVisitor extends Object
   @override
   ir.SuperMethodInvocation visitSuperUnary(
       Send node, UnaryOperator operator, FunctionElement function, _) {
+    transformerFlags |= TransformerFlag.superCalls;
     return new ir.SuperMethodInvocation(kernel.irName(function.name, function),
         new ir.Arguments.empty(), kernel.functionToIr(function));
   }

@@ -383,6 +383,7 @@ class Kernel {
           procedure.kind = irFunction.kind;
         }
         endFactoryScope(function);
+        member.transformerFlags = visitor.transformerFlags;
         assert(() {
           visitor.locals.forEach(checkMember);
           return true;
