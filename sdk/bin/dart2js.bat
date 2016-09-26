@@ -39,7 +39,7 @@ if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
 set DART2JS=%DART_ROOT%\pkg\compiler\lib\src\dart2js.dart
 
-"%DART%" %EXTRA_VM_OPTIONS% "%DART2JS%" %EXTRA_OPTIONS% %*
+"%DART%" "--packages=%DART_ROOT%\.packages" %EXTRA_VM_OPTIONS% "%DART2JS%" %EXTRA_OPTIONS% %*
 
 endlocal
 

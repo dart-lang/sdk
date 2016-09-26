@@ -82,4 +82,4 @@ DART="$BUILD_DIR/dart-sdk/bin/dart"
 
 # Run pub.
 PUB="$SDK_DIR/../third_party/pkg/pub/bin/pub.dart"
-exec "$DART" "${VM_OPTIONS[@]}" "$PUB" "$@"
+exec "$DART" "--packages=$SDK_DIR/../.packages" "${VM_OPTIONS[@]}" "$PUB" "$@"
