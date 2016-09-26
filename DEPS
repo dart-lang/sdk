@@ -48,7 +48,7 @@ vars = {
   "boringssl_rev" : "@8d343b44bbab829d1a28fdef650ca95f7db4412e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
-  "cli_util_tag" : "@0.0.1+2",
+  "cli_util_tag" : "@0.0.1+3",
   "code_transformers_tag": "@v0.4.2+3",
   "collection_tag": "@1.9.1",
   "convert_tag": "@2.0.1",
