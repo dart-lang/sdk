@@ -200,6 +200,7 @@ class StringValidator {
         length++;
         if (code > 0x10FFFF) {
           stringParseError("Invalid code point", token, index);
+          return null;
         }
       }
     }
