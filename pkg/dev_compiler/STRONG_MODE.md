@@ -27,20 +27,20 @@ A developer might reasonably expect the `info` function to print either nothing 
 However, in the following context, the info method prints “helloworld” in checked mode, without any static errors or warnings:
 
 ```dart
-import ‘dart:collection’;
-import ‘util.dart’;
+import 'dart:collection';
+import 'util.dart';
 
 class MyList extends ListBase<int> implements List {
    Object length;
 
    MyList(this.length);
 
-   operator[](index) => "world";
+   operator[](index) => 'world';
    operator[]=(index, value) {}
 }
 
 void main() {
-   List<int> list = new MyList("hello");
+   List<int> list = new MyList('hello');
    info(list);
 }
 ```
