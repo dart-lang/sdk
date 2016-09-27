@@ -120,25 +120,25 @@ class FlatTypeMask implements TypeMask {
     // The general optimization is to realize there is only one class that
     // implements [base] and [base] is not instantiated. We however do
     // not track correctly the list of truly instantiated classes.
-    Backend backend = closedWorld.backend;
+    BackendClasses backendClasses = closedWorld.backendClasses;
     if (containsOnlyString(closedWorld)) {
       return cls == closedWorld.coreClasses.stringClass ||
-          cls == backend.stringImplementation;
+          cls == backendClasses.stringImplementation;
     }
     if (containsOnlyBool(closedWorld)) {
       return cls == closedWorld.coreClasses.boolClass ||
-          cls == backend.boolImplementation;
+          cls == backendClasses.boolImplementation;
     }
     if (containsOnlyInt(closedWorld)) {
       return cls == closedWorld.coreClasses.intClass ||
-          cls == backend.intImplementation ||
-          cls == backend.positiveIntImplementation ||
-          cls == backend.uint32Implementation ||
-          cls == backend.uint31Implementation;
+          cls == backendClasses.intImplementation ||
+          cls == backendClasses.positiveIntImplementation ||
+          cls == backendClasses.uint32Implementation ||
+          cls == backendClasses.uint31Implementation;
     }
     if (containsOnlyDouble(closedWorld)) {
       return cls == closedWorld.coreClasses.doubleClass ||
-          cls == backend.doubleImplementation;
+          cls == backendClasses.doubleImplementation;
     }
     return false;
   }
@@ -180,38 +180,38 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool containsOnlyInt(ClosedWorld closedWorld) {
-    Backend backend = closedWorld.backend;
+    BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.coreClasses.intClass ||
-        base == backend.intImplementation ||
-        base == backend.positiveIntImplementation ||
-        base == backend.uint31Implementation ||
-        base == backend.uint32Implementation;
+        base == backendClasses.intImplementation ||
+        base == backendClasses.positiveIntImplementation ||
+        base == backendClasses.uint31Implementation ||
+        base == backendClasses.uint32Implementation;
   }
 
   bool containsOnlyDouble(ClosedWorld closedWorld) {
-    Backend backend = closedWorld.backend;
+    BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.coreClasses.doubleClass ||
-        base == backend.doubleImplementation;
+        base == backendClasses.doubleImplementation;
   }
 
   bool containsOnlyNum(ClosedWorld closedWorld) {
-    Backend backend = closedWorld.backend;
+    BackendClasses backendClasses = closedWorld.backendClasses;
     return containsOnlyInt(closedWorld) ||
         containsOnlyDouble(closedWorld) ||
         base == closedWorld.coreClasses.numClass ||
-        base == backend.numImplementation;
+        base == backendClasses.numImplementation;
   }
 
   bool containsOnlyBool(ClosedWorld closedWorld) {
-    Backend backend = closedWorld.backend;
+    BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.coreClasses.boolClass ||
-        base == backend.boolImplementation;
+        base == backendClasses.boolImplementation;
   }
 
   bool containsOnlyString(ClosedWorld closedWorld) {
-    Backend backend = closedWorld.backend;
+    BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.coreClasses.stringClass ||
-        base == backend.stringImplementation;
+        base == backendClasses.stringImplementation;
   }
 
   bool containsOnly(ClassElement cls) {
@@ -543,11 +543,11 @@ class FlatTypeMask implements TypeMask {
    * privacy is taken into account.
    */
   bool canHit(Element element, Selector selector, ClosedWorld closedWorld) {
-    Backend backend = closedWorld.backend;
+    BackendClasses backendClasses = closedWorld.backendClasses;
     assert(element.name == selector.name);
     if (isEmpty) return false;
     if (isNull) {
-      return hasElementIn(backend.nullImplementation, selector, element);
+      return hasElementIn(backendClasses.nullImplementation, selector, element);
     }
 
     // TODO(kasperl): Can't we just avoid creating typed selectors
@@ -560,7 +560,7 @@ class FlatTypeMask implements TypeMask {
     }
 
     ClassElement other = element.enclosingClass;
-    if (other == backend.nullImplementation) {
+    if (other == backendClasses.nullImplementation) {
       return isNullable;
     } else if (isExact) {
       return hasElementIn(self, selector, element);

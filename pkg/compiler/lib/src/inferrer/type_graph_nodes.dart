@@ -868,7 +868,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   TypeInformation handleIntrisifiedSelector(
       Selector selector, TypeMask mask, TypeGraphInferrerEngine inferrer) {
     ClosedWorld closedWorld = inferrer.closedWorld;
-    if (!closedWorld.backend.intImplementation.isResolved) return null;
+    if (!closedWorld.backendClasses.intImplementation.isResolved) return null;
     if (mask == null) return null;
     if (!mask.containsOnlyInt(closedWorld)) {
       return null;
@@ -878,7 +878,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (arguments.positional.length > 1) return null;
 
     ClassElement uint31Implementation =
-        closedWorld.backend.uint31Implementation;
+        closedWorld.backendClasses.uint31Implementation;
     bool isInt(info) => info.type.containsOnlyInt(closedWorld);
     bool isEmpty(info) => info.type.isEmpty;
     bool isUInt31(info) {
@@ -887,7 +887,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
     bool isPositiveInt(info) {
       return info.type.satisfies(
-          closedWorld.backend.positiveIntImplementation, closedWorld);
+          closedWorld.backendClasses.positiveIntImplementation, closedWorld);
     }
 
     TypeInformation tryLater() => inferrer.types.nonNullEmptyType;

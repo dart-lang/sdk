@@ -11,7 +11,12 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import '../closure.dart';
 import '../common.dart';
 import '../common/backend_api.dart'
-    show Backend, ImpactTransformer, ForeignResolver, NativeRegistry;
+    show
+        Backend,
+        BackendClasses,
+        ImpactTransformer,
+        ForeignResolver,
+        NativeRegistry;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Identifiers, Selectors, Uris;
 import '../common/registry.dart' show Registry;
@@ -591,6 +596,7 @@ class JavaScriptBackend extends Backend {
 
   final BackendHelpers helpers;
   final BackendImpacts impacts;
+  BackendClasses backendClasses;
 
   final JSFrontendAccess frontend;
 
@@ -630,6 +636,7 @@ class JavaScriptBackend extends Backend {
     functionCompiler =
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
     serialization = new JavaScriptBackendSerialization(this);
+    backendClasses = new JavaScriptBackendClasses(helpers);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;
@@ -1121,7 +1128,7 @@ class JavaScriptBackend extends Backend {
         registerBackendUse(helpers.createRuntimeType);
       }
       impactBuilder.registerTypeUse(
-          new TypeUse.instantiation(typeImplementation.rawType));
+          new TypeUse.instantiation(backendClasses.typeImplementation.rawType));
     }
     lookupMapAnalysis.registerConstantKey(constant);
   }
@@ -1139,7 +1146,7 @@ class JavaScriptBackend extends Backend {
             helpers.setRuntimeTypeInfo,
             null));
       }
-      if (type.element == typeImplementation) {
+      if (type.element == backendClasses.typeImplementation) {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.
@@ -1896,30 +1903,6 @@ class JavaScriptBackend extends Backend {
     if (isInterceptorClass(classElement)) return false;
     return compiler.closedWorld.hasOnlySubclasses(classElement);
   }
-
-  bool isNullImplementation(ClassElement cls) {
-    return cls == helpers.jsNullClass;
-  }
-
-  ClassElement get intImplementation => helpers.jsIntClass;
-  ClassElement get uint32Implementation => helpers.jsUInt32Class;
-  ClassElement get uint31Implementation => helpers.jsUInt31Class;
-  ClassElement get positiveIntImplementation => helpers.jsPositiveIntClass;
-  ClassElement get doubleImplementation => helpers.jsDoubleClass;
-  ClassElement get numImplementation => helpers.jsNumberClass;
-  ClassElement get stringImplementation => helpers.jsStringClass;
-  ClassElement get listImplementation => helpers.jsArrayClass;
-  ClassElement get constListImplementation => helpers.jsUnmodifiableArrayClass;
-  ClassElement get fixedListImplementation => helpers.jsFixedArrayClass;
-  ClassElement get growableListImplementation => helpers.jsExtendableArrayClass;
-  ClassElement get mapImplementation => helpers.mapLiteralClass;
-  ClassElement get constMapImplementation => helpers.constMapLiteralClass;
-  ClassElement get typeImplementation => helpers.typeLiteralClass;
-  ClassElement get boolImplementation => helpers.jsBoolClass;
-  ClassElement get nullImplementation => helpers.jsNullClass;
-  ClassElement get syncStarIterableImplementation => helpers.syncStarIterable;
-  ClassElement get asyncFutureImplementation => helpers.futureImplementation;
-  ClassElement get asyncStarStreamImplementation => helpers.controllerStream;
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {
     if (element == helpers.disableTreeShakingMarker) {
@@ -3256,4 +3239,31 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       resolution.emptyCache();
     }
   }
+}
+
+class JavaScriptBackendClasses implements BackendClasses {
+  final BackendHelpers helpers;
+
+  JavaScriptBackendClasses(this.helpers);
+
+  ClassElement get intImplementation => helpers.jsIntClass;
+  ClassElement get uint32Implementation => helpers.jsUInt32Class;
+  ClassElement get uint31Implementation => helpers.jsUInt31Class;
+  ClassElement get positiveIntImplementation => helpers.jsPositiveIntClass;
+  ClassElement get doubleImplementation => helpers.jsDoubleClass;
+  ClassElement get numImplementation => helpers.jsNumberClass;
+  ClassElement get stringImplementation => helpers.jsStringClass;
+  ClassElement get listImplementation => helpers.jsArrayClass;
+  ClassElement get constListImplementation => helpers.jsUnmodifiableArrayClass;
+  ClassElement get fixedListImplementation => helpers.jsFixedArrayClass;
+  ClassElement get growableListImplementation => helpers.jsExtendableArrayClass;
+  ClassElement get mapImplementation => helpers.mapLiteralClass;
+  ClassElement get constMapImplementation => helpers.constMapLiteralClass;
+  ClassElement get typeImplementation => helpers.typeLiteralClass;
+  ClassElement get boolImplementation => helpers.jsBoolClass;
+  ClassElement get nullImplementation => helpers.jsNullClass;
+  ClassElement get syncStarIterableImplementation => helpers.syncStarIterable;
+  ClassElement get asyncFutureImplementation => helpers.futureImplementation;
+  ClassElement get asyncStarStreamImplementation => helpers.controllerStream;
+  ClassElement get functionImplementation => helpers.coreClasses.functionClass;
 }

@@ -64,6 +64,9 @@ abstract class Backend extends Target {
     return const SourceInformationStrategy();
   }
 
+  /// Common classes used by the backend.
+  BackendClasses get backendClasses;
+
   /// Interface for serialization of backend specific data.
   BackendSerialization get serialization => const BackendSerialization();
 
@@ -181,34 +184,6 @@ abstract class Backend extends Target {
   void enableIsolateSupport(Enqueuer enqueuer) {}
 
   void registerConstSymbol(String name) {}
-
-  bool isNullImplementation(ClassElement cls) {
-    return cls == compiler.coreClasses.nullClass;
-  }
-
-  ClassElement get intImplementation => compiler.coreClasses.intClass;
-  ClassElement get doubleImplementation => compiler.coreClasses.doubleClass;
-  ClassElement get numImplementation => compiler.coreClasses.numClass;
-  ClassElement get stringImplementation => compiler.coreClasses.stringClass;
-  ClassElement get listImplementation => compiler.coreClasses.listClass;
-  ClassElement get growableListImplementation => compiler.coreClasses.listClass;
-  ClassElement get fixedListImplementation => compiler.coreClasses.listClass;
-  ClassElement get constListImplementation => compiler.coreClasses.listClass;
-  ClassElement get mapImplementation => compiler.coreClasses.mapClass;
-  ClassElement get constMapImplementation => compiler.coreClasses.mapClass;
-  ClassElement get functionImplementation => compiler.coreClasses.functionClass;
-  ClassElement get typeImplementation => compiler.coreClasses.typeClass;
-  ClassElement get boolImplementation => compiler.coreClasses.boolClass;
-  ClassElement get nullImplementation => compiler.coreClasses.nullClass;
-  ClassElement get uint32Implementation => compiler.coreClasses.intClass;
-  ClassElement get uint31Implementation => compiler.coreClasses.intClass;
-  ClassElement get positiveIntImplementation => compiler.coreClasses.intClass;
-  ClassElement get syncStarIterableImplementation =>
-      compiler.coreClasses.iterableClass;
-  ClassElement get asyncFutureImplementation =>
-      compiler.coreClasses.futureClass;
-  ClassElement get asyncStarStreamImplementation =>
-      compiler.coreClasses.streamClass;
 
   ClassElement defaultSuperclass(ClassElement element) {
     return compiler.coreClasses.objectClass;
@@ -410,4 +385,28 @@ class BackendSerialization {
 
   SerializerPlugin get serializer => const SerializerPlugin();
   DeserializerPlugin get deserializer => const DeserializerPlugin();
+}
+
+/// Interface providing access to core classes used by the backend.
+abstract class BackendClasses {
+  ClassElement get intImplementation;
+  ClassElement get doubleImplementation;
+  ClassElement get numImplementation;
+  ClassElement get stringImplementation;
+  ClassElement get listImplementation;
+  ClassElement get growableListImplementation;
+  ClassElement get fixedListImplementation;
+  ClassElement get constListImplementation;
+  ClassElement get mapImplementation;
+  ClassElement get constMapImplementation;
+  ClassElement get functionImplementation;
+  ClassElement get typeImplementation;
+  ClassElement get boolImplementation;
+  ClassElement get nullImplementation;
+  ClassElement get uint32Implementation;
+  ClassElement get uint31Implementation;
+  ClassElement get positiveIntImplementation;
+  ClassElement get syncStarIterableImplementation;
+  ClassElement get asyncFutureImplementation;
+  ClassElement get asyncStarStreamImplementation;
 }

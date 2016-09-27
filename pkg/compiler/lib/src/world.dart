@@ -5,7 +5,7 @@
 library dart2js.world;
 
 import 'closure.dart' show SynthesizedCallMethodElementX;
-import 'common/backend_api.dart' show Backend;
+import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'core_types.dart' show CoreClasses;
@@ -39,9 +39,10 @@ abstract class World {}
 /// This precise knowledge about what's live in the program is later used in
 /// optimizations and other compiler decisions during code generation.
 abstract class ClosedWorld implements World {
-  // TODO(johnniwinther): Refine this into a `BackendClasses` interface.
-  Backend get backend;
+  /// Access to core classes used by the backend.
+  BackendClasses get backendClasses;
 
+  /// Access to core classes used in the Dart language.
   CoreClasses get coreClasses;
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
@@ -501,8 +502,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   @override
   ClassElement getLubOfInstantiatedSubclasses(ClassElement cls) {
     assert(isClosed);
-    if (backend.isJsInterop(cls)) {
-      return backend.helpers.jsJavaScriptObjectClass;
+    if (_backend.isJsInterop(cls)) {
+      return _backend.helpers.jsJavaScriptObjectClass;
     }
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     return hierarchy != null
@@ -513,8 +514,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   @override
   ClassElement getLubOfInstantiatedSubtypes(ClassElement cls) {
     assert(isClosed);
-    if (backend.isJsInterop(cls)) {
-      return backend.helpers.jsJavaScriptObjectClass;
+    if (_backend.isJsInterop(cls)) {
+      return _backend.helpers.jsJavaScriptObjectClass;
     }
     ClassSet classSet = _classSets[cls.declaration];
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
@@ -658,7 +659,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   }
 
   final Compiler _compiler;
-  JavaScriptBackend get backend => _compiler.backend;
+  BackendClasses get backendClasses => _backend.backendClasses;
+  JavaScriptBackend get _backend => _compiler.backend;
   CommonMasks get commonMasks => _compiler.commonMasks;
   final FunctionSet allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
@@ -692,11 +694,6 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   final Set<Element> alreadyPopulated;
 
   bool get isClosed => _closed;
-
-  // Used by selectors.
-  bool isForeign(Element element) {
-    return backend.isForeign(element);
-  }
 
   Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {
     return _typesImplementedBySubclasses[cls.declaration];
@@ -913,7 +910,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   bool fieldNeverChanges(Element element) {
     if (!element.isField) return false;
-    if (backend.isNative(element)) {
+    if (_backend.isNative(element)) {
       // Some native fields are views of data that may be changed by operations.
       // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
       // TODO(sra): Refine the effect classification so that native effects are

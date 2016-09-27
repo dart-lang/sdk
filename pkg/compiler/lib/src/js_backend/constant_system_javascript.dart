@@ -265,8 +265,10 @@ class JavaScriptConstantSystem extends ConstantSystem {
 
   @override
   ConstantValue createType(Compiler compiler, DartType type) {
-    return new TypeConstantValue(type,
-        compiler.backend.typeImplementation.computeType(compiler.resolution));
+    return new TypeConstantValue(
+        type,
+        compiler.backend.backendClasses.typeImplementation
+            .computeType(compiler.resolution));
   }
 
   // Integer checks report true for -0.0, INFINITY, and -INFINITY.  At
