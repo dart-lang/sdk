@@ -4928,8 +4928,8 @@ class Code : public Object {
   uword GetPcForDeoptId(intptr_t deopt_id, RawPcDescriptors::Kind kind) const;
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
-  RawString* Name() const;
-  RawString* QualifiedName() const;
+  const char* Name() const;
+  const char* QualifiedName() const;
 
   int64_t compile_timestamp() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5805,10 +5805,6 @@ class AbstractType : public Instance {
   virtual RawString* UserVisibleName() const {
     return BuildName(kUserVisibleName);
   }
-
-  // Same as user visible name, but including the URI of each occuring type.
-  // Used to report errors involving types with identical names.
-  virtual RawString* UserVisibleNameWithURI() const;
 
   // Returns a formatted list of occuring types with their URI.
   virtual RawString* EnumerateURIs() const;
@@ -6965,7 +6961,7 @@ class String : public Instance {
   static RawString* EscapeSpecialCharacters(const String& str);
   // Encodes 'str' for use in an Internationalized Resource Identifier (IRI),
   // a generalization of URI (percent-encoding). See RFC 3987.
-  static RawString* EncodeIRI(const String& str);
+  static const char* EncodeIRI(const String& str);
   // Returns null if 'str' is not a valid encoding.
   static RawString* DecodeIRI(const String& str);
   static RawString* Concat(const String& str1,

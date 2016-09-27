@@ -1341,14 +1341,10 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     }
 
     if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
-      SafepointOperationScope safepoint_scope(thread);
-      NoHeapGrowthControlScope no_growth_control;
       Disassembler::DisassembleCode(function, optimized);
     } else if (FLAG_disassemble_optimized &&
                optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
-      SafepointOperationScope safepoint_scope(thread);
-      NoHeapGrowthControlScope no_growth_control;
       Disassembler::DisassembleCode(function, true);
     }
 

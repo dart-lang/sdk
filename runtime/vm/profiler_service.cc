@@ -646,15 +646,15 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
     function = table->GetUnknown();
   } else if (kind() == kDartCode) {
     ASSERT(!code_.IsNull());
-    const String& name = String::Handle(code_.QualifiedName());
+    const char* name = code_.QualifiedName();
     const Object& obj = Object::Handle(code_.owner());
     if (obj.IsFunction()) {
       function = table->LookupOrAdd(Function::Cast(obj));
     } else {
       // A stub.
-      function = table->AddStub(start(), name.ToCString());
+      function = table->AddStub(start(), name);
     }
-    SetName(name.ToCString());
+    SetName(name);
   } else if (kind() == kNativeCode) {
     if (name() == NULL) {
       // Lazily set generated name.

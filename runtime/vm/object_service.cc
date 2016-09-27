@@ -15,11 +15,11 @@ namespace dart {
 #ifndef PRODUCT
 
 static void AddNameProperties(JSONObject* jsobj,
-                              const String& name,
-                              const String& vm_name) {
-  jsobj->AddProperty("name", name.ToCString());
-  if (!name.Equals(vm_name)) {
-    jsobj->AddProperty("_vmName", vm_name.ToCString());
+                              const char* name,
+                              const char* vm_name) {
+  jsobj->AddProperty("name", name);
+  if (strcmp(name, vm_name) != 0) {
+    jsobj->AddProperty("_vmName", vm_name);
   }
 }
 
@@ -87,7 +87,9 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddFixedServiceId("classes/%" Pd "", id());
   const String& scrubbed_name = String::Handle(ScrubbedName());
   const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, scrubbed_name, vm_name);
+  AddNameProperties(&jsobj,
+                    scrubbed_name.ToCString(),
+                    vm_name.ToCString());
   if (ref) {
     return;
   }
@@ -202,7 +204,7 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddServiceId(*this);
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name, vm_name);
+  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
   if (ref) {
     return;
   }
@@ -265,9 +267,9 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   // Regular functions known to their owner use their name (percent-encoded).
   String& name = String::Handle(f.name());
   if (cls.LookupFunction(name) == f.raw()) {
-    name = String::EncodeIRI(name);
+    const char* encoded_name = String::EncodeIRI(name);
     jsobj.AddFixedServiceId("classes/%" Pd "/functions/%s",
-                            cls.id(), name.ToCString());
+                            cls.id(), encoded_name);
     return;
   }
   // Oddball functions (not known to their owner) fall back to use the object
@@ -288,7 +290,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   AddFunctionServiceId(jsobj, *this, cls);
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(name());
-  AddNameProperties(&jsobj, user_name, vm_name);
+  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
   const Function& parent = Function::Handle(parent_function());
   if (!parent.IsNull()) {
     jsobj.AddProperty("owner", parent);
@@ -352,14 +354,14 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(Owner());
   String& field_name = String::Handle(name());
-  field_name = String::EncodeIRI(field_name);
+  const char* encoded_field_name = String::EncodeIRI(field_name);
   AddCommonObjectProperties(&jsobj, "Field", ref);
   jsobj.AddFixedServiceId("classes/%" Pd "/fields/%s",
-                          cls.id(), field_name.ToCString());
+                          cls.id(), encoded_field_name);
 
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(name());
-  AddNameProperties(&jsobj, user_name, vm_name);
+  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
   if (cls.IsTopLevel()) {
     const Library& library = Library::Handle(cls.library());
     jsobj.AddProperty("owner", library);
@@ -434,14 +436,13 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   AddCommonObjectProperties(&jsobj, "Script", ref);
   const String& uri = String::Handle(url());
   ASSERT(!uri.IsNull());
-  const String& encoded_uri = String::Handle(String::EncodeIRI(uri));
-  ASSERT(!encoded_uri.IsNull());
+  const char* encoded_uri = String::EncodeIRI(uri);
   const Library& lib = Library::Handle(FindLibrary());
   if (lib.IsNull()) {
     jsobj.AddServiceId(*this);
   } else {
     jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s/%" Px64 "",
-                            lib.index(), encoded_uri.ToCString(),
+                            lib.index(), encoded_uri,
                             load_timestamp());
   }
   jsobj.AddPropertyStr("uri", uri);
@@ -499,7 +500,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddFixedServiceId("libraries/%" Pd "", id);
   const String& vm_name = String::Handle(name());
   const String& scrubbed_name = String::Handle(String::ScrubName(vm_name));
-  AddNameProperties(&jsobj, scrubbed_name, vm_name);
+  AddNameProperties(&jsobj, scrubbed_name.ToCString(), vm_name.ToCString());
   const String& library_url = String::Handle(url());
   jsobj.AddPropertyStr("uri", library_url);
   if (ref) {
@@ -808,8 +809,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddFixedServiceId("code/%" Px64"-%" Px "",
                           compile_timestamp(),
                           PayloadStart());
-  const String& qualified_name = String::Handle(QualifiedName());
-  const String& vm_name = String::Handle(Name());
+  const char* qualified_name = QualifiedName();
+  const char* vm_name = Name();
   AddNameProperties(&jsobj, qualified_name, vm_name);
   const bool is_stub = IsStubCode() || IsAllocationStubCode();
   if (is_stub) {
@@ -837,8 +838,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     JSONObject func(&jsobj, "function");
     func.AddProperty("type", "@Function");
     func.AddProperty("_kind", "Stub");
-    ASSERT(qualified_name.Equals(vm_name));
-    func.AddProperty("name", vm_name.ToCString());
+    ASSERT(strcmp(qualified_name, vm_name) == 0);
+    func.AddProperty("name", vm_name);
     AddNameProperties(&func, vm_name, vm_name);
   }
   jsobj.AddPropertyF("_startAddress", "%" Px "", PayloadStart());
@@ -1122,7 +1123,7 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name, vm_name);
+  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
   if (ref) {
     return;
   }
@@ -1140,7 +1141,7 @@ void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddServiceId(*this);
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name, vm_name);
+  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
   if (ref) {
     return;
   }
@@ -1155,7 +1156,7 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddServiceId(*this);
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name, vm_name);
+  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
   const Class& param_cls = Class::Handle(parameterized_class());
   jsobj.AddProperty("parameterizedClass", param_cls);
   if (ref) {
@@ -1174,7 +1175,7 @@ void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddServiceId(*this);
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name, vm_name);
+  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
   if (ref) {
     return;
   }
