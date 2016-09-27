@@ -190,7 +190,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   }
 
   setupAsyncContinuations(List<Statement> statements) {
-    expressionRewriter = new ExpressionLifter(this, enclosingFunction);
+    expressionRewriter = new ExpressionLifter(this);
 
     // var :async_op_then;
     statements.add(thenContinuationVariable);
@@ -496,7 +496,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     // Note: transformed expression can't be used directly as part of the
     // method invocation because it might contain yield points and
     // expression stack might not be empty.
-    var resultVar = new VariableDeclaration(':async-temp',
+    var resultVar = new VariableDeclaration(':async_temp',
                                             initializer: transformedExpression);
     var completeCompleter = new ExpressionStatement(
         new MethodInvocation(
