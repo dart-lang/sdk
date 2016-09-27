@@ -105,7 +105,6 @@ void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
                                const Code& code) {
-  NoSafepointScope no_safepoint;
   const Code::Comments& comments =
       code.IsNull() ? Code::Comments::New(0) : code.comments();
   ASSERT(formatter != NULL);
@@ -168,11 +167,8 @@ void Disassembler::DisassembleCodeHelper(
     const char* function_fullname, const Code& code, bool optimized) {
   LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle();
   if (FLAG_print_variable_descriptors) {
-    // This flag is not on by default, and for debugging purposes only.
-    // Since this may allocate, do it outside the NoSafepointScope.
     var_descriptors = code.GetLocalVarDescriptors();
   }
-  NoSafepointScope no_safepoint;
   THR_Print("Code for %sfunction '%s' {\n",
             optimized ? "optimized " : "",
             function_fullname);
