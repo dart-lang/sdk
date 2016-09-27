@@ -328,7 +328,7 @@ Future<CompilerOutcome> batchMain(
 
   void sanityCheck() {
     if (options['sanity-check']) {
-      CheckParentPointers.check(program ?? library);
+      runSanityChecks(program);
     }
   }
 

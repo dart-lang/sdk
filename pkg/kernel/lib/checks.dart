@@ -4,7 +4,11 @@
 library kernel.checks;
 
 import 'ast.dart';
-import 'text/ast_to_text.dart';
+
+void runSanityChecks(Program program) {
+  CheckParentPointers.check(program);
+  CheckReferences.check(program);
+}
 
 class CheckParentPointers extends FakeNodeVisitor {
   static void check(TreeNode node) {
@@ -17,9 +21,6 @@ class CheckParentPointers extends FakeNodeVisitor {
 
   defaultTreeNode(TreeNode node) {
     if (node.parent != parent) {
-      StringBuffer buffer = new StringBuffer();
-      new Printer(buffer).writeNode(parent);
-      print(buffer);
       throw 'Parent pointer on ${node.runtimeType} '
           'is ${node.parent.runtimeType} '
           'but should be ${parent.runtimeType}';
@@ -28,6 +29,80 @@ class CheckParentPointers extends FakeNodeVisitor {
     parent = node;
     node.visitChildren(this);
     parent = oldParent;
+  }
+}
+
+/// Checks that references refer to something in scope.
+///
+/// Currently only checks member, class, and type parameter references.
+class CheckReferences extends RecursiveVisitor {
+  final Set<Member> members = new Set<Member>();
+  final Set<Class> classes = new Set<Class>();
+  final Set<TypeParameter> typeParameters = new Set<TypeParameter>();
+
+  Member currentMember;
+  Class currentClass;
+
+  TreeNode get context => currentMember ?? currentClass;
+
+  static void check(Program program) {
+    program.accept(new CheckReferences());
+  }
+
+  visitProgram(Program program) {
+    for (var library in program.libraries) {
+      classes.addAll(library.classes);
+      members.addAll(library.members);
+      for (var class_ in library.classes) {
+        members.addAll(class_.members);
+      }
+    }
+    program.visitChildren(this);
+  }
+
+  defaultMember(Member node) {
+    currentMember = node;
+    node.visitChildren(this);
+    currentMember = null;
+  }
+
+  visitClass(Class node) {
+    currentClass = node;
+    typeParameters.addAll(node.typeParameters);
+    node.visitChildren(this);
+    typeParameters.removeAll(node.typeParameters);
+    currentClass = null;
+  }
+
+  visitFunctionNode(FunctionNode node) {
+    typeParameters.addAll(node.typeParameters);
+    node.visitChildren(this);
+    typeParameters.removeAll(node.typeParameters);
+  }
+
+  @override
+  defaultMemberReference(Member node) {
+    if (!members.contains(node)) {
+      throw 'Dangling reference to $node found in $context.\n'
+          'Parent pointer is set to ${node.parent}';
+    }
+  }
+
+  @override
+  visitClassReference(Class node) {
+    if (!classes.contains(node)) {
+      throw 'Dangling reference to $node found in $context.\n'
+          'Parent pointer is set to ${node.parent}';
+    }
+  }
+
+  @override
+  visitTypeParameterType(TypeParameterType node) {
+    if (!typeParameters.contains(node.parameter)) {
+      throw 'Type parameter ${node.parameter} referenced out of scope '
+          'in $context.\n'
+          'Parent pointer is set to ${node.parameter.parent}';
+    }
   }
 }
 
