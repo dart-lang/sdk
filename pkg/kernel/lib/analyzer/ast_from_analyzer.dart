@@ -2426,7 +2426,11 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     var class_ = element.enclosingElement;
     if (class_.supertype != null) {
       // DESIGN TODO: If the super class is a mixin application, we will link to
-      // a constructor not in the immediate super class.  Is this a problem?
+      // a constructor not in the immediate super class.  This is a problem due
+      // to the fact that mixed-in fields come with initializers which need to
+      // be executed by a constructor.  The mixin transformer takes care of
+      // this by making forwarding constructors and the super initializers will
+      // be rewritten to use them (see `transformations/mixin_full_resolution`).
       var superConstructor =
           scope.findDefaultConstructor(class_.supertype.element);
       var target = scope.resolveConstructor(superConstructor);
