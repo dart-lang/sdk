@@ -211,7 +211,7 @@ void doTest(String allocation, [String keyElement, String valueElement]) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
       expectedErrors: 0, expectedWarnings: 1);
-  var classWorld = compiler.openWorld.closeWorld();
+  var closedWorld = compiler.openWorld.closeWorld();
   asyncTest(() => compiler.run(uri).then((_) {
         var keyType, valueType;
         var commonMasks = compiler.commonMasks;
@@ -238,9 +238,9 @@ void doTest(String allocation, [String keyElement, String valueElement]) {
         }
 
         K(TypeMask other) =>
-            simplify(keyType.union(other, classWorld), compiler);
+            simplify(keyType.union(other, closedWorld), compiler);
         V(TypeMask other) =>
-            simplify(valueType.union(other, classWorld), compiler).nullable();
+            simplify(valueType.union(other, closedWorld), compiler).nullable();
 
         checkType('mapInField', K(aKeyType), V(commonMasks.numType));
         checkType('mapPassedToMethod', K(aKeyType), V(commonMasks.numType));

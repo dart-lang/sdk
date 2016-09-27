@@ -88,7 +88,7 @@ class CodegenEnqueuer implements Enqueuer {
 
   Registry get mirrorDependencies => _compiler.mirrorDependencies;
 
-  ClassWorld get _world => _compiler.closedWorld;
+  ClosedWorld get _world => _compiler.closedWorld;
 
   bool get queueIsEmpty => queue.isEmpty;
 

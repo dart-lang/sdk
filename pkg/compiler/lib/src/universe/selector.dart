@@ -217,12 +217,12 @@ class Selector {
     return kind;
   }
 
-  bool appliesUnnamed(Element element, Target target) {
+  bool appliesUnnamed(Element element) {
     assert(sameNameHack(element));
-    return appliesUntyped(element, target);
+    return appliesUntyped(element);
   }
 
-  bool appliesUntyped(Element element, Target target) {
+  bool appliesUntyped(Element element) {
     assert(sameNameHack(element));
     if (Elements.isUnresolved(element)) return false;
     if (memberName.isPrivate && memberName.library != element.library) {
@@ -230,7 +230,6 @@ class Selector {
       // `memberName != element.memberName`.
       return false;
     }
-    if (target.isForeign(element)) return true;
     if (element.isSetter) return isSetter;
     if (element.isGetter) return isGetter || isCall;
     if (element.isField) {
@@ -253,9 +252,9 @@ class Selector {
     return element.isConstructor || name == element.name;
   }
 
-  bool applies(Element element, Target target) {
+  bool applies(Element element) {
     if (!sameNameHack(element)) return false;
-    return appliesUnnamed(element, target);
+    return appliesUnnamed(element);
   }
 
   bool match(SelectorKind kind, Name memberName, CallStructure callStructure) {

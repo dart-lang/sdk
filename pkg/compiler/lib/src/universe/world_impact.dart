@@ -17,7 +17,7 @@ import 'use.dart' show DynamicUse, StaticUse, TypeUse;
 ///
 /// The impact object can be computed locally by inspecting just the resolution
 /// information of that element alone. The compiler uses [Universe] and
-/// [ClassWorld] to combine the information discovered in the impact objects of
+/// [World] to combine the information discovered in the impact objects of
 /// all elements reachable in an application.
 class WorldImpact {
   const WorldImpact();

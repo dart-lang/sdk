@@ -27,7 +27,10 @@ import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
 import 'util/util.dart' show Link;
 
-/// The [ClassWorld] represents the information known about a program when
+/// Common superinterface for [OpenWorld] and [ClosedWorld].
+abstract class World {}
+
+/// The [ClosedWorld] represents the information known about a program when
 /// compiling with closed-world semantics.
 ///
 /// Given the entrypoint of an application, we can track what's reachable from
@@ -35,49 +38,12 @@ import 'util/util.dart' show Link;
 /// JavaScript types are touched, what language features are used, and so on.
 /// This precise knowledge about what's live in the program is later used in
 /// optimizations and other compiler decisions during code generation.
-abstract class ClassWorld {
+abstract class ClosedWorld implements World {
   // TODO(johnniwinther): Refine this into a `BackendClasses` interface.
   Backend get backend;
 
   CoreClasses get coreClasses;
 
-  /// Returns `true` if the class world is closed.
-  bool get isClosed;
-
-  /// Returns `true` if closed-world assumptions can be made, that is,
-  /// incremental compilation isn't enabled.
-  bool get hasClosedWorldAssumption;
-
-  /// Returns a string representation of the closed world.
-  ///
-  /// If [cls] is provided, the dump will contain only classes related to [cls].
-  String dump([ClassElement cls]);
-
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassElement cls);
-
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
-  ClassSet getClassSet(ClassElement cls);
-
-  // TODO(johnniwinther): Find a better strategy for caching these.
-  @deprecated
-  List<Map<ClassElement, TypeMask>> get canonicalizedTypeMasks;
-}
-
-/// The [ClosedWorld] represents the information known about a program when
-/// compiling with closed-world semantics.
-///
-/// This expands [ClassWorld] with information about live functions,
-/// side effects, and selectors with known single targets.
-abstract class ClosedWorld extends ClassWorld {
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassElement cls);
 
@@ -189,6 +155,24 @@ abstract class ClosedWorld extends ClassWorld {
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, ClassElement type);
 
+  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
+  /// of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClosedWorld].
+  ClassHierarchyNode getClassHierarchyNode(ClassElement cls);
+
+  /// Returns [ClassSet] for [cls] used to model the extends and implements
+  /// relations of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClosedWorld].
+  ClassSet getClassSet(ClassElement cls);
+
+  // TODO(johnniwinther): Find a better strategy for caching these.
+  @deprecated
+  List<Map<ClassElement, TypeMask>> get canonicalizedTypeMasks;
+
   /// Returns the [FunctionSet] containing all live functions in the closed
   /// world.
   FunctionSet get allFunctions;
@@ -230,6 +214,11 @@ abstract class ClosedWorld extends ClassWorld {
   // TODO(johnniwinther): Is this 'passed invocation target` or
   // `passed as argument`?
   bool getMightBePassedToApply(Element element);
+
+  /// Returns a string representation of the closed world.
+  ///
+  /// If [cls] is provided, the dump will contain only classes related to [cls].
+  String dump([ClassElement cls]);
 }
 
 /// Interface for computing side effects and uses of elements. This is used
@@ -265,7 +254,7 @@ abstract class ClosedWorldRefiner {
   void registerClosureClass(ClassElement cls);
 }
 
-abstract class OpenWorld implements ClassWorld {
+abstract class OpenWorld implements World {
   /// Called to add [cls] to the set of known classes.
   ///
   /// This ensures that class hierarchy queries can be performed on [cls] and
@@ -749,7 +738,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
+  /// methods defined in [ClosedWorld].
   ClassHierarchyNode getClassHierarchyNode(ClassElement cls) {
     return _classHierarchyNodes[cls.declaration];
   }
@@ -769,7 +758,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// relations of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
+  /// methods defined in [ClosedWorld].
   ClassSet getClassSet(ClassElement cls) {
     return _classSets[cls.declaration];
   }
@@ -1024,6 +1013,4 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   bool getCurrentlyKnownMightBePassedToApply(Element element) {
     return getMightBePassedToApply(element);
   }
-
-  bool get hasClosedWorldAssumption => !_compiler.options.hasIncrementalSupport;
 }

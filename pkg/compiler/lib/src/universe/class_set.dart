@@ -19,7 +19,7 @@ enum Instantiation {
 
 /// Node for [cls] in a tree forming the subclass relation of [ClassElement]s.
 ///
-/// This is used by the [ClassWorld] to perform queries on subclass and subtype
+/// This is used by the [ClosedWorld] to perform queries on subclass and subtype
 /// relations.
 ///
 /// For this class hierarchy:

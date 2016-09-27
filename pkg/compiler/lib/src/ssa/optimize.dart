@@ -378,7 +378,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     ClosedWorld world = compiler.closedWorld;
 
     bool applies(Element element) {
-      return selector.applies(element, backend) &&
+      return selector.applies(element) &&
           (mask == null || mask.canHit(element, selector, world));
     }
 
@@ -427,7 +427,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return result;
       }
     } else if (selector.isGetter) {
-      if (selector.applies(helpers.jsIndexableLength, backend)) {
+      if (selector.applies(helpers.jsIndexableLength)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }

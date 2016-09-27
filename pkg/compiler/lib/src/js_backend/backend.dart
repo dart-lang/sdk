@@ -925,7 +925,7 @@ class JavaScriptBackend extends Backend {
     if (elements == null) return false;
     if (elements.isEmpty) return false;
     return elements.any((element) {
-      return selector.applies(element, this) &&
+      return selector.applies(element) &&
           (mask == null ||
               mask.canHit(element, selector, compiler.closedWorld));
     });

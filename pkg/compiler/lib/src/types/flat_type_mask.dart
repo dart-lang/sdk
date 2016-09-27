@@ -565,13 +565,11 @@ class FlatTypeMask implements TypeMask {
     } else if (isExact) {
       return hasElementIn(self, selector, element);
     } else if (isSubclass) {
-      assert(closedWorld.isClosed);
       return hasElementIn(self, selector, element) ||
           other.isSubclassOf(self) ||
           closedWorld.hasAnySubclassThatMixes(self, other);
     } else {
       assert(isSubtype);
-      assert(closedWorld.isClosed);
       bool result = hasElementIn(self, selector, element) ||
           other.implementsInterface(self) ||
           closedWorld.hasAnySubclassThatImplements(other, base) ||
@@ -602,7 +600,7 @@ class FlatTypeMask implements TypeMask {
       ClassElement enclosingClass = element.enclosingClass;
       return hasConcreteMatch(enclosingClass.superclass, selector, world);
     }
-    return selector.appliesUntyped(element, world.backend);
+    return selector.appliesUntyped(element);
   }
 
   bool needsNoSuchMethodHandling(Selector selector, ClosedWorld closedWorld) {
