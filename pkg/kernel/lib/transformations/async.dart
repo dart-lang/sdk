@@ -261,7 +261,6 @@ class ExpressionLifter extends Transformer {
         expressions[i] = expressions[i].accept(this)..parent = expr;
       }
     });
-    return result;
   }
 
   TreeNode visitListLiteral(ListLiteral expr) {
@@ -298,7 +297,7 @@ class ExpressionLifter extends Transformer {
     return transform(expr, () {
       expr.then = delimit(() => expr.then.accept(this))..parent = expr;
       var leftAwait = seenAwait;
-      
+
       seenAwait = false;
       expr.otherwise =
           delimit(() => expr.otherwise.accept(this))..parent = expr;
