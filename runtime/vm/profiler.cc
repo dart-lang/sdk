@@ -65,11 +65,11 @@ void Profiler::InitOnce() {
   }
   ASSERT(!initialized_);
   sample_buffer_ = new SampleBuffer();
+  // Zero counters.
+  memset(&counters_, 0, sizeof(counters_));
   NativeSymbolResolver::InitOnce();
   ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
-  // Zero counters.
-  memset(&counters_, 0, sizeof(counters_));
   initialized_ = true;
 }
 
@@ -786,18 +786,18 @@ static void CollectSample(Isolate* isolate,
 
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.
-    counters->stack_walker_native++;
+    AtomicOperations::IncrementInt64By(&counters->stack_walker_native, 1);
     native_stack_walker->walk();
   } else if (StubCode::HasBeenInitialized() && exited_dart_code) {
-    counters->stack_walker_dart_exit++;
+    AtomicOperations::IncrementInt64By(&counters->stack_walker_dart_exit, 1);
     // We have a valid exit frame info, use the Dart stack walker.
     dart_exit_stack_walker->walk();
   } else if (StubCode::HasBeenInitialized() && in_dart_code) {
-    counters->stack_walker_dart++;
+    AtomicOperations::IncrementInt64By(&counters->stack_walker_dart, 1);
     // We are executing Dart code. We have frame pointers.
     dart_stack_walker->walk();
   } else {
-    counters->stack_walker_none++;
+    AtomicOperations::IncrementInt64By(&counters->stack_walker_none, 1);
     sample->SetAt(0, pc);
   }
 
@@ -1139,7 +1139,7 @@ void Profiler::SampleThread(Thread* thread,
 
   // Thread is not doing VM work.
   if (thread->task_kind() == Thread::kUnknownTask) {
-    counters_.bail_out_unknown_task++;
+    AtomicOperations::IncrementInt64By(&counters_.bail_out_unknown_task, 1);
     return;
   }
 
@@ -1148,7 +1148,8 @@ void Profiler::SampleThread(Thread* thread,
     // The JumpToExceptionHandler stub manually adjusts the stack pointer,
     // frame pointer, and some isolate state before jumping to a catch entry.
     // It is not safe to walk the stack when executing this stub.
-    counters_.bail_out_jump_to_exception_handler++;
+    AtomicOperations::IncrementInt64By(
+        &counters_.bail_out_jump_to_exception_handler, 1);
     return;
   }
 
@@ -1182,18 +1183,20 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (!CheckIsolate(isolate)) {
-    counters_.bail_out_check_isolate++;
+    AtomicOperations::IncrementInt64By(&counters_.bail_out_check_isolate, 1);
     return;
   }
 
   if (thread->IsMutatorThread() && isolate->IsDeoptimizing()) {
-    counters_.single_frame_sample_deoptimizing++;
+    AtomicOperations::IncrementInt64By(
+        &counters_.single_frame_sample_deoptimizing, 1);
     SampleThreadSingleFrame(thread, pc);
     return;
   }
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
-    counters_.single_frame_sample_register_check++;
+    AtomicOperations::IncrementInt64By(
+        &counters_.single_frame_sample_register_check, 1);
     SampleThreadSingleFrame(thread, pc);
     return;
   }
@@ -1205,7 +1208,8 @@ void Profiler::SampleThread(Thread* thread,
                                         sp,
                                         &stack_lower,
                                         &stack_upper)) {
-    counters_.single_frame_sample_get_and_validate_stack_bounds++;
+    AtomicOperations::IncrementInt64By(
+       &counters_.single_frame_sample_get_and_validate_stack_bounds, 1);
     // Could not get stack boundary.
     SampleThreadSingleFrame(thread, pc);
     return;
