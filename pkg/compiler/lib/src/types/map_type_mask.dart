@@ -77,7 +77,10 @@ class MapTypeMask extends ForwardingTypeMask {
       return new MapTypeMask(
           newForwardTo, null, null, newKeyType, newValueType);
     } else if (other.isDictionary) {
-      assert(other.keyType == classWorld.compiler.commonMasks.stringType);
+      // TODO(johnniwinther): Find another way to check this invariant that
+      // doesn't need the compiler.
+      assert(
+          other.keyType == classWorld.backend.compiler.commonMasks.stringType);
       TypeMask newKeyType = keyType.union(other.keyType, classWorld);
       TypeMask newValueType =
           other.typeMap.values.fold(keyType, (p, n) => p.union(n, classWorld));

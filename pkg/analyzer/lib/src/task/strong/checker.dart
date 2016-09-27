@@ -13,7 +13,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -187,9 +186,7 @@ class CodeChecker extends RecursiveAstVisitor {
         // so no need to insert an error for this here.
         continue;
       }
-      DartType expectedType = _elementType(element);
-      if (expectedType == null) expectedType = DynamicTypeImpl.instance;
-      checkArgument(arg, expectedType);
+      checkArgument(arg, _elementType(element));
     }
   }
 
@@ -197,7 +194,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (expr is ParenthesizedExpression) {
       checkAssignment(expr.expression, type);
     } else {
-      _checkDowncast(expr, type);
+      _checkImplicitCast(expr, type);
     }
   }
 
@@ -410,7 +407,7 @@ class CodeChecker extends RecursiveAstVisitor {
             sequenceInterface.instantiate([DynamicTypeImpl.instance]);
 
         if (rules.isSubtypeOf(sequenceType, iterableType)) {
-          _recordImplicitCast(node.iterable, iterableType, sequenceType);
+          _recordImplicitCast(node.iterable, sequenceType, from: iterableType);
           elementType = DynamicTypeImpl.instance;
         }
       }
@@ -420,7 +417,7 @@ class CodeChecker extends RecursiveAstVisitor {
       if (elementType != null) {
         // Insert a cast from the sequence's element type to the loop variable's
         // if needed.
-        _checkDowncast(loopVariable, _getDefiniteType(loopVariable),
+        _checkImplicitCast(loopVariable, _getDefiniteType(loopVariable),
             from: elementType);
       }
     }
@@ -578,7 +575,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _checkUnary(node, node.staticElement);
+    _checkUnary(node.operand, node.operator, node.staticElement);
     node.visitChildren(this);
   }
 
@@ -592,7 +589,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (node.operator.type == TokenType.BANG) {
       checkBoolean(node.operand);
     } else {
-      _checkUnary(node, node.staticElement);
+      _checkUnary(node.operand, node.operator, node.staticElement);
     }
     node.visitChildren(this);
   }
@@ -700,72 +697,75 @@ class CodeChecker extends RecursiveAstVisitor {
       assert(functionType.namedParameterTypes.isEmpty);
       assert(functionType.optionalParameterTypes.isEmpty);
 
-      // Check the LHS type.
+      // Refine the return type.
       var rhsType = _getDefiniteType(expr.rightHandSide);
       var lhsType = _getDefiniteType(expr.leftHandSide);
       var returnType = rules.refineBinaryExpressionType(
           typeProvider, lhsType, op, rhsType, functionType.returnType);
 
-      if (!rules.isSubtypeOf(returnType, lhsType)) {
-        final numType = typeProvider.numType;
-        // TODO(jmesserly): this seems to duplicate logic in StaticTypeAnalyzer.
-        // Try to fix up the numerical case if possible.
-        if (rules.isSubtypeOf(lhsType, numType) &&
-            rules.isSubtypeOf(lhsType, rhsType)) {
-          // This is also slightly different from spec, but allows us to keep
-          // compound operators in the int += num and num += dynamic cases.
-          _recordImplicitCast(expr.rightHandSide, rhsType, lhsType);
-        } else {
-          // TODO(jmesserly): this results in a duplicate error, because
-          // ErrorVerifier also reports it.
-          _recordMessage(expr, StrongModeCode.STATIC_TYPE_ERROR,
-              [expr, returnType, lhsType]);
-        }
-      } else {
-        // Check the RHS type.
-        //
-        // This is only needed if we didn't already need a cast, and avoids
-        // emitting two messages for the same expression.
-        _checkDowncast(expr.rightHandSide, paramTypes.first);
-      }
+      // Check the argument for an implicit cast.
+      _checkImplicitCast(expr.rightHandSide, paramTypes[0], from: rhsType);
+
+      // Check the return type for an implicit cast.
+      //
+      // If needed, mark the assignment to indicate a down cast when we assign
+      // back to it. So these two implicit casts are equivalent:
+      //
+      //     y = /*implicit cast*/(y + 42);
+      //     /*implicit assignment cast*/y += 42;
+      //
+      _checkImplicitCast(expr.leftHandSide, lhsType,
+          from: returnType, opAssign: true);
     }
   }
 
-  /// Records a [DownCast] of [expr] from [from] to [to], if there is one.
+  /// Returns true if we need an implicit cast of [expr] from [from] type to
+  /// [to] type, otherwise returns false.
   ///
   /// If [from] is omitted, uses the static type of [expr].
-  ///
-  /// If [expr] does not require a downcast because it is not related to [to]
-  /// or is already a subtype of it, does nothing.
-  void _checkDowncast(Expression expr, DartType to, {DartType from}) {
-    if (from == null) {
-      from = _getDefiniteType(expr);
-    }
+  bool _needsImplicitCast(Expression expr, DartType to, {DartType from}) {
+    from ??= _getDefiniteType(expr);
 
-    if (!_checkNonNullAssignment(expr, to, from)) return;
+    if (!_checkNonNullAssignment(expr, to, from)) return false;
 
     // We can use anything as void.
-    if (to.isVoid) return;
+    if (to.isVoid) return false;
 
     // fromT <: toT, no coercion needed.
-    if (rules.isSubtypeOf(from, to)) return;
+    if (rules.isSubtypeOf(from, to)) return false;
 
     // Note: a function type is never assignable to a class per the Dart
     // spec - even if it has a compatible call method.  We disallow as
     // well for consistency.
     if (from is FunctionType && rules.getCallMethodType(to) != null) {
-      return;
+      return false;
     }
 
     // Downcast if toT <: fromT
     if (rules.isSubtypeOf(to, from)) {
-      _recordImplicitCast(expr, from, to);
-      return;
+      return true;
     }
 
     // Anything else is an illegal sideways cast.
     // However, these will have been reported already in error_verifier, so we
     // don't need to report them again.
+    return false;
+  }
+
+  /// Checks if an implicit cast of [expr] from [from] type to [to] type is
+  /// needed, and if so records it.
+  ///
+  /// If [from] is omitted, uses the static type of [expr].
+  ///
+  /// If [expr] does not require an implicit cast because it is not related to
+  /// [to] or is already a subtype of it, does nothing.
+  void _checkImplicitCast(Expression expr, DartType to,
+      {DartType from, bool opAssign: false}) {
+    from ??= _getDefiniteType(expr);
+
+    if (_needsImplicitCast(expr, to, from: from)) {
+      _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
+    }
   }
 
   void _checkFieldAccess(AstNode node, AstNode target, SimpleIdentifier field) {
@@ -909,19 +909,39 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  void _checkUnary(
-      /*PrefixExpression|PostfixExpression*/ node,
-      Element element) {
-    var op = node.operator;
-    if (op.isUserDefinableOperator ||
-        op.type == TokenType.PLUS_PLUS ||
-        op.type == TokenType.MINUS_MINUS) {
+  void _checkUnary(Expression operand, Token op, MethodElement element) {
+    bool isIncrementAssign =
+        op.type == TokenType.PLUS_PLUS || op.type == TokenType.MINUS_MINUS;
+    if (op.isUserDefinableOperator || isIncrementAssign) {
       if (element == null) {
-        _recordDynamicInvoke(node, node.operand);
+        _recordDynamicInvoke(operand.parent, operand);
+      } else if (isIncrementAssign) {
+        // For ++ and --, even if it is not dynamic, we still need to check
+        // that the user defined method accepts an `int` as the RHS.
+        //
+        // We assume Analyzer has done this already (in ErrorVerifier).
+        //
+        // However, we also need to check the return type.
+
+        // Refine the return type.
+        var functionType = element.type;
+        var rhsType = typeProvider.intType;
+        var lhsType = _getDefiniteType(operand);
+        var returnType = rules.refineBinaryExpressionType(typeProvider, lhsType,
+            TokenType.PLUS, rhsType, functionType.returnType);
+
+        // Skip the argument check - `int` cannot be downcast.
+        //
+        // Check the return type for an implicit cast.
+        //
+        // If needed, mark the assignment to indicate a down cast when we assign
+        // back to it. So these two implicit casts are equivalent:
+        //
+        //     y = /*implicit cast*/(y + 1);
+        //     /*implicit assignment cast*/y++;
+        //
+        _checkImplicitCast(operand, lhsType, from: returnType, opAssign: true);
       }
-      // For ++ and --, even if it is not dynamic, we still need to check
-      // that the user defined method accepts an `int` as the RHS.
-      // We assume Analyzer has done this already.
     }
   }
 
@@ -1022,61 +1042,49 @@ class CodeChecker extends RecursiveAstVisitor {
     if (target != null) setIsDynamicInvoke(target, true);
   }
 
-  /// Records an implicit cast for the [expression] from [fromType] to [toType].
+  /// Records an implicit cast for the [expr] from [from] to [to].
   ///
   /// This will emit the appropriate error/warning/hint message as well as mark
   /// the AST node.
-  void _recordImplicitCast(
-      Expression expression, DartType fromType, DartType toType) {
-    // toT <:_R fromT => to <: fromT
-    // NB: classes with call methods are subtypes of function
-    // types, but the function type is not assignable to the class
-    assert(toType.isSubtypeOf(fromType));
+  void _recordImplicitCast(Expression expr, DartType to,
+      {DartType from, bool opAssign: false}) {
+    assert(rules.isSubtypeOf(to, from));
 
     // Inference "casts":
-    if (expression is Literal || expression is FunctionExpression) {
+    if (expr is Literal || expr is FunctionExpression) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      _recordMessage(expression, StrongModeCode.STATIC_TYPE_ERROR,
-          [expression, fromType, toType]);
+      _recordMessage(expr, StrongModeCode.STATIC_TYPE_ERROR, [expr, from, to]);
       return;
     }
 
-    if (expression is InstanceCreationExpression) {
-      ConstructorElement e = expression.staticElement;
+    if (expr is InstanceCreationExpression) {
+      ConstructorElement e = expr.staticElement;
       if (e == null || !e.isFactory) {
         // fromT should be an exact type - this will almost certainly fail at
         // runtime.
 
-        _recordMessage(expression, StrongModeCode.STATIC_TYPE_ERROR,
-            [expression, fromType, toType]);
+        _recordMessage(
+            expr, StrongModeCode.STATIC_TYPE_ERROR, [expr, from, to]);
         return;
       }
     }
 
-    if (isKnownFunction(expression)) {
-      _recordMessage(expression, StrongModeCode.STATIC_TYPE_ERROR,
-          [expression, fromType, toType]);
+    if (isKnownFunction(expr)) {
+      _recordMessage(expr, StrongModeCode.STATIC_TYPE_ERROR, [expr, from, to]);
       return;
     }
 
-    // TODO(vsm): Change this to an assert when we have generic methods and
-    // fix TypeRules._coerceTo to disallow implicit sideways casts.
-    bool downCastComposite = false;
-    if (!rules.isSubtypeOf(toType, fromType)) {
-      assert(toType.isSubtypeOf(fromType) || fromType.isAssignableTo(toType));
-      downCastComposite = true;
-    }
-
     // Composite cast: these are more likely to fail.
-    if (!rules.isGroundType(toType)) {
+    bool downCastComposite = false;
+    if (!rules.isGroundType(to)) {
       // This cast is (probably) due to our different treatment of dynamic.
       // It may be more likely to fail at runtime.
-      if (fromType is InterfaceType) {
+      if (from is InterfaceType) {
         // For class types, we'd like to allow non-generic down casts, e.g.,
         // Iterable<T> to List<T>.  The intuition here is that raw (generic)
         // casts are problematic, and we should complain about those.
-        var typeArgs = fromType.typeArguments;
+        var typeArgs = from.typeArguments;
         downCastComposite =
             typeArgs.isEmpty || typeArgs.any((t) => t.isDynamic);
       } else {
@@ -1084,21 +1092,25 @@ class CodeChecker extends RecursiveAstVisitor {
       }
     }
 
-    var parent = expression.parent;
+    var parent = expr.parent;
     ErrorCode errorCode;
     if (downCastComposite) {
       errorCode = StrongModeCode.DOWN_CAST_COMPOSITE;
-    } else if (fromType.isDynamic) {
+    } else if (from.isDynamic) {
       errorCode = StrongModeCode.DYNAMIC_CAST;
-    } else if (parent is VariableDeclaration &&
-        parent.initializer == expression) {
+    } else if (parent is VariableDeclaration && parent.initializer == expr) {
       errorCode = StrongModeCode.ASSIGNMENT_CAST;
     } else {
-      errorCode = StrongModeCode.DOWN_CAST_IMPLICIT;
+      errorCode = opAssign
+          ? StrongModeCode.DOWN_CAST_IMPLICIT_ASSIGN
+          : StrongModeCode.DOWN_CAST_IMPLICIT;
     }
-
-    _recordMessage(expression, errorCode, [fromType, toType]);
-    setImplicitCast(expression, toType);
+    _recordMessage(expr, errorCode, [from, to]);
+    if (opAssign) {
+      setImplicitAssignmentCast(expr, to);
+    } else {
+      setImplicitCast(expr, to);
+    }
     _hasImplicitCasts = true;
   }
 

@@ -34,7 +34,7 @@ class TypeMaskFactory {
     var typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return compiler.commonMasks.dynamicType;
 
-    ClassWorld world = compiler.world;
+    ClassWorld world = compiler.closedWorld;
     CommonMasks commonMasks = compiler.commonMasks;
     CoreClasses coreClasses = compiler.coreClasses;
 
@@ -53,7 +53,7 @@ class TypeMaskFactory {
 
     TypeMask result = typesReturned
         .map(fromNativeType)
-        .reduce((t1, t2) => t1.union(t2, compiler.world));
+        .reduce((t1, t2) => t1.union(t2, compiler.closedWorld));
     assert(!result.isEmpty);
     return result;
   }

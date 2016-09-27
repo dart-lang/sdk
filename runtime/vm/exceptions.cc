@@ -330,7 +330,6 @@ static void ThrowExceptionHelper(Thread* thread,
                                           &handler_needs_stacktrace);
     if (handler_pc == 0) {
       // No Dart frame.
-      ASSERT(!thread->IsMutatorThread());
       ASSERT(incoming_exception.raw() ==
              isolate->object_store()->out_of_memory());
       const UnhandledException& error = UnhandledException::Handle(

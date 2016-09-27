@@ -157,6 +157,30 @@ class InstructionsKeyValueTrait {
 typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
 
 
+class UnlinkedCallKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const UnlinkedCall* Key;
+  typedef const UnlinkedCall* Value;
+  typedef const UnlinkedCall* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return String::Handle(key->target_name()).Hash();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return (pair->target_name() == key->target_name()) &&
+        (pair->args_descriptor() == key->args_descriptor());
+  }
+};
+
+typedef DirectChainedHashMap<UnlinkedCallKeyValueTrait> UnlinkedCallSet;
+
+
 class FunctionKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.

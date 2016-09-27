@@ -9,7 +9,6 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -19,14 +18,12 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
@@ -308,7 +305,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
-        this._options.enableAsync != options.enableAsync ||
         this._options.enableSuperMixins != options.enableSuperMixins;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
@@ -323,7 +319,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableAssertInitializer = options.enableAssertInitializer;
     this._options.enableAssertMessage = options.enableAssertMessage;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
-    this._options.enableAsync = options.enableAsync;
     this._options.enableInitializingFormalAccess =
         options.enableInitializingFormalAccess;
     this._options.enableSuperMixins = options.enableSuperMixins;
@@ -334,6 +329,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.incrementalValidation = options.incrementalValidation;
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
+    if (this._options.strongMode != options.strongMode) {
+      _typeSystem = null;
+    }
     this._options.strongMode = options.strongMode;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
     this._options.finerGrainedInvalidation = options.finerGrainedInvalidation;
@@ -545,22 +543,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       throw new AnalysisException("Could not create an element for dart:core");
     }
 
-    LibraryElement asyncElement;
-    if (analysisOptions.enableAsync) {
-      Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-      if (asyncSource == null) {
-        throw new AnalysisException("Could not create a source for dart:async");
-      }
-      asyncElement = computeLibraryElement(asyncSource);
-      if (asyncElement == null) {
-        throw new AnalysisException(
-            "Could not create an element for dart:async");
-      }
-    } else {
-      Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-      asyncElement = createMockAsyncLib(coreElement, asyncSource);
+    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+    if (asyncSource == null) {
+      throw new AnalysisException("Could not create a source for dart:async");
     }
-
+    LibraryElement asyncElement = computeLibraryElement(asyncSource);
+    if (asyncElement == null) {
+      throw new AnalysisException("Could not create an element for dart:async");
+    }
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     return _typeProvider;
   }
@@ -771,55 +761,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     });
     return cache;
-  }
-
-  /**
-   * Create a minimalistic mock dart:async library
-   * to stand in for a real one if one does not exist
-   * facilitating creation a type provider without dart:async.
-   */
-  LibraryElement createMockAsyncLib(
-      LibraryElement coreLibrary, Source asyncSource) {
-    InterfaceType objType = coreLibrary.getType('Object').type;
-
-    ClassElement _classElement(String typeName, [List<String> parameterNames]) {
-      ClassElementImpl element =
-          new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
-      element.supertype = objType;
-      if (parameterNames != null) {
-        int count = parameterNames.length;
-        if (count > 0) {
-          List<TypeParameterElementImpl> typeParameters =
-              new List<TypeParameterElementImpl>(count);
-          List<TypeParameterTypeImpl> typeArguments =
-              new List<TypeParameterTypeImpl>(count);
-          for (int i = 0; i < count; i++) {
-            TypeParameterElementImpl typeParameter =
-                new TypeParameterElementImpl.forNode(
-                    AstFactory.identifier3(parameterNames[i]));
-            typeParameters[i] = typeParameter;
-            typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
-            typeParameter.type = typeArguments[i];
-          }
-          element.typeParameters = typeParameters;
-        }
-      }
-      return element;
-    }
-
-    InterfaceType futureType = _classElement('Future', ['T']).type;
-    InterfaceType streamType = _classElement('Stream', ['T']).type;
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("mock_async.dart");
-    asyncUnit.types = <ClassElement>[futureType.element, streamType.element];
-    LibraryElementImpl mockLib = new LibraryElementImpl.forNode(
-        this, AstFactory.libraryIdentifier2(["dart.async"]));
-    asyncUnit.librarySource = asyncSource;
-    asyncUnit.source = asyncSource;
-    mockLib.definingCompilationUnit = asyncUnit;
-    mockLib.publicNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(mockLib);
-    return mockLib;
   }
 
   @override

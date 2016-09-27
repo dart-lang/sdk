@@ -1543,6 +1543,24 @@ void RawSingleTargetCache::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawUnlinkedCall* UnlinkedCall::ReadFrom(SnapshotReader* reader,
+                                        intptr_t object_id,
+                                        intptr_t tags,
+                                        Snapshot::Kind kind,
+                                        bool as_reference) {
+  UNREACHABLE();
+  return UnlinkedCall::null();
+}
+
+
+void RawUnlinkedCall::WriteTo(SnapshotWriter* writer,
+                              intptr_t object_id,
+                              Snapshot::Kind kind,
+                              bool as_reference) {
+  UNREACHABLE();
+}
+
+
 RawICData* ICData::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,

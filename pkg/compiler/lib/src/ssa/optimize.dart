@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
@@ -19,7 +20,7 @@ import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
+import '../world.dart' show ClosedWorld;
 import 'interceptor_simplifier.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -126,7 +127,7 @@ class SsaOptimizerTask extends CompilerTask {
 /// of identifying gvn-able lengths and mis-identifies some unions of fixed
 /// length indexables (see TODO) as not fixed length.
 bool isFixedLength(mask, Compiler compiler) {
-  ClassWorld classWorld = compiler.world;
+  ClosedWorld closedWorld = compiler.closedWorld;
   JavaScriptBackend backend = compiler.backend;
   if (mask.isContainer && mask.length != null) {
     // A container on which we have inferred the length.
@@ -135,7 +136,7 @@ bool isFixedLength(mask, Compiler compiler) {
   // TODO(sra): Recognize any combination of fixed length indexables.
   if (mask.containsOnly(backend.helpers.jsFixedArrayClass) ||
       mask.containsOnly(backend.helpers.jsUnmodifiableArrayClass) ||
-      mask.containsOnlyString(classWorld) ||
+      mask.containsOnlyString(closedWorld) ||
       backend.isTypedArray(mask)) {
     return true;
   }
@@ -191,7 +192,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // If we can replace [instruction] with [replacement], then
           // [replacement]'s type can be narrowed.
           TypeMask newType = replacement.instructionType
-              .intersection(instruction.instructionType, compiler.world);
+              .intersection(instruction.instructionType, compiler.closedWorld);
           replacement.instructionType = newType;
         }
 
@@ -284,7 +285,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
-    if (!mask.contains(helpers.jsBoolClass, compiler.world)) {
+    if (!mask.contains(helpers.jsBoolClass, compiler.closedWorld)) {
       return graph.addConstantBool(false, compiler);
     }
     return node;
@@ -334,14 +335,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       Element element = helpers.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       TypeMask actualType = node.instructionType;
-      ClassWorld classWorld = compiler.world;
+      ClosedWorld closedWorld = compiler.closedWorld;
       TypeMask resultType = backend.positiveIntType;
       // If we already have computed a more specific type, keep that type.
       if (HInstruction.isInstanceOf(
-          actualType, helpers.jsUInt31Class, classWorld)) {
+          actualType, helpers.jsUInt31Class, closedWorld)) {
         resultType = backend.uint31Type;
       } else if (HInstruction.isInstanceOf(
-          actualType, helpers.jsUInt32Class, classWorld)) {
+          actualType, helpers.jsUInt32Class, closedWorld)) {
         resultType = backend.uint32Type;
       }
       HFieldGet result = new HFieldGet(element, actualReceiver, resultType,
@@ -374,10 +375,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask mask = node.mask;
     HInstruction input = node.inputs[1];
 
-    World world = compiler.world;
+    ClosedWorld world = compiler.closedWorld;
 
     bool applies(Element element) {
-      return selector.applies(element, world) &&
+      return selector.applies(element, backend) &&
           (mask == null || mask.canHit(element, selector, world));
     }
 
@@ -426,7 +427,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return result;
       }
     } else if (selector.isGetter) {
-      if (selector.applies(helpers.jsIndexableLength, world)) {
+      if (selector.applies(helpers.jsIndexableLength, backend)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -444,7 +445,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     TypeMask receiverType = node.getDartReceiver(compiler).instructionType;
     Element element =
-        compiler.world.locateSingleElement(node.selector, receiverType);
+        compiler.closedWorld.locateSingleElement(node.selector, receiverType);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null &&
         element.isFunction
@@ -643,7 +644,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler))) {
-      if (leftType.isDisjoint(rightType, compiler.world)) {
+      if (leftType.isDisjoint(rightType, compiler.closedWorld)) {
         return makeFalse();
       }
     }
@@ -734,7 +735,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return graph.addConstantBool(true, compiler);
     }
 
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     HInstruction expression = node.expression;
     if (expression.isInteger(compiler)) {
       if (element == coreClasses.intClass ||
@@ -778,13 +779,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // raw type.
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expression.instructionType;
-      assert(TypeMask.assertIsNormalized(expressionMask, classWorld));
+      assert(TypeMask.assertIsNormalized(expressionMask, closedWorld));
       TypeMask typeMask = (element == coreClasses.nullClass)
-          ? new TypeMask.subtype(element, classWorld)
-          : new TypeMask.nonNullSubtype(element, classWorld);
-      if (expressionMask.union(typeMask, classWorld) == typeMask) {
+          ? new TypeMask.subtype(element, closedWorld)
+          : new TypeMask.nonNullSubtype(element, closedWorld);
+      if (expressionMask.union(typeMask, closedWorld) == typeMask) {
         return graph.addConstantBool(true, compiler);
-      } else if (expressionMask.isDisjoint(typeMask, compiler.world)) {
+      } else if (expressionMask.isDisjoint(typeMask, compiler.closedWorld)) {
         return graph.addConstantBool(false, compiler);
       }
     }
@@ -815,11 +816,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction removeIfCheckAlwaysSucceeds(HCheck node, TypeMask checkedType) {
-    ClassWorld classWorld = compiler.world;
-    if (checkedType.containsAll(classWorld)) return node;
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (checkedType.containsAll(closedWorld)) return node;
     HInstruction input = node.checkedInput;
     TypeMask inputType = input.instructionType;
-    return inputType.isInMask(checkedType, classWorld) ? input : node;
+    return inputType.isInMask(checkedType, closedWorld) ? input : node;
   }
 
   HInstruction removeCheck(HCheck node) => node.checkedInput;
@@ -827,7 +828,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   VariableElement findConcreteFieldForDynamicAccess(
       HInstruction receiver, Selector selector) {
     TypeMask receiverType = receiver.instructionType;
-    return compiler.world.locateSingleField(selector, receiverType);
+    return compiler.closedWorld.locateSingleField(selector, receiverType);
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
@@ -905,7 +906,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
-    bool isAssignable = !compiler.world.fieldNeverChanges(field);
+    bool isAssignable = !compiler.closedWorld.fieldNeverChanges(field);
 
     TypeMask type;
     if (backend.isNative(field.enclosingClass)) {
@@ -1013,22 +1014,51 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitStringify(HStringify node) {
     HInstruction input = node.inputs[0];
     if (input.isString(compiler)) return input;
-    if (input.isConstant()) {
+
+    HInstruction tryConstant() {
+      if (!input.isConstant()) return null;
       HConstant constant = input;
-      if (!constant.constant.isPrimitive) return node;
+      if (!constant.constant.isPrimitive) return null;
       if (constant.constant.isInt) {
         // Only constant-fold int.toString() when Dart and JS results the same.
         // TODO(18103): We should be able to remove this work-around when issue
         // 18103 is resolved by providing the correct string.
         IntConstantValue intConstant = constant.constant;
         // Very conservative range.
-        if (!intConstant.isUInt32()) return node;
+        if (!intConstant.isUInt32()) return null;
       }
       PrimitiveConstantValue primitive = constant.constant;
       return graph.addConstant(
           constantSystem.createString(primitive.toDartString()), compiler);
     }
-    return node;
+
+    HInstruction tryToString() {
+      // If the `toString` method is guaranteed to return a string we can call
+      // it directly. Keep the stringifier for primitives (since they have fast
+      // path code in the stringifier) and for classes requiring interceptors
+      // (since SsaInstructionSimplifier runs after SsaSimplifyInterceptors).
+      if (input.canBePrimitive(compiler)) return null;
+      if (input.canBeNull()) return null;
+      Selector selector = Selectors.toString_;
+      TypeMask toStringType = TypeMaskFactory.inferredTypeForSelector(
+          selector, input.instructionType, compiler);
+      ClosedWorld closedWorld = compiler.closedWorld;
+      if (!toStringType.containsOnlyString(closedWorld)) return null;
+      // All intercepted classes extend `Interceptor`, so if the receiver can't
+      // be a class extending `Interceptor` then it can be called directly.
+      if (new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, closedWorld)
+          .isDisjoint(input.instructionType, closedWorld)) {
+        HInstruction result = new HInvokeDynamicMethod(
+            selector,
+            input.instructionType, // receiver mask.
+            <HInstruction>[input, input], // [interceptor, receiver].
+            toStringType)..sourceInformation = node.sourceInformation;
+        return result;
+      }
+      return null;
+    }
+
+    return tryConstant() ?? tryToString() ?? node;
   }
 
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
@@ -1036,10 +1066,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
-    ClassWorld classWorld = compiler.world;
-    if (classWorld.isUsedAsMixin(cls)) return true;
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (closedWorld.isUsedAsMixin(cls)) return true;
 
-    return classWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
+    return closedWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
       return !backend.rti.isTrivialSubstitution(subclass, cls);
     });
   }
@@ -2056,7 +2086,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
     TypeMask convertedType =
-        new TypeMask.nonNullSubtype(element, compiler.world);
+        new TypeMask.nonNullSubtype(element, compiler.closedWorld);
     HInstruction input = instruction.expression;
 
     for (HIf ifUser in ifUsers) {
@@ -2243,9 +2273,9 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
         // Assume the argument escapes. All we do with our initial allocation is
         // have it escape or store it into an object that escapes.
         return false;
-        // TODO(sra): Handle more functions. `setRuntimeTypeInfo` does not
-        // actually kill it's input, but we don't make use of that elsewhere so
-        // there is not point in checking here.
+        // TODO(sra): Handle library functions that we know do not modify or
+        // leak the inputs. For example `setRuntimeTypeInfo` is used to mark
+        // list literals with type information.
       }
       if (use is HPhi) {
         // The initial allocation (it's only alias) gets merged out of the model
@@ -2291,6 +2321,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitLiteralList(HLiteralList instruction) {
     memorySet.registerAllocation(instruction);
     memorySet.killAffectedBy(instruction);
+    // TODO(sra): Set initial keyed values.
+    // TODO(sra): Set initial length.
   }
 
   void visitIndex(HIndex instruction) {
@@ -2310,10 +2342,31 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.registerKeyedValueUpdate(
         receiver, instruction.index, instruction.value);
   }
+
+  // Pure operations that do not escape their inputs.
+  void visitBinaryArithmetic(HBinaryArithmetic instruction) {}
+  void visitConstant(HConstant instruction) {}
+  void visitIf(HIf instruction) {}
+  void visitInterceptor(HInterceptor instruction) {}
+  void visitIs(HIs instruction) {}
+  void visitIsViaInterceptor(HIsViaInterceptor instruction) {}
+  void visitNot(HNot instruction) {}
+  void visitParameterValue(HParameterValue instruction) {}
+  void visitRelational(HRelational instruction) {}
+  void visitStringConcat(HStringConcat instruction) {}
+  void visitTypeKnown(HTypeKnown instruction) {}
+  void visitTypeInfoReadRaw(HTypeInfoReadRaw instruction) {}
+  void visitTypeInfoReadVariable(HTypeInfoReadVariable instruction) {}
+  void visitTypeInfoExpression(HTypeInfoExpression instruction) {}
 }
 
 /**
  * Holds values of memory places.
+ *
+ * Generally, values that name a place (a receiver) have type refinements and
+ * other checks removed to ensure that checks and type refinements do not
+ * confuse aliasing.  Values stored into a memory place keep the type
+ * refinements to help further optimizations.
  */
 class MemorySet {
   final Compiler compiler;
@@ -2357,11 +2410,11 @@ class MemorySet {
     // Typed arrays of different types might have a shared buffer.
     if (couldBeTypedArray(first) && couldBeTypedArray(second)) return true;
     return !first.instructionType
-        .isDisjoint(second.instructionType, compiler.world);
+        .isDisjoint(second.instructionType, compiler.closedWorld);
   }
 
   bool isFinal(Element element) {
-    return compiler.world.fieldNeverChanges(element);
+    return compiler.closedWorld.fieldNeverChanges(element);
   }
 
   bool isConcrete(HInstruction instruction) {
@@ -2379,25 +2432,28 @@ class MemorySet {
    * Returns whether [receiver] escapes the current function.
    */
   bool escapes(HInstruction receiver) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     return !nonEscapingReceivers.contains(receiver);
   }
 
   void registerAllocation(HInstruction instruction) {
+    assert(instruction == instruction.nonCheck());
     nonEscapingReceivers.add(instruction);
   }
 
   /**
-   * Sets `receiver.element` to contain [value]. Kills all potential
-   * places that may be affected by this update.
+   * Sets `receiver.element` to contain [value]. Kills all potential places that
+   * may be affected by this update.
    */
   void registerFieldValueUpdate(
       Element element, HInstruction receiver, HInstruction value) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     if (backend.isNative(element)) {
       return; // TODO(14955): Remove this restriction?
     }
     // [value] is being set in some place in memory, we remove it from
     // the non-escaping set.
-    nonEscapingReceivers.remove(value);
+    nonEscapingReceivers.remove(value.nonCheck());
     Map<HInstruction, HInstruction> map =
         fieldValues.putIfAbsent(element, () => <HInstruction, HInstruction>{});
     map.forEach((key, value) {
@@ -2411,6 +2467,7 @@ class MemorySet {
    */
   void registerFieldValue(
       Element element, HInstruction receiver, HInstruction value) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     if (backend.isNative(element)) {
       return; // TODO(14955): Remove this restriction?
     }
@@ -2420,27 +2477,26 @@ class MemorySet {
   }
 
   /**
-   * Returns the value stored in `receiver.element`. Returns null if
-   * we don't know.
+   * Returns the value stored in `receiver.element`. Returns `null` if we don't
+   * know.
    */
   HInstruction lookupFieldValue(Element element, HInstruction receiver) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     Map<HInstruction, HInstruction> map = fieldValues[element];
     return (map == null) ? null : map[receiver];
   }
 
   /**
-   * Kill all places that may be affected by this [instruction]. Also
-   * update the set of non-escaping objects in case [instruction] has
-   * non-escaping objects in its inputs.
+   * Kill all places that may be affected by this [instruction]. Also update the
+   * set of non-escaping objects in case [instruction] has non-escaping objects
+   * in its inputs.
    */
   void killAffectedBy(HInstruction instruction) {
-    // Even if [instruction] does not have side effects, it may use
-    // non-escaping objects and store them in a new object, which
-    // make these objects escaping.
-    // TODO(ngeoffray): We need a new side effect flag to know whether
-    // an instruction allocates an object.
+    // Even if [instruction] does not have side effects, it may use non-escaping
+    // objects and store them in a new object, which make these objects
+    // escaping.
     instruction.inputs.forEach((input) {
-      nonEscapingReceivers.remove(input);
+      nonEscapingReceivers.remove(input.nonCheck());
     });
 
     if (instruction.sideEffects.changesInstanceProperty() ||
@@ -2491,7 +2547,7 @@ class MemorySet {
    */
   void registerKeyedValueUpdate(
       HInstruction receiver, HInstruction index, HInstruction value) {
-    nonEscapingReceivers.remove(value);
+    nonEscapingReceivers.remove(value.nonCheck());
     keyedValues.forEach((key, values) {
       if (mayAlias(receiver, key)) {
         // Typed arrays that are views of the same buffer may have different
@@ -2522,8 +2578,8 @@ class MemorySet {
       HBasicBlock block, int predecessorIndex) {
     if (first == null || second == null) return null;
     if (first == second) return first;
-    TypeMask phiType =
-        second.instructionType.union(first.instructionType, compiler.world);
+    TypeMask phiType = second.instructionType
+        .union(first.instructionType, compiler.closedWorld);
     if (first is HPhi && first.block == block) {
       HPhi phi = first;
       phi.addInput(second);

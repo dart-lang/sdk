@@ -19,7 +19,9 @@ import 'package:kernel/frontend/accessors.dart'
         makeBinary,
         makeLet,
         makeOrReuseVariable;
+import 'package:kernel/transformations/flags.dart';
 
+import '../common.dart';
 import '../constants/expressions.dart'
     show
         BoolFromEnvironmentConstantExpression,
@@ -182,6 +184,7 @@ class KernelVisitor extends Object
   TreeElements elements;
   AstElement currentElement;
   final Kernel kernel;
+  int transformerFlags = 0;
 
   final Map<JumpTarget, ir.LabeledStatement> continueTargets =
       <JumpTarget, ir.LabeledStatement>{};
@@ -774,8 +777,8 @@ class KernelVisitor extends Object
     JumpTarget jumpTarget = elements.getTargetDefinition(node);
     ir.Statement body =
         buildContinueTarget(buildStatementInBlock(node.body), node, jumpTarget);
-    ir.ForStatement forStatement =
-        new ir.ForStatement(variables, condition, updates, body);
+    ir.ForStatement forStatement = associateNode(
+        new ir.ForStatement(variables, condition, updates, body), node);
     ir.Statement result = buildBreakTarget(forStatement, node, jumpTarget);
     if (initializer != null) {
       result = new ir.Block(
@@ -1090,7 +1093,9 @@ class KernelVisitor extends Object
     ir.Statement body =
         buildContinueTarget(buildStatementInBlock(node.body), node, jumpTarget);
     return buildBreakTarget(
-        new ir.WhileStatement(condition, body), node, jumpTarget);
+        associateNode(new ir.WhileStatement(condition, body), node),
+        node,
+        jumpTarget);
   }
 
   @override
@@ -1142,8 +1147,13 @@ class KernelVisitor extends Object
 
   ir.Expression buildConstructorInvoke(NewExpression node, {bool isConst}) {
     ConstructorElement constructor = elements[node.send];
-    ConstructorTarget target =
-        kernel.computeEffectiveTarget(constructor, elements.getType(node));
+    ConstructorTarget target;
+    if (isConst) {
+      target =
+          kernel.computeEffectiveTarget(constructor, elements.getType(node));
+    } else {
+      target = new ConstructorTarget(constructor, elements.getType(node));
+    }
     NodeList arguments = node.send.argumentsNode;
     if (kernel.isSyntheticError(target.element)) {
       return new ir.MethodInvocation(new ir.InvalidExpression(),
@@ -1203,7 +1213,10 @@ class KernelVisitor extends Object
   ir.FunctionExpression visitClosureDeclaration(FunctionExpression node,
       LocalFunctionElement closure, NodeList parameters, Node body, _) {
     return withCurrentElement(closure, () {
-      return new ir.FunctionExpression(buildFunctionNode(closure, body));
+      ir.FunctionExpression function =
+          new ir.FunctionExpression(buildFunctionNode(closure, body));
+      kernel.localFunctions[closure] = function;
+      return function;
     });
   }
 
@@ -1383,22 +1396,6 @@ class KernelVisitor extends Object
         .buildAssignment(visitForValue(rhs), voidContext: isVoidContext);
   }
 
-  void addFieldsWithInitializers(
-      ConstructorElement constructor, List<ir.Initializer> initializers) {
-    constructor.enclosingClass.forEachInstanceField((_, FieldElement element) {
-      // Convert the element into the corresponding IR field before asking
-      // if the initializer exists. This is necessary to ensure that the
-      // element has been analyzed before looking at its initializer.
-      ir.Field field = kernel.fieldToIr(element);
-      if (element.initializer != null) {
-        KernelVisitor visitor =
-            new KernelVisitor(element, element.treeElements, kernel);
-        ir.Expression value = visitor.buildInitializer();
-        initializers.add(new ir.FieldInitializer(field, value));
-      }
-    });
-  }
-
   IrFunction buildGenerativeConstructor(
       ConstructorElement constructor, NodeList parameters, Node body) {
     List<ir.Initializer> constructorInitializers = <ir.Initializer>[];
@@ -1424,13 +1421,11 @@ class KernelVisitor extends Object
       if (kernel.isSyntheticError(constructor.definingConstructor)) {
         constructorInitializers.add(new ir.InvalidInitializer());
       } else {
-        addFieldsWithInitializers(constructor, constructorInitializers);
         constructorInitializers.add(new ir.SuperInitializer(
             kernel.functionToIr(constructor.definingConstructor),
             new ir.Arguments(arguments, named: named, types: null)));
       }
     } else {
-      addFieldsWithInitializers(constructor, constructorInitializers);
       if (parameters != null) {
         // TODO(ahe): the following is a (modified) copy of
         // [SemanticDeclarationResolvedMixin.visitParameters].
@@ -1689,8 +1684,12 @@ class KernelVisitor extends Object
       LocalFunctionElement localFunction, NodeList parameters, Node body, _) {
     return withCurrentElement(localFunction, () {
       ir.VariableDeclaration local = getLocal(localFunction)..isFinal = true;
-      return new ir.FunctionDeclaration(
+      ir.FunctionDeclaration function = new ir.FunctionDeclaration(
           local, buildFunctionNode(localFunction, body));
+      // Closures can escape their context and we must therefore store them
+      // globally to include them in the world computation.
+      kernel.localFunctions[localFunction] = function;
+      return function;
     });
   }
 
@@ -1955,11 +1954,13 @@ class KernelVisitor extends Object
 
   ir.VariableDeclaration getLocal(LocalElement local) {
     return locals.putIfAbsent(local, () {
+      // Currently, initializing formals are not final.
+      bool isFinal = local.isFinal && !local.isInitializingFormal;
       return associateElement(
           new ir.VariableDeclaration(local.name,
               initializer: null,
               type: typeToIrHack(local.type),
-              isFinal: local.isFinal,
+              isFinal: isFinal,
               isConst: local.isConst),
           local);
     });
@@ -1993,7 +1994,11 @@ class KernelVisitor extends Object
           initializer.parent = variable;
         }
       });
-      returnType = typeToIrHack(signature.type.returnType);
+      if (function.isGenerativeConstructor) {
+        returnType = const ir.VoidType();
+      } else {
+        returnType = typeToIrHack(signature.type.returnType);
+      }
       if (function.isFactoryConstructor) {
         InterfaceType type = function.enclosingClass.thisType;
         if (type.isGeneric) {
@@ -2029,8 +2034,20 @@ class KernelVisitor extends Object
           break;
       }
     }
-    ir.Statement body =
-        (bodyNode == null) ? null : buildStatementInBlock(bodyNode);
+    ir.Statement body;
+    if (function.isExternal) {
+      // [body] must be `null`.
+    } else if (function.isConstructor) {
+      // TODO(johnniwinther): Clean this up pending kernel issue #28.
+      ConstructorElement constructor = function;
+      if (constructor.isDefaultConstructor) {
+        body = new ir.EmptyStatement();
+      } else if (bodyNode != null && bodyNode.asEmptyStatement() == null) {
+        body = buildStatementInBlock(bodyNode);
+      }
+    } else if (bodyNode != null) {
+      body = buildStatementInBlock(bodyNode);
+    }
     return associateElement(
         new ir.FunctionNode(body,
             asyncMarker: asyncMarker,
@@ -2179,6 +2196,7 @@ class KernelVisitor extends Object
   @override
   ir.SuperMethodInvocation visitSuperBinary(Send node, FunctionElement function,
       BinaryOperator operator, Node argument, _) {
+    transformerFlags |= TransformerFlag.superCalls;
     return new ir.SuperMethodInvocation(
         kernel.irName(operator.selectorName, currentElement),
         new ir.Arguments(<ir.Expression>[visitForValue(argument)]),
@@ -2219,6 +2237,7 @@ class KernelVisitor extends Object
 
   ir.SuperMethodInvocation buildSuperEquals(
       FunctionElement function, Node argument) {
+    transformerFlags |= TransformerFlag.superCalls;
     return new ir.SuperMethodInvocation(
         kernel.irName(function.name, function),
         new ir.Arguments(<ir.Expression>[visitForValue(argument)],
@@ -2298,6 +2317,7 @@ class KernelVisitor extends Object
   }
 
   Accessor buildSuperPropertyAccessor(Element getter, [Element setter]) {
+    transformerFlags |= TransformerFlag.superCalls;
     if (setter == null &&
         getter.isField &&
         !getter.isFinal &&
@@ -2398,6 +2418,7 @@ class KernelVisitor extends Object
 
   ir.SuperMethodInvocation buildSuperMethodInvoke(
       MethodElement method, NodeList arguments) {
+    transformerFlags |= TransformerFlag.superCalls;
     return new ir.SuperMethodInvocation(kernel.irName(method.name, method),
         buildArguments(arguments), kernel.functionToIr(method));
   }
@@ -2457,6 +2478,7 @@ class KernelVisitor extends Object
   @override
   ir.SuperMethodInvocation visitSuperUnary(
       Send node, UnaryOperator operator, FunctionElement function, _) {
+    transformerFlags |= TransformerFlag.superCalls;
     return new ir.SuperMethodInvocation(kernel.irName(function.name, function),
         new ir.Arguments.empty(), kernel.functionToIr(function));
   }

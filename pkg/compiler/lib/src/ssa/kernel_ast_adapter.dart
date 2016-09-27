@@ -46,11 +46,14 @@ class KernelAstAdapter {
     for (LibraryElement libraryElement in kernel.libraries.keys) {
       _nodeToElement[kernel.libraries[libraryElement]] = libraryElement;
     }
+    for (LocalFunctionElement localFunction in kernel.localFunctions.keys) {
+      _nodeToElement[kernel.localFunctions[localFunction]] = localFunction;
+    }
     _typeConverter = new DartTypeConverter(this);
   }
 
   Compiler get _compiler => _backend.compiler;
-  TreeElements get _elements => _resolvedAst.elements;
+  TreeElements get elements => _resolvedAst.elements;
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     ast.Node astNode = getNode(node);
@@ -74,7 +77,8 @@ class KernelAstAdapter {
   }
 
   bool getCanThrow(ir.Node procedure) {
-    return !_compiler.world.getCannotThrow(getElement(procedure));
+    FunctionElement function = getElement(procedure);
+    return !_compiler.closedWorld.getCannotThrow(function);
   }
 
   TypeMask returnTypeOf(ir.Member node) {
@@ -83,7 +87,7 @@ class KernelAstAdapter {
   }
 
   SideEffects getSideEffects(ir.Node node) {
-    return _compiler.world.getSideEffectsOfElement(getElement(node));
+    return _compiler.closedWorld.getSideEffectsOfElement(getElement(node));
   }
 
   CallStructure getCallStructure(ir.Arguments arguments) {
@@ -124,12 +128,12 @@ class KernelAstAdapter {
 
   TypeMask typeOfInvocation(ir.MethodInvocation invocation) {
     return _compiler.globalInference.results
-        .typeOfSend(getNode(invocation), _elements);
+        .typeOfSend(getNode(invocation), elements);
   }
 
   TypeMask typeOfGet(ir.PropertyGet getter) {
     return _compiler.globalInference.results
-        .typeOfSend(getNode(getter), _elements);
+        .typeOfSend(getNode(getter), elements);
   }
 
   TypeMask inferredTypeOf(ir.Member node) {
@@ -148,7 +152,7 @@ class KernelAstAdapter {
 
   ConstantValue getConstantFor(ir.Node node) {
     ConstantValue constantValue =
-        _backend.constants.getConstantValueForNode(getNode(node), _elements);
+        _backend.constants.getConstantValueForNode(getNode(node), elements);
     assert(invariant(getNode(node), constantValue != null,
         message: 'No constant computed for $node'));
     return constantValue;
@@ -163,6 +167,9 @@ class KernelAstAdapter {
     }
     return _backend.isInterceptedSelector(selector);
   }
+
+  JumpTarget getTargetDefinition(ir.Node node) =>
+      elements.getTargetDefinition(getNode(node));
 
   ir.Procedure get mapLiteralConstructor =>
       kernel.functions[_backend.helpers.mapLiteralConstructor];
@@ -184,6 +191,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   DartTypeConverter(this.astAdapter);
 
+  DartType visitType(ir.DartType type) => type.accept(this);
+
   List<DartType> visitTypes(List<ir.DartType> types) {
     return new List.generate(
         types.length, (int index) => types[index].accept(this));
@@ -196,7 +205,16 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitFunctionType(ir.FunctionType node) {
-    throw new UnimplementedError("Function types not currently supported");
+    return new FunctionType.synthesized(
+        visitType(node.returnType),
+        visitTypes(node.positionalParameters
+            .take(node.requiredParameterCount)
+            .toList()),
+        visitTypes(node.positionalParameters
+            .skip(node.requiredParameterCount)
+            .toList()),
+        node.namedParameters.keys.toList(),
+        visitTypes(node.namedParameters.values.toList()));
   }
 
   @override

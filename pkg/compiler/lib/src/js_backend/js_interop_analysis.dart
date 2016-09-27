@@ -116,7 +116,7 @@ class JsInteropAnalysis {
 
       // Skip classes that are completely unreachable. This should only happen
       // when all of jsinterop types are unreachable from main.
-      if (!backend.compiler.world.isImplemented(classElement)) return;
+      if (!backend.compiler.resolverWorld.isImplemented(classElement)) return;
 
       if (!classElement.implementsInterface(helpers.jsJavaScriptObjectClass)) {
         backend.reporter.reportErrorMessage(classElement,

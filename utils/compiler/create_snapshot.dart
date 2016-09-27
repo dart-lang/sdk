@@ -63,7 +63,8 @@ void writeSnapshotFile(var path, var content) {
 
 Future createSnapshot(var dart_file) {
   return Process.run(Platform.executable,
-                     ["--snapshot=$dart_file.snapshot",
+                     ["--packages=../../.packages",
+                      "--snapshot=$dart_file.snapshot",
                       dart_file])
       .then((result) {
         if (result.exitCode != 0) {

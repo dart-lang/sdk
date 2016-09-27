@@ -15,7 +15,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisOptions, AnalysisOptionsImpl, CacheState;
+    show AnalysisOptionsImpl, CacheState;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -33,7 +33,6 @@ import '../../generated/resolver_test_case.dart';
 import '../../generated/test_support.dart';
 import '../../utils.dart';
 import '../context/abstract_context.dart';
-import '../context/mock_sdk.dart';
 
 main() {
   initializeTestEnvironment();
@@ -45,7 +44,6 @@ main() {
   defineReflectiveTests(BuildPublicNamespaceTaskTest);
   defineReflectiveTests(BuildSourceExportClosureTaskTest);
   defineReflectiveTests(BuildTypeProviderTaskTest);
-  defineReflectiveTests(BuildTypeProviderTaskTest_noAsync);
   defineReflectiveTests(ComputeConstantDependenciesTaskTest);
   defineReflectiveTests(ComputeConstantValueTaskTest);
   defineReflectiveTests(ComputeInferableStaticVariableDependenciesTaskTest);
@@ -1116,29 +1114,6 @@ library lib_d;
 @reflectiveTest
 class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
   test_perform() {
-    computeResult(AnalysisContextTarget.request, TYPE_PROVIDER,
-        matcher: isBuildTypeProviderTask);
-    // validate
-    TypeProvider typeProvider = outputs[TYPE_PROVIDER];
-    expect(typeProvider, isNotNull);
-    expect(typeProvider.boolType, isNotNull);
-    expect(typeProvider.intType, isNotNull);
-    expect(typeProvider.futureType, isNotNull);
-  }
-}
-
-@reflectiveTest
-class BuildTypeProviderTaskTest_noAsync extends _AbstractDartTaskTest {
-  DartSdk createDartSdk() => new MockSdk(dartAsync: false);
-
-  void prepareAnalysisContext([AnalysisOptions options]) {
-    AnalysisOptionsImpl newOptions = new AnalysisOptionsImpl();
-    newOptions.enableAsync = false;
-    super.prepareAnalysisContext(newOptions);
-  }
-
-  test_perform_noAsync() {
-    expect(context, isNotNull);
     computeResult(AnalysisContextTarget.request, TYPE_PROVIDER,
         matcher: isBuildTypeProviderTask);
     // validate
@@ -3192,45 +3167,6 @@ part 'test.dart';
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[REFERENCED_NAMES], isNotNull);
     expect(outputs[REFERENCED_SOURCES], hasLength(2));
-    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
-    expect(outputs[UNITS], hasLength(1));
-  }
-
-  test_perform_enableAsync_false() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableAsync = false;
-    prepareAnalysisContext(options);
-    _performParseTask(r'''
-import 'dart:async';
-class B {void foo() async {}}''');
-    expect(outputs, hasLength(11));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
-    expect(outputs[INCLUDED_PARTS], hasLength(0));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
-    expect(outputs[PARSE_ERRORS], hasLength(1));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[REFERENCED_NAMES], isNotNull);
-    expect(outputs[REFERENCED_SOURCES], hasLength(3));
-    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
-    expect(outputs[UNITS], hasLength(1));
-  }
-
-  test_perform_enableAsync_true() {
-    _performParseTask(r'''
-import 'dart:async';
-class B {void foo() async {}}''');
-    expect(outputs, hasLength(11));
-    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
-    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
-    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
-    expect(outputs[INCLUDED_PARTS], hasLength(0));
-    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
-    expect(outputs[PARSE_ERRORS], hasLength(0));
-    expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[REFERENCED_NAMES], isNotNull);
-    expect(outputs[REFERENCED_SOURCES], hasLength(3));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(1));
   }

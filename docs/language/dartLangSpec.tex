@@ -2790,7 +2790,7 @@ Strings support escape sequences for special characters. The escapes are:
 
 $\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$\}.
 \item $\backslash$u $HEX\_DIGIT_1$ $HEX\_DIGIT_2$ $HEX\_DIGIT_3$ $HEX\_DIGIT_4$, equivalent to $\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$ $HEX\_DIGIT_3$ $HEX\_DIGIT_4$\}.
-\item $\backslash$u\{$HEX\_DIGIT\_SEQUENCE$\} is the unicode scalar value represented by the $HEX\_DIGIT\_SEQUENCE$. It is a compile-time error if the value of the $HEX\_DIGIT\_SEQUENCE$ is not a valid unicode scalar value.
+\item $\backslash$u\{$HEX\_DIGIT\_SEQUENCE$\} is the Unicode code point represented by the $HEX\_DIGIT\_SEQUENCE$. It is a compile-time error if the value of the $HEX\_DIGIT\_SEQUENCE$ is not a valid Unicode code point.
 \item \$ indicating the beginning of an interpolated expression.
 \item Otherwise, $\backslash k$ indicates the character $k$ for any $k$ not in $\{n, r, f, b, t, v, x, u\}$.
  \end{itemize}

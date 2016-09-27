@@ -3586,10 +3586,14 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // call. Exception: don't do this when assigning to or from internal
   // variables, or for generated code that has no source position.
   if (FLAG_support_debugger) {
-    if ((node->value()->IsLiteralNode() ||
-        (node->value()->IsLoadLocalNode() &&
-            !node->value()->AsLoadLocalNode()->local().IsInternal()) ||
-        node->value()->IsClosureNode()) &&
+    AstNode* rhs = node->value();
+    if (rhs->IsAssignableNode()) {
+      rhs = rhs->AsAssignableNode()->expr();
+    }
+    if ((rhs->IsLiteralNode() ||
+         (rhs->IsLoadLocalNode() &&
+          !rhs->AsLoadLocalNode()->local().IsInternal()) ||
+         rhs->IsClosureNode()) &&
         !node->local().IsInternal() &&
         node->token_pos().IsDebugPause()) {
       AddInstruction(new(Z) DebugStepCheckInstr(
@@ -3704,6 +3708,23 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
     StoreStaticFieldNode* node,
     bool result_is_needed,
     TokenPosition token_pos) {
+  if (FLAG_support_debugger) {
+    // If the right hand side is an expression that does not contain
+    // a safe point for the debugger to stop, add an explicit stub
+    // call.
+    AstNode* rhs = node->value();
+    if (rhs->IsAssignableNode()) {
+      rhs = rhs->AsAssignableNode()->expr();
+    }
+    if ((rhs->IsLiteralNode() ||
+         rhs->IsLoadLocalNode() ||
+         rhs->IsClosureNode()) &&
+         node->token_pos().IsDebugPause()) {
+      AddInstruction(new(Z) DebugStepCheckInstr(
+          node->token_pos(), RawPcDescriptors::kRuntimeCall));
+    }
+  }
+
   ValueGraphVisitor for_value(owner());
   node->value()->Visit(&for_value);
   Append(for_value);
@@ -4300,7 +4321,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
                                   try_handler_index,
                                   catch_block->exception_var(),
                                   catch_block->stacktrace_var(),
-                                  catch_block->needs_stacktrace());
+                                  catch_block->needs_stacktrace(),
+                                  Thread::Current()->GetNextDeoptId());
   owner()->AddCatchEntry(catch_entry);
   AppendFragment(catch_entry, for_catch);
 
@@ -4346,7 +4368,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
                                     catch_handler_index,
                                     catch_block->exception_var(),
                                     catch_block->stacktrace_var(),
-                                    catch_block->needs_stacktrace());
+                                    catch_block->needs_stacktrace(),
+                                    Thread::Current()->GetNextDeoptId());
     owner()->AddCatchEntry(finally_entry);
     AppendFragment(finally_entry, for_finally);
   }
@@ -4577,10 +4600,12 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
                       FLAG_profile_vm);
   if (FLAG_support_ast_printer && FLAG_print_ast) {
     // Print the function ast before IL generation.
-    AstPrinter::PrintFunctionNodes(parsed_function());
+    AstPrinter ast_printer;
+    ast_printer.PrintFunctionNodes(parsed_function());
   }
   if (FLAG_support_ast_printer && FLAG_print_scopes) {
-    AstPrinter::PrintFunctionScope(parsed_function());
+    AstPrinter ast_printer;
+    ast_printer.PrintFunctionScope(parsed_function());
   }
   TargetEntryInstr* normal_entry =
       new(Z) TargetEntryInstr(AllocateBlockId(),

@@ -111,13 +111,10 @@ class StringValidator {
       Token token, int startOffset, String string, StringQuoting quoting) {
     // We need to check for invalid x and u escapes, for line
     // terminators in non-multiline strings, and for invalid Unicode
-    // scalar values (either directly or as u-escape values).  We also check
-    // for unpaired UTF-16 surrogates.
+    // code points (either directly or as u-escape values).
     int length = 0;
     int index = startOffset;
     bool containsEscape = false;
-    bool previousWasLeadSurrogate = false;
-    bool invalidUtf16 = false;
     var stringIter = string.codeUnits.iterator;
     for (HasNextIterator<int> iter = new HasNextIterator(stringIter);
         iter.hasNext;
@@ -199,25 +196,13 @@ class StringValidator {
           code = value;
         }
       }
-      if (code >= 0x10000) length++;
-      // This handles both unescaped characters and the value of unicode
-      // escapes.
-      if (previousWasLeadSurrogate) {
-        if (!isUtf16TrailSurrogate(code)) {
-          invalidUtf16 = true;
-          break;
+      if (code >= 0x10000) {
+        length++;
+        if (code > 0x10FFFF) {
+          stringParseError("Invalid code point", token, index);
+          return null;
         }
-        previousWasLeadSurrogate = false;
-      } else if (isUtf16LeadSurrogate(code)) {
-        previousWasLeadSurrogate = true;
-      } else if (!isUnicodeScalarValue(code)) {
-        invalidUtf16 = true;
-        break;
       }
-    }
-    if (previousWasLeadSurrogate || invalidUtf16) {
-      stringParseError("Invalid Utf16 surrogate", token, index);
-      return null;
     }
     // String literal successfully validated.
     if (quoting.raw || !containsEscape) {

@@ -113,7 +113,8 @@ void main() {
     });
     await compileAndTest("Union.dart", (types, getType, compiler) {
       Expect.equals(getType('nullOrInt'), types.uint31Type.nullable());
-      Expect.isTrue(getType('aString').containsOnlyString(compiler.world));
+      Expect
+          .isTrue(getType('aString').containsOnlyString(compiler.closedWorld));
       Expect.equals(getType('doubleOrNull'), types.doubleType.nullable());
     });
     await compileAndTest("ValueType.dart", (types, getType, compiler) {

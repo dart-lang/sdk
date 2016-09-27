@@ -20,7 +20,7 @@ import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'invoke_dynamic_specializers.dart';
 import 'validate.dart';
 
@@ -926,20 +926,22 @@ abstract class HInstruction implements Spannable {
 
   /// Returns `true` if [typeMask] contains [cls].
   static bool containsType(
-      TypeMask typeMask, ClassElement cls, ClassWorld classWorld) {
-    return classWorld.isInstantiated(cls) && typeMask.contains(cls, classWorld);
+      TypeMask typeMask, ClassElement cls, ClosedWorld closedWorld) {
+    return closedWorld.isInstantiated(cls) &&
+        typeMask.contains(cls, closedWorld);
   }
 
   /// Returns `true` if [typeMask] contains only [cls].
   static bool containsOnlyType(
-      TypeMask typeMask, ClassElement cls, ClassWorld classWorld) {
-    return classWorld.isInstantiated(cls) && typeMask.containsOnly(cls);
+      TypeMask typeMask, ClassElement cls, ClosedWorld closedWorld) {
+    return closedWorld.isInstantiated(cls) && typeMask.containsOnly(cls);
   }
 
   /// Returns `true` if [typeMask] is an instance of [cls].
   static bool isInstanceOf(
-      TypeMask typeMask, ClassElement cls, ClassWorld classWorld) {
-    return classWorld.isImplemented(cls) && typeMask.satisfies(cls, classWorld);
+      TypeMask typeMask, ClassElement cls, ClosedWorld closedWorld) {
+    return closedWorld.isImplemented(cls) &&
+        typeMask.satisfies(cls, closedWorld);
   }
 
   bool canBePrimitive(Compiler compiler) {
@@ -951,182 +953,183 @@ abstract class HInstruction implements Spannable {
   }
 
   bool canBePrimitiveNumber(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     // TODO(sra): It should be possible to test only jsDoubleClass and
     // jsUInt31Class, since all others are superclasses of these two.
-    return containsType(instructionType, helpers.jsNumberClass, classWorld) ||
-        containsType(instructionType, helpers.jsIntClass, classWorld) ||
-        containsType(instructionType, helpers.jsPositiveIntClass, classWorld) ||
-        containsType(instructionType, helpers.jsUInt32Class, classWorld) ||
-        containsType(instructionType, helpers.jsUInt31Class, classWorld) ||
-        containsType(instructionType, helpers.jsDoubleClass, classWorld);
+    return containsType(instructionType, helpers.jsNumberClass, closedWorld) ||
+        containsType(instructionType, helpers.jsIntClass, closedWorld) ||
+        containsType(
+            instructionType, helpers.jsPositiveIntClass, closedWorld) ||
+        containsType(instructionType, helpers.jsUInt32Class, closedWorld) ||
+        containsType(instructionType, helpers.jsUInt31Class, closedWorld) ||
+        containsType(instructionType, helpers.jsDoubleClass, closedWorld);
   }
 
   bool canBePrimitiveBoolean(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    return containsType(instructionType, helpers.jsBoolClass, classWorld);
+    return containsType(instructionType, helpers.jsBoolClass, closedWorld);
   }
 
   bool canBePrimitiveArray(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    return containsType(instructionType, helpers.jsArrayClass, classWorld) ||
-        containsType(instructionType, helpers.jsFixedArrayClass, classWorld) ||
+    return containsType(instructionType, helpers.jsArrayClass, closedWorld) ||
+        containsType(instructionType, helpers.jsFixedArrayClass, closedWorld) ||
         containsType(
-            instructionType, helpers.jsExtendableArrayClass, classWorld) ||
+            instructionType, helpers.jsExtendableArrayClass, closedWorld) ||
         containsType(
-            instructionType, helpers.jsUnmodifiableArrayClass, classWorld);
+            instructionType, helpers.jsUnmodifiableArrayClass, closedWorld);
   }
 
   bool isIndexablePrimitive(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    return instructionType.containsOnlyString(classWorld) ||
-        isInstanceOf(instructionType, helpers.jsIndexableClass, classWorld);
+    return instructionType.containsOnlyString(closedWorld) ||
+        isInstanceOf(instructionType, helpers.jsIndexableClass, closedWorld);
   }
 
   bool isFixedArray(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     // TODO(sra): Recognize the union of these types as well.
     return containsOnlyType(
-            instructionType, helpers.jsFixedArrayClass, classWorld) ||
+            instructionType, helpers.jsFixedArrayClass, closedWorld) ||
         containsOnlyType(
-            instructionType, helpers.jsUnmodifiableArrayClass, classWorld);
+            instructionType, helpers.jsUnmodifiableArrayClass, closedWorld);
   }
 
   bool isExtendableArray(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return containsOnlyType(
-        instructionType, helpers.jsExtendableArrayClass, classWorld);
+        instructionType, helpers.jsExtendableArrayClass, closedWorld);
   }
 
   bool isMutableArray(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return isInstanceOf(
-        instructionType, helpers.jsMutableArrayClass, classWorld);
+        instructionType, helpers.jsMutableArrayClass, closedWorld);
   }
 
   bool isReadableArray(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    return isInstanceOf(instructionType, helpers.jsArrayClass, classWorld);
+    return isInstanceOf(instructionType, helpers.jsArrayClass, closedWorld);
   }
 
   bool isMutableIndexable(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return isInstanceOf(
-        instructionType, helpers.jsMutableIndexableClass, classWorld);
+        instructionType, helpers.jsMutableIndexableClass, closedWorld);
   }
 
   bool isArray(Compiler compiler) => isReadableArray(compiler);
 
   bool canBePrimitiveString(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    return containsType(instructionType, helpers.jsStringClass, classWorld);
+    return containsType(instructionType, helpers.jsStringClass, closedWorld);
   }
 
   bool isInteger(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    return instructionType.containsOnlyInt(classWorld) &&
+    ClosedWorld closedWorld = compiler.closedWorld;
+    return instructionType.containsOnlyInt(closedWorld) &&
         !instructionType.isNullable;
   }
 
   bool isUInt32(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType, helpers.jsUInt32Class, classWorld);
+        isInstanceOf(instructionType, helpers.jsUInt32Class, closedWorld);
   }
 
   bool isUInt31(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType, helpers.jsUInt31Class, classWorld);
+        isInstanceOf(instructionType, helpers.jsUInt31Class, closedWorld);
   }
 
   bool isPositiveInteger(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType, helpers.jsPositiveIntClass, classWorld);
+        isInstanceOf(instructionType, helpers.jsPositiveIntClass, closedWorld);
   }
 
   bool isPositiveIntegerOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     return isInstanceOf(
-        instructionType, helpers.jsPositiveIntClass, classWorld);
+        instructionType, helpers.jsPositiveIntClass, closedWorld);
   }
 
   bool isIntegerOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    return instructionType.containsOnlyInt(classWorld);
+    ClosedWorld closedWorld = compiler.closedWorld;
+    return instructionType.containsOnlyInt(closedWorld);
   }
 
   bool isNumber(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    return instructionType.containsOnlyNum(classWorld) &&
+    ClosedWorld closedWorld = compiler.closedWorld;
+    return instructionType.containsOnlyNum(closedWorld) &&
         !instructionType.isNullable;
   }
 
   bool isNumberOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    return instructionType.containsOnlyNum(classWorld);
+    ClosedWorld closedWorld = compiler.closedWorld;
+    return instructionType.containsOnlyNum(closedWorld);
   }
 
   bool isDouble(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    return instructionType.containsOnlyDouble(classWorld) &&
+    ClosedWorld closedWorld = compiler.closedWorld;
+    return instructionType.containsOnlyDouble(closedWorld) &&
         !instructionType.isNullable;
   }
 
   bool isDoubleOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    return instructionType.containsOnlyDouble(classWorld);
+    ClosedWorld closedWorld = compiler.closedWorld;
+    return instructionType.containsOnlyDouble(closedWorld);
   }
 
   bool isBoolean(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    return instructionType.containsOnlyBool(classWorld) &&
+    ClosedWorld closedWorld = compiler.closedWorld;
+    return instructionType.containsOnlyBool(closedWorld) &&
         !instructionType.isNullable;
   }
 
   bool isBooleanOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    return instructionType.containsOnlyBool(classWorld);
+    ClosedWorld closedWorld = compiler.closedWorld;
+    return instructionType.containsOnlyBool(closedWorld);
   }
 
   bool isString(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    return instructionType.containsOnlyString(classWorld) &&
+    ClosedWorld closedWorld = compiler.closedWorld;
+    return instructionType.containsOnlyString(closedWorld) &&
         !instructionType.isNullable;
   }
 
   bool isStringOrNull(Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
-    return instructionType.containsOnlyString(classWorld);
+    ClosedWorld closedWorld = compiler.closedWorld;
+    return instructionType.containsOnlyString(closedWorld);
   }
 
   bool isPrimitive(Compiler compiler) {
@@ -1378,7 +1381,7 @@ abstract class HInstruction implements Spannable {
       throw 'creating compound check to $type (this = ${this})';
     } else {
       TypeMask subtype =
-          new TypeMask.subtype(element.declaration, compiler.world);
+          new TypeMask.subtype(element.declaration, compiler.closedWorld);
       return new HTypeConversion(type, kind, subtype, this);
     }
   }

@@ -49,7 +49,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
   BackendHelpers get helpers => backend.helpers;
 
-  ClassWorld get classWorld => compiler.world;
+  ClassWorld get classWorld => compiler.closedWorld;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;

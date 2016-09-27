@@ -38,7 +38,7 @@ class DynamicUse {
   DynamicUse(this.selector, this.mask);
 
   bool appliesUnnamed(Element element, ClassWorld world) {
-    return selector.appliesUnnamed(element, world) &&
+    return selector.appliesUnnamed(element, world.backend) &&
         (mask == null || mask.canHit(element, selector, world));
   }
 

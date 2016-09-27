@@ -265,12 +265,15 @@ class D {
   D operator +(D d) => null;
 }
 
+class SubA extends A {}
+class SubSubA extends SubA {}
+
 foo() => new A();
 
 test() {
   int x = 0;
   x += 5;
-  /*error:STATIC_TYPE_ERROR*/x += /*error:INVALID_ASSIGNMENT*/3.14;
+  x += /*error:INVALID_ASSIGNMENT*/3.14;
 
   double y = 0.0;
   y += 5;
@@ -281,12 +284,12 @@ test() {
   z += 3.14;
 
   x = /*info:DOWN_CAST_IMPLICIT*/x + z;
-  x += /*info:DOWN_CAST_IMPLICIT*/z;
+  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/x += z;
   y = y + z;
   y += z;
 
   dynamic w = 42;
-  x += /*info:DYNAMIC_CAST*/w;
+  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/x += /*info:DYNAMIC_CAST*/w;
   y += /*info:DYNAMIC_CAST*/w;
   z += /*info:DYNAMIC_CAST*/w;
 
@@ -302,13 +305,17 @@ test() {
   a += b;
   a += /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/a;
   a -= b;
-  /*error:STATIC_TYPE_ERROR*/b -= /*error:INVALID_ASSIGNMENT*/b;
+  b -= /*error:INVALID_ASSIGNMENT*/b;
   a <<= b;
   a >>= b;
   a &= b;
   a ^= b;
   a |= b;
   /*info:DYNAMIC_INVOKE*/c += b;
+
+  SubA sa;
+  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/sa += b;
+  SubSubA ssa = /*info:ASSIGNMENT_CAST,info:DOWN_CAST_IMPLICIT_ASSIGN*/sa += b;
 
   var d = new D();
   a[b] += d;
@@ -369,6 +376,20 @@ class C<Q> {
 }
 main() {
   const SetEquality<String>();
+}
+    ''');
+  }
+
+  void test_compoundAssignment_returnsDynamic() {
+    checkFile(r'''
+class Foo {
+  operator +(other) => null;
+}
+
+main() {
+  var foo = new Foo();
+  foo = /*info:DYNAMIC_CAST*/foo + 1;
+  /*info:DYNAMIC_CAST*/foo += 1;
 }
     ''');
   }
@@ -3845,11 +3866,14 @@ class A {
   A operator -(int x) => null;
   A operator -() => null;
 }
+class B extends A {}
+class C extends B {}
 
 foo() => new A();
 
 test() {
   A a = new A();
+  B b = new B();
   var c = foo();
   dynamic d;
 
@@ -3871,6 +3895,17 @@ test() {
   a--;
   (/*info:DYNAMIC_INVOKE*/d++);
   (/*info:DYNAMIC_INVOKE*/d--);
+
+  ++/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b;
+  --/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b;
+  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/b++;
+  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/b--;
+
+  takesC(C c) => null;
+  takesC(/*info:DOWN_CAST_IMPLICIT*/++/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b);
+  takesC(/*info:DOWN_CAST_IMPLICIT*/--/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b);
+  takesC(/*info:DOWN_CAST_IMPLICIT,info:DOWN_CAST_IMPLICIT_ASSIGN*/b++);
+  takesC(/*info:DOWN_CAST_IMPLICIT,info:DOWN_CAST_IMPLICIT_ASSIGN*/b--);
 }''');
   }
 

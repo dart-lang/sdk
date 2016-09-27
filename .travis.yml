@@ -70,6 +70,7 @@ matrix:
     - env: TEST=node
     - env: ANALYZER=master DDC_BROWSERS=Firefox
     - env: ANALYZER=master CXX=clang++
+    - env: ANALYZER=master CXX=g++
 notifications:
   email:
     recipients:

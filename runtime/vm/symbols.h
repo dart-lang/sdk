@@ -175,6 +175,7 @@ class ObjectPointerVisitor;
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \
   V(SingleTargetCache, "SingleTargetCache")                                    \
+  V(UnlinkedCall, "UnlinkedCall")                                              \
   V(ICData, "ICData")                                                          \
   V(MegamorphicCache, "MegamorphicCache")                                      \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \

@@ -700,6 +700,17 @@ main() {
     expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
   }
 
+  void test_constructors_inferFromArguments_factory_callsConstructor() {
+    checkFile(r'''
+class A<T> {
+  A<T> f = /*info:INFERRED_TYPE_ALLOCATION*/new A();
+  A();
+  factory A.factory() => /*info:INFERRED_TYPE_ALLOCATION*/new A();
+  A<T> m() => /*info:INFERRED_TYPE_ALLOCATION*/new A();
+}
+    ''');
+  }
+
   void test_constructors_inferFromArguments_named() {
     var unit = checkFile('''
 class C<T> {
@@ -899,8 +910,8 @@ void main() {
 import 'dart:async';
 Future test() async {
   dynamic d;
-  List<int> l0 = await /*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d];
-  List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d]);
+  List<int> l0 = await /*info:INFERRED_TYPE_LITERAL,error:COULD_NOT_INFER*/[/*info:DYNAMIC_CAST*/d];
+  List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL,error:COULD_NOT_INFER*/[/*info:DYNAMIC_CAST*/d]);
 }
 ''');
   }
@@ -1880,19 +1891,15 @@ main() {
     checkFile(r'''
 void main() {
   List<int> o;
-  var x = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(int x, y) => x + y);
   int y = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y);
-  var z = o.fold(0, /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
-  y = z;
-  y = x;
+  var z = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
+  y = /*info:DYNAMIC_CAST*/z;
 }
 void functionExpressionInvocation() {
   List<int> o;
-  var x = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(int x, y) => x + y);
   int y = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y);
-  var z = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
-  y = z;
-  y = x;
+  var z = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
+  y = /*info:DYNAMIC_CAST*/z;
 }
 ''');
   }

@@ -78,6 +78,7 @@ static const char* commandline_packages_file = NULL;
 // Global flag that is used to indicate that we want to compile all the
 // dart functions and not run anything.
 static bool compile_all = false;
+static bool parse_all = false;
 
 
 // Global flag that is used to indicate that we want to use blobs/mmap instead
@@ -324,6 +325,17 @@ static bool ProcessCompileAllOption(const char* arg,
 }
 
 
+static bool ProcessParseAllOption(const char* arg,
+                                  CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg != '\0') {
+    return false;
+  }
+  parse_all = true;
+  return true;
+}
+
+
 static bool ProcessUseBlobsOption(const char* arg,
                                   CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
@@ -547,6 +559,7 @@ static struct {
 
   // VM specific options to the standalone dart program.
   { "--compile_all", ProcessCompileAllOption },
+  { "--parse_all", ProcessParseAllOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
   { "--disable-service-origin-check", ProcessDisableServiceOriginCheckOption },
   { "--observe", ProcessObserveOption },
@@ -1515,6 +1528,15 @@ bool RunMainIsolate(const char* script_name,
       CHECK_RESULT(result);
     }
 
+    if (parse_all) {
+      result = Dart_ParseAll();
+      CHECK_RESULT(result);
+      Dart_ExitScope();
+      // Shutdown the isolate.
+      Dart_ShutdownIsolate();
+      return false;
+    }
+
     if (is_noopt || (gen_snapshot_kind == kAppAOT)) {
       Dart_QualifiedFunctionName standalone_entry_points[] = {
         { "dart:_builtin", "::", "_getMainClosure" },
@@ -1523,6 +1545,7 @@ bool RunMainIsolate(const char* script_name,
         { "dart:_builtin", "::", "_resolveInWorkingDirectory" },
         { "dart:_builtin", "::", "_setWorkingDirectory" },
         { "dart:_builtin", "::", "_setPackageRoot" },
+        { "dart:_builtin", "::", "_setPackagesMap" },
         { "dart:_builtin", "::", "_libraryFilePath" },
         { "dart:io", "::", "_makeUint8ListView" },
         { "dart:io", "::", "_makeDatagram" },

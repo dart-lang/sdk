@@ -1163,7 +1163,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
@@ -1191,7 +1191,7 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
@@ -1215,7 +1215,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
     // deoptimization point in optimized code, after call.
     const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, token_pos);
+      AddDeoptIndexAtCall(deopt_id_after);
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
@@ -1354,7 +1354,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   } else if (is_optimizing()) {
     AddCurrentDescriptor(RawPcDescriptors::kOther,
                          Thread::kNoDeoptId, token_pos);
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     AddCurrentDescriptor(RawPcDescriptors::kOther,
         Thread::kNoDeoptId, token_pos);
@@ -1389,7 +1389,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
   RecordSafepoint(locs);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.

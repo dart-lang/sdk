@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/services/index/index_unit.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/index_unit.dart';
 import 'package:collection/collection.dart';
 
 /**

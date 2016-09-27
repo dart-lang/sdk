@@ -636,6 +636,9 @@ class Server {
     if (Platform.packageRoot != null) {
       arguments.add('--package-root=${Platform.packageRoot}');
     }
+    if (Platform.packageConfig != null) {
+      arguments.add('--packages=${Platform.packageConfig}');
+    }
     if (checked) {
       arguments.add('--checked');
     }

@@ -126,10 +126,12 @@ class Iterator<E> {
 abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
+  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
 }
 
 abstract class List<E> implements Iterable<E> {
   void add(E value);
+  void addAll(Iterable<E> iterable) {}
   E operator [](int index);
   void operator []=(int index, E value);
   Iterator<E> get iterator => null;

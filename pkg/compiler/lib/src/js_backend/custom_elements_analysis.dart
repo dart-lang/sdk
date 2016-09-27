@@ -8,6 +8,8 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../enqueue.dart' show Enqueuer;
 import '../universe/use.dart' show StaticUse;
+import '../universe/world_impact.dart'
+    show WorldImpact, StagedWorldImpactBuilder;
 import 'backend.dart';
 
 /**
@@ -130,6 +132,8 @@ class CustomElementsAnalysisJoin {
   final JavaScriptBackend backend;
   Compiler get compiler => backend.compiler;
 
+  final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
+
   // Classes that are candidates for needing constructors.  Classes are moved to
   // [activeClasses] when we know they need constructors.
   final instantiatedClasses = new Set<ClassElement>();
@@ -171,13 +175,14 @@ class CustomElementsAnalysisJoin {
         // Force the generaton of the type constant that is the key to an entry
         // in the generated table.
         ConstantValue constant = makeTypeConstant(classElement);
-        backend.registerCompileTimeConstant(
-            constant, compiler.globalDependencies);
+        backend.computeImpactForCompileTimeConstant(
+            constant, impactBuilder, false);
         backend.addCompileTimeConstantForEmission(constant);
       }
     }
     activeClasses.addAll(newActiveClasses);
     instantiatedClasses.removeAll(newActiveClasses);
+    enqueuer.applyImpact(null, impactBuilder.flush());
   }
 
   TypeConstantValue makeTypeConstant(ClassElement element) {

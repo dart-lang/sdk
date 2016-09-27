@@ -265,12 +265,13 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     // TODO(sigmund): why all these checks?
     if (element.isInstanceMember &&
         !element.isAbstract &&
-        compiler.world.allFunctions.contains(element)) {
+        compiler.closedWorld.allFunctions.contains(element)) {
       returnType = '${element.type.returnType}';
     }
     String inferredReturnType =
         '${compiler.globalInference.results.returnTypeOf(element)}';
-    String sideEffects = '${compiler.world.getSideEffectsOfElement(element)}';
+    String sideEffects =
+        '${compiler.closedWorld.getSideEffectsOfElement(element)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[element];
     if (inlinedCount == null) inlinedCount = 0;
@@ -438,7 +439,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         element,
         impact,
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
-          selections.addAll(compiler.world.allFunctions
+          selections.addAll(compiler.closedWorld.allFunctions
               .filter(dynamicUse.selector, dynamicUse.mask)
               .map((e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {

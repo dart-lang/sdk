@@ -4,6 +4,7 @@
 
 import '../compiler.dart';
 import '../kernel/kernel.dart';
+import 'package:kernel/ast.dart' as ir;
 
 import 'backend.dart';
 
@@ -18,10 +19,14 @@ class KernelTask {
       : this._compiler = backend.compiler,
         this.kernel = new Kernel(backend.compiler);
 
+  ir.Program program;
+
   /// Builds the kernel IR for the main function.
   ///
   /// May enqueue more elements to the resolution queue.
   void buildKernelIr() {
-    kernel.libraryDependencies(_compiler.options.entryPoint);
+    program =
+        new ir.Program(kernel.libraryDependencies(_compiler.options.entryPoint))
+          ..mainMethod = kernel.functionToIr(_compiler.mainFunction);
   }
 }

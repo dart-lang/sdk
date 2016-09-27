@@ -198,7 +198,7 @@ void FlowGraphCompiler::RecordAfterCall(Instruction* instr) {
     // On all other architectures caller drops outgoing arguments itself
     // hence the difference.
     pending_deoptimization_env_->DropArguments(instr->ArgumentCount());
-    AddDeoptIndexAtCall(deopt_id_after, instr->token_pos());
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.

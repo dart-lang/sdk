@@ -156,9 +156,11 @@ ${generateGraphData()}
     context = AnalysisEngine.instance.createAnalysisContext();
     ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
     if (Platform.packageRoot != null) {
-      builder.defaultPackagesDirectoryPath = Uri.parse(Platform.packageRoot).toFilePath();
+      builder.defaultPackagesDirectoryPath =
+        Uri.parse(Platform.packageRoot).toFilePath();
     } else if (Platform.packageConfig != null) {
-      builder.defaultPackageFilePath = Platform.packageConfig;
+      builder.defaultPackageFilePath =
+        Uri.parse(Platform.packageConfig).toFilePath();
     } else {
       // Let the context builder use the default algorithm for package
       // resolution.

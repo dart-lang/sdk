@@ -13,6 +13,7 @@
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_range_analysis.h"
+#include "vm/instructions.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -232,7 +233,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
-    compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
+    compiler->AddDeoptIndexAtCall(deopt_id_after);
   }
   // Add deoptimization continuation point after the call and before the
   // arguments are removed.
@@ -2836,16 +2837,30 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Ensure space for patching return sites for lazy deopt.
+  if (!FLAG_precompiled_mode && compiler->is_optimizing()) {
+    for (intptr_t i = 0;
+         i < CallPattern::DeoptCallPatternLengthInInstructions();
+         ++i) {
+      __ nop();
+    }
+  }
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(catch_try_index(),
                                 try_index(),
                                 compiler->assembler()->CodeSize(),
                                 catch_handler_types_,
                                 needs_stacktrace());
-  // Restore the pool pointer.
-  __ RestoreCodePointer();
-  __ LoadPoolPointer();
-
+  // On lazy deoptimization we patch the optimized code here to enter the
+  // deoptimization stub.
+  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  if (compiler->is_optimizing()) {
+    compiler->AddDeoptIndexAtCall(deopt_id);
+  } else {
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+                                   deopt_id,
+                                   TokenPosition::kNoSource);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }

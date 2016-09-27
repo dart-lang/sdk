@@ -3971,6 +3971,23 @@ const a = const A();
 ''');
   }
 
+  test_undefinedClass_useSimilar_BAD_prefixed() async {
+    resolveTestUnit('''
+import 'dart:async' as c;
+main() {
+  c.Fture v = null;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CHANGE_TO,
+        '''
+import 'dart:async' as c;
+main() {
+  c.Future v = null;
+}
+''');
+  }
+
   test_undefinedClass_useSimilar_fromImport() async {
     resolveTestUnit('''
 main() {
@@ -4368,6 +4385,33 @@ main() {
   print(0);
 }
 ''');
+  }
+
+  test_undefinedFunction_useSimilar_prefixed_fromImport() async {
+    resolveTestUnit('''
+import 'dart:core' as c;
+main() {
+  c.prnt(42);
+}
+''');
+    await assertHasFix(
+        DartFixKind.CHANGE_TO,
+        '''
+import 'dart:core' as c;
+main() {
+  c.print(42);
+}
+''');
+  }
+
+  test_undefinedFunction_useSimilar_prefixed_ignoreLocal() async {
+    resolveTestUnit('''
+import 'dart:async' as c;
+main() {
+  c.main();
+}
+''');
+    await assertNoFix(DartFixKind.CHANGE_TO);
   }
 
   test_undefinedFunction_useSimilar_thisLibrary() async {

@@ -103,8 +103,8 @@ main() {
 
     TypeMask jsStringType = compiler.commonMasks.stringType;
     TypeMask jsIntType = compiler.commonMasks.intType;
-    TypeMask coreStringType =
-        new TypeMask.subtype(compiler.coreClasses.stringClass, compiler.world);
+    TypeMask coreStringType = new TypeMask.subtype(
+        compiler.coreClasses.stringClass, compiler.closedWorld);
 
     test('method');
     test('methodAssumeDynamic', expectAssumeDynamic: true);

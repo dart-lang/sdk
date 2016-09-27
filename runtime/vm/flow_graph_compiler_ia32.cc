@@ -1170,7 +1170,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
@@ -1192,7 +1192,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
     // deoptimization point in optimized code, after call.
     const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, token_pos);
+      AddDeoptIndexAtCall(deopt_id_after);
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
@@ -1322,7 +1322,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // Precompilation not implemented on ia32 platform.
   ASSERT(!FLAG_precompiled_mode);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.

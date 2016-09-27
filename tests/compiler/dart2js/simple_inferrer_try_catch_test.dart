@@ -186,7 +186,7 @@ void main() {
         checkReturn(
             'returnInt6',
             new TypeMask.nonNullSubtype(
-                compiler.coreClasses.intClass, compiler.world));
+                compiler.coreClasses.intClass, compiler.closedWorld));
 
         var subclassOfInterceptor =
             findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');

@@ -50,7 +50,7 @@
 
 namespace dart {
 
-// Facilitate quick access to the current zone once we have the curren thread.
+// Facilitate quick access to the current zone once we have the current thread.
 #define Z (T->zone())
 
 
@@ -1486,7 +1486,8 @@ DART_EXPORT void Dart_SetStickyError(Dart_Handle error) {
 
 
 DART_EXPORT bool Dart_HasStickyError() {
-  Isolate* isolate = Isolate::Current();
+  Thread* T = Thread::Current();
+  Isolate* isolate = T->isolate();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->sticky_error() != Error::null();
@@ -1494,12 +1495,13 @@ DART_EXPORT bool Dart_HasStickyError() {
 
 
 DART_EXPORT Dart_Handle Dart_GetStickyError() {
-  Isolate* I = Isolate::Current();
+  Thread* T = Thread::Current();
+  Isolate* I = T->isolate();
   CHECK_ISOLATE(I);
   NoSafepointScope no_safepoint_scope;
-  if (I->sticky_error() != Object::null()) {
+  if (I->sticky_error() != Error::null()) {
     Dart_Handle error =
-        Api::NewHandle(Thread::Current(), I->sticky_error());
+        Api::NewHandle(T, I->sticky_error());
     return error;
   }
   return Dart_Null();

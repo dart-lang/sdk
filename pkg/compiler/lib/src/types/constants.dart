@@ -24,7 +24,8 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
     if (compiler.backend.isInterceptorClass(constant.type.element)) {
       return compiler.commonMasks.nonNullType;
     }
-    return new TypeMask.nonNullExact(constant.type.element, compiler.world);
+    return new TypeMask.nonNullExact(
+        constant.type.element, compiler.closedWorld);
   }
 
   @override

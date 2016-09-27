@@ -522,7 +522,7 @@ void test() {
   runTest(TEST_15, {
     'f': (types) {
       ClassElement cls = types.compiler.backend.helpers.jsIndexableClass;
-      return new TypeMask.nonNullSubtype(cls, types.compiler.world);
+      return new TypeMask.nonNullSubtype(cls, types.compiler.closedWorld);
     }
   });
   runTest(TEST_16, {'f': subclassOfInterceptor});

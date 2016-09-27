@@ -23,11 +23,280 @@ import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 import 'analysis_context_factory.dart';
+import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
+  defineReflectiveTests(ElementResolverCodeTest);
   defineReflectiveTests(ElementResolverTest);
+}
+
+@reflectiveTest
+class ElementResolverCodeTest extends ResolverTestCase {
+  void test_annotation_class_namedConstructor() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  const A.named();
+}
+''');
+    _validateAnnotation('', '@A.named()', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<ClassElement>());
+      expect(name1.staticElement.displayName, 'A');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<ConstructorElement>());
+      expect(name2.staticElement.displayName, 'named');
+      expect(name3, isNull);
+      if (annotationElement is ConstructorElement) {
+        expect(annotationElement, same(name2.staticElement));
+        expect(annotationElement.enclosingElement, name1.staticElement);
+        expect(annotationElement.displayName, 'named');
+        expect(annotationElement.parameters, isEmpty);
+      } else {
+        fail('Expected "annotationElement" is ConstructorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_class_prefixed_namedConstructor() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  const A.named();
+}
+''');
+    _validateAnnotation('as p', '@p.A.named()', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement.displayName, 'p');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<ClassElement>());
+      expect(name2.staticElement.displayName, 'A');
+      expect(name3, isNotNull);
+      expect(name3.staticElement, new isInstanceOf<ConstructorElement>());
+      expect(name3.staticElement.displayName, 'named');
+      if (annotationElement is ConstructorElement) {
+        expect(annotationElement, same(name3.staticElement));
+        expect(annotationElement.enclosingElement, name2.staticElement);
+        expect(annotationElement.displayName, 'named');
+        expect(annotationElement.parameters, isEmpty);
+      } else {
+        fail('Expected "annotationElement" is ConstructorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_class_prefixed_staticConstField() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  static const V = 0;
+}
+''');
+    _validateAnnotation('as p', '@p.A.V', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement.displayName, 'p');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<ClassElement>());
+      expect(name2.staticElement.displayName, 'A');
+      expect(name3, isNotNull);
+      expect(name3.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name3.staticElement.displayName, 'V');
+      if (annotationElement is PropertyAccessorElement) {
+        expect(annotationElement, same(name3.staticElement));
+        expect(annotationElement.enclosingElement, name2.staticElement);
+        expect(annotationElement.displayName, 'V');
+      } else {
+        fail('Expected "annotationElement" is PropertyAccessorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_class_prefixed_unnamedConstructor() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  const A();
+}
+''');
+    _validateAnnotation('as p', '@p.A', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement.displayName, 'p');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<ClassElement>());
+      expect(name2.staticElement.displayName, 'A');
+      expect(name3, isNull);
+      if (annotationElement is ConstructorElement) {
+        expect(annotationElement.enclosingElement, name2.staticElement);
+        expect(annotationElement.displayName, '');
+        expect(annotationElement.parameters, isEmpty);
+      } else {
+        fail('Expected "annotationElement" is ConstructorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_class_staticConstField() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  static const V = 0;
+}
+''');
+    _validateAnnotation('', '@A.V', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<ClassElement>());
+      expect(name1.staticElement.displayName, 'A');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name2.staticElement.displayName, 'V');
+      expect(name3, isNull);
+      if (annotationElement is PropertyAccessorElement) {
+        expect(annotationElement, same(name2.staticElement));
+        expect(annotationElement.enclosingElement, name1.staticElement);
+        expect(annotationElement.displayName, 'V');
+      } else {
+        fail('Expected "annotationElement" is PropertyAccessorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_class_unnamedConstructor() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  const A();
+}
+''');
+    _validateAnnotation('', '@A', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<ClassElement>());
+      expect(name1.staticElement.displayName, 'A');
+      expect(name2, isNull);
+      expect(name3, isNull);
+      if (annotationElement is ConstructorElement) {
+        expect(annotationElement.enclosingElement, name1.staticElement);
+        expect(annotationElement.displayName, '');
+        expect(annotationElement.parameters, isEmpty);
+      } else {
+        fail('Expected "annotationElement" is ConstructorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_topLevelVariable() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+const V = 0;
+''');
+    _validateAnnotation('', '@V', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name1.staticElement.displayName, 'V');
+      expect(name2, isNull);
+      expect(name3, isNull);
+      if (annotationElement is PropertyAccessorElement) {
+        expect(annotationElement, same(name1.staticElement));
+        expect(annotationElement.enclosingElement,
+            new isInstanceOf<CompilationUnitElement>());
+        expect(annotationElement.displayName, 'V');
+      } else {
+        fail('Expected "annotationElement" is PropertyAccessorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_topLevelVariable_prefixed() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+const V = 0;
+''');
+    _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement.displayName, 'p');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name2.staticElement.displayName, 'V');
+      expect(name3, isNull);
+      if (annotationElement is PropertyAccessorElement) {
+        expect(annotationElement, same(name2.staticElement));
+        expect(annotationElement.enclosingElement,
+            new isInstanceOf<CompilationUnitElement>());
+        expect(annotationElement.displayName, 'V');
+      } else {
+        fail('Expected "annotationElement" is PropertyAccessorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void _validateAnnotation(
+      String annotationPrefix,
+      String annotationText,
+      validator(SimpleIdentifier name1, SimpleIdentifier name2,
+          SimpleIdentifier name3, Element annotationElement)) {
+    CompilationUnit unit = resolveSource('''
+import 'a.dart' $annotationPrefix;
+$annotationText
+class C {}
+''');
+    var clazz = unit.declarations.single as ClassDeclaration;
+    Annotation annotation = clazz.metadata.single;
+    Identifier name = annotation.name;
+    Element annotationElement = annotation.element;
+    if (name is SimpleIdentifier) {
+      validator(name, null, annotation.constructorName, annotationElement);
+    } else if (name is PrefixedIdentifier) {
+      validator(name.prefix, name.identifier, annotation.constructorName,
+          annotationElement);
+    } else {
+      fail('Uknown "name": ${name?.runtimeType} $name');
+    }
+  }
 }
 
 @reflectiveTest

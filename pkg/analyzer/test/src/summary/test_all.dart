@@ -10,7 +10,6 @@ import '../../utils.dart';
 import 'api_signature_test.dart' as api_signature_test;
 import 'flat_buffers_test.dart' as flat_buffers_test;
 import 'in_summary_source_test.dart' as in_summary_source_test;
-import 'index_unit_test.dart' as index_unit_test;
 import 'linker_test.dart' as linker_test;
 import 'name_filter_test.dart' as name_filter_test;
 import 'package_bundle_reader_test.dart' as package_bundle_reader_test;
@@ -27,7 +26,6 @@ main() {
     api_signature_test.main();
     flat_buffers_test.main();
     in_summary_source_test.main();
-    index_unit_test.main();
     linker_test.main();
     name_filter_test.main();
     package_bundle_reader_test.main();

@@ -52,7 +52,7 @@ void testOperations() {
 
   void testList(List list) {
     var throws = const ThrowMarker();
-    List mappedList = new List(list.length);
+    var mappedList = new List<int>(list.length);
     for (int i = 0; i < list.length; i++) {
       mappedList[i] = rev(list[i]);
     }
@@ -78,7 +78,7 @@ void testOperations() {
       }
     }
 
-    void testOp(operation(Iterable mappedList), name) {
+    void testOp(operation(Iterable<int> mappedList), name) {
       var expect;
       try {
         expect = operation(mappedList);
@@ -115,7 +115,7 @@ void testOperations() {
     testOp((i) => i.every((n) => n < 5), "every<5");
     testOp((i) => i.every((n) => n < 10), "every<10");
     testOp((i) => i.reduce((a, b) => a + b), "reduce-sum");
-    testOp((i) => i.fold(0, (a, b) => a + b), "fold-sum");
+    testOp((i) => i.fold/*<int>*/(0, (a, b) => a + b), "fold-sum");
     testOp((i) => i.join("-"), "join-");
     testOp((i) => i.join(""), "join");
     testOp((i) => i.join(), "join-null");

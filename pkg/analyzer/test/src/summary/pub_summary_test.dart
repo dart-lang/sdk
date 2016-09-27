@@ -174,6 +174,14 @@ A b;
     }
   }
 
+  test_getLinkedBundles_cached_declaredVariables_export() async {
+    await _testImpl_getLinkedBundles_cached_declaredVariables('export');
+  }
+
+  test_getLinkedBundles_cached_declaredVariables_import() async {
+    await _testImpl_getLinkedBundles_cached_declaredVariables('import');
+  }
+
   test_getLinkedBundles_cached_differentSdk() async {
     String pathA = '$CACHE/aaa';
     resourceProvider.newFile(
@@ -1258,15 +1266,97 @@ class A2 {}
   }
 
   void _createManager(
-      {int majorVersion: PackageBundleAssembler.currentMajorVersion}) {
+      {bool allowLinking: true,
+      int majorVersion: PackageBundleAssembler.currentMajorVersion}) {
     manager = new PubSummaryManager(resourceProvider, '_.temp',
-        majorVersion: majorVersion);
+        allowLinking: allowLinking, majorVersion: majorVersion);
   }
 
   LinkedPubPackage _getLinkedPackage(
       List<LinkedPubPackage> packages, String name) {
     return packages
         .singleWhere((linkedPackage) => linkedPackage.package.name == name);
+  }
+
+  _testImpl_getLinkedBundles_cached_declaredVariables(
+      String importOrExport) async {
+    String pathA = '$CACHE/aaa/lib';
+    resourceProvider.newFile('$pathA/foo.dart', 'class A {}');
+    resourceProvider.newFile('$pathA/foo_io.dart', 'class A {}');
+    resourceProvider.newFile('$pathA/foo_html.dart', 'class A {}');
+    resourceProvider.newFile(
+        '$pathA/user.dart',
+        '''
+$importOrExport 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    // Configure packages resolution.
+    Folder libFolderA = resourceProvider.newFolder(pathA);
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+      })
+    ]);
+
+    void _assertDependencyInUser(PackageBundle bundle, String shortName) {
+      for (var i = 0; i < bundle.linkedLibraryUris.length; i++) {
+        if (bundle.linkedLibraryUris[i].endsWith('user.dart')) {
+          LinkedLibrary library = bundle.linkedLibraries[i];
+          expect(library.dependencies.map((d) => d.uri),
+              unorderedEquals(['', 'dart:core', shortName]));
+          return;
+        }
+      }
+      fail('Not found user.dart in $bundle');
+    }
+
+    // Session 1.
+    // Create the linked bundle and cache it in a file.
+    {
+      // Ensure unlinked bundles.
+      manager.getUnlinkedBundles(context);
+      await manager.onUnlinkedComplete;
+
+      // Now we should be able to get the linked bundle.
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(1));
+    }
+
+    // Session 2.
+    // Recreate manager and don't allow it to perform new linking.
+    // Set a declared variable, which is not used in the package.
+    // We still can get the cached linked bundle.
+    {
+      context.declaredVariables.define('not.used.variable', 'baz');
+      _createManager(allowLinking: false);
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(1));
+      _assertDependencyInUser(linkedPackages.single.linked, 'foo.dart');
+    }
+
+    // Session 3.
+    // Recreate manager and don't allow it to perform new linking.
+    // Set the value of a referenced declared variable.
+    // So, we cannot use the previously cached linked bundle.
+    {
+      context.declaredVariables.define('dart.library.io', 'does-not-matter');
+      _createManager(allowLinking: false);
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, isEmpty);
+    }
+
+    // Session 4.
+    // Enable new linking, and configure to use 'foo_html.dart'.
+    {
+      context.declaredVariables.define('dart.library.html', 'true');
+      _createManager();
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(1));
+      _assertDependencyInUser(linkedPackages.single.linked, 'foo_html.dart');
+    }
   }
 
   static PackageBundle _getBundleByPackageName(

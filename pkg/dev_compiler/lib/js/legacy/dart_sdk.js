@@ -4267,12 +4267,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   _interceptors.JSMutableArray = JSMutableArray();
   _interceptors.JSFixedArray$ = dart.generic(E => {
-    class JSFixedArray extends _interceptors.JSMutableArray$(E) {}
+    class JSFixedArray extends _interceptors.JSMutableArray$(E) {
+      new() {
+        super.new();
+      }
+    }
     return JSFixedArray;
   });
   _interceptors.JSFixedArray = JSFixedArray();
   _interceptors.JSExtendableArray$ = dart.generic(E => {
-    class JSExtendableArray extends _interceptors.JSMutableArray$(E) {}
+    class JSExtendableArray extends _interceptors.JSMutableArray$(E) {
+      new() {
+        super.new();
+      }
+    }
     return JSExtendableArray;
   });
   _interceptors.JSExtendableArray = JSExtendableArray();
@@ -17069,6 +17077,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     class _ControllerStream extends async._StreamImpl$(T) {
       new(controller) {
         this[_controller$] = controller;
+        super.new();
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
         return this[_controller$][_subscribe](onData, onError, onDone, cancelOnError);
@@ -20112,6 +20121,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       new(pending) {
         this[_pending] = pending;
         this[_isUsed] = false;
+        super.new();
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
         if (dart.test(this[_isUsed])) dart.throw(new core.StateError("Stream has already been listened to."));
@@ -25578,7 +25588,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           count++;
           if (count > MAX_COUNT) {
             while (dart.notNull(length) > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD && count > HEAD_COUNT) {
-              length = dart.notNull(length) - dart.notNull(core.int._check(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD)));
+              length = dart.notNull(length) - dart.notNull(core.num._check(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD)));
               count--;
             }
             parts[dartx.add]("...");
@@ -25596,7 +25606,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       length = dart.notNull(length) + (ELLIPSIS_SIZE + OVERHEAD);
     }
     while (dart.notNull(length) > LENGTH_LIMIT && dart.notNull(parts[dartx.length]) > HEAD_COUNT) {
-      length = dart.notNull(length) - dart.notNull(core.int._check(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD)));
+      length = dart.notNull(length) - dart.notNull(core.num._check(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD)));
       if (elision == null) {
         elision = "...";
         length = dart.notNull(length) + (ELLIPSIS_SIZE + OVERHEAD);
@@ -29214,6 +29224,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert._ErrorHandlingAsciiDecoderSink = class _ErrorHandlingAsciiDecoderSink extends convert.ByteConversionSinkBase {
     new(utf8Sink) {
       this[_utf8Sink] = utf8Sink;
+      super.new();
     }
     close() {
       this[_utf8Sink].close();
@@ -29248,6 +29259,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert._SimpleAsciiDecoderSink = class _SimpleAsciiDecoderSink extends convert.ByteConversionSinkBase {
     new(sink) {
       this[_sink$] = sink;
+      super.new();
     }
     close() {
       this[_sink$].close();
@@ -29536,6 +29548,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _add$1 = Symbol('_add');
   convert._Base64EncoderSink = class _Base64EncoderSink extends convert.ByteConversionSinkBase {
+    new() {
+      super.new();
+    }
     add(source) {
       this[_add$1](source, 0, source[dartx.length], false);
     }
@@ -29558,6 +29573,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     new(sink, urlSafe) {
       this[_sink$] = sink;
       this[_encoder] = new convert._BufferCachingBase64Encoder(urlSafe);
+      super.new();
     }
     [_add$1](source, start, end, isLast) {
       let buffer = this[_encoder].encode(source, start, end, isLast);
@@ -29582,6 +29598,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     new(sink, urlSafe) {
       this[_sink$] = sink;
       this[_encoder] = new convert._Base64Encoder(urlSafe);
+      super.new();
     }
     [_add$1](source, start, end, isLast) {
       let buffer = this[_encoder].encode(source, start, end, isLast);
@@ -29933,6 +29950,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert._ByteAdapterSink = class _ByteAdapterSink extends convert.ByteConversionSinkBase {
     new(sink) {
       this[_sink$] = sink;
+      super.new();
     }
     add(chunk) {
       this[_sink$].add(chunk);
@@ -29957,6 +29975,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_buffer] = typed_data.Uint8List.new(convert._ByteCallbackSink._INITIAL_BUFFER_SIZE);
       this[_callback] = callback;
       this[_bufferIndex] = 0;
+      super.new();
     }
     add(chunk) {
       let freeCount = dart.notNull(this[_buffer][dartx.length]) - dart.notNull(this[_bufferIndex]);
@@ -31302,6 +31321,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert._Latin1DecoderSink = class _Latin1DecoderSink extends convert.ByteConversionSinkBase {
     new(sink) {
       this[_sink$] = sink;
+      super.new();
     }
     close() {
       this[_sink$].close();
@@ -78397,13 +78417,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let val = 0;
       for (let measurement of dimensions) {
         if (augmentingMeasurement == html$._MARGIN) {
-          val = dart.notNull(val) + dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`${augmentingMeasurement}-${measurement}`)).value));
+          val = dart.notNull(val) + dart.notNull(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`${augmentingMeasurement}-${measurement}`)).value);
         }
         if (augmentingMeasurement == html$._CONTENT) {
-          val = dart.notNull(val) - dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`${html$._PADDING}-${measurement}`)).value));
+          val = dart.notNull(val) - dart.notNull(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`${html$._PADDING}-${measurement}`)).value);
         }
         if (augmentingMeasurement != html$._MARGIN) {
-          val = dart.notNull(val) - dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`border-${measurement}-width`)).value));
+          val = dart.notNull(val) - dart.notNull(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`border-${measurement}-width`)).value);
         }
       }
       return val;

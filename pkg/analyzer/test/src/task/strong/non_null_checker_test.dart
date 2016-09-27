@@ -111,7 +111,7 @@ main() {
 void main() {
   int i = 1;
   i += 2;
-  /*error:STATIC_TYPE_ERROR*/i += null;
+  /*error:INVALID_ASSIGNMENT*/i += null;
   print(i);
 }
 ''');

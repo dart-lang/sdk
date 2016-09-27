@@ -100,6 +100,7 @@ class Compiler : public AllStatic {
   //
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileFunction(Thread* thread, const Function& function);
+  static RawError* ParseFunction(Thread* thread, const Function& function);
 
   // Generates unoptimized code if not present, current code is unchanged.
   static RawError* EnsureUnoptimizedCode(Thread* thread,
@@ -143,6 +144,7 @@ class Compiler : public AllStatic {
   //
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileAllFunctions(const Class& cls);
+  static RawError* ParseAllFunctions(const Class& cls);
 
   // Notify the compiler that background (optimized) compilation has failed
   // because the mutator thread changed the state (e.g., deoptimization,

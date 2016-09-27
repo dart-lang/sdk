@@ -23,6 +23,7 @@
   directory containing root certificate files hashed using `c_rehash`.
 
 ### Core library changes
+
 * `dart:core`: Remove deprecated `Resource` class.
   Use the class in `package:resource` instead.
 * `dart:async`
@@ -107,14 +108,12 @@
     class C extends A {}
     ```
 
-* Breaking change - ingore `dynamic` when doing inference.
+### Tool changes
 
-    ```dart
-    main() {
-      dynamic d = 42;
-      List<int> list = /*infer <int>*/[123, /*implicit cast*/d];
-    }
-    ```
+* `dartfmt` - upgraded to v0.2.10
+    * Don't crash on annotations before parameters with trailing commas.
+    * Always split enum declarations if they end in a trailing comma.
+    * Add `--set-exit-if-changed` to set the exit code on a change.
 
 ## 1.19.0
 

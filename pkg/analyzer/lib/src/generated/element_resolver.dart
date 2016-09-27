@@ -7,6 +7,7 @@ library analyzer.src.generated.element_resolver;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -1618,6 +1619,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * invoked using the call operator '()'.
    */
   bool _isExecutableType(DartType type) {
+    type = type?.resolveToBound(_resolver.typeProvider.objectType);
     if (type.isDynamic || type is FunctionType) {
       return true;
     } else if (!_enableStrictCallChecks &&
@@ -1989,7 +1991,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             element2.lookUpGetter(name3, _definingLibrary);
         if (getter != null) {
           nameNode3.staticElement = getter;
-          annotation.element = element2;
+          annotation.element = getter;
           _resolveAnnotationElementGetter(annotation, getter);
           return;
         }
@@ -2612,7 +2614,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   Element get bestElement => null;
 
   @override
-  Iterable get childEntities {
+  Iterable<SyntacticEntity> get childEntities {
     // Should never be called, since a SyntheticIdentifier never appears in the
     // AST--it is just used for lookup.
     assert(false);

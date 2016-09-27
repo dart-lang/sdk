@@ -1602,10 +1602,37 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       return type;
     }
 
-    FunctionElementImpl function = new FunctionElementImpl("", -1);
+    // TODO(jmesserly): feels like we should be able to do this with less code.
+
+    // Create fresh type formals. This avoids capture if we're inferring the
+    // constructor to the class from inside it.
+
+    // We build up a substitution for the type parameters,
+    // {variablesFresh/variables} then apply it.
+    var typeVars = <DartType>[];
+    var freshTypeVars = <DartType>[];
+    var freshVarElements = <TypeParameterElement>[];
+    for (int i = 0; i < cls.typeParameters.length; i++) {
+      var typeParamElement = cls.typeParameters[i];
+      var freshElement =
+          new TypeParameterElementImpl.synthetic(typeParamElement.name);
+      var freshTypeVar = new TypeParameterTypeImpl(freshElement);
+      freshElement.type = freshTypeVar;
+
+      typeVars.add(typeParamElement.type);
+      freshTypeVars.add(freshTypeVar);
+      freshVarElements.add(freshElement);
+
+      var bound = typeParamElement.bound ?? DynamicTypeImpl.instance;
+      freshElement.bound = bound.substitute2(freshTypeVars, typeVars);
+    }
+
+    type = type.substitute2(freshTypeVars, typeVars);
+
+    var function = new FunctionElementImpl("", -1);
     function.synthetic = true;
     function.returnType = type.returnType;
-    function.shareTypeParameters(cls.typeParameters);
+    function.typeParameters = freshVarElements;
     function.shareParameters(type.parameters);
     return function.type = new FunctionTypeImpl(function);
   }

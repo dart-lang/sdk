@@ -808,6 +808,40 @@ Note: currently only implemented for dart2js.''',
       configuration['selectors'] = selectorMap;
     }
 
+    // Put observatory_ui in a configuration with its own packages override.
+    // Only one value in the configuration map is mutable:
+    selectors = configuration['selectors'];
+    if (selectors.containsKey('observatory_ui')) {
+      if (selectors.length == 1) {
+        configuration['packages'] = TestUtils.dartDirUri
+          .resolve('runtime/observatory/.packages').toFilePath();
+      } else {
+        // Make a new configuration whose selectors map only contains
+        // observatory_ui, and remove the key from the original selectors.
+        // The only mutable value in the map is the selectors, so a
+        // shallow copy is safe.
+        var observatoryConfiguration = new Map.from(configuration);
+        observatoryConfiguration['selectors'] =
+          {'observatory_ui': selectors['observatory_ui']};
+        selectors.remove('observatory_ui');
+
+        // Set the packages flag.
+        observatoryConfiguration['packages'] = TestUtils.dartDirUri
+          .resolve('runtime/observatory/.packages').toFilePath();
+
+        // Return the expansions of both configurations. Neither will reach
+        // this line in the recursive call to _expandConfigurations.
+        return _expandConfigurations(configuration)
+          ..addAll(_expandConfigurations(observatoryConfiguration));
+      }
+    }
+    // Set the default package spec explicitly.
+    if (configuration['package_root'] == null &&
+        configuration['packages'] == null) {
+      configuration['packages'] =
+        TestUtils.dartDirUri.resolve('.packages').toFilePath();     
+    }
+    
     // Expand the architectures.
     if (configuration['arch'].contains(',')) {
       return _expandHelper('arch', configuration);

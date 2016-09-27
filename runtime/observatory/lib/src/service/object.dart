@@ -2256,7 +2256,8 @@ class Library extends HeapObject implements M.Library {
   final classes = <Class>[];
   final variables = <Field>[];
   final functions = <ServiceFunction>[];
-
+  bool _debuggable;
+  bool get debuggable => _debuggable;
   bool get immutable => false;
 
   bool isDart(String libraryName) {
@@ -2284,6 +2285,7 @@ class Library extends HeapObject implements M.Library {
       return;
     }
     _loaded = true;
+    _debuggable = map['debuggable'];
     dependencies.clear();
     dependencies.addAll(map["dependencies"].map(LibraryDependency._fromMap));
     scripts.clear();

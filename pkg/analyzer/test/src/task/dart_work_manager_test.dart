@@ -357,11 +357,13 @@ class DartWorkManagerTest {
     when(context.aboutToComputeResult(anyObject, CONTAINING_LIBRARIES))
         .thenInvoke((CacheEntry entry, ResultDescriptor result) {
       if (entry.target == part1) {
-        entry.setValue(result, <Source>[library1, library2], []);
+        entry.setValue(result as ResultDescriptor<List<Source>>,
+            <Source>[library1, library2], []);
         return true;
       }
       if (entry.target == part2) {
-        entry.setValue(result, <Source>[library2], []);
+        entry.setValue(
+            result as ResultDescriptor<List<Source>>, <Source>[library2], []);
         return true;
       }
       return false;

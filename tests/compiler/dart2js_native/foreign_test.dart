@@ -22,7 +22,7 @@ foreign2() {
 }
 
 foreign11(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) {
-  return JS("num", r"# + # + # + # + # + # + # + # + # + # + #",
+  return JS("num|String", r"# + # + # + # + # + # + # + # + # + # + #",
       a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
 }
 

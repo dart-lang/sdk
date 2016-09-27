@@ -801,9 +801,9 @@ class Elements {
     ClassElement cls = constructor.enclosingClass;
     return cls.library == compiler.commonElements.typedDataLibrary &&
         compiler.backend.isNative(cls) &&
-        compiler.world
+        compiler.closedWorld
             .isSubtypeOf(cls, compiler.commonElements.typedDataClass) &&
-        compiler.world.isSubtypeOf(cls, compiler.coreClasses.listClass) &&
+        compiler.closedWorld.isSubtypeOf(cls, compiler.coreClasses.listClass) &&
         constructor.name == '';
   }
 
@@ -1377,6 +1377,9 @@ abstract class ConstructorElement extends FunctionElement
   /// Class `E` has a synthesized constructor, `E.c`, whose defining constructor
   /// is `C.c`.
   ConstructorElement get definingConstructor;
+
+  /// Returns `true` if this constructor is an implicit default constructor.
+  bool get isDefaultConstructor;
 
   /// The constant constructor defining the binding of fields if `const`,
   /// `null` otherwise.

@@ -1,4 +1,5 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,15 +15,22 @@ import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 import 'package:analyzer/src/dart/element/element.dart'
     show LocalVariableElementImpl;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
+import 'package:analyzer/src/summary/idl.dart' show UnlinkedUnit;
+import 'package:analyzer/src/summary/link.dart' as summary_link;
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/summarize_ast.dart'
+    show serializeAstUnlinked;
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart'
-    show isDynamicInvoke, setIsDynamicInvoke;
+    show isDynamicInvoke, setIsDynamicInvoke, getImplicitAssignmentCast;
 import 'package:path/path.dart' show separator;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
@@ -47,6 +55,8 @@ import 'type_utilities.dart';
 class CodeGenerator extends GeneralizingAstVisitor
     with ClosureAnnotator, JsTypeRefCodegen, NullableTypeInference {
   final AnalysisContext context;
+  final SummaryDataStore summaryData;
+
   final CompilerOptions options;
   final rules = new StrongTypeSystemImpl();
 
@@ -138,7 +148,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
 
-  CodeGenerator(AnalysisContext c, this.options, this._extensionTypes)
+  CodeGenerator(
+      AnalysisContext c, this.summaryData, this.options, this._extensionTypes)
       : context = c,
         types = c.typeProvider,
         _asyncStreamIterator =
@@ -175,14 +186,37 @@ class CodeGenerator extends GeneralizingAstVisitor
     return new JSModuleFile(unit.name, errors, options, module, dartApiSummary);
   }
 
-  List<int> _summarizeModule(List<CompilationUnit> compilationUnits) {
+  List<int> _summarizeModule(List<CompilationUnit> units) {
     if (!options.summarizeApi) return null;
 
+    if (!units.any((u) => u.element.librarySource.isInSystemLibrary)) {
+      var sdk = context.sourceFactory.dartSdk;
+      summaryData.addBundle(
+          null,
+          sdk is SummaryBasedDartSdk
+              ? sdk.bundle
+              : (sdk as FolderBasedDartSdk).getSummarySdkBundle(true));
+    }
+
     var assembler = new PackageBundleAssembler();
-    compilationUnits
-        .map((u) => u.element.library)
-        .toSet()
-        .forEach(assembler.serializeLibraryElement);
+    assembler.recordDependencies(summaryData);
+
+    var uriToUnit = new Map<String, UnlinkedUnit>.fromIterable(units,
+        key: (u) => u.element.source.uri.toString(), value: (unit) {
+      var unlinked = serializeAstUnlinked(unit);
+      assembler.addUnlinkedUnit(unit.element.source, unlinked);
+      return unlinked;
+    });
+
+    summary_link
+        .link(
+            uriToUnit.keys.toSet(),
+            (uri) => summaryData.linkedMap[uri],
+            (uri) => summaryData.unlinkedMap[uri] ?? uriToUnit[uri],
+            context.declaredVariables.get,
+            true)
+        .forEach(assembler.addLinkedLibrary);
+
     return assembler.assemble().toBuffer();
   }
 
@@ -526,17 +560,11 @@ class CodeGenerator extends GeneralizingAstVisitor
     var type = _emitType(to,
         nameType: options.nameTypeTests || options.hoistTypeTests,
         hoistType: options.hoistTypeTests);
-    if (isReifiedCoercion(node)) {
+    if (CoercionReifier.isImplicitCast(node)) {
       return js.call('#._check(#)', [type, jsFrom]);
     } else {
       return js.call('#.as(#)', [type, jsFrom]);
     }
-  }
-
-  bool isReifiedCoercion(AstNode node) {
-    // TODO(sra): Find a better way to recognize reified coercion, since we
-    // can't set the isSynthetic attribute.
-    return (node is AsExpression) && (node.asOperator.offset == 0);
   }
 
   @override
@@ -1856,8 +1884,6 @@ class CodeGenerator extends GeneralizingAstVisitor
       ClassDeclaration node,
       List<FieldDeclaration> fields,
       Map<FieldElement, JS.TemporaryId> virtualFields) {
-    assert(_hasUnnamedConstructor(node.element) == fields.isNotEmpty);
-
     // If we don't have a method body, skip this.
     var superCall = _superConstructorCall(node.element);
     if (fields.isEmpty && superCall == null) return null;
@@ -1897,8 +1923,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
       var fun = new JS.Fun(
           params,
-          js.statement(
-              '{ return $newKeyword #(#); }', [_visit(redirect), params]),
+          js.statement('{ return $newKeyword #(#); }',
+              [_visit(redirect) as JS.Node, params]),
           returnType: returnType);
       return annotate(
           new JS.Method(name, fun, isStatic: true), node, node.element);
@@ -2031,7 +2057,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       return null;
     }
 
-    if (superCtor.name == '' && !_shouldCallUnnamedSuperCtor(element)) {
+    if (superCtor.name == '' && !_hasUnnamedSuperConstructor(element)) {
       return null;
     }
 
@@ -2040,7 +2066,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     return annotate(js.statement('super.#(#);', [name, args]), node);
   }
 
-  bool _shouldCallUnnamedSuperCtor(ClassElement e) {
+  bool _hasUnnamedSuperConstructor(ClassElement e) {
     var supertype = e.supertype;
     if (supertype == null) return false;
     if (_hasUnnamedConstructor(supertype.element)) return true;
@@ -2053,7 +2079,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   bool _hasUnnamedConstructor(ClassElement e) {
     if (e.type.isObject) return false;
     if (!e.unnamedConstructor.isSynthetic) return true;
-    return e.fields.any((f) => !f.isStatic && !f.isSynthetic);
+    if (e.fields.any((f) => !f.isStatic && !f.isSynthetic)) return true;
+    return _hasUnnamedSuperConstructor(e);
   }
 
   /// Initialize fields. They follow the sequence:
@@ -2981,9 +3008,12 @@ class CodeGenerator extends GeneralizingAstVisitor
     // (for example, x is IndexExpression) we evaluate those once.
     var vars = <JS.MetaLetVariable, JS.Expression>{};
     var lhs = _bindLeftHandSide(vars, left, context: context);
-    var inc = AstBuilder.binaryExpression(lhs, op, right);
-    inc.staticElement = element;
-    inc.staticType = getStaticType(left);
+    Expression inc = AstBuilder.binaryExpression(lhs, op, right)
+      ..staticElement = element
+      ..staticType = getStaticType(lhs);
+
+    var castTo = getImplicitAssignmentCast(left);
+    if (castTo != null) inc = CoercionReifier.castExpression(inc, castTo);
     return new JS.MetaLet(vars, [_emitSet(lhs, inc)]);
   }
 
@@ -4511,7 +4541,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
     }
     if (tail.isEmpty) return _visit(node);
-    return js.call('dart.nullSafe(#, #)', [_visit(node), tail.reversed]);
+    return js.call(
+        'dart.nullSafe(#, #)', [_visit(node) as JS.Expression, tail.reversed]);
   }
 
   static Token _getOperator(Expression node) {
@@ -4664,8 +4695,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       // dynamic dispatch
       var dynamicHelper = const {'[]': 'dindex', '[]=': 'dsetindex'}[name];
       if (dynamicHelper != null) {
-        return js.call(
-            'dart.$dynamicHelper(#, #)', [_visit(target), _visitList(args)]);
+        return js.call('dart.$dynamicHelper(#, #)',
+            [_visit(target) as JS.Expression, _visitList(args)]);
       } else {
         return js.call('dart.dsend(#, #, #)',
             [_visit(target), memberName, _visitList(args)]);
@@ -5019,7 +5050,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // TODO(jmesserly): we can likely make these faster.
     JS.Expression emitMap() {
       var entries = node.entries;
-      var mapArguments = null;
+      Object mapArguments = null;
       var type = node.staticType as InterfaceType;
       var typeArgs = type.typeArguments;
       var reifyTypeArgs = typeArgs.any((t) => !t.isDynamic);
@@ -5141,10 +5172,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (op == '&&') return shortCircuit('# && #');
       if (op == '||') return shortCircuit('# || #');
     }
-    if (isReifiedCoercion(node)) {
-      AsExpression asNode = node;
-      assert(asNode.staticType == types.boolType);
-      return js.call('dart.test(#)', _visit(asNode.expression));
+    if (node is AsExpression && CoercionReifier.isImplicitCast(node)) {
+      assert(node.staticType == types.boolType);
+      return js.call('dart.test(#)', _visit(node.expression));
     }
     JS.Expression result = _visit(node);
     if (isNullable(node)) result = js.call('dart.test(#)', result);
@@ -5425,7 +5455,8 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
         uri.path.substring(libraryRoot.length).replaceAll('/', separator);
   } else {
     // We don't have a unique name.
-    throw 'Invalid library root. $libraryRoot does not contain ${uri.toFilePath()}';
+    throw 'Invalid library root. $libraryRoot does not contain ${uri
+        .toFilePath()}';
   }
   return pathToJSIdentifier(qualifiedPath);
 }
@@ -5446,10 +5477,12 @@ JS.LiteralString _propertyName(String name) => js.string(name, "'");
 /// everywhere in the tree where they are treated as the same variable.
 class TemporaryVariableElement extends LocalVariableElementImpl {
   final JS.Expression jsVariable;
+
   TemporaryVariableElement.forNode(Identifier name, this.jsVariable)
       : super.forNode(name);
 
   int get hashCode => identityHashCode(this);
+
   bool operator ==(Object other) => identical(this, other);
 }
 

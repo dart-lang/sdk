@@ -140,7 +140,7 @@ class FieldVisitor {
     if (fieldAccessNeverThrows(field)) return false;
     if (backend.shouldRetainGetter(field)) return true;
     return field.isClassMember &&
-        compiler.codegenWorld.hasInvokedGetter(field, compiler.world);
+        compiler.codegenWorld.hasInvokedGetter(field, compiler.closedWorld);
   }
 
   bool fieldNeedsSetter(VariableElement field) {
@@ -149,7 +149,7 @@ class FieldVisitor {
     if (field.isFinal || field.isConst) return false;
     if (backend.shouldRetainSetter(field)) return true;
     return field.isClassMember &&
-        compiler.codegenWorld.hasInvokedSetter(field, compiler.world);
+        compiler.codegenWorld.hasInvokedSetter(field, compiler.closedWorld);
   }
 
   static bool fieldAccessNeverThrows(VariableElement field) {

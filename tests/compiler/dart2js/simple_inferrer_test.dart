@@ -729,7 +729,7 @@ void main() {
   asyncTest(() => compiler.run(uri).then((_) {
         var commonMasks = compiler.commonMasks;
         var typesInferrer = compiler.globalInference.typesInferrer;
-        var world = compiler.world;
+        var world = compiler.closedWorld;
 
         checkReturn(String name, type) {
           var element = findElement(compiler, name);
@@ -761,7 +761,7 @@ void main() {
         checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
         checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
         TypeMask intType = new TypeMask.nonNullSubtype(
-            compiler.coreClasses.intClass, compiler.world);
+            compiler.coreClasses.intClass, compiler.closedWorld);
         checkReturn('testIsCheck1', intType);
         checkReturn('testIsCheck2', intType);
         checkReturn('testIsCheck3', intType.nullable());
@@ -796,7 +796,7 @@ void main() {
         checkReturn(
             'returnAsString',
             new TypeMask.subtype(
-                compiler.coreClasses.stringClass, compiler.world));
+                compiler.coreClasses.stringClass, compiler.closedWorld));
         checkReturn('returnIntAsNum', commonMasks.uint31Type);
         checkReturn('returnAsTypedef', commonMasks.functionType.nullable());
         checkReturn('returnTopLevelGetter', commonMasks.uint31Type);
@@ -806,7 +806,7 @@ void main() {
             'testSwitch1',
             simplify(
                 commonMasks.intType
-                    .union(commonMasks.doubleType, compiler.world)
+                    .union(commonMasks.doubleType, compiler.closedWorld)
                     .nullable(),
                 compiler));
         checkReturn('testSwitch2', commonMasks.uint31Type);

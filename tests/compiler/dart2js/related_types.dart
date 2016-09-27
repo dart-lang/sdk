@@ -35,6 +35,7 @@ main(List<String> arguments) async {
 
 /// Check all loaded libraries in [compiler] for unrelated types.
 void checkRelatedTypes(Compiler compiler) {
+  compiler.openWorld.closeWorld();
   for (LibraryElement library in compiler.libraryLoader.libraries) {
     checkLibraryElement(compiler, library);
   }
@@ -76,7 +77,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
       : this.resolvedAst = resolvedAst,
         super(resolvedAst.elements);
 
-  ClassWorld get world => compiler.world;
+  ClosedWorld get world => compiler.closedWorld;
 
   CoreClasses get coreClasses => compiler.coreClasses;
 

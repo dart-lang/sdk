@@ -153,6 +153,7 @@ RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::singletargetcache_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::unlinkedcall_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::megamorphic_cache_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -656,6 +657,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<SingleTargetCache>();
   singletargetcache_class_ = cls.raw();
 
+  cls = Class::New<UnlinkedCall>();
+  unlinkedcall_class_ = cls.raw();
+
   cls = Class::New<ICData>();
   icdata_class_ = cls.raw();
 
@@ -998,6 +1002,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(context, Context);
   SET_CLASS_NAME(context_scope, ContextScope);
   SET_CLASS_NAME(singletargetcache, SingleTargetCache);
+  SET_CLASS_NAME(unlinkedcall, UnlinkedCall);
   SET_CLASS_NAME(icdata, ICData);
   SET_CLASS_NAME(megamorphic_cache, MegamorphicCache);
   SET_CLASS_NAME(subtypetestcache, SubtypeTestCache);
@@ -5977,12 +5982,12 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 
 
 bool Function::IsOptimizable() const {
+  if (FLAG_precompiled_mode) {
+    return true;
+  }
   if (is_native()) {
     // Native methods don't need to be optimized.
     return false;
-  }
-  if (FLAG_precompiled_mode) {
-    return true;
   }
   const intptr_t function_length = end_token_pos().Pos() - token_pos().Pos();
   if (is_optimizable() && (script() != Script::null()) &&
@@ -10478,6 +10483,9 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   ASSERT(thread->IsMutatorThread());
   // Force the url to have a hash code.
   url.Hash();
+  const bool dart_scheme = url.StartsWith(Symbols::DartScheme());
+  const bool dart_private_scheme =
+      dart_scheme && url.StartsWith(Symbols::DartSchemePrivate());
   const Library& result = Library::Handle(zone, Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
@@ -10501,8 +10509,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.set_native_entry_symbol_resolver(NULL);
   result.set_is_in_fullsnapshot(false);
   result.StoreNonPointer(&result.raw_ptr()->corelib_imported_, true);
-  result.set_debuggable(false);
-  result.set_is_dart_scheme(url.StartsWith(Symbols::DartScheme()));
+  result.set_debuggable(!dart_private_scheme);
+  result.set_is_dart_scheme(dart_scheme);
   result.StoreNonPointer(&result.raw_ptr()->load_state_,
                          RawLibrary::kAllocated);
   result.StoreNonPointer(&result.raw_ptr()->index_, -1);
@@ -11403,6 +11411,51 @@ RawError* Library::CompileAll() {
     func ^= closures.At(i);
     if (!func.HasCode()) {
       error = Compiler::CompileFunction(thread, func);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+      func.ClearICDataArray();
+      func.ClearCode();
+    }
+  }
+  return error.raw();
+}
+
+
+RawError* Library::ParseAll(Thread* thread) {
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone);
+  Isolate* isolate = thread->isolate();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      isolate->object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      error = cls.EnsureIsFinalized(thread);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+      error = Compiler::ParseAllFunctions(cls);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+    }
+  }
+
+  // Inner functions get added to the closures array. As part of compilation
+  // more closures can be added to the end of the array. Compile all the
+  // closures until we have reached the end of the "worklist".
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(zone,
+      Isolate::Current()->object_store()->closure_functions());
+  Function& func = Function::Handle(zone);
+  for (int i = 0; i < closures.Length(); i++) {
+    func ^= closures.At(i);
+    if (!func.HasCode()) {
+      error = Compiler::ParseFunction(thread, func);
       if (!error.IsNull()) {
         return error.raw();
       }
@@ -12597,6 +12650,29 @@ RawSingleTargetCache* SingleTargetCache::New() {
   result.set_lower_limit(kIllegalCid);
   result.set_upper_limit(kIllegalCid);
   return result.raw();
+}
+
+
+void UnlinkedCall::set_target_name(const String& value) const {
+  StorePointer(&raw_ptr()->target_name_, value.raw());
+}
+
+
+void UnlinkedCall::set_args_descriptor(const Array& value) const {
+  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+}
+
+
+const char* UnlinkedCall::ToCString() const {
+  return "UnlinkedCall";
+}
+
+
+RawUnlinkedCall* UnlinkedCall::New() {
+  RawObject* raw = Object::Allocate(UnlinkedCall::kClassId,
+                                    UnlinkedCall::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawUnlinkedCall*>(raw);
 }
 
 

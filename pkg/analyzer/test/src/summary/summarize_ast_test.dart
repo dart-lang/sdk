@@ -116,12 +116,6 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
   test_syntheticFunctionType_inGenericFunction() {
     super.test_syntheticFunctionType_inGenericFunction();
   }
-
-  @override
-  @failingTest
-  test_unused_type_parameter() {
-    super.test_unused_type_parameter();
-  }
 }
 
 /**

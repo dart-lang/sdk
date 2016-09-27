@@ -2,10 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import("//build/config/linux/pkg_config.gni")
-import("//build/config/features.gni")
 import("//build/config/sysroot.gni")
-import("//build/config/ui.gni")
 
 config("sdk") {
   if (sysroot != "") {
@@ -21,42 +18,4 @@ config("sdk") {
                              ],
                              "value") ]
   }
-}
-
-config("fontconfig") {
-  libs = [ "fontconfig" ]
-}
-
-pkg_config("freetype2") {
-  packages = [ "freetype2" ]
-}
-
-config("x11") {
-  libs = [
-    "X11",
-    "Xcomposite",
-    "Xcursor",
-    "Xdamage",
-    "Xext",
-    "Xfixes",
-    "Xi",
-    "Xrender",
-    "Xtst",
-  ]
-}
-
-config("xrandr") {
-  libs = [ "Xrandr" ]
-}
-
-config("xinerama") {
-  libs = [ "Xinerama" ]
-}
-
-config("xcomposite") {
-  libs = [ "Xcomposite" ]
-}
-
-config("xext") {
-  libs = [ "Xext" ]
 }

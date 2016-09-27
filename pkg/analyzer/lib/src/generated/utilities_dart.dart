@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode, Comment;
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 
@@ -83,11 +82,11 @@ bool startsWith(Uri uri1, Uri uri2) {
 }
 
 /**
- * The enumeration `ParameterKind` defines the different kinds of parameters. There are two
- * basic kinds of parameters: required and optional. Optional parameters are further divided into
- * two kinds: positional optional and named optional.
+ * The kinds of a parameter. There are two basic kinds of parameters: required
+ * and optional. Optional parameters are further divided into two kinds:
+ * positional optional and named optional.
  */
-class ParameterKind extends Enum<ParameterKind> {
+class ParameterKind implements Comparable<ParameterKind> {
   static const ParameterKind REQUIRED =
       const ParameterKind('REQUIRED', 0, false);
 
@@ -99,15 +98,31 @@ class ParameterKind extends Enum<ParameterKind> {
   static const List<ParameterKind> values = const [REQUIRED, POSITIONAL, NAMED];
 
   /**
+   * The name of this parameter.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the parameter.
+   */
+  final int ordinal;
+
+  /**
    * A flag indicating whether this is an optional parameter.
    */
   final bool isOptional;
 
   /**
    * Initialize a newly created kind with the given state.
-   *
-   * @param isOptional `true` if this is an optional parameter
    */
-  const ParameterKind(String name, int ordinal, this.isOptional)
-      : super(name, ordinal);
+  const ParameterKind(this.name, this.ordinal, this.isOptional);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(ParameterKind other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }

@@ -46,6 +46,7 @@ namespace dart {
   V(CompileFunction)                                                           \
   V(MonomorphicMiss)                                                           \
   V(SingleTargetMiss)                                                          \
+  V(UnlinkedCall)                                                              \
 
 #define LEAF_RUNTIME_ENTRY_LIST(V)                                             \
   V(void, PrintStopMessage, const char*)                                       \

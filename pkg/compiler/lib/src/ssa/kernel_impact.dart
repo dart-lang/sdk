@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
+import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
@@ -71,10 +72,17 @@ class KernelImpactBuilder extends ir.Visitor {
     return type;
   }
 
+  /// Add a checked-mode type use of return type and parameters of [node].
+  void checkFunctionTypes(ir.FunctionNode node) {
+    checkType(node.returnType);
+    node.positionalParameters.forEach((v) => checkType(v.type));
+    node.namedParameters.forEach((v) => checkType(v.type));
+  }
+
   ResolutionImpact buildField(ir.Field field) {
     checkType(field.type);
     if (field.initializer != null) {
-      field.initializer.accept(this);
+      visitNode(field.initializer);
     } else {
       impactBuilder.registerFeature(Feature.FIELD_WITHOUT_INITIALIZER);
     }
@@ -84,10 +92,8 @@ class KernelImpactBuilder extends ir.Visitor {
   ResolutionImpact buildProcedure(ir.Procedure procedure) {
     if (procedure.kind == ir.ProcedureKind.Method ||
         procedure.kind == ir.ProcedureKind.Operator) {
-      checkType(procedure.function.returnType);
-      procedure.function.positionalParameters.forEach((v) => checkType(v.type));
-      procedure.function.namedParameters.forEach((v) => checkType(v.type));
-      procedure.function.body.accept(this);
+      checkFunctionTypes(procedure.function);
+      visitNode(procedure.function.body);
     } else {
       compiler.reporter.internalError(
           resolvedAst.element,
@@ -97,8 +103,10 @@ class KernelImpactBuilder extends ir.Visitor {
     return impactBuilder;
   }
 
+  void visitNode(ir.Node node) => node?.accept(this);
+
   void visitNodes(Iterable<ir.Node> nodes) {
-    nodes.forEach((ir.Node node) => node.accept(this));
+    nodes.forEach(visitNode);
   }
 
   @override
@@ -106,19 +114,19 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitExpressionStatement(ir.ExpressionStatement exprStatement) {
-    exprStatement.expression.accept(this);
+    visitNode(exprStatement.expression);
   }
 
   @override
   void visitReturnStatement(ir.ReturnStatement returnStatement) {
-    returnStatement.expression?.accept(this);
+    visitNode(returnStatement.expression);
   }
 
   @override
   void visitIfStatement(ir.IfStatement ifStatement) {
-    ifStatement.condition.accept(this);
-    ifStatement.then.accept(this);
-    ifStatement.otherwise?.accept(this);
+    visitNode(ifStatement.condition);
+    visitNode(ifStatement.then);
+    visitNode(ifStatement.otherwise);
   }
 
   @override
@@ -178,17 +186,13 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   void visitMapEntry(ir.MapEntry entry) {
-    entry.key.accept(this);
-    entry.value.accept(this);
+    visitNode(entry.key);
+    visitNode(entry.value);
   }
 
   void _visitArguments(ir.Arguments arguments) {
-    for (ir.Expression argument in arguments.positional) {
-      argument.accept(this);
-    }
-    for (ir.NamedExpression argument in arguments.named) {
-      argument.value.accept(this);
-    }
+    arguments.positional.forEach(visitNode);
+    arguments.named.forEach(visitNode);
   }
 
   @override
@@ -237,45 +241,88 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitStaticGet(ir.StaticGet node) {
-    Element target = astAdapter.getElement(node.target).declaration;
-    impactBuilder.registerStaticUse(new StaticUse.staticGet(target));
+    ir.Member target = node.target;
+    Element element = astAdapter.getElement(target).declaration;
+    if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
+      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(element));
+    } else {
+      impactBuilder.registerStaticUse(new StaticUse.staticGet(element));
+    }
   }
 
   @override
   void visitMethodInvocation(ir.MethodInvocation invocation) {
-    invocation.receiver.accept(this);
+    var receiver = invocation.receiver;
+    if (receiver is ir.VariableGet &&
+        receiver.variable.isFinal &&
+        receiver.variable.parent is ir.FunctionDeclaration) {
+      // Invocation of a local function. No need for dynamic use.
+    } else {
+      visitNode(invocation.receiver);
+      impactBuilder.registerDynamicUse(
+          new DynamicUse(astAdapter.getSelector(invocation), null));
+    }
     _visitArguments(invocation.arguments);
-    impactBuilder.registerDynamicUse(
-        new DynamicUse(astAdapter.getSelector(invocation), null));
   }
 
   @override
   void visitPropertyGet(ir.PropertyGet node) {
-    node.receiver.accept(this);
+    visitNode(node.receiver);
     impactBuilder.registerDynamicUse(new DynamicUse(
         new Selector.getter(astAdapter.getName(node.name)), null));
   }
 
   @override
   void visitPropertySet(ir.PropertySet node) {
-    node.receiver.accept(this);
-    node.value.accept(this);
+    visitNode(node.receiver);
+    visitNode(node.value);
     impactBuilder.registerDynamicUse(new DynamicUse(
         new Selector.setter(astAdapter.getName(node.name)), null));
-  }
-
-  @override
-  void visitNot(ir.Not not) {
-    not.operand.accept(this);
   }
 
   @override
   void visitAssertStatement(ir.AssertStatement node) {
     impactBuilder.registerFeature(
         node.message != null ? Feature.ASSERT_WITH_MESSAGE : Feature.ASSERT);
-    node.visitChildren(this);
+    visitNode(node.condition);
+    visitNode(node.message);
   }
 
+  @override
+  void visitStringConcatenation(ir.StringConcatenation node) {
+    impactBuilder.registerFeature(Feature.STRING_INTERPOLATION);
+    impactBuilder.registerFeature(Feature.STRING_JUXTAPOSITION);
+    visitNodes(node.expressions);
+  }
+
+  @override
+  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    impactBuilder
+        .registerStaticUse(new StaticUse.closure(astAdapter.getElement(node)));
+    checkFunctionTypes(node.function);
+    visitNode(node.function.body);
+  }
+
+  @override
+  void visitFunctionExpression(ir.FunctionExpression node) {
+    impactBuilder
+        .registerStaticUse(new StaticUse.closure(astAdapter.getElement(node)));
+    checkFunctionTypes(node.function);
+    visitNode(node.function.body);
+  }
+
+  @override
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
+    checkType(node.type);
+    if (node.initializer != null) {
+      visitNode(node.initializer);
+    } else {
+      impactBuilder.registerFeature(Feature.LOCAL_WITHOUT_INITIALIZER);
+    }
+  }
+
+  // TODO(johnniwinther): Make this throw and visit child nodes explicitly
+  // instead to ensure that we don't visit unwanted parts of the ir.
   @override
   void defaultNode(ir.Node node) => node.visitChildren(this);
 }

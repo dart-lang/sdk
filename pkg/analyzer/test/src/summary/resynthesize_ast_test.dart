@@ -692,18 +692,6 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
 
   @override
   @failingTest
-  test_const_invokeConstructor_named_unresolved() {
-    super.test_const_invokeConstructor_named_unresolved();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_named_unresolved3() {
-    super.test_const_invokeConstructor_named_unresolved3();
-  }
-
-  @override
-  @failingTest
   test_instantiateToBounds_boundRefersToLaterTypeArgument() {
     // TODO(paulberry): this is failing due to dartbug.com/27072.
     super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
@@ -731,12 +719,6 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
   @failingTest
   test_syntheticFunctionType_withArguments() {
     super.test_syntheticFunctionType_withArguments();
-  }
-
-  @override
-  @failingTest
-  test_unused_type_parameter() {
-    super.test_unused_type_parameter();
   }
 }
 

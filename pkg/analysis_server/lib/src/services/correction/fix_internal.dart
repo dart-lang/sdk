@@ -1808,31 +1808,44 @@ class FixProcessor {
   }
 
   void _addFix_undefinedClass_useSimilar() {
+    AstNode node = this.node;
+    // Prepare the optional import prefix name.
+    String prefixName = null;
+    if (node is SimpleIdentifier && node.staticElement is PrefixElement) {
+      AstNode parent = node.parent;
+      if (parent is PrefixedIdentifier &&
+          parent.prefix == node &&
+          parent.parent is TypeName) {
+        prefixName = (node as SimpleIdentifier).name;
+        node = parent.identifier;
+      }
+    }
+    // Process if looks like a type.
     if (_mayBeTypeIdentifier(node)) {
+      // Prepare for selecting the closest element.
       String name = (node as SimpleIdentifier).name;
       _ClosestElementFinder finder = new _ClosestElementFinder(
           name,
           (Element element) => element is ClassElement,
           MAX_LEVENSHTEIN_DISTANCE);
-      // find closest element
-      {
-        // elements of this library
+      // Check elements of this library.
+      if (prefixName == null) {
         for (CompilationUnitElement unit in unitLibraryElement.units) {
           finder._updateList(unit.types);
         }
-        // elements from imports
-        for (ImportElement importElement in unitLibraryElement.imports) {
-          if (importElement.prefix == null) {
-            Map<String, Element> namespace = getImportNamespace(importElement);
-            finder._updateList(namespace.values);
-          }
+      }
+      // Check elements from imports.
+      for (ImportElement importElement in unitLibraryElement.imports) {
+        if (importElement.prefix?.name == prefixName) {
+          Map<String, Element> namespace = getImportNamespace(importElement);
+          finder._updateList(namespace.values);
         }
       }
-      // if we have close enough element, suggest to use it
+      // If we have a close enough element, suggest to use it.
       if (finder._element != null) {
         String closestName = finder._element.name;
         _addReplaceEdit(rf.rangeNode(node), closestName);
-        // add proposal
+        // Add proposal.
         if (closestName != null) {
           _addFix(DartFixKind.CHANGE_TO, [closestName]);
         }
@@ -1942,24 +1955,39 @@ class FixProcessor {
   }
 
   void _addFix_undefinedFunction_useSimilar() {
+    AstNode node = this.node;
     if (node is SimpleIdentifier) {
-      String name = (node as SimpleIdentifier).name;
+      // Prepare the optional import prefix name.
+      String prefixName = null;
+      {
+        AstNode invocation = node.parent;
+        if (invocation is MethodInvocation && invocation.methodName == node) {
+          Expression target = invocation.target;
+          if (target is SimpleIdentifier &&
+              target.staticElement is PrefixElement) {
+            prefixName = target.name;
+          }
+        }
+      }
+      // Prepare for selecting the closest element.
       _ClosestElementFinder finder = new _ClosestElementFinder(
-          name,
+          node.name,
           (Element element) => element is FunctionElement,
           MAX_LEVENSHTEIN_DISTANCE);
-      // this library
-      for (CompilationUnitElement unit in unitLibraryElement.units) {
-        finder._updateList(unit.functions);
+      // Check to this library units.
+      if (prefixName == null) {
+        for (CompilationUnitElement unit in unitLibraryElement.units) {
+          finder._updateList(unit.functions);
+        }
       }
-      // imports
+      // Check unprefixed imports.
       for (ImportElement importElement in unitLibraryElement.imports) {
-        if (importElement.prefix == null) {
+        if (importElement.prefix?.name == prefixName) {
           Map<String, Element> namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
         }
       }
-      // if we have close enough element, suggest to use it
+      // If we have a close enough element, suggest to use it.
       if (finder._element != null) {
         String closestName = finder._element.name;
         _addReplaceEdit(rf.rangeNode(node), closestName);

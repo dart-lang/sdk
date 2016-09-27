@@ -92,8 +92,8 @@ class ClassStubGenerator {
     Set<Selector> generatedSelectors = new Set<Selector>();
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
-      if (!selector.appliesUnnamed(member, compiler.world)) continue;
-      if (selectors[selector].applies(member, selector, compiler.world)) {
+      if (!selector.appliesUnnamed(member, backend)) continue;
+      if (selectors[selector].applies(member, selector, compiler.closedWorld)) {
         generatedSelectors.add(selector);
 
         jsAst.Name invocationName = namer.invocationName(selector);
@@ -134,7 +134,7 @@ class ClassStubGenerator {
         String ignore, Map<Selector, SelectorConstraints> selectors) {
       for (Selector selector in selectors.keys) {
         SelectorConstraints maskSet = selectors[selector];
-        if (maskSet.needsNoSuchMethodHandling(selector, compiler.world)) {
+        if (maskSet.needsNoSuchMethodHandling(selector, compiler.closedWorld)) {
           jsAst.Name jsName = namer.invocationMirrorInternalName(selector);
           jsNames[jsName] = selector;
         }

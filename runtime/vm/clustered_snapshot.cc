@@ -2089,6 +2089,86 @@ class ContextScopeDeserializationCluster : public DeserializationCluster {
 
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class UnlinkedCallSerializationCluster : public SerializationCluster {
+ public:
+  UnlinkedCallSerializationCluster() { }
+  virtual ~UnlinkedCallSerializationCluster() { }
+
+  void Trace(Serializer* s, RawObject* object) {
+    RawUnlinkedCall* unlinked = UnlinkedCall::RawCast(object);
+    objects_.Add(unlinked);
+
+    RawObject** from = unlinked->from();
+    RawObject** to = unlinked->to();
+    for (RawObject** p = from; p <= to; p++) {
+      s->Push(*p);
+    }
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kUnlinkedCallCid);
+    intptr_t count = objects_.length();
+    s->Write<int32_t>(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawUnlinkedCall* unlinked = objects_[i];
+      s->AssignRef(unlinked);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawUnlinkedCall* unlinked = objects_[i];
+      RawObject** from = unlinked->from();
+      RawObject** to = unlinked->to();
+      for (RawObject** p = from; p <= to; p++) {
+        s->WriteRef(*p);
+      }
+    }
+  }
+
+ private:
+  GrowableArray<RawUnlinkedCall*> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+
+class UnlinkedCallDeserializationCluster : public DeserializationCluster {
+ public:
+  UnlinkedCallDeserializationCluster() { }
+  virtual ~UnlinkedCallDeserializationCluster() { }
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    intptr_t count = d->Read<int32_t>();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(AllocateUninitialized(old_space,
+                                         UnlinkedCall::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    bool is_vm_object = d->isolate() == Dart::vm_isolate();
+
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawUnlinkedCall* unlinked =
+          reinterpret_cast<RawUnlinkedCall*>(d->Ref(id));
+      Deserializer::InitializeHeader(unlinked, kUnlinkedCallCid,
+                                     UnlinkedCall::InstanceSize(),
+                                     is_vm_object);
+      RawObject** from = unlinked->from();
+      RawObject** to = unlinked->to();
+      for (RawObject** p = from; p <= to; p++) {
+        *p = d->ReadRef();
+      }
+    }
+  }
+};
+
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ICDataSerializationCluster : public SerializationCluster {
  public:
   ICDataSerializationCluster() { }
@@ -4271,6 +4351,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ExceptionHandlersSerializationCluster();
     case kContextCid: return new (Z) ContextSerializationCluster();
     case kContextScopeCid: return new (Z) ContextScopeSerializationCluster();
+    case kUnlinkedCallCid: return new (Z) UnlinkedCallSerializationCluster();
     case kICDataCid: return new (Z) ICDataSerializationCluster();
     case kMegamorphicCacheCid:
       return new (Z) MegamorphicCacheSerializationCluster();
@@ -4436,7 +4517,7 @@ void Serializer::AddVMIsolateBaseObjects() {
   }
 
   ClassTable* table = isolate()->class_table();
-  for (intptr_t cid = kClassCid; cid <= kUnwindErrorCid; cid++) {
+  for (intptr_t cid = kClassCid; cid < kInstanceCid; cid++) {
     // Error has no class object.
     if (cid != kErrorCid) {
       ASSERT(table->HasValidClassAt(cid));
@@ -4593,6 +4674,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ExceptionHandlersDeserializationCluster();
     case kContextCid: return new (Z) ContextDeserializationCluster();
     case kContextScopeCid: return new (Z) ContextScopeDeserializationCluster();
+    case kUnlinkedCallCid: return new (Z) UnlinkedCallDeserializationCluster();
     case kICDataCid: return new (Z) ICDataDeserializationCluster();
     case kMegamorphicCacheCid:
       return new (Z) MegamorphicCacheDeserializationCluster();

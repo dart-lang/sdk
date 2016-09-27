@@ -211,7 +211,7 @@ void doTest(String allocation, [String keyElement, String valueElement]) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
       expectedErrors: 0, expectedWarnings: 1);
-  var classWorld = compiler.world;
+  var classWorld = compiler.openWorld.closeWorld();
   asyncTest(() => compiler.run(uri).then((_) {
         var keyType, valueType;
         var commonMasks = compiler.commonMasks;

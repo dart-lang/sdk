@@ -37,10 +37,12 @@ import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 
 import 'graph_builder.dart';
+import 'jump_handler.dart';
 import 'locals_handler.dart';
+import 'loop_handler.dart';
 import 'nodes.dart';
 import 'optimize.dart';
 import 'ssa_branch_builder.dart';
@@ -125,226 +127,6 @@ class SsaBuilderTask extends CompilerTask {
   }
 }
 
-// Represents a single break/continue instruction.
-class JumpHandlerEntry {
-  final HJump jumpInstruction;
-  final LocalsHandler locals;
-  bool isBreak() => jumpInstruction is HBreak;
-  bool isContinue() => jumpInstruction is HContinue;
-  JumpHandlerEntry(this.jumpInstruction, this.locals);
-}
-
-abstract class JumpHandler {
-  factory JumpHandler(SsaBuilder builder, JumpTarget target) {
-    return new TargetJumpHandler(builder, target);
-  }
-  void generateBreak([LabelDefinition label]);
-  void generateContinue([LabelDefinition label]);
-  void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
-  void forEachContinue(
-      void action(HContinue instruction, LocalsHandler locals));
-  bool hasAnyContinue();
-  bool hasAnyBreak();
-  void close();
-  final JumpTarget target;
-  List<LabelDefinition> labels();
-}
-
-// Insert break handler used to avoid null checks when a target isn't
-// used as the target of a break, and therefore doesn't need a break
-// handler associated with it.
-class NullJumpHandler implements JumpHandler {
-  final DiagnosticReporter reporter;
-
-  NullJumpHandler(this.reporter);
-
-  void generateBreak([LabelDefinition label]) {
-    reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-        'NullJumpHandler.generateBreak should not be called.');
-  }
-
-  void generateContinue([LabelDefinition label]) {
-    reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-        'NullJumpHandler.generateContinue should not be called.');
-  }
-
-  void forEachBreak(Function ignored) {}
-  void forEachContinue(Function ignored) {}
-  void close() {}
-  bool hasAnyContinue() => false;
-  bool hasAnyBreak() => false;
-
-  List<LabelDefinition> labels() => const <LabelDefinition>[];
-  JumpTarget get target => null;
-}
-
-// Records breaks until a target block is available.
-// Breaks are always forward jumps.
-// Continues in loops are implemented as breaks of the body.
-// Continues in switches is currently not handled.
-class TargetJumpHandler implements JumpHandler {
-  final SsaBuilder builder;
-  final JumpTarget target;
-  final List<JumpHandlerEntry> jumps;
-
-  TargetJumpHandler(SsaBuilder builder, this.target)
-      : this.builder = builder,
-        jumps = <JumpHandlerEntry>[] {
-    assert(builder.jumpTargets[target] == null);
-    builder.jumpTargets[target] = this;
-  }
-
-  void generateBreak([LabelDefinition label]) {
-    HInstruction breakInstruction;
-    if (label == null) {
-      breakInstruction = new HBreak(target);
-    } else {
-      breakInstruction = new HBreak.toLabel(label);
-    }
-    LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
-    builder.close(breakInstruction);
-    jumps.add(new JumpHandlerEntry(breakInstruction, locals));
-  }
-
-  void generateContinue([LabelDefinition label]) {
-    HInstruction continueInstruction;
-    if (label == null) {
-      continueInstruction = new HContinue(target);
-    } else {
-      continueInstruction = new HContinue.toLabel(label);
-      // Switch case continue statements must be handled by the
-      // [SwitchCaseJumpHandler].
-      assert(label.target.statement is! ast.SwitchCase);
-    }
-    LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
-    builder.close(continueInstruction);
-    jumps.add(new JumpHandlerEntry(continueInstruction, locals));
-  }
-
-  void forEachBreak(Function action) {
-    for (JumpHandlerEntry entry in jumps) {
-      if (entry.isBreak()) action(entry.jumpInstruction, entry.locals);
-    }
-  }
-
-  void forEachContinue(Function action) {
-    for (JumpHandlerEntry entry in jumps) {
-      if (entry.isContinue()) action(entry.jumpInstruction, entry.locals);
-    }
-  }
-
-  bool hasAnyContinue() {
-    for (JumpHandlerEntry entry in jumps) {
-      if (entry.isContinue()) return true;
-    }
-    return false;
-  }
-
-  bool hasAnyBreak() {
-    for (JumpHandlerEntry entry in jumps) {
-      if (entry.isBreak()) return true;
-    }
-    return false;
-  }
-
-  void close() {
-    // The mapping from TargetElement to JumpHandler is no longer needed.
-    builder.jumpTargets.remove(target);
-  }
-
-  List<LabelDefinition> labels() {
-    List<LabelDefinition> result = null;
-    for (LabelDefinition element in target.labels) {
-      if (result == null) result = <LabelDefinition>[];
-      result.add(element);
-    }
-    return (result == null) ? const <LabelDefinition>[] : result;
-  }
-}
-
-/// Special [JumpHandler] implementation used to handle continue statements
-/// targeting switch cases.
-class SwitchCaseJumpHandler extends TargetJumpHandler {
-  /// Map from switch case targets to indices used to encode the flow of the
-  /// switch case loop.
-  final Map<JumpTarget, int> targetIndexMap = new Map<JumpTarget, int>();
-
-  SwitchCaseJumpHandler(
-      SsaBuilder builder, JumpTarget target, ast.SwitchStatement node)
-      : super(builder, target) {
-    // The switch case indices must match those computed in
-    // [SsaFromAstMixin.buildSwitchCaseConstants].
-    // Switch indices are 1-based so we can bypass the synthetic loop when no
-    // cases match simply by branching on the index (which defaults to null).
-    int switchIndex = 1;
-    for (ast.SwitchCase switchCase in node.cases) {
-      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
-        ast.Node label = labelOrCase.asLabel();
-        if (label != null) {
-          LabelDefinition labelElement =
-              builder.elements.getLabelDefinition(label);
-          if (labelElement != null && labelElement.isContinueTarget) {
-            JumpTarget continueTarget = labelElement.target;
-            targetIndexMap[continueTarget] = switchIndex;
-            assert(builder.jumpTargets[continueTarget] == null);
-            builder.jumpTargets[continueTarget] = this;
-          }
-        }
-      }
-      switchIndex++;
-    }
-  }
-
-  void generateBreak([LabelDefinition label]) {
-    if (label == null) {
-      // Creates a special break instruction for the synthetic loop generated
-      // for a switch statement with continue statements. See
-      // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
-
-      HInstruction breakInstruction =
-          new HBreak(target, breakSwitchContinueLoop: true);
-      LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
-      builder.close(breakInstruction);
-      jumps.add(new JumpHandlerEntry(breakInstruction, locals));
-    } else {
-      super.generateBreak(label);
-    }
-  }
-
-  bool isContinueToSwitchCase(LabelDefinition label) {
-    return label != null && targetIndexMap.containsKey(label.target);
-  }
-
-  void generateContinue([LabelDefinition label]) {
-    if (isContinueToSwitchCase(label)) {
-      // Creates the special instructions 'label = i; continue l;' used in
-      // switch statements with continue statements. See
-      // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
-
-      assert(label != null);
-      HInstruction value = builder.graph
-          .addConstantInt(targetIndexMap[label.target], builder.compiler);
-      builder.localsHandler.updateLocal(target, value);
-
-      assert(label.target.labels.contains(label));
-      HInstruction continueInstruction = new HContinue(target);
-      LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
-      builder.close(continueInstruction);
-      jumps.add(new JumpHandlerEntry(continueInstruction, locals));
-    } else {
-      super.generateContinue(label);
-    }
-  }
-
-  void close() {
-    // The mapping from TargetElement to JumpHandler is no longer needed.
-    for (JumpTarget target in targetIndexMap.keys) {
-      builder.jumpTargets.remove(target);
-    }
-    super.close();
-  }
-}
-
 /**
  * This class builds SSA nodes for functions represented in AST.
  */
@@ -376,7 +158,6 @@ class SsaBuilder extends ast.Visitor
   // used only for codegen, but currently we want to experiment using it for
   // code-analysis too.
   final CodegenRegistry registry;
-  final Compiler compiler;
   final GlobalTypeInferenceResults inferenceResults;
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
@@ -397,13 +178,6 @@ class SsaBuilder extends ast.Visitor
   bool inExpressionOfThrow = false;
 
   /**
-   * The loop nesting is consulted when inlining a function invocation in
-   * [tryInlineMethod]. The inlining heuristics take this information into
-   * account.
-   */
-  int loopNesting = 0;
-
-  /**
    * This stack contains declaration elements of the functions being built
    * or inlined by this builder.
    */
@@ -411,14 +185,15 @@ class SsaBuilder extends ast.Visitor
 
   HInstruction rethrowableException;
 
-  Map<JumpTarget, JumpHandler> jumpTargets = <JumpTarget, JumpHandler>{};
-
   /// Returns `true` if the current element is an `async` function.
   bool get isBuildingAsyncFunction {
     Element element = sourceElement;
     return (element is FunctionElement &&
         element.asyncMarker == AsyncMarker.ASYNC);
   }
+
+  /// Handles the building of loops.
+  LoopHandler<ast.Node> loopHandler;
 
   // TODO(sigmund): make most args optional
   SsaBuilder(
@@ -428,13 +203,13 @@ class SsaBuilder extends ast.Visitor
       JavaScriptBackend backend,
       this.nativeEmitter,
       SourceInformationStrategy sourceInformationFactory)
-      : this.compiler = backend.compiler,
-        this.infoReporter = backend.compiler.dumpInfoTask,
+      : this.infoReporter = backend.compiler.dumpInfoTask,
         this.backend = backend,
         this.constantSystem = backend.constantSystem,
         this.rti = backend.rti,
         this.inferenceResults = backend.compiler.globalInference.results {
     assert(target.isImplementation);
+    compiler = backend.compiler;
     graph.element = target;
     sourceElementStack.add(target);
     sourceInformationBuilder =
@@ -442,6 +217,7 @@ class SsaBuilder extends ast.Visitor
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
     localsHandler = new LocalsHandler(this, target, null, compiler);
+    loopHandler = new SsaLoopHandler(this);
   }
 
   BackendHelpers get helpers => backend.helpers;
@@ -556,7 +332,7 @@ class SsaBuilder extends ast.Visitor
    */
   List<HInstruction> completeDynamicSendArgumentsList(Selector selector,
       FunctionElement function, List<HInstruction> providedArguments) {
-    assert(selector.applies(function, compiler.world));
+    assert(selector.applies(function, backend));
     FunctionSignature signature = function.functionSignature;
     List<HInstruction> compiledArguments = new List<HInstruction>(
         signature.parameterCount + 1); // Plus one for receiver.
@@ -632,7 +408,7 @@ class SsaBuilder extends ast.Visitor
 
     FunctionElement function = element;
     ResolvedAst functionResolvedAst = function.resolvedAst;
-    bool insideLoop = loopNesting > 0 || graph.calledInLoop;
+    bool insideLoop = loopDepth > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
     // inline (no need to check the hard constraints).
@@ -650,8 +426,9 @@ class SsaBuilder extends ast.Visitor
               element.isGenerativeConstructorBody,
           message: "Missing selector for inlining of $element."));
       if (selector != null) {
-        if (!selector.applies(function, compiler.world)) return false;
-        if (mask != null && !mask.canHit(function, selector, compiler.world)) {
+        if (!selector.applies(function, backend)) return false;
+        if (mask != null &&
+            !mask.canHit(function, selector, compiler.closedWorld)) {
           return false;
         }
       }
@@ -896,7 +673,7 @@ class SsaBuilder extends ast.Visitor
    */
   HGraph buildMethod(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
-    graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
+    graph.calledInLoop = compiler.closedWorld.isCalledInLoop(functionElement);
     ast.FunctionExpression function = resolvedAst.node;
     assert(function != null);
     assert(elements.getFunctionDefinition(function) != null);
@@ -1484,8 +1261,8 @@ class SsaBuilder extends ast.Visitor
     }, includeSuperAndInjectedMembers: true);
 
     InterfaceType type = classElement.thisType;
-    TypeMask ssaType =
-        new TypeMask.nonNullExact(classElement.declaration, compiler.world);
+    TypeMask ssaType = new TypeMask.nonNullExact(
+        classElement.declaration, compiler.closedWorld);
     List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
     if (!currentInlinedInstantiations.isEmpty) {
@@ -1600,7 +1377,7 @@ class SsaBuilder extends ast.Visitor
         HInvokeConstructorBody invoke = new HInvokeConstructorBody(
             body.declaration, bodyCallInputs, backend.nonNullType);
         invoke.sideEffects =
-            compiler.world.getSideEffectsOfElement(constructor);
+            compiler.closedWorld.getSideEffectsOfElement(constructor);
         add(invoke);
       }
     }
@@ -1742,7 +1519,8 @@ class SsaBuilder extends ast.Visitor
     type = type.unaliased;
     assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
-      TypeMask subtype = new TypeMask.subtype(type.element, compiler.world);
+      TypeMask subtype =
+          new TypeMask.subtype(type.element, compiler.closedWorld);
       HInstruction representations = buildTypeArgumentRepresentations(type);
       add(representations);
       return new HTypeConversion.withTypeRepresentation(
@@ -1783,7 +1561,7 @@ class SsaBuilder extends ast.Visitor
     if (type.isObject) return original;
     // The type element is either a class or the void element.
     Element element = type.element;
-    TypeMask mask = new TypeMask.subtype(element, compiler.world);
+    TypeMask mask = new TypeMask.subtype(element, compiler.closedWorld);
     return new HTypeKnown.pinned(mask, original);
   }
 
@@ -1951,275 +1729,6 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  /**
-   * Creates a new loop-header block. The previous [current] block
-   * is closed with an [HGoto] and replaced by the newly created block.
-   * Also notifies the locals handler that we're entering a loop.
-   */
-  JumpHandler beginLoopHeader(ast.Node node) {
-    assert(!isAborted());
-    HBasicBlock previousBlock = close(new HGoto());
-
-    JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: true);
-    HBasicBlock loopEntry =
-        graph.addNewLoopHeaderBlock(jumpHandler.target, jumpHandler.labels());
-    previousBlock.addSuccessor(loopEntry);
-    open(loopEntry);
-
-    localsHandler.beginLoopHeader(loopEntry);
-    return jumpHandler;
-  }
-
-  /**
-   * Ends the loop:
-   * - creates a new block and adds it as successor to the [branchExitBlock] and
-   *   any blocks that end in break.
-   * - opens the new block (setting as [current]).
-   * - notifies the locals handler that we're exiting a loop.
-   * [savedLocals] are the locals from the end of the loop condition.
-   * [branchExitBlock] is the exit (branching) block of the condition. Generally
-   * this is not the top of the loop, since this would lead to critical edges.
-   * It is null for degenerate do-while loops that have
-   * no back edge because they abort (throw/return/break in the body and have
-   * no continues).
-   */
-  void endLoop(HBasicBlock loopEntry, HBasicBlock branchExitBlock,
-      JumpHandler jumpHandler, LocalsHandler savedLocals) {
-    HBasicBlock loopExitBlock = addNewBlock();
-
-    List<LocalsHandler> breakHandlers = <LocalsHandler>[];
-    // Collect data for the successors and the phis at each break.
-    jumpHandler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
-      breakInstruction.block.addSuccessor(loopExitBlock);
-      breakHandlers.add(locals);
-    });
-
-    // The exit block is a successor of the loop condition if it is reached.
-    // We don't add the successor in the case of a while/for loop that aborts
-    // because the caller of endLoop will be wiring up a special empty else
-    // block instead.
-    if (branchExitBlock != null) {
-      branchExitBlock.addSuccessor(loopExitBlock);
-    }
-    // Update the phis at the loop entry with the current values of locals.
-    localsHandler.endLoop(loopEntry);
-
-    // Start generating code for the exit block.
-    open(loopExitBlock);
-
-    // Create a new localsHandler for the loopExitBlock with the correct phis.
-    if (!breakHandlers.isEmpty) {
-      if (branchExitBlock != null) {
-        // Add the values of the locals at the end of the condition block to
-        // the phis.  These are the values that flow to the exit if the
-        // condition fails.
-        breakHandlers.add(savedLocals);
-      }
-      localsHandler = savedLocals.mergeMultiple(breakHandlers, loopExitBlock);
-    } else {
-      localsHandler = savedLocals;
-    }
-  }
-
-  HSubGraphBlockInformation wrapStatementGraph(SubGraph statements) {
-    if (statements == null) return null;
-    return new HSubGraphBlockInformation(statements);
-  }
-
-  HSubExpressionBlockInformation wrapExpressionGraph(SubExpression expression) {
-    if (expression == null) return null;
-    return new HSubExpressionBlockInformation(expression);
-  }
-
-  // For while loops, initializer and update are null.
-  // The condition function must return a boolean result.
-  // None of the functions must leave anything on the stack.
-  void handleLoop(ast.Node loop, void initialize(), HInstruction condition(),
-      void update(), void body()) {
-    // Generate:
-    //  <initializer>
-    //  loop-entry:
-    //    if (!<condition>) goto loop-exit;
-    //    <body>
-    //    <updates>
-    //    goto loop-entry;
-    //  loop-exit:
-
-    localsHandler.startLoop(loop);
-
-    // The initializer.
-    SubExpression initializerGraph = null;
-    HBasicBlock startBlock;
-    if (initialize != null) {
-      HBasicBlock initializerBlock = openNewBlock();
-      startBlock = initializerBlock;
-      initialize();
-      assert(!isAborted());
-      initializerGraph = new SubExpression(initializerBlock, current);
-    }
-
-    loopNesting++;
-    JumpHandler jumpHandler = beginLoopHeader(loop);
-    HLoopInformation loopInfo = current.loopInformation;
-    HBasicBlock conditionBlock = current;
-    if (startBlock == null) startBlock = conditionBlock;
-
-    HInstruction conditionInstruction = condition();
-    HBasicBlock conditionEndBlock =
-        close(new HLoopBranch(conditionInstruction));
-    SubExpression conditionExpression =
-        new SubExpression(conditionBlock, conditionEndBlock);
-
-    // Save the values of the local variables at the end of the condition
-    // block.  These are the values that will flow to the loop exit if the
-    // condition fails.
-    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-
-    // The body.
-    HBasicBlock beginBodyBlock = addNewBlock();
-    conditionEndBlock.addSuccessor(beginBodyBlock);
-    open(beginBodyBlock);
-
-    localsHandler.enterLoopBody(loop);
-    body();
-
-    SubGraph bodyGraph = new SubGraph(beginBodyBlock, lastOpenedBlock);
-    HBasicBlock bodyBlock = current;
-    if (current != null) close(new HGoto());
-
-    SubExpression updateGraph;
-
-    bool loopIsDegenerate = !jumpHandler.hasAnyContinue() && bodyBlock == null;
-    if (!loopIsDegenerate) {
-      // Update.
-      // We create an update block, even when we are in a while loop. There the
-      // update block is the jump-target for continue statements. We could avoid
-      // the creation if there is no continue, but for now we always create it.
-      HBasicBlock updateBlock = addNewBlock();
-
-      List<LocalsHandler> continueHandlers = <LocalsHandler>[];
-      jumpHandler
-          .forEachContinue((HContinue instruction, LocalsHandler locals) {
-        instruction.block.addSuccessor(updateBlock);
-        continueHandlers.add(locals);
-      });
-
-      if (bodyBlock != null) {
-        continueHandlers.add(localsHandler);
-        bodyBlock.addSuccessor(updateBlock);
-      }
-
-      open(updateBlock);
-      localsHandler =
-          continueHandlers[0].mergeMultiple(continueHandlers, updateBlock);
-
-      List<LabelDefinition> labels = jumpHandler.labels();
-      JumpTarget target = elements.getTargetDefinition(loop);
-      if (!labels.isEmpty) {
-        beginBodyBlock.setBlockFlow(
-            new HLabeledBlockInformation(
-                new HSubGraphBlockInformation(bodyGraph), jumpHandler.labels(),
-                isContinue: true),
-            updateBlock);
-      } else if (target != null && target.isContinueTarget) {
-        beginBodyBlock.setBlockFlow(
-            new HLabeledBlockInformation.implicit(
-                new HSubGraphBlockInformation(bodyGraph), target,
-                isContinue: true),
-            updateBlock);
-      }
-
-      localsHandler.enterLoopUpdates(loop);
-
-      update();
-
-      HBasicBlock updateEndBlock = close(new HGoto());
-      // The back-edge completing the cycle.
-      updateEndBlock.addSuccessor(conditionBlock);
-      updateGraph = new SubExpression(updateBlock, updateEndBlock);
-
-      // Avoid a critical edge from the condition to the loop-exit body.
-      HBasicBlock conditionExitBlock = addNewBlock();
-      open(conditionExitBlock);
-      close(new HGoto());
-      conditionEndBlock.addSuccessor(conditionExitBlock);
-
-      endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
-
-      conditionBlock.postProcessLoopHeader();
-      HLoopBlockInformation info = new HLoopBlockInformation(
-          _loopKind(loop),
-          wrapExpressionGraph(initializerGraph),
-          wrapExpressionGraph(conditionExpression),
-          wrapStatementGraph(bodyGraph),
-          wrapExpressionGraph(updateGraph),
-          conditionBlock.loopInformation.target,
-          conditionBlock.loopInformation.labels,
-          sourceInformationBuilder.buildLoop(loop));
-
-      startBlock.setBlockFlow(info, current);
-      loopInfo.loopBlockInformation = info;
-    } else {
-      // The body of the for/while loop always aborts, so there is no back edge.
-      // We turn the code into:
-      // if (condition) {
-      //   body;
-      // } else {
-      //   // We always create an empty else block to avoid critical edges.
-      // }
-      //
-      // If there is any break in the body, we attach a synthetic
-      // label to the if.
-      HBasicBlock elseBlock = addNewBlock();
-      open(elseBlock);
-      close(new HGoto());
-      // Pass the elseBlock as the branchBlock, because that's the block we go
-      // to just before leaving the 'loop'.
-      endLoop(conditionBlock, elseBlock, jumpHandler, savedLocals);
-
-      SubGraph elseGraph = new SubGraph(elseBlock, elseBlock);
-      // Remove the loop information attached to the header.
-      conditionBlock.loopInformation = null;
-
-      // Remove the [HLoopBranch] instruction and replace it with
-      // [HIf].
-      HInstruction condition = conditionEndBlock.last.inputs[0];
-      conditionEndBlock.addAtExit(new HIf(condition));
-      conditionEndBlock.addSuccessor(elseBlock);
-      conditionEndBlock.remove(conditionEndBlock.last);
-      HIfBlockInformation info = new HIfBlockInformation(
-          wrapExpressionGraph(conditionExpression),
-          wrapStatementGraph(bodyGraph),
-          wrapStatementGraph(elseGraph));
-
-      conditionEndBlock.setBlockFlow(info, current);
-      HIf ifBlock = conditionEndBlock.last;
-      ifBlock.blockInformation = conditionEndBlock.blockFlow;
-
-      // If the body has any break, attach a synthesized label to the
-      // if block.
-      if (jumpHandler.hasAnyBreak()) {
-        JumpTarget target = elements.getTargetDefinition(loop);
-        LabelDefinition label = target.addLabel(null, 'loop');
-        label.setBreakTarget();
-        SubGraph labelGraph = new SubGraph(conditionBlock, current);
-        HLabeledBlockInformation labelInfo = new HLabeledBlockInformation(
-            new HSubGraphBlockInformation(labelGraph),
-            <LabelDefinition>[label]);
-
-        conditionBlock.setBlockFlow(labelInfo, current);
-
-        jumpHandler.forEachBreak((HBreak breakInstruction, _) {
-          HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(label));
-          block.remove(breakInstruction);
-        });
-      }
-    }
-    jumpHandler.close();
-    loopNesting--;
-  }
-
   visitFor(ast.For node) {
     assert(isReachable);
     assert(node.body != null);
@@ -2254,7 +1763,8 @@ class SsaBuilder extends ast.Visitor
       visit(node.body);
     }
 
-    handleLoop(node, buildInitializer, buildCondition, buildUpdate, buildBody);
+    loopHandler.handleLoop(
+        node, buildInitializer, buildCondition, buildUpdate, buildBody);
   }
 
   visitWhile(ast.While node) {
@@ -2264,7 +1774,7 @@ class SsaBuilder extends ast.Visitor
       return popBoolified();
     }
 
-    handleLoop(node, () {}, buildCondition, () {}, () {
+    loopHandler.handleLoop(node, () {}, buildCondition, () {}, () {
       visit(node.body);
     });
   }
@@ -2273,8 +1783,8 @@ class SsaBuilder extends ast.Visitor
     assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     localsHandler.startLoop(node);
-    loopNesting++;
-    JumpHandler jumpHandler = beginLoopHeader(node);
+    loopDepth++;
+    JumpHandler jumpHandler = loopHandler.beginLoopHeader(node);
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
@@ -2361,7 +1871,8 @@ class SsaBuilder extends ast.Visitor
       close(new HGoto());
       conditionEndBlock.addSuccessor(conditionExitBlock);
 
-      endLoop(loopEntryBlock, conditionExitBlock, jumpHandler, localsHandler);
+      loopHandler.endLoop(
+          loopEntryBlock, conditionExitBlock, jumpHandler, localsHandler);
 
       loopEntryBlock.postProcessLoopHeader();
       SubGraph bodyGraph = new SubGraph(loopEntryBlock, bodyExitBlock);
@@ -2384,7 +1895,7 @@ class SsaBuilder extends ast.Visitor
       if (jumpHandler.hasAnyBreak()) {
         // Null branchBlock because the body of the do-while loop always aborts,
         // so we never get to the condition.
-        endLoop(loopEntryBlock, null, jumpHandler, localsHandler);
+        loopHandler.endLoop(loopEntryBlock, null, jumpHandler, localsHandler);
 
         // Since the body of the loop has a break, we attach a synthesized label
         // to the body.
@@ -2403,7 +1914,7 @@ class SsaBuilder extends ast.Visitor
       }
     }
     jumpHandler.close();
-    loopNesting--;
+    loopDepth--;
   }
 
   visitFunctionExpression(ast.FunctionExpression node) {
@@ -2428,7 +1939,7 @@ class SsaBuilder extends ast.Visitor
     });
 
     TypeMask type =
-        new TypeMask.nonNullExact(closureClassElement, compiler.world);
+        new TypeMask.nonNullExact(closureClassElement, compiler.closedWorld);
     push(new HCreate(closureClassElement, capturedVariables, type)
       ..sourceInformation = sourceInformationBuilder.buildCreate(node));
 
@@ -2704,7 +2215,8 @@ class SsaBuilder extends ast.Visitor
     // handler in the case of lists, because the constant handler
     // does not look at elements in the list.
     TypeMask type = TypeMaskFactory.inferredTypeForElement(field, compiler);
-    if (!type.containsAll(compiler.world) && !instruction.isConstantNull()) {
+    if (!type.containsAll(compiler.closedWorld) &&
+        !instruction.isConstantNull()) {
       // TODO(13429): The inferrer should know that an element
       // cannot be null.
       instruction.instructionType = type.nonNullable();
@@ -3048,7 +2560,8 @@ class SsaBuilder extends ast.Visitor
       add(representations);
       js.Name operator = backend.namer.operatorIs(element);
       HInstruction isFieldName = addConstantStringFromName(operator);
-      HInstruction asFieldName = compiler.world.hasAnyStrictSubtype(element)
+      HInstruction asFieldName = compiler.closedWorld
+              .hasAnyStrictSubtype(element)
           ? addConstantStringFromName(backend.namer.substitutionName(element))
           : graph.addConstantNull(compiler);
       List<HInstruction> inputs = <HInstruction>[
@@ -3072,7 +2585,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   HInstruction buildFunctionType(FunctionType type) {
-    type.accept(new TypeBuilder(compiler.world), this);
+    type.accept(new TypeBuilder(compiler.closedWorld), this);
     return pop();
   }
 
@@ -3688,8 +3201,7 @@ class SsaBuilder extends ast.Visitor
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
     Selector selector = elements.getSelector(node);
-    assert(invariant(
-        node, selector.applies(function.implementation, compiler.world),
+    assert(invariant(node, selector.applies(function.implementation, backend),
         message: "$selector does not apply to ${function.implementation}"));
     List<HInstruction> inputs = makeStaticArgumentList(
         selector.callStructure, node.arguments, function.implementation);
@@ -3854,10 +3366,11 @@ class SsaBuilder extends ast.Visitor
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
-    ClassWorld classWorld = compiler.world;
-    if (classWorld.isUsedAsMixin(cls)) return true;
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (closedWorld.isUsedAsMixin(cls)) return true;
 
-    return compiler.world.anyStrictSubclassOf(cls, (ClassElement subclass) {
+    return compiler.closedWorld.anyStrictSubclassOf(cls,
+        (ClassElement subclass) {
       return !rti.isTrivialSubstitution(subclass, cls);
     });
   }
@@ -4038,12 +3551,12 @@ class SsaBuilder extends ast.Visitor
               originalElement, send, compiler)) {
         isFixedList = true;
         TypeMask inferred = _inferredTypeOfNewList(send);
-        return inferred.containsAll(compiler.world)
+        return inferred.containsAll(compiler.closedWorld)
             ? backend.fixedArrayType
             : inferred;
       } else if (isGrowableListConstructorCall) {
         TypeMask inferred = _inferredTypeOfNewList(send);
-        return inferred.containsAll(compiler.world)
+        return inferred.containsAll(compiler.closedWorld)
             ? backend.extendableArrayType
             : inferred;
       } else if (Elements.isConstructorOfTypedArraySubclass(
@@ -4052,8 +3565,9 @@ class SsaBuilder extends ast.Visitor
         TypeMask inferred = _inferredTypeOfNewList(send);
         ClassElement cls = element.enclosingClass;
         assert(backend.isNative(cls.thisType.element));
-        return inferred.containsAll(compiler.world)
-            ? new TypeMask.nonNullExact(cls.thisType.element, compiler.world)
+        return inferred.containsAll(compiler.closedWorld)
+            ? new TypeMask.nonNullExact(
+                cls.thisType.element, compiler.closedWorld)
             : inferred;
       } else if (element.isGenerativeConstructor) {
         ClassElement cls = element.enclosingClass;
@@ -4062,7 +3576,7 @@ class SsaBuilder extends ast.Visitor
           return new TypeMask.nonNullEmpty();
         } else {
           return new TypeMask.nonNullExact(
-              cls.thisType.element, compiler.world);
+              cls.thisType.element, compiler.closedWorld);
         }
       } else {
         return TypeMaskFactory.inferredReturnTypeForElement(
@@ -4686,10 +4200,11 @@ class SsaBuilder extends ast.Visitor
     bool isOptimizableOperationOnIndexable(Selector selector, Element element) {
       bool isLength = selector.isGetter && selector.name == "length";
       if (isLength || selector.isIndex) {
-        return compiler.world.isSubtypeOf(
+        return compiler.closedWorld.isSubtypeOf(
             element.enclosingClass.declaration, helpers.jsIndexableClass);
       } else if (selector.isIndexSet) {
-        return compiler.world.isSubtypeOf(element.enclosingClass.declaration,
+        return compiler.closedWorld.isSubtypeOf(
+            element.enclosingClass.declaration,
             helpers.jsMutableIndexableClass);
       } else {
         return false;
@@ -4712,7 +4227,7 @@ class SsaBuilder extends ast.Visitor
       return false;
     }
 
-    Element element = compiler.world.locateSingleElement(selector, mask);
+    Element element = compiler.closedWorld.locateSingleElement(selector, mask);
     if (element != null &&
         !element.isField &&
         !(element.isGetter && selector.isCall) &&
@@ -4859,7 +4374,7 @@ class SsaBuilder extends ast.Visitor
       typeMask =
           TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
     }
-    bool targetCanThrow = !compiler.world.getCannotThrow(element);
+    bool targetCanThrow = !compiler.closedWorld.getCannotThrow(element);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     var instruction;
     if (backend.isJsInterop(element)) {
@@ -4874,7 +4389,8 @@ class SsaBuilder extends ast.Visitor
         instruction.instantiatedTypes =
             new List<DartType>.from(currentInlinedInstantiations);
       }
-      instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
+      instruction.sideEffects =
+          compiler.closedWorld.getSideEffectsOfElement(element);
     }
     if (location == null) {
       push(instruction);
@@ -4908,7 +4424,7 @@ class SsaBuilder extends ast.Visitor
         selector, inputs, type, sourceInformation,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
-        compiler.world.getSideEffectsOfSelector(selector, null);
+        compiler.closedWorld.getSideEffectsOfSelector(selector, null);
     return instruction;
   }
 
@@ -4938,7 +4454,7 @@ class SsaBuilder extends ast.Visitor
     void generateSuperSendSet() {
       Selector setterSelector = elements.getSelector(node);
       if (Elements.isUnresolved(element) ||
-          !setterSelector.applies(element, compiler.world)) {
+          !setterSelector.applies(element, compiler.backend)) {
         generateSuperNoSuchMethodSend(node, setterSelector, setterInputs);
         pop();
       } else {
@@ -5917,7 +5433,7 @@ class SsaBuilder extends ast.Visitor
     HInstruction awaited = pop();
     // TODO(herhut): Improve this type.
     push(new HAwait(awaited,
-        new TypeMask.subclass(coreClasses.objectClass, compiler.world)));
+        new TypeMask.subclass(coreClasses.objectClass, compiler.closedWorld)));
   }
 
   visitTypeAnnotation(ast.TypeAnnotation node) {
@@ -5977,7 +5493,9 @@ class SsaBuilder extends ast.Visitor
     }
 
     TypeMask type = _inferredTypeOfNewList(node);
-    if (!type.containsAll(compiler.world)) instruction.instructionType = type;
+    if (!type.containsAll(compiler.closedWorld)) {
+      instruction.instructionType = type;
+    }
     stack.add(instruction);
   }
 
@@ -6047,7 +5565,7 @@ class SsaBuilder extends ast.Visitor
    * a special "null handler" is returned.
    *
    * [isLoopJump] is [:true:] when the jump handler is for a loop. This is used
-   * to distinguish the synthetized loop created for a switch statement with
+   * to distinguish the synthesized loop created for a switch statement with
    * continue statements from simple switch statements.
    */
   JumpHandler createJumpHandler(ast.Statement node, {bool isLoopJump}) {
@@ -6081,8 +5599,10 @@ class SsaBuilder extends ast.Visitor
       TypeMask mask = inferenceResults.typeOfIteratorMoveNext(node, elements);
       pushInvokeDynamic(node, selector, mask, [streamIterator]);
       HInstruction future = pop();
-      push(new HAwait(future,
-          new TypeMask.subclass(coreClasses.objectClass, compiler.world)));
+      push(new HAwait(
+          future,
+          new TypeMask.subclass(
+              coreClasses.objectClass, compiler.closedWorld)));
       return popBoolified();
     }
 
@@ -6114,12 +5634,14 @@ class SsaBuilder extends ast.Visitor
     void buildUpdate() {}
 
     buildProtectedByFinally(() {
-      handleLoop(
+      loopHandler.handleLoop(
           node, buildInitializer, buildCondition, buildUpdate, buildBody);
     }, () {
       pushInvokeDynamic(node, Selectors.cancel, null, [streamIterator]);
-      push(new HAwait(pop(),
-          new TypeMask.subclass(coreClasses.objectClass, compiler.world)));
+      push(new HAwait(
+          pop(),
+          new TypeMask.subclass(
+              coreClasses.objectClass, compiler.closedWorld)));
       pop();
     });
   }
@@ -6137,11 +5659,11 @@ class SsaBuilder extends ast.Visitor
 
     TypeMask mask = inferenceResults.typeOfIterator(node, elements);
 
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     if (mask != null &&
-        mask.satisfies(helpers.jsIndexableClass, classWorld) &&
+        mask.satisfies(helpers.jsIndexableClass, closedWorld) &&
         // String is indexable but not iterable.
-        !mask.satisfies(helpers.jsStringClass, classWorld)) {
+        !mask.satisfies(helpers.jsStringClass, closedWorld)) {
       return buildSyncForInIndexable(node, mask);
     }
     buildSyncForInIterator(node);
@@ -6182,7 +5704,8 @@ class SsaBuilder extends ast.Visitor
       visit(node.body);
     }
 
-    handleLoop(node, buildInitializer, buildCondition, () {}, buildBody);
+    loopHandler.handleLoop(
+        node, buildInitializer, buildCondition, () {}, buildBody);
   }
 
   buildAssignLoopVariable(ast.ForIn node, HInstruction value) {
@@ -6301,7 +5824,8 @@ class SsaBuilder extends ast.Visitor
       localsHandler.updateLocal(indexVariable, addInstruction);
     }
 
-    handleLoop(node, buildInitializer, buildCondition, buildUpdate, buildBody);
+    loopHandler.handleLoop(
+        node, buildInitializer, buildCondition, buildUpdate, buildBody);
   }
 
   visitLabel(ast.Label node) {
@@ -6415,12 +5939,12 @@ class SsaBuilder extends ast.Visitor
     // The instruction type will always be a subtype of the mapLiteralClass, but
     // type inference might discover a more specific type, or find nothing (in
     // dart2js unit tests).
-    TypeMask mapType =
-        new TypeMask.nonNullSubtype(helpers.mapLiteralClass, compiler.world);
+    TypeMask mapType = new TypeMask.nonNullSubtype(
+        helpers.mapLiteralClass, compiler.closedWorld);
     TypeMask returnTypeMask =
         TypeMaskFactory.inferredReturnTypeForElement(constructor, compiler);
     TypeMask instructionType =
-        mapType.intersection(returnTypeMask, compiler.world);
+        mapType.intersection(returnTypeMask, compiler.closedWorld);
 
     addInlinedInstantiation(expectedType);
     pushInvokeStatic(node, constructor, inputs,
@@ -6645,7 +6169,7 @@ class SsaBuilder extends ast.Visitor
     }
 
     void buildLoop() {
-      handleLoop(node, () {}, buildCondition, () {}, buildSwitch);
+      loopHandler.handleLoop(node, () {}, buildCondition, () {}, buildSwitch);
     }
 
     if (hasDefault) {
@@ -7248,7 +6772,7 @@ class StringBuilderVisitor extends ast.Visitor {
     Selector selector = Selectors.toString_;
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(
         selector, expression.instructionType, compiler);
-    if (type.containsOnlyString(compiler.world)) {
+    if (type.containsOnlyString(compiler.closedWorld)) {
       builder.pushInvokeDynamic(node, selector, expression.instructionType,
           <HInstruction>[expression]);
       append(builder.pop());
@@ -7458,20 +6982,20 @@ class AstInliningState extends InliningState {
 }
 
 class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
-  final ClassWorld classWorld;
+  final ClosedWorld closedWorld;
 
-  TypeBuilder(this.classWorld);
+  TypeBuilder(this.closedWorld);
 
   void visit(DartType type, SsaBuilder builder) => type.accept(this, builder);
 
   void visitVoidType(VoidType type, SsaBuilder builder) {
     ClassElement cls = builder.backend.helpers.VoidRuntimeType;
-    builder.push(new HVoidType(type, new TypeMask.exact(cls, classWorld)));
+    builder.push(new HVoidType(type, new TypeMask.exact(cls, closedWorld)));
   }
 
   void visitTypeVariableType(TypeVariableType type, SsaBuilder builder) {
     ClassElement cls = builder.backend.helpers.RuntimeType;
-    TypeMask instructionType = new TypeMask.subclass(cls, classWorld);
+    TypeMask instructionType = new TypeMask.subclass(cls, closedWorld);
     if (!builder.sourceElement.enclosingElement.isClosure &&
         builder.sourceElement.isInstanceMember) {
       HInstruction receiver = builder.localsHandler.readThis();
@@ -7508,7 +7032,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
 
     ClassElement cls = builder.backend.helpers.RuntimeFunctionType;
     builder.push(
-        new HFunctionType(inputs, type, new TypeMask.exact(cls, classWorld)));
+        new HFunctionType(inputs, type, new TypeMask.exact(cls, closedWorld)));
   }
 
   void visitMalformedType(MalformedType type, SsaBuilder builder) {
@@ -7532,7 +7056,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
       cls = builder.backend.helpers.RuntimeTypeGeneric;
     }
     builder.push(
-        new HInterfaceType(inputs, type, new TypeMask.exact(cls, classWorld)));
+        new HInterfaceType(inputs, type, new TypeMask.exact(cls, closedWorld)));
   }
 
   void visitTypedefType(TypedefType type, SsaBuilder builder) {
@@ -7544,22 +7068,6 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   void visitDynamicType(DynamicType type, SsaBuilder builder) {
     JavaScriptBackend backend = builder.compiler.backend;
     ClassElement cls = backend.helpers.DynamicRuntimeType;
-    builder.push(new HDynamicType(type, new TypeMask.exact(cls, classWorld)));
+    builder.push(new HDynamicType(type, new TypeMask.exact(cls, closedWorld)));
   }
-}
-
-/// Determine what kind of loop [node] represents. The result is one of the
-/// kinds defined in [HLoopBlockInformation].
-int _loopKind(ast.Node node) => node.accept(const _LoopTypeVisitor());
-
-class _LoopTypeVisitor extends ast.Visitor {
-  const _LoopTypeVisitor();
-  int visitNode(ast.Node node) => HLoopBlockInformation.NOT_A_LOOP;
-  int visitWhile(ast.While node) => HLoopBlockInformation.WHILE_LOOP;
-  int visitFor(ast.For node) => HLoopBlockInformation.FOR_LOOP;
-  int visitDoWhile(ast.DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
-  int visitAsyncForIn(ast.AsyncForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
-  int visitSyncForIn(ast.SyncForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
-  int visitSwitchStatement(ast.SwitchStatement node) =>
-      HLoopBlockInformation.SWITCH_CONTINUE_LOOP;
 }

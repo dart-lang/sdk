@@ -20,9 +20,9 @@ namespace dart {
 namespace bin {
 
 EventHandlerImplementation::EventHandlerImplementation() {
-  mx_status_t status = mx_message_pipe_create(interrupt_handles_, 0);
+  mx_status_t status = mx_msgpipe_create(interrupt_handles_, 0);
   if (status != NO_ERROR) {
-    FATAL1("mx_message_pipe_create failed: %s\n", mx_strstatus(status));
+    FATAL1("mx_msgpipe_create failed: %s\n", mx_strstatus(status));
   }
 }
 
@@ -48,9 +48,9 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
   msg.data = data;
 
   mx_status_t status =
-    mx_message_write(interrupt_handles_[1], &msg, sizeof(msg), NULL, 0, 0);
+    mx_msgpipe_write(interrupt_handles_[1], &msg, sizeof(msg), NULL, 0, 0);
   if (status != NO_ERROR) {
-    FATAL1("mx_message_write failed: %s\n", mx_strstatus(status));
+    FATAL1("mx_msgpipe_write failed: %s\n", mx_strstatus(status));
   }
 }
 
@@ -60,7 +60,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
   uint32_t bytes = kInterruptMessageSize;
   mx_status_t status;
   while (true) {
-    status = mx_message_read(
+    status = mx_msgpipe_read(
         interrupt_handles_[0], &msg, &bytes, NULL, NULL, 0);
     if (status != NO_ERROR) {
       break;
@@ -77,7 +77,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
   // status == ERR_BAD_STATE when we try to read and there are no messages
   // available, so it is an error if we get here and status != ERR_BAD_STATE.
   if (status != ERR_BAD_STATE) {
-    FATAL1("mx_message_read failed: %s\n", mx_strstatus(status));
+    FATAL1("mx_msgpipe_read failed: %s\n", mx_strstatus(status));
   }
 }
 

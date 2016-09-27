@@ -37,6 +37,7 @@ class Deserializer;
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
   V(DebugStepCheck)                                                            \
+  V(UnlinkedCall)                                                              \
   V(MonomorphicMiss)                                                           \
   V(SingleTargetCall)                                                          \
   V(ICCallThroughFunction)                                                     \

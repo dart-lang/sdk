@@ -10,6 +10,7 @@ library analyzer.dart.ast.token;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show SimpleToken, TokenClass;
 
 /**
@@ -219,16 +220,13 @@ class Keyword {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Token {
+abstract class Token implements SyntacticEntity {
   /**
    * Initialize a newly created token to have the given [type] and [offset].
    */
   factory Token(TokenType type, int offset) = SimpleToken;
 
-  /**
-   * Return the offset from the beginning of the file to the character after the
-   * last character of the token.
-   */
+  @override
   int get end;
 
   /**
@@ -254,9 +252,7 @@ abstract class Token {
    */
   Keyword get keyword;
 
-  /**
-   * Return the number of characters in the node's source range.
-   */
+  @override
   int get length;
 
   /**
@@ -269,10 +265,7 @@ abstract class Token {
    */
   Token get next;
 
-  /**
-   * Return the offset from the beginning of the file to the first character in
-   * the token.
-   */
+  @override
   int get offset;
 
   /**

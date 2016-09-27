@@ -920,8 +920,7 @@ Future testPatchAndSelector() async {
       """,
       runCompiler: true,
       analyzeOnly: true);
-  World world = compiler.world;
-  world.populate();
+  ClosedWorld world = compiler.openWorld.closeWorld();
 
   ClassElement cls = ensure(
       compiler, "A", compiler.commonElements.coreLibrary.find,
@@ -943,7 +942,7 @@ Future testPatchAndSelector() async {
   TypeMask typeMask = new TypeMask.exact(cls, world);
   FunctionElement method = cls.implementation.lookupLocalMember('method');
   method.computeType(compiler.resolution);
-  Expect.isTrue(selector.applies(method, world));
+  Expect.isTrue(selector.applies(method, world.backend));
   Expect.isTrue(typeMask.canHit(method, selector, world));
 
   // Check that the declaration method in the declaration class is a target
@@ -953,7 +952,7 @@ Future testPatchAndSelector() async {
   typeMask = new TypeMask.exact(cls, world);
   method = cls.lookupLocalMember('clear');
   method.computeType(compiler.resolution);
-  Expect.isTrue(selector.applies(method, world));
+  Expect.isTrue(selector.applies(method, world.backend));
   Expect.isTrue(typeMask.canHit(method, selector, world));
 
   // Check that the declaration method in the declaration class is a target
@@ -961,7 +960,7 @@ Future testPatchAndSelector() async {
   cls = ensure(compiler, "B", compiler.commonElements.coreLibrary.find);
   cls.ensureResolved(compiler.resolution);
   typeMask = new TypeMask.exact(cls, world);
-  Expect.isTrue(selector.applies(method, world));
+  Expect.isTrue(selector.applies(method, world.backend));
   Expect.isTrue(typeMask.canHit(method, selector, world));
 }
 

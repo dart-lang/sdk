@@ -40,7 +40,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -864,12 +863,11 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 }
 
 /**
- * The enumeration `ElementKind` defines the various kinds of elements in the
- * element model.
+ * The kind of elements in the element model.
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ElementKind extends Enum<ElementKind> {
+class ElementKind implements Comparable<ElementKind> {
   static const ElementKind CLASS = const ElementKind('CLASS', 0, "class");
 
   static const ElementKind COMPILATION_UNIT =
@@ -954,6 +952,16 @@ class ElementKind extends Enum<ElementKind> {
   ];
 
   /**
+   * The name of this element kind.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the element kind.
+   */
+  final int ordinal;
+
+  /**
    * The name displayed in the UI for this kind of element.
    */
   final String displayName;
@@ -961,8 +969,16 @@ class ElementKind extends Enum<ElementKind> {
   /**
    * Initialize a newly created element kind to have the given [displayName].
    */
-  const ElementKind(String name, int ordinal, this.displayName)
-      : super(name, ordinal);
+  const ElementKind(this.name, this.ordinal, this.displayName);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(ElementKind other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 
   /**
    * Return the kind of the given [element], or [ERROR] if the element is

@@ -240,7 +240,8 @@ bool checkSetEquivalence(var object1, var object2, String property,
   Set remaining = computeSetDifference(set1, set2, common, unfound,
       sameElement: sameElement, checkElements: onSameElement);
   if (unfound.isNotEmpty || remaining.isNotEmpty) {
-    String message = "Set mismatch for `$property` on $object1 vs $object2: \n"
+    String message = "Set mismatch for `$property` on\n"
+        "$object1\n vs\n$object2:\n"
         "Common:\n ${common.join('\n ')}\n"
         "Unfound:\n ${unfound.join('\n ')}\n"
         "Extra: \n ${remaining.join('\n ')}";

@@ -892,7 +892,7 @@ abstract class ErrorCode {
 /**
  * The properties that can be associated with an [AnalysisError].
  */
-class ErrorProperty<V> extends Enum<ErrorProperty> {
+class ErrorProperty<V> implements Comparable<ErrorProperty> {
   /**
    * A property whose value is a list of [FieldElement]s that are final, but
    * not initialized by a constructor.
@@ -921,13 +921,32 @@ class ErrorProperty<V> extends Enum<ErrorProperty> {
     UNIMPLEMENTED_METHODS
   ];
 
-  const ErrorProperty(String name, int ordinal) : super(name, ordinal);
+  /**
+   * The name of this property.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the property.
+   */
+  final int ordinal;
+
+  const ErrorProperty(this.name, this.ordinal);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(ErrorProperty other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }
 
 /**
  * The severity of an [ErrorCode].
  */
-class ErrorSeverity extends Enum<ErrorSeverity> {
+class ErrorSeverity implements Comparable<ErrorSeverity> {
   /**
    * The severity representing a non-error. This is never used for any error
    * code, but is useful for clients.
@@ -955,6 +974,16 @@ class ErrorSeverity extends Enum<ErrorSeverity> {
   static const List<ErrorSeverity> values = const [NONE, INFO, WARNING, ERROR];
 
   /**
+   * The name of this error code.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the error code.
+   */
+  final int ordinal;
+
+  /**
    * The name of the severity used when producing machine output.
    */
   final String machineCode;
@@ -966,26 +995,30 @@ class ErrorSeverity extends Enum<ErrorSeverity> {
 
   /**
    * Initialize a newly created severity with the given names.
-   *
-   * Parameters:
-   * 0: the name of the severity used when producing machine output
-   * 1: the name of the severity used when producing readable output
    */
   const ErrorSeverity(
-      String name, int ordinal, this.machineCode, this.displayName)
-      : super(name, ordinal);
+      this.name, this.ordinal, this.machineCode, this.displayName);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(ErrorSeverity other) => ordinal - other.ordinal;
 
   /**
    * Return the severity constant that represents the greatest severity.
    */
   ErrorSeverity max(ErrorSeverity severity) =>
       this.ordinal >= severity.ordinal ? this : severity;
+
+  @override
+  String toString() => name;
 }
 
 /**
  * The type of an [ErrorCode].
  */
-class ErrorType extends Enum<ErrorType> {
+class ErrorType implements Comparable<ErrorType> {
   /**
    * Task (todo) comments in user code.
    */
@@ -1052,6 +1085,16 @@ class ErrorType extends Enum<ErrorType> {
   ];
 
   /**
+   * The name of this error type.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the error type.
+   */
+  final int ordinal;
+
+  /**
    * The severity of this type of error.
    */
   final ErrorSeverity severity;
@@ -1060,8 +1103,16 @@ class ErrorType extends Enum<ErrorType> {
    * Initialize a newly created error type to have the given [name] and
    * [severity].
    */
-  const ErrorType(String name, int ordinal, this.severity)
-      : super(name, ordinal);
+  const ErrorType(this.name, this.ordinal, this.severity);
 
   String get displayName => name.toLowerCase().replaceAll('_', ' ');
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(ErrorType other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }

@@ -18,7 +18,7 @@ import '../universe/universe.dart'
         UniverseSelectorConstraints,
         SelectorConstraintsStrategy;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
+import '../world.dart' show ClassWorld, ClosedWorld;
 import 'abstract_value_domain.dart' show AbstractValue;
 
 part 'container_type_mask.dart';
@@ -31,14 +31,13 @@ part 'union_type_mask.dart';
 part 'value_type_mask.dart';
 
 class CommonMasks {
-  final ClassWorld classWorld;
   // TODO(sigmund): once we split out the backend common elements, depend
   // directly on those instead.
   final Compiler compiler;
 
-  CommonMasks(Compiler compiler)
-      : this.classWorld = compiler.world,
-        compiler = compiler;
+  CommonMasks(this.compiler);
+
+  ClassWorld get classWorld => compiler.closedWorld;
 
   TypeMask _dynamicType;
   TypeMask _nonNullType;
@@ -64,10 +63,10 @@ class CommonMasks {
   TypeMask _asyncStarStreamType;
 
   TypeMask get dynamicType => _dynamicType ??=
-      new TypeMask.subclass(classWorld.objectClass, classWorld);
+      new TypeMask.subclass(classWorld.coreClasses.objectClass, classWorld);
 
-  TypeMask get nonNullType => _nonNullType ??=
-      new TypeMask.nonNullSubclass(classWorld.objectClass, classWorld);
+  TypeMask get nonNullType => _nonNullType ??= new TypeMask.nonNullSubclass(
+      classWorld.coreClasses.objectClass, classWorld);
 
   TypeMask get intType => _intType ??= new TypeMask.nonNullSubclass(
       compiler.backend.intImplementation, classWorld);

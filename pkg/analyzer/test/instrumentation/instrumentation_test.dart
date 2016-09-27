@@ -165,6 +165,9 @@ class TestInstrumentationServer implements InstrumentationServer {
   StringBuffer priorityChannel = new StringBuffer();
 
   @override
+  String get sessionId => '';
+
+  @override
   void log(String message) {
     normalChannel.writeln(message);
   }

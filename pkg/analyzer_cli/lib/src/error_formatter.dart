@@ -4,8 +4,8 @@
 
 library analyzer_cli.src.error_formatter;
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_cli/src/options.dart';
 
@@ -171,6 +171,7 @@ class ErrorFormatter {
     }
     out.writeln();
   }
+
   void formatErrors(List<AnalysisErrorInfo> errorInfos) {
     stats.unfilteredCount += errorInfos.length;
 

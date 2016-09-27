@@ -141,6 +141,8 @@ class EventListener extends progress.EventListener{
 }
 
 void main(List<String> arguments) {
+  // This script is in [sdk]/tests/standalone/io.
+  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   // Run the test_runner_test if there are no command-line options.
   // Otherwise, run one of the component tests that always pass,
   // fail, or timeout.

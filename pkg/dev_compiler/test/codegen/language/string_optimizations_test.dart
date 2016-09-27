@@ -21,7 +21,7 @@ bar({path}) {
 }
 
 main() {
-  var a = [foo(path: '42'), foo(), 42, bar(path: '54')];
+  var a = <Object>[foo(path: '42'), foo(), 42, bar(path: '54')];
   Expect.isTrue(a[1] is String);
   Expect.throws(() => bar().concat('54'), (e) => e is NoSuchMethodError);
 }

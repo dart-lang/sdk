@@ -10,6 +10,7 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/element/type.dart';
 
+const String _implicitAssignmentCast = '_implicitAssignmentCast';
 const String _implicitCast = '_implicitCast';
 const String _hasImplicitCasts = '_hasImplicitCasts';
 const String _isDynamicInvoke = '_isDynamicInvoke';
@@ -35,6 +36,17 @@ DartType getImplicitCast(Expression node) {
 /// Sets the result of [getImplicitCast] for this node.
 void setImplicitCast(Expression node, DartType type) {
   node.setProperty(_implicitCast, type);
+}
+
+/// If this op-assign has an implicit cast on the assignment, returns the type
+/// it is coerced to, otherwise returns null.
+DartType getImplicitAssignmentCast(Expression node) {
+  return node.getProperty/*<DartType>*/(_implicitAssignmentCast);
+}
+
+/// Sets the result of [getImplicitAssignmentCast] for this node.
+void setImplicitAssignmentCast(Expression node, DartType type) {
+  node.setProperty(_implicitAssignmentCast, type);
 }
 
 /// True if this node is a dynamic operation that requires dispatch and/or

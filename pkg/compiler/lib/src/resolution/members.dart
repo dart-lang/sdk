@@ -4157,9 +4157,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult visitStringInterpolation(StringInterpolation node) {
     // TODO(johnniwinther): This should be a consequence of the registration
     // of [registerStringInterpolation].
-    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.stringType));
     registry.registerFeature(Feature.STRING_INTERPOLATION);
-    registerImplicitInvocation(Selectors.toString_);
 
     bool isValidAsConstant = true;
     List<ConstantExpression> parts = <ConstantExpression>[];
@@ -4242,10 +4240,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     registry.registerTargetOf(node, target);
     return const NoneResult();
-  }
-
-  registerImplicitInvocation(Selector selector) {
-    registry.registerDynamicUse(new DynamicUse(selector, null));
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {

@@ -2204,6 +2204,19 @@ class CompileTimeErrorCode extends ErrorCode {
  */
 class HintCode extends ErrorCode {
   /**
+   * When an abstract supertype member is references with `super` as its target,
+   * it cannot be overridden, so it is always a runtime error.
+   *
+   * Parameters:
+   * 0: the display name for the kind of the referenced element
+   * 1: the name of the referenced element
+   */
+  static const HintCode ABSTRACT_SUPER_MEMBER_REFERENCE = const HintCode(
+      'ABSTRACT_SUPER_MEMBER_REFERENCE',
+      "The {0} '{1}' is always abstract in the supertype.",
+      null);
+
+  /**
    * This hint is generated anywhere where the
    * [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE] would have been generated,
    * if we used propagated information for the warnings.
@@ -4667,6 +4680,9 @@ class StrongModeCode extends ErrorCode {
 
   static const StrongModeCode DOWN_CAST_IMPLICIT = const StrongModeCode(
       ErrorType.HINT, 'DOWN_CAST_IMPLICIT', _implicitCastMessage);
+
+  static const StrongModeCode DOWN_CAST_IMPLICIT_ASSIGN = const StrongModeCode(
+      ErrorType.HINT, 'DOWN_CAST_IMPLICIT_ASSIGN', _implicitCastMessage);
 
   static const StrongModeCode DYNAMIC_CAST = const StrongModeCode(
       ErrorType.HINT, 'DYNAMIC_CAST', _implicitCastMessage);

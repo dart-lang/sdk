@@ -70,6 +70,12 @@
   static bool _listSupported() native "NetworkInterface_ListSupported";
 }
 
+void _throwOnBadPort(int port) {
+  if ((port == null) || (port < 0) || (port > 0xFFFF)) {
+    throw new ArgumentError("Invalid port $port");
+  }
+}
+
 class _InternetAddress implements InternetAddress {
   static const int _ADDRESS_LOOPBACK_IP_V4 = 0;
   static const int _ADDRESS_LOOPBACK_IP_V6 = 1;
@@ -387,6 +393,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Future<_NativeSocket> connect(host, int port, sourceAddress) {
+    _throwOnBadPort(port);
     if (sourceAddress != null && sourceAddress is! _InternetAddress) {
       if (sourceAddress is String) {
         sourceAddress = new InternetAddress(sourceAddress);
@@ -488,6 +495,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                                     int backlog,
                                     bool v6Only,
                                     bool shared) {
+    _throwOnBadPort(port);
     return new Future.value(host)
         .then((host) {
           if (host is _InternetAddress) return host;
@@ -526,6 +534,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   static Future<_NativeSocket> bindDatagram(
       host, int port, bool reuseAddress) {
+    _throwOnBadPort(port);
     return new Future.value(host)
         .then((host) {
           if (host is _InternetAddress) return host;
@@ -676,6 +685,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   int send(List<int> buffer, int offset, int bytes,
            InternetAddress address, int port) {
+    _throwOnBadPort(port);
     if (isClosing || isClosed) return 0;
     _BufferAndStart bufferAndStart =
         _ensureFastAndSerializableByteData(
@@ -1116,8 +1126,7 @@ class _RawServerSocket extends Stream<RawSocket>
                                        int backlog,
                                        bool v6Only,
                                        bool shared) {
-    if (port < 0 || port > 0xFFFF)
-      throw new ArgumentError("Invalid port $port");
+    _throwOnBadPort(port);
     if (backlog < 0) throw new ArgumentError("Invalid backlog $backlog");
     return _NativeSocket.bind(address, port, backlog, v6Only, shared)
         .then((socket) => new _RawServerSocket(socket, v6Only));
@@ -1762,8 +1771,7 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
 
   static Future<RawDatagramSocket> bind(
       host, int port, bool reuseAddress) {
-    if (port < 0 || port > 0xffff)
-      throw new ArgumentError("Invalid port $port");
+    _throwOnBadPort(port);
     return _NativeSocket.bindDatagram(host, port, reuseAddress)
         .then((socket) => new _RawDatagramSocket(socket));
   }

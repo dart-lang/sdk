@@ -259,6 +259,8 @@ class Thread : public BaseThread {
   // The topmost zone used for allocation in this thread.
   Zone* zone() const { return zone_; }
 
+  bool ZoneIsOwnedByThread(Zone* zone) const;
+
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
   void set_api_reusable_scope(ApiLocalScope* value) {

@@ -9,7 +9,7 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 
 vars.update({
   "dartium_chromium_commit": "a8ead7ec922730667be7112de7ec40abbfd5f5aa",
-  "dartium_webkit_commit": "1a294dcc3d47ae5e5ce58777df2e1b701b2b2b60",
+  "dartium_webkit_commit": "b32a113c16f0a46b0dd747f80f0ec78e8db3512b",
   "chromium_base_revision": "338390",
 
   # We use mirrors of all github repos to guarantee reproducibility and
@@ -40,7 +40,7 @@ vars.update({
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
-  "kernel_rev": "@9677d68402ea15d0eca6430d64f631bb3e505499",
+  "kernel_rev": "@449803b82e850a41148e636db1a6e4a848284aed",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "matcher_tag": "@0.12.0",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",

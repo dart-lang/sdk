@@ -21,7 +21,7 @@ import '../types/types.dart' show TypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 
 /**
  * The interface [InferrerVisitor] will use when working on types.
@@ -950,8 +950,8 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   T get thisType {
     if (_thisType != null) return _thisType;
     ClassElement cls = outermostElement.enclosingClass;
-    ClassWorld classWorld = compiler.world;
-    if (classWorld.isUsedAsMixin(cls)) {
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (closedWorld.isUsedAsMixin(cls)) {
       return _thisType = types.nonNullSubtype(cls);
     } else {
       return _thisType = types.nonNullSubclass(cls);

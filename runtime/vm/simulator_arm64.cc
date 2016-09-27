@@ -3604,6 +3604,14 @@ void Simulator::Longjmp(uword pc,
   ASSERT(raw_exception != Object::null());
   set_register(NULL, kExceptionObjectReg, bit_cast<int64_t>(raw_exception));
   set_register(NULL, kStackTraceObjectReg, bit_cast<int64_t>(raw_stacktrace));
+  // Restore pool pointer.
+  int64_t code = *reinterpret_cast<int64_t*>(
+      fp + kPcMarkerSlotFromFp * kWordSize);
+  int64_t pp = *reinterpret_cast<int64_t*>(
+      code + Code::object_pool_offset() - kHeapObjectTag);
+  pp -= kHeapObjectTag;  // In the PP register, the pool pointer is untagged.
+  set_register(NULL, CODE_REG, code);
+  set_register(NULL, PP, pp);
   buf->Longjmp();
 }
 

@@ -24,6 +24,7 @@ import '../elements/elements.dart'
         FunctionElement,
         ImportElement,
         LibraryElement,
+        LocalFunctionElement,
         MixinApplicationElement,
         TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousFieldElementX;
@@ -49,6 +50,9 @@ class Kernel {
 
   final Map<FunctionElement, ir.Member> functions =
       <FunctionElement, ir.Member>{};
+
+  final Map<LocalFunctionElement, ir.Node> localFunctions =
+      <LocalFunctionElement, ir.Node>{};
 
   final Map<FieldElement, ir.Field> fields = <FieldElement, ir.Field>{};
 
@@ -206,7 +210,8 @@ class Kernel {
           }
         });
         classNode.typeParameters.addAll(typeVariablesToIr(cls.typeVariables));
-        for (ir.InterfaceType interface in typesToIr(cls.interfaces.toList())) {
+        for (ir.InterfaceType interface
+            in typesToIr(cls.interfaces.reverse().toList())) {
           classNode.implementedTypes.add(interface);
         }
       });
@@ -378,6 +383,7 @@ class Kernel {
           procedure.kind = irFunction.kind;
         }
         endFactoryScope(function);
+        member.transformerFlags = visitor.transformerFlags;
         assert(() {
           visitor.locals.forEach(checkMember);
           return true;
@@ -437,9 +443,7 @@ class Kernel {
           isConst: field.isConst);
       addWork(field, () {
         setParent(fieldNode, field);
-        if (!field.isMalformed &&
-            !field.isInstanceMember &&
-            field.initializer != null) {
+        if (!field.isMalformed && field.initializer != null) {
           KernelVisitor visitor =
               new KernelVisitor(field, field.treeElements, this);
           fieldNode.initializer = visitor.buildInitializer()

@@ -336,7 +336,21 @@ class ComplexParserTest extends ParserTestCase {
         BinaryExpression, expression.condition);
   }
 
-  void test_conditionalExpression_precedence_nullableType() {
+  void test_conditionalExpression_precedence_nullableType_as() {
+    enableNnbd = true;
+    Expression expression = parseExpression('x as String ? (x + y) : z');
+    expect(expression, isNotNull);
+    expect(expression, new isInstanceOf<ConditionalExpression>());
+    ConditionalExpression conditional = expression;
+    Expression condition = conditional.condition;
+    expect(condition, new isInstanceOf<AsExpression>());
+    Expression thenExpression = conditional.thenExpression;
+    expect(thenExpression, new isInstanceOf<ParenthesizedExpression>());
+    Expression elseExpression = conditional.elseExpression;
+    expect(elseExpression, new isInstanceOf<SimpleIdentifier>());
+  }
+
+  void test_conditionalExpression_precedence_nullableType_is() {
     enableNnbd = true;
     Expression expression = parseExpression('x is String ? (x + y) : z');
     expect(expression, isNotNull);
@@ -573,114 +587,6 @@ void f() {
  */
 @reflectiveTest
 class ErrorParserTest extends ParserTestCase {
-  void fail_expectedListOrMapLiteral() {
-    // It isn't clear that this test can ever pass. The parser is currently
-    // create a synthetic list literal in this case, but isSynthetic() isn't
-    // overridden for ListLiteral. The problem is that the synthetic list
-    // literals that are being created are not always zero length (because they
-    // could have type parameters), which violates the contract of
-    // isSynthetic().
-    createParser('1');
-    TypedLiteral literal = parser.parseListOrMapLiteral(null);
-    expectNotNullIfNoErrors(literal);
-    listener
-        .assertErrorsWithCodes([ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL]);
-    expect(literal.isSynthetic, isTrue);
-  }
-
-  void fail_illegalAssignmentToNonAssignable_superAssigned() {
-    // TODO(brianwilkerson) When this test starts to pass, remove the test
-    // test_illegalAssignmentToNonAssignable_superAssigned.
-    parseExpression(
-        "super = x;", [ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE]);
-  }
-
-  void fail_invalidCommentReference__new_nonIdentifier() {
-    // This test fails because the method parseCommentReference returns null.
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('new 42', 0);
-    expectNotNullIfNoErrors(reference);
-    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_COMMENT_REFERENCE]);
-  }
-
-  void fail_invalidCommentReference__new_tooMuch() {
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('new a.b.c.d', 0);
-    expectNotNullIfNoErrors(reference);
-    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_COMMENT_REFERENCE]);
-  }
-
-  void fail_invalidCommentReference__nonNew_nonIdentifier() {
-    // This test fails because the method parseCommentReference returns null.
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('42', 0);
-    expectNotNullIfNoErrors(reference);
-    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_COMMENT_REFERENCE]);
-  }
-
-  void fail_invalidCommentReference__nonNew_tooMuch() {
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('a.b.c.d', 0);
-    expectNotNullIfNoErrors(reference);
-    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_COMMENT_REFERENCE]);
-  }
-
-  void fail_missingClosingParenthesis() {
-    // It is possible that it is not possible to generate this error (that it's
-    // being reported in code that cannot actually be reached), but that hasn't
-    // been proven yet.
-    createParser('(int a, int b ;');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener
-        .assertErrorsWithCodes([ParserErrorCode.MISSING_CLOSING_PARENTHESIS]);
-  }
-
-  void fail_missingFunctionParameters_local_nonVoid_block() {
-    // The parser does not recognize this as a function declaration, so it tries
-    // to parse it as an expression statement. It isn't clear what the best
-    // error message is in this case.
-    ParserTestCase.parseStatement(
-        "int f { return x;}", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
-  }
-
-  void fail_missingFunctionParameters_local_nonVoid_expression() {
-    // The parser does not recognize this as a function declaration, so it tries
-    // to parse it as an expression statement. It isn't clear what the best
-    // error message is in this case.
-    ParserTestCase.parseStatement(
-        "int f => x;", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
-  }
-
-  void fail_namedFunctionExpression() {
-    createParser('f() {}');
-    Expression expression = parser.parsePrimaryExpression();
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrorsWithCodes([ParserErrorCode.NAMED_FUNCTION_EXPRESSION]);
-    expect(expression, new isInstanceOf<FunctionExpression>());
-  }
-
-  void fail_unexpectedToken_invalidPostfixExpression() {
-    // Note: this might not be the right error to produce, but some error should
-    // be produced
-    parseExpression("f()++", [ParserErrorCode.UNEXPECTED_TOKEN]);
-  }
-
-  void fail_varAndType_local() {
-    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
-    // this would be a better error message.
-    ParserTestCase.parseStatement("var int x;", [ParserErrorCode.VAR_AND_TYPE]);
-  }
-
-  void fail_varAndType_parameter() {
-    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
-    // this would be a better error message.
-    createParser('(var int x)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes([ParserErrorCode.VAR_AND_TYPE]);
-  }
-
   void test_abstractClassMember_constructor() {
     createParser('abstract C.c();');
     ClassMember member = parser.parseClassMember('C');
@@ -1041,42 +947,6 @@ class ErrorParserTest extends ParserTestCase {
     listener.assertErrorsWithCodes([ParserErrorCode.EMPTY_ENUM_BODY]);
   }
 
-  void test_enableAsync_false_1() {
-    parseAsync = false;
-    createParser('foo() async {}');
-    FunctionDeclarationStatement statement =
-        parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.ASYNC_NOT_SUPPORTED]);
-    FunctionExpression expr = statement.functionDeclaration.functionExpression;
-    expect(expr.body.isAsynchronous, isTrue);
-    expect(expr.body.isGenerator, isFalse);
-  }
-
-  void test_enableAsync_false_2() {
-    parseAsync = false;
-    createParser('foo() async => 0;');
-    FunctionDeclarationStatement statement =
-        parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.ASYNC_NOT_SUPPORTED]);
-    FunctionExpression expr = statement.functionDeclaration.functionExpression;
-    expect(expr.body.isAsynchronous, isTrue);
-    expect(expr.body.isGenerator, isFalse);
-  }
-
-  void test_enableAsync_false_3() {
-    parseAsync = false;
-    createParser('foo() sync* {}');
-    FunctionDeclarationStatement statement =
-        parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.ASYNC_NOT_SUPPORTED]);
-    FunctionExpression expr = statement.functionDeclaration.functionExpression;
-    expect(expr.body.isAsynchronous, isFalse);
-    expect(expr.body.isGenerator, isTrue);
-  }
-
   void test_enumInClass() {
     ParserTestCase.parseCompilationUnit(
         r'''
@@ -1181,6 +1051,22 @@ class Foo {
     expectNotNullIfNoErrors(literal);
     listener.assertErrors(
         [new AnalysisError(null, 2, 1, ParserErrorCode.MISSING_IDENTIFIER)]);
+  }
+
+  @failingTest
+  void test_expectedListOrMapLiteral() {
+    // It isn't clear that this test can ever pass. The parser is currently
+    // create a synthetic list literal in this case, but isSynthetic() isn't
+    // overridden for ListLiteral. The problem is that the synthetic list
+    // literals that are being created are not always zero length (because they
+    // could have type parameters), which violates the contract of
+    // isSynthetic().
+    createParser('1');
+    TypedLiteral literal = parser.parseListOrMapLiteral(null);
+    expectNotNullIfNoErrors(literal);
+    listener
+        .assertErrorsWithCodes([ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL]);
+    expect(literal.isSynthetic, isTrue);
   }
 
   void test_expectedStringLiteral() {
@@ -1532,7 +1418,7 @@ class Foo {
 
   void test_illegalAssignmentToNonAssignable_superAssigned() {
     // TODO(brianwilkerson) When the test
-    // fail_illegalAssignmentToNonAssignable_superAssigned starts to pass,
+    // test_illegalAssignmentToNonAssignable_superAssigned_failing starts to pass,
     // remove this test (there should only be one error generated, but we're
     // keeping this test until that time so that we can catch other forms of
     // regressions).
@@ -1540,6 +1426,14 @@ class Foo {
       ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
       ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
     ]);
+  }
+
+  @failingTest
+  void test_illegalAssignmentToNonAssignable_superAssigned_failing() {
+    // TODO(brianwilkerson) When this test starts to pass, remove the test
+    // test_illegalAssignmentToNonAssignable_superAssigned.
+    parseExpression(
+        "super = x;", [ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE]);
   }
 
   void test_implementsBeforeExtends() {
@@ -1574,10 +1468,44 @@ class Foo {
   }
 
   void test_invalidCodePoint() {
-    createParser("'\\uD900'");
+    createParser("'\\u{110000}'");
     StringLiteral literal = parser.parseStringLiteral();
     expectNotNullIfNoErrors(literal);
     listener.assertErrorsWithCodes([ParserErrorCode.INVALID_CODE_POINT]);
+  }
+
+  @failingTest
+  void test_invalidCommentReference__new_nonIdentifier() {
+    // This test fails because the method parseCommentReference returns null.
+    createParser('');
+    CommentReference reference = parser.parseCommentReference('new 42', 0);
+    expectNotNullIfNoErrors(reference);
+    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_COMMENT_REFERENCE]);
+  }
+
+  @failingTest
+  void test_invalidCommentReference__new_tooMuch() {
+    createParser('');
+    CommentReference reference = parser.parseCommentReference('new a.b.c.d', 0);
+    expectNotNullIfNoErrors(reference);
+    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_COMMENT_REFERENCE]);
+  }
+
+  @failingTest
+  void test_invalidCommentReference__nonNew_nonIdentifier() {
+    // This test fails because the method parseCommentReference returns null.
+    createParser('');
+    CommentReference reference = parser.parseCommentReference('42', 0);
+    expectNotNullIfNoErrors(reference);
+    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_COMMENT_REFERENCE]);
+  }
+
+  @failingTest
+  void test_invalidCommentReference__nonNew_tooMuch() {
+    createParser('');
+    CommentReference reference = parser.parseCommentReference('a.b.c.d', 0);
+    expectNotNullIfNoErrors(reference);
+    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_COMMENT_REFERENCE]);
   }
 
   void test_invalidHexEscape_invalidDigit() {
@@ -1860,6 +1788,18 @@ class Foo {
         "class A class B {}", [ParserErrorCode.MISSING_CLASS_BODY]);
   }
 
+  @failingTest
+  void test_missingClosingParenthesis() {
+    // It is possible that it is not possible to generate this error (that it's
+    // being reported in code that cannot actually be reached), but that hasn't
+    // been proven yet.
+    createParser('(int a, int b ;');
+    FormalParameterList list = parser.parseFormalParameterList();
+    expectNotNullIfNoErrors(list);
+    listener
+        .assertErrorsWithCodes([ParserErrorCode.MISSING_CLOSING_PARENTHESIS]);
+  }
+
   void test_missingConstFinalVarOrType_static() {
     ParserTestCase.parseCompilationUnit("class A { static f; }",
         [ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
@@ -1911,6 +1851,24 @@ class Foo {
         false, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     expectNotNullIfNoErrors(functionBody);
     listener.assertErrorsWithCodes([ParserErrorCode.MISSING_FUNCTION_BODY]);
+  }
+
+  @failingTest
+  void test_missingFunctionParameters_local_nonVoid_block() {
+    // The parser does not recognize this as a function declaration, so it tries
+    // to parse it as an expression statement. It isn't clear what the best
+    // error message is in this case.
+    ParserTestCase.parseStatement(
+        "int f { return x;}", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
+  }
+
+  @failingTest
+  void test_missingFunctionParameters_local_nonVoid_expression() {
+    // The parser does not recognize this as a function declaration, so it tries
+    // to parse it as an expression statement. It isn't clear what the best
+    // error message is in this case.
+    ParserTestCase.parseStatement(
+        "int f => x;", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
   }
 
   void test_missingFunctionParameters_local_void_block() {
@@ -2191,6 +2149,15 @@ class Foo {
         [ParserErrorCode.MULTIPLE_WITH_CLAUSES]);
   }
 
+  @failingTest
+  void test_namedFunctionExpression() {
+    createParser('f() {}');
+    Expression expression = parser.parsePrimaryExpression();
+    expectNotNullIfNoErrors(expression);
+    listener.assertErrorsWithCodes([ParserErrorCode.NAMED_FUNCTION_EXPRESSION]);
+    expect(expression, new isInstanceOf<FunctionExpression>());
+  }
+
   void test_namedParameterOutsideGroup() {
     createParser('(a, b : 0)');
     FormalParameterList list = parser.parseFormalParameterList();
@@ -2241,6 +2208,39 @@ class Foo {
     expectNotNullIfNoErrors(member);
     listener
         .assertErrorsWithCodes([ParserErrorCode.NON_USER_DEFINABLE_OPERATOR]);
+  }
+
+  void test_nullableTypeInExtends() {
+    enableNnbd = true;
+    createParser('extends B?');
+    ExtendsClause clause = parser.parseExtendsClause();
+    expectNotNullIfNoErrors(clause);
+    listener.assertErrorsWithCodes([ParserErrorCode.NULLABLE_TYPE_IN_EXTENDS]);
+  }
+
+  void test_nullableTypeInImplements() {
+    enableNnbd = true;
+    createParser('implements I?');
+    ImplementsClause clause = parser.parseImplementsClause();
+    expectNotNullIfNoErrors(clause);
+    listener
+        .assertErrorsWithCodes([ParserErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS]);
+  }
+
+  void test_nullableTypeInWith() {
+    enableNnbd = true;
+    createParser('with M?');
+    WithClause clause = parser.parseWithClause();
+    expectNotNullIfNoErrors(clause);
+    listener.assertErrorsWithCodes([ParserErrorCode.NULLABLE_TYPE_IN_WITH]);
+  }
+
+  void test_nullableTypeParameter() {
+    enableNnbd = true;
+    createParser('T?');
+    TypeParameter parameter = parser.parseTypeParameter();
+    expectNotNullIfNoErrors(parameter);
+    listener.assertErrorsWithCodes([ParserErrorCode.NULLABLE_TYPE_PARAMETER]);
   }
 
   void test_optionalAfterNormalParameters_named() {
@@ -2534,6 +2534,13 @@ m() {
         "String s = (null));", [ParserErrorCode.UNEXPECTED_TOKEN]);
   }
 
+  @failingTest
+  void test_unexpectedToken_invalidPostfixExpression() {
+    // Note: this might not be the right error to produce, but some error should
+    // be produced
+    parseExpression("f()++", [ParserErrorCode.UNEXPECTED_TOKEN]);
+  }
+
   void test_unexpectedToken_returnInExpressionFuntionBody() {
     ParserTestCase.parseCompilationUnit(
         "f() => return null;", [ParserErrorCode.UNEXPECTED_TOKEN]);
@@ -2639,6 +2646,23 @@ void main() {
   void test_varAndType_field() {
     ParserTestCase.parseCompilationUnit(
         "class C { var int x; }", [ParserErrorCode.VAR_AND_TYPE]);
+  }
+
+  @failingTest
+  void test_varAndType_local() {
+    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
+    // this would be a better error message.
+    ParserTestCase.parseStatement("var int x;", [ParserErrorCode.VAR_AND_TYPE]);
+  }
+
+  @failingTest
+  void test_varAndType_parameter() {
+    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
+    // this would be a better error message.
+    createParser('(var int x)');
+    FormalParameterList list = parser.parseFormalParameterList();
+    expectNotNullIfNoErrors(list);
+    listener.assertErrorsWithCodes([ParserErrorCode.VAR_AND_TYPE]);
   }
 
   void test_varAndType_topLevelVariable() {
@@ -2888,7 +2912,6 @@ class ParserTestCase extends EngineTestCase {
     //
     parser = new Parser(source, listener);
     parser.enableAssertInitializer = enableAssertInitializer;
-    parser.parseAsync = parseAsync;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
@@ -3025,18 +3048,6 @@ class ParserTestCase extends EngineTestCase {
  */
 @reflectiveTest
 class RecoveryParserTest extends ParserTestCase {
-  void fail_incomplete_returnType() {
-    ParserTestCase.parseCompilationUnit(r'''
-Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
-  if (map == null) return null;
-  Map<Symbol, dynamic> result = new Map<Symbol, dynamic>();
-  map.forEach((name, value) {
-    result[new Symbol(name)] = value;
-  });
-  return result;
-}''');
-  }
-
   void test_additiveExpression_missing_LHS() {
     BinaryExpression expression =
         parseExpression("+ y", [ParserErrorCode.MISSING_IDENTIFIER]);
@@ -3575,6 +3586,19 @@ class B = Object with A {}''',
     expectNotNullIfNoErrors(member);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER]);
+  }
+
+  @failingTest
+  void test_incomplete_returnType() {
+    ParserTestCase.parseCompilationUnit(r'''
+Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
+  if (map == null) return null;
+  Map<Symbol, dynamic> result = new Map<Symbol, dynamic>();
+  map.forEach((name, value) {
+    result[new Symbol(name)] = value;
+  });
+  return result;
+}''');
   }
 
   void test_incomplete_topLevelFunction() {
@@ -4228,56 +4252,6 @@ class C {
  */
 @reflectiveTest
 class SimpleParserTest extends ParserTestCase {
-  void fail_parseAwaitExpression_inSync() {
-    // This test requires better error recovery than we currently have. In
-    // particular, we need to be able to distinguish between an await expression
-    // in the wrong context, and the use of 'await' as an identifier.
-    createParser('m() { return await x + await y; }');
-    MethodDeclaration method = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(method);
-    listener.assertNoErrors();
-    FunctionBody body = method.body;
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is BlockFunctionBody, BlockFunctionBody, body);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ReturnStatement, ReturnStatement, statement);
-    Expression expression = (statement as ReturnStatement).expression;
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is BinaryExpression, BinaryExpression, expression);
-    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression,
-        AwaitExpression, (expression as BinaryExpression).leftOperand);
-    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression,
-        AwaitExpression, (expression as BinaryExpression).rightOperand);
-  }
-
-  void fail_parseCommentReference_this() {
-    // This fails because we are returning null from the method and asserting
-    // that the return value is not null.
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('this', 5);
-    expectNotNullIfNoErrors(reference);
-    listener.assertNoErrors();
-    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(
-        (obj) => obj is SimpleIdentifier,
-        SimpleIdentifier,
-        reference.identifier);
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "a");
-    expect(identifier.offset, 5);
-  }
-
-  void fail_parseStatement_functionDeclaration_noReturnType_typeParameters() {
-    enableGenericMethods = true;
-    createParser('f<E>(a, b) {};');
-    Statement statement = parser.parseStatement2();
-    expectNotNullIfNoErrors(statement);
-    listener.assertNoErrors();
-    expect(statement, new isInstanceOf<FunctionDeclarationStatement>());
-    FunctionDeclarationStatement declaration = statement;
-    expect(declaration.functionDeclaration, isNotNull);
-  }
-
   void test_computeStringValue_emptyInterpolationPrefix() {
     expect(_computeStringValue("'''", true, false), "");
   }
@@ -5150,6 +5124,30 @@ class SimpleParserTest extends ParserTestCase {
         (obj) => obj is VariableDeclarationStatement,
         VariableDeclarationStatement,
         statement);
+  }
+
+  @failingTest
+  void test_parseAwaitExpression_inSync() {
+    // This test requires better error recovery than we currently have. In
+    // particular, we need to be able to distinguish between an await expression
+    // in the wrong context, and the use of 'await' as an identifier.
+    createParser('m() { return await x + await y; }');
+    MethodDeclaration method = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(method);
+    listener.assertNoErrors();
+    FunctionBody body = method.body;
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is BlockFunctionBody, BlockFunctionBody, body);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ReturnStatement, ReturnStatement, statement);
+    Expression expression = (statement as ReturnStatement).expression;
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is BinaryExpression, BinaryExpression, expression);
+    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression,
+        AwaitExpression, (expression as BinaryExpression).leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression,
+        AwaitExpression, (expression as BinaryExpression).rightOperand);
   }
 
   void test_parseBitwiseAndExpression_normal() {
@@ -6820,6 +6818,23 @@ void''');
     Token nextToken = identifier.token.next;
     expect(nextToken, isNotNull);
     expect(nextToken.type, TokenType.EOF);
+  }
+
+  @failingTest
+  void test_parseCommentReference_this() {
+    // This fails because we are returning null from the method and asserting
+    // that the return value is not null.
+    createParser('');
+    CommentReference reference = parser.parseCommentReference('this', 5);
+    expectNotNullIfNoErrors(reference);
+    listener.assertNoErrors();
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is SimpleIdentifier,
+        SimpleIdentifier,
+        reference.identifier);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "a");
+    expect(identifier.offset, 5);
   }
 
   void test_parseCommentReferences_multiLine() {
@@ -10115,6 +10130,27 @@ void''');
     expect(expression.argumentList, isNotNull);
   }
 
+  void test_parseInstanceCreationExpression_type_typeParameters_nullable() {
+    enableNnbd = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    createParser('A<B?>()');
+    InstanceCreationExpression expression =
+        parser.parseInstanceCreationExpression(token);
+    expectNotNullIfNoErrors(expression);
+    listener.assertNoErrors();
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
+    NodeList<TypeName> arguments = type.typeArguments.arguments;
+    expect(arguments, hasLength(1));
+    expect(arguments[0].question, isNotNull);
+  }
+
   void test_parseLibraryDirective() {
     createParser('library l;');
     LibraryDirective directive =
@@ -11562,8 +11598,35 @@ void''');
     expect(asExpression.type, isNotNull);
   }
 
+  void test_parseRelationalExpression_as_nullable() {
+    enableNnbd = true;
+    createParser('x as Y?)');
+    Expression expression = parser.parseRelationalExpression();
+    expectNotNullIfNoErrors(expression);
+    listener.assertNoErrors();
+    expect(expression, new isInstanceOf<AsExpression>());
+    AsExpression asExpression = expression;
+    expect(asExpression.expression, isNotNull);
+    expect(asExpression.asOperator, isNotNull);
+    expect(asExpression.type, isNotNull);
+  }
+
   void test_parseRelationalExpression_is() {
     createParser('x is y');
+    Expression expression = parser.parseRelationalExpression();
+    expectNotNullIfNoErrors(expression);
+    listener.assertNoErrors();
+    expect(expression, new isInstanceOf<IsExpression>());
+    IsExpression isExpression = expression;
+    expect(isExpression.expression, isNotNull);
+    expect(isExpression.isOperator, isNotNull);
+    expect(isExpression.notOperator, isNull);
+    expect(isExpression.type, isNotNull);
+  }
+
+  void test_parseRelationalExpression_is_nullable() {
+    enableNnbd = true;
+    createParser('x is y?)');
     Expression expression = parser.parseRelationalExpression();
     expectNotNullIfNoErrors(expression);
     listener.assertNoErrors();
@@ -11785,6 +11848,18 @@ void''');
     expect(declaration.functionDeclaration, isNotNull);
     expect(declaration.functionDeclaration.functionExpression.typeParameters,
         isNotNull);
+  }
+
+  @failingTest
+  void test_parseStatement_functionDeclaration_noReturnType_typeParameters() {
+    enableGenericMethods = true;
+    createParser('f<E>(a, b) {};');
+    Statement statement = parser.parseStatement2();
+    expectNotNullIfNoErrors(statement);
+    listener.assertNoErrors();
+    expect(statement, new isInstanceOf<FunctionDeclarationStatement>());
+    FunctionDeclarationStatement declaration = statement;
+    expect(declaration.functionDeclaration, isNotNull);
   }
 
   void test_parseStatement_functionDeclaration_returnType() {
@@ -12691,6 +12766,20 @@ void''');
     expect(parameter.bound, isNotNull);
     expect(parameter.extendsKeyword, isNotNull);
     expect(parameter.name, isNotNull);
+  }
+
+  void test_parseTypeParameter_bounded_nullable() {
+    enableNnbd = true;
+    createParser('A extends B?');
+    TypeParameter parameter = parser.parseTypeParameter();
+    expectNotNullIfNoErrors(parameter);
+    listener.assertNoErrors();
+    expect(parameter.bound, isNotNull);
+    expect(parameter.extendsKeyword, isNotNull);
+    expect(parameter.name, isNotNull);
+    TypeName bound = parameter.bound;
+    expect(bound, isNotNull);
+    expect(bound.question, isNotNull);
   }
 
   void test_parseTypeParameter_simple() {

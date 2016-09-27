@@ -132,9 +132,11 @@ def main():
   crtend_android = os.path.join(android_ndk_lib, 'crtend_android.o')
 
   if link_target == 'target':
+    # We meddle with the android link command line here because gyp does not
+    # allow configurations to modify link_settings, or set variables.
+
     # Add and remove libraries as listed in configurations_android.gypi
-    libs_to_rm = ['-lrt', '-lpthread', '-lnss3', '-lnssutil3', '-lsmime3',
-                  '-lplds4', '-lplc4', '-lnspr4',]
+    libs_to_rm = ['-lrt', '-lpthread',]
     libs_to_add = ['-lstlport_static', android_libgcc, '-lc', '-ldl',
                    '-lstdc++', '-lm',]
 
@@ -142,8 +144,12 @@ def main():
     if link_type == 'executable':
       libs_to_add.extend(['-llog', '-lz', crtend_android])
 
+    # Filter out -l libs and add the right Android ones.
     link_args = [i for i in link_args if i not in libs_to_rm]
     link_args.extend(libs_to_add)
+
+    # Filter out tcmalloc.
+    link_args = [i for i in link_args if "tcmalloc" not in i]
 
     link_args.insert(0, android_linker)
   else:

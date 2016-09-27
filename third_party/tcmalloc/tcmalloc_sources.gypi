@@ -11,8 +11,6 @@
     'gperftools/src/common.cc',
     'gperftools/src/common.h',
     'gperftools/src/config_for_unittests.h',
-    'gperftools/src/config.h',
-    'gperftools/src/config.h.in',
     'gperftools/src/debugallocation.cc',
     'gperftools/src/emergency_malloc.cc',
     'gperftools/src/emergency_malloc_for_stacktrace.cc',
@@ -152,8 +150,6 @@
     'gperftools/src/gperftools/malloc_hook.h',
     'gperftools/src/gperftools/profiler.h',
     'gperftools/src/gperftools/stacktrace.h',
-    'gperftools/src/gperftools/tcmalloc.h',
-    'gperftools/src/gperftools/tcmalloc.h.in',
 
     # gperftools/src/third_party/
     'gperftools/src/third_party/valgrind.h',

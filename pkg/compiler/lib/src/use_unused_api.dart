@@ -247,7 +247,7 @@ useIo([io.LineColumnMap map, io.LineColumnProvider provider]) {
 usedByTests() {
   // TODO(ahe): We should try to avoid including API used only for tests. In
   // most cases, such API can be moved to a test library.
-  World world = null;
+  WorldImpl world = null;
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
   sourceFileProvider.getSourceFile(null);

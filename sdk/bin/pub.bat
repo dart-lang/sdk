@@ -35,7 +35,7 @@ set DART=%BUILD_DIR%\dart-sdk\bin\dart
 
 rem Run pub.
 set PUB="%SDK_DIR%\..\third_party\pkg\pub\bin\pub.dart"
-"%DART%" %VM_OPTIONS% "%PUB%" %*
+"%DART%" "--packages=%SDK_DIR%\..\.packages" %VM_OPTIONS% "%PUB%" %*
 
 endlocal
 

@@ -15,7 +15,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show NamespaceDirectiveImpl, UriBasedDirectiveImpl;
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -1871,22 +1870,11 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
   void internalPerform() {
     LibraryElement coreLibrary = getRequiredInput(CORE_INPUT);
     LibraryElement asyncLibrary = getOptionalInput(ASYNC_INPUT);
-    if (asyncLibrary == null) {
-      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-      asyncLibrary = (context as AnalysisContextImpl)
-          .createMockAsyncLib(coreLibrary, asyncSource);
-    }
     Namespace coreNamespace = coreLibrary.publicNamespace;
     Namespace asyncNamespace = asyncLibrary.publicNamespace;
     //
     // Record outputs.
     //
-    if (!context.analysisOptions.enableAsync) {
-      AnalysisContextImpl contextImpl = context;
-      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-      asyncLibrary = contextImpl.createMockAsyncLib(coreLibrary, asyncSource);
-      asyncNamespace = asyncLibrary.publicNamespace;
-    }
     TypeProvider typeProvider =
         new TypeProviderImpl.forNamespaces(coreNamespace, asyncNamespace);
     (context as InternalAnalysisContext).typeProvider = typeProvider;
@@ -3172,7 +3160,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
 
     unit.accept(new BestPracticesVerifier(
-        errorReporter, typeProvider, libraryElement,
+        errorReporter, typeProvider, libraryElement, inheritanceManager,
         typeSystem: typeSystem));
     unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
     // Find to-do comments.
@@ -4017,7 +4005,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     Parser parser = new Parser(_source, errorListener);
     AnalysisOptions options = context.analysisOptions;
     parser.enableAssertInitializer = options.enableAssertInitializer;
-    parser.parseAsync = options.enableAsync;
     parser.parseFunctionBodies =
         options.analyzeFunctionBodiesPredicate(_source);
     parser.parseGenericMethods = options.enableGenericMethods;

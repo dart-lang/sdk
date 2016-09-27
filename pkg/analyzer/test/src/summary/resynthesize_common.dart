@@ -522,7 +522,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         expect(o.atSign.lexeme, r.atSign.lexeme, reason: desc);
         Identifier rName = r.name;
         Identifier oName = o.name;
-        if (oName is PrefixedIdentifier && o.constructorName != null) {
+        if (oName is PrefixedIdentifier &&
+            o.constructorName != null &&
+            o.element != null) {
           // E.g. `@prefix.cls.ctor`.  This gets resynthesized as `@cls.ctor`,
           // with `cls.ctor` represented as a PrefixedIdentifier.
           expect(rName, new isInstanceOf<PrefixedIdentifier>(), reason: desc);
@@ -541,7 +543,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         compareConstAstLists(
             r.arguments?.arguments, o.arguments?.arguments, desc);
         Element expectedElement = o.element;
-        if (oName is PrefixedIdentifier && o.constructorName != null) {
+        if (oName is PrefixedIdentifier &&
+            o.constructorName != null &&
+            o.element != null) {
           // Due to dartbug.com/25706, [o.element] incorrectly points to the
           // class rather than the named constructor.  Hack around this.
           // TODO(paulberry): when dartbug.com/25706 is fixed, remove this.
@@ -639,10 +643,14 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
   void compareElementAnnotations(ElementAnnotationImpl resynthesized,
       ElementAnnotationImpl original, String desc) {
-    expect(resynthesized.element, isNotNull, reason: desc);
-    expect(resynthesized.element.kind, original.element.kind, reason: desc);
-    expect(resynthesized.element.location, original.element.location,
-        reason: desc);
+    if (original.element == null) {
+      expect(resynthesized.element, isNull);
+    } else {
+      expect(resynthesized.element, isNotNull, reason: desc);
+      expect(resynthesized.element.kind, original.element.kind, reason: desc);
+      expect(resynthesized.element.location, original.element.location,
+          reason: desc);
+    }
     expect(resynthesized.compilationUnit, isNotNull, reason: desc);
     expect(resynthesized.compilationUnit.location,
         original.compilationUnit.location,
@@ -976,8 +984,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.name, original.name, reason: desc);
   }
 
-  void compareTypeParameterElements(TypeParameterElementImpl resynthesized,
-      TypeParameterElementImpl original, String desc) {
+  void compareTypeParameterElements(TypeParameterElement resynthesized,
+      TypeParameterElement original, String desc) {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
     compareTypes(resynthesized.bound, original.bound, '$desc bound');
@@ -4454,6 +4462,51 @@ typedef F();''');
 
   test_typedefs() {
     checkLibrary('f() {} g() {}');
+  }
+
+  test_unresolved_annotation_namedConstructorCall_noClass() {
+    checkLibrary('@foo.bar() class C {}');
+  }
+
+  test_unresolved_annotation_namedConstructorCall_noConstructor() {
+    checkLibrary('@String.foo() class C {}');
+  }
+
+  test_unresolved_annotation_prefixedIdentifier_badPrefix() {
+    checkLibrary('@foo.bar class C {}');
+  }
+
+  test_unresolved_annotation_prefixedIdentifier_noDeclaration() {
+    checkLibrary('import "dart:async" as foo; @foo.bar class C {}');
+  }
+
+  test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() {
+    checkLibrary('@foo.bar.baz() class C {}');
+  }
+
+  test_unresolved_annotation_prefixedNamedConstructorCall_noClass() {
+    checkLibrary('import "dart:async" as foo; @foo.bar.baz() class C {}');
+  }
+
+  @failingTest // See dartbug.com/25706
+  test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() {
+    checkLibrary('import "dart:async" as foo; @foo.Future.bar() class C {}');
+  }
+
+  test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() {
+    checkLibrary('@foo.bar() class C {}');
+  }
+
+  test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() {
+    checkLibrary('import "dart:async" as foo; @foo.bar() class C {}');
+  }
+
+  test_unresolved_annotation_simpleIdentifier() {
+    checkLibrary('@foo class C {}');
+  }
+
+  test_unresolved_annotation_unnamedConstructorCall_noClass() {
+    checkLibrary('@foo() class C {}');
   }
 
   test_unresolved_export() {

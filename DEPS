@@ -30,8 +30,7 @@ vars = {
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "co19_rev": "@d4767b4caea3c5828ad8e053cd051d44a59061af",
 
-  # Revisions of GN/Mojo/Flutter related dependencies.
-  "base_revision": "@672b04e54b937ec899429a6bd5409c5a6300d151",
+  # Revisions of GN related dependencies.
   "buildtools_revision": "@565d04e8741429fb1b4f26d102f2c6c3b849edeb",
 
   "gperftools_revision": "@7822b5b0b9fa7e016e1f6b46ea86f26f4691a457",
@@ -45,11 +44,11 @@ vars = {
   "barback_tag" : "@0.15.2+9",
   "bazel_worker_tag": "@0.1.1",
   "boolean_selector_tag" : "@1.0.2",
-  "boringssl_gen_rev": "@e3a1b341a3890ab10d372dc2fe6d1c6798828293",
+  "boringssl_gen_rev": "@1e8e5da213d0d5b1d50fcc1356c4783091bcc20d",
   "boringssl_rev" : "@8d343b44bbab829d1a28fdef650ca95f7db4412e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
-  "cli_util_tag" : "@0.0.1+2",
+  "cli_util_tag" : "@0.0.1+3",
   "code_transformers_tag": "@v0.4.2+3",
   "collection_tag": "@1.9.1",
   "convert_tag": "@2.0.1",
@@ -57,7 +56,7 @@ vars = {
   "csslib_tag" : "@0.13.2",
   "dart2js_info_tag" : "@0.2.7+1",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@0.2.9+1",
+  "dart_style_tag": "@0.2.10",
   "dartdoc_tag" : "@v0.9.7+3",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@0.1.0",
@@ -73,8 +72,8 @@ vars = {
   "isolate_tag": "@0.2.3",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.2",
-  "kernel_rev": "@9677d68402ea15d0eca6430d64f631bb3e505499",
-  "linter_tag": "@0.1.26",
+  "kernel_rev": "@449803b82e850a41148e636db1a6e4a848284aed",
+  "linter_tag": "@0.1.27",
   "logging_tag": "@0.11.3+1",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0+2",
@@ -92,7 +91,7 @@ vars = {
   "pool_tag": "@1.2.4",
   "protobuf_tag": "@0.5.3",
   "pub_cache_tag": "@v0.1.0",
-  "pub_rev": "@101aa44a4aebaefd0796ce44e6d155cd79fe2db4",
+  "pub_rev": "@4ef3e3e8ad8089733d617505cc66fa3d8049b4ae",
   "pub_semver_tag": "@1.3.0",
   "quiver_tag": "@0.22.0",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
@@ -131,11 +130,7 @@ deps = {
   Var("dart_root") + "/third_party/gyp":
       Var('chromium_git') + '/external/gyp.git' + Var("gyp_rev"),
 
-  # Stuff needed for GN/Mojo/Flutter.
-  Var("dart_root") + "/base":
-     Var('chromium_git') + '/external/github.com/domokit/base'
-     + Var('base_revision'),
-
+  # Stuff needed for GN build.
   Var("dart_root") + "/buildtools":
      Var('chromium_git') + '/chromium/buildtools.git' +
      Var('buildtools_revision'),
@@ -363,6 +358,83 @@ deps_os = {
 # TODO(iposva): Move the necessary tools so that hooks can be run
 # without the runtime being available.
 hooks = [
+  # Pull GN binaries. This needs to be before running GYP below.
+  {
+    'name': 'gn_linux64',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--quiet',
+      '--platform=linux*',
+      '--bucket',
+      'chromium-gn',
+      '-s',
+      Var('dart_root') + '/buildtools/linux64/gn.sha1',
+    ],
+  },
+  {
+    'name': 'gn_mac',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--quiet',
+      '--platform=darwin',
+      '--bucket',
+      'chromium-gn',
+      '-s',
+      Var('dart_root') + '/buildtools/mac/gn.sha1',
+    ],
+  },
+  {
+    'name': 'gn_win',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--quiet',
+      '--platform=win*',
+      '--bucket',
+      'chromium-gn',
+      '-s',
+      Var('dart_root') + '/buildtools/win/gn.exe.sha1',
+    ],
+  },
+  # Pull clang-format binaries using checked-in hashes.
+  {
+    'name': 'clang_format_linux',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--quiet',
+      '--platform=linux*',
+      '--bucket',
+      'chromium-clang-format',
+      '-s',
+      Var('dart_root') + '/buildtools/linux64/clang-format.sha1',
+    ],
+  },
+  {
+    'name': 'clang_format_mac',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--quiet',
+      '--platform=darwin',
+      '--bucket',
+      'chromium-clang-format',
+      '-s',
+      Var('dart_root') + '/buildtools/mac/clang-format.sha1',
+    ],
+  },
   {
     'name': 'd8_testing_binaries',
     'pattern': '.',
@@ -496,6 +568,12 @@ hooks = [
       "-s",
       Var('dart_root') + "/third_party/clang.tar.gz.sha1",
     ],
+  },
+  {
+    # Pull clang if needed or requested via GYP_DEFINES.
+    'name': 'gn_clang',
+    'pattern': '.',
+    'action': ['python', 'sdk/tools/clang/scripts/update.py', '--if-needed'],
   },
   {
     "pattern": ".",

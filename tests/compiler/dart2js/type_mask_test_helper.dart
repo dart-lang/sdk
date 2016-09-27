@@ -11,7 +11,7 @@ TypeMask simplify(TypeMask mask, Compiler compiler) {
   if (mask is ForwardingTypeMask) {
     return simplify(mask.forwardTo, compiler);
   } else if (mask is UnionTypeMask) {
-    return UnionTypeMask.flatten(mask.disjointMasks, compiler.world);
+    return UnionTypeMask.flatten(mask.disjointMasks, compiler.closedWorld);
   } else {
     return mask;
   }

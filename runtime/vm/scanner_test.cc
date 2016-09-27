@@ -192,62 +192,6 @@ static void StringEscapes() {
 
 
 static void InvalidStringEscapes() {
-  const GrowableTokenStream& high_start_4 =
-      Scan("\"\\uD800\"");
-  EXPECT_EQ(2, high_start_4.length());
-  CheckKind(high_start_4, 0, Token::kERROR);
-  EXPECT(high_start_4[0].literal->Equals("invalid code point"));
-  CheckKind(high_start_4, 1, Token::kEOS);
-
-  const GrowableTokenStream& high_start_seq =
-      Scan("\"\\u{D800}\"");
-  EXPECT_EQ(2, high_start_seq.length());
-  CheckKind(high_start_seq, 0, Token::kERROR);
-  EXPECT(high_start_seq[0].literal->Equals("invalid code point"));
-  CheckKind(high_start_seq, 1, Token::kEOS);
-
-  const GrowableTokenStream& high_end_4 =
-      Scan("\"\\uDBFF\"");
-  EXPECT_EQ(2, high_end_4.length());
-  CheckKind(high_end_4, 0, Token::kERROR);
-  EXPECT(high_end_4[0].literal->Equals("invalid code point"));
-  CheckKind(high_end_4, 1, Token::kEOS);
-
-  const GrowableTokenStream& high_end_seq =
-      Scan("\"\\u{DBFF}\"");
-  EXPECT_EQ(2, high_end_seq.length());
-  CheckKind(high_end_seq, 0, Token::kERROR);
-  EXPECT(high_end_seq[0].literal->Equals("invalid code point"));
-  CheckKind(high_end_seq, 1, Token::kEOS);
-
-  const GrowableTokenStream& low_start_4 =
-      Scan("\"\\uDC00\"");
-  EXPECT_EQ(2, low_start_4.length());
-  CheckKind(low_start_4, 0, Token::kERROR);
-  EXPECT(low_start_4[0].literal->Equals("invalid code point"));
-  CheckKind(low_start_4, 1, Token::kEOS);
-
-  const GrowableTokenStream& low_start_seq =
-      Scan("\"\\u{DC00}\"");
-  EXPECT_EQ(2, low_start_seq.length());
-  CheckKind(low_start_seq, 0, Token::kERROR);
-  EXPECT(low_start_seq[0].literal->Equals("invalid code point"));
-  CheckKind(low_start_seq, 1, Token::kEOS);
-
-  const GrowableTokenStream& low_end_4 =
-      Scan("\"\\uDFFF\"");
-  EXPECT_EQ(2, low_end_4.length());
-  CheckKind(low_end_4, 0, Token::kERROR);
-  EXPECT(low_end_4[0].literal->Equals("invalid code point"));
-  CheckKind(low_end_4, 1, Token::kEOS);
-
-  const GrowableTokenStream& low_end_seq =
-      Scan("\"\\u{DFFF}\"");
-  EXPECT_EQ(2, low_end_seq.length());
-  CheckKind(low_end_seq, 0, Token::kERROR);
-  EXPECT(low_end_seq[0].literal->Equals("invalid code point"));
-  CheckKind(low_end_seq, 1, Token::kEOS);
-
   const GrowableTokenStream& out_of_range_low =
       Scan("\"\\u{110000}\"");
   EXPECT_EQ(2, out_of_range_low.length());

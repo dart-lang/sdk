@@ -5,10 +5,8 @@
 class StringUnicode4NegativeTest {
 
   static testMain() {
-    // Unicode escapes must refer to valid Unicode points and not surrogate characters
+    // Unicode escapes must refer to valid Unicode points.
     String str = "Foo\u{FFFFFF}";
-    str = "Foo\uD800";
-    str = "Foo\uDC00";
   }
 }
 

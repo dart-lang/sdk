@@ -2656,7 +2656,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         overriddenMember = _enclosingClass.lookUpInheritedConcreteMethod(
             memberName, _currentLibrary);
       }
-      if (overriddenMember == null && !_hasNoSuchMethod(_enclosingClass)) {
+      if (overriddenMember == null && !_enclosingClass.hasNoSuchMethod) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
             nameNode,
@@ -4971,7 +4971,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       SimpleIdentifier classNameNode) {
     if (_enclosingClass.isAbstract) {
       return;
-    } else if (_hasNoSuchMethod(_enclosingClass)) {
+    } else if (_enclosingClass.hasNoSuchMethod) {
       return;
     }
     //
@@ -6098,7 +6098,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // If there is a noSuchMethod method, then don't report the warning,
     // see dartbug.com/16078
-    if (_hasNoSuchMethod(classElement)) {
+    if (_enclosingClass.hasNoSuchMethod) {
       return;
     }
     ExecutableElement callMethod = _inheritanceManager.lookupMember(
@@ -6361,16 +6361,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   ExecutableElement _getOverriddenMember(Element member) {
-    if (member == null || _inheritanceManager == null) {
+    if (member == null) {
       return null;
     }
-
     ClassElement classElement =
         member.getAncestor((element) => element is ClassElement);
     if (classElement == null) {
       return null;
     }
-    return _inheritanceManager.lookupInheritance(classElement, member.name);
+    String name = member.name;
+    ClassElement superclass = classElement.supertype?.element;
+    while (superclass != null) {
+      ExecutableElement member = superclass.getMethod(name) ?? superclass.getGetter(name) ?? superclass.getSetter(name);
+      if (member != null) {
+        return member;
+      }
+      superclass = superclass.supertype?.element;
+    }
+    return null;
   }
 
   /**
@@ -6384,22 +6392,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return null;
     }
     return setterParameters[0].type;
-  }
-
-  /**
-   * Return `true` if the given [classElement] has a noSuchMethod() method
-   * distinct from the one declared in class Object, as per the Dart Language
-   * Specification (section 10.4).
-   */
-  bool _hasNoSuchMethod(ClassElement classElement) {
-    MethodElement method = classElement.lookUpMethod(
-        FunctionElement.NO_SUCH_METHOD_METHOD_NAME, classElement.library);
-    if (method == null) {
-      return false;
-    }
-    ClassElement definingClass =
-        method.getAncestor((Element element) => element is ClassElement);
-    return definingClass != null && !definingClass.type.isObject;
   }
 
   /**

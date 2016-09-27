@@ -227,7 +227,7 @@ class _RuntimeTypes implements RuntimeTypes {
       classesNeedingRti.add(cls);
 
       // TODO(ngeoffray): This should use subclasses, not subtypes.
-      compiler.world.forEachStrictSubtypeOf(cls, (ClassElement sub) {
+      compiler.closedWorld.forEachStrictSubtypeOf(cls, (ClassElement sub) {
         potentiallyAddForRti(sub);
       });
 
@@ -364,7 +364,7 @@ class _RuntimeTypes implements RuntimeTypes {
         computeChecks(allInstantiatedArguments, checkedArguments);
   }
 
-  Set<DartType> computeInstantiatedTypesAndClosures(Universe universe) {
+  Set<DartType> computeInstantiatedTypesAndClosures(CodegenUniverse universe) {
     Set<DartType> instantiatedTypes =
         new Set<DartType>.from(universe.instantiatedTypes);
     for (DartType instantiatedType in universe.instantiatedTypes) {

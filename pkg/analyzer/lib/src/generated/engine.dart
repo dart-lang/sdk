@@ -19,7 +19,6 @@ import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -950,19 +949,21 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 /**
  * The levels at which a source can be analyzed.
  */
-class AnalysisLevel extends Enum<AnalysisLevel> {
+class AnalysisLevel implements Comparable<AnalysisLevel> {
   /**
    * Indicates a source should be fully analyzed.
    */
   static const AnalysisLevel ALL = const AnalysisLevel('ALL', 0);
 
   /**
-   * Indicates a source should be resolved and that errors, warnings and hints are needed.
+   * Indicates a source should be resolved and that errors, warnings and hints
+   * are needed.
    */
   static const AnalysisLevel ERRORS = const AnalysisLevel('ERRORS', 1);
 
   /**
-   * Indicates a source should be resolved, but that errors, warnings and hints are not needed.
+   * Indicates a source should be resolved, but that errors, warnings and hints
+   * are not needed.
    */
   static const AnalysisLevel RESOLVED = const AnalysisLevel('RESOLVED', 2);
 
@@ -973,7 +974,26 @@ class AnalysisLevel extends Enum<AnalysisLevel> {
 
   static const List<AnalysisLevel> values = const [ALL, ERRORS, RESOLVED, NONE];
 
-  const AnalysisLevel(String name, int ordinal) : super(name, ordinal);
+  /**
+   * The name of this analysis level.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the analysis level.
+   */
+  final int ordinal;
+
+  const AnalysisLevel(this.name, this.ordinal);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(AnalysisLevel other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }
 
 /**
@@ -1065,6 +1085,7 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to if analysis is to enable async support.
    */
+  @deprecated
   bool get enableAsync;
 
   /**
@@ -1198,12 +1219,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int DEFAULT_CACHE_SIZE = 64;
 
   static const int ENABLE_ASSERT_FLAG = 0x01;
-  static const int ENABLE_ASYNC_FLAG = 0x02;
-  static const int ENABLE_GENERIC_METHODS_FLAG = 0x04;
-  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x08;
-  static const int ENABLE_STRONG_MODE_FLAG = 0x10;
-  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x20;
-  static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
+  static const int ENABLE_GENERIC_METHODS_FLAG = 0x02;
+  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x04;
+  static const int ENABLE_STRONG_MODE_FLAG = 0x08;
+  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x10;
+  static const int ENABLE_SUPER_MIXINS_FLAG = 0x20;
 
   /**
    * The default list of non-nullable type names.
@@ -1228,9 +1248,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool enableAssertMessage = false;
-
-  @override
-  bool enableAsync = true;
 
   @override
   bool enableGenericMethods = false;
@@ -1333,7 +1350,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = options.dart2jsHint;
     enableAssertInitializer = options.enableAssertInitializer;
     enableAssertMessage = options.enableAssertMessage;
-    enableAsync = options.enableAsync;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableInitializingFormalAccess = options.enableInitializingFormalAccess;
@@ -1388,6 +1404,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _analyzeFunctionBodiesPredicate = value;
   }
 
+  @deprecated
+  @override
+  bool get enableAsync => true;
+
+  @deprecated
+  void set enableAsync(bool enable) {}
+
   /**
    * A flag indicating whether interface libraries are to be supported (DEP 40).
    */
@@ -1399,7 +1422,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   int encodeCrossContextOptions() =>
       (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
-      (enableAsync ? ENABLE_ASYNC_FLAG : 0) |
       (enableGenericMethods ? ENABLE_GENERIC_METHODS_FLAG : 0) |
       (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
       (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
@@ -1409,7 +1431,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableAssertMessage = options.enableAssertMessage;
-    enableAsync = options.enableAsync;
     enableGenericMethods = options.enableGenericMethods;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableSuperMixins = options.enableSuperMixins;
@@ -1440,9 +1461,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
     if (encoding & ENABLE_ASSERT_FLAG > 0) {
       add('assert');
-    }
-    if (encoding & ENABLE_ASYNC_FLAG > 0) {
-      add('async');
     }
     if (encoding & ENABLE_GENERIC_METHODS_FLAG > 0) {
       add('genericMethods');
@@ -1580,7 +1598,7 @@ abstract class CacheConsistencyValidator {
 /**
  * The possible states of cached data.
  */
-class CacheState extends Enum<CacheState> {
+class CacheState implements Comparable<CacheState> {
   /**
    * The data is not in the cache and the last time an attempt was made to
    * compute the data an exception occurred, making it pointless to attempt to
@@ -1641,7 +1659,26 @@ class CacheState extends Enum<CacheState> {
     VALID
   ];
 
-  const CacheState(String name, int ordinal) : super(name, ordinal);
+  /**
+   * The name of this cache state.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the cache state.
+   */
+  final int ordinal;
+
+  const CacheState(this.name, this.ordinal);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(CacheState other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }
 
 /**

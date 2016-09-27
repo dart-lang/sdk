@@ -5,9 +5,6 @@
 [ $browser == false || $runtime == drt || $fast_startup]
 *: SkipByDesign
 
-[ $runtime == dartium || $runtime == chrome || $runtime == ff ]
-vm_connect/element_test: Skip # Times out. Issue 27397
-
 [ $runtime == dartium ]
 isolate/*: Skip
 allocation_profile: Skip

@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../compiler.dart';
 import '../elements/elements.dart';
+import '../resolution/tree_elements.dart';
 import '../types/types.dart';
 
+import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
 
@@ -16,6 +19,13 @@ abstract class GraphBuilder {
   /// Holds the resulting SSA graph.
   final HGraph graph = new HGraph();
 
+  // TODO(het): remove this
+  /// A reference to the compiler.
+  Compiler compiler;
+
+  /// The tree elements for the element being built into an SSA graph.
+  TreeElements get elements;
+
   /// Used to track the locals while building the graph.
   LocalsHandler localsHandler;
 
@@ -23,6 +33,15 @@ abstract class GraphBuilder {
   ///
   /// We build the SSA graph by simulating a stack machine.
   List<HInstruction> stack = <HInstruction>[];
+
+  /// The count of nested loops we are currently building.
+  ///
+  /// The loop nesting is consulted when inlining a function invocation. The
+  /// inlining heuristics take this information into account.
+  int loopDepth = 0;
+
+  /// A mapping from jump targets to their handlers.
+  Map<JumpTarget, JumpHandler> jumpTargets = <JumpTarget, JumpHandler>{};
 
   void push(HInstruction instruction) {
     add(instruction);
@@ -132,5 +151,15 @@ abstract class GraphBuilder {
     }
     lastAddedParameter = result;
     return result;
+  }
+
+  HSubGraphBlockInformation wrapStatementGraph(SubGraph statements) {
+    if (statements == null) return null;
+    return new HSubGraphBlockInformation(statements);
+  }
+
+  HSubExpressionBlockInformation wrapExpressionGraph(SubExpression expression) {
+    if (expression == null) return null;
+    return new HSubExpressionBlockInformation(expression);
   }
 }

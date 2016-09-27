@@ -170,7 +170,7 @@ class Collector {
   void computeNeededDeclarations() {
     // Compute needed typedefs.
     typedefsNeededForReflection = Elements.sortedByPosition(compiler
-        .world.allTypedefs
+        .closedWorld.allTypedefs
         .where(backend.isAccessibleByReflection)
         .toList());
 

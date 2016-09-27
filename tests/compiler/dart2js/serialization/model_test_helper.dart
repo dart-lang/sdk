@@ -73,7 +73,7 @@ Future checkModels(Uri entryPoint,
     compilerNormal.resolution.retainCachesForTesting = true;
     await compilerNormal.run(entryPoint);
     compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
-    compilerNormal.world.populate();
+    compilerNormal.openWorld.closeWorld();
     compilerNormal.backend.onResolutionComplete();
     compilerNormal.deferredLoadTask
         .onResolutionComplete(compilerNormal.mainFunction);
@@ -89,7 +89,7 @@ Future checkModels(Uri entryPoint,
     compilerDeserialized.resolution.retainCachesForTesting = true;
     await compilerDeserialized.run(entryPoint);
     compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
-    compilerDeserialized.world.populate();
+    compilerDeserialized.openWorld.closeWorld();
     compilerDeserialized.backend.onResolutionComplete();
     compilerDeserialized.deferredLoadTask
         .onResolutionComplete(compilerDeserialized.mainFunction);
@@ -132,9 +132,9 @@ Future checkModels(Uri entryPoint,
     checkClassHierarchyNodes(
         compilerNormal,
         compilerDeserialized,
-        compilerNormal.world
+        compilerNormal.closedWorld
             .getClassHierarchyNode(compilerNormal.coreClasses.objectClass),
-        compilerDeserialized.world.getClassHierarchyNode(
+        compilerDeserialized.closedWorld.getClassHierarchyNode(
             compilerDeserialized.coreClasses.objectClass),
         verbose: verbose);
 
@@ -271,8 +271,8 @@ void checkMixinUses(Compiler compiler1, Compiler compiler2, ClassElement class1,
     ClassElement class2,
     {bool verbose: false}) {
   checkSets(
-      compiler1.world.mixinUsesOf(class1),
-      compiler2.world.mixinUsesOf(class2),
+      compiler1.closedWorld.mixinUsesOf(class1),
+      compiler2.closedWorld.mixinUsesOf(class2),
       "Mixin uses of $class1 vs $class2",
       areElementsEquivalent,
       verbose: verbose);
@@ -312,9 +312,9 @@ void checkClassHierarchyNodes(Compiler compiler1, Compiler compiler2,
       if (child.isInstantiated) {
         print('Missing subclass ${child.cls} of ${node1.cls} '
             'in ${node2.directSubclasses}');
-        print(compiler1.world
+        print(compiler1.closedWorld
             .dump(verbose ? compiler1.coreClasses.objectClass : node1.cls));
-        print(compiler2.world
+        print(compiler2.closedWorld
             .dump(verbose ? compiler2.coreClasses.objectClass : node2.cls));
       }
       Expect.isFalse(

@@ -31,6 +31,22 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
     return units.map(cr.visitCompilationUnit).toList(growable: false);
   }
 
+  /// Returns true if the `as` [node] was created by this class.
+  // TODO(sra): Find a better way to recognize reified coercion, since we
+  // can't set the isSynthetic attribute.
+  static bool isImplicitCast(AsExpression node) => node.asOperator.offset == 0;
+
+  /// Creates an implicit cast for expression [e] to [toType].
+  static Expression castExpression(Expression e, DartType toType) {
+    // We use an empty name in the AST, because the JS code generator only cares
+    // about the target type. It does not look at the AST name.
+    var typeName = new TypeName(AstBuilder.identifierFromString(''), null);
+    typeName.type = toType;
+    var cast = AstBuilder.asExpression(e, typeName);
+    cast.staticType = toType;
+    return cast;
+  }
+
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
     if (ast_properties.hasImplicitCasts(node)) {
@@ -47,7 +63,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
 
     var castType = ast_properties.getImplicitCast(node);
     if (castType != null) {
-      _replaceNode(node.parent, node, _castExpression(node, castType));
+      _replaceNode(node.parent, node, castExpression(node, castType));
     }
   }
 
@@ -79,7 +95,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
       // Build the cast. We will place this cast in the body, so need to clone
       // the variable's AST node and clear out its static type (otherwise we
       // will optimize away the cast).
-      var cast = _castExpression(
+      var cast = castExpression(
           _clone(variable)..staticType = DynamicTypeImpl.instance, castType);
 
       var body = node.body;
@@ -100,16 +116,6 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
       // It does throw IllegalArgumentException though, if child is not found.
       assert(replaced);
     }
-  }
-
-  Expression _castExpression(Expression e, DartType toType) {
-    // We use an empty name in the AST, because the JS code generator only cares
-    // about the target type. It does not look at the AST name.
-    var typeName = new TypeName(AstBuilder.identifierFromString(''), null);
-    typeName.type = toType;
-    var cast = AstBuilder.asExpression(e, typeName);
-    cast.staticType = toType;
-    return cast;
   }
 
   /*=T*/ _clone/*<T extends AstNode>*/(/*=T*/ node) {

@@ -1106,16 +1106,21 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   }
 
   if (old_target.raw() == target_function.raw()) {
-    intptr_t lower, upper;
+    intptr_t lower, upper, unchecked_lower, unchecked_upper;
     if (receiver.GetClassId() < cache.lower_limit()) {
       lower = receiver.GetClassId();
+      unchecked_lower = receiver.GetClassId();
       upper = cache.upper_limit();
+      unchecked_upper = cache.lower_limit() - 1;
     } else {
       lower = cache.lower_limit();
+      unchecked_lower = cache.upper_limit() + 1;
       upper = receiver.GetClassId();
+      unchecked_upper = receiver.GetClassId();
     }
 
-    if (IsSingleTarget(isolate, zone, lower, upper, target_function, name)) {
+    if (IsSingleTarget(isolate, zone, unchecked_lower, unchecked_upper,
+                       target_function, name)) {
       cache.set_lower_limit(lower);
       cache.set_upper_limit(upper);
       // Return the ICData. The single target stub will jump to continue in the
@@ -1138,6 +1143,81 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   // IC call stub.
   arguments.SetReturn(ic_data);
 #endif
+}
+
+
+DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
+#if defined(TARGET_ARCH_DBC)
+  // DBC does not use switchable calls.
+  UNREACHABLE();
+#else
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const UnlinkedCall& unlinked =
+      UnlinkedCall::CheckedHandle(zone, arguments.ArgAt(1));
+
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame->IsDartFrame());
+  const Code& caller_code =
+      Code::Handle(zone, caller_frame->LookupDartCode());
+  const Function& caller_function =
+      Function::Handle(zone, caller_frame->LookupDartFunction());
+
+  const String& name = String::Handle(zone, unlinked.target_name());
+  const Array& descriptor = Array::Handle(zone, unlinked.args_descriptor());
+  const ICData& ic_data =
+      ICData::Handle(zone, ICData::New(caller_function,
+                                       name,
+                                       descriptor,
+                                       Thread::kNoDeoptId,
+                                       1, /* args_tested */
+                                       false /* static_call */));
+
+  Class& cls = Class::Handle(zone, receiver.clazz());
+  ArgumentsDescriptor args_desc(descriptor);
+  Function& target_function = Function::Handle(zone,
+      Resolver::ResolveDynamicForReceiverClass(cls,
+                                               name,
+                                               args_desc));
+  if (target_function.IsNull()) {
+    target_function = InlineCacheMissHelper(receiver, descriptor, name);
+  }
+  if (target_function.IsNull()) {
+    ASSERT(!FLAG_lazy_dispatchers);
+  } else {
+    ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+  }
+
+  if (!target_function.IsNull() &&
+      !target_function.HasOptionalParameters()) {
+    // Patch to monomorphic call.
+    ASSERT(target_function.HasCode());
+    const Code& target_code =
+        Code::Handle(zone, target_function.CurrentCode());
+    const Smi& expected_cid =
+        Smi::Handle(zone, Smi::New(receiver.GetClassId()));
+    CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code,
+                                       expected_cid, target_code);
+
+    // Return the ICData. The miss stub will jump to continue in the IC call
+    // stub.
+    arguments.SetReturn(ic_data);
+    return;
+  }
+
+  // Patch to call through stub.
+  const Code& stub =
+      Code::Handle(zone, StubCode::ICCallThroughCode_entry()->code());
+  ASSERT(!Isolate::Current()->compilation_allowed());
+  CodePatcher::PatchSwitchableCallAt(caller_frame->pc(),
+                                     caller_code,
+                                     ic_data,
+                                     stub);
+
+  // Return the ICData. The miss stub will jump to continue in the IC lookup
+  // stub.
+  arguments.SetReturn(ic_data);
+#endif  // !DBC
 }
 
 
@@ -1949,11 +2029,23 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
     CodePatcher::InsertDeoptimizationCallAt(pc, lazy_deopt_jump);
-  }
-  if (FLAG_trace_patching) {
-    const String& name = String::Handle(function.name());
-    OS::PrintErr("InsertDeoptimizationCallAt: %" Px " to %" Px " for %s\n", pc,
-                 lazy_deopt_jump, name.ToCString());
+    if (FLAG_trace_patching) {
+      const String& name = String::Handle(function.name());
+      OS::PrintErr(
+          "InsertDeoptimizationCallAt: 0x%" Px " to 0x%" Px " for %s\n",
+          pc, lazy_deopt_jump, name.ToCString());
+    }
+    const ExceptionHandlers& handlers =
+        ExceptionHandlers::Handle(zone, optimized_code.exception_handlers());
+    RawExceptionHandlers::HandlerInfo info;
+    for (intptr_t i = 0; i < handlers.num_entries(); ++i) {
+      handlers.GetHandlerInfo(i, &info);
+      const uword patch_pc = instrs.PayloadStart() + info.handler_pc_offset;
+      CodePatcher::InsertDeoptimizationCallAt(patch_pc, lazy_deopt_jump);
+      if (FLAG_trace_patching) {
+        OS::PrintErr("  at handler 0x%" Px "\n", patch_pc);
+      }
+    }
   }
   // Mark code as dead (do not GC its embedded objects).
   optimized_code.set_is_alive(false);

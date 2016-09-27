@@ -24,6 +24,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--packages=../../.packages',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/analysis_server.dart.snapshot',
             '../../pkg/analysis_server/bin/server.dart',
           ],

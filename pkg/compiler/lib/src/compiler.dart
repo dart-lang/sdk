@@ -13,7 +13,7 @@ import 'common/backend_api.dart' show Backend;
 import 'common/codegen.dart' show CodegenWorkItem;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
-import 'common/registry.dart' show EagerRegistry, Registry;
+import 'common/registry.dart' show Registry;
 import 'common/resolution.dart'
     show
         ParsingContext,
@@ -73,11 +73,11 @@ import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' show GlobalTypeInferenceTask;
 import 'types/masks.dart' show CommonMasks;
 import 'universe/selector.dart' show Selector;
-import 'universe/universe.dart' show Universe;
+import 'universe/universe.dart' show ResolutionUniverse, CodegenUniverse;
 import 'universe/use.dart' show StaticUse;
 import 'universe/world_impact.dart' show ImpactStrategy, WorldImpact;
 import 'util/util.dart' show Link, Setlet;
-import 'world.dart' show World;
+import 'world.dart' show ClosedWorld, ClosedWorldRefiner, OpenWorld, WorldImpl;
 
 typedef Backend MakeBackendFuncion(Compiler compiler);
 
@@ -88,7 +88,7 @@ abstract class Compiler implements LibraryLoaderListener {
   Measurer get measurer;
 
   final IdGenerator idGenerator = new IdGenerator();
-  World world;
+  WorldImpl _world;
   Types types;
   _CompilerCoreTypes _coreTypes;
   CompilerDiagnosticReporter _reporter;
@@ -225,7 +225,7 @@ abstract class Compiler implements LibraryLoaderListener {
         this.userOutputProvider = outputProvider == null
             ? const NullCompilerOutput()
             : outputProvider {
-    world = new World(this);
+    _world = new WorldImpl(this);
     if (makeReporter != null) {
       _reporter = makeReporter(this, options);
     } else {
@@ -244,7 +244,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
     // TODO(johnniwinther): Separate the dependency tracking from the enqueuing
     // for global dependencies.
-    globalDependencies = new GlobalDependencyRegistry(this);
+    globalDependencies = new GlobalDependencyRegistry();
 
     if (makeBackend != null) {
       backend = makeBackend(this);
@@ -302,6 +302,20 @@ abstract class Compiler implements LibraryLoaderListener {
     tasks.addAll(backend.tasks);
   }
 
+  /// The world currently being computed by resolution. This forms a basis for
+  /// the [inferenceWorld] and later the [closedWorld].
+  OpenWorld get openWorld => _world;
+
+  /// The closed world after resolution but currently refined by inference.
+  ClosedWorldRefiner get inferenceWorld => _world;
+
+  /// The closed world after resolution and inference.
+  ClosedWorld get closedWorld {
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, _world.isClosed,
+        message: "Closed world not computed yet."));
+    return _world;
+  }
+
   /// Creates the scanner task.
   ///
   /// Override this to mock the scanner for testing.
@@ -314,11 +328,13 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Override this to mock the resolver for testing.
   ResolverTask createResolverTask() {
     return new ResolverTask(
-        resolution, backend.constantCompilerTask, world, measurer);
+        resolution, backend.constantCompilerTask, openWorld, measurer);
   }
 
-  Universe get resolverWorld => enqueuer.resolution.universe;
-  Universe get codegenWorld => enqueuer.codegen.universe;
+  // TODO(johnniwinther): Rename these appropriately when unification of worlds/
+  // universes is complete.
+  ResolutionUniverse get resolverWorld => enqueuer.resolution.universe;
+  CodegenUniverse get codegenWorld => enqueuer.codegen.universe;
 
   bool get analyzeAll => options.analyzeAll || compileAll;
 
@@ -709,7 +725,7 @@ abstract class Compiler implements LibraryLoaderListener {
         assert(mainFunction != null);
         phase = PHASE_DONE_RESOLVING;
 
-        world.populate();
+        openWorld.closeWorld();
         // Compute whole-program-knowledge that the backend needs. (This might
         // require the information computed in [world.populate].)
         backend.onResolutionComplete();
@@ -1982,7 +1998,7 @@ class _CompilerResolution implements Resolution {
 
   @override
   void registerClass(ClassElement cls) {
-    compiler.world.registerClass(cls);
+    compiler.openWorld.registerClass(cls);
   }
 
   @override
@@ -2180,16 +2196,10 @@ class _CompilerResolution implements Resolution {
   }
 }
 
-class GlobalDependencyRegistry extends EagerRegistry {
-  final Compiler compiler;
+class GlobalDependencyRegistry extends Registry {
   Setlet<Element> _otherDependencies;
 
-  GlobalDependencyRegistry(this.compiler) : super('GlobalDependencies', null);
-
-  // TODO(johnniwinther): Rename world/universe/enqueuer through out the
-  // compiler.
-  @override
-  Enqueuer get world => compiler.enqueuer.codegen;
+  GlobalDependencyRegistry();
 
   void registerDependency(Element element) {
     if (element == null) return;
@@ -2202,6 +2212,8 @@ class GlobalDependencyRegistry extends EagerRegistry {
   Iterable<Element> get otherDependencies {
     return _otherDependencies != null ? _otherDependencies : const <Element>[];
   }
+
+  String get name => 'GlobalDependencies';
 }
 
 class _ScriptLoader implements ScriptLoader {

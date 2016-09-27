@@ -8,7 +8,7 @@ class Test extends Object with C {
 }
 
 abstract class B {
-  void foo();
+  void foo() {}
 }
 
 abstract class C extends B {
