@@ -226,11 +226,11 @@ class _ServiceTesteeLauncher {
           first = false;
           print('** Signaled to run test queries on $portNumber');
         }
-        print(line);
+        print('>testee>out> $line');
       });
       process.stderr.transform(UTF8.decoder)
                     .transform(new LineSplitter()).listen((line) {
-        print(line);
+        print('>testee>err> $line');
       });
       process.exitCode.then((exitCode) {
         if ((exitCode != 0) && !killedByTester) {
