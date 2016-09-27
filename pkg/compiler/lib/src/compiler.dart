@@ -850,12 +850,16 @@ abstract class Compiler implements LibraryLoaderListener {
           mainMethod.computeType(resolution);
           if (mainMethod.functionSignature.parameterCount != 0) {
             // The first argument could be a list of strings.
-            backend.listImplementation.ensureResolved(resolution);
+            backend.backendClasses.listImplementation
+                .ensureResolved(resolution);
             backend.registerInstantiatedType(
-                backend.listImplementation.rawType, world, globalDependencies);
-            backend.stringImplementation.ensureResolved(resolution);
+                backend.backendClasses.listImplementation.rawType,
+                world,
+                globalDependencies);
+            backend.backendClasses.stringImplementation
+                .ensureResolved(resolution);
             backend.registerInstantiatedType(
-                backend.stringImplementation.rawType,
+                backend.backendClasses.stringImplementation.rawType,
                 world,
                 globalDependencies);
 

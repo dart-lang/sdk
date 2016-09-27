@@ -125,7 +125,7 @@ class SelectorMask {
   String get name => selector.name;
 
   bool applies(Element element, ClosedWorld closedWorld) {
-    if (!selector.appliesUnnamed(element, closedWorld.backend)) return false;
+    if (!selector.appliesUnnamed(element)) return false;
     return constraint.canHit(element, selector, closedWorld);
   }
 
@@ -287,7 +287,7 @@ class FullFunctionSetQuery implements FunctionSetQuery {
           ClassElement cls = element.enclosingClass;
           return [cls]..addAll(closedWorld.mixinUsesOf(cls));
         }).map((cls) {
-          if (closedWorld.backend.isNullImplementation(cls)) {
+          if (closedWorld.backendClasses.nullImplementation == cls) {
             return const TypeMask.empty();
           } else if (closedWorld.isInstantiated(cls.declaration)) {
             return new TypeMask.nonNullSubclass(cls.declaration, closedWorld);

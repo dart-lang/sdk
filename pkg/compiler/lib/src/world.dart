@@ -5,7 +5,7 @@
 library dart2js.world;
 
 import 'closure.dart' show SynthesizedCallMethodElementX;
-import 'common/backend_api.dart' show Backend;
+import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'core_types.dart' show CoreClasses;
@@ -27,7 +27,10 @@ import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
 import 'util/util.dart' show Link;
 
-/// The [ClassWorld] represents the information known about a program when
+/// Common superinterface for [OpenWorld] and [ClosedWorld].
+abstract class World {}
+
+/// The [ClosedWorld] represents the information known about a program when
 /// compiling with closed-world semantics.
 ///
 /// Given the entrypoint of an application, we can track what's reachable from
@@ -35,49 +38,13 @@ import 'util/util.dart' show Link;
 /// JavaScript types are touched, what language features are used, and so on.
 /// This precise knowledge about what's live in the program is later used in
 /// optimizations and other compiler decisions during code generation.
-abstract class ClassWorld {
-  // TODO(johnniwinther): Refine this into a `BackendClasses` interface.
-  Backend get backend;
+abstract class ClosedWorld implements World {
+  /// Access to core classes used by the backend.
+  BackendClasses get backendClasses;
 
+  /// Access to core classes used in the Dart language.
   CoreClasses get coreClasses;
 
-  /// Returns `true` if the class world is closed.
-  bool get isClosed;
-
-  /// Returns `true` if closed-world assumptions can be made, that is,
-  /// incremental compilation isn't enabled.
-  bool get hasClosedWorldAssumption;
-
-  /// Returns a string representation of the closed world.
-  ///
-  /// If [cls] is provided, the dump will contain only classes related to [cls].
-  String dump([ClassElement cls]);
-
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassElement cls);
-
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
-  ClassSet getClassSet(ClassElement cls);
-
-  // TODO(johnniwinther): Find a better strategy for caching these.
-  @deprecated
-  List<Map<ClassElement, TypeMask>> get canonicalizedTypeMasks;
-}
-
-/// The [ClosedWorld] represents the information known about a program when
-/// compiling with closed-world semantics.
-///
-/// This expands [ClassWorld] with information about live functions,
-/// side effects, and selectors with known single targets.
-abstract class ClosedWorld extends ClassWorld {
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassElement cls);
 
@@ -189,6 +156,24 @@ abstract class ClosedWorld extends ClassWorld {
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, ClassElement type);
 
+  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
+  /// of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClosedWorld].
+  ClassHierarchyNode getClassHierarchyNode(ClassElement cls);
+
+  /// Returns [ClassSet] for [cls] used to model the extends and implements
+  /// relations of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClosedWorld].
+  ClassSet getClassSet(ClassElement cls);
+
+  // TODO(johnniwinther): Find a better strategy for caching these.
+  @deprecated
+  List<Map<ClassElement, TypeMask>> get canonicalizedTypeMasks;
+
   /// Returns the [FunctionSet] containing all live functions in the closed
   /// world.
   FunctionSet get allFunctions;
@@ -230,6 +215,11 @@ abstract class ClosedWorld extends ClassWorld {
   // TODO(johnniwinther): Is this 'passed invocation target` or
   // `passed as argument`?
   bool getMightBePassedToApply(Element element);
+
+  /// Returns a string representation of the closed world.
+  ///
+  /// If [cls] is provided, the dump will contain only classes related to [cls].
+  String dump([ClassElement cls]);
 }
 
 /// Interface for computing side effects and uses of elements. This is used
@@ -265,7 +255,7 @@ abstract class ClosedWorldRefiner {
   void registerClosureClass(ClassElement cls);
 }
 
-abstract class OpenWorld implements ClassWorld {
+abstract class OpenWorld implements World {
   /// Called to add [cls] to the set of known classes.
   ///
   /// This ensures that class hierarchy queries can be performed on [cls] and
@@ -512,8 +502,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   @override
   ClassElement getLubOfInstantiatedSubclasses(ClassElement cls) {
     assert(isClosed);
-    if (backend.isJsInterop(cls)) {
-      return backend.helpers.jsJavaScriptObjectClass;
+    if (_backend.isJsInterop(cls)) {
+      return _backend.helpers.jsJavaScriptObjectClass;
     }
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     return hierarchy != null
@@ -524,8 +514,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   @override
   ClassElement getLubOfInstantiatedSubtypes(ClassElement cls) {
     assert(isClosed);
-    if (backend.isJsInterop(cls)) {
-      return backend.helpers.jsJavaScriptObjectClass;
+    if (_backend.isJsInterop(cls)) {
+      return _backend.helpers.jsJavaScriptObjectClass;
     }
     ClassSet classSet = _classSets[cls.declaration];
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
@@ -669,7 +659,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   }
 
   final Compiler _compiler;
-  JavaScriptBackend get backend => _compiler.backend;
+  BackendClasses get backendClasses => _backend.backendClasses;
+  JavaScriptBackend get _backend => _compiler.backend;
   CommonMasks get commonMasks => _compiler.commonMasks;
   final FunctionSet allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
@@ -703,11 +694,6 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   final Set<Element> alreadyPopulated;
 
   bool get isClosed => _closed;
-
-  // Used by selectors.
-  bool isForeign(Element element) {
-    return backend.isForeign(element);
-  }
 
   Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {
     return _typesImplementedBySubclasses[cls.declaration];
@@ -749,7 +735,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
+  /// methods defined in [ClosedWorld].
   ClassHierarchyNode getClassHierarchyNode(ClassElement cls) {
     return _classHierarchyNodes[cls.declaration];
   }
@@ -769,7 +755,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// relations of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
+  /// methods defined in [ClosedWorld].
   ClassSet getClassSet(ClassElement cls) {
     return _classSets[cls.declaration];
   }
@@ -924,7 +910,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   bool fieldNeverChanges(Element element) {
     if (!element.isField) return false;
-    if (backend.isNative(element)) {
+    if (_backend.isNative(element)) {
       // Some native fields are views of data that may be changed by operations.
       // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
       // TODO(sra): Refine the effect classification so that native effects are
@@ -1024,6 +1010,4 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   bool getCurrentlyKnownMightBePassedToApply(Element element) {
     return getMightBePassedToApply(element);
   }
-
-  bool get hasClosedWorldAssumption => !_compiler.options.hasIncrementalSupport;
 }

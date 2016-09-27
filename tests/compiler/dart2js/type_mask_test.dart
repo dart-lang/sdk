@@ -21,7 +21,7 @@ main() {
 main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(CODE, uri);
-  var classWorld = compiler.openWorld.closeWorld();
+  var closedWorld = compiler.openWorld.closeWorld();
 
   asyncTest(() => compiler.run(uri).then((_) {
         var classA = findElement(compiler, 'A');
@@ -29,37 +29,37 @@ main() {
         var classC = findElement(compiler, 'C');
         var classD = findElement(compiler, 'D');
 
-        var exactA = new TypeMask.nonNullExact(classA, classWorld);
-        var exactB = new TypeMask.nonNullExact(classB, classWorld);
-        var exactC = new TypeMask.nonNullExact(classC, classWorld);
-        var exactD = new TypeMask.nonNullExact(classD, classWorld);
+        var exactA = new TypeMask.nonNullExact(classA, closedWorld);
+        var exactB = new TypeMask.nonNullExact(classB, closedWorld);
+        var exactC = new TypeMask.nonNullExact(classC, closedWorld);
+        var exactD = new TypeMask.nonNullExact(classD, closedWorld);
 
-        var subclassA = new TypeMask.nonNullSubclass(classA, classWorld);
-        var subtypeA = new TypeMask.nonNullSubtype(classA, classWorld);
+        var subclassA = new TypeMask.nonNullSubclass(classA, closedWorld);
+        var subtypeA = new TypeMask.nonNullSubtype(classA, closedWorld);
 
         var subclassObject = new TypeMask.nonNullSubclass(
-            compiler.coreClasses.objectClass, classWorld);
+            compiler.coreClasses.objectClass, closedWorld);
 
         var unionABC =
-            UnionTypeMask.unionOf([exactA, exactB, exactC], classWorld);
+            UnionTypeMask.unionOf([exactA, exactB, exactC], closedWorld);
         var unionABnC = UnionTypeMask
-            .unionOf([exactA, exactB.nullable(), exactC], classWorld);
-        var unionAB = UnionTypeMask.unionOf([exactA, exactB], classWorld);
+            .unionOf([exactA, exactB.nullable(), exactC], closedWorld);
+        var unionAB = UnionTypeMask.unionOf([exactA, exactB], closedWorld);
         var unionSubtypeAC =
-            UnionTypeMask.unionOf([subtypeA, exactC], classWorld);
+            UnionTypeMask.unionOf([subtypeA, exactC], closedWorld);
         var unionSubclassAC =
-            UnionTypeMask.unionOf([subclassA, exactC], classWorld);
+            UnionTypeMask.unionOf([subclassA, exactC], closedWorld);
         var unionBCD =
-            UnionTypeMask.unionOf([exactB, exactC, exactD], classWorld);
+            UnionTypeMask.unionOf([exactB, exactC, exactD], closedWorld);
         var unionBCDn = UnionTypeMask
-            .unionOf([exactB, exactC, exactD.nullable()], classWorld);
+            .unionOf([exactB, exactC, exactD.nullable()], closedWorld);
 
         Expect.isFalse(unionABC.isNullable);
         Expect.isTrue(unionABnC.isNullable);
         Expect.isFalse(unionBCD.isNullable);
         Expect.isTrue(unionBCDn.isNullable);
 
-        rule(a, b, c) => Expect.equals(c, a.isInMask(b, classWorld));
+        rule(a, b, c) => Expect.equals(c, a.isInMask(b, closedWorld));
 
         rule(exactA, exactA, true);
         rule(exactA, exactB, false);

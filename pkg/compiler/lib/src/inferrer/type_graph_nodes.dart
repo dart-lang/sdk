@@ -24,7 +24,7 @@ import '../types/masks.dart'
         ValueTypeMask;
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show ImmutableEmptySet, Setlet;
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'debug.dart' as debug;
 import 'inferrer_visitor.dart' show ArgumentsTypes;
 import 'type_graph_inferrer.dart'
@@ -867,26 +867,27 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
    */
   TypeInformation handleIntrisifiedSelector(
       Selector selector, TypeMask mask, TypeGraphInferrerEngine inferrer) {
-    ClassWorld classWorld = inferrer.closedWorld;
-    if (!classWorld.backend.intImplementation.isResolved) return null;
+    ClosedWorld closedWorld = inferrer.closedWorld;
+    if (!closedWorld.backendClasses.intImplementation.isResolved) return null;
     if (mask == null) return null;
-    if (!mask.containsOnlyInt(classWorld)) {
+    if (!mask.containsOnlyInt(closedWorld)) {
       return null;
     }
     if (!selector.isCall && !selector.isOperator) return null;
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    ClassElement uint31Implementation = classWorld.backend.uint31Implementation;
-    bool isInt(info) => info.type.containsOnlyInt(classWorld);
+    ClassElement uint31Implementation =
+        closedWorld.backendClasses.uint31Implementation;
+    bool isInt(info) => info.type.containsOnlyInt(closedWorld);
     bool isEmpty(info) => info.type.isEmpty;
     bool isUInt31(info) {
-      return info.type.satisfies(uint31Implementation, classWorld);
+      return info.type.satisfies(uint31Implementation, closedWorld);
     }
 
     bool isPositiveInt(info) {
-      return info.type
-          .satisfies(classWorld.backend.positiveIntImplementation, classWorld);
+      return info.type.satisfies(
+          closedWorld.backendClasses.positiveIntImplementation, closedWorld);
     }
 
     TypeInformation tryLater() => inferrer.types.nonNullEmptyType;

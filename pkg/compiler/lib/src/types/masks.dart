@@ -5,7 +5,7 @@
 library masks;
 
 import '../common.dart';
-import '../common/backend_api.dart' show Backend;
+import '../common/backend_api.dart' show BackendClasses;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show PrimitiveConstantValue;
 import '../elements/elements.dart';
@@ -18,7 +18,7 @@ import '../universe/universe.dart'
         UniverseSelectorConstraints,
         SelectorConstraintsStrategy;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, ClosedWorld;
+import '../world.dart' show ClosedWorld;
 import 'abstract_value_domain.dart' show AbstractValue;
 
 part 'container_type_mask.dart';
@@ -37,7 +37,9 @@ class CommonMasks {
 
   CommonMasks(this.compiler);
 
-  ClassWorld get classWorld => compiler.closedWorld;
+  ClosedWorld get closedWorld => compiler.closedWorld;
+
+  BackendClasses get backendClasses => closedWorld.backendClasses;
 
   TypeMask _dynamicType;
   TypeMask _nonNullType;
@@ -63,72 +65,72 @@ class CommonMasks {
   TypeMask _asyncStarStreamType;
 
   TypeMask get dynamicType => _dynamicType ??=
-      new TypeMask.subclass(classWorld.coreClasses.objectClass, classWorld);
+      new TypeMask.subclass(closedWorld.coreClasses.objectClass, closedWorld);
 
   TypeMask get nonNullType => _nonNullType ??= new TypeMask.nonNullSubclass(
-      classWorld.coreClasses.objectClass, classWorld);
+      closedWorld.coreClasses.objectClass, closedWorld);
 
   TypeMask get intType => _intType ??= new TypeMask.nonNullSubclass(
-      compiler.backend.intImplementation, classWorld);
+      backendClasses.intImplementation, closedWorld);
 
   TypeMask get uint32Type => _uint32Type ??= new TypeMask.nonNullSubclass(
-      compiler.backend.uint32Implementation, classWorld);
+      backendClasses.uint32Implementation, closedWorld);
 
   TypeMask get uint31Type => _uint31Type ??= new TypeMask.nonNullExact(
-      compiler.backend.uint31Implementation, classWorld);
+      backendClasses.uint31Implementation, closedWorld);
 
   TypeMask get positiveIntType =>
       _positiveIntType ??= new TypeMask.nonNullSubclass(
-          compiler.backend.positiveIntImplementation, classWorld);
+          backendClasses.positiveIntImplementation, closedWorld);
 
   TypeMask get doubleType => _doubleType ??= new TypeMask.nonNullExact(
-      compiler.backend.doubleImplementation, classWorld);
+      backendClasses.doubleImplementation, closedWorld);
 
   TypeMask get numType => _numType ??= new TypeMask.nonNullSubclass(
-      compiler.backend.numImplementation, classWorld);
+      backendClasses.numImplementation, closedWorld);
 
-  TypeMask get boolType => _boolType ??= new TypeMask.nonNullExact(
-      compiler.backend.boolImplementation, classWorld);
+  TypeMask get boolType => _boolType ??=
+      new TypeMask.nonNullExact(backendClasses.boolImplementation, closedWorld);
 
   TypeMask get functionType => _functionType ??= new TypeMask.nonNullSubtype(
-      compiler.backend.functionImplementation, classWorld);
+      backendClasses.functionImplementation, closedWorld);
 
-  TypeMask get listType => _listType ??= new TypeMask.nonNullExact(
-      compiler.backend.listImplementation, classWorld);
+  TypeMask get listType => _listType ??=
+      new TypeMask.nonNullExact(backendClasses.listImplementation, closedWorld);
 
   TypeMask get constListType => _constListType ??= new TypeMask.nonNullExact(
-      compiler.backend.constListImplementation, classWorld);
+      backendClasses.constListImplementation, closedWorld);
 
   TypeMask get fixedListType => _fixedListType ??= new TypeMask.nonNullExact(
-      compiler.backend.fixedListImplementation, classWorld);
+      backendClasses.fixedListImplementation, closedWorld);
 
   TypeMask get growableListType =>
       _growableListType ??= new TypeMask.nonNullExact(
-          compiler.backend.growableListImplementation, classWorld);
+          backendClasses.growableListImplementation, closedWorld);
 
   TypeMask get mapType => _mapType ??= new TypeMask.nonNullSubtype(
-      compiler.backend.mapImplementation, classWorld);
+      backendClasses.mapImplementation, closedWorld);
 
   TypeMask get constMapType => _constMapType ??= new TypeMask.nonNullSubtype(
-      compiler.backend.constMapImplementation, classWorld);
+      backendClasses.constMapImplementation, closedWorld);
 
   TypeMask get stringType => _stringType ??= new TypeMask.nonNullExact(
-      compiler.backend.stringImplementation, classWorld);
+      backendClasses.stringImplementation, closedWorld);
 
-  TypeMask get typeType => _typeType ??= new TypeMask.nonNullExact(
-      compiler.backend.typeImplementation, classWorld);
+  TypeMask get typeType => _typeType ??=
+      new TypeMask.nonNullExact(backendClasses.typeImplementation, closedWorld);
 
   TypeMask get syncStarIterableType =>
       _syncStarIterableType ??= new TypeMask.nonNullExact(
-          compiler.backend.syncStarIterableImplementation, classWorld);
+          backendClasses.syncStarIterableImplementation, closedWorld);
 
   TypeMask get asyncFutureType =>
       _asyncFutureType ??= new TypeMask.nonNullExact(
-          compiler.backend.asyncFutureImplementation, classWorld);
+          backendClasses.asyncFutureImplementation, closedWorld);
 
   TypeMask get asyncStarStreamType =>
       _asyncStarStreamType ??= new TypeMask.nonNullExact(
-          compiler.backend.asyncStarStreamImplementation, classWorld);
+          backendClasses.asyncStarStreamImplementation, closedWorld);
 
   // TODO(johnniwinther): Assert that the null type has been resolved.
   TypeMask get nullType => _nullType ??= const TypeMask.empty();

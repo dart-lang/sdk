@@ -277,7 +277,7 @@ class LookupMapAnalysis {
         // type_lookup_map/generic_type_test
         // TODO(sigmund): can we get rid of this?
         backend.computeImpactForInstantiatedConstantType(
-            backend.typeImplementation.rawType, impactBuilder);
+            backend.backendClasses.typeImplementation.rawType, impactBuilder);
         _addGenerics(arg);
       }
     }

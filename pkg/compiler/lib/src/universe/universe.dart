@@ -11,7 +11,7 @@ import '../compiler.dart' show Compiler;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, ClosedWorld, OpenWorld;
+import '../world.dart' show World, ClosedWorld, OpenWorld;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 
@@ -29,11 +29,11 @@ abstract class ReceiverConstraint {
   /// Returns whether [element] is a potential target when being
   /// invoked on a receiver with this constraint. [selector] is used to ensure
   /// library privacy is taken into account.
-  bool canHit(Element element, Selector selector, ClassWorld classWorld);
+  bool canHit(Element element, Selector selector, World world);
 
   /// Returns whether this [TypeMask] applied to [selector] can hit a
   /// [noSuchMethod].
-  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld);
+  bool needsNoSuchMethodHandling(Selector selector, World world);
 }
 
 /// The combined constraints on receivers all the dynamic call sites of the same
@@ -71,7 +71,7 @@ abstract class SelectorConstraints {
   ///
   /// Ideally the selector constraints for calls `foo` with two positional
   /// arguments apply to `A.foo` but `B.foo`.
-  bool applies(Element element, Selector selector, ClassWorld world);
+  bool applies(Element element, Selector selector, World world);
 
   /// Returns `true` if at least one of the receivers matching these constraints
   /// in the closed [world] have no implementation matching [selector].
@@ -84,7 +84,7 @@ abstract class SelectorConstraints {
   ///
   /// the potential receiver `new A()` has no implementation of `foo` and thus
   /// needs to handle the call through its `noSuchMethod` handler.
-  bool needsNoSuchMethodHandling(Selector selector, ClassWorld world);
+  bool needsNoSuchMethodHandling(Selector selector, World world);
 }
 
 /// A mutable [SelectorConstraints] used in [Universe].
@@ -103,7 +103,7 @@ abstract class SelectorConstraintsStrategy {
 }
 
 /// The [Universe] is an auxiliary class used in the process of computing the
-/// [ClassWorld]. The concepts here and in [ClassWorld] are very similar -- in
+/// [ClosedWorld]. The concepts here and in [ClosedWorld] are very similar -- in
 /// the same way that the "universe expands" you can think of this as a mutable
 /// world that is expanding as we visit and discover parts of the program.
 // TODO(sigmund): rename to "growing/expanding/mutable world"?
@@ -129,7 +129,7 @@ abstract class Universe {
   Iterable<DartType> get instantiatedTypes;
 
   /// Returns `true` if [member] is invoked as a setter.
-  bool hasInvokedSetter(Element member, ClassWorld world);
+  bool hasInvokedSetter(Element member, World world);
 }
 
 abstract class ResolutionUniverse implements Universe {
@@ -299,10 +299,10 @@ class ResolutionUniverseImpl implements ResolutionUniverse {
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
-      Element member, ClassWorld world) {
+      Element member, OpenWorld world) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
-      if (selector.appliesUnnamed(member, world.backend)) {
+      if (selector.appliesUnnamed(member)) {
         SelectorConstraints masks = selectors[selector];
         if (masks.applies(member, selector, world)) {
           return true;
@@ -542,7 +542,7 @@ class CodegenUniverseImpl implements CodegenUniverse {
       Element member, ClosedWorld world) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
-      if (selector.appliesUnnamed(member, world.backend)) {
+      if (selector.appliesUnnamed(member)) {
         SelectorConstraints masks = selectors[selector];
         if (masks.applies(member, selector, world)) {
           return true;

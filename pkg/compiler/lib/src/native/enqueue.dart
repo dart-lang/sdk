@@ -483,8 +483,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
           backend.registerInstantiatedType(type, world, registry);
         } else if (type == coreTypes.boolType) {
           backend.registerInstantiatedType(type, world, registry);
-        } else if (compiler.types
-            .isSubtype(type, backend.listImplementation.rawType)) {
+        } else if (compiler.types.isSubtype(
+            type, backend.backendClasses.listImplementation.rawType)) {
           backend.registerInstantiatedType(type, world, registry);
         }
         // TODO(johnniwinther): Improve spec string precision to handle type

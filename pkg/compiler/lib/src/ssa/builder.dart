@@ -332,7 +332,7 @@ class SsaBuilder extends ast.Visitor
    */
   List<HInstruction> completeDynamicSendArgumentsList(Selector selector,
       FunctionElement function, List<HInstruction> providedArguments) {
-    assert(selector.applies(function, backend));
+    assert(selector.applies(function));
     FunctionSignature signature = function.functionSignature;
     List<HInstruction> compiledArguments = new List<HInstruction>(
         signature.parameterCount + 1); // Plus one for receiver.
@@ -426,7 +426,7 @@ class SsaBuilder extends ast.Visitor
               element.isGenerativeConstructorBody,
           message: "Missing selector for inlining of $element."));
       if (selector != null) {
-        if (!selector.applies(function, backend)) return false;
+        if (!selector.applies(function)) return false;
         if (mask != null &&
             !mask.canHit(function, selector, compiler.closedWorld)) {
           return false;
@@ -3201,7 +3201,7 @@ class SsaBuilder extends ast.Visitor
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
     Selector selector = elements.getSelector(node);
-    assert(invariant(node, selector.applies(function.implementation, backend),
+    assert(invariant(node, selector.applies(function.implementation),
         message: "$selector does not apply to ${function.implementation}"));
     List<HInstruction> inputs = makeStaticArgumentList(
         selector.callStructure, node.arguments, function.implementation);
@@ -4453,8 +4453,7 @@ class SsaBuilder extends ast.Visitor
     List<HInstruction> setterInputs = <HInstruction>[];
     void generateSuperSendSet() {
       Selector setterSelector = elements.getSelector(node);
-      if (Elements.isUnresolved(element) ||
-          !setterSelector.applies(element, compiler.backend)) {
+      if (Elements.isUnresolved(element) || !setterSelector.applies(element)) {
         generateSuperNoSuchMethodSend(node, setterSelector, setterInputs);
         pop();
       } else {
