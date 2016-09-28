@@ -83,8 +83,12 @@ main(List<String> arguments) {
   var testDirs = [
     'language',
     'corelib',
+    path.join('corelib', 'regexp'),
     path.join('lib', 'convert'),
     path.join('lib', 'html'),
+    // TODO(vsm): Fix these - they import files from a different directory
+    // - this triggers an invalid library root build error.
+    // path.join('lib', 'html', 'custom'),
     path.join('lib', 'math'),
     path.join('lib', 'mirrors'),
     path.join('lib', 'typed_data'),
@@ -218,7 +222,7 @@ List<String> _setUpTests(List<String> testDirs) {
 
   for (var testDir in testDirs) {
     for (var file
-        in _listFiles(path.join(codegenDir, testDir), recursive: true)) {
+        in _listFiles(path.join(codegenDir, testDir), recursive: false)) {
       var relativePath = path.relative(file, from: codegenDir);
       var outputPath = path.join(codegenTestDir, relativePath);
 

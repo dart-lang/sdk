@@ -51,7 +51,6 @@ class AnalyzerOptions {
       String dartSdkPath,
       this.dartSdkSummaryPath,
       this.customUrlMappings: const {},
-      this.packageRoot: 'packages/',
       this.packagePaths: const []})
       : dartSdkPath = dartSdkPath ?? getSdkDir().path;
 
@@ -74,9 +73,7 @@ class AnalyzerOptions {
       ..addOption('dart-sdk-summary',
           help: 'Dart SDK Summary Path', defaultsTo: null)
       ..addOption('package-root',
-          abbr: 'p',
-          help: 'Package root to resolve "package:" imports',
-          defaultsTo: 'packages/')
+          abbr: 'p', help: 'Package root to resolve "package:" imports')
       ..addOption('url-mapping',
           help: '--url-mapping=libraryUri,/path/to/library.dart uses\n'
               'library.dart as the source for an import of of "libraryUri".',
@@ -142,7 +139,9 @@ List<UriResolver> createFileResolvers(AnalyzerOptions options,
   resourceProvider ??= PhysicalResourceProvider.INSTANCE;
   UriResolver packageResolver() {
     ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
-    builder.defaultPackagesDirectoryPath = options.packageRoot;
+    if (options.packageRoot != null) {
+      builder.defaultPackagesDirectoryPath = options.packageRoot;
+    }
     return new PackageMapUriResolver(resourceProvider,
         builder.convertPackagesToMap(builder.createPackageMap('')));
   }

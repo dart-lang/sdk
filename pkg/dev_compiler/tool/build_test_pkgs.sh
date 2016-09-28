@@ -28,7 +28,8 @@ SDK=--dart-sdk-summary=lib/js/amd/dart_sdk.sum
     -s gen/codegen_output/pkg/path.sum \
     package:stack_trace/stack_trace.dart
 
-./bin/dartdevc.dart $SDK -o gen/codegen_output/pkg/unittest.js \
+./bin/dartdevc.dart $SDK --unsafe-force-compile \
+    -o gen/codegen_output/pkg/unittest.js \
     -s gen/codegen_output/pkg/matcher.sum \
     -s gen/codegen_output/pkg/path.sum \
     -s gen/codegen_output/pkg/stack_trace.sum \

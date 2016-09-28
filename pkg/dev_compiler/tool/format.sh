@@ -13,4 +13,5 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 (files=`git ls-files 'bin/*.dart' 'lib/*.dart' test/*.dart test/checker/*.dart \
   tool/*.dart | grep -v lib/src/js_ast/`; git status -s $files | grep -q . \
   && echo "Did not run the formatter, please commit edited files first." \
-  || (echo "Running dart formatter" ; pub run dart_style:format -w $files))
+  || (echo "Running dart formatter" ; \
+  dart ../../third_party/pkg_tested/dart_style/bin/format.dart -w $files))

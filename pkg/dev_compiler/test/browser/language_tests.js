@@ -570,6 +570,20 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       'js_typed_interop_default_arg_test_default_value_multi': ['unittest', 'skip', 'fail']
     },
 
+    'lib/html/custom': {
+      'attribute_changed_callback_test': ['unittest', 'skip', 'fail'],
+      'constructor_calls_created_synchronously_test':
+        ['unittest', 'skip', 'fail'],
+      'created_callback_test': ['unittest', 'skip', 'fail'],
+      'document_register_basic_test': ['unittest', 'skip', 'fail'],
+      'document_register_type_extensions_test': ['unittest', 'skip', 'fail'],
+      'element_upgrade_test': ['unittest', 'skip', 'fail'],
+      'entered_left_view_test': ['unittest', 'skip', 'fail'],
+      'js_custom_test': ['unittest', 'skip', 'fail'],
+      'mirrors_test': ['unittest', 'skip', 'fail'],
+      'regress_194523002_test': ['unittest', 'skip', 'fail'],
+    },
+
     'lib/math': {
       // TODO(het): triage
       'double_pow_test': skip_fail,

@@ -52,8 +52,10 @@ abstract class JsTypeRefCodegen {
           for (var param in type.parameters) {
             if (param.parameterKind == ParameterKind.NAMED) break;
             var type = emitTypeRef(param.type);
-            args[new JS.Identifier(param.name)] = param.parameterKind ==
-                ParameterKind.POSITIONAL ? type.toOptional() : type;
+            args[new JS.Identifier(param.name)] =
+                param.parameterKind == ParameterKind.POSITIONAL
+                    ? type.toOptional()
+                    : type;
           }
           var namedParamType = emitNamedParamsArgType(type.parameters);
           if (namedParamType != null) {

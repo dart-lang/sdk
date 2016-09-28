@@ -73,8 +73,10 @@ bool isMultiTest(String contents) => _multiTestRegExp.hasMatch(contents);
 void extractTestsFromMultitest(String filePath, String contents,
     Map<String, String> tests, Map<String, Set<String>> outcomes) {
   int first_newline = contents.indexOf('\n');
-  final String line_separator = (first_newline == 0 ||
-      contents[first_newline - 1] != '\r') ? '\n' : '\r\n';
+  final String line_separator =
+      (first_newline == 0 || contents[first_newline - 1] != '\r')
+          ? '\n'
+          : '\r\n';
   List<String> lines = contents.split(line_separator);
   if (lines.last == '') lines.removeLast();
   contents = null;
