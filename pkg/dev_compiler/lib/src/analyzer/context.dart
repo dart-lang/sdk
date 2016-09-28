@@ -51,6 +51,7 @@ class AnalyzerOptions {
       String dartSdkPath,
       this.dartSdkSummaryPath,
       this.customUrlMappings: const {},
+      this.packageRoot: null,
       this.packagePaths: const []})
       : dartSdkPath = dartSdkPath ?? getSdkDir().path;
 
