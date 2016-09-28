@@ -697,7 +697,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     function ^= deopt_context->ObjectAt(object_table_index_);
     if (function.IsNull()) {
       *reinterpret_cast<RawObject**>(dest_addr) = deopt_context->is_lazy_deopt()
-          ? StubCode::DeoptimizeLazy_entry()->code()
+          ? StubCode::DeoptimizeLazyFromReturn_entry()->code()
           : StubCode::Deoptimize_entry()->code();
       return;
     }

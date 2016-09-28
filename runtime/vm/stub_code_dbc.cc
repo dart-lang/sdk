@@ -54,7 +54,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 // These deoptimization stubs are only used to populate stack frames
 // with something meaningful to make sure GC can scan the stack during
 // the last phase of deoptimization which materializes objects.
-void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
+void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
+  __ Trap();
+}
+
+
+void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
   __ Trap();
 }
 

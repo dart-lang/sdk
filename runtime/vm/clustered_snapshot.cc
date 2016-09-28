@@ -1598,7 +1598,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
 #endif
       code->ptr()->state_bits_ = d->Read<int32_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      code->ptr()->lazy_deopt_pc_offset_ = -1;
+      code->ptr()->lazy_deopt_return_pc_offset_ = -1;
+      code->ptr()->lazy_deopt_throw_pc_offset_ = -1;
 #endif
     }
   }

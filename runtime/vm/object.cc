@@ -14229,7 +14229,8 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_is_alive(false);
     result.set_comments(Comments::New(0));
     result.set_compile_timestamp(0);
-    result.set_lazy_deopt_pc_offset(kInvalidPc);
+    result.set_lazy_deopt_return_pc_offset(kInvalidPc);
+    result.set_lazy_deopt_throw_pc_offset(kInvalidPc);
     result.set_pc_descriptors(Object::empty_descriptors());
   }
   return result.raw();
@@ -14543,9 +14544,15 @@ void Code::SetActiveInstructions(RawInstructions* instructions) const {
 }
 
 
-uword Code::GetLazyDeoptPc() const {
-  return (lazy_deopt_pc_offset() != kInvalidPc)
-      ? PayloadStart() + lazy_deopt_pc_offset() : 0;
+uword Code::GetLazyDeoptReturnPc() const {
+  return (lazy_deopt_return_pc_offset() != kInvalidPc)
+      ? PayloadStart() + lazy_deopt_return_pc_offset() : 0;
+}
+
+
+uword Code::GetLazyDeoptThrowPc() const {
+  return (lazy_deopt_throw_pc_offset() != kInvalidPc)
+      ? PayloadStart() + lazy_deopt_throw_pc_offset() : 0;
 }
 
 
