@@ -3141,7 +3141,7 @@ class FunctionTypeAliasElementForLink extends Object
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
-  CompilationUnitElementInBuildUnit get enclosingUnit => enclosingElement;
+  CompilationUnitElementImpl get enclosingUnit => enclosingElement;
 
   @override
   String get identifier => _unlinkedTypedef.name;
