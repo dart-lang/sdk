@@ -4,9 +4,9 @@
 
 import '../compiler.dart';
 import '../elements/elements.dart';
+import '../js_backend/js_backend.dart';
 import '../resolution/tree_elements.dart';
 import '../types/types.dart';
-
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
@@ -22,6 +22,9 @@ abstract class GraphBuilder {
   // TODO(het): remove this
   /// A reference to the compiler.
   Compiler compiler;
+
+  /// The JavaScript backend we are targeting in this compilation.
+  JavaScriptBackend get backend;
 
   /// The tree elements for the element being built into an SSA graph.
   TreeElements get elements;
@@ -58,7 +61,10 @@ abstract class GraphBuilder {
   HInstruction popBoolified();
 
   /// Pushes a boolean checking [expression] against null.
-  pushCheckNull(HInstruction expression);
+  pushCheckNull(HInstruction expression) {
+    push(new HIdentity(
+        expression, graph.addConstantNull(compiler), null, backend.boolType));
+  }
 
   void dup() {
     stack.add(stack.last);

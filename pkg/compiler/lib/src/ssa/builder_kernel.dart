@@ -53,8 +53,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final ResolvedAst resolvedAst;
   final CodegenRegistry registry;
 
+  @override
   JavaScriptBackend get backend => compiler.backend;
 
+  @override
   TreeElements get elements => resolvedAst.elements;
 
   SourceInformationBuilder sourceInformationBuilder;
@@ -98,13 +100,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else if (target is ir.Field) {
       buildField(target);
     } else if (target is ir.Constructor) {
-      // TODO(het): Actually handle this correctly
-      HBasicBlock block = graph.addNewBlock();
-      open(graph.entry);
-      close(new HGoto()).addSuccessor(block);
-      open(block);
-      closeAndGotoExit(new HGoto());
-      graph.finalize();
+      buildConstructor(target);
     }
     assert(graph.isValid());
     return graph;
@@ -127,12 +123,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return result;
   }
 
-  // TODO(het): This implementation is shared with [SsaBuilder]. Should we just
-  // allow [GraphBuilder] to access `compiler`?
-  @override
-  pushCheckNull(HInstruction expression) {
-    push(new HIdentity(
-        expression, graph.addConstantNull(compiler), null, backend.boolType));
+  void buildConstructor(ir.Constructor constructor) {
+    // TODO(het): Actually handle this correctly
+    HBasicBlock block = graph.addNewBlock();
+    open(graph.entry);
+    close(new HGoto()).addSuccessor(block);
+    open(block);
+    closeAndGotoExit(new HGoto());
+    graph.finalize();
   }
 
   /// Builds a SSA graph for [procedure].

@@ -913,14 +913,14 @@ class SsaBuilder extends ast.Visitor
    * Invariant: [constructors] must contain only implementation elements.
    */
   void inlineSuperOrRedirect(
-      ResolvedAst constructorRecolvedAst,
+      ResolvedAst constructorResolvedAst,
       List<HInstruction> compiledArguments,
       List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues,
       FunctionElement caller) {
-    ConstructorElement callee = constructorRecolvedAst.element.implementation;
+    ConstructorElement callee = constructorResolvedAst.element.implementation;
     reporter.withCurrentElement(callee, () {
-      constructorResolvedAsts.add(constructorRecolvedAst);
+      constructorResolvedAsts.add(constructorResolvedAst);
       ClassElement enclosingClass = callee.enclosingClass;
       if (backend.classNeedsRti(enclosingClass)) {
         // If [enclosingClass] needs RTI, we have to give a value to its
@@ -958,7 +958,7 @@ class SsaBuilder extends ast.Visitor
       // For redirecting constructors, the fields will be initialized later
       // by the effective target.
       if (!callee.isRedirectingGenerative) {
-        inlinedFrom(constructorRecolvedAst, () {
+        inlinedFrom(constructorResolvedAst, () {
           buildFieldInitializers(
               callee.enclosingClass.implementation, fieldValues);
         });
@@ -2305,12 +2305,6 @@ class SsaBuilder extends ast.Visitor
               inferenceResults.typeOfSend(node, elements),
               expression);
         });
-  }
-
-  @override
-  pushCheckNull(HInstruction expression) {
-    push(new HIdentity(
-        expression, graph.addConstantNull(compiler), null, backend.boolType));
   }
 
   @override
