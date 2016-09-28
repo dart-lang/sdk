@@ -2872,7 +2872,7 @@ A {\em symbol literal} denotes the name of a declaration in a Dart program.
 A symbol literal \code{\#id} where \code{id} does not begin with an underscore ('\code{\_}')  is equivalent to the expression \code{\CONST{} Symbol('id')}.
 
 \LMHash{}
-A symbol literal \code{\#\_id} evaluates to the object that would be returned by the call \code{mirror.getPrivateSymbol('id')} where mirror is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
+A symbol literal \code{\#\_id} evaluates to the object that would be returned by the call \code{MirrorSystem.getSymbol('_id', libraryMirror)} where \code{libraryMirror} is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
 
 \rationale{
 One may well ask what is the motivation for introducing literal symbols? In some languages, symbols are canonicalized whereas strings are not. However literal strings are already canonicalized in Dart.  Symbols are slightly easier to type compared to strings and their use can become strangely addictive, but this is not nearly sufficient justification for adding a literal form to the language. The primary motivation is related to the use of reflection and a web specific practice known as minification.
