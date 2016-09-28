@@ -215,16 +215,17 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
 }
 
 
-void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
+// Returns true if fall-through code can be omitted.
+bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
                               FlowGraphCompiler* compiler) {
   const Function& function = parsed_function.function();
   if (!CanIntrinsify(function)) {
-    return;
+    return false;
   }
 
   ASSERT(!compiler->flow_graph().IsCompiledForOsr());
   if (GraphIntrinsify(parsed_function, compiler)) {
-    return;
+    return compiler->intrinsic_slow_path_label()->IsUnused();
   }
 
 #define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
@@ -255,6 +256,7 @@ void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
 #endif
 
 #undef EMIT_INTRINSIC
+  return false;
 }
 
 

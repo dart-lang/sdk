@@ -1174,9 +1174,10 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
   EnterIntrinsicMode();
 
-  Intrinsifier::Intrinsify(parsed_function(), this);
+  bool complete = Intrinsifier::Intrinsify(parsed_function(), this);
 
   ExitIntrinsicMode();
+
   // "Deoptimization" from intrinsic continues here. All deoptimization
   // branches from intrinsic code redirect to here where the slow-path
   // (normal function body) starts.
@@ -1184,7 +1185,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   // before any deoptimization point.
   ASSERT(!intrinsic_slow_path_label_.IsBound());
   assembler()->Bind(&intrinsic_slow_path_label_);
-  return false;
+  return complete;
 }
 
 
