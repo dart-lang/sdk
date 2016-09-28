@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
 import '../dart_types.dart';
@@ -17,7 +18,6 @@ import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
 import '../types/masks.dart';
 import '../universe/selector.dart';
-
 import 'graph_builder.dart';
 import 'kernel_ast_adapter.dart';
 import 'kernel_string_builder.dart';
@@ -242,6 +242,164 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitForInStatement(ir.ForInStatement forInStatement) {
+    if (forInStatement.isAsync) {
+      compiler.reporter.internalError(astAdapter.getNode(forInStatement),
+          "Cannot compile async for-in using kernel.");
+    }
+    // If the expression being iterated over is a JS indexable type, we can
+    // generate an optimized version of for-in that uses indexing.
+    if (astAdapter.isJsIndexableIterator(forInStatement)) {
+      _buildForInIndexable(forInStatement);
+    } else {
+      _buildForInIterator(forInStatement);
+    }
+  }
+
+  /// Builds the graph for a for-in node with an indexable expression.
+  ///
+  /// In this case we build:
+  ///
+  ///    int end = a.length;
+  ///    for (int i = 0;
+  ///         i < a.length;
+  ///         checkConcurrentModificationError(a.length == end, a), ++i) {
+  ///      <declaredIdentifier> = a[i];
+  ///      <body>
+  ///    }
+  _buildForInIndexable(ir.ForInStatement forInStatement) {
+    SyntheticLocal indexVariable = new SyntheticLocal('_i', targetElement);
+
+    // These variables are shared by initializer, condition, body and update.
+    HInstruction array; // Set in buildInitializer.
+    bool isFixed; // Set in buildInitializer.
+    HInstruction originalLength = null; // Set for growable lists.
+
+    HInstruction buildGetLength() {
+      HFieldGet result = new HFieldGet(
+          astAdapter.jsIndexableLength, array, backend.positiveIntType,
+          isAssignable: !isFixed);
+      add(result);
+      return result;
+    }
+
+    void buildConcurrentModificationErrorCheck() {
+      if (originalLength == null) return;
+      // The static call checkConcurrentModificationError() is expanded in
+      // codegen to:
+      //
+      //     array.length == _end || throwConcurrentModificationError(array)
+      //
+      HInstruction length = buildGetLength();
+      push(new HIdentity(length, originalLength, null, backend.boolType));
+      _pushStaticInvocation(
+          astAdapter.checkConcurrentModificationError,
+          [pop(), array],
+          astAdapter.checkConcurrentModificationErrorReturnType);
+      pop();
+    }
+
+    void buildInitializer() {
+      forInStatement.iterable.accept(this);
+      array = pop();
+      isFixed = astAdapter.isFixedLength(array.instructionType);
+      localsHandler.updateLocal(
+          indexVariable, graph.addConstantInt(0, compiler));
+      originalLength = buildGetLength();
+    }
+
+    HInstruction buildCondition() {
+      HInstruction index = localsHandler.readLocal(indexVariable);
+      HInstruction length = buildGetLength();
+      HInstruction compare = new HLess(index, length, null, backend.boolType);
+      add(compare);
+      return compare;
+    }
+
+    void buildBody() {
+      // If we had mechanically inlined ArrayIterator.moveNext(), it would have
+      // inserted the ConcurrentModificationError check as part of the
+      // condition.  It is not necessary on the first iteration since there is
+      // no code between calls to `get iterator` and `moveNext`, so the test is
+      // moved to the loop update.
+
+      // Find a type for the element. Use the element type of the indexer of the
+      // array, as this is stronger than the iterator's `get current` type, for
+      // example, `get current` includes null.
+      // TODO(sra): The element type of a container type mask might be better.
+      TypeMask type = astAdapter.inferredIndexType(forInStatement);
+
+      HInstruction index = localsHandler.readLocal(indexVariable);
+      HInstruction value = new HIndex(array, index, null, type);
+      add(value);
+
+      localsHandler.updateLocal(
+          astAdapter.getLocal(forInStatement.variable), value);
+
+      forInStatement.body.accept(this);
+    }
+
+    void buildUpdate() {
+      // See buildBody as to why we check here.
+      buildConcurrentModificationErrorCheck();
+
+      // TODO(sra): It would be slightly shorter to generate `a[i++]` in the
+      // body (and that more closely follows what an inlined iterator would do)
+      // but the code is horrible as `i+1` is carried around the loop in an
+      // additional variable.
+      HInstruction index = localsHandler.readLocal(indexVariable);
+      HInstruction one = graph.addConstantInt(1, compiler);
+      HInstruction addInstruction =
+          new HAdd(index, one, null, backend.positiveIntType);
+      add(addInstruction);
+      localsHandler.updateLocal(indexVariable, addInstruction);
+    }
+
+    loopHandler.handleLoop(forInStatement, buildInitializer, buildCondition,
+        buildUpdate, buildBody);
+  }
+
+  _buildForInIterator(ir.ForInStatement forInStatement) {
+    // Generate a structure equivalent to:
+    //   Iterator<E> $iter = <iterable>.iterator;
+    //   while ($iter.moveNext()) {
+    //     <declaredIdentifier> = $iter.current;
+    //     <body>
+    //   }
+
+    // The iterator is shared between initializer, condition and body.
+    HInstruction iterator;
+
+    void buildInitializer() {
+      TypeMask mask = astAdapter.typeOfIterator(forInStatement);
+      forInStatement.iterable.accept(this);
+      HInstruction receiver = pop();
+      _pushDynamicInvocation(forInStatement, mask, <HInstruction>[receiver],
+          selector: Selectors.iterator);
+      iterator = pop();
+    }
+
+    HInstruction buildCondition() {
+      TypeMask mask = astAdapter.typeOfIteratorMoveNext(forInStatement);
+      _pushDynamicInvocation(forInStatement, mask, <HInstruction>[iterator],
+          selector: Selectors.moveNext);
+      return popBoolified();
+    }
+
+    void buildBody() {
+      TypeMask mask = astAdapter.typeOfIteratorCurrent(forInStatement);
+      _pushDynamicInvocation(forInStatement, mask, [iterator],
+          selector: Selectors.current);
+      localsHandler.updateLocal(
+          astAdapter.getLocal(forInStatement.variable), pop());
+      forInStatement.body.accept(this);
+    }
+
+    loopHandler.handleLoop(
+        forInStatement, buildInitializer, buildCondition, () {}, buildBody);
+  }
+
+  @override
   void visitWhileStatement(ir.WhileStatement whileStatement) {
     assert(isReachable);
     HInstruction buildCondition() {
@@ -330,7 +488,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // TODO(het): set runtime type info
     }
 
-    // TODO(het): Set the instruction type to the list type given by inference
+    TypeMask type = astAdapter.typeOfNewList(targetElement, listLiteral);
+    if (!type.containsAll(compiler.closedWorld)) {
+      listInstruction.instructionType = type;
+    }
     stack.add(listInstruction);
   }
 
@@ -412,23 +573,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     propertyGet.receiver.accept(this);
     HInstruction receiver = pop();
 
-    List<HInstruction> inputs = <HInstruction>[];
-    bool isIntercepted = astAdapter.isIntercepted(propertyGet);
-    if (isIntercepted) {
-      HInterceptor interceptor = _interceptorFor(receiver);
-      inputs.add(interceptor);
-    }
-    inputs.add(receiver);
-
-    TypeMask type = astAdapter.selectorGetterTypeOf(propertyGet);
-
-    push(new HInvokeDynamicGetter(astAdapter.getGetterSelector(propertyGet),
-        astAdapter.typeOfGet(propertyGet), null, inputs, type));
+    _pushDynamicInvocation(propertyGet, astAdapter.typeOfGet(propertyGet),
+        <HInstruction>[receiver]);
   }
 
   @override
   void visitVariableGet(ir.VariableGet variableGet) {
-    LocalElement local = astAdapter.getElement(variableGet.variable);
+    Local local = astAdapter.getLocal(variableGet.variable);
     stack.add(localsHandler.readLocal(local));
   }
 
@@ -441,7 +592,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitVariableDeclaration(ir.VariableDeclaration declaration) {
-    LocalElement local = astAdapter.getElement(declaration);
+    Local local = astAdapter.getLocal(declaration);
     if (declaration.initializer == null) {
       HInstruction initialValue = graph.addConstantNull(compiler);
       localsHandler.updateLocal(local, initialValue);
@@ -508,28 +659,43 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     push(instruction);
   }
 
-  // TODO(het): Decide when to inline
-  @override
-  void visitMethodInvocation(ir.MethodInvocation invocation) {
-    invocation.receiver.accept(this);
-    HInstruction receiver = pop();
-
-    List<HInstruction> arguments = <HInstruction>[receiver]
-      ..addAll(_visitArguments(invocation.arguments));
-
+  void _pushDynamicInvocation(
+      ir.Node node, TypeMask mask, List<HInstruction> arguments,
+      {Selector selector}) {
+    HInstruction receiver = arguments.first;
     List<HInstruction> inputs = <HInstruction>[];
 
-    bool isIntercepted = astAdapter.isIntercepted(invocation);
+    selector ??= astAdapter.getSelector(node);
+    bool isIntercepted = astAdapter.isInterceptedSelector(selector);
+
     if (isIntercepted) {
       HInterceptor interceptor = _interceptorFor(receiver);
       inputs.add(interceptor);
     }
     inputs.addAll(arguments);
 
-    TypeMask type = astAdapter.selectorTypeOf(invocation);
+    TypeMask type = astAdapter.selectorTypeOf(selector, mask);
+    if (selector.isGetter) {
+      push(new HInvokeDynamicGetter(selector, mask, null, inputs, type));
+    } else if (selector.isSetter) {
+      push(new HInvokeDynamicSetter(selector, mask, null, inputs, type));
+    } else {
+      push(new HInvokeDynamicMethod(
+          selector, mask, inputs, type, isIntercepted));
+    }
+  }
 
-    push(new HInvokeDynamicMethod(astAdapter.getSelector(invocation),
-        astAdapter.typeOfInvocation(invocation), inputs, type, isIntercepted));
+  // TODO(het): Decide when to inline
+  @override
+  void visitMethodInvocation(ir.MethodInvocation invocation) {
+    invocation.receiver.accept(this);
+    HInstruction receiver = pop();
+
+    _pushDynamicInvocation(
+        invocation,
+        astAdapter.typeOfInvocation(invocation),
+        <HInstruction>[receiver]
+          ..addAll(_visitArguments(invocation.arguments)));
   }
 
   HInterceptor _interceptorFor(HInstruction intercepted) {

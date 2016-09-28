@@ -435,7 +435,9 @@ class KernelVisitor extends Object
     JumpTarget jumpTarget = elements.getTargetDefinition(node);
     body = buildContinueTarget(body, node, jumpTarget);
     return buildBreakTarget(
-        new ir.ForInStatement(variable, iterable, body, isAsync: isAsync),
+        associateNode(
+            new ir.ForInStatement(variable, iterable, body, isAsync: isAsync),
+            node),
         node,
         jumpTarget);
   }
