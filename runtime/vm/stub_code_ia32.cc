@@ -1785,6 +1785,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // TOS + 4: exception object
 // TOS + 5: stacktrace object
 // TOS + 6: thread
+// TOS + 7: pool pointer (unused)
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == EAX);

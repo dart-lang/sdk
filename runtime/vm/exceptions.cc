@@ -144,6 +144,7 @@ static bool FindExceptionHandler(Thread* thread,
                                  uword* handler_pc,
                                  uword* handler_sp,
                                  uword* handler_fp,
+                                 uword** handler_pp_slot,
                                  bool* needs_stacktrace) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
@@ -152,6 +153,7 @@ static bool FindExceptionHandler(Thread* thread,
   *needs_stacktrace = false;
   bool is_catch_all = false;
   uword temp_handler_pc = kUwordMax;
+  uword* saved_pp_slot = 0;
   while (!frame->IsEntryFrame()) {
     if (frame->IsDartFrame()) {
       if (frame->FindExceptionHandler(thread,
@@ -163,12 +165,16 @@ static bool FindExceptionHandler(Thread* thread,
           *handler_pc = temp_handler_pc;
           *handler_sp = frame->sp();
           *handler_fp = frame->fp();
+          *handler_pp_slot = saved_pp_slot;
         }
         if (*needs_stacktrace || is_catch_all) {
           return true;
         }
       }
     }  // if frame->IsDartFrame
+#if !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_DBC)
+    saved_pp_slot = frame->saved_caller_pp_slot();
+#endif
     frame = frames.NextFrame();
     ASSERT(frame != NULL);
   }  // while !frame->IsEntryFrame
@@ -177,6 +183,7 @@ static bool FindExceptionHandler(Thread* thread,
     *handler_pc = frame->pc();
     *handler_sp = frame->sp();
     *handler_fp = frame->fp();
+    *handler_pp_slot = saved_pp_slot;
   }
   // No catch-all encountered, needs stacktrace.
   *needs_stacktrace = true;
@@ -186,12 +193,17 @@ static bool FindExceptionHandler(Thread* thread,
 
 static void FindErrorHandler(uword* handler_pc,
                              uword* handler_sp,
-                             uword* handler_fp) {
+                             uword* handler_fp,
+                             uword** handler_pp_slot) {
   // TODO(turnidge): Is there a faster way to get the next entry frame?
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);
+  uword* saved_pp_slot = NULL;
   while (!frame->IsEntryFrame()) {
+#if !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_DBC)
+    saved_pp_slot = frame->saved_caller_pp_slot();
+#endif
     frame = frames.NextFrame();
     ASSERT(frame != NULL);
   }
@@ -199,6 +211,7 @@ static void FindErrorHandler(uword* handler_pc,
   *handler_pc = frame->pc();
   *handler_sp = frame->sp();
   *handler_fp = frame->fp();
+  *handler_pp_slot = saved_pp_slot;
 }
 
 
@@ -206,6 +219,7 @@ static void JumpToExceptionHandler(Thread* thread,
                                    uword program_counter,
                                    uword stack_pointer,
                                    uword frame_pointer,
+                                   uword* pool_pointer_slot,
                                    const Object& exception_object,
                                    const Object& stacktrace_object) {
   // The no_gc StackResource is unwound through the tear down of
@@ -213,6 +227,14 @@ static void JumpToExceptionHandler(Thread* thread,
   NoSafepointScope no_safepoint;
   RawObject* raw_exception = exception_object.raw();
   RawObject* raw_stacktrace = stacktrace_object.raw();
+
+#if !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_DBC)
+  ASSERT(pool_pointer_slot != NULL);
+  uword pool_pointer = *pool_pointer_slot;
+  // TODO(rmacnak): Lazy deopt without patching alters pc and pp here.
+#else
+  uword pool_pointer = 0;
+#endif
 
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
@@ -224,7 +246,8 @@ static void JumpToExceptionHandler(Thread* thread,
   // object (may be raw null) in the kStackTraceObjectReg register.
 
   Simulator::Current()->Longjmp(program_counter, stack_pointer, frame_pointer,
-                                raw_exception, raw_stacktrace, thread);
+                                pool_pointer, raw_exception, raw_stacktrace,
+                                thread);
 #else
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
@@ -234,7 +257,7 @@ static void JumpToExceptionHandler(Thread* thread,
   // to set up the stacktrace object in kStackTraceObjectReg, and to
   // continue execution at the given pc in the given frame.
   typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*,
-                              Thread*);
+                              Thread*, uword);
   ExcpHandler func = reinterpret_cast<ExcpHandler>(
       StubCode::JumpToExceptionHandler_entry()->EntryPoint());
 
@@ -244,7 +267,7 @@ static void JumpToExceptionHandler(Thread* thread,
                 stack_pointer - current_sp);
 
   func(program_counter, stack_pointer, frame_pointer,
-       raw_exception, raw_stacktrace, thread);
+       raw_exception, raw_stacktrace, thread, pool_pointer);
 #endif
   UNREACHABLE();
 }
@@ -317,6 +340,7 @@ static void ThrowExceptionHelper(Thread* thread,
   uword handler_pc = 0;
   uword handler_sp = 0;
   uword handler_fp = 0;
+  uword* handler_pp_slot = 0;
   Instance& stacktrace = Instance::Handle(zone);
   bool handler_exists = false;
   bool handler_needs_stacktrace = false;
@@ -327,6 +351,7 @@ static void ThrowExceptionHelper(Thread* thread,
                                           &handler_pc,
                                           &handler_sp,
                                           &handler_fp,
+                                          &handler_pp_slot,
                                           &handler_needs_stacktrace);
     if (handler_pc == 0) {
       // No Dart frame.
@@ -352,6 +377,7 @@ static void ThrowExceptionHelper(Thread* thread,
                                           &handler_pc,
                                           &handler_sp,
                                           &handler_fp,
+                                          &handler_pp_slot,
                                           &handler_needs_stacktrace);
     if (!existing_stacktrace.IsNull()) {
       // If we have an existing stack trace then this better be a rethrow. The
@@ -389,6 +415,7 @@ static void ThrowExceptionHelper(Thread* thread,
                            handler_pc,
                            handler_sp,
                            handler_fp,
+                           handler_pp_slot,
                            exception,
                            stacktrace);
   } else {
@@ -406,6 +433,7 @@ static void ThrowExceptionHelper(Thread* thread,
                            handler_pc,
                            handler_sp,
                            handler_fp,
+                           handler_pp_slot,
                            unhandled_exception,
                            stacktrace);
   }
@@ -589,9 +617,11 @@ void Exceptions::PropagateError(const Error& error) {
     uword handler_pc = 0;
     uword handler_sp = 0;
     uword handler_fp = 0;
-    FindErrorHandler(&handler_pc, &handler_sp, &handler_fp);
-    JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp, error,
-                           Stacktrace::Handle(zone));  // Null stacktrace.
+    uword* handler_pp_slot = NULL;
+    const Stacktrace& stacktrace = Stacktrace::Handle(zone);  // null
+    FindErrorHandler(&handler_pc, &handler_sp, &handler_fp, &handler_pp_slot);
+    JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp,
+                           handler_pp_slot, error, stacktrace);
   }
   UNREACHABLE();
 }

@@ -1879,6 +1879,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // R3: error object.
 // R4: address of stacktrace object.
 // R5: thread.
+// R6: pool pointer.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
@@ -1889,14 +1890,13 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(R0, R3);  // Exception object.
   __ mov(R1, R4);  // StackTrace object.
   __ mov(THR, R5);
+  // When in the PP register, the pool pointer is untagged.
+  __ sub(PP, R6, Operand(kHeapObjectTag));
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
   // Clear top exit frame.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
-  // Restore the pool pointer.
-  __ RestoreCodePointer();
-  __ LoadPoolPointer();
   __ ret();  // Jump to the exception handler code.
 }
 

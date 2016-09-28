@@ -146,6 +146,7 @@ class Simulator {
   void Longjmp(uword pc,
                uword sp,
                uword fp,
+               uword pp,
                RawObject* raw_exception,
                RawObject* raw_stacktrace,
                Thread* thread);

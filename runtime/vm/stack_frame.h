@@ -60,6 +60,13 @@ class StackFrame : public ValueObject {
         code;
   }
 
+#if !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_DBC)
+  uword* saved_caller_pp_slot() const {
+    return reinterpret_cast<uword*>(fp() +
+      SavedCallerPpSlotFromFp() * kWordSize);
+  }
+#endif
+
   // Visit objects in the frame.
   virtual void VisitObjectPointers(ObjectPointerVisitor* visitor);
 

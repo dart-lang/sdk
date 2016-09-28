@@ -3434,6 +3434,7 @@ RawObject* Simulator::Call(const Code& code,
 void Simulator::Longjmp(uword pc,
                         uword sp,
                         uword fp,
+                        uword ignored_pp,
                         RawObject* raw_exception,
                         RawObject* raw_stacktrace,
                         Thread* thread) {

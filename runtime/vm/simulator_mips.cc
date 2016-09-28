@@ -2501,6 +2501,7 @@ int64_t Simulator::Call(int32_t entry,
 void Simulator::Longjmp(uword pc,
                         uword sp,
                         uword fp,
+                        uword pp,
                         RawObject* raw_exception,
                         RawObject* raw_stacktrace,
                         Thread* thread) {
@@ -2521,6 +2522,7 @@ void Simulator::Longjmp(uword pc,
   set_pc(static_cast<int32_t>(pc));
   set_register(SP, static_cast<int32_t>(sp));
   set_register(FP, static_cast<int32_t>(fp));
+  set_register(PP, static_cast<int32_t>(pp));
   set_register(THR, reinterpret_cast<int32_t>(thread));
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
@@ -2530,13 +2532,6 @@ void Simulator::Longjmp(uword pc,
   ASSERT(raw_exception != Object::null());
   set_register(kExceptionObjectReg, bit_cast<int32_t>(raw_exception));
   set_register(kStackTraceObjectReg, bit_cast<int32_t>(raw_stacktrace));
-  // Restore pool pointer.
-  int32_t code = *reinterpret_cast<int32_t*>(
-      fp + kPcMarkerSlotFromFp * kWordSize);
-  int32_t pp = *reinterpret_cast<int32_t*>(
-      code + Code::object_pool_offset() - kHeapObjectTag);
-  set_register(CODE_REG, code);
-  set_register(PP, pp);
   buf->Longjmp();
 }
 

@@ -1841,6 +1841,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // Arg4: exception object
 // Arg5: stacktrace object
 // Arg6: thread
+// Arg7: pool pointer
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == RAX);
@@ -1852,9 +1853,11 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   Register stacktrace_reg = RBX;
   __ movq(stacktrace_reg, Address(RSP, 5 * kWordSize));
   __ movq(THR, Address(RSP, 6 * kWordSize));
+  __ movq(PP, Address(RSP, 7 * kWordSize));
 #else
   Register stacktrace_reg = CallingConventions::kArg5Reg;
   __ movq(THR, CallingConventions::kArg6Reg);
+  __ movq(PP, Address(RSP, 1 * kWordSize));
 #endif
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
@@ -1865,9 +1868,6 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   // Clear top exit frame.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()),
           Immediate(0));
-  // Restore the pool pointer.
-  __ RestoreCodePointer();
-  __ LoadPoolPointer(PP);
   __ jmp(CallingConventions::kArg1Reg);  // Jump to the exception handler code.
 }
 

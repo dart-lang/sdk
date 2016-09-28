@@ -1952,6 +1952,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // A3: error object.
 // SP + 4*kWordSize: address of stacktrace object.
 // SP + 5*kWordSize: address of thread.
+// SP + 6*kWordSize: address of pool pointer.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == V0);
@@ -1962,14 +1963,12 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ lw(V1, Address(SP, 4 * kWordSize));  // StackTrace object.
   __ mov(FP, A2);  // Frame_pointer.
   __ lw(THR, Address(SP, 5 * kWordSize));  // Thread.
+  __ lw(PP, Address(SP, 6 * kWordSize));  // Pool pointer.
   // Set tag.
   __ LoadImmediate(A2, VMTag::kDartTagId);
   __ sw(A2, Assembler::VMTagAddress());
   // Clear top exit frame.
   __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
-  // Restore pool pointer.
-  __ RestoreCodePointer();
-  __ LoadPoolPointer();
   __ jr(A0);  // Jump to the exception handler code.
   __ delay_slot()->mov(SP, A1);  // Stack pointer.
 }
