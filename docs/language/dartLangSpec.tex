@@ -2469,8 +2469,8 @@ On the other hand, since implementations are free to compile code late, some com
 }
 
 \begin{dartCode}
-\CONST{} x = 1/0;
-\FINAL{} y = 1/0;
+\CONST{} x = 1 ~/ 0;
+\FINAL{} y = 1 ~/ 0;
 
 \CLASS{} K \{
   m1() \{
@@ -2590,7 +2590,7 @@ A {\em numeric literal} is either a decimal or hexadecimal integer of arbitrary 
  \end{grammar}
 
 \LMHash{}
-If a numeric literal begins with the prefix `0x' or `0X', it denotes the hexadecimal integer represented by the part of the literal following `0x' (respectively `0X'). Otherwise, if the numeric literal does not include a decimal point  it denotes a decimal integer.  Otherwise, the numeric literal  denotes a 64 bit double precision floating point number as specified by the IEEE 754 standard.
+If a numeric literal begins with the prefix `0x' or `0X', it denotes the hexadecimal integer represented by the part of the literal following `0x' (respectively `0X'). Otherwise, if the numeric literal contains only decimal digits, it denotes a decimal integer.  Otherwise, the numeric literal contains either a decimal point or an exponent part and it denotes a 64 bit double precision floating point number as specified by the IEEE 754 standard.
 
 \LMHash{}
 In principle, the range of integers supported by a Dart implementations is unlimited. In practice, it is limited by available memory. Implementations may also be limited by other considerations.
