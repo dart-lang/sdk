@@ -4312,7 +4312,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
   return NULL;
 #else
   Zone* Z = zone_;
-  if ((cid > kNumPredefinedCids) ||
+  if ((cid >= kNumPredefinedCids) ||
       (cid == kInstanceCid) ||
       RawObject::IsTypedDataViewClassId(cid)) {
     Push(isolate()->class_table()->At(cid));
@@ -4636,7 +4636,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
   intptr_t cid = ReadCid();
 
   Zone* Z = zone_;
-  if ((cid > kNumPredefinedCids) ||
+  if ((cid >= kNumPredefinedCids) ||
       (cid == kInstanceCid) ||
       RawObject::IsTypedDataViewClassId(cid)) {
     return new (Z) InstanceDeserializationCluster(cid);

@@ -616,7 +616,7 @@ bool Api::GetNativeReceiver(NativeArguments* arguments, intptr_t* value) {
   RawObject* raw_obj = arguments->NativeArg0();
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
-    if (cid > kNumPredefinedCids) {
+    if (cid >= kNumPredefinedCids) {
       ASSERT(Instance::Cast(Object::Handle(raw_obj)).IsValidNativeIndex(0));
       RawTypedData* native_fields = *reinterpret_cast<RawTypedData**>(
           RawObject::ToAddr(raw_obj) + sizeof(RawObject));
@@ -701,7 +701,7 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
   if (raw_obj->IsHeapObject()) {
     intptr_t cid = raw_obj->GetClassId();
-    if (cid > kNumPredefinedCids) {
+    if (cid >= kNumPredefinedCids) {
       RawTypedData* native_fields = *reinterpret_cast<RawTypedData**>(
           RawObject::ToAddr(raw_obj) + sizeof(RawObject));
       if (native_fields == TypedData::null()) {
