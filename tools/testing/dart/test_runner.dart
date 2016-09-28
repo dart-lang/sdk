@@ -1868,6 +1868,21 @@ class RunningProcess {
                     DebugLogger.error("Unable to kill ${process.pid}");
                   }
                 });
+              } else if (io.Platform.isMacOS) {
+                // Try to print stack traces of the timed out process.
+                io.Process.run('/usr/bin/sample',
+                               ['${process.pid}', '1', '1', '-mayDie'])
+                .then((result) {
+                  io.stdout.write(result.stdout);
+                  io.stderr.write(result.stderr);
+                })
+                .catchError(
+                    (error) => print("Error when printing stack trace: $error"))
+                .whenComplete(() {
+                  if (!process.kill()) {
+                    DebugLogger.error("Unable to kill ${process.pid}");
+                  }
+                });
               } else {
                 if (!process.kill()) {
                   DebugLogger.error("Unable to kill ${process.pid}");
