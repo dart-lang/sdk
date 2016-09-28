@@ -31,7 +31,7 @@ vars = {
   "co19_rev": "@d4767b4caea3c5828ad8e053cd051d44a59061af",
 
   # Revisions of GN related dependencies.
-  "buildtools_revision": "@565d04e8741429fb1b4f26d102f2c6c3b849edeb",
+  "buildtools_revision": "@3d2e47bf14e4e67816a53e304dea422fa18f9180",
 
   "gperftools_revision": "@7822b5b0b9fa7e016e1f6b46ea86f26f4691a457",
 
@@ -44,7 +44,7 @@ vars = {
   "barback_tag" : "@0.15.2+9",
   "bazel_worker_tag": "@0.1.1",
   "boolean_selector_tag" : "@1.0.2",
-  "boringssl_gen_rev": "@1e8e5da213d0d5b1d50fcc1356c4783091bcc20d",
+  "boringssl_gen_rev": "@922830c0aad900dd3d143eef1ba06faa83fe263b",
   "boringssl_rev" : "@8d343b44bbab829d1a28fdef650ca95f7db4412e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
