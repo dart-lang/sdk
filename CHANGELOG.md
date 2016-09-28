@@ -7,7 +7,7 @@
   [article on native extensions](https://www.dartlang.org/articles/dart-vm/native-extensions)
   to reflect the VM's improved behavior.
 
-* Linux builds of the VM will now use the tcmalloc library for memory
+* Linux builds of the VM will now use the `tcmalloc` library for memory
   allocation. This has the advantages of better debugging and profiling support
   and faster small allocations, with the cost of slightly larger initial memory
   footprint, and slightly slower large allocations.
@@ -15,12 +15,15 @@
 * We have improved the way the VM searches for trusted root certificates for
   secure socket connections on Linux. First, the VM will look for trusted root
   certificates in standard locations on the file system
-  (/etc/pki/tls/certs/ca-bundle.crt followed by /etc/ssl/certs), and only if
+  (`/etc/pki/tls/certs/ca-bundle.crt` followed by `/etc/ssl/certs`), and only if
   these do not exist will it fall back on the builtin trusted root certificates.
   This behavior can be overridden on Linux with the new flags
-  --root-certs-file and --root-certs-cache. The former is the path to a file
+  `--root-certs-file` and `--root-certs-cache`. The former is the path to a file
   containing the trusted root certificates, and the latter is the path to a
   directory containing root certificate files hashed using `c_rehash`.
+
+* The VM now throws a catchable `Error` when method compilation fails. This
+  allows easier debugging of syntax errors, especially when testing.
 
 ### Core library changes
 
@@ -29,7 +32,7 @@
 * `dart:async`
   * `Future.wait` now catches synchronous errors and returns them in the
     returned Future.
-  * More aggressively returns a Future on Stream.cancel operations.
+  * More aggressively returns a `Future` on `Stream.cancel` operations.
     Discourages to return `null` from `cancel`.
   * Fixes a few bugs where the cancel future wasn't passed through
     transformations.
