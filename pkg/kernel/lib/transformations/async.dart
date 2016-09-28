@@ -275,8 +275,8 @@ class ExpressionLifter extends Transformer {
   TreeNode visitMapLiteral(MapLiteral expr) {
     return transform(expr, () {
       for (var entry in expr.entries.reversed) {
-        entry.value = entry.value.accept(this)..parent = expr;
-        entry.key = entry.key.accept(this)..parent = expr;
+        entry.value = entry.value.accept(this)..parent = entry;
+        entry.key = entry.key.accept(this)..parent = entry;
       }
     });
   }
