@@ -118,6 +118,12 @@
     * Always split enum declarations if they end in a trailing comma.
     * Add `--set-exit-if-changed` to set the exit code on a change.
 
+* Pub
+  * Pub no longer generates a `packages/` directory by default.  Instead, it
+    generates a `.packages` file, called a package spec. To generate
+    a `packages/` directory in addition to the package spec, use the
+    `--packages-dir` flag with `pub get`, `pub upgrade`, and `pub downgrade`.
+
 ## 1.19.0
 
 ### Language changes
