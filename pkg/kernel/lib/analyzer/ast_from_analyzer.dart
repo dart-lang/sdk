@@ -440,7 +440,11 @@ class ExpressionScope extends TypeScope {
       if (body is BlockFunctionBody) {
         return buildStatement(body.block);
       } else if (body is ExpressionFunctionBody) {
-        return new ast.ReturnStatement(buildExpression(body.expression));
+        if (bodyHasVoidReturn(body)) {
+          return new ast.ExpressionStatement(buildExpression(body.expression));
+        } else {
+          return new ast.ReturnStatement(buildExpression(body.expression));
+        }
       } else {
         return internalError('Missing function body');
       }
@@ -717,6 +721,19 @@ class ExpressionScope extends TypeScope {
 
   void addTransformerFlag(int flags) {
     // Overridden by MemberScope.
+  }
+
+  /// True if the body of the given method must return nothing.
+  bool hasVoidReturn(ExecutableElement element) {
+    return (strongMode && element.returnType.isVoid) ||
+        (element is PropertyAccessorElement && element.isSetter) ||
+        element.name == '[]=';
+  }
+
+  bool bodyHasVoidReturn(FunctionBody body) {
+    AstNode parent = body.parent;
+    return parent is MethodDeclaration && hasVoidReturn(parent.element) ||
+        parent is FunctionDeclaration && hasVoidReturn(parent.element);
   }
 }
 
@@ -1765,7 +1782,8 @@ class ExpressionBuilder
     AstNode parent = node.parent;
     return parent is ForStatement &&
             (parent.updaters.contains(node) || parent.initialization == node) ||
-        parent is ExpressionStatement;
+        parent is ExpressionStatement ||
+        parent is ExpressionFunctionBody && scope.bodyHasVoidReturn(parent);
   }
 
   ast.Expression visitPostfixExpression(PostfixExpression node) {
