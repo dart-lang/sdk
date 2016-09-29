@@ -16,12 +16,14 @@ import '../memory_compiler.dart';
 Future<String> compile(String code,
     {String entry: 'main',
     bool useKernel: true,
-    bool disableTypeInference: true}) async {
+    bool disableTypeInference: true,
+    List<String> extraOptions: const <String>[]}) async {
   List<String> options = <String>[
     Flags.disableInlining,
   ];
   if (disableTypeInference) options.add(Flags.disableTypeInference);
   if (useKernel) options.add(Flags.useKernel);
+  options.addAll(extraOptions);
 
   if (entry != 'main' && !code.contains('main')) {
     code = "$code\n\nmain() => $entry;";
@@ -36,14 +38,18 @@ Future<String> compile(String code,
 }
 
 Future check(String code,
-    {String entry: 'main', bool disableTypeInference: true}) async {
+    {String entry: 'main',
+    bool disableTypeInference: true,
+    List<String> extraOptions: const <String>[]}) async {
   var original = await compile(code,
       entry: entry,
       useKernel: false,
-      disableTypeInference: disableTypeInference);
+      disableTypeInference: disableTypeInference,
+      extraOptions: extraOptions);
   var kernel = await compile(code,
       entry: entry,
       useKernel: true,
-      disableTypeInference: disableTypeInference);
+      disableTypeInference: disableTypeInference,
+      extraOptions: extraOptions);
   expect(kernel, original);
 }

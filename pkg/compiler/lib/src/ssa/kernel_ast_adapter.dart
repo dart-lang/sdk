@@ -255,6 +255,23 @@ class KernelAstAdapter {
       TypeMaskFactory.inferredReturnTypeForElement(
           _backend.helpers.checkConcurrentModificationError, _compiler);
 
+  ir.Procedure get assertHelper =>
+      kernel.functions[_backend.helpers.assertHelper];
+
+  TypeMask get assertHelperReturnType => TypeMaskFactory
+      .inferredReturnTypeForElement(_backend.helpers.assertHelper, _compiler);
+
+  ir.Procedure get assertTest => kernel.functions[_backend.helpers.assertTest];
+
+  TypeMask get assertTestReturnType => TypeMaskFactory
+      .inferredReturnTypeForElement(_backend.helpers.assertTest, _compiler);
+
+  ir.Procedure get assertThrow =>
+      kernel.functions[_backend.helpers.assertThrow];
+
+  TypeMask get assertThrowReturnType => TypeMaskFactory
+      .inferredReturnTypeForElement(_backend.helpers.assertThrow, _compiler);
+
   DartType getDartType(ir.DartType type) {
     return type.accept(_typeConverter);
   }

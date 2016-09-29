@@ -197,10 +197,10 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
   /// The location of the serialized data from resolution.
   final Uri resolutionOutput;
 
-  // If `true`, sources are resolved and serialized.
+  /// If `true`, sources are resolved and serialized.
   final bool resolveOnly;
 
-  // If `true`, sources are only available from serialized data.
+  /// If `true`, sources are only available from serialized data.
   final bool compileOnly;
 
   /// URI where the compiler should generate the output source map file.

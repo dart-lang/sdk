@@ -677,14 +677,19 @@ class SsaBuilder extends ast.Visitor
     // null check.
     if (name == '==') {
       if (!backend.operatorEqHandlesNullArgument(functionElement)) {
-        handleIf(function, visitCondition: () {
-          HParameterValue parameter = parameters.values.first;
-          push(new HIdentity(parameter, graph.addConstantNull(compiler), null,
-              backend.boolType));
-        }, visitThen: () {
-          closeAndGotoExit(new HReturn(graph.addConstantBool(false, compiler),
-              sourceInformationBuilder.buildImplicitReturn(functionElement)));
-        },
+        handleIf(
+            node: function,
+            visitCondition: () {
+              HParameterValue parameter = parameters.values.first;
+              push(new HIdentity(parameter, graph.addConstantNull(compiler),
+                  null, backend.boolType));
+            },
+            visitThen: () {
+              closeAndGotoExit(new HReturn(
+                  graph.addConstantBool(false, compiler),
+                  sourceInformationBuilder
+                      .buildImplicitReturn(functionElement)));
+            },
             visitElse: null,
             sourceInformation: sourceInformationBuilder.buildIf(function.body));
       }
@@ -1659,7 +1664,7 @@ class SsaBuilder extends ast.Visitor
       pop();
     }
 
-    handleIf(node, visitCondition: buildCondition, visitThen: fail);
+    handleIf(node: node, visitCondition: buildCondition, visitThen: fail);
   }
 
   visitBlock(ast.Block node) {
@@ -1954,22 +1959,12 @@ class SsaBuilder extends ast.Visitor
 
   visitIf(ast.If node) {
     assert(isReachable);
-    handleIf(node,
+    handleIf(
+        node: node,
         visitCondition: () => visit(node.condition),
         visitThen: () => visit(node.thenPart),
         visitElse: node.elsePart != null ? () => visit(node.elsePart) : null,
         sourceInformation: sourceInformationBuilder.buildIf(node));
-  }
-
-  void handleIf(ast.Node diagnosticNode,
-      {void visitCondition(),
-      void visitThen(),
-      void visitElse(),
-      SourceInformation sourceInformation}) {
-    SsaBranchBuilder branchBuilder =
-        new SsaBranchBuilder(this, compiler, diagnosticNode);
-    branchBuilder.handleIf(visitCondition, visitThen, visitElse,
-        sourceInformation: sourceInformation);
   }
 
   @override
@@ -6160,7 +6155,8 @@ class SsaBuilder extends ast.Visitor
             nativeBehavior: native.NativeBehavior.PURE));
       }
 
-      handleIf(node,
+      handleIf(
+          node: node,
           visitCondition: buildCondition,
           visitThen: buildLoop,
           visitElse: () => {});
@@ -6502,16 +6498,24 @@ class SsaBuilder extends ast.Visitor
               isRethrow: true));
         } else {
           ast.CatchBlock newBlock = link.head;
-          handleIf(node, visitCondition: () {
-            pushCondition(newBlock);
-          }, visitThen: visitThen, visitElse: visitElse);
+          handleIf(
+              node: node,
+              visitCondition: () {
+                pushCondition(newBlock);
+              },
+              visitThen: visitThen,
+              visitElse: visitElse);
         }
       }
 
       ast.CatchBlock firstBlock = link.head;
-      handleIf(node, visitCondition: () {
-        pushCondition(firstBlock);
-      }, visitThen: visitThen, visitElse: visitElse);
+      handleIf(
+          node: node,
+          visitCondition: () {
+            pushCondition(firstBlock);
+          },
+          visitThen: visitThen,
+          visitElse: visitElse);
       if (!isAborted()) endCatchBlock = close(new HGoto());
 
       rethrowableException = oldRethrowableException;

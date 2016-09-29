@@ -4,12 +4,15 @@
 
 import '../compiler.dart';
 import '../elements/elements.dart';
+import '../io/source_information.dart';
 import '../js_backend/js_backend.dart';
 import '../resolution/tree_elements.dart';
+import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
+import 'ssa_branch_builder.dart';
 
 /// Base class for objects that build up an SSA graph.
 ///
@@ -157,6 +160,17 @@ abstract class GraphBuilder {
     }
     lastAddedParameter = result;
     return result;
+  }
+
+  void handleIf(
+      {ast.Node node,
+      void visitCondition(),
+      void visitThen(),
+      void visitElse(),
+      SourceInformation sourceInformation}) {
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, compiler, node);
+    branchBuilder.handleIf(visitCondition, visitThen, visitElse,
+        sourceInformation: sourceInformation);
   }
 
   HSubGraphBlockInformation wrapStatementGraph(SubGraph statements) {

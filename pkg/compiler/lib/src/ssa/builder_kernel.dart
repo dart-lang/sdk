@@ -108,7 +108,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void buildField(ir.Field field) {
     openFunction();
-    field.initializer.accept(this);
+    if (field.initializer != null) {
+      field.initializer.accept(this);
+    } else {
+      stack.add(graph.addConstantNull(compiler));
+    }
     HInstruction value = pop();
     closeAndGotoExit(new HReturn(value, null));
     closeFunction();
@@ -412,11 +416,38 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitIfStatement(ir.IfStatement ifStatement) {
-    SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler);
-    brancher.handleIf(
-        () => ifStatement.condition.accept(this),
-        () => ifStatement.then.accept(this),
-        () => ifStatement.otherwise?.accept(this));
+    handleIf(
+        visitCondition: () => ifStatement.condition.accept(this),
+        visitThen: () => ifStatement.then.accept(this),
+        visitElse: () => ifStatement.otherwise?.accept(this));
+  }
+
+  @override
+  void visitAssertStatement(ir.AssertStatement assertStatement) {
+    if (!compiler.options.enableUserAssertions) return;
+    if (assertStatement.message == null) {
+      assertStatement.condition.accept(this);
+      _pushStaticInvocation(astAdapter.assertHelper, <HInstruction>[pop()],
+          astAdapter.assertHelperReturnType);
+      pop();
+      return;
+    }
+
+    // if (assertTest(condition)) assertThrow(message);
+    void buildCondition() {
+      assertStatement.condition.accept(this);
+      _pushStaticInvocation(astAdapter.assertTest, <HInstruction>[pop()],
+          astAdapter.assertTestReturnType);
+    }
+
+    void fail() {
+      assertStatement.message.accept(this);
+      _pushStaticInvocation(astAdapter.assertThrow, <HInstruction>[pop()],
+          astAdapter.assertThrowReturnType);
+      pop();
+    }
+
+    handleIf(visitCondition: buildCondition, visitThen: fail);
   }
 
   @override
