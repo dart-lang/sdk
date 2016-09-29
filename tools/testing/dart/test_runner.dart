@@ -1870,8 +1870,11 @@ class RunningProcess {
                 });
               } else if (io.Platform.isMacOS) {
                 // Try to print stack traces of the timed out process.
+                // `sample` is a sampling profiler but we ask it sample for 1
+                // second with a 4 second delay between samples so that we only
+                // sample the threads once.
                 io.Process.run('/usr/bin/sample',
-                               ['${process.pid}', '1', '1', '-mayDie'])
+                               ['${process.pid}', '1', '4000', '-mayDie'])
                 .then((result) {
                   io.stdout.write(result.stdout);
                   io.stderr.write(result.stderr);
