@@ -18,8 +18,8 @@ def main(argv):
   pattern = re.compile(argv[1])
   for directory in argv[2:]:
     for root, directories, files in os.walk(directory):
-      if '.svn' in directories:
-        directories.remove('.svn')
+      if '.git' in directories:
+        directories.remove('.git')
       for filename in files:
         fullname = os.path.relpath(os.path.join(root, filename))
         fullname = fullname.replace(os.sep, '/')

@@ -697,7 +697,6 @@ if (is_win) {
   default_warning_flags += [
     # Enables.
     "-Wendif-labels",  # Weird old-style text after an #endif.
-    "-Werror",  # Warnings as errors.
 
     # Disables.
     "-Wno-missing-field-initializers",  # "struct foo f = {0};"
@@ -763,6 +762,7 @@ config("chromium_code") {
     cflags = [
       "-Wall",
       "-Wextra",
+      "-Werror",
     ]
 
     defines = []

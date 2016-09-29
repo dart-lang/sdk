@@ -1,0 +1,50 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../create_timestamp.gni")
+import("../invoke_dart.gni")
+
+create_timestamp_file("dart2js_files_stamp") {
+  pattern = "\\.dart\$"
+  path = rebase_path("../../pkg/compiler/lib")
+  output = "$root_gen_dir/dart2js_files.stamp"
+}
+
+invoke_dart("dart2js") {
+  deps = [
+    ":dart2js_files_stamp",
+  ]
+
+  dart_files = exec_script("../../tools/list_files.py",
+                          ["\\.dart\$",
+                           rebase_path("../../runtime/lib"),
+                           rebase_path("../../sdk/lib/_internal/dartdoc")],
+                          "list lines")
+
+  inputs = dart_files + [
+    "../../tools/list_files.py",
+    "../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart",
+    "create_snapshot.dart",
+    "$root_gen_dir/dart2js_files.stamp",
+    "../../tools/VERSION",
+  ]
+
+  utils_output = "$root_gen_dir/utils_wrapper.dart.snapshot"
+  dart2js_output = "$root_gen_dir/dart2js.dart.snapshot"
+  outputs = [
+    utils_output,
+    dart2js_output,
+  ]
+
+  dot_packages = rebase_path("../../.packages")
+  create_snapshot = rebase_path("create_snapshot.dart")
+  output_dir = rebase_path(root_gen_dir)
+
+  args = [
+    "--packages=$dot_packages",
+    create_snapshot,
+    "--output_dir=$output_dir",
+    "--dart2js_main=pkg/compiler/lib/src/dart2js.dart",
+  ]
+}
