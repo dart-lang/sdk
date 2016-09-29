@@ -497,7 +497,7 @@ void main() {
   (/*info:DYNAMIC_INVOKE*/b2("hello"));
 
   dynamic a1 = new B();
-  (/*info:DYNAMIC_INVOKE*/a1./*info:UNDEFINED_GETTER*/x);
+  (/*info:DYNAMIC_INVOKE*/a1.x);
   a1.toString();
   (/*info:DYNAMIC_INVOKE*/a1.toString(42));
   var toStringClosure = a1.toString;
@@ -659,13 +659,13 @@ void main() {
     int x;
     double y;
     x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE, info:INVALID_ASSIGNMENT*/f.col(3.0);
+    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f.col(3.0);
     y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
     y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f.col(3.0);
     /*info:DYNAMIC_INVOKE*/f(3.0);
     // Through type propagation, we know f is actually a B, hence the
     // hint.
-    /*info:DYNAMIC_INVOKE*/f.col(/*info:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
+    /*info:DYNAMIC_INVOKE*/f.col(3);
   }
   {
     A f = new B();
@@ -677,10 +677,10 @@ void main() {
   }
   {
     dynamic g = new B();
-    /*info:DYNAMIC_INVOKE*/g.call(/*info:ARGUMENT_TYPE_NOT_ASSIGNABLE*/32.0);
+    /*info:DYNAMIC_INVOKE*/g.call(32.0);
     /*info:DYNAMIC_INVOKE*/g.col(42.0);
     /*info:DYNAMIC_INVOKE*/g.foo(42.0);
-    /*info:DYNAMIC_INVOKE*/g./*info:UNDEFINED_GETTER*/x;
+    /*info:DYNAMIC_INVOKE*/g.x;
     A f = new B();
     /*info:DYNAMIC_INVOKE*/f.col(42.0);
     /*info:DYNAMIC_INVOKE*/f.foo(42.0);
@@ -1404,9 +1404,9 @@ void main() {
     left = /*error:INVALID_ASSIGNMENT*/right;
     left = bot;
 
-    right = /*info:INVALID_ASSIGNMENT,warning:DOWN_CAST_COMPOSITE*/top;
+    right = /*warning:DOWN_CAST_COMPOSITE*/top;
     right = /*error:INVALID_ASSIGNMENT*/left;
-    right = /*info:INVALID_ASSIGNMENT*/right;
+    right = right;
     right = bot;
 
     bot = /*warning:DOWN_CAST_COMPOSITE*/top;

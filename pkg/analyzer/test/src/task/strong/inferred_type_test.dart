@@ -3613,9 +3613,7 @@ test() {
   }
 
   for (dynamic x in list) {
-    // The INVALID_ASSIGNMENT hint is because type propagation knows x is
-    // a Foo.
-    String y = /*info:DYNAMIC_CAST,info:INVALID_ASSIGNMENT*/x;
+    String y = /*info:DYNAMIC_CAST*/x;
   }
 
   for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/list) {
@@ -3624,7 +3622,7 @@ test() {
 
   var z;
   for(z in list) {
-    String y = /*info:DYNAMIC_CAST,info:INVALID_ASSIGNMENT*/z;
+    String y = /*info:DYNAMIC_CAST*/z;
   }
 
   Iterable iter = list;
@@ -3791,6 +3789,27 @@ class B<T extends A> {}
 B v = null;
 ''');
     expect(unit.topLevelVariables[0].type.toString(), 'B<A>');
+  }
+
+  void test_lambdaDoesNotHavePropagatedTypeHint() {
+    checkFile(r'''
+List<String> getListOfString() => const <String>[];
+
+void foo() {
+  List myList = getListOfString();
+  myList.map((type) => 42);
+}
+
+void bar() {
+  var list;
+  try {
+    list = <String>[];
+  } catch (_) {
+    return;
+  }
+  /*info:DYNAMIC_INVOKE*/list.map((value) => '$value');
+}
+    ''');
   }
 
   void test_listLiterals() {

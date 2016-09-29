@@ -6020,7 +6020,7 @@ class ResolverVisitor extends ScopedVisitor {
   void recordPropagatedTypeIfBetter(Expression expression, DartType type,
       [bool hasOldPropagatedType = false]) {
     // Ensure that propagated type invalid.
-    if (type == null || type.isDynamic || type.isBottom) {
+    if (strongMode || type == null || type.isDynamic || type.isBottom) {
       if (!hasOldPropagatedType) {
         expression.propagatedType = null;
       }
@@ -7422,7 +7422,9 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
     // set propagated type for the closure
-    closure.propagatedType = expectedClosureType;
+    if (!strongMode) {
+      closure.propagatedType = expectedClosureType;
+    }
     // set inferred types for parameters
     NodeList<FormalParameter> parameters = closure.parameters.parameters;
     List<ParameterElement> expectedParameters = expectedClosureType.parameters;
