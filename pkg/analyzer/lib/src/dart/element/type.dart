@@ -515,13 +515,41 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (parameterCount == 0) {
       return baseParameters;
     }
+
     // create specialized parameters
-    List<ParameterElement> specializedParameters =
-        new List<ParameterElement>(parameterCount);
+    var specializedParams = new List<ParameterElement>(parameterCount);
+
+    var parameterTypes = TypeParameterTypeImpl.getTypes(typeParameters);
     for (int i = 0; i < parameterCount; i++) {
-      specializedParameters[i] = ParameterMember.from(baseParameters[i], this);
+      var parameter = baseParameters[i];
+      if (parameter?.type == null) {
+        specializedParams[i] = parameter;
+        continue;
+      }
+
+      // Check if parameter type depends on defining type type arguments, or
+      // if it needs to be pruned.
+
+      if (parameter is FieldFormalParameterElement) {
+        // TODO(jmesserly): this seems like it won't handle pruning correctly.
+        specializedParams[i] = new FieldFormalParameterMember(parameter, this);
+        continue;
+      }
+
+      var baseType = parameter.type as TypeImpl;
+      TypeImpl type;
+      if (typeArguments.isEmpty ||
+          typeArguments.length != typeParameters.length) {
+        type = baseType.pruned(newPrune);
+      } else {
+        type = baseType.substitute2(typeArguments, parameterTypes, newPrune);
+      }
+
+      specializedParams[i] = identical(type, baseType)
+          ? parameter
+          : new ParameterMember(parameter, this, type);
     }
-    return specializedParameters;
+    return specializedParams;
   }
 
   @override
@@ -634,6 +662,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return instantiate(freshVariables) ==
             object.instantiate(freshVariables);
       }
+
       return returnType == object.returnType &&
           TypeImpl.equalArrays(
               normalParameterTypes, object.normalParameterTypes) &&
