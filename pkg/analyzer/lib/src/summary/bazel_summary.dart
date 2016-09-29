@@ -8,7 +8,12 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/link.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
@@ -29,9 +34,16 @@ class Package {
   final PackageBundle unlinked;
   final Set<String> _unitUris = new Set<String>();
 
+  PackageBundle _linked;
+
   Package(this.unlinkedFile, this.unlinked) {
     _unitUris.addAll(unlinked.unlinkedUnitUris);
   }
+
+  PackageBundle get linked => _linked;
+
+  @override
+  String toString() => '$unlinkedFile';
 }
 
 /**
@@ -45,6 +57,7 @@ class SummaryProvider {
   final ResourceProvider provider;
   final GetOutputFolder getOutputFolder;
   final AnalysisContext context;
+  final PackageBundle sdkBundle;
 
   /**
    * Mapping from bundle paths to corresponding [Package]s.  The packages in
@@ -53,7 +66,14 @@ class SummaryProvider {
    */
   final Map<Folder, List<Package>> folderToPackagesMap = {};
 
-  SummaryProvider(this.provider, this.getOutputFolder, this.context);
+  /**
+   * Mapping from [Uri]s to corresponding [_LinkNode]s.
+   */
+  final Map<Uri, _LinkNode> uriToNodeMap = {};
+
+  SummaryProvider(this.provider, this.getOutputFolder, AnalysisContext context)
+      : context = context,
+        sdkBundle = context.sourceFactory.dartSdk?.getLinkedBundle();
 
   /**
    * Return the complete list of [Package]s that are required to provide all
@@ -68,8 +88,29 @@ class SummaryProvider {
    * bundles are not built, or out of date, etc, then `null` is returned.
    */
   List<Package> getLinkedPackages(Source source) {
-    // TODO(scheglov) implement
-    return null;
+    // Find the node that contains the source.
+    _LinkNode node = _getLinkNodeForUri(source.uri);
+    if (node == null) {
+      return null;
+    }
+
+    // Compute all transitive dependencies.
+    node.computeTransitiveDependencies();
+    List<_LinkNode> nodes = node.transitiveDependencies.toList();
+    nodes.forEach((dependency) => dependency.computeTransitiveDependencies());
+
+    // Fail if any dependency cannot be resolved.
+    if (node.failed) {
+      return null;
+    }
+
+    _link(nodes);
+
+    // Create successfully linked packages.
+    return nodes
+        .map((node) => node.package)
+        .where((package) => package.linked != null)
+        .toList();
   }
 
   /**
@@ -100,6 +141,20 @@ class SummaryProvider {
     List<int> bytes = UTF8.encode(text);
     List<int> hashBytes = md5.convert(bytes).bytes;
     return hex.encode(hashBytes);
+  }
+
+  /**
+   * Return the node for the given [uri], or `null` if there is no unlinked
+   * bundle that contains [uri].
+   */
+  _LinkNode _getLinkNodeForUri(Uri uri) {
+    return uriToNodeMap.putIfAbsent(uri, () {
+      Package package = getUnlinkedForUri(uri);
+      if (package == null) {
+        return null;
+      }
+      return new _LinkNode(this, package);
+    });
   }
 
   /**
@@ -154,6 +209,56 @@ class SummaryProvider {
   }
 
   /**
+   * Link the given [nodes].
+   */
+  void _link(List<_LinkNode> nodes) {
+    // Fill the store with bundles.
+    // Append the linked SDK bundle.
+    // Append unlinked and (if read from a cache) linked package bundles.
+    SummaryDataStore store = new SummaryDataStore(const <String>[]);
+    store.addBundle(null, sdkBundle);
+    for (_LinkNode node in nodes) {
+      store.addBundle(null, node.package.unlinked);
+      if (node.package.linked != null) {
+        store.addBundle(null, node.package.linked);
+      }
+    }
+
+    // Prepare URIs to link.
+    Map<String, _LinkNode> uriToNode = <String, _LinkNode>{};
+    for (_LinkNode node in nodes) {
+      if (!node.isReady) {
+        for (String uri in node.package.unlinked.unlinkedUnitUris) {
+          uriToNode[uri] = node;
+        }
+      }
+    }
+    Set<String> libraryUris = uriToNode.keys.toSet();
+
+    // Perform linking.
+    Map<String, LinkedLibraryBuilder> linkedLibraries =
+        link(libraryUris, (String uri) {
+      return store.linkedMap[uri];
+    }, (String uri) {
+      return store.unlinkedMap[uri];
+    }, context.declaredVariables.get, context.analysisOptions.strongMode);
+
+    // Assemble newly linked bundles.
+    for (_LinkNode node in nodes) {
+      if (!node.isReady) {
+        PackageBundleAssembler assembler = new PackageBundleAssembler();
+        linkedLibraries.forEach((uri, linkedLibrary) {
+          if (identical(uriToNode[uri], node)) {
+            assembler.addLinkedLibrary(uri, linkedLibrary);
+          }
+        });
+        List<int> bytes = assembler.assemble().toBuffer();
+        node.package._linked = new PackageBundle.fromBuffer(bytes);
+      }
+    }
+  }
+
+  /**
    * Read the unlinked [Package] from the given [file], or return `null` if the
    * file does not exist, or it cannot be read, or is not consistent with the
    * constituent sources on the file system.
@@ -171,4 +276,93 @@ class SummaryProvider {
     } on FileSystemException {}
     return null;
   }
+}
+
+/**
+ * Information about a single [Package].
+ */
+class _LinkNode {
+  final SummaryProvider linker;
+  final Package package;
+
+  bool failed = false;
+  Set<_LinkNode> transitiveDependencies;
+
+  List<_LinkNode> _dependencies;
+
+  _LinkNode(this.linker, this.package);
+
+  /**
+   * Retrieve the dependencies of this node.
+   */
+  List<_LinkNode> get dependencies {
+    if (_dependencies == null) {
+      Set<_LinkNode> dependencies = new Set<_LinkNode>();
+
+      void appendDependency(String uriStr) {
+        Uri uri = FastUri.parse(uriStr);
+        if (!uri.hasScheme) {
+          // A relative path in this package, skip it.
+        } else if (uri.scheme == 'dart') {
+          // Dependency on the SDK is implicit and always added.
+          // The SDK linked bundle is precomputed before linking packages.
+        } else if (uri.scheme == 'package') {
+          _LinkNode packageNode = linker._getLinkNodeForUri(uri);
+          if (packageNode == null) {
+            failed = true;
+          }
+          if (packageNode != null) {
+            dependencies.add(packageNode);
+          }
+        } else {
+          failed = true;
+        }
+      }
+
+      for (UnlinkedUnit unit in package.unlinked.unlinkedUnits) {
+        for (UnlinkedImport import in unit.imports) {
+          if (!import.isImplicit) {
+            appendDependency(import.uri);
+          }
+        }
+        for (UnlinkedExportPublic export in unit.publicNamespace.exports) {
+          appendDependency(export.uri);
+        }
+      }
+
+      _dependencies = dependencies.toList();
+    }
+    return _dependencies;
+  }
+
+  /**
+   * Return `true` is the node is ready - has the linked bundle or failed (does
+   * not have all required dependencies).
+   */
+  bool get isReady => package.linked != null || failed;
+
+  /**
+   * Compute the set of existing transitive dependencies for this node.
+   * If any dependency cannot be resolved, then set [failed] to `true`.
+   * Only unlinked bundle is used, so this method can be called before linking.
+   */
+  void computeTransitiveDependencies() {
+    if (transitiveDependencies == null) {
+      transitiveDependencies = new Set<_LinkNode>();
+
+      void appendDependencies(_LinkNode node) {
+        if (transitiveDependencies.add(node)) {
+          node.dependencies.forEach(appendDependencies);
+        }
+      }
+
+      appendDependencies(this);
+      if (transitiveDependencies.any((node) => node.failed)) {
+        failed = true;
+      }
+    }
+  }
+
+  @override
+  String toString() => package.toString();
 }

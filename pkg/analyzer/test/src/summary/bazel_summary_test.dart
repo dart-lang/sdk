@@ -49,6 +49,143 @@ class SummaryProviderTest extends AbstractContextTest {
     manager = new SummaryProvider(resourceProvider, _getOutputFolder, context);
   }
 
+  test_getLinkedPackages_null_missingBundle() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    // We don't write 'aaa', so we cannot get its package.
+    // Ask the package for the URI.
+    Source source = _resolveUri('package:components.aaa/a.dart');
+    List<Package> packages = manager.getLinkedPackages(source);
+    expect(packages, isNull);
+  }
+
+  test_getLinkedPackages_null_missingDirectDependency() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+import 'package:components.aaa/a.dart';
+class B extends A {}
+''');
+    _writeUnlinkedBundle('components.bbb');
+    // We cannot find 'aaa' bundle, so 'bbb' linking fails.
+    Source source = _resolveUri('package:components.bbb/b.dart');
+    List<Package> packages = manager.getLinkedPackages(source);
+    expect(packages, isNull);
+  }
+
+  test_getLinkedPackages_null_missingIndirectDependency() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+import 'package:components.aaa/a.dart';
+class B extends A {}
+''');
+    _setComponentFile(
+        'ccc',
+        'c.dart',
+        r'''
+import 'package:components.bbb/b.dart';
+class C extends B {}
+''');
+    _writeUnlinkedBundle('components.bbb');
+    _writeUnlinkedBundle('components.ccc');
+    // We cannot find 'aaa' bundle, so 'ccc' linking fails.
+    Source source = _resolveUri('package:components.ccc/c.dart');
+    List<Package> packages = manager.getLinkedPackages(source);
+    expect(packages, isNull);
+  }
+
+  test_getLinkedPackages_withDependency_export() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+export 'package:components.aaa/a.dart';
+''');
+    _writeUnlinkedBundle('components.aaa');
+    _writeUnlinkedBundle('components.bbb');
+    Source source = _resolveUri('package:components.bbb/b.dart');
+    List<Package> packages = manager.getLinkedPackages(source);
+    expect(packages, hasLength(2));
+  }
+
+  test_getLinkedPackages_withDependency_import() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+import 'package:components.aaa/a.dart';
+class B extends A {}
+''');
+    _writeUnlinkedBundle('components.aaa');
+    _writeUnlinkedBundle('components.bbb');
+    Source source = _resolveUri('package:components.bbb/b.dart');
+    List<Package> packages = manager.getLinkedPackages(source);
+    expect(packages, hasLength(2));
+  }
+
+  test_getLinkedPackages_withDependency_import_cycle() {
+    _setComponentFile(
+        'aaa',
+        'a.dart',
+        r'''
+import 'package:components.bbb/b.dart';
+class A {}
+class A2 extends B {}
+''');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+import 'package:components.aaa/a.dart';
+class B extends A {}
+class B2 extends A2 {}
+''');
+    _writeUnlinkedBundle('components.aaa');
+    _writeUnlinkedBundle('components.bbb');
+    Source source = _resolveUri('package:components.bbb/b.dart');
+    List<Package> packages = manager.getLinkedPackages(source);
+    expect(packages, hasLength(2));
+  }
+
+  test_getLinkedPackages_withDependency_import_indirect() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+import 'package:components.aaa/a.dart';
+class B extends A {}
+''');
+    _setComponentFile(
+        'ccc',
+        'c.dart',
+        r'''
+import 'package:components.bbb/b.dart';
+class C extends B {}
+''');
+    _writeUnlinkedBundle('components.aaa');
+    _writeUnlinkedBundle('components.bbb');
+    _writeUnlinkedBundle('components.ccc');
+    Source source = _resolveUri('package:components.ccc/c.dart');
+    List<Package> packages = manager.getLinkedPackages(source);
+    expect(packages, hasLength(3));
+  }
+
+  test_getLinkedPackages_withoutDependencies() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _writeUnlinkedBundle('components.aaa');
+    // Ask the package for the URI.
+    Source source = _resolveUri('package:components.aaa/a.dart');
+    List<Package> packages = manager.getLinkedPackages(source);
+    expect(packages, hasLength(1));
+  }
+
   test_getUnlinkedForUri() {
     _setComponentFile('aaa', 'a1.dart', 'class A1 {}');
     _setComponentFile('aaa', 'a2.dart', 'class A2 {}');
