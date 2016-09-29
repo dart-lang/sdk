@@ -48,8 +48,11 @@ def target_cpu_for_arch(arch, os):
 def to_gn_args(args):
   gn_args = {}
 
+  host_os = HOST_OS
+  if HOST_OS == 'macos':
+    host_os = 'mac'
   if args.os == 'host':
-    gn_args['target_os'] = HOST_OS
+    gn_args['target_os'] = host_os
   else:
     gn_args['target_os'] = args.os
 
@@ -61,7 +64,7 @@ def to_gn_args(args):
   # checked-in sdk. If/when the observatory no longer builds with the
   # checked-in sdk, this can be removed.
   gn_args['dart_host_pub_exe'] = os.path.join(
-      DART_ROOT, 'tools', 'sdks', HOST_OS, 'dart-sdk', 'bin', 'pub')
+      DART_ROOT, 'tools', 'sdks', host_os, 'dart-sdk', 'bin', 'pub')
 
   # For Fuchsia support, the default is to not compile in the root
   # certificates.
