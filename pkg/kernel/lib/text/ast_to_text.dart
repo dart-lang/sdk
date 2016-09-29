@@ -180,11 +180,11 @@ class Printer extends Visitor<Null> {
   static int SYMBOL = 2;
   int state = SPACE;
 
-  Printer(this.sink, {NameSystem syntheticNames,
-                      this.importTable,
-                      this.annotator: const InferredValueAnnotator()})
-      : this.syntheticNames = syntheticNames ?? new NameSystem() {
-  }
+  Printer(this.sink,
+      {NameSystem syntheticNames,
+      this.importTable,
+      this.annotator: const InferredValueAnnotator()})
+      : this.syntheticNames = syntheticNames ?? new NameSystem() {}
 
   Printer._inner(Printer parent, this.importTable)
       : sink = parent.sink,
@@ -656,6 +656,12 @@ class Printer extends Visitor<Null> {
       writeSpaced('=');
       writeExpression(node.initializer);
     }
+    if ((node.enclosingClass == null &&
+        node.enclosingLibrary.fileUri != node.fileUri) ||
+        (node.enclosingClass != null &&
+            node.enclosingClass.fileUri != node.fileUri)) {
+      writeWord("/* from ${node.fileUri} */");
+    }
     endLine(';');
   }
 
@@ -666,6 +672,12 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isAbstract, 'abstract');
     writeWord(procedureKindToString(node.kind));
+    if ((node.enclosingClass == null &&
+            node.enclosingLibrary.fileUri != node.fileUri) ||
+        (node.enclosingClass != null &&
+            node.enclosingClass.fileUri != node.fileUri)) {
+      writeWord("/* from ${node.fileUri} */");
+    }
     writeFunction(node.function, name: getMemberName(node));
   }
 
@@ -699,7 +711,11 @@ class Printer extends Visitor<Null> {
       writeSpaced('implements');
       writeList(node.implementedTypes, writeType);
     }
-    endLine(' {');
+    var endLineString = ' {';
+    if (node.enclosingLibrary.fileUri != node.fileUri) {
+      endLineString += ' // from ${node.fileUri}';
+    }
+    endLine(endLineString);
     ++indentation;
     node.fields.forEach(writeNode);
     node.constructors.forEach(writeNode);

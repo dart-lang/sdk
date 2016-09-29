@@ -1184,10 +1184,24 @@ class ExpressionBuilder
   ast.Expression build(Expression node) {
     var result = node.accept(this);
     if (result is Accessor) {
-      return result.buildSimpleRead();
-    } else {
-      return result;
+      result = result.buildSimpleRead();
     }
+    return result..fileOffset = _getOffset(node);
+  }
+
+  int _getOffset(AstNode node) {
+    if (node is MethodInvocation) {
+      return node.methodName.offset;
+    } else if (node is InstanceCreationExpression) {
+      return node.constructorName.offset;
+    } else if (node is BinaryExpression) {
+      return node.operator.offset;
+    } else if (node is PrefixedIdentifier) {
+      return node.identifier.offset;
+    } else if (node is AssignmentExpression) {
+      return _getOffset(node.leftHandSide);
+    }
+    return node.offset;
   }
 
   Accessor buildLeftHandValue(Expression node) {

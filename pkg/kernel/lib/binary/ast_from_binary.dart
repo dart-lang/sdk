@@ -33,6 +33,7 @@ class BinaryBuilder {
   int _byteIndex = 0;
   Library _currentLibrary;
   List<String> _stringTable;
+  List<String> _sourceUriTable;
   int _transformerFlags = 0;
 
   // If something goes wrong, this list should indicate what library,
@@ -99,6 +100,18 @@ class BinaryBuilder {
     _stringTable = new List<String>(length);
     for (int i = 0; i < length; ++i) {
       _stringTable[i] = readStringEntry();
+    }
+  }
+
+  String readUriReference() {
+    return _sourceUriTable[readUInt()];
+  }
+
+  void readSourceUriTable() {
+    int length = readUInt();
+    _sourceUriTable = new List<String>(length);
+    for (int i = 0; i < length; ++i) {
+      _sourceUriTable[i] = readStringEntry();
     }
   }
 
@@ -205,6 +218,7 @@ class BinaryBuilder {
 
   Program readUntaggedProgramFile() {
     readStringTable();
+    Map<String, List<int>> uriToLineStarts = readUriToLineStarts();
     importTable.length = readUInt();
     for (int i = 0; i < importTable.length; ++i) {
       importTable[i] = new Library(null);
@@ -214,7 +228,26 @@ class BinaryBuilder {
       readLibrary();
     }
     var mainMethod = readMemberReference();
-    return new Program(importTable)..mainMethod = mainMethod;
+    return new Program(importTable, uriToLineStarts)..mainMethod = mainMethod;
+  }
+
+  Map<String, List<int>> readUriToLineStarts() {
+    readSourceUriTable();
+    int length = _sourceUriTable.length;
+    Map<String, List<int>> uriToLineStarts = {};
+    for (int i = 0; i < length; ++i) {
+      String uri = _sourceUriTable[i];
+      int lineCount = readUInt();
+      List<int> lineStarts = new List<int>(lineCount);
+      int previousLineStart = 0;
+      for (int j = 0; j < lineCount; ++j) {
+        int lineStart = readUInt() + previousLineStart;
+        lineStarts[j] = lineStart;
+        previousLineStart = lineStart;
+      }
+      uriToLineStarts[uri] = lineStarts;
+    }
+    return uriToLineStarts;
   }
 
   void readImportTable() {
@@ -308,6 +341,10 @@ class BinaryBuilder {
     debugPath.add(_currentLibrary.name ??
         _currentLibrary.importUri?.toString() ??
         'library');
+
+    // TODO(jensj): We currently save (almost the same) uri twice.
+    _currentLibrary.fileUri = readUriReference();
+
     _fillLazilyLoadedList(_currentLibrary.classes, (int tag, int index) {
       readClass(loader.getClassReference(_currentLibrary, tag, index), tag);
     });
@@ -340,6 +377,7 @@ class BinaryBuilder {
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     node.name = readStringOrNullIfEmpty();
+    node.fileUri = readUriReference();
     node.annotations = readAnnotationList(node);
     debugPath.add(node.name ?? 'normal-class');
     readAndPushTypeParameterList(node.typeParameters, node);
@@ -362,6 +400,7 @@ class BinaryBuilder {
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     node.name = readStringOrNullIfEmpty();
+    node.fileUri = readUriReference();
     node.annotations = readAnnotationList(node);
     debugPath.add(node.name ?? 'mixin-class');
     readAndPushTypeParameterList(node.typeParameters, node);
@@ -391,8 +430,10 @@ class BinaryBuilder {
     // is unused, but we pass it in to clarify that the tag has already been
     // consumed from the input.
     assert(tag == Tag.Field);
+    node.fileOffset = readOffset();
     node.flags = readByte();
     node.name = readName();
+    node.fileUri = readUriReference();
     node.annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'field');
     node.type = readDartType();
@@ -424,6 +465,7 @@ class BinaryBuilder {
     node.kind = ProcedureKind.values[kindIndex];
     node.flags = readByte();
     node.name = readName();
+    node.fileUri = readUriReference();
     node.annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'procedure');
     node.function = readFunctionNodeOption();
@@ -535,11 +577,14 @@ class BinaryBuilder {
         int index = tagByte & Tag.SpecializedPayloadMask;
         return new VariableSet(variableStack[index], readExpression());
       case Tag.PropertyGet:
+        int offset = readOffset();
         return new PropertyGet(
-            readExpression(), readName(), readMemberReference(allowNull: true));
+            readExpression(), readName(), readMemberReference(allowNull: true))
+          ..fileOffset = offset;
       case Tag.PropertySet:
+        int offset = readOffset();
         return new PropertySet(readExpression(), readName(), readExpression(),
-            readMemberReference(allowNull: true));
+            readMemberReference(allowNull: true))..fileOffset = offset;
       case Tag.SuperPropertyGet:
         addTransformerFlag(TransformerFlag.superCalls);
         return new SuperPropertyGet(
@@ -554,31 +599,43 @@ class BinaryBuilder {
         return new DirectPropertySet(
             readExpression(), readMemberReference(), readExpression());
       case Tag.StaticGet:
-        return new StaticGet(readMemberReference());
+        int offset = readOffset();
+        return new StaticGet(readMemberReference())
+          ..fileOffset = offset;
       case Tag.StaticSet:
         return new StaticSet(readMemberReference(), readExpression());
       case Tag.MethodInvocation:
-        return new MethodInvocation(readExpression(), readName(),
-            readArguments(), readMemberReference(allowNull: true));
+        int offset = readOffset();
+        return new MethodInvocation(
+            readExpression(),
+            readName(),
+            readArguments(),
+            readMemberReference(allowNull: true))..fileOffset = offset;
       case Tag.SuperMethodInvocation:
+        int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
         return new SuperMethodInvocation(
-            readName(), readArguments(), readMemberReference(allowNull: true));
+            readName(), readArguments(), readMemberReference(allowNull: true))
+          ..fileOffset = offset;
       case Tag.DirectMethodInvocation:
         return new DirectMethodInvocation(
             readExpression(), readMemberReference(), readArguments());
       case Tag.StaticInvocation:
+        int offset = readOffset();
         return new StaticInvocation(readMemberReference(), readArguments(),
-            isConst: false);
+            isConst: false)..fileOffset = offset;
       case Tag.ConstStaticInvocation:
+        int offset = readOffset();
         return new StaticInvocation(readMemberReference(), readArguments(),
-            isConst: true);
+            isConst: true)..fileOffset = offset;
       case Tag.ConstructorInvocation:
+        int offset = readOffset();
         return new ConstructorInvocation(readMemberReference(), readArguments(),
-            isConst: false);
+            isConst: false)..fileOffset = offset;
       case Tag.ConstConstructorInvocation:
+        int offset = readOffset();
         return new ConstructorInvocation(readMemberReference(), readArguments(),
-            isConst: true);
+            isConst: true)..fileOffset = offset;
       case Tag.Not:
         return new Not(readExpression());
       case Tag.LogicalExpression:
@@ -621,7 +678,8 @@ class BinaryBuilder {
       case Tag.Rethrow:
         return new Rethrow();
       case Tag.Throw:
-        return new Throw(readExpression());
+        int offset = readOffset();
+        return new Throw(readExpression())..fileOffset = offset;
       case Tag.ListLiteral:
         var typeArgument = readDartType();
         return new ListLiteral(readExpressionList(),
@@ -911,5 +969,11 @@ class BinaryBuilder {
         initializer: readExpressionOption(),
         isFinal: flags & 0x1 != 0,
         isConst: flags & 0x2 != 0);
+  }
+
+  int readOffset() {
+    // Offset is saved as unsigned,
+    // but actually ranges from -1 and up (thus the -1)
+    return readUInt() - 1;
   }
 }

@@ -115,8 +115,14 @@ abstract class Node {
 abstract class TreeNode extends Node {
   static int _hashCounter = 0;
   final int hashCode = _hashCounter = (_hashCounter + 1) & 0x3fffffff;
+  static const int noOffset = -1;
 
   TreeNode parent;
+
+  /// Offset in the source file it comes from. Valid values are from 0 and up,
+  /// or -1 ([noOffset]) if the file offset is not available
+  /// (this is the default if none is specifically set).
+  int fileOffset = noOffset;
 
   accept(TreeVisitor v);
   visitChildren(Visitor v);
@@ -169,6 +175,9 @@ class Library extends TreeNode implements Comparable<Library> {
   // DESIGN TODO: Absolute `file` URIs are not ideal for serialization. We will
   //   revise this when we implement modular compilation.
   Uri importUri;
+
+  /// The uri of the source file this library was loaded from.
+  String fileUri;
 
   /// If false, the library object is a placeholder for a library that has
   /// not been loaded yet.
@@ -268,6 +277,10 @@ class Class extends TreeNode {
   /// applications.
   String name;
   bool isAbstract;
+
+  /// The uri of the source file this class was loaded from.
+  String fileUri;
+
   final List<TypeParameter> typeParameters;
 
   /// The immediate super type, or `null` if this is the root class.
@@ -301,7 +314,8 @@ class Class extends TreeNode {
       List<InterfaceType> implementedTypes,
       List<Constructor> constructors,
       List<Procedure> procedures,
-      List<Field> fields})
+      List<Field> fields,
+      this.fileUri})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <InterfaceType>[],
         this.fields = fields ?? <Field>[],
@@ -525,6 +539,9 @@ class Field extends Member {
   int flags = 0;
   Expression initializer; // May be null.
 
+  /// The uri of the source file this field was loaded from.
+  String fileUri;
+
   Field(Name name,
       {this.type: const DynamicType(),
       this.inferredValue,
@@ -534,7 +551,8 @@ class Field extends Member {
       bool isStatic: false,
       bool hasImplicitGetter,
       bool hasImplicitSetter,
-      int transformerFlags: 0})
+      int transformerFlags: 0,
+      this.fileUri})
       : super(name) {
     _getterInterface = new _MemberAccessor(this);
     _setterInterface = new _MemberAccessor(this);
@@ -782,12 +800,16 @@ class Procedure extends Member {
   int flags = 0;
   FunctionNode function; // Body is null if and only if abstract or external.
 
+  /// The uri of the source file this procedure was loaded from.
+  String fileUri;
+
   Procedure(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
       bool isConst: false,
-      int transformerFlags: 0})
+      int transformerFlags: 0,
+      this.fileUri})
       : super(name) {
     _reference = new _MemberAccessor(this);
     function?.parent = this;
@@ -3359,10 +3381,17 @@ class TypeParameter extends TreeNode {
 class Program extends TreeNode {
   final List<Library> libraries;
 
+  /// Map from a source file uri to a line-starts table.
+  /// Given a source file uri and a offset in that file one can translate
+  /// it to a line:column position in that file.
+  final Map<String, List<int>> uriToLineStarts;
+
   /// Reference to the main method in one of the libraries.
   Procedure mainMethod;
 
-  Program([List<Library> libraries]) : libraries = libraries ?? <Library>[] {
+  Program([List<Library> libraries, Map<String, List<int>> uriToLineStarts])
+      : libraries = libraries ?? <Library>[],
+        uriToLineStarts = uriToLineStarts ?? {} {
     setParents(libraries, this);
   }
 

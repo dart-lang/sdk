@@ -72,6 +72,7 @@ class DartLoader implements ReferenceLevelLoader {
   final AnalysisContext context;
   LibraryElement _dartCoreLibrary;
   final List errors = [];
+  final List libraryElements = [];
 
   bool get strongMode => context.analysisOptions.strongMode;
 
@@ -85,7 +86,8 @@ class DartLoader implements ReferenceLevelLoader {
   }
 
   ast.Library getLibraryReference(LibraryElement element) {
-    return repository.getLibraryReference(element.source.uri);
+    return repository.getLibraryReference(element.source.uri)
+      ..fileUri = "file://${element.source.fullName}";
   }
 
   ast.Library getLibraryBody(LibraryElement element) {
@@ -120,6 +122,7 @@ class DartLoader implements ReferenceLevelLoader {
         }
       }
     }
+    libraryElements.add(element);
     library.isLoaded = true;
   }
 
@@ -171,8 +174,10 @@ class DartLoader implements ReferenceLevelLoader {
   }
 
   ast.Class _buildClassReference(ClassElement element) {
-    var classNode =
-        new ast.Class(name: element.name, isAbstract: element.isAbstract);
+    var classNode = new ast.Class(
+        name: element.name,
+        isAbstract: element.isAbstract,
+        fileUri: "file://${element.source.fullName}");
     for (TypeParameterElement parameter in element.typeParameters) {
       var parameterNode = new ast.TypeParameter(parameter.name);
       _classTypeParameters[parameter] = parameterNode;
@@ -221,7 +226,8 @@ class DartLoader implements ReferenceLevelLoader {
               isAbstract: false,
               isStatic: true,
               isExternal: constructor.isExternal,
-              isConst: constructor.isConst);
+              isConst: constructor.isConst,
+              fileUri: "file://${element.source.fullName}");
         }
         return new ast.Constructor(null,
             name: _nameOfMember(element),
@@ -234,7 +240,9 @@ class DartLoader implements ReferenceLevelLoader {
         return new ast.Field(_nameOfMember(variable),
             isStatic: variable.isStatic,
             isFinal: variable.isFinal,
-            isConst: variable.isConst);
+            isConst: variable.isConst,
+            fileUri: "file://${element.source.fullName}")
+          ..fileOffset = element.nameOffset;
 
       case ElementKind.METHOD:
       case ElementKind.GETTER:
@@ -250,7 +258,8 @@ class DartLoader implements ReferenceLevelLoader {
             _nameOfMember(element), _procedureKindOf(executable), null,
             isAbstract: executable.isAbstract,
             isStatic: executable.isStatic,
-            isExternal: executable.isExternal);
+            isExternal: executable.isExternal,
+            fileUri: "file://${element.source.fullName}");
 
       default:
         throw 'Unexpected member kind: $element';
@@ -366,7 +375,8 @@ class DartLoader implements ReferenceLevelLoader {
           name: name,
           typeParameters: typeParameters,
           supertype: supertype,
-          mixedInType: mixedInType);
+          mixedInType: mixedInType,
+          fileUri: mixedInClass.fileUri);
       library.addClass(result);
       return result;
     });
@@ -460,6 +470,17 @@ class DartLoader implements ReferenceLevelLoader {
     program.mainMethod = library.procedures.firstWhere(
         (member) => member.name?.name == 'main',
         orElse: () => null);
+    for (LibraryElement libraryElement in libraryElements) {
+      for (CompilationUnitElement compilationUnitElement
+          in libraryElement.units) {
+        // TODO(jensj): Get this another way?
+        LineInfo lineInfo = compilationUnitElement.computeNode().lineInfo;
+        program.uriToLineStarts[
+                "file://${compilationUnitElement.source.source.fullName}"] =
+            new List<int>.generate(lineInfo.lineCount, lineInfo.getOffsetOfLine,
+                growable: false);
+      }
+    }
     return program;
   }
 
