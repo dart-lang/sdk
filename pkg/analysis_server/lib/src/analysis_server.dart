@@ -1603,21 +1603,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     ContextBuilder builder = createContextBuilder(folder, options);
     AnalysisContext context = builder.buildContext(folder.path);
 
-    // TODO(brianwilkerson) Move bundle discovery into ContextBuilder
-    if (analysisServer.options.enablePubSummaryManager) {
-      List<LinkedPubPackage> linkedBundles =
-          analysisServer.pubSummaryManager.getLinkedBundles(context);
-      if (linkedBundles.isNotEmpty) {
-        SummaryDataStore store = new SummaryDataStore([]);
-        for (LinkedPubPackage package in linkedBundles) {
-          store.addBundle(null, package.unlinked);
-          store.addBundle(null, package.linked);
-        }
-        (context as InternalAnalysisContext).resultProvider =
-            new InputPackagesResultProvider(context, store);
-      }
-    }
-
     analysisServer.folderMap[folder] = context;
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
@@ -1668,6 +1653,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.packageResolverProvider = analysisServer.packageResolverProvider;
     builder.defaultPackageFilePath = defaultPackageFilePath;
     builder.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
+    if (analysisServer.options.enablePubSummaryManager) {
+      builder.pubSummaryManager = analysisServer.pubSummaryManager;
+    }
     return builder;
   }
 

@@ -17,6 +17,8 @@ import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
@@ -111,6 +113,11 @@ class ContextBuilder {
   Map<String, String> declaredVariables;
 
   /**
+   * The manager of pub package summaries.
+   */
+  PubSummaryManager pubSummaryManager;
+
+  /**
    * Initialize a newly created builder to be ready to build a context rooted in
    * the directory with the given [rootDirectoryPath].
    */
@@ -132,7 +139,27 @@ class ContextBuilder {
     context.name = path;
     //_processAnalysisOptions(context, optionMap);
     declareVariables(context);
+    configureSummaries(context);
     return context;
+  }
+
+  /**
+   * Configure the context to make use of summaries.
+   */
+  void configureSummaries(InternalAnalysisContext context) {
+    if (pubSummaryManager != null) {
+      List<LinkedPubPackage> linkedBundles =
+          pubSummaryManager.getLinkedBundles(context);
+      if (linkedBundles.isNotEmpty) {
+        SummaryDataStore store = new SummaryDataStore([]);
+        for (LinkedPubPackage package in linkedBundles) {
+          store.addBundle(null, package.unlinked);
+          store.addBundle(null, package.linked);
+        }
+        context.resultProvider =
+            new InputPackagesResultProvider(context, store);
+      }
+    }
   }
 
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
