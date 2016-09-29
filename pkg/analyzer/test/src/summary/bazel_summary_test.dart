@@ -46,59 +46,58 @@ class SummaryProviderTest extends AbstractContextTest {
     ], null, resourceProvider);
     context.sourceFactory = sourceFactory;
     // Create a new SummaryProvider instance.
-    manager = new SummaryProvider(resourceProvider, _getOutputPath, context);
+    manager = new SummaryProvider(resourceProvider, _getOutputFolder, context);
   }
 
-  test_getPackageForUri() {
-    String pathA = '$SRC_ROOT/components/aaa/lib';
-    resourceProvider.newFile(
-        '$pathA/a1.dart',
-        r'''
-class A1 {}
-''');
-    resourceProvider.newFile(
-        '$pathA/a2.dart',
-        r'''
-class A2 {}
-''');
+  test_getUnlinkedForUri() {
+    _setComponentFile('aaa', 'a1.dart', 'class A1 {}');
+    _setComponentFile('aaa', 'a2.dart', 'class A2 {}');
     _writeUnlinkedBundle('components.aaa');
     // Ask the package for the URI.
     Source source1 = _resolveUri('package:components.aaa/a1.dart');
     Source source2 = _resolveUri('package:components.aaa/a2.dart');
-    Package package = manager.getPackageForUri(source1.uri);
+    Package package = manager.getUnlinkedForUri(source1.uri);
     expect(package, isNotNull);
     // The same instance is returned to another URI in the same package.
-    expect(manager.getPackageForUri(source2.uri), same(package));
+    expect(manager.getUnlinkedForUri(source2.uri), same(package));
   }
 
-  test_getPackageForUri_inconsistent() {
-    String pathA = '$SRC_ROOT/components/aaa/lib';
-    File fileA1 = resourceProvider.newFile(
-        '$pathA/a1.dart',
-        r'''
-class A1 {}
-''');
-    resourceProvider.newFile(
-        '$pathA/a2.dart',
-        r'''
-class A2 {}
-''');
+  test_getUnlinkedForUri_inconsistent() {
+    File file1 = _setComponentFile('aaa', 'a1.dart', 'class A1 {}');
+    _setComponentFile('aaa', 'a2.dart', 'class A2 {}');
     _writeUnlinkedBundle('components.aaa');
-    // Update one of the files file, so the bundle is not consistent.
-    fileA1.writeAsStringSync('// different');
+    // Update one of the files, so the bundle is not consistent.
+    file1.writeAsStringSync('\nclass A1 {}');
     Source source1 = _resolveUri('package:components.aaa/a1.dart');
     Source source2 = _resolveUri('package:components.aaa/a2.dart');
-    expect(manager.getPackageForUri(source1.uri), isNull);
-    expect(manager.getPackageForUri(source2.uri), isNull);
+    expect(manager.getUnlinkedForUri(source1.uri), isNull);
+    expect(manager.getUnlinkedForUri(source2.uri), isNull);
+  }
+
+  Folder _getOutputFolder(Uri absoluteUri) {
+    if (absoluteUri.scheme == 'package') {
+      List<String> segments = absoluteUri.pathSegments;
+      if (segments.isNotEmpty) {
+        String packageName = segments.first;
+        String path = OUT_ROOT + '/' + packageName.replaceAll('.', '/');
+        return resourceProvider.getFolder(path);
+      }
+    }
+    return null;
   }
 
   Source _resolveUri(String uri) {
     return context.sourceFactory.resolveUri(null, uri);
   }
 
+  File _setComponentFile(String componentName, String fileName, String code) {
+    String path = '$SRC_ROOT/components/$componentName/lib/$fileName';
+    return resourceProvider.newFile(path, code);
+  }
+
   void _writeUnlinkedBundle(String packageName) {
     String packagePath = packageName.replaceAll('.', '/');
-    var unlinkedBundle = _computeUnlinkedBundle(
+    PackageBundleBuilder unlinkedBundle = _computeUnlinkedBundle(
         resourceProvider,
         packageName,
         resourceProvider.getFolder(SRC_ROOT + '/' + packagePath + '/lib'),
@@ -158,17 +157,6 @@ class A2 {}
 
     addDartFiles(libFolder);
     return assembler.assemble();
-  }
-
-  static String _getOutputPath(ResourceProvider provider, Uri uri) {
-    if (uri.scheme == 'package') {
-      List<String> segments = uri.pathSegments;
-      if (segments.isNotEmpty) {
-        String packageName = segments.first;
-        return OUT_ROOT + '/' + packageName.replaceAll('.', '/');
-      }
-    }
-    return null;
   }
 
   /**

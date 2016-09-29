@@ -14,24 +14,23 @@ import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 
 /**
- * Return the path of the directory where bundles for the given [uri] should be
- * looked for.  This directory should contain corresponding pairs of `*.api.ds`
- * and `*.full.ds` files, possibly more than one pair.  Return `null` if the
- * given [uri] does not have the expected structure, so the output path cannot
- * be computed.
+ * Return the [Folder] where bundles for the given [absoluteUri] should be
+ * looked for. This folder should contain corresponding `*.full.ds` files,
+ * possibly more than one one.  Return `null` if the given [absoluteUri]
+ * does not have the expected structure, so the output path cannot be computed.
  */
-typedef String GetOutputPath(ResourceProvider provider, Uri uri);
+typedef Folder GetOutputFolder(Uri absoluteUri);
 
 /**
  * Information about a Dart package in Bazel.
  */
 class Package {
-  final String bundlePath;
-  final PackageBundle bundle;
+  final File unlinkedFile;
+  final PackageBundle unlinked;
   final Set<String> _unitUris = new Set<String>();
 
-  Package(this.bundlePath, this.bundle) {
-    _unitUris.addAll(bundle.unlinkedUnitUris);
+  Package(this.unlinkedFile, this.unlinked) {
+    _unitUris.addAll(unlinked.unlinkedUnitUris);
   }
 }
 
@@ -39,12 +38,12 @@ class Package {
  * Class that reads summaries of Bazel packages.
  *
  * When the client needs to produce a resolution result for a new [Source], it
- * should call [getPackages] to checked whether there is the set of packages
- * to resynthesize resolution results.
+ * should call [getLinkedPackages] to check whether there is the set of
+ * packages to resynthesize resolution results.
  */
 class SummaryProvider {
   final ResourceProvider provider;
-  final GetOutputPath getOutputPath;
+  final GetOutputFolder getOutputFolder;
   final AnalysisContext context;
 
   /**
@@ -52,35 +51,9 @@ class SummaryProvider {
    * the map were consistent with their constituent sources at the moment when
    * they were put into the map.
    */
-  final Map<String, Package> bundlePathToPackageMap = <String, Package>{};
+  final Map<Folder, List<Package>> folderToPackagesMap = {};
 
-  /**
-   * When we detected than some bundle is not consistent with its constituent
-   * sources (i.e. even its unlinked state is not consistent), we remember
-   * this fact to avoid loading and checking consistency next time.
-   */
-  final Set<String> knownInconsistentBundlePaths = new Set<String>();
-
-  SummaryProvider(this.provider, this.getOutputPath, this.context);
-
-  /**
-   * Return the [Package] that contains information about the source with
-   * the given [uri], or `null` if such package does not exist.
-   */
-  @visibleForTesting
-  Package getPackageForUri(Uri uri) {
-    String outputPath = getOutputPath(provider, uri);
-    if (outputPath != null) {
-      List<Package> packages = _getPackages(outputPath);
-      for (Package package in packages) {
-        String uriStr = uri.toString();
-        if (package._unitUris.contains(uriStr)) {
-          return package;
-        }
-      }
-    }
-    return null;
-  }
+  SummaryProvider(this.provider, this.getOutputFolder, this.context);
 
   /**
    * Return the complete list of [Package]s that are required to provide all
@@ -94,13 +67,33 @@ class SummaryProvider {
    * If the full set of packages cannot be produced, for example because some
    * bundles are not built, or out of date, etc, then `null` is returned.
    */
-  List<PackageBundle> getPackages(Source source) {
+  List<Package> getLinkedPackages(Source source) {
     // TODO(scheglov) implement
     return null;
   }
 
   /**
-   * Return the hexadecimal string for the given [source] contents.
+   * Return the [Package] that contains information about the source with
+   * the given [uri], or `null` if such package does not exist.
+   */
+  @visibleForTesting
+  Package getUnlinkedForUri(Uri uri) {
+    Folder outputFolder = getOutputFolder(uri);
+    if (outputFolder != null) {
+      String uriStr = uri.toString();
+      List<Package> packages = _getUnlinkedPackages(outputFolder);
+      for (Package package in packages) {
+        if (package._unitUris.contains(uriStr)) {
+          return package;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the hexadecimal string of the MD5 hash of the contents of the
+   * given [source] in [context].
    */
   String _computeSourceHashHex(Source source) {
     String text = context.getContents(source).data;
@@ -110,63 +103,35 @@ class SummaryProvider {
   }
 
   /**
-   * Return the [Package] from the file with the given [path], or `null` if the
-   * file does not exist, or it cannot be read, or is not consistent with the
-   * sources it contains, etc.
+   * Return all consistent unlinked [Package]s in the given [folder].  Some of
+   * the returned packages might be already linked.
    */
-  Package _getPackage(String path) {
-    // Check if the bundle know to be inconsistent, missing, etc.
-    if (knownInconsistentBundlePaths.contains(path)) {
-      return null;
-    }
-    // Attempt to get from the cache or read from the file system.
-    try {
-      Package package = bundlePathToPackageMap[path];
-      if (package == null) {
-        File file = provider.getFile(path);
-        List<int> bytes = file.readAsBytesSync();
-        PackageBundle bundle = new PackageBundle.fromBuffer(bytes);
-        // Check for consistency, and fail if it's not.
-        if (!_isUnlinkedBundleConsistent(bundle)) {
-          knownInconsistentBundlePaths.add(path);
-          return null;
-        }
-        // OK, put the package into the cache.
-        package = new Package(path, bundle);
-        bundlePathToPackageMap[path] = package;
-      }
-      return package;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /**
-   * Return all consistent [Package]s in the given [folderPath].
-   */
-  List<Package> _getPackages(String folderPath) {
-    List<Package> packages = <Package>[];
-    try {
-      Folder folder = provider.getFolder(folderPath);
-      List<Resource> children = folder.getChildren();
-      for (Resource child in children) {
-        if (child is File) {
-          String packagePath = child.path;
-          if (packagePath.toLowerCase().endsWith('.full.ds')) {
-            Package package = _getPackage(packagePath);
-            if (package != null) {
-              packages.add(package);
+  List<Package> _getUnlinkedPackages(Folder folder) {
+    List<Package> packages = folderToPackagesMap[folder];
+    if (packages == null) {
+      packages = <Package>[];
+      try {
+        List<Resource> children = folder.getChildren();
+        for (Resource child in children) {
+          if (child is File) {
+            String packagePath = child.path;
+            if (packagePath.toLowerCase().endsWith('.full.ds')) {
+              Package package = _readUnlinkedPackage(child);
+              if (package != null) {
+                packages.add(package);
+              }
             }
           }
         }
-      }
-    } on FileSystemException {}
+      } on FileSystemException {}
+      folderToPackagesMap[folder] = packages;
+    }
     return packages;
   }
 
   /**
    * Return `true` if the unlinked information of the [bundle] is consistent
-   * with its constituent sources.
+   * with its constituent sources in [context].
    */
   bool _isUnlinkedBundleConsistent(PackageBundle bundle) {
     try {
@@ -184,8 +149,26 @@ class SummaryProvider {
       List<String> bundleHashes = bundle.unlinkedUnitHashes.toList()..sort();
       actualHashes.sort();
       return listsEqual(actualHashes, bundleHashes);
-    } catch (_) {
-      return false;
-    }
+    } on FileSystemException {}
+    return false;
+  }
+
+  /**
+   * Read the unlinked [Package] from the given [file], or return `null` if the
+   * file does not exist, or it cannot be read, or is not consistent with the
+   * constituent sources on the file system.
+   */
+  Package _readUnlinkedPackage(File file) {
+    try {
+      List<int> bytes = file.readAsBytesSync();
+      PackageBundle bundle = new PackageBundle.fromBuffer(bytes);
+      // Check for consistency, and fail if it's not.
+      if (!_isUnlinkedBundleConsistent(bundle)) {
+        return null;
+      }
+      // OK, use the bundle.
+      return new Package(file, bundle);
+    } on FileSystemException {}
+    return null;
   }
 }
