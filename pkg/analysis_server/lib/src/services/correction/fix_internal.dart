@@ -1554,8 +1554,22 @@ class FixProcessor {
         if (element.kind != kind) {
           continue;
         }
-        _addFix_importLibrary(
-            DartFixKind.IMPORT_LIBRARY_PROJECT, libraryElement);
+        // Compute the fix kind.
+        FixKind fixKind;
+        if (resourceProvider.pathContext
+            .split(librarySource.fullName)
+            .contains('src')) {
+          // Bad: non-API.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
+        } else if (element.library != libraryElement) {
+          // Ugly: exports.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT2;
+        } else {
+          // Good: direct declaration.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
+        }
+        // Add the fix.
+        _addFix_importLibrary(fixKind, libraryElement);
       }
     }
   }

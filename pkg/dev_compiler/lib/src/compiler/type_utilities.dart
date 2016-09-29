@@ -25,6 +25,7 @@ Set<TypeParameterElement> freeTypeParameters(DartType t) {
       t.typeArguments.forEach(find);
     }
   }
+
   find(t);
   return result;
 }
@@ -196,6 +197,7 @@ class TypeTable {
       if (types == null) _scopeDependencies[i] = types = [];
       types.add(type);
     }
+
     fvs.forEach(addScope);
     return false;
   }

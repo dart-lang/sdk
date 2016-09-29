@@ -434,8 +434,7 @@ class CodeDescriptor : public ZoneAllocated {
   }
 
   const char* Name() const {
-    const String& name = String::Handle(code_.Name());
-    return name.ToCString();
+    return code_.Name();
   }
 
   bool Contains(uword pc) const {

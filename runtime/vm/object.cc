@@ -11925,8 +11925,8 @@ RawScript* CodeSourceMap::ScriptForPCOffset(const Code& code,
 void CodeSourceMap::Dump(const CodeSourceMap& code_source_map,
                          const Code& code,
                          const Function& function) {
-  const String& code_name = String::Handle(code.QualifiedName());
-  THR_Print("Dumping Code Source Map for %s\n", code_name.ToCString());
+  const char* code_name = code.QualifiedName();
+  THR_Print("Dumping Code Source Map for %s\n", code_name);
   if (code_source_map.Length() == 0) {
     THR_Print("<empty>\n");
     return;
@@ -11949,7 +11949,7 @@ void CodeSourceMap::Dump(const CodeSourceMap& code_source_map,
       THR_Print("%#-*" Px "\t%s\t%s\n", addr_width,
                 pc_offset,
                 tp.ToCString(),
-                code_name.ToCString());
+                code_name);
       continue;
     }
     const String& uri = String::Handle(current_script.url());
@@ -14229,7 +14229,8 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_is_alive(false);
     result.set_comments(Comments::New(0));
     result.set_compile_timestamp(0);
-    result.set_lazy_deopt_pc_offset(kInvalidPc);
+    result.set_lazy_deopt_return_pc_offset(kInvalidPc);
+    result.set_lazy_deopt_throw_pc_offset(kInvalidPc);
     result.set_pc_descriptors(Object::empty_descriptors());
   }
   return result.raw();
@@ -14444,7 +14445,7 @@ const char* Code::ToCString() const {
 }
 
 
-RawString* Code::Name() const {
+const char* Code::Name() const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsNull()) {
     // Regular stub.
@@ -14454,7 +14455,7 @@ RawString* Code::Name() const {
     ASSERT(name != NULL);
     char* stub_name = OS::SCreate(zone,
         "%s%s", Symbols::StubPrefix().ToCString(), name);
-    return Symbols::New(thread, stub_name, strlen(stub_name));
+    return stub_name;
   } else if (obj.IsClass()) {
     // Allocation stub.
     Thread* thread = Thread::Current();
@@ -14462,19 +14463,23 @@ RawString* Code::Name() const {
     const Class& cls = Class::Cast(obj);
     String& cls_name = String::Handle(zone, cls.ScrubbedName());
     ASSERT(!cls_name.IsNull());
-    return Symbols::FromConcat(thread, Symbols::AllocationStubFor(), cls_name);
+    char* stub_name = OS::SCreate(zone,
+        "%s%s", Symbols::AllocationStubFor().ToCString(), cls_name.ToCString());
+    return stub_name;
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.
-    return Function::Cast(obj).UserVisibleName();  // Same as scrubbed name.
+    // Same as scrubbed name.
+    return String::Handle(Function::Cast(obj).UserVisibleName()).ToCString();
   }
 }
 
 
-RawString* Code::QualifiedName() const {
+const char* Code::QualifiedName() const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
-    return Function::Cast(obj).QualifiedScrubbedName();
+    return String::Handle(
+        Function::Cast(obj).QualifiedScrubbedName()).ToCString();
   }
   return Name();
 }
@@ -14539,9 +14544,15 @@ void Code::SetActiveInstructions(RawInstructions* instructions) const {
 }
 
 
-uword Code::GetLazyDeoptPc() const {
-  return (lazy_deopt_pc_offset() != kInvalidPc)
-      ? PayloadStart() + lazy_deopt_pc_offset() : 0;
+uword Code::GetLazyDeoptReturnPc() const {
+  return (lazy_deopt_return_pc_offset() != kInvalidPc)
+      ? PayloadStart() + lazy_deopt_return_pc_offset() : 0;
+}
+
+
+uword Code::GetLazyDeoptThrowPc() const {
+  return (lazy_deopt_throw_pc_offset() != kInvalidPc)
+      ? PayloadStart() + lazy_deopt_throw_pc_offset() : 0;
 }
 
 
@@ -16370,32 +16381,6 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
-  return Symbols::FromConcatAll(thread, pieces);
-}
-
-
-// Same as user visible name, but including the URI of each occuring type.
-// Used to report errors involving types with identical names.
-//
-// e.g.
-//   MyClass<String>     -> MyClass<String> where
-//                            MyClass is from my_uri
-//                            String is from dart:core
-//   MyClass<dynamic, T> -> MyClass<dynamic, T> where
-//                            MyClass is from my_uri
-//                            T of OtherClass is from other_uri
-//   (MyClass) => int    -> (MyClass) => int where
-//                            MyClass is from my_uri
-//                            int is from dart:core
-RawString* AbstractType::UserVisibleNameWithURI() const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  GrowableHandlePtrArray<const String> pieces(zone, 3);
-  pieces.Add(String::Handle(zone, BuildName(kUserVisibleName)));
-  if (!IsDynamicType() && !IsVoidType()) {
-    pieces.Add(Symbols::SpaceWhereNewLine());
-    pieces.Add(String::Handle(zone, EnumerateURIs()));
-  }
   return Symbols::FromConcatAll(thread, pieces);
 }
 
@@ -20478,7 +20463,7 @@ static int32_t MergeHexCharacters(int32_t c1, int32_t c2) {
 }
 
 
-RawString* String::EncodeIRI(const String& str) {
+const char* String::EncodeIRI(const String& str) {
   const intptr_t len = Utf8::Length(str);
   Zone* zone = Thread::Current()->zone();
   uint8_t* utf8 = zone->Alloc<uint8_t>(len);
@@ -20490,27 +20475,22 @@ RawString* String::EncodeIRI(const String& str) {
       num_escapes += 2;
     }
   }
-  const String& dststr = String::Handle(
-      OneByteString::New(len + num_escapes, Heap::kNew));
-  {
-    intptr_t index = 0;
-    for (int i = 0; i < len; ++i) {
-      uint8_t byte = utf8[i];
-      if (!IsURISafeCharacter(byte)) {
-        OneByteString::SetCharAt(dststr, index, '%');
-        OneByteString::SetCharAt(dststr, index + 1,
-                                 GetHexCharacter(byte >> 4));
-        OneByteString::SetCharAt(dststr, index + 2,
-                                 GetHexCharacter(byte & 0xF));
-        index += 3;
-      } else {
-        ASSERT(byte <= 127);
-        OneByteString::SetCharAt(dststr, index, byte);
-        index += 1;
-      }
+  intptr_t cstr_len = len + num_escapes + 1;
+  char* cstr = zone->Alloc<char>(cstr_len);
+  intptr_t index = 0;
+  for (int i = 0; i < len; ++i) {
+    uint8_t byte = utf8[i];
+    if (!IsURISafeCharacter(byte)) {
+      cstr[index++] = '%';
+      cstr[index++] = GetHexCharacter(byte >> 4);
+      cstr[index++] = GetHexCharacter(byte & 0xF);
+    } else {
+      ASSERT(byte <= 127);
+      cstr[index++] = byte;
     }
   }
-  return dststr.raw();
+  cstr[index] = '\0';
+  return cstr;
 }
 
 

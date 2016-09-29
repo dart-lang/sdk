@@ -1847,12 +1847,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   // for `staticType` and `propagatedType` on Expression.
   DartType _propagatedInvokeTypeIfBetter(
       DartType propagatedType, DartType staticType) {
-    if (propagatedType != null &&
-        (staticType == null || propagatedType.isMoreSpecificThan(staticType))) {
-      return propagatedType;
-    } else {
+    if (_resolver.strongMode || propagatedType == null) {
       return null;
     }
+    if (staticType == null || propagatedType.isMoreSpecificThan(staticType)) {
+      return propagatedType;
+    }
+    return null;
   }
 
   /**

@@ -235,6 +235,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
       // they are nullable too.
       _assignments.remove(e)?.forEach(visitNullableLocal);
     }
+
     _nullableLocals.forEach(visitNullableLocal);
 
     // Any remaining locals are non-null.

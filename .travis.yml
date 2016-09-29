@@ -35,10 +35,12 @@ before_install:
   - export PATH=`pwd`/depot_tools:"$PATH"
 
   # Checkout everything if we're building the SDK
-  - 'gclient config --spec=''solutions = [ { "name": ".", "url": "git@github.com:dart-lang/sdk.git", "deps_file": "DEPS", "managed": False, "custom_vars": { "dart_root": "." } } ]'''
-  - if [ "$CXX" ]; then gclient sync ; fi
+  - cd ..
+  - 'gclient config --spec=''solutions = [ { "name": "sdk", "url": "git@github.com:dart-lang/sdk.git", "deps_file": "DEPS", "managed": False } ]'''
+  - gclient sync
+  - cd sdk
 
-  # If a C++ compiler is set, built the SDK - else keep the preinstalled.
+  # If a C++ compiler is set, build the SDK - else use the preinstalled SDK instead.
   - if [ "$CXX" ]; then ./tools/build.py -m release create_sdk ; fi
   - if [ "$CXX" ]; then export PATH=`pwd`/out/ReleaseX64/dart-sdk/bin:"$PATH" ; fi
   - dart --version
@@ -49,6 +51,8 @@ before_install:
   - export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
+install:
+  # Empty to suppress default pub get behavior
 before_script:
   # Node modules used by DDC
   - nvm install 5.5.0
@@ -69,7 +73,6 @@ matrix:
   allow_failures:
     - env: TEST=node
     - env: ANALYZER=master DDC_BROWSERS=Firefox
-    - env: ANALYZER=master CXX=clang++
     - env: ANALYZER=master CXX=g++
 notifications:
   email:

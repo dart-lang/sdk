@@ -2283,7 +2283,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param type the propagated type of the node
    */
   void _recordPropagatedType(Expression expression, DartType type) {
-    if (type != null && !type.isDynamic && !type.isBottom) {
+    if (!_strongMode && type != null && !type.isDynamic && !type.isBottom) {
       expression.propagatedType = type;
     }
   }
@@ -2299,6 +2299,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   void _recordPropagatedTypeOfFunction(
       ExecutableElement functionElement, FunctionBody body) {
+    if (_strongMode) {
+      return;
+    }
     DartType propagatedReturnType =
         _computePropagatedReturnTypeOfFunction(body);
     if (propagatedReturnType == null) {

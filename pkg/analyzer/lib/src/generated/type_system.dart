@@ -848,14 +848,14 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   bool _isInterfaceSubtypeOf(
       InterfaceType i1, InterfaceType i2, Set<Element> visited) {
+    if (identical(i1, i2)) {
+      return true;
+    }
+    
     // Guard recursive calls
     _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype = _guard(
         (DartType i1, DartType i2, Set<Element> visited) =>
             _isInterfaceSubtypeOf(i1, i2, visited));
-
-    if (i1 == i2) {
-      return true;
-    }
 
     if (i1.element == i2.element) {
       List<DartType> tArgs1 = i1.typeArguments;
@@ -902,13 +902,14 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   bool _isSubtypeOf(DartType t1, DartType t2, Set<Element> visited,
       {bool dynamicIsBottom: false}) {
+    if (identical(t1, t2)) {
+      return true;
+    }
+
     // Guard recursive calls
     _GuardedSubtypeChecker<DartType> guardedSubtype = _guard(_isSubtypeOf);
     _GuardedSubtypeChecker<DartType> guardedInferTypeParameter =
         _guard(_inferTypeParameterSubtypeOf);
-    if (t1 == t2) {
-      return true;
-    }
 
     // The types are void, dynamic, bottom, interface types, function types,
     // and type parameters. We proceed by eliminating these different classes
@@ -928,10 +929,12 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     // S <: T where S is a type variable
     //  T is not dynamic or object (handled above)
-    //  S != T (handled above)
-    //  So only true if bound of S is S' and
-    //  S' <: T
+    //  True if T == S
+    //  Or true if bound of S is S' and S' <: T
     if (t1 is TypeParameterType) {
+      if (t1 == t2) {
+        return true;
+      }
       if (guardedInferTypeParameter(t1, t2, visited)) {
         return true;
       }
@@ -950,7 +953,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     // TODO(rnystrom): Determine how this can ever be reached. If it can't,
     // remove it.
     if (t1.isVoid || t2.isVoid) {
-      return false;
+      return t1.isVoid && t2.isVoid;
     }
 
     // We've eliminated void, dynamic, bottom, and type parameters.  The only

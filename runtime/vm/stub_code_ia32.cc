@@ -359,6 +359,10 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
       kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - EAX);
+  const intptr_t saved_exception_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - EAX);
+  const intptr_t saved_stacktrace_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - EDX);
   // Result in EAX is preserved as part of pushing all registers below.
 
   // Push registers in their enumeration order: lowest register number at
@@ -383,14 +387,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ movl(ECX, ESP);  // Preserve saved registers block.
   __ ReserveAlignedFrameSpace(2 * kWordSize);
   __ movl(Address(ESP, 0 * kWordSize), ECX);  // Start of register block.
-  __ movl(Address(ESP, 1 * kWordSize), Immediate(kind == kLazyDeopt ? 1 : 0));
+  bool is_lazy = (kind == kLazyDeoptFromReturn) ||
+                 (kind == kLazyDeoptFromThrow);
+  __ movl(Address(ESP, 1 * kWordSize), Immediate(is_lazy ? 1 : 0));
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
   // Result (EAX) is stack-size (FP - SP) in bytes.
 
-  const bool preserve_result = (kind == kLazyDeopt);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX temporarily.
     __ movl(EBX, Address(EBP, saved_result_slot_from_fp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore result into EBX temporarily.
+    __ movl(EBX, Address(EBP, saved_exception_slot_from_fp * kWordSize));
+    __ movl(ECX, Address(EBP, saved_stacktrace_slot_from_fp * kWordSize));
   }
 
   __ LeaveFrame();
@@ -401,15 +410,22 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   // Leaf runtime function DeoptimizeFillFrame expects a Dart frame.
   __ EnterDartFrame(0);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ pushl(EBX);  // Preserve result as first local.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ pushl(EBX);  // Preserve exception as first local.
+    __ pushl(ECX);  // Preserve stacktrace as first local.
   }
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ movl(Address(ESP, 0), EBP);  // Pass last FP as parameter on stack.
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX.
     __ movl(EBX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore result into EBX.
+    __ movl(EBX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
+    __ movl(ECX, Address(EBP, (kFirstLocalSlotFromFp - 1) * kWordSize));
   }
   // Code above cannot cause GC.
   __ LeaveFrame();
@@ -418,8 +434,11 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   __ EnterStubFrame();
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ pushl(EBX);  // Preserve result, it will be GC-d here.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ pushl(EBX);  // Preserve exception, it will be GC-d here.
+    __ pushl(ECX);  // Preserve stacktrace, it will be GC-d here.
   }
   __ pushl(Immediate(Smi::RawValue(0)));  // Space for the result.
   __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
@@ -427,8 +446,11 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // of the bottom-most frame. They were used as materialization arguments.
   __ popl(EBX);
   __ SmiUntag(EBX);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ popl(EAX);  // Restore result.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ popl(EDX);  // Restore exception.
+    __ popl(EAX);  // Restore stacktrace.
   }
   __ LeaveFrame();
 
@@ -441,13 +463,26 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
 // TOS: return address + call-instruction-size (5 bytes).
 // EAX: result, must be preserved
-void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
+void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   // Correct return address to point just after the call that is being
   // deoptimized.
   __ popl(EBX);
   __ subl(EBX, Immediate(CallPattern::pattern_length_in_bytes()));
   __ pushl(EBX);
-  GenerateDeoptimizationSequence(assembler, kLazyDeopt);
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
+}
+
+
+// TOS: return address + call-instruction-size (5 bytes).
+// EAX: exception, must be preserved
+// EDX: stacktrace, must be preserved
+void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
+  // Correct return address to point just after the call that is being
+  // deoptimized.
+  __ popl(EBX);
+  __ subl(EBX, Immediate(CallPattern::pattern_length_in_bytes()));
+  __ pushl(EBX);
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 
 

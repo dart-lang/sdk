@@ -407,9 +407,8 @@ VM_TEST_CASE(StringEncodeIRI) {
       "file%3A%2F%2F%2Fusr%2Flocal%2Fjohnmccutchan%2Fworkspace%2F"
       "dart-repo%2Fdart%2Ftest.dart";
   const String& input = String::Handle(String::New(kInput));
-  const String& output = String::Handle(String::New(kOutput));
-  const String& encoded = String::Handle(String::EncodeIRI(input));
-  EXPECT(output.Equals(encoded));
+  const char* encoded = String::EncodeIRI(input);
+  EXPECT(strcmp(encoded, kOutput) == 0);
 }
 
 
@@ -449,7 +448,7 @@ VM_TEST_CASE(StringIRITwoByte) {
   const uint16_t kOutput[kOutputLen] =
       { 'x', '%', '2', 'F', '%', 'C', '4', '%', '8', '0' };
   const String& output = String::Handle(String::FromUTF16(kOutput, kOutputLen));
-  const String& encoded = String::Handle(String::EncodeIRI(input));
+  const String& encoded = String::Handle(String::New(String::EncodeIRI(input)));
   EXPECT(output.Equals(encoded));
   const String& decoded = String::Handle(String::DecodeIRI(output));
   EXPECT(input.Equals(decoded));

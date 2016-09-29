@@ -53,6 +53,7 @@ if (!is_win) {
 # where stuff should go. Put warning related stuff in the "warnings" config.
 
 config("compiler") {
+  asmflags = []
   cflags = []
   cflags_c = []
   cflags_cc = []
@@ -446,6 +447,14 @@ config("compiler") {
         ldflags += [ "--target=x86-linux-androideabi" ]
       }
     }
+  }
+
+  # Assign any flags set for the C compiler to asmflags so that they are sent
+  # to the assembler. The Windows assembler takes different types of flags
+  # so only do so for posix platforms.
+  if (is_posix) {
+    asmflags += cflags
+    asmflags += cflags_c
   }
 }
 

@@ -202,6 +202,7 @@ template("generate_core_libraries") {
         output = "$target_gen_dir/${filename}_patch_gen.cc"
       }
     }
+    lib_sources_gypi = {}
     lib_sources_gypi =
         exec_script("../../tools/gypi_to_gn.py",
                     [rebase_path("../lib/${filename}_sources.gypi")],

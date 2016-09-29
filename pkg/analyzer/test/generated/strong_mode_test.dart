@@ -2178,10 +2178,8 @@ main() {
     v; // marker
   }
 }''';
-    assertPropagatedIterationType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
+    assertPropagatedIterationType(code, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
   }
 
   void test_foreachInference_reusedVar_disabled() {
@@ -2193,10 +2191,8 @@ main() {
     v; // marker
   }
 }''';
-    assertPropagatedIterationType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
+    assertPropagatedIterationType(code, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
   }
 
   void test_foreachInference_var() {
@@ -2262,10 +2258,8 @@ main() {
   dynamic v = 3;
   v; // marker
 }''';
-    assertPropagatedAssignedType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
+    assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
   }
 
   void test_localVariableInference_noInitializer_disabled() {
@@ -2275,10 +2269,8 @@ main() {
   v = 3;
   v; // marker
 }''';
-    assertPropagatedAssignedType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
+    assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
   }
 
   void test_localVariableInference_transitive_field_inferred_lexical() {

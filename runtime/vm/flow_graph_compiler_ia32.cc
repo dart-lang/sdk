@@ -1138,11 +1138,12 @@ void FlowGraphCompiler::CompileGraph() {
 
   BeginCodeSourceRange();
   if (is_optimizing() && !FLAG_precompiled_mode) {
-    // Leave enough space for patching in case of lazy deoptimization from
-    // deferred code.
+    // Leave enough space for patching in case of lazy deoptimization.
     __ nop(CallPattern::pattern_length_in_bytes());
-    lazy_deopt_pc_offset_ = assembler()->CodeSize();
-    __ Jmp(*StubCode::DeoptimizeLazy_entry());
+    lazy_deopt_return_pc_offset_ = assembler()->CodeSize();
+    __ Jmp(*StubCode::DeoptimizeLazyFromReturn_entry());
+    lazy_deopt_throw_pc_offset_ = assembler()->CodeSize();
+    __ Jmp(*StubCode::DeoptimizeLazyFromThrow_entry());
   }
   EndCodeSourceRange(TokenPosition::kDartCodeEpilogue);
 }

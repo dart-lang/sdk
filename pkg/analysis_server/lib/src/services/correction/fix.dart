@@ -165,8 +165,12 @@ class DartFixKind {
       'CREATE_NO_SUCH_METHOD', 51, "Create 'noSuchMethod' method");
   static const IMPORT_LIBRARY_PREFIX = const FixKind('IMPORT_LIBRARY_PREFIX',
       51, "Use imported library '{0}' with prefix '{1}'");
-  static const IMPORT_LIBRARY_PROJECT =
-      const FixKind('IMPORT_LIBRARY_PROJECT', 49, "Import library '{0}'");
+  static const IMPORT_LIBRARY_PROJECT1 =
+      const FixKind('IMPORT_LIBRARY_PROJECT1', 47, "Import library '{0}'");
+  static const IMPORT_LIBRARY_PROJECT2 =
+      const FixKind('IMPORT_LIBRARY_PROJECT2', 48, "Import library '{0}'");
+  static const IMPORT_LIBRARY_PROJECT3 =
+      const FixKind('IMPORT_LIBRARY_PROJECT3', 49, "Import library '{0}'");
   static const IMPORT_LIBRARY_SDK =
       const FixKind('IMPORT_LIBRARY_SDK', 49, "Import library '{0}'");
   static const IMPORT_LIBRARY_SHOW =

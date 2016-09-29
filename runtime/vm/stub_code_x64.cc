@@ -385,6 +385,10 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
       kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - RAX);
+  const intptr_t saved_exception_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - RAX);
+  const intptr_t saved_stacktrace_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - RDX);
   // Result in RAX is preserved as part of pushing all registers below.
 
   // Push registers in their enumeration order: lowest register number at
@@ -408,15 +412,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   // Pass address of saved registers block.
   __ movq(CallingConventions::kArg1Reg, RSP);
-  __ movq(CallingConventions::kArg2Reg, Immediate(kind == kLazyDeopt ? 1 : 0));
+  bool is_lazy = (kind == kLazyDeoptFromReturn) ||
+                 (kind == kLazyDeoptFromThrow);
+  __ movq(CallingConventions::kArg2Reg, Immediate(is_lazy ? 1 : 0));
   __ ReserveAlignedFrameSpace(0);  // Ensure stack is aligned before the call.
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
   // Result (RAX) is stack-size (FP - SP) in bytes.
 
-  const bool preserve_result = (kind == kLazyDeopt);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into RBX temporarily.
     __ movq(RBX, Address(RBP, saved_result_slot_from_fp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore result into RBX temporarily.
+    __ movq(RBX, Address(RBP, saved_exception_slot_from_fp * kWordSize));
+    __ movq(RDX, Address(RBP, saved_stacktrace_slot_from_fp * kWordSize));
   }
 
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
@@ -432,16 +441,24 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // is no need to set the correct PC marker or load PP, since they get patched.
   __ EnterStubFrame();
 
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ pushq(RBX);  // Preserve result as first local.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ pushq(RBX);  // Preserve exception as first local.
+    __ pushq(RDX);  // Preserve stacktrace as second local.
   }
   __ ReserveAlignedFrameSpace(0);
   // Pass last FP as a parameter.
   __ movq(CallingConventions::kArg1Reg, RBP);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into RBX.
     __ movq(RBX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore exception into RBX.
+    __ movq(RBX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
+    // Restore stacktrace into RDX.
+    __ movq(RDX, Address(RBP, (kFirstLocalSlotFromFp - 1) * kWordSize));
   }
   // Code above cannot cause GC.
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
@@ -453,8 +470,11 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
   __ EnterStubFrame();
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ pushq(RBX);  // Preserve exception.
+    __ pushq(RDX);  // Preserve stacktrace.
   }
   __ pushq(Immediate(Smi::RawValue(0)));  // Space for the result.
   __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
@@ -462,8 +482,11 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // of the bottom-most frame. They were used as materialization arguments.
   __ popq(RBX);
   __ SmiUntag(RBX);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ popq(RAX);  // Restore result.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ popq(RDX);  // Restore stacktrace.
+    __ popq(RAX);  // Restore exception.
   }
   __ LeaveStubFrame();
 
@@ -476,7 +499,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
 // TOS: return address + call-instruction-size (5 bytes).
 // RAX: result, must be preserved
-void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
+void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   // Correct return address to point just after the call that is being
   // deoptimized.
   __ popq(RBX);
@@ -484,7 +507,22 @@ void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   // Push zap value instead of CODE_REG for lazy deopt.
   __ pushq(Immediate(0xf1f1f1f1));
   __ pushq(RBX);
-  GenerateDeoptimizationSequence(assembler, kLazyDeopt);
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
+}
+
+
+// TOS: return address + call-instruction-size (5 bytes).
+// RAX: exception, must be preserved
+// RDX: stacktrace, must be preserved
+void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
+  // Correct return address to point just after the call that is being
+  // deoptimized.
+  __ popq(RBX);
+  __ subq(RBX, Immediate(ShortCallPattern::pattern_length_in_bytes()));
+  // Push zap value instead of CODE_REG for lazy deopt.
+  __ pushq(Immediate(0xf1f1f1f1));
+  __ pushq(RBX);
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 
 

@@ -36,7 +36,7 @@ fi
 # all_tests twice. Finally self_host_test is not currently being tracked by
 # code coverage.
 unset COVERALLS_TOKEN
-pub run test:test test/all_tests.dart || fail
+dart test/all_tests.dart || fail
 
 {
   fc=`find test -name "*.dart" |\

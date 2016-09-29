@@ -1598,7 +1598,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
 #endif
       code->ptr()->state_bits_ = d->Read<int32_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      code->ptr()->lazy_deopt_pc_offset_ = -1;
+      code->ptr()->lazy_deopt_return_pc_offset_ = -1;
+      code->ptr()->lazy_deopt_throw_pc_offset_ = -1;
 #endif
     }
   }
@@ -4312,7 +4313,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
   return NULL;
 #else
   Zone* Z = zone_;
-  if ((cid > kNumPredefinedCids) ||
+  if ((cid >= kNumPredefinedCids) ||
       (cid == kInstanceCid) ||
       RawObject::IsTypedDataViewClassId(cid)) {
     Push(isolate()->class_table()->At(cid));
@@ -4636,7 +4637,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
   intptr_t cid = ReadCid();
 
   Zone* Z = zone_;
-  if ((cid > kNumPredefinedCids) ||
+  if ((cid >= kNumPredefinedCids) ||
       (cid == kInstanceCid) ||
       RawObject::IsTypedDataViewClassId(cid)) {
     return new (Z) InstanceDeserializationCluster(cid);

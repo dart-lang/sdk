@@ -14,11 +14,13 @@ import 'package:test/test.dart';
 import '../memory_compiler.dart';
 
 Future<String> compile(String code,
-    {String entry: 'main', bool useKernel: true}) async {
+    {String entry: 'main',
+    bool useKernel: true,
+    bool disableTypeInference: true}) async {
   List<String> options = <String>[
-    Flags.disableTypeInference,
     Flags.disableInlining,
   ];
+  if (disableTypeInference) options.add(Flags.disableTypeInference);
   if (useKernel) options.add(Flags.useKernel);
 
   if (entry != 'main' && !code.contains('main')) {
@@ -33,8 +35,15 @@ Future<String> compile(String code,
   return backend.getGeneratedCode(element);
 }
 
-Future check(String code, {String entry: 'main'}) async {
-  var original = await compile(code, entry: entry, useKernel: false);
-  var kernel = await compile(code, entry: entry, useKernel: true);
+Future check(String code,
+    {String entry: 'main', bool disableTypeInference: true}) async {
+  var original = await compile(code,
+      entry: entry,
+      useKernel: false,
+      disableTypeInference: disableTypeInference);
+  var kernel = await compile(code,
+      entry: entry,
+      useKernel: true,
+      disableTypeInference: disableTypeInference);
   expect(kernel, original);
 }

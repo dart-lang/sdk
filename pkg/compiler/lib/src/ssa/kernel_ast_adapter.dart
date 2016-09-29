@@ -15,9 +15,12 @@ import '../kernel/kernel.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
+import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
+import '../world.dart';
+import 'locals_handler.dart';
 import 'types.dart';
 
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
@@ -29,6 +32,8 @@ class KernelAstAdapter {
   final ResolvedAst _resolvedAst;
   final Map<ir.Node, ast.Node> _nodeToAst;
   final Map<ir.Node, Element> _nodeToElement;
+  final Map<ir.VariableDeclaration, SyntheticLocal> _syntheticLocals =
+      <ir.VariableDeclaration, SyntheticLocal>{};
   DartTypeConverter _typeConverter;
 
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
@@ -54,6 +59,8 @@ class KernelAstAdapter {
 
   Compiler get _compiler => _backend.compiler;
   TreeElements get elements => _resolvedAst.elements;
+  GlobalTypeInferenceResults get _inferenceResults =>
+      _compiler.globalInference.results;
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     ast.Node astNode = getNode(node);
@@ -74,6 +81,15 @@ class KernelAstAdapter {
     ast.Node result = _nodeToAst[node];
     assert(result != null);
     return result;
+  }
+
+  Local getLocal(ir.VariableDeclaration variable) {
+    // If this is a synthetic local, return the synthetic local
+    if (variable.name == null) {
+      return _syntheticLocals.putIfAbsent(
+          variable, () => new SyntheticLocal("x", null));
+    }
+    return getElement(variable) as LocalElement;
   }
 
   bool getCanThrow(ir.Node procedure) {
@@ -101,8 +117,15 @@ class KernelAstAdapter {
         name.name, name.isPrivate ? getElement(name.library) : null);
   }
 
-  // TODO(het): Create the selector directly from the invocation
-  Selector getSelector(ir.InvocationExpression invocation) {
+  Selector getSelector(ir.Expression node) {
+    if (node is ir.PropertyGet) return getGetterSelector(node);
+    if (node is ir.InvocationExpression) return getInvocationSelector(node);
+    _compiler.reporter.internalError(getNode(node),
+        "Can only get the selector for a property get or an invocation.");
+    return null;
+  }
+
+  Selector getInvocationSelector(ir.InvocationExpression invocation) {
     Name name = getName(invocation.name);
     SelectorKind kind;
     if (Elements.isOperatorName(invocation.name.name)) {
@@ -126,28 +149,75 @@ class KernelAstAdapter {
     return new Selector.getter(name);
   }
 
-  TypeMask typeOfInvocation(ir.MethodInvocation invocation) {
-    return _compiler.globalInference.results
-        .typeOfSend(getNode(invocation), elements);
+  TypeMask typeOfInvocation(ir.Expression send) {
+    return _inferenceResults.typeOfSend(getNode(send), elements);
   }
 
   TypeMask typeOfGet(ir.PropertyGet getter) {
-    return _compiler.globalInference.results
-        .typeOfSend(getNode(getter), elements);
+    return _inferenceResults.typeOfSend(getNode(getter), elements);
+  }
+
+  TypeMask typeOfSend(ir.Expression send) {
+    assert(send is ir.InvocationExpression || send is ir.PropertyGet);
+    return _inferenceResults.typeOfSend(getNode(send), elements);
+  }
+
+  TypeMask typeOfNewList(Element owner, ir.ListLiteral listLiteral) {
+    return _inferenceResults.typeOfNewList(owner, getNode(listLiteral)) ??
+        _compiler.commonMasks.dynamicType;
+  }
+
+  TypeMask typeOfIterator(ir.ForInStatement forInStatement) {
+    return _inferenceResults.typeOfIterator(getNode(forInStatement), elements);
+  }
+
+  TypeMask typeOfIteratorCurrent(ir.ForInStatement forInStatement) {
+    return _inferenceResults.typeOfIteratorCurrent(
+        getNode(forInStatement), elements);
+  }
+
+  TypeMask typeOfIteratorMoveNext(ir.ForInStatement forInStatement) {
+    return _inferenceResults.typeOfIteratorMoveNext(
+        getNode(forInStatement), elements);
+  }
+
+  bool isJsIndexableIterator(ir.ForInStatement forInStatement) {
+    TypeMask mask = typeOfIterator(forInStatement);
+    ClosedWorld closedWorld = _compiler.closedWorld;
+    return mask != null &&
+        mask.satisfies(_backend.helpers.jsIndexableClass, closedWorld) &&
+        // String is indexable but not iterable.
+        !mask.satisfies(_backend.helpers.jsStringClass, closedWorld);
+  }
+
+  bool isFixedLength(TypeMask mask) {
+    ClosedWorld closedWorld = _compiler.closedWorld;
+    JavaScriptBackend backend = _compiler.backend;
+    if (mask.isContainer && (mask as ContainerTypeMask).length != null) {
+      // A container on which we have inferred the length.
+      return true;
+    }
+    // TODO(sra): Recognize any combination of fixed length indexables.
+    if (mask.containsOnly(backend.helpers.jsFixedArrayClass) ||
+        mask.containsOnly(backend.helpers.jsUnmodifiableArrayClass) ||
+        mask.containsOnlyString(closedWorld) ||
+        backend.isTypedArray(mask)) {
+      return true;
+    }
+    return false;
+  }
+
+  TypeMask inferredIndexType(ir.ForInStatement forInStatement) {
+    return TypeMaskFactory.inferredTypeForSelector(
+        new Selector.index(), typeOfIterator(forInStatement), _compiler);
   }
 
   TypeMask inferredTypeOf(ir.Member node) {
     return TypeMaskFactory.inferredTypeForElement(getElement(node), _compiler);
   }
 
-  TypeMask selectorTypeOf(ir.MethodInvocation invocation) {
-    return TypeMaskFactory.inferredTypeForSelector(
-        getSelector(invocation), typeOfInvocation(invocation), _compiler);
-  }
-
-  TypeMask selectorGetterTypeOf(ir.PropertyGet getter) {
-    return TypeMaskFactory.inferredTypeForSelector(
-        getGetterSelector(getter), typeOfGet(getter), _compiler);
+  TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
+    return TypeMaskFactory.inferredTypeForSelector(selector, mask, _compiler);
   }
 
   ConstantValue getConstantFor(ir.Node node) {
@@ -159,12 +229,11 @@ class KernelAstAdapter {
   }
 
   bool isIntercepted(ir.Node node) {
-    Selector selector;
-    if (node is ir.PropertyGet) {
-      selector = getGetterSelector(node);
-    } else {
-      selector = getSelector(node);
-    }
+    Selector selector = getSelector(node);
+    return _backend.isInterceptedSelector(selector);
+  }
+
+  bool isInterceptedSelector(Selector selector) {
     return _backend.isInterceptedSelector(selector);
   }
 
@@ -176,6 +245,15 @@ class KernelAstAdapter {
 
   ir.Procedure get mapLiteralConstructorEmpty =>
       kernel.functions[_backend.helpers.mapLiteralConstructorEmpty];
+
+  Element get jsIndexableLength => _backend.helpers.jsIndexableLength;
+
+  ir.Procedure get checkConcurrentModificationError =>
+      kernel.functions[_backend.helpers.checkConcurrentModificationError];
+
+  TypeMask get checkConcurrentModificationErrorReturnType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.checkConcurrentModificationError, _compiler);
 
   DartType getDartType(ir.DartType type) {
     return type.accept(_typeConverter);

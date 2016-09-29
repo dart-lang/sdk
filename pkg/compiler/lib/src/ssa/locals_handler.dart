@@ -14,7 +14,7 @@ import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
-import 'builder.dart' show SyntheticLocal;
+
 import 'graph_builder.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -656,4 +656,21 @@ class LocalsHandler {
   /// being updated in try/catch blocks, and should be
   /// accessed indirectly through [HLocalGet] and [HLocalSet].
   Map<Local, HLocalValue> activationVariables = <Local, HLocalValue>{};
+}
+
+/// A synthetic local variable only used with the SSA graph.
+///
+/// For instance used for holding return value of function or the exception of a
+/// try-catch statement.
+class SyntheticLocal extends Local {
+  final String name;
+  final ExecutableElement executableContext;
+
+  // Avoid slow Object.hashCode.
+  final int hashCode = _nextHashCode = (_nextHashCode + 1).toUnsigned(30);
+  static int _nextHashCode = 0;
+
+  SyntheticLocal(this.name, this.executableContext);
+
+  toString() => 'SyntheticLocal($name)';
 }

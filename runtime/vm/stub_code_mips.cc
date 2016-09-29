@@ -444,6 +444,10 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
       kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - V0);
+  const intptr_t saved_exception_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - V0);
+  const intptr_t saved_stacktrace_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - V1);
   // Result in V0 is preserved as part of pushing all registers below.
 
   // Push registers in their enumeration order: lowest register number at
@@ -469,15 +473,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
 
   __ mov(A0, SP);  // Pass address of saved registers block.
-  __ LoadImmediate(A1, (kind == kLazyDeopt) ? 1 : 0);
+  bool is_lazy = (kind == kLazyDeoptFromReturn) ||
+                 (kind == kLazyDeoptFromThrow);
+  __ LoadImmediate(A1, is_lazy ? 1 : 0);
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
   // Result (V0) is stack-size (FP - SP) in bytes, incl. the return address.
 
-  const bool preserve_result = (kind == kLazyDeopt);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into T1 temporarily.
     __ lw(T1, Address(FP, saved_result_slot_from_fp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore result into T1 temporarily.
+    __ lw(T1, Address(FP, saved_exception_slot_from_fp * kWordSize));
+    __ lw(T2, Address(FP, saved_stacktrace_slot_from_fp * kWordSize));
   }
 
   __ RestoreCodePointer();
@@ -489,14 +498,21 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ EnterStubFrame();
 
   __ mov(A0, FP);  // Get last FP address.
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ Push(T1);  // Preserve result as first local.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ Push(T1);  // Preserve exception as first local.
+    __ Push(T2);  // Preserve stacktrace as second local.
   }
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);  // Pass last FP in A0.
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into T1.
     __ lw(T1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore result into T1.
+    __ lw(T1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
+    __ lw(T2, Address(FP, (kFirstLocalSlotFromFp - 1) * kWordSize));
   }
   // Code above cannot cause GC.
   __ RestoreCodePointer();
@@ -507,16 +523,22 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
   __ EnterStubFrame();
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ Push(T1);  // Preserve result, it will be GC-d here.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ Push(T1);  // Preserve exception, it will be GC-d here.
+    __ Push(T2);  // Preserve stacktrace, it will be GC-d here.
   }
   __ PushObject(Smi::ZoneHandle());  // Space for the result.
   __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
   // Result tells stub how many bytes to remove from the expression stack
   // of the bottom-most frame. They were used as materialization arguments.
   __ Pop(T1);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ Pop(V0);  // Restore result.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ Pop(V1);  // Restore stacktrace.
+    __ Pop(V0);  // Restore exception.
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
@@ -525,15 +547,30 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ Ret();
 }
 
-
-void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
+// RA: return address + call-instruction-size
+// V0: result, must be preserved
+void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   // Correct return address to point just after the call that is being
   // deoptimized.
   __ AddImmediate(RA, -CallPattern::kDeoptCallLengthInBytes);
   // Push zap value instead of CODE_REG for lazy deopt.
   __ LoadImmediate(TMP, 0xf1f1f1f1);
   __ Push(TMP);
-  GenerateDeoptimizationSequence(assembler, kLazyDeopt);
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
+}
+
+
+// RA: return address + call-instruction-size
+// V0: exception, must be preserved
+// V1: stacktrace, must be preserved
+void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
+  // Correct return address to point just after the call that is being
+  // deoptimized.
+  __ AddImmediate(RA, -CallPattern::kDeoptCallLengthInBytes);
+  // Push zap value instead of CODE_REG for lazy deopt.
+  __ LoadImmediate(TMP, 0xf1f1f1f1);
+  __ Push(TMP);
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 
 

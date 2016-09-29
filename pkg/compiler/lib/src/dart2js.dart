@@ -365,6 +365,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.analyzeSignaturesOnly, setAnalyzeOnly),
     new OptionHandler(Flags.disableNativeLiveTypeAnalysis, passThrough),
     new OptionHandler('--categories=.*', setCategories),
+    new OptionHandler(Flags.disableInlining, implyCompilation),
     new OptionHandler(Flags.disableTypeInference, implyCompilation),
     new OptionHandler(Flags.terse, passThrough),
     new OptionHandler('--deferred-map=.+', implyCompilation),

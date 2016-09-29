@@ -27,11 +27,22 @@ Uri resolveRelativeUri(Uri baseUri, Uri containedUri) {
   Uri origBaseUri = baseUri;
   try {
     String scheme = baseUri.scheme;
+    // dart:core => dart:core/core.dart
     if (scheme == DartUriResolver.DART_SCHEME) {
       String part = baseUri.path;
       if (part.indexOf('/') < 0) {
         baseUri = FastUri.parse('$scheme:$part/$part.dart');
       }
+    }
+    // foo.dart + ../bar.dart = ../bar.dart
+    // TODO(scheglov) Remove this temporary workaround.
+    // Should be fixed as https://github.com/dart-lang/sdk/issues/27447
+    List<String> baseSegments = baseUri.pathSegments;
+    List<String> containedSegments = containedUri.pathSegments;
+    if (baseSegments.length == 1 &&
+        containedSegments.length > 0 &&
+        containedSegments[0] == '..') {
+      return containedUri;
     }
     return baseUri.resolveUri(containedUri);
   } catch (exception, stackTrace) {

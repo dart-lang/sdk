@@ -206,22 +206,22 @@ class PubSummaryManager {
     }
 
     // Create graph nodes for packages.
-    List<_LinkedNode> nodes = <_LinkedNode>[];
-    Map<String, _LinkedNode> packageToNode = <String, _LinkedNode>{};
+    List<_LinkNode> nodes = <_LinkNode>[];
+    Map<String, _LinkNode> packageToNode = <String, _LinkNode>{};
     unlinkedBundles.forEach((package, unlinked) {
-      _LinkedNode node = new _LinkedNode(sdkBundle, getDeclaredVariable,
+      _LinkNode node = new _LinkNode(sdkBundle, getDeclaredVariable,
           listedPackages, package, unlinked, packageToNode);
       nodes.add(node);
       packageToNode[package.name] = node;
     });
 
     // Compute transitive dependencies, mark some nodes as failed.
-    for (_LinkedNode node in nodes) {
+    for (_LinkNode node in nodes) {
       node.computeTransitiveDependencies();
     }
 
     // Attempt to read existing linked bundles.
-    for (_LinkedNode node in nodes) {
+    for (_LinkNode node in nodes) {
       _readLinked(node, strong);
     }
 
@@ -232,7 +232,7 @@ class PubSummaryManager {
       // Append unlinked and (if read from a cache) linked package bundles.
       SummaryDataStore store = new SummaryDataStore(const <String>[]);
       store.addBundle(null, sdkBundle);
-      for (_LinkedNode node in nodes) {
+      for (_LinkNode node in nodes) {
         store.addBundle(null, node.unlinked);
         if (node.linked != null) {
           store.addBundle(null, node.linked);
@@ -240,22 +240,22 @@ class PubSummaryManager {
       }
 
       // Link each package node.
-      for (_LinkedNode node in nodes) {
+      for (_LinkNode node in nodes) {
         if (!node.isEvaluated) {
-          new _LinkedWalker(getDeclaredVariable, listedPackages, store, strong)
+          new _LinkWalker(getDeclaredVariable, listedPackages, store, strong)
               .walk(node);
         }
       }
 
       // Write newly linked bundles.
-      for (_LinkedNode node in nodes) {
+      for (_LinkNode node in nodes) {
         _writeLinked(node, strong);
       }
     }
 
     // Create successfully linked packages.
     List<LinkedPubPackage> linkedPackages = <LinkedPubPackage>[];
-    for (_LinkedNode node in nodes) {
+    for (_LinkNode node in nodes) {
       if (node.linked != null) {
         linkedPackages.add(new LinkedPubPackage(
             node.package, node.unlinked, node.linked, node.linkedHash));
@@ -512,9 +512,9 @@ class PubSummaryManager {
 
   /**
    * Attempt to find the linked bundle that corresponds to the given [node]
-   * with all its transitive dependencies and put it into [_LinkedNode.linked].
+   * with all its transitive dependencies and put it into [_LinkNode.linked].
    */
-  void _readLinked(_LinkedNode node, bool strong) {
+  void _readLinked(_LinkNode node, bool strong) {
     String hash = node.linkedHash;
     if (hash != null) {
       String fileName = _getLinkedName(hash, strong);
@@ -573,7 +573,7 @@ class PubSummaryManager {
    * If a new linked bundle was linked for the given [node], write the bundle
    * into the memory cache and the file system.
    */
-  void _writeLinked(_LinkedNode node, bool strong) {
+  void _writeLinked(_LinkNode node, bool strong) {
     String hash = node.linkedHash;
     if (hash != null && node.linkedNewBytes != null) {
       String fileName = _getLinkedName(hash, strong);
@@ -620,22 +620,22 @@ class PubSummaryManager {
 /**
  * Specialization of [Node] for linking packages in proper dependency order.
  */
-class _LinkedNode extends Node<_LinkedNode> {
+class _LinkNode extends Node<_LinkNode> {
   final PackageBundle sdkBundle;
   final _GetDeclaredVariable getDeclaredVariable;
   final _ListedPackages listedPackages;
   final PubPackage package;
   final PackageBundle unlinked;
-  final Map<String, _LinkedNode> packageToNode;
+  final Map<String, _LinkNode> packageToNode;
 
   bool failed = false;
-  Set<_LinkedNode> transitiveDependencies;
+  Set<_LinkNode> transitiveDependencies;
   String _linkedHash;
 
   List<int> linkedNewBytes;
   PackageBundle linked;
 
-  _LinkedNode(this.sdkBundle, this.getDeclaredVariable, this.listedPackages,
+  _LinkNode(this.sdkBundle, this.getDeclaredVariable, this.listedPackages,
       this.package, this.unlinked, this.packageToNode);
 
   @override
@@ -666,8 +666,8 @@ class _LinkedNode extends Node<_LinkedNode> {
   }
 
   @override
-  List<_LinkedNode> computeDependencies() {
-    Set<_LinkedNode> dependencies = new Set<_LinkedNode>();
+  List<_LinkNode> computeDependencies() {
+    Set<_LinkNode> dependencies = new Set<_LinkNode>();
 
     void appendDependency(String uriStr) {
       Uri uri = FastUri.parse(uriStr);
@@ -678,7 +678,7 @@ class _LinkedNode extends Node<_LinkedNode> {
         // The SDK linked bundle is precomputed before linking packages.
       } else if (uriStr.startsWith('package:')) {
         String package = PubSummaryManager.getPackageName(uriStr);
-        _LinkedNode packageNode = packageToNode[package];
+        _LinkNode packageNode = packageToNode[package];
         if (packageNode == null && listedPackages.isListed(uriStr)) {
           failed = true;
         }
@@ -712,9 +712,9 @@ class _LinkedNode extends Node<_LinkedNode> {
    */
   void computeTransitiveDependencies() {
     if (transitiveDependencies == null) {
-      transitiveDependencies = new Set<_LinkedNode>();
+      transitiveDependencies = new Set<_LinkNode>();
 
-      void appendDependencies(_LinkedNode node) {
+      void appendDependencies(_LinkNode node) {
         if (transitiveDependencies.add(node)) {
           node.dependencies.forEach(appendDependencies);
         }
@@ -736,7 +736,7 @@ class _LinkedNode extends Node<_LinkedNode> {
    */
   void _appendDeclaredVariables(ApiSignature signature) {
     Set<String> nameSet = new Set<String>();
-    for (_LinkedNode node in transitiveDependencies) {
+    for (_LinkNode node in transitiveDependencies) {
       for (UnlinkedUnit unit in node.unlinked.unlinkedUnits) {
         for (UnlinkedImport import in unit.imports) {
           for (UnlinkedConfiguration configuration in import.configurations) {
@@ -762,24 +762,24 @@ class _LinkedNode extends Node<_LinkedNode> {
 /**
  * Specialization of [DependencyWalker] for linking packages.
  */
-class _LinkedWalker extends DependencyWalker<_LinkedNode> {
+class _LinkWalker extends DependencyWalker<_LinkNode> {
   final _GetDeclaredVariable getDeclaredVariable;
   final _ListedPackages listedPackages;
   final SummaryDataStore store;
   final bool strong;
 
-  _LinkedWalker(
+  _LinkWalker(
       this.getDeclaredVariable, this.listedPackages, this.store, this.strong);
 
   @override
-  void evaluate(_LinkedNode node) {
+  void evaluate(_LinkNode node) {
     evaluateScc([node]);
   }
 
   @override
-  void evaluateScc(List<_LinkedNode> scc) {
-    Map<String, _LinkedNode> uriToNode = <String, _LinkedNode>{};
-    for (_LinkedNode node in scc) {
+  void evaluateScc(List<_LinkNode> scc) {
+    Map<String, _LinkNode> uriToNode = <String, _LinkNode>{};
+    for (_LinkNode node in scc) {
       for (String uri in node.unlinked.unlinkedUnitUris) {
         uriToNode[uri] = node;
       }
@@ -793,7 +793,7 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
       return store.unlinkedMap[uri];
     }, getDeclaredVariable, strong);
     // Assemble linked bundles and put them into the store.
-    for (_LinkedNode node in scc) {
+    for (_LinkNode node in scc) {
       PackageBundleAssembler assembler = new PackageBundleAssembler();
       linkedLibraries.forEach((uri, linkedLibrary) {
         if (identical(uriToNode[uri], node)) {

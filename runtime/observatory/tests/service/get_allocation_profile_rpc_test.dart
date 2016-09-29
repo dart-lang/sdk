@@ -46,7 +46,7 @@ var tests = [
     expect(result['members'].length, isPositive);
     expect(result['members'][0]['type'], equals('ClassHeapStats'));
 
-    await sleep(10);
+    await sleep(1000);
 
     result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
     var secondReset = result['dateLastAccumulatorReset'];
@@ -67,7 +67,7 @@ var tests = [
     expect(result['members'].length, isPositive);
     expect(result['members'][0]['type'], equals('ClassHeapStats'));
 
-    await sleep(10);
+    await sleep(1000);
 
     result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
     var secondGC = result['dateLastAccumulatorReset'];

@@ -48,23 +48,6 @@ import 'optimize.dart';
 import 'ssa_branch_builder.dart';
 import 'types.dart';
 
-/// A synthetic local variable only used with the SSA graph.
-///
-/// For instance used for holding return value of function or the exception of a
-/// try-catch statement.
-class SyntheticLocal extends Local {
-  final String name;
-  final ExecutableElement executableContext;
-
-  // Avoid slow Object.hashCode.
-  final int hashCode = _nextHashCode = (_nextHashCode + 1).toUnsigned(30);
-  static int _nextHashCode = 0;
-
-  SyntheticLocal(this.name, this.executableContext);
-
-  toString() => 'SyntheticLocal($name)';
-}
-
 class SsaBuilderTask extends CompilerTask {
   final CodeEmitterTask emitter;
   final JavaScriptBackend backend;
@@ -930,14 +913,14 @@ class SsaBuilder extends ast.Visitor
    * Invariant: [constructors] must contain only implementation elements.
    */
   void inlineSuperOrRedirect(
-      ResolvedAst constructorRecolvedAst,
+      ResolvedAst constructorResolvedAst,
       List<HInstruction> compiledArguments,
       List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues,
       FunctionElement caller) {
-    ConstructorElement callee = constructorRecolvedAst.element.implementation;
+    ConstructorElement callee = constructorResolvedAst.element.implementation;
     reporter.withCurrentElement(callee, () {
-      constructorResolvedAsts.add(constructorRecolvedAst);
+      constructorResolvedAsts.add(constructorResolvedAst);
       ClassElement enclosingClass = callee.enclosingClass;
       if (backend.classNeedsRti(enclosingClass)) {
         // If [enclosingClass] needs RTI, we have to give a value to its
@@ -975,7 +958,7 @@ class SsaBuilder extends ast.Visitor
       // For redirecting constructors, the fields will be initialized later
       // by the effective target.
       if (!callee.isRedirectingGenerative) {
-        inlinedFrom(constructorRecolvedAst, () {
+        inlinedFrom(constructorResolvedAst, () {
           buildFieldInitializers(
               callee.enclosingClass.implementation, fieldValues);
         });
@@ -2322,12 +2305,6 @@ class SsaBuilder extends ast.Visitor
               inferenceResults.typeOfSend(node, elements),
               expression);
         });
-  }
-
-  @override
-  pushCheckNull(HInstruction expression) {
-    push(new HIdentity(
-        expression, graph.addConstantNull(compiler), null, backend.boolType));
   }
 
   @override
@@ -5652,7 +5629,7 @@ class SsaBuilder extends ast.Visitor
 
     // This scheme recognizes for-in on direct lists.  It does not recognize all
     // uses of ArrayIterator.  They still occur when the receiver is an Iterable
-    // with a `get iterator` method that delegate to another Iterable and the
+    // with a `get iterator` method that delegates to another Iterable and the
     // method is inlined.  We would require full scalar replacement in that
     // case.
 

@@ -2020,20 +2020,22 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   }
   // Patch call site (lazy deoptimization is quite rare, patching it twice
   // is not a performance issue).
-  uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
+  uword lazy_deopt_jump_return = optimized_code.GetLazyDeoptReturnPc();
+  uword lazy_deopt_jump_throw = optimized_code.GetLazyDeoptThrowPc();
 #if !defined(TARGET_ARCH_DBC)
-  ASSERT(lazy_deopt_jump != 0);
+  ASSERT(lazy_deopt_jump_return != 0);
+  ASSERT(lazy_deopt_jump_throw != 0);
 #endif
   const Instructions& instrs =
       Instructions::Handle(zone, optimized_code.instructions());
   {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
-    CodePatcher::InsertDeoptimizationCallAt(pc, lazy_deopt_jump);
+    CodePatcher::InsertDeoptimizationCallAt(pc, lazy_deopt_jump_return);
     if (FLAG_trace_patching) {
       const String& name = String::Handle(function.name());
       OS::PrintErr(
           "InsertDeoptimizationCallAt: 0x%" Px " to 0x%" Px " for %s\n",
-          pc, lazy_deopt_jump, name.ToCString());
+          pc, lazy_deopt_jump_return, name.ToCString());
     }
     const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(zone, optimized_code.exception_handlers());
@@ -2041,7 +2043,7 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
     for (intptr_t i = 0; i < handlers.num_entries(); ++i) {
       handlers.GetHandlerInfo(i, &info);
       const uword patch_pc = instrs.PayloadStart() + info.handler_pc_offset;
-      CodePatcher::InsertDeoptimizationCallAt(patch_pc, lazy_deopt_jump);
+      CodePatcher::InsertDeoptimizationCallAt(patch_pc, lazy_deopt_jump_throw);
       if (FLAG_trace_patching) {
         OS::PrintErr("  at handler 0x%" Px "\n", patch_pc);
       }

@@ -439,6 +439,7 @@ abstract class ErrorCode {
     CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
     CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR,
     CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
+    HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
     HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE,
     HintCode.DEAD_CODE,

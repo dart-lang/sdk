@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
 import 'api_signature_test.dart' as api_signature_test;
+import 'bazel_summary_test.dart' as bazel_summary_test;
 import 'flat_buffers_test.dart' as flat_buffers_test;
 import 'in_summary_source_test.dart' as in_summary_source_test;
 import 'linker_test.dart' as linker_test;
@@ -24,6 +25,7 @@ main() {
   initializeTestEnvironment();
   group('summary tests', () {
     api_signature_test.main();
+    bazel_summary_test.main();
     flat_buffers_test.main();
     in_summary_source_test.main();
     linker_test.main();
