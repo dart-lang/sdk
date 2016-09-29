@@ -374,9 +374,14 @@ source_set("embedded_dart_io") {
   if (is_mac || is_ios) {
     libs = [
       "CoreFoundation.framework",
-      "CoreServices.framework",
       "Security.framework",
     ]
+
+    if (is_mac) {
+      libs += [
+        "CoreServices.framework",
+      ]
+    }
   } else if (defined(is_fuchsia) && is_fuchsia) {
     defines += [
       "DART_IO_SECURE_SOCKET_DISABLED"
