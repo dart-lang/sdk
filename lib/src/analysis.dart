@@ -9,11 +9,8 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart'
-    show File, Folder, ResourceUriResolver;
+    show File, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_provider.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -83,16 +80,6 @@ class AnalysisDriver {
     if (options.packageRootPath != null) {
       JavaFile packageDirectory = new JavaFile(options.packageRootPath);
       resolvers.add(new PackageUriResolver([packageDirectory]));
-    } else {
-      PubPackageMapProvider pubPackageMapProvider = new PubPackageMapProvider(
-          PhysicalResourceProvider.INSTANCE, sdk, options.runPubList);
-      PackageMapInfo packageMapInfo = pubPackageMapProvider.computePackageMap(
-          PhysicalResourceProvider.INSTANCE.getResource('.'));
-      Map<String, List<Folder>> packageMap = packageMapInfo.packageMap;
-      if (packageMap != null) {
-        resolvers.add(new PackageMapUriResolver(
-            PhysicalResourceProvider.INSTANCE, packageMap));
-      }
     }
 
     // File URI resolver must come last so that files inside "/lib" are
@@ -240,10 +227,6 @@ class DriverOptions {
 
   /// The path to the package root.
   String packageRootPath;
-
-  /// If non-null, the function to use to run pub list.  This is used to mock
-  /// out executions of pub list when testing the linter.
-  RunPubList runPubList;
 
   /// Whether to show SDK warnings.
   bool showSdkWarnings = false;

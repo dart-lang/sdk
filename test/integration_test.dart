@@ -4,7 +4,6 @@
 
 library linter.test.integration;
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:linter/src/config.dart';
@@ -82,18 +81,9 @@ defineTests() {
         outSink = currentOut;
       });
       test('no warnings due to bad canonicalization', () {
-        var libPath = new Directory('test/_data/p4/lib').absolute.path;
         var options = new LinterOptions([]);
-        options.runPubList = (_) {
-          var processResult = new MockProcessResult();
-          when(processResult.exitCode).thenReturn(0);
-          when(processResult.stderr).thenReturn('');
-          when(processResult.stdout).thenReturn(JSON.encode({
-            'packages': {'p4': libPath},
-            'input_files': []
-          }));
-          return processResult;
-        };
+        options.packageConfigPath =
+            new File('test/_data/p4/_packages').absolute.path;
         dartlint.runLinter(['test/_data/p4'], options);
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));
@@ -187,7 +177,10 @@ defineTests() {
       });
 
       test('close sinks', () {
-        dartlint.main(['test/_data/close_sinks', '--rules=close_sinks']);
+        var options = new LinterOptions([]);
+        options.packageConfigPath = new File('test/.packages').absolute.path;
+        dartlint.runLinter(
+            ['test/_data/close_sinks', '--rules=close_sinks'], options);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
