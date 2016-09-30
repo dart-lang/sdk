@@ -542,8 +542,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
   // Result tells stub how many bytes to remove from the expression stack
   // of the bottom-most frame. They were used as materialization arguments.
-  __ Pop(R1);
-  __ SmiUntag(R1);
+  __ Pop(R2);
+  __ SmiUntag(R2);
   if (kind == kLazyDeoptFromReturn) {
     __ Pop(R0);  // Restore result.
   } else if (kind == kLazyDeoptFromThrow) {
@@ -552,7 +552,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
-  __ add(SP, SP, Operand(R1));
+  __ add(SP, SP, Operand(R2));
   __ ret();
 }
 
