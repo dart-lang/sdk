@@ -29,6 +29,9 @@ CompletionSuggestion createSuggestion(Element element,
     CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
     int relevance: DART_RELEVANCE_DEFAULT,
     Source importForSource}) {
+  if (element == null) {
+    return null;
+  }
   if (element is ExecutableElement && element.isOperator) {
     // Do not include operators in suggestions
     return null;
