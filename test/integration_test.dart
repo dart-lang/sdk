@@ -81,10 +81,10 @@ defineTests() {
         outSink = currentOut;
       });
       test('no warnings due to bad canonicalization', () {
-        var options = new LinterOptions([]);
-        options.packageConfigPath =
+        var packagesFilePath =
             new File('test/_data/p4/_packages').absolute.path;
-        dartlint.runLinter(['test/_data/p4'], options);
+        dartlint.runLinter(['--packages', packagesFilePath, 'test/_data/p4'],
+            new LinterOptions([]));
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));
       });
@@ -177,10 +177,13 @@ defineTests() {
       });
 
       test('close sinks', () {
-        var options = new LinterOptions([]);
-        options.packageConfigPath = new File('test/.packages').absolute.path;
-        dartlint.runLinter(
-            ['test/_data/close_sinks', '--rules=close_sinks'], options);
+        var packagesFilePath = new File('.packages').absolute.path;
+        dartlint.main([
+          '--packages',
+          packagesFilePath,
+          'test/_data/close_sinks',
+          '--rules=close_sinks'
+        ]);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
