@@ -21,11 +21,12 @@ main() {
       expect(program.entrypoint, isNotNull);
       expect(program.size, 10124);
       expect(program.compilationMoment,
-          DateTime.parse("2016-09-30 13:44:11.847439"));
-      expect(program.compilationDuration,
-          new Duration(seconds: 3, microseconds: 717112));
+          DateTime.parse("2016-09-30 16:14:58.038530"));
+      expect(program.compilationDuration, new Duration(microseconds: 2726976));
+      expect(program.toJsonDuration, new Duration(milliseconds: 4));
+      expect(program.dumpInfoDuration, new Duration(seconds: 0));
       expect(program.noSuchMethodEnabled, false);
       expect(program.minified, false);
-    }, skip: "need to update dart2js first");
+    });
   });
 }

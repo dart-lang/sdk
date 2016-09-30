@@ -1852,17 +1852,17 @@
       ]
     }
   ],
-  "dump_version": 3,
+  "dump_version": 4,
   "deferredFiles": {},
-  "dump_minor_version": "6",
+  "dump_minor_version": "0",
   "program": {
     "entrypoint": "function/0",
     "size": 10124,
     "dart2jsVersion": null,
-    "compilationMoment": "2016-09-30 13:44:11.847439",
-    "compilationDuration": "0:00:03.717112",
-    "toJsonDuration": 4,
-    "dumpInfoDuration": "0",
+    "compilationMoment": "2016-09-30 16:14:58.038530",
+    "compilationDuration": 2726976,
+    "toJsonDuration": 4000,
+    "dumpInfoDuration": 0,
     "noSuchMethodEnabled": false,
     "minified": false
   }
