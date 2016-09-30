@@ -54,8 +54,28 @@ main() {
   testPostDec(null);
   testPreInc(null);
   testPreDec(null);
+  testIs(null);
+  testIsGeneric(null);
+  testIsGenericRaw(null);
+  testIsGenericDynamic(null);
+  testIsNot(null);
+  testIsNotGeneric(null);
+  testIsNotGenericRaw(null);
+  testIsNotGenericDynamic(null);
+  testAs(null);
+  testAsGeneric(null);
+  testAsGenericRaw(null);
+  testAsGenericDynamic(null);
+  testThrow();
+  testSyncStar();
+  testAsync();
+  testAsyncStar();
   testIfThen();
   testIfThenElse();
+  testForIn(null);
+  testForInTyped(null);
+  testAsyncForIn(null);
+  testAsyncForInTyped(null);
   testTopLevelInvoke();
   testTopLevelInvokeTyped();
   testTopLevelFunctionTyped();
@@ -84,6 +104,10 @@ main() {
   testInvokeIndexSet(null);
   testAssert();
   testAssertWithMessage();
+  testConstructorInvoke();
+  testConstructorInvokeGeneric();
+  testConstructorInvokeGenericRaw();
+  testConstructorInvokeGenericDynamic();
   testFactoryInvoke();
   testFactoryInvokeGeneric();
   testFactoryInvokeGenericRaw();
@@ -124,6 +148,24 @@ testPostInc(o) => o++;
 testPostDec(o) => o--;
 testPreInc(o) => ++o;
 testPreDec(o) => --o;
+
+testIs(o) => o is Class;
+testIsGeneric(o) => o is GenericClass<int, String>;
+testIsGenericRaw(o) => o is GenericClass;
+testIsGenericDynamic(o) => o is GenericClass<dynamic, dynamic>;
+testIsNot(o) => o is! Class;
+testIsNotGeneric(o) => o is! GenericClass<int, String>;
+testIsNotGenericRaw(o) => o is! GenericClass;
+testIsNotGenericDynamic(o) => o is! GenericClass<dynamic, dynamic>;
+testAs(o) => o as Class;
+testAsGeneric(o) => o as GenericClass<int, String>;
+testAsGenericRaw(o) => o as GenericClass;
+testAsGenericDynamic(o) => o as GenericClass<dynamic, dynamic>;
+testThrow() => throw '';
+
+testSyncStar() sync* {}
+testAsync() async {}
+testAsyncStar() async* {}
 testIfThen() {
   if (false) return 42;
   return 1;
@@ -134,6 +176,18 @@ testIfThenElse() {
   } else {
     return 1;
   }
+}
+testForIn(o) {
+  for (var e in o) {}
+}
+testForInTyped(o) {
+  for (int e in o) {}
+}
+testAsyncForIn(o) async {
+  await for (var e in o) {}
+}
+testAsyncForInTyped(o) async {
+  await for (int e in o) {}
 }
 topLevelFunction1(a) {}
 topLevelFunction2(a, [b, c]) {}
@@ -245,6 +299,18 @@ testAssert() {
 testAssertWithMessage() {
   assert(true, 'ok');
 }
+testConstructorInvoke() {
+  new Class.generative();
+}
+testConstructorInvokeGeneric() {
+  new GenericClass<int, String>.generative();
+}
+testConstructorInvokeGenericRaw() {
+  new GenericClass.generative();
+}
+testConstructorInvokeGenericDynamic() {
+  new GenericClass<dynamic, dynamic>.generative();
+}
 testFactoryInvoke() {
   new Class.fact();
 }
@@ -306,6 +372,8 @@ void checkLibrary(Compiler compiler, LibraryElement library) {
   library.forEachLocalMember((AstElement element) {
     if (element.isClass) {
       // TODO(johnniwinther): Handle class members.
+    } else if (element.isTypedef) {
+      // Skip typedefs.
     } else {
       checkElement(compiler, element);
     }

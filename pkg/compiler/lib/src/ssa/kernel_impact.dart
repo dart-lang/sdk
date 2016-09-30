@@ -24,7 +24,7 @@ import '../common/resolution.dart';
 
 /// Computes the [ResolutionImpact] for [resolvedAst] through kernel.
 ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
-  AstElement element = resolvedAst.element.implementation;
+  AstElement element = resolvedAst.element;
   JavaScriptBackend backend = compiler.backend;
   Kernel kernel = backend.kernelTask.kernel;
   KernelImpactBuilder builder =
@@ -97,6 +97,22 @@ class KernelImpactBuilder extends ir.Visitor {
         procedure.kind == ir.ProcedureKind.Operator) {
       checkFunctionTypes(procedure.function);
       visitNode(procedure.function.body);
+      switch (procedure.function.asyncMarker) {
+        case ir.AsyncMarker.Sync:
+          break;
+        case ir.AsyncMarker.SyncStar:
+          impactBuilder.registerFeature(Feature.SYNC_STAR);
+          break;
+        case ir.AsyncMarker.Async:
+          impactBuilder.registerFeature(Feature.ASYNC);
+          break;
+        case ir.AsyncMarker.AsyncStar:
+          impactBuilder.registerFeature(Feature.ASYNC_STAR);
+          break;
+        case ir.AsyncMarker.SyncYielding:
+          compiler.reporter.internalError(resolvedAst.element,
+              "Unexpected async marker: ${procedure.function.asyncMarker}");
+      }
     } else {
       compiler.reporter.internalError(
           resolvedAst.element,
@@ -199,12 +215,29 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   @override
-  void visitStaticInvocation(ir.StaticInvocation invocation) {
-    _visitArguments(invocation.arguments);
-    Element target = astAdapter.getElement(invocation.target).declaration;
+  void visitConstructorInvocation(ir.ConstructorInvocation node) {
+    handleNew(node, node.target);
+  }
+
+  void handleNew(ir.InvocationExpression node, ir.Member target) {
+    _visitArguments(node.arguments);
+    Element element = astAdapter.getElement(target).declaration;
+    impactBuilder.registerStaticUse(new StaticUse.constructorInvoke(
+        element, astAdapter.getCallStructure(node.arguments)));
+    ClassElement cls = astAdapter.getElement(target.enclosingClass);
+    List<DartType> typeArguments =
+        astAdapter.getDartTypes(node.arguments.types);
+    impactBuilder.registerTypeUse(
+        new TypeUse.instantiation(new InterfaceType(cls, typeArguments)));
+    if (typeArguments.any((DartType type) => !type.isDynamic)) {
+      impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+    }
+  }
+
+  @override
+  void visitStaticInvocation(ir.StaticInvocation node) {
+    Element target = astAdapter.getElement(node.target).declaration;
     if (target.isFactoryConstructor) {
-      impactBuilder.registerStaticUse(new StaticUse.constructorInvoke(
-          target, astAdapter.getCallStructure(invocation.arguments)));
       // TODO(johnniwinther): We should not mark the type as instantiated but
       // rather follow the type arguments directly.
       //
@@ -227,18 +260,11 @@ class KernelImpactBuilder extends ir.Visitor {
       // to B. Currently, we only do this soundly if we register A<int> and
       // A<String> as instantiated. We should instead register that A.T is
       // instantiated as int and String.
-      ClassElement cls =
-          astAdapter.getElement(invocation.target.enclosingClass);
-      List<DartType> typeArguments =
-          astAdapter.getDartTypes(invocation.arguments.types);
-      impactBuilder.registerTypeUse(
-          new TypeUse.instantiation(new InterfaceType(cls, typeArguments)));
-      if (typeArguments.any((DartType type) => !type.isDynamic)) {
-        impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
-      }
+      handleNew(node, node.target);
     } else {
+      _visitArguments(node.arguments);
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          target, astAdapter.getCallStructure(invocation.arguments)));
+          target, astAdapter.getCallStructure(node.arguments)));
     }
   }
 
@@ -322,6 +348,40 @@ class KernelImpactBuilder extends ir.Visitor {
     } else {
       impactBuilder.registerFeature(Feature.LOCAL_WITHOUT_INITIALIZER);
     }
+  }
+
+  @override
+  void visitIsExpression(ir.IsExpression node) {
+    impactBuilder.registerTypeUse(
+        new TypeUse.isCheck(astAdapter.getDartType(node.type)));
+  }
+
+  @override
+  void visitAsExpression(ir.AsExpression node) {
+    impactBuilder
+        .registerTypeUse(new TypeUse.asCast(astAdapter.getDartType(node.type)));
+  }
+
+  @override
+  void visitThrow(ir.Throw node) {
+    impactBuilder.registerFeature(Feature.THROW_EXPRESSION);
+    visitNode(node.expression);
+  }
+
+  @override
+  void visitForInStatement(ir.ForInStatement node) {
+    visitNode(node.variable);
+    visitNode(node.iterable);
+    visitNode(node.body);
+    if (node.isAsync) {
+      impactBuilder.registerFeature(Feature.ASYNC_FOR_IN);
+    } else {
+      impactBuilder.registerFeature(Feature.SYNC_FOR_IN);
+      impactBuilder
+          .registerDynamicUse(new DynamicUse(Selectors.iterator, null));
+    }
+    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.current, null));
+    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext, null));
   }
 
   // TODO(johnniwinther): Make this throw and visit child nodes explicitly

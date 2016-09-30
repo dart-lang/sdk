@@ -1117,12 +1117,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (notTypeNode != null) {
       // `e is! T`.
       Node typeNode = notTypeNode.receiver;
-      type = resolveTypeAnnotation(typeNode);
+      type = resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
       sendStructure = new IsNotStructure(type);
     } else {
       // `e is T`.
       Node typeNode = node.arguments.head;
-      type = resolveTypeAnnotation(typeNode);
+      type = resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
       sendStructure = new IsStructure(type);
     }
 
@@ -1144,7 +1144,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     visitExpression(expression);
 
     Node typeNode = node.arguments.head;
-    DartType type = resolveTypeAnnotation(typeNode);
+    DartType type =
+        resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
 
     // GENERIC_METHODS: Method type variables are not reified so we must warn
     // about the error which will occur at runtime.
