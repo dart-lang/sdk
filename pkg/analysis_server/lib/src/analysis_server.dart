@@ -30,7 +30,6 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -38,7 +37,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
@@ -320,7 +318,6 @@ class AnalysisServer {
   AnalysisServer(
       this.channel,
       this.resourceProvider,
-      PubPackageMapProvider packageMapProvider,
       Index _index,
       this.serverPlugin,
       this.options,
@@ -350,7 +347,6 @@ class AnalysisServer {
           resourceProvider,
           sdkManager,
           packageResolverProvider,
-          packageMapProvider,
           analyzedFilesGlobs,
           instrumentationService,
           defaultContextOptions);
@@ -1428,14 +1424,6 @@ class AnalysisServer {
     });
   }
 
-  void _computingPackageMap(bool computing) {
-    if (serverServices.contains(ServerService.STATUS)) {
-      PubStatus pubStatus = new PubStatus(computing);
-      ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
-      sendNotification(params.toNotification());
-    }
-  }
-
   /**
    * Return a set of all contexts whose associated folder is contained within,
    * or equal to, one of the resources in the given list of [resources].
@@ -1624,10 +1612,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
     }
   }
-
-  @override
-  void computingPackageMap(bool computing) =>
-      analysisServer._computingPackageMap(computing);
 
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {

@@ -12,7 +12,6 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:plugin/plugin.dart';
 
@@ -89,15 +88,8 @@ class SocketServer {
       index = createMemoryIndex();
     }
 
-    analysisServer = new AnalysisServer(
-        serverChannel,
-        resourceProvider,
-        new PubPackageMapProvider(resourceProvider, defaultSdk),
-        index,
-        serverPlugin,
-        analysisServerOptions,
-        sdkManager,
-        instrumentationService,
+    analysisServer = new AnalysisServer(serverChannel, resourceProvider, index,
+        serverPlugin, analysisServerOptions, sdkManager, instrumentationService,
         fileResolverProvider: fileResolverProvider,
         packageResolverProvider: packageResolverProvider,
         useSingleContextManager: useSingleContextManager,

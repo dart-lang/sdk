@@ -419,6 +419,8 @@ abstract class IntegrationTestMixin {
    *
    * packageRoots (optional Map<FilePath, FilePath>)
    *
+   *   Deprecated: This field is now ignored by server.
+   *
    *   A mapping from source directories to package roots that should override
    *   the normal package: URI resolution mechanism.
    *

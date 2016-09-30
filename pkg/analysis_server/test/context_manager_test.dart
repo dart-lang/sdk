@@ -444,10 +444,6 @@ test_pack:lib/''');
     newFile([examplePath, ContextManagerImpl.PACKAGE_SPEC_NAME]);
     newFile([examplePath, 'example.dart']);
 
-    packageMapProvider.packageMap['proj'] = <Folder>[
-      resourceProvider.getResource(libPath)
-    ];
-
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
     expect(callbacks.currentContextPaths, hasLength(2));
@@ -491,7 +487,6 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithoutPubspec() {
-    packageMapProvider.packageMap = null;
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
     expect(callbacks.currentContextPaths, hasLength(1));
@@ -982,7 +977,6 @@ test_pack:lib/''');
   }
 
   void test_setRoots_removeFolderWithoutPubspec() {
-    packageMapProvider.packageMap = null;
     // add one root - there is a context
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(callbacks.currentContextPaths, hasLength(1));
@@ -1619,7 +1613,6 @@ test_pack:lib/''');
     // create a dependency file
     String dependencyPath = posix.join(projPath, 'dep');
     resourceProvider.newFile(dependencyPath, 'contents');
-    packageMapProvider.dependencies.add(dependencyPath);
     // create a Dart file
     String dartFilePath = posix.join(projPath, 'main.dart');
     resourceProvider.newFile(dartFilePath, 'contents');
@@ -1628,7 +1621,6 @@ test_pack:lib/''');
     expect(_currentPackageMap, isEmpty);
     // Change the package map dependency so that the packageMapProvider is
     // re-run, and arrange for it to return null from computePackageMap().
-    packageMapProvider.packageMap = null;
     resourceProvider.modifyFile(dependencyPath, 'new contents');
     await pumpEventQueue();
     // The package map should have been changed to null.
@@ -1709,8 +1701,6 @@ abstract class ContextManagerTest {
   TestContextManagerCallbacks callbacks;
 
   MemoryResourceProvider resourceProvider;
-
-  MockPackageMapProvider packageMapProvider;
 
   UriResolver packageResolver = null;
 
@@ -1794,14 +1784,12 @@ abstract class ContextManagerTest {
   void setUp() {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
-    packageMapProvider = new MockPackageMapProvider();
     DartSdk sdk = new MockSdk(resourceProvider: resourceProvider);
     DartSdkManager sdkManager = new DartSdkManager('/', false, (_) => sdk);
     manager = new ContextManagerImpl(
         resourceProvider,
         sdkManager,
         providePackageResolver,
-        packageMapProvider,
         analysisFilesGlobs,
         InstrumentationService.NULL_SERVICE,
         new AnalysisOptionsImpl());
@@ -2706,11 +2694,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
 
   void assertContextPaths(List<String> expected) {
     expect(currentContextPaths, unorderedEquals(expected));
-  }
-
-  @override
-  void computingPackageMap(bool computing) {
-    // Do nothing.
   }
 
   @override

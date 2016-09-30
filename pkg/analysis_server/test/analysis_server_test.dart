@@ -41,7 +41,6 @@ class AnalysisServerTest {
   MockServerChannel channel;
   AnalysisServer server;
   MemoryResourceProvider resourceProvider;
-  MockPackageMapProvider packageMapProvider;
 
   /**
    * Verify that getAnalysisContextForSource returns the correct contexts even
@@ -138,11 +137,9 @@ import "../foo/foo.dart";
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
-    packageMapProvider = new MockPackageMapProvider();
     server = new AnalysisServer(
         channel,
         resourceProvider,
-        packageMapProvider,
         null,
         plugin,
         new AnalysisServerOptions(),
@@ -541,8 +538,8 @@ analyzer:
 
   void _configureSourceFactory(AnalysisContext context) {
     var resourceUriResolver = new ResourceUriResolver(resourceProvider);
-    var packageUriResolver = new PackageMapUriResolver(
-        resourceProvider, packageMapProvider.packageMap);
+    var packageUriResolver =
+        new PackageMapUriResolver(resourceProvider, <String, List<Folder>>{});
     context.sourceFactory =
         new SourceFactory([packageUriResolver, resourceUriResolver]);
   }

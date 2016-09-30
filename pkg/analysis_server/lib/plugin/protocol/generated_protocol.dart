@@ -1714,6 +1714,8 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   }
 
   /**
+   * Deprecated: This field is now ignored by server.
+   *
    * A mapping from source directories to package roots that should override
    * the normal package: URI resolution mechanism.
    *
@@ -1737,6 +1739,8 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   Map<String, String> get packageRoots => _packageRoots;
 
   /**
+   * Deprecated: This field is now ignored by server.
+   *
    * A mapping from source directories to package roots that should override
    * the normal package: URI resolution mechanism.
    *

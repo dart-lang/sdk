@@ -9,7 +9,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:core';
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -17,10 +16,8 @@ import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/config.dart';
-import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart' as context;
@@ -334,12 +331,6 @@ abstract class ContextManagerCallbacks {
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
 
   /**
-   * Signals that the context manager has started to compute a package map (if
-   * [computing] is `true`) or has finished (if [computing] is `false`).
-   */
-  void computingPackageMap(bool computing);
-
-  /**
    * Create and return a context builder that can be used to create a context
    * for the files in the given [folder] when analyzed using the given [options].
    */
@@ -455,12 +446,8 @@ class ContextManagerImpl implements ContextManager {
   final ResolverProvider packageResolverProvider;
 
   /**
-   * Provider which is used to determine the mapping from package name to
-   * package folder.
+   * Provider of analysis options.
    */
-  final PubPackageMapProvider _packageMapProvider;
-
-  /// Provider of analysis options.
   AnalysisOptionsProvider analysisOptionsProvider =
       new AnalysisOptionsProvider();
 
@@ -506,7 +493,6 @@ class ContextManagerImpl implements ContextManager {
       this.resourceProvider,
       this.sdkManager,
       this.packageResolverProvider,
-      this._packageMapProvider,
       this.analyzedFilesGlobs,
       this._instrumentationService,
       this.defaultContextOptions) {
@@ -983,35 +969,19 @@ class ContextManagerImpl implements ContextManager {
       // resolve packages.
       return new NoPackageFolderDisposition(packageRoot: packageRoot);
     } else {
-      PackageMapInfo packageMapInfo;
-      callbacks.computingPackageMap(true);
-      try {
-        // Try .packages first.
-        if (absolutePathContext.basename(packagespecFile.path) ==
-            PACKAGE_SPEC_NAME) {
-          Packages packages = _readPackagespec(packagespecFile);
-          return new PackagesFileDisposition(packages);
+      // Try .packages first.
+      if (absolutePathContext.basename(packagespecFile.path) ==
+          PACKAGE_SPEC_NAME) {
+        Packages packages = _readPackagespec(packagespecFile);
+        return new PackagesFileDisposition(packages);
+      }
+      if (packageResolverProvider != null) {
+        UriResolver resolver = packageResolverProvider(folder);
+        if (resolver != null) {
+          return new CustomPackageResolverDisposition(resolver);
         }
-        if (packageResolverProvider != null) {
-          UriResolver resolver = packageResolverProvider(folder);
-          if (resolver != null) {
-            return new CustomPackageResolverDisposition(resolver);
-          }
-        }
-
-        ServerPerformanceStatistics.pub.makeCurrentWhile(() {
-          packageMapInfo = _packageMapProvider.computePackageMap(folder);
-        });
-      } finally {
-        callbacks.computingPackageMap(false);
       }
-      for (String dependencyPath in packageMapInfo.dependencies) {
-        addDependency(dependencyPath);
-      }
-      if (packageMapInfo.packageMap == null) {
-        return new NoPackageFolderDisposition();
-      }
-      return new PackageMapDisposition(packageMapInfo.packageMap);
+      return new NoPackageFolderDisposition();
     }
   }
 

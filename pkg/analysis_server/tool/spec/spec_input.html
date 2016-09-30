@@ -617,11 +617,12 @@
               included directories that should not be analyzed.
             </p>
           </field>
-          <field name="packageRoots" optional="true">
+          <field name="packageRoots" optional="true" >
             <map>
               <key><ref>FilePath</ref></key>
               <value><ref>FilePath</ref></value>
             </map>
+            <p><b><i>Deprecated</i></b>: This field is now ignored by server.</p>
             <p>
               A mapping from source directories to package roots
               that should override the normal package: URI resolution

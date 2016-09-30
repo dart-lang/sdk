@@ -14,10 +14,6 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/file_system/file_system.dart' as resource;
-import 'package:analyzer/file_system/memory_file_system.dart' as resource;
-import 'package:analyzer/source/package_map_provider.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
@@ -126,46 +122,6 @@ class MockLogger extends TypedMock implements Logger {}
 class MockMethodElement extends StringTypedMock implements MethodElement {
   final kind = ElementKind.METHOD;
   MockMethodElement([String name = 'method']) : super(name);
-}
-
-/**
- * A mock [PackageMapProvider].
- */
-class MockPackageMapProvider implements PubPackageMapProvider {
-  /**
-   * Package map that will be returned by the next call to [computePackageMap].
-   */
-  Map<String, List<resource.Folder>> packageMap =
-      <String, List<resource.Folder>>{};
-
-  /**
-   * Package maps that will be returned by the next call to [computePackageMap].
-   */
-  Map<String, Map<String, List<resource.Folder>>> packageMaps = null;
-
-  /**
-   * Dependency list that will be returned by the next call to [computePackageMap].
-   */
-  Set<String> dependencies = new Set<String>();
-
-  /**
-   * Number of times [computePackageMap] has been called.
-   */
-  int computeCount = 0;
-
-  @override
-  PackageMapInfo computePackageMap(resource.Folder folder) {
-    ++computeCount;
-    if (packageMaps != null) {
-      return new PackageMapInfo(packageMaps[folder.path], dependencies);
-    }
-    return new PackageMapInfo(packageMap, dependencies);
-  }
-
-  noSuchMethod(Invocation invocation) {
-    // No other methods should be called.
-    return super.noSuchMethod(invocation);
-  }
 }
 
 class MockParameterElement extends TypedMock implements ParameterElement {
