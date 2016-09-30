@@ -110,9 +110,14 @@ class SummaryProvider {
   final Map<Folder, List<Package>> folderToPackagesMap = {};
 
   /**
-   * Mapping from [Uri]s to corresponding [_LinkNode]s.
+   * Mapping from [Uri]s to corresponding [Package]s.
    */
-  final Map<Uri, _LinkNode> uriToNodeMap = {};
+  final Map<Uri, Package> uriToPackageMap = {};
+
+  /**
+   * Mapping from [Package]s to corresponding [_LinkNode]s.
+   */
+  final Map<Package, _LinkNode> packageToNodeMap = {};
 
   SummaryProvider(this.provider, this.getOutputFolder, AnalysisContext context)
       : context = context,
@@ -162,17 +167,19 @@ class SummaryProvider {
    */
   @visibleForTesting
   Package getUnlinkedForUri(Uri uri) {
-    Folder outputFolder = getOutputFolder(uri);
-    if (outputFolder != null) {
-      String uriStr = uri.toString();
-      List<Package> packages = _getUnlinkedPackages(outputFolder);
-      for (Package package in packages) {
-        if (package._unitUris.contains(uriStr)) {
-          return package;
+    return uriToPackageMap.putIfAbsent(uri, () {
+      Folder outputFolder = getOutputFolder(uri);
+      if (outputFolder != null) {
+        String uriStr = uri.toString();
+        List<Package> packages = _getUnlinkedPackages(outputFolder);
+        for (Package package in packages) {
+          if (package._unitUris.contains(uriStr)) {
+            return package;
+          }
         }
       }
-    }
-    return null;
+      return null;
+    });
   }
 
   /**
@@ -191,8 +198,8 @@ class SummaryProvider {
    * bundle that contains [uri].
    */
   _LinkNode _getLinkNodeForUri(Uri uri) {
-    return uriToNodeMap.putIfAbsent(uri, () {
-      Package package = getUnlinkedForUri(uri);
+    Package package = getUnlinkedForUri(uri);
+    return packageToNodeMap.putIfAbsent(package, () {
       if (package == null) {
         return null;
       }
