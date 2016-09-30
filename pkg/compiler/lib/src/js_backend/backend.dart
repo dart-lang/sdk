@@ -1310,7 +1310,8 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, helpers.isJsIndexable, registry);
     }
 
-    customElementsAnalysis.registerInstantiatedClass(cls, enqueuer);
+    customElementsAnalysis.registerInstantiatedClass(cls,
+        forResolution: enqueuer.isResolutionQueue);
     if (!enqueuer.isResolutionQueue) {
       lookupMapAnalysis.registerInstantiatedClass(cls);
     }
@@ -1904,7 +1905,7 @@ class JavaScriptBackend extends Backend {
     return compiler.closedWorld.hasOnlySubclasses(classElement);
   }
 
-  void registerStaticUse(Element element, Enqueuer enqueuer) {
+  void registerStaticUse(Element element, {bool forResolution}) {
     if (element == helpers.disableTreeShakingMarker) {
       isTreeShakingDisabled = true;
     } else if (element == helpers.preserveNamesMarker) {
@@ -1927,7 +1928,8 @@ class JavaScriptBackend extends Backend {
     } else if (element == helpers.requiresPreambleMarker) {
       requiresPreamble = true;
     }
-    customElementsAnalysis.registerStaticUse(element, enqueuer);
+    customElementsAnalysis.registerStaticUse(element,
+        forResolution: forResolution);
   }
 
   /// Called when [:const Symbol(name):] is seen.
@@ -2351,9 +2353,12 @@ class JavaScriptBackend extends Backend {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    customElementsAnalysis.onQueueEmpty(enqueuer);
-    lookupMapAnalysis.onQueueEmpty(enqueuer);
-    typeVariableHandler.onQueueEmpty(enqueuer);
+    enqueuer.applyImpact(customElementsAnalysis.flush(
+        forResolution: enqueuer.isResolutionQueue));
+    enqueuer.applyImpact(
+        lookupMapAnalysis.flush(forResolution: enqueuer.isResolutionQueue));
+    enqueuer.applyImpact(
+        typeVariableHandler.flush(forResolution: enqueuer.isResolutionQueue));
 
     if (!enqueuer.queueIsEmpty) return false;
 
@@ -2424,7 +2429,7 @@ class JavaScriptBackend extends Backend {
         }
         metadataConstants.clear();
       }
-      enqueuer.applyImpact(null, impactBuilder.flush());
+      enqueuer.applyImpact(impactBuilder.flush());
     }
     return true;
   }

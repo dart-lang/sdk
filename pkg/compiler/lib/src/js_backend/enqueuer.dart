@@ -134,10 +134,9 @@ class CodegenEnqueuer implements Enqueuer {
     }
   }
 
-  /// Apply the [worldImpact] of processing [element] to this enqueuer.
-  void applyImpact(Element element, WorldImpact worldImpact) {
+  void applyImpact(WorldImpact worldImpact, {Element impactSource}) {
     _compiler.impactStrategy
-        .visitImpact(element, worldImpact, impactVisitor, impactUse);
+        .visitImpact(impactSource, worldImpact, impactVisitor, impactUse);
   }
 
   void registerInstantiatedType(InterfaceType type, {bool mirrorUsage: false}) {
@@ -513,7 +512,7 @@ class CodegenEnqueuer implements Enqueuer {
     assert(invariant(element, element.isDeclaration,
         message: "Element ${element} is not the declaration."));
     _universe.registerStaticUse(staticUse);
-    backend.registerStaticUse(element, this);
+    backend.registerStaticUse(element, forResolution: false);
     bool addElement = true;
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:

@@ -835,9 +835,9 @@ abstract class Compiler implements LibraryLoaderListener {
               work.element,
               () => selfTask.measureSubtask("world.applyImpact", () {
                     world.applyImpact(
-                        work.element,
                         selfTask.measureSubtask(
-                            "work.run", () => work.run(this, world)));
+                            "work.run", () => work.run(this, world)),
+                        impactSource: work.element);
                   }));
         });
       });

@@ -213,7 +213,7 @@ abstract class Backend extends Target {
     return false;
   }
 
-  void registerStaticUse(Element element, Enqueuer enqueuer) {}
+  void registerStaticUse(Element element, {bool forResolution}) {}
 
   /// This method is called immediately after the [LibraryElement] [library] has
   /// been created.

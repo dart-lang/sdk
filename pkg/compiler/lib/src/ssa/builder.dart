@@ -377,7 +377,7 @@ class SsaBuilder extends ast.Visitor
     // TODO(johnniwinther): Register this on the [registry]. Currently the
     // [CodegenRegistry] calls the enqueuer, but [element] should _not_ be
     // enqueued.
-    backend.registerStaticUse(element, compiler.enqueuer.codegen);
+    backend.registerStaticUse(element, forResolution: false);
 
     if (backend.isJsInterop(element) && !element.isFactoryConstructor) {
       // We only inline factory JavaScript interop constructors.

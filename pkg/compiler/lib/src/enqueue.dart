@@ -110,7 +110,11 @@ abstract class Enqueuer {
 
   void registerInstantiatedType(InterfaceType type, {bool mirrorUsage: false});
   void forEach(void f(WorkItem work));
-  void applyImpact(Element element, WorldImpact worldImpact);
+
+  /// Apply the [worldImpact] to this enqueuer. If the [impactSource] is provided
+  /// the impact strategy will remove it from the element impact cache, if it is
+  /// no longer needed.
+  void applyImpact(WorldImpact worldImpact, {Element impactSource});
   bool checkNoEnqueuedInvokedInstanceMethods();
   void logSummary(log(message));
 
@@ -183,10 +187,9 @@ class ResolutionEnqueuer extends Enqueuer {
     }
   }
 
-  /// Apply the [worldImpact] of processing [element] to this enqueuer.
-  void applyImpact(Element element, WorldImpact worldImpact) {
+  void applyImpact(WorldImpact worldImpact, {Element impactSource}) {
     compiler.impactStrategy
-        .visitImpact(element, worldImpact, impactVisitor, impactUse);
+        .visitImpact(impactSource, worldImpact, impactVisitor, impactUse);
   }
 
   void registerInstantiatedType(InterfaceType type, {bool mirrorUsage: false}) {
@@ -574,7 +577,7 @@ class ResolutionEnqueuer extends Enqueuer {
     assert(invariant(element, element.isDeclaration,
         message: "Element ${element} is not the declaration."));
     _universe.registerStaticUse(staticUse);
-    compiler.backend.registerStaticUse(element, this);
+    compiler.backend.registerStaticUse(element, forResolution: true);
     bool addElement = true;
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:

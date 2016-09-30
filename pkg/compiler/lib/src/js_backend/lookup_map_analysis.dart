@@ -128,9 +128,10 @@ class LookupMapAnalysis {
 
   LookupMapAnalysis(this.backend, this.reporter);
 
-  void onQueueEmpty(Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue) return;
-    enqueuer.applyImpact(null, impactBuilder.flush());
+  /// Compute the [WorldImpact] for the constants registered since last flush.
+  WorldImpact flush({bool forResolution}) {
+    if (forResolution) return const WorldImpact();
+    return impactBuilder.flush();
   }
 
   /// Whether this analysis and optimization is enabled.
