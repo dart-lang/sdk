@@ -4,8 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -16,6 +18,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -25,6 +28,7 @@ import '../context/abstract_context.dart';
 
 main() {
   initializeTestEnvironment();
+  defineReflectiveTests(BazelResultProviderTest);
   defineReflectiveTests(SummaryProviderTest);
 }
 
@@ -32,21 +36,125 @@ const OUT_ROOT = '$SRC_ROOT/bazel-bin';
 const SRC_ROOT = '/company/src/user/project/root';
 
 @reflectiveTest
-class SummaryProviderTest extends AbstractContextTest {
+class BazelResultProviderTest extends _BaseTest {
+  BazelResultProvider provider;
+
+  @override
+  void setUp() {
+    super.setUp();
+    provider = new BazelResultProvider(
+        new SummaryProvider(resourceProvider, _getOutputFolder, context));
+  }
+
+  test_failure_inconsistent_directDependency() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+import 'package:components.aaa/a.dart';
+class B extends A {}
+''');
+    _writeUnlinkedBundle('components.aaa');
+    _writeUnlinkedBundle('components.bbb');
+    _setComponentFile('aaa', 'a.dart', 'class A2 {}');
+    // The 'aaa' unlinked bundle in inconsistent, so 'bbb' linking fails.
+    Source source = _resolveUri('package:components.bbb/b.dart');
+    CacheEntry entry = context.getCacheEntry(source);
+    expect(provider.compute(entry, LIBRARY_ELEMENT), isFalse);
+  }
+
+  test_failure_missingDirectDependency() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+import 'package:components.aaa/a.dart';
+class B extends A {}
+''');
+    _writeUnlinkedBundle('components.bbb');
+    // We cannot find 'aaa' bundle, so 'bbb' linking fails.
+    Source source = _resolveUri('package:components.bbb/b.dart');
+    CacheEntry entry = context.getCacheEntry(source);
+    expect(provider.compute(entry, LIBRARY_ELEMENT), isFalse);
+  }
+
+  test_success_withoutDependencies() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _writeUnlinkedBundle('components.aaa');
+    // Resynthesize 'aaa' library.
+    Source source = _resolveUri('package:components.aaa/a.dart');
+    LibraryElement library = _resynthesizeLibrary(source);
+    List<ClassElement> types = library.definingCompilationUnit.types;
+    expect(types, hasLength(1));
+    expect(types.single.name, 'A');
+  }
+
+  test_withDependency_import() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+import 'package:components.aaa/a.dart';
+class B extends A {}
+''');
+    _writeUnlinkedBundle('components.aaa');
+    _writeUnlinkedBundle('components.bbb');
+    // Prepare sources.
+    Source sourceA = _resolveUri('package:components.aaa/a.dart');
+    Source sourceB = _resolveUri('package:components.bbb/b.dart');
+    // Resynthesize 'bbb' library.
+    LibraryElement libraryB = _resynthesizeLibrary(sourceB);
+    List<ClassElement> types = libraryB.definingCompilationUnit.types;
+    expect(types, hasLength(1));
+    ClassElement typeB = types.single;
+    expect(typeB.name, 'B');
+    expect(typeB.supertype.name, 'A');
+    // The LibraryElement for 'aaa' is not created at all.
+    expect(context.getResult(sourceA, LIBRARY_ELEMENT), isNull);
+    // But we can resynthesize it, and it's the same as from 'bbb'.
+    expect(provider.compute(context.getCacheEntry(sourceA), LIBRARY_ELEMENT),
+        isTrue);
+    LibraryElement libraryA = context.getResult(sourceA, LIBRARY_ELEMENT);
+    expect(libraryA, isNotNull);
+    expect(typeB.supertype.element.library, same(libraryA));
+  }
+
+  LibraryElement _resynthesizeLibrary(Source source) {
+    CacheEntry entry = context.getCacheEntry(source);
+    expect(provider.compute(entry, LIBRARY_ELEMENT), isTrue);
+    return context.getResult(source, LIBRARY_ELEMENT);
+  }
+}
+
+@reflectiveTest
+class SummaryProviderTest extends _BaseTest {
   SummaryProvider manager;
 
   @override
   void setUp() {
     super.setUp();
-    // Include a 'package' URI resolver.
-    sourceFactory = new SourceFactory(<UriResolver>[
-      sdkResolver,
-      resourceResolver,
-      new _TestPackageResolver(resourceProvider)
-    ], null, resourceProvider);
-    context.sourceFactory = sourceFactory;
-    // Create a new SummaryProvider instance.
     manager = new SummaryProvider(resourceProvider, _getOutputFolder, context);
+  }
+
+  test_getLinkedPackages_null_inconsistent_directDependency() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+import 'package:components.aaa/a.dart';
+class B extends A {}
+''');
+    _writeUnlinkedBundle('components.aaa');
+    _writeUnlinkedBundle('components.bbb');
+    _setComponentFile('aaa', 'a.dart', 'class A2 {}');
+    // The 'aaa' unlinked bundle in inconsistent, so 'bbb' linking fails.
+    Source source = _resolveUri('package:components.bbb/b.dart');
+    List<Package> packages = manager.getLinkedPackages(source);
+    expect(packages, isNull);
   }
 
   test_getLinkedPackages_null_missingBundle() {
@@ -209,6 +317,20 @@ class C extends B {}
     Source source2 = _resolveUri('package:components.aaa/a2.dart');
     expect(manager.getUnlinkedForUri(source1.uri), isNull);
     expect(manager.getUnlinkedForUri(source2.uri), isNull);
+  }
+}
+
+class _BaseTest extends AbstractContextTest {
+  @override
+  void setUp() {
+    super.setUp();
+    // Include a 'package' URI resolver.
+    sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new _TestPackageResolver(resourceProvider)
+    ], null, resourceProvider);
+    context.sourceFactory = sourceFactory;
   }
 
   Folder _getOutputFolder(Uri absoluteUri) {

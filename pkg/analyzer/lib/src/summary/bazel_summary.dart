@@ -27,6 +27,49 @@ import 'package:meta/meta.dart';
 typedef Folder GetOutputFolder(Uri absoluteUri);
 
 /**
+ * Load linked packages on demand from [SummaryProvider].
+ */
+class BazelResultProvider extends ResynthesizerResultProvider {
+  final SummaryDataStore dataStore;
+  final SummaryProvider summaryProvider;
+
+  final Map<Source, bool> sourceToSuccessMap = <Source, bool>{};
+  final Set<Package> addedPackages = new Set<Package>();
+
+  factory BazelResultProvider(SummaryProvider summaryProvider) {
+    SummaryDataStore dataStore = new SummaryDataStore(const <String>[]);
+    return new BazelResultProvider._(dataStore, summaryProvider);
+  }
+
+  BazelResultProvider._(
+      SummaryDataStore dataStore, SummaryProvider summaryProvider)
+      : dataStore = dataStore,
+        summaryProvider = summaryProvider,
+        super(summaryProvider.context, dataStore) {
+    AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
+    createResynthesizer(sdkContext, sdkContext.typeProvider);
+  }
+
+  @override
+  bool hasResultsForSource(Source source) {
+    return sourceToSuccessMap.putIfAbsent(source, () {
+      List<Package> packages = summaryProvider.getLinkedPackages(source);
+      if (packages == null) {
+        return false;
+      }
+      for (Package package in packages) {
+        if (addedPackages.add(package)) {
+          dataStore.addBundle(null, package.unlinked);
+          dataStore.addBundle(null, package.linked);
+        }
+      }
+      String uriString = source.uri.toString();
+      return resynthesizer.hasLibrarySummary(uriString);
+    });
+  }
+}
+
+/**
  * Information about a Dart package in Bazel.
  */
 class Package {
