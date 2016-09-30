@@ -36962,40 +36962,13 @@ math.SQRT1_2 = 0.7071067811865476;
 math.SQRT2 = 1.4142135623730951;
 math.min = function(T) {
   return (a, b) => {
-    if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
-    if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
-    if (dart.notNull(a) > dart.notNull(b)) return b;
-    if (dart.notNull(a) < dart.notNull(b)) return a;
-    if (typeof b == 'number') {
-      if (typeof a == 'number') {
-        if (a == 0.0) {
-          return (dart.notNull(a) + dart.notNull(b)) * dart.notNull(a) * dart.notNull(b);
-        }
-      }
-      if (a == 0 && dart.test(b[dartx.isNegative]) || dart.test(b[dartx.isNaN])) return b;
-      return a;
-    }
-    return a;
+    return Math.min(_js_helper.checkNum(a), _js_helper.checkNum(b));
   };
 };
 dart.fn(math.min, TAndTToT());
 math.max = function(T) {
   return (a, b) => {
-    if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
-    if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
-    if (dart.notNull(a) > dart.notNull(b)) return a;
-    if (dart.notNull(a) < dart.notNull(b)) return b;
-    if (typeof b == 'number') {
-      if (typeof a == 'number') {
-        if (a == 0.0) {
-          return dart.notNull(a) + dart.notNull(b);
-        }
-      }
-      if (dart.test(b[dartx.isNaN])) return b;
-      return a;
-    }
-    if (b == 0 && dart.test(a[dartx.isNegative])) return b;
-    return a;
+    return Math.max(_js_helper.checkNum(a), _js_helper.checkNum(b));
   };
 };
 dart.fn(math.max, TAndTToT());
